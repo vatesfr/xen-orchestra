@@ -15,8 +15,10 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
+export type LabelAccent = 'neutral' | 'warning' | 'danger'
+
 const { for: htmlFor } = defineProps<{
-  accent: 'neutral' | 'warning' | 'danger'
+  accent: LabelAccent
   for?: string
   icon?: IconDefinition
   required?: boolean

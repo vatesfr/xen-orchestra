@@ -1,3 +1,4 @@
+import type { InputWrapperController } from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import type { ValueFormatter } from '@core/types/chart'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 
@@ -18,3 +19,5 @@ export const IK_CLOSE_MENU = Symbol('IK_CLOSE_MENU') as InjectionKey<() => void>
 export const IK_MENU_TELEPORTED = Symbol('IK_MENU_TELEPORTED') as InjectionKey<boolean>
 
 export const IK_DISABLED = Symbol('IK_DISABLED') as InjectionKey<ComputedRef<boolean>>
+
+export const IK_INPUT_WRAPPER_CONTROLLER = Symbol('IK_INPUT_WRAPPER_CONTROLLER') as InjectionKey<InputWrapperController>
