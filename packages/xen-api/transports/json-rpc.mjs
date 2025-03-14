@@ -10,8 +10,10 @@ const tracer = trace.getTracer('xo:json-rpc')
 // https://github.com/xenserver/xenadmin/blob/0df39a9d83cd82713f32d24704852a0fd57b8a64/XenModel/XenAPI/Session.cs#L403-L433
 export default ({ dispatcher, url }) => {
   url = new URL('./jsonrpc', Object.assign(new URL('http://localhost'), url))
-
   return async function (method, args) {
+    const traceparent = trace.getActiveSpan()?._spanContext?.spanId
+    const tracestate = trace.getActiveSpan()?._spanContext?.traceState
+
       return tracer.startActiveSpan(`xo:json-rpc:${method}`, async (span) => {
         try{
           const res = await request(url, {
@@ -20,6 +22,8 @@ export default ({ dispatcher, url }) => {
             headers: {
               Accept: 'application/json',
               'Content-Type': 'application/json',
+              tracestate,
+              traceparent
             },
             method: 'POST',
           })

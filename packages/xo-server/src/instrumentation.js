@@ -12,7 +12,7 @@ const { ZipkinExporter } = require('@opentelemetry/exporter-zipkin')
 // default) and application name to the Zipkin options.
 // You can also define your custom headers which will be added automatically.
 const options = {
-  url: 'http://10.1.5.158:9411/api/v2/spans',
+  url: 'http://10.1.8.81:9411/api/v2/spans',
 }
 const exporter = new ZipkinExporter(options)
 const sdk = new NodeSDK({
