@@ -277,6 +277,12 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     }
   }
 
+  async _openFile(path, flags) {
+    return path
+  }
+
+  async _closeFile(fd) {}
+
   async _rmtree(path) {
     const iter = this.#containerClient.listBlobsFlat({ prefix: this.#makePrefix(path) })
     await asyncEach(
