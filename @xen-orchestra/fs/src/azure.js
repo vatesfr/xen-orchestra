@@ -290,6 +290,10 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       throw error
     }
   }
+  // writeFile is used in the backups while _outputFile was used in the tests
+  async _writeFile(path) {
+    await this._outputFile(path)
+  }
 
   async _openFile(path, flags) {
     return path
