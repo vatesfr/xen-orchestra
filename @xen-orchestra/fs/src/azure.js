@@ -146,9 +146,9 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   // list blobs in container
   async _list(path, options = {}) {
     const { ignoreMissing = false } = options
-    const error = new Error(`ENOENT: No such file or directory from list`)
-    error.code = 'ENOENT'
-    error.path = path
+    const enoentError = new Error(`ENOENT: No such file or directory from list`)
+    enoentError.code = 'ENOENT'
+    enoentError.path = path
 
     try {
       const result = []
@@ -157,12 +157,12 @@ export default class AzureHandler extends RemoteHandlerAbstract {
         result.push(strippedName.endsWith('/') ? strippedName.slice(0, -1) : strippedName)
       }
       if (result.length === 0 && !ignoreMissing) {
-        throw error
+        throw enoentError
       }
       return result
     } catch (e) {
-      if (error.statusCode === 404) {
-        throw error
+      if (e.statusCode === 404) {
+        throw enoentError
       }
       throw e
     }
@@ -210,8 +210,8 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       const blobClient = this.#containerClient.getBlobClient(file)
       await blobClient.delete()
     } catch (e) {
-      if (e.name === 'RestError' && [400, 404].includes(e.statusCode)) {
-        // do nothing
+      if (e.name === 'RestError' && ![400, 404].includes(e.statusCode)) {
+        throw e
       }
     }
   }
