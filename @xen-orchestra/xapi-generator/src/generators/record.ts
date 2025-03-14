@@ -38,6 +38,8 @@ export const generateRecord = (item: XapiItem) => {
         t => t.transition === 'published' && VERSION_BY_CODE_NAME[t.release] === undefined
       )
     const isDeprecated = field.lifecycle.transitions.some(t => t.transition === 'deprecated')
+    const isEmptyOpaqueRef =
+      field.default === 'OpaqueRef:NULL' || (field.default === 'Null' && field.type.endsWith('ref'))
 
     function isAlwaysExisting() {
       if (!isPublished || isPublishedAfterDundee) {
@@ -51,6 +53,9 @@ export const generateRecord = (item: XapiItem) => {
     //   field.name === 'uuid' || field.type.endsWith(' set') || (isPublished && isFromRio && !isDeprecated && !isOptional)
 
     const result = [`  ${field.name}${isAlwaysExisting() ? '' : '?'}: ${toType(field.type)}`]
+    if (isEmptyOpaqueRef) {
+      result[0] = result[0].concat(' | OPAQUE_REF_NULL')
+    }
 
     if (isDeprecated) {
       result.unshift('  /** @deprecated */')
