@@ -5,7 +5,8 @@ import { join, split } from './path'
 import RemoteHandlerAbstract from './abstract'
 import { pRetry } from 'promise-toolbox'
 import { asyncEach } from '@vates/async-each'
-import { readChunkStrict } from '@vates/read-chunk'
+import { readChunk } from '@vates/read-chunk'
+import copyStreamToBuffer from './_copyStreamToBuffer'
 
 createLogger('xo:fs:azure')
 const MAX_BLOCK_SIZE = 1024 * 1024 * 4000 // 4000 MiB
@@ -74,66 +75,47 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     return (value?.segment?.blobItems?.length ?? 0) > 0
   }
 
-  async #streamToBuffer(readableStream, buffer) {
-    return new Promise((resolve, reject) => {
-      let bytesRead = 0
-
-      readableStream.on('data', data => {
-        if (bytesRead + data.length <= buffer.length) {
-          data.copy(buffer, bytesRead)
-          bytesRead += data.length
-        } else {
-          reject(new Error('Buffer size exceeded'))
-        }
-      })
-      readableStream.on('end', () => {
-        resolve(bytesRead)
-      })
-      readableStream.on('error', reject)
-    })
-  }
-
   async _sync() {
     await this.#containerClient.createIfNotExists()
     await super._sync()
   }
 
   async _outputStream(path, input, { streamLength, maxStreamLength = streamLength, validator }) {
+    const blobClient = this.#containerClient.getBlockBlobClient(path)
     let blockSize
-
     if (maxStreamLength === undefined) {
       warn(
         `Writing ${path} to a azure blob storage without a max size set will cut it to ${MAX_BLOCK_COUNT * MAX_BLOCK_SIZE} bytes`,
         { path }
       )
       blockSize = MIN_BLOCK_SIZE
-    } else if (maxStreamLength < MIN_BLOCK_SIZE) {
-      await this._writeFile(path, input)
-      return
     } else {
       const minBlockSize = Math.ceil(maxStreamLength / MAX_BLOCK_COUNT) // Minimal possible block size for the block count allowed
       const adjustedMinSize = Math.max(minBlockSize, MIN_BLOCK_SIZE) // Block size must be larger than minimum block size allowed
       blockSize = Math.min(adjustedMinSize, MAX_BLOCK_SIZE) // Block size must be smaller than max block size allowed
     }
 
-    const blobClient = this.#containerClient.getBlockBlobClient(path)
-    const blockCount = Math.ceil(streamLength / blockSize)
-
-    if (blockCount > MAX_BLOCK_COUNT) {
-      throw new Error(`File too large. Maximum upload size is ${MAX_BLOCK_SIZE * MAX_BLOCK_COUNT} bytes`)
-    }
-
     const blockIds = []
+    let blockIndex = 0
+    let done = false
 
-    for (let i = 0; i < blockCount; i++) {
-      const blockId = Buffer.from(i.toString().padStart(6, '0')).toString('base64')
-      const chunk = await readChunkStrict(input, blockSize)
-      await blobClient.stageBlock(blockId, chunk, chunk.length)
+    while (!done) {
+      if (!input.readable) {
+        input.readableEnded = true
+        break
+      }
+      const chunk = await readChunk(input, blockSize)
+      if (!chunk || chunk.length === 0) {
+        done = true
+        break
+      }
+
+      const blockId = Buffer.from(blockIndex.toString().padStart(6, '0')).toString('base64')
       blockIds.push(blockId)
+      await blobClient.stageBlock(blockId, chunk, chunk.length)
+      blockIndex++
     }
-
     await blobClient.commitBlockList(blockIds)
-
     if (validator !== undefined) {
       try {
         await validator.call(this, path)
@@ -143,6 +125,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       }
     }
   }
+
   // list blobs in container
   async _list(path, options = {}) {
     const { ignoreMissing = false } = options
@@ -169,19 +152,9 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   // uploads a file to a blob
-  async _outputFile(file, data) {
+  async _writeFile(file, data) {
     const blobClient = this.#containerClient.getBlockBlobClient(file)
-    if (await blobClient.exists()) {
-      const error = new Error(`EEXIST: file already exists, mkdir '${file}'`)
-      error.code = 'EEXIST'
-      error.path = file
-      throw error
-    }
-    if (data.length > MAX_BLOCK_SIZE) {
-      await this._outputStream(file, data)
-    } else {
-      await blobClient.upload(data, data.length)
-    }
+    await blobClient.upload(data, data.length)
   }
 
   async _createReadStream(file) {
@@ -215,7 +188,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       }
     }
   }
-  // the thrown error only worked when I renamed the function from _rename to rename due to how it's being called in abstract.js
+
   async rename(oldPath, newPath) {
     await this._copy(oldPath, newPath)
     await this._unlink(oldPath)
@@ -256,17 +229,8 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     }
     try {
       const blobClient = this.#containerClient.getBlobClient(file)
-      const blobSize = (await blobClient.getProperties()).contentLength
-      if (blobSize === 0) {
-        console.warn(`Blob is empty: ${file}`)
-        return { bytesRead: 0, buffer }
-      }
-      if (position >= blobSize) {
-        throw new Error(`Requested range starts beyond blob size: ${blobSize}`)
-      }
-
-      const downloadResponse = await blobClient.download(position, Math.min(blobSize - position, buffer.length))
-      const bytesRead = await this.#streamToBuffer(downloadResponse.readableStreamBody, buffer)
+      const downloadResponse = await blobClient.download(position, buffer.length)
+      const bytesRead = await copyStreamToBuffer(downloadResponse.readableStreamBody, buffer)
       return { bytesRead, buffer }
     } catch (e) {
       if (e.statusCode === 404) {
@@ -290,9 +254,29 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       throw error
     }
   }
-  // writeFile is used in the backups while _outputFile was used in the tests
-  async _writeFile(path) {
-    await this._outputFile(path)
+  async _writeFd(file, buffer, position) {
+    if (typeof file !== 'string') {
+      file = file.fd
+    }
+
+    const blobClient = this.#containerClient.getBlockBlobClient(file)
+    const blockSize = MIN_BLOCK_SIZE
+    const blockIds = []
+    let totalWritten = 0
+    let blockIndex = 0
+
+    while (totalWritten < buffer.length) {
+      const chunkSize = Math.min(blockSize, buffer.length - totalWritten)
+      const chunk = buffer.slice(totalWritten, totalWritten + chunkSize)
+
+      const blockId = Buffer.from(blockIndex.toString().padStart(6, '0')).toString('base64')
+      blockIds.push(blockId)
+      await blobClient.stageBlock(blockId, chunk, chunkSize)
+      totalWritten += chunkSize
+      blockIndex++
+    }
+
+    await blobClient.commitBlockList(blockIds)
   }
 
   async _openFile(path, flags) {

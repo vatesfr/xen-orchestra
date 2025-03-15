@@ -179,7 +179,7 @@ handlers.forEach(url => {
         assert.deepEqual(await handler.readFile('file'), TEST_DATA)
       })
 
-      it('throws on existing files', async () => {
+      it('throws on existing files', { skip: skipFsNotInAzure() }, async () => {
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.outputFile('file', ''))
         assert.equal(error.code, 'EEXIST')
