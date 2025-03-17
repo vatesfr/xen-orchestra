@@ -1,9 +1,11 @@
 import type XenApi from '@/libs/xen-api/xen-api'
 import type { XenApiVdi } from '@/libs/xen-api/xen-api.types'
-import { castArray } from 'lodash-es'
+import type { MaybeArray } from '@core/types/utility.type'
+import { toArray } from '@core/utils/to-array.utils'
 
-export function vdiOperations(xenApi: XenApi) {
-  type VdiRefs = XenApiVdi['$ref'] | XenApiVdi['$ref'][]
+export function createVdiOperations(xenApi: XenApi) {
+  type VdiRefs = MaybeArray<XenApiVdi['$ref']>
+
   type VdiRecord = {
     name_label: string
     name_description: string
@@ -42,12 +44,12 @@ export function vdiOperations(xenApi: XenApi) {
       return xenApi.call<XenApiVdi['$ref']>('VDI.create', [vdiRecord])
     },
 
-    delete: (vdiRefs: VdiRefs) => Promise.all(castArray(vdiRefs).map(vdiRef => xenApi.call('VDI.destroy', [vdiRef]))),
+    delete: (vdiRefs: VdiRefs) => Promise.all(toArray(vdiRefs).map(vdiRef => xenApi.call('VDI.destroy', [vdiRef]))),
 
     setNameDescription: (vdiRefs: VdiRefs, nameDescription: string) =>
-      Promise.all(castArray(vdiRefs).map(vdiRef => xenApi.call('VDI.set_name_description', [vdiRef, nameDescription]))),
+      Promise.all(toArray(vdiRefs).map(vdiRef => xenApi.call('VDI.set_name_description', [vdiRef, nameDescription]))),
 
     setNameLabel: (vdiRefs: VdiRefs, nameLabel: string) =>
-      Promise.all(castArray(vdiRefs).map(vdiRef => xenApi.call('VDI.set_name_label', [vdiRef, nameLabel]))),
+      Promise.all(toArray(vdiRefs).map(vdiRef => xenApi.call('VDI.set_name_label', [vdiRef, nameLabel]))),
   }
 }

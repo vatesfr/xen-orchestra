@@ -1,8 +1,8 @@
 import { ipToHostname } from '@/libs/utils'
-import { vbdOperations } from '@/libs/xen-api/operations/vbd-operations'
-import { vdiOperations } from '@/libs/xen-api/operations/vdi-operations'
-import { vifOperations } from '@/libs/xen-api/operations/vif-operations'
-import { vmOperations } from '@/libs/xen-api/operations/vm-operations'
+import { createVbdOperations } from '@/libs/xen-api/operations/vbd-operations'
+import { createVdiOperations } from '@/libs/xen-api/operations/vdi-operations'
+import { createVifOperations } from '@/libs/xen-api/operations/vif-operations'
+import { createVmOperations } from '@/libs/xen-api/operations/vm-operations'
 import type {
   ObjectType,
   ObjectTypeToRecord,
@@ -257,18 +257,18 @@ export default class XenApi {
   }
 
   get vm() {
-    return vmOperations(this)
+    return createVmOperations(this)
   }
 
   get vif() {
-    return vifOperations(this)
+    return createVifOperations(this)
   }
 
   get vdi() {
-    return vdiOperations(this)
+    return createVdiOperations(this)
   }
 
   get vbd() {
-    return vbdOperations(this)
+    return createVbdOperations(this)
   }
 }
