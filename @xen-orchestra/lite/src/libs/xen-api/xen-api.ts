@@ -1,13 +1,14 @@
-import { useModal } from '@/composables/modal.composable'
 import { ipToHostname } from '@/libs/utils'
-import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
+import { vbdOperations } from '@/libs/xen-api/operations/vbd-operations'
+import { vdiOperations } from '@/libs/xen-api/operations/vdi-operations'
+import { vifOperations } from '@/libs/xen-api/operations/vif-operations'
+import { vmOperations } from '@/libs/xen-api/operations/vm-operations'
 import type {
   ObjectType,
   ObjectTypeToRecord,
   RawXenApiRecord,
   XenApiEvent,
   XenApiHost,
-  XenApiNetwork,
   XenApiPool,
   XenApiRecordAddEvent,
   XenApiRecordAfterLoadEvent,
@@ -16,27 +17,21 @@ import type {
   XenApiRecordEvent,
   XenApiRecordLoadErrorEvent,
   XenApiRecordModEvent,
-  XenApiSr,
-  XenApiVbd,
-  XenApiVdi,
-  XenApiVif,
-  XenApiVm,
 } from '@/libs/xen-api/xen-api.types'
 import { buildXoObject, typeToRawType } from '@/libs/xen-api/xen-api.utils'
 import { JSONRPCClient } from 'json-rpc-2.0'
-import { castArray } from 'lodash-es'
 
 export default class XenApi {
   private client: JSONRPCClient
-  private sessionId: string | undefined
+  private _sessionId: string | undefined
   private events = new Map<XenApiRecordEvent<any>, Set<(...args: any[]) => void>>()
   private fromToken: string | undefined
-  private hostUrl: string
+  private readonly _hostUrl: string
 
   constructor(hostUrl: string) {
-    this.hostUrl = hostUrl
+    this._hostUrl = hostUrl
     this.client = new JSONRPCClient(async request => {
-      const response = await fetch(`${this.hostUrl}/jsonrpc`, {
+      const response = await fetch(`${this._hostUrl}/jsonrpc`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(request),
@@ -52,18 +47,18 @@ export default class XenApi {
   }
 
   async connectWithPassword(username: string, password: string) {
-    this.sessionId = await this.request('session.login_with_password', [username, password])
+    this._sessionId = await this.request('session.login_with_password', [username, password])
 
-    return this.sessionId
+    return this._sessionId
   }
 
-  async connectWithSessionId(sessionId: string) {
+  async connectWithSessionId(_sessionId: string) {
     try {
-      this.sessionId = undefined
+      this._sessionId = undefined
 
-      await this.request('session.get_all_subject_identifiers', [sessionId])
+      await this.request('session.get_all_subject_identifiers', [_sessionId])
 
-      this.sessionId = sessionId
+      this._sessionId = _sessionId
 
       return true
     } catch (error: any) {
@@ -77,7 +72,7 @@ export default class XenApi {
 
   async disconnect() {
     await this.call('session.logout')
-    this.sessionId = undefined
+    this._sessionId = undefined
     this.fromToken = undefined
   }
 
@@ -86,7 +81,7 @@ export default class XenApi {
   }
 
   call = <T>(method: string, args: unknown[] = []): Promise<T> => {
-    return this.request(method, [this.sessionId, ...args])
+    return this.request(method, [this._sessionId, ...args])
   }
 
   async getResource(
@@ -99,7 +94,7 @@ export default class XenApi {
     url.pathname = pathname
     url.search = new URLSearchParams({
       ...query,
-      session_id: this.sessionId,
+      session_id: this._sessionId,
     }).toString()
 
     return fetch(url, { signal: abortSignal })
@@ -226,7 +221,7 @@ export default class XenApi {
   }
 
   private async watch(): Promise<void> {
-    if (this.fromToken === undefined || this.sessionId === undefined) {
+    if (this.fromToken === undefined || this._sessionId === undefined) {
       return
     }
 
@@ -248,411 +243,32 @@ export default class XenApi {
     return this.watch()
   }
 
-  get vm() {
-    type VmRefs = XenApiVm['$ref'] | XenApiVm['$ref'][]
-    type VmRefsWithPowerState = Record<XenApiVm['$ref'], XenApiVm['power_state']>
-    type VmRefsWithNameLabel = Record<XenApiVm['$ref'], string>
-
-    return {
-      setAffinityHost: (vmRefs: XenApiVm['$ref'], hostRef: XenApiHost['$ref'] | null) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_affinity', [vmRef, hostRef ?? '']))),
-
-      setAutoPowerOn: (vmRef: XenApiVm['$ref'], value: boolean) =>
-        Promise.all([
-          this.call('VM.set_other_config', [
-            vmRef,
-            {
-              auto_poweron: String(value),
-            },
-          ]),
-        ]),
-
-      setHvmBootFirmware: (vmRef: XenApiVm['$ref'], firmware: string) =>
-        Promise.all([
-          this.call('VM.set_HVM_boot_params', [vmRef, { firmware }]),
-          this.call('VM.set_platform', [
-            vmRef,
-            {
-              'device-model': 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat'),
-            },
-          ]),
-        ]),
-
-      setVirtualizationMode: (vmRefs: XenApiVm['$ref'], virtualizationMode: 'pv' | 'hvm') => {
-        if (virtualizationMode !== 'pv' && virtualizationMode !== 'hvm') {
-          return Promise.reject(new Error(`The virtualization mode must be 'pv' or 'hvm'`))
-        }
-        return Promise.all(
-          castArray(vmRefs).map(vmRef =>
-            this.call(virtualizationMode === 'hvm' ? 'VM.set_HVM_boot_policy' : 'VM.set_domain_type', [
-              vmRef,
-              virtualizationMode === 'hvm' ? 'Boot order' : '',
-            ])
-          )
-        )
-      },
-
-      setMemoryMin: (vmRefs: XenApiVm['$ref'], memoryDynamicMin: number) =>
-        Promise.all(
-          castArray(vmRefs).map(vmRef => this.call('VM.set_memory_dynamic_min', [vmRef, String(memoryDynamicMin)]))
-        ),
-
-      setMemoryDynamicRange: (vmRefs: VmRefs, dynamicMin: number, dynamicMax: number) => {
-        return Promise.all(
-          castArray(vmRefs).map(vmRef => this.call('VM.set_memory_dynamic_range', [vmRef, dynamicMin, dynamicMax]))
-        )
-      },
-
-      setMemoryStaticMax: (vmRefs: VmRefs, staticMax: number) => {
-        return Promise.all(
-          castArray(vmRefs).map(vmRef => this.call('VM.set_memory_static_max', [vmRef, String(staticMax)]))
-        )
-      },
-
-      setMemoryDynamicMin: (vmRefs: VmRefs, dynamicMin: number) => {
-        return Promise.all(
-          castArray(vmRefs).map(vmRef => this.call('VM.set_memory_dynamic_min', [vmRef, String(dynamicMin)]))
-        )
-      },
-
-      setMemoryDynamicMax: (vmRefs: VmRefs, max: number) =>
-        Promise.all(
-          castArray(vmRefs).map(vmRef =>
-            this.call('VM.set_memory_limits', [vmRef, 'memory_static_min', String(max), String(max), String(max)])
-          )
-        ),
-
-      setVCPUsNumberLive: (vmRefs: VmRefs, count: number) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_number_live', [vmRef, String(count)]))),
-
-      setVCPUsAtStartup: (vmRefs: VmRefs, count: number) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_at_startup', [vmRef, count]))),
-
-      setVCpuCap: (vmRefs: VmRefs, cap: number | null) =>
-        Promise.all(
-          castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_params', [vmRef, 'cap', cap?.toString() ?? '']))
-        ),
-
-      setCpuMask: (vmRefs: VmRefs, mask: string[] | null) =>
-        Promise.all(
-          castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_params', [vmRef, 'mask', mask?.join(',') ?? '']))
-        ),
-
-      setVCPUsMax: (vmRefs: VmRefs, max: number) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_max', [vmRef, String(max)]))),
-
-      setCpuWeight: (vmRefs: VmRefs, weight: number | null) =>
-        Promise.all(
-          castArray(vmRefs).map(vmRef => this.call('VM.set_VCPUs_params', [vmRef, 'weight', weight?.toString() ?? '']))
-        ),
-      setMemory: (vmRefs: VmRefs, count: number) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_memory', [vmRef, count]))),
-
-      setCopyBiosString: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_copy_bios_string', [vmRef, hostRef]))),
-
-      setNameDescription: (vmRefs: VmRefs, nameDescription: string) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_name_description', [vmRef, nameDescription]))),
-
-      setNameLabel: (vmRefs: VmRefs, nameLabel: string) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.set_name_label', [vmRef, nameLabel]))),
-
-      getAllowedVBDDevices: (vmRefs: VmRefs): Promise<string[][]> => {
-        return Promise.all(castArray(vmRefs).map(vmRef => this.call<string[]>('VM.get_allowed_VBD_devices', [vmRef])))
-      },
-
-      getAllowedVIFDevices: (vmRefs: VmRefs): Promise<string[][]> => {
-        return Promise.all(castArray(vmRefs).map(vmRef => this.call<string[]>('VM.get_allowed_VIF_devices', [vmRef])))
-      },
-
-      removeFromOtherConfig: (vmRefs: VmRefs, key: string) => {
-        return Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.remove_from_other_config', [vmRef, key])))
-      },
-
-      delete: (vmRefs: VmRefs) => Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.destroy', [vmRef]))),
-
-      start: (vmRefs: VmRefs) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.start', [vmRef, false, false]))),
-
-      startOn: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
-        Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.start_on', [vmRef, hostRef, false, false]))),
-
-      pause: (vmRefs: VmRefs) => Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.pause', [vmRef]))),
-
-      suspend: (vmRefs: VmRefs) => {
-        return Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.suspend', [vmRef])))
-      },
-
-      resume: (vmRefsWithPowerState: VmRefsWithPowerState) => {
-        const vmRefs = Object.keys(vmRefsWithPowerState) as XenApiVm['$ref'][]
-
-        return Promise.all(
-          vmRefs.map(vmRef => {
-            if (vmRefsWithPowerState[vmRef] === 'Suspended') {
-              return this.call('VM.resume', [vmRef, false, false])
-            }
-
-            return this.call('VM.unpause', [vmRef])
-          })
-        )
-      },
-
-      reboot: (vmRefs: VmRefs, force = false) => {
-        return Promise.all(castArray(vmRefs).map(vmRef => this.call(`VM.${force ? 'hard' : 'clean'}_reboot`, [vmRef])))
-      },
-
-      shutdown: (vmRefs: VmRefs, force = false) => {
-        return Promise.all(
-          castArray(vmRefs).map(vmRef => this.call(`VM.${force ? 'hard' : 'clean'}_shutdown`, [vmRef]))
-        )
-      },
-
-      clone: (vmRefsToClone: VmRefsWithNameLabel): Promise<XenApiVm['$ref'][]> => {
-        const vmRefs = Object.keys(vmRefsToClone) as XenApiVm['$ref'][]
-
-        return Promise.all(vmRefs.map(vmRef => this.call<XenApiVm['$ref']>('VM.clone', [vmRef, vmRefsToClone[vmRef]])))
-      },
-
-      copy: (vmRefsToCopy: VmRefsWithNameLabel, srRef: XenApiSr['$ref']): Promise<XenApiVm['$ref'][]> => {
-        const vmRefs = Object.keys(vmRefsToCopy) as XenApiVm['$ref'][]
-
-        return Promise.all(
-          vmRefs.map(vmRef => this.call<XenApiVm['$ref']>('VM.copy', [vmRef, vmRefsToCopy[vmRef], srRef]))
-        )
-      },
-
-      provision: (vmRefs: VmRefs) => {
-        return Promise.all(castArray(vmRefs).map(vmRef => this.call('VM.provision', [vmRef])))
-      },
-
-      migrate: (vmRefs: VmRefs, destinationHostRef: XenApiHost['$ref']) => {
-        return Promise.all(
-          castArray(vmRefs).map(vmRef => this.call('VM.pool_migrate', [vmRef, destinationHostRef, { force: 'false' }]))
-        )
-      },
-
-      snapshot: (vmRefsToSnapshot: VmRefsWithNameLabel) => {
-        const vmRefs = Object.keys(vmRefsToSnapshot) as XenApiVm['$ref'][]
-
-        return Promise.all(vmRefs.map(vmRef => this.call('VM.snapshot', [vmRef, vmRefsToSnapshot[vmRef]])))
-      },
-
-      export: (vmRefs: VmRefs, compression: VM_COMPRESSION_TYPE) => {
-        const blockedUrls: URL[] = []
-
-        castArray(vmRefs).forEach(vmRef => {
-          const url = new URL(this.hostUrl)
-          url.pathname = '/export/'
-          url.search = new URLSearchParams({
-            session_id: this.sessionId!,
-            ref: vmRef,
-            use_compression: compression,
-          }).toString()
-
-          const _window = window.open(url.href, '_blank')
-          if (_window === null) {
-            blockedUrls.push(url)
-          } else {
-            URL.revokeObjectURL(url.toString())
-          }
-        })
-
-        if (blockedUrls.length > 0) {
-          const { onClose } = useModal(() => import('@/components/modals/VmExportBlockedUrlsModal.vue'), {
-            blockedUrls,
-          })
-          onClose(() => blockedUrls.forEach(url => URL.revokeObjectURL(url.toString())))
-        }
-      },
-    }
-  }
-
   // Get field directly from xapi
   getField<T>(type: string, ref: string, field: string): Promise<T> {
     return this.call<T>(`${type}.get_${field}`, [ref])
   }
 
-  // TODO move to another file
+  get hostUrl(): string {
+    return this._hostUrl
+  }
+
+  get sessionId() {
+    return this._sessionId
+  }
+
+  get vm() {
+    return vmOperations(this)
+  }
+
   get vif() {
-    type VifRefs = XenApiVif['$ref'] | XenApiVif['$ref'][]
-    type VmRefs = XenApiVm['$ref'] | XenApiVm['$ref'][]
-    type NetworkRef = XenApiNetwork['$ref']
-    type VifRecord = {
-      vmRefs: VmRefs
-      device: string | undefined
-      network: NetworkRef | string
-      MAC: string
-      MTU?: number
-      other_config?: Record<string, any>
-      qos_algorithm_params?: Record<string, any>
-      qos_algorithm_type?: string
-    }
-
-    return {
-      create: ({
-        device,
-        vmRefs,
-        network,
-        MAC,
-        MTU = 1500,
-        other_config = {},
-        qos_algorithm_params = {},
-        qos_algorithm_type = '',
-      }: VifRecord) => {
-        return Promise.all(
-          castArray(vmRefs).map(vmRef => {
-            const vifRecord = {
-              device,
-              VM: vmRef,
-              network,
-              MAC,
-              MTU,
-              other_config,
-              qos_algorithm_params,
-              qos_algorithm_type,
-            }
-
-            return this.call<XenApiVif['$ref']>('VIF.create', [vifRecord])
-          })
-        )
-      },
-
-      delete: (vifRefs: VifRefs) => Promise.all(castArray(vifRefs).map(vifRef => this.call('VIF.destroy', [vifRef]))),
-    }
+    return vifOperations(this)
   }
 
-  // TODO move to another file
   get vdi() {
-    type VdiRefs = XenApiVdi['$ref'] | XenApiVdi['$ref'][]
-    type VdiRecord = {
-      name_label: string
-      name_description: string
-      SR: string | undefined
-      virtual_size: number
-      type?: string
-      sharable?: boolean
-      read_only?: boolean
-      other_config?: Record<string, any>
-      tags?: string[]
-    }
-
-    return {
-      create: ({
-        name_label,
-        name_description,
-        SR,
-        virtual_size,
-        type = 'user',
-        sharable = false,
-        read_only = false,
-        other_config = {},
-        tags = [],
-      }: VdiRecord) => {
-        const vdiRecord = {
-          name_label,
-          name_description,
-          SR,
-          virtual_size,
-          type,
-          sharable,
-          read_only,
-          other_config,
-          tags,
-        }
-
-        return this.call<XenApiVdi['$ref']>('VDI.create', [vdiRecord])
-      },
-
-      delete: (vdiRefs: VdiRefs) => Promise.all(castArray(vdiRefs).map(vdiRef => this.call('VDI.destroy', [vdiRef]))),
-
-      setNameDescription: (vdiRefs: VdiRefs, nameDescription: string) =>
-        Promise.all(castArray(vdiRefs).map(vdiRef => this.call('VDI.set_name_description', [vdiRef, nameDescription]))),
-
-      setNameLabel: (vdiRefs: VdiRefs, nameLabel: string) =>
-        Promise.all(castArray(vdiRefs).map(vdiRef => this.call('VDI.set_name_label', [vdiRef, nameLabel]))),
-    }
+    return vdiOperations(this)
   }
 
-  // TODO move to another file
   get vbd() {
-    type VmRefs = XenApiVm['$ref'] | XenApiVm['$ref'][]
-    type VbdRefs = XenApiVbd['$ref'] | XenApiVbd['$ref'][]
-    type VdiRef = XenApiVdi['$ref']
-    type VbdCreateParams = {
-      vmRefs: VmRefs
-      vdiRef: VdiRef
-      userdevice?: string | undefined
-      bootable?: boolean
-      mode?: string
-      type?: string
-      empty?: boolean
-      other_config?: Record<string, any>
-      qos_algorithm_params?: Record<string, any>
-      qos_algorithm_type?: string
-    }
-
-    return {
-      create: async ({
-        vmRefs,
-        vdiRef,
-        userdevice,
-        bootable = false,
-        type = 'Disk',
-        mode = type === 'Disk' ? 'RW' : 'RO',
-        empty = false,
-        other_config = {},
-        qos_algorithm_params = {},
-        qos_algorithm_type = '',
-      }: VbdCreateParams) => {
-        if (!userdevice) {
-          const allowedDevices = await this.vm.getAllowedVBDDevices(vmRefs)
-
-          if (allowedDevices.length === 0) {
-            throw new Error('no allowed VBD devices')
-          }
-
-          const allowedDevicesFlat = allowedDevices.flat()
-
-          if (type === 'CD') {
-            // Choose position 3 if allowed.
-            userdevice = allowedDevicesFlat.includes('3') ? '3' : allowedDevicesFlat[0]
-          } else {
-            userdevice = allowedDevicesFlat.shift()
-
-            // Avoid userdevice 3 if possible.
-            if (userdevice === '3' && allowedDevices.length > 1) {
-              userdevice = allowedDevicesFlat[1]
-            }
-          }
-        }
-
-        return Promise.all(
-          castArray(vmRefs).map(vmRef => {
-            const vbdRecord = {
-              VM: vmRef,
-              VDI: vdiRef,
-              userdevice,
-              bootable,
-              mode,
-              type,
-              empty,
-              other_config,
-              qos_algorithm_params,
-              qos_algorithm_type,
-            }
-
-            return this.call<XenApiVbd['$ref']>('VBD.create', [vbdRecord])
-          })
-        )
-      },
-
-      delete: (vbdRefs: VbdRefs) => Promise.all(castArray(vbdRefs).map(vbdRef => this.call('VBD.destroy', [vbdRef]))),
-
-      insert: (vbdRefs: VbdRefs, vdiRef: VdiRef) =>
-        Promise.all(castArray(vbdRefs).map(vbdRef => this.call('VBD.insert', [vbdRef, vdiRef]))),
-
-      setBootable: (vbdRefs: VbdRefs, bootable: boolean) =>
-        Promise.all(castArray(vbdRefs).map(vbdRef => this.call('VBD.set_bootable', [vbdRef, bootable]))),
-    }
+    return vbdOperations(this)
   }
 }
