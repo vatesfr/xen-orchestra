@@ -298,7 +298,7 @@
   "new-vm.paste-public-key": "Paste public key",
   "new-vm.pick-template": "Pick a template from your list",
   "new-vm.pxe": "PXE",
-  "new-vm.ram": "Ram",
+  "new-vm.ram": "Ram (GB)",
   "new-vm.settings": "Settings",
   "new-vm.size": "Size",
   "new-vm.socketsWithCoresPerSocket": "{nSockets} sockets × {nCores} cores/socket",
