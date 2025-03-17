@@ -1,5 +1,4 @@
 <template>
-  {{ vmState.existingDisks }}
   <UiHeadBar :icon="faPlus">
     {{ t('new-vm.add') }}
     <template #actions>
@@ -138,7 +137,6 @@
         <UiInput v-model="vmState.vCpu" accent="brand" type="number" href="''">
           {{ t('new-vm.vcpu') }}
         </UiInput>
-        {{ vmState.vCpu }}
         <UiInput v-model="vmState.ram" accent="brand" type="number" href="''">
           {{ t('new-vm.ram') }}
         </UiInput>
@@ -246,7 +244,7 @@
                   <UiInput v-model="disk.name_label" :placeholder="t('new-vm.disk-name')" accent="brand" />
                 </td>
                 <td>
-                  <UiInput v-model="disk.size" :placeholder="t('new-vm.size')" accent="brand" />
+                  <UiInput v-model="disk.size" type="number" :placeholder="t('new-vm.size')" accent="brand" />
                 </td>
                 <td>
                   <UiInput v-model="disk.name_description" :placeholder="t('new-vm.description')" accent="brand" />
@@ -274,7 +272,7 @@
                   <UiInput v-model="disk.name_label" :placeholder="t('new-vm.disk-name')" accent="brand" />
                 </td>
                 <td>
-                  <UiInput v-model="disk.size" :placeholder="t('new-vm.size')" accent="brand" />
+                  <UiInput v-model="disk.size" type="number" :placeholder="t('new-vm.size')" accent="brand" />
                 </td>
                 <td>
                   <UiInput v-model="disk.name_description" :placeholder="t('new-vm.description')" accent="brand" />
@@ -659,7 +657,10 @@ const vmData = computed(() => {
     name_description: vmState.vm_description,
     name_label: vmState.vm_name,
     template: vmState.new_vm_template?.uuid,
-    vdis: vmState.VDIs,
+    vdis: vmState.VDIs.map(disk => ({
+      ...disk,
+      size: Number(disk.size) * 1024 ** 3,
+    })),
     vifs: vmState.networkInterfaces.map(net => ({
       network: net.interface,
       mac: net.macAddress,
