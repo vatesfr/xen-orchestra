@@ -316,7 +316,7 @@
   "new-vm.paste-public-key": "Coller la clé publique",
   "new-vm.pick-template": "Choisissez un modèle dans votre liste",
   "new-vm.pxe": "PXE",
-  "new-vm.ram": "Ram",
+  "new-vm.ram": "Ram (Go)",
   "new-vm.settings": "Paramètres",
   "new-vm.size": "Taille",
   "new-vm.ssh-key": "Clé SSH",

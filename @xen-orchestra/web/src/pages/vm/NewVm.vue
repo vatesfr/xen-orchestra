@@ -27,12 +27,14 @@
       <div>
         <div v-if="vmState.isDiskTemplateSelected">
           <div class="install-settings-container">
-            <UiRadioButton v-model="installMethod" accent="brand" value="no-config">
-              {{ t('new-vm.no-config') }}
-            </UiRadioButton>
-            <UiRadioButton v-model="installMethod" :disabled="!vmState.new_vm_template" accent="brand" value="cdrom">
-              {{ t('new-vm.iso-dvd') }}
-            </UiRadioButton>
+            <div class="radio-container">
+              <UiRadioButton v-model="installMethod" :disabled="!vmState.new_vm_template" accent="brand" value="cdrom">
+                {{ t('new-vm.iso-dvd') }}
+              </UiRadioButton>
+              <UiRadioButton v-model="installMethod" accent="brand" value="no-config">
+                {{ t('new-vm.no-config') }}
+              </UiRadioButton>
+            </div>
             <!--            <UiRadioButton v-model="installMethod" accent="brand" value="ssh-key"> -->
             <!--              {{ t('new-vm.ssh-key') }} -->
             <!--            </UiRadioButton> -->
@@ -428,7 +430,7 @@ interface InstallMode {
 
 const useInstallMode = () => {
   const installMode = reactive<InstallMode>({
-    method: 'no-config',
+    method: 'cdrom',
     repository: '',
   })
 
@@ -790,7 +792,7 @@ watchEffect(() => {
   margin-block: 2.5rem;
 }
 
-thead tr th {
+thead tr th:last-child {
   width: 4rem;
 }
 
