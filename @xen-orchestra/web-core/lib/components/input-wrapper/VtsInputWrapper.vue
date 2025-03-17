@@ -11,7 +11,7 @@
       <slot name="label">{{ label }}</slot>
     </UiLabel>
     <slot />
-    <UiInfo v-for="{ content, accent } of messages" :key="content" :accent="accent">
+    <UiInfo v-for="{ content, accent } of messages" :key="content" :accent>
       {{ content }}
     </UiInfo>
   </div>
