@@ -1,11 +1,15 @@
 import type XenApi from '@/libs/xen-api/xen-api'
 import type { XenApiNetwork, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { castArray } from 'lodash-es'
+import type { MaybeArray } from '@core/types/utility.type'
+import { toArray } from '@core/utils/to-array.utils'
 
-export function vifOperations(xenApi: XenApi) {
-  type VifRefs = XenApiVif['$ref'] | XenApiVif['$ref'][]
-  type VmRefs = XenApiVm['$ref'] | XenApiVm['$ref'][]
+export function createVifOperations(xenApi: XenApi) {
+  type VifRefs = MaybeArray<XenApiVif['$ref']>
+
+  type VmRefs = MaybeArray<XenApiVm['$ref']>
+
   type NetworkRef = XenApiNetwork['$ref']
+
   type VifRecord = {
     vmRefs: VmRefs
     device: string | undefined
@@ -29,7 +33,7 @@ export function vifOperations(xenApi: XenApi) {
       qos_algorithm_type = '',
     }: VifRecord) => {
       return Promise.all<XenApiVif['$ref']>(
-        castArray(vmRefs).map(vmRef => {
+        toArray(vmRefs).map(vmRef => {
           const vifRecord = {
             device,
             VM: vmRef,
@@ -46,6 +50,6 @@ export function vifOperations(xenApi: XenApi) {
       )
     },
 
-    delete: (vifRefs: VifRefs) => Promise.all(castArray(vifRefs).map(vifRef => xenApi.call('VIF.destroy', [vifRef]))),
+    delete: (vifRefs: VifRefs) => Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.destroy', [vifRef]))),
   }
 }

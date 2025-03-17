@@ -1,11 +1,15 @@
 import type XenApi from '@/libs/xen-api/xen-api'
 import type { XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { castArray } from 'lodash-es'
+import type { MaybeArray } from '@core/types/utility.type'
+import { toArray } from '@core/utils/to-array.utils'
 
-export function vbdOperations(xenApi: XenApi) {
-  type VmRefs = XenApiVm['$ref'] | XenApiVm['$ref'][]
-  type VbdRefs = XenApiVbd['$ref'] | XenApiVbd['$ref'][]
+export function createVbdOperations(xenApi: XenApi) {
+  type VmRefs = MaybeArray<XenApiVm['$ref']>
+
+  type VbdRefs = MaybeArray<XenApiVbd['$ref']>
+
   type VdiRef = XenApiVdi['$ref']
+
   type VbdCreateParams = {
     vmRefs: VmRefs
     vdiRef: VdiRef
@@ -19,43 +23,53 @@ export function vbdOperations(xenApi: XenApi) {
     qos_algorithm_type?: string
   }
 
-  return {
-    create: async ({
-      vmRefs,
-      vdiRef,
-      userdevice,
-      bootable = false,
-      type = 'Disk',
-      mode = type === 'Disk' ? 'RW' : 'RO',
-      empty = false,
-      other_config = {},
-      qos_algorithm_params = {},
-      qos_algorithm_type = '',
-    }: VbdCreateParams) => {
-      if (!userdevice) {
-        const allowedDevices = await xenApi.vm.getAllowedVBDDevices(vmRefs)
+  async function findUserDevice(device: string | undefined, vmRefs: VmRefs, type: string) {
+    if (device) {
+      return device
+    }
 
-        if (allowedDevices.length === 0) {
-          throw new Error('no allowed VBD devices')
-        }
+    const allowedDevices = await xenApi.vm.getAllowedVBDDevices(vmRefs)
 
-        const allowedDevicesFlat = allowedDevices.flat()
+    if (allowedDevices.length === 0) {
+      throw new Error('no allowed VBD devices')
+    }
 
-        if (type === 'CD') {
-          // Choose position 3 if allowed.
-          userdevice = allowedDevicesFlat.includes('3') ? '3' : allowedDevicesFlat[0]
-        } else {
-          userdevice = allowedDevicesFlat.shift()
+    const allowedDevicesFlat = allowedDevices.flat()
 
-          // Avoid userdevice 3 if possible.
-          if (userdevice === '3' && allowedDevices.length > 1) {
-            userdevice = allowedDevicesFlat[1]
-          }
-        }
+    if (type === 'CD') {
+      // Choose position 3 if allowed.
+      return allowedDevicesFlat.includes('3') ? '3' : allowedDevicesFlat[0]
+    } else {
+      const device = allowedDevicesFlat.shift()
+
+      // Avoid userdevice 3 if possible.
+      if (device === '3' && allowedDevices.length > 1) {
+        return allowedDevicesFlat[1]
       }
 
+      return device
+    }
+  }
+
+  return {
+    create: async (params: VbdCreateParams) => {
+      const {
+        vmRefs,
+        vdiRef,
+        userdevice: initialUserdevice,
+        bootable = false,
+        type = 'Disk',
+        mode = type === 'Disk' ? 'RW' : 'RO',
+        empty = false,
+        other_config = {},
+        qos_algorithm_params = {},
+        qos_algorithm_type = '',
+      } = params
+
+      const userdevice = initialUserdevice ?? (await findUserDevice(initialUserdevice, vmRefs, type))
+
       return Promise.all<XenApiVbd['$ref']>(
-        castArray(vmRefs).map(vmRef => {
+        toArray(vmRefs).map(vmRef => {
           const vbdRecord = {
             VM: vmRef,
             VDI: vdiRef,
@@ -74,12 +88,12 @@ export function vbdOperations(xenApi: XenApi) {
       )
     },
 
-    delete: (vbdRefs: VbdRefs) => Promise.all(castArray(vbdRefs).map(vbdRef => xenApi.call('VBD.destroy', [vbdRef]))),
+    delete: (vbdRefs: VbdRefs) => Promise.all(toArray(vbdRefs).map(vbdRef => xenApi.call('VBD.destroy', [vbdRef]))),
 
     insert: (vbdRefs: VbdRefs, vdiRef: VdiRef) =>
-      Promise.all(castArray(vbdRefs).map(vbdRef => xenApi.call('VBD.insert', [vbdRef, vdiRef]))),
+      Promise.all(toArray(vbdRefs).map(vbdRef => xenApi.call('VBD.insert', [vbdRef, vdiRef]))),
 
     setBootable: (vbdRefs: VbdRefs, bootable: boolean) =>
-      Promise.all(castArray(vbdRefs).map(vbdRef => xenApi.call('VBD.set_bootable', [vbdRef, bootable]))),
+      Promise.all(toArray(vbdRefs).map(vbdRef => xenApi.call('VBD.set_bootable', [vbdRef, bootable]))),
   }
 }
