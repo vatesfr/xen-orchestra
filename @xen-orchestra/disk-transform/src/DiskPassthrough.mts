@@ -58,7 +58,6 @@ export abstract class RandomDiskPassthrough extends RandomAccessDisk {
     }
     return this.#source
   }
-
   get parent(): RandomAccessDisk | undefined {
     return this.#source?.parent as RandomAccessDisk
   }
