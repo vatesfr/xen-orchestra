@@ -1,11 +1,12 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ $t('patches') }}</UiCardTitle>
-    <VtsLoadingHero :disabled="isReady" type="card">
+    <VtsLoadingHero v-if="!isReady" type="card" />
+    <template v-else>
       <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" />
       <VtsDivider type="stretch" />
       <VtsDonutChartWithLegend :segments="hostsSegments" :title="hostsTitle" />
-    </VtsLoadingHero>
+    </template>
   </UiCard>
 </template>
 
