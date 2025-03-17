@@ -19,29 +19,29 @@ export const useSrStore = defineStore('xen-api-sr', () => {
 
   const getSrWithISO = computed(() => srs.value.filter(sr => sr.type === 'iso'))
 
-  const concatVidsArray = computed(() => getSrWithISO.value.flatMap(sr => sr.VDIs || []))
+  const concatVDIsArray = computed(() => getSrWithISO.value.flatMap(sr => sr.VDIs || []))
 
-  const vdisGroupedBySrName = computed(() => {
-    const groupedVdis: Record<string, XenApiSr[]> = {}
+  const VDIsGroupedBySrName = computed(() => {
+    const groupedVDIs: Record<string, XenApiSr[]> = {}
 
-    concatVidsArray.value.forEach(vdiRef => {
+    concatVDIsArray.value.forEach(vdiRef => {
       const vdi = vdiContext.getByOpaqueRef(vdiRef)
 
       if (vdi) {
         const srName = srsName(vdi.SR) || 'Unknown SR'
-        if (!groupedVdis[srName]) {
-          groupedVdis[srName] = []
+        if (!groupedVDIs[srName]) {
+          groupedVDIs[srName] = []
         }
-        groupedVdis[srName].push(vdi)
+        groupedVDIs[srName].push(vdi)
       }
     })
 
-    return groupedVdis
+    return groupedVDIs
   })
 
   const context = {
     ...baseContext,
-    vdisGroupedBySrName,
+    VDIsGroupedBySrName,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)
