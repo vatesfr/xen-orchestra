@@ -367,11 +367,12 @@
 </template>
 
 <script setup lang="ts">
+// Lite import
 import FormSelect from '@/components/form/FormSelect.vue'
 import TitleBar from '@/components/TitleBar.vue'
 
 // XenAPI Store imports
-import type { XenApiNetwork, XenApiVbd, XenApiVdi, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiSr, XenApiVbd, XenApiVdi, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -412,6 +413,9 @@ import {
   faPlus,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
+
+// Defer import
+import { defer } from 'golike-defer'
 
 // Vue imports
 import { computed, reactive, ref } from 'vue'
@@ -661,7 +665,7 @@ const vmCreationParams = computed(() => ({
   clone: isDiskTemplate.value && vmState.fast_clone,
   existingDisks: vmState.existingDisks,
   installMode: vmState.installMode,
-  installRepository: vmState.selectedVdi,
+  installRepository: vmState.selectedVdi as XenApiVdi['$ref'],
   name_label: vmState.vm_name,
   template: vmState.new_vm_template?.$ref,
   VDIs: vmState.VDIs,
@@ -683,14 +687,12 @@ const vmCreationParams = computed(() => ({
 
 const xapi = useXenApiStore().getXapi()
 
-const createVM = async () => {
+const _createVm = async ($defer: any) => {
   const templateRef = vmCreationParams.value.template
   const newVmName = vmCreationParams.value.name_label
   const selectedVdiRef = vmCreationParams.value.installRepository
   const newVDIs = vmCreationParams.value.VDIs
   const existingDisks = vmCreationParams.value.existingDisks
-
-  const $defer = []
 
   if (!templateRef) {
     console.error('Error : templateRef is undefined or invalid.')
@@ -702,13 +704,15 @@ const createVM = async () => {
   try {
     const vmRef = vmCreationParams.value.clone
       ? await xapi.vm.clone({ [templateRef]: newVmName })
-      : await xapi.vm.copy({ [templateRef]: newVmName }, '')
+      : await xapi.vm.copy({ [templateRef]: newVmName }, '' as XenApiSr['$ref'])
 
-    $defer.push(() => xapi.vm.delete(vmRef))
+    $defer.onFailure(() => xapi.vm.delete(vmRef))
 
     // Removes disks from the provision XML, we will create them by ourselves.
     await xapi.vm.removeFromOtherConfig(vmRef, 'disks')
 
+    // Inspects the disk configuration contained within the VM's other_config,
+    // creates VDIs and VBDs and then executes any applicable post-install script.
     await xapi.vm.provision(vmRef)
 
     // INSTALL SETTINGS
@@ -716,6 +720,7 @@ const createVM = async () => {
 
     const installMethod = vmState.selectedVdi ? 'cd' : 'network'
 
+    // TODO maybe improve this part
     if (vm.domain_type === 'hvm') {
       if ((newVDIs.length === 0 && existingDisks.length === 0) || installMethod === 'network') {
         const { order } = vm.HVM_boot_params
@@ -737,7 +742,7 @@ const createVM = async () => {
       for (const vbdRef of VBDs) {
         const type = await xapi.getField<string>('VBD', vbdRef, 'type')
         if (type === 'CD') {
-          await xapi.vbd.insert(vbdRef, selectedVdiRef as XenApiVdi['$ref'])
+          await xapi.vbd.insert(vbdRef, selectedVdiRef)
           await xapi.vbd.setBootable(vbdRef, true)
           return
         }
@@ -763,6 +768,7 @@ const createVM = async () => {
 
     // VIFs CREATION
     const newVifs = vmCreationParams.value.VIFs
+
     // Direct call to the API here because otherwise we do not yet have the vmRef of the clone or the copy before assigning the devices
     const existingVifs = await xapi.getField<string[]>('VM', vmRef[0], 'VIFs')
 
@@ -795,13 +801,12 @@ const createVM = async () => {
             qos_algorithm_type: '',
           })
 
-          $defer.push(() => xapi.vif.delete(vifRef))
+          $defer.onFailure(() => xapi.vif.delete(vifRef))
         })
       )
     }
 
     // VDIs AND VBDs CREATION
-
     const VBDs = await xapi.getField<string[]>('VM', vmRef[0], 'VBDs')
 
     for (const vdi of newVDIs) {
@@ -812,14 +817,14 @@ const createVM = async () => {
         SR: vdi.SR,
       })
 
-      $defer.push(() => xapi.vdi.delete(vdiRef))
+      $defer.onFailure(() => xapi.vdi.delete(vdiRef))
 
       const vbdRef = await xapi.vbd.create({
         vmRefs: vmRef,
         vdiRef,
       })
 
-      $defer.push(() => xapi.vbd.delete(vbdRef))
+      $defer.onFailure(() => xapi.vbd.delete(vbdRef))
     }
 
     // EDIT VBDs IN CASE OF EXISTING DISKS
@@ -857,7 +862,9 @@ const createVM = async () => {
     if (vmCreationParams.value.bootAfterCreate) {
       await xapi.vm.start(vmRef)
     }
+
     isLoading.value = false
+
     if (isLoading.value === false) {
       await router.push({
         name: 'vm.console',
@@ -867,16 +874,10 @@ const createVM = async () => {
   } catch (error) {
     isLoading.value = false
     console.error('Erreur lors de la création de la VM :', error)
-
-    // We cannot use defer and decorate with due to an issue with export (to catch errors during creation)
-    // So I create defer manually
-    // TODO remove when import work
-    const revertedCb = $defer.reverse()
-    for (const cb of revertedCb) {
-      await cb()
-    }
   }
 }
+
+const createVM = defer(_createVm)
 </script>
 
 <style scoped lang="postcss">

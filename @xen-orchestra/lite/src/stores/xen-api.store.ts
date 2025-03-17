@@ -1,6 +1,5 @@
 import XapiStats from '@/libs/xapi-stats'
 import XenApi from '@/libs/xen-api/xen-api'
-import XenApiVif from '@/libs/xen-api/xen-api-vif'
 import { useLocalStorage, useSessionStorage, whenever } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, ref, watchEffect } from 'vue'
@@ -36,7 +35,6 @@ export const useXenApiStore = defineStore('xen-api', () => {
 
   const isPoolOverridden = hostUrl.origin !== new URL(HOST_URL).origin
   const xenApi = new XenApi(hostUrl.origin)
-  const xenApiVif = new XenApiVif()
   const xapiStats = new XapiStats(xenApi)
   const storedSessionId = useLocalStorage<string | undefined>('sessionId', undefined)
   const currentSessionId = ref(storedSessionId.value)
@@ -45,7 +43,6 @@ export const useXenApiStore = defineStore('xen-api', () => {
   const isConnected = computed(() => status.value === STATUS.CONNECTED)
   const isConnecting = computed(() => status.value === STATUS.CONNECTING)
   const getXapi = () => xenApi
-  const getXapiVif = () => xenApiVif
   const getXapiStats = () => xapiStats
 
   watchEffect(() => {
@@ -102,7 +99,6 @@ export const useXenApiStore = defineStore('xen-api', () => {
     reconnect,
     disconnect,
     getXapi,
-    getXapiVif,
     getXapiStats,
     currentSessionId,
     resetPoolMasterIp,
