@@ -9,6 +9,7 @@ export type XoSr = {
   name_description: string
   content_type: string
   physical_usage: number
+  size: number
   SR_type: string
   VDIs: XoVdi['id']
 }

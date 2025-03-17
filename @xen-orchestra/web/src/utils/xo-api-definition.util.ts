@@ -36,7 +36,7 @@ export const xoApiDefinition = {
   sr: {
     type: 'collection',
     path: 'srs',
-    fields: 'id,name_label,name_description,$pool,content_type,physical_usage,SR_type,VDIs',
+    fields: 'id,name_label,name_description,$pool,content_type,physical_usage,size,SR_type,VDIs',
     handler: (record: XoSr) => record,
   },
   task: {
