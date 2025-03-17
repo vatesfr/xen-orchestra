@@ -5,12 +5,11 @@
       <UiCounter :value="backupIssues.length" accent="danger" size="medium" variant="primary" />
       <template #description>{{ $t('in-last-three-jobs') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero :disabled="isReady" type="card">
-      <VtsNoDataHero v-if="!hasBackupIssues" type="card" />
-      <div v-else class="backup-items">
-        <VtsBackupItem v-for="(coreBackupIssue, index) in coreBackupIssues" :key="index" :backup="coreBackupIssue" />
-      </div>
-    </VtsLoadingHero>
+    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsNoDataHero v-else-if="!hasBackupIssues" type="card" />
+    <div v-else class="backup-items">
+      <VtsBackupItem v-for="(coreBackupIssue, index) in coreBackupIssues" :key="index" :backup="coreBackupIssue" />
+    </div>
   </UiCard>
 </template>
 

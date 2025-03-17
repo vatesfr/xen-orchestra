@@ -1,10 +1,11 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ $t('pools-status') }}</UiCardTitle>
-    <VtsLoadingHero :disabled="isReady" type="card">
+    <VtsLoadingHero v-if="!isReady" type="card" />
+    <template v-else>
       <VtsDonutChartWithLegend :icon="faCity" :segments />
       <UiCardNumbers :value="total" class="total" label="Total" size="small" />
-    </VtsLoadingHero>
+    </template>
   </UiCard>
 </template>
 

@@ -29,13 +29,12 @@
           {{ settings.action2 }}
         </UiButton>
       </template>
-      <VtsLoadingHero type="card" :disabled="isReady">
-        <UiCard v-if="!properties.error">
-          <div>Content 1</div>
-          <div>Content 1</div>
-          <div>Content 1</div>
-        </UiCard>
-      </VtsLoadingHero>
+      <VtsLoadingHero v-if="!isReady" type="card" />
+      <UiCard v-else-if="!properties.error">
+        <div>Content 1</div>
+        <div>Content 1</div>
+        <div>Content 1</div>
+      </UiCard>
     </UiSidePanel>
   </ComponentStory>
 </template>
