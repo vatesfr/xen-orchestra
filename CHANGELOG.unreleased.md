@@ -59,6 +59,7 @@
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/xapi patch
 - xo-server minor
+- xo-server-audit minor
 - xo-server-netbox minor
 - xo-server-perf-alert patch
 - xo-web minor
