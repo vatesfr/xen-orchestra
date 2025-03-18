@@ -90,10 +90,10 @@
         </div>
         <!--        // Todo: Replace by the new select component -->
         <select v-if="installMethod === 'cdrom'" v-model="installMode.repository" class="install-settings-container">
-          <template v-for="(vdisGrouped, srName) in vdisGroupedBySrName" :key="vdisGrouped">
+          <template v-for="(VDIsGrouped, srName) in VDIsGroupedBySrName" :key="VDIsGrouped">
             <optgroup :label="srName">
-              <option v-for="vdi in vdisGrouped" :key="vdi.id" :value="vdi.id">
-                {{ vdi.name_label }}
+              <option v-for="VDI in VDIsGrouped" :key="VDI.id" :value="VDI.id">
+                {{ VDI.name_label }}
               </option>
             </optgroup>
           </template>
@@ -414,9 +414,9 @@ const { records: networks, get: getNetwork } = useNetworkStore().subscribe()
 const { pifsByNetwork, get: getPif } = usePifStore().subscribe()
 const { records: pools } = usePoolStore().subscribe()
 const { records: vmsTemplates, vmsTemplatesByPool } = useVmTemplateStore().subscribe()
-const { records: srs, get: getSr, vdisGroupedBySrName } = useSrStore().subscribe()
+const { records: srs, get: getSr, VDIsGroupedBySrName } = useSrStore().subscribe()
 const { get: getVbd } = useVbdStore().subscribe()
-const { get: getVdis } = useVdiStore().subscribe()
+const { get: getVDI } = useVdiStore().subscribe()
 const { get: getVifs } = useVifStore().subscribe()
 const { hostsByPool } = useHostStore().subscribe()
 
@@ -556,33 +556,29 @@ const getFilteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
 })
 
-const getVDis = (template: XoVmTemplate): Disk[] =>
-  template.template_info?.disks
-    ?.filter(disk => disk.size)
-    .map((disk, index) => ({
-      name_label: `${vmState?.vm_name || 'disk'}_${index}_${generateRandomString(4)}`,
-      name_description: t('new-vm.created-by-xo'),
-      size: bytesToGiB(disk.size),
-      sr: getDefaultSr.value || '',
-    })) || []
+const getVDIs = (template: XoVmTemplate): Disk[] =>
+  (template.template_info?.disks ?? []).map((disk, index) => ({
+    name_label: `${vmState?.vm_name || 'disk'}_${index}_${generateRandomString(4)}`,
+    name_description: t('new-vm.created-by-xo'),
+    size: bytesToGiB(disk.size),
+    sr: getDefaultSr.value || '',
+  }))
 
 const getExistingDisks = (template: XoVmTemplate): Disk[] =>
-  template.$VBDs
-    .map(getVbd)
-    .filter(vbd => vbd && vbd.type !== 'CD')
-    .map(vbd => {
-      const vdi = getVdis(vbd!.VDI)
-      return vdi
-        ? {
+  template.$VBDs.flatMap(vbd => {
+    const vdi = getVDI(getVbd(vbd)!.VDI)
+    return vdi
+      ? [
+          {
             id: vdi.id,
             name_label: vdi.name_label,
             name_description: vdi.name_description,
             size: bytesToGiB(vdi.size),
             sr: getSr(vdi.$SR)?.id || '',
-          }
-        : null
-    })
-    .filter(Boolean) as Disk[]
+          },
+        ]
+      : []
+  })
 
 const getAutomaticNetwork = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
@@ -648,7 +644,7 @@ const onTemplateChange = () => {
     ram: memory.dynamic[1],
     tags,
     vCpu: CPUs.number,
-    VDIs: getVDis(template)!,
+    VDIs: getVDIs(template)!,
     existingDisks: getExistingDisks(template),
     networkInterfaces: getExistingInterface(template),
   })
