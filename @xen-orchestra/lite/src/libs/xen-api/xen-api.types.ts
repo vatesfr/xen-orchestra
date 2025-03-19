@@ -43,7 +43,7 @@ import type {
   VTPM_OPERATION,
   VUSB_OPERATION,
 } from '@/libs/xen-api/xen-api.enums'
-import type { XEN_API_OBJECT_TYPES } from '@/libs/xen-api/xen-api.utils'
+import type {XEN_API_OBJECT_TYPES} from '@/libs/xen-api/xen-api.utils'
 
 type TypeMapping = typeof XEN_API_OBJECT_TYPES
 export type ObjectType = keyof TypeMapping
@@ -63,6 +63,7 @@ type ObjectTypeToRecordMapping = {
   pif_metrics: XenApiPifMetrics
   pool: XenApiPool
   sr: XenApiSr
+  vif: XenApiVif
   vm: XenApiVm
   vm_guest_metrics: XenApiVmGuestMetrics
   vm_metrics: XenApiVmMetrics
@@ -377,7 +378,9 @@ export interface XenApiVmMetrics extends XenApiRecord<'vm_metrics'> {
   VCPUs_number: number
 }
 
-export type XenApiVmGuestMetrics = XenApiRecord<'vm_guest_metrics'>
+export interface XenApiVmGuestMetrics extends XenApiRecord<'vm_guest_metrics'> {
+  networks: string
+}
 
 export interface XenApiTask extends XenApiRecord<'task'> {
   name_label: string
