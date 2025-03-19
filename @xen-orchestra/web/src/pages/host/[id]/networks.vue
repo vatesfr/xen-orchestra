@@ -19,17 +19,13 @@ import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.v
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import { computed } from 'vue'
+import { useArrayFilter } from '@vueuse/shared'
 import { useRoute } from 'vue-router/auto'
 
 const { records } = usePifStore().subscribe()
-const route = useRoute()
+const route = useRoute<'/host/[id]'>()
 
-const pifs = computed(() => {
-  return records.value.filter(pif => {
-    return pif.$host === route.params.id
-  })
-})
+const pifs = useArrayFilter(records, pif => pif.$host === route.params.id)
 
 const selectedPif = useRouteQuery<XoPif | undefined>('id', {
   toData: id => pifs.value.find(pif => pif.id === id),

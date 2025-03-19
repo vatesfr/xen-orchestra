@@ -65,11 +65,7 @@ export const usePifStore = defineStore('pif', () => {
   })
 
   const getBondsDevices = (pif: XoPif) => {
-    if (!pif.isBondMaster) return []
-
-    return pif.bondSlaves
-      .map(slaveId => baseContext.records.value.find(pif => pif.id === slaveId))
-      .map(pif => pif!.device)
+    return pif.isBondMaster ? pif.bondSlaves.flatMap(slaveId => baseContext.get(slaveId)?.device ?? []) : []
   }
 
   const context = {

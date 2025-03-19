@@ -25,7 +25,7 @@
     <template #default>
       <!-- PIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ isBond ? $t('bond') : $t('pif') }}</UiCardTitle>
+        <UiCardTitle>{{ pif.isBondMaster ? $t('bond') : $t('pif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
           <VtsCardRowKeyValue>
@@ -58,17 +58,15 @@
               {{ $t('network') }}
             </template>
             <template #value>
-              <div class="network">
-                <!-- TODO Remove the span when the link works and the icon is fixed -->
-                <!--
-                <UiComplexIcon size="medium">
-                  <VtsIcon :icon="faNetworkWired" accent="current" />
-                  <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                </UiComplexIcon>
-                <a href="">{{ networkNameLabel }}</a>
-                -->
-                <span v-tooltip class="text-ellipsis">{{ network?.name_label }}</span>
-              </div>
+              <!-- TODO Remove the span when the link works and the icon is fixed -->
+              <!--
+              <UiComplexIcon size="medium">
+                <VtsIcon :icon="faNetworkWired" accent="current" />
+                <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
+              </UiComplexIcon>
+              <a href="">{{ networkNameLabel }}</a>
+              -->
+              <span class="value">{{ network?.name_label }}</span>
             </template>
             <template v-if="network?.name_label" #addons>
               <UiButtonIcon
@@ -76,7 +74,7 @@
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(network?.name_label)"
+                @click="copy(network.name_label)"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -88,7 +86,7 @@
             <template #value>
               {{ pif.device }}
             </template>
-            <template v-if="pif.device" #addons>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
@@ -101,7 +99,7 @@
           <!-- PIF STATUS -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ isBond ? $t('bond-status') : $t('pif-status') }}
+              {{ pif.isBondMaster ? $t('bond-status') : $t('pif-status') }}
             </template>
             <template #value>
               <VtsConnectionStatus :status />
@@ -140,7 +138,7 @@
               {{ $t('tags') }}
             </template>
             <template #value>
-              <UiTagsList class="tags value">
+              <UiTagsList class="value">
                 <UiTag v-for="tag in network?.tags" :key="tag" accent="info" variant="secondary">
                   {{ tag }}
                 </UiTag>
@@ -154,7 +152,7 @@
         <UiCardTitle>{{ $t('network-information') }}</UiCardTitle>
         <div class="content">
           <!-- IP ADDRESSES -->
-          <div v-if="ipAddresses.length">
+          <template v-if="ipAddresses.length">
             <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
               <template #key>
                 <div v-if="index === 0">{{ $t('ip-addresses') }}</div>
@@ -181,7 +179,7 @@
                 />
               </template>
             </VtsCardRowKeyValue>
-          </div>
+          </template>
           <VtsCardRowKeyValue v-else>
             <template #key>
               {{ $t('ip-addresses') }}
@@ -198,7 +196,7 @@
             <template #value>
               {{ pif.mac }}
             </template>
-            <template v-if="pif.mac" #addons>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
@@ -216,13 +214,13 @@
             <template #value>
               <span class="value">{{ pif.netmask }}</span>
             </template>
-            <template v-if="pif.netmask" #addons>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(pif.netmask))"
+                @click="copy(pif.netmask)"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -236,13 +234,13 @@
                 {{ pif.dns }}
               </span>
             </template>
-            <template v-if="pif.dns" #addons>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(pif.dns))"
+                @click="copy(pif.dns)"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -256,13 +254,13 @@
                 {{ pif.gateway }}
               </span>
             </template>
-            <template v-if="pif.gateway" #addons>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(String(pif.gateway))"
+                @click="copy(pif.gateway)"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -386,7 +384,7 @@ const { pif } = defineProps<{
   pif: XoPif
 }>()
 
-const { get } = useNetworkStore().subscribe()
+const { get: getNetwork } = useNetworkStore().subscribe()
 const { getBondsDevices } = usePifStore().subscribe()
 
 const { copy, copied } = useClipboard()
@@ -394,13 +392,13 @@ const { t } = useI18n()
 
 const ipAddresses = computed(() => [pif.ip, ...pif.ipv6].filter(ip => ip))
 
-const network = computed(() => get(pif.$network))
+const network = computed(() => getNetwork(pif.$network))
 
 const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 
-const status = computed(() => (pif?.attached ? 'connected' : 'disconnected'))
+const status = computed(() => (pif.attached ? 'connected' : 'disconnected'))
 
-const physicalInterfaceStatus = computed(() => (pif && pif.carrier ? 'connected' : 'physically-disconnected'))
+const physicalInterfaceStatus = computed(() => (pif.carrier ? 'connected' : 'physically-disconnected'))
 
 const ipConfigurationMode = computed(() => {
   switch (pif.mode) {
@@ -413,11 +411,7 @@ const ipConfigurationMode = computed(() => {
   }
 })
 
-const bondDevices = computed(() => {
-  return getBondsDevices(pif)
-})
-
-const isBond = computed(() => pif.isBondMaster)
+const bondDevices = computed(() => getBondsDevices(pif))
 
 const speed = computed(() => {
   const speed = pif.speed || 0
@@ -438,17 +432,6 @@ const speed = computed(() => {
   .content {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-  }
-
-  .network {
-    display: flex;
-    gap: 0.8rem;
-  }
-
-  .tags {
-    width: 100%;
-    display: flex;
     gap: 0.8rem;
   }
 
