@@ -20,7 +20,7 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
     // the first one  is a RAW disk ( full )
     const disk = chainByNode[diskIndex]
     const { fileName, path, datastore: datastoreName, isFull } = disk
-    lastDiskUuid = disk.uuid
+    lastDiskUuid = disk.uid
     if (isFull) {
       vhd = yield VhdEsxiRaw.open(datastoreName, path + '/' + fileName, {
         thin: false,
@@ -86,7 +86,7 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
 
 function diskIsAlreadyImported(sr, disk) {
   // look for a vdi with the right longContentId
-  return sr.$VDIs.filter(vdi => vdi?.other_config.esxi_uuid === disk.uuid)
+  return disk.uid && sr.$VDIs.find(vdi => vdi?.other_config.esxi_uuid === disk.uid)
 }
 
 export const importDisksFromDatastore = async function importDisksFromDatastore(
