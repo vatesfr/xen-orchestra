@@ -72,6 +72,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
           keepAlive: true,
         }),
       }),
+      // from https://github.com/aws/aws-sdk-js-v3/issues/6810
+      // some non AWS services like backblaze or cloudflare don't expect the new headers
       requestChecksumCalculation: 'WHEN_REQUIRED',
       responseChecksumValidation: 'WHEN_REQUIRED',
     })
