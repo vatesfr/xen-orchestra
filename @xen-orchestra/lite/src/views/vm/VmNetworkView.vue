@@ -21,7 +21,7 @@ import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.v
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import { computed } from 'vue'
+import { useArrayFilter } from '@vueuse/shared'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -32,12 +32,9 @@ const route = useRoute()
 
 usePageTitleStore().setTitle(useI18n().t('network'))
 
-const vifs = computed(() => {
-  return records.value.filter(vif => {
-    const vm = getByOpaqueRef(vif.VM)
-
-    return vm?.uuid === route.params.uuid
-  })
+const vifs = useArrayFilter(records, vif => {
+  const vm = getByOpaqueRef(vif.VM)
+  return vm?.uuid === route.params.uuid
 })
 
 const selectedVif = useRouteQuery<XenApiVif | undefined>('id', {
