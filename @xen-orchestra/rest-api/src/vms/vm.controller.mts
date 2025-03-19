@@ -1,24 +1,10 @@
-import {
-  Example,
-  Get,
-  Path,
-  Post,
-  Queries,
-  Query,
-  Request,
-  Response,
-  Route,
-  Security,
-  Tags,
-  SuccessResponse,
-} from 'tsoa'
+import { Example, Get, Path, Post, Query, Request, Response, Route, Security, Tags, SuccessResponse } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { XapiStatsGranularity, XapiVmStats, XoVm } from '@vates/types'
 
-import { CollectionQueryParams } from '../open-api/common/request.common.mjs'
 import {
   actionAsyncroneResp,
   internalServerErrorResp,
@@ -56,9 +42,10 @@ export class VmController extends XapiXoController<XoVm> {
   @Get('')
   getVms(
     @Request() req: ExRequest,
-    @Queries() queries: CollectionQueryParams
+    @Query() fields?: string,
+    @Query() filter?: string,
+    @Query() limit?: number
   ): string[] | WithHref<Unbrand<XoVm>>[] | WithHref<Partial<Unbrand<XoVm>>>[] {
-    const { filter, limit } = queries
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
