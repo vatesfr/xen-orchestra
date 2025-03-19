@@ -15,7 +15,7 @@
         <div class="user typo-body-regular-small">
           <span>{{ t('by') }}</span>
           <UiUserLink :username="user" />
-          <span> {{ t('task.started-ago', { time: getTimeAgo(start) }) }} </span>
+          <span> {{ t('task.started-ago', { time: timeAgo }) }} </span>
           <span>{{ t('task.estimated-end-in', { time: convertSeconds(estimate) }) }} </span>
         </div>
       </div>
@@ -29,6 +29,7 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiUserLink from '@core/components/ui/user-link/UiUserLink.vue'
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { start, estimate, label, infos, user } = defineProps<{
@@ -45,6 +46,12 @@ const { start, estimate, label, infos, user } = defineProps<{
 }>()
 const { t } = useI18n()
 export type InfoAccent = 'info' | 'warning' | 'danger'
+const currentTimestamp = ref(Math.floor(Date.now() / 1000))
+
+const getTypeMessage = (info: { accent: InfoAccent; count: number }) => {
+  const typeKey = info.accent === 'info' ? 'information' : info.accent === 'warning' ? 'warning' : 'error'
+  return t(typeKey, { n: info.count })
+}
 
 const convertSeconds = (seconds: number): string => {
   const hours = Math.floor(seconds / 3600)
@@ -54,7 +61,7 @@ const convertSeconds = (seconds: number): string => {
 }
 
 const getTimeAgo = (timestamp: number): string => {
-  const secondsElapsed = Math.floor(Date.now() / 1000) - timestamp
+  const secondsElapsed = currentTimestamp.value - timestamp
   const hours = Math.floor(secondsElapsed / 3600)
   const minutes = Math.floor((secondsElapsed % 3600) / 60)
 
@@ -64,10 +71,19 @@ const getTimeAgo = (timestamp: number): string => {
   return `${minutes}m`
 }
 
-const getTypeMessage = (info: { accent: InfoAccent; count: number }) => {
-  const typeKey = info.accent === 'info' ? 'information' : info.accent === 'warning' ? 'warning' : 'error'
-  return t(typeKey, { n: info.count })
-}
+const timeAgo = computed(() => getTimeAgo(start))
+
+let interval: number | undefined
+
+onMounted(() => {
+  interval = setInterval(() => {
+    currentTimestamp.value = Math.floor(Date.now() / 1000)
+  }, 60000)
+})
+
+onUnmounted(() => {
+  clearInterval(interval)
+})
 </script>
 
 <style scoped lang="postcss">
