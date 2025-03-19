@@ -43,7 +43,7 @@ import type {
   VTPM_OPERATION,
   VUSB_OPERATION,
 } from '@/libs/xen-api/xen-api.enums'
-import type {XEN_API_OBJECT_TYPES} from '@/libs/xen-api/xen-api.utils'
+import type { XEN_API_OBJECT_TYPES } from '@/libs/xen-api/xen-api.utils'
 
 type TypeMapping = typeof XEN_API_OBJECT_TYPES
 export type ObjectType = keyof TypeMapping
@@ -632,7 +632,10 @@ export interface XenApiBond extends XenApiRecord<'bond'> {
   slaves: XenApiPif['$ref'][]
 }
 
-export type XenApiEvent<RelationType extends ObjectType, XRecord extends ObjectTypeToRecord<RelationType>> = {
+export type XenApiEvent<
+  RelationType extends ObjectType = ObjectType,
+  XRecord extends ObjectTypeToRecord<RelationType> = ObjectTypeToRecord<RelationType>,
+> = {
   id: string
   class: RelationType
   operation: 'add' | 'mod' | 'del'
