@@ -2,10 +2,18 @@
   <div class="ui-task-item">
     <UiButtonIcon :icon="faChevronRight" size="medium" accent="brand" />
     <div class="content">
-      <div class="left-side">
-        <slot />
+      <div class="left-side text-ellipsis">
+        <div v-tooltip class="text-ellipsis">
+          <slot />
+        </div>
         <UiTag accent="neutral" variant="primary" size="medium">{{ label }}</UiTag>
         <div class="info">
+          <div v-if="!subtask" class="subtasks">
+            <VtsIcon accent="current" class="icon" :icon="faCircleNotch" />
+            <p class="typo-form-info text-ellipsis">
+              {{ t('tasks.n-subtasks', { n: 4 }) }}
+            </p>
+          </div>
           <UiInfo v-for="info in infos" :key="info.id" :accent="info.accent">
             {{ getTypeMessage(info) }}
           </UiInfo>
@@ -24,11 +32,13 @@
 </template>
 
 <script setup lang="ts">
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiUserLink from '@core/components/ui/user-link/UiUserLink.vue'
-import { faChevronRight } from '@fortawesome/free-solid-svg-icons'
+import { vTooltip } from '@core/directives/tooltip.directive'
+import { faChevronRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -37,6 +47,7 @@ const { start, estimate, label, infos, user } = defineProps<{
   estimate: number
   user: string
   label: string
+  subtask?: object
   infos: {
     id: number
     accent: InfoAccent
@@ -95,6 +106,21 @@ onUnmounted(() => {
   display: flex;
   height: 4.8rem;
   align-items: center;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-brand-background-hover);
+  }
+  &:active {
+    background-color: var(--color-brand-background-active);
+  }
+  &.selected {
+    background-color: var(--color-brand-background-selected);
+  }
+  &.disabled {
+    cursor: not-allowed;
+    background-color: var(--color-neutral-background-disabled);
+  }
   .content {
     width: 100%;
     display: flex;
@@ -103,6 +129,10 @@ onUnmounted(() => {
       display: flex;
       gap: 1.6rem;
       align-items: center;
+      .subtasks {
+        display: flex;
+        gap: 0.8rem;
+      }
       .info {
         display: flex;
         gap: 0.8rem;
