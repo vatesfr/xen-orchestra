@@ -36,7 +36,7 @@
 - [Continuous replication]: Fix `"Expected "actual" to be strictly unequal to: undefined"` when adding a new disk to an already replicated VM (PR [#8400](https://github.com/vatesfr/xen-orchestra/pull/8400))
 - [Netbox] Fix `500 Internal Server Error` when 2 VMs have the same name but different case (PR [#8413](https://github.com/vatesfr/xen-orchestra/pull/8413))
 - [V2V] Fix assert error on import delta from esxi < 7.5 (PR [#8422](https://github.com/vatesfr/xen-orchestra/pull/8422))
-- [Backups/S3] Fix `Unsupported header 'x-amz-checksum-mode' received for this API call.` on backblaze
+- [Backups] Fix `Unsupported header 'x-amz-checksum-mode' received for this API call.` on backblaze (PR [#8393](https://github.com/vatesfr/xen-orchestra/pull/8393))
 
 ### Packages to release
 
