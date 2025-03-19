@@ -45,22 +45,23 @@ type BaseXoVm = BaseXapiXo & {
   blockedOperations: Record<VM_OPERATIONS, string>
   boot: Record<string, string>
   coresPerSocket?: number
-  cpuCap?: number | null
-  cpuMask?: (number | null)[]
-  cpuWeight?: number | null
+  cpuCap?: number
+  cpuMask?: number[]
+  cpuWeight?: number
   creation: Record<string, string>
   current_operations: Record<string, VM_OPERATIONS>
   docker?: {
     containers?: string[]
     enabled: boolean
     info?: string
+    /** @deprecated */
     process?: string
     version?: string
   }
   expNestedHvm: boolean
   hasVendorDevice: boolean
   high_availability: string
-  installTime?: number | null
+  installTime?: number
   isFirmwareSupported: boolean
   memory: {
     dynamic: number[]
@@ -86,7 +87,7 @@ type BaseXoVm = BaseXapiXo & {
   secureBoot: boolean
   snapshots: XoVmSnapshot['id'][]
   startDelay: number
-  startTime?: number | null
+  startTime?: number
   suspendSr?: XoSr['id']
   tags: string[]
   vga?: string
@@ -126,32 +127,32 @@ export type XoHost = BaseXapiXo & {
    */
   CPUs: Record<string, string>
 
-  address?: string
+  address: string
   agentStartTime: null | number
   bios_string: Record<string, string>
   build: string
   certificates?: {
     fingerprint: string
     notAfter: number
-  }
+  }[]
   chipset_info: {
     iommu?: boolean
   }
   controlDomain?: XoVm['id']
   cpus: {
-    cores?: null | number
-    sockets?: null | number
+    cores?: number
+    sockets?: number
   }
   current_operations: Record<string, HOST_ALLOWED_OPERATIONS>
   enabled: boolean
-  hostname?: string
+  hostname: string
   hvmCapable: boolean
   id: Branded<'host'>
   iscsiIqn: string
   license_expiry: null | number
   license_params: Record<string, string>
   license_server: Record<string, string>
-  logging?: Record<string, string>
+  logging: Record<string, string>
   memory: {
     size: number
     /**
@@ -235,7 +236,7 @@ export type XoSr = BaseXapiXo & {
   VDIs: XoVdi['id'][]
 
   allocationStrategy: 'thin' | 'thick' | 'unknown'
-  content_type?: string
+  content_type: string
   current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SR'>
   inMaintenanceMode: boolean
@@ -246,10 +247,10 @@ export type XoSr = BaseXapiXo & {
   shared: boolean
   size: number | null
   sm_config: Record<string, string>
-  SR_type?: string
+  SR_type: string
   tags: string[]
   type: 'SR'
-  usage: number | null
+  usage: number
 }
 
 export type XoUser = {
@@ -269,7 +270,7 @@ export type XoVbd = BaseXapiXo & {
   device: string | null
   id: Branded<'VBD'>
   is_cd_drive: boolean
-  position?: string
+  position: string
   read_only: boolean
   type: 'VBD'
   VDI: XoVdi['id']

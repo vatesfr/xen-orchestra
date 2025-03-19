@@ -645,6 +645,10 @@ export const CERTIFICATE_TYPE = {
 
 export type CERTIFICATE_TYPE = (typeof CERTIFICATE_TYPE)[keyof typeof CERTIFICATE_TYPE]
 
+export const OPAQUE_REF = { EMPTY: 'OpaqueRef:NULL' } as const
+
+export type OPAQUE_REF_NULL = (typeof OPAQUE_REF)['EMPTY']
+
 // ----- XAPI Stats
 
 type XapiStatsResponse<T> = {
