@@ -10,14 +10,12 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
   { esxi, dataStoreToHandlers, sr, vm, chainByNode, vdi, parentVhd, userdevice }
 ) {
   let vhd
-  if (chainByNode.length === 0) {
-    return { vhd, vdi }
-  }
   const isFullImport = chainByNode[0].isFull
+  // we want all the blocks if we start with a full import
   let lookMissingBlockInParent = isFullImport
   let lastDiskUuid
+  let chainLength = 0
   for (let diskIndex = 0; diskIndex < chainByNode.length; diskIndex++) {
-    // the first one  is a RAW disk ( full )
     const disk = chainByNode[diskIndex]
     const { fileName, path, datastore: datastoreName, isFull } = disk
     lastDiskUuid = disk.uid
@@ -40,47 +38,63 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
     // is this disk already imported ?
     const previouslyImportedVdi = diskIsAlreadyImported(sr, disk)
     if (previouslyImportedVdi === undefined) {
+      chainLength++
       lookMissingBlockInParent = true // the block of this VHD must be migrated
     } else {
+      chainLength = 0
       vdi = previouslyImportedVdi // this vdi will be used as a base for the import
       lookMissingBlockInParent = false // the next child won't need to load the missing blocks
     }
     vhd.label = fileName
     parentVhd = vhd
   }
-  if (vdi === undefined) {
-    const { capacity, descriptionLabel, nameLabel } = chainByNode[chainByNode.length - 1]
-    // we don't need to read the BAT with the importVdiThroughXva process
-    const vdiMetadata = {
-      name_description: 'fromESXI' + descriptionLabel,
-      name_label: '[ESXI]' + nameLabel,
-      SR: sr.$ref,
-      virtual_size: capacity,
-    }
-    vdi = await importVdiThroughXva(vdiMetadata, vhd, sr.$xapi, sr)
-    if (lastDiskUuid !== undefined) {
-      await sr.$xapi.setFieldEntries('VDI', vdi.$ref, 'other_config', { esxi_uuid: lastDiskUuid })
-    }
-    // it can fail before the vdi is connected to the vm
-    $defer.onFailure.call(sr.$xapi, 'VDI_destroy', vdi.$ref)
-
+  // if the vdi is already used ( like on of a previous import)
+  if (vdi !== undefined) {
+    // attach a clone to the current VM
+    vdi = await sr.$xapi.getRecord('VDI', await vdi.$clone())
     await sr.$xapi.VBD_create({
       VDI: vdi.$ref,
       VM: vm.$ref,
       device: `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`,
       userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
     })
+  }
 
-    return { vdi, vhd }
-  } else {
-    // delta mode works only in vhd mode for now
-    const stream = vhd.stream()
-    await vhd.readBlockAllocationTable()
-    await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
-    if (lastDiskUuid !== undefined) {
-      await sr.$xapi.setFieldEntries('VDI', vdi.$ref, 'other_config', { esxi_uuid: lastDiskUuid })
+  if (chainLength > 0) {
+    // got something to migrate
+    if (vdi === undefined) {
+      // in a new disk
+      const { capacity, descriptionLabel, nameLabel } = chainByNode[chainByNode.length - 1]
+      // we don't need to read the BAT with the importVdiThroughXva process
+      const vdiMetadata = {
+        name_description: 'fromESXI' + descriptionLabel,
+        name_label: '[ESXI]' + nameLabel,
+        SR: sr.$ref,
+        virtual_size: capacity,
+      }
+      vdi = await importVdiThroughXva(vdiMetadata, vhd, sr.$xapi, sr)
+      if (lastDiskUuid !== undefined) {
+        await sr.$xapi.setFieldEntries('VDI', vdi.$ref, 'other_config', { esxi_uuid: lastDiskUuid })
+      }
+      // it can fail before the vdi is connected to the vm
+      $defer.onFailure.call(sr.$xapi, 'VDI_destroy', vdi.$ref)
+      await sr.$xapi.VBD_create({
+        VDI: vdi.$ref,
+        VM: vm.$ref,
+        device: `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`,
+        userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
+      })
+    } else {
+      // delta mode works only in vhd mode for now
+      const stream = vhd.stream()
+      await vhd.readBlockAllocationTable()
+      await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+      if (lastDiskUuid !== undefined) {
+        await sr.$xapi.setFieldEntries('VDI', vdi.$ref, 'other_config', { esxi_uuid: lastDiskUuid })
+      }
     }
   }
+
   return { vdi, vhd }
 })
 

@@ -157,18 +157,23 @@ export default class MigrateVm {
       sr,
       vmId,
     })
-    if (isRunning && stopSource) {
-      await esxi.powerOff(vmId)
-      await importDisksFromDatastore($defer, {
-        esxi,
-        dataStoreToHandlers,
-        vm,
-        chainsByNodes: runningChainByNodes,
-        sr,
-        vmId,
-        vhds,
-      })
+    if (isRunning) {
+      if (stopSource) {
+        await esxi.powerOff(vmId)
+        await importDisksFromDatastore($defer, {
+          esxi,
+          dataStoreToHandlers,
+          vm,
+          chainsByNodes: runningChainByNodes,
+          sr,
+          vmId,
+          vhds,
+        })
+        return true // the source vm has been completly transfered
+      }
+      return false
     }
+    return true
   }
   @decorateWith(deferrable)
   async migrationfromEsxi(
@@ -200,14 +205,31 @@ export default class MigrateVm {
     const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, template, xapi })
 
     $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
-    await this.#importDisks($defer, { esxi, dataStoreToHandlers, metadata, stopSource, vm, sr, vmId, workDirRemote })
+    const completlyTransfered = await this.#importDisks($defer, {
+      esxi,
+      dataStoreToHandlers,
+      metadata,
+      stopSource,
+      vm,
+      sr,
+      vmId,
+      workDirRemote,
+    })
 
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
-      await vm.set_name_label(metadata.name_label)
-
-      // remove lock on start
-      await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
+      await vm.set_name_label(metadata.name_label + ' ' + new Date())
+      if (completlyTransfered) {
+        // remove lock on start
+        await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
+      } else {
+        await asyncMapSettled(['start', 'start_on'], op =>
+          vm.update_blocked_operations(
+            op,
+            'This VM has not been completly transfered.Please start a clone if you want to be able to resume the transfer later.'
+          )
+        )
+      }
     })
 
     return vm.uuid
