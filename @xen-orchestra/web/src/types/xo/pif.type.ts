@@ -16,8 +16,10 @@ export type XoPif = {
   mac: string
   management: boolean
   mode: string
-  mtu: string
+  mtu: number
   netmask: string
   speed: number
   vlan: number
+  isBondMaster: boolean
+  bondSlaves: XoPif['id'][]
 }

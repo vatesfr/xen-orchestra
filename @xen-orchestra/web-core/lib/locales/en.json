@@ -68,6 +68,7 @@
   "console-clipboard": "Console clipboard",
   "console-unavailable": "Console unavailable",
   "copy": "Copy",
+  "copy-all": "Copy all",
   "copy-info-json": "Copy information into JSON",
   "core.character-limit": "{count}/{max} character | {count}/{max} characters",
   "core.close": "Close",

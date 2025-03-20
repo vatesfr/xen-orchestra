@@ -9,6 +9,9 @@
 
 ### Enhancements
 
+- **XO6**:
+  - [Host/Network]: Display pifs information in side panel (PR [#8287](https://github.com/vatesfr/xen-orchestra/pull/8287))
+
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **Migrated REST API endpoints**:
@@ -57,6 +60,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
 - xo-server minor

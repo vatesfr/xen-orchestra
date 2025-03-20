@@ -64,12 +64,17 @@ export const usePifStore = defineStore('pif', () => {
     return pifsByHostMap
   })
 
+  const getBondsDevices = (pif: XoPif) => {
+    return pif.isBondMaster ? pif.bondSlaves.flatMap(slaveId => baseContext.get(slaveId)?.device ?? []) : []
+  }
+
   const context = {
     ...baseContext,
     hostMasterPifsByNetwork,
     pifsByHost,
     getPifsByNetworkId,
     getPifStatus,
+    getBondsDevices,
   }
   return createSubscribableStoreContext({ context, ...configRest }, deps)
 })
