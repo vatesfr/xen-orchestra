@@ -411,7 +411,7 @@
   "vcpus-used": "vCPUs utilisés",
   "version": "Version",
   "vif": "VIF",
-  "vif-device": "VIF #",
+  "vif-device": "VIF #{device}",
   "vif-status": "Statut du VIF",
   "vifs": "VIFs",
   "vlan": "VLAN",

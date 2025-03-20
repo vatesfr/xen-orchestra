@@ -34,6 +34,7 @@ usePageTitleStore().setTitle(useI18n().t('network'))
 
 const vifs = useArrayFilter(records, vif => {
   const vm = getByOpaqueRef(vif.VM)
+
   return vm?.uuid === route.params.uuid
 })
 

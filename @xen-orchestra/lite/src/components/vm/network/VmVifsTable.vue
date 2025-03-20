@@ -222,7 +222,7 @@ const { visibleColumns, rows } = useTable('vifs', filteredVifs, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('network', record => getNetworkName(record.network), { label: t('network') }),
-    define('device', record => t('vif-device') + record.device, { label: t('device') }),
+    define('device', record => t('vif-device', { device: record.device }), { label: t('device') }),
     define('status', record => (record.currently_attached ? 'connected' : 'disconnected'), { label: t('status') }),
     define('IP', record => getIpAddresses(record), { label: t('ip-addresses') }),
     define('MAC', { label: t('mac-addresses') }),

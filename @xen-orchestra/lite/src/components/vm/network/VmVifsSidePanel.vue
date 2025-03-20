@@ -79,7 +79,7 @@
               {{ $t('device') }}
             </template>
             <template #value>
-              {{ $t('vif-device') + vif.device }}
+              {{ $t('vif-device', { device: vif.device }) }}
             </template>
             <template v-if="vif.device" #addons>
               <UiButtonIcon
@@ -126,16 +126,8 @@
             <template #value>
               {{ vif.locking_mode }}
             </template>
-            <template v-if="vif.locking_mode" #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                :icon="faCopy"
-                size="medium"
-                accent="brand"
-                @click="copy(vif.locking_mode)"
-              />
-            </template>
           </VtsCardRowKeyValue>
+          <!-- TODO Need to add TX Checksumming -->
         </div>
       </UiCard>
       <!-- VIF NETWORK INFORMATION -->
