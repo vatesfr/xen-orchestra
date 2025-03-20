@@ -111,8 +111,8 @@
               <div v-else-if="column.id === 'ip'" class="ip-addresses">
                 <span class="value text-ellipsis">{{ column.value[0] }}</span>
                 <span v-if="column.value.length > 1" class="typo p3-regular more-ips">
-                  {{ `+${column.value.length - 1}` }}</span
-                >
+                  {{ `+${column.value.length - 1}` }}
+                </span>
               </div>
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
