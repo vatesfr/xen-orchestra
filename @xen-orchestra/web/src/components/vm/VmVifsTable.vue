@@ -195,13 +195,9 @@ const filteredVifs = computed(() => {
 })
 
 const getIpAddresses = (vif: XoVif) => {
-  const vm = getVm(vif.$VM)
+  const addresses = getVm(vif.$VM)?.addresses
 
-  if (!vm) return []
-
-  if (!vm.addresses) return []
-
-  return [...new Set(Object.values(vm.addresses).sort())]
+  return addresses ? [...new Set(Object.values(addresses).sort())] : []
 }
 
 const vifsIds = computed(() => vifs.map(vif => vif.id))
@@ -213,7 +209,7 @@ const { visibleColumns, rows } = useTable('vifs', filteredVifs, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('network', record => getNetworkName(record), { label: t('network') }),
-    define('device', record => t('vif-device') + record.device, { label: t('device') }),
+    define('device', record => t('vif-device', { device: record.device }), { label: t('device') }),
     define('status', record => (record.attached ? 'connected' : 'disconnected'), { label: t('status') }),
     define('ip', record => getIpAddresses(record), { label: t('ip-addresses') }),
     define('MAC', record => record.MAC, { label: t('mac-addresses') }),
