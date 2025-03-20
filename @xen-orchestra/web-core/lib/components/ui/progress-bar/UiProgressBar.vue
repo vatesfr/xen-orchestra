@@ -1,6 +1,6 @@
 <!-- v2 -->
 <template>
-  <div class="ui-progress-bar" :class="accentClass">
+  <div class="ui-progress-bar" :class="className">
     <div class="progress-bar">
       <div class="fill" :style="{ width: `${fillWidth}%` }" />
     </div>
@@ -9,7 +9,7 @@
       <span v-for="step in steps" :key="step">{{ $n(step, 'percent') }}</span>
     </div>
     <VtsLegendList class="legend">
-      <UiLegend :accent :value="percentage" unit="%">{{ legend }}</UiLegend>
+      <UiLegend :accent :value="Math.round(percentage)" unit="%">{{ legend }}</UiLegend>
     </VtsLegendList>
   </div>
 </template>
@@ -18,7 +18,7 @@
 import VtsLegendList from '@core/components/legend-list/VtsLegendList.vue'
 import UiLegend from '@core/components/ui/legend/UiLegend.vue'
 import { toVariants } from '@core/utils/to-variants.util'
-import { useMax } from '@vueuse/math'
+import { useClamp, useMax } from '@vueuse/math'
 import { computed } from 'vue'
 
 const {
@@ -34,17 +34,11 @@ const {
 
 const value = useMax(0, () => _value)
 
-const isInvalid = computed(() => !Number.isFinite(value.value / max) || value.value <= 0)
-
-const percentage = computed(() => (isInvalid.value ? 0 : Math.round((value.value / max) * 100)))
-
-const maxPercentage = computed(() => (isInvalid.value ? 100 : Math.ceil(percentage.value / 100) * 100))
-
-const fillWidth = computed(() => Math.max(0, Math.min((percentage.value / maxPercentage.value) * 100, 100)))
-
-const shouldShowSteps = computed(() => showSteps || (value.value > max && percentage.value > 0))
-
-const steps = computed(() => Math.floor(maxPercentage.value / 100))
+const percentage = computed(() => (max <= 0 ? 0 : (value.value / max) * 100))
+const maxPercentage = computed(() => Math.ceil(percentage.value / 100) * 100)
+const fillWidth = useClamp(() => (percentage.value / maxPercentage.value) * 100 || 0, 0, 100)
+const shouldShowSteps = computed(() => showSteps || percentage.value > 100)
+const steps = useMax(1, () => Math.floor(maxPercentage.value / 100))
 
 const accent = computed(() => {
   if (percentage.value >= 90) {
@@ -58,7 +52,7 @@ const accent = computed(() => {
   return 'info'
 })
 
-const accentClass = computed(() => toVariants({ accent: accent.value }))
+const className = computed(() => toVariants({ accent: accent.value }))
 </script>
 
 <style lang="postcss" scoped>
