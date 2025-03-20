@@ -12,6 +12,7 @@
 - **XO6**:
   - [Host/Network]: Display pifs information in side panel (PR [#8287](https://github.com/vatesfr/xen-orchestra/pull/8287))
   - [VM/Network]: Display vifs table in VM network tab (PR [#8442](https://github.com/vatesfr/xen-orchestra/pull/8442))
+  - [VM/Network]: Display vifs information in side panel (PR [#8443](https://github.com/vatesfr/xen-orchestra/pull/8443))
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
