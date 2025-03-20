@@ -2,6 +2,7 @@
 
 ## **next**
 
+- [VM/Creation]: VM creation (PR [#8317](https://github.com/vatesfr/xen-orchestra/pull/8317))
 - [VM/Network]: Display vifs list in vm view and vifs information in side panel (PR [#8441](https://github.com/vatesfr/xen-orchestra/pull/8441))
 
 ## **0.8.0** (2025-02-27)
