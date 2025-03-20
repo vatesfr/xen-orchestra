@@ -191,14 +191,13 @@ const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getNetworkByOpaque
 const getIpAddresses = (vif: XenApiVif) => {
   const vm = getVmByOpaqueRef(vif.VM)
 
-  if (vm) {
-    const networks = getGuestMetricsByOpaqueRef(vm.guest_metrics)?.networks
+  if (!vm) return []
 
-    if (networks) {
-      return [...new Set(Object.values(networks).sort())]
-    }
-  }
-  return []
+  const guestMetrics = getGuestMetricsByOpaqueRef(vm.guest_metrics)
+
+  if (!guestMetrics?.networks) return []
+
+  return [...new Set(Object.values(guestMetrics.networks).sort())]
 }
 
 const searchQuery = ref('')
