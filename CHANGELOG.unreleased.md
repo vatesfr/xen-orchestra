@@ -57,6 +57,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
 - xo-server minor
 - xo-server-audit minor
