@@ -1,5 +1,5 @@
 <template>
-  <div class="vm-vif-table">
+  <div class="vm-vifs-table">
     <UiTitle>
       {{ $t('vifs') }}
       <template #actions>
@@ -11,7 +11,7 @@
           accent="brand"
           size="medium"
         >
-          {{ $t('new-vifs') }}
+          {{ $t('new-vif') }}
         </UiButton>
       </template>
     </UiTitle>
@@ -107,12 +107,12 @@
                     <VtsIcon :icon="faNetworkWired" accent="current" />
                     <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                   </UiComplexIcon>
-                  <a v-tooltip href="" class="text-ellipsis name">{{ column.value.name }}</a>
+                  <a v-tooltip href="" class="text-ellipsis">{{ column.value.name }}</a>
                  -->
-                <span v-tooltip class="text-ellipsis name">{{ column.value }}</span>
+                <span v-tooltip class="text-ellipsis">{{ column.value }}</span>
               </div>
               <div v-else-if="column.id === 'IP'" class="ip-addresses">
-                <span v-tooltip class="value text-ellipsis">{{ column.value[0] }}</span>
+                <span v-tooltip class="text-ellipsis">{{ column.value[0] }}</span>
                 <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
                   {{ `+${column.value.length - 1}` }}
                 </span>
@@ -245,18 +245,15 @@ const headerIcon: Record<VifHeader, IconDefinition> = {
 </script>
 
 <style scoped lang="postcss">
-.vm-vif-table,
-.table-actions,
-.container {
+.vm-vifs-table {
   display: flex;
   flex-direction: column;
-}
-
-.vm-vif-table {
   gap: 2.4rem;
 
   .container,
   .table-actions {
+    display: flex;
+    flex-direction: column;
     gap: 0.8rem;
   }
 
