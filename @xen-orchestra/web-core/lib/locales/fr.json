@@ -151,7 +151,7 @@
   "enabled": "Activé",
   "end-of-life": "Fin de vie",
   "eol": "EOL",
-  "error": "erreur | erreurs",
+  "error": "{n} erreur | {n} erreurs",
   "error-no-data": "Erreur, impossible de collecter les données.",
   "error-occurred": "Une erreur est survenue",
   "exit-fullscreen": "Quitter le plein écran",
