@@ -27,6 +27,7 @@
   - `/rest/v0/vbds/<vbd-id>` (PR [#8404](https://github.com/vatesfr/xen-orchestra/pull/8404))
 - [New VM] Configure ACLs directly from VM creation form [#6996](https://github.com/vatesfr/xen-orchestra/issues/6996) (PR [#8412](https://github.com/vatesfr/xen-orchestra/pull/8412))
 - [Netbox] Support version 4.2.x (PR [#8417](https://github.com/vatesfr/xen-orchestra/pull/8417))
+- [V2V] Resume an import for the last snapshot (PR [#8440](https://github.com/vatesfr/xen-orchestra/pull/8440))
 
 ### Bug fixes
 
