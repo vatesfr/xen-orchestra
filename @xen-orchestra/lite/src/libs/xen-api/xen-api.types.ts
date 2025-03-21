@@ -63,6 +63,7 @@ type ObjectTypeToRecordMapping = {
   pif_metrics: XenApiPifMetrics
   pool: XenApiPool
   sr: XenApiSr
+  vif: XenApiVif
   vm: XenApiVm
   vm_guest_metrics: XenApiVmGuestMetrics
   vm_metrics: XenApiVmMetrics
@@ -377,7 +378,9 @@ export interface XenApiVmMetrics extends XenApiRecord<'vm_metrics'> {
   VCPUs_number: number
 }
 
-export type XenApiVmGuestMetrics = XenApiRecord<'vm_guest_metrics'>
+export interface XenApiVmGuestMetrics extends XenApiRecord<'vm_guest_metrics'> {
+  networks: string
+}
 
 export interface XenApiTask extends XenApiRecord<'task'> {
   name_label: string
@@ -629,7 +632,10 @@ export interface XenApiBond extends XenApiRecord<'bond'> {
   slaves: XenApiPif['$ref'][]
 }
 
-export type XenApiEvent<RelationType extends ObjectType, XRecord extends ObjectTypeToRecord<RelationType>> = {
+export type XenApiEvent<
+  RelationType extends ObjectType = ObjectType,
+  XRecord extends ObjectTypeToRecord<RelationType> = ObjectTypeToRecord<RelationType>,
+> = {
   id: string
   class: RelationType
   operation: 'add' | 'mod' | 'del'
