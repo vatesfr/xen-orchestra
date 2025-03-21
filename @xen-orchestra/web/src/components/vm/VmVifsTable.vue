@@ -11,7 +11,7 @@
           accent="brand"
           :left-icon="faPlus"
         >
-          {{ $t('new-vifs') }}
+          {{ $t('new-vif') }}
         </UiButton>
       </template>
     </UiTitle>
@@ -106,15 +106,15 @@
                     <VtsIcon :icon="faNetworkWired" accent="current" />
                     <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                   </UiComplexIcon>
-                  <a v-tooltip href="" class="text-ellipsis name">{{ column.value.name }}</a>
+                  <a v-tooltip href="" class="text-ellipsis">{{ column.value.name }}</a>
                  -->
-                <span v-tooltip class="text-ellipsis name">{{ column.value }}</span>
+                <span v-tooltip class="text-ellipsis">{{ column.value }}</span>
               </div>
               <div v-else-if="column.id === 'ip'" class="ip-addresses">
-                <span class="value text-ellipsis">{{ column.value[0] }}</span>
-                <span v-if="column.value.length > 1" class="typo p3-regular more-ips">
-                  {{ `+${column.value.length - 1}` }}</span
-                >
+                <span class="text-ellipsis">{{ column.value[0] }}</span>
+                <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
+                  {{ `+${column.value.length - 1}` }}
+                </span>
               </div>
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
@@ -175,9 +175,9 @@ const { t } = useI18n()
 const selectedVifId = useRouteQuery('id')
 
 const getNetworkName = (vif: XoVif) => {
-  const network = getNetwork(vif.$network)!
+  const network = getNetwork(vif.$network)
 
-  return network.name_label ? network.name_label : ''
+  return network?.name_label ? network.name_label : ''
 }
 
 const searchQuery = ref('')
@@ -234,18 +234,15 @@ const headerIcon: Record<VifHeader, IconDefinition> = {
 </script>
 
 <style scoped lang="postcss">
-.vm-vifs-table,
-.table-actions,
-.container {
+.vm-vifs-table {
   display: flex;
   flex-direction: column;
-}
-
-.vm-vifs-table {
   gap: 2.4rem;
 
-  .container,
-  .table-actions {
+  .table-actions,
+  .container {
+    display: flex;
+    flex-direction: column;
     gap: 0.8rem;
   }
 
