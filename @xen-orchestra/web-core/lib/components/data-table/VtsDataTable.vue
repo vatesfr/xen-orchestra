@@ -1,24 +1,23 @@
 <template>
   <div class="table-container">
-    <VtsLoadingHero :disabled="isReady" type="table">
-      <VtsTable vertical-border>
-        <thead>
-          <slot name="thead" />
-        </thead>
-        <tbody>
-          <slot name="tbody" />
-        </tbody>
-      </VtsTable>
-    </VtsLoadingHero>
-    <VtsErrorNoDataHero v-if="isReady && hasError" type="table" />
-    <VtsStateHero v-if="isReady && noDataMessage" type="table" image="no-data" />
+    <VtsLoadingHero v-if="!isReady" type="table" />
+    <VtsErrorNoDataHero v-else-if="hasError" type="table" />
+    <VtsNoDataHero v-else-if="noDataMessage" type="table" />
+    <VtsTable v-else vertical-border>
+      <thead>
+        <slot name="thead" />
+      </thead>
+      <tbody>
+        <slot name="tbody" />
+      </tbody>
+    </VtsTable>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 
 defineProps<{
