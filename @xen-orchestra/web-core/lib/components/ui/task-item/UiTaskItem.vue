@@ -1,30 +1,29 @@
 <template>
-  <div class="ui-task-item">
+  <div class="ui-task-item" :class="{ selected: selectedTaskId === task.id }" @click="selectedTaskId = task.id">
     <UiButtonIcon :icon="faChevronRight" size="medium" accent="brand" />
     <div class="content">
       <div class="left-side text-ellipsis">
-        <div v-tooltip class="text-ellipsis">
-          <slot />
+        <div v-tooltip class="text-ellipsis typo-body-regular">
+          {{ task.properties.name }}
         </div>
-        <UiTag accent="neutral" variant="primary" size="medium">{{ label }}</UiTag>
+        <UiTag accent="neutral" variant="primary" size="medium">{{ task.properties.name }}</UiTag>
         <div class="info">
-          <div v-if="!subtask" class="subtasks">
+          <div class="subtasks">
             <VtsIcon accent="current" class="icon" :icon="faCircleNotch" />
             <p class="typo-form-info text-ellipsis">
               {{ t('tasks.n-subtasks', { n: 4 }) }}
             </p>
           </div>
-          <UiInfo v-for="info in infos" :key="info.id" :accent="info.accent">
-            {{ getTypeMessage(info) }}
-          </UiInfo>
+          <UiInfo v-if="hasResultName" :accent>{{ message }}</UiInfo>
         </div>
       </div>
       <div class="right-side">
         <div class="user typo-body-regular-small">
           <span>{{ t('by') }}</span>
-          <UiUserLink :username="user" />
-          <span> {{ t('task.started-ago', { time: timeAgo }) }} </span>
-          <span>{{ t('task.estimated-end-in', { time: convertSeconds(estimate) }) }} </span>
+          <UiUserLink :username="getUser()" />
+          <span> {{ t('task.started-ago', { time: elapsedTime }) }} </span>
+          <span>{{ t('task.estimated-end-in', { time: remainingTime }) }} </span>
+          <VtsIcon accent="current" class="icon" :icon="faCircleNotch" />
         </div>
       </div>
     </div>
@@ -37,64 +36,85 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiUserLink from '@core/components/ui/user-link/UiUserLink.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faChevronRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useIntervalFn } from '@vueuse/core'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { start, estimate, label, infos, user } = defineProps<{
-  start: number
-  estimate: number
-  user: string
-  label: string
-  subtask?: object
-  infos: {
-    id: number
-    accent: InfoAccent
-    message: string
-    count: number
-  }[]
+const { task } = defineProps<{
+  task: TaskItem
 }>()
+
+type TaskProperties = {
+  name: string
+  objectId: string
+  userId: string
+}
+
+type Result = { message: string; name: string; stack: string } | string
+
+type TaskItem = {
+  id: string
+  properties: TaskProperties
+  start: number
+  status: string
+  updatedAt: number
+  end: number
+  result: Result
+}
+
 const { t } = useI18n()
-export type InfoAccent = 'info' | 'warning' | 'danger'
-const currentTimestamp = ref(Math.floor(Date.now() / 1000))
+const now = ref(new Date())
+const selectedTaskId = useRouteQuery('id')
 
-const getTypeMessage = (info: { accent: InfoAccent; count: number }) => {
-  const typeKey = info.accent === 'info' ? 'information' : info.accent === 'warning' ? 'warning' : 'error'
-  return t(typeKey, { n: info.count })
-}
+const hasResultName = computed(() => typeof task.result === 'object' && task.result?.name)
 
-const convertSeconds = (seconds: number): string => {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
+const resultName = computed(() => (hasResultName.value ? (task.result as { name: string }).name : null))
 
-  return minutes === 0 ? `${hours}h` : `${hours}h${String(minutes).padStart(2, '0')}m`
-}
-
-const getTimeAgo = (timestamp: number): string => {
-  const secondsElapsed = currentTimestamp.value - timestamp
-  const hours = Math.floor(secondsElapsed / 3600)
-  const minutes = Math.floor((secondsElapsed % 3600) / 60)
-
-  if (hours > 0) {
-    return `${hours}h${minutes > 0 ? String(minutes).padStart(2, '0') : ''}m`
-  }
-  return `${minutes}m`
-}
-
-const timeAgo = computed(() => getTimeAgo(start))
-
-let interval: number | undefined
-
-onMounted(() => {
-  interval = setInterval(() => {
-    currentTimestamp.value = Math.floor(Date.now() / 1000)
-  }, 60000)
+const accent = computed(() => {
+  if (resultName.value === 'Error') return 'danger'
+  if (resultName.value === 'Warning') return 'warning'
+  return 'info'
 })
 
-onUnmounted(() => {
-  clearInterval(interval)
+const messageKey = computed(() => {
+  if (resultName.value === 'Error') return 'error'
+  if (resultName.value === 'Warning') return 'warning'
+  return 'information'
 })
+
+const message = computed(() => {
+  return t(messageKey.value, { n: 2 })
+})
+
+useIntervalFn(() => {
+  now.value = new Date()
+}, 60000)
+
+const elapsedTime = computed(() => {
+  const diff = now.value.getTime() - task.start
+  const minutes = Math.floor(diff / 60000) % 60
+  const hours = Math.floor(diff / 3600000)
+
+  return hours > 0 ? `${hours}h${minutes}m` : `${minutes}m`
+})
+
+const remainingTime = computed(() => {
+  const diff = task.end - now.value.getTime()
+  if (diff <= 0) return '0m'
+
+  const minutes = Math.floor(diff / 60000) % 60
+  const hours = Math.floor(diff / 3600000)
+
+  return hours > 0 ? `${hours}h${minutes}m` : `${minutes}m`
+})
+
+// Todo: Get the username by it's ID
+const getUser = () => {
+  return 'Sébastian'
+}
 </script>
 
 <style scoped lang="postcss">
@@ -125,6 +145,7 @@ onUnmounted(() => {
     width: 100%;
     display: flex;
     justify-content: space-between;
+    padding-inline: 0.8rem;
     .left-side {
       display: flex;
       gap: 1.6rem;
