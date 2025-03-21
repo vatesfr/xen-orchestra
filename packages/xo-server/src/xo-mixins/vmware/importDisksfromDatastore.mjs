@@ -48,7 +48,7 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
     vhd.label = fileName
     parentVhd = vhd
   }
-  // if the vdi is already used ( like on of a previous import)
+  // if the vdi is already used (like one of a previous import)
   if (vdi !== undefined) {
     // attach a clone to the current VM
     vdi = await sr.$xapi.getRecord('VDI', await vdi.$clone())
