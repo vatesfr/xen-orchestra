@@ -3,7 +3,7 @@ import XenApi from '@/libs/xen-api/xen-api'
 import { useLocalStorage, useSessionStorage, whenever } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, ref, watchEffect } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const HOST_URL = import.meta.env.PROD ? window.origin : import.meta.env.VITE_XO_HOST
 

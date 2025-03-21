@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [VM/Creation]: VM creation (PR [#8317](https://github.com/vatesfr/xen-orchestra/pull/8317))
+
 ## **0.8.0** (2025-02-27)
 
 - [i18n] Add Swedish, update Czech and Spanish translations (contributions made by [@xiscoj](https://github.com/xiscoj), [@p-bo](https://github.com/p-bo) and [Jonas](https://translate.vates.tech/user/Jonas/)) (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))
