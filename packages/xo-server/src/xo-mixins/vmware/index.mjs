@@ -226,7 +226,7 @@ export default class MigrateVm {
         await asyncMapSettled(['start', 'start_on'], op =>
           vm.update_blocked_operations(
             op,
-            'This VM has not been completly transfered.Please start a clone if you want to be able to resume the transfer later.'
+            'This VM has not been completly transfered. Please start a clone if you want to be able to resume the transfer later.'
           )
         )
       }
