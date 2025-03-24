@@ -1,15 +1,14 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ $t('backups') }}</UiCardTitle>
-    <VtsLoadingHero :disabled="isReady" type="card">
-      <VtsNoDataHero v-if="record?.backups === undefined" type="card" />
-      <template v-else>
-        <VtsDonutChartWithLegend :segments="jobsSegments" :title="jobsTitle" />
-        <UiCardNumbers :label="t('total')" :value="record?.backups?.jobs.total" size="small" />
-        <VtsDivider type="stretch" />
-        <VtsDonutChartWithLegend :segments="vmsProtectionSegments" :title="vmsProtectionTitle" />
-      </template>
-    </VtsLoadingHero>
+    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsNoDataHero v-else-if="record?.backups === undefined" type="card" />
+    <template v-else>
+      <VtsDonutChartWithLegend :segments="jobsSegments" :title="jobsTitle" />
+      <UiCardNumbers :label="t('total')" :value="record.backups.jobs.total" size="small" />
+      <VtsDivider type="stretch" />
+      <VtsDonutChartWithLegend :segments="vmsProtectionSegments" :title="vmsProtectionTitle" />
+    </template>
   </UiCard>
 </template>
 

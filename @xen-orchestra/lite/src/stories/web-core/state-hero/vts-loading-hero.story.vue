@@ -1,21 +1,14 @@
 <template>
   <ComponentStory
-    v-slot="{ properties, settings }"
-    :params="[
-      prop('type').required().enum('page', 'card', 'table', 'panel').preset('card').widget(),
-      prop('disabled').bool().widget(),
-      slot(),
-      setting('slotContent').preset('Content to show when loader is disabled').widget(),
-    ]"
+    v-slot="{ properties }"
+    :params="[prop('type').required().enum('page', 'card', 'table', 'panel').preset('card').widget()]"
   >
-    <VtsLoadingHero v-bind="properties">
-      {{ settings.slotContent }}
-    </VtsLoadingHero>
+    <VtsLoadingHero v-bind="properties" />
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting, slot } from '@/libs/story/story-param'
+import { prop } from '@/libs/story/story-param'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 </script>

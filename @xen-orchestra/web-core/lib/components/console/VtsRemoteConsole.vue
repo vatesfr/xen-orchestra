@@ -1,6 +1,6 @@
 <template>
   <div :class="uiStore.isMobile ? 'mobile' : undefined" class="vts-remote-console">
-    <VtsLoadingHero :disabled="isReady" type="panel" />
+    <VtsLoadingHero v-if="!isReady" type="panel" />
     <div ref="console-container" class="console" />
   </div>
 </template>

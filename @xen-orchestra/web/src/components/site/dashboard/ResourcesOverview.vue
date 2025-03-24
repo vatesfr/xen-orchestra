@@ -1,7 +1,8 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ $t('resources-overview') }}</UiCardTitle>
-    <VtsLoadingHero :disabled="isReady" type="card">
+    <VtsLoadingHero v-if="!isReady" type="card" />
+    <template v-else>
       <div class="line-1">
         <UiCardNumbers
           :label="$t('total-memory')"
@@ -17,7 +18,7 @@
         :unit="srSize?.prefix"
         size="medium"
       />
-    </VtsLoadingHero>
+    </template>
   </UiCard>
 </template>
 
