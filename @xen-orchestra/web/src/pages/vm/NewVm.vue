@@ -17,8 +17,13 @@
         <p class="typo p1-regular">{{ t('new-vm.pick-template') }}</p>
         <!--        // Todo: Replace by the new select component -->
         <select id="select" v-model="vmState.new_vm_template" @change="onTemplateChange()">
-          <option v-for="template in vmsTemplatesByPool.get(vmState.pool.id)" :key="template.id" :value="template">
-            {{ template.name_label }} {{ vmState.pool.name_label }}
+          <option
+            v-for="template in vmsTemplatesByPool.get(vmState.pool.id)"
+            :key="template.id"
+            :value="template"
+            class="template-option"
+          >
+            {{ formattedPoolDisplay(template) }}
           </option>
         </select>
       </div>
@@ -485,6 +490,10 @@ const vmState = reactive<VmState>({
   pool: null,
 })
 
+const formattedPoolDisplay = (template: XoVmTemplate) => {
+  return `${template.name_label} - ${vmState.pool!.name_label}`
+}
+
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
 
 const giBToBytes = (giB: number) => giB * 1024 ** 3
@@ -810,5 +819,9 @@ thead tr th:last-child {
 .select {
   display: flex;
   flex-direction: column;
+}
+
+.template-option {
+  white-space: pre; /* Ensures spaces are displayed */
 }
 </style>
