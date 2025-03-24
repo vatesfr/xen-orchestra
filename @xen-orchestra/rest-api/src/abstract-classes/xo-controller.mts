@@ -7,8 +7,8 @@ import { BaseController } from './base-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 
 export abstract class XoController<T extends NonXapiXoRecord> extends BaseController<T, false> {
-  abstract _getObjects(): Promise<T[]>
-  abstract _getObject(id: T['id']): Promise<T>
+  abstract getAllCollectionObjects(): Promise<T[]>
+  abstract getCollectionObject(id: T['id']): Promise<T>
 
   constructor(@inject(RestApi) restApi: RestApi) {
     super(restApi)
@@ -17,7 +17,7 @@ export abstract class XoController<T extends NonXapiXoRecord> extends BaseContro
   async getObjects({ filter, limit = Infinity }: { filter?: string; limit?: number } = {}): Promise<
     Record<T['id'], T>
   > {
-    let objects = await this._getObjects()
+    let objects = await this.getAllCollectionObjects()
 
     if (filter !== undefined) {
       const predicate = CM.parse(filter).createPredicate()
@@ -38,6 +38,6 @@ export abstract class XoController<T extends NonXapiXoRecord> extends BaseContro
   }
 
   async getObject(id: T['id']): Promise<T> {
-    return this._getObject(id)
+    return this.getCollectionObject(id)
   }
 }

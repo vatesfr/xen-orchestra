@@ -15,10 +15,10 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 @provide(ServerController)
 export class ServerController extends XoController<XoServer> {
   // --- abstract methods
-  _getObjects(): Promise<XoServer[]> {
+  getAllCollectionObjects(): Promise<XoServer[]> {
     return this.restApi.xoApp.getAllXenServers()
   }
-  _getObject(id: XoServer['id']): Promise<XoServer> {
+  getCollectionObject(id: XoServer['id']): Promise<XoServer> {
     return this.restApi.xoApp.getXenServer(id)
   }
 
