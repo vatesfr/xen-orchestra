@@ -320,7 +320,7 @@
   "new-vm.size": "Size",
   "new-vm.sockets": "1 socket | {nSockets} sockets",
   "new-vm.cores": "1 core | {nCores} cores",
-  "new-vm.sockets-with-cores-per-socket": "{sockets} × {cores}",
+  "new-vm.sockets-with-cores-per-socket": "{sockets} × {cores}/socket",
   "new-vm.ssh-key": "SSH key",
   "new-vm.storage": "Storage",
   "new-vm.storage-repositories": "Storage repositories (SR)",
