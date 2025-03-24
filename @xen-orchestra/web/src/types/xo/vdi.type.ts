@@ -8,6 +8,6 @@ export type XoVdi = {
   name_description: string
   type: string
   size: number
-  $SR: XoSr['id']
-  $VBDs: XoVbd['id'][]
+  $sr: XoSr['id']
+  $vbds: XoVbd['id'][]
 }

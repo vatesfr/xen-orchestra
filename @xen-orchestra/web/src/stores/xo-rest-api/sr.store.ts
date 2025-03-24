@@ -14,20 +14,20 @@ export const useSrStore = defineStore('sr', () => {
   const vdiContext = deps.vdiStore.getContext()
 
   const srs = computed(() => baseContext.records.value)
-  const srsName = (ref: XoSr['id']) => baseContext.get(ref)?.name_label
+  const getSrName = (ref: XoSr['id']) => baseContext.get(ref)?.name_label
 
-  const getSrWithISO = computed(() => srs.value.filter(sr => sr.SR_type === 'iso'))
+  const getSrsWithISO = computed(() => srs.value.filter(sr => sr.SR_type === 'iso'))
 
-  const concatVDIsArray = computed(() => getSrWithISO.value.flatMap(sr => sr.VDIs || []))
+  const concatVdisArray = computed(() => getSrsWithISO.value.flatMap(sr => sr.vdis || []))
 
-  const VDIsGroupedBySrName = computed(() => {
+  const vdisBySrName = computed(() => {
     const groupedVDIs: Record<string, XoSr[]> = {}
 
-    concatVDIsArray.value.forEach(vdiRef => {
+    concatVdisArray.value.forEach(vdiRef => {
       const vdi = vdiContext.get(vdiRef)
 
       if (vdi) {
-        const srName = srsName(vdi.$SR) || 'Unknown SR'
+        const srName = getSrName(vdi.$sr) || 'Unknown SR'
         if (!groupedVDIs[srName]) {
           groupedVDIs[srName] = []
         }
@@ -40,7 +40,7 @@ export const useSrStore = defineStore('sr', () => {
 
   const context = {
     ...baseContext,
-    VDIsGroupedBySrName,
+    vdisBySrName,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)

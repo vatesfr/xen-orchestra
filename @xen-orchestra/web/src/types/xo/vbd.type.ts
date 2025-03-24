@@ -6,5 +6,5 @@ export type XoVbd = {
   name_label: string
   name_description: string
   type: string
-  VDI: XoVdi['id']
+  vdi: XoVdi['id']
 }
