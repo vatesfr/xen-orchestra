@@ -2,27 +2,27 @@
 <template>
   <div class="ui-table-pagination">
     <div class="buttons-container">
-      <PaginationButton :disabled="isFirstPage || disabled" :icon="faAngleDoubleLeft" @click="goToFirstPage()" />
-      <PaginationButton :disabled="isFirstPage || disabled" :icon="faAngleLeft" @click="goToPreviousPage()" />
-      <PaginationButton :disabled="isLastPage || disabled" :icon="faAngleRight" @click="goToNextPage()" />
-      <PaginationButton :disabled="isLastPage || disabled" :icon="faAngleDoubleRight" @click="goToLastPage()" />
+      <PaginationButton :disabled="isFirstPage" :icon="faAngleDoubleLeft" @click="emit('first')" />
+      <PaginationButton :disabled="isFirstPage" :icon="faAngleLeft" @click="emit('previous')" />
+      <PaginationButton :disabled="isLastPage" :icon="faAngleRight" @click="emit('next')" />
+      <PaginationButton :disabled="isLastPage" :icon="faAngleDoubleRight" @click="emit('last')" />
     </div>
     <span class="typo-body-regular-small label">
-      {{ $t('core.select.n-object-of', { from: startIndex, to: endIndex, total: totalItems }) }}
+      {{ $t('core.select.n-object-of', { from, to, total }) }}
     </span>
-    <span class="typo-body-regular-small label show">{{ $t('core.show-by') }}</span>
+    <span class="typo-body-regular-small label show">{{ $t('core.pagination.show-by') }}</span>
     <div class="dropdown-wrapper">
-      <select v-model="pageSize" :disabled class="dropdown typo-body-regular-small" @change="goToFirstPage">
-        <option v-for="option in pageSizeOptions" :key="option" :value="option" class="typo-body-bold-small">
-          {{ option }}
+      <select v-model="showBy" class="dropdown typo-body-regular-small">
+        <option v-for="option in [50, 100, 150, 200, -1]" :key="option" :value="option" class="typo-body-bold-small">
+          {{ option === -1 ? $t('core.pagination.all') : option }}
         </option>
       </select>
-      <VtsIcon class="icon" accent="current" :icon="faAngleDown" />
+      <VtsIcon :icon="faAngleDown" accent="current" class="icon" />
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import PaginationButton from '@core/components/ui/table-pagination/PaginationButton.vue'
 import {
@@ -32,60 +32,26 @@ import {
   faAngleLeft,
   faAngleRight,
 } from '@fortawesome/free-solid-svg-icons'
-import { useOffsetPagination } from '@vueuse/core'
-import { computed, ref, watch } from 'vue'
 
-export type PaginationPayload = {
-  currentPage: number
-  pageSize: number
-  startIndex: number
-  endIndex: number
-}
-
-const { totalItems, disabled = false } = defineProps<{
-  totalItems: number
-  disabled?: boolean
+defineProps<{
+  from: number
+  to: number
+  total: number
+  isFirstPage: boolean
+  isLastPage: boolean
 }>()
 
 const emit = defineEmits<{
-  change: [payload: PaginationPayload]
+  first: []
+  previous: []
+  next: []
+  last: []
 }>()
 
-const pageSize = ref(50)
-const pageSizeOptions = [10, 50, 100, 150, 200]
-const {
-  currentPage,
-  currentPageSize,
-  pageCount,
-  isFirstPage,
-  isLastPage,
-  prev: goToPreviousPage,
-  next: goToNextPage,
-} = useOffsetPagination({
-  total: () => totalItems,
-  pageSize,
-})
-const startIndex = computed(() => (currentPage.value - 1) * currentPageSize.value + 1)
-const endIndex = computed(() => Math.min(currentPage.value * currentPageSize.value, totalItems))
-
-const goToFirstPage = () => {
-  currentPage.value = 1
-}
-const goToLastPage = () => {
-  currentPage.value = pageCount.value
-}
-
-watch([currentPage, currentPageSize], ([newPage, newPageSize]) => {
-  emit('change', {
-    currentPage: newPage,
-    pageSize: newPageSize,
-    startIndex: startIndex.value,
-    endIndex: endIndex.value,
-  })
-})
+const showBy = defineModel<number>('showBy', { default: 50 })
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .ui-table-pagination {
   display: flex;
   align-items: center;
