@@ -17,7 +17,7 @@ export class Synchronized<T, TReturn, TNext> {
     this.#source = source
   }
 
-  fork(uid: string): AsyncGenerator {
+  fork(uid: string): AsyncGenerator<T, TReturn, TNext> {
     assert.strictEqual(this.#started, false, `can't create a fork after consuming the data`)
     const fork = new Forked<T, TReturn, TNext>(this, uid)
     this.#forks.set(uid, fork)
@@ -142,7 +142,14 @@ class Forked<T, TReturn, TNext> implements AsyncGenerator<T, TReturn, TNext> {
     return this.#parent.remove(this.#uid, e)
   }
 
-  [Symbol.asyncIterator](): AsyncGenerator<T> {
-    return this
+  async *[Symbol.asyncIterator](): AsyncGenerator<T> {
+    while (true) {
+      const res = await this.next()
+      if (res.done) {
+        break
+      }
+
+      yield res.value
+    }
   }
 }
