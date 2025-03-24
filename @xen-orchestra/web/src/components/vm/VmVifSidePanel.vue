@@ -59,7 +59,7 @@
               </UiComplexIcon>
               <a href="">{{ networkNameLabel }}</a>
               -->
-              <span class="value">{{ network?.name_label }}</span>
+              <span v-tooltip class="text-ellipsis value">{{ network?.name_label }}</span>
             </template>
             <template v-if="network?.name_label" #addons>
               <UiButtonIcon
@@ -106,7 +106,7 @@
             <template #value>
               {{ vif.MTU }}
             </template>
-            <template v-if="vif.MTU" #addons>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
@@ -151,7 +151,6 @@
               </template>
               <template #addons>
                 <UiButtonIcon
-                  v-if="ipAddresses.length"
                   v-tooltip="copied && $t('core.copied')"
                   :icon="faCopy"
                   size="medium"

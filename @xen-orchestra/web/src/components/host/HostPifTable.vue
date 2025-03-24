@@ -97,9 +97,9 @@
                     <VtsIcon :icon="faNetworkWired" accent="current" />
                     <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                   </UiComplexIcon>
-                  <a v-tooltip href="" class="text-ellipsis name">{{ column.value.name }}</a>
+                  <a v-tooltip href="" class="text-ellipsis">{{ column.value.name }}</a>
                  -->
-                <span v-tooltip class="text-ellipsis name">{{ column.value.name }}</span>
+                <span v-tooltip class="text-ellipsis">{{ column.value.name }}</span>
                 <VtsIcon
                   v-if="column.value.management"
                   v-tooltip="$t('management')"
@@ -109,7 +109,7 @@
                 />
               </div>
               <div v-else-if="column.id === 'ip'" class="ip-addresses">
-                <span class="value text-ellipsis">{{ column.value[0] }}</span>
+                <span class="text-ellipsis">{{ column.value[0] }}</span>
                 <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
                   {{ `+${column.value.length - 1}` }}
                 </span>
@@ -279,10 +279,6 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
     .more-ips {
       color: var(--color-neutral-txt-secondary);
     }
-
-    &:has(.value:empty) {
-      justify-content: center;
-    }
   }
 
   .checkbox,
@@ -293,10 +289,6 @@ const headerIcon: Record<pifHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
-  }
-
-  .value:empty::before {
-    content: '-';
   }
 }
 </style>

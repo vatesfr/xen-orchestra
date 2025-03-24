@@ -35,7 +35,7 @@
               {{ $t('uuid') }}
             </template>
             <template #value>{{ network.uuid }}</template>
-            <template v-if="network.uuid" #addons>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 accent="brand"
@@ -62,7 +62,7 @@
             </template>
           </VtsCardRowKeyValue>
           <!-- VLAN -->
-          <VtsCardRowKeyValue v-if="networkVlan">
+          <VtsCardRowKeyValue>
             <template #key>{{ $t('vlan') }}</template>
             <template #value>{{ networkVlan }}</template>
             <template #addons>
