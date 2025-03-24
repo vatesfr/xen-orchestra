@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [VM/Network]: Display vifs list in vm view and vifs information in side panel (PR [#8441](https://github.com/vatesfr/xen-orchestra/pull/8441))
+
 ## **0.8.0** (2025-02-27)
 
 - [i18n] Add Swedish, update Czech and Spanish translations (contributions made by [@xiscoj](https://github.com/xiscoj), [@p-bo](https://github.com/p-bo) and [Jonas](https://translate.vates.tech/user/Jonas/)) (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))

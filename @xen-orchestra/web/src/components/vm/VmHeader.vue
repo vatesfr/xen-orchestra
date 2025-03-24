@@ -7,11 +7,19 @@
   </UiHeadBar>
   <TabList>
     <TabItem disabled>{{ $t('dashboard') }}</TabItem>
-    <TabItem active>{{ $t('console') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/console`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ $t('console') }}
+      </TabItem>
+    </RouterLink>
     <TabItem disabled>{{ $t('alarms') }}</TabItem>
     <TabItem disabled>{{ $t('stats') }}</TabItem>
     <TabItem disabled>{{ $t('system') }}</TabItem>
-    <TabItem disabled>{{ $t('network') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/networks`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ $t('network') }}
+      </TabItem>
+    </RouterLink>
     <TabItem disabled>{{ $t('storage') }}</TabItem>
     <TabItem disabled>{{ $t('tasks') }}</TabItem>
   </TabList>

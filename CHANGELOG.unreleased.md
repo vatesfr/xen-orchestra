@@ -11,6 +11,7 @@
 
 - **XO6**:
   - [Host/Network]: Display pifs information in side panel (PR [#8287](https://github.com/vatesfr/xen-orchestra/pull/8287))
+  - [VM/Network]: Display vifs table in VM network tab (PR [#8442](https://github.com/vatesfr/xen-orchestra/pull/8442))
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
@@ -39,6 +40,7 @@
 - [Continuous replication]: Fix `"Expected "actual" to be strictly unequal to: undefined"` when adding a new disk to an already replicated VM (PR [#8400](https://github.com/vatesfr/xen-orchestra/pull/8400))
 - [Netbox] Fix `500 Internal Server Error` when 2 VMs have the same name but different case (PR [#8413](https://github.com/vatesfr/xen-orchestra/pull/8413))
 - [V2V] Fix assert error on import delta from esxi < 7.5 (PR [#8422](https://github.com/vatesfr/xen-orchestra/pull/8422))
+- [Backups] Fix `Unsupported header 'x-amz-checksum-mode' received for this API call.` on backblaze (PR [#8393](https://github.com/vatesfr/xen-orchestra/pull/8393))
 - [Backup] Fix remove automatic disabling of CBT on export failure (PR [#8446](https://github.com/vatesfr/xen-orchestra/pull/8446))
 
 ### Packages to release
@@ -59,6 +61,7 @@
 
 - @vates/types minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
