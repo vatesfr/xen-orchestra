@@ -547,6 +547,23 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([snapshot => !snapshot.$snapshot_of])
     .sort()
+  const getLongRetentionSnapshots = createSelector(createGetObjectsOfType('VM-snapshot'), vmSnapshots => {
+    const now = Date.now()
+    const retentionPeriod = 30 * 24 * 60 * 60 * 1000
+
+    return Object.values(vmSnapshots).filter(snapshot => {
+      const backupDate = snapshot.other?.['xo:backup:datetime']
+      const isBackup = Boolean(backupDate)
+      const isOld = snapshot.snapshot_time * 1000 < now - retentionPeriod
+
+      if (!isBackup) return isOld
+
+      const backupTime = Date.parse(backupDate)
+      const isBackupRecent = !isNaN(backupTime) && now - backupTime < retentionPeriod
+
+      return isOld && !isBackupRecent
+    })
+  })
   const getVms = createGetObjectsOfType('VM')
   const MAX_HEALTHY_SNAPSHOT_COUNT = 5
   const getTooManySnapshotsVms = getVms.filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT]).sort()
@@ -579,6 +596,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     hosts: createGetObjectsOfType('host'),
     orphanVdis: getOrphanVdis,
     orphanVmSnapshots: getOrphanVmSnapshots,
+    longRetentionSnapshots: getLongRetentionSnapshots,
     pools: createGetObjectsOfType('pool'),
     tooManySnapshotsVms: getTooManySnapshotsVms,
     guestToolsVms: getGuestToolsVms,
@@ -680,6 +698,8 @@ export default class Health extends Component {
   _getOrphanVdis = createFilter(() => this.props.orphanVdis, this._getPoolPredicate)
 
   _getOrphanVmSnapshots = createFilter(() => this.props.orphanVmSnapshots, this._getPoolPredicate)
+
+  _getlongRetentionSnapshots = createFilter(() => this.props.longRetentionSnapshots, this._getPoolPredicate)
 
   _getTooManySnapshotsVms = createFilter(() => this.props.tooManySnapshotsVms, this._getPoolPredicate)
 
@@ -838,6 +858,24 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <AttachedVdisTable poolPredicate={this._getPoolPredicate()} />
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='vm' /> {_('oldSnapshots')}
+              </CardHeader>
+              <CardBlock>
+                <NoObjects
+                  actions={VM_ACTIONS}
+                  collection={props.areObjectsFetched ? this._getlongRetentionSnapshots() : null}
+                  columns={VM_COLUMNS}
+                  component={SortedTable}
+                  emptyMessage={_('noOldObject')}
+                />
               </CardBlock>
             </Card>
           </Col>
