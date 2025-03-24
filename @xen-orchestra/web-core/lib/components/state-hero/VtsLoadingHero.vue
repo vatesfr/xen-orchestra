@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero :type busy class="vts-loading-hero">
+  <VtsStateHero :type busy>
     {{ $t('loading-in-progress') }}
   </VtsStateHero>
 </template>
@@ -9,6 +9,5 @@ import VtsStateHero, { type StateHeroType } from '@core/components/state-hero/Vt
 
 defineProps<{
   type: StateHeroType
-  disabled?: never
 }>()
 </script>
