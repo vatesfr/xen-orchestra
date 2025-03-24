@@ -14,11 +14,11 @@ export interface NetworkInterface {
 }
 
 export interface VmState {
-  vm_name: string
-  vm_description: string
+  name: string
+  description: string
   toggle: boolean
   installMode: string
-  tags: string
+  tags: string[]
   affinity_host: string
   boot_firmware: string
   new_vm_template: XenApiVm | null
@@ -36,7 +36,7 @@ export interface VmState {
   copyHostBiosStrings: boolean
   sshKeys: string[]
   existingDisks: Disk[]
-  VDIs: Disk[]
+  vdis: Disk[]
   networkInterfaces: NetworkInterface[]
   defaultNetwork: NetworkInterface | null
 }
