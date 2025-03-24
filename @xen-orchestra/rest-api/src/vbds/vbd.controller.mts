@@ -34,7 +34,7 @@ export class VbdController extends XapiXoController<XoVbd> {
     @Query() fields?: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Unbrand<XoVbd>>[] | WithHref<Partial<Unbrand<XoVbd>>>[] {
+  ): string[] | WithHref<Partial<Unbrand<XoVbd>>>[] {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
