@@ -1,18 +1,18 @@
 <template>
-  <TitleBar :icon="faBuilding">
+  <UiHeadBar :icon="faBuilding">
     {{ name }}
     <template #actions>
-      <UiButton :left-icon="faPlus" variant="primary" accent="brand" size="medium" @click="goToNewVm">
+      <UiLink :left-icon="faPlus" variant="primary" accent="brand" size="medium" @click="goToNewVm()">
         {{ $t('new-vm') }}
-      </UiButton>
+      </UiLink>
     </template>
-  </TitleBar>
+  </UiHeadBar>
 </template>
 
 <script lang="ts" setup>
-import TitleBar from '@/components/TitleBar.vue'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { faBuilding } from '@fortawesome/free-regular-svg-icons'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
