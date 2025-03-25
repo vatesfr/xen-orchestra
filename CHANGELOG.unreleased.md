@@ -25,6 +25,7 @@
   - `/rest/v0/srs/<sr-id>` (PR [#8419](https://github.com/vatesfr/xen-orchestra/pull/8419))
   - `/rest/v0/vbds` (PR [#8404](https://github.com/vatesfr/xen-orchestra/pull/8404))
   - `/rest/v0/vbds/<vbd-id>` (PR [#8404](https://github.com/vatesfr/xen-orchestra/pull/8404))
+  - `/rest/v0/vm-templates` (PR [#8450](https://github.com/vatesfr/xen-orchestra/pull/8450))
 - [New VM] Configure ACLs directly from VM creation form [#6996](https://github.com/vatesfr/xen-orchestra/issues/6996) (PR [#8412](https://github.com/vatesfr/xen-orchestra/pull/8412))
 - [Netbox] Support version 4.2.x (PR [#8417](https://github.com/vatesfr/xen-orchestra/pull/8417))
 
