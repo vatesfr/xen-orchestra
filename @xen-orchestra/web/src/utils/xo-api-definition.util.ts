@@ -6,7 +6,6 @@ import type { XoPif } from '@/types/xo/pif.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoSr } from '@/types/xo/sr.type'
 import type { XoTask } from '@/types/xo/task.type'
-import type { XoVif } from '@/types/xo/vif.type'
 import type { XoVbd } from '@/types/xo/vbd.type'
 import type { XoVdi } from '@/types/xo/vdi.type'
 import type { XoVif } from '@/types/xo/vif.type'
@@ -79,7 +78,7 @@ export const xoApiDefinition = {
   network: {
     type: 'collection',
     path: 'networks',
-    fields: 'id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs',
+    fields: 'id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs,other_config',
     handler: (record: XoNetwork) => record,
   },
   vm_template: {
