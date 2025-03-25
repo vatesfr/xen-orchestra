@@ -13,7 +13,7 @@
 
 - **XO 6:**
   - [Host] Add dashboard view (PR [#8398](https://github.com/vatesfr/xen-orchestra/pull/8398))
-- [RPU] Enable to do RPU even if a XOSTOR is present on the pool
+- [RPU] Enable to do RPU even if a XOSTOR is present on the pool (PR [#8455](https://github.com/vatesfr/xen-orchestra/pull/8455))
 
 
 ### Bug fixes

@@ -217,11 +217,6 @@ export default class TabPatches extends Component {
       ).length
   )
 
-  hasAXostor = createSelector(
-    () => this.props.poolSrs,
-    poolSrs => some(poolSrs, { SR_type: 'linstor' })
-  )
-
   render() {
     const {
       hostPatches,

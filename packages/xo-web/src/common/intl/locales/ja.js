@@ -3178,9 +3178,6 @@ export default {
   // Original text: 'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install all the patches on this pool?'
   confirmPoolPatch: undefined,
 
-  // Original text: 'RPU is disabled because a XOSTOR storage is present in the pool'
-  rollingPoolUpdateDisabledBecauseXostorOnPool: undefined,
-
   // Original text: 'Rolling pool update'
   rollingPoolUpdate: undefined,
 
