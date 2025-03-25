@@ -344,6 +344,9 @@
               <VtsResource :icon="faNetworkWired" :count="vmState.networkInterfaces.length" :label="$t('interfaces')" />
             </VtsResources>
           </div>
+          <!-- TOASTER -->
+          <!-- TODO Change to a real toaster (or alert ?) when available -->
+          <UiToaster v-if="isOpen" accent="danger" @close="isOpen = false">{{ errorMessage }}</UiToaster>
           <!-- ACTIONS -->
           <div class="footer">
             <RouterLink :to="{ name: 'home' }">
@@ -400,6 +403,7 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 
 // Icon Imports
@@ -438,6 +442,10 @@ const { t } = useI18n()
 const router = useRouter()
 
 const isBusy = ref<boolean>(false)
+
+// Toaster
+const errorMessage = ref<string>('')
+const isOpen = ref(false)
 
 const vmState = reactive<VmState>({
   name: '',
@@ -850,7 +858,11 @@ const _createVm = async ($defer: Defer) => {
     })
   } catch (error) {
     isBusy.value = false
-    console.error('Error creating VM:', error)
+
+    isOpen.value = true
+
+    errorMessage.value = 'Error creating VM: ' + error
+
     throw error
   }
 }
