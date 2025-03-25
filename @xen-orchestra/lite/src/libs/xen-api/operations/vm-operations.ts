@@ -19,11 +19,11 @@ export function createVmOperations(xenApi: XenApi) {
       return Promise.all<XenApiVm['$ref']>(vmRefs.map(vmRef => xenApi.call('VM.clone', [vmRef, vmRefsToClone[vmRef]])))
     },
 
-    copy: (vmRefsToCopy: VmRefsWithNameLabel, srRef: XenApiSr['$ref']) => {
+    copy: (vmRefsToCopy: VmRefsWithNameLabel, srRef?: XenApiSr['$ref']) => {
       const vmRefs = Object.keys(vmRefsToCopy) as XenApiVm['$ref'][]
 
       return Promise.all<XenApiVm['$ref']>(
-        vmRefs.map(vmRef => xenApi.call('VM.copy', [vmRef, vmRefsToCopy[vmRef], srRef]))
+        vmRefs.map(vmRef => xenApi.call('VM.copy', [vmRef, vmRefsToCopy[vmRef], srRef ?? '']))
       )
     },
 
@@ -57,10 +57,10 @@ export function createVmOperations(xenApi: XenApi) {
       }
     },
 
-    getAllowedVBDDevices: (vmRefs: VmRefs): Promise<string[][]> =>
+    getAllowedVbdDevices: (vmRefs: VmRefs): Promise<string[][]> =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call<string[]>('VM.get_allowed_VBD_devices', [vmRef]))),
 
-    getAllowedVIFDevices: (vmRefs: VmRefs): Promise<string[][]> =>
+    getAllowedVifDevices: (vmRefs: VmRefs): Promise<string[][]> =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call<string[]>('VM.get_allowed_VIF_devices', [vmRef]))),
 
     migrate: (vmRefs: VmRefs, destinationHostRef: XenApiHost['$ref']) =>

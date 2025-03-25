@@ -2,6 +2,7 @@ import type XenApi from '@/libs/xen-api/xen-api'
 import type { XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import type { MaybeArray } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'
+import type { VBD_MODE, VBD_TYPE } from '@vates/types/common'
 
 export function createVbdOperations(xenApi: XenApi) {
   type VmRefs = MaybeArray<XenApiVm['$ref']>
@@ -15,8 +16,8 @@ export function createVbdOperations(xenApi: XenApi) {
     vdiRef: VdiRef
     userdevice?: string | undefined
     bootable?: boolean
-    mode?: string
-    type?: string
+    mode?: VBD_MODE
+    type?: VBD_TYPE
     empty?: boolean
     other_config?: Record<string, any>
     qos_algorithm_params?: Record<string, any>
@@ -28,7 +29,7 @@ export function createVbdOperations(xenApi: XenApi) {
       return device
     }
 
-    const allowedDevices = await xenApi.vm.getAllowedVBDDevices(vmRefs)
+    const allowedDevices = await xenApi.vm.getAllowedVbdDevices(vmRefs)
 
     if (allowedDevices.length === 0) {
       throw new Error('no allowed VBD devices')

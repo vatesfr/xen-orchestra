@@ -1,11 +1,12 @@
 import type { XenApiNetwork, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { VDI_TYPE } from '@vates/types/common'
 
-export interface Disk {
+export interface Vdi {
   name_label: string
   name_description: string
   size: number
   SR: string | undefined
-  type?: string
+  type?: VDI_TYPE
 }
 
 export interface NetworkInterface {
@@ -21,12 +22,12 @@ export interface VmState {
   tags: string[]
   affinity_host: string
   boot_firmware: string
-  new_vm_template: XenApiVm | null
+  new_vm_template: XenApiVm | undefined
   boot_vm: boolean
   auto_power: boolean
   fast_clone: boolean
   ssh_key: string
-  selectedVdi: XenApiVdi['$ref'] | null
+  selectedVdi: XenApiVdi['$ref'] | undefined
   networkConfig: string
   cloudConfig: string
   vCPU: number
@@ -35,8 +36,8 @@ export interface VmState {
   topology: string
   copyHostBiosStrings: boolean
   sshKeys: string[]
-  existingDisks: Disk[]
-  vdis: Disk[]
+  existingVdis: Vdi[]
+  vdis: Vdi[]
   networkInterfaces: NetworkInterface[]
-  defaultNetwork: NetworkInterface | null
+  defaultNetwork: NetworkInterface | undefined
 }
