@@ -399,9 +399,8 @@ const TRANSFORMS = {
           version: version && parseXml(version).docker_version,
         }
       })(),
-      // deprecated, use nestedVirt instead
+      // deprecated, use isNestedVirtEnable instead
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
-      nestedVirt: obj.platform['nested-virt'] === 'true',
       isNestedVirtEnable: semver.satisfies(obj.hardware_platform_version, '>=3.4')
         ? obj.platform['nested-virt'] === 'true'
         : obj.platform['exp-nested-hvm'] === 'true',

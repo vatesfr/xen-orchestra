@@ -44,9 +44,11 @@ type BaseXoVm = {
     process?: string
     version?: string
   }
-  // deprecated, use nestedVirt instead
+  /**
+   * @deprecated use isNestedVirtEnable instead
+   */
   expNestedHvm: boolean
-  nestedVirt: boolean
+  isNestedVirtEnable: boolean
   hasVendorDevice: boolean
   high_availability: string
   installTime?: number | null
