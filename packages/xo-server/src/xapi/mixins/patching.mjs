@@ -681,15 +681,14 @@ const methods = {
   async _updateLinstorPackages() {
     const hosts = Object.values(this.objects.indexes.type.host)
 
-    async function callPluginOnAllHost(plugin, fn, args) {
+    const callPluginOnAllHost = async (plugin, fn, args) => {
       for (const host of hosts) {
         await this.call('host.call_plugin', host.$ref, plugin, fn, args)
       }
     }
 
-    return Task.run({ name: 'Updating LINSTOR packages' }, async () => {
-      await callPluginOnAllHost('updater.py', 'update', { packages: 'xcp-ng-xapi-plugins' })
-      await callPluginOnAllHost('updater.py', 'update', { packages: 'xcp-ng-linstor' })
+    return Task.run({ properties: { name: 'Updating LINSTOR packages' } }, async () => {
+      await callPluginOnAllHost('updater.py', 'update', { packages: 'xcp-ng-xapi-plugins,xcp-ng-linstor' })
       await callPluginOnAllHost('service.py', 'stop_service', { service: 'linstor-controller' })
       await callPluginOnAllHost('service.py', 'restart_service', { service: 'linstor-satellite' })
     })
