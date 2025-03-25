@@ -469,7 +469,6 @@
   "vif-device": "VIF #{device}",
   "vif-status": "Statut du VIF",
   "vifs": "VIFs",
-  "vifs": "VIFs",
   "vlan": "VLAN",
   "vm": "VM",
   "vm-description": "Description de la VM",
