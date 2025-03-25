@@ -795,7 +795,7 @@ export default class TabAdvanced extends Component {
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
     const addVtpmTooltip = this._getDisabledAddVtpmReason()
     const deleteVtpmTooltip = this._getDisabledDeleteVtpmReason()
-    const host = this.props.vmHosts[vm.$container]
+    const host = this.props.vmHosts[vm.$container] ?? this.props.vmHosts[vmPool.master]
     const isAddVtpmAvailable = addVtpmTooltip === undefined
     const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
     const isDisabled = poolGuestSecurebootReadiness === 'not_ready' || vm.boot.firmware !== 'uefi'
@@ -1104,13 +1104,13 @@ export default class TabAdvanced extends Component {
                     </th>
                     <td>
                       <Toggle
-                        disabled={vm.power_state !== 'Halted'}
+                        // disabled={vm.power_state !== 'Halted'}
                         value={vm.isNestedVirtEnabled}
                         onChange={value => {
-                          if (semver.satisfies(vm.platform_version, '>=3.4')) {
+                          if (semver.satisfies(String(host.version), '>=3.4')) {
                             editVm(vm, { nestedVirt: value })
                           } else {
-                            editVm(vm, { expectedHvm: value })
+                            editVm(vm, { expNestedHvm: value })
                           }
                         }}
                       />
