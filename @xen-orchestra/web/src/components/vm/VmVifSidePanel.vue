@@ -33,7 +33,7 @@
               {{ $t('uuid') }}
             </template>
             <template #value>
-              {{ vif.uuid }}
+              {{ vif.id }}
             </template>
             <template #addons>
               <UiButtonIcon
@@ -41,7 +41,7 @@
                 :icon="faCopy"
                 size="medium"
                 accent="brand"
-                @click="copy(vif.uuid)"
+                @click="copy(vif.id)"
               />
             </template>
           </VtsCardRowKeyValue>
@@ -51,17 +51,15 @@
               {{ $t('network') }}
             </template>
             <template #value>
-              <div class="network">
-                <!-- TODO Remove the span when the link works and the icon is fixed -->
-                <!--
-                <UiComplexIcon size="medium">
-                  <VtsIcon :icon="faNetworkWired" accent="current" />
-                  <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                </UiComplexIcon>
-                <a href="">{{ networkNameLabel }}</a>
-                -->
-                <span v-tooltip class="text-ellipsis value">{{ network?.name_label }}</span>
-              </div>
+              <!-- TODO Remove the span when the link works and the icon is fixed -->
+              <!--
+              <UiComplexIcon size="medium">
+                <VtsIcon :icon="faNetworkWired" accent="current" />
+                <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
+              </UiComplexIcon>
+              <a href="">{{ networkNameLabel }}</a>
+              -->
+              <span v-tooltip class="text-ellipsis value">{{ network?.name_label }}</span>
             </template>
             <template v-if="network?.name_label" #addons>
               <UiButtonIcon
@@ -124,24 +122,32 @@
               {{ $t('locking-mode') }}
             </template>
             <template #value>
-              {{ vif.locking_mode }}
+              {{ vif.lockingMode }}
             </template>
           </VtsCardRowKeyValue>
-          <!-- TODO Need to add TX Checksumming -->
+          <!-- TX CHECK SUMMING -->
+          <VtsCardRowKeyValue>
+            <template #key>
+              {{ $t('check-summing') }}
+            </template>
+            <template #value>
+              {{ vif.txChecksumming }}
+            </template>
+          </VtsCardRowKeyValue>
         </div>
       </UiCard>
-      <!-- VIF NETWORK INFORMATION -->
+      <!-- NETWORK INFORMATION -->
       <UiCard class="card">
         <UiCardTitle>{{ $t('network-information') }}</UiCardTitle>
         <div class="content">
           <!-- IP ADDRESSES -->
-          <div v-if="ipAddresses.length">
+          <template v-if="ipAddresses.length">
             <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
               <template #key>
                 <div v-if="index === 0">{{ $t('ip-addresses') }}</div>
               </template>
               <template #value>
-                <span v-tooltip class="text-ellipsis">{{ ip }}</span>
+                <span class="text-ellipsis">{{ ip }}</span>
               </template>
               <template #addons>
                 <UiButtonIcon
@@ -161,7 +167,7 @@
                 />
               </template>
             </VtsCardRowKeyValue>
-          </div>
+          </template>
           <VtsCardRowKeyValue v-else>
             <template #key>
               {{ $t('ip-addresses') }}
@@ -195,10 +201,9 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiVif } from '@/libs/xen-api/xen-api.types'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
+import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
+import type { XoVif } from '@/types/xo/vif.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -212,30 +217,23 @@ import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
 
 const { vif } = defineProps<{
-  vif: XenApiVif
+  vif: XoVif
 }>()
 
-const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
-const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
-const { getByOpaqueRef: getVmByOpaqueRef } = useVmStore().subscribe()
-
-const ipAddresses = computed(() => {
-  const vm = getVmByOpaqueRef(vif.VM)
-
-  if (!vm) return []
-
-  const guestMetrics = getGuestMetricsByOpaqueRef(vm.guest_metrics)
-
-  if (!guestMetrics?.networks) return []
-
-  return [...new Set(Object.values(guestMetrics.networks).sort())]
-})
-
-const network = computed(() => getNetworkByOpaqueRef(vif.network))
-
-const status = computed(() => (vif.currently_attached ? 'connected' : 'disconnected'))
+const { get: getNetwork } = useNetworkStore().subscribe()
+const { get: getVm } = useVmStore().subscribe()
 
 const { copy, copied } = useClipboard()
+
+const ipAddresses = computed(() => {
+  const addresses = getVm(vif.$VM)?.addresses
+
+  return addresses ? [...new Set(Object.values(addresses).sort())] : []
+})
+
+const network = computed(() => getNetwork(vif.$network))
+
+const status = computed(() => (vif.attached ? 'connected' : 'disconnected'))
 </script>
 
 <style scoped lang="postcss">
@@ -245,11 +243,6 @@ const { copy, copied } = useClipboard()
   .content {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-  }
-
-  .network {
-    display: flex;
     gap: 0.8rem;
   }
 

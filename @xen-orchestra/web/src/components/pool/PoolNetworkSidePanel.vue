@@ -35,7 +35,7 @@
               {{ $t('id') }}
             </template>
             <template #value>{{ network.id }}</template>
-            <template v-if="network.id" #addons>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 accent="brand"
@@ -49,7 +49,7 @@
           <VtsCardRowKeyValue>
             <template #key>{{ $t('description') }}</template>
             <template #value>
-              <span class="value">
+              <span v-tooltip class="value text-ellipsis">
                 {{ network.name_description }}
               </span>
             </template>
@@ -64,10 +64,10 @@
             </template>
           </VtsCardRowKeyValue>
           <!-- VLAN -->
-          <VtsCardRowKeyValue v-if="networkVlan">
+          <VtsCardRowKeyValue>
             <template #key>{{ $t('vlan') }}</template>
             <template #value>{{ networkVlan }}</template>
-            <template #addons>
+            <template v-if="pifs[0].vlan !== -1" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 accent="brand"
@@ -81,11 +81,11 @@
           <VtsCardRowKeyValue>
             <template #key>{{ $t('mtu') }}</template>
             <template #value>
-              <span class="value">
+              <span>
                 {{ network.MTU }}
               </span>
             </template>
-            <template v-if="network.MTU" #addons>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 accent="brand"
