@@ -4,7 +4,7 @@
       {{ $t('new-vm.add') }}
     </UiHeadBar>
     <div class="card-container">
-      <form @submit.prevent="createVM">
+      <form @submit.prevent="createVM()">
         <UiCard>
           <!-- TEMPLATE SECTION -->
           <UiTitle>{{ $t('template') }}</UiTitle>
@@ -42,7 +42,7 @@
                   -->
                 </div>
                 <FormSelect v-if="vmState.installMode === 'ISO'" v-model="vmState.selectedVdi">
-                  <template v-for="(vdis, srName) in vdisBySrName" :key="srName">
+                  <template v-for="(vdis, srName) in vdiIsosBySrName" :key="srName">
                     <optgroup :label="srName">
                       <option v-for="vdi in vdis" :key="vdi.$ref" :value="vdi.$ref">
                         {{ vdi.name_label }}
@@ -100,7 +100,7 @@
                   </UiRadioButton>
                 </div>
                 <FormSelect v-if="vmState.installMode === 'ISO'" v-model="vmState.selectedVdi">
-                  <template v-for="(vdis, srName) in vdisBySrName" :key="srName">
+                  <template v-for="(vdis, srName) in vdiIsosBySrName" :key="srName">
                     <optgroup :label="srName">
                       <option v-for="vdi in vdis" :key="vdi.$ref" :value="vdi.$ref">
                         {{ vdi.name_label }}
@@ -246,10 +246,10 @@
                 </tr>
               </thead>
               <tbody>
-                <template v-if="vmState.existingDisks && vmState.existingDisks.length > 0">
-                  <tr v-for="(disk, index) in vmState.existingDisks" :key="index">
+                <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
+                  <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
                     <td>
-                      <FormSelect v-model="disk.SR" disabled>
+                      <FormSelect v-model="vdi.SR" disabled>
                         <option v-for="sr in filteredSrs" :key="sr.$ref" :value="sr.$ref">
                           {{ `${sr.name_label} -` }}
                           {{
@@ -261,13 +261,13 @@
                       </FormSelect>
                     </td>
                     <td>
-                      <UiInput v-model="disk.name_label" :placeholder="$t('disk-name')" accent="brand" />
+                      <UiInput v-model="vdi.name_label" :placeholder="$t('disk-name')" accent="brand" />
                     </td>
                     <td>
-                      <UiInput v-model="disk.size" :placeholder="$t('size')" accent="brand" disabled />
+                      <UiInput v-model="vdi.size" :placeholder="$t('size')" accent="brand" disabled />
                     </td>
                     <td>
-                      <UiInput v-model="disk.name_description" :placeholder="$t('description')" accent="brand" />
+                      <UiInput v-model="vdi.name_description" :placeholder="$t('description')" accent="brand" />
                     </td>
                     <td />
                   </tr>
@@ -338,7 +338,7 @@
               <VtsResource :icon="faMemory" :count="`${ramFormatted} GB`" :label="$t('ram')" />
               <VtsResource
                 :icon="faDatabase"
-                :count="vmState.existingDisks.length + vmState.vdis.length"
+                :count="vmState.existingVdis.length + vmState.vdis.length"
                 :label="$t('sr')"
               />
               <VtsResource :icon="faNetworkWired" :count="vmState.networkInterfaces.length" :label="$t('interfaces')" />
@@ -355,7 +355,7 @@
               accent="brand"
               size="medium"
               :busy="isBusy"
-              :disabled="!vmState.new_vm_template || isBusy"
+              :disabled="!vmState.new_vm_template || !vmState.installMode || isBusy"
             >
               {{ $t('create') }}
             </UiButton>
@@ -372,7 +372,7 @@ import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
 
 // XenAPI Store imports
-import type { XenApiNetwork, XenApiSr, XenApiVbd, XenApiVdi, XenApiVif, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -382,7 +382,7 @@ import { useVdiStore } from '@/stores/xen-api/vdi.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
-import { type Disk, type VmState } from '@/types/new-vm'
+import { type Vdi, type VmState } from '@/types/new-vm'
 
 // UI components imports from web-core
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -415,8 +415,10 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
-// Defer import
+import { DOMAIN_TYPE, VBD_TYPE } from '@vates/types/common'
+
 // Vue imports
+import defer, { type Defer } from 'golike-defer'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -424,7 +426,7 @@ import { useRouter } from 'vue-router'
 // Store subscriptions
 const { templates } = useVmStore().subscribe()
 const { pool } = usePoolStore().subscribe()
-const { records: srs, vdisBySrName, getByOpaqueRef: getSrByOpaqueRef } = useSrStore().subscribe()
+const { records: srs, vdiIsosBySrName, getByOpaqueRef: getSrByOpaqueRef } = useSrStore().subscribe()
 const { records: networks, getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
 const { getByOpaqueRef: getVdiByOpaqueRef } = useVdiStore().subscribe()
@@ -445,12 +447,12 @@ const vmState = reactive<VmState>({
   tags: [],
   affinity_host: '',
   boot_firmware: '',
-  new_vm_template: null,
+  new_vm_template: undefined,
   boot_vm: true,
   auto_power: false,
   fast_clone: true,
   ssh_key: '',
-  selectedVdi: null,
+  selectedVdi: undefined,
   networkConfig: '',
   cloudConfig: '',
   vCPU: 0,
@@ -459,12 +461,13 @@ const vmState = reactive<VmState>({
   topology: '',
   copyHostBiosStrings: false,
   sshKeys: [],
-  existingDisks: [],
+  existingVdis: [],
   vdis: [],
   networkInterfaces: [],
-  defaultNetwork: null,
+  defaultNetwork: undefined,
 })
 
+// TODO remove when we can use new selector
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
 const giBToBytes = (giB: number) => giB * 1024 ** 3
 
@@ -531,7 +534,7 @@ const defaultSr = computed(() => (pool.value ? getSrByOpaqueRef(pool.value?.defa
 const filteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
 
 const templateHasBiosStrings = computed(
-  () => vmState.new_vm_template !== null && Object.keys(vmState?.new_vm_template.bios_strings).length > 0
+  () => vmState.new_vm_template !== null && Object.keys(vmState.new_vm_template!.bios_strings).length > 0
 )
 
 const copyHostBiosStrings = computed(() => vmState.boot_firmware !== 'uefi' && templateHasBiosStrings.value)
@@ -592,7 +595,7 @@ const addNetworkInterface = () => {
 }
 
 const getVdis = (template: XenApiVm) => {
-  const vdisArray = [] as Disk[]
+  const vdisArray = [] as Vdi[]
 
   const parser = new DOMParser()
   const xmlString = template.other_config.disks
@@ -616,7 +619,7 @@ const getVdis = (template: XenApiVm) => {
 }
 
 const getExistingDisks = (template: XenApiVm) => {
-  const existingDisksArray = [] as Disk[]
+  const existingVdisArray = [] as Vdi[]
 
   template.VBDs.forEach(vbdRef => {
     const vbd = getVbdByOpaqueRef(vbdRef)
@@ -628,7 +631,7 @@ const getExistingDisks = (template: XenApiVm) => {
     const vdi = getVdiByOpaqueRef(vbd.VDI)
     if (!vdi) return
 
-    existingDisksArray.push({
+    existingVdisArray.push({
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.virtual_size),
@@ -636,7 +639,7 @@ const getExistingDisks = (template: XenApiVm) => {
     })
   })
 
-  return existingDisksArray
+  return existingVdisArray
 }
 
 const onTemplateChange = () => {
@@ -652,7 +655,7 @@ const onTemplateChange = () => {
     vCPU: VCPUs_at_startup,
     ram: memory_dynamic_max,
     vdis: getVdis(template),
-    existingDisks: getExistingDisks(template),
+    existingVdis: getExistingDisks(template),
     networkInterfaces: getExistingInterface(template),
   })
 }
@@ -660,7 +663,7 @@ const onTemplateChange = () => {
 const vmCreationParams = computed(() => ({
   affinityHost: vmState.affinity_host,
   clone: isDiskTemplate.value && vmState.fast_clone,
-  existingDisks: vmState.existingDisks,
+  existingVdis: vmState.existingVdis,
   installMode: vmState.installMode,
   installRepository: vmState.selectedVdi as XenApiVdi['$ref'],
   name_label: vmState.name,
@@ -668,7 +671,7 @@ const vmCreationParams = computed(() => ({
   vdis: vmState.vdis,
   vifs: vmState.networkInterfaces.map(net => ({
     network: net.interface,
-    mac: net.macAddress,
+    MAC: net.macAddress,
   })),
   cpus: vmState.vCPU,
   vcpusMax: vmState.VCPUs_max,
@@ -684,28 +687,34 @@ const vmCreationParams = computed(() => ({
 
 const xapi = useXenApiStore().getXapi()
 
-const createVM = async () => {
-  const templateRef = vmCreationParams.value.template
+// TODO move in job system
+const _createVm = async ($defer: Defer) => {
+  const templateRef = vmCreationParams.value.template!
   const newVmName = vmCreationParams.value.name_label
   const selectedVdiRef = vmCreationParams.value.installRepository
   const newVdis = vmCreationParams.value.vdis
-  const existingDisks = vmCreationParams.value.existingDisks
-
-  const $defer = []
-
-  if (!templateRef) {
-    console.error('Error : templateRef is undefined or invalid.')
-    return
-  }
+  const existingVdis = vmCreationParams.value.existingVdis
 
   isBusy.value = true
 
   try {
     const vmRefs = vmCreationParams.value.clone
       ? await xapi.vm.clone({ [templateRef]: newVmName })
-      : await xapi.vm.copy({ [templateRef]: newVmName }, '' as XenApiSr['$ref'])
+      : await xapi.vm.copy({ [templateRef]: newVmName })
 
-    $defer.push(() => xapi.vm.delete(vmRefs))
+    $defer.onFailure(() => xapi.vm.delete(vmRefs))
+
+    // COPY BIOS strings
+    const domainType = await xapi.getField<DOMAIN_TYPE>('VM', vmRefs[0], 'domain_type')
+
+    if (
+      vmState.new_vm_template?.bios_strings.length &&
+      vmCreationParams.value.hvmBootFirmware !== 'uefi' &&
+      domainType === 'hvm' &&
+      vmCreationParams.value.copyHostBiosStrings
+    ) {
+      await xapi.call('VM.copy_bios_strings', [vmRefs, vmState.new_vm_template.affinity ?? hostMasterRef])
+    }
 
     // Removes disks from the provision XML, we will create them by ourselves.
     await xapi.vm.removeFromOtherConfig(vmRefs, 'disks')
@@ -717,11 +726,16 @@ const createVM = async () => {
     // INSTALL SETTINGS
     const vm = await xapi.getField<XenApiVm>('VM', vmRefs[0], 'record')
 
-    const installMethod = vmState.selectedVdi ? 'cd' : 'network'
+    const installMethod =
+      vmCreationParams.value.installMode === 'ISO'
+        ? 'cd'
+        : vmCreationParams.value.installMode === 'noConfigDrive'
+          ? 'none'
+          : 'network'
 
     // TODO maybe improve this part
     if (vm.domain_type === 'hvm') {
-      if ((newVdis.length === 0 && existingDisks.length === 0) || installMethod === 'network') {
+      if ((newVdis.length === 0 && existingVdis.length === 0) || installMethod === 'network') {
         const { order } = vm.HVM_boot_params
         await xapi.call('VM.set_HVM_boot_params', [vmRefs[0], { order: order ? 'n' + order.replace('n', '') : 'ncd' }])
       }
@@ -736,107 +750,73 @@ const createVM = async () => {
     }
 
     if (installMethod === 'cd') {
-      const vbds = await xapi.getField<XenApiVbd['$ref'][]>('VM', vmRefs[0], 'VBDs')
+      let cdInserted = false
 
-      for (const vbdRef of vbds) {
-        const type = await xapi.getField<string>('VBD', vbdRef, 'type')
-        if (type === 'CD') {
+      for (const vbdRef of vm.VBDs) {
+        const type = await xapi.getField<VBD_TYPE>('VBD', vbdRef, 'type')
+        if (type === VBD_TYPE.CD) {
           await xapi.vbd.insert(vbdRef, selectedVdiRef)
           await xapi.vbd.setBootable(vbdRef, true)
-          return
+          cdInserted = true
+          break
         }
       }
-
-      await xapi.vbd.create({
-        vmRefs,
-        vdiRef: selectedVdiRef,
-        type: 'CD',
-        bootable: true,
-      })
-    }
-
-    // COPY BIOS strings
-    if (
-      vmState.new_vm_template?.bios_strings.length &&
-      vmCreationParams.value.hvmBootFirmware !== 'uefi' &&
-      vm.domain_type === 'hvm' &&
-      vmCreationParams.value.copyHostBiosStrings
-    ) {
-      await xapi.call('VM.copy_bios_strings', [vmRefs, vmState.new_vm_template.affinity ?? hostMasterRef])
+      if (cdInserted) {
+        await xapi.vbd.create({
+          vmRefs,
+          vdiRef: selectedVdiRef,
+          type: 'CD',
+          bootable: true,
+        })
+      }
     }
 
     // VIFs CREATION
     const newVifs = vmCreationParams.value.vifs
 
-    // Direct call to the API here because otherwise we do not yet have the vmRefs of the clone or the copy before assigning the devices
-    const existingVifs = await xapi.getField<string[]>('VM', vmRefs[0], 'VIFs')
+    const existingVifs = vm.VIFs
 
     // Destroys the VIFs cloned from the template.
     if (existingVifs) {
-      await Promise.all(existingVifs.map(vifRef => xapi.vif.delete(vifRef as XenApiVif['$ref'])))
+      await Promise.all(existingVifs.map(vifRef => xapi.vif.delete(vifRef)))
     }
 
     if (newVifs && newVifs.length > 0) {
-      const [allowedDevices = []] = await xapi.vm.getAllowedVIFDevices(vmRefs)
+      const vifRefs = await xapi.vif.create(newVifs.map(vif => ({ ...vif, vmRef: vmRefs[0] })))
 
-      await Promise.all(
-        newVifs.map(async vif => {
-          let device: string | undefined = ''
-
-          const MTU = await xapi.getField<number>('network', vif.network, 'MTU')
-
-          if (!device) {
-            device = allowedDevices.shift()
-          }
-
-          const vifRef = await xapi.vif.create({
-            device,
-            vmRefs,
-            network: vif.network,
-            MAC: '',
-            MTU,
-            other_config: {},
-            qos_algorithm_params: {},
-            qos_algorithm_type: '',
-          })
-
-          $defer.push(() => xapi.vif.delete(vifRef))
-        })
-      )
+      vifRefs.forEach(vifRef => {
+        $defer.onFailure(() => xapi.vif.delete(vifRef))
+      })
     }
 
     // VDIs AND VBDs CREATION
-    const vbds = await xapi.getField<string[]>('VM', vmRefs[0], 'VBDs')
-
     for (const vdi of newVdis) {
       const vdiRef = await xapi.vdi.create({
-        name_description: vdi.name_description,
-        name_label: vdi.name_label,
+        ...vdi,
         virtual_size: giBToBytes(vdi.size),
-        SR: vdi.SR,
       })
 
-      $defer.push(() => xapi.vdi.delete(vdiRef))
+      $defer.onFailure(() => xapi.vdi.delete(vdiRef))
 
       const vbdRef = await xapi.vbd.create({
         vmRefs,
         vdiRef,
       })
 
-      $defer.push(() => xapi.vbd.delete(vbdRef))
+      $defer.onFailure(() => xapi.vbd.delete(vbdRef))
     }
 
     // EDIT VBDs IN CASE OF EXISTING DISKS
     // TODO edit SR
-    for (const vbdRef of vbds) {
-      const type = await xapi.getField<string>('VBD', vbdRef, 'type')
+    for (const vbdRef of vm.VBDs) {
+      const type = await xapi.getField<VBD_TYPE>('VBD', vbdRef, 'type')
       const vdiRef = await xapi.getField<XenApiVdi['$ref']>('VBD', vbdRef, 'VDI')
 
       if (!vbdRef || type === 'CD') {
         continue
       }
 
-      for (const disk of existingDisks) {
+      for (const disk of existingVdis) {
         await xapi.vdi.setNameLabel(vdiRef, disk.name_label)
         await xapi.vdi.setNameDescription(vdiRef, disk.name_description)
       }
@@ -871,18 +851,11 @@ const createVM = async () => {
   } catch (error) {
     isBusy.value = false
     console.error('Error creating VM:', error)
-
-    // We cannot use defer and decorate with due to an issue with export (to catch errors during creation)
-    // So I create defer manually
-    // TODO remove when import work
-    const revertedCb = $defer.reverse()
-    for (const cb of revertedCb) {
-      await cb()
-    }
+    throw error
   }
 }
 
-// const createVM = defer(_createVm)
+const createVM = defer(_createVm)
 </script>
 
 <style scoped lang="postcss">

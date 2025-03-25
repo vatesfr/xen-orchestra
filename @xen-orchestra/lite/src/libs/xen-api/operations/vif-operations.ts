@@ -6,13 +6,13 @@ import { toArray } from '@core/utils/to-array.utils'
 export function createVifOperations(xenApi: XenApi) {
   type VifRefs = MaybeArray<XenApiVif['$ref']>
 
-  type VmRefs = MaybeArray<XenApiVm['$ref']>
+  type VmRef = XenApiVm['$ref']
 
   type NetworkRef = XenApiNetwork['$ref']
 
-  type VifRecord = {
-    vmRefs: VmRefs
-    device: string | undefined
+  type VifCreateParams = {
+    vmRef: VmRef
+    device?: string
     network: NetworkRef | string
     MAC: string
     MTU?: number
@@ -22,32 +22,43 @@ export function createVifOperations(xenApi: XenApi) {
   }
 
   return {
-    create: ({
-      device,
-      vmRefs,
-      network,
-      MAC,
-      MTU = 1500,
-      other_config = {},
-      qos_algorithm_params = {},
-      qos_algorithm_type = '',
-    }: VifRecord) => {
-      return Promise.all<XenApiVif['$ref']>(
-        toArray(vmRefs).map(vmRef => {
-          const vifRecord = {
-            device,
-            VM: vmRef,
-            network,
-            MAC,
-            MTU,
-            other_config,
-            qos_algorithm_params,
-            qos_algorithm_type,
-          }
+    create: async (vifs: VifCreateParams[]) => {
+      const results: VifRefs = []
 
-          return xenApi.call('VIF.create', [vifRecord])
-        })
-      )
+      for (const params of vifs) {
+        let {
+          vmRef,
+          device,
+          network,
+          MAC = '',
+          MTU,
+          other_config = {},
+          qos_algorithm_params = {},
+          qos_algorithm_type = '',
+        } = params
+
+        if (device === undefined) {
+          const [allowedDevices = []] = await xenApi.vm.getAllowedVifDevices(vmRef)
+
+          device = allowedDevices.shift()
+        }
+
+        MTU = await xenApi.getField<number>('network', network, 'MTU')
+
+        const vifRecord = {
+          device,
+          VM: vmRef,
+          network,
+          MAC,
+          MTU,
+          other_config,
+          qos_algorithm_params,
+          qos_algorithm_type,
+        }
+
+        results.push(await xenApi.call('VIF.create', [vifRecord]))
+      }
+      return results
     },
 
     delete: (vifRefs: VifRefs) => Promise.all(toArray(vifRefs).map(vifRef => xenApi.call('VIF.destroy', [vifRef]))),

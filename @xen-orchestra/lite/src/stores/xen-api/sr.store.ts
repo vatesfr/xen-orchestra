@@ -1,4 +1,4 @@
-import type { XenApiSr } from '@/libs/xen-api/xen-api.types'
+import type { XenApiSr, XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { useVdiStore } from '@/stores/xen-api/vdi.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
@@ -16,13 +16,19 @@ export const useSrStore = defineStore('xen-api-sr', () => {
 
   const srs = computed(() => baseContext.records.value)
 
+  const getIsoSrs = computed(() => srs.value.filter(sr => sr.type === 'iso'))
+
+  const concatVdisArray = computed(() =>
+    getIsoSrs.value.reduce((acc: XenApiVdi['$ref'][], sr) => {
+      if (sr.VDIs) acc.push(...sr.VDIs)
+      return acc
+    }, [])
+  )
+
+  // TODO remove when the select component is ready to use
   const getSrsName = (ref: XenApiSr['$ref']) => baseContext.getByOpaqueRef(ref)?.name_label
 
-  const getSrsWithISO = computed(() => srs.value.filter(sr => sr.type === 'iso'))
-
-  const concatVdisArray = computed(() => getSrsWithISO.value.flatMap(sr => sr.VDIs || []))
-
-  const vdisBySrName = computed(() => {
+  const vdiIsosBySrName = computed(() => {
     const groupedVDIs: Record<string, XenApiSr[]> = {}
 
     concatVdisArray.value.forEach(vdiRef => {
@@ -42,7 +48,7 @@ export const useSrStore = defineStore('xen-api-sr', () => {
 
   const context = {
     ...baseContext,
-    vdisBySrName,
+    vdiIsosBySrName,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)
