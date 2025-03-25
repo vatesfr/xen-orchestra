@@ -31,6 +31,8 @@
   - `/rest/v0/vdi-snapshots/<vdi-snapshot-id>` (PR [#8427](https://github.com/vatesfr/xen-orchestra/pull/8427))
   - `/rest/v0/servers` (PR [#8385](https://github.com/vatesfr/xen-orchestra/pull/8385))
   - `/rest/v0/servers/<server-id>` (PR [#8385](https://github.com/vatesfr/xen-orchestra/pull/8385))
+  - `/rest/v0/vm-controllers` (Pr [#8454] (https://github.com/vatesfr/xen-orchestra/pull/8454))
+  - `/rest/v0/vm-controllers/<vm-controller-id>` (Pr [#8454] (https://github.com/vatesfr/xen-orchestra/pull/8454))
 - [New VM] Configure ACLs directly from VM creation form [#6996](https://github.com/vatesfr/xen-orchestra/issues/6996) (PR [#8412](https://github.com/vatesfr/xen-orchestra/pull/8412))
 - [Netbox] Support version 4.2.x (PR [#8417](https://github.com/vatesfr/xen-orchestra/pull/8417))
 
