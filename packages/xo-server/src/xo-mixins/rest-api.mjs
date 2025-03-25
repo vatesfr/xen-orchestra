@@ -612,6 +612,7 @@ export default class RestApi {
           start: true,
         },
       },
+      'vm-snapshots': {},
       hosts: {},
       srs: {},
       vbds: {},
