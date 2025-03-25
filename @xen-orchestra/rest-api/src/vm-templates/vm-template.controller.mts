@@ -9,7 +9,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
 
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { partialVmTemplates, vmTemplateId, vmTemplateIds } from '../open-api/oa-examples/vm-template.oa-example.mjs'
+import { partialVmTemplates, vmTemplate, vmTemplateIds } from '../open-api/oa-examples/vm-template.oa-example.mjs'
 
 @Route('vm-templates')
 @Security('*')
@@ -39,9 +39,9 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   }
 
   /**
-   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example id "b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d"
    * */
-  @Example(vmTemplateId)
+  @Example(vmTemplate)
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
   getVmTemplate(@Path() id: string): Unbrand<XoVmTemplate> {
