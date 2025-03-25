@@ -238,7 +238,6 @@ export default class TabPatches extends Component {
 
     const isSingleHost = size(poolHosts) < 2
 
-    const hasAXostor = this.hasAXostor()
     const hasMultipleVmsRunningOnLocalStorage = this.getNVmsRunningOnLocalStorage() > 0
 
     return (
@@ -249,23 +248,19 @@ export default class TabPatches extends Component {
               {ROLLING_POOL_UPDATES_AVAILABLE && (
                 <TabButton
                   btnStyle='primary'
-                  disabled={
-                    hasAXostor || isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost
-                  }
+                  disabled={isEmpty(missingPatches) || hasMultipleVmsRunningOnLocalStorage || isSingleHost}
                   handler={rollingPoolUpdate}
                   handlerParam={pool.id}
                   icon='pool-rolling-update'
                   labelId='rollingPoolUpdate'
                   tooltip={
-                    hasAXostor
-                      ? _('rollingPoolUpdateDisabledBecauseXostorOnPool')
-                      : hasMultipleVmsRunningOnLocalStorage
-                        ? _('nVmsRunningOnLocalStorage', {
-                            nVms: this.getNVmsRunningOnLocalStorage(),
-                          })
-                        : isSingleHost
-                          ? _('multiHostPoolUpdate')
-                          : undefined
+                    hasMultipleVmsRunningOnLocalStorage
+                      ? _('nVmsRunningOnLocalStorage', {
+                          nVms: this.getNVmsRunningOnLocalStorage(),
+                        })
+                      : isSingleHost
+                        ? _('multiHostPoolUpdate')
+                        : undefined
                   }
                 />
               )}

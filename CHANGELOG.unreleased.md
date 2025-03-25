@@ -13,6 +13,8 @@
 
 - **XO 6:**
   - [Host] Add dashboard view (PR [#8398](https://github.com/vatesfr/xen-orchestra/pull/8398))
+- [RPU] Enable to do RPU even if a XOSTOR is present on the pool
+
 
 ### Bug fixes
 
@@ -39,6 +41,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server-backup-reports patch
-- xo-server patch
+- xo-server minor
+- xo-web
 
 <!--packages-end-->
