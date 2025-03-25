@@ -11,7 +11,7 @@
           <slot name="description" />
         </div>
       </div>
-      <UiButtonIcon class="close-icon" :icon="faXmark" accent="brand" size="medium" />
+      <UiButtonIcon class="close-icon" :icon="faXmark" accent="brand" size="medium" @click="emit('close')" />
     </div>
     <div v-if="slots.actions" class="actions">
       <slot name="actions" />
@@ -24,13 +24,17 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faXmark, faCheck, faCircle, faInfo, faExclamation } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faCircle, faExclamation, faInfo, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 type ToasterAccent = 'info' | 'success' | 'warning' | 'danger'
 
 const props = defineProps<{
   accent: ToasterAccent
+}>()
+
+const emit = defineEmits<{
+  close: []
 }>()
 
 const slots = defineSlots<{
