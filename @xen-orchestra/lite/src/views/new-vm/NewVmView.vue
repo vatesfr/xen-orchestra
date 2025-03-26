@@ -375,7 +375,7 @@ import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
 
 // XenAPI Store imports
-import type { XenApiNetwork, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -561,12 +561,12 @@ const getDefaultNetworks = (template: XenApiVm) => {
     return pif && pif.management
   })
 
-  return network !== undefined ? [network.uuid] : []
+  return network !== undefined ? [network] : []
 }
 
 const getExistingInterface = (template: XenApiVm) => {
   const existingInterfaces = []
-  const defaultNetwork = getDefaultNetworks(template)[0] as XenApiNetwork
+  const defaultNetwork = getDefaultNetworks(template)[0]
 
   if (template.VIFs.length === 0 && defaultNetwork) {
     existingInterfaces.push({
@@ -594,7 +594,7 @@ const addNetworkInterface = () => {
   const defaultNetworks = getDefaultNetworks(vmState.new_vm_template)
   if (defaultNetworks.length === 0) return
 
-  const defaultNetwork = defaultNetworks[0] as XenApiNetwork
+  const defaultNetwork = defaultNetworks[0]
 
   vmState.networkInterfaces.push({
     interface: defaultNetwork.$ref,
