@@ -33,7 +33,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() fields?: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Unbrand<XoVmSnapshot>>[] | WithHref<Partial<Unbrand<XoVmSnapshot>>>[] {
+  ): string[] | WithHref<Partial<Unbrand<XoVmSnapshot>>>[] {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
