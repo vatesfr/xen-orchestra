@@ -2712,8 +2712,6 @@ const messages = {
   replication: 'Replication',
   replicationCountHigherThanHostsWithDisks: 'Replication count is higher than number of hosts with disks',
   resourceList: 'Resource list',
-  rpuNoLongerAvailableIfXostor:
-    'As long as a XOSTOR storage is present in the pool, Rolling Pool Update will not be available',
   rpuRequireVmsReboot: 'To fully apply the patches, some VMs will reboot. Are you sure you want to continue?',
   selectDisks: 'Select disk(s)…',
   selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}.',

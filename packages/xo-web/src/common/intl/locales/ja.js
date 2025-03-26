@@ -7068,9 +7068,6 @@ export default {
   // Original text: 'Resource list'
   resourceList: undefined,
 
-  // Original text: 'As long as a XOSTOR storage is present in the pool, Rolling Pool Update will not be available'
-  rpuNoLongerAvailableIfXostor: undefined,
-
   // Original text: 'Select disk(s)…'
   selectDisks: undefined,
 
