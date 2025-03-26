@@ -16,34 +16,34 @@ export const useSrStore = defineStore('xen-api-sr', () => {
 
   const srs = computed(() => baseContext.records.value)
 
-  const getIsoSrs = computed(() => srs.value.filter(sr => sr.type === 'iso'))
+  const isoSrs = computed(() => srs.value.filter(sr => sr.type === 'iso'))
 
   const concatVdisArray = computed(() =>
-    getIsoSrs.value.reduce((acc: XenApiVdi['$ref'][], sr) => {
+    isoSrs.value.reduce((acc: XenApiVdi['$ref'][], sr) => {
       if (sr.VDIs) acc.push(...sr.VDIs)
       return acc
     }, [])
   )
 
   // TODO remove when the select component is ready to use
-  const getSrsName = (ref: XenApiSr['$ref']) => baseContext.getByOpaqueRef(ref)?.name_label
+  const getSrName = (ref: XenApiSr['$ref']) => baseContext.getByOpaqueRef(ref)?.name_label
 
   const vdiIsosBySrName = computed(() => {
-    const groupedVDIs: Record<string, XenApiSr[]> = {}
+    const groupedVdis: Record<string, XenApiVdi[]> = {}
 
     concatVdisArray.value.forEach(vdiRef => {
       const vdi = vdiContext.getByOpaqueRef(vdiRef)
 
       if (vdi) {
-        const srName = getSrsName(vdi.SR) || 'Unknown SR'
-        if (!groupedVDIs[srName]) {
-          groupedVDIs[srName] = []
+        const srName = getSrName(vdi.SR) || 'Unknown SR'
+        if (!groupedVdis[srName]) {
+          groupedVdis[srName] = []
         }
-        groupedVDIs[srName].push(vdi)
+        groupedVdis[srName].push(vdi)
       }
     })
 
-    return groupedVDIs
+    return groupedVdis
   })
 
   const context = {
