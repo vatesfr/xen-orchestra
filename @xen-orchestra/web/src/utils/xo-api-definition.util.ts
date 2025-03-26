@@ -5,6 +5,7 @@ import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoTask } from '@/types/xo/task.type'
+import type { XoUser } from '@/types/xo/user.type.ts'
 import type { XoVif } from '@/types/xo/vif.type'
 import type { XoVm } from '@/types/xo/vm.type'
 
@@ -30,7 +31,7 @@ export const xoApiDefinition = {
   task: {
     type: 'collection',
     path: 'tasks',
-    fields: 'id,start,end,properties,status,progress,tasks',
+    fields: 'id,properties,start,status,updatedAt,end,tasks',
     handler: (record: XoTask) => record,
   },
   dashboard: {
@@ -57,5 +58,11 @@ export const xoApiDefinition = {
     path: 'networks',
     fields: 'id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs',
     handler: (record: XoNetwork) => record,
+  },
+  user: {
+    type: 'collection',
+    path: 'users',
+    fields: 'id,email,permission',
+    handler: (record: XoUser) => record,
   },
 } satisfies ApiDefinition
