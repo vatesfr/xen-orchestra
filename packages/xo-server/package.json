@@ -50,7 +50,7 @@
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/defined": "^0.0.2",
     "@xen-orchestra/emit-async": "^1.0.0",
-    "@xen-orchestra/fs": "^4.4.0",
+    "@xen-orchestra/fs": "^4.4.1",
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/mixin": "^0.2.0",
     "@xen-orchestra/mixins": "^0.16.2",
