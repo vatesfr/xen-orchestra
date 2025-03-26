@@ -55,14 +55,14 @@ export async function exportIncrementalVm(
       $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
       $SR$uuid: vdi.$SR.uuid,
     }
-    disks[`${vdiRef}.vhd`] = new XapiDiskSource({
+    disks[vdiRef] = new XapiDiskSource({
       vdiRef,
       xapi: vm.$xapi,
       baseRef: baseVdi?.$ref,
       nbdConcurrency,
       preferNbd,
     })
-    await disks[`${vdiRef}.vhd`].init()
+    await disks[vdiRef].init()
   })
 
   const suspendVdi = vm.$suspend_VDI
@@ -72,13 +72,13 @@ export async function exportIncrementalVm(
       ...suspendVdi,
       $SR$uuid: suspendVdi.$SR.uuid,
     }
-    disks[`${vdiRef}.vhd`] = new XapiDiskSource({
+    disks[vdiRef] = new XapiDiskSource({
       vdiRef: suspendVdi.$ref,
       xapi: vm.$xapi,
       nbdConcurrency,
       preferNbd,
     })
-    await disks[`${vdiRef}.vhd`].init()
+    await disks[vdiRef].init()
   }
 
   const vifs = {}
