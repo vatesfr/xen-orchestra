@@ -17,4 +17,5 @@ import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import { faTasks } from '@fortawesome/free-solid-svg-icons'
 
 const { tasks, isReady } = useTaskTree()
+// console.log('task', tasks.value)
 </script>
