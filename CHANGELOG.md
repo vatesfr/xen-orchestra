@@ -42,19 +42,20 @@
 
 ### Released packages
 
-- @vates/types minor
-- @xen-orchestra/backups patch
-- @xen-orchestra/fs patch
-- @xen-orchestra/rest-api minor
-- @xen-orchestra/vmware-explorer patch
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- @xen-orchestra/xapi patch
-- xo-server minor
-- xo-server-audit minor
-- xo-server-netbox minor
-- xo-server-perf-alert patch
-- xo-web minor
+- @xen-orchestra/fs 4.4.1
+- @vates/types 1.1.0
+- @xen-orchestra/xapi 8.1.1
+- @xen-orchestra/backups 0.58.4
+- @xen-orchestra/web-core 0.17.0
+- @xen-orchestra/proxy 0.29.16
+- @xen-orchestra/rest-api 0.2.0
+- @xen-orchestra/vmware-explorer 0.9.3
+- @xen-orchestra/web 0.14.0
+- xo-server 5.175.0
+- xo-server-audit 0.13.0
+- xo-server-netbox 1.8.0
+- xo-server-perf-alert 0.6.1
+- xo-web 5.170.0
 
 ## **5.104.1** (2025-03-04)
 
