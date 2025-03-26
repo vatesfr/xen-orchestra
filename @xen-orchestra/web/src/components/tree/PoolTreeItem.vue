@@ -37,6 +37,7 @@ import { computed } from 'vue'
 const props = defineProps<{
   branch: PoolBranch
 }>()
+// console.log('Pool Branch', props.branch)
 
 const { runningVms } = useVmStore().subscribe()
 

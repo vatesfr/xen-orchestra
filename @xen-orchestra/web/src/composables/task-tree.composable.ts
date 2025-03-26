@@ -348,10 +348,7 @@ export function useTaskTree() {
   const { filter, predicate } = useTreeFilter()
   const isReady = logicAnd(isTaskReady)
 
-  // console.log('mocked tasks', mockedTasks)
-  // console.log('real tasks', tasks.value.slice(0, 5))
-
-  const defineTaskTree = (tasks: Task[]) => {
+  const defineTaskTree = (tasks: Task[]): any => {
     return defineTree(
       tasks,
       {

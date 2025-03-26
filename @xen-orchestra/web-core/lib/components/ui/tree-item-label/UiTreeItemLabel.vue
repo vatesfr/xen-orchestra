@@ -6,7 +6,8 @@
       class="ui-tree-item-label"
       v-bind="attrs"
     >
-      <template v-if="depth > 1">
+      {{ depth }}
+      <template v-if="depth > 0">
         <VtsTreeLine
           v-for="i in depth - 1"
           :key="i"
@@ -54,7 +55,7 @@ defineOptions({
 })
 
 defineProps<{
-  route?: RouteLocationRaw
+  route: RouteLocationRaw
   icon?: IconDefinition
   active?: boolean
 }>()
@@ -86,7 +87,6 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   background-color: var(--color-neutral-background-primary);
   gap: 0.4rem;
   padding: 0 0.8rem;
-  margin-bottom: 0.2rem;
 
   .link {
     display: flex;
