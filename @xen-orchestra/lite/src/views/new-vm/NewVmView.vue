@@ -441,7 +441,7 @@ const { getByOpaqueRef: getPifByOpaqueRef } = usePifStore().subscribe()
 const { t } = useI18n()
 const router = useRouter()
 
-const isBusy = ref<boolean>(false)
+const isBusy = ref(false)
 
 // Toaster
 const errorMessage = ref<string>('')
