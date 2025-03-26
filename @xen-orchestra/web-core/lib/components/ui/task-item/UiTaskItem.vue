@@ -132,7 +132,7 @@ const remainingTime = computed(() => {
 .ui-task-item {
   padding: 0.2rem;
   display: flex;
-  height: 4.8rem;
+  height: 3.8rem;
   align-items: center;
   cursor: pointer;
 

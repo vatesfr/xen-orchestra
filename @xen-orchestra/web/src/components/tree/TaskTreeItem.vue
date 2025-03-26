@@ -1,7 +1,8 @@
 <template>
   <VtsTreeItem :expanded="branch.isExpanded">
-    <UiTreeItemLabel :icon="faTasks" :route="`/task/${branch.id}`" @toggle="branch.toggleExpand()">
-      <UiTaskItem :task="branch.data" :user />
+    <UiTreeItemLabel :route="`/task/${branch.data.id}`" @toggle="branch.toggleExpand()">
+      <!--      {{ branch.data.properties.name }} -->
+      <UiTaskItem :task="branch.data" :user="user" />
     </UiTreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
       <VtsTreeList>
@@ -18,7 +19,6 @@ import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiTaskItem from '@core/components/ui/task-item/UiTaskItem.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
-import { faTasks } from '@fortawesome/free-solid-svg-icons'
 import { computed, defineProps } from 'vue'
 
 const { branch } = defineProps<{
