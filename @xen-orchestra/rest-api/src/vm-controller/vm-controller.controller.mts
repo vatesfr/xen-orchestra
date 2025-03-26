@@ -1,13 +1,13 @@
 import { inject } from 'inversify'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { XoVmController } from '@vates/types'
+import type { XoVmController } from '@vates/types'
 import { Example, Get, Path, Query, Request, Response, Route, Security } from 'tsoa'
 import { Request as ExRequest } from 'express'
 
 import { unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
-import { WithHref } from '../helpers/helper.type.mjs'
+import type { WithHref } from '../helpers/helper.type.mjs'
 import {
   partialVmControllers,
   vmController,
@@ -26,6 +26,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   /**
    *
    * @example fields "type,uuid"
+   * @example filter "type=vm"
    * @example limit 42
    */
   @Example(vmControllerIds)
