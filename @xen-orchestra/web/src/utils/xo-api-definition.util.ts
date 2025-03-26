@@ -8,6 +8,7 @@ import type { XoSr } from '@/types/xo/sr.type'
 import type { XoTask } from '@/types/xo/task.type'
 import type { XoVbd } from '@/types/xo/vbd.type'
 import type { XoVdi } from '@/types/xo/vdi.type'
+import type { XoUser } from '@/types/xo/user.type.ts'
 import type { XoVif } from '@/types/xo/vif.type'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { XoVm } from '@/types/xo/vm.type'
@@ -41,7 +42,7 @@ export const xoApiDefinition = {
   task: {
     type: 'collection',
     path: 'tasks',
-    fields: 'id,start,end,properties,status,progress,tasks',
+    fields: 'id,properties,start,status,updatedAt,end,tasks',
     handler: (record: XoTask) => record,
   },
   dashboard: {
@@ -80,6 +81,12 @@ export const xoApiDefinition = {
     path: 'networks',
     fields: 'id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs,other_config',
     handler: (record: XoNetwork) => record,
+  },
+  user: {
+    type: 'collection',
+    path: 'users',
+    fields: 'id,email,permission',
+    handler: (record: XoUser) => record,
   },
   vm_template: {
     type: 'collection',

@@ -5,9 +5,11 @@ export type XoTask = {
   type: 'task'
   start: number
   end: number | undefined
+  updatedAt: number
   properties: {
     type: string
     name: string
+    userId?: Branded<'user'>
   }
   status: 'pending' | 'success' | 'failure' | 'interrupted'
   tasks?: XoTask[]
