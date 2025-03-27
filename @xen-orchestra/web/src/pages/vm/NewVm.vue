@@ -1,6 +1,5 @@
 <template>
   <div class="new-vm">
-    {{ installMode }}
     <UiHeadBar :icon="faPlus">
       {{ t('new-vm.add') }}
       <template #actions>
@@ -899,6 +898,7 @@ watch(
     -moz-appearance: none;
 
     width: 100%;
+    min-width: 20rem;
     padding-block: 0.8rem;
     padding-inline: 1.6rem;
     outline: none;
