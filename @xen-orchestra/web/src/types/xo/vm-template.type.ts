@@ -26,7 +26,7 @@ export type XoVmTemplate = {
     repository?: string
   }
   affinity_host: string
-  tags: []
+  tags: string[]
   template_info: { disks: Disk[]; install_methods: string[] }
   type: 'VM-template'
 }
