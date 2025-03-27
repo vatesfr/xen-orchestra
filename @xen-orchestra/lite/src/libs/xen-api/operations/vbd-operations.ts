@@ -2,7 +2,7 @@ import type XenApi from '@/libs/xen-api/xen-api'
 import type { XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import type { MaybeArray } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'
-import type { VBD_MODE, VBD_TYPE } from '@vates/types/common'
+import { VBD_MODE, VBD_TYPE } from '@vates/types/common'
 
 export function createVbdOperations(xenApi: XenApi) {
   type VmRefs = MaybeArray<XenApiVm['$ref']>
@@ -37,7 +37,7 @@ export function createVbdOperations(xenApi: XenApi) {
 
     const allowedDevicesFlat = allowedDevices.flat()
 
-    if (type === 'CD') {
+    if (type === VBD_TYPE.CD) {
       // Choose position 3 if allowed.
       return allowedDevicesFlat.includes('3') ? '3' : allowedDevicesFlat[0]
     } else {
@@ -59,8 +59,8 @@ export function createVbdOperations(xenApi: XenApi) {
         vdiRef,
         userdevice: initialUserdevice,
         bootable = false,
-        type = 'Disk',
-        mode = type === 'Disk' ? 'RW' : 'RO',
+        type = VBD_TYPE.DISK,
+        mode = type === VBD_TYPE.DISK ? VBD_MODE.RW : VBD_MODE.RO,
         empty = false,
         other_config = {},
         qos_algorithm_params = {},

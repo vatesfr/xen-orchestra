@@ -273,9 +273,9 @@
                   </tr>
                 </template>
                 <template v-if="vmState.vdis && vmState.vdis.length > 0">
-                  <tr v-for="(disk, index) in vmState.vdis" :key="index">
+                  <tr v-for="(vdi, index) in vmState.vdis" :key="index">
                     <td>
-                      <FormSelect v-model="disk.SR">
+                      <FormSelect v-model="vdi.SR">
                         <option v-for="sr in filteredSrs" :key="sr.$ref" :value="sr.$ref">
                           {{ `${sr.name_label} -` }}
                           {{
@@ -287,13 +287,13 @@
                       </FormSelect>
                     </td>
                     <td>
-                      <UiInput v-model="disk.name_label" :placeholder="$t('disk-name')" accent="brand" />
+                      <UiInput v-model="vdi.name_label" :placeholder="$t('disk-name')" accent="brand" />
                     </td>
                     <td>
-                      <UiInput v-model="disk.size" :placeholder="$t('size')" accent="brand" />
+                      <UiInput v-model="vdi.size" :placeholder="$t('size')" accent="brand" />
                     </td>
                     <td>
-                      <UiInput v-model="disk.name_description" :placeholder="$t('description')" accent="brand" />
+                      <UiInput v-model="vdi.name_description" :placeholder="$t('description')" accent="brand" />
                     </td>
                     <td>
                       <UiButtonIcon
@@ -626,7 +626,7 @@ const getVdis = (template: XenApiVm) => {
   return vdisArray
 }
 
-const getExistingDisks = (template: XenApiVm) => {
+const getExistingVdis = (template: XenApiVm) => {
   const existingVdisArray = [] as Vdi[]
 
   template.VBDs.forEach(vbdRef => {
@@ -663,7 +663,7 @@ const onTemplateChange = () => {
     vCPU: VCPUs_at_startup,
     ram: memory_dynamic_max,
     vdis: getVdis(template),
-    existingVdis: getExistingDisks(template),
+    existingVdis: getExistingVdis(template),
     networkInterfaces: getExistingInterface(template),
   })
 }
@@ -757,6 +757,8 @@ const _createVm = async ($defer: Defer) => {
       }
     }
 
+    let hasBootableDisk = false
+
     if (installMethod === 'cd') {
       let cdInserted = false
 
@@ -769,14 +771,16 @@ const _createVm = async ($defer: Defer) => {
           break
         }
       }
+
       if (cdInserted) {
         await xapi.vbd.create({
           vmRefs,
           vdiRef: selectedVdiRef,
-          type: 'CD',
+          type: VBD_TYPE.CD,
           bootable: true,
         })
       }
+      hasBootableDisk = true
     }
 
     // VIFs CREATION
@@ -797,7 +801,30 @@ const _createVm = async ($defer: Defer) => {
       })
     }
 
+    // EDIT VBDs IN CASE OF EXISTING VDIs
+    // TODO edit SR
+    for (const vbdRef of vm.VBDs) {
+      const vdiRef = await xapi.getField<XenApiVdi['$ref']>('VBD', vbdRef, 'VDI')
+      const type = await xapi.getField<VBD_TYPE>('VBD', vbdRef, 'type')
+      const bootable = await xapi.getField<boolean>('VBD', vbdRef, 'bootable')
+
+      if (!hasBootableDisk) {
+        hasBootableDisk = bootable
+      }
+
+      if (!vbdRef || type === VBD_TYPE.CD) {
+        continue
+      }
+
+      for (const vdi of existingVdis) {
+        await xapi.vdi.setNameLabel(vdiRef, vdi.name_label)
+        await xapi.vdi.setNameDescription(vdiRef, vdi.name_description)
+      }
+    }
+
     // VDIs AND VBDs CREATION
+    let index = 0
+
     for (const vdi of newVdis) {
       const vdiRef = await xapi.vdi.create({
         ...vdi,
@@ -806,28 +833,21 @@ const _createVm = async ($defer: Defer) => {
 
       $defer.onFailure(() => xapi.vdi.delete(vdiRef))
 
+      let bootable = false
+
+      if (!hasBootableDisk && index === 0) {
+        bootable = true
+      }
+
       const vbdRef = await xapi.vbd.create({
         vmRefs,
         vdiRef,
+        bootable,
       })
 
+      index++
+
       $defer.onFailure(() => xapi.vbd.delete(vbdRef))
-    }
-
-    // EDIT VBDs IN CASE OF EXISTING DISKS
-    // TODO edit SR
-    for (const vbdRef of vm.VBDs) {
-      const type = await xapi.getField<VBD_TYPE>('VBD', vbdRef, 'type')
-      const vdiRef = await xapi.getField<XenApiVdi['$ref']>('VBD', vbdRef, 'VDI')
-
-      if (!vbdRef || type === 'CD') {
-        continue
-      }
-
-      for (const disk of existingVdis) {
-        await xapi.vdi.setNameLabel(vdiRef, disk.name_label)
-        await xapi.vdi.setNameDescription(vdiRef, disk.name_description)
-      }
     }
 
     // We set VCPUs max before, otherwise we cannot assign new values to the CPUs
