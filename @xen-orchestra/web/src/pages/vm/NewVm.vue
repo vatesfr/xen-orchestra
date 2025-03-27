@@ -159,7 +159,7 @@
                   {{ $t('new-vm.description') }}
                 </UiTextarea>
                 <div class="select">
-                  <label for="select">{{ t('affinity-host') }}</label>
+                  <UiLabel accent="neutral">{{ t('affinity-host') }}</UiLabel>
                   <select id="select" v-model="vmState.affinity_host">
                     <option v-for="host in getHosts" :key="host.id" :value="host.id">
                       {{ host.name_label }}
@@ -380,7 +380,6 @@
             >
               {{ t('create') }}
             </UiButton>
-            {{ installMode }}
           </div>
         </UiCard>
       </form>
@@ -414,6 +413,7 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -767,17 +767,17 @@ watchEffect(() => {
   .card-container {
     margin: 1rem;
   }
+  .template-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 50%;
+  }
 
   .form-container {
     display: flex;
     flex-direction: column;
     gap: 2.4rem;
-
-    .template-container {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
 
     .system-container {
       display: flex;
@@ -837,6 +837,7 @@ watchEffect(() => {
     .select {
       display: flex;
       flex-direction: column;
+      gap: 0.4rem;
     }
   }
 
@@ -845,6 +846,40 @@ watchEffect(() => {
     display: flex;
     justify-content: center;
     gap: 1.6rem;
+  }
+
+  select {
+    width: 100%;
+    border-radius: 0.4rem;
+    padding-block: 0.8rem;
+    padding-inline: 1.6rem;
+    outline: none;
+    background-color: var(--color-neutral-background-primary);
+    border-color: var(--color-neutral-border);
+    font-size: 1.6rem;
+    &::after {
+      content: '\2304';
+      font-size: 30px;
+      line-height: 23px;
+      padding-right: 2px;
+    }
+    &:hover {
+      border-color: var(--color-brand-item-hover);
+    }
+    &:focus {
+      border-width: 0.2rem;
+      border-color: var(--color-brand-item-base);
+    }
+  }
+
+  select::after {
+    /*content: '\2304'; !* Unicode for the caret symbol *!*/
+    font-size: 1.5rem; /* Adjust the size of the caret */
+    position: absolute;
+    right: 1rem; /* Adjust the position of the caret */
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
   }
 }
 </style>
