@@ -4712,7 +4712,7 @@
   dependencies:
     undici-types "~5.26.4"
 
-"@types/node@^18.19.7", "@types/node@^18.19.80":
+"@types/node@^18.19.80":
   version "18.19.80"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.19.80.tgz#6d6008e8920dddcd23f9dd33da24684ef57d487c"
   integrity sha512-kEWeMwMeIvxYkeg1gTc01awpwLbfMRZXdIhwRcakd/KlK53jmRC26LqcbIt7fnAQTu5GzlnWmzA3H6+l1u6xxQ==
@@ -4797,11 +4797,6 @@
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-10.0.0.tgz#e9c07fe50da0f53dc24970cca94d619ff03f6f6d"
   integrity sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==
-
-"@types/web-bluetooth@^0.0.20":
-  version "0.0.20"
-  resolved "https://registry.yarnpkg.com/@types/web-bluetooth/-/web-bluetooth-0.0.20.tgz#f066abfcd1cbe66267cdbbf0de010d8a41b41597"
-  integrity sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==
 
 "@types/web-bluetooth@^0.0.21":
   version "0.0.21"
@@ -5113,11 +5108,6 @@
   resolved "https://registry.yarnpkg.com/@ungap/structured-clone/-/structured-clone-1.3.0.tgz#d06bbb384ebcf6c505fde1c3d0ed4ddffe0aaff8"
   integrity sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==
 
-"@vitejs/plugin-vue@^5.1.4":
-  version "5.2.3"
-  resolved "https://registry.yarnpkg.com/@vitejs/plugin-vue/-/plugin-vue-5.2.3.tgz#71a8fc82d4d2e425af304c35bf389506f674d89b"
-  integrity sha512-IYSLEQj4LgZZuoVpdSUCw3dIynTWQgPlaRP6iAvMle4My0HdYwr5g5wQAfwOeHQBmYwEkqF70nRpSilr6PoUDg==
-
 "@vitejs/plugin-vue@^5.2.1":
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/@vitejs/plugin-vue/-/plugin-vue-5.2.1.tgz#d1491f678ee3af899f7ae57d9c21dc52a65c7133"
@@ -5307,27 +5297,12 @@
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.5.13.tgz#87b309a6379c22b926e696893237826f64339b6f"
   integrity sha512-/hnE/qP5ZoGpol0a5mDi45bOd7t3tjYJBjsgCsivow7D48cJeV5l05RD82lPqi7gRiphZM37rnhW1l6ZoCNNnQ==
 
-"@vue/tsconfig@^0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@vue/tsconfig/-/tsconfig-0.5.1.tgz#3124ec16cc0c7e04165b88dc091e6b97782fffa9"
-  integrity sha512-VcZK7MvpjuTPx2w6blwnwZAu5/LgBUtejFOi3pPGQFXQN5Ela03FUtd2Qtg4yWGGissVL0dr6Ro1LfOFh+PCuQ==
-
 "@vue/tsconfig@^0.7.0":
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@vue/tsconfig/-/tsconfig-0.7.0.tgz#67044c847b7a137b8cbfd6b23104c36dbaf80d1d"
   integrity sha512-ku2uNz5MaZ9IerPPUyOHzyjhXoX2kVJaVf7hL315DC17vS6IiZRmmCPfggNbU16QTvM80+uYYy3eYJB59WCtvg==
 
-"@vueuse/core@10.11.1", "@vueuse/core@^10.7.1":
-  version "10.11.1"
-  resolved "https://registry.yarnpkg.com/@vueuse/core/-/core-10.11.1.tgz#15d2c0b6448d2212235b23a7ba29c27173e0c2c6"
-  integrity sha512-guoy26JQktXPcz+0n3GukWIy/JDNKti9v6VEMu6kV2sYBsWuGiTU8OWdg+ADfUbHg3/3DlqySDe7JmdHrktiww==
-  dependencies:
-    "@types/web-bluetooth" "^0.0.20"
-    "@vueuse/metadata" "10.11.1"
-    "@vueuse/shared" "10.11.1"
-    vue-demi ">=0.14.8"
-
-"@vueuse/core@^13.0.0":
+"@vueuse/core@13.0.0", "@vueuse/core@^13.0.0":
   version "13.0.0"
   resolved "https://registry.yarnpkg.com/@vueuse/core/-/core-13.0.0.tgz#60bf419e3f9fb003b51f1dfed550afffdb1691ff"
   integrity sha512-rkgb4a8/0b234lMGCT29WkCjPfsX0oxrIRR7FDndRoW3FsaC9NBzefXg/9TLhAgwM11f49XnutshM4LzJBrQ5g==
@@ -5336,22 +5311,13 @@
     "@vueuse/metadata" "13.0.0"
     "@vueuse/shared" "13.0.0"
 
-"@vueuse/integrations@^10.7.1":
-  version "10.11.1"
-  resolved "https://registry.yarnpkg.com/@vueuse/integrations/-/integrations-10.11.1.tgz#e4af23b871773c5ef5b8fb939f959f2fc728557e"
-  integrity sha512-Y5hCGBguN+vuVYTZmdd/IMXLOdfS60zAmDmFYc4BKBcMUPZH1n4tdyDECCPjXm0bNT3ZRUy1xzTLGaUje8Xyaw==
+"@vueuse/integrations@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/integrations/-/integrations-13.0.0.tgz#dd73747a7f163e3397f09b9ba20c77140d6e9073"
+  integrity sha512-PXARslYRWf4u0xjdW6N5eC5kVQj2z/dxfZ7ildI1okLm2AwmhL+wiWzaNMSJMxTKX4ew7kNe70yJg1QjnWmE5w==
   dependencies:
-    "@vueuse/core" "10.11.1"
-    "@vueuse/shared" "10.11.1"
-    vue-demi ">=0.14.8"
-
-"@vueuse/math@^10.7.1":
-  version "10.11.1"
-  resolved "https://registry.yarnpkg.com/@vueuse/math/-/math-10.11.1.tgz#7ad790feaccb5830dd766ef254e5134e64ecbe68"
-  integrity sha512-fkdaNEOn22Vjz/A3vNWO2+eysunlK74ODmJRosweKMEA07oi5WH/CYQ8oGxu2Fa641fhs4hXS7XxdALsGVYlpw==
-  dependencies:
-    "@vueuse/shared" "10.11.1"
-    vue-demi ">=0.14.8"
+    "@vueuse/core" "13.0.0"
+    "@vueuse/shared" "13.0.0"
 
 "@vueuse/math@^13.0.0":
   version "13.0.0"
@@ -5360,22 +5326,10 @@
   dependencies:
     "@vueuse/shared" "13.0.0"
 
-"@vueuse/metadata@10.11.1":
-  version "10.11.1"
-  resolved "https://registry.yarnpkg.com/@vueuse/metadata/-/metadata-10.11.1.tgz#209db7bb5915aa172a87510b6de2ca01cadbd2a7"
-  integrity sha512-IGa5FXd003Ug1qAZmyE8wF3sJ81xGLSqTqtQ6jaVfkeZ4i5kS2mwQF61yhVqojRnenVew5PldLyRgvdl4YYuSw==
-
 "@vueuse/metadata@13.0.0":
   version "13.0.0"
   resolved "https://registry.yarnpkg.com/@vueuse/metadata/-/metadata-13.0.0.tgz#f9c70e1d4958869693e6dcf385d3294cdd304b58"
   integrity sha512-TRNksqmvtvqsuHf7bbgH9OSXEV2b6+M3BSN4LR5oxWKykOFT9gV78+C2/0++Pq9KCp9KQ1OQDPvGlWNQpOb2Mw==
-
-"@vueuse/shared@10.11.1", "@vueuse/shared@^10.7.1":
-  version "10.11.1"
-  resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-10.11.1.tgz#62b84e3118ae6e1f3ff38f4fbe71b0c5d0f10938"
-  integrity sha512-LHpC8711VFZlDaYUXEBbFBCQ7GS3dVU9mjOhhMhXP6txTV4EhYQg/KGnQuvt/sPAtoUKq7VVUnL6mVtFoL42sA==
-  dependencies:
-    vue-demi ">=0.14.8"
 
 "@vueuse/shared@13.0.0", "@vueuse/shared@^13.0.0":
   version "13.0.0"
@@ -20607,7 +20561,7 @@ vscode-uri@^3.0.8:
   resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.1.0.tgz#dd09ec5a66a38b5c3fffc774015713496d14e09c"
   integrity sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==
 
-vue-demi@>=0.13.0, vue-demi@>=0.14.8, vue-demi@^0.14.10:
+vue-demi@>=0.13.0, vue-demi@^0.14.10:
   version "0.14.10"
   resolved "https://registry.yarnpkg.com/vue-demi/-/vue-demi-0.14.10.tgz#afc78de3d6f9e11bf78c55e8510ee12814522f04"
   integrity sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==
