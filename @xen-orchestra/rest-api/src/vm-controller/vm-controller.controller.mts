@@ -26,7 +26,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   /**
    *
    * @example fields "type,uuid"
-   * @example filter "poolId"
+   * @example filter "power_state:Running"
    * @example limit 42
    */
   @Example(vmControllerIds)
