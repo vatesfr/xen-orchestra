@@ -118,7 +118,8 @@
                 <UiInput v-model="vmState.name" accent="brand" :label="$t('new-vm.name')" />
                 <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" :label=" $t('tags')" /> -->
                 <VtsInputWrapper :label="$t('boot-firmware')">
-                  <FormSelect v-model="vmState.boot_firmware">
+                  <!--  TODO remove disabled when it is working -->
+                  <FormSelect v-model="vmState.boot_firmware" disabled>
                     <option v-for="boot in bootFirmwares" :key="boot" :value="boot">
                       {{ boot === undefined ? t('bios-default') : boot }}
                     </option>
@@ -419,7 +420,7 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
-import { DOMAIN_TYPE, VBD_TYPE } from '@vates/types/common'
+import { type DOMAIN_TYPE, VBD_TYPE } from '@vates/types/common'
 
 // Vue imports
 import defer, { type Defer } from 'golike-defer'
@@ -716,12 +717,12 @@ const _createVm = async ($defer: Defer) => {
     const domainType = await xapi.getField<DOMAIN_TYPE>('VM', vmRefs[0], 'domain_type')
 
     if (
-      vmState.new_vm_template?.bios_strings.length &&
+      Object.values(vmState.new_vm_template!.bios_strings).length === 0 &&
       vmCreationParams.value.hvmBootFirmware !== 'uefi' &&
       domainType === 'hvm' &&
       vmCreationParams.value.copyHostBiosStrings
     ) {
-      await xapi.call('VM.copy_bios_strings', [vmRefs, vmState.new_vm_template.affinity ?? hostMasterRef])
+      await xapi.call('VM.copy_bios_strings', [vmRefs, vmState.new_vm_template!.affinity ?? hostMasterRef])
     }
 
     // Removes disks from the provision XML, we will create them by ourselves.
@@ -730,6 +731,21 @@ const _createVm = async ($defer: Defer) => {
     // Inspects the disk configuration contained within the VM's other_config,
     // creates VDIs and VBDs and then executes any applicable post-install script.
     await xapi.vm.provision(vmRefs)
+
+    // We set VCPUs max before, otherwise we cannot assign new values to the CPUs
+    if (vmCreationParams.value.cpus > vmCreationParams.value.vcpusMax) {
+      await xapi.vm.setVCPUsMax(vmRefs, vmCreationParams.value.cpus)
+    }
+
+    // OTHER FIELD CREATION
+    await Promise.all([
+      xapi.vm.setNameLabel(vmRefs, vmCreationParams.value.name_label),
+      xapi.vm.setNameDescription(vmRefs, vmCreationParams.value.name_description),
+      xapi.vm.setMemory(vmRefs, vmCreationParams.value.memory),
+      xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
+      // TODO re add when it is working
+      // xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
+    ])
 
     // INSTALL SETTINGS
     const vm = await xapi.getField<XenApiVm>('VM', vmRefs[0], 'record')
@@ -772,7 +788,7 @@ const _createVm = async ($defer: Defer) => {
         }
       }
 
-      if (cdInserted) {
+      if (!cdInserted) {
         await xapi.vbd.create({
           vmRefs,
           vdiRef: selectedVdiRef,
@@ -850,20 +866,7 @@ const _createVm = async ($defer: Defer) => {
       $defer.onFailure(() => xapi.vbd.delete(vbdRef))
     }
 
-    // We set VCPUs max before, otherwise we cannot assign new values to the CPUs
-    if (vmCreationParams.value.cpus > vmCreationParams.value.vcpusMax) {
-      await xapi.vm.setVCPUsMax(vmRefs, vmCreationParams.value.cpus)
-    }
-
-    // OTHER FIELD CREATION
-    await Promise.all([
-      xapi.vm.setNameLabel(vmRefs, vmCreationParams.value.name_label),
-      xapi.vm.setNameDescription(vmRefs, vmCreationParams.value.name_description),
-      xapi.vm.setMemory(vmRefs, vmCreationParams.value.memory),
-      xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
-      xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
-      xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron),
-    ])
+    await xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron)
 
     // BOOT VM AFTER CREATION
     if (vmCreationParams.value.bootAfterCreate) {
