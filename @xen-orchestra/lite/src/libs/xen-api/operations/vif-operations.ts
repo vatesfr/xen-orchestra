@@ -13,8 +13,8 @@ export function createVifOperations(xenApi: XenApi) {
   type VifCreateParams = {
     vmRef: VmRef
     device?: string
-    network: NetworkRef | string
-    MAC: string
+    network: NetworkRef
+    MAC?: string
     MTU?: number
     other_config?: Record<string, any>
     qos_algorithm_params?: Record<string, any>
@@ -43,7 +43,9 @@ export function createVifOperations(xenApi: XenApi) {
           device = allowedDevices.shift()
         }
 
-        MTU = await xenApi.getField<number>('network', network, 'MTU')
+        if (MTU === undefined) {
+          MTU = await xenApi.getField<number>('network', network, 'MTU')
+        }
 
         const vifRecord = {
           device,

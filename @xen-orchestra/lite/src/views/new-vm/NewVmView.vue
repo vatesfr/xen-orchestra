@@ -430,7 +430,7 @@ import { useRouter } from 'vue-router'
 // Store subscriptions
 const { templates } = useVmStore().subscribe()
 const { pool } = usePoolStore().subscribe()
-const { records: srs, vdiIsosBySrName, getByOpaqueRef: getSrByOpaqueRef } = useSrStore().subscribe()
+const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
 const { records: networks, getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
 const { getByOpaqueRef: getVdiByOpaqueRef } = useVdiStore().subscribe()
@@ -499,7 +499,7 @@ const addStorageEntry = () => {
   vmState.vdis.push({
     name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
-    SR: pool.value ? getSrByOpaqueRef(pool.value.default_SR)?.$ref || '' : '',
+    SR: pool.value!.default_SR,
     type: 'system',
     size: 0,
   })
@@ -537,7 +537,7 @@ const automaticNetworks = computed(() => networks.value.filter(network => networ
 
 const bootFirmwares = computed(() => [...new Set(templates.value.map(template => template.HVM_boot_params.firmware))])
 
-const defaultSr = computed(() => (pool.value ? getSrByOpaqueRef(pool.value?.default_SR)?.$ref : ''))
+const defaultSr = computed(() => pool.value!.default_SR)
 
 const filteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
 
@@ -643,7 +643,7 @@ const getExistingVdis = (template: XenApiVm) => {
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.virtual_size),
-      SR: vdi.SR ? getSrByOpaqueRef(vdi.SR)?.$ref : defaultSr.value,
+      SR: vdi.SR ?? defaultSr.value,
     })
   })
 

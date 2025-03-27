@@ -1,16 +1,18 @@
 import type XenApi from '@/libs/xen-api/xen-api'
-import type { XenApiVdi } from '@/libs/xen-api/xen-api.types'
+import type { XenApiSr, XenApiVdi } from '@/libs/xen-api/xen-api.types'
 import type { MaybeArray } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'
-import type { VDI_TYPE } from '@vates/types/common'
+import { VDI_TYPE } from '@vates/types/common'
 
 export function createVdiOperations(xenApi: XenApi) {
   type VdiRefs = MaybeArray<XenApiVdi['$ref']>
 
+  type SrRef = XenApiSr['$ref']
+
   type VdiCreateParams = {
     name_label: string
     name_description: string
-    SR: string | undefined
+    SR: SrRef
     virtual_size: number
     type?: VDI_TYPE
     sharable?: boolean
@@ -25,11 +27,11 @@ export function createVdiOperations(xenApi: XenApi) {
       name_description,
       SR,
       virtual_size,
-      type = 'user',
+      type = VDI_TYPE.USER,
       sharable = false,
       read_only = false,
       other_config = {},
-      tags = [],
+      tags,
     }: VdiCreateParams) => {
       const vdiRecord = {
         name_label,
