@@ -11,5 +11,5 @@ export type XoSr = {
   physical_usage: number
   size: number
   SR_type: string
-  vdis: XoVdi['id']
+  VDIs: XoVdi['id'][]
 }

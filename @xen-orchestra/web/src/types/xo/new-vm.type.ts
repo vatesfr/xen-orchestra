@@ -1,7 +1,7 @@
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 
-export interface Disk {
+export interface Vdi {
   name_label: string
   name_description: string
   size: number
@@ -24,20 +24,21 @@ export interface VmState {
   cloudConfig: string
   copyHostBiosStrings: boolean
   defaultNetwork: NetworkInterface | null
-  existingDisks: Disk[]
   isDiskTemplateSelected: boolean
   networkConfig: string
   networkInterfaces: NetworkInterface[]
   new_vm_template: XoVmTemplate | null
   pool: XoPool | null
   ram: number
+  selectedVdi: undefined
   sshKeys: string[]
   ssh_key: string
   tags: string[]
   topology: string
   vCPU: number
   selectedVCPU: number
-  vdis: Disk[]
-  vm_description: string
-  vm_name: string
+  vdis: Vdi[]
+  description: string
+  existingVdis: Vdi[]
+  name: string
 }

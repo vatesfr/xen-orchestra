@@ -1,5 +1,6 @@
 import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import type { XoSr } from '@/types/xo/sr.type'
+import type { XoVdi } from '@/types/xo/vdi.type'
 import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { defineStore } from 'pinia'
@@ -16,22 +17,26 @@ export const useSrStore = defineStore('sr', () => {
   const srs = computed(() => baseContext.records.value)
   const getSrName = (ref: XoSr['id']) => baseContext.get(ref)?.name_label
 
-  const getSrsWithISO = computed(() => srs.value.filter(sr => sr.SR_type === 'iso'))
+  const isoSrs = computed(() => srs.value.filter(sr => sr.SR_type === 'iso'))
 
-  const concatVdisArray = computed(() => getSrsWithISO.value.flatMap(sr => sr.vdis || []))
-
-  const vdisBySrName = computed(() => {
-    const groupedVDIs: Record<string, XoSr[]> = {}
+  const concatVdisArray = computed(() =>
+    isoSrs.value.reduce((acc: XoVdi['id'][], sr) => {
+      if (sr.VDIs) acc.push(...sr.VDIs)
+      return acc
+    }, [])
+  )
+  const vdiIsosBySrName = computed(() => {
+    const groupedVDIs: Record<string, XoVdi[]> = {}
 
     concatVdisArray.value.forEach(vdiRef => {
       const vdi = vdiContext.get(vdiRef)
 
       if (vdi) {
-        const srName = getSrName(vdi.$sr) || 'Unknown SR'
+        const srName = getSrName(vdi.$SR) || 'Unknown SR'
         if (!groupedVDIs[srName]) {
           groupedVDIs[srName] = []
         }
-        groupedVDIs[srName].push(vdi as any)
+        groupedVDIs[srName].push(vdi)
       }
     })
 
@@ -40,7 +45,7 @@ export const useSrStore = defineStore('sr', () => {
 
   const context = {
     ...baseContext,
-    vdisBySrName,
+    vdiIsosBySrName,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)
