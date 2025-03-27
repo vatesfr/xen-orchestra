@@ -18,6 +18,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [REST API] Correctly return a 404 not found error when trying to get a backup log that does not exist (PR [#8457](https://github.com/vatesfr/xen-orchestra/pull/8457))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -36,5 +38,7 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server-backup-reports patch
+- xo-server patch
 
 <!--packages-end-->
