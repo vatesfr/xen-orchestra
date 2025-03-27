@@ -103,7 +103,7 @@ export function createVmOperations(xenApi: XenApi) {
     setAffinityHost: (vmRefs: XenApiVm['$ref'], hostRef: XenApiHost['$ref'] | null) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_affinity', [vmRef, hostRef ?? '']))),
 
-    setAutoPowerOn: async (vmRef: XenApiVm['$ref'], value: boolean) => setOtherConfig(vmRef, 'auto_poweron', value),
+    setAutoPowerOn: (vmRef: XenApiVm['$ref'], value: boolean) => setOtherConfig(vmRef, 'auto_poweron', value),
 
     setCpuMask: (vmRefs: VmRefs, mask: string[] | null) =>
       Promise.all(
