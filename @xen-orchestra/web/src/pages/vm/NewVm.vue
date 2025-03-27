@@ -3,11 +3,14 @@
     <UiHeadBar :icon="faPlus">
       {{ t('new-vm.add') }}
       <template #actions>
-        <select id="select" v-model="vmState.pool">
-          <option v-for="pool in pools" :key="pool.id" :value="pool">
-            {{ pool.name_label }}
-          </option>
-        </select>
+        <div class="custom-select">
+          <select id="select" v-model="vmState.pool">
+            <option v-for="pool in pools" :key="pool.id" :value="pool">
+              {{ pool.name_label }}
+            </option>
+          </select>
+          <FontAwesomeIcon class="icon" :icon="faAngleDown" />
+        </div>
       </template>
     </UiHeadBar>
     <div class="card-container">
@@ -16,18 +19,21 @@
           <!-- TEMPLATE SECTION -->
           <UiTitle>{{ $t('template') }}</UiTitle>
           <div class="template-container">
-            <p class="typo p1-regular">{{ $t('pick-template') }}</p>
+            <p class="typo-body-regular">{{ $t('pick-template') }}</p>
             <!--        // Todo: Replace by the new select component -->
-            <select id="select" v-model="vmState.new_vm_template" @change="onTemplateChange()">
-              <option
-                v-for="template in vmsTemplatesByPool.get(vmState.pool.id)"
-                :key="template.id"
-                :value="template"
-                class="template-option"
-              >
-                {{ formattedPoolDisplay(template) }}
-              </option>
-            </select>
+            <div class="custom-select">
+              <select id="select" v-model="vmState.new_vm_template" @change="onTemplateChange()">
+                <option
+                  v-for="template in vmsTemplatesByPool.get(vmState.pool.id)"
+                  :key="template.id"
+                  :value="template"
+                  class="template-option"
+                >
+                  {{ formattedPoolDisplay(template) }}
+                </option>
+              </select>
+              <FontAwesomeIcon class="icon" :icon="faAngleDown" />
+            </div>
           </div>
           <div v-if="vmState.new_vm_template" class="form-container">
             <!-- INSTALL SETTINGS SECTION -->
@@ -52,15 +58,18 @@
                     </UiRadioButton>
                   -->
                 </div>
-                <select v-if="installMethod === 'cdrom'" v-model="installMode.repository" class="install-settings">
-                  <template v-for="(vdis, srName) in vdiIsosBySrName" :key="vdis">
-                    <optgroup :label="srName">
-                      <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
-                        {{ vdi.name_label }}
-                      </option>
-                    </optgroup>
-                  </template>
-                </select>
+                <div v-if="installMethod === 'cdrom'" class="custom-select">
+                  <select v-model="installMode.repository" class="install-settings">
+                    <template v-for="(vdis, srName) in vdiIsosBySrName" :key="vdis">
+                      <optgroup :label="srName">
+                        <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
+                          {{ vdi.name_label }}
+                        </option>
+                      </optgroup>
+                    </template>
+                  </select>
+                  <FontAwesomeIcon class="icon" :icon="faAngleDown" />
+                </div>
                 <!-- TODO need to be add later after confirmation -->
                 <!--
                  <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
@@ -110,15 +119,18 @@
                     {{ t('pxe') }}
                   </UiRadioButton>
                 </div>
-                <select v-if="installMethod === 'cdrom'" v-model="installMode.repository" class="install-settings">
-                  <template v-for="(vdis, srName) in vdiIsosBySrName" :key="vdis">
-                    <optgroup :label="srName">
-                      <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
-                        {{ vdi.name_label }}
-                      </option>
-                    </optgroup>
-                  </template>
-                </select>
+                <div v-if="installMethod === 'cdrom'" class="custom-select">
+                  <select v-model="installMode.repository" class="install-settings">
+                    <template v-for="(vdis, srName) in vdiIsosBySrName" :key="vdis">
+                      <optgroup :label="srName">
+                        <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
+                          {{ vdi.name_label }}
+                        </option>
+                      </optgroup>
+                    </template>
+                  </select>
+                  <FontAwesomeIcon class="icon" :icon="faAngleDown" />
+                </div>
               </div>
             </div>
             <!-- SYSTEM SECTION -->
@@ -160,11 +172,14 @@
                 </UiTextarea>
                 <div class="select">
                   <UiLabel accent="neutral">{{ t('affinity-host') }}</UiLabel>
-                  <select id="select" v-model="vmState.affinity_host">
-                    <option v-for="host in getHosts" :key="host.id" :value="host.id">
-                      {{ host.name_label }}
-                    </option>
-                  </select>
+                  <div class="custom-select">
+                    <select id="select" v-model="vmState.affinity_host">
+                      <option v-for="host in getHosts" :key="host.id" :value="host.id">
+                        {{ host.name_label }}
+                      </option>
+                    </select>
+                    <FontAwesomeIcon class="icon" :icon="faAngleDown" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -197,11 +212,14 @@
                   <tr v-for="(networkInterface, index) in vmState.networkInterfaces" :key="index">
                     <td>
                       <!--        // Todo: Replace by the new select component -->
-                      <select v-model="networkInterface.interface">
-                        <option v-for="network in networks" :key="network.id" :value="network.id">
-                          {{ network.name_label }}
-                        </option>
-                      </select>
+                      <div class="custom-select">
+                        <select v-model="networkInterface.interface">
+                          <option v-for="network in networks" :key="network.id" :value="network.id">
+                            {{ network.name_label }}
+                          </option>
+                        </select>
+                        <FontAwesomeIcon class="icon" :icon="faAngleDown" />
+                      </div>
                     </td>
                     <td>
                       <UiInput
@@ -293,16 +311,19 @@
                   <tr v-for="(disk, index) in vmState.vdis" :key="index">
                     <td>
                       <!--        // Todo: Replace by the new select component -->
-                      <select v-model="disk.sr">
-                        <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">
-                          {{ `${sr.name_label} -` }}
-                          {{
-                            t('n-gb-left', {
-                              n: bytesToGiB(sr.size - sr.physical_usage),
-                            })
-                          }}
-                        </option>
-                      </select>
+                      <div class="custom-select">
+                        <select v-model="disk.sr">
+                          <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">
+                            {{ `${sr.name_label} -` }}
+                            {{
+                              t('n-gb-left', {
+                                n: bytesToGiB(sr.size - sr.physical_usage),
+                              })
+                            }}
+                          </option>
+                        </select>
+                        <FontAwesomeIcon class="icon" :icon="faAngleDown" />
+                      </div>
                     </td>
                     <td>
                       <UiInput v-model="disk.name_label" :placeholder="$t('disk-name')" accent="brand" />
@@ -420,6 +441,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import {
   faAlignLeft,
+  faAngleDown,
   faAt,
   faDatabase,
   faDisplay,
@@ -429,8 +451,9 @@ import {
   faPlus,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-import { computed, reactive, ref, watchEffect } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -447,7 +470,7 @@ const isBusy = ref<boolean>(false)
 const { records: networks, get: getNetwork } = useNetworkStore().subscribe()
 const { pifsByNetwork, get: getPif } = usePifStore().subscribe()
 const { records: pools } = usePoolStore().subscribe()
-const { records: vmsTemplates, vmsTemplatesByPool } = useVmTemplateStore().subscribe()
+const { vmsTemplatesByPool } = useVmTemplateStore().subscribe()
 const { records: srs, get: getSr, vdiIsosBySrName } = useSrStore().subscribe()
 const { get: getVbd } = useVbdStore().subscribe()
 const { get: getVdi } = useVdiStore().subscribe()
@@ -568,6 +591,7 @@ const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
 
+// Todo: implement when the API will support
 // const addSshKey = () => {
 //   if (vmState.ssh_key.trim()) {
 //     vmState.sshKeys.push(vmState.ssh_key.trim())
@@ -586,13 +610,14 @@ const isDiskTemplate = computed(() => {
     vmState.new_vm_template.name_label !== 'Other install media'
   )
 })
-
+// Todo: implement when the API will support
 // const getBootFirmwares = computed(() => {
 //   return [
 //     ...new Set(vmsTemplates.value.map(vmsTemplate => vmsTemplate.boot.firmware).filter(firmware => firmware != null)),
 //   ]
 // })
 
+// Todo: implement when the API will support
 // const getCopyHostBiosStrings = computed({
 //   get: () => vmState.boot_firmware !== 'uefi',
 //   set: value => {
@@ -633,12 +658,12 @@ const getExistingDisks = (template: XoVmTemplate): Vdi[] =>
       : []
   })
 
-const getAutomaticNetwork = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
+const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
 const getDefaultNetworks = (template?: XoVmTemplate) => {
   if (!template || !vmState.pool) return null
 
-  const automaticNetwork = getAutomaticNetwork.value.find(network => network.$pool === vmState.pool?.id)
+  const automaticNetwork = automaticNetworks.value.find(network => network.$pool === vmState.pool?.id)
   if (automaticNetwork) {
     return automaticNetwork
   }
@@ -672,10 +697,9 @@ const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
 }
 
 const addNetworkInterface = () => {
-  if (!vmsTemplates.value.length) return
+  if (!vmState.new_vm_template) return
 
-  const template = (vmState.new_vm_template = vmsTemplates.value[0])
-  const defaultNetwork = getDefaultNetworks(template)
+  const defaultNetwork = getDefaultNetworks(vmState.new_vm_template)
 
   vmState.networkInterfaces.push({
     interface: defaultNetwork?.id || '',
@@ -755,11 +779,14 @@ const createNewVM = async () => {
   }
 }
 
-watchEffect(() => {
-  if (pools.value.length === 1 && !vmState.pool) {
-    vmState.pool = pools.value[0]
+watch(
+  () => vmState.pool,
+  (newPool, oldPool) => {
+    if (newPool !== oldPool) {
+      vmState.new_vm_template = null
+    }
   }
-})
+)
 </script>
 
 <style scoped lang="postcss">
@@ -795,6 +822,7 @@ watchEffect(() => {
       display: flex;
       flex-direction: column;
       gap: 2.4rem;
+      width: 50%;
 
       .radio-container {
         display: flex;
@@ -847,36 +875,39 @@ watchEffect(() => {
     justify-content: center;
     gap: 1.6rem;
   }
-
-  select {
+  /*Todo: Remove when we implement the new select component*!*/
+  .custom-select {
+    position: relative;
+    display: inline-block;
     width: 100%;
-    border-radius: 0.4rem;
+  }
+
+  .custom-select select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    width: 100%;
     padding-block: 0.8rem;
     padding-inline: 1.6rem;
     outline: none;
+    font-size: 1.6rem;
     background-color: var(--color-neutral-background-primary);
     border-color: var(--color-neutral-border);
-    font-size: 1.6rem;
-    &::after {
-      content: '\2304';
-      font-size: 30px;
-      line-height: 23px;
-      padding-right: 2px;
-    }
+    border-radius: 0.4rem;
+
     &:hover {
       border-color: var(--color-brand-item-hover);
     }
     &:focus {
-      border-width: 0.2rem;
-      border-color: var(--color-brand-item-base);
+      border-color: transparent; /* Hide outer border */
+      box-shadow: inset 0 0 0 2px var(--color-brand-item-base); /* Inner border effect */
     }
   }
 
-  select::after {
-    /*content: '\2304'; !* Unicode for the caret symbol *!*/
-    font-size: 1.5rem; /* Adjust the size of the caret */
+  .custom-select .icon {
     position: absolute;
-    right: 1rem; /* Adjust the position of the caret */
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
