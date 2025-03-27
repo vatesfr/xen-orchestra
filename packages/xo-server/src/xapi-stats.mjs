@@ -9,6 +9,7 @@ import sum from 'lodash/sum.js'
 import uniq from 'lodash/uniq.js'
 import zipWith from 'lodash/zipWith.js'
 import { BaseError } from 'make-error'
+import { incorrectState } from 'xo-common/api-errors.js'
 import { parseDateTime } from '@xen-orchestra/xapi'
 
 export class FaultyGranularity extends BaseError {}
@@ -388,7 +389,12 @@ export default class XapiStats {
     const vm = xapi.getObject(vmId)
     const host = vm.$resident_on
     if (!host) {
-      throw new Error(`VM ${vmId} is halted or host could not be found.`)
+      /* throw */ incorrectState({
+        actual: host,
+        expected: '<host-uuid>',
+        object: vm,
+        property: 'resident_on',
+      })
     }
 
     return this._getAndUpdateStats(xapi, {

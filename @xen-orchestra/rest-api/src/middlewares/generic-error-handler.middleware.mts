@@ -21,6 +21,7 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     return
   }
 
+  const responseError: { error: string; info?: string } = { error: error.message }
   if (noSuchObject.is(error)) {
     res.status(404)
   } else if (unauthorized.is(error) || forbiddenOperation.is(error) || featureUnauthorized.is(error)) {
@@ -32,11 +33,14 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
   } else if (notImplemented.is(error)) {
     res.status(501)
   } else {
+    if (error.name === 'XapiError') {
+      responseError.info = 'This is a XenServer/XCP-ng error, not an XO error'
+    }
     res.status(500)
     log.error(error)
   }
 
   log.info(`[${req.method}] ${req.path} (${res.statusCode})`)
 
-  res.json({ error: error.message })
+  res.json(responseError)
 }

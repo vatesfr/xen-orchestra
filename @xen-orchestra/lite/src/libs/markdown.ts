@@ -26,8 +26,8 @@ function extractLang(lang: string | undefined): AcceptedLanguage | VUE_TAG {
 
 marked.use({
   renderer: {
-    code(str, lang) {
-      const code = customHighlight(str, extractLang(lang))
+    code({ text, lang }) {
+      const code = customHighlight(text, extractLang(lang))
       return `<pre class="hljs"><button class="copy-button" type="button">Copy</button><code class="hljs-code">${code}</code></pre>`
     },
   },

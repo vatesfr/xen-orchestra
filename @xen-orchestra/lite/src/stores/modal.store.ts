@@ -24,6 +24,7 @@ export const useModalStore = defineStore('modal', () => {
       try {
         isBusy.value = true
         const result = await payload
+        // @ts-expect-error https://github.com/vueuse/vueuse/issues/4610
         await approveEvent.trigger(result)
         await close()
       } finally {

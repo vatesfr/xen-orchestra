@@ -465,9 +465,11 @@ class AuditXoPlugin {
     const { oldest = NULL_ID, newest = await this._storage.getLastId() } = props
     return this._auditCore.checkIntegrity(oldest, newest).catch(error => {
       if (error instanceof MissingRecordError) {
+        log.warn(`Missing record ${error.id} in audit log chain`)
         throw missingAuditRecord(error)
       }
       if (error instanceof AlteredRecordError) {
+        log.warn(`Altered record ${error.id} in audit log chain`)
         throw alteredAuditRecord(error)
       }
       throw error

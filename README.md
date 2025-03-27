@@ -22,6 +22,14 @@ The official documentation is available at https://xen-orchestra.com/docs
 - **Backup & Disaster Recovery:** The backup is an essential component for the security of your infrastructure. With Xen Orchestra, select the backup mode that suits you best and protect your VMs and your business. Rolling snapshot, Full backup & replication, incremental backup & replication, mirror backup, S3 support among many other possibilities!
 - **Cloud Enabler:** Xen Orchestra is your cloud initiator for XCP-ng (and XenServer). Group management, resource delegation and easy group administration. The Cloud is yours!
 
+## 🌍 Translations
+
+Status of XO Lite & XO 6:
+
+[![Translation status](http://translate.vates.tech/widget/xen-orchestra/multi-auto.svg)](http://translate.vates.tech/engage/xen-orchestra/)
+
+[Help us translate Xen Orchestra in more languages!](http://translate.vates.tech/engage/xen-orchestra/)
+
 ## 📸 Screenshots
 
 ![](https://vates.tech/assets/img/illustrations/xen-orchestra-screen-1.png.avif)

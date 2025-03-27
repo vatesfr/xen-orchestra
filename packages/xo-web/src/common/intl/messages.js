@@ -709,8 +709,7 @@ const messages = {
   remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
   remoteEncryptionEncryptedfiles:
     'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote.',
-  remoteEncryptionMustUseVhd:
-    'Delta backup must use VHD saved as blocks (note: should be enforced when saving settings)',
+  remoteEncryptionMustUseVhd: 'Delta backup must use VHD saved as blocks',
   remoteEncryptionKey: 'Encrypt all new data sent to this remote',
   remoteEncryptionKeyStorageLocation:
     "You won't be able to get your data back if you lose the encryption key. The encryption key is saved in the XO config backup, they should be secured correctly. Be careful, if you saved it on an encrypted remote, then you won't be able to access it without the remote encryption key.",
@@ -1225,7 +1224,6 @@ const messages = {
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch:
     'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install all the patches on this pool?',
-  rollingPoolUpdateDisabledBecauseXostorOnPool: 'RPU is disabled because a XOSTOR storage is present in the pool',
   rollingPoolUpdate: 'Rolling pool update',
   rollingPoolUpdateMessage:
     'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while. Scheduled backups that may concern this pool will be disabled.',
@@ -2714,8 +2712,6 @@ const messages = {
   replication: 'Replication',
   replicationCountHigherThanHostsWithDisks: 'Replication count is higher than number of hosts with disks',
   resourceList: 'Resource list',
-  rpuNoLongerAvailableIfXostor:
-    'As long as a XOSTOR storage is present in the pool, Rolling Pool Update will not be available',
   rpuRequireVmsReboot: 'To fully apply the patches, some VMs will reboot. Are you sure you want to continue?',
   selectDisks: 'Select disk(s)…',
   selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}.',

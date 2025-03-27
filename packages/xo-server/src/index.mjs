@@ -233,7 +233,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
   })
 
   const PERMANENT_VALIDITY = ifDef(authCfg.permanentCookieValidity, parseDuration)
-  const SESSION_VALIDITY = ifDef(authCfg.sessionCookieValidity, parseDuration)
+  const SESSION_VALIDITY = parseDuration(authCfg.sessionCookieValidity)
   const TEN_YEARS = 10 * 365 * 24 * 60 * 60 * 1e3
   const createAndSaveToken = async (req, res, next) => {
     let { clientId } = req.cookies

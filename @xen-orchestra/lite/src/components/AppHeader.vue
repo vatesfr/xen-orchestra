@@ -1,14 +1,14 @@
 <template>
   <header class="app-header">
-    <UiIcon v-if="isMobile" ref="navigationTrigger" :icon="faBars" class="toggle-navigation" />
+    <UiIcon v-if="uiStore.isMobile" ref="navigationTrigger" :icon="faBars" class="toggle-navigation" />
     <RouterLink :to="{ name: 'home' }">
-      <img v-if="isMobile" alt="XO Lite" src="../assets/logo.svg" />
+      <img v-if="uiStore.isMobile" alt="XO Lite" src="../assets/logo.svg" />
       <TextLogo v-else />
     </RouterLink>
     <slot />
     <div class="right">
       <PoolOverrideWarning as-tooltip />
-      <XoaButton v-if="isDesktop" />
+      <XoaButton v-if="uiStore.isDesktop" />
       <AccountMenu />
     </div>
   </header>
@@ -26,7 +26,6 @@ import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
 
 const uiStore = useUiStore()
-const { isMobile, isDesktop } = storeToRefs(uiStore)
 
 const navigationStore = useNavigationStore()
 const { trigger: navigationTrigger } = storeToRefs(navigationStore)

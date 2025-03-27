@@ -56,13 +56,23 @@ maxTokenValidity = '0.5 year'
 # - if false: the user will not be able to log in.
 mergeProvidersUsers = true
 
-# Default to `maxTokenValidity`
+# This setting determines the duration for which cookies and their related
+# authentication tokens remain valid after a user logs in with the 'Remember me'
+# option selected.
+#
+# Defaults to `defaultTokenValidity`.
 #permanentCookieValidity = '30 days'
 
-# Default to `undefined`, ie as long as the browser is not restarted
+# This setting determines the validity period of authentication tokens when the
+# 'Remember me' option is not checked.
+#
+# Cookies will be sent without an explicit expiration date, causing them to
+# expire automatically once the browser window closes. However, this behavior
+# may not always occur if the browser is set to restore the session (including
+# tabs) on startup.
 #
 # https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Set-Cookie#Session_cookie
-#sessionCookieValidity = '10 hours'
+sessionCookieValidity = '10 hours'
 
 # This is the page where unauthenticated users will be redirected to.
 #

@@ -23,7 +23,8 @@ export function indexName(name, index) {
 export function deduplicateName(name, usedNames) {
   let index = 1
   let uniqName = name
-  while (index < 1e3 && usedNames.includes(uniqName)) {
+  usedNames = usedNames.map(usedName => usedName.toLowerCase())
+  while (index < 1e3 && usedNames.includes(uniqName.toLowerCase())) {
     uniqName = indexName(name, index++, NAME_MAX_LENGTH)
   }
   if (index === 1e3) {
@@ -46,5 +47,5 @@ export function compareNames(original, copy) {
   }
 
   const match = copy.match(/.* \((\d+)\)$/)
-  return match !== null && indexName(original, match[1], NAME_MAX_LENGTH) === copy
+  return match !== null && indexName(original, match[1], NAME_MAX_LENGTH).toLowerCase() === copy.toLowerCase()
 }

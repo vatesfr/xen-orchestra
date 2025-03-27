@@ -5,6 +5,7 @@ import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoTask } from '@/types/xo/task.type'
+import type { XoVif } from '@/types/xo/vif.type'
 import type { XoVm } from '@/types/xo/vm.type'
 
 export const xoApiDefinition = {
@@ -17,13 +18,14 @@ export const xoApiDefinition = {
   host: {
     type: 'collection',
     path: 'hosts',
-    fields: 'id,name_label,name_description,power_state,controlDomain,residentVms,$pool,current_operations',
+    fields:
+      'id,name_label,name_description,power_state,controlDomain,residentVms,$pool,current_operations,address,startTime,version,bios_strings,cpus,memory,tags',
     handler: (record: XoHost) => record,
   },
   vm: {
     type: 'collection',
     path: 'vms',
-    fields: 'id,name_label,name_description,power_state,$container,$pool,other,current_operations',
+    fields: 'id,name_label,name_description,power_state,$container,$pool,other,current_operations,CPUs,addresses',
     handler: (record: XoVm) => record,
   },
   task: {
@@ -41,8 +43,15 @@ export const xoApiDefinition = {
   pif: {
     type: 'collection',
     path: 'pifs',
-    fields: '$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,management,mode,mtu,netmask,speed,vlan',
+    fields:
+      '$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,management,mode,mtu,netmask,speed,vlan,isBondMaster,bondSlaves',
     handler: (record: XoPif) => record,
+  },
+  vif: {
+    type: 'collection',
+    path: 'vifs',
+    fields: '$VM,$network,attached,device,txChecksumming,id,lockingMode,MAC,MTU',
+    handler: (record: XoVif) => record,
   },
   network: {
     type: 'collection',

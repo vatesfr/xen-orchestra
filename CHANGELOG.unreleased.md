@@ -9,17 +9,19 @@
 
 ### Enhancements
 
-- **XO6**:
+> Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-  - [Pool/Network]: Display networks and host internal networks information in side panel (PR [#8286](https://github.com/vatesfr/xen-orchestra/pull/8286))
-
+- **XO 6:**
+  - [Host] Add dashboard view (PR [#8398](https://github.com/vatesfr/xen-orchestra/pull/8398))
+- [RPU] Allows to perform an RPU even if an XOSTOR is present on the pool (PR [#8455](https://github.com/vatesfr/xen-orchestra/pull/8455))
 - [VM] Updated Nested Virtualization handling to use `platform:nested-virt` for XCP-ng 8.3+ (PR [#8395](https://github.com/vatesfr/xen-orchestra/pull/8395))
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [REST API] Correctly return a 404 not found error when trying to get a backup log that does not exist (PR [#8457](https://github.com/vatesfr/xen-orchestra/pull/8457))
 
 ### Packages to release
 
@@ -39,6 +41,9 @@
 
 - @vates/types patch
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-backup-reports patch
+- xo-web minor
 
 <!--packages-end-->

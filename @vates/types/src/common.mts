@@ -2,6 +2,14 @@ declare const __brand: unique symbol
 
 export type Branded<TBrand extends string, TType = string> = TType & { [__brand]: TBrand }
 
+export const HOST_POWER_STATE = {
+  RUNNING: 'Running',
+  HALTED: 'Halted',
+  UNKNOWN: 'Unknown',
+} as const
+
+export type HOST_POWER_STATE = (typeof HOST_POWER_STATE)[keyof typeof HOST_POWER_STATE]
+
 export const TASK_ALLOWED_OPERATIONS = {
   CANCEL: 'cancel',
   DESTROY: 'destroy',
@@ -636,3 +644,59 @@ export const CERTIFICATE_TYPE = {
 } as const
 
 export type CERTIFICATE_TYPE = (typeof CERTIFICATE_TYPE)[keyof typeof CERTIFICATE_TYPE]
+
+export const OPAQUE_REF = { EMPTY: 'OpaqueRef:NULL' } as const
+
+export type OPAQUE_REF_NULL = (typeof OPAQUE_REF)['EMPTY']
+
+// ----- XAPI Stats
+
+type XapiStatsResponse<T> = {
+  endTimestamp: number
+  interval: number
+  stats: T
+}
+
+export type XapiStatsGranularity = 'seconds' | 'minutes' | 'hours' | 'days'
+
+export type XapiHostStats = XapiStatsResponse<{
+  cpus: Record<string, number[]>
+  ioThroughput: {
+    r: Record<string, number[]>
+    w: Record<string, number[]>
+  }
+  iops: {
+    r: Record<string, number[]>
+    w: Record<string, number[]>
+  }
+  iowait: Record<string, number[]>
+  latency: {
+    r: Record<string, number[]>
+    w: Record<string, number[]>
+  }
+  load: number[]
+  memory: number[]
+  memoryFree: number[]
+  pifs: {
+    rx: Record<string, number[]>
+    tx: Record<string, number[]>
+  }
+}>
+
+export type XapiVmStats = XapiStatsResponse<{
+  cpus: Record<string, number[]>
+  iops: {
+    r: Record<string, number[]>
+    w: Record<string, number[]>
+  }
+  memory: number[]
+  memoryFree?: number[]
+  vifs: {
+    rx: Record<string, number[]>
+    tx: Record<string, number[]>
+  }
+  xvds: {
+    w: Record<string, number[]>
+    r: Record<string, number[]>
+  }
+}>

@@ -28,6 +28,7 @@ The REST API is based on the `TSOA` framework and therefore we use decorators a 
 @Routes('foo')
 @Security('*')
 @Response(401)
+@Tags('foo')
 @provide(Foo)
 class Foo extends Controller {}
 ```
@@ -47,6 +48,7 @@ class Foo extends Controller {
  @Example(['foo', 'bar'])
  @Get('{id}')
  @Security('*')
+ @SuccessResponse(202)
  @Response(404)
  getFoo(@Path() id: string) {
     return this.getFoo(id)

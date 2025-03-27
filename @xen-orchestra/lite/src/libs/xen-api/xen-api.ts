@@ -8,7 +8,6 @@ import type {
   XenApiEvent,
   XenApiHost,
   XenApiPool,
-  XenApiRecord,
   XenApiRecordAddEvent,
   XenApiRecordAfterLoadEvent,
   XenApiRecordBeforeLoadEvent,
@@ -77,11 +76,11 @@ export default class XenApi {
     this.fromToken = undefined
   }
 
-  private request<T>(method: string, args: any[] = []): PromiseLike<T> {
-    return this.client.request(method, args)
+  private request<T>(method: string, args: unknown[] = []) {
+    return this.client.request(method, args) as Promise<T>
   }
 
-  call = <T>(method: string, args: any[] = []): PromiseLike<T> => {
+  call = <T>(method: string, args: unknown[] = []): Promise<T> => {
     return this.request(method, [this.sessionId, ...args])
   }
 
@@ -201,7 +200,7 @@ export default class XenApi {
     }
   }
 
-  private handleEvents(events: XenApiEvent<ObjectType, XenApiRecord<any>>[]) {
+  private handleEvents(events: XenApiEvent[]) {
     events.forEach(({ class: cls, operation, ref, snapshot }) => {
       const eventName = `${cls}.${operation}` as XenApiRecordEvent<any>
 
@@ -234,7 +233,7 @@ export default class XenApi {
 
     const result: {
       token: string
-      events: XenApiEvent<ObjectType, XenApiRecord<any>>[]
+      events: XenApiEvent[]
     } = await this.call('event.from', [this.listenedTypes, this.fromToken, 5.001])
 
     this.fromToken = result.token

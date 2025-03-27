@@ -23,13 +23,13 @@
   },
   "dependencies": {
     "@vates/async-each": "^1.0.0",
-    "@xen-orchestra/backups": "^0.58.1",
+    "@xen-orchestra/backups": "^0.58.4",
     "@xen-orchestra/log": "^0.7.1",
     "app-conf": "^3.0.0",
     "chokidar": "^3.5.3",
     "execa": "^5.0.0",
     "ms": "^2.1.3",
-    "vhd-lib": "^4.11.2"
+    "vhd-lib": "^4.11.3"
   },
   "devDependencies": {
     "rimraf": "^5.0.5",

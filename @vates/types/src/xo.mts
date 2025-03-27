@@ -1,12 +1,18 @@
 // Types based on xapi-object-to-xo
 
-import { Branded, DOMAIN_TYPE, VM_OPERATIONS, VM_POWER_STATE } from './common.mjs'
+import type {
+  Branded,
+  DOMAIN_TYPE,
+  HOST_ALLOWED_OPERATIONS,
+  HOST_POWER_STATE,
+  STORAGE_OPERATIONS,
+  VDI_OPERATIONS,
+  VDI_TYPE,
+  VM_OPERATIONS,
+  VM_POWER_STATE,
+} from './common.mjs'
 
-type BaseXoVm = {
-  $VBDs: XoVbd['id'][]
-  $VGPUs: XoVgpu['id'][]
-
-  $container: XoPool['id'] | XoHost['id']
+type BaseXapiXo = {
   $pool: XoPool['id']
   /**
    * @deprecated use $pool instead
@@ -14,6 +20,15 @@ type BaseXoVm = {
   $poolId: XoPool['id']
 
   _xapiRef: string
+
+  uuid: string
+}
+
+type BaseXoVm = BaseXapiXo & {
+  $VBDs: XoVbd['id'][]
+  $VGPUs: XoVgpu['id'][]
+
+  $container: XoPool['id'] | XoHost['id']
 
   CPUs: {
     max: number
@@ -32,15 +47,16 @@ type BaseXoVm = {
   blockedOperations: Record<VM_OPERATIONS, string>
   boot: Record<string, string>
   coresPerSocket?: number
-  cpuCap?: number | null
-  cpuMask?: (number | null)[]
-  cpuWeight?: number | null
+  cpuCap?: number
+  cpuMask?: number[]
+  cpuWeight?: number
   creation: Record<string, string>
   current_operations: Record<string, VM_OPERATIONS>
   docker?: {
     containers?: string[]
     enabled: boolean
     info?: string
+    /** @deprecated */
     process?: string
     version?: string
   }
@@ -51,7 +67,7 @@ type BaseXoVm = {
   isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
   high_availability: string
-  installTime?: number | null
+  installTime?: number
   isFirmwareSupported: boolean
   memory: {
     dynamic: number[]
@@ -77,7 +93,7 @@ type BaseXoVm = {
   secureBoot: boolean
   snapshots: XoVmSnapshot['id'][]
   startDelay: number
-  startTime?: number | null
+  startTime?: number
   suspendSr?: XoSr['id']
   tags: string[]
   vga?: string
@@ -103,19 +119,160 @@ export type XoGroup = {
   users: XoUser['id'][]
 }
 
-export type XoHost = {
+export type XoHost = BaseXapiXo & {
+  $PBDs: XoPbd['id'][]
+  $PCIs: XoPci['id'][]
+  $PGPUs: XoPgpu['id'][]
+  $PIFs: XoPif['id'][]
+
+  PCIs: XoPci['id'][]
+  PGPUs: XoPgpu['id'][]
+  PIFs: XoPif['id'][]
+  /**
+   * @deprecated use cpus instead
+   */
+  CPUs: Record<string, string>
+
+  address: string
+  agentStartTime: null | number
+  bios_string: Record<string, string>
+  build: string
+  certificates?: {
+    fingerprint: string
+    notAfter: number
+  }[]
+  chipset_info: {
+    iommu?: boolean
+  }
+  controlDomain?: XoVm['id']
+  cpus: {
+    cores?: number
+    sockets?: number
+  }
+  current_operations: Record<string, HOST_ALLOWED_OPERATIONS>
+  enabled: boolean
+  hostname: string
+  hvmCapable: boolean
   id: Branded<'host'>
+  iscsiIqn: string
+  license_expiry: null | number
+  license_params: Record<string, string>
+  license_server: Record<string, string>
+  logging: Record<string, string>
+  memory: {
+    size: number
+    /**
+     * @deprecated
+     */
+    total?: number
+    usage: number
+  }
+  multipathing: boolean
+  name_description: string
+  name_label: string
+  otherConfig: Record<string, string>
+  /**
+   * @deprecated
+   */
+  patches: XoHostPatch['id'][]
+  power_state: HOST_POWER_STATE
+  powerOnMode: string
+  productBrand: string
+  rebootRequired: boolean
+  residentVms: XoVm['id'][]
+  startTime: null | number
+  supplementalPacks:
+    | {
+        author: string
+        description: string
+        guidance: string
+        hosts: XoHost['id'][]
+        name: string
+        size: number
+        version: string
+        vdi: XoVdi['id']
+      }[]
+    | {
+        author: string
+        description: string
+        name: string
+        version: string
+      }[]
+  tags: string[]
   type: 'host'
+  version: string
+  zstdSupported: boolean
 }
 
-export type XoPool = {
+export type XoHostPatch = BaseXapiXo & {
+  id: Branded<'host_patch'>
+  type: 'host_patch'
+}
+
+export type XoPbd = BaseXapiXo & {
+  id: Branded<'PBD'>
+  type: 'PBD'
+}
+
+export type XoPci = BaseXapiXo & {
+  id: Branded<'PCI'>
+  type: 'PCI'
+}
+
+export type XoPgpu = BaseXapiXo & {
+  id: Branded<'PGPU'>
+  type: 'PGPU'
+}
+
+export type XoPif = BaseXapiXo & {
+  id: Branded<'PIF'>
+  type: 'PIF'
+}
+
+export type XoPool = BaseXapiXo & {
   id: Branded<'pool'>
   type: 'pool'
 }
 
-export type XoSr = {
+export type XoServer = {
+  allowUnauthorized: boolean
+  enabled: boolean
+  error?: Record<string, unknown>
+  host: string
+  httpProxy?: string
+  id: Branded<'server'>
+  label?: string
+  poolId?: XoPool['id']
+  poolNameDescription?: string
+  poolNameLabel?: string
+  readOnly: boolean
+  status: 'connected' | 'disconnected' | 'connecting'
+  username: string
+}
+
+export type XoSr = BaseXapiXo & {
+  $PBDs: XoPbd['id'][]
+
+  $container: XoPool['id'] | XoHost['id']
+
+  VDIs: XoVdi['id'][]
+
+  allocationStrategy: 'thin' | 'thick' | 'unknown'
+  content_type: string
+  current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SR'>
+  inMaintenanceMode: boolean
+  name_description: string
+  name_label: string
+  other_config: Record<string, string>
+  physical_usage: number | null
+  shared: boolean
+  size: number | null
+  sm_config: Record<string, string>
+  SR_type: string
+  tags: string[]
   type: 'SR'
+  usage: number
 }
 
 export type XoUser = {
@@ -129,22 +286,61 @@ export type XoUser = {
   preferences: Record<string, string>
 }
 
-export type XoVbd = {
+export type XoVbd = BaseXapiXo & {
+  attached: boolean
+  bootable: boolean
+  device: string | null
   id: Branded<'VBD'>
+  is_cd_drive: boolean
+  position: string
+  read_only: boolean
   type: 'VBD'
+  VDI: XoVdi['id']
+  VM: XoVm['id']
 }
 
-export type XoVdi = {
+type BaseXoVdi = BaseXapiXo & {
+  $SR: XoSr['id']
+  $VBDs: XoVbd['id'][]
+
+  VDI_type: VDI_TYPE
+
+  cbt_enabled?: boolean
+  current_operations: Record<string, VDI_OPERATIONS>
+  missing: boolean
+  name_description: string
+  name_label: string
+  other_config: Record<string, string>
+  parent?: XoVdiUnmanaged['id']
+  size: number
+  snapshots: XoVdiSnapshot['id'][]
+  tags: string[]
+  usage: number
+}
+
+export type XoVdi = BaseXoVdi & {
   id: Branded<'VDI'>
   type: 'VDI'
 }
 
-export type XoVgpu = {
+export type XoVdiSnapshot = BaseXoVdi & {
+  id: Branded<'VDI-snapshot'>
+  snapshot_time: number
+  $snapshot_of?: XoVdi['id']
+  type: 'VDI-snapshot'
+}
+
+export type XoVdiUnmanaged = BaseXoVdi & {
+  id: Branded<'VDI-unmanaged'>
+  type: 'VDI-unmanaged'
+}
+
+export type XoVgpu = BaseXapiXo & {
   id: Branded<'VGPU'>
   type: 'VGPU'
 }
 
-export type XoVif = {
+export type XoVif = BaseXapiXo & {
   id: Branded<'VIF'>
   type: 'VIF'
 }
@@ -185,7 +381,7 @@ export type XoVmTemplate = BaseXoVm & {
   type: 'VM-template'
 }
 
-export type XoVtpm = {
+export type XoVtpm = BaseXapiXo & {
   id: Branded<'VTPM'>
   type: 'VTPM'
 }
@@ -196,6 +392,8 @@ export type XapiXoRecord =
   | XoSr
   | XoVbd
   | XoVdi
+  | XoVdiSnapshot
+  | XoVdiUnmanaged
   | XoVgpu
   | XoVif
   | XoVm
@@ -204,4 +402,6 @@ export type XapiXoRecord =
   | XoVmTemplate
   | XoVtpm
 
-export type XoRecord = XapiXoRecord | XoGroup | XoUser
+export type NonXapiXoRecord = XoGroup | XoServer | XoUser
+
+export type XoRecord = XapiXoRecord | NonXapiXoRecord

@@ -91,7 +91,7 @@
                 disabled
                 size="small"
               />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="value text-ellipsis">
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
               </div>
             </td>
@@ -217,12 +217,6 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
-  }
-
-  .value:empty::before {
-    content: '-';
-    display: flex;
-    justify-content: center;
   }
 }
 </style>

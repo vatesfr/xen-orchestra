@@ -13,6 +13,8 @@ import type { XoApp } from './rest-api/rest-api.type.mjs'
 const require = createRequire(import.meta.url)
 const swaggerOpenApiSpec = require('../open-api/spec/swagger.json')
 
+export const BASE_URL = '/rest/v0'
+
 export default function setupRestApi(express: Express, xoApp: XoApp) {
   setupContainer(xoApp)
   RegisterRoutes(express)
@@ -20,8 +22,8 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   // do not register the doc at the root level, or it may lead to unwated behaviour
   // uncomment when all endpoints are migrated to this API
   // express.get('/rest/v0', (_req, res) => res.redirect('/rest/v0/docs'))
-  express.use('/rest/v0/docs', swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
+  express.use(`${BASE_URL}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
 
-  express.use('/rest/v0', tsoaToXoErrorHandler)
-  express.use('/rest/v0', genericErrorHandler)
+  express.use(BASE_URL, tsoaToXoErrorHandler)
+  express.use(BASE_URL, genericErrorHandler)
 }

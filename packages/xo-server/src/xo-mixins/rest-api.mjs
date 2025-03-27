@@ -605,7 +605,20 @@ export default class RestApi {
 
     const collections = { __proto__: null }
     // add migrated collections to maintain their discoverability
-    const swaggerEndpoints = ['docs', 'vms']
+    const swaggerEndpoints = {
+      docs: {},
+      vms: {
+        actions: {
+          start: true,
+        },
+      },
+      hosts: {},
+      srs: {},
+      vbds: {},
+      vdis: {},
+      'vdi-snapshots': {},
+      servers: {},
+    }
 
     const withParams = (fn, paramsSchema) => {
       fn.params = paramsSchema
@@ -982,14 +995,6 @@ export default class RestApi {
         return stream[Symbol.asyncIterator]()
       },
     }
-    collections.servers = {
-      getObject(id) {
-        return app.getXenServer(id)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllXenServers(), filter, limit)
-      },
-    }
     collections.users = {
       getObject(id) {
         return app.getUser(id).then(getUserPublicProperties)
@@ -1146,7 +1151,7 @@ export default class RestApi {
     api.get(
       '/',
       wrap((req, res) => {
-        const endpoints = new Set([...Object.keys(collections), ...swaggerEndpoints])
+        const endpoints = new Set([...Object.keys(collections), ...Object.keys(swaggerEndpoints)])
         return sendObjects(endpoints, req, res)
       })
     )
@@ -1243,7 +1248,7 @@ export default class RestApi {
         ['/backup/logs/:id', '/restore/logs/:id'],
         wrap(async (req, res) => {
           res.json(await app.getBackupNgLogs(req.params.id))
-        })
+        }, true)
       )
 
     api
@@ -1283,7 +1288,7 @@ export default class RestApi {
       '/:collection',
       wrap(async (req, res, next) => {
         const { collection, query } = req
-        if (swaggerEndpoints.includes(collection.id)) {
+        if (swaggerEndpoints[collection.id] !== undefined) {
           return next('route')
         }
 
@@ -1356,21 +1361,9 @@ export default class RestApi {
       })
     )
 
-    api.get(
-      '/:collection(vms|hosts)/:object/stats',
-      wrap(async (req, res) => {
-        const object = req.object
-        const method = object.type === 'VM' ? 'getXapiVmStats' : 'getXapiHostStats'
-        const granularity = req.query.granularity
-
-        const result = await app[method](object.id, granularity)
-        return res.json(result)
-      })
-    )
-
     api.get('/:collection/:object', (req, res, next) => {
       const { collection } = req
-      if (swaggerEndpoints.includes(collection.id)) {
+      if (swaggerEndpoints[collection.id] !== undefined) {
         return next('route')
       }
       let result = req.object
@@ -1534,9 +1527,10 @@ export default class RestApi {
       res.json({ ...action })
     })
     api.post('/:collection/:object/actions/:action', json(), (req, res, next) => {
+      const { collection } = req
       const { action } = req.params
       const fn = req.collection.actions?.[action]
-      if (fn === undefined) {
+      if (fn === undefined || swaggerEndpoints[collection.id]?.actions?.[action]) {
         return next()
       }
 
@@ -1577,7 +1571,7 @@ export default class RestApi {
       '/:collection(pools)/:object/vms',
       wrap(async (req, res) => {
         let srRef
-        const { sr } = req.params
+        const { sr } = req.query
         if (sr !== undefined) {
           srRef = app.getXapiObject(sr, 'SR').$ref
         }
