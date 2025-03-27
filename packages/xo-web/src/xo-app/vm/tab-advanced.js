@@ -796,7 +796,7 @@ export default class TabAdvanced extends Component {
     const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
     const addVtpmTooltip = this._getDisabledAddVtpmReason()
     const deleteVtpmTooltip = this._getDisabledDeleteVtpmReason()
-    const host = this.props.vmHosts[vm.$container] ?? this.props.vmHosts[vmPool.master]
+    const host = this.props.vmHosts[vm.$container]
     const isAddVtpmAvailable = addVtpmTooltip === undefined
     const isDeleteVtpmAvailable = deleteVtpmTooltip === undefined
     const isDisabled = poolGuestSecurebootReadiness === 'not_ready' || vm.boot.firmware !== 'uefi'
