@@ -744,7 +744,7 @@ export class RemoteAdapter {
 
     const disks = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
-      disks[`${ref}.vhd`] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
+      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
     })
 
     return {
