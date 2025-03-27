@@ -1,5 +1,6 @@
 <template>
   <div class="new-vm">
+    {{ installMode }}
     <UiHeadBar :icon="faPlus">
       {{ t('new-vm.add') }}
       <template #actions>
@@ -396,7 +397,7 @@
               accent="brand"
               size="medium"
               :busy="isBusy"
-              :disabled="!vmState.new_vm_template || !installMode || isBusy"
+              :disabled="isCreateVmDisabled"
               type="submit"
             >
               {{ t('create') }}
@@ -491,17 +492,18 @@ const useInstallMode = () => {
     repository: '',
   })
 
+  const resetInstallMethod = () => {
+    installMode.method = ''
+    installMode.repository = ''
+  }
+
   const setInstallMethod = (method: InstallMethod) => {
+    resetInstallMethod()
     installMode.method = method
 
     if (method === 'network') {
       installMode.repository = ' '
     }
-  }
-
-  const resetInstallMethod = () => {
-    installMode.method = ''
-    installMode.repository = ''
   }
 
   return {
@@ -545,6 +547,15 @@ const vmState = reactive<VmState>({
   existingVdis: [],
   defaultNetwork: null,
   pool: null,
+})
+
+const isCreateVmDisabled = computed(() => {
+  return (
+    !vmState.new_vm_template ||
+    isBusy.value ||
+    !installMode.method ||
+    (installMode.method === 'cdrom' && installMode.repository === '')
+  )
 })
 
 const formattedPoolDisplay = (template: XoVmTemplate) => {
