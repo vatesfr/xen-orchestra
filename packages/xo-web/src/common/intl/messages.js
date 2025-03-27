@@ -1224,7 +1224,6 @@ const messages = {
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch:
     'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install all the patches on this pool?',
-  rollingPoolUpdateDisabledBecauseXostorOnPool: 'RPU is disabled because a XOSTOR storage is present in the pool',
   rollingPoolUpdate: 'Rolling pool update',
   rollingPoolUpdateMessage:
     'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while. Scheduled backups that may concern this pool will be disabled.',
@@ -2713,8 +2712,6 @@ const messages = {
   replication: 'Replication',
   replicationCountHigherThanHostsWithDisks: 'Replication count is higher than number of hosts with disks',
   resourceList: 'Resource list',
-  rpuNoLongerAvailableIfXostor:
-    'As long as a XOSTOR storage is present in the pool, Rolling Pool Update will not be available',
   rpuRequireVmsReboot: 'To fully apply the patches, some VMs will reboot. Are you sure you want to continue?',
   selectDisks: 'Select disk(s)…',
   selectedDiskTypeIncompatibleXostor: 'Only disks of type "Disk" and "Raid" are accepted. Selected disk type: {type}.',
