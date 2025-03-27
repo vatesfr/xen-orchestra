@@ -38,7 +38,7 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() fields?: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Unbrand<XoHost>>[] | WithHref<Partial<Unbrand<XoHost>>>[] {
+  ): string[] | WithHref<Partial<Unbrand<XoHost>>>[] {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

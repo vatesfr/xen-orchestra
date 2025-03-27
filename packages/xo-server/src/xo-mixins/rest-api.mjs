@@ -616,6 +616,9 @@ export default class RestApi {
       hosts: {},
       srs: {},
       vbds: {},
+      vdis: {},
+      'vdi-snapshots': {},
+      servers: {},
     }
 
     const withParams = (fn, paramsSchema) => {
@@ -993,14 +996,6 @@ export default class RestApi {
         return stream[Symbol.asyncIterator]()
       },
     }
-    collections.servers = {
-      getObject(id) {
-        return app.getXenServer(id)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllXenServers(), filter, limit)
-      },
-    }
     collections.users = {
       getObject(id) {
         return app.getUser(id).then(getUserPublicProperties)
@@ -1254,7 +1249,7 @@ export default class RestApi {
         ['/backup/logs/:id', '/restore/logs/:id'],
         wrap(async (req, res) => {
           res.json(await app.getBackupNgLogs(req.params.id))
-        })
+        }, true)
       )
 
     api

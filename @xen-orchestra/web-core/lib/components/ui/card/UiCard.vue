@@ -24,6 +24,18 @@ defineSlots<{
   border: 0.1rem solid var(--color-neutral-border);
   border-radius: 0.8rem;
 
+  &:has(> .vts-linear-chart) {
+    padding-inline: 0;
+
+    > *:not(.vts-linear-chart) {
+      padding-inline: 2.4rem;
+    }
+
+    :deep(.vts-linear-chart) {
+      padding-inline-end: 2.4rem;
+    }
+  }
+
   &.horizontal {
     flex-direction: row;
   }

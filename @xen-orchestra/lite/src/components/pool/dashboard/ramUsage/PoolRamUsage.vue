@@ -6,7 +6,7 @@
     </UiCardTitle>
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="isLoading" />
-    <LinearChart v-else :data :max-value="customMaxValue" :value-formatter="customValueFormatter" />
+    <VtsLinearChart v-else :data :max-value="customMaxValue" :value-formatter="customValueFormatter" />
     <SizeStatsSummary :size="currentData.size" :usage="currentData.usage" />
   </UiCard>
 </template>
@@ -28,7 +28,7 @@ import { sumBy } from 'lodash-es'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const LinearChart = defineAsyncComponent(() => import('@core/components/charts/LinearChart.vue'))
+const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linear-chart/VtsLinearChart.vue'))
 
 const { runningHosts, isFetching, hasError } = useHostStore().subscribe()
 const { getHostMemory } = useHostMetricsStore().subscribe()
