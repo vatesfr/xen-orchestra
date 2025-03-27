@@ -7,6 +7,8 @@ import { VBD_MODE, VBD_TYPE } from '@vates/types/common'
 export function createVbdOperations(xenApi: XenApi) {
   type VmRefs = MaybeArray<XenApiVm['$ref']>
 
+  type VmRef = XenApiVm['$ref']
+
   type VbdRefs = MaybeArray<XenApiVbd['$ref']>
 
   type VdiRef = XenApiVdi['$ref']
@@ -14,7 +16,7 @@ export function createVbdOperations(xenApi: XenApi) {
   type VbdCreateParams = {
     vmRefs: VmRefs
     vdiRef: VdiRef
-    userdevice?: string | undefined
+    userdevice?: string
     bootable?: boolean
     mode?: VBD_MODE
     type?: VBD_TYPE
@@ -24,28 +26,26 @@ export function createVbdOperations(xenApi: XenApi) {
     qos_algorithm_type?: string
   }
 
-  async function findUserDevice(device: string | undefined, vmRefs: VmRefs, type: string) {
+  async function findUserDevice(device: string | undefined, vmRef: VmRef, type: VBD_TYPE) {
     if (device) {
       return device
     }
 
-    const allowedDevices = await xenApi.vm.getAllowedVbdDevices(vmRefs)
+    const [allowedDevices] = await xenApi.vm.getAllowedVbdDevices(vmRef)
 
     if (allowedDevices.length === 0) {
       throw new Error('no allowed VBD devices')
     }
 
-    const allowedDevicesFlat = allowedDevices.flat()
-
     if (type === VBD_TYPE.CD) {
       // Choose position 3 if allowed.
-      return allowedDevicesFlat.includes('3') ? '3' : allowedDevicesFlat[0]
+      return allowedDevices.includes('3') ? '3' : allowedDevices[0]
     } else {
-      const device = allowedDevicesFlat.shift()
+      const device = allowedDevices.shift()
 
       // Avoid userdevice 3 if possible.
       if (device === '3' && allowedDevices.length > 1) {
-        return allowedDevicesFlat[1]
+        return allowedDevices[1]
       }
 
       return device
@@ -67,10 +67,10 @@ export function createVbdOperations(xenApi: XenApi) {
         qos_algorithm_type = '',
       } = params
 
-      const userdevice = initialUserdevice ?? (await findUserDevice(initialUserdevice, vmRefs, type))
-
       return Promise.all<XenApiVbd['$ref']>(
-        toArray(vmRefs).map(vmRef => {
+        toArray(vmRefs).map(async vmRef => {
+          const userdevice = initialUserdevice ?? (await findUserDevice(initialUserdevice, vmRef, type))
+
           const vbdRecord = {
             VM: vmRef,
             VDI: vdiRef,
