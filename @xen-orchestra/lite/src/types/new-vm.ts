@@ -1,16 +1,16 @@
-import type { XenApiNetwork, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiSr, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import type { VDI_TYPE } from '@vates/types/common'
 
 export interface Vdi {
   name_label: string
   name_description: string
   size: number
-  SR: string | undefined
+  SR: XenApiSr['$ref']
   type?: VDI_TYPE
 }
 
 export interface NetworkInterface {
-  interface: XenApiNetwork['$ref'] | string
+  interface: XenApiNetwork['$ref']
   macAddress: string
 }
 
