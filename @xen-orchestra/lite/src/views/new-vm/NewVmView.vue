@@ -118,8 +118,7 @@
                 <UiInput v-model="vmState.name" accent="brand" :label="$t('new-vm.name')" />
                 <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" :label=" $t('tags')" /> -->
                 <VtsInputWrapper :label="$t('boot-firmware')">
-                  <!--  TODO remove disabled when it is working -->
-                  <FormSelect v-model="vmState.boot_firmware" disabled>
+                  <FormSelect v-model="vmState.boot_firmware">
                     <option v-for="boot in bootFirmwares" :key="boot" :value="boot">
                       {{ boot === undefined ? t('bios-default') : boot }}
                     </option>
@@ -743,8 +742,8 @@ const _createVm = async ($defer: Defer) => {
       xapi.vm.setNameDescription(vmRefs, vmCreationParams.value.name_description),
       xapi.vm.setMemory(vmRefs, vmCreationParams.value.memory),
       xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
-      // TODO re add when it is working
-      // xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
+      xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
+      xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron),
     ])
 
     // INSTALL SETTINGS
@@ -865,8 +864,6 @@ const _createVm = async ($defer: Defer) => {
 
       $defer.onFailure(() => xapi.vbd.delete(vbdRef))
     }
-
-    await xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron)
 
     // BOOT VM AFTER CREATION
     if (vmCreationParams.value.bootAfterCreate) {

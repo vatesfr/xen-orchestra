@@ -12,6 +12,16 @@ export function createVmOperations(xenApi: XenApi) {
 
   type VmRefsWithNameLabel = Record<XenApiVm['$ref'], string>
 
+  const setOtherConfig = (vmRefs: VmRefs, key: string, value: unknown) =>
+    Promise.all(
+      toArray(vmRefs).map(async vmRef => {
+        await xenApi.call('VM.remove_from_other_config', [vmRef, key])
+        if (value != null) {
+          await xenApi.call('VM.add_to_other_config', [vmRef, key, typeof value === 'boolean' ? String(value) : value])
+        }
+      })
+    )
+
   return {
     clone: (vmRefsToClone: VmRefsWithNameLabel) => {
       const vmRefs = Object.keys(vmRefsToClone) as XenApiVm['$ref'][]
@@ -93,8 +103,7 @@ export function createVmOperations(xenApi: XenApi) {
     setAffinityHost: (vmRefs: XenApiVm['$ref'], hostRef: XenApiHost['$ref'] | null) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_affinity', [vmRef, hostRef ?? '']))),
 
-    setAutoPowerOn: (vmRef: XenApiVm['$ref'], value: boolean) =>
-      Promise.all([xenApi.call('VM.set_other_config', [vmRef, { auto_poweron: String(value) }])]),
+    setAutoPowerOn: async (vmRef: XenApiVm['$ref'], value: boolean) => setOtherConfig(vmRef, 'auto_poweron', value),
 
     setCpuMask: (vmRefs: VmRefs, mask: string[] | null) =>
       Promise.all(
@@ -109,14 +118,20 @@ export function createVmOperations(xenApi: XenApi) {
     setCopyBiosString: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_copy_bios_string', [vmRef, hostRef]))),
 
-    setHvmBootFirmware: (vmRef: XenApiVm['$ref'], firmware: string) =>
-      Promise.all([
-        xenApi.call('VM.set_HVM_boot_params', [vmRef, { firmware }]),
-        xenApi.call('VM.set_platform', [
+    setHvmBootFirmware: async (vmRef: XenApiVm['$ref'], firmware: string) => {
+      await Promise.all([
+        xenApi.call('VM.remove_from_HVM_boot_params', [vmRef, 'firmware']),
+        xenApi.call('VM.remove_from_platform', [vmRef, 'device-model']),
+      ])
+      await Promise.all([
+        xenApi.call('VM.add_to_HVM_boot_params', [vmRef, 'firmware', firmware]),
+        xenApi.call('VM.add_to_platform', [
           vmRef,
-          { 'device-model': 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat') },
+          'device-model',
+          'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compact'),
         ]),
-      ]),
+      ])
+    },
 
     setMemory: (vmRefs: VmRefs, count: number) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_memory', [vmRef, count]))),
