@@ -136,7 +136,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     const { handler } = this._adapter
     const vhds = this.#vhds
     await asyncEach(Object.entries(vdis), async ([id, vdi]) => {
-      const isDifferencing = isVhdDifferencing[`${id}.vhd`]
+      const isDifferencing = isVhdDifferencing[id]
       const path = `${this._vmBackupDir}/${vhds[id]}`
       if (isDifferencing) {
         assert.notStrictEqual(
