@@ -1,13 +1,14 @@
 <template>
   <UiCard class="host-dashboard-cpu-provisioning">
     <UiCardTitle>{{ $t('cpu-provisioning') }}</UiCardTitle>
-    <VtsLoadingHero :disabled="isReady" type="card">
+    <VtsLoadingHero v-if="!isReady" type="card" />
+    <template v-else>
       <UiProgressBar :value="cpuProvisioning.used" :max="cpuProvisioning.total" :legend="$t('vcpus')" />
       <div class="total">
         <UiCardNumbers :label="$t('vcpus-used')" :value="cpuProvisioning.used" size="medium" />
         <UiCardNumbers :label="$t('total-cpus')" :value="cpuProvisioning.total" size="medium" />
       </div>
-    </VtsLoadingHero>
+    </template>
   </UiCard>
 </template>
 

@@ -1,7 +1,8 @@
 <template>
   <UiCard class="host-dashboard-ram-usage">
     <UiCardTitle>{{ $t('ram-usage') }}</UiCardTitle>
-    <VtsLoadingHero :disabled="isReady" type="card">
+    <VtsLoadingHero v-if="!isReady" type="card" />
+    <template v-else>
       <UiProgressBar :value="ramUsage.used?.value ?? 0" :max="ramUsage.total?.value" :legend="host.name_label" />
       <div class="total">
         <UiCardNumbers
@@ -17,7 +18,7 @@
           size="medium"
         />
       </div>
-    </VtsLoadingHero>
+    </template>
   </UiCard>
 </template>
 

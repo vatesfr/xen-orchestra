@@ -1,10 +1,12 @@
 <template>
-  <VtsQuickInfoCard :loading="!isReady">
+  <VtsQuickInfoCard class="host-dashboard-quick-info" :loading="!isReady">
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="$t('state')">
         <template #value>
-          <VtsIcon :accent="powerState.accent" :icon="powerState.icon" />
-          {{ powerState.text }}
+          <span class="power-state">
+            <VtsIcon :accent="powerState.accent" :icon="powerState.icon" />
+            {{ powerState.text }}
+          </span>
         </template>
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="$t('ip-address')" :value="host.address" />
@@ -105,3 +107,13 @@ const isMaster = computed(() => isMasterHost(host.id))
 
 const ram = computed(() => formatSizeRaw(host.memory.size, 1))
 </script>
+
+<style lang="postcss" scoped>
+.host-dashboard-quick-info {
+  .power-state {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+}
+</style>

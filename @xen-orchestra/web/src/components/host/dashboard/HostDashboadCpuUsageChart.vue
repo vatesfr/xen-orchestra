@@ -1,10 +1,12 @@
 <template>
   <UiCard>
-    <UiCardTitle>{{ $t('cpu-usage') }}</UiCardTitle>
-    <VtsErrorNoDataHero v-if="error" type="card" />
-    <VtsLoadingHero v-else :disabled="!loading && data !== null" type="card">
-      <VtsLinearChart :data="cpuUsage" :max-value :value-formatter />
-    </VtsLoadingHero>
+    <UiCardTitle>
+      {{ $t('cpu-usage') }}
+      <template #description>{{ $t('last-week') }}</template>
+    </UiCardTitle>
+    <VtsLoadingHero v-if="loading || data === null" type="card" />
+    <VtsErrorNoDataHero v-else-if="error" type="card" />
+    <VtsLinearChart v-else :data="cpuUsage" :max-value :value-formatter class="chart" />
   </UiCard>
 </template>
 

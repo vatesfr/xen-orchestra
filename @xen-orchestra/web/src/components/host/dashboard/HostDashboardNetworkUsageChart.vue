@@ -1,10 +1,12 @@
 <template>
   <UiCard>
-    <UiCardTitle>{{ $t('network-throughput') }}</UiCardTitle>
-    <VtsErrorNoDataHero v-if="error" type="card" />
-    <VtsLoadingHero v-else :disabled="!loading && data !== null" type="card">
-      <VtsLinearChart :data="networkUsage" :max-value :value-formatter="byteFormatter" />
-    </VtsLoadingHero>
+    <UiCardTitle>
+      {{ $t('network-throughput') }}
+      <template #description>{{ $t('last-week') }}</template>
+    </UiCardTitle>
+    <VtsLoadingHero v-if="loading || data === null" type="card" />
+    <VtsErrorNoDataHero v-else-if="error" type="card" />
+    <VtsLinearChart v-else :data="networkUsage" :max-value :value-formatter="byteFormatter" />
   </UiCard>
 </template>
 

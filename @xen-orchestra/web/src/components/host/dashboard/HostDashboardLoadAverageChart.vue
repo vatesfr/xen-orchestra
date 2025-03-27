@@ -1,10 +1,12 @@
 <template>
   <UiCard>
-    <UiCardTitle>{{ $t('load-average') }}</UiCardTitle>
-    <VtsErrorNoDataHero v-if="error" type="card" />
-    <VtsLoadingHero v-else :disabled="!loading && data !== null" type="card">
-      <VtsLinearChart :data="loadAverage" :max-value />
-    </VtsLoadingHero>
+    <UiCardTitle>
+      {{ $t('load-average') }}
+      <template #description>{{ $t('last-week') }}</template>
+    </UiCardTitle>
+    <VtsLoadingHero v-if="loading || data === null" type="card" />
+    <VtsErrorNoDataHero v-else-if="error" type="card" />
+    <VtsLinearChart v-else :data="loadAverage" :max-value />
   </UiCard>
 </template>
 

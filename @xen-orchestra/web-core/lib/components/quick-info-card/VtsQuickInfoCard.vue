@@ -1,11 +1,10 @@
 <template>
   <UiCard class="vts-quick-info-card">
     <UiCardTitle>{{ $t('quick-info') }}</UiCardTitle>
-    <VtsLoadingHero :disabled="!loading" type="card">
-      <div class="info-container">
-        <slot />
-      </div>
-    </VtsLoadingHero>
+    <VtsLoadingHero v-if="loading" type="card" />
+    <div v-else class="info-container">
+      <slot />
+    </div>
   </UiCard>
 </template>
 

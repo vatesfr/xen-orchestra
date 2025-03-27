@@ -5,7 +5,7 @@
         {{ label }}
       </slot>
     </span>
-    <span class="typo-body-regular value">
+    <span v-tooltip class="typo-body-regular value text-ellipsis">
       <slot name="value">
         {{ value }}
       </slot>
@@ -14,6 +14,8 @@
 </template>
 
 <script lang="ts" setup>
+import { vTooltip } from '@core/directives/tooltip.directive'
+
 defineProps<{
   label?: string
   value?: string
