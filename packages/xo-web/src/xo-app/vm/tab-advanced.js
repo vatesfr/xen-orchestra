@@ -1107,7 +1107,7 @@ export default class TabAdvanced extends Component {
                         disabled={vm.power_state !== 'Halted'}
                         value={vm.isNestedVirtEnabled}
                         onChange={value => {
-                          if (semver.satisfies(String(host.version), '>=3.4')) {
+                          if (semver.satisfies(String(vmPool.platform_version), '>=3.4')) {
                             editVm(vm, { nestedVirt: value })
                           } else {
                             editVm(vm, { expNestedHvm: value })

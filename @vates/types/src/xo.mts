@@ -45,10 +45,10 @@ type BaseXoVm = {
     version?: string
   }
   /**
-   * @deprecated use isNestedVirtEnable instead
+   * @deprecated use isNestedVirtEnabled instead
    */
   expNestedHvm: boolean
-  isNestedVirtEnable: boolean
+  isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
   high_availability: string
   installTime?: number | null
