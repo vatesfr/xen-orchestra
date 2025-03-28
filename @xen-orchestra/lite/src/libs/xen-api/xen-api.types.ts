@@ -67,6 +67,7 @@ type ObjectTypeToRecordMapping = {
   vm: XenApiVm
   vm_guest_metrics: XenApiVmGuestMetrics
   vm_metrics: XenApiVmMetrics
+  vdi: XenApiVdi
 }
 
 export type ObjectTypeToRecord<Type extends ObjectType> = Type extends keyof ObjectTypeToRecordMapping
@@ -106,6 +107,7 @@ export interface XenApiPool extends XenApiRecord<'pool'> {
   master: XenApiHost['$ref']
   name_label: string
   other_config: Record<string, string>
+  default_SR: XenApiSr['$ref']
 }
 
 export interface XenApiHost extends XenApiRecord<'host'> {
@@ -122,9 +124,11 @@ export interface XenApiHost extends XenApiRecord<'host'> {
 export interface XenApiSr extends XenApiRecord<'sr'> {
   content_type: string
   name_label: string
+  VDIs: XenApiVdi['$ref'][]
   physical_size: number
   physical_utilisation: number
   shared: boolean
+  type: string
   sm_config: {
     type?: string
   }
