@@ -33,7 +33,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() fields?: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Unbrand<XoSr>>[] | WithHref<Partial<Unbrand<XoSr>>>[] {
+  ): string[] | WithHref<Partial<Unbrand<XoSr>>>[] {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

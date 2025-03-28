@@ -20,7 +20,7 @@
     "@vates/read-chunk": "^1.2.0",
     "@vates/stream-reader": "^0.1.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/fs": "^4.4.0",
+    "@xen-orchestra/fs": "^4.4.1",
     "@xen-orchestra/log": "^0.7.1",
     "async-iterator-to-stream": "^1.0.2",
     "decorator-synchronized": "^0.6.0",
@@ -33,7 +33,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@xen-orchestra/fs": "^4.4.0",
+    "@xen-orchestra/fs": "^4.4.1",
     "execa": "^5.0.0",
     "get-stream": "^6.0.0",
     "rimraf": "^5.0.1",

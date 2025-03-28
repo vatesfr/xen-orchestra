@@ -612,7 +612,9 @@ export default class RestApi {
           start: true,
         },
       },
+      'vm-controllers': {},
       'vm-snapshots': {},
+      'vm-templates': {},
       hosts: {},
       srs: {},
       vbds: {},
@@ -1249,7 +1251,7 @@ export default class RestApi {
         ['/backup/logs/:id', '/restore/logs/:id'],
         wrap(async (req, res) => {
           res.json(await app.getBackupNgLogs(req.params.id))
-        })
+        }, true)
       )
 
     api

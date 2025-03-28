@@ -45,7 +45,7 @@ export class VmController extends XapiXoController<XoVm> {
     @Query() fields?: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Unbrand<XoVm>>[] | WithHref<Partial<Unbrand<XoVm>>>[] {
+  ): string[] | WithHref<Partial<Unbrand<XoVm>>>[] {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

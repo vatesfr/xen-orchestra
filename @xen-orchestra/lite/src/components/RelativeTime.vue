@@ -3,8 +3,8 @@
 </template>
 
 <script lang="ts" setup>
-import useRelativeTime from '@/composables/relative-time.composable'
 import { parseDateTime } from '@/libs/utils'
+import useRelativeTime from '@core/composables/relative-time.composable'
 import { useNow } from '@vueuse/core'
 import { computed } from 'vue'
 
