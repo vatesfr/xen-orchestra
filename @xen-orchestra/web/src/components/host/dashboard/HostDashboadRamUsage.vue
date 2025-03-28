@@ -3,7 +3,7 @@
     <UiCardTitle>{{ $t('ram-usage') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiProgressBar :value="ramUsage.used?.value ?? 0" :max="ramUsage.total?.value" :legend="host.name_label" />
+      <UiProgressBar :value="host.memory.usage" :max="host.memory.size" :legend="host.name_label" />
       <div class="total">
         <UiCardNumbers
           :label="$t('total-used')"
