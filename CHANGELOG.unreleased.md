@@ -13,6 +13,9 @@
 
 - **XO 6:**
   - [Host] Add dashboard view (PR [#8398](https://github.com/vatesfr/xen-orchestra/pull/8398))
+- **Migrated REST API endpoints**:
+  - `/rest/v0/vm-controllers` (PR [#8454] (https://github.com/vatesfr/xen-orchestra/pull/8454))
+  - `/rest/v0/vm-controllers/<vm-controller-id>` (PR [#8454] (https://github.com/vatesfr/xen-orchestra/pull/8454))
 - [RPU] Allows to perform an RPU even if an XOSTOR is present on the pool (PR [#8455](https://github.com/vatesfr/xen-orchestra/pull/8455))
 - [VM] Updated Nested Virtualization handling to use `platform:nested-virt` for XCP-ng 8.3+ (PR [#8395](https://github.com/vatesfr/xen-orchestra/pull/8395))
 
@@ -40,6 +43,7 @@
 <!--packages-start-->
 
 - @vates/types patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
