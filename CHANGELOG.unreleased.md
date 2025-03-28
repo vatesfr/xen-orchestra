@@ -9,12 +9,11 @@
 
 ### Enhancements
 
-- [VM/New]: Add VM creation page and form (PR [#8324](https://github.com/vatesfr/xen-orchestra/pull/8324))
-
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **XO 6:**
   - [Host] Add dashboard view (PR [#8398](https://github.com/vatesfr/xen-orchestra/pull/8398))
+  - [VM/New]: Add VM creation page and form (PR [#8324](https://github.com/vatesfr/xen-orchestra/pull/8324))
 - [RPU] Allows to perform an RPU even if an XOSTOR is present on the pool (PR [#8455](https://github.com/vatesfr/xen-orchestra/pull/8455))
 
 ### Bug fixes
