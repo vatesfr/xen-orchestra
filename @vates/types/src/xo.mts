@@ -60,7 +60,11 @@ type BaseXoVm = BaseXapiXo & {
     process?: string
     version?: string
   }
+  /**
+   * @deprecated use isNestedVirtEnabled instead
+   */
   expNestedHvm: boolean
+  isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
   high_availability: string
   installTime?: number
