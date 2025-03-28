@@ -18,6 +18,8 @@
   - `/rest/v0/vm-templates/<vm-template-id>` (PR [#8450](https://github.com/vatesfr/xen-orchestra/pull/8450))
   - `/rest/v0/vm-controllers` (PR [#8454] (https://github.com/vatesfr/xen-orchestra/pull/8454))
   - `/rest/v0/vm-controllers/<vm-controller-id>` (PR [#8454] (https://github.com/vatesfr/xen-orchestra/pull/8454))
+  - `/rest/v0/vm-snapshots` (PR [#8453](https://github.com/vatesfr/xen-orchestra/pull/8453))
+  - `/rest/v0/vm-snapshots/<vm-snapshot-id>` (PR [#8453] (https://github.com/vatesfr/xen-orchestra/pull/8453))
 - [RPU] Allows to perform an RPU even if an XOSTOR is present on the pool (PR [#8455](https://github.com/vatesfr/xen-orchestra/pull/8455))
 - [VM] Updated Nested Virtualization handling to use `platform:nested-virt` for XCP-ng 8.3+ (PR [#8395](https://github.com/vatesfr/xen-orchestra/pull/8395))
 
