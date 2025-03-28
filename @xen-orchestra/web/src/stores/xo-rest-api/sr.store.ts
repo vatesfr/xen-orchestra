@@ -15,7 +15,7 @@ export const useSrStore = defineStore('sr', () => {
   const vdiContext = deps.vdiStore.getContext()
 
   const srs = computed(() => baseContext.records.value)
-  const getSrName = (ref: XoSr['id']) => baseContext.get(ref)?.name_label
+  const getSrName = (id: XoSr['id']) => baseContext.get(id)?.name_label
 
   const isoSrs = computed(() => srs.value.filter(sr => sr.SR_type === 'iso'))
 
@@ -28,8 +28,8 @@ export const useSrStore = defineStore('sr', () => {
   const vdiIsosBySrName = computed(() => {
     const groupedVDIs: Record<string, XoVdi[]> = {}
 
-    concatVdisArray.value.forEach(vdiRef => {
-      const vdi = vdiContext.get(vdiRef)
+    concatVdisArray.value.forEach(vdiId => {
+      const vdi = vdiContext.get(vdiId)
 
       if (vdi) {
         const srName = getSrName(vdi.$SR) || 'Unknown SR'

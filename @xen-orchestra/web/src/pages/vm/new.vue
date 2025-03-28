@@ -1,10 +1,10 @@
 <template>
-  <div class="new-vm">
+  <div class="new">
     <UiHeadBar :icon="faPlus">
       {{ t('new-vm.add') }}
       <template #actions>
         <div class="custom-select">
-          <select id="select" v-model="vmState.pool">
+          <select v-model="vmState.pool">
             <option v-for="pool in pools" :key="pool.id" :value="pool">
               {{ pool.name_label }}
             </option>
@@ -22,14 +22,9 @@
             <p class="typo-body-regular">{{ $t('pick-template') }}</p>
             <!--        // Todo: Replace by the new select component -->
             <div class="custom-select">
-              <select id="select" v-model="vmState.new_vm_template" @change="onTemplateChange()">
-                <option
-                  v-for="template in vmsTemplatesByPool.get(vmState.pool.id)"
-                  :key="template.id"
-                  :value="template"
-                  class="template-option"
-                >
-                  {{ formattedPoolDisplay(template) }}
+              <select v-model="vmState.new_vm_template" @change="onTemplateChange()">
+                <option v-for="template in vmsTemplates" :key="template.uuid" :value="template" class="template-option">
+                  {{ `${template.name_label} - ${vmState.pool.name_label}` }}
                 </option>
               </select>
               <FontAwesomeIcon class="icon" :icon="faAngleDown" />
@@ -59,7 +54,7 @@
                   -->
                 </div>
                 <div v-if="installMethod === 'cdrom'" class="custom-select">
-                  <select v-model="installMode.repository" class="install-settings">
+                  <select v-model="installMode.repository">
                     <template v-for="(vdis, srName) in vdiIsosBySrName" :key="vdis">
                       <optgroup :label="srName">
                         <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
@@ -120,7 +115,7 @@
                   </UiRadioButton>
                 </div>
                 <div v-if="installMethod === 'cdrom'" class="custom-select">
-                  <select v-model="installMode.repository" class="install-settings">
+                  <select v-model="installMode.repository">
                     <template v-for="(vdis, srName) in vdiIsosBySrName" :key="vdis">
                       <optgroup :label="srName">
                         <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
@@ -173,8 +168,8 @@
                 <div class="select">
                   <UiLabel accent="neutral">{{ t('affinity-host') }}</UiLabel>
                   <div class="custom-select">
-                    <select id="select" v-model="vmState.affinity_host">
-                      <option v-for="host in getHosts" :key="host.id" :value="host.id">
+                    <select v-model="vmState.affinity_host">
+                      <option v-for="host in hosts" :key="host.id" :value="host.id">
                         {{ host.name_label }}
                       </option>
                     </select>
@@ -284,16 +279,19 @@
                   <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
                     <td>
                       <!--        // Todo: Replace by the new select component -->
-                      <select v-model="vdi.sr">
-                        <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">
-                          {{ `${sr.name_label} -` }}
-                          {{
-                            t('n-gb-left', {
-                              n: bytesToGiB(sr.size - sr.physical_usage),
-                            })
-                          }}
-                        </option>
-                      </select>
+                      <div class="custom-select">
+                        <select v-model="vdi.$SR">
+                          <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">
+                            {{ `${sr.name_label} -` }}
+                            {{
+                              t('n-gb-left', {
+                                n: bytesToGiB(sr.size - sr.physical_usage),
+                              })
+                            }}
+                          </option>
+                        </select>
+                        <FontAwesomeIcon class="icon" :icon="faAngleDown" />
+                      </div>
                     </td>
                     <td>
                       <UiInput v-model="vdi.name_label" :placeholder="$t('disk-name')" accent="brand" />
@@ -409,7 +407,7 @@
 </template>
 
 <script setup lang="ts">
-import { createVM } from '@/jobs/vm-create.jobs'
+import { createVM } from '@/jobs/vm-create.job.ts'
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
@@ -419,8 +417,7 @@ import { useVbdStore } from '@/stores/xo-rest-api/vbd.store'
 import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
-import { type Vdi, type NetworkInterface, type VmState } from '@/types/xo/new-vm.type'
-
+import { type NetworkInterface, type VmState } from '@/types/xo/new-vm.type'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { Branded } from '@core/types/utility.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -462,37 +459,37 @@ const { t } = useI18n()
 const router = useRouter()
 
 // Toaster
-const errorMessage = ref<string>('')
+const errorMessage = ref('')
 const isOpen = ref(false)
 
-const isBusy = ref<boolean>(false)
+const isBusy = ref(false)
 
 const { records: networks, get: getNetwork } = useNetworkStore().subscribe()
-const { pifsByNetwork, get: getPif } = usePifStore().subscribe()
+const { getPifsByNetworkId, get: getPif } = usePifStore().subscribe()
 const { records: pools } = usePoolStore().subscribe()
 const { vmsTemplatesByPool } = useVmTemplateStore().subscribe()
 const { records: srs, get: getSr, vdiIsosBySrName } = useSrStore().subscribe()
 const { get: getVbd } = useVbdStore().subscribe()
 const { get: getVdi } = useVdiStore().subscribe()
-const { get: getVifs } = useVifStore().subscribe()
+const { get: getVif } = useVifStore().subscribe()
 const { hostsByPool } = useHostStore().subscribe()
 
 // INSTALL METHOD
-type InstallMethod = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network'
+type InstallMethod = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
 
 interface InstallMode {
-  method: string
+  method: InstallMethod
   repository: string
 }
 
 const useInstallMode = () => {
   const installMode = reactive<InstallMode>({
-    method: '',
+    method: undefined,
     repository: '',
   })
 
   const resetInstallMethod = () => {
-    installMode.method = ''
+    installMode.method = undefined
     installMode.repository = ''
   }
 
@@ -523,9 +520,9 @@ const vmState = reactive<VmState>({
   name: '',
   description: '',
   installMode: '',
-  affinity_host: '',
+  affinity_host: undefined,
   boot_firmware: '',
-  new_vm_template: null,
+  new_vm_template: undefined,
   boot_vm: false,
   auto_poweron: false,
   clone: false,
@@ -544,8 +541,8 @@ const vmState = reactive<VmState>({
   vdis: [],
   networkInterfaces: [],
   existingVdis: [],
-  defaultNetwork: null,
-  pool: null,
+  defaultNetwork: undefined,
+  pool: undefined,
 })
 
 const isCreateVmDisabled = computed(() => {
@@ -556,10 +553,6 @@ const isCreateVmDisabled = computed(() => {
     (installMode.method === 'cdrom' && installMode.repository === '')
   )
 })
-
-const formattedPoolDisplay = (template: XoVmTemplate) => {
-  return `${template.name_label} - ${vmState.pool!.name_label}`
-}
 
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
 
@@ -574,9 +567,14 @@ const ramFormatted = computed({
   },
 })
 
-const getHosts = computed(() => {
+const hosts = computed(() => {
   if (!vmState.pool) return
   return hostsByPool.value.get(vmState.pool.id)
+})
+
+const vmsTemplates = computed(() => {
+  if (!vmState.pool) return
+  return vmsTemplatesByPool.value.get(vmState.pool.id)
 })
 
 const generateRandomString = (length: number) => {
@@ -588,11 +586,11 @@ const generateRandomString = (length: number) => {
 const addStorageEntry = () => {
   if (!vmState.new_vm_template || !vmState.pool) return
 
-  const poolDefaultSr = getSr(vmState.pool.default_SR as Branded<'sr'>)
+  const poolDefaultSr = getSr(vmState.pool.default_SR)
   vmState.vdis.push({
     name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
     name_description: t('new-vm.created-by-xo'),
-    sr: poolDefaultSr ? poolDefaultSr.id : '',
+    sr: poolDefaultSr ? poolDefaultSr.id : undefined,
     size: 0,
   })
 }
@@ -635,26 +633,26 @@ const isDiskTemplate = computed(() => {
 //   },
 // })
 
-const getDefaultSr = computed(() => {
-  const defaultSr = vmState.pool?.default_SR
-  return vmState.pool ? getSr(defaultSr as Branded<'sr'>)?.id : ''
+const defaultSr = computed(() => {
+  const _defaultSr = vmState.pool?.default_SR
+  return vmState.pool && _defaultSr ? getSr(_defaultSr)?.id : ''
 })
 
 const getFilteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
 })
 
-const getVdis = (template: XoVmTemplate): Vdi[] =>
+const getVdis = (template: XoVmTemplate) =>
   (template.template_info?.disks ?? []).map((disk, index) => ({
     name_label: `${vmState?.name || 'disk'}_${index}_${generateRandomString(4)}`,
     name_description: t('new-vm.created-by-xo'),
     size: bytesToGiB(disk.size),
-    sr: getDefaultSr.value || '',
+    sr: defaultSr.value || '',
   }))
 
-const getExistingDisks = (template: XoVmTemplate): Vdi[] =>
+const getExistingDisks = (template: XoVmTemplate) =>
   template.$VBDs.flatMap(vbd => {
-    const vdi = getVdi(getVbd(vbd)!.vdi)
+    const vdi = getVdi(getVbd(vbd)!.VDI)
     return vdi
       ? [
           {
@@ -671,45 +669,41 @@ const getExistingDisks = (template: XoVmTemplate): Vdi[] =>
 const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
 const getDefaultNetworks = (template?: XoVmTemplate) => {
-  if (!template || !vmState.pool) return null
+  if (!template || !vmState.pool) return []
 
   const automaticNetwork = automaticNetworks.value.find(network => network.$pool === vmState.pool?.id)
   if (automaticNetwork) {
-    return automaticNetwork
+    return [automaticNetwork]
   }
 
-  return (
-    networks.value.find(
-      network => network.$pool === vmState.pool?.id && pifsByNetwork.value.get(network.id)?.every(pif => pif.management)
-    ) || null
+  const foundNetwork = networks.value.find(
+    network => network.$pool === vmState.pool?.id && getPifsByNetworkId(network.id)?.every(pif => pif.management)
   )
+
+  return foundNetwork ? [foundNetwork] : []
 }
 
 const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
-  const defaultNetwork = getDefaultNetworks(template)
-  const pifId = defaultNetwork!.PIFs[0] as Branded<'pif'>
-  const pif = getPif(pifId)
+  const defaultNetwork = getDefaultNetworks(template)[0]
+  if (!defaultNetwork) return []
+
+  const pif = getPif(defaultNetwork.PIFs[0] as Branded<'pif'>)
   const defaultMac = pif?.mac || ''
 
-  return template.VIFs.length
-    ? (template.VIFs.map(ref => {
-        const vif = getVifs(ref)
-        return vif
-          ? {
-              interface: getNetwork(vif.$network)?.id || '',
-              macAddress: vif.MAC,
-            }
-          : null
-      }).filter(Boolean) as NetworkInterface[])
-    : defaultNetwork
-      ? [{ interface: defaultNetwork.id, macAddress: defaultMac }]
-      : []
+  if (template.VIFs.length) {
+    return template.VIFs.map(ref => {
+      const vif = getVif(ref)
+      return vif ? { interface: getNetwork(vif.$network)?.id || '', macAddress: vif.MAC } : null
+    }).filter((vif): vif is NetworkInterface => Boolean(vif))
+  }
+
+  return [{ interface: defaultNetwork.id, macAddress: defaultMac }]
 }
 
 const addNetworkInterface = () => {
   if (!vmState.new_vm_template) return
 
-  const defaultNetwork = getDefaultNetworks(vmState.new_vm_template)
+  const defaultNetwork = getDefaultNetworks(vmState.new_vm_template)[0]
 
   vmState.networkInterfaces.push({
     interface: defaultNetwork?.id || '',
@@ -723,10 +717,9 @@ const onTemplateChange = () => {
 
   resetInstallMethod()
 
-  const { affinity_host, name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
+  const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
 
   Object.assign(vmState, {
-    ...(affinity_host !== '' ? { affinity_host } : {}),
     isDiskTemplateSelected: isDiskTemplate,
     vm_name: name_label,
     vm_description: isDefaultTemplate ? '' : name_description,
@@ -778,7 +771,6 @@ const createNewVM = async () => {
   try {
     isBusy.value = true
     await createVM(vmData.value, vmState.pool!.id)
-    isBusy.value = false
     redirectToHome()
   } catch (error) {
     isBusy.value = false
@@ -786,6 +778,8 @@ const createNewVM = async () => {
     isOpen.value = true
 
     errorMessage.value = 'Error creating VM: ' + error
+  } finally {
+    isBusy.value = false
   }
 }
 
@@ -793,17 +787,18 @@ watch(
   () => vmState.pool,
   (newPool, oldPool) => {
     if (newPool !== oldPool) {
-      vmState.new_vm_template = null
+      vmState.new_vm_template = undefined
     }
   }
 )
 </script>
 
 <style scoped lang="postcss">
-.new-vm {
+.new {
   .card-container {
     margin: 1rem;
   }
+
   .template-container {
     display: flex;
     flex-direction: column;
@@ -892,36 +887,38 @@ watch(
     width: 100%;
   }
 
-  .custom-select select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+  .custom-select {
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
 
-    width: 100%;
-    min-width: 20rem;
-    padding-block: 0.8rem;
-    padding-inline: 1.6rem;
-    outline: none;
-    font-size: 1.6rem;
-    background-color: var(--color-neutral-background-primary);
-    border-color: var(--color-neutral-border);
-    border-radius: 0.4rem;
+      width: 100%;
+      min-width: 20rem;
+      padding-block: 0.8rem;
+      padding-inline: 1.6rem;
+      outline: none;
+      font-size: 1.6rem;
+      background-color: var(--color-neutral-background-primary);
+      border-color: var(--color-neutral-border);
+      border-radius: 0.4rem;
 
-    &:hover {
-      border-color: var(--color-brand-item-hover);
+      &:hover {
+        border-color: var(--color-brand-item-hover);
+      }
+      &:focus {
+        border-color: transparent;
+        box-shadow: inset 0 0 0 2px var(--color-brand-item-base);
+      }
     }
-    &:focus {
-      border-color: transparent; /* Hide outer border */
-      box-shadow: inset 0 0 0 2px var(--color-brand-item-base); /* Inner border effect */
-    }
-  }
 
-  .custom-select .icon {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
+    .icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
   }
 }
 </style>

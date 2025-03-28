@@ -6,8 +6,7 @@ export type XoVdi = {
   id: Branded<'vdi'>
   name_label: string
   name_description: string
-  type: string
   size: number
   $SR: XoSr['id']
-  $vbds: XoVbd['id'][]
+  $VBDs: XoVbd['id'][]
 }

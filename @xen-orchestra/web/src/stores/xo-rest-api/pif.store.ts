@@ -33,20 +33,6 @@ export const usePifStore = defineStore('pif', () => {
     return hostMasterPifsByNetworkMap
   })
 
-  const pifsByNetwork = computed(() => {
-    const pifsByNetworkMap = new Map<XoNetwork['id'], XoPif[]>()
-
-    baseContext.records.value.forEach(pif => {
-      const networkId = pif.$network
-      if (!pifsByNetworkMap.has(networkId)) {
-        pifsByNetworkMap.set(networkId, [])
-      }
-      pifsByNetworkMap.get(networkId)?.push(pif)
-    })
-
-    return pifsByNetworkMap
-  })
-
   const getPifsByNetworkId = (networkId: XoNetwork['id']) => {
     return baseContext.records.value.filter(pif => pif.$network === networkId)
   }
@@ -85,7 +71,6 @@ export const usePifStore = defineStore('pif', () => {
   const context = {
     ...baseContext,
     hostMasterPifsByNetwork,
-    pifsByNetwork,
     pifsByHost,
     getPifsByNetworkId,
     getPifStatus,
