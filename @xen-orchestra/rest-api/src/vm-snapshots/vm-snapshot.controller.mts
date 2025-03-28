@@ -1,4 +1,4 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security } from 'tsoa'
+import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 
@@ -13,6 +13,7 @@ import { partialVmSnapshots, vmSnapshot, vmSnapshotIds } from '../open-api/oa-ex
 @Route('vm-snapshots')
 @Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
+@Tags('vms')
 @provide(VmSnapshotController)
 export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   constructor(@inject(RestApi) restApi: RestApi) {
