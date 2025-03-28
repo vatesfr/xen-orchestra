@@ -613,6 +613,7 @@ export default class RestApi {
         },
       },
       'vm-controllers': {},
+      'vm-templates': {},
       hosts: {},
       srs: {},
       vbds: {},
