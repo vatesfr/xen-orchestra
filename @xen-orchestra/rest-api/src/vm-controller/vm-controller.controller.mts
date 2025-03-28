@@ -2,10 +2,10 @@ import { inject } from 'inversify'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { XoVmController } from '@vates/types'
-import { Example, Get, Path, Query, Request, Response, Route, Security } from 'tsoa'
+import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 
-import { unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import type { WithHref } from '../helpers/helper.type.mjs'
 import {
@@ -17,6 +17,7 @@ import {
 @Route('vm-controllers')
 @Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
+@Tags('vms')
 @provide(VmControllerController)
 export class VmControllerController extends XapiXoController<XoVmController> {
   constructor(@inject(RestApi) restApi: RestApi) {
@@ -37,7 +38,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     @Query() fields?: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Unbrand<XoVmController>>[] | WithHref<Partial<Unbrand<XoVmController>>>[] {
+  ): string[] | WithHref<Partial<Unbrand<XoVmController>>>[] {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
@@ -46,6 +47,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
    */
   @Example(vmController)
   @Get('{id}')
+  @Response(notFoundResp.status, notFoundResp.description)
   getVmController(@Path() id: string): Unbrand<XoVmController> {
     return this.getObject(id as XoVmController['id'])
   }
