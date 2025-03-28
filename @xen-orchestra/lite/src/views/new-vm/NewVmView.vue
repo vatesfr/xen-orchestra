@@ -358,7 +358,9 @@
               accent="brand"
               size="medium"
               :busy="isBusy"
-              :disabled="!vmState.new_vm_template || !vmState.installMode || isBusy"
+              :disabled="
+                vmState.new_vm_template === undefined || !hasInstallSettings || !hasVdis || hasInvalidSrVdi || isBusy
+              "
             >
               {{ $t('create') }}
             </UiButton>
@@ -419,7 +421,7 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
-import { type DOMAIN_TYPE, VBD_TYPE } from '@vates/types/common'
+import { type DOMAIN_TYPE, OPAQUE_REF, VBD_TYPE } from '@vates/types/common'
 
 // Vue imports
 import defer, { type Defer } from 'golike-defer'
@@ -546,6 +548,23 @@ const templateHasBiosStrings = computed(
 )
 
 const copyHostBiosStrings = computed(() => vmState.boot_firmware !== 'uefi' && templateHasBiosStrings.value)
+
+const hasInstallSettings = computed(() => {
+  switch (vmState.installMode) {
+    case 'noConfigDrive':
+      return true
+    case 'PXE':
+      return true
+    case 'ISO':
+      return !!vmState.selectedVdi
+    default:
+      return false
+  }
+})
+
+const hasVdis = computed(() => vmState.vdis.length > 0 || vmState.existingVdis.length > 0)
+
+const hasInvalidSrVdi = computed(() => vmState.vdis.some(vdi => vdi.SR && vdi.SR === OPAQUE_REF.EMPTY))
 
 const getDefaultNetworks = (template: XenApiVm) => {
   if (template === undefined) {
