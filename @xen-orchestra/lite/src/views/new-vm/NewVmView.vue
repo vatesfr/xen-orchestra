@@ -154,7 +154,7 @@
             <!-- MEMORY SECTION -->
             <UiTitle>{{ $t('memory') }}</UiTitle>
             <div class="memory-container">
-              <UiInput v-model="vmState.vCPU" accent="brand" :label="$t('vcpu')" />
+              <UiInput v-model="vmState.vCPU" accent="brand" :label="$t('vcpus', Number(vmState.vCPU))" />
               <!-- TODO remove (GB) when we can use new selector -->
               <UiInput v-model="ramFormatted" accent="brand" :label="`${$t('ram')} (GB)`" />
               <UiInput v-model="vmState.topology" accent="brand" disabled :label="$t('topology')" />
@@ -334,14 +334,18 @@
             <UiTitle>{{ $t('summary') }}</UiTitle>
             <VtsResources>
               <VtsResource :icon="faDisplay" count="1" :label="$t('vms')" />
-              <VtsResource :icon="faMicrochip" :count="vmState.vCPU" :label="$t('vcpus')" />
+              <VtsResource :icon="faMicrochip" :count="vmState.vCPU" :label="$t('vcpus', Number(vmState.vCPU))" />
               <VtsResource :icon="faMemory" :count="`${ramFormatted} GB`" :label="$t('ram')" />
               <VtsResource
                 :icon="faDatabase"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
-                :label="$t('sr')"
+                :label="$t('vdis', vmState.existingVdis.length + vmState.vdis.length)"
               />
-              <VtsResource :icon="faNetworkWired" :count="vmState.networkInterfaces.length" :label="$t('interfaces')" />
+              <VtsResource
+                :icon="faNetworkWired"
+                :count="vmState.networkInterfaces.length"
+                :label="$t('interfaces', vmState.networkInterfaces.length)"
+              />
             </VtsResources>
           </div>
           <!-- TOASTER -->
