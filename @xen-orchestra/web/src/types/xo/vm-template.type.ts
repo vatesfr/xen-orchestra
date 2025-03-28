@@ -1,4 +1,6 @@
 import type { XoPool } from '@/types/xo/pool.type'
+import type { XoVbd } from '@/types/xo/vbd.type.ts'
+import type { XoVif } from '@/types/xo/vif.type.ts'
 import type { Branded } from '@core/types/utility.type'
 
 type Disk = {
@@ -10,10 +12,10 @@ type Disk = {
 }
 
 export type XoVmTemplate = {
-  $VBDs: []
+  $VBDs: XoVbd['id'][]
   $pool: XoPool['id']
   CPUs: { max: number; number: number }
-  VIFs: []
+  VIFs: XoVif['id'][]
   boot: { firmware: string; order: string }
   id: Branded<'vm-template'>
   uuid: Branded<'vm-template'>
@@ -21,12 +23,6 @@ export type XoVmTemplate = {
   memory: { dynamic: number[]; static: number[]; size: number }
   name_description: string
   name_label: string
-  install: {
-    method: string
-    repository?: string
-  }
-  affinity_host: string
   tags: string[]
   template_info: { disks: Disk[]; install_methods: string[] }
-  type: 'VM-template'
 }

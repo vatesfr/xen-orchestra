@@ -6,10 +6,9 @@ export type XoPool = {
   id: Branded<'pool'>
   type: 'pool'
   $pool: XoPool['id']
-  default_sr: XoSr['id']
   master: XoHost['id']
   name_description: string
   name_label: string
   _xapiRef: string
-  default_SR: string
+  default_SR: XoSr['id']
 }

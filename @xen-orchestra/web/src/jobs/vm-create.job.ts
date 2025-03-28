@@ -1,6 +1,7 @@
+import type { XoPool } from '@/types/xo/pool.type.ts'
 import { useFetch } from '@vueuse/core'
 
-export async function createVM(payload: Record<string, any>, poolId: string) {
+export async function createVM(payload: Record<string, any>, poolId: XoPool['id']) {
   const { data, error } = await useFetch(`/rest/v0/pools/${poolId}/actions/create_vm?sync`, {
     method: 'POST',
     body: JSON.stringify(payload),

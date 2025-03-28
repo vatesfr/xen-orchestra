@@ -2,7 +2,7 @@
   <UiHeadBar :icon="faCity">
     {{ pool.name_label }}
     <template #actions>
-      <UiButton :left-icon="faPlus" variant="primary" accent="brand" size="medium" @click="goToNewVm">
+      <UiButton :left-icon="faPlus" variant="primary" accent="brand" size="medium" @click="goToNewVm()">
         {{ $t('new-vm') }}
       </UiButton>
     </template>
@@ -47,5 +47,5 @@ defineProps<{
 
 const router = useRouter()
 
-const goToNewVm = () => router.push({ name: '/vm/NewVm' })
+const goToNewVm = () => router.push({ name: '/vm/new' })
 </script>
