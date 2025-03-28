@@ -495,8 +495,13 @@ const methods = {
 
     hasVendorDevice: true,
 
+    // for XCP 8.3+ use nestedVirt instead
     expNestedHvm: {
       set: (expNestedHvm, vm) => vm.update_platform('exp-nested-hvm', expNestedHvm ? 'true' : null),
+    },
+
+    nestedVirt: {
+      set: (nestedVirt, vm) => vm.update_platform('nested-virt', nestedVirt ? 'true' : null),
     },
 
     nicType: {
