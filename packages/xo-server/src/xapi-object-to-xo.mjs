@@ -4,6 +4,7 @@ import Obfuscate from '@vates/obfuscate'
 import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import ensureArray from './_ensureArray.mjs'
 import normalizeVmNetworks from './_normalizeVmNetworks.mjs'
+import semver from 'semver'
 import { createLogger } from '@xen-orchestra/log'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
@@ -121,6 +122,7 @@ const TRANSFORMS = {
       suspendSr: link(obj, 'suspend_image_SR'),
       zstdSupported: obj.restrictions.restrict_zstd_export === 'false',
       vtpmSupported: obj.restrictions.restrict_vtpm === 'false',
+      platform_version: obj.$master.software_version.platform_version,
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
@@ -398,7 +400,11 @@ const TRANSFORMS = {
           version: version && parseXml(version).docker_version,
         }
       })(),
+      // deprecated, use isNestedVirtEnabled instead
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
+      isNestedVirtEnabled: semver.satisfies(String(obj.$pool.$master.software_version.platform_version), '>=3.4')
+        ? obj.platform['nested-virt'] === 'true'
+        : obj.platform['exp-nested-hvm'] === 'true',
       viridian: obj.platform.viridian === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,

@@ -1106,8 +1106,14 @@ export default class TabAdvanced extends Component {
                     <td>
                       <Toggle
                         disabled={vm.power_state !== 'Halted'}
-                        value={vm.expNestedHvm}
-                        onChange={value => editVm(vm, { expNestedHvm: value })}
+                        value={vm.isNestedVirtEnabled}
+                        onChange={value => {
+                          if (semver.satisfies(String(vmPool.platform_version), '>=3.4')) {
+                            editVm(vm, { nestedVirt: value })
+                          } else {
+                            editVm(vm, { expNestedHvm: value })
+                          }
+                        }}
                       />
                     </td>
                   </tr>

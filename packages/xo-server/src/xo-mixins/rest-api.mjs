@@ -1249,7 +1249,7 @@ export default class RestApi {
         ['/backup/logs/:id', '/restore/logs/:id'],
         wrap(async (req, res) => {
           res.json(await app.getBackupNgLogs(req.params.id))
-        })
+        }, true)
       )
 
     api

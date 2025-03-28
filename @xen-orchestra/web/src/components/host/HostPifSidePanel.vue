@@ -66,7 +66,7 @@
               </UiComplexIcon>
               <a href="">{{ networkNameLabel }}</a>
               -->
-              <span class="value">{{ network?.name_label }}</span>
+              <span v-tooltip class="value text-ellipsis">{{ network?.name_label }}</span>
             </template>
             <template v-if="network?.name_label" #addons>
               <UiButtonIcon
@@ -162,7 +162,6 @@
               </template>
               <template #addons>
                 <UiButtonIcon
-                  v-if="ipAddresses.length"
                   v-tooltip="copied && $t('core.copied')"
                   :icon="faCopy"
                   size="medium"
@@ -214,7 +213,7 @@
             <template #value>
               <span class="value">{{ pif.netmask }}</span>
             </template>
-            <template #addons>
+            <template v-if="pif.netmask" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
@@ -234,7 +233,7 @@
                 {{ pif.dns }}
               </span>
             </template>
-            <template #addons>
+            <template v-if="pif.dns" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
@@ -254,7 +253,7 @@
                 {{ pif.gateway }}
               </span>
             </template>
-            <template #addons>
+            <template v-if="pif.gateway" #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"
@@ -280,11 +279,10 @@
                 <div v-if="index === 0">{{ $t('bond-devices') }}</div>
               </template>
               <template #value>
-                <span class="text-ellipsis">{{ device }}</span>
+                <span v-tooltip class="text-ellipsis">{{ device }}</span>
               </template>
               <template #addons>
                 <UiButtonIcon
-                  v-if="device"
                   v-tooltip="copied && $t('core.copied')"
                   :icon="faCopy"
                   size="medium"
@@ -343,7 +341,7 @@
             <template #value>
               {{ networkNbd }}
             </template>
-            <template v-if="networkNbd" #addons>
+            <template #addons>
               <UiButtonIcon
                 v-tooltip="copied && $t('core.copied')"
                 :icon="faCopy"

@@ -1,20 +1,23 @@
 <template>
-  <VueCharts :option autoresize class="chart" />
+  <VueCharts :option autoresize class="vts-linear-chart" />
 </template>
 
 <script lang="ts" setup>
 import type { LinearChartData, ValueFormatter } from '@core/types/chart'
-import { IK_CHART_VALUE_FORMATTER } from '@core/utils/injection-keys.util'
 import { utcFormat } from 'd3-time-format'
 import type { EChartsOption } from 'echarts'
 import { LineChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { computed, provide } from 'vue'
+import { computed } from 'vue'
 import VueCharts from 'vue-echarts'
 
-const props = defineProps<{
+const {
+  data,
+  valueFormatter: _valueFormatter,
+  maxValue,
+} = defineProps<{
   data: LinearChartData
   valueFormatter?: ValueFormatter
   maxValue?: number
@@ -23,7 +26,7 @@ const props = defineProps<{
 const Y_AXIS_MAX_VALUE = 200
 
 const valueFormatter = computed<ValueFormatter>(() => {
-  const formatter = props.valueFormatter
+  const formatter = _valueFormatter
 
   return value => {
     if (formatter === undefined) {
@@ -34,13 +37,11 @@ const valueFormatter = computed<ValueFormatter>(() => {
   }
 })
 
-provide(IK_CHART_VALUE_FORMATTER, valueFormatter)
-
 use([CanvasRenderer, LineChart, GridComponent, TooltipComponent, LegendComponent])
 
 const option = computed<EChartsOption>(() => ({
   legend: {
-    data: props.data.map(series => series.label),
+    data: data.map(series => series.label),
   },
   tooltip: {
     valueFormatter: v => valueFormatter.value(v as number),
@@ -58,9 +59,9 @@ const option = computed<EChartsOption>(() => ({
     axisLabel: {
       formatter: valueFormatter.value,
     },
-    max: props.maxValue ?? Y_AXIS_MAX_VALUE,
+    max: maxValue ?? Y_AXIS_MAX_VALUE,
   },
-  series: props.data.map((series, index) => ({
+  series: data.map((series, index) => ({
     type: 'line',
     name: series.label,
     zlevel: index + 1,
@@ -70,7 +71,7 @@ const option = computed<EChartsOption>(() => ({
 </script>
 
 <style lang="postcss" scoped>
-.chart {
+.vts-linear-chart {
   width: 100%;
   height: 30rem;
 }

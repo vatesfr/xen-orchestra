@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/web",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,6 +22,7 @@
     "@intlify/unplugin-vue-i18n": "^6.0.3",
     "@novnc/novnc": "~1.5.0",
     "@tsconfig/node18": "^18.2.4",
+    "@types/d3-time-format": "^4.0.3",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^18.19.80",
     "@vitejs/plugin-vue": "^5.2.1",
@@ -30,7 +31,8 @@
     "@vueuse/math": "^13.0.0",
     "@vueuse/shared": "^13.0.0",
     "@vueuse/integrations": "^13.0.0",
-    "@xen-orchestra/web-core": "^0.16.0",
+    "@xen-orchestra/web-core": "^0.17.0",
+    "d3-time-format": "^4.1.0",
     "human-format": "^1.2.1",
     "lodash-es": "^4.17.21",
     "npm-run-all2": "^7.0.2",
