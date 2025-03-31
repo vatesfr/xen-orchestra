@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.9.0** (2025-03-31)
 
 - [VM/New]: Add VM creation page and form (PR [#8317](https://github.com/vatesfr/xen-orchestra/pull/8317))
 - [VM/Network]: Display vifs list in vm view and vifs information in side panel (PR [#8441](https://github.com/vatesfr/xen-orchestra/pull/8441))
