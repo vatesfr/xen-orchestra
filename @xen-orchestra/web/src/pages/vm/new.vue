@@ -166,9 +166,10 @@
                   {{ $t('new-vm.description') }}
                 </UiTextarea>
                 <div class="select">
-                  <UiLabel accent="neutral">{{ t('affinity-host') }}</UiLabel>
+                  <UiLabel accent="neutral">{{ $t('affinity-host') }}</UiLabel>
                   <div class="custom-select">
                     <select v-model="vmState.affinity_host">
+                      <option :value="undefined">{{ $t('select-host') }}</option>
                       <option v-for="host in hosts" :key="host.id" :value="host.id">
                         {{ host.name_label }}
                       </option>
@@ -209,7 +210,8 @@
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
                         <select v-model="networkInterface.interface">
-                          <option v-for="network in networks" :key="network.id" :value="network.id">
+                          <option v-for="network in filteredNetworks" :key="network.id" :value="network.id">
+                            {{ network.name_label }}
                             {{ network.name_label }}
                           </option>
                         </select>
@@ -281,7 +283,7 @@
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
                         <select v-model="vdi.$SR">
-                          <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">
+                          <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
                             {{ `${sr.name_label} -` }}
                             {{
                               t('n-gb-left', {
@@ -311,7 +313,7 @@
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
                         <select v-model="disk.sr">
-                          <option v-for="sr in getFilteredSrs" :key="sr.id" :value="sr.id">
+                          <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
                             {{ `${sr.name_label} -` }}
                             {{
                               t('n-gb-left', {
@@ -376,7 +378,7 @@
               <VtsResource
                 :icon="faDatabase"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
-                :label="$t('sr')"
+                :label="$t('vdis')"
               />
               <VtsResource :icon="faNetworkWired" :count="vmState.networkInterfaces.length" :label="$t('interfaces')" />
             </VtsResources>
@@ -436,6 +438,7 @@ import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable'
 import {
   faAlignLeft,
   faAngleDown,
@@ -457,6 +460,7 @@ import { useRouter } from 'vue-router'
 // i18n setup
 const { t } = useI18n()
 const router = useRouter()
+const poolId = useRouteQuery('poolid')
 
 // Toaster
 const errorMessage = ref('')
@@ -479,13 +483,13 @@ type InstallMethod = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'netw
 
 interface InstallMode {
   method: InstallMethod
-  repository: string
+  repository: string | undefined
 }
 
 const useInstallMode = () => {
   const installMode = reactive<InstallMode>({
     method: undefined,
-    repository: '',
+    repository: undefined,
   })
 
   const resetInstallMethod = () => {
@@ -523,16 +527,16 @@ const vmState = reactive<VmState>({
   affinity_host: undefined,
   boot_firmware: '',
   new_vm_template: undefined,
-  boot_vm: false,
+  boot_vm: true,
   auto_poweron: false,
-  clone: false,
+  clone: true,
   ssh_key: '',
   selectedVdi: undefined,
   networkConfig: '',
   cloudConfig: '',
   tags: [],
   vCPU: 0,
-  selectedVCPU: 0,
+  selectedVcpu: 0,
   ram: 0,
   topology: '',
   copyHostBiosStrings: false,
@@ -543,15 +547,6 @@ const vmState = reactive<VmState>({
   existingVdis: [],
   defaultNetwork: undefined,
   pool: undefined,
-})
-
-const isCreateVmDisabled = computed(() => {
-  return (
-    !vmState.new_vm_template ||
-    isBusy.value ||
-    !installMode.method ||
-    (installMode.method === 'cdrom' && installMode.repository === '')
-  )
 })
 
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
@@ -576,6 +571,8 @@ const vmsTemplates = computed(() => {
   if (!vmState.pool) return
   return vmsTemplatesByPool.value.get(vmState.pool.id)
 })
+
+const filteredNetworks = computed(() => networks.value.filter(network => network.$pool === vmState.pool?.id))
 
 const generateRandomString = (length: number) => {
   return Math.random()
@@ -638,7 +635,7 @@ const defaultSr = computed(() => {
   return vmState.pool && _defaultSr ? getSr(_defaultSr)?.id : ''
 })
 
-const getFilteredSrs = computed(() => {
+const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
 })
 
@@ -684,18 +681,18 @@ const getDefaultNetworks = (template?: XoVmTemplate) => {
 }
 
 const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
+  if (template.VIFs.length > 0) {
+    return template.VIFs.map(ref => {
+      const vif = getVif(ref)
+      return vif ? { id: vif.id, interface: getNetwork(vif.$network)?.id || '', macAddress: vif.MAC } : null
+    }).filter((vif): vif is NetworkInterface => Boolean(vif))
+  }
+
   const defaultNetwork = getDefaultNetworks(template)[0]
   if (!defaultNetwork) return []
 
   const pif = getPif(defaultNetwork.PIFs[0] as Branded<'pif'>)
-  const defaultMac = pif?.mac || ''
-
-  if (template.VIFs.length) {
-    return template.VIFs.map(ref => {
-      const vif = getVif(ref)
-      return vif ? { interface: getNetwork(vif.$network)?.id || '', macAddress: vif.MAC } : null
-    }).filter((vif): vif is NetworkInterface => Boolean(vif))
-  }
+  const defaultMac = pif?.mac || ' '
 
   return [{ interface: defaultNetwork.id, macAddress: defaultMac }]
 }
@@ -707,9 +704,26 @@ const addNetworkInterface = () => {
 
   vmState.networkInterfaces.push({
     interface: defaultNetwork?.id || '',
-    macAddress: '',
+    // change this when API will be handle empty mac adresses
+    macAddress: ' ',
   })
 }
+
+const allVdisHaveSr = computed(() => {
+  const existingVDIs = getVdis(vmState.new_vm_template)
+  return existingVDIs.every(vdi => vdi.sr.length > 0)
+})
+
+const isCreateVmDisabled = computed(() => {
+  return (
+    isBusy.value ||
+    !vmState.new_vm_template ||
+    !vmState.name.length ||
+    !allVdisHaveSr.value ||
+    !installMode.method ||
+    (installMode.method === 'cdrom' && installMode.repository === '')
+  )
+})
 
 const onTemplateChange = () => {
   const template = vmState.new_vm_template
@@ -745,6 +759,7 @@ const vmData = computed(() => {
       ...(vmState.networkConfig && { network_config: vmState.networkConfig }),
     }),
   }
+  const templateVifs = vmState.new_vm_template.VIFs
 
   return {
     auto_poweron: vmState.auto_poweron,
@@ -758,10 +773,19 @@ const vmData = computed(() => {
       ...disk,
       size: giBToBytes(disk.size),
     })),
-    vifs: vmState.networkInterfaces.map(net => ({
-      network: net.interface,
-      mac: net.macAddress,
-    })),
+    // Todo: Handle in case we have less networks interfaces than templates vifs
+    vifs: vmState.networkInterfaces.map((net, index) => {
+      let device
+      if (templateVifs[index]) {
+        const vif = getVif(templateVifs[index])
+        device = vif.device
+      }
+      return {
+        network: net.interface,
+        mac: net.macAddress,
+        device,
+      }
+    }),
     ...optionalFields,
   }
 })
@@ -790,6 +814,16 @@ watch(
       vmState.new_vm_template = undefined
     }
   }
+)
+watch(
+  pools,
+  newPools => {
+    const targetPool = newPools.find(pool => pool.id === poolId.value)
+    if (targetPool) {
+      vmState.pool = targetPool
+    }
+  },
+  { immediate: true }
 )
 </script>
 

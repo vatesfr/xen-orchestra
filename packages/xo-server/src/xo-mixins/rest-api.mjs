@@ -646,6 +646,7 @@ export default class RestApi {
         'VM-template',
         'VM',
       ]
+
       function getObject(id, req) {
         const { type } = this
         const object = app.getObject(id, type)
@@ -655,6 +656,7 @@ export default class RestApi {
 
         return object
       }
+
       function getObjects(filter, limit) {
         return Object.values(
           app.getObjects({
@@ -663,6 +665,7 @@ export default class RestApi {
           })
         )
       }
+
       async function messages(req, res) {
         const {
           object: { id },
@@ -807,7 +810,8 @@ export default class RestApi {
             ) => {
               params.affinityHost = affinity
               params.installRepository = install?.repository
-
+              // Mac expect min length 1
+              params.vifs = params.vifs.map(vif => ({ ...vif, mac: vif.mac?.trim() ?? '' }))
               const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
               $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
 

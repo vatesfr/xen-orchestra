@@ -1,4 +1,5 @@
 import type { XoHost } from '@/types/xo/host.type.ts'
+import type { XoNetwork } from '@/types/xo/network.type.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoSr } from '@/types/xo/sr.type.ts'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
@@ -12,7 +13,7 @@ export interface Vdi {
 }
 
 export interface NetworkInterface {
-  interface: string
+  interface: XoNetwork['id']
   macAddress: string
 }
 
@@ -38,7 +39,7 @@ export interface VmState {
   tags: string[]
   topology: string
   vCPU: number
-  selectedVCPU: number
+  selectedVcpu: number
   vdis: string[]
   description: string
   existingVdis: Vdi[]

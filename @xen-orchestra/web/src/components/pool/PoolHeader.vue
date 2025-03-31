@@ -41,11 +41,11 @@ import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { faCity, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useRouter } from 'vue-router'
 
-defineProps<{
+const { pool } = defineProps<{
   pool: XoPool
 }>()
 
 const router = useRouter()
 
-const goToNewVm = () => router.push({ name: '/vm/new' })
+const goToNewVm = () => router.push({ name: '/vm/new', query: { poolid: pool.id } })
 </script>
