@@ -9,6 +9,7 @@ export type XoNetwork = {
   name_description: string
   MTU: number
   nbd: boolean
+  other_config: { automatic: string }
   tags: string[]
   PIFs: string[]
 }

@@ -13,6 +13,7 @@
 
 - **XO 6:**
   - [Host] Add dashboard view (PR [#8398](https://github.com/vatesfr/xen-orchestra/pull/8398))
+  - [VM/New]: Add VM creation page and form (PR [#8324](https://github.com/vatesfr/xen-orchestra/pull/8324))
   - [i18n] Update Swedish, Czech, Spanish, Persian, German and add Italian, Russian and Ukrainian translations (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))
 - **Migrated REST API endpoints**:
   - `/rest/v0/vm-templates` (PR [#8450](https://github.com/vatesfr/xen-orchestra/pull/8450))

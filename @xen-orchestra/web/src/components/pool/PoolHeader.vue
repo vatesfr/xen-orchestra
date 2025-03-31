@@ -1,6 +1,11 @@
 <template>
   <UiHeadBar :icon="faCity">
     {{ pool.name_label }}
+    <template #actions>
+      <UiButton :left-icon="faPlus" variant="primary" accent="brand" size="medium" @click="goToNewVm()">
+        {{ $t('new-vm') }}
+      </UiButton>
+    </template>
   </UiHeadBar>
   <TabList>
     <TabItem disabled>{{ $t('dashboard') }}</TabItem>
@@ -31,10 +36,16 @@
 import type { XoPool } from '@/types/xo/pool.type'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import { faCity } from '@fortawesome/free-solid-svg-icons'
+import { faCity, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { useRouter } from 'vue-router'
 
-defineProps<{
+const { pool } = defineProps<{
   pool: XoPool
 }>()
+
+const router = useRouter()
+
+const goToNewVm = () => router.push({ name: '/vm/new', query: { poolid: pool.id } })
 </script>

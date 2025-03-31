@@ -807,7 +807,8 @@ export default class RestApi {
             ) => {
               params.affinityHost = affinity
               params.installRepository = install?.repository
-
+              // Mac expect min length 1
+              params.vifs = params.vifs.map(vif => ({ ...vif, mac: vif.mac?.trim() ?? '' }))
               const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
               $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
 

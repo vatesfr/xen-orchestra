@@ -4,15 +4,19 @@ import type { XoHost } from '@/types/xo/host.type'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import type { XoPool } from '@/types/xo/pool.type'
+import type { XoSr } from '@/types/xo/sr.type'
 import type { XoTask } from '@/types/xo/task.type'
+import type { XoVbd } from '@/types/xo/vbd.type'
+import type { XoVdi } from '@/types/xo/vdi.type'
 import type { XoVif } from '@/types/xo/vif.type'
+import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { XoVm } from '@/types/xo/vm.type'
 
 export const xoApiDefinition = {
   pool: {
     type: 'collection',
     path: 'pools',
-    fields: 'id,name_label,master',
+    fields: 'id,name_label,master,default_SR',
     handler: (record: XoPool) => record,
   },
   host: {
@@ -27,6 +31,12 @@ export const xoApiDefinition = {
     path: 'vms',
     fields: 'id,name_label,name_description,power_state,$container,$pool,other,current_operations,CPUs,addresses',
     handler: (record: XoVm) => record,
+  },
+  sr: {
+    type: 'collection',
+    path: 'srs',
+    fields: 'id,name_label,name_description,$pool,content_type,physical_usage,size,SR_type,VDIs',
+    handler: (record: XoSr) => record,
   },
   task: {
     type: 'collection',
@@ -47,6 +57,18 @@ export const xoApiDefinition = {
       '$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,management,mode,mtu,netmask,speed,vlan,isBondMaster,bondSlaves',
     handler: (record: XoPif) => record,
   },
+  vbd: {
+    type: 'collection',
+    path: 'vbds',
+    fields: 'id,name_label,name_description,VDI',
+    handler: (record: XoVbd) => record,
+  },
+  vdi: {
+    type: 'collection',
+    path: 'vdis',
+    fields: 'id,name_label,name_description,$VBDs,$SR,size,$pool',
+    handler: (record: XoVdi) => record,
+  },
   vif: {
     type: 'collection',
     path: 'vifs',
@@ -56,7 +78,14 @@ export const xoApiDefinition = {
   network: {
     type: 'collection',
     path: 'networks',
-    fields: 'id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs',
+    fields: 'id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs,other_config',
     handler: (record: XoNetwork) => record,
+  },
+  vm_template: {
+    type: 'collection',
+    path: 'vm-templates',
+    fields:
+      'id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate',
+    handler: (record: XoVmTemplate) => record,
   },
 } satisfies ApiDefinition
