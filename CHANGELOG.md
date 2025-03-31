@@ -8,6 +8,9 @@
   - [Host/Network]: Display pifs information in side panel (PR [#8287](https://github.com/vatesfr/xen-orchestra/pull/8287))
   - [VM/Network]: Display vifs table in VM network tab (PR [#8442](https://github.com/vatesfr/xen-orchestra/pull/8442))
   - [VM/Network]: Display vifs information in side panel (PR [#8443](https://github.com/vatesfr/xen-orchestra/pull/8443))
+  - [Host] Add dashboard view (PR [#8398](https://github.com/vatesfr/xen-orchestra/pull/8398))
+  - [VM/New]: Add VM creation page and form (PR [#8324](https://github.com/vatesfr/xen-orchestra/pull/8324))
+  - [i18n] Update Swedish, Czech, Spanish, Persian, German and add Italian, Russian and Ukrainian translations (PR [#8294](https://github.com/vatesfr/xen-orchestra/pull/8294))
 - **Migrated REST API endpoints**:
   - `/rest/v0/vms/<vm-id>/stats` (PR [#8359](https://github.com/vatesfr/xen-orchestra/pull/8359))
   - `/rest/v0/vms/<vm-id>/actions/start` (PR [#8379](https://github.com/vatesfr/xen-orchestra/pull/8379))
@@ -24,8 +27,16 @@
   - `/rest/v0/vdi-snapshots/<vdi-snapshot-id>` (PR [#8427](https://github.com/vatesfr/xen-orchestra/pull/8427))
   - `/rest/v0/servers` (PR [#8385](https://github.com/vatesfr/xen-orchestra/pull/8385))
   - `/rest/v0/servers/<server-id>` (PR [#8385](https://github.com/vatesfr/xen-orchestra/pull/8385))
+  - `/rest/v0/vm-templates` (PR [#8450](https://github.com/vatesfr/xen-orchestra/pull/8450))
+  - `/rest/v0/vm-templates/<vm-template-id>` (PR [#8450](https://github.com/vatesfr/xen-orchestra/pull/8450))
+  - `/rest/v0/vm-controllers` (PR [#8454] (https://github.com/vatesfr/xen-orchestra/pull/8454))
+  - `/rest/v0/vm-controllers/<vm-controller-id>` (PR [#8454] (https://github.com/vatesfr/xen-orchestra/pull/8454))
+  - `/rest/v0/vm-snapshots` (PR [#8453](https://github.com/vatesfr/xen-orchestra/pull/8453))
+  - `/rest/v0/vm-snapshots/<vm-snapshot-id>` (PR [#8453] (https://github.com/vatesfr/xen-orchestra/pull/8453))
 - [New VM] Configure ACLs directly from VM creation form [#6996](https://github.com/vatesfr/xen-orchestra/issues/6996) (PR [#8412](https://github.com/vatesfr/xen-orchestra/pull/8412))
 - [Netbox] Support version 4.2.x (PR [#8417](https://github.com/vatesfr/xen-orchestra/pull/8417))
+- [RPU] Allows to perform an RPU even if an XOSTOR is present on the pool (PR [#8455](https://github.com/vatesfr/xen-orchestra/pull/8455))
+- [VM] Updated Nested Virtualization handling to use `platform:nested-virt` for XCP-ng 8.3+ (PR [#8395](https://github.com/vatesfr/xen-orchestra/pull/8395))
 
 ### Bug fixes
 
@@ -39,23 +50,25 @@
 - [V2V] Fix assert error on import delta from esxi < 7.5 (PR [#8422](https://github.com/vatesfr/xen-orchestra/pull/8422))
 - [Backups] Fix `Unsupported header 'x-amz-checksum-mode' received for this API call.` on backblaze (PR [#8393](https://github.com/vatesfr/xen-orchestra/pull/8393))
 - [Backup] Fix remove automatic disabling of CBT on export failure (PR [#8446](https://github.com/vatesfr/xen-orchestra/pull/8446))
+- [REST API] Correctly return a 404 not found error when trying to get a backup log that does not exist (PR [#8457](https://github.com/vatesfr/xen-orchestra/pull/8457))
 
 ### Released packages
 
 - @xen-orchestra/fs 4.4.1
-- @vates/types 1.1.0
 - @xen-orchestra/xapi 8.1.1
 - @xen-orchestra/backups 0.58.4
-- @xen-orchestra/web-core 0.17.0
 - @xen-orchestra/proxy 0.29.16
-- @xen-orchestra/rest-api 0.2.0
 - @xen-orchestra/vmware-explorer 0.9.3
-- @xen-orchestra/web 0.14.0
-- xo-server 5.175.0
 - xo-server-audit 0.13.0
 - xo-server-netbox 1.8.0
 - xo-server-perf-alert 0.6.1
-- xo-web 5.170.0
+- @vates/types 1.1.1
+- @xen-orchestra/web-core 0.18.0
+- @xen-orchestra/rest-api 0.3.0
+- @xen-orchestra/web 0.15.0
+- xo-server 5.176.0
+- xo-server-backup-reports 1.5.1
+- xo-web 5.171.0
 
 ## **5.104.1** (2025-03-04)
 
