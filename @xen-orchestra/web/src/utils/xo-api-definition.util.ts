@@ -66,7 +66,7 @@ export const xoApiDefinition = {
   vdi: {
     type: 'collection',
     path: 'vdis',
-    fields: 'id,name_label,name_description,$VBDs,$SR,size',
+    fields: 'id,name_label,name_description,$VBDs,$SR,size,$pool',
     handler: (record: XoVdi) => record,
   },
   vif: {

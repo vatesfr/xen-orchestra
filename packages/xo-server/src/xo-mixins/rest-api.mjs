@@ -646,7 +646,6 @@ export default class RestApi {
         'VM-template',
         'VM',
       ]
-
       function getObject(id, req) {
         const { type } = this
         const object = app.getObject(id, type)
@@ -656,7 +655,6 @@ export default class RestApi {
 
         return object
       }
-
       function getObjects(filter, limit) {
         return Object.values(
           app.getObjects({
@@ -665,7 +663,6 @@ export default class RestApi {
           })
         )
       }
-
       async function messages(req, res) {
         const {
           object: { id },

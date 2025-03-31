@@ -55,7 +55,7 @@
                 </div>
                 <div v-if="installMethod === 'cdrom'" class="custom-select">
                   <select v-model="installMode.repository">
-                    <template v-for="(vdis, srName) in vdiIsosBySrName" :key="vdis">
+                    <template v-for="(vdis, srName) in filteredVDIs" :key="vdis">
                       <optgroup :label="srName">
                         <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
                           {{ vdi.name_label }}
@@ -116,7 +116,7 @@
                 </div>
                 <div v-if="installMethod === 'cdrom'" class="custom-select">
                   <select v-model="installMode.repository">
-                    <template v-for="(vdis, srName) in vdiIsosBySrName" :key="vdis">
+                    <template v-for="(vdis, srName) in filteredVDIs" :key="vdis">
                       <optgroup :label="srName">
                         <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
                           {{ vdi.name_label }}
@@ -494,7 +494,7 @@ const useInstallMode = () => {
 
   const resetInstallMethod = () => {
     installMode.method = undefined
-    installMode.repository = ''
+    installMode.repository = undefined
   }
 
   const setInstallMethod = (method: InstallMethod) => {
@@ -573,6 +573,19 @@ const vmsTemplates = computed(() => {
 })
 
 const filteredNetworks = computed(() => networks.value.filter(network => network.$pool === vmState.pool?.id))
+
+const filteredVDIs = computed(() => {
+  const result = {}
+
+  for (const [key, vdis] of Object.entries(vdiIsosBySrName.value)) {
+    const filteredList = vdis.filter(vdi => vdi.$pool === vmState.pool?.id)
+    if (filteredList.length > 0) {
+      result[key] = filteredList
+    }
+  }
+
+  return result
+})
 
 const generateRandomString = (length: number) => {
   return Math.random()
@@ -709,17 +722,16 @@ const addNetworkInterface = () => {
   })
 }
 
-const allVdisHaveSr = computed(() => {
-  const existingVDIs = getVdis(vmState.new_vm_template)
-  return existingVDIs.every(vdi => vdi.sr.length > 0)
-})
+// const allVdisHaveSr = computed(() => {
+//   const existingVDIs = getVdis(vmState.new_vm_template)
+//   return existingVDIs.every(vdi => vdi.sr.length > 0)
+// })
 
 const isCreateVmDisabled = computed(() => {
   return (
     isBusy.value ||
     !vmState.new_vm_template ||
     !vmState.name.length ||
-    !allVdisHaveSr.value ||
     !installMode.method ||
     (installMode.method === 'cdrom' && installMode.repository === '')
   )
