@@ -182,7 +182,7 @@
             <!-- MEMORY SECTION -->
             <UiTitle>{{ $t('memory') }}</UiTitle>
             <div class="memory-container">
-              <UiInput v-model="vmState.vCPU" accent="brand" :label="$t('vcpu')" />
+              <UiInput v-model="vmState.vCPU" accent="brand" :label="$t('vcpus')" />
               <!-- TODO remove (GB) when we can use new selector -->
               <UiInput v-model="ramFormatted" accent="brand" :label="`${$t('ram')} (GB)`" />
               <UiInput v-model="vmState.topology" accent="brand" disabled :label="$t('topology')" />
@@ -586,7 +586,7 @@ const addStorageEntry = () => {
   const poolDefaultSr = getSr(vmState.pool.default_SR)
   vmState.vdis.push({
     name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
-    name_description: t('new-vm.created-by-xo'),
+    name_description: 'Created by XO',
     sr: poolDefaultSr ? poolDefaultSr.id : undefined,
     size: 0,
   })
@@ -642,7 +642,7 @@ const filteredSrs = computed(() => {
 const getVdis = (template: XoVmTemplate) =>
   (template.template_info?.disks ?? []).map((disk, index) => ({
     name_label: `${vmState?.name || 'disk'}_${index}_${generateRandomString(4)}`,
-    name_description: t('new-vm.created-by-xo'),
+    name_description: 'Created by XO',
     size: bytesToGiB(disk.size),
     sr: defaultSr.value || '',
   }))

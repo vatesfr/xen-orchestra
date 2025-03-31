@@ -304,7 +304,6 @@
   "new-vif": "Nouveau VIF",
   "new-vm": "Nouvelle VM",
   "new-vm.add": "Ajouter une nouvelle VM",
-  "new-vm.created-by-xo": "Créé par XO",
   "new-vm.description": "Description de la VM",
   "new-vm.name": "Nom de la VM",
   "news": "Actualités",
@@ -384,6 +383,7 @@
   "see-all": "Voir tout",
   "select-compression": "Sélectionnez une compression",
   "select-destination-host": "Sélectionnez un hôte de destination",
+  "select-host": "Sélectionnez un hôte",
   "select-to-see-details": "Sélectionnez un élément pour voir les détails",
   "select.network": "Sélectionner un réseau",
   "select.storage": "Sélectionner un SR",
@@ -475,6 +475,7 @@
   "vm-is-running": "La VM est en cours d'exécution",
   "vm.active": "Active | Active | Actives",
   "vm.inactive": "Inactive | Inactive | Inactives",
+  "vmSocketsWithCoresPerSocket": "{nSockets} sockets × {nCores} cœurs/socket",
   "vms": "VM | VMs",
   "vms-status": "Statut des VMs",
   "vms-status.halted": "Éteintes",
@@ -498,6 +499,5 @@
   "xoa-ssh-account": "Compte SSH de la XOA",
   "xoa-ssh-password-confirm-different": "La confirmation du mot de passe SSH est différente",
   "you-are-currently-on": "Vous êtes actuellement sur : {0}",
-  "zstd": "zstd",
-  "vmSocketsWithCoresPerSocket": "{nSockets} sockets × {nCores} cœurs/socket",
+  "zstd": "zstd"
 }
