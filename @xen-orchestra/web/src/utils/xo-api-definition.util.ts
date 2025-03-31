@@ -85,7 +85,7 @@ export const xoApiDefinition = {
     type: 'collection',
     path: 'vm-templates',
     fields:
-      'id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags, isDefaultTemplate',
+      'id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate',
     handler: (record: XoVmTemplate) => record,
   },
 } satisfies ApiDefinition
