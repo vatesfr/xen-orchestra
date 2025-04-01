@@ -4,6 +4,7 @@ import Button from 'button'
 import Copiable from 'copiable'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import decorate from 'apply-decorators'
+import Dropzone from 'dropzone'
 import Icon from 'icon'
 import Link from 'link'
 import NoObjects from 'no-objects'
@@ -17,7 +18,7 @@ import { injectIntl } from 'react-intl'
 import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { noop, startCase } from 'lodash'
-import { NumericDate } from 'utils'
+import { NumericDate, formatSize } from 'utils'
 import { PREMIUM } from 'xoa-plans'
 import { User } from 'render-xo-item'
 import {
@@ -26,6 +27,7 @@ import {
   fetchAuditRecords,
   generateAuditFingerprint,
   getPlugin,
+  importAuditRecords,
 } from 'xo'
 import RichText from 'rich-text'
 
@@ -171,6 +173,21 @@ const displayRecord = record =>
     <RichText copiable message={JSON.stringify(record, null, 2)} />
   )
 
+const renderImportStatus = ({ recordsFile, importStatus }) => {
+  switch (importStatus) {
+    case 'noFile':
+      return _('noAuditRecordsFile')
+    case 'selectedFile':
+      return <span>{`${recordsFile?.name} (${formatSize(recordsFile?.size)})`}</span>
+    case 'start':
+      return <Icon icon='loading' />
+    case 'end':
+      return <span className='text-success'>{_('importAuditRecordsSuccess')}</span>
+    case 'importError':
+      return <span className='text-danger'>{_('importAuditRecordsError')}</span>
+  }
+}
+
 const INDIVIDUAL_ACTIONS = [
   {
     handler: displayRecord,
@@ -252,7 +269,10 @@ export default decorate([
       _records: undefined,
       checkedRecords: {},
       goTo: undefined,
+      importStatus: 'noFile',
       missingRecord: undefined,
+      recordsFile: undefined,
+      showImportDropzone: false,
     }),
     effects: {
       initialize({ fetchRecords }) {
@@ -260,6 +280,37 @@ export default decorate([
       },
       async fetchRecords() {
         this.state._records = await fetchAuditRecords()
+      },
+      showImportDropzone() {
+        this.state.showImportDropzone = !this.state.showImportDropzone
+      },
+      startImportRecords() {
+        this.state.importStatus = 'start'
+
+        return importAuditRecords(this.state.recordsFile)
+          .then(
+            imported => {
+              if (imported !== false) {
+                this.state.recordsFile = undefined
+                this.state.importStatus = 'end'
+              } else {
+                this.state.importStatus = 'selectedFile'
+              }
+            },
+            () => {
+              this.state.recordsFile = undefined
+              this.state.importStatus = 'importError'
+            }
+          )
+          .finally(this.effects.fetchRecords)
+      },
+      handleDrop(_, files) {
+        this.state.recordsFile = files && files[0]
+        this.state.importStatus = 'selectedFile'
+      },
+      unselectFile() {
+        this.state.recordsFile = undefined
+        this.state.importStatus = 'noFile'
       },
       handleRef(_, ref) {
         if (ref !== null) {
@@ -339,8 +390,38 @@ export default decorate([
             size='large'
           >
             {_('auditCheckIntegrity')}
+          </ActionButton>{' '}
+          <ActionButton
+            btnStyle='warning'
+            handler={effects.showImportDropzone}
+            icon='upload'
+            size='large'
+            disabled={!state.isUserActionsRecordInactive || state.records?.length > 0}
+          >
+            {_('importAuditRecords')}
           </ActionButton>
         </div>
+
+        {!!state.showImportDropzone && (
+          <div>
+            <Dropzone onDrop={effects.handleDrop} message={_('importRecordsTip')} />
+            {renderImportStatus(state)}
+            <div className='form-group pull-right'>
+              <ActionButton
+                btnStyle='primary'
+                className='mr-1'
+                disabled={!state.recordsFile}
+                handler={effects.startImportRecords}
+                icon='import'
+                type='submit'
+              >
+                {_('importButtonAuditRecords')}
+              </ActionButton>
+              <Button onClick={effects.unselectFile}>{_('importAuditRecordsCleanList')}</Button>
+            </div>
+          </div>
+        )}
+
         {state.isUserActionsRecordInactive && (
           <p>
             <Link

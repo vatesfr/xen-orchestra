@@ -2793,6 +2793,13 @@ const messages = {
   noAuditRecordAvailable: 'No audit record available',
   refreshAuditRecordsList: 'Refresh records list',
   auditInactiveUserActionsRecord: 'User actions recording is currently inactive',
+  importAuditRecords: 'Import records',
+  importRecordsTip: 'Try dropping a .ndjson.gz or .ndjson file here or click to select a file.',
+  importAuditRecordsCleanList: 'Reset',
+  importButtonAuditRecords: 'Import',
+  importAuditRecordsSuccess: 'Audit records successfully imported',
+  importAuditRecordsError: 'Error while importing audit records',
+  noAuditRecordsFile: 'No audit records file selected',
 
   // Licenses
   allHostsMustBeBound: 'All hosts must be bound to a license',
