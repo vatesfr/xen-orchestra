@@ -21,6 +21,7 @@
       setting('description').widget(text()).preset('description!'),
       slot(),
       slot('description').help('Meant to display description (even a table) under the label'),
+      event('close'),
     ]"
   >
     <UiAlert v-bind="properties">
@@ -32,7 +33,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, setting, slot } from '@/libs/story/story-param'
+import { event, prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 </script>

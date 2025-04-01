@@ -3,15 +3,22 @@
   <div :class="toVariants({ accent })" class="ui-alert">
     <div class="content">
       <VtsIcon class="information-icon" :accent :icon="faCircle" :overlay-icon="icon" />
-      <div class="alert">
-        <div class="typo-body-regular-small">
+      <div class="alert typo-body-regular-small">
+        <div>
           <slot />
         </div>
-        <div v-if="slots.description" class="typo-body-regular-small">
+        <div v-if="slots.description">
           <slot name="description" />
         </div>
       </div>
-      <UiButtonIcon v-if="close" class="close-icon" :icon="faXmark" accent="brand" size="medium" />
+      <UiButtonIcon
+        v-if="close"
+        class="close-button"
+        :icon="faXmark"
+        accent="brand"
+        size="medium"
+        @click="emit('close')"
+      />
     </div>
   </div>
 </template>
@@ -31,18 +38,23 @@ const { accent } = defineProps<{
   close?: boolean
 }>()
 
+const emit = defineEmits<{
+  close: []
+}>()
+
 const slots = defineSlots<{
   default(): any
   description?(): any
 }>()
 
-const states: Record<AlertAccent, IconDefinition> = {
+const iconByAccent: Record<AlertAccent, IconDefinition> = {
   info: faInfo,
   success: faCheck,
   warning: faExclamation,
   danger: faXmark,
 }
-const icon = computed(() => states[accent])
+
+const icon = computed(() => iconByAccent[accent])
 </script>
 
 <style scoped lang="postcss">
@@ -64,7 +76,7 @@ const icon = computed(() => states[accent])
       align-self: center;
     }
 
-    .close-icon {
+    .close-button {
       margin-inline-start: auto;
       flex-shrink: 0;
     }
