@@ -212,7 +212,6 @@ const methods = {
       // TODO: set vm.suspend_SR
       // Creates the user defined VDIs.
       for (const [i, vdi] of _vdisToCreate.entries()) {
-        console.log(i, vdi)
         const vdiRef = await this.VDI_create({
           name_description: vdi.name_description,
           name_label: vdi.name_label,
@@ -232,7 +231,6 @@ const methods = {
           VDI: vdiRef,
           VM: vm.$ref,
         })
-        console.log('created')
       }
 
       // Modify existing (previous template) disks if necessary
