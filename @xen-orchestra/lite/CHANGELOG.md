@@ -2,7 +2,7 @@
 
 ## **next**
 
-- Fix blank page in production mode
+- Fix blank page in production mode (PR [#8471](https://github.com/vatesfr/xen-orchestra/pull/8471))
 
 ## **0.9.0** (2025-03-31)
 
