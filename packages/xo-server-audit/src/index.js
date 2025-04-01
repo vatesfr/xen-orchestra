@@ -1,12 +1,15 @@
 import * as CM from 'complex-matcher'
 import asyncIteratorToStream from 'async-iterator-to-stream'
+import ndjson from 'ndjson'
 import { alteredAuditRecord, missingAuditRecord } from 'xo-common/api-errors'
-import { createGzip } from 'zlib'
+import { createGzip, createUnzip } from 'zlib'
 import { createLogger } from '@xen-orchestra/log'
 import { createSchedule } from '@xen-orchestra/cron'
+import { decorateClass } from '@vates/decorate-with'
+import { defer } from 'golike-defer'
 import { fromCallback } from 'promise-toolbox'
-import { pipeline } from 'readable-stream'
 import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } from '@xen-orchestra/audit-core'
+import { PassThrough, pipeline, promises } from 'readable-stream'
 
 const log = createLogger('xo:xo-server-audit')
 
@@ -171,6 +174,16 @@ class Db extends Storage {
       db.createKeyStream().on('data', deleteEntry).on('end', cb).on('error', reject)
     })
   }
+
+  async isEmpty() {
+    const readStream = this._db.createReadStream({ limit: 1 })
+    return new Promise(function (resolve, reject) {
+      readStream
+        .on('data', () => resolve(false))
+        .on('end', () => resolve(true))
+        .on('error', reject)
+    })
+  }
 }
 
 export const configurationSchema = {
@@ -231,6 +244,10 @@ class AuditXoPlugin {
     const exportRecords = this._exportRecords.bind(this)
     exportRecords.permission = 'admin'
 
+    const importRecords = this._importRecords.bind(this)
+    importRecords.description = 'Import audit logs from a file'
+    importRecords.permission = 'admin'
+
     const getRecords = this._getRecords.bind(this)
     getRecords.description = 'Get records from a passed record ID'
     getRecords.permission = 'admin'
@@ -286,6 +303,7 @@ class AuditXoPlugin {
           exportRecords,
           generateFingerprint,
           getRecords,
+          importRecords,
         },
       })
     )
@@ -407,6 +425,56 @@ class AuditXoPlugin {
       }))
   }
 
+  async _handleImportRecords($defer, { fileStream, zipped }) {
+    $defer(await this._storage.acquireLock())
+
+    await this._storage.clean()
+    if (!(await this._storage.isEmpty())) {
+      throw new Error('Unable to clean audit log database')
+    }
+
+    const processRecord = async source => {
+      let lastId
+      for await (const chunk of source) {
+        const id = await this._auditCore._importRecord(chunk)
+        // entries are listed from newest to oldest, so first entry is the last
+        if (lastId === undefined) {
+          lastId = id
+          await this._storage.setLastId(lastId)
+        }
+      }
+    }
+
+    try {
+      await promises.pipeline(fileStream, zipped ? createUnzip() : new PassThrough(), ndjson.parse(), processRecord)
+    } catch (err) {
+      // Cleaning database because we only partially imported the logs
+      await this._storage.clean()
+      throw err
+    }
+
+    // TODO: maybe find a way to add back the "audit.importRecords" record
+
+    if (this._uploadLastHashJob !== undefined) {
+      await this._uploadLastHash()
+    }
+  }
+
+  async _importRecords({ zipped }) {
+    // TODO: maybe check that the current www-xo audit chain is === null to make sure we not erasing important logs? this._xo.audit.getLastChain()
+    if (!(await this._storage.isEmpty())) {
+      throw new Error('Database must be empty')
+    }
+
+    return {
+      $sendTo: await this._xo.registerHttpRequest(async (req, res) => {
+        await this._handleImportRecords({ fileStream: req, zipped })
+
+        res.end('audit logs successfully imported')
+      }),
+    }
+  }
+
   // See www-xo#344
   async _uploadLastHash() {
     const xo = this._xo
@@ -516,6 +584,10 @@ AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(async function
     yield JSON.stringify(record)
     yield '\n'
   }
+})
+
+decorateClass(AuditXoPlugin, {
+  _handleImportRecords: defer,
 })
 
 export default opts => new AuditXoPlugin(opts)
