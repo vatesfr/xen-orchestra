@@ -212,7 +212,6 @@
                         <select v-model="networkInterface.interface">
                           <option v-for="network in filteredNetworks" :key="network.id" :value="network.id">
                             {{ network.name_label }}
-                            {{ network.name_label }}
                           </option>
                         </select>
                         <FontAwesomeIcon class="icon" :icon="faAngleDown" />
@@ -282,7 +281,7 @@
                     <td>
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
-                        <select v-model="vdi.$SR">
+                        <select v-model="vdi.sr">
                           <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
                             {{ `${sr.name_label} -` }}
                             {{
@@ -419,7 +418,9 @@ import { useVbdStore } from '@/stores/xo-rest-api/vbd.store'
 import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
+import type { XoNetwork } from '@/types/xo/network.type.ts'
 import { type NetworkInterface, type VmState } from '@/types/xo/new-vm.type'
+import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { Branded } from '@core/types/utility.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -575,7 +576,7 @@ const vmsTemplates = computed(() => {
 const filteredNetworks = computed(() => networks.value.filter(network => network.$pool === vmState.pool?.id))
 
 const filteredVDIs = computed(() => {
-  const result = {}
+  const result: Record<string, XoVdi[]> = {}
 
   for (const [key, vdis] of Object.entries(vdiIsosBySrName.value)) {
     const filteredList = vdis.filter(vdi => vdi.$pool === vmState.pool?.id)
@@ -678,7 +679,7 @@ const getExistingDisks = (template: XoVmTemplate) =>
 
 const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
-const getDefaultNetworks = (template?: XoVmTemplate) => {
+const getDefaultNetworks = (template?: XoVmTemplate): XoNetwork[] | [] => {
   if (!template || !vmState.pool) return []
 
   const automaticNetwork = automaticNetworks.value.find(network => network.$pool === vmState.pool?.id)
@@ -695,10 +696,10 @@ const getDefaultNetworks = (template?: XoVmTemplate) => {
 
 const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
   if (template.VIFs.length > 0) {
-    return template.VIFs.map(ref => {
-      const vif = getVif(ref)
-      return vif ? { id: vif.id, interface: getNetwork(vif.$network)?.id || '', macAddress: vif.MAC } : null
-    }).filter((vif): vif is NetworkInterface => Boolean(vif))
+    return template.VIFs.map(vifId => {
+      const vif = getVif(vifId)
+      return vif ? { id: vif.id, interface: getNetwork(vif.$network)?.id || undefined, macAddress: vif.MAC } : null
+    }).filter(vif => Boolean(vif)) as NetworkInterface[]
   }
 
   const defaultNetwork = getDefaultNetworks(template)[0]
@@ -716,7 +717,7 @@ const addNetworkInterface = () => {
   const defaultNetwork = getDefaultNetworks(vmState.new_vm_template)[0]
 
   vmState.networkInterfaces.push({
-    interface: defaultNetwork?.id || '',
+    interface: defaultNetwork?.id || undefined,
     // change this when API will be handle empty mac adresses
     macAddress: ' ',
   })
@@ -771,7 +772,7 @@ const vmData = computed(() => {
       ...(vmState.networkConfig && { network_config: vmState.networkConfig }),
     }),
   }
-  const templateVifs = vmState.new_vm_template.VIFs
+  const templateVifs = vmState.new_vm_template?.VIFs
 
   return {
     auto_poweron: vmState.auto_poweron,
@@ -788,9 +789,9 @@ const vmData = computed(() => {
     // Todo: Handle in case we have less networks interfaces than templates vifs
     vifs: vmState.networkInterfaces.map((net, index) => {
       let device
-      if (templateVifs[index]) {
+      if (templateVifs !== undefined && templateVifs[index]) {
         const vif = getVif(templateVifs[index])
-        device = vif.device
+        device = vif?.device
       }
       return {
         network: net.interface,
