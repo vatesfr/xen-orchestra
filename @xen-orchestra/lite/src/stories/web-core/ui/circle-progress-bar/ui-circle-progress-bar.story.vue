@@ -4,8 +4,18 @@
     :params="[
       prop('value').num().preset(75).required().widget(),
       prop('maxValue').num().preset(100).widget(),
-      prop('accent').required().enum('info', 'warning', 'danger').preset('info').widget(),
-      prop('size').required().enum('extra-small', 'small', 'medium', 'large').preset('large').widget(),
+      prop('accent')
+        .type('CircleProgressBarAccent')
+        .required()
+        .enum('info', 'warning', 'danger')
+        .preset('info')
+        .widget(),
+      prop('size')
+        .type('CircleProgressBarSize')
+        .required()
+        .enum('extra-small', 'small', 'medium', 'large')
+        .preset('large')
+        .widget(),
     ]"
     :presets
   >
@@ -21,17 +31,16 @@ import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircl
 const presets = {
   'Half of 500': {
     props: {
-      'max-value': 500,
       value: 250,
+      maxValue: 500,
       size: 'medium',
       accent: 'info',
-      maxValue: 500,
     },
   },
   '75% of 300': {
     props: {
-      'max-value': 300,
       value: 225,
+      maxValue: 300,
       size: 'medium',
       accent: 'info',
     },
