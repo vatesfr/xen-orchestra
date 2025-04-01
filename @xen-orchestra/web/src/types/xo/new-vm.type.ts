@@ -13,7 +13,7 @@ export interface Vdi {
 }
 
 export interface NetworkInterface {
-  interface: XoNetwork['id']
+  interface: XoNetwork['id'] | undefined
   macAddress: string
 }
 
@@ -40,7 +40,7 @@ export interface VmState {
   topology: string
   vCPU: number
   selectedVcpu: number
-  vdis: string[]
+  vdis: Vdi[]
   description: string
   existingVdis: Vdi[]
   name: string
