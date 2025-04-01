@@ -38,16 +38,16 @@ const {
   value: _value,
   maxValue = 100,
 } = defineProps<{
-  accent: ProgressCircleAccent
-  size: ProgressCircleSize
+  accent: CircleProgressBarAccent
+  size: CircleProgressBarSize
   value: number
   maxValue?: number
 }>()
 
 const { n } = useI18n()
 
-type ProgressCircleAccent = 'info' | 'warning' | 'danger'
-type ProgressCircleSize = 'extra-small' | 'small' | 'medium' | 'large'
+type CircleProgressBarAccent = 'info' | 'warning' | 'danger'
+type CircleProgressBarSize = 'extra-small' | 'small' | 'medium' | 'large'
 
 const circleSizeMap = {
   'extra-small': 16,
