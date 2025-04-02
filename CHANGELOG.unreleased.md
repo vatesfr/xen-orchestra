@@ -16,8 +16,10 @@
   - `/rest/v0/vifs/<vif-id>` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
   - `/rest/v0/pools` (PR [#8490](https://github.com/vatesfr/xen-orchestra/pull/8490))
   - `/rest/v0/pools/<pool-id>` (PR [#8490](https://github.com/vatesfr/xen-orchestra/pull/8490))
+
 - [VM/Advanced] Rename `Block migration` to `Prevent migration` (PR [#8500](https://github.com/vatesfr/xen-orchestra/pull/8500))
 - [Dashboard/Health] Display snapshots older than 30 days for which no schedules are enabled (PR [#8487](https://github.com/vatesfr/xen-orchestra/pull/8487))
+- [REST API] Expose `/rest/v0/schedules` and `/rest/v0/schedules/<schedule-id>` enpoints (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
 
 ### Bug fixes
 
