@@ -262,6 +262,19 @@ export type XoPool = BaseXapiXo & {
   zstdSupported: boolean
 }
 
+export type XoJob = {
+  id: Branded<'job'>
+}
+
+export type XoSchedule = {
+  cron: string
+  enable: boolean
+  id: Branded<'schedule'>
+  jobId: XoJob['id']
+  name?: string
+  timezone?: string
+}
+
 export type XoServer = {
   allowUnauthorized: boolean
   enabled: boolean
@@ -448,6 +461,6 @@ export type XapiXoRecord =
   | XoVmTemplate
   | XoVtpm
 
-export type NonXapiXoRecord = XoGroup | XoServer | XoUser
+export type NonXapiXoRecord = XoGroup | XoJob | XoSchedule | XoServer | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
