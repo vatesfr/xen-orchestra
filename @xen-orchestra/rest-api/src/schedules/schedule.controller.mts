@@ -1,10 +1,19 @@
 import type { XoSchedule } from '@vates/types'
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Path, Post, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  actionAsyncroneResp,
+  featureUnauthorized,
+  internalServerErrorResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { partialSchedules, schedule, scheduleIds } from '../open-api/oa-examples/schedule.oa-example.mjs'
+import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
@@ -47,5 +56,31 @@ export class ScheduleController extends XoController<XoSchedule> {
   @Response(notFoundResp.status, notFoundResp.description)
   async getSchedule(@Path() id: string): Promise<Unbrand<XoSchedule>> {
     return this.getObject(id as XoSchedule['id'])
+  }
+
+  /**
+   * @example id "cf7249f8-d20b-494f-97f4-b1f32f94e780"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/run')
+  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async runSchedule(@Path() id: string, @Query() sync?: boolean) {
+    const scheduleId = id as XoSchedule['id']
+    const action = async () => {
+      const xoApp = this.restApi.xoApp
+      const schedule = await this.getObject(scheduleId)
+      const job = await xoApp.getJob(schedule.jobId)
+      await xoApp.runJob(job, schedule)
+    }
+
+    return this.createAction(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: { name: 'run schedule', objectId: scheduleId },
+    })
   }
 }

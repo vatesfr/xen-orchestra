@@ -13,7 +13,7 @@ import type {
   XenApiVmWrapped,
   XenApiVtpmWrapped,
 } from '@vates/types/xen-api'
-import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoSchedule } from '@vates/types/xo'
+import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoSchedule, XoJob } from '@vates/types/xo'
 
 type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
@@ -46,6 +46,7 @@ export type XoApp = {
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   getAllSchedules(): Promise<XoSchedule[]>
   getAllXenServers(): Promise<XoServer[]>
+  getJob(id: XoJob['id']): Promise<XoJob>
   getObject: <T extends XapiXoRecord>(id: T['id'], type: T['type']) => T
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],
@@ -56,5 +57,6 @@ export type XoApp = {
   getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
+  runJob(job: XoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
 }
