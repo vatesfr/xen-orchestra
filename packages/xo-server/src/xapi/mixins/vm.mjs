@@ -228,11 +228,13 @@ const methods = {
             bootable = true
           }
 
-          let allowedUserdevice = allowedUserDevices.shift()
-          if (allowedUserDevices === '3') {
-            allowedUserdevice = allowedUserDevices.shift()
+          let userdevice = vdi.userdevice
+          if (userdevice === undefined) {
+            userdevice = allowedUserDevices.shift()
+            if (userdevice === '3') {
+              userdevice = allowedUserDevices.shift()
+            }
           }
-          const userdevice = vdi.userdevice ?? allowedUserdevice
           await this.VBD_create({
             bootable,
             userdevice,
