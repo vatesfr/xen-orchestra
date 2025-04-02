@@ -24,6 +24,11 @@ export const unauthorizedResp = {
   description: 'Authentication required',
 } as const
 
+export const featureUnauthorized = {
+  status: 403,
+  description: 'Feature unauthorized',
+} as const
+
 export const notFoundResp = {
   status: 404,
   description: 'Resource not found',
