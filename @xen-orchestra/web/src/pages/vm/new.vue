@@ -595,13 +595,21 @@ const generateRandomString = (length: number) => {
 }
 
 const addStorageEntry = () => {
-  if (!vmState.new_vm_template || !vmState.pool) return
+  if (!vmState.new_vm_template || !vmState.pool) {
+    return
+  }
 
   const poolDefaultSr = getSr(vmState.pool.default_SR)
+
+  if (poolDefaultSr === undefined) {
+    console.error('SR not found')
+    return
+  }
+
   vmState.vdis.push({
     name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
-    sr: poolDefaultSr ? poolDefaultSr.id : undefined,
+    sr: poolDefaultSr.id,
     size: 0,
   })
 }
@@ -679,7 +687,7 @@ const getExistingDisks = (template: XoVmTemplate) =>
 
 const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
-const getDefaultNetworks = (template?: XoVmTemplate): XoNetwork[] | [] => {
+const getDefaultNetworks = (template?: XoVmTemplate): XoNetwork[] => {
   if (!template || !vmState.pool) return []
 
   const automaticNetwork = automaticNetworks.value.find(network => network.$pool === vmState.pool?.id)
@@ -696,10 +704,28 @@ const getDefaultNetworks = (template?: XoVmTemplate): XoNetwork[] | [] => {
 
 const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
   if (template.VIFs.length > 0) {
-    return template.VIFs.map(vifId => {
+    return template.VIFs.reduce<NetworkInterface[]>((acc, vifId) => {
       const vif = getVif(vifId)
-      return vif ? { id: vif.id, interface: getNetwork(vif.$network)?.id || undefined, macAddress: vif.MAC } : null
-    }).filter(vif => Boolean(vif)) as NetworkInterface[]
+
+      if (vif === undefined) {
+        console.error('VIF not found')
+        return acc
+      }
+
+      const network = getNetwork(vif.$network)
+
+      if (network === undefined) {
+        console.error('Network not found')
+        return acc
+      }
+
+      acc.push({
+        interface: network.id,
+        macAddress: vif.MAC,
+      })
+
+      return acc
+    }, [])
   }
 
   const defaultNetwork = getDefaultNetworks(template)[0]
@@ -716,8 +742,13 @@ const addNetworkInterface = () => {
 
   const defaultNetwork = getDefaultNetworks(vmState.new_vm_template)[0]
 
+  if (defaultNetwork === undefined) {
+    console.error('Default network not found')
+    return
+  }
+
   vmState.networkInterfaces.push({
-    interface: defaultNetwork?.id || undefined,
+    interface: defaultNetwork.id,
     // change this when API will be handle empty mac adresses
     macAddress: ' ',
   })
@@ -804,14 +835,16 @@ const vmData = computed(() => {
 })
 
 const createNewVM = async () => {
-  isBusy.value = false
   try {
     isBusy.value = true
-    await createVM(vmData.value, vmState.pool!.id)
+
+    if (vmData.value.template === undefined || vmState.pool === undefined) {
+      throw new Error('Template UUID and Pool ID are required')
+    }
+
+    await createVM(vmData.value, vmState.pool.id)
     redirectToHome()
   } catch (error) {
-    isBusy.value = false
-
     isOpen.value = true
 
     errorMessage.value = 'Error creating VM: ' + error
@@ -927,7 +960,9 @@ watch(
     justify-content: center;
     gap: 1.6rem;
   }
+
   /*Todo: Remove when we implement the new select component*!*/
+
   .custom-select {
     position: relative;
     display: inline-block;
@@ -953,6 +988,7 @@ watch(
       &:hover {
         border-color: var(--color-brand-item-hover);
       }
+
       &:focus {
         border-color: transparent;
         box-shadow: inset 0 0 0 2px var(--color-brand-item-base);
