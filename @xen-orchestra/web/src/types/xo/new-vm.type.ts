@@ -9,7 +9,7 @@ export interface Vdi {
   name_label: string
   name_description: string
   size: number
-  sr: XoSr['id']
+  sr: XoSr['id'] | undefined
 }
 
 export interface NetworkInterface {

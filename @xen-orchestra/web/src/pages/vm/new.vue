@@ -473,7 +473,7 @@ const { records: networks, get: getNetwork } = useNetworkStore().subscribe()
 const { getPifsByNetworkId, get: getPif } = usePifStore().subscribe()
 const { records: pools } = usePoolStore().subscribe()
 const { vmsTemplatesByPool } = useVmTemplateStore().subscribe()
-const { records: srs, get: getSr, vdiIsosBySrName } = useSrStore().subscribe()
+const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
 const { get: getVbd } = useVbdStore().subscribe()
 const { get: getVdi } = useVdiStore().subscribe()
 const { get: getVif } = useVifStore().subscribe()
@@ -594,22 +594,17 @@ const generateRandomString = (length: number) => {
     .substring(2, 2 + length)
 }
 
+const defaultSr = computed(() => vmState.pool?.default_SR)
+
 const addStorageEntry = () => {
   if (!vmState.new_vm_template || !vmState.pool) {
-    return
-  }
-
-  const poolDefaultSr = getSr(vmState.pool.default_SR)
-
-  if (poolDefaultSr === undefined) {
-    console.error('SR not found')
     return
   }
 
   vmState.vdis.push({
     name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
-    sr: poolDefaultSr.id,
+    sr: defaultSr.value,
     size: 0,
   })
 }
@@ -652,11 +647,6 @@ const isDiskTemplate = computed(() => {
 //   },
 // })
 
-const defaultSr = computed(() => {
-  const _defaultSr = vmState.pool?.default_SR
-  return vmState.pool && _defaultSr ? getSr(_defaultSr)?.id : ''
-})
-
 const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
 })
@@ -666,23 +656,34 @@ const getVdis = (template: XoVmTemplate) =>
     name_label: `${vmState?.name || 'disk'}_${index}_${generateRandomString(4)}`,
     name_description: 'Created by XO',
     size: bytesToGiB(disk.size),
-    sr: defaultSr.value || '',
+    sr: defaultSr.value,
   }))
 
 const getExistingDisks = (template: XoVmTemplate) =>
-  template.$VBDs.flatMap(vbd => {
-    const vdi = getVdi(getVbd(vbd)!.VDI)
-    return vdi
-      ? [
-          {
-            id: vdi.id,
-            name_label: vdi.name_label,
-            name_description: vdi.name_description,
-            size: bytesToGiB(vdi.size),
-            sr: getSr(vdi.$SR)?.id || '',
-          },
-        ]
-      : []
+  template.$VBDs.map(vbdId => {
+    const _vbd = getVbd(vbdId)
+
+    if (_vbd === undefined) {
+      console.error('VBD not found')
+
+      return {}
+    }
+
+    const vdi = getVdi(_vbd.VDI)
+
+    if (vdi === undefined) {
+      console.error('VDI not found')
+
+      return {}
+    }
+
+    return {
+      id: vdi.id,
+      name_label: vdi.name_label,
+      name_description: vdi.name_description,
+      size: bytesToGiB(vdi.size),
+      sr: vdi.$SR || defaultSr.value,
+    }
   })
 
 const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
@@ -759,13 +760,16 @@ const addNetworkInterface = () => {
 //   return existingVDIs.every(vdi => vdi.sr.length > 0)
 // })
 
+const hasInvalidSrVdi = computed(() => vmState.vdis.some(vdi => vdi.sr === undefined))
+
 const isCreateVmDisabled = computed(() => {
   return (
     isBusy.value ||
     !vmState.new_vm_template ||
     !vmState.name.length ||
     !installMode.method ||
-    (installMode.method === 'cdrom' && installMode.repository === '')
+    (installMode.method === 'cdrom' && installMode.repository === '') ||
+    hasInvalidSrVdi.value
   )
 })
 
@@ -784,7 +788,7 @@ const onTemplateChange = () => {
     ram: memory.dynamic[1],
     tags,
     vCPU: CPUs.number,
-    vdis: getVdis(template)!,
+    vdis: getVdis(template),
     existingVdis: getExistingDisks(template),
     networkInterfaces: getExistingInterface(template),
   })
