@@ -17,7 +17,7 @@ export interface NetworkInterface {
   macAddress: string
 }
 
-export interface VmState {
+export type VmState = {
   affinity_host: XoHost['id'] | undefined
   auto_poweron: boolean
   installMode: string
@@ -40,8 +40,35 @@ export interface VmState {
   topology: string
   vCPU: number
   selectedVcpu: number
-  vdis: string[]
+  vdis: XoVdi[]
   description: string
   existingVdis: Vdi[]
   name: string
+}
+
+export type InstallMethod = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
+
+type NewVif = {
+  network: string
+  mac: string
+  device?: string
+}
+
+export type XoNewVmData = {
+  auto_poweron: boolean
+  boot: boolean
+  clone: boolean
+  memory: number
+  name_description: string
+  name_label: string
+  template: XoVmTemplate['uuid']
+  vdis: XoVdi[]
+  vifs: NewVif[]
+  affinity?: XoHost['id']
+  cloud_config?: string
+  network_config?: string
+  install?: {
+    method: InstallMethod
+    repository: string | undefined
+  }
 }

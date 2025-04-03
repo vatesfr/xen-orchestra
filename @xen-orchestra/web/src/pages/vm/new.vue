@@ -409,7 +409,7 @@
 </template>
 
 <script setup lang="ts">
-import { createVM } from '@/jobs/vm-create.job.ts'
+import { useVmCreateJob } from '@/jobs/vm-create.job.ts'
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
@@ -419,7 +419,7 @@ import { useVbdStore } from '@/stores/xo-rest-api/vbd.store'
 import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
-import { type NetworkInterface, type VmState } from '@/types/xo/new-vm.type'
+import { type NetworkInterface, type VmState, type XoNewVmData, type InstallMethod } from '@/types/xo/new-vm.type'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { Branded } from '@core/types/utility.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -477,9 +477,6 @@ const { get: getVbd } = useVbdStore().subscribe()
 const { get: getVdi } = useVdiStore().subscribe()
 const { get: getVif } = useVifStore().subscribe()
 const { hostsByPool } = useHostStore().subscribe()
-
-// INSTALL METHOD
-type InstallMethod = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
 
 interface InstallMode {
   method: InstallMethod
@@ -762,8 +759,8 @@ const redirectToHome = () => {
   router.push({ name: '/' })
 }
 
-const vmData = computed(() => {
-  const optionalFields = {
+const vmData = computed<XoNewVmData>(() => {
+  const optionalFields: Partial<XoNewVmData> = {
     ...(vmState.affinity_host && { affinity: vmState.affinity_host }),
     ...(installMode.method && installMode.method !== 'no-config' && { install: installMode }),
     ...(installMode.method === 'custom_config' && {
@@ -771,7 +768,7 @@ const vmData = computed(() => {
       ...(vmState.networkConfig && { network_config: vmState.networkConfig }),
     }),
   }
-  const templateVifs = vmState.new_vm_template.VIFs
+  const templateVifs = vmState.new_vm_template?.VIFs
 
   return {
     auto_poweron: vmState.auto_poweron,
@@ -780,7 +777,7 @@ const vmData = computed(() => {
     memory: vmState.ram,
     name_description: vmState.description,
     name_label: vmState.name,
-    template: vmState.new_vm_template?.uuid,
+    template: vmState.new_vm_template!.uuid,
     vdis: vmState.vdis.map(disk => ({
       ...disk,
       size: giBToBytes(disk.size),
@@ -788,9 +785,9 @@ const vmData = computed(() => {
     // Todo: Handle in case we have less networks interfaces than templates vifs
     vifs: vmState.networkInterfaces.map((net, index) => {
       let device
-      if (templateVifs[index]) {
-        const vif = getVif(templateVifs[index])
-        device = vif.device
+      if (templateVifs![index]) {
+        const vif = getVif(templateVifs![index])
+        device = vif?.device
       }
       return {
         network: net.interface,
@@ -806,7 +803,8 @@ const createNewVM = async () => {
   isBusy.value = false
   try {
     isBusy.value = true
-    await createVM(vmData.value, vmState.pool!.id)
+    const createVmJob = useVmCreateJob(vmData.value, vmState.pool!.id)
+    await createVmJob.run()
     redirectToHome()
   } catch (error) {
     isBusy.value = false
