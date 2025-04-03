@@ -65,7 +65,7 @@ import {
   XEN_VIDEORAM_VALUES,
 } from 'xo'
 import { createGetObject, createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
-import { getXoaPlan, PREMIUM } from 'xoa-plans'
+import { getXoaPlan, CURRENT as XOA_PLAN, ENTERPRISE, PREMIUM } from 'xoa-plans'
 import { SelectSuspendSr } from 'select-suspend-sr'
 
 import BootOrder from './boot-order'
@@ -505,7 +505,16 @@ const Acls = decorate([
       )}
       <Row>
         <Col>
-          <ActionButton btnStyle='primary' handler={effects.addAcls} icon='add' size='small' tooltip={_('vmAddAcls')} />
+          <ActionButton
+            btnStyle='primary'
+            disabled={XOA_PLAN.value < ENTERPRISE.value}
+            handler={effects.addAcls}
+            icon='add'
+            size='small'
+            tooltip={
+              XOA_PLAN.value < ENTERPRISE.value ? _('availableXoaPlan', { plan: ENTERPRISE.name }) : _('vmAddAcls')
+            }
+          />
         </Col>
       </Row>
     </Container>

@@ -145,6 +145,7 @@ const messages = {
   addCustomField: 'Add custom field',
   advancedTagCreation: 'Advanced tag creation',
   availableXoaPremium: 'Available in XOA Premium',
+  availableXoaPlan: 'Available in XOA {plan}',
   detach: 'Detach',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
