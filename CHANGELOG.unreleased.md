@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [OpenAPI spec] Fixed some required properties being marked as optional (PR [#8480](https://github.com/vatesfr/xen-orchestra/pull/8480))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/rest-api patch
 
 <!--packages-end-->
