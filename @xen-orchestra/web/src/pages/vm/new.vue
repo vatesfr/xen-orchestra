@@ -212,7 +212,6 @@
                         <select v-model="networkInterface.interface">
                           <option v-for="network in filteredNetworks" :key="network.id" :value="network.id">
                             {{ network.name_label }}
-                            {{ network.name_label }}
                           </option>
                         </select>
                         <FontAwesomeIcon class="icon" :icon="faAngleDown" />
@@ -282,7 +281,8 @@
                     <td>
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
-                        <select v-model="vdi.$SR">
+                        <select v-model="vdi.sr">
+                          <option :value="undefined">{{ $t('select-sr') }}</option>
                           <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
                             {{ `${sr.name_label} -` }}
                             {{
@@ -313,6 +313,7 @@
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
                         <select v-model="disk.sr">
+                          <option :value="undefined">{{ $t('select-sr') }}</option>
                           <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
                             {{ `${sr.name_label} -` }}
                             {{
@@ -644,7 +645,7 @@ const isDiskTemplate = computed(() => {
 // })
 
 const defaultSr = computed(() => {
-  const _defaultSr = vmState.pool?.default_SR
+  const _defaultSr = vmState.pool?.default_SR || undefined
   return vmState.pool && _defaultSr ? getSr(_defaultSr)?.id : ''
 })
 
@@ -657,7 +658,7 @@ const getVdis = (template: XoVmTemplate) =>
     name_label: `${vmState?.name || 'disk'}_${index}_${generateRandomString(4)}`,
     name_description: 'Created by XO',
     size: bytesToGiB(disk.size),
-    sr: defaultSr.value || '',
+    sr: defaultSr.value || undefined,
   }))
 
 const getExistingDisks = (template: XoVmTemplate) =>
@@ -747,8 +748,8 @@ const onTemplateChange = () => {
 
   Object.assign(vmState, {
     isDiskTemplateSelected: isDiskTemplate,
-    vm_name: name_label,
-    vm_description: isDefaultTemplate ? '' : name_description,
+    name: name_label,
+    description: isDefaultTemplate ? '' : name_description,
     ram: memory.dynamic[1],
     tags,
     vCPU: CPUs.number,
