@@ -60,7 +60,7 @@ export const xoApiDefinition = {
   vbd: {
     type: 'collection',
     path: 'vbds',
-    fields: 'id,name_label,name_description,VDI',
+    fields: 'id,name_label,name_description,VDI,is_cd_drive',
     handler: (record: XoVbd) => record,
   },
   vdi: {

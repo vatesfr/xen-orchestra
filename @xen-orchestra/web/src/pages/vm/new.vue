@@ -55,7 +55,7 @@
                 </div>
                 <div v-if="installMethod === 'cdrom'" class="custom-select">
                   <select v-model="installMode.repository">
-                    <template v-for="(vdis, srName) in filteredVDIs" :key="vdis">
+                    <template v-for="(vdis, srName) in filteredVDIs" :key="srName">
                       <optgroup :label="srName">
                         <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
                           {{ vdi.name_label }}
@@ -116,7 +116,7 @@
                 </div>
                 <div v-if="installMethod === 'cdrom'" class="custom-select">
                   <select v-model="installMode.repository">
-                    <template v-for="(vdis, srName) in filteredVDIs" :key="vdis">
+                    <template v-for="(vdis, srName) in filteredVDIs" :key="srName">
                       <optgroup :label="srName">
                         <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
                           {{ vdi.name_label }}
@@ -307,11 +307,11 @@
                   </tr>
                 </template>
                 <template v-if="vmState.vdis && vmState.vdis.length > 0">
-                  <tr v-for="(disk, index) in vmState.vdis" :key="index">
+                  <tr v-for="(vdi, index) in vmState.vdis" :key="index">
                     <td>
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
-                        <select v-model="disk.sr">
+                        <select v-model="vdi.sr">
                           <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
                             {{ `${sr.name_label} -` }}
                             {{
@@ -325,13 +325,13 @@
                       </div>
                     </td>
                     <td>
-                      <UiInput v-model="disk.name_label" :placeholder="$t('disk-name')" accent="brand" />
+                      <UiInput v-model="vdi.name_label" :placeholder="$t('disk-name')" accent="brand" />
                     </td>
                     <td>
-                      <UiInput v-model="disk.size" :placeholder="$t('size')" accent="brand" />
+                      <UiInput v-model="vdi.size" :placeholder="$t('size')" accent="brand" />
                     </td>
                     <td>
-                      <UiInput v-model="disk.name_description" :placeholder="$t('description')" accent="brand" />
+                      <UiInput v-model="vdi.name_description" :placeholder="$t('description')" accent="brand" />
                     </td>
                     <td>
                       <UiButtonIcon
@@ -419,7 +419,7 @@ import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
-import { type NetworkInterface, type VmState } from '@/types/xo/new-vm.type'
+import { type NetworkInterface, type Vdi, type VmState } from '@/types/xo/new-vm.type'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { Branded } from '@core/types/utility.type'
@@ -659,32 +659,31 @@ const getVdis = (template: XoVmTemplate) =>
     sr: defaultSr.value,
   }))
 
-const getExistingDisks = (template: XoVmTemplate) =>
-  template.$VBDs.map(vbdId => {
+const getExistingDisks = (template: XoVmTemplate) => {
+  return template.$VBDs.reduce<Vdi[]>((acc, vbdId) => {
     const _vbd = getVbd(vbdId)
 
-    if (_vbd === undefined) {
-      console.error('VBD not found')
-
-      return {}
+    if (_vbd === undefined || _vbd.is_cd_drive) {
+      return acc
     }
 
     const vdi = getVdi(_vbd.VDI)
 
     if (vdi === undefined) {
       console.error('VDI not found')
-
-      return {}
+      return acc
     }
 
-    return {
-      id: vdi.id,
+    acc.push({
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.size),
       sr: vdi.$SR || defaultSr.value,
-    }
-  })
+    })
+
+    return acc
+  }, [])
+}
 
 const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
@@ -817,9 +816,9 @@ const vmData = computed(() => {
     name_description: vmState.description,
     name_label: vmState.name,
     template: vmState.new_vm_template?.uuid,
-    vdis: vmState.vdis.map(disk => ({
-      ...disk,
-      size: giBToBytes(disk.size),
+    vdis: vmState.vdis.map(vdi => ({
+      ...vdi,
+      size: giBToBytes(vdi.size),
     })),
     // Todo: Handle in case we have less networks interfaces than templates vifs
     vifs: vmState.networkInterfaces.map((net, index) => {
