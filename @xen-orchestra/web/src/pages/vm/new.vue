@@ -393,7 +393,7 @@
 </template>
 
 <script setup lang="ts">
-import { createVM } from '@/jobs/vm-create.job.ts'
+import { useVmCreateJob } from '@/jobs/vm-create.job.ts'
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
@@ -854,7 +854,8 @@ const createNewVM = async () => {
       throw new Error('Template UUID and Pool ID are required')
     }
 
-    await createVM(vmData.value, vmState.pool.id)
+    const createVmJob = useVmCreateJob(vmData.value, vmState.pool!.id)
+    await createVmJob.run()
     redirectToHome()
   } catch (error) {
     isOpen.value = true

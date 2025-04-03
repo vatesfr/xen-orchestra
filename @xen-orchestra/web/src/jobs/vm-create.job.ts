@@ -1,15 +1,25 @@
-import type { XoPool } from '@/types/xo/pool.type.ts'
+import { vmArg, poolArg } from '@/jobs/args.ts'
+import { defineJob, JobError } from '@core/packages/job'
 import { useFetch } from '@vueuse/core'
 
-export async function createVM(payload: Record<string, any>, poolId: XoPool['id']) {
-  const { data, error } = await useFetch(`/rest/v0/pools/${poolId}/actions/create_vm?sync`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-    headers: { 'Content-Type': 'application/json' },
-  }).text()
+export const useVmCreateJob = defineJob('vm.create', [vmArg, poolArg], () => {
+  return {
+    run: async (payload, poolId) => {
+      const { response } = await useFetch(`/rest/v0/pools/${poolId}/actions/create_vm?sync`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' },
+      }).text()
 
-  if (error.value) {
-    throw new Error(error.value.message)
+      return response.value
+    },
+    validate: (_, payload, poolId) => {
+      if (!poolId) {
+        throw new JobError('Missing pool')
+      }
+      if (!payload || Object.keys(payload).length === 0) {
+        throw new JobError('Missing payload for VM creation')
+      }
+    },
   }
-  return data.value
-}
+})
