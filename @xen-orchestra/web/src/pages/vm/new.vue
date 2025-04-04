@@ -794,7 +794,7 @@ const vmData = computed(() => {
     name_description: vmState.description,
     name_label: vmState.name,
     template: vmState.new_vm_template?.uuid,
-    vdis: vmState.vdis.map(vdi => ({
+    vdis: [...vmState.vdis, ...vmState.existingVdis].map(vdi => ({
       ...vdi,
       size: giBToBytes(vdi.size),
     })),
