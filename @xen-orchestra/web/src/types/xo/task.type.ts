@@ -18,4 +18,7 @@ export type XoTask = {
   }
   status: 'pending' | 'success' | 'failure' | 'interrupted'
   tasks?: XoTask[]
+  infos?: { message: string }[]
+  errors?: { message: string }[]
+  warnings?: { message: string }[]
 }
