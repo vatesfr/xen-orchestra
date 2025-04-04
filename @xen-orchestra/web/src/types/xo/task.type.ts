@@ -5,10 +5,20 @@ export type XoTask = {
   type: 'task'
   start: number
   end: number | undefined
+  updatedAt: number
   properties: {
     type: string
     name: string
+    userId?: Branded<'user'>
+    progress?: number
+    hostId?: Branded<'host'>
+    hostName?: string
+    poolId?: Branded<'pool'>
+    poolName?: string
   }
   status: 'pending' | 'success' | 'failure' | 'interrupted'
   tasks?: XoTask[]
+  infos?: { message: string }[]
+  errors?: { message: string }[]
+  warnings?: { message: string }[]
 }
