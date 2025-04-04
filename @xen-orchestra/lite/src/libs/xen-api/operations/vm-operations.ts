@@ -4,9 +4,12 @@ import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import type { MaybeArray } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'
+import { OPAQUE_REF } from '@vates/types'
 
 export function createVmOperations(xenApi: XenApi) {
   type VmRefs = MaybeArray<XenApiVm['$ref']>
+
+  type HostRef = XenApiHost['$ref']
 
   type VmRefsWithPowerState = Record<XenApiVm['$ref'], XenApiVm['power_state']>
 
@@ -100,8 +103,8 @@ export function createVmOperations(xenApi: XenApi) {
       )
     },
 
-    setAffinityHost: (vmRefs: XenApiVm['$ref'], hostRef: XenApiHost['$ref'] | null) =>
-      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_affinity', [vmRef, hostRef ?? '']))),
+    setAffinityHost: (vmRefs: VmRefs, hostRef: HostRef | undefined) =>
+      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_affinity', [vmRef, hostRef ?? OPAQUE_REF.EMPTY]))),
 
     setAutoPowerOn: (vmRef: XenApiVm['$ref'], value: boolean) => setOtherConfig(vmRef, 'auto_poweron', value),
 
