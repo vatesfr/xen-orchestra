@@ -23,7 +23,7 @@
             <!--        // Todo: Replace by the new select component -->
             <div class="custom-select">
               <select v-model="vmState.new_vm_template" @change="onTemplateChange()">
-                <option v-for="template in vmsTemplates" :key="template.uuid" :value="template" class="template-option">
+                <option v-for="template in vmsTemplates" :key="template.id" :value="template" class="template-option">
                   {{ `${template.name_label} - ${vmState.pool.name_label}` }}
                 </option>
               </select>
