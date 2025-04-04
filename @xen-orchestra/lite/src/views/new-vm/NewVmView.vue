@@ -150,7 +150,23 @@
                 <UiTextarea v-model="vmState.description" accent="brand">
                   {{ $t('new-vm.description') }}
                 </UiTextarea>
-                <!-- <UiInput v-model="vmState.affinity_host" accent="brand" :label="$t('affinity-host')" /> -->
+                <VtsInputWrapper :label="$t('affinity-host')">
+                  <div class="affinity-host">
+                    <FormSelect v-model="vmState.affinity_host" class="select">
+                      <option :value="undefined">{{ $t('none') }}</option>
+                      <option v-for="host in affinityHosts" :key="host?.$ref" :value="host?.$ref">
+                        {{ host?.name_label }}
+                      </option>
+                    </FormSelect>
+                    <UiButtonIcon
+                      size="medium"
+                      accent="brand"
+                      :icon="faClose"
+                      @click="vmState.affinity_host = undefined"
+                    />
+                  </div>
+                  <span class="affinity-host-none typo-body-regular-small">{{ $t('none-by-default') }}</span>
+                </VtsInputWrapper>
               </div>
             </div>
             <!-- MEMORY SECTION -->
@@ -397,7 +413,9 @@ import FormSelect from '@/components/form/FormSelect.vue'
 
 // XenAPI Store imports
 import type { XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
+import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
@@ -431,6 +449,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import {
   faAlignLeft,
   faAt,
+  faClose,
   faDatabase,
   faDisplay,
   faMemory,
@@ -451,12 +470,14 @@ import { useRouter } from 'vue-router'
 // Store subscriptions
 const { templates } = useVmStore().subscribe()
 const { pool } = usePoolStore().subscribe()
-const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
+const { records: srs, vdiIsosBySrName, getByOpaqueRef: getBySrByOpaqueRef } = useSrStore().subscribe()
+const { records: hosts, getByOpaqueRef: getHostByOpaqueRef } = useHostStore().subscribe()
 const { records: networks, getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
 const { getByOpaqueRef: getVdiByOpaqueRef } = useVdiStore().subscribe()
 const { getByOpaqueRef: getVifByOpaqueRef } = useVifStore().subscribe()
 const { getByOpaqueRef: getPifByOpaqueRef } = usePifStore().subscribe()
+const { getByOpaqueRef: getPbdByOpaqueRef } = usePbdStore().subscribe()
 
 // i18n setup
 const { t } = useI18n()
@@ -474,7 +495,7 @@ const vmState = reactive<VmState>({
   toggle: false,
   installMode: '',
   tags: [],
-  affinity_host: '',
+  affinity_host: undefined,
   boot_firmware: '',
   new_vm_template: undefined,
   boot_vm: true,
@@ -594,7 +615,60 @@ const bootFirmwares = computed(() => [...new Set(templates.value.map(template =>
 
 const defaultSr = computed(() => pool.value!.default_SR)
 
-const filteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
+const getHosts = computed(() => hosts.value)
+
+const filteredSrs = computed(() => {
+  return srs.value.filter(sr => {
+    const pbdRef = getPbdByOpaqueRef(sr.PBDs[0])
+    const hostRef = pbdRef?.host
+    const isSrOnAffinityHost =
+      vmState.affinity_host === undefined || sr.shared ? true : hostRef === vmState.affinity_host
+
+    return sr.content_type !== 'iso' && sr.physical_size > 0 && isSrOnAffinityHost
+  })
+})
+
+const allVdis = computed(() => [...vmState.existingVdis, ...vmState.vdis])
+
+const isVdiOnSharedSr = computed(() => {
+  return allVdis.value.every(vdi => {
+    const sr = getBySrByOpaqueRef(vdi.SR)
+
+    if (sr === undefined) return true
+
+    return sr.shared
+  })
+})
+
+const affinityHosts = computed(() => {
+  if (isVdiOnSharedSr.value) {
+    return getHosts.value
+  }
+
+  const srRef = allVdis.value[0].SR
+
+  const areVdisOnSameSrOrShared = allVdis.value.every(vdi => {
+    const sr = getBySrByOpaqueRef(vdi.SR)
+
+    return vdi.SR === srRef || sr?.shared
+  })
+
+  if (!areVdisOnSameSrOrShared) {
+    return []
+  }
+
+  const pbdRef = getBySrByOpaqueRef(srRef)?.PBDs[0]
+
+  if (pbdRef === undefined) return []
+
+  const hostRef = getPbdByOpaqueRef(pbdRef)?.host
+
+  if (hostRef === undefined) return []
+
+  const host = getHostByOpaqueRef(hostRef)
+
+  return [host]
+})
 
 const templateHasBiosStrings = computed(
   () => vmState.new_vm_template !== null && Object.keys(vmState.new_vm_template!.bios_strings).length > 0
@@ -699,27 +773,23 @@ const getVdis = (template: XenApiVm) => {
 }
 
 const getExistingVdis = (template: XenApiVm) => {
-  const existingVdisArray = [] as Vdi[]
-
-  template.VBDs.forEach(vbdRef => {
+  return template.VBDs.reduce<Vdi[]>((acc, vbdRef) => {
     const vbd = getVbdByOpaqueRef(vbdRef)
 
-    if (!vbd || vbd.type === 'CD') {
-      return
-    }
+    if (!vbd || vbd.type === 'CD') return acc
 
     const vdi = getVdiByOpaqueRef(vbd.VDI)
-    if (!vdi) return
 
-    existingVdisArray.push({
+    if (!vdi) return acc
+
+    acc.push({
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.virtual_size),
-      SR: vdi.SR ?? defaultSr.value,
+      SR: vdi.SR,
     })
-  })
-
-  return existingVdisArray
+    return acc
+  }, [])
 }
 
 const onTemplateChange = () => {
@@ -822,6 +892,7 @@ const _createVm = async ($defer: Defer) => {
     await Promise.all([
       xapi.vm.setNameLabel(vmRefs, vmCreationParams.value.name_label),
       xapi.vm.setNameDescription(vmRefs, vmCreationParams.value.name_description),
+      xapi.vm.setAffinityHost(vmRefs, vmCreationParams.value.affinityHost),
       xapi.vm.setMemory(vmRefs, vmCreationParams.value.memory),
       xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron),
       xapi.vm.setCoresPerSocket(vmRefs[0], vmCreationParams.value.coresPerSocket),
@@ -999,6 +1070,20 @@ const createVM = defer(_createVm)
         flex-direction: column;
         gap: 2.5rem;
         width: 40%;
+
+        .affinity-host {
+          display: flex;
+          align-items: center;
+          gap: 0.8rem;
+
+          .container {
+            width: 100%;
+          }
+        }
+
+        .affinity-host-none {
+          color: var(--color-neutral-txt-secondary);
+        }
       }
     }
 

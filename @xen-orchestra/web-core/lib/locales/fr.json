@@ -321,6 +321,7 @@
   "no-tasks": "Aucune tâche",
   "no-vif-detected": "Aucun VIF détecté",
   "none": "Aucun",
+  "none-by-default": "Aucun par défaut",
   "not-found": "Non trouvé",
   "object": "Objet",
   "object-not-found": "L'objet {id} est introuvable…",
