@@ -13,7 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useUserStore } from '@/stores/xo-rest-api/user.store.ts'
+// import { useUserStore } from '@/stores/xo-rest-api/user.store.ts'
 import type { TaskBranch } from '@/types/tree.type.ts'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
@@ -25,14 +25,13 @@ const { branch } = defineProps<{
   branch: TaskBranch
 }>()
 
-// console.log('Branch', branch)
-
-const { records } = useUserStore().subscribe()
+// const { records } = useUserStore().subscribe()
 
 const user = computed(() => {
-  const userId = branch.data.properties.userId
-  if (!userId) return
-  const user = records.value.find(user => user.id === userId)
-  return user ? user?.name || user.email : 'Not Found'
+  // const userId = branch.data.properties.userId
+  // if (!userId) return
+  // const user = records.value.find(user => user.id === userId)
+  // return user ? user?.name || user.email : 'Not Found'
+  return 'user'
 })
 </script>

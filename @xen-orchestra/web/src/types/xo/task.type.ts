@@ -10,6 +10,11 @@ export type XoTask = {
     type: string
     name: string
     userId?: Branded<'user'>
+    progress?: number
+    hostId?: Branded<'host'>
+    hostName?: string
+    poolId?: Branded<'pool'>
+    poolName?: string
   }
   status: 'pending' | 'success' | 'failure' | 'interrupted'
   tasks?: XoTask[]

@@ -1,25 +1,20 @@
 import { useTaskStore } from '@/stores/xo-rest-api/task.store'
+import { convertTaskToCore } from '@/utils/convert-task-to-core.util.ts'
+import type { Task } from '@core/types/task.type.ts'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
 import { useTree } from '@core/composables/tree.composable'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
-interface Task {
-  id: string
-  properties: {
-    name: string
-  }
-  tasks?: Task[]
-}
-
 const mockedTasks = [
   {
     id: '0m7op3ssj',
     properties: {
-      poolId: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
-      poolName: 'XCP 8.3.0 XO Team',
+      // poolId: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
+      // poolName: 'XCP 8.3.0 XO Team',
       progress: 44,
+      type: 'xo:authentication:authenticateUser',
       name: 'Rolling pool reboot',
       userId: '0ea53763-758a-4549-abdc-7571f8dd0cf1',
     },
@@ -262,104 +257,32 @@ const mockedTasks = [
       },
     ],
     end: 1740742985404,
-    result: {
-      code: 'VM_REQUIRES_SR',
-      params: ['OpaqueRef:1a5c8a87-0b3a-1432-3704-568712b89b2d', 'OpaqueRef:77de6432-55ce-2c0a-4cab-51ab757440a4'],
-      task: {
-        uuid: '8efadc33-710a-5114-7db8-4032ba746bd1',
-        name_label: 'Async.host.evacuate',
-        name_description: '',
-        allowed_operations: [],
-        current_operations: {},
-        created: '20250228T11:43:05Z',
-        finished: '20250228T11:43:05Z',
-        status: 'failure',
-        resident_on: 'OpaqueRef:e6a6a8be-753d-1761-77fe-ce85eae7c482',
-        progress: 1,
-        type: '<none/>',
-        result: '',
-        error_info: [
-          'VM_REQUIRES_SR',
-          'OpaqueRef:1a5c8a87-0b3a-1432-3704-568712b89b2d',
-          'OpaqueRef:77de6432-55ce-2c0a-4cab-51ab757440a4',
-        ],
-        other_config: {},
-        subtask_of: 'OpaqueRef:NULL',
-        subtasks: [],
-        backtrace:
-          '(((process xapi)(filename ocaml/xapi/xapi_host.ml)(line 614))((process xapi)(filename hashtbl.ml)(line 159))((process xapi)(filename hashtbl.ml)(line 165))((process xapi)(filename hashtbl.ml)(line 170))((process xapi)(filename ocaml/xapi/xapi_host.ml)(line 610))((process xapi)(filename ocaml/libs/xapi-stdext/lib/xapi-stdext-pervasives/pervasiveext.ml)(line 24))((process xapi)(filename ocaml/libs/xapi-stdext/lib/xapi-stdext-pervasives/pervasiveext.ml)(line 39))((process xapi)(filename ocaml/xapi/rbac.ml)(line 191))((process xapi)(filename ocaml/xapi/rbac.ml)(line 200))((process xapi)(filename ocaml/xapi/server_helpers.ml)(line 75)))',
-      },
-      message:
-        'VM_REQUIRES_SR(OpaqueRef:1a5c8a87-0b3a-1432-3704-568712b89b2d, OpaqueRef:77de6432-55ce-2c0a-4cab-51ab757440a4)',
-      name: 'XapiError',
-      stack:
-        'XapiError: VM_REQUIRES_SR(OpaqueRef:1a5c8a87-0b3a-1432-3704-568712b89b2d, OpaqueRef:77de6432-55ce-2c0a-4cab-51ab757440a4)\n    at Function.wrap (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/_XapiError.mjs:16:12)\n    at default (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/_getTaskResult.mjs:13:29)\n    at Xapi._addRecordToCache (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1072:24)\n    at file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1106:14\n    at Array.forEach (<anonymous>)\n    at Xapi._processEvents (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1096:12)\n    at Xapi._watchEvents (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1269:14)\nFrom:\n    at Xapi.addSyncStackTrace [as _addSyncStackTrace] (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:78:26)\n    at Xapi.watchTask (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:783:33)\n    at Xapi.callAsync (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:330:26)',
-    },
   },
-  // {
-  //   id: '0m8mq6p4a',
-  //   properties: {
-  //     credentials: {},
-  //     userData: {
-  //       ip: '::1',
-  //     },
-  //     name: 'XO user authentication',
-  //     type: 'xo:authentication:authenticateUser',
-  //   },
-  //   start: 1742800107178,
-  //   status: 'failure',
-  //   updatedAt: 1742800107178,
-  //   end: 1742800107178,
-  //   result: {
-  //     code: 3,
-  //     message: 'invalid credentials',
-  //     name: 'XoError',
-  //     stack:
-  //       'XoError: invalid credentials\n    at invalidCredentials (/Users/sebastian/Documents/GitHub/xen-orchestra/packages/xo-common/api-errors.js:26:11)\n    at file:///Users/sebastian/Documents/GitHub/xen-orchestra/packages/xo-server/src/xo-mixins/authentication.mjs:201:13\n    at Task.runInside (/Users/sebastian/Documents/GitHub/xen-orchestra/@vates/task/index.js:175:22)\n    at Task.run (/Users/sebastian/Documents/GitHub/xen-orchestra/@vates/task/index.js:159:20)',
-  //   },
-  // },
-  // {
-  //   id: '0m8plt8zi',
-  //   properties: {
-  //     credentials: {},
-  //     userData: {
-  //       ip: '::1',
-  //     },
-  //     name: 'XO user authentication',
-  //     type: 'xo:authentication:authenticateUser',
-  //   },
-  //   start: 1742974159807,
-  //   status: 'failure',
-  //   updatedAt: 1742974159807,
-  //   end: 1742974159807,
-  //   result: {
-  //     code: 3,
-  //     message: 'invalid credentials',
-  //     name: 'XoError',
-  //     stack:
-  //       'XoError: invalid credentials\n    at invalidCredentials (/Users/sebastian/Documents/GitHub/xen-orchestra/packages/xo-common/api-errors.js:26:11)\n    at file:///Users/sebastian/Documents/GitHub/xen-orchestra/packages/xo-server/src/xo-mixins/authentication.mjs:201:13\n    at Task.runInside (/Users/sebastian/Documents/GitHub/xen-orchestra/@vates/task/index.js:175:22)\n    at Task.run (/Users/sebastian/Documents/GitHub/xen-orchestra/@vates/task/index.js:159:20)',
-  //   },
-  // },
 ]
 
 export function useTaskTree() {
   // const { records: tasks, isReady: isTaskReady } = useTaskStore().subscribe()
+  // const { records } = useTaskStore().subscribe()
   const { isReady: isTaskReady } = useTaskStore().subscribe()
   const { filter, predicate } = useTreeFilter()
   const isReady = logicAnd(isTaskReady)
+
+  const tasks = computed(() => {
+    return mockedTasks.map(task => convertTaskToCore(task))
+  })
 
   const defineTaskTree = (tasks: Task[]): any => {
     return defineTree(
       tasks,
       {
-        getLabel: task => task.properties.name,
+        getLabel: task => task.name,
         predicate,
       },
-      task => defineTaskTree(task.tasks ?? [])
+      task => defineTaskTree(task.subtasks ?? [])
     )
   }
 
-  const definitions = computed(() => defineTaskTree(mockedTasks))
+  const definitions = computed(() => defineTaskTree(tasks.value))
 
   const { nodes } = useTree(definitions)
 
