@@ -54,6 +54,12 @@ const mockedTasks = [
               },
               {
                 id: 'umedfyfm41o',
+                errors: [{ message: 'Restarting Error' }],
+                warnings: [
+                  { message: 'Restarting Warning' },
+                  { message: 'Restarting Warning' },
+                  { message: 'Restarting Warning' },
+                ],
                 properties: {
                   name: 'Restart',
                   hostId: 'b61a5c92-700e-4966-a13b-00633f03eea8',
@@ -108,6 +114,7 @@ const mockedTasks = [
                 start: 1740742712701,
                 status: 'success',
                 end: 1740742712922,
+                infos: [{ message: 'Restarting Warning' }],
               },
               {
                 id: 'c5c47ikw7kv',
@@ -119,6 +126,7 @@ const mockedTasks = [
                 start: 1740742712922,
                 status: 'success',
                 end: 1740742984751,
+                infos: [{ message: 'Restarting Warning' }],
               },
             ],
             end: 1740742984751,
@@ -132,9 +140,15 @@ const mockedTasks = [
             },
             start: 1740742984751,
             status: 'failure',
+            warnings: [
+              { message: 'Restarting Warning' },
+              { message: 'Restarting Warning' },
+              { message: 'Restarting Warning' },
+            ],
             tasks: [
               {
                 id: 's40691blvf8',
+                errors: [{ message: 'Restarting Error' }],
                 properties: {
                   name: 'Evacuate',
                   hostId: '669df518-4e5d-4d84-b93a-9be2cdcdfca1',
@@ -209,14 +223,10 @@ const mockedTasks = [
                 other_config: {},
                 subtask_of: 'OpaqueRef:NULL',
                 subtasks: [],
-                backtrace:
-                  '(((process xapi)(filename ocaml/xapi/xapi_host.ml)(line 614))((process xapi)(filename hashtbl.ml)(line 159))((process xapi)(filename hashtbl.ml)(line 165))((process xapi)(filename hashtbl.ml)(line 170))((process xapi)(filename ocaml/xapi/xapi_host.ml)(line 610))((process xapi)(filename ocaml/libs/xapi-stdext/lib/xapi-stdext-pervasives/pervasiveext.ml)(line 24))((process xapi)(filename ocaml/libs/xapi-stdext/lib/xapi-stdext-pervasives/pervasiveext.ml)(line 39))((process xapi)(filename ocaml/xapi/rbac.ml)(line 191))((process xapi)(filename ocaml/xapi/rbac.ml)(line 200))((process xapi)(filename ocaml/xapi/server_helpers.ml)(line 75)))',
               },
               message:
                 'VM_REQUIRES_SR(OpaqueRef:1a5c8a87-0b3a-1432-3704-568712b89b2d, OpaqueRef:77de6432-55ce-2c0a-4cab-51ab757440a4)',
               name: 'XapiError',
-              stack:
-                'XapiError: VM_REQUIRES_SR(OpaqueRef:1a5c8a87-0b3a-1432-3704-568712b89b2d, OpaqueRef:77de6432-55ce-2c0a-4cab-51ab757440a4)\n    at Function.wrap (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/_XapiError.mjs:16:12)\n    at default (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/_getTaskResult.mjs:13:29)\n    at Xapi._addRecordToCache (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1072:24)\n    at file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1106:14\n    at Array.forEach (<anonymous>)\n    at Xapi._processEvents (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1096:12)\n    at Xapi._watchEvents (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1269:14)\nFrom:\n    at Xapi.addSyncStackTrace [as _addSyncStackTrace] (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:78:26)\n    at Xapi.watchTask (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:783:33)\n    at Xapi.callAsync (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:330:26)',
             },
           },
         ],
@@ -251,8 +261,6 @@ const mockedTasks = [
           message:
             'VM_REQUIRES_SR(OpaqueRef:1a5c8a87-0b3a-1432-3704-568712b89b2d, OpaqueRef:77de6432-55ce-2c0a-4cab-51ab757440a4)',
           name: 'XapiError',
-          stack:
-            'XapiError: VM_REQUIRES_SR(OpaqueRef:1a5c8a87-0b3a-1432-3704-568712b89b2d, OpaqueRef:77de6432-55ce-2c0a-4cab-51ab757440a4)\n    at Function.wrap (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/_XapiError.mjs:16:12)\n    at default (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/_getTaskResult.mjs:13:29)\n    at Xapi._addRecordToCache (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1072:24)\n    at file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1106:14\n    at Array.forEach (<anonymous>)\n    at Xapi._processEvents (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1096:12)\n    at Xapi._watchEvents (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:1269:14)\nFrom:\n    at Xapi.addSyncStackTrace [as _addSyncStackTrace] (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:78:26)\n    at Xapi.watchTask (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:783:33)\n    at Xapi.callAsync (file:///usr/local/lib/node_modules/xo-server/node_modules/xen-api/index.mjs:330:26)',
         },
       },
     ],
@@ -268,6 +276,10 @@ export function useTaskTree() {
   const isReady = logicAnd(isTaskReady)
 
   const tasks = computed(() => {
+    // const ONE_DAY = 24 * 60 * 60 * 1000
+
+    // const now = Date.now()/
+    // return records.value.filter(task => now - task.start < ONE_DAY).map(task => convertTaskToCore(task))
     return mockedTasks.map(task => convertTaskToCore(task))
   })
 

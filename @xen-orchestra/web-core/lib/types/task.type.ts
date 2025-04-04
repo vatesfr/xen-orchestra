@@ -9,4 +9,7 @@ export type Task = {
   end?: number
   subtasks?: Task[]
   progress?: number
+  infos?: string[]
+  errors?: string[]
+  warnings?: string[]
 }

@@ -8,6 +8,9 @@ export const convertTaskToCore = (task: XoTask): CoreTask => ({
   tag: task.properties.type,
   start: task.start,
   end: task.end,
-  progress: task.properties.progress !== undefined ? task.properties.progress : undefined,
-  subtasks: task.tasks !== undefined ? task.tasks.map(subtask => convertTaskToCore(subtask)) : undefined,
+  infos: task.infos ?? undefined,
+  errors: task.errors ?? undefined,
+  warnings: task.warnings ?? undefined,
+  progress: task.properties.progress ?? undefined,
+  subtasks: Array.isArray(task.tasks) ? task.tasks.map(convertTaskToCore) : undefined,
 })

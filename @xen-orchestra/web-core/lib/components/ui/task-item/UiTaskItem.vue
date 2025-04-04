@@ -16,7 +16,9 @@
               {{ t('tasks.n-subtasks', { n: subtasks }) }}
             </p>
           </div>
-          <!--          <UiInfo v-if="hasResultName" :accent>{{ message }}</UiInfo> -->
+          <UiInfo v-for="(item, index) in messageTypes" :key="index" v-tooltip :accent="item.type">
+            {{ item.message }}
+          </UiInfo>
         </div>
       </div>
       <div class="right-side">
@@ -28,7 +30,12 @@
           <span> {{ t('task.started-ago', { time: elapsedTime }) }} </span>
           <span v-if="task.progress">{{ t('task.estimated-end-in', { time: remainingTime }) }} </span>
           <div>
-            <UiCircleProgressBar accent="info" size="small" :value="90" />
+            <UiCircleProgressBar
+              v-if="circleProgress"
+              :accent="getEffectiveStatus"
+              size="small"
+              :value="circleProgress"
+            />
           </div>
         </div>
       </div>
@@ -38,14 +45,15 @@
 
 <script setup lang="ts">
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
-// import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiCircleProgressBar, {
+  type CircleProgressBarAccent,
+} from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiUserLink from '@core/components/ui/user-link/UiUserLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { Task } from '@core/types/task.type.ts'
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons'
-import { useIntervalFn } from '@vueuse/core'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -66,31 +74,67 @@ const countSubtasks = (task: Task): number => {
 
 const subtasks = computed(() => countSubtasks(task))
 
-// const hasResultName = computed(() => typeof task.result === 'object' && task.result?.name)
+const circleProgress = computed(() => {
+  // if (!task.progress) return
+  if (['success', 'failure'].includes(task.status)) {
+    return 100
+  } else {
+    return task.progress
+  }
+})
 
-// const resultName = computed(() => (hasResultName.value ? (task.result as { name: string }).name : null))
+const getEffectiveStatus = computed<CircleProgressBarAccent>(() => {
+  const evaluate = (task: Task) => {
+    const subtasks = task.subtasks || []
 
-// const accent = computed(() => {
-//   // if (!resultName.value) return 'null'
-//   // if (resultName.value.toLowerCase().includes('error')) return 'danger'
-//   // if (resultName.value === 'Warning') return 'warning'
-//   return 'info'
-// })
-//
-// const messageKey = computed(() => {
-//   // if (!resultName.value) return 'null'
-//   // if (resultName.value.toLowerCase().includes('error')) return 'error'
-//   // if (resultName.value === 'Warning') return 'warning'
-//   return 'information'
-// })
+    if (subtasks.length === 0) {
+      switch (task.status) {
+        case 'failure':
+          return 'danger'
+        case 'interrupted':
+          return 'warning'
+        case 'success':
+          return 'info'
+        default:
+          return 'info'
+      }
+    }
 
-// const message = computed(() => {
-//   return t(messageKey.value, { n: 1 })
-// })
+    const subStatuses = subtasks.map(evaluate)
+    const allFailure = subStatuses.every(status => status === 'danger')
+    const someFailure = subStatuses.some(status => status === 'danger')
+    const allSuccess = subStatuses.every(status => status === 'info')
 
-useIntervalFn(() => {
-  now.value = new Date()
-}, 60000)
+    if (allFailure) return 'danger'
+    if (someFailure) return 'warning'
+    if (allSuccess) return 'info'
+
+    return 'warning'
+  }
+
+  return evaluate(task)
+})
+
+const generateMessages = (task: Task): any[] => {
+  const counts = { info: 0, danger: 0, warning: 0 }
+
+  const accumulateMessages = (task: Task) => {
+    counts.info += task.infos?.length || 0
+    counts.danger += task.errors?.length || 0
+    counts.warning += task.warnings?.length || 0
+
+    task.subtasks?.forEach(accumulateMessages)
+  }
+
+  accumulateMessages(task)
+
+  return [
+    ...(counts.info > 0 ? [{ type: 'info', message: t('information', { n: counts.info }) }] : []),
+    ...(counts.danger > 0 ? [{ type: 'danger', message: t('error', { n: counts.danger }) }] : []),
+    ...(counts.warning > 0 ? [{ type: 'warning', message: t('warning', { n: counts.warning }) }] : []),
+  ]
+}
+const messageTypes = computed(() => generateMessages(task))
 
 const elapsedTime = computed(() => {
   if (!task.start) return
@@ -102,14 +146,19 @@ const elapsedTime = computed(() => {
 })
 
 const remainingTime = computed(() => {
-  if (!task.end) return
-  const diff = task.end - now.value.getTime()
-  if (diff <= 0) return '0m'
+  if (!task.start || !task.progress) return
 
-  const minutes = Math.floor(diff / 60000) % 60
-  const hours = Math.floor(diff / 3600000)
+  const now = Date.now()
+  const elapsed = now - task.start
 
-  return hours > 0 ? `${hours}h${minutes}m` : `${minutes}m`
+  const total = elapsed / (task.progress / 100)
+  const remaining = total - elapsed
+
+  const minutes = Math.floor(remaining / 60000)
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+
+  return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
 })
 </script>
 
