@@ -10,6 +10,7 @@ export interface Vdi {
   name_description: string
   size: number
   sr: XoSr['id'] | undefined
+  userdevice?: string | null
 }
 
 export interface NetworkInterface {
@@ -17,10 +18,12 @@ export interface NetworkInterface {
   macAddress: string
 }
 
+export type InstallMode = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
+
 export interface VmState {
   affinity_host?: XoHost['id']
   auto_poweron: boolean
-  installMode?: string
+  installMode?: InstallMode
   boot_firmware: string
   boot_vm: boolean
   clone: boolean
