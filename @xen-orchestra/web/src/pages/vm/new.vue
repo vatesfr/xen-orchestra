@@ -33,100 +33,85 @@
           <div v-if="vmState.new_vm_template" class="form-container">
             <!-- INSTALL SETTINGS SECTION -->
             <UiTitle>{{ $t('install-settings') }}</UiTitle>
-            <div>
-              <div v-if="isDiskTemplate" class="install-settings-container">
-                <div class="radio-container">
+            <div class="install-settings-container">
+              <div class="radio-container">
+                <template v-if="isDiskTemplate">
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
                     {{ $t('no-config') }}
                   </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
                     {{ $t('iso-dvd') }}
                   </UiRadioButton>
-
-                  <!-- TODO need to be add later after confirmation -->
-                  <!--
-                    <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
-                      {{ $t('ssh-key') }}
-                    </UiRadioButton>
-                    <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
-                      {{ $t('custom-config') }}
-                    </UiRadioButton>
-                  -->
-                </div>
-                <div v-if="vmState.installMode === 'cdrom'" class="custom-select">
-                  <select v-model="vmState.selectedVdi">
-                    <template v-for="(vdis, srName) in filteredVDIs" :key="srName">
-                      <optgroup :label="srName">
-                        <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
-                          {{ vdi.name_label }}
-                        </option>
-                      </optgroup>
-                    </template>
-                  </select>
-                  <FontAwesomeIcon class="icon" :icon="faAngleDown" />
-                </div>
-                <!-- TODO need to be add later after confirmation -->
-                <!--
-                 <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
-                    <div class="install-chips">
-                      <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
-                        {{ key }}
-                      </UiChip>
-                    </div>
-                    <div class="install-ssh-key">
-                      <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
-                      <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey()">
-                        {{ $t('add') }}
-                      </UiButton>
-                    </div>
-                  </div>
-                  <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
-                    <div>
-                      <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
-                        {{ $t('user-config') }}
-                      </UiTextarea>
-                      <span class="typo p3-regular-italic">
-                        Available template variables <br />
-                        - {name}: the VM's name. - It must not contain "_" <br />
-                        - {index}: the VM's index,<br />
-                        it will take 0 in case of single VM Tip: escape any variable with a preceding backslash (\)
-                      </span>
-                    </div>
-                    <div>
-                      <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="brand" href="''">
-                        {{ $t('network-config') }}
-                      </UiTextarea>
-                      <span class="typo p3-regular-italic">
-                        Network configuration is only compatible with the NoCloud datasource. <br />
-
-                        See Network config documentation.
-                      </span>
-                    </div>
-                  </div>
-                  -->
-              </div>
-              <div v-else class="install-settings-container">
-                <div class="radio-container">
+                </template>
+                <template v-else>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="network">
                     {{ t('pxe') }}
                   </UiRadioButton>
-                </div>
-                <div v-if="vmState.installMode === 'cdrom'" class="custom-select">
-                  <select v-model="vmState.selectedVdi">
-                    <template v-for="(vdis, srName) in filteredVDIs" :key="srName">
-                      <optgroup :label="srName">
-                        <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
-                          {{ vdi.name_label }}
-                        </option>
-                      </optgroup>
-                    </template>
-                  </select>
-                  <FontAwesomeIcon class="icon" :icon="faAngleDown" />
-                </div>
+                </template>
+                <!-- TODO need to be add later after confirmation -->
+                <!--
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
+                    {{ $t('ssh-key') }}
+                  </UiRadioButton>
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
+                    {{ $t('custom-config') }}
+                  </UiRadioButton>
+                -->
               </div>
+              <div v-if="vmState.installMode === 'cdrom'" class="custom-select">
+                <select v-model="vmState.selectedVdi">
+                  <template v-for="(vdis, srName) in filteredVDIs" :key="srName">
+                    <optgroup :label="srName">
+                      <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
+                        {{ vdi.name_label }}
+                      </option>
+                    </optgroup>
+                  </template>
+                </select>
+                <FontAwesomeIcon class="icon" :icon="faAngleDown" />
+              </div>
+              <!-- TODO need to be add later after confirmation -->
+              <!--
+               <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
+                  <div class="install-chips">
+                    <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
+                      {{ key }}
+                    </UiChip>
+                  </div>
+                  <div class="install-ssh-key">
+                    <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
+                    <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey()">
+                      {{ $t('add') }}
+                    </UiButton>
+                  </div>
+                </div>
+                <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
+                  <div>
+                    <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
+                      {{ $t('user-config') }}
+                    </UiTextarea>
+                    <span class="typo p3-regular-italic">
+                      Available template variables <br />
+                      - {name}: the VM's name. - It must not contain "_" <br />
+                      - {index}: the VM's index,<br />
+                      it will take 0 in case of single VM Tip: escape any variable with a preceding backslash (\)
+                    </span>
+                  </div>
+                  <div>
+                    <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="brand" href="''">
+                      {{ $t('network-config') }}
+                    </UiTextarea>
+                    <span class="typo p3-regular-italic">
+                      Network configuration is only compatible with the NoCloud datasource. <br />
+
+                      See Network config documentation.
+                    </span>
+                  </div>
+                </div>
+                -->
             </div>
             <!-- SYSTEM SECTION -->
             <UiTitle>{{ $t('system') }}</UiTitle>
