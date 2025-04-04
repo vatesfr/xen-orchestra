@@ -6,7 +6,6 @@
       class="ui-tree-item-label"
       v-bind="attrs"
     >
-      {{ depth }}
       <template v-if="depth > 0">
         <VtsTreeLine
           v-for="i in depth - 1"
