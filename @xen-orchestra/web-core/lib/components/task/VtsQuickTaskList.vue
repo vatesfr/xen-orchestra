@@ -15,7 +15,8 @@
 
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
-import UiQuickTaskItem, { type Task } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
+import UiQuickTaskItem from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
+import type { Task } from '@core/types/task.type.ts'
 
 defineProps<{
   tasks: Task[]
