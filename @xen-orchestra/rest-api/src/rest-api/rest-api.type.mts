@@ -45,7 +45,7 @@ export type XoApp = {
     opts?: { bypassOtp?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   getAllXenServers(): Promise<XoServer[]>
-  getObject: <T extends XapiXoRecord>(id: T['id'], type: T['type']) => T
+  getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type']) => T
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],
     opts?: { filter?: string; limit?: number }
