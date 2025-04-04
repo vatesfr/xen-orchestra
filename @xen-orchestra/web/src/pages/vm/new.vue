@@ -419,7 +419,7 @@ import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
-import { type NetworkInterface, type Vdi, type VmState } from '@/types/xo/new-vm.type'
+import type { NetworkInterface, Vdi, VmState } from '@/types/xo/new-vm.type'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { Branded } from '@core/types/utility.type'
@@ -609,7 +609,7 @@ const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
 })
 
-const getVdis = (template: XoVmTemplate) =>
+const getVmTemplateVdis = (template: XoVmTemplate) =>
   (template.template_info?.disks ?? []).map((disk, index) => ({
     name_label: `${vmState?.name || 'disk'}_${index}_${generateRandomString(4)}`,
     name_description: 'Created by XO',
@@ -717,7 +717,7 @@ const addNetworkInterface = () => {
 }
 
 // const allVdisHaveSr = computed(() => {
-//   const existingVDIs = getVdis(vmState.new_vm_template)
+//   const existingVDIs = getVmTemplateVdis(vmState.new_vm_template)
 //   return existingVDIs.every(vdi => vdi.sr.length > 0)
 // })
 
@@ -762,7 +762,7 @@ const onTemplateChange = () => {
     ram: memory.dynamic[1],
     tags,
     vCPU: CPUs.number,
-    vdis: getVdis(template),
+    vdis: getVmTemplateVdis(template),
     existingVdis: getExistingVdis(template),
     networkInterfaces: getExistingInterface(template),
   })
