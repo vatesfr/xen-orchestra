@@ -209,6 +209,28 @@ export type XoHostPatch = BaseXapiXo & {
   type: 'host_patch'
 }
 
+export type XoMessage = BaseXapiXo & {
+  $object: XapiXoRecord['id']
+
+  body: string
+  id: Branded<'message'>
+  name: string
+  time: number
+  type: 'message'
+}
+
+export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
+  body: {
+    value: string
+    name: string
+  }
+  object: {
+    type: XapiXoRecord['type'] | 'unknown'
+    uuid: XapiXoRecord['uuid']
+    href?: string
+  }
+}
+
 export type XoPbd = BaseXapiXo & {
   id: Branded<'PBD'>
   type: 'PBD'
@@ -387,7 +409,9 @@ export type XoVtpm = BaseXapiXo & {
 }
 
 export type XapiXoRecord =
+  | XoAlarm
   | XoHost
+  | XoMessage
   | XoPool
   | XoSr
   | XoVbd
