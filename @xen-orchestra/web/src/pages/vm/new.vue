@@ -36,10 +36,10 @@
             <div>
               <div v-if="isDiskTemplate" class="install-settings-container">
                 <div class="radio-container">
-                  <UiRadioButton v-model="installMethod" accent="brand" value="no-config">
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
                     {{ $t('no-config') }}
                   </UiRadioButton>
-                  <UiRadioButton v-model="installMethod" accent="brand" value="cdrom">
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
                     {{ $t('iso-dvd') }}
                   </UiRadioButton>
 
@@ -53,8 +53,8 @@
                     </UiRadioButton>
                   -->
                 </div>
-                <div v-if="installMethod === 'cdrom'" class="custom-select">
-                  <select v-model="installMode.repository">
+                <div v-if="vmState.installMode === 'cdrom'" class="custom-select">
+                  <select v-model="vmState.selectedVdi">
                     <template v-for="(vdis, srName) in filteredVDIs" :key="srName">
                       <optgroup :label="srName">
                         <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
@@ -107,15 +107,15 @@
               </div>
               <div v-else class="install-settings-container">
                 <div class="radio-container">
-                  <UiRadioButton v-model="installMethod" accent="brand" value="cdrom">
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
-                  <UiRadioButton v-model="installMethod" accent="brand" value="network">
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="network">
                     {{ t('pxe') }}
                   </UiRadioButton>
                 </div>
-                <div v-if="installMethod === 'cdrom'" class="custom-select">
-                  <select v-model="installMode.repository">
+                <div v-if="vmState.installMode === 'cdrom'" class="custom-select">
+                  <select v-model="vmState.selectedVdi">
                     <template v-for="(vdis, srName) in filteredVDIs" :key="srName">
                       <optgroup :label="srName">
                         <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
@@ -479,52 +479,10 @@ const { get: getVdi } = useVdiStore().subscribe()
 const { get: getVif } = useVifStore().subscribe()
 const { hostsByPool } = useHostStore().subscribe()
 
-// INSTALL METHOD
-type InstallMethod = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
-
-interface InstallMode {
-  method: InstallMethod
-  repository: string | undefined
-}
-
-const useInstallMode = () => {
-  const installMode = reactive<InstallMode>({
-    method: undefined,
-    repository: undefined,
-  })
-
-  const resetInstallMethod = () => {
-    installMode.method = undefined
-    installMode.repository = undefined
-  }
-
-  const setInstallMethod = (method: InstallMethod) => {
-    resetInstallMethod()
-    installMode.method = method
-
-    if (method === 'network') {
-      installMode.repository = ' '
-    }
-  }
-
-  return {
-    installMode,
-    setInstallMethod,
-    resetInstallMethod,
-  }
-}
-
-const { installMode, setInstallMethod, resetInstallMethod } = useInstallMode()
-
-const installMethod = computed({
-  get: () => installMode.method,
-  set: (value: InstallMethod) => setInstallMethod(value),
-})
-
 const vmState = reactive<VmState>({
   name: '',
   description: '',
-  installMode: '',
+  installMode: undefined,
   affinity_host: undefined,
   boot_firmware: '',
   new_vm_template: undefined,
@@ -659,7 +617,7 @@ const getVdis = (template: XoVmTemplate) =>
     sr: defaultSr.value,
   }))
 
-const getExistingDisks = (template: XoVmTemplate) => {
+const getExistingVdis = (template: XoVmTemplate) => {
   return template.$VBDs.reduce<Vdi[]>((acc, vbdId) => {
     const _vbd = getVbd(vbdId)
 
@@ -678,7 +636,8 @@ const getExistingDisks = (template: XoVmTemplate) => {
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.size),
-      sr: vdi.$SR || defaultSr.value,
+      sr: vdi.$SR,
+      userdevice: _vbd.device,
     })
 
     return acc
@@ -687,19 +646,19 @@ const getExistingDisks = (template: XoVmTemplate) => {
 
 const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
-const getDefaultNetworks = (template?: XoVmTemplate): XoNetwork[] => {
-  if (!template || !vmState.pool) return []
+const getDefaultNetwork = (template?: XoVmTemplate): XoNetwork | undefined => {
+  if (!template || !vmState.pool) {
+    return undefined
+  }
 
   const automaticNetwork = automaticNetworks.value.find(network => network.$pool === vmState.pool?.id)
   if (automaticNetwork) {
-    return [automaticNetwork]
+    return automaticNetwork
   }
 
-  const foundNetwork = networks.value.find(
+  return networks.value.find(
     network => network.$pool === vmState.pool?.id && getPifsByNetworkId(network.id)?.every(pif => pif.management)
   )
-
-  return foundNetwork ? [foundNetwork] : []
 }
 
 const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
@@ -728,8 +687,11 @@ const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
     }, [])
   }
 
-  const defaultNetwork = getDefaultNetworks(template)[0]
-  if (!defaultNetwork) return []
+  const defaultNetwork = getDefaultNetwork(template)
+
+  if (defaultNetwork === undefined) {
+    return []
+  }
 
   const pif = getPif(defaultNetwork.PIFs[0] as Branded<'pif'>)
   const defaultMac = pif?.mac || ' '
@@ -740,7 +702,7 @@ const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
 const addNetworkInterface = () => {
   if (!vmState.new_vm_template) return
 
-  const defaultNetwork = getDefaultNetworks(vmState.new_vm_template)[0]
+  const defaultNetwork = getDefaultNetwork(vmState.new_vm_template)
 
   if (defaultNetwork === undefined) {
     console.error('Default network not found')
@@ -761,13 +723,28 @@ const addNetworkInterface = () => {
 
 const hasInvalidSrVdi = computed(() => vmState.vdis.some(vdi => vdi.sr === undefined))
 
+const hasInstallSettings = computed(() => {
+  switch (vmState.installMode) {
+    case 'no-config':
+      return true
+    case 'network':
+      return true
+    case 'cdrom':
+      return !!vmState.selectedVdi
+    default:
+      return false
+  }
+})
+
+const hasVdis = computed(() => vmState.vdis.length > 0 || vmState.existingVdis.length > 0)
+
 const isCreateVmDisabled = computed(() => {
   return (
     isBusy.value ||
     !vmState.new_vm_template ||
     !vmState.name.length ||
-    !installMode.method ||
-    (installMode.method === 'cdrom' && installMode.repository === '') ||
+    !hasInstallSettings.value ||
+    !hasVdis.value ||
     hasInvalidSrVdi.value
   )
 })
@@ -775,8 +752,6 @@ const isCreateVmDisabled = computed(() => {
 const onTemplateChange = () => {
   const template = vmState.new_vm_template
   if (!template) return
-
-  resetInstallMethod()
 
   const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
 
@@ -788,7 +763,7 @@ const onTemplateChange = () => {
     tags,
     vCPU: CPUs.number,
     vdis: getVdis(template),
-    existingVdis: getExistingDisks(template),
+    existingVdis: getExistingVdis(template),
     networkInterfaces: getExistingInterface(template),
   })
 }
@@ -800,11 +775,14 @@ const redirectToHome = () => {
 const vmData = computed(() => {
   const optionalFields = {
     ...(vmState.affinity_host && { affinity: vmState.affinity_host }),
-    ...(installMode.method && installMode.method !== 'no-config' && { install: installMode }),
-    ...(installMode.method === 'custom_config' && {
-      ...(vmState.cloudConfig && { cloud_config: vmState.cloudConfig }),
-      ...(vmState.networkConfig && { network_config: vmState.networkConfig }),
+    ...(vmState.installMode !== 'no-config' && {
+      install: { method: vmState.installMode, repository: vmState.selectedVdi },
     }),
+    // TODO: uncomment when radio will be implemented
+    // ...(vmState.installMode === 'custom_config' && {
+    //   ...(vmState.cloudConfig && { cloud_config: vmState.cloudConfig }),
+    //   ...(vmState.networkConfig && { network_config: vmState.networkConfig }),
+    // }),
   }
   const templateVifs = vmState.new_vm_template?.VIFs
 
