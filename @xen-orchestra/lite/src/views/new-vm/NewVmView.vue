@@ -158,6 +158,7 @@
                         {{ host?.name_label }}
                       </option>
                     </FormSelect>
+                    <!-- TODO remove this button when new selector is available -->
                     <UiButtonIcon
                       size="medium"
                       accent="brand"
