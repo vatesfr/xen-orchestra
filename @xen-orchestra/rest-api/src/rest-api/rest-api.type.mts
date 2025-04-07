@@ -49,10 +49,10 @@ export type XoApp = {
   getAllSchedules(): Promise<XoSchedule[]>
   getAllXenServers(): Promise<XoServer[]>
   getJob(id: XoJob['id']): Promise<XoJob>
-  getObject: <T extends XapiXoRecord>(id: T['id'], type: T['type']) => T
+  getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type']) => T
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],
-    opts?: { filter?: string; limit?: number }
+    opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
   ) => Record<T['id'], T>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>

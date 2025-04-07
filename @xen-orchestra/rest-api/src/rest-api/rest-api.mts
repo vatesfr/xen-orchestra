@@ -21,7 +21,7 @@ export class RestApi {
     return this.#xoApp.authenticateUser(...args)
   }
 
-  getObject<T extends XapiXoRecord>(id: T['id'], type: T['type']) {
+  getObject<T extends XapiXoRecord>(id: T['id'], type?: T['type']) {
     return this.#xoApp.getObject(id, type)
   }
 
