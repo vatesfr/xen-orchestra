@@ -432,6 +432,7 @@
   "tags": "Tags",
   "task.estimated-end": "Fin estimée",
   "task.estimated-end-in": "Fin estimée dans {time}",
+  "task.finished-ago": "Fini depuis {time} ago",
   "task.progress": "Progression",
   "task.started": "Démarré",
   "task.started-ago": "Démarré depuis {time}",

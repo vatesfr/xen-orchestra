@@ -8,6 +8,7 @@ export const convertTaskToCore = (task: XoTask): CoreTask => ({
   tag: task.properties.type,
   start: task.start,
   end: task.end,
+  userId: task.properties.userId ?? undefined,
   infos: task.infos ?? undefined,
   errors: task.errors ?? undefined,
   warnings: task.warnings ?? undefined,

@@ -1,3 +1,4 @@
+import type { Message } from '@core/types/task.type.ts'
 import type { Branded } from '@core/types/utility.type'
 
 export type XoTask = {
@@ -18,7 +19,7 @@ export type XoTask = {
   }
   status: 'pending' | 'success' | 'failure' | 'interrupted'
   tasks?: XoTask[]
-  infos?: { message: string }[]
-  errors?: { message: string }[]
-  warnings?: { message: string }[]
+  infos?: Message[]
+  errors?: Message[]
+  warnings?: Message[]
 }

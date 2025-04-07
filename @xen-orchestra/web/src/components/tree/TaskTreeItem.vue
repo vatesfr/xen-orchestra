@@ -1,7 +1,6 @@
 <template>
   <VtsTreeItem :expanded="branch.isExpanded">
     <UiTreeItemLabel :route="`/task/${branch.data.id}`" @toggle="branch.toggleExpand()">
-      <!--      {{ branch.data.properties.name }} -->
       <UiTaskItem :task="branch.data" :user="user" />
     </UiTreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
@@ -13,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-// import { useUserStore } from '@/stores/xo-rest-api/user.store.ts'
+import { useUserStore } from '@/stores/xo-rest-api/user.store.ts'
 import type { TaskBranch } from '@/types/tree.type.ts'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
@@ -25,13 +24,9 @@ const { branch } = defineProps<{
   branch: TaskBranch
 }>()
 
-// const { records } = useUserStore().subscribe()
+const { records } = useUserStore().subscribe()
 
-const user = computed(() => {
-  // const userId = branch.data.properties.userId
-  // if (!userId) return
-  // const user = records.value.find(user => user.id === userId)
-  // return user ? user?.name || user.email : 'Not Found'
-  return 'user'
-})
+const user = computed(() =>
+  branch.data.userId ? records.value.find(user => user.id === branch.data.userId)?.email : undefined
+)
 </script>

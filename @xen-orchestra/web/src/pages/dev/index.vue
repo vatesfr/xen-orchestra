@@ -4,7 +4,7 @@
   </VtsTreeList>
   <NoResults v-else-if="tasks.length === 0" />
   <div v-else>
-    <TaskTreeItem v-for="task in tasks" :key="task" :branch="task" />
+    <TaskTreeItem v-for="task in tasks" :key="task.id" :branch="task" />
   </div>
 </template>
 
