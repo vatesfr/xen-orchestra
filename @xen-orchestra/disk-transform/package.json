@@ -7,6 +7,7 @@
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^9.19.0",
+    "rimraf": "^5.0.1",
     "@types/node": "^22.3.0",
     "typescript": "~5.6",
     "typescript-eslint": "^8.23.0"
@@ -15,7 +16,8 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
-    "test": "tsc && node --test **/*.test.mjs"
+    "test": "tsc && node --test **/*.test.mjs",
+    "clean": "rimraf dist/"
   },
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/disk-transform",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
@@ -32,6 +34,7 @@
     "node": ">=20.17"
   },
   "dependencies": {
-    "vhd-lib": "^4.11.2"
+    "vhd-lib": "^4.11.2",
+    "@vates/generator-toolbox": "^1.0.1"
   }
 }
