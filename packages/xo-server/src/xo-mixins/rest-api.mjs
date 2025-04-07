@@ -606,6 +606,7 @@ export default class RestApi {
     const swaggerEndpoints = {
       alarms: {},
       docs: {},
+      messages: {},
       vifs: {},
       vms: {
         actions: {
@@ -1036,26 +1037,6 @@ export default class RestApi {
       },
     }
     collections.dashboard = {}
-    collections.messages = {
-      getObject(id) {
-        const message = app.getObject(id, 'message')
-        if (isAlarm(message)) {
-          throw noSuchObject(id, 'message')
-        }
-
-        return message
-      },
-      getObjects(filter, limit) {
-        return handleArray(
-          Object.values(
-            app.getObjects({
-              filter: every(keepNonAlarmMessages, filter),
-              limit,
-            })
-          )
-        )
-      },
-    }
 
     // normalize collections
     for (const id of Object.keys(collections)) {
