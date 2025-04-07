@@ -520,7 +520,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
 
 const THIRTY_DAYS = Date.now() - 30 * 24 * 60 * 60 * 1000
 
-addSubscriptions({
+@addSubscriptions({
   schedules: cb =>
     subscribeSchedules(schedules => {
       cb(keyBy(schedules, 'id'))
@@ -556,21 +556,6 @@ addSubscriptions({
   const getOrphanVmSnapshots = createGetObjectsOfType('VM-snapshot')
     .filter([snapshot => !snapshot.$snapshot_of])
     .sort()
-  const getOldSnapshots = createSelector(
-    createGetObjectsOfType('VM-snapshot'),
-    (_, props) => props.schedules,
-    (snapshots, schedules) => {
-      return Object.values(snapshots).filter(snapshot => {
-        const isOld = snapshot.snapshot_time * 1000 < THIRTY_DAYS
-        if (!isOld) return false
-
-        const scheduleId = snapshot.other?.['xo:backup:schedule']
-        const schedule = scheduleId !== undefined ? schedules?.[scheduleId] : undefined
-
-        return !schedule?.enabled
-      })
-    }
-  )
   const getVms = createGetObjectsOfType('VM')
   const MAX_HEALTHY_SNAPSHOT_COUNT = 5
   const getTooManySnapshotsVms = getVms.filter([vm => vm.snapshots.length > MAX_HEALTHY_SNAPSHOT_COUNT]).sort()
@@ -603,7 +588,7 @@ addSubscriptions({
     hosts: createGetObjectsOfType('host'),
     orphanVdis: getOrphanVdis,
     orphanVmSnapshots: getOrphanVmSnapshots,
-    oldSnapshots: getOldSnapshots,
+    snapshots: createGetObjectsOfType('VM-snapshot'),
     pools: createGetObjectsOfType('pool'),
     tooManySnapshotsVms: getTooManySnapshotsVms,
     guestToolsVms: getGuestToolsVms,
@@ -706,7 +691,20 @@ export default class Health extends Component {
 
   _getOrphanVmSnapshots = createFilter(() => this.props.orphanVmSnapshots, this._getPoolPredicate)
 
-  _getOldSnapshots = createFilter(() => this.props.oldSnapshots, this._getPoolPredicate)
+  _getOldSnapshots = createSelector(
+    () => this.props.snapshots,
+    () => this.props.schedules,
+    (snapshots, schedules) =>
+      Object.values(snapshots).filter(snapshot => {
+        const isOld = snapshot.snapshot_time * 1000 < THIRTY_DAYS
+        if (!isOld) return false
+
+        const scheduleId = snapshot.other?.['xo:backup:schedule']
+        const schedule = scheduleId !== undefined ? schedules?.[scheduleId] : undefined
+
+        return !schedule?.enabled
+      })
+  )
 
   _getTooManySnapshotsVms = createFilter(() => this.props.tooManySnapshotsVms, this._getPoolPredicate)
 
