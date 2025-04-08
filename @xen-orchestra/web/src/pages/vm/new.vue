@@ -758,6 +758,8 @@ const onTemplateChange = () => {
     vdis: getVmTemplateVdis(template),
     existingVdis: getExistingVdis(template),
     networkInterfaces: getExistingInterface(template),
+    selectedVdi: undefined,
+    installMode: undefined,
   })
 }
 
@@ -782,7 +784,7 @@ function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
 }
 
 const modifiedExistingVdis = computed(() => {
-  return vmState.existingVdis.reduce((acc, vdi, index) => {
+  return vmState.existingVdis.reduce<Partial<Vdi>[]>((acc, vdi, index) => {
     const defaultVdi = defaultExistingVdis.value[index]
     const changes = getExistingVdisDiff(defaultVdi, vdi)
 
@@ -791,7 +793,7 @@ const modifiedExistingVdis = computed(() => {
     }
 
     return acc
-  }, [] as Partial<Vdi>[])
+  }, [])
 })
 
 const vmData = computed(() => {
@@ -805,7 +807,10 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vmState.affinity_host && { affinity: vmState.affinity_host },
     vmState.installMode !== 'no-config' && {
-      install: { method: vmState.installMode, repository: vmState.selectedVdi },
+      install: {
+        method: vmState.installMode,
+        repository: vmState.installMode === 'network' ? ' ' : vmState.selectedVdi,
+      },
     }
     // TODO: uncomment when radio will be implemented
     // ...(vmState.installMode === 'custom_config' && {
