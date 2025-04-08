@@ -44,12 +44,14 @@ export type XoApp = {
     userData?: { ip?: string },
     opts?: { bypassOtp?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
+  getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getObject: <T extends XapiXoRecord>(id: T['id'], type: T['type']) => T
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],
     opts?: { filter?: string; limit?: number }
   ) => Record<T['id'], T>
+  getUser: (id: XoUser['id']) => Promise<XoUser>
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
