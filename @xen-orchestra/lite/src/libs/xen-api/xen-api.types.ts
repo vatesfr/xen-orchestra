@@ -103,6 +103,7 @@ export type RawXenApiRecord<T extends XenApiRecord<ObjectType>> = Omit<T, '$ref'
 
 export interface XenApiPool extends XenApiRecord<'pool'> {
   cpu_info: {
+    socket_count: string
     cpu_count: string
   }
   master: XenApiHost['$ref']

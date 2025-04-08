@@ -33,7 +33,7 @@ export interface VmState {
   vCPU: number
   VCPUs_max: number
   ram: number
-  topology: string
+  topology: null
   copyHostBiosStrings: boolean
   sshKeys: string[]
   existingVdis: Vdi[]
