@@ -83,8 +83,8 @@ const circleProgress = computed(() => {
 })
 
 const taskIsComplete = computed(() => {
-  if (!task.progress) return
-  return task.progress === 100
+  if (!task.end || !task.start) return
+  return task.end >= task.start || task.progress === 100
 })
 
 const getEffectiveStatus = computed<CircleProgressBarAccent>(() => {
@@ -158,7 +158,6 @@ const generateMessages = (task: Task) => {
   ]
 }
 const messageTypes = computed(() => generateMessages(task))
-// console.log('messageTypes', messageTypes.value)
 
 const formatElapsed = (timestamp: number) => {
   const diff = now.value.getTime() - timestamp
