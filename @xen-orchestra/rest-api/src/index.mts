@@ -15,6 +15,30 @@ const swaggerOpenApiSpec = require('../open-api/spec/swagger.json')
 
 export const BASE_URL = '/rest/v0'
 
+const SWAGGER_UI_OPTIONS = {
+  swaggerOptions: {
+    displayRequestDuration: true,
+    docExpansion: 'none', // collapse all tags by default
+    filter: true, // add a tags searchbar,
+    tagsSorter: 'alpha',
+    operationsSorter: (prev: Map<string, string>, next: Map<string, string>) => {
+      // sort endpoints inside a tag alphabetically > HTTP verb
+
+      const pathComparison = prev.get('path')!.localeCompare(next.get('path')!)
+      if (pathComparison !== 0) {
+        return pathComparison
+      }
+
+      const METHOD_ORDER = { get: 1, post: 2, put: 3, delete: 4, patch: 5 }
+      const prevMethod = METHOD_ORDER[prev.get('method')!]
+      const nextMethod = METHOD_ORDER[next.get('method')!]
+
+      return prevMethod - nextMethod
+    },
+    requestSnippetsEnabled: true, // add more snippets (bash, PowerShell, CMD)
+  },
+}
+
 export default function setupRestApi(express: Express, xoApp: XoApp) {
   setupContainer(xoApp)
   RegisterRoutes(express)
@@ -22,7 +46,7 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   // do not register the doc at the root level, or it may lead to unwated behaviour
   // uncomment when all endpoints are migrated to this API
   // express.get('/rest/v0', (_req, res) => res.redirect('/rest/v0/docs'))
-  express.use(`${BASE_URL}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec))
+  express.use(`${BASE_URL}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec, SWAGGER_UI_OPTIONS))
 
   express.use(BASE_URL, tsoaToXoErrorHandler)
   express.use(BASE_URL, genericErrorHandler)
