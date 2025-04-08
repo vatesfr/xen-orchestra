@@ -91,6 +91,7 @@ import {
   getResolvedResourceSets,
   getUser,
 } from 'selectors'
+import { CURRENT as XOA_PLAN, ENTERPRISE } from 'xoa-plans'
 
 import styles from './index.css'
 
@@ -1914,10 +1915,15 @@ export default class NewVm extends BaseComponent {
                     <span className='mr-1'>{_('vmAcls')}</span>
                     <ActionButton
                       btnStyle='primary'
+                      disabled={XOA_PLAN.value < ENTERPRISE.value}
                       handler={this._addAcls}
                       icon='add'
                       size='small'
-                      tooltip={_('vmAddAcls')}
+                      tooltip={
+                        XOA_PLAN.value < ENTERPRISE.value
+                          ? _('availableXoaPlan', { plan: ENTERPRISE.name })
+                          : _('vmAddAcls')
+                      }
                     />
                   </Col>
                 </Row>

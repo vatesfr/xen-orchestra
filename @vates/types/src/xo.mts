@@ -8,6 +8,7 @@ import type {
   STORAGE_OPERATIONS,
   VDI_OPERATIONS,
   VDI_TYPE,
+  VIF_LOCKING_MODE,
   VM_OPERATIONS,
   VM_POWER_STATE,
 } from './common.mjs'
@@ -209,6 +210,11 @@ export type XoHostPatch = BaseXapiXo & {
   type: 'host_patch'
 }
 
+export type XoNetwork = BaseXapiXo & {
+  id: Branded<'network'>
+  type: 'network'
+}
+
 export type XoPbd = BaseXapiXo & {
   id: Branded<'PBD'>
   type: 'PBD'
@@ -341,7 +347,24 @@ export type XoVgpu = BaseXapiXo & {
 }
 
 export type XoVif = BaseXapiXo & {
+  $VM: XoVm['id']
+
+  $network: XoNetwork['id']
+
+  allowedIpv4Addresses: string[]
+  allowedIpv6Addresses: string[]
+  attached: boolean
+  device: string
   id: Branded<'VIF'>
+  lockingMode: VIF_LOCKING_MODE
+  MAC: string
+  MTU: number
+  other_config: Record<string, string>
+  /**
+   * In kB/s
+   */
+  rateLimit?: number
+  txChecksumming: boolean
   type: 'VIF'
 }
 
@@ -388,6 +411,7 @@ export type XoVtpm = BaseXapiXo & {
 
 export type XapiXoRecord =
   | XoHost
+  | XoNetwork
   | XoPool
   | XoSr
   | XoVbd
