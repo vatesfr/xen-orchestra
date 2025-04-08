@@ -604,13 +604,13 @@ const getVmTemplateVdis = (template: XoVmTemplate) =>
 
 const getExistingVdis = (template: XoVmTemplate) => {
   return template.$VBDs.reduce<Vdi[]>((acc, vbdId) => {
-    const _vbd = getVbd(vbdId)
+    const vbd = getVbd(vbdId)
 
-    if (_vbd === undefined || _vbd.is_cd_drive) {
+    if (vbd === undefined || vbd.is_cd_drive) {
       return acc
     }
 
-    const vdi = getVdi(_vbd.VDI)
+    const vdi = getVdi(vbd.VDI)
 
     if (vdi === undefined) {
       console.error('VDI not found')
@@ -622,12 +622,20 @@ const getExistingVdis = (template: XoVmTemplate) => {
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.size),
       sr: vdi.$SR,
-      userdevice: _vbd.device,
+      userdevice: vbd.position,
     })
 
     return acc
   }, [])
 }
+
+const defaultExistingVdis = computed(() => {
+  if (vmState.new_vm_template === undefined) {
+    return []
+  }
+
+  return getExistingVdis(vmState.new_vm_template)
+})
 
 const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
@@ -757,18 +765,56 @@ const redirectToHome = () => {
   router.push({ name: '/' })
 }
 
+function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
+  const changes: Record<string, unknown> = {}
+  let hasChanged = false
+
+  for (const _key in vdi1) {
+    const key = _key as keyof Vdi
+
+    if (!Object.prototype.hasOwnProperty.call(vdi1, key) || !Object.prototype.hasOwnProperty.call(vdi2, key)) {
+      continue
+    }
+
+    if (vdi1[key] !== vdi2[key]) {
+      hasChanged = true
+      changes[key] = vdi2[key]
+    }
+  }
+
+  return hasChanged ? (changes as Partial<Vdi>) : undefined
+}
+
+const modifiedExistingVdis = computed(() => {
+  return vmState.existingVdis.flatMap((vdi, index) => {
+    const defaultVdi = defaultExistingVdis.value[index]
+
+    const changes = getExistingVdisDiff(defaultVdi, vdi)
+
+    return changes ? { ...changes, userdevice: vdi.userdevice } : []
+  })
+})
+
 const vmData = computed(() => {
-  const optionalFields = {
-    ...(vmState.affinity_host && { affinity: vmState.affinity_host }),
-    ...(vmState.installMode !== 'no-config' && {
+  const vdisToSend = [...vmState.vdis, ...modifiedExistingVdis.value].map(vdi => ({
+    ...vdi,
+    ...(vdi.size && { size: giBToBytes(vdi.size) }),
+  }))
+
+  const optionalFields = Object.assign(
+    {},
+    vdisToSend.length > 0 && { vdis: vdisToSend },
+    vmState.affinity_host && { affinity: vmState.affinity_host },
+    vmState.installMode !== 'no-config' && {
       install: { method: vmState.installMode, repository: vmState.selectedVdi },
-    }),
+    }
     // TODO: uncomment when radio will be implemented
     // ...(vmState.installMode === 'custom_config' && {
     //   ...(vmState.cloudConfig && { cloud_config: vmState.cloudConfig }),
     //   ...(vmState.networkConfig && { network_config: vmState.networkConfig }),
     // }),
-  }
+  )
+
   const templateVifs = vmState.new_vm_template?.VIFs
 
   return {
@@ -779,10 +825,6 @@ const vmData = computed(() => {
     name_description: vmState.description,
     name_label: vmState.name,
     template: vmState.new_vm_template?.uuid,
-    vdis: [...vmState.vdis, ...vmState.existingVdis].map(vdi => ({
-      ...vdi,
-      size: giBToBytes(vdi.size),
-    })),
     // Todo: Handle in case we have less networks interfaces than templates vifs
     vifs: vmState.networkInterfaces.map((net, index) => {
       let device

@@ -8,4 +8,5 @@ export type XoVbd = {
   name_description: string
   VDI: XoVdi['id']
   is_cd_drive: boolean
+  position: string
 }
