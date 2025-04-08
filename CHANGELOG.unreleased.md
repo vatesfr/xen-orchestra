@@ -14,6 +14,8 @@
 - **Migrated REST API endpoints**:
   - `/rest/v0/vifs` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
   - `/rest/v0/vifs/<vif-id>` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
+  - `/rest/v0/users` (PR [#8494](https://github.com/vatesfr/xen-orchestra/pull/8494))
+  - `/rest/v0/users/<user-id>` (PR [#8494](https://github.com/vatesfr/xen-orchestra/pull/8494))
 
 ### Bug fixes
 
