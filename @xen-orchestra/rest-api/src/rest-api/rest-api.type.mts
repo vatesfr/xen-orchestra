@@ -3,6 +3,7 @@ import type { Task } from '@vates/types/lib/vates/task'
 import type { XapiHostStats, XapiVmStats, XapiStatsGranularity } from '@vates/types/common'
 import type {
   XenApiHostWrapped,
+  XenApiNetwork,
   XenApiPoolWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
@@ -16,6 +17,7 @@ import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm } from '@vates/types/
 
 type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
+  network: XenApiNetwork
   pool: XenApiPoolWrapped
   SR: XenApiSrWrapped
   VBD: XenApiVbdWrapped

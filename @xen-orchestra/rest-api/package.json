@@ -16,14 +16,18 @@
   },
   "scripts": {
     "build": "tsoa spec-and-routes && tsc",
+    "clean": "rimraf dist/ open-api/spec/ src/open-api/routes",
     "dev": "tsoa spec-and-routes && tsc --watch",
     "prepublishOnly": "npm run build",
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "prebuild": "npm run clean",
+    "predev": "npm run clean"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
     "@types/express": "^5.0.0",
     "@types/swagger-ui-express": "^4.1.7",
+    "rimraf": "^6.0.1",
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.23.0"
   },
