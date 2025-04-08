@@ -10,7 +10,7 @@ export interface Vdi {
   name_description: string
   size: number
   sr: XoSr['id'] | undefined
-  userdevice?: string | null
+  userdevice?: string
 }
 
 export interface NetworkInterface {

@@ -772,10 +772,6 @@ function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
   for (const _key in vdi1) {
     const key = _key as keyof Vdi
 
-    if (!Object.prototype.hasOwnProperty.call(vdi1, key) || !Object.prototype.hasOwnProperty.call(vdi2, key)) {
-      continue
-    }
-
     if (vdi1[key] !== vdi2[key]) {
       hasChanged = true
       changes[key] = vdi2[key]
@@ -786,13 +782,16 @@ function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
 }
 
 const modifiedExistingVdis = computed(() => {
-  return vmState.existingVdis.flatMap((vdi, index) => {
+  return vmState.existingVdis.reduce((acc, vdi, index) => {
     const defaultVdi = defaultExistingVdis.value[index]
-
     const changes = getExistingVdisDiff(defaultVdi, vdi)
 
-    return changes ? { ...changes, userdevice: vdi.userdevice } : []
-  })
+    if (changes) {
+      acc.push({ ...changes, userdevice: vdi.userdevice })
+    }
+
+    return acc
+  }, [] as Partial<Vdi>[])
 })
 
 const vmData = computed(() => {

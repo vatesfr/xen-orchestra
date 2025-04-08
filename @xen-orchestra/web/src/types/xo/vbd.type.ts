@@ -2,7 +2,6 @@ import type { XoVdi } from '@/types/xo/vdi.type'
 import type { Branded } from '@core/types/utility.type'
 
 export type XoVbd = {
-  device: string | null
   id: Branded<'vbd'>
   name_label: string
   name_description: string
