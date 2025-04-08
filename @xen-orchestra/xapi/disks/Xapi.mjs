@@ -7,11 +7,10 @@ import { DiskPassthrough } from '@xen-orchestra/disk-transform'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiVhdStreamNbdSource } from './XapiVhdStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
+import { createLogger } from '@xen-orchestra/log'
 
-// const { createLogger } = require('@xen-orchestra/log');
-
-// @todo : I can't find the right type for createLogger with it's dynamic properties
-const warn = console.error
+// @todo how to type this ?
+const { warn } = createLogger('@xen-orchestra/xapi/disks/Xapi')
 
 /**
  * Meta class that handles the fallback logic when trying to export a disk from xapi.
@@ -137,19 +136,15 @@ export class XapiDiskSource extends DiskPassthrough {
    * @returns {Promise<XapiVhdCbtSource | XapiVhdStreamNbdSource | XapiVhdStreamSource>}
    */
   openSource() {
-    console.log('opensource')
     if (this.#preferNbd) {
-      console.log('will try nbd')
       if (this.#baseRef !== undefined) {
         return this.#openNbdCbt()
       } else {
-        console.log('will try nbd  + cbt')
         // Pure CBT/NBD is not available for base:
         // The base incremental needs the block list to work efficiently.
         return this.#openNbdStream()
       }
     } else {
-      console.log('will use stream')
       return this.#openExportStream()
     }
   }
