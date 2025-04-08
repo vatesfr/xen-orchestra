@@ -3,6 +3,19 @@ export const poolIds = [
   '/rest/v0/pools/b7569d99-30f8-178a-7d94-801de3e29b5b',
 ]
 
+export const partialPools = [
+  {
+    name_label: 'foo',
+    uuid: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
+    href: '/rest/v0/pools/b7569d99-30f8-178a-7d94-801de3e29b5b',
+  },
+  {
+    name_label: 'bar',
+    uuid: '355ee47d-ff4c-4924-3db2-fd86ae629676',
+    href: '/rest/v0/pools/355ee47d-ff4c-4924-3db2-fd86ae629676',
+  },
+]
+
 export const pool = {
   auto_poweron: true,
   crashDumpSr: '86a9757d-9c05-9fe0-e79a-8243cb1f37f3',

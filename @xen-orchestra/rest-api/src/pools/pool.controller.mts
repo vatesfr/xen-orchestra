@@ -7,7 +7,7 @@ import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common
 import type { WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { XoPool } from '@vates/types'
-import { pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
+import { partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
 
 @Route('pools')
 @Security('*')
@@ -26,6 +26,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example limit 42
    */
   @Example(poolIds)
+  @Example(partialPools)
   @Get('')
   getPools(
     @Request() req: ExRequest,
