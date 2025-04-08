@@ -565,6 +565,7 @@ const coresPerSocket = computed(() => {
   for (cores; cores >= minCores; cores--) {
     if (vmState.vCPU % cores === 0) {
       options.push({
+        // TODO Need to improve pluralization
         label: t('vmSocketsWithCoresPerSocket', {
           nSockets: vmState.vCPU / cores,
           nCores: cores,
