@@ -5279,6 +5279,21 @@
     lodash "^4.17.4"
     promise-toolbox "^0.21.0"
 
+"@xen-orchestra/vmware-explorer@^0.9.3":
+  version "0.9.3"
+  resolved "https://registry.yarnpkg.com/@xen-orchestra/vmware-explorer/-/vmware-explorer-0.9.3.tgz#fc3eac55eaa96d581a5575c9c1f9146bfa47cee9"
+  integrity sha512-lIB1LOya+ea+auB+0oGmdtEo0U6UQDcjuxAQC0Vrgrdo8HxAiQja2yRw0OAUYGzl/gl7kzVFLic/QbV47lhcbw==
+  dependencies:
+    "@vates/node-vsphere-soap" "^2.1.1"
+    "@vates/read-chunk" "^1.2.0"
+    "@vates/task" "^0.6.1"
+    "@xen-orchestra/log" "^0.7.1"
+    lodash "^4.17.21"
+    node-fetch "^3.3.0"
+    vhd-lib "^4.11.3"
+    xml2js "^0.6.2"
+    xo-vmdk-to-vhd "^2.5.7"
+
 "@xmldom/is-dom-node@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@xmldom/is-dom-node/-/is-dom-node-1.0.1.tgz#83b9f3e1260fb008061c6fa787b93a00f9be0629"
