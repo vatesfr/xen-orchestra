@@ -518,7 +518,7 @@ const ALARM_ACTIONS = [
 
 const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
 
-const THIRTY_DAYS = Date.now() - 30 * 24 * 60 * 60 * 1000
+const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000
 
 @addSubscriptions({
   schedules: cb =>
@@ -526,7 +526,7 @@ const THIRTY_DAYS = Date.now() - 30 * 24 * 60 * 60 * 1000
       cb(keyBy(schedules, 'id'))
     }),
 })
-@connectStore((_, props) => {
+@connectStore(() => {
   const getSrs = createGetObjectsOfType('SR')
   const getOrphanVdis = createSort(
     createFilter(
@@ -696,7 +696,7 @@ export default class Health extends Component {
     () => this.props.schedules,
     (snapshots, schedules) =>
       Object.values(snapshots).filter(snapshot => {
-        const isOld = snapshot.snapshot_time * 1000 < THIRTY_DAYS
+        const isOld = snapshot.snapshot_time * 1000 < Date.now() - THIRTY_DAYS
         if (!isOld) return false
 
         const scheduleId = snapshot.other?.['xo:backup:schedule']

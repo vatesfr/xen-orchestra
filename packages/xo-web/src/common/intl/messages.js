@@ -1705,7 +1705,7 @@ const messages = {
   noDuplicatedMacAddresses: 'No duplicated MAC addresses',
   noOldObject: 'No snapshots older than 30 days',
   reason: 'Reason',
-  oldSnapshots: 'Snapshots older than 30 days',
+  oldSnapshots: 'Snapshots older than 30 days with no enabled schedule',
   orphanedVdis: 'Orphan VDIs',
   orphanVdisTip: 'VDIs and VDI snapshots that are not attached to a VM',
   orphanedVms: 'Orphaned VMs snapshot',
