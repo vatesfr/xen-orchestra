@@ -69,6 +69,7 @@ const countSubtasks = (task: Task): number => {
   if (!task.subtasks || task.subtasks.length === 0) {
     return 0
   }
+
   return task.subtasks.length + task.subtasks.reduce((sum: number, subtask: any) => sum + countSubtasks(subtask), 0)
 }
 
@@ -83,7 +84,9 @@ const circleProgress = computed(() => {
 })
 
 const taskIsComplete = computed(() => {
-  if (!task.end || !task.start) return
+  if (!task.end || !task.start) {
+    return
+  }
   return task.end >= task.start || task.progress === 100
 })
 
@@ -109,9 +112,15 @@ const getEffectiveStatus = computed<CircleProgressBarAccent>(() => {
     const someFailure = subStatuses.some(status => status === 'danger')
     const allSuccess = subStatuses.every(status => status === 'info')
 
-    if (allFailure) return 'danger'
-    if (someFailure) return 'warning'
-    if (allSuccess) return 'info'
+    if (allFailure) {
+      return 'danger'
+    }
+    if (someFailure) {
+      return 'warning'
+    }
+    if (allSuccess) {
+      return 'info'
+    }
 
     return 'warning'
   }
@@ -161,7 +170,9 @@ const messageTypes = computed(() => generateMessages(task))
 
 const formatElapsed = (timestamp: number) => {
   const diff = now.value.getTime() - timestamp
-  if (diff < 0) return '0m'
+  if (diff < 0) {
+    return '0m'
+  }
 
   const minutes = Math.floor(diff / 60000) % 60
   const hours = Math.floor(diff / 3600000)
@@ -174,7 +185,9 @@ const startElapsedTime = computed(() => (task.start ? formatElapsed(task.start) 
 const endElapsedTime = computed(() => (task.end ? formatElapsed(task.end) : undefined))
 
 const taskElapsedMessage = computed(() => {
-  if (!task.start && !task.end) return ''
+  if (!task.start && !task.end) {
+    return ''
+  }
 
   if (taskIsComplete.value) {
     return t('task.finished-ago', { time: endElapsedTime.value })
@@ -184,7 +197,9 @@ const taskElapsedMessage = computed(() => {
 })
 
 const remainingTime = computed(() => {
-  if (!task.start || !task.progress) return
+  if (!task.start || !task.progress) {
+    return
+  }
 
   const now = Date.now()
   const elapsed = now - task.start
