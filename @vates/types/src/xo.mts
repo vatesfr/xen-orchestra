@@ -5,6 +5,7 @@ import type {
   DOMAIN_TYPE,
   HOST_ALLOWED_OPERATIONS,
   HOST_POWER_STATE,
+  POOL_ALLOWED_OPERATIONS,
   STORAGE_OPERATIONS,
   VDI_OPERATIONS,
   VDI_TYPE,
@@ -236,8 +237,29 @@ export type XoPif = BaseXapiXo & {
 }
 
 export type XoPool = BaseXapiXo & {
+  auto_poweron: boolean
+  cpus: {
+    cores?: number
+    sockets?: number
+  }
+  crashDumpSr: XoSr['id']
+  current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
+  defaultSr: XoSr['id']
+  ha_enabled: boolean
+  haSrs: XoVdi['id'][]
   id: Branded<'pool'>
+  master: XoHost['id']
+  migrationCompression: boolean
+  name_description: string
+  name_label: string
+  other_config: Record<string, string>
+  platform_version: string
+  suspendSr: XoSr['id']
+  tags: string[]
   type: 'pool'
+  vtpmSupported: boolean
+  xosanPackInstallationTime: number
+  zstdSupported: boolean
 }
 
 export type XoServer = {
