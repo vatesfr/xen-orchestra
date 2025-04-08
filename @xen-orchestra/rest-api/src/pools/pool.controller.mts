@@ -1,4 +1,4 @@
-import { Get, Query, Response, Request, Route, Path, Example } from 'tsoa'
+import { Example, Get, Path, Query, Response, Request, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
@@ -7,10 +7,12 @@ import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common
 import type { WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { XoPool } from '@vates/types'
-import { poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
+import { pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
 
 @Route('pools')
+@Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
+@Tags('pools')
 @provide(PoolController)
 export class PoolController extends XapiXoController<XoPool> {
   constructor(@inject(RestApi) restApi: RestApi) {
@@ -37,6 +39,7 @@ export class PoolController extends XapiXoController<XoPool> {
   /**
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    */
+  @Example(pool)
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
   getPool(@Path() id: string): Unbrand<XoPool> {
