@@ -1,7 +1,7 @@
 <template>
   <ComponentStory
     v-slot="{ properties }"
-    :params="[prop('task').required(), prop('user').str().preset('userName').widget()]"
+    :params="[prop('task').required(), prop('user').str().preset('Username').widget()]"
   >
     <UiTaskItem v-bind="properties" :task />
   </ComponentStory>
