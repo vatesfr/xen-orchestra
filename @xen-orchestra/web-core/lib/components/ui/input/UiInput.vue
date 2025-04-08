@@ -12,14 +12,15 @@
       class="typo-body-regular input text-ellipsis"
       v-bind="attrs"
     />
-    <VtsIcon
+    <UiButtonIcon
       v-if="!disabled && modelValue && clearable"
       :icon="faXmark"
+      :target-scale="1.6"
       accent="brand"
-      class="clear-icon"
+      size="small"
       @click="clear()"
     />
-    <slot v-if="slots.rightIcon || rightIcon" name="rightIcon">
+    <slot v-if="slots['right-icon'] || rightIcon" name="right-icon">
       <VtsIcon :icon="rightIcon" accent="current" class="right-icon" />
     </slot>
   </div>
@@ -27,6 +28,7 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { LabelAccent } from '@core/components/ui/label/UiLabel.vue'
 import { useMapper } from '@core/composables/mapper.composable.ts'
 import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util'
@@ -61,7 +63,7 @@ const {
 const modelValue = defineModel<string | number>({ required: true })
 
 const slots = defineSlots<{
-  rightIcon?(): any
+  'right-icon'?(): any
 }>()
 
 const attrs = useAttrs()
@@ -109,7 +111,6 @@ defineExpose({ focus })
   background-color: var(--color-neutral-background-primary);
   color: var(--color-neutral-txt-primary);
   height: 4rem;
-  outline: none;
   width: 100%;
   padding-inline: 1.6rem;
 
