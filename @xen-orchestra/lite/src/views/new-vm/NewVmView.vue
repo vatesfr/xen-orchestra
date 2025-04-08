@@ -471,7 +471,7 @@ import { useRouter } from 'vue-router'
 // Store subscriptions
 const { templates } = useVmStore().subscribe()
 const { pool } = usePoolStore().subscribe()
-const { records: srs, vdiIsosBySrName, getByOpaqueRef: getBySrByOpaqueRef } = useSrStore().subscribe()
+const { records: srs, vdiIsosBySrName, getByOpaqueRef: getSrByOpaqueRef } = useSrStore().subscribe()
 const { records: hosts, getByOpaqueRef: getHostByOpaqueRef } = useHostStore().subscribe()
 const { records: networks, getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
@@ -618,8 +618,8 @@ const defaultSr = computed(() => pool.value!.default_SR)
 
 const filteredSrs = computed(() => {
   return srs.value.filter(sr => {
-    const pbdRef = getPbdByOpaqueRef(sr.PBDs[0])
-    const hostRef = pbdRef?.host
+    const pbd = getPbdByOpaqueRef(sr.PBDs[0])
+    const hostRef = pbd?.host
     const isSrOnAffinityHost =
       vmState.affinity_host === undefined || sr.shared ? true : hostRef === vmState.affinity_host
 
@@ -631,7 +631,7 @@ const allVdis = computed(() => [...vmState.existingVdis, ...vmState.vdis])
 
 const isVdiOnSharedSr = computed(() => {
   return allVdis.value.every(vdi => {
-    const sr = getBySrByOpaqueRef(vdi.SR)
+    const sr = getSrByOpaqueRef(vdi.SR)
 
     if (sr === undefined) return true
 
@@ -647,7 +647,7 @@ const affinityHosts = computed(() => {
   const srRef = allVdis.value[0].SR
 
   const areVdisOnSameSrOrShared = allVdis.value.every(vdi => {
-    const sr = getBySrByOpaqueRef(vdi.SR)
+    const sr = getSrByOpaqueRef(vdi.SR)
 
     return vdi.SR === srRef || sr?.shared
   })
@@ -656,7 +656,7 @@ const affinityHosts = computed(() => {
     return []
   }
 
-  const pbdRef = getBySrByOpaqueRef(srRef)?.PBDs[0]
+  const pbdRef = getSrByOpaqueRef(srRef)?.PBDs[0]
 
   if (pbdRef === undefined) return []
 
