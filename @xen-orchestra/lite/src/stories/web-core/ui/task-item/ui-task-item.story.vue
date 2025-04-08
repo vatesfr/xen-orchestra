@@ -1,17 +1,15 @@
 <template>
   <ComponentStory
-    :params="[
-      slot().help('Meant to receive a <UiTreeItemLabel>'),
-      slot('sublist').help('Meant to receive a <VtsTreeList> child.'),
-    ]"
+    v-slot="{ properties }"
+    :params="[prop('task').required(), prop('user').str().preset('userName').widget()]"
   >
-    <UiTaskItem :task user="user" />
+    <UiTaskItem v-bind="properties" :task />
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { slot } from '@/libs/story/story-param'
+import { prop } from '@/libs/story/story-param.ts'
 import UiTaskItem from '@core/components/ui/task-item/UiTaskItem.vue'
 
 const task = {
@@ -30,7 +28,10 @@ const task = {
   ],
   errors: [
     {
-      message: 'info bar',
+      message: 'error foo',
+    },
+    {
+      message: 'error bar',
     },
   ],
   warnings: [
@@ -39,18 +40,5 @@ const task = {
     },
   ],
   progress: 25,
-  // subtasks: [
-  //   {
-  //     id: '2d01nynf19i',
-  //     status: 'pending',
-  //     start: 1744011806694,
-  //     infos: [
-  //       {
-  //         message: 'sub info',
-  //       },
-  //     ],
-  //     progress: 50,
-  //   },
-  // ],
 }
 </script>
