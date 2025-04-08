@@ -4,12 +4,12 @@ import { Branded } from '@vates/types'
 // and TSOA is not able to correctly convert Branded when generating
 // the openapi specification
 export type Unbrand<T> = {
-  [K in keyof T]: T[K] extends Branded<string> | undefined
-    ? string | undefined
+  [K in keyof T]: T[K] extends Branded<string>
+    ? string
     : T[K] extends Branded<string>[]
       ? string[]
-      : T[K] extends Branded<string>
-        ? string
+      : T[K] extends Branded<string> | undefined
+        ? string | undefined
         : T[K]
 }
 
