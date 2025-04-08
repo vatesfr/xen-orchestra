@@ -423,12 +423,20 @@ export class RemoteAdapter {
   async listAllVms() {
     const handler = this._handler
     const vmsUuids = []
-    await asyncEach(await handler.list(BACKUP_DIR), async entry => {
-      // ignore hidden and lock files
-      if (entry[0] !== '.' && !entry.endsWith('.lock')) {
-        vmsUuids.push(entry)
+    try {
+      await asyncEach(await handler.list(BACKUP_DIR), async entry => {
+        // ignore hidden and lock files
+        if (entry[0] !== '.' && !entry.endsWith('.lock')) {
+          vmsUuids.push(entry)
+        }
+      })
+    } catch (error) {
+      // remote without any VM backup are ok
+      if (error.code !== 'ENOENT') {
+        throw error
       }
-    })
+    }
+
     return vmsUuids
   }
 
