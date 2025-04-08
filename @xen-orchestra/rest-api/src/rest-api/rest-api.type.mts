@@ -47,6 +47,7 @@ export type XoApp = {
     opts?: { bypassOtp?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   getAllSchedules(): Promise<XoSchedule[]>
+  getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getJob(id: XoJob['id']): Promise<XoJob>
   getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type']) => T
@@ -55,6 +56,7 @@ export type XoApp = {
     opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
   ) => Record<T['id'], T>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
+  getUser: (id: XoUser['id']) => Promise<XoUser>
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
