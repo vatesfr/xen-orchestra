@@ -25,6 +25,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+- [Backups] Don't flood logs when a remote doesn't have any VM   (PR [#8489](https://github.com/vatesfr/xen-orchestra/pull/8489))
 
 - [OpenAPI spec] Fixed some required properties being marked as optional (PR [#8480](https://github.com/vatesfr/xen-orchestra/pull/8480))
 - **XO 6:**
@@ -47,6 +48,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
