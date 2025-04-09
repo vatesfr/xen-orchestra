@@ -11,4 +11,6 @@ export type HostBranch = Branch<XoHost, VmLeaf, 'host'>
 
 export type PoolBranch = Branch<XoPool, HostBranch | VmLeaf, 'pool'>
 
-export type TaskBranch = Branch<Task, TaskBranch, 'task'>
+export type TaskLeaf = Leaf<Task, 'task'>
+
+export type TaskBranch = Branch<Task, TaskBranch | TaskLeaf, 'task'>

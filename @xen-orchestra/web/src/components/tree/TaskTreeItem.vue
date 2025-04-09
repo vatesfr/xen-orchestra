@@ -1,5 +1,5 @@
 <template>
-  <VtsTreeItem :expanded="branch.isExpanded">
+  <VtsTreeItem :expanded="branch.isExpanded || !branch.isBranch">
     <UiTreeItemLabel :route="`/task/${branch.data.id}`" @toggle="branch.toggleExpand()">
       <UiTaskItem :task="branch.data" :user="user" />
     </UiTreeItemLabel>

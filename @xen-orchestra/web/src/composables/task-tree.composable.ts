@@ -1,5 +1,6 @@
 import { useTaskStore } from '@/stores/xo-rest-api/task.store'
 import { convertTaskToCore } from '@/utils/convert-task-to-core.util.ts'
+import type { TreeNodeDefinition } from '@core/composables/tree/types.ts'
 import type { Task } from '@core/types/task.type.ts'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
@@ -279,15 +280,36 @@ export function useTaskTree() {
     return mockedTasks.map(task => convertTaskToCore(task))
   })
 
-  const defineTaskTree = (tasks: Task[]): any => {
-    return defineTree(
-      tasks,
-      {
-        getLabel: task => task.name,
-        predicate,
-      },
-      task => defineTaskTree(task.subtasks ?? [])
-    )
+  // const defineTaskTree = (tasks: Task[]): any => {
+  //   return defineTree(
+  //     tasks,
+  //     {
+  //       getLabel: task => task.name,
+  //       predicate,
+  //       discriminator: 'task',
+  //     },
+  //     task => defineTaskTree(task.subtasks ?? [])
+  //   )
+  // }
+  //
+  // const definitions = computed(() => defineTaskTree(tasks.value))
+
+  const defineTaskTree = (tasks: Task[]): TreeNodeDefinition[] => {
+    return tasks.map(task => {
+      const hasSubtasks = (task.subtasks?.length ?? 0) > 0
+
+      const childTreeGetter = hasSubtasks ? () => defineTaskTree(task.subtasks ?? []) : undefined
+
+      return defineTree(
+        [task],
+        {
+          getLabel: task => task.name,
+          predicate,
+          discriminator: 'task',
+        },
+        childTreeGetter
+      )[0]
+    })
   }
 
   const definitions = computed(() => defineTaskTree(tasks.value))
