@@ -76,7 +76,7 @@ export function createVmOperations(xenApi: XenApi) {
     getAllowedVifDevices: (vmRefs: VmRefs): Promise<string[][]> =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call<string[]>('VM.get_allowed_VIF_devices', [vmRef]))),
 
-    migrate: (vmRefs: VmRefs, destinationHostRef: XenApiHost['$ref']) =>
+    migrate: (vmRefs: VmRefs, destinationHostRef: HostRef) =>
       Promise.all(
         toArray(vmRefs).map(vmRef => xenApi.call('VM.pool_migrate', [vmRef, destinationHostRef, { force: 'false' }]))
       ),
@@ -128,6 +128,9 @@ export function createVmOperations(xenApi: XenApi) {
       Promise.all(
         toArray(vmRefs).map(vmRef => xenApi.call('VM.set_VCPUs_params', [vmRef, 'weight', weight?.toString() ?? '']))
       ),
+
+    setCopyBiosString: (vmRefs: VmRefs, hostRef: HostRef) =>
+      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_copy_bios_string', [vmRef, hostRef]))),
 
     setHvmBootFirmware: async (vmRef: XenApiVm['$ref'], firmware: string) => {
       await Promise.all([
@@ -215,7 +218,7 @@ export function createVmOperations(xenApi: XenApi) {
     start: (vmRefs: VmRefs) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.start', [vmRef, false, false]))),
 
-    startOn: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
+    startOn: (vmRefs: VmRefs, hostRef: HostRef) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.start_on', [vmRef, hostRef, false, false]))),
 
     suspend: (vmRefs: VmRefs) => Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.suspend', [vmRef]))),
