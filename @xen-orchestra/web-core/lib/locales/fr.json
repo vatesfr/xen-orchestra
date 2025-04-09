@@ -507,6 +507,7 @@
   "you-are-currently-on": "Vous êtes actuellement sur : {0}",
   "zstd": "zstd",
 
+  "datetime-format": "DD/MM/YY hh:mm:ss",
   "just-now": "maintenant",
   "ago": "il y a {0}",
   "in": "dans {0}",

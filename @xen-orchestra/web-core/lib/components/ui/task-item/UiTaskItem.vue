@@ -53,6 +53,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import type { Message, Task, TaskStatus } from '@core/types/task.type.ts'
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo } from '@vueuse/core'
+import type { UseTimeAgoMessages } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -65,21 +66,23 @@ const { t } = useI18n()
 
 const taskTimeStatus = computed(() => task.end ?? task.start ?? new Date())
 
+const messages: UseTimeAgoMessages = {
+  justNow: t('just-now'),
+  past: (n: string) => (/\d/.test(n) ? t('ago', [n]) : n),
+  future: (n: string) => (/\d/.test(n) ? t('in', [n]) : n),
+  month: (n, past) => (n === 1 ? (past ? t('last-month') : t('next-month')) : `${n} ${t(`month${n > 1 ? 's' : ''}`)}`),
+  year: (n, past) => (n === 1 ? (past ? t('last-year') : t('next-year')) : `${n} ${t(`year${n > 1 ? 's' : ''}`)}`),
+  day: (n, past) => (n === 1 ? (past ? t('yesterday') : t('tomorrow')) : `${n} ${t(`day${n > 1 ? 's' : ''}`)}`),
+  week: (n, past) => (n === 1 ? (past ? t('last-week') : t('next-week')) : `${n} ${t(`week${n > 1 ? 's' : ''}`)}`),
+  hour: n => `${n} ${t(`hour${n > 1 ? 's' : ''}`)}`,
+  minute: n => `${n} ${t(`minute${n > 1 ? 's' : ''}`)}`,
+  second: n => `${n} ${t(`second${n > 1 ? 's' : ''}`)}`,
+  invalid: 'Invalid',
+}
+
 const timeAgo = useTimeAgo(taskTimeStatus, {
   fullDateFormatter: (date: Date) => date.toLocaleDateString(),
-  messages: {
-    justNow: t('just-now'),
-    past: (n: any) => (n.match(/\d/) ? t('ago', [n]) : n),
-    future: (n: any) => (n.match(/\d/) ? t('in', [n]) : n),
-    month: (n, past) =>
-      n === 1 ? (past ? t('last-month') : t('next-month')) : `${n} ${t(`month${n > 1 ? 's' : ''}`)}`,
-    year: (n, past) => (n === 1 ? (past ? t('last-year') : t('next-year')) : `${n} ${t(`year${n > 1 ? 's' : ''}`)}`),
-    day: (n, past) => (n === 1 ? (past ? t('yesterday') : t('tomorrow')) : `${n} ${t(`day${n > 1 ? 's' : ''}`)}`),
-    week: (n, past) => (n === 1 ? (past ? t('last-week') : t('next-week')) : `${n} ${t(`week${n > 1 ? 's' : ''}`)}`),
-    hour: n => `${n} ${t(`hour${n > 1 ? 's' : ''}`)}`,
-    minute: n => `${n} ${t(`minute${n > 1 ? 's' : ''}`)}`,
-    second: n => `${n} ${t(`second${n > 1 ? 's' : ''}`)}`,
-  },
+  messages,
 })
 
 const taskIsComplete = computed(() => {
