@@ -6,7 +6,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { XoPool } from '@vates/types'
+import type { XoPool } from '@vates/types'
 import { partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
 
 @Route('pools')

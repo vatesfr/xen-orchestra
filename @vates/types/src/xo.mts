@@ -242,23 +242,23 @@ export type XoPool = BaseXapiXo & {
     cores?: number
     sockets?: number
   }
-  crashDumpSr: XoSr['id']
+  crashDumpSr?: XoSr['id']
   current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
-  defaultSr: XoSr['id']
-  ha_enabled: boolean
-  haSrs: XoVdi['id'][]
+  defaultSr?: XoSr['id']
+  HA_enabled: boolean
+  haSrs: XoSr['id'][]
   id: Branded<'pool'>
   master: XoHost['id']
-  migrationCompression: boolean
+  migrationCompression?: boolean
   name_description: string
   name_label: string
-  other_config: Record<string, string>
+  otherConfig: Record<string, string>
   platform_version: string
-  suspendSr: XoSr['id']
+  suspendSr?: XoSr['id']
   tags: string[]
   type: 'pool'
   vtpmSupported: boolean
-  xosanPackInstallationTime: number
+  xosanPackInstallationTime: number | null
   zstdSupported: boolean
 }
 
