@@ -117,6 +117,8 @@ type BaseXoVm = BaseXapiXo & {
 export type XoGroup = {
   id: Branded<'group'>
   name: string
+  provider?: string
+  providerGroupId?: string
   users: XoUser['id'][]
 }
 
