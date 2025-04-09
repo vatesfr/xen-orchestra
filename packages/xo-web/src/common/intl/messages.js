@@ -2023,7 +2023,7 @@ const messages = {
   bypassBackupHostModalMessage: 'There may be ongoing backups on the host. Are you sure you want to continue?',
   bypassBackupPoolModalMessage: 'There may be ongoing backups on the pool. Are you sure you want to continue?',
   bypassBlockedMigrationsModalTitle: 'Bypass blocked migrations',
-  bypassBlockedMigrationsModalMessage: 'This will unblock migration on these VMs: {vms}',
+  bypassBlockedMigrationsModalMessage: 'This will enable migration on these VMs: {vms}',
   emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
   emergencyShutdownHostModalMessage: 'Are you sure you want to shutdown {host}?',
   emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
