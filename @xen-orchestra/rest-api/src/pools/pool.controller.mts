@@ -21,8 +21,8 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    *
-   * @example fields "name_label,power_state,uuid"
-   * @example filter "power_state:Running"
+   * @example fields "name_label,id"
+   * @example filter "auto_poweron?"
    * @example limit 42
    */
   @Example(poolIds)
