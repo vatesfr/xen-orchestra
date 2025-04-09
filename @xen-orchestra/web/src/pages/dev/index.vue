@@ -14,7 +14,12 @@ import TaskTreeItem from '@/components/tree/TaskTreeItem.vue'
 import { useTaskTree } from '@/composables/task-tree.composable.ts'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
+import { IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util.ts'
 import { faTasks } from '@fortawesome/free-solid-svg-icons'
+import { inject, provide } from 'vue'
 
 const { tasks, isReady } = useTaskTree()
+
+const depth = inject(IK_TREE_LIST_DEPTH, 0)
+provide(IK_TREE_LIST_DEPTH, depth + 1)
 </script>
