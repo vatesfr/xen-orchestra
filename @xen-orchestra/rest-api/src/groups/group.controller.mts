@@ -1,11 +1,11 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
-import { Request as ExRequest } from 'express'
+import type { Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import { XoGroup } from '@vates/types'
+import type { XoGroup } from '@vates/types'
 
-import { notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { group, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
-import { WithHref } from '../helpers/helper.type.mjs'
+import type { WithHref } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('groups')
