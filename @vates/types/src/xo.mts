@@ -130,6 +130,8 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
 export type XoGroup = {
   id: Branded<'group'>
   name: string
+  provider?: string
+  providerGroupId?: string
   users: XoUser['id'][]
 }
 
