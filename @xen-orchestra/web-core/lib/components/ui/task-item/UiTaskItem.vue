@@ -87,6 +87,7 @@ const taskIsComplete = computed(() => {
   if (!task.end || !task.start) {
     return
   }
+
   return task.end >= task.start || task.progress === 100
 })
 

@@ -140,11 +140,6 @@ const mockedTasks = [
             },
             start: 1740742984751,
             status: 'failure',
-            warnings: [
-              { message: 'Restarting Warning' },
-              { message: 'Restarting Warning' },
-              { message: 'Restarting Warning' },
-            ],
             tasks: [
               {
                 id: 's40691blvf8',
@@ -157,6 +152,7 @@ const mockedTasks = [
                 start: 1740742984972,
                 status: 'failure',
                 end: 1740742985403,
+                warnings: [{ message: 'Restarting Warning' }, { message: 'Restarting Warning' }],
                 result: {
                   code: 'VM_REQUIRES_SR',
                   params: [
