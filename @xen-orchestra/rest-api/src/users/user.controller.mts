@@ -35,7 +35,7 @@ export class UserController extends XoController<XoUser> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<string[] | WithHref<Partial<Unbrand<XoUser>>>[]> {
-    return this.sendObjects(Object.values(await this.getObjects()), req)
+    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
   }
 
   /**
