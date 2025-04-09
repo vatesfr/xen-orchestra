@@ -150,7 +150,7 @@
                 <UiTextarea v-model="vmState.description" accent="brand">
                   {{ $t('new-vm.description') }}
                 </UiTextarea>
-                <VtsInputWrapper :label="$t('affinity-host')">
+                <VtsInputWrapper :label="$t('affinity-host')" :message="$t('none-by-default')">
                   <div class="affinity-host">
                     <FormSelect v-model="vmState.affinity_host" class="select">
                       <option :value="undefined">{{ $t('none') }}</option>
@@ -166,7 +166,6 @@
                       @click="vmState.affinity_host = undefined"
                     />
                   </div>
-                  <span class="affinity-host-none typo-body-regular-small">{{ $t('none-by-default') }}</span>
                 </VtsInputWrapper>
               </div>
             </div>
@@ -1078,10 +1077,6 @@ const createVM = defer(_createVm)
           .container {
             width: 100%;
           }
-        }
-
-        .affinity-host-none {
-          color: var(--color-neutral-txt-secondary);
         }
       }
     }
