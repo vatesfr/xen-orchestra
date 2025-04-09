@@ -25,10 +25,7 @@
             <span>{{ t('by') }}</span>
             <UiUserLink :username="user" />
           </div>
-          <span v-tooltip class="text-ellipsis">{{ taskElapsedMessage }}</span>
-          <span v-if="task.progress && !taskIsComplete" v-tooltip class="text-ellipsis"
-            >{{ t('task.estimated-end-in', { time: remainingTime }) }}
-          </span>
+          <span>{{ taskElapsedMessage }}</span>
         </div>
         <div class="progress-circle-bar">
           <UiCircleProgressBar
@@ -54,7 +51,8 @@ import UiUserLink from '@core/components/ui/user-link/UiUserLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { Message, Task } from '@core/types/task.type.ts'
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons'
-import { computed, ref } from 'vue'
+import { useTimeAgo } from '@vueuse/core'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { task, user } = defineProps<{
@@ -63,7 +61,45 @@ const { task, user } = defineProps<{
 }>()
 
 const { t } = useI18n()
-const now = ref(new Date())
+
+const taskTimeStatus = computed(() => task.end ?? task.start ?? new Date())
+
+const timeAgo = useTimeAgo(taskTimeStatus, {
+  fullDateFormatter: (date: Date) => date.toLocaleDateString(),
+  messages: {
+    justNow: t('just-now'),
+    past: n => (n.match(/\d/) ? t('ago', [n]) : n),
+    future: n => (n.match(/\d/) ? t('in', [n]) : n),
+    month: (n, past) =>
+      n === 1 ? (past ? t('last-month') : t('next-month')) : `${n} ${t(`month${n > 1 ? 's' : ''}`)}`,
+    year: (n, past) => (n === 1 ? (past ? t('last-year') : t('next-year')) : `${n} ${t(`year${n > 1 ? 's' : ''}`)}`),
+    day: (n, past) => (n === 1 ? (past ? t('yesterday') : t('tomorrow')) : `${n} ${t(`day${n > 1 ? 's' : ''}`)}`),
+    week: (n, past) => (n === 1 ? (past ? t('last-week') : t('next-week')) : `${n} ${t(`week${n > 1 ? 's' : ''}`)}`),
+    hour: n => `${n} ${t(`hour${n > 1 ? 's' : ''}`)}`,
+    minute: n => `${n} ${t(`minute${n > 1 ? 's' : ''}`)}`,
+    second: n => `${n} ${t(`second${n > 1 ? 's' : ''}`)}`,
+  },
+})
+
+const taskIsComplete = computed(() => {
+  if (!task.end || !task.start) {
+    return
+  }
+
+  return task.end >= task.start || task.progress === 100
+})
+
+const taskElapsedMessage = computed(() => {
+  if (!task.start && !task.end) {
+    return ''
+  }
+
+  if (taskIsComplete.value) {
+    return `${t('task.finished')} ${timeAgo.value}`
+  } else {
+    return `${t('task.started')} ${timeAgo.value}`
+  }
+})
 
 const countSubtasks = (task: Task): number => {
   if (!task.subtasks || task.subtasks.length === 0) {
@@ -81,14 +117,6 @@ const circleProgress = computed(() => {
   } else {
     return task.progress
   }
-})
-
-const taskIsComplete = computed(() => {
-  if (!task.end || !task.start) {
-    return
-  }
-
-  return task.end >= task.start || task.progress === 100
 })
 
 const getEffectiveStatus = computed<CircleProgressBarAccent>(() => {
@@ -168,52 +196,6 @@ const generateMessages = (task: Task) => {
   ]
 }
 const messageTypes = computed(() => generateMessages(task))
-
-const formatElapsed = (timestamp: number) => {
-  const diff = now.value.getTime() - timestamp
-  if (diff < 0) {
-    return '0m'
-  }
-
-  const minutes = Math.floor(diff / 60000) % 60
-  const hours = Math.floor(diff / 3600000)
-
-  return hours > 0 ? `${hours}h${minutes}m` : `${minutes}m`
-}
-
-const startElapsedTime = computed(() => (task.start ? formatElapsed(task.start) : undefined))
-
-const endElapsedTime = computed(() => (task.end ? formatElapsed(task.end) : undefined))
-
-const taskElapsedMessage = computed(() => {
-  if (!task.start && !task.end) {
-    return ''
-  }
-
-  if (taskIsComplete.value) {
-    return t('task.finished-ago', { time: endElapsedTime.value })
-  } else {
-    return t('task.started-ago', { time: startElapsedTime.value })
-  }
-})
-
-const remainingTime = computed(() => {
-  if (!task.start || !task.progress) {
-    return
-  }
-
-  const now = Date.now()
-  const elapsed = now - task.start
-
-  const total = elapsed / (task.progress / 100)
-  const remaining = total - elapsed
-
-  const minutes = Math.floor(remaining / 60000)
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-
-  return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`
-})
 </script>
 
 <style scoped lang="postcss">

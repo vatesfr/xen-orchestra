@@ -8,8 +8,8 @@ export type Task = {
   id: string | number
   name: string
   status: TaskStatus
-  tag?: string
-  start?: number
+  tag: string
+  start: number
   end?: number
   userId?: string
   subtasks?: Task[]
