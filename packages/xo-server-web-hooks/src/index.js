@@ -2,16 +2,37 @@ import { createLogger } from '@xen-orchestra/log'
 
 const log = createLogger('xo:web-hooks')
 
+function constructData(isOfficeHook, data, type) {
+  if (isOfficeHook) {
+    // https://learn.microsoft.com/en-us/outlook/actionable-messages/message-card-reference
+    const facts = Object.keys(data).map(key => {
+      const value = data[key]
+      return { name: key, value: typeof value === 'string' ? value : JSON.stringify(value) }
+    })
+
+    return {
+      '@type': 'MessageCard',
+      '@context': 'https://schema.org/extensions',
+      themeColor: 'BE1621',
+      summary: 'New notification from the Xen-Orchestra webhook plugin',
+      sections: [{ title: 'XO notification' }, { facts }],
+    }
+  }
+
+  return { ...data, type }
+}
+
 function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
   if (hooks !== undefined) {
     return Promise.all(
       // eslint-disable-next-line array-callback-return
-      hooks.map(({ url, waitForResponse = false }) => {
-        const promise = this._makeRequest(url, type, data).catch(error => {
+      hooks.map(({ url, waitForResponse = false, isOfficeHook = false }) => {
+        const _data = constructData(isOfficeHook, data, type)
+        const promise = this._makeRequest(url, _data).catch(error => {
           log.error('web hook failed', {
             error,
-            webHook: { ...data, url, type },
+            webHook: { ...data, url, type, isOfficeHook },
           })
         })
         if (waitForResponse && type === 'pre') {
@@ -33,9 +54,9 @@ class XoServerHooks {
     this._handlePostHook = handleHook.bind(this, 'post')
   }
 
-  _makeRequest(url, type, data) {
+  _makeRequest(url, data) {
     return this._xo.httpRequest(url, {
-      body: JSON.stringify({ ...data, type }),
+      body: JSON.stringify(data),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
       timeout: 1e4,
@@ -89,24 +110,35 @@ class XoServerHooks {
     this._xo.removeListener('backup:postCall', this._handlePostHook)
   }
 
-  async test({ url }) {
-    await this._makeRequest(url, 'pre', {
-      callId: '0',
-      userId: 'b4tm4n',
-      userName: 'bruce.wayne@waynecorp.com',
-      method: 'vm.start',
-      params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
-      timestamp: 0,
-    })
-    await this._makeRequest(url, 'post', {
-      callId: '0',
-      userId: 'b4tm4n',
-      userName: 'bruce.wayne@waynecorp.com',
-      method: 'vm.start',
-      result: '',
-      timestamp: 500,
-      duration: 500,
-    })
+  async test({ url, isOfficeHook }) {
+    const preData = constructData(
+      isOfficeHook,
+      {
+        callId: '0',
+        userId: 'b4tm4n',
+        userName: 'bruce.wayne@waynecorp.com',
+        method: 'vm.start',
+        params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
+        timestamp: 0,
+      },
+      'pre'
+    )
+    await this._makeRequest(url, preData)
+
+    const postData = constructData(
+      isOfficeHook,
+      {
+        callId: '0',
+        userId: 'b4tm4n',
+        userName: 'bruce.wayne@waynecorp.com',
+        method: 'vm.start',
+        result: '',
+        timestamp: 500,
+        duration: 500,
+      },
+      'post'
+    )
+    await this._makeRequest(url, postData)
   }
 }
 
@@ -121,6 +153,11 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
         type: 'object',
         title: 'Hook',
         properties: {
+          isOfficeHook: {
+            description: 'Enable if your URL require a payload that follow the office 365 connector format',
+            title: 'Office 365 connector format',
+            type: 'boolean',
+          },
           method: {
             description: 'The method to be bound to',
             enum: Object.keys(apiMethods).sort(),
@@ -158,6 +195,11 @@ export const testSchema = {
   type: 'object',
   description: 'The test will simulate a hook on `vm.start` (both "pre" and "post" hooks)',
   properties: {
+    isOfficeHook: {
+      description: 'Enable if your URL require a payload that follow the office 365 connector format',
+      title: 'Office 365 connector format',
+      type: 'boolean',
+    },
     url: {
       title: 'URL',
       type: 'string',
