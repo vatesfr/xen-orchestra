@@ -457,7 +457,7 @@ To prevent a virtual machine from migrating:
 
 1. Go to the VM's configuration page.
 2. Go to the **Advanced** tab.
-3. Activate the **Block migration** toggle switch. 
+3. Activate the **Disable migration** toggle switch. 
 
 > Note: Here, "block" means "disable," not a literal block.
 
