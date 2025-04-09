@@ -153,11 +153,6 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
         type: 'object',
         title: 'Hook',
         properties: {
-          isOfficeHook: {
-            description: 'Enable if your URL require a payload that follow the office 365 connector format',
-            title: 'Office 365 connector format',
-            type: 'boolean',
-          },
           method: {
             description: 'The method to be bound to',
             enum: Object.keys(apiMethods).sort(),
@@ -178,6 +173,11 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
             title: 'URL',
             type: 'string',
           },
+          isOfficeHook: {
+            description: 'Enable if your URL require a payload that follow the office 365 connector format',
+            title: 'Office 365 connector format',
+            type: 'boolean',
+          },
           waitForResponse: {
             description: 'Waiting for the server response before executing the call. Only available on "PRE" type',
             title: 'Wait for response',
@@ -195,15 +195,15 @@ export const testSchema = {
   type: 'object',
   description: 'The test will simulate a hook on `vm.start` (both "pre" and "post" hooks)',
   properties: {
-    isOfficeHook: {
-      description: 'Enable if your URL require a payload that follow the office 365 connector format',
-      title: 'Office 365 connector format',
-      type: 'boolean',
-    },
     url: {
       title: 'URL',
       type: 'string',
       description: 'The URL the test request will be sent to',
+    },
+    isOfficeHook: {
+      description: 'Enable if your URL require a payload that follow the office 365 connector format',
+      title: 'Office 365 connector format',
+      type: 'boolean',
     },
   },
 }
