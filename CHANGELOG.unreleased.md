@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [New VM] Fix `DEVICE_ALREADY_EXISTS(#)` (PR [#https://github.com/vatesfr/xen-orchestra/pull/8473](https://github.com/vatesfr/xen-orchestra/pull/8473))
+- [New VM] Fix `DEVICE_ALREADY_EXISTS(#)` (PR [#8473](https://github.com/vatesfr/xen-orchestra/pull/8473))
 
 ### Packages to release
 

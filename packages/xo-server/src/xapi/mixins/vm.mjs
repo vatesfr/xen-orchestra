@@ -211,38 +211,27 @@ const methods = {
 
       // TODO: set vm.suspend_SR
       // Creates the user defined VDIs.
-      const allowedUserDevices = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
-      await Promise.all(
-        _vdisToCreate.map(async (vdi, i) => {
-          const vdiRef = await this.VDI_create({
-            name_description: vdi.name_description,
-            name_label: vdi.name_label,
-            virtual_size: vdi.size,
-            SR: this.getObject(vdi.sr, 'SR').$ref,
-          })
-          $defer.onFailure(() => this.VDI_destroy(vdiRef))
-
-          // Either the CD or the 1st disk is bootable (only useful for PV VMs)
-          let bootable = false
-          if (!hasBootableDisk && i === 0) {
-            bootable = true
-          }
-
-          let userdevice = vdi.userdevice
-          if (userdevice === undefined) {
-            userdevice = allowedUserDevices.shift()
-            if (userdevice === '3') {
-              userdevice = allowedUserDevices.shift()
-            }
-          }
-          await this.VBD_create({
-            bootable,
-            userdevice,
-            VDI: vdiRef,
-            VM: vm.$ref,
-          })
+      for (const [i, vdi] of _vdisToCreate.entries()) {
+        const vdiRef = await this.VDI_create({
+          name_description: vdi.name_description,
+          name_label: vdi.name_label,
+          virtual_size: vdi.size,
+          SR: this.getObject(vdi.sr, 'SR').$ref,
         })
-      )
+        $defer.onFailure(() => this.VDI_destroy(vdiRef))
+
+        // Either the CD or the 1st disk is bootable (only useful for PV VMs)
+        let bootable = false
+        if (!hasBootableDisk && i === 0) {
+          bootable = true
+        }
+        await this.VBD_create({
+          bootable,
+          userdevice: vdi.userdevice,
+          VDI: vdiRef,
+          VM: vm.$ref,
+        })
+      }
 
       // Modify existing (previous template) disks if necessary
       // Wait until all VDIs are created, otherwise VBD_create may throw an OTHER_OPERATION_IN_PROGRESS error
