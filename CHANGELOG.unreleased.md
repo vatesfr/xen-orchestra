@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Plugin/Web hook] Web hook plugin now support `Office 365 connector` format (PR [#8498](https://github.com/vatesfr/xen-orchestra/pull/8498))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,6 +34,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api patch
+- xo-server-web-hooks minor
 - xo-server patch
 
 <!--packages-end-->
