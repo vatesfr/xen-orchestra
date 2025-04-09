@@ -694,16 +694,19 @@ export default class Health extends Component {
   _getOldSnapshots = createSelector(
     () => this.props.snapshots,
     () => this.props.schedules,
-    (snapshots, schedules) =>
-      Object.values(snapshots).filter(snapshot => {
-        const isOld = snapshot.snapshot_time * 1000 < Date.now() - THIRTY_DAYS
-        if (!isOld) return false
+    (snapshots, schedules) => {
+      const thresholdDate = Date.now() - THIRTY_DAYS
+      return Object.values(snapshots).filter(snapshot => {
+        if (snapshot.snapshot_time * 1000 > thresholdDate) {
+          return false
+        }
 
         const scheduleId = snapshot.other?.['xo:backup:schedule']
         const schedule = scheduleId !== undefined ? schedules?.[scheduleId] : undefined
 
         return !schedule?.enabled
       })
+    }
   )
 
   _getTooManySnapshotsVms = createFilter(() => this.props.tooManySnapshotsVms, this._getPoolPredicate)
@@ -879,7 +882,7 @@ export default class Health extends Component {
                   collection={props.areObjectsFetched ? this._getOldSnapshots() : null}
                   columns={VM_COLUMNS}
                   component={SortedTable}
-                  emptyMessage={_('noOldObject')}
+                  emptyMessage={_('noOldSnapshots')}
                 />
               </CardBlock>
             </Card>

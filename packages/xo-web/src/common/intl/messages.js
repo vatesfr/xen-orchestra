@@ -1703,7 +1703,7 @@ const messages = {
   unknownSchedule: 'Unknown schedule',
   noDetachedBackups: 'No backups',
   noDuplicatedMacAddresses: 'No duplicated MAC addresses',
-  noOldObject: 'No snapshots older than 30 days',
+  noOldSnapshots: 'No snapshots older than 30 days with no enabled schedule',
   reason: 'Reason',
   oldSnapshots: 'Snapshots older than 30 days with no enabled schedule',
   orphanedVdis: 'Orphan VDIs',
