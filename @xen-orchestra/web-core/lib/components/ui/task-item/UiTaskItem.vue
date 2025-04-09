@@ -48,8 +48,9 @@ import UiCircleProgressBar, {
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiUserLink from '@core/components/ui/user-link/UiUserLink.vue'
+import { useMapper } from '@core/composables/mapper.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { Message, Task } from '@core/types/task.type.ts'
+import type { Message, Task, TaskStatus } from '@core/types/task.type.ts'
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
@@ -68,8 +69,8 @@ const timeAgo = useTimeAgo(taskTimeStatus, {
   fullDateFormatter: (date: Date) => date.toLocaleDateString(),
   messages: {
     justNow: t('just-now'),
-    past: n => (n.match(/\d/) ? t('ago', [n]) : n),
-    future: n => (n.match(/\d/) ? t('in', [n]) : n),
+    past: (n: any) => (n.match(/\d/) ? t('ago', [n]) : n),
+    future: (n: any) => (n.match(/\d/) ? t('in', [n]) : n),
     month: (n, past) =>
       n === 1 ? (past ? t('last-month') : t('next-month')) : `${n} ${t(`month${n > 1 ? 's' : ''}`)}`,
     year: (n, past) => (n === 1 ? (past ? t('last-year') : t('next-year')) : `${n} ${t(`year${n > 1 ? 's' : ''}`)}`),
@@ -91,7 +92,7 @@ const taskIsComplete = computed(() => {
 
 const taskElapsedMessage = computed(() => {
   if (!task.start && !task.end) {
-    return ''
+    return
   }
 
   if (taskIsComplete.value) {
@@ -124,16 +125,16 @@ const getEffectiveStatus = computed<CircleProgressBarAccent>(() => {
     const subtasks = task.subtasks || []
 
     if (subtasks.length === 0) {
-      switch (task.status) {
-        case 'failure':
-          return 'danger'
-        case 'interrupted':
-          return 'warning'
-        case 'success':
-          return 'info'
-        default:
-          return 'info'
-      }
+      return useMapper<TaskStatus, CircleProgressBarAccent>(
+        () => task.status,
+        {
+          pending: 'warning',
+          interrupted: 'warning',
+          success: 'info',
+          failure: 'danger',
+        },
+        () => 'info'
+      ).value
     }
 
     const subStatuses = subtasks.map(evaluate)

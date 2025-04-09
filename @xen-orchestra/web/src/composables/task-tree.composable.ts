@@ -280,25 +280,17 @@ export function useTaskTree() {
     return mockedTasks.map(task => convertTaskToCore(task))
   })
 
-  // const defineTaskTree = (tasks: Task[]): any => {
-  //   return defineTree(
-  //     tasks,
-  //     {
-  //       getLabel: task => task.name,
-  //       predicate,
-  //       discriminator: 'task',
-  //     },
-  //     task => defineTaskTree(task.subtasks ?? [])
-  //   )
-  // }
-  //
-  // const definitions = computed(() => defineTaskTree(tasks.value))
-
   const defineTaskTree = (tasks: Task[]): TreeNodeDefinition[] => {
     return tasks.map(task => {
-      const hasSubtasks = (task.subtasks?.length ?? 0) > 0
+      if (!task.subtasks || task.subtasks.length === 0) {
+        return defineTree([task], {
+          getLabel: task => task.name,
+          predicate,
+          discriminator: 'task',
+        })[0]
+      }
 
-      const childTreeGetter = hasSubtasks ? () => defineTaskTree(task.subtasks ?? []) : undefined
+      const childTreeGetter = () => defineTaskTree(task.subtasks ?? [])
 
       return defineTree(
         [task],
