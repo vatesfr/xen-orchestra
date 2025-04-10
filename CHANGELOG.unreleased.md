@@ -14,6 +14,8 @@
 - **Migrated REST API endpoints**:
   - `/rest/v0/vifs` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
   - `/rest/v0/vifs/<vif-id>` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
+  - `/rest/v0/tasks` (PR [#8501](https://github.com/vatesfr/xen-orchestra/pull/8501))
+  - `/rest/v0/tasks/<task-id>` (PR [#8501](https://github.com/vatesfr/xen-orchestra/pull/8501))
 - [VM/Advanced] Rename `Block migration` to `Prevent migration` (PR [#8500](https://github.com/vatesfr/xen-orchestra/pull/8500))
 
 ### Bug fixes
