@@ -618,6 +618,7 @@ export default class RestApi {
       'vm-templates': {},
       hosts: {},
       srs: {},
+      tasks: {},
       vbds: {},
       vdis: {},
       'vdi-snapshots': {},

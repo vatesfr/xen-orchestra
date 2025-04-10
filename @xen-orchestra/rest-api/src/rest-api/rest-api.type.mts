@@ -5,6 +5,7 @@ import type {
   XenApiHostWrapped,
   XenApiNetwork,
   XenApiPoolWrapped,
+  XenApiTaskWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
   XenApiVdiWrapped,
@@ -20,6 +21,7 @@ type XapiRecordByXapiXoRecord = {
   network: XenApiNetwork
   pool: XenApiPoolWrapped
   SR: XenApiSrWrapped
+  task: XenApiTaskWrapped
   VBD: XenApiVbdWrapped
   VDI: XenApiVdiWrapped
   'VDI-snapshot': XenApiVdiWrapped

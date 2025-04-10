@@ -6,6 +6,8 @@ import type {
   HOST_ALLOWED_OPERATIONS,
   HOST_POWER_STATE,
   STORAGE_OPERATIONS,
+  TASK_ALLOWED_OPERATIONS,
+  TASK_STATUS_TYPE,
   VDI_OPERATIONS,
   VDI_TYPE,
   VIF_LOCKING_MODE,
@@ -281,6 +283,23 @@ export type XoSr = BaseXapiXo & {
   usage: number
 }
 
+export type XoTask = BaseXapiXo & {
+  allowedOperations?: Record<string, TASK_ALLOWED_OPERATIONS>
+  applies_to: XoVm['id'] | XoVdi['id'] | XoSr['id'] | XoHost['id']
+  created: number
+  current_operations?: Record<string, TASK_ALLOWED_OPERATIONS>
+  finished: string
+  $host: XoHost['id']
+  id: Branded<'task'>
+  name_description?: string
+  name_label: string
+  progress: number
+  result?: string
+  status: Record<string, TASK_STATUS_TYPE>
+  type: 'task'
+  xapiRef: string
+}
+
 export type XoUser = {
   authProviders?: Record<string, string>
   email: string
@@ -414,6 +433,7 @@ export type XapiXoRecord =
   | XoNetwork
   | XoPool
   | XoSr
+  | XoTask
   | XoVbd
   | XoVdi
   | XoVdiSnapshot
