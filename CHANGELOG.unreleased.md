@@ -17,7 +17,9 @@
   - `GET /rest/v0/vifs/<vif-id>/alarms` (PR [#8825](http://github.com/vatesfr/xen-orchestra/pull/8825))
   - `GET /rest/v0/vbds/<vbd-id>/alarms` (PR [#8822](http://github.com/vatesfr/xen-orchestra/pull/8822))
   - `POST /rest/v0/groups` (PR [#8703](https://github.com/vatesfr/xen-orchestra/pull/8703))
-
+  - `/rest/v0/tasks` (PR [#8501](https://github.com/vatesfr/xen-orchestra/pull/8501))
+  - `/rest/v0/tasks/<task-id>` (PR [#8501](https://github.com/vatesfr/xen-orchestra/pull/8501))
+  
 - **XO 6:**
 
   - [Pool/connect] add page to connect new pool (PR [#8763](https://github.com/vatesfr/xen-orchestra/pull/8763))
