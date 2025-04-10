@@ -1,10 +1,10 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
-import { Request as ExRequest } from 'express'
+import type { Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import { notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
-import { XoUser } from '@vates/types'
+import type { XoUser } from '@vates/types'
 import { partialUsers, user, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 
 @Route('users')
@@ -22,7 +22,7 @@ export class UserController extends XoController<XoUser> {
   }
 
   /**
-   * @example fields "email,id"
+   * @example fields "permission,name,id"
    * @example filter "permission:admin"
    * @example limit 42
    */
