@@ -5,11 +5,13 @@ export const poolIds = [
 
 export const partialPools = [
   {
+    auto_poweron: true,
     name_label: 'XCP 8.3.0 XO Team',
     id: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
     href: '/rest/v0/pools/b7569d99-30f8-178a-7d94-801de3e29b5b',
   },
   {
+    auto_poweron: true,
     name_label: 'XO Lab',
     id: '355ee47d-ff4c-4924-3db2-fd86ae629676',
     href: '/rest/v0/pools/355ee47d-ff4c-4924-3db2-fd86ae629676',
