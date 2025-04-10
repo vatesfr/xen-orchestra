@@ -5,6 +5,7 @@ import type {
   DOMAIN_TYPE,
   HOST_ALLOWED_OPERATIONS,
   HOST_POWER_STATE,
+  NETWORK_OPERATIONS,
   STORAGE_OPERATIONS,
   VDI_OPERATIONS,
   VDI_TYPE,
@@ -211,8 +212,21 @@ export type XoHostPatch = BaseXapiXo & {
 }
 
 export type XoNetwork = BaseXapiXo & {
+  automatic: boolean
+  bridge: string
+  current_operations?: Record<string, NETWORK_OPERATIONS>
+  defaultIsLocked: boolean
   id: Branded<'network'>
+  insecureNbd: boolean
+  MTU: number
+  name_description: string
+  name_label: string
+  nbd: boolean
+  other_config: Record<string, string>
+  PIFs: XoPif['id'][]
+  tags: string[]
   type: 'network'
+  VIFs: XoVif['id'][]
 }
 
 export type XoPbd = BaseXapiXo & {
