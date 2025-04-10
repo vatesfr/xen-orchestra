@@ -2,7 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 const log = createLogger('xo:web-hooks')
 
-function constructData(isOfficeHook, data, type) {
+function constructPayload(isOfficeHook, data, type) {
   if (isOfficeHook) {
     // https://learn.microsoft.com/en-us/outlook/actionable-messages/message-card-reference
     const facts = Object.keys(data).map(key => {
@@ -28,8 +28,8 @@ function handleHook(type, data) {
     return Promise.all(
       // eslint-disable-next-line array-callback-return
       hooks.map(({ url, waitForResponse = false, isOfficeHook = false }) => {
-        const _data = constructData(isOfficeHook, data, type)
-        const promise = this._makeRequest(url, _data).catch(error => {
+        const payload = constructPayload(isOfficeHook, data, type)
+        const promise = this._makeRequest(url, payload).catch(error => {
           log.error('web hook failed', {
             error,
             webHook: { ...data, url, type, isOfficeHook },
@@ -111,7 +111,7 @@ class XoServerHooks {
   }
 
   async test({ url, isOfficeHook }) {
-    const preData = constructData(
+    const prePayload = constructPayload(
       isOfficeHook,
       {
         callId: '0',
@@ -123,9 +123,9 @@ class XoServerHooks {
       },
       'pre'
     )
-    await this._makeRequest(url, preData)
+    await this._makeRequest(url, prePayload)
 
-    const postData = constructData(
+    const postPayload = constructPayload(
       isOfficeHook,
       {
         callId: '0',
@@ -138,7 +138,7 @@ class XoServerHooks {
       },
       'post'
     )
-    await this._makeRequest(url, postData)
+    await this._makeRequest(url, postPayload)
   }
 }
 
