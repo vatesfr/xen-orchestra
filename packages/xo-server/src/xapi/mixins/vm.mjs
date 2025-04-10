@@ -221,12 +221,8 @@ const methods = {
         $defer.onFailure(() => this.VDI_destroy(vdiRef))
 
         // Either the CD or the 1st disk is bootable (only useful for PV VMs)
-        let bootable = false
-        if (!hasBootableDisk && i === 0) {
-          bootable = true
-        }
         await this.VBD_create({
-          bootable,
+          bootable: !hasBootableDisk && i === 0,
           userdevice: vdi.userdevice,
           VDI: vdiRef,
           VM: vm.$ref,
