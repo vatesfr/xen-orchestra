@@ -198,7 +198,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(networkInterface, index) in vmState.networkInterfaces" :key="index">
+                  <tr v-for="(networkInterface, index) in visibleNetworkInterfaces" :key="index">
                     <td>
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
@@ -223,7 +223,7 @@
                         size="medium"
                         accent="brand"
                         variant="secondary"
-                        @click="deleteItem(vmState.networkInterfaces, index)"
+                        @click="removeVif(networkInterface)"
                       />
                     </td>
                   </tr>
@@ -561,6 +561,15 @@ const addStorageEntry = () => {
   })
 }
 
+const removeVif = (vifToRemove: (typeof vmState.networkInterfaces)[0]) => {
+  const index = vmState.networkInterfaces.findIndex(vif => vif === vifToRemove)
+  if (index !== -1) {
+    vmState.networkInterfaces[index].destroy = true
+  }
+}
+
+const visibleNetworkInterfaces = computed(() => vmState.networkInterfaces.filter(vif => !vif.destroy))
+
 const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
@@ -849,6 +858,7 @@ const vmData = computed(() => {
         network: net.interface,
         mac: net.macAddress,
         device,
+        ...(net.destroy && { destroy: true }),
       }
     }),
     ...optionalFields,

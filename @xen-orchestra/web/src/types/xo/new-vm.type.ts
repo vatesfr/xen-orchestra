@@ -16,6 +16,7 @@ export interface Vdi {
 export interface NetworkInterface {
   interface: XoNetwork['id']
   macAddress: string
+  destroy?: boolean
 }
 
 export type InstallMode = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
