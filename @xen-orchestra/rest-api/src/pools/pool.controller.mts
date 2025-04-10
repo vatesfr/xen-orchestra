@@ -1,7 +1,7 @@
 import { Example, Get, Path, Query, Response, Request, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import { Request as ExRequest } from 'express'
+import type { Request as ExRequest } from 'express'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
@@ -21,7 +21,7 @@ export class PoolController extends XapiXoController<XoPool> {
 
   /**
    *
-   * @example fields "name_label,id"
+   * @example fields "auto_poweron,name_label,id"
    * @example filter "auto_poweron?"
    * @example limit 42
    */
