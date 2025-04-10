@@ -1,88 +1,63 @@
-import { createItemBuilder } from '@core/packages/collection/create-item-builder.ts'
-import { parseFlagsOption } from '@core/packages/collection/parse-flags-option.ts'
-import type {
-  CollectionItem,
-  CollectionOptions,
-  ExtractFlags,
-  ExtractProperties,
-} from '@core/packages/collection/types.ts'
+import { buildItem } from '@core/packages/collection/build-item.ts'
+import type { CollectionItem, CollectionOptions } from '@core/packages/collection/types.ts'
+import { useFlagStore } from '@core/packages/collection/use-flag-store.ts'
+import type { MaybeArray } from '@core/types/utility.type.ts'
+import { toArray } from '@core/utils/to-array.utils.ts'
 import { useArrayFilter, useArrayMap } from '@vueuse/core'
-import { computed, type MaybeRefOrGetter, reactive } from 'vue'
+import { computed, type ComputedRef, type MaybeRefOrGetter, toValue, useId } from 'vue'
 
 export function useCollection<
   TSource,
-  TId extends string,
-  const TOptions extends CollectionOptions<TSource, TId>,
-  TFlag extends string = ExtractFlags<TOptions>,
-  TProperties extends Record<string, any> = ExtractProperties<TOptions>,
->(sources: MaybeRefOrGetter<TSource[]>, options: TOptions) {
-  const context =
-    options.context ??
-    reactive({
-      flags: computed(() => parseFlagsOption(options.flags)),
-      registeredFlags: new Map<TFlag, Map<TId, boolean>>(),
-    })
+  TId extends string | number,
+  TFlag extends string,
+  TProperties extends Record<string, ComputedRef>,
+>(sources: MaybeRefOrGetter<TSource[]>, options: CollectionOptions<TSource, TId, TFlag, TProperties>) {
+  const flagStore = useFlagStore()
 
-  function getRegisteredFlagMap(flag: TFlag) {
-    if (!context.registeredFlags.has(flag)) {
-      context.registeredFlags.set(flag, new Map())
-    }
+  const collectionId = options.collectionId ?? useId()
 
-    return context.registeredFlags.get(flag)!
-  }
+  flagStore.register(collectionId, options.flags)
 
-  const buildItem = createItemBuilder<TSource, TId, TFlag, TProperties>({
-    hasItemFlag,
-    toggleItemFlag,
-    propertiesOption: options.properties,
-  })
-
-  const items = useArrayMap(sources, source => buildItem(options.identifier(source), source))
-
-  function areMultipleFlagsAllowed(flag: TFlag) {
-    return context.flags.get(flag)?.multiple ?? true
-  }
-
-  function clearFlag(flag: TFlag) {
-    getRegisteredFlagMap(flag).clear()
-  }
-
-  function flagItem(id: TId, flag: TFlag) {
-    if (!areMultipleFlagsAllowed(flag)) {
-      clearFlag(flag)
-    }
-
-    getRegisteredFlagMap(flag).set(id, true)
-  }
-
-  function unflagItem(id: TId, flag: TFlag) {
-    getRegisteredFlagMap(flag).set(id, false)
-  }
-
-  function hasItemFlag(id: TId, flag: TFlag) {
-    return getRegisteredFlagMap(flag).get(id) ?? context.flags.get(flag)?.default ?? false
-  }
-
-  function toggleItemFlag(id: TId, flag: TFlag, forcedValue = !hasItemFlag(id, flag)) {
-    if (forcedValue) {
-      flagItem(id, flag)
-    } else {
-      unflagItem(id, flag)
-    }
-  }
+  const items = computed(() => toValue(sources).map(source => buildItem(collectionId, source, options, flagStore)))
 
   function useSubset(filter: (item: CollectionItem<TSource, TId, TFlag, TProperties>) => boolean) {
-    return useCollection(
-      computed(() => items.value.filter(filter).map(item => item.source)),
+    return useCollection<TSource, TId, TFlag, TProperties>(
+      computed(() => items.value.flatMap(item => (filter(item) ? [item.source] : []))),
       {
         ...options,
-        context,
+        collectionId,
       }
     )
   }
 
+  function setFlag(flag: TFlag, value: boolean): void
+
+  function setFlag(ids: MaybeArray<TId>, flag: TFlag, value: boolean): void
+
+  function setFlag(flagOrIds: TFlag | MaybeArray<TId>, flagOrValue: TFlag | boolean, valueOrNone?: boolean) {
+    const ids = valueOrNone === undefined ? items.value.map(item => item.id) : toArray(flagOrIds as MaybeArray<TId>)
+
+    const flag = valueOrNone === undefined ? (flagOrIds as TFlag) : (flagOrValue as TFlag)
+
+    const value = valueOrNone ?? (flagOrValue as boolean)
+
+    const allowsMultiple = flagStore.isMultipleAllowed(collectionId, flag)
+
+    if (!allowsMultiple) {
+      if (ids.length > 1) {
+        throw new Error('This flag is not allowed to be set on multiple items')
+      }
+
+      flagStore.clearFlag(collectionId, flag)
+    }
+
+    for (const id of ids) {
+      flagStore.setFlag(collectionId, flag, id, value)
+    }
+  }
+
   function useFlag(flag: TFlag) {
-    const flaggedItems = useArrayFilter(items, item => item.flags[flag] ?? false)
+    const flaggedItems = useArrayFilter(items, item => item.flags[flag])
 
     const ids = useArrayMap(flaggedItems, item => item.id)
 
@@ -95,7 +70,9 @@ export function useCollection<
     const areNoneOn = computed(() => count.value === 0)
 
     const toggle = (forcedValue = !areAllOn.value) =>
-      items.value.forEach(forcedValue ? item => flagItem(item.id, flag) : item => unflagItem(item.id, flag))
+      items.value.forEach(item => {
+        item.flags[flag] = forcedValue
+      })
 
     return {
       items: flaggedItems,
@@ -110,7 +87,8 @@ export function useCollection<
 
   return {
     items,
-    useSubset,
     useFlag,
+    setFlag,
+    useSubset,
   }
 }

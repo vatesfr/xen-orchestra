@@ -1,51 +1,27 @@
-import type { useCollection } from '@core/packages/collection/use-collection.ts'
-import type { MaybeArray } from '@core/types/utility.type.ts'
-import type { ComputedRef, Reactive, UnwrapRef } from 'vue'
+import { useFlagStore } from '@core/packages/collection/use-flag-store.ts'
+import type { ComputedRef, UnwrapRef } from 'vue'
 
-export type FlagConfig = {
-  multiple?: boolean
-  default?: boolean
-}
+// Map<InstanceId, Map<Flag, Map<ItemId, boolean>>>
+export type FlagRegistry = Map<string, Map<string, Map<string | number, boolean>>>
 
-export type CollectionOptions<TSource, TId extends string> = {
+// Map<InstanceId, Map<Flag, { multiple?: boolean }>>
+export type AvailableFlags = Map<string, Map<string, { multiple?: boolean }>>
+
+export type FlagsConfig<TFlag extends string> = TFlag[] | { [K in TFlag]: { multiple?: boolean } }
+
+export type CollectionOptions<TSource, TId, TFlag extends string, TProperties extends Record<string, ComputedRef>> = {
   identifier: (source: TSource) => TId
-  flags?: MaybeArray<string | Record<string, FlagConfig>>
-  properties?: (source: TSource) => Record<string, ComputedRef>
-  context?: Reactive<{
-    flags: ComputedRef<Map<string, FlagConfig>>
-    registeredFlags: Map<string, Map<TId, boolean>>
-  }>
+  properties: (source: TSource) => TProperties
+  flags: FlagsConfig<TFlag>
+  collectionId?: string
 }
 
-export type ExtractFlags<TOptions extends CollectionOptions<any, any>> = TOptions['flags'] extends (infer U)[]
-  ? U extends string
-    ? U
-    : U extends Record<string, FlagConfig>
-      ? keyof U
-      : never
-  : TOptions['flags'] extends string
-    ? TOptions['flags']
-    : never
-
-export type ExtractProperties<TOptions extends CollectionOptions<any, any>> = TOptions['properties'] extends (
-  source: any
-) => infer TProps
-  ? {
-      [K in keyof TProps]: UnwrapRef<TProps[K]>
-    }
-  : never
-
-export type CollectionItem<TSource, TId, TFlag extends string, TProperties extends Record<string, any>> = {
-  readonly id: TId
-  readonly source: TSource
-  readonly flags: Record<TFlag, boolean>
-  readonly properties: TProperties
-  toggleFlag(flag: TFlag, forcedValue?: boolean): void
+export type CollectionItem<TSource, TId, TFlag extends string, TProperties extends Record<string, ComputedRef>> = {
+  id: TId
+  source: TSource
+  flags: Record<TFlag, boolean>
+  properties: UnwrapRef<TProperties>
+  toggleFlag: (flag: TFlag, forcedValue?: boolean) => void
 }
 
-export type Collection<
-  TSource,
-  TId extends string,
-  TFlag extends string,
-  TProperties extends Record<string, any>,
-> = ReturnType<typeof useCollection<TSource, TId, any, TFlag, TProperties>>
+export type FlagStore = ReturnType<typeof useFlagStore>

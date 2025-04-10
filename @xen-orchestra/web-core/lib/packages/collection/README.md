@@ -1,13 +1,14 @@
 # `useCollection` composable
 
-The `useCollection` composable helps you manage a collection of items with flags (boolean states) and computed properties. It provides a type-safe way to filter, flag, and manipulate items in a collection.
+The
+`useCollection` composable helps you manage a collection of items with flags (boolean states) and computed properties. It provides a type-safe way to filter, flag, and manipulate items in a collection.
 
 ## Usage
 
 ```typescript
-const { items, useSubset, useFlag } = useCollection(sources, {
+const { items, useSubset, useFlag, setFlag } = useCollection(sources, {
   identifier: source => source.id,
-  flags: 'selected',
+  flags: ['selected', 'active', { highlighted: { multiple: false } }],
   properties: source => ({
     isAvailable: computed(() => source.status === 'available'),
     fullName: computed(() => `${source.firstName} ${source.lastName}`),
@@ -17,7 +18,8 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 
 ## Core Concepts
 
-- **Collection Item**: An object with a unique identifier, a reference to its source object, flags, computed properties, and methods to manipulate flags
+- **Collection Item
+  **: An object with a unique identifier, a reference to its source object, flags, computed properties, and methods to manipulate flags
 - **Flags**: Boolean states attached to items (like 'selected', 'active', 'highlighted')
 - **Properties**: Computed values derived from the source object
 
@@ -30,27 +32,27 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 
 ### `options` object
 
-| Name         | Type                                               | Required | Description                                                             |
-| ------------ | -------------------------------------------------- | :------: | ----------------------------------------------------------------------- |
-| `identifier` | `(source: TSource) => TId`                         |    ✓     | Function to extract a unique identifier from each source                |
-| `flags`      | `MaybeArray<string \| Record<string, FlagConfig>>` |          | Flags that can be applied to items in the collection                    |
-| `properties` | `(source: TSource) => Record<string, ComputedRef>` |          | Function that returns computed properties for each item                 |
-| `context`    | `Reactive<{ flags, registeredFlags }>`             |          | Shared context for multiple collections (usually handled automatically) |
+| Name           | Type                                               | Required | Description                                              |
+| -------------- | -------------------------------------------------- | :------: | -------------------------------------------------------- |
+| `identifier`   | `(source: TSource) => TId`                         |    ✓     | Function to extract a unique identifier from each source |
+| `flags`        | `MaybeArray<string \| Record<string, FlagConfig>>` |          | Flags that can be applied to items in the collection     |
+| `properties`   | `(source: TSource) => Record<string, ComputedRef>` |          | Function that returns computed properties for each item  |
+| `collectionId` | `string`                                           |          | (usually handled automatically)                          |
 
 ### `FlagConfig` object
 
 | Name       | Type      | Default | Description                                                              |
 | ---------- | --------- | ------- | ------------------------------------------------------------------------ |
 | `multiple` | `boolean` | `true`  | Whether multiple items can have this flag set (false = single selection) |
-| `default`  | `boolean` | `false` | Default value for the flag when not explicitly set                       |
 
 ## Return Value
 
-| Name        | Type                                        | Description                                                                   |
-| ----------- | ------------------------------------------- | ----------------------------------------------------------------------------- |
-| `items`     | `ComputedRef<CollectionItem[]>`             | Array of collection items with flags and properties                           |
-| `useSubset` | `(filter: (item) => boolean) => Collection` | Creates a new collection that's a subset of the original, with shared context |
-| `useFlag`   | `(flag: TFlag) => object`                   | Utilities for working with a specific flag (see below)                        |
+| Name        | Type                                        | Description                                              |
+| ----------- | ------------------------------------------- | -------------------------------------------------------- |
+| `items`     | `ComputedRef<CollectionItem[]>`             | Array of collection items with flags and properties      |
+| `useSubset` | `(filter: (item) => boolean) => Collection` | Creates a new collection that's a subset of the original |
+| `useFlag`   | `(flag: TFlag) => UseFlag`                  | Utilities for working with a specific flag               |
+| `setFlag`   | Overloaded function (see below)             | Set flag on one or multiple items                        |
 
 ### `CollectionItem` object
 
@@ -62,7 +64,7 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 | `properties` | `TProperties`                  | Object containing all computed properties for this item |
 | `toggleFlag` | `(flag, forcedValue?) => void` | Method to toggle a flag on this item                    |
 
-### Return value of `useFlag`
+### Return value of `useFlag(flag)`
 
 | Name        | Type                            | Description                                            |
 | ----------- | ------------------------------- | ------------------------------------------------------ |
@@ -74,12 +76,70 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 | `areNoneOn` | `ComputedRef<boolean>`          | Whether no items have this flag set                    |
 | `toggle`    | `(forcedValue?) => void`        | Toggle this flag on all items in the collection        |
 
+## Flag Operations
+
+The composable provides several ways to work with flags:
+
+### Setting Flags
+
+The `setFlag` function has two different signatures:
+
+```typescript
+// Signature 1: Set flag for specific items
+function setFlag(id: MaybeArray<TId>, flag: TFlag, value: boolean): void
+
+// Signature 2: Set flag for all items in the collection
+function setFlag(flag: TFlag, value: boolean): void
+```
+
+Examples:
+
+```typescript
+// Set flag for a single item
+setFlag('item-id', 'selected', true)
+
+// Set flag for multiple items
+setFlag(['item1-id', 'item2-id'], 'selected', true)
+
+// Set flag for all items in the collection
+setFlag('selected', true)
+```
+
+A flag can also be set directly on the item
+
+```typescript
+item.flags.selected = true
+```
+
+### Toggling Flags
+
+You can toggle flags using the `toggleFlag` method on an individual item:
+
+```typescript
+// Toggle the 'selected' flag on an item
+// Same as item.flags.selected = !item.flags.selected
+item.toggleFlag('selected')
+
+// Force the 'selected' flag to a specific value
+// Same as item.flags.selected = true
+item.toggleFlag('selected', true)
+```
+
+### Checking Flags
+
+You can check if an item has a flag:
+
+```typescript
+// Check if an item has a specific flag
+const isSelected = item.flags.selected
+```
+
 ## Examples
 
 ### Basic Usage
 
 ```typescript
-// Source type
+// Define a source type
 interface User {
   id: string
   firstName: string
@@ -88,7 +148,7 @@ interface User {
   role: 'admin' | 'user'
 }
 
-// Source data
+// Create a ref with source data
 const users = ref<User[]>([
   {
     id: '1',
@@ -112,34 +172,36 @@ const users = ref<User[]>([
     role: 'user',
   },
 ])
+```
 
+```typescript
 // Create a collection
-const { items: userItems, useFlag } = useCollection(users, {
+const { items, useFlag, setFlag } = useCollection(users, {
   identifier: user => user.id,
-  flags: ['selected', 'active'],
+  flags: ['selected', { active: { multiple: false } }],
   properties: user => ({
     fullName: computed(() => `${user.firstName} ${user.lastName}`),
     isAdmin: computed(() => user.role === 'admin'),
   }),
 })
 
-// Work with a specific flag
-const { areAllOn: areAllUsersSelected, count: selectedUsersCount, toggle: toggleAllSelectedUsers } = useFlag('selected')
+// Work with the collection
+const selectedUsers = useFlag('selected')
 ```
 
 ```vue
-<!-- Basic usage in a template -->
 <template>
   <div>
-    <div>Selected: {{ selectedUsersCount }}</div>
-    <div>All selected: {{ areAllUsersSelected }}</div>
-    <button @click="toggleAllSelectedUsers()">Toggle All</button>
+    <div>Selected: {{ selectedUsers.count }}</div>
+    <div>All selected: {{ selectedUsers.areAllOn }}</div>
+    <button @click="selectedUsers.toggle()">Toggle All</button>
+    <button @click="setFlag('selected', false)">Clear Selection</button>
 
     <ul>
-      <li v-for="user in userItems" :key="user.id">
-        <input type="checkbox" v-model="user.flags.selected" />
-        {{ user.properties.fullName }}
-        <span v-if="user.properties.isAdmin">(Admin)</span>
+      <li v-for="item in items" :key="item.id">
+        <input type="checkbox" v-model="item.flags.selected" />
+        {{ item.properties.fullName }}
+        <span v-if="item.properties.isAdmin">(Admin)</span>
       </li>
     </ul>
   </div>
@@ -149,7 +211,7 @@ const { areAllOn: areAllUsersSelected, count: selectedUsersCount, toggle: toggle
 ### Using Subsets
 
 ```typescript
-const { items: userItems, useSubset } = useCollection(users, {
+const { items, useSubset, useFlag } = useCollection(users, {
   identifier: user => user.id,
   flags: ['selected'],
   properties: user => ({
@@ -158,33 +220,49 @@ const { items: userItems, useSubset } = useCollection(users, {
 })
 
 // Create a subset of only active users
-const { items: activeUserItems, useFlag: useActiveUsersFlag } = useSubset(item => item.properties.isActive)
+const activeCollection = useSubset(item => item.properties.isActive)
+const selectedActiveUsers = activeCollection.useFlag('selected')
 
-// Work with a specific flag on the subset
-const { count: selectedActiveUsersCount } = useActiveUsersFlag('selected')
-
-// Now you can work with just the active users
-console.log(`${activeUserItems.value.length} active users`)
-console.log(`${selectedActiveUsersCount.value} selected active users`)
+const activeCount = computed(() => activeCollection.items.value.length)
+const selectedActiveCount = computed(() => selectedActiveUsers.count.value)
 ```
-
-### Exclusive Selection (Radio Button Behavior)
-
-```typescript
-const { items } = useCollection(users, {
-  identifier: user => user.id,
-  flags: {
-    current: { multiple: false },
-  },
-})
-```
-
-When an item activate its `current` flag, it is deactivated on every other items
 
 ```vue
 <template>
-  <MyComponent v-for="item in items" :key="item.id" :current="item.flags.current" @click="items.flags.current = true">
-    {{ item.source.firstName }}
-  </MyComponent>
+  <div>
+    <p>{{ activeCount }} active users</p>
+    <p>{{ selectedActiveCount }} selected active users</p>
+  </div>
 </template>
+```
+
+### Exclusive Selection
+
+```typescript
+const { items, setFlag } = useCollection(users, {
+  identifier: user => user.id,
+  flags: [{ current: { multiple: false } }],
+})
+```
+
+```vue
+<template>
+  <ul>
+    <li
+      v-for="item in items"
+      :key="item.id"
+      :class="{ selected: item.flags.current }"
+      @click="setFlag(item.id, 'current', true)"
+    >
+      {{ item.source.firstName }}
+    </li>
+  </ul>
+</template>
+
+<style>
+.selected {
+  background-color: #eaf2f8;
+  font-weight: bold;
+}
+</style>
 ```
