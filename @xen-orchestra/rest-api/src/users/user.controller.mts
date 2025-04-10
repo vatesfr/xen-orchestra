@@ -21,6 +21,13 @@ export class UserController extends XoController<XoUser> {
     return this.restApi.xoApp.getUser(id)
   }
 
+  partialUser(user: XoUser): Partial<Unbrand<XoUser>> {
+    return {
+      ...user,
+      pw_hash: '***obfuscated***',
+    }
+  }
+
   /**
    * @example fields "permission,name,id"
    * @example filter "permission:admin"
@@ -35,7 +42,8 @@ export class UserController extends XoController<XoUser> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<string[] | WithHref<Partial<Unbrand<XoUser>>>[]> {
-    return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
+    const users = Object.values(await this.getObjects({ filter, limit })).map(this.partialUser)
+    return this.sendObjects(users as XoUser[], req)
   }
 
   /**
@@ -44,7 +52,8 @@ export class UserController extends XoController<XoUser> {
   @Example(user)
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
-  getUser(@Path() id: string): Promise<Unbrand<XoUser>> {
-    return this.getObject(id as XoUser['id'])
+  async getUser(@Path() id: string): Promise<Partial<Unbrand<XoUser>>> {
+    const user = await this.getObject(id as XoUser['id'])
+    return this.partialUser(user)
   }
 }
