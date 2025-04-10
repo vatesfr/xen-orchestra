@@ -15,6 +15,7 @@
   - `/rest/v0/vifs` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
   - `/rest/v0/vifs/<vif-id>` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
 - [VM/Advanced] Rename `Block migration` to `Disable migration` (PR [#8492](https://github.com/vatesfr/xen-orchestra/pull/8492))
+- [Plugin/Web hook] Web hook plugin now support `Office 365 connector` format (PR [#8498](https://github.com/vatesfr/xen-orchestra/pull/8498))
 
 ### Bug fixes
 
@@ -45,6 +46,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
+- xo-server-web-hooks minor
 - xo-web patch
 
 <!--packages-end-->
