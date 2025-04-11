@@ -13,6 +13,13 @@ export interface Vdi {
   userdevice?: string
 }
 
+export interface Vif {
+  interface?: XoNetwork['id']
+  macAddress?: string
+  device?: string
+  destroy?: boolean
+}
+
 export interface NetworkInterface {
   interface: XoNetwork['id']
   macAddress: string
@@ -47,4 +54,5 @@ export interface VmState {
   description: string
   existingVdis: Vdi[]
   name: string
+  vifs: Vif[]
 }
