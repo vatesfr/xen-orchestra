@@ -10,5 +10,5 @@ export type XoPool = {
   name_description: string
   name_label: string
   _xapiRef: string
-  default_SR: XoSr['id']
+  default_SR?: XoSr['id']
 }

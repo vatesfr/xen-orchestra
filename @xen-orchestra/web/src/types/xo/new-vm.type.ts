@@ -10,6 +10,7 @@ export interface Vdi {
   name_description: string
   size: number
   sr: XoSr['id'] | undefined
+  userdevice?: string
 }
 
 export interface NetworkInterface {
@@ -17,18 +18,20 @@ export interface NetworkInterface {
   macAddress: string
 }
 
+export type InstallMode = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
+
 export interface VmState {
-  affinity_host: XoHost['id'] | undefined
+  affinity_host?: XoHost['id']
   auto_poweron: boolean
-  installMode: string
+  installMode?: InstallMode
   boot_firmware: string
   boot_vm: boolean
   clone: boolean
-  cloudConfig: string
+  cloudConfig?: string
   copyHostBiosStrings: boolean
   defaultNetwork: NetworkInterface | undefined
   isDiskTemplateSelected: boolean
-  networkConfig: string
+  networkConfig?: string
   networkInterfaces: NetworkInterface[]
   new_vm_template: XoVmTemplate | undefined
   pool: XoPool | undefined
@@ -40,7 +43,7 @@ export interface VmState {
   topology: string
   vCPU: number
   selectedVcpu: number
-  vdis: string[]
+  vdis: Vdi[]
   description: string
   existingVdis: Vdi[]
   name: string
