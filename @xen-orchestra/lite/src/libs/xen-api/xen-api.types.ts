@@ -113,18 +113,23 @@ export interface XenApiPool extends XenApiRecord<'pool'> {
 export interface XenApiHost extends XenApiRecord<'host'> {
   address: string
   name_label: string
+  name_description: string
   metrics: XenApiHostMetrics['$ref']
   resident_VMs: XenApiVm['$ref'][]
-  cpu_info: { cpu_count: string }
+  cpu_info: { cpu_count: string; socket_count: string }
   software_version: { product_version: string }
   control_domain: XenApiVm['$ref']
   current_operations: Record<string, HOST_OPERATION>
+  other_config: Record<string, any>
+  tags: string[]
+  bios_strings: Record<string, any>
 }
 
 export interface XenApiSr extends XenApiRecord<'sr'> {
   content_type: string
   name_label: string
   VDIs: XenApiVdi['$ref'][]
+  PBDs: XenApiPbd['$ref'][]
   physical_size: number
   physical_utilisation: number
   shared: boolean
@@ -132,6 +137,10 @@ export interface XenApiSr extends XenApiRecord<'sr'> {
   sm_config: {
     type?: string
   }
+}
+
+export interface XenApiPbd extends XenApiRecord<'pbd'> {
+  host: XenApiHost['$ref']
 }
 
 export interface XenApiVm extends XenApiRecord<'vm'> {
