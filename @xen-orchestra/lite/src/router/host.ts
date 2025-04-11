@@ -1,7 +1,7 @@
 export default {
   path: '/host/:uuid',
   component: () => import('@/views/host/HostRootView.vue'),
-  redirect: { name: 'host.console' },
+  redirect: { name: 'host.dashboard' },
   children: [
     {
       path: 'dashboard',
