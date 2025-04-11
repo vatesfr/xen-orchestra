@@ -3,11 +3,8 @@ import { createLogger } from '@xen-orchestra/log'
 import { asyncEach } from '@vates/async-each'
 import assert from 'node:assert'
 import * as UUID from 'uuid'
-import isVhdDifferencingDisk from 'vhd-lib/isVhdDifferencingDisk.js'
-import mapValues from 'lodash/mapValues.js'
 
 import { AbstractRemote } from './_AbstractRemote.mjs'
-import { forkDeltaExport } from './_forkDeltaExport.mjs'
 import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs'
 import { Disposable } from 'promise-toolbox'
 import { openVhd } from 'vhd-lib'
@@ -71,8 +68,8 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       // recompute if disks are differencing or not
       const isVhdDifferencing = {}
 
-      await asyncEach(Object.entries(incrementalExport.streams), async ([key, stream]) => {
-        isVhdDifferencing[key] = await isVhdDifferencingDisk(stream)
+      Object.entries(incrementalExport.disks).forEach(([key, disk]) => {
+        isVhdDifferencing[key] = disk.isDifferencing()
       })
       const hasDifferencingDisk = Object.values(isVhdDifferencing).includes(true)
       if (metadata.isBase === hasDifferencingDisk) {
@@ -87,11 +84,10 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       await this._selectBaseVm(metadata)
       await this._callWriters(writer => writer.prepare({ isBase: metadata.isBase }), 'writer.prepare()')
 
-      incrementalExport.streams = mapValues(incrementalExport.streams, this._throttleStream)
       await this._callWriters(
         writer =>
           writer.transfer({
-            deltaExport: forkDeltaExport(incrementalExport),
+            deltaExport: incrementalExport,
             isVhdDifferencing,
             timestamp: metadata.timestamp,
             vm: metadata.vm,

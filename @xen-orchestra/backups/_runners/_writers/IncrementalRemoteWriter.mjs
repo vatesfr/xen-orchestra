@@ -136,7 +136,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     const { handler } = this._adapter
     const vhds = this.#vhds
     await asyncEach(Object.entries(vdis), async ([id, vdi]) => {
-      const isDifferencing = isVhdDifferencing[`${id}.vhd`]
+      const isDifferencing = isVhdDifferencing[id]
       const path = `${this._vmBackupDir}/${vhds[id]}`
       if (isDifferencing) {
         assert.notStrictEqual(
@@ -203,8 +203,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
     let metadataContent = await this._isAlreadyTransferred(timestamp)
     if (metadataContent !== undefined) {
       // skip backup while being vigilant to not stuck the forked stream
-      Task.info('This backup has already been transfered')
-      Object.values(deltaExport.streams).forEach(stream => stream.destroy())
+      /** @todo destroy fork  */
       return { size: 0 }
     }
 
@@ -223,36 +222,33 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
       vmSnapshot,
       vtpms: deltaExport.vtpms,
     }
-
-    const { size } = await Task.run({ name: 'transfer' }, async () => {
-      let transferSize = 0
+    let size = 0
+    await Task.run({ name: 'transfer' }, async () => {
       await asyncEach(
-        Object.keys(deltaExport.vdis),
-        async id => {
-          const path = `${this._vmBackupDir}/${vhds[id]}`
-          // don't write it as transferSize += await async function
-          // since i += await asyncFun lead to race condition
-          // as explained : https://eslint.org/docs/latest/rules/require-atomic-updates
-          const transferSizeOneDisk = await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
+        Object.entries(deltaExport.disks),
+        async ([diskRef, disk]) => {
+          const path = `${this._vmBackupDir}/${vhds[diskRef]}`
+          await adapter.writeVhd(path, disk, {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
           })
-          transferSize += transferSizeOneDisk
+          size = size + disk.getNbGeneratedBlock() * disk.getBlockSize()
         },
         {
           concurrency: settings.diskPerVmConcurrency,
         }
       )
 
-      return { size: transferSize }
+      return { size }
     })
-    metadataContent.size = size
+    metadataContent.size = size // @todo return exactly the size written by this writer
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
 
     // TODO: run cleanup?
+    return { size }
   }
 }
 decorateClass(IncrementalRemoteWriter, {

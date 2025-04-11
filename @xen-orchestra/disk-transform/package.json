@@ -1,14 +1,14 @@
 {
-  "name": "@vates/generator-toolbox",
-  "version": "1.0.1",
-  "main": "dist/index.mjs",
+  "name": "@xen-orchestra/disk-transform",
+  "version": "0.0.0",
+  "main": "./dist/index.mjs",
   "license": "MIT",
   "private": false,
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^9.19.0",
     "rimraf": "^5.0.1",
-    "@types/node": "^20.6",
+    "@types/node": "^22.3.0",
     "typescript": "~5.6",
     "typescript-eslint": "^8.23.0"
   },
@@ -19,10 +19,10 @@
     "test": "tsc && node --test **/*.test.mjs",
     "clean": "rimraf dist/"
   },
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/generator-toolbox",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/disk-transform",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
-    "directory": "@vates/generator-toolbox",
+    "directory": "@xen-orchestra/disk-transform",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
@@ -31,6 +31,10 @@
     "url": "https://vates.fr"
   },
   "engines": {
-    "node": ">=20.18"
+    "node": ">=20.17"
+  },
+  "dependencies": {
+    "vhd-lib": "^4.11.2",
+    "@vates/generator-toolbox": "^1.0.1"
   }
 }
