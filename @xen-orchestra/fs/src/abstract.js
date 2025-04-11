@@ -638,7 +638,13 @@ export default class RemoteHandlerAbstract {
           // Unlink dir behavior is not consistent across platforms
           // https://github.com/nodejs/node-v0.x-archive/issues/5791
           if (error.code === 'EISDIR' || error.code === 'EPERM') {
-            return this._rmtree(`${dir}/${file}`)
+            return this._rmtree(`${dir}/${file}`).catch(rmTreeError => {
+              if (rmTreeError.code === 'ENOTDIR') {
+                // this was realy a EPERM error, maybe with immutable backups
+                throw error
+              }
+              throw rmTreeError
+            })
           }
           throw error
         },
