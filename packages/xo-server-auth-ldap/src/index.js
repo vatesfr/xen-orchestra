@@ -1,5 +1,6 @@
 /* eslint no-throw-literal: 0 */
 
+import Disposable from 'promise-toolbox/Disposable'
 import ensureArray from 'ensure-array'
 import fromCallback from 'promise-toolbox/fromCallback'
 import { Client } from 'ldapts'
@@ -248,6 +249,23 @@ class AuthLdap {
     })
   }
 
+  async _getClient() {
+    const client = new Client(this._clientOpts)
+
+    if (this._startTls) {
+      await client.startTLS(this._tlsOptions)
+    }
+
+    const { _credentials: credentials } = this
+    if (credentials) {
+      logger.debug(`attempting to bind with as ${credentials.dn}...`)
+      await client.bind(credentials.dn, credentials.password)
+      logger.debug(`successfully bound as ${credentials.dn}`)
+    }
+
+    return new Disposable(() => client.unbind(), client)
+  }
+
   async _authenticate({ username, password }) {
     if (username === undefined || password === undefined) {
       logger.debug('require `username` and `password` to authenticate!')
@@ -255,23 +273,7 @@ class AuthLdap {
       return null
     }
 
-    const client = new Client(this._clientOpts)
-
-    try {
-      if (this._startTls) {
-        await client.startTLS(this._tlsOptions)
-      }
-
-      // Bind if necessary.
-      {
-        const { _credentials: credentials } = this
-        if (credentials) {
-          logger.debug(`attempting to bind with as ${credentials.dn}...`)
-          await client.bind(credentials.dn, credentials.password)
-          logger.debug(`successfully bound as ${credentials.dn}`)
-        }
-      }
-
+    return await Disposable.use(this._getClient(), async client => {
       // Search for the user.
       logger.debug('searching for entries...')
       const { searchEntries: entries } = await client.search(this._searchBase, {
@@ -321,29 +323,12 @@ class AuthLdap {
 
       logger.debug(`could not authenticate ${username}`)
       return null
-    } finally {
-      await client.unbind()
-    }
+    })
   }
 
   // Synchronize user's groups OR all groups if no user is passed
   async _synchronizeGroups(user, memberId) {
-    const client = new Client(this._clientOpts)
-
-    try {
-      if (this._startTls) {
-        await client.startTLS(this._tlsOptions)
-      }
-
-      // Bind if necessary.
-      {
-        const { _credentials: credentials } = this
-        if (credentials) {
-          logger.debug(`attempting to bind with as ${credentials.dn}...`)
-          await client.bind(credentials.dn, credentials.password)
-          logger.debug(`successfully bound as ${credentials.dn}`)
-        }
-      }
+    return await Disposable.use(this._getClient(), async client => {
       logger.info('syncing groups...')
       const { base, displayNameAttribute, filter, idAttribute, membersMapping } = this._groupsConfig
       const { searchEntries: ldapGroups } = await client.search(base, {
@@ -468,9 +453,7 @@ class AuthLdap {
       }
 
       logger.info('done syncing groups')
-    } finally {
-      await client.unbind()
-    }
+    })
   }
 }
 
