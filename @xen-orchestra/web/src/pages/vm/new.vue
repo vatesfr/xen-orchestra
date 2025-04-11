@@ -425,6 +425,7 @@ import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { JobError } from '@core/packages/job'
 import {
   faAlignLeft,
   faAngleDown,
@@ -850,17 +851,16 @@ const createNewVM = async () => {
   try {
     isBusy.value = true
 
-    if (vmData.value.template === undefined || vmState.pool === undefined) {
-      throw new Error('Template UUID and Pool ID are required')
-    }
-
     const createVmJob = useVmCreateJob(vmData.value, vmState.pool!.id)
     await createVmJob.run()
+
     redirectToHome()
   } catch (error) {
     isOpen.value = true
 
-    errorMessage.value = 'Error creating VM: ' + error
+    if (error instanceof JobError) {
+      errorMessage.value = 'Error creating VM:' + t(error.message)
+    }
   } finally {
     isBusy.value = false
   }

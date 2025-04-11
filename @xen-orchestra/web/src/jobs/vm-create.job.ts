@@ -15,10 +15,10 @@ export const useVmCreateJob = defineJob('vm.create', [vmArg, poolArg], () => {
     },
     validate: (_, payload, poolId) => {
       if (!poolId) {
-        throw new JobError('Missing pool')
+        throw new JobError('job.vm-create.missing-pool')
       }
       if (!payload || Object.keys(payload).length === 0) {
-        throw new JobError('Missing payload for VM creation')
+        throw new JobError('job.vm-create.missing-payload')
       }
     },
   }

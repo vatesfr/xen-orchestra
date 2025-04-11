@@ -216,6 +216,8 @@
   "job.vm-copy.bad-power-state": "La VM doit être arrêtée",
   "job.vm-copy.in-progress": "Copie en cours…",
   "job.vm-copy.missing-vms": "Aucune VM à copier",
+  "job.vm-create.missing-pool": "Aucun pool",
+  "job.vm-create.missing-payload": "Aucun payload",
   "job.vm-delete.bad-power-state": "La VM doit être arrêtée",
   "job.vm-delete.in-progress": "Suppression en cours…",
   "job.vm-delete.missing-vms": "Aucune VM à supprimer",
