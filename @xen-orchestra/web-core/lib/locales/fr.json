@@ -119,6 +119,7 @@
   "dark-mode.disable": "Désactiver le mode sombre",
   "dark-mode.enable": "Activer le mode sombre",
   "dashboard": "Tableau de bord",
+  "default-behavior": "Comportement par défaut",
   "default-locking-mode": "Mode de verrouillage par défaut",
   "delete": "Supprimer",
   "delete-vms": "Supprimer 1 VM | Supprimer {n} VMs",
