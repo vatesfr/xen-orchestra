@@ -16,7 +16,7 @@ export function useCollection<
 
   const collectionId = options.collectionId ?? useId()
 
-  flagStore.register(collectionId, options.flags)
+  flagStore.register(collectionId, options.flags ?? [])
 
   const items = computed(() => toValue(sources).map(source => buildItem(collectionId, source, options, flagStore)))
 

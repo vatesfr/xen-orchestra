@@ -11,8 +11,8 @@ export type FlagsConfig<TFlag extends string> = TFlag[] | { [K in TFlag]: { mult
 
 export type CollectionOptions<TSource, TId, TFlag extends string, TProperties extends Record<string, ComputedRef>> = {
   identifier: (source: TSource) => TId
-  properties: (source: TSource) => TProperties
-  flags: FlagsConfig<TFlag>
+  properties?: (source: TSource) => TProperties
+  flags?: FlagsConfig<TFlag>
   collectionId?: string
 }
 

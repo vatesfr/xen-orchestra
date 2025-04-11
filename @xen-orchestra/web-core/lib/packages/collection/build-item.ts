@@ -13,7 +13,7 @@ export function buildItem<
   flagStore: FlagStore
 ): CollectionItem<TSource, TId, TFlag, TProperties> {
   const id = options.identifier(source)
-  const properties = options.properties(source)
+  const properties = options.properties?.(source)
 
   return {
     id,
@@ -36,10 +36,10 @@ export function buildItem<
     }),
     properties: new Proxy({} as UnwrapRef<TProperties>, {
       has(target, prop: Extract<keyof TProperties, string>) {
-        return prop in properties
+        return properties !== undefined && prop in properties
       },
       get(target, prop: Extract<keyof TProperties, string>) {
-        return properties[prop].value
+        return properties?.[prop].value
       },
     }),
   }
