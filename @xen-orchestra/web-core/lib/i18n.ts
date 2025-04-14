@@ -37,6 +37,18 @@ export const locales: Locales = {
     code: 'sv',
     name: 'Svenska',
   },
+  it: {
+    code: 'it',
+    name: 'Italiano',
+  },
+  ru: {
+    code: 'ru',
+    name: 'Русский',
+  },
+  uk: {
+    code: 'uk',
+    name: 'Українська',
+  },
 }
 
 export default createI18n({

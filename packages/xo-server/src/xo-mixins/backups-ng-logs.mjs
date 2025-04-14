@@ -3,6 +3,7 @@ import isEmpty from 'lodash/isEmpty.js'
 import iteratee from 'lodash/iteratee.js'
 import ms from 'ms'
 import sortedIndexBy from 'lodash/sortedIndexBy.js'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
@@ -178,7 +179,14 @@ export default {
       forEach(restoreLogs, handleLog)
       forEach(restoreMetadataLogs, handleLog)
 
-      return runId === undefined ? consolidated : consolidated[runId]
+      if (runId !== undefined) {
+        if (consolidated[runId] === undefined) {
+          /* throw */ noSuchObject(runId, 'backup-ng-log')
+        }
+        return consolidated[runId]
+      }
+
+      return consolidated
     },
     10e3,
     function keyFn(runId) {

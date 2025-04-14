@@ -5,7 +5,11 @@ import type {
   DOMAIN_TYPE,
   HOST_ALLOWED_OPERATIONS,
   HOST_POWER_STATE,
+  POOL_ALLOWED_OPERATIONS,
   STORAGE_OPERATIONS,
+  VDI_OPERATIONS,
+  VDI_TYPE,
+  VIF_LOCKING_MODE,
   VM_OPERATIONS,
   VM_POWER_STATE,
 } from './common.mjs'
@@ -58,7 +62,11 @@ type BaseXoVm = BaseXapiXo & {
     process?: string
     version?: string
   }
+  /**
+   * @deprecated use isNestedVirtEnabled instead
+   */
   expNestedHvm: boolean
+  isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
   high_availability: string
   installTime?: number
@@ -203,6 +211,11 @@ export type XoHostPatch = BaseXapiXo & {
   type: 'host_patch'
 }
 
+export type XoNetwork = BaseXapiXo & {
+  id: Branded<'network'>
+  type: 'network'
+}
+
 export type XoPbd = BaseXapiXo & {
   id: Branded<'PBD'>
   type: 'PBD'
@@ -224,8 +237,45 @@ export type XoPif = BaseXapiXo & {
 }
 
 export type XoPool = BaseXapiXo & {
+  auto_poweron: boolean
+  cpus: {
+    cores?: number
+    sockets?: number
+  }
+  crashDumpSr?: XoSr['id']
+  current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
+  defaultSr?: XoSr['id']
+  HA_enabled: boolean
+  haSrs: XoSr['id'][]
   id: Branded<'pool'>
+  master: XoHost['id']
+  migrationCompression?: boolean
+  name_description: string
+  name_label: string
+  otherConfig: Record<string, string>
+  platform_version: string
+  suspendSr?: XoSr['id']
+  tags: string[]
   type: 'pool'
+  vtpmSupported: boolean
+  xosanPackInstallationTime: number | null
+  zstdSupported: boolean
+}
+
+export type XoServer = {
+  allowUnauthorized: boolean
+  enabled: boolean
+  error?: Record<string, unknown>
+  host: string
+  httpProxy?: string
+  id: Branded<'server'>
+  label?: string
+  poolId?: XoPool['id']
+  poolNameDescription?: string
+  poolNameLabel?: string
+  readOnly: boolean
+  status: 'connected' | 'disconnected' | 'connecting'
+  username: string
 }
 
 export type XoSr = BaseXapiXo & {
@@ -277,9 +327,40 @@ export type XoVbd = BaseXapiXo & {
   VM: XoVm['id']
 }
 
-export type XoVdi = BaseXapiXo & {
+type BaseXoVdi = BaseXapiXo & {
+  $SR: XoSr['id']
+  $VBDs: XoVbd['id'][]
+
+  VDI_type: VDI_TYPE
+
+  cbt_enabled?: boolean
+  current_operations: Record<string, VDI_OPERATIONS>
+  missing: boolean
+  name_description: string
+  name_label: string
+  other_config: Record<string, string>
+  parent?: XoVdiUnmanaged['id']
+  size: number
+  snapshots: XoVdiSnapshot['id'][]
+  tags: string[]
+  usage: number
+}
+
+export type XoVdi = BaseXoVdi & {
   id: Branded<'VDI'>
   type: 'VDI'
+}
+
+export type XoVdiSnapshot = BaseXoVdi & {
+  id: Branded<'VDI-snapshot'>
+  snapshot_time: number
+  $snapshot_of?: XoVdi['id']
+  type: 'VDI-snapshot'
+}
+
+export type XoVdiUnmanaged = BaseXoVdi & {
+  id: Branded<'VDI-unmanaged'>
+  type: 'VDI-unmanaged'
 }
 
 export type XoVgpu = BaseXapiXo & {
@@ -288,7 +369,24 @@ export type XoVgpu = BaseXapiXo & {
 }
 
 export type XoVif = BaseXapiXo & {
+  $VM: XoVm['id']
+
+  $network: XoNetwork['id']
+
+  allowedIpv4Addresses: string[]
+  allowedIpv6Addresses: string[]
+  attached: boolean
+  device: string
   id: Branded<'VIF'>
+  lockingMode: VIF_LOCKING_MODE
+  MAC: string
+  MTU: number
+  other_config: Record<string, string>
+  /**
+   * In kB/s
+   */
+  rateLimit?: number
+  txChecksumming: boolean
   type: 'VIF'
 }
 
@@ -335,10 +433,13 @@ export type XoVtpm = BaseXapiXo & {
 
 export type XapiXoRecord =
   | XoHost
+  | XoNetwork
   | XoPool
   | XoSr
   | XoVbd
   | XoVdi
+  | XoVdiSnapshot
+  | XoVdiUnmanaged
   | XoVgpu
   | XoVif
   | XoVm
@@ -347,4 +448,6 @@ export type XapiXoRecord =
   | XoVmTemplate
   | XoVtpm
 
-export type XoRecord = XapiXoRecord | XoGroup | XoUser
+export type NonXapiXoRecord = XoGroup | XoServer | XoUser
+
+export type XoRecord = XapiXoRecord | NonXapiXoRecord

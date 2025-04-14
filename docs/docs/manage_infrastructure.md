@@ -451,6 +451,18 @@ VM migration with storage motion allows you to migrate a VM from one host to ano
 - Migrating a VM that has VDIs on a shared SR from host A to host B using a particular network must trigger a "VM Migration with Storage Motion" without moving its VDIs.
 - Migrating a VM from host A to host B with a destination SR must trigger a "VM Migration with Storage Motion" and move VDIs to the destination SR, regardless of where the VDIs were stored.
 
+### Preventing VM migration
+
+To prevent a virtual machine from migrating:
+
+1. Go to the VM's configuration page.
+2. Go to the **Advanced** tab.
+3. Activate the **Prevent migration** toggle switch. 
+
+
+When this option is enabled, the VM won't be able to migrate to another host.
+
+
 ## Hosts management
 
 Outside updates (see next section), you can also do host management via Xen Orchestra. Basic operations are supported, like reboot, shutdown and so on.

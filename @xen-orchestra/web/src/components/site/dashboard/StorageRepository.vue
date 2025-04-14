@@ -4,7 +4,8 @@
       {{ $t('storage-repository') }}
       <template #description>{{ $t('for-replication') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero type="card" :disabled="isReady">
+    <VtsLoadingHero v-if="!isReady" type="card" />
+    <template v-else>
       <VtsStackedBarWithLegend :max-value="maxValue" :segments />
       <div class="numbers">
         <UiCardNumbers
@@ -26,7 +27,7 @@
           size="medium"
         />
       </div>
-    </VtsLoadingHero>
+    </template>
   </div>
 </template>
 

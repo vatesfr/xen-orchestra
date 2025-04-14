@@ -8,7 +8,7 @@
     ]"
     :presets
   >
-    <LinearChart v-bind="properties" />
+    <VtsLinearChart v-bind="properties" />
   </ComponentStory>
 </template>
 
@@ -16,7 +16,7 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
 import type { LinearChartData } from '@core/types/chart'
-import LinearChart from '@core/components/charts/LinearChart.vue'
+import VtsLinearChart from '@core/components/linear-chart/VtsLinearChart.vue'
 // eslint-disable-next-line import/no-named-as-default
 import humanFormat from 'human-format'
 

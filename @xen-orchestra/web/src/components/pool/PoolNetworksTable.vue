@@ -95,7 +95,7 @@
                 size="small"
               />
               <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="value text-ellipsis">
+              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
               </div>
             </td>
@@ -261,12 +261,6 @@ const headerIcon: Record<NetworkHeader, IconDefinition> = {
   .checkbox {
     text-align: center;
     line-height: 1;
-  }
-
-  .value:empty::before {
-    display: flex;
-    justify-content: center;
-    content: '-';
   }
 }
 </style>

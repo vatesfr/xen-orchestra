@@ -173,11 +173,11 @@ defineExpose({
 .select {
   font-size: 1em;
   width: 100%;
-  height: 3em;
+  height: 4rem;
   margin: 0;
   color: var(--text-color);
-  border: 0.05em solid var(--border-color);
-  border-radius: 0.4em;
+  border: 0.1rem solid var(--border-color);
+  border-radius: 0.4rem;
   outline: none;
   background-color: var(--background-color);
   box-shadow: var(--shadow-100);
@@ -199,15 +199,15 @@ defineExpose({
   &:not(:disabled) {
     &.info {
       &:hover {
-        --border-color: var(--color-info-item-hover);
+        --border-color: var(--color-brand-item-hover);
       }
 
       &:active {
-        --border-color: var(--color-info-item-active);
+        --border-color: var(--color-brand-item-active);
       }
 
       &:focus {
-        --border-color: var(--color-info-item-base);
+        --border-color: var(--color-brand-item-base);
       }
     }
 

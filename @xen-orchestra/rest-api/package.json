@@ -6,7 +6,7 @@
   "main": "./dist/index.mjs",
   "name": "@xen-orchestra/rest-api",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/rest-api",
-  "version": "0.1.2",
+  "version": "0.3.0",
   "description": "REST API to manage your XOA",
   "license": "AGPL-3.0-or-later",
   "private": false,
@@ -16,19 +16,23 @@
   },
   "scripts": {
     "build": "tsoa spec-and-routes && tsc",
+    "clean": "rimraf dist/ open-api/spec/ src/open-api/routes",
     "dev": "tsoa spec-and-routes && tsc --watch",
     "prepublishOnly": "npm run build",
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "prebuild": "npm run clean",
+    "predev": "npm run clean"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
     "@types/express": "^5.0.0",
     "@types/swagger-ui-express": "^4.1.7",
+    "rimraf": "^6.0.1",
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.23.0"
   },
   "dependencies": {
-    "@vates/types": "^1.0.1",
+    "@vates/types": "^1.1.1",
     "@xen-orchestra/log": "^0.7.1",
     "complex-matcher": "^0.7.1",
     "inversify": "^6.2.2",

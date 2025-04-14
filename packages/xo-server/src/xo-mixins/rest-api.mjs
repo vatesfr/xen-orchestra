@@ -607,14 +607,22 @@ export default class RestApi {
     // add migrated collections to maintain their discoverability
     const swaggerEndpoints = {
       docs: {},
+      pools: {},
+      vifs: {},
       vms: {
         actions: {
           start: true,
         },
       },
+      'vm-controllers': {},
+      'vm-snapshots': {},
+      'vm-templates': {},
       hosts: {},
       srs: {},
       vbds: {},
+      vdis: {},
+      'vdi-snapshots': {},
+      servers: {},
     }
 
     const withParams = (fn, paramsSchema) => {
@@ -801,7 +809,8 @@ export default class RestApi {
             ) => {
               params.affinityHost = affinity
               params.installRepository = install?.repository
-
+              // Mac expect min length 1
+              params.vifs = params.vifs.map(vif => ({ ...vif, mac: vif.mac?.trim() ?? '' }))
               const vm = await $xapi.createVm(template, params, undefined, app.apiContext.user.id)
               $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref)
 
@@ -990,14 +999,6 @@ export default class RestApi {
           app.tasks.off('update', onUpdate).off('remove', onRemove)
         })
         return stream[Symbol.asyncIterator]()
-      },
-    }
-    collections.servers = {
-      getObject(id) {
-        return app.getXenServer(id)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllXenServers(), filter, limit)
       },
     }
     collections.users = {
@@ -1253,7 +1254,7 @@ export default class RestApi {
         ['/backup/logs/:id', '/restore/logs/:id'],
         wrap(async (req, res) => {
           res.json(await app.getBackupNgLogs(req.params.id))
-        })
+        }, true)
       )
 
     api
