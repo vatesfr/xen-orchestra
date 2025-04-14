@@ -1,4 +1,4 @@
-import type { CollectionItem, CollectionOptions, FlagStore } from '@core/packages/collection/types.ts'
+import type { CollectionItem, CollectionOptions, FlagRegistry } from '@core/packages/collection/types.ts'
 import type { ComputedRef, UnwrapRef } from 'vue'
 
 export function buildItem<
@@ -7,29 +7,28 @@ export function buildItem<
   TFlag extends string,
   TProperties extends Record<string, ComputedRef>,
 >(
-  collectionId: string,
   source: TSource,
   options: CollectionOptions<TSource, TId, TFlag, TProperties>,
-  flagStore: FlagStore
-): CollectionItem<TSource, TId, TFlag, TProperties> {
+  flagRegistry: FlagRegistry<TFlag>
+): CollectionItem<TSource, TId, TFlag, UnwrapRef<TProperties>> {
   const id = options.identifier(source)
   const properties = options.properties?.(source)
 
   return {
     id,
     source,
-    toggleFlag(flag: TFlag, forcedValue = !flagStore.hasFlag(collectionId, flag, id)) {
-      flagStore.setFlag(collectionId, flag, id, forcedValue)
+    toggleFlag(flag: TFlag, forcedValue = !flagRegistry.hasFlag(id, flag)) {
+      flagRegistry.setFlag(id, flag, forcedValue)
     },
     flags: new Proxy({} as Record<TFlag, boolean>, {
       has(target, flag: TFlag) {
-        return flagStore.isFlagAvailable(collectionId, flag)
+        return flagRegistry.checkFlag(flag)
       },
       get(target, flag: TFlag) {
-        return flagStore.hasFlag(collectionId, flag, id)
+        return flagRegistry.hasFlag(id, flag)
       },
       set(target, flag: TFlag, value) {
-        flagStore.setFlag(collectionId, flag, id, value)
+        flagRegistry.setFlag(id, flag, value)
 
         return true
       },

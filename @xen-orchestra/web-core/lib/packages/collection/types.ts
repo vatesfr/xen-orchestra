@@ -1,11 +1,5 @@
-import { useFlagStore } from '@core/packages/collection/use-flag-store.ts'
-import type { ComputedRef, UnwrapRef } from 'vue'
-
-// Map<InstanceId, Map<Flag, Map<ItemId, boolean>>>
-export type FlagRegistry = Map<string, Map<string, Map<string | number, boolean>>>
-
-// Map<InstanceId, Map<Flag, { multiple?: boolean }>>
-export type AvailableFlags = Map<string, Map<string, { multiple?: boolean }>>
+import type { useFlagRegistry } from '@core/packages/collection/use-flag-registry.ts'
+import type { ComputedRef } from 'vue'
 
 export type FlagsConfig<TFlag extends string> = TFlag[] | { [K in TFlag]: { multiple?: boolean } }
 
@@ -13,15 +7,15 @@ export type CollectionOptions<TSource, TId, TFlag extends string, TProperties ex
   identifier: (source: TSource) => TId
   properties?: (source: TSource) => TProperties
   flags?: FlagsConfig<TFlag>
-  collectionId?: string
+  flagRegistry?: FlagRegistry<TFlag>
 }
 
-export type CollectionItem<TSource, TId, TFlag extends string, TProperties extends Record<string, ComputedRef>> = {
+export type CollectionItem<TSource, TId, TFlag extends string, TProperties extends Record<string, any>> = {
   id: TId
   source: TSource
   flags: Record<TFlag, boolean>
-  properties: UnwrapRef<TProperties>
+  properties: TProperties
   toggleFlag: (flag: TFlag, forcedValue?: boolean) => void
 }
 
-export type FlagStore = ReturnType<typeof useFlagStore>
+export type FlagRegistry<TFlag extends string> = ReturnType<typeof useFlagRegistry<TFlag>>
