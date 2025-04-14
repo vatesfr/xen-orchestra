@@ -602,7 +602,7 @@ class SDNController extends EventEmitter {
       log.error('Error while adding OF rule', {
         error,
         vif: vif.uuid,
-        host: vif.$VM.$resident_on.uuid,
+        host: vif.$VM.$resident_on?.uuid,
         allow,
         protocol,
         port,
@@ -651,7 +651,7 @@ class SDNController extends EventEmitter {
       log.error('Error while adding OF rule', {
         error,
         vif: vif.uuid,
-        host: vif.$VM.$resident_on.uuid,
+        host: vif.$VM.$resident_on?.uuid,
         protocol,
         port,
         ipRange,
@@ -818,8 +818,8 @@ class SDNController extends EventEmitter {
   _objectsRemoved(xapi, objects) {
     forOwn(objects, async (object, id) => {
       try {
-        this.ovsdbClients = omitBy(this.ovsdbClients, client => client.host.$id === id)
-        this.ofChannels = omitBy(this.ofChannels, channel => channel.host.$id === id)
+        this.ovsdbClients = omitBy(this.ovsdbClients, client => client.host?.$id === id)
+        this.ofChannels = omitBy(this.ofChannels, channel => channel.host?.$id === id)
 
         // If a Star center host is removed: re-elect a new center where needed
         const starCenterRef = this._starCenters.get(id)
