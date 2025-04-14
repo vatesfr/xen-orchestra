@@ -42,6 +42,12 @@ export class OpenFlowPlugin {
     })
   }
 
+  async addNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
+    return this.#callPluginOnAllNetwork(network, 'add-flow', { allow, protocol, ipRange, direction, port })
+  }
+  async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
+    return this.#callPluginOnAllNetwork(network, 'del-flow', { allow, protocol, ipRange, direction, port })
+  }
   async check(host) {
     return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, 'dump-flows', { IHAVEPARAMZ: 'true' })
   }
