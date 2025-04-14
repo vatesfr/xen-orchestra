@@ -3,14 +3,23 @@ import type { ComputedRef } from 'vue'
 
 export type FlagsConfig<TFlag extends string> = TFlag[] | { [K in TFlag]: { multiple?: boolean } }
 
-export type CollectionOptions<TSource, TId, TFlag extends string, TProperties extends Record<string, ComputedRef>> = {
+export type CollectionOptions<
+  TSource,
+  TId extends PropertyKey,
+  TFlag extends string,
+  TProperties extends Record<string, ComputedRef>,
+> = {
   identifier: (source: TSource) => TId
   properties?: (source: TSource) => TProperties
   flags?: FlagsConfig<TFlag>
-  flagRegistry?: FlagRegistry<TFlag>
 }
 
-export type CollectionItem<TSource, TId, TFlag extends string, TProperties extends Record<string, any>> = {
+export type CollectionItem<
+  TSource,
+  TId extends PropertyKey,
+  TFlag extends string,
+  TProperties extends Record<string, any>,
+> = {
   id: TId
   source: TSource
   flags: Record<TFlag, boolean>

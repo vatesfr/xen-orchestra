@@ -3,7 +3,7 @@ import type { ComputedRef, UnwrapRef } from 'vue'
 
 export function buildItem<
   TSource,
-  TId extends string | number,
+  TId extends PropertyKey,
   TFlag extends string,
   TProperties extends Record<string, ComputedRef>,
 >(
@@ -17,18 +17,18 @@ export function buildItem<
   return {
     id,
     source,
-    toggleFlag(flag: TFlag, forcedValue = !flagRegistry.hasFlag(id, flag)) {
-      flagRegistry.setFlag(id, flag, forcedValue)
+    toggleFlag(flag: TFlag, forcedValue?: boolean) {
+      flagRegistry.toggleFlag(id, flag, forcedValue)
     },
     flags: new Proxy({} as Record<TFlag, boolean>, {
       has(target, flag: TFlag) {
-        return flagRegistry.checkFlag(flag)
+        return flagRegistry.isFlagDefined(flag)
       },
       get(target, flag: TFlag) {
-        return flagRegistry.hasFlag(id, flag)
+        return flagRegistry.isFlagged(id, flag)
       },
       set(target, flag: TFlag, value) {
-        flagRegistry.setFlag(id, flag, value)
+        flagRegistry.toggleFlag(id, flag, value)
 
         return true
       },
