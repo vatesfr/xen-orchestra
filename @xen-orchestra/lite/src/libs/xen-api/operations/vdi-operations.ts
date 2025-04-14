@@ -7,6 +7,8 @@ import { VDI_TYPE } from '@vates/types/common'
 export function createVdiOperations(xenApi: XenApi) {
   type VdiRefs = MaybeArray<XenApiVdi['$ref']>
 
+  type VdiRef = XenApiVdi['$ref']
+
   type SrRef = XenApiSr['$ref']
 
   type VdiCreateParams = {
@@ -44,7 +46,7 @@ export function createVdiOperations(xenApi: XenApi) {
         other_config,
         tags,
       }
-      return xenApi.call<XenApiVdi['$ref']>('VDI.create', [vdiRecord])
+      return xenApi.call<VdiRef>('VDI.create', [vdiRecord])
     },
 
     delete: (vdiRefs: VdiRefs) => Promise.all(toArray(vdiRefs).map(vdiRef => xenApi.call('VDI.destroy', [vdiRef]))),
@@ -54,5 +56,11 @@ export function createVdiOperations(xenApi: XenApi) {
 
     setNameLabel: (vdiRefs: VdiRefs, nameLabel: string) =>
       Promise.all(toArray(vdiRefs).map(vdiRef => xenApi.call('VDI.set_name_label', [vdiRef, nameLabel]))),
+
+    poolMigrate: (vdiRefs: VdiRefs, srRef: SrRef) =>
+      Promise.all(toArray(vdiRefs).map(vdiRef => xenApi.call('VDI.pool_migrate', [vdiRef, srRef, {}]))),
+
+    copy: (vdiRefs: VdiRefs, srRef: SrRef) =>
+      Promise.all<VdiRef>(toArray(vdiRefs).map(vdiRef => xenApi.call<VdiRef>('VDI.copy', [vdiRef, srRef]))),
   }
 }
