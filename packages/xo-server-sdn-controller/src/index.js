@@ -397,6 +397,29 @@ class SDNController extends EventEmitter {
     }
     deleteRule.permission = 'admin'
 
+    const addNetworkRule = params => this._addNetworkRule(params)
+    addNetworkRule.description = 'Add an ACL rule to a network'
+    addNetworkRule.params = {
+      allow: { type: 'boolean' },
+      direction: { type: 'string' },
+      ipRange: { type: 'string', optional: true },
+      port: { type: 'integer', optional: true },
+      protocol: { type: 'string', optional: true },
+      networkId: { type: 'string' },
+    }
+    addNetworkRule.permission = 'admin'
+
+    const deleteNetworkRule = params => this._deleteNetworkOfRule(params)
+    deleteNetworkRule.description = 'Delete an ACL rule from a network'
+    deleteNetworkRule.params = {
+      direction: { type: 'string' },
+      ipRange: { type: 'string', optional: true },
+      port: { type: 'integer', optional: true },
+      protocol: { type: 'string', optional: true },
+      networkId: { type: 'string' },
+    }
+    deleteNetworkRule.permission = 'admin'
+
     // -------------------------------------------------------------------------
 
     this._unsetApiMethods = this._xo.addApiMethods({
@@ -405,6 +428,9 @@ class SDNController extends EventEmitter {
 
         addRule,
         deleteRule,
+
+        addNetworkRule,
+        deleteNetworkRule,
       },
     })
 
@@ -612,6 +638,38 @@ class SDNController extends EventEmitter {
     }
   }
 
+  async _addNetworkRule({ networkId, allow, direction, ipRange = '', port, protocol }) {
+    try {
+      const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
+      assert(network.PIFs.length > 0, 'Network needs to be plugged to delete  rule')
+      const channel = this._getOrCreateOfChannel(network.PIFs[0].host)
+      await channel.addNetworkRule(network, allow, protocol, port, ipRange, direction)
+      const networkRules = network.other_config['xo:sdn-controller:of-rules']
+      const newNetworkRules = networkRules !== undefined ? JSON.parse(networkRules) : []
+      const stringRule = JSON.stringify({
+        allow,
+        protocol,
+        port,
+        ipRange,
+        direction,
+      })
+      if (!newNetworkRules.includes(stringRule)) {
+        newNetworkRules.push(stringRule)
+        await network.update_other_config('xo:sdn-controller:of-rules', JSON.stringify(newNetworkRules))
+      }
+    } catch (error) {
+      log.error('Error while adding Network OF rule', {
+        error,
+        networkId,
+        allow,
+        protocol,
+        port,
+        ipRange,
+        direction,
+      })
+    }
+  }
+
   async _deleteRule({ direction, ipRange = '', port, protocol, vifId }, updateOtherConfig = true) {
     let vif = this._xo.getXapiObject(this._xo.getObject(vifId, 'VIF'))
     try {
@@ -652,6 +710,51 @@ class SDNController extends EventEmitter {
         error,
         vif: vif.uuid,
         host: vif.$VM.$resident_on?.uuid,
+        protocol,
+        port,
+        ipRange,
+        direction,
+      })
+    }
+  }
+
+  async _deleteNetworkOfRule({ direction, ipRange = '', port, protocol, networkId }, updateOtherConfig = true) {
+    try {
+      let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
+      assert(network.PIFs.length > 0, 'Network needs to be plugged to delete  rule')
+
+      const channel = await this._getOrCreateOfChannel(network.PIFs[0].host)
+      await channel.deleteNetworkRule({ network, protocol, port, ipRange, direction })
+      if (!updateOtherConfig) {
+        return
+      }
+
+      const networkRules = network.other_config['xo:sdn-controller:of-rules']
+      if (networkRules === undefined) {
+        // Nothing to do
+        return
+      }
+
+      const newNetworkRules = JSON.parse(networkRules).filter(networkRule => {
+        const rule = JSON.parse(networkRule)
+        return (
+          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction
+        )
+      })
+
+      await network.update_other_config(
+        'xo:sdn-controller:of-rules',
+        Object.keys(newNetworkRules).length === 0 ? null : JSON.stringify(newNetworkRules)
+      )
+
+      network = await network.$xapi.barrier(network.$ref)
+
+      // Put back rules that could have been wrongfully deleted because delete rule too general
+      await this._applyNetworkOfRules(network)
+    } catch (error) {
+      log.error('Error while adding Network OF rule', {
+        error,
+        networkId,
         protocol,
         port,
         ipRange,
@@ -1215,7 +1318,16 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _cleanOfRules(vm) {
+  async _applyNetworkOfRules(network) {
+    const networkRules = network.other_config['xo:sdn-controller:of-rules']
+    const parsedRules = networkRules !== undefined ? JSON.parse(networkRules) : []
+    for (const stringRule of parsedRules) {
+      const rule = JSON.parse(stringRule)
+      await this._addNetworkRule({ ...rule, networkId: network.$id })
+    }
+  }
+
+  async _cleanOfVmRules(vm) {
     for (const vif of vm.$VIFs) {
       await this._cleanVifOfRules(vif)
     }
