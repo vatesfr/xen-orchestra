@@ -14,6 +14,7 @@ export interface Vdi {
 }
 
 export interface Vif {
+  tempId?: string
   interface?: XoNetwork['id']
   macAddress?: string
   device?: string
