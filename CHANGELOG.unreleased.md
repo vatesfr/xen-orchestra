@@ -20,6 +20,7 @@
 - [REST] Ability to connect/disconnect a server `POST rest/v0/servers/<server-id>/actions/(connect|disconnect)` (PR [#8565](https://github.com/vatesfr/xen-orchestra/pull/8565))
 
 - [sdn-controller] manage multiple bridges throught the XCP-ng plugin (PR [8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
+- [sdn-controller] handle network wide rules (PR [8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
