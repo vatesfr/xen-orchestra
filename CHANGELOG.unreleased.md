@@ -15,6 +15,7 @@
   - `/rest/v0/networks` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
   - `/rest/v0/networks/<network-id>` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
 
+- [sdn-controller] manage multiple bridges throught the XCP-ng plugin (PR [8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -36,6 +37,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api minor
-- xo-server patch
+- xo-server-sdn-controller minor
+- xo-web minor
 
 <!--packages-end-->
