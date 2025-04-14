@@ -404,7 +404,7 @@ import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
-import type { NetworkInterface, Vdi, VmState } from '@/types/xo/new-vm.type'
+import type { NetworkInterface, Vdi, NewVmData, VmState } from '@/types/xo/new-vm.type'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { Branded } from '@core/types/utility.type'
@@ -797,10 +797,13 @@ const modifiedExistingVdis = computed(() => {
   }, [])
 })
 
-const vmData = computed(() => {
-  const vdisToSend = [...vmState.vdis, ...modifiedExistingVdis.value].map(vdi => ({
-    ...vdi,
-    ...(vdi.size && { size: giBToBytes(vdi.size) }),
+const vmData = computed((): NewVmData => {
+  const vdisToSend: Vdi[] = [...vmState.vdis, ...modifiedExistingVdis.value].map(vdi => ({
+    name_label: vdi.name_label ?? '',
+    name_description: vdi.name_description ?? '',
+    size: giBToBytes(vdi.size ?? 0),
+    sr: vdi.sr,
+    userdevice: vdi.userdevice,
   }))
 
   const optionalFields = Object.assign(

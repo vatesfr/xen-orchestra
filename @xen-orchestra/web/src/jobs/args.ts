@@ -1,8 +1,8 @@
-import type { VmState } from '@/types/xo/new-vm.type.ts'
+import type { NewVmData } from '@/types/xo/new-vm.type.ts'
 import { defineJobArg } from '@core/packages/job'
 
 export const vmArg = defineJobArg({
-  identify: (vm: VmState) => vm.name,
+  identify: (vm: NewVmData) => vm.name_label,
   toArray: false,
 })
 
