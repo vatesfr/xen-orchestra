@@ -404,7 +404,7 @@ import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
-import type { NetworkInterface, Vdi, VmState } from '@/types/xo/new-vm.type'
+import type { NetworkInterface, Vdi, Vif, VmState } from '@/types/xo/new-vm.type'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { Branded } from '@core/types/utility.type'
@@ -553,7 +553,7 @@ const addStorageEntry = () => {
   })
 }
 
-const getVifDevice = (vif: NetworkInterface) => {
+const getVifDevice = (vif: NetworkInterface | Vif) => {
   const templateVifs = vmState.new_vm_template?.VIFs
   if (!templateVifs) {
     return undefined
@@ -565,9 +565,9 @@ const getVifDevice = (vif: NetworkInterface) => {
   return vifDevice?.device
 }
 
-const updateVifWithDevice = (modifiedVif: NetworkInterface) => {
+const updateVifWithDevice = (modifiedVif: Vif) => {
   const device = getVifDevice(modifiedVif)
-  const existingVifIndex = vmState.vifs.findIndex(v => v.macAddress === modifiedVif.macAddress)
+  const existingVifIndex = vmState.vifs.findIndex(v => v.tempId && v.tempId === modifiedVif.tempId)
   const existingDevice = vmState.vifs.find(v => v.device === device)
   if (existingDevice && existingDevice?.destroy) return
   if (existingVifIndex !== -1) {
@@ -582,7 +582,8 @@ const updateVifWithDevice = (modifiedVif: NetworkInterface) => {
 }
 
 const visibleNetworkInterfaces = computed((): NetworkInterface[] => {
-  const notDestroyedVifs = vmState.networkInterfaces.filter(vif => {
+  const existingVif = vmState.networkInterfaces.filter(vif => vif.macAddress !== ' ')
+  const notDestroyedVifs = existingVif.filter(vif => {
     const device = getVifDevice(vif)
     const destroyEntry = vmState.vifs.find(v => v.device === device && v.destroy)
 
@@ -759,6 +760,10 @@ const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
   const pif = getPif(defaultNetwork.PIFs[0] as Branded<'pif'>)
   const defaultMac = pif?.mac || ' '
 
+  if (vmState.networkInterfaces.length === 0) {
+    vmState.vifs.push({ tempId: generateRandomString(4), interface: defaultNetwork.id, macAddress: defaultMac })
+  }
+
   return [{ interface: defaultNetwork.id, macAddress: defaultMac }]
 }
 
@@ -773,6 +778,7 @@ const addNetworkInterface = () => {
   }
 
   vmState.vifs.push({
+    tempId: generateRandomString(4),
     interface: defaultNetwork.id,
     // change this when API will be handle empty mac adresses
     macAddress: ' ',
@@ -815,6 +821,9 @@ const isCreateVmDisabled = computed(() => {
 const onTemplateChange = () => {
   const template = vmState.new_vm_template
   if (!template) return
+
+  vmState.networkInterfaces = []
+  vmState.vifs = []
 
   const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
 
@@ -872,10 +881,10 @@ const vmData = computed(() => {
     ...(vdi.size && { size: giBToBytes(vdi.size) }),
   }))
 
-  const vifsToSend = vmState.vifs.map(({ interface: network, macAddress: mac, ...rest }) => ({
-    ...rest,
+  const vifsToSend = vmState.vifs.map(({ interface: network, macAddress: mac, device }) => ({
     ...(network !== undefined && { network }),
     ...(mac !== undefined && { mac }),
+    ...(device !== undefined && { device }),
   }))
 
   const optionalFields = Object.assign(
