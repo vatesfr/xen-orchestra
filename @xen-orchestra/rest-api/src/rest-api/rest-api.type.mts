@@ -3,6 +3,7 @@ import type { Task } from '@vates/types/lib/vates/task'
 import type { XapiHostStats, XapiVmStats, XapiStatsGranularity } from '@vates/types/common'
 import type {
   XenApiHostWrapped,
+  XenApiNetwork,
   XenApiPoolWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
@@ -12,10 +13,11 @@ import type {
   XenApiVmWrapped,
   XenApiVtpmWrapped,
 } from '@vates/types/xen-api'
-import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm } from '@vates/types/xo'
+import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoSchedule, XoJob } from '@vates/types/xo'
 
 type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
+  network: XenApiNetwork
   pool: XenApiPoolWrapped
   SR: XenApiSrWrapped
   VBD: XenApiVbdWrapped
@@ -42,15 +44,19 @@ export type XoApp = {
     userData?: { ip?: string },
     opts?: { bypassOtp?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
+  getAllSchedules(): Promise<XoSchedule[]>
   getAllXenServers(): Promise<XoServer[]>
+  getJob(id: XoJob['id']): Promise<XoJob>
   getObject: <T extends XapiXoRecord>(id: T['id'], type: T['type']) => T
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],
     opts?: { filter?: string; limit?: number }
   ) => Record<T['id'], T>
+  getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
+  runJob(job: XoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
 }

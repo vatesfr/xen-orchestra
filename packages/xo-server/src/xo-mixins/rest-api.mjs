@@ -607,6 +607,8 @@ export default class RestApi {
     // add migrated collections to maintain their discoverability
     const swaggerEndpoints = {
       docs: {},
+      pools: {},
+      vifs: {},
       vms: {
         actions: {
           start: true,
