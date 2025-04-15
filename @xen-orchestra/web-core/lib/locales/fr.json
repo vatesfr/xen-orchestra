@@ -318,6 +318,7 @@
   "no-results": "Aucun résultat",
   "no-selected-vm-can-be-exported": "Aucune VM sélectionnée ne peut être exportée",
   "no-selected-vm-can-be-migrated": "Aucune VM sélectionnée ne peut être migrée",
+  "no-task-detected": "Aucune tache détectée",
   "no-tasks": "Aucune tâche",
   "no-vif-detected": "Aucun VIF détecté",
   "none": "Aucun",
