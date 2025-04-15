@@ -1,5 +1,4 @@
-import type { useFlagRegistry } from '@core/packages/collection/use-flag-registry.ts'
-import type { ComputedRef } from 'vue'
+import type { useFlagRegistry } from '@core/packages/collection'
 
 export type FlagsConfig<TFlag extends string> = TFlag[] | { [K in TFlag]: { multiple?: boolean } }
 
@@ -7,7 +6,7 @@ export type CollectionOptions<
   TSource,
   TId extends PropertyKey,
   TFlag extends string,
-  TProperties extends Record<string, ComputedRef>,
+  TProperties extends Record<string, unknown>,
 > = {
   identifier: (source: TSource) => TId
   properties?: (source: TSource) => TProperties

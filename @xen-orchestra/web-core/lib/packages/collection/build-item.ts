@@ -1,11 +1,11 @@
-import type { CollectionItem, CollectionOptions, FlagRegistry } from '@core/packages/collection/types.ts'
-import type { ComputedRef, UnwrapRef } from 'vue'
+import type { CollectionItem, CollectionOptions, FlagRegistry } from '@core/packages/collection'
+import { unref, type UnwrapRef } from 'vue'
 
 export function buildItem<
   TSource,
   TId extends PropertyKey,
   TFlag extends string,
-  TProperties extends Record<string, ComputedRef>,
+  TProperties extends Record<string, unknown>,
 >(
   source: TSource,
   options: CollectionOptions<TSource, TId, TFlag, TProperties>,
@@ -38,7 +38,7 @@ export function buildItem<
         return properties !== undefined && prop in properties
       },
       get(target, prop: Extract<keyof TProperties, string>) {
-        return properties?.[prop].value
+        return unref(properties?.[prop])
       },
     }),
   }
