@@ -3,7 +3,6 @@ import { createLogger } from '@xen-orchestra/log'
 import { dirname } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { strictEqual, notStrictEqual } from 'node:assert'
-import fetch from 'node-fetch'
 import https from 'https'
 
 import parseVmdk from './parsers/vmdk.mjs'
