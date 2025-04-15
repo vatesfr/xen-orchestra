@@ -1,10 +1,9 @@
-import { type FormOptionValue, IK_FORM_SELECT_CONTROLLER } from '@core/packages/form-select/form-select.type'
+import { type FormOption, IK_FORM_SELECT_CONTROLLER } from '@core/packages/form-select'
 import { unrefElement, useEventListener, whenever } from '@vueuse/core'
 import { computed, inject, type MaybeRefOrGetter, ref, toValue } from 'vue'
 
-export function useFormOption(
-  _value: MaybeRefOrGetter<FormOptionValue>,
-  config?: { disabled?: MaybeRefOrGetter<boolean> }
+export function useFormOption<TEntry, TValue extends PropertyKey>(
+  _option: MaybeRefOrGetter<FormOption<TEntry, TValue>>
 ) {
   const controller = inject(IK_FORM_SELECT_CONTROLLER)
 
@@ -12,27 +11,26 @@ export function useFormOption(
     throw new Error('useFormOption needs a FormSelectController to be injected')
   }
 
-  const value = computed(() => toValue(_value))
+  const option = computed(() => toValue(_option))
 
   const elementRef = ref<HTMLDivElement>()
 
-  const isActive = computed(() => controller.isOptionActive(value.value))
-
-  whenever(isActive, () => {
-    unrefElement(elementRef)?.scrollIntoView({ block: 'nearest' })
-  })
-
-  const isSelected = computed(() => controller.isOptionSelected(value.value))
+  whenever(
+    () => option.value.flags.active,
+    () => {
+      unrefElement(elementRef)?.scrollIntoView({ block: 'nearest' })
+    }
+  )
 
   useEventListener(elementRef, 'click', () => {
-    if (toValue(config?.disabled)) {
+    if (option.value.properties.disabled) {
       return
     }
 
-    if (controller.isMultiple) {
-      controller.toggleOption(value.value)
+    if (option.value.properties.multiple) {
+      option.value.toggleFlag('selected')
     } else {
-      controller.selectOption(value.value)
+      option.value.toggleFlag('selected', true)
       controller.closeDropdown(false)
     }
 
@@ -40,16 +38,14 @@ export function useFormOption(
   })
 
   useEventListener(elementRef, 'mouseenter', () => {
-    if (toValue(config?.disabled) || controller.isNavigatingWithKeyboard) {
+    if (option.value.properties.disabled || controller.isNavigatingWithKeyboard) {
       return
     }
 
-    controller.moveToOption(value.value)
+    option.value.flags.active = true
   })
 
   return {
     elementRef,
-    isSelected,
-    isActive,
   }
 }

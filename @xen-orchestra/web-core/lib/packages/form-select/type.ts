@@ -1,4 +1,27 @@
+import type { CollectionItem } from '@core/packages/collection'
 import type { InjectionKey, Reactive } from 'vue'
+
+export type FormOption<TEntry, TValue extends PropertyKey> = CollectionItem<
+  TEntry,
+  TValue,
+  'selected' | 'active',
+  {
+    label: string
+    matching: boolean
+    disabled: boolean
+    multiple: boolean
+  }
+>
+
+export type FormOptionIndex =
+  | number
+  | 'previous'
+  | 'next'
+  | 'previous-page'
+  | 'next-page'
+  | 'first'
+  | 'last'
+  | 'selected'
 
 export enum FORM_SELECT_HANDLED_KEY {
   DOWN = 'ArrowDown',
@@ -15,33 +38,8 @@ export enum FORM_SELECT_HANDLED_KEY {
   PAGE_UP = 'PageUp',
 }
 
-export type FormOptionValue = string | number
-
-export type FormOptionIndex =
-  | number
-  | 'previous'
-  | 'next'
-  | 'previous-page'
-  | 'next-page'
-  | 'first'
-  | 'last'
-  | 'selected'
-
-export type FormOption<TData> = {
-  value: FormOptionValue
-  data: TData
-  label?: string
-  disabled?: boolean
-}
-
 export type FormSelectController = Reactive<{
-  isMultiple: boolean
   isNavigatingWithKeyboard: boolean
-  isOptionActive(value: FormOptionValue): boolean
-  isOptionSelected(value: FormOptionValue): boolean
-  selectOption(value: FormOptionValue): void
-  toggleOption(value: FormOptionValue): void
-  moveToOption(value: FormOptionValue): void
   closeDropdown(keepFocus: boolean): void
   focusSearch(): void
 }>

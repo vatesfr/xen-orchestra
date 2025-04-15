@@ -13,83 +13,69 @@
     />
 
     <UiDropdownList v-if="isOpen" ref="dropdownRef" :style="floatingStyles" class="dropdown-list">
-      <template v-if="searchable" #before>
+      <template v-if="searchTerm !== undefined" #before>
         <div class="search-container">
           <UiInput
             ref="searchRef"
             v-model="searchTerm"
-            :placeholder="$t('core.search')"
+            :placeholder="searchPlaceholder"
             :right-icon="faMagnifyingGlass"
             accent="brand"
           />
         </div>
       </template>
-      <UiDropdown v-if="loading || filteredOptions.length === 0" accent="normal" disabled>
-        {{ loading ? $t('loading-in-progress') : $t('no-results') }}
+      <UiDropdown v-if="loading || options.length === 0" accent="normal" disabled>
+        {{ loading ? t('loading-in-progress') : t('no-results') }}
       </UiDropdown>
-      <VtsOption
-        v-for="option of filteredOptions"
-        :key="option.value"
-        :checkbox="multiple"
-        :disabled="option.disabled"
-        :value="option.value"
-      >
-        <slot :option>{{ option.label ?? option.value }}</slot>
-      </VtsOption>
+      <slot>
+        <VtsOption v-for="option of options" :key="option.id" :option />
+      </slot>
     </UiDropdownList>
   </div>
 </template>
 
-<script generic="TData" lang="ts" setup>
+<script generic="TOption extends FormOption<unknown, PropertyKey>" lang="ts" setup>
 import VtsBackdrop from '@core/components/backdrop/VtsBackdrop.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import { type FormOption, type FormOptionValue } from '@core/packages/form-select/form-select.type'
+import type { FormOption } from '@core/packages/form-select/type.ts'
 import { useFormSelect } from '@core/packages/form-select/use-form-select.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { faAngleDown, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
-import { whenever } from '@vueuse/core'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const {
   accent,
-  options: rawOptions,
-  multiple,
-  showMax,
-  searchable,
+  options,
+  selectedLabel: _selectedLabel,
 } = defineProps<{
   accent: 'brand' | 'warning' | 'danger'
-  options: FormOption<TData>[]
-  searchable?: boolean
+  options: TOption[]
+  selectedLabel?: string
   required?: boolean
-  multiple?: boolean
   placeholder?: string
+  searchPlaceholder?: string
   loading?: boolean
-  showMax?: number
 }>()
 
-const model = defineModel<FormOptionValue[]>({ required: true })
+const searchTerm = defineModel<string>('search')
 
 defineSlots<{
-  default(props: { option: FormOption<TData> }): any
+  default(): any
 }>()
 
-const { triggerRef, dropdownRef, searchRef, isOpen, filteredOptions, searchTerm, selectedLabel, floatingStyles } =
-  useFormSelect(
-    model,
-    () => rawOptions,
-    () => ({
-      multiple,
-      showMax,
-    })
-  )
+const { t } = useI18n()
 
-whenever(
-  () => !searchable,
-  () => {
-    searchTerm.value = ''
-  }
+const { triggerRef, dropdownRef, searchRef, isOpen, floatingStyles } = useFormSelect({
+  options: () => options,
+  searchTerm,
+})
+
+const selectedLabel = computed(
+  () => _selectedLabel ?? options.flatMap(option => (option.flags.selected ? option.properties.label : [])).join(', ')
 )
 </script>
 

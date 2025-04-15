@@ -1,9 +1,9 @@
-import { type FormOptionIndex, FORM_SELECT_HANDLED_KEY } from '@core/packages/form-select/form-select.type'
+import { FORM_SELECT_HANDLED_KEY, type FormOptionIndex } from '@core/packages/form-select'
 import { ifElse } from '@core/utils/if-else.utils.ts'
 import { onKeyStroke } from '@vueuse/core'
 import { type EffectScope, effectScope, ref, type Ref } from 'vue'
 
-export function useKeyboardNavigation({
+export function useFormSelectKeyboardNavigation({
   isActive,
   isOpen,
   isMultiple,

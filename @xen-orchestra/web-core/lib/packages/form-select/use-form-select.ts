@@ -1,44 +1,24 @@
 import {
   type FormOption,
   type FormOptionIndex,
-  type FormOptionValue,
   IK_FORM_SELECT_CONTROLLER,
-} from '@core/packages/form-select/form-select.type'
-import { useKeyboardNavigation } from '@core/packages/form-select/use-form-select-keyboard-navigation.ts'
+  useFormSelectKeyboardNavigation,
+} from '@core/packages/form-select'
 import { ifElse } from '@core/utils/if-else.utils'
 import { type MaybeElement, useFloating } from '@floating-ui/vue'
-import {
-  clamp,
-  onClickOutside,
-  refThrottled,
-  useArrayMap,
-  useEventListener,
-  useFocusWithin,
-  whenever,
-} from '@vueuse/core'
+import { clamp, onClickOutside, useEventListener, useFocusWithin, whenever } from '@vueuse/core'
 import { logicOr } from '@vueuse/math'
-import { computed, type MaybeRefOrGetter, type ModelRef, provide, reactive, ref, toValue } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { computed, type MaybeRefOrGetter, provide, reactive, type Ref, ref, toValue, watch } from 'vue'
 
-export type UseFormSelectConfig = {
-  multiple?: boolean
-  showMax?: number
-}
+export function useFormSelect<TOption extends FormOption<unknown, PropertyKey>>(config: {
+  options: MaybeRefOrGetter<TOption[]>
+  searchTerm: Ref<string | undefined>
+}) {
+  const options = computed(() => toValue(config.options))
 
-export function useFormSelect<TOption extends FormOption<unknown>>(
-  model: ModelRef<FormOptionValue[]>,
-  _options: MaybeRefOrGetter<TOption[]>,
-  _config?: MaybeRefOrGetter<UseFormSelectConfig>
-) {
-  const { t } = useI18n()
+  const isMultiple = computed(() => options.value[0]?.properties.multiple ?? false)
 
-  const config = computed<UseFormSelectConfig>(() => toValue(_config) ?? {})
-
-  const isMultiple = computed(() => toValue(config.value.multiple ?? false))
-
-  const rawOptions = computed(() => toValue(_options))
-
-  const activeValue = ref<FormOptionValue>('')
+  const activeOption = computed(() => options.value.find(option => option.flags.active))
 
   const isOpen = ref(false)
 
@@ -58,12 +38,12 @@ export function useFormSelect<TOption extends FormOption<unknown>>(
 
   /* KEYBOARD NAVIGATION */
 
-  const { isNavigatingWithKeyboard, stopKeyboardNavigation } = useKeyboardNavigation({
+  const { isNavigatingWithKeyboard, stopKeyboardNavigation } = useFormSelectKeyboardNavigation({
     isActive,
     isMultiple,
     isOpen,
-    onSelect: () => selectOption(activeValue.value),
-    onToggle: () => toggleOption(activeValue.value),
+    onSelect: () => activeOption.value?.toggleFlag('selected', true),
+    onToggle: () => activeOption.value?.toggleFlag('selected'),
     onOpen: openDropdown,
     onClose: closeDropdown,
     onMove: index => moveToOptionIndex(index),
@@ -86,11 +66,7 @@ export function useFormSelect<TOption extends FormOption<unknown>>(
 
   /* SEARCH */
 
-  const searchTerm = ref('')
-
-  const throttledSearchTerm = refThrottled(searchTerm, 250)
-
-  whenever(searchTerm, () => stopKeyboardNavigation())
+  watch(config.searchTerm, () => stopKeyboardNavigation())
 
   const searchRef = ref<MaybeElement<HTMLElement> & { focus?: () => void }>()
 
@@ -100,37 +76,11 @@ export function useFormSelect<TOption extends FormOption<unknown>>(
 
   whenever(isOpen, () => focusSearch(), { flush: 'post' })
 
-  const filteredOptions = computed(() =>
-    rawOptions.value.filter(option =>
-      `${option.label} ${option.value}`.toLocaleLowerCase().includes(throttledSearchTerm.value.toLocaleLowerCase())
-    )
-  )
+  const currentIndex = computed(() => options.value.findIndex(option => option.flags.active))
 
-  const selectedOptions = computed(() => rawOptions.value.filter(option => model.value.includes(option.value)))
-
-  const currentIndex = computed(() => filteredOptions.value.findIndex(option => option.value === activeValue.value))
-
-  const selectedLabels = useArrayMap<TOption, string>(selectedOptions, option => String(option.label ?? option.value))
-
-  const selectedLabel = computed(() => {
-    const count = selectedLabels.value.length
-    const max = config.value.showMax ?? 3
-
-    return count > max
-      ? t('core.select.n-selected-of', {
-          count,
-          total: rawOptions.value.length,
-        })
-      : selectedLabels.value.join(', ')
-  })
-
-  whenever(filteredOptions, () => moveToOptionIndex('first'), { flush: 'post' })
+  whenever(options, () => moveToOptionIndex('first'), { flush: 'post' })
 
   ifElse(isOpen, () => moveToOptionIndex('selected'), clear, { flush: 'post' })
-
-  function isOptionSelected(value: FormOptionValue) {
-    return model.value.includes(value)
-  }
 
   function openDropdown() {
     if (!isOpen.value) {
@@ -151,16 +101,17 @@ export function useFormSelect<TOption extends FormOption<unknown>>(
   }
 
   function clear() {
-    searchTerm.value = ''
-    activeValue.value = ''
+    if (config.searchTerm.value !== undefined) {
+      config.searchTerm.value = ''
+    }
   }
 
   const boundaryIndexes = computed(() => {
     let firstIndex: number | undefined
     let lastIndex: number | undefined
 
-    filteredOptions.value.forEach((option, index) => {
-      if (option.disabled) {
+    options.value.forEach((option, index) => {
+      if (option.properties.disabled) {
         return
       }
 
@@ -194,9 +145,9 @@ export function useFormSelect<TOption extends FormOption<unknown>>(
       case 'first':
         return 0
       case 'last':
-        return filteredOptions.value.length - 1
+        return options.value.length - 1
       case 'selected':
-        return filteredOptions.value.findIndex(option => model.value.includes(option.value))
+        return options.value.findIndex(option => option.flags.selected)
       default:
         return index
     }
@@ -204,13 +155,13 @@ export function useFormSelect<TOption extends FormOption<unknown>>(
 
   function moveToOptionIndex(_index: FormOptionIndex) {
     if (boundaryIndexes.value === undefined) {
-      activeValue.value = ''
+      activeOption.value?.toggleFlag('active', false)
       return
     }
 
     const index = clamp(parseIndex(_index), boundaryIndexes.value.first, boundaryIndexes.value.last)
 
-    activeValue.value = filteredOptions.value[getClosestEnabledIndex(index)]?.value ?? ''
+    options.value[getClosestEnabledIndex(index)]?.toggleFlag('active', true)
   }
 
   function getClosestEnabledIndex(expectedIndex: number) {
@@ -218,55 +169,17 @@ export function useFormSelect<TOption extends FormOption<unknown>>(
 
     const direction = expectedIndex < currentIndex.value ? -1 : 1
 
-    while (filteredOptions.value[index]?.disabled) {
+    while (options.value[index]?.properties.disabled) {
       index += direction
     }
 
     return index
   }
 
-  function moveToOption(value: FormOptionValue) {
-    activeValue.value = value
-  }
-
-  function selectOption(value: FormOptionValue) {
-    if (!isMultiple.value) {
-      model.value = [value]
-    } else if (!isOptionSelected(value)) {
-      model.value = [...model.value, value]
-    }
-  }
-
-  function deselectOption(value: FormOptionValue) {
-    if (!isOptionSelected(value)) {
-      return
-    }
-
-    model.value = isMultiple.value ? model.value.filter(v => v !== value) : []
-  }
-
-  function toggleOption(value: FormOptionValue) {
-    if (isOptionSelected(value)) {
-      deselectOption(value)
-    } else {
-      selectOption(value)
-    }
-  }
-
-  function isOptionActive(value: FormOptionValue) {
-    return activeValue.value === value
-  }
-
   provide(
     IK_FORM_SELECT_CONTROLLER,
     reactive({
       isNavigatingWithKeyboard,
-      isMultiple,
-      isOptionActive,
-      isOptionSelected,
-      selectOption,
-      toggleOption,
-      moveToOption,
       focusSearch,
       closeDropdown,
     })
@@ -276,13 +189,8 @@ export function useFormSelect<TOption extends FormOption<unknown>>(
     triggerRef,
     dropdownRef,
     searchRef,
-    searchTerm,
-    activeValue,
     openDropdown,
     closeDropdown,
-    filteredOptions,
-    isOptionSelected,
-    selectedLabel,
     isOpen,
     floatingStyles,
   }
