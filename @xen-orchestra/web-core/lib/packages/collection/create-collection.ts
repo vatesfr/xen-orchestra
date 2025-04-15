@@ -1,4 +1,4 @@
-import type { CollectionItem, FlagRegistry } from '@core/packages/collection/types.ts'
+import type { CollectionItem, FlagRegistry } from '@core/packages/collection'
 import { useArrayFilter, useArrayMap } from '@vueuse/core'
 import { computed, type ComputedRef } from 'vue'
 
