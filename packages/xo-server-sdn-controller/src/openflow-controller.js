@@ -7,7 +7,7 @@ export async function instantiateController(host, tlsHelper) {
     await controller.check(host)
     return controller
   } catch (error) {
-    if (error.code === 'XENAPI_MISSING_PLUGIN' /* || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION' */) {
+    if (error.code === 'XENAPI_MISSING_PLUGIN') {
       return new OpenFlowChannel(host, tlsHelper)
     } else {
       throw error
