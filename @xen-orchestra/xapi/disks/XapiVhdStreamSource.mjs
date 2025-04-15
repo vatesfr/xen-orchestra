@@ -156,6 +156,7 @@ export class XapiVhdStreamSource extends Disk {
   }
 
   async close() {
+    this.#vhdStream?.on('error', () => {})
     this.#vhdStream?.destroy()
   }
 
@@ -195,7 +196,6 @@ export class XapiVhdStreamSource extends Disk {
           data,
         }
       }
-      self.#vhdStream?.on('error', () => {})
     }
 
     return generator()
