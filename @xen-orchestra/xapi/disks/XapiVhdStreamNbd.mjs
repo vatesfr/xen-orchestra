@@ -30,9 +30,6 @@ export class XapiVhdStreamNbdSource extends XapiVhdStreamSource {
   async init() {
     await super.init()
     const client = await connectNbdClientIfPossible(this.xapi, this.ref, this.#nbdConcurrency)
-    if (client === undefined) {
-      throw new Error(`can't connect to any nbd client`)
-    }
     this.#nbdClient = client
     // we won't use the stream anymore
     await super.close()

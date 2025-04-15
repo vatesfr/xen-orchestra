@@ -72,7 +72,8 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
     this.#virtualSize = size
 
     this.#cbt = await this.#xapi.VDI_listChangedBlock(this.#ref, this.#baseRef)
-    this.#nbdClient = await connectNbdClientIfPossible(xapi, ref, nbdConcurrency)
+    const client = await connectNbdClientIfPossible(xapi, ref, nbdConcurrency)
+    this.#nbdClient = client
   }
 
   /** @returns {number} */

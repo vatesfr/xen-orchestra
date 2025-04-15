@@ -53,7 +53,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * Create a disk source using stream export + NBD.
    * On failure, fall back to a full export.
    *
-   * @returns {Promise<XapiVhdStreamNbdSource>}
+   * @returns {Promise<XapiVhdStreamNbdSource|XapiVhdStreamSource>}
    */
   async #openNbdStream() {
     const xapi = this.#xapi
@@ -64,9 +64,12 @@ export class XapiDiskSource extends DiskPassthrough {
       await source.init()
     } catch (err) {
       await source.close()
-      if (err.code === 'VDI_CANT_DO_DELTA') {
+      if (err.code === 'NO_NBD_AVAILABLE') {
+        warn(`can't connect through NBD, fallback to stream export`)
+        return this.#openExportStream()
+      } else if (err.code === 'VDI_CANT_DO_DELTA') {
         warn(`can't compute delta of XapiVhdStreamNbdSource ${vdiRef} from ${baseRef}, fallBack to a full`)
-        source = new XapiVhdStreamNbdSource({ vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
+        source = new XapiVhdStreamNbdSource({ vdiRef, baseRef: undefined, xapi, nbdConcurrency: this.#nbdConcurrency })
         await source.init()
       } else {
         throw err
@@ -79,7 +82,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * Create a disk source using stream export.
    * On failure, fall back to a full export.
    *
-   * @returns {Promise<XapiVhdStreamSource>}
+   * @returns {Promise<XapiVhdStreamSource|XapiVhdStreamSource>}
    */
   async #openExportStream() {
     const xapi = this.#xapi
@@ -93,7 +96,7 @@ export class XapiDiskSource extends DiskPassthrough {
       if (err.code === 'VDI_CANT_DO_DELTA') {
         warn(`can't compute delta of XapiVhdStreamSource ${vdiRef} from ${baseRef}, fallBack to a full`)
         // @todo : should clear CBT status since it probably a little broken
-        source = new XapiVhdStreamSource({ vdiRef, baseRef, xapi })
+        source = new XapiVhdStreamSource({ vdiRef, baseRef: undefined, xapi })
         await source.init()
       } else {
         throw err
@@ -106,7 +109,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * Create a disk source using NBD and CBT.
    * On failure, fall back to stream + NBD.
    *
-   * @returns {Promise<XapiVhdCbtSource | XapiVhdStreamNbdSource>}
+   * @returns {Promise<XapiVhdCbtSource | XapiVhdStreamNbdSource|XapiVhdStreamSource>}
    */
   async #openNbdCbt() {
     const xapi = this.#xapi
@@ -117,7 +120,7 @@ export class XapiDiskSource extends DiskPassthrough {
       await source.init()
       return source
     } catch (error) {
-      warn('opennbdCBT', error)
+      warn('openNbdCBT', error)
       await source.close()
       // A lot of things can go wrong with CBT:
       // Not enabled on the baseRef,
