@@ -1,6 +1,6 @@
 import { asyncEach } from '@vates/async-each'
-
-const PLUGIN_NAME = 'open-vswitch.py'
+import { strictEqual } from 'node:assert'
+const PLUGIN_NAME = 'sdn-controller.py'
 
 export class OpenFlowPlugin {
   #getBridge(network) {
@@ -17,7 +17,7 @@ export class OpenFlowPlugin {
   }
 
   async addRule({ vif, allow, protocol, ipRange, direction, port }) {
-    return this.#callPluginOnAllNetwork(vif.$network, 'add-flow', {
+    return this.#callPluginOnAllNetwork(vif.$network, 'add-rule', {
       mac: vif.MAC,
       allow: allow ? 'true' : 'false',
       protocol,
@@ -28,7 +28,7 @@ export class OpenFlowPlugin {
   }
 
   async deleteRule({ vif, allow, protocol, ipRange, direction, port }) {
-    return this.#callPluginOnAllNetwork(vif.$network, 'del-flow', {
+    return this.#callPluginOnAllNetwork(vif.$network, 'del-rule', {
       mac: vif.MAC,
       allow: allow ? 'true' : 'false',
       protocol,
@@ -39,12 +39,20 @@ export class OpenFlowPlugin {
   }
 
   async addNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
-    return this.#callPluginOnAllNetwork(network, 'add-flow', { allow, protocol, ipRange, direction, port })
+    return this.#callPluginOnAllNetwork(network, 'add-rule', { allow, protocol, ipRange, direction, port })
   }
   async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
-    return this.#callPluginOnAllNetwork(network, 'del-flow', { allow, protocol, ipRange, direction, port })
+    return this.#callPluginOnAllNetwork(network, 'del-rule', { allow, protocol, ipRange, direction, port })
   }
   async check(host) {
-    return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, 'dump-flows', { IHAVEPARAMZ: 'true' })
+    await Promise.all(
+      host.$PIFs.map(async ({ $network }) => {
+        const response = await host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, 'dump-flows', {
+          bridge: $network.bridge,
+        })
+        const json = JSON.parse(response)
+        strictEqual(json.returncode, 0, `plugin check should have a return code of 0 to succeed, got ${response}`)
+      })
+    )
   }
 }
