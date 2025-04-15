@@ -1,6 +1,7 @@
 // @ts-check
 /**
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
+ * @typedef {import('stream').Readable} Readable
  */
 
 import { Disk } from '@xen-orchestra/disk-transform'
@@ -8,7 +9,6 @@ import { readChunkStrict, skipStrict } from '@vates/read-chunk'
 
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import Constants from 'vhd-lib/_constants.js'
-import { Readable } from 'node:stream'
 import assert from 'node:assert'
 
 const { BLOCK_UNUSED, DISK_TYPES, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } = Constants
@@ -125,7 +125,7 @@ export class XapiVhdStreamSource extends Disk {
       format: 'vhd',
       preferNbd: false,
     })
-    return Readable.from(stream, { highWaterMark: 5 * 1024 * 1024, objectMode: false })
+    return stream
   }
 
   /**
