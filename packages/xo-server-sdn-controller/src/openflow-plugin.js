@@ -17,10 +17,8 @@ export class OpenFlowPlugin {
   }
 
   async addRule({ vif, allow, protocol, ipRange, direction, port }) {
-    const network = vif.$network
-    const mac = vif.MAC
-    return this.#callPluginOnAllNetwork(network, 'add-flow', {
-      mac,
+    return this.#callPluginOnAllNetwork(vif.$network, 'add-flow', {
+      mac: vif.MAC,
       allow: allow ? 'true' : 'false',
       protocol,
       ipRange,
@@ -30,10 +28,8 @@ export class OpenFlowPlugin {
   }
 
   async deleteRule({ vif, allow, protocol, ipRange, direction, port }) {
-    const network = vif.$network
-    const mac = vif.MAC
-    return this.#callPluginOnAllNetwork(network, 'del-flow', {
-      mac,
+    return this.#callPluginOnAllNetwork(vif.$network, 'del-flow', {
+      mac: vif.MAC,
       allow: allow ? 'true' : 'false',
       protocol,
       ipRange,

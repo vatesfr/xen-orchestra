@@ -641,7 +641,7 @@ class SDNController extends EventEmitter {
   async _addNetworkRule({ networkId, allow, direction, ipRange = '', port, protocol }) {
     try {
       const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
-      assert(network.PIFs.length > 0, 'Network needs to be plugged to delete  rule')
+      assert(network.PIFs.length > 0, 'Network needs to be plugged to delete a rule')
       const channel = this._getOrCreateOfChannel(network.PIFs[0].host)
       await channel.addNetworkRule(network, allow, protocol, port, ipRange, direction)
       const networkRules = network.other_config['xo:sdn-controller:of-rules']
@@ -721,7 +721,7 @@ class SDNController extends EventEmitter {
   async _deleteNetworkOfRule({ direction, ipRange = '', port, protocol, networkId }, updateOtherConfig = true) {
     try {
       let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
-      assert(network.PIFs.length > 0, 'Network needs to be plugged to delete  rule')
+      assert(network.PIFs.length > 0, 'Network needs to be plugged to delete a rule')
 
       const channel = await this._getOrCreateOfChannel(network.PIFs[0].host)
       await channel.deleteNetworkRule({ network, protocol, port, ipRange, direction })
