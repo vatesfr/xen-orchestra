@@ -3,55 +3,33 @@
     v-slot="{ properties }"
     :params="[
       prop('accent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
-      prop('options').required().arr('FormOption<TData>').widget().preset(presets['Value only'].props.options),
-      prop('searchable').bool().widget(),
+      prop('options').required().arr('FormOption<TEntry, TValue>').widget().preset(options),
+      prop('selectedLabel').str().widget(),
       prop('required').bool().widget(),
-      prop('multiple').bool().widget(),
-      prop('placeholder').str().widget().preset('Select something'),
+      prop('placeholder').str().widget().preset('Choose colors'),
+      prop('searchPlaceholder').str().widget().preset('Search colors'),
       prop('loading').bool().widget(),
-      prop('showMax').num().widget(),
-      model()
-        .prop(p => p.arr('FormOptionValue'))
-        .required()
-        .preset([]),
-      slot().help('').prop('option', 'FormOption<TData>'),
+      model('search'),
+      slot(),
     ]"
-    :presets
   >
-    <VtsSelect v-bind="properties" />
+    <VtsSelect v-bind="properties" v-model:search="searchTerm" />
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { model, prop, slot } from '@/libs/story/story-param'
+import { model, prop, slot } from '@/libs/story/story-param.ts'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
-import { defineFormOptions } from '@core/packages/form-select/define-form-options.ts'
+import { useFormOptions } from '@core/packages/form-select'
+import { upperFirst } from 'lodash-es'
 
 const colors = ['blue', 'yellow', 'red', 'green', 'orange', 'purple', 'white', 'grey', 'black']
 
-const presets = {
-  'Value only': {
-    props: {
-      options: defineFormOptions(colors),
-    },
-  },
-  'Value + Label': {
-    props: {
-      options: defineFormOptions(colors, color => ({
-        value: color,
-        label: `This is the ${color} color`,
-      })),
-    },
-  },
-  'Disabled options': {
-    props: {
-      options: defineFormOptions(colors, (color, index) => ({
-        value: color,
-        label: `This is the ${color} color`,
-        disabled: index === 0 || index === 4 || index === 8,
-      })),
-    },
-  },
-}
+const { options, searchTerm } = useFormOptions(colors, {
+  getValue: color => color,
+  getLabel: color => `${upperFirst(color)} color`,
+  getDisabled: color => color === 'blue' || color === 'orange' || color === 'black',
+  multiple: true,
+})
 </script>
