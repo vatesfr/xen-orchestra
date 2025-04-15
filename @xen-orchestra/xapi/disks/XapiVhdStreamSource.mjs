@@ -195,6 +195,7 @@ export class XapiVhdStreamSource extends Disk {
           data,
         }
       }
+      self.#vhdStream?.on('error', () => {})
     }
 
     return generator()
