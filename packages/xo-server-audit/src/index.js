@@ -190,7 +190,8 @@ export const configurationSchema = {
   type: 'object',
   properties: {
     active: {
-      description: 'Whether to save user actions in the audit log',
+      description:
+        'Whether to save user actions in the audit log (do not enable if you are planning to perform an audit log import)',
       type: 'boolean',
     },
   },
@@ -427,50 +428,68 @@ class AuditXoPlugin {
 
   async _handleImportRecords($defer, { fileStream, zipped }) {
     $defer(await this._storage.acquireLock())
-
-    await this._storage.clean()
     if (!(await this._storage.isEmpty())) {
-      throw new Error('Unable to clean audit log database')
+      throw new Error('Audit log database must be empty')
     }
 
     const processRecord = async source => {
-      let lastId
-      for await (const chunk of source) {
-        const id = await this._auditCore._importRecord(chunk)
-        // entries are listed from newest to oldest, so first entry is the last
+      const invalidRecords = []
+      const missingRecords = []
+      // entries are listed backwards, from newest to oldest. nextLog is the last log we imported
+      let chainLastLog, lastId, nextLog
+      for await (const record of source) {
+        const { id, isValid } = await this._auditCore._importRecord(record)
         if (lastId === undefined) {
           lastId = id
           await this._storage.setLastId(lastId)
         }
+        if (!isValid) {
+          invalidRecords.push(record.id)
+        }
+        if (nextLog !== undefined && nextLog.previousId !== record.id) {
+          missingRecords.push(nextLog.previousId)
+          chainLastLog ??= nextLog
+        }
+        nextLog = record
       }
+      chainLastLog ??= nextLog // in case no log was missing
+      return { chainLastLog, invalidRecords, missingRecords }
     }
 
     try {
-      await promises.pipeline(fileStream, zipped ? createUnzip() : new PassThrough(), ndjson.parse(), processRecord)
+      const res = await promises.pipeline(
+        fileStream,
+        zipped ? createUnzip() : new PassThrough(),
+        ndjson.parse(),
+        processRecord
+      )
+
+      if (this._uploadLastHashJob !== undefined) {
+        await this._uploadLastHash()
+      }
+
+      return res
     } catch (err) {
-      // Cleaning database because we only partially imported the logs
+      // Cleaning database because logs were only partially imported
       await this._storage.clean()
       throw err
-    }
-
-    // TODO: maybe find a way to add back the "audit.importRecords" record
-
-    if (this._uploadLastHashJob !== undefined) {
-      await this._uploadLastHash()
     }
   }
 
   async _importRecords({ zipped }) {
-    // TODO: maybe check that the current www-xo audit chain is === null to make sure we not erasing important logs? this._xo.audit.getLastChain()
     if (!(await this._storage.isEmpty())) {
-      throw new Error('Database must be empty')
+      throw new Error('Audit log database must be empty')
     }
 
     return {
       $sendTo: await this._xo.registerHttpRequest(async (req, res) => {
-        await this._handleImportRecords({ fileStream: req, zipped })
-
-        res.end('audit logs successfully imported')
+        try {
+          const importResults = await this._handleImportRecords({ fileStream: req, zipped })
+          res.end(JSON.stringify(importResults))
+        } catch (err) {
+          res.writeHead(500)
+          res.end(err.message)
+        }
       }),
     }
   }

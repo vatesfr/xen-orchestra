@@ -2796,9 +2796,12 @@ const messages = {
   importAuditRecords: 'Import records',
   importRecordsTip: 'Try dropping a .ndjson.gz or .ndjson file here or click to select a file.',
   importAuditRecordsCleanList: 'Reset',
-  importButtonAuditRecords: 'Import',
+  importAuditRecordsButton: 'Import',
+  importAuditRecordsTooltip: 'Import audit record from another XOA. Audit log database must be empty.',
   importAuditRecordsSuccess: 'Audit records successfully imported',
-  importAuditRecordsError: 'Error while importing audit records',
+  importAuditRecordsSuccessWithProblems:
+    "Audit records successfully imported, but {nInvalid} invalid records were imported and at least {nMissing} records were missing. Logs prior to the missing entries will not appear. The oldest visible log's ID is {lastLogId}",
+  importAuditRecordsError: 'Error while importing audit records: {importError}',
   noAuditRecordsFile: 'No audit records file selected',
 
   // Licenses

@@ -173,7 +173,12 @@ const displayRecord = record =>
     <RichText copiable message={JSON.stringify(record, null, 2)} />
   )
 
-const renderImportStatus = ({ recordsFile, importStatus }) => {
+const renderImportStatus = ({
+  recordsFile,
+  importError,
+  importResults: { nInvalid, nMissing, lastLogId } = {},
+  importStatus,
+}) => {
   switch (importStatus) {
     case 'noFile':
       return _('noAuditRecordsFile')
@@ -182,9 +187,17 @@ const renderImportStatus = ({ recordsFile, importStatus }) => {
     case 'start':
       return <Icon icon='loading' />
     case 'end':
-      return <span className='text-success'>{_('importAuditRecordsSuccess')}</span>
+      if (nInvalid === 0 && nMissing === 0) {
+        return <span className='text-success'>{_('importAuditRecordsSuccess')}</span>
+      } else {
+        return (
+          <span className='text-warning'>
+            {_('importAuditRecordsSuccessWithProblems', { nInvalid, nMissing, lastLogId })}
+          </span>
+        )
+      }
     case 'importError':
-      return <span className='text-danger'>{_('importAuditRecordsError')}</span>
+      return <span className='text-danger'>{_('importAuditRecordsError', { importError: importError || '' })}</span>
   }
 }
 
@@ -269,7 +282,9 @@ export default decorate([
       _records: undefined,
       checkedRecords: {},
       goTo: undefined,
+      importError: undefined,
       importStatus: 'noFile',
+      importResults: undefined,
       missingRecord: undefined,
       recordsFile: undefined,
       showImportDropzone: false,
@@ -289,17 +304,15 @@ export default decorate([
 
         return importAuditRecords(this.state.recordsFile)
           .then(
-            imported => {
-              if (imported !== false) {
-                this.state.recordsFile = undefined
-                this.state.importStatus = 'end'
-              } else {
-                this.state.importStatus = 'selectedFile'
-              }
+            importResults => {
+              this.state.recordsFile = undefined
+              this.state.importStatus = 'end'
+              this.state.importResults = importResults
             },
-            () => {
+            error => {
               this.state.recordsFile = undefined
               this.state.importStatus = 'importError'
+              this.state.importError = error?.message
             }
           )
           .finally(this.effects.fetchRecords)
@@ -393,10 +406,11 @@ export default decorate([
           </ActionButton>{' '}
           <ActionButton
             btnStyle='warning'
+            disabled={state.records?.length > 0}
             handler={effects.showImportDropzone}
             icon='upload'
             size='large'
-            disabled={!state.isUserActionsRecordInactive || state.records?.length > 0}
+            tooltip={_('importAuditRecordsTooltip')}
           >
             {_('importAuditRecords')}
           </ActionButton>
@@ -415,7 +429,7 @@ export default decorate([
                 icon='import'
                 type='submit'
               >
-                {_('importButtonAuditRecords')}
+                {_('importAuditRecordsButton')}
               </ActionButton>
               <Button onClick={effects.unselectFile}>{_('importAuditRecordsCleanList')}</Button>
             </div>
