@@ -4240,12 +4240,27 @@ export const exportAuditRecords = () =>
     window.open(`.${url}`)
   })
 
-export const importAuditRecords = recordsFile =>
-  _call('audit.importRecords', { zipped: recordsFile.type === 'application/gzip' }).then(({ $sendTo }) =>
-    post($sendTo, recordsFile).then(response => {
-      return response.status === 200
-    })
-  )
+export const importAuditRecords = async recordsFile => {
+  const { $sendTo } = await _call('audit.importRecords', { zipped: recordsFile.type === 'application/gzip' })
+  const response = await post($sendTo, recordsFile)
+  const text = await response.text()
+
+  if (response.status !== 200) {
+    throw new Error(text)
+  }
+
+  let body
+  try {
+    body = JSON.parse(text)
+  } catch (error) {
+    throw new Error(`Body is not a JSON, original message is : ${text}`)
+  }
+  return {
+    nInvalid: body.invalidRecords.length,
+    nMissing: body.missingRecords.length,
+    lastLogId: body.chainLastLog?.id,
+  }
+}
 
 export const checkAuditRecordsIntegrity = (oldest, newest) => _call('audit.checkIntegrity', { oldest, newest })
 

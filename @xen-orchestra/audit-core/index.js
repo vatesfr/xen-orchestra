@@ -99,12 +99,14 @@ class AuditCore {
   }
 
   async _importRecord(record) {
-    // TODO: we should check the chain continuity, but then we can't import separate chains of logs
-    if (record.id !== createHash(record)) {
-      throw new Error('Unhealthy chain import')
+    if (!record.id || !record.previousId) {
+      throw new Error('Invalid record')
     }
     await this._storage.put(record)
-    return record.id
+    return {
+      id: record.id,
+      isValid: record.id === createHash(record),
+    }
   }
 
   async checkIntegrity(oldest, newest) {
