@@ -1,8 +1,8 @@
-<!-- v2 -->
+<!-- v3 -->
 <template>
   <div class="ui-info">
     <VtsIcon :accent class="icon" :icon="faCircle" :overlay-icon="icon" />
-    <p v-tooltip="!wrap" class="typo-form-info" :class="{ 'text-ellipsis': !wrap }">
+    <p v-tooltip="!wrap" class="typo-body-regular-small" :class="{ 'text-ellipsis': !wrap }">
       <slot />
     </p>
   </div>
