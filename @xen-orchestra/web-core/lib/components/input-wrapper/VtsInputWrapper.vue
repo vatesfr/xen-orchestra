@@ -68,6 +68,7 @@ const labelAccent = useMapper<InfoAccent, LabelAccent>(
     success: 'neutral',
     warning: 'warning',
     danger: 'danger',
+    muted: 'neutral',
   },
   'neutral'
 )
