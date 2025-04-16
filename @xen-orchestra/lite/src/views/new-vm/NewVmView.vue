@@ -249,7 +249,7 @@
                 <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
                   <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
                     <td>
-                      <FormSelect v-model="vdi.SR" disabled>
+                      <FormSelect v-model="vdi.SR">
                         <option v-for="sr in filteredSrs" :key="sr.$ref" :value="sr.$ref">
                           {{ `${sr.name_label} -` }}
                           {{
@@ -381,7 +381,7 @@ import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
 
 // XenAPI Store imports
-import type { XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiSr, XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -462,7 +462,7 @@ const vmState = reactive<VmState>({
   affinity_host: '',
   boot_firmware: '',
   new_vm_template: undefined,
-  boot_vm: true,
+  boot_vm: false,
   auto_power: false,
   fast_clone: true,
   ssh_key: '',
@@ -588,11 +588,11 @@ const getDefaultNetworks = (template: XenApiVm) => {
 }
 
 const getExistingInterface = (template: XenApiVm) => {
-  const existingInterfaces = []
+  const interfaces = []
   const defaultNetwork = getDefaultNetworks(template)[0]
 
   if (template.VIFs.length === 0 && defaultNetwork) {
-    existingInterfaces.push({
+    interfaces.push({
       interface: defaultNetwork.$ref,
       macAddress: '',
     })
@@ -601,21 +601,26 @@ const getExistingInterface = (template: XenApiVm) => {
   template.VIFs.forEach(ref => {
     const vif = getVifByOpaqueRef(ref)
     if (vif) {
-      existingInterfaces.push({
+      interfaces.push({
         interface: getNetworkByOpaqueRef(vif.network)?.$ref || '',
         macAddress: vif.MAC || '',
       })
     }
   })
 
-  return existingInterfaces
+  return interfaces
 }
 
 const addNetworkInterface = () => {
-  if (!vmState.new_vm_template) return
+  if (!vmState.new_vm_template) {
+    return
+  }
 
   const defaultNetworks = getDefaultNetworks(vmState.new_vm_template)
-  if (defaultNetworks.length === 0) return
+
+  if (defaultNetworks.length === 0) {
+    return
+  }
 
   const defaultNetwork = defaultNetworks[0]
 
@@ -626,7 +631,7 @@ const addNetworkInterface = () => {
 }
 
 const getVdis = (template: XenApiVm) => {
-  const vdisArray = [] as Vdi[]
+  const vdis = [] as Vdi[]
 
   const parser = new DOMParser()
   const xmlString = template.other_config.disks
@@ -639,18 +644,18 @@ const getVdis = (template: XenApiVm) => {
     return []
   }
 
-  vdisArray.push({
+  vdis.push({
     name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     size: bytesToGiB(Number(size)),
     SR: defaultSr.value,
   })
 
-  return vdisArray
+  return vdis
 }
 
 const getExistingVdis = (template: XenApiVm) => {
-  const existingVdisArray = [] as Vdi[]
+  const vdis = [] as Vdi[]
 
   template.VBDs.forEach(vbdRef => {
     const vbd = getVbdByOpaqueRef(vbdRef)
@@ -660,9 +665,12 @@ const getExistingVdis = (template: XenApiVm) => {
     }
 
     const vdi = getVdiByOpaqueRef(vbd.VDI)
-    if (!vdi) return
 
-    existingVdisArray.push({
+    if (!vdi) {
+      return
+    }
+
+    vdis.push({
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.virtual_size),
@@ -670,12 +678,15 @@ const getExistingVdis = (template: XenApiVm) => {
     })
   })
 
-  return existingVdisArray
+  return vdis
 }
 
 const onTemplateChange = () => {
   const template = vmState.new_vm_template
-  if (!template) return
+
+  if (!template) {
+    return
+  }
 
   const { name_label, name_description, HVM_boot_params, VCPUs_at_startup, memory_dynamic_max, other_config } = template
 
@@ -783,6 +794,7 @@ const _createVm = async ($defer: Defer) => {
     if (vm.domain_type === 'hvm') {
       if ((newVdis.length === 0 && existingVdis.length === 0) || installMethod === 'network') {
         const { order } = vm.HVM_boot_params
+
         await xapi.call('VM.set_HVM_boot_params', [vmRefs[0], { order: order ? 'n' + order.replace('n', '') : 'ncd' }])
       }
     } else {
@@ -802,6 +814,7 @@ const _createVm = async ($defer: Defer) => {
 
       for (const vbdRef of vm.VBDs) {
         const type = await xapi.getField<VBD_TYPE>('VBD', vbdRef, 'type')
+
         if (type === VBD_TYPE.CD) {
           await xapi.vbd.insert(vbdRef, selectedVdiRef)
           await xapi.vbd.setBootable(vbdRef, true)
@@ -840,7 +853,6 @@ const _createVm = async ($defer: Defer) => {
     }
 
     // EDIT VBDs IN CASE OF EXISTING VDIs
-    // TODO edit SR
     for (const vbdRef of vm.VBDs) {
       const vdiRef = await xapi.getField<XenApiVdi['$ref']>('VBD', vbdRef, 'VDI')
       const type = await xapi.getField<VBD_TYPE>('VBD', vbdRef, 'type')
@@ -850,19 +862,54 @@ const _createVm = async ($defer: Defer) => {
         hasBootableDisk = bootable
       }
 
-      if (!vbdRef || type === VBD_TYPE.CD) {
+      if (vdiRef === OPAQUE_REF.EMPTY || type === VBD_TYPE.CD) {
         continue
       }
 
       for (const vdi of existingVdis) {
+        const srRef = await xapi.getField<XenApiSr['$ref']>('VDI', vdiRef, 'SR')
+        const vbdRefs = await xapi.getField<XenApiVbd['$ref'][]>('VDI', vdiRef, 'VBDs')
+
         await xapi.vdi.setNameLabel(vdiRef, vdi.name_label)
         await xapi.vdi.setNameDescription(vdiRef, vdi.name_description)
+
+        if (vdi.SR !== srRef) {
+          try {
+            await xapi.vdi.poolMigrate(vdiRef, vdi.SR)
+          } catch (error) {
+            if (!(error instanceof Error)) {
+              throw error
+            }
+
+            const { message } = error
+
+            if (
+              message !== 'NO_HOSTS_AVAILABLE' &&
+              message !== 'LICENCE_RESTRICTION' &&
+              message !== 'VDI_NEEDS_VM_FOR_MIGRATE'
+            ) {
+              throw error
+            }
+
+            const newVdiRef = await xapi.vdi.copy(vdiRef, vdi.SR)
+
+            if (vbdRefs) {
+              for (const vbdRef of vbdRefs) {
+                const vbd = await xapi.getField<XenApiVbd>('VBD', vbdRef, 'record')
+
+                await xapi.vbd.delete(vbdRef)
+                await xapi.vbd.create({ ...vbd, vmRefs, vdiRef: newVdiRef[0] })
+              }
+            }
+
+            await xapi.vdi.delete(vdiRef)
+          }
+        }
       }
     }
 
     // VDIs AND VBDs CREATION
     let index = 0
-
     for (const vdi of newVdis) {
       const vdiRef = await xapi.vdi.create({
         ...vdi,
