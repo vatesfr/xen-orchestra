@@ -397,6 +397,7 @@
   "sidebar.vms-treeview": "نمای درختی ماشین‌های مجازی",
   "size": "سایز",
   "snapshot": "اسنپ شات",
+  "sockets-with-cores-per-socket": "{nSockets} سوکت × {nCores} هسته/سوکت",
   "sort-by": "مرتب کردن بر اساس",
   "speed": "سرعت",
   "sr": "درخواست سرویس",
@@ -474,6 +475,7 @@
   "vm-is-running": "ماشین مجازی در حال اجراست",
   "vm.active": "فعال",
   "vm.inactive": "غیرفعال",
+  "vmSocketsWithCoresPerSocket": "{nSockets} سوکت × {nCores} هسته/سوکت",
   "vms": "ماشین مجازی | ماشین های مجازی",
   "vms-status": "وضعیت ماشین‌های مجازی",
   "vms-status.halted": "معلق شده",
@@ -496,6 +498,6 @@
   "xoa-password-confirm-different": "تایید کلمه عبور XOA متفاوت است",
   "xoa-ssh-account": "حساب XOA SSH",
   "xoa-ssh-password-confirm-different": "تایید کلمه عبور SSH متفاوت است",
-  "you-are-currently-on": "شما در حال حاضر در {0} هستید.",
+  "you-are-currently-on": "شما در حال حاضر در {0} هستید",
   "zstd": "zstd"
 }
