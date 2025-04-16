@@ -1,6 +1,9 @@
 <template>
   <div class="ui-dropdown-list">
-    <slot />
+    <slot name="before" />
+    <div class="container">
+      <slot />
+    </div>
   </div>
 </template>
 
@@ -8,9 +11,14 @@
 .ui-dropdown-list {
   display: flex;
   flex-direction: column;
-  overflow: auto;
   background: var(--color-neutral-background-primary);
   border: 0.1rem solid var(--color-neutral-border);
   border-radius: 0.4rem;
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
 }
 </style>
