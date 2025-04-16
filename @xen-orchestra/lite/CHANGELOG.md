@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
+
 ## **0.9.1** (2025-04-02)
 
 - Fix blank page in production mode (PR [#8471](https://github.com/vatesfr/xen-orchestra/pull/8471))
