@@ -71,7 +71,13 @@ export function useFormSelect<TOption extends FormOption<unknown, PropertyKey>>(
   const searchRef = ref<MaybeElement<HTMLElement> & { focus?: () => void }>()
 
   function focusSearch() {
+    if (!searchRef.value?.focus) {
+      return false
+    }
+
     searchRef.value?.focus?.()
+
+    return true
   }
 
   whenever(isOpen, () => focusSearch(), { flush: 'post' })
@@ -176,11 +182,17 @@ export function useFormSelect<TOption extends FormOption<unknown, PropertyKey>>(
     return index
   }
 
+  function focusSearchOrTrigger() {
+    if (!focusSearch()) {
+      focusTrigger()
+    }
+  }
+
   provide(
     IK_FORM_SELECT_CONTROLLER,
     reactive({
       isNavigatingWithKeyboard,
-      focusSearch,
+      focusSearchOrTrigger,
       closeDropdown,
     })
   )

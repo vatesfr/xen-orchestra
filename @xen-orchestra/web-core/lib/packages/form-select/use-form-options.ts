@@ -1,20 +1,12 @@
 import { useCollection } from '@core/packages/collection'
-import type { MaybeArray } from '@core/types/utility.type.ts'
+import type { UseFormOptionsConfig } from '@core/packages/form-select/type.ts'
 import { toArray } from '@core/utils/to-array.utils.ts'
 import type { MaybeRefOrGetter } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 
-type FormOptionConfig<TEntry, TValue extends PropertyKey> = {
-  getValue: (entry: TEntry) => TValue
-  getLabel: (entry: TEntry) => string
-  getSearchableTerm?: (entry: TEntry) => MaybeArray<string>
-  getDisabled?: (entry: TEntry) => boolean
-  multiple?: boolean
-}
-
 export function useFormOptions<TEntry, TValue extends PropertyKey>(
   entries: MaybeRefOrGetter<TEntry[]>,
-  config: FormOptionConfig<TEntry, TValue>
+  config: UseFormOptionsConfig<TEntry, TValue>
 ) {
   const _searchTerm = ref('')
 

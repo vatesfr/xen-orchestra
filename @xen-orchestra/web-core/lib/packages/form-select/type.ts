@@ -1,4 +1,5 @@
 import type { CollectionItem } from '@core/packages/collection'
+import type { MaybeArray } from '@core/types/utility.type.ts'
 import type { InjectionKey, Reactive } from 'vue'
 
 export type FormOption<TEntry, TValue extends PropertyKey> = CollectionItem<
@@ -12,6 +13,14 @@ export type FormOption<TEntry, TValue extends PropertyKey> = CollectionItem<
     multiple: boolean
   }
 >
+
+export type UseFormOptionsConfig<TEntry, TValue extends PropertyKey> = {
+  getValue: (entry: TEntry) => TValue
+  getLabel: (entry: TEntry) => string
+  getSearchableTerm?: (entry: TEntry) => MaybeArray<string>
+  getDisabled?: (entry: TEntry) => boolean
+  multiple?: boolean
+}
 
 export type FormOptionIndex =
   | number
@@ -41,7 +50,7 @@ export enum FORM_SELECT_HANDLED_KEY {
 export type FormSelectController = Reactive<{
   isNavigatingWithKeyboard: boolean
   closeDropdown(keepFocus: boolean): void
-  focusSearch(): void
+  focusSearchOrTrigger(): void
 }>
 
 export const IK_FORM_SELECT_CONTROLLER = Symbol('IK_FORM_SELECT_CONTROLLER') as InjectionKey<FormSelectController>
