@@ -9,9 +9,9 @@
 </template>
 
 <script lang="ts" setup>
-import BackupRepository from '@/components/site/dashboard/BackupRepository.vue'
-import S3BackupRepository from '@/components/site/dashboard/S3BackupRepository.vue'
-import StorageRepository from '@/components/site/dashboard/StorageRepository.vue'
+import BackupRepository from '@/components/main/dashboard/BackupRepository.vue'
+import S3BackupRepository from '@/components/main/dashboard/S3BackupRepository.vue'
+import StorageRepository from '@/components/main/dashboard/StorageRepository.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useUiStore } from '@core/stores/ui.store'

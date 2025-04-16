@@ -1,8 +1,15 @@
 <template>
-  <SiteHeader />
-  <RouterView />
+  <div>
+    <MainHeader />
+    <RouterView />
+  </div>
 </template>
 
-<script lang="ts" setup>
-import SiteHeader from '@/components/site/SiteHeader.vue'
+<script setup lang="ts">
+import MainHeader from '@/components/main/MainHeader.vue'
+
+definePage({
+  name: '/',
+  redirect: () => `/dashboard`,
+})
 </script>

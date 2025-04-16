@@ -14,7 +14,7 @@
       </template>
     </template>
   </VtsDataTable>
-  <UiTopBottomTable :selected-items="0" :total-items="0" />
+  <UiTopBottomTable :selected-items="0" :total-items="tasks.length" />
 </template>
 
 <script setup lang="ts">

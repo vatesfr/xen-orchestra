@@ -3,8 +3,8 @@
     <UiTreeItemLabel class="tree-label" :route="`/task/${branch.data.id}`" @toggle="branch.toggleExpand()">
       <tr>
         <td>{{ branch.label }}</td>
+        <!--      <UiTaskItem :task="branch.data" :user="user" /> -->
       </tr>
-      <!--      <UiTaskItem :task="branch.data" :user="user" /> -->
     </UiTreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
       <VtsTreeList>
