@@ -1,4 +1,4 @@
-<!-- v3 -->
+<!-- v4 -->
 <template>
   <div class="ui-info">
     <VtsIcon :accent class="icon" :icon="faCircle" :overlay-icon="icon" />
@@ -16,12 +16,13 @@ import {
   faCircle,
   faExclamation,
   faInfo,
+  faMinus,
   faXmark,
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
-export type InfoAccent = 'info' | 'success' | 'warning' | 'danger'
+export type InfoAccent = 'info' | 'success' | 'warning' | 'danger' | 'muted'
 
 const { accent } = defineProps<{
   accent: InfoAccent
@@ -37,6 +38,7 @@ const iconByAccent: Record<InfoAccent, IconDefinition> = {
   success: faCheck,
   warning: faExclamation,
   danger: faXmark,
+  muted: faMinus,
 }
 
 const icon = computed(() => iconByAccent[accent])
