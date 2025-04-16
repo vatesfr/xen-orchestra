@@ -29,7 +29,7 @@
         <slot name="icon">
           <VtsIcon :icon accent="current" class="icon" />
         </slot>
-        <div class="text text-ellipsis">
+        <div class="text text-ellipsis content">
           <slot />
         </div>
       </a>
@@ -84,10 +84,8 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
   align-items: center;
   color: var(--color-neutral-txt-primary);
   background-color: var(--color-neutral-background-primary);
-  border-radius: 0.8rem;
   gap: 0.4rem;
   padding: 0 0.8rem;
-  margin-bottom: 0.2rem;
 
   .link {
     display: flex;
@@ -98,6 +96,10 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
     text-decoration: none;
     color: inherit;
     gap: 1.2rem;
+
+    .content {
+      width: 100%;
+    }
 
     &:hover {
       color: var(--color-neutral-txt-primary);
