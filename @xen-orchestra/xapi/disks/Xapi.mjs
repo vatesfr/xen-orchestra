@@ -1,9 +1,10 @@
 // @ts-check
 /**
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
+ * @typedef {import('@xen-orchestra/disk-transform').RandomAccessDisk} RandomAccessDisk
  */
 
-import { DiskPassthrough } from '@xen-orchestra/disk-transform'
+import { DiskPassthrough, ReadAhead } from '@xen-orchestra/disk-transform'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiVhdStreamNbdSource } from './XapiVhdStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
@@ -32,6 +33,9 @@ export class XapiDiskSource extends DiskPassthrough {
   /** @type {any} */
   #xapi // @todo do a better type here
 
+  #useNbd = false
+  #useCbt = false
+
   /**
    * @param {Object} params
    * @param {any} params.xapi
@@ -53,7 +57,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * Create a disk source using stream export + NBD.
    * On failure, fall back to a full export.
    *
-   * @returns {Promise<XapiVhdStreamNbdSource|XapiVhdStreamSource>}
+   * @returns {Promise<ReadAhead|XapiVhdStreamSource>}
    */
   async #openNbdStream() {
     const xapi = this.#xapi
@@ -75,7 +79,8 @@ export class XapiDiskSource extends DiskPassthrough {
         throw err
       }
     }
-    return source
+    this.#useNbd = true
+    return new ReadAhead(source)
   }
 
   /**
@@ -109,7 +114,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * Create a disk source using NBD and CBT.
    * On failure, fall back to stream + NBD.
    *
-   * @returns {Promise<XapiVhdCbtSource | XapiVhdStreamNbdSource|XapiVhdStreamSource>}
+   * @returns {Promise<ReadAhead|XapiVhdStreamSource>}
    */
   async #openNbdCbt() {
     const xapi = this.#xapi
@@ -118,7 +123,9 @@ export class XapiDiskSource extends DiskPassthrough {
     const source = new XapiVhdCbtSource({ vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
     try {
       await source.init()
-      return source
+      this.#useNbd = true
+      this.#useCbt = true
+      return new ReadAhead(source)
     } catch (error) {
       warn('openNbdCBT', error)
       await source.close()
@@ -136,7 +143,7 @@ export class XapiDiskSource extends DiskPassthrough {
 
   /**
    *
-   * @returns {Promise<XapiVhdCbtSource | XapiVhdStreamNbdSource | XapiVhdStreamSource>}
+   * @returns {Promise<ReadAhead | XapiVhdStreamSource>}
    */
   openSource() {
     if (this.#preferNbd) {
@@ -152,11 +159,11 @@ export class XapiDiskSource extends DiskPassthrough {
     }
   }
 
-  useNbd(){
-    return this.source instanceof XapiVhdStreamNbdSource || this.source instanceof XapiVhdCbtSource
+  useNbd() {
+    return this.#useNbd
   }
 
-  useCbt(){
-    return this.source instanceof XapiVhdCbtSource
+  useCbt() {
+    return this.#useCbt
   }
 }

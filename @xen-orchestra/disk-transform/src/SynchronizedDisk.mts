@@ -4,6 +4,7 @@ import { Disk, DiskBlock } from './Disk.mjs'
 
 class ForkedDisk extends DiskPassthrough {
   #generator: AsyncGenerator<DiskBlock, any, any>
+  #generatedDiskBlocks = 0
   constructor(source: Disk, generator: AsyncGenerator<DiskBlock, any, any>) {
     super(source)
     this.#generator = generator
@@ -14,8 +15,14 @@ class ForkedDisk extends DiskPassthrough {
   async init(): Promise<void> {
     /* source has already been open , */
   }
-  diskBlocks() {
-    return this.#generator
+  async *diskBlocks(): AsyncGenerator<DiskBlock> {
+    for await (const block of this.#generator) {
+      this.#generatedDiskBlocks++
+      yield block
+    }
+  }
+  getNbGeneratedBlock(): number {
+    return this.#generatedDiskBlocks
   }
 }
 
