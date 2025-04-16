@@ -59,6 +59,7 @@ type ObjectTypeToRecordMapping = {
   host_metrics: XenApiHostMetrics
   message: XenApiMessage<any>
   network: XenApiNetwork
+  pbd: XenApiPbd
   pif: XenApiPif
   pif_metrics: XenApiPifMetrics
   pool: XenApiPool
@@ -122,6 +123,7 @@ export interface XenApiHost extends XenApiRecord<'host'> {
 }
 
 export interface XenApiSr extends XenApiRecord<'sr'> {
+  PBDs: XenApiPbd['$ref'][]
   content_type: string
   name_label: string
   VDIs: XenApiVdi['$ref'][]
@@ -132,6 +134,12 @@ export interface XenApiSr extends XenApiRecord<'sr'> {
   sm_config: {
     type?: string
   }
+}
+
+export interface XenApiPbd extends XenApiRecord<'pbd'> {
+  SR: XenApiSr['$ref']
+  currently_attached: boolean
+  host: XenApiHost['$ref']
 }
 
 export interface XenApiVm extends XenApiRecord<'vm'> {
