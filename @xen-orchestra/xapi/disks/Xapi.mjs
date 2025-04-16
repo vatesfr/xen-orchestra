@@ -151,4 +151,12 @@ export class XapiDiskSource extends DiskPassthrough {
       return this.#openExportStream()
     }
   }
+
+  useNbd(){
+    return this.source instanceof XapiVhdStreamNbdSource || this.source instanceof XapiVhdCbtSource
+  }
+
+  useCbt(){
+    return this.source instanceof XapiVhdCbtSource
+  }
 }

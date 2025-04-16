@@ -5,6 +5,7 @@ import { AbstractXapi } from './_AbstractXapi.mjs'
 import { exportIncrementalVm } from '../../_incrementalVm.mjs'
 import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs'
 import { IncrementalXapiWriter } from '../_writers/IncrementalXapiWriter.mjs'
+import { Task } from '../../Task.mjs'
 import {
   DATETIME,
   DELTA_CHAIN_LENGTH,
@@ -39,12 +40,16 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     })
 
     const isVhdDifferencing = {}
+    let useNbd = false
     for (const key in deltaExport.disks) {
       const disk = deltaExport.disks[key]
       isVhdDifferencing[key] = disk.isDifferencing()
       deltaExport.disks[key] = new SynchronizedDisk(disk)
+      useNbd = useNbd || disk.useNbd()
     }
-
+    if(useNbd){
+      Task.info('Transfer data using NBD')
+    }
     function fork(deltaExport, label) {
       const { disks, ...forked } = deltaExport
       forked.disks = {}
