@@ -119,6 +119,7 @@
   "dark-mode.disable": "Disable dark mode",
   "dark-mode.enable": "Enable dark mode",
   "dashboard": "Dashboard",
+  "default-behavior": "Default behavior",
   "default-locking-mode": "Default locking mode",
   "delete": "Delete",
   "delete-vms": "Delete 1 VM | Delete {n} VMs",
