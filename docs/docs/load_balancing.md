@@ -39,6 +39,13 @@ Those ways can be also called modes: "performance" for 1 and "density" for numbe
 
 ## Configure a plan
 
+To configure your plan:
+
+1. Navigate to the Xen Orchestra main menu, then **Settings** and **Plugin**.
+2. Open the **load-balancer plugin** and click the + button to show the **Configuration** menu:
+
+![](./assets/Load-balancer-plugin.png)
+
 In this view, you can configure a new load balancing plan, or edit an existing one.
 
 A plan has:
