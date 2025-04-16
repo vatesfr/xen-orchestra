@@ -393,7 +393,7 @@
 </template>
 
 <script setup lang="ts">
-import { createVM } from '@/jobs/vm-create.job.ts'
+import { useVmCreateJob } from '@/jobs/vm-create.job.ts'
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
@@ -404,7 +404,7 @@ import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
-import type { NetworkInterface, Vdi, VmState } from '@/types/xo/new-vm.type'
+import type { NetworkInterface, Vdi, NewVmData, VmState } from '@/types/xo/new-vm.type'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { Branded } from '@core/types/utility.type'
@@ -425,6 +425,7 @@ import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { JobError } from '@core/packages/job'
 import {
   faAlignLeft,
   faAngleDown,
@@ -750,8 +751,8 @@ const onTemplateChange = () => {
 
   Object.assign(vmState, {
     isDiskTemplateSelected: isDiskTemplate,
-    vm_name: name_label,
-    vm_description: isDefaultTemplate ? '' : name_description,
+    name: name_label,
+    description: isDefaultTemplate ? '' : name_description,
     ram: memory.dynamic[1],
     tags,
     vCPU: CPUs.number,
@@ -796,10 +797,13 @@ const modifiedExistingVdis = computed(() => {
   }, [])
 })
 
-const vmData = computed(() => {
-  const vdisToSend = [...vmState.vdis, ...modifiedExistingVdis.value].map(vdi => ({
-    ...vdi,
-    ...(vdi.size && { size: giBToBytes(vdi.size) }),
+const vmData = computed((): NewVmData => {
+  const vdisToSend: Vdi[] = [...vmState.vdis, ...modifiedExistingVdis.value].map(vdi => ({
+    name_label: vdi.name_label ?? '',
+    name_description: vdi.name_description ?? '',
+    size: giBToBytes(vdi.size ?? 0),
+    sr: vdi.sr,
+    userdevice: vdi.userdevice,
   }))
 
   const optionalFields = Object.assign(
@@ -850,16 +854,16 @@ const createNewVM = async () => {
   try {
     isBusy.value = true
 
-    if (vmData.value.template === undefined || vmState.pool === undefined) {
-      throw new Error('Template UUID and Pool ID are required')
-    }
+    const createVmJob = useVmCreateJob(vmData.value, vmState.pool!.id)
+    await createVmJob.run()
 
-    await createVM(vmData.value, vmState.pool.id)
     redirectToHome()
   } catch (error) {
     isOpen.value = true
 
-    errorMessage.value = 'Error creating VM: ' + error
+    if (error instanceof JobError) {
+      errorMessage.value = 'Error creating VM:' + t(error.message)
+    }
   } finally {
     isBusy.value = false
   }
