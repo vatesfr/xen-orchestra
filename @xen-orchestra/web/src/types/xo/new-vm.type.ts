@@ -13,17 +13,11 @@ export interface Vdi {
   userdevice?: string
 }
 
-export interface Vif {
-  tempId?: string
+export interface NetworkInterface {
   interface?: XoNetwork['id']
   macAddress?: string
   device?: string
   destroy?: boolean
-}
-
-export interface NetworkInterface {
-  interface: XoNetwork['id']
-  macAddress: string
 }
 
 export type InstallMode = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
@@ -55,5 +49,4 @@ export interface VmState {
   description: string
   existingVdis: Vdi[]
   name: string
-  vifs: Vif[]
 }
