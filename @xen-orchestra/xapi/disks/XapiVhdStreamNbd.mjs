@@ -50,9 +50,23 @@ export class XapiVhdStreamNbdSource extends XapiVhdStreamSource {
    */
   buildDiskBlockGenerator() {
     const self = this
+
     async function* generator() {
+      /** @type {Array<Promise<DiskBlock>>} */
+      const preloaded = []
+      const MAX = Math.min(Math.floor(self.blocks.length / 10), 10)
       for (const { index } of self.blocks) {
-        yield self.readBlock(index)
+        if (preloaded.length < MAX) {
+          preloaded.push(self.readBlock(index))
+        }
+        if (preloaded.length === MAX) {
+          const next = await preloaded.shift()
+          yield next
+        }
+      }
+      while (preloaded.length > 0) {
+        const next = await preloaded.shift()
+        yield next
       }
     }
     return generator()
