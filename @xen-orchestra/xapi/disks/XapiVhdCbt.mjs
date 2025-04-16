@@ -63,7 +63,7 @@ export class XapiVhdCbtSource extends RandomAccessDisk {
       }),
       xapi.getField('VDI', ref, 'virtual_size'),
     ])
-    if (cbt_enabled === false) {
+    if (!cbt_enabled) {
       const error = new Error(`CBT is disabled`)
       error.code = 'CBT_DISABLED'
       throw error

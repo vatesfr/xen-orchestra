@@ -60,6 +60,7 @@ export class XapiVhdStreamNbdSource extends XapiVhdStreamSource {
           preloaded.push(self.readBlock(index))
         }
         if (preloaded.length === MAX) {
+          /** @type {DiskBlock} */
           const next = await preloaded.shift()
           yield next
         }
