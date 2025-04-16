@@ -87,7 +87,7 @@ const selectedLabel = computed(
 
   .dropdown-list {
     min-width: 40rem;
-    max-height: 362px; /* 8 Dropdown items */
+    max-height: 36.2rem; /* 8 Dropdown items */
     overflow: auto;
     z-index: 1020;
 

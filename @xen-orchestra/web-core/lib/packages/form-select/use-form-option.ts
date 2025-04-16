@@ -29,12 +29,11 @@ export function useFormOption<TEntry, TValue extends PropertyKey>(
 
     if (option.value.properties.multiple) {
       option.value.toggleFlag('selected')
+      controller.focusSearchOrTrigger()
     } else {
       option.value.toggleFlag('selected', true)
-      controller.closeDropdown(false)
+      controller.closeDropdown(true)
     }
-
-    controller.focusSearch()
   })
 
   useEventListener(elementRef, 'mouseenter', () => {
