@@ -61,7 +61,6 @@ export abstract class Disk {
         yield res.value
       }
     } finally {
-      await this.progressHandler?.done()
       await this.close()
     }
   }
@@ -104,6 +103,7 @@ export abstract class RandomAccessDisk extends Disk {
         await this.progressHandler?.setProgress(i / indexes.length)
       }
     } finally {
+      await this.progressHandler?.done()
       await this.close()
     }
   }
