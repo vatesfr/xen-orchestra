@@ -19,19 +19,18 @@ async function writeBlock(pack, data, name) {
   await addEntry(pack, `${name}.xxhash`, Buffer.from(hash, 'utf8'))
 }
 
-export default async function addDisk(pack, vhd, basePath) {
+export default async function addDisk(pack, rawStream, basePath) {
   let counter = 0
   let written
   let lastBlockWrittenAt = Date.now()
   const MAX_INTERVAL_BETWEEN_BLOCKS = 60 * 1000
   const empty = Buffer.alloc(XVA_DISK_CHUNK_LENGTH, 0)
-  const stream = await vhd.rawContent()
   let lastBlockLength
   const diskSize = vhd.footer.currentSize
   let remaining = diskSize
   while (remaining > 0) {
     lastBlockLength = Math.min(XVA_DISK_CHUNK_LENGTH, remaining)
-    const data = await readChunkStrict(stream, lastBlockLength)
+    const data = await readChunkStrict(rawStream, lastBlockLength)
     remaining -= lastBlockLength
     if (
       // write first block

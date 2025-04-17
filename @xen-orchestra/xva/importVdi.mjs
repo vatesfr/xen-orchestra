@@ -1,7 +1,7 @@
 import { isNotEmptyRef } from './_isNotEmptyRef.mjs'
 import { importVm } from './importVm.mjs'
 
-export async function importVdi(vdi, vhd, xapi, sr) {
+export async function importVdi(vdi, rawStream, xapi, sr) {
   // create a fake VM
   const vmRef = await importVm(
     {
@@ -10,7 +10,7 @@ export async function importVdi(vdi, vhd, xapi, sr) {
       nCpus: 1,
       firmware: 'bios',
       vdis: [vdi],
-      vhds: [vhd],
+      streams: [rawStream],
     },
     xapi,
     sr
