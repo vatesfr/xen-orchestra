@@ -1,7 +1,12 @@
 <template>
   <div class="alarm-item">
     <div class="object-description">
-      <UiButtonIcon :icon="faAngleRight" size="small" accent="brand" />
+      <UiButtonIcon
+        :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
+        size="small"
+        accent="brand"
+        @click="toggleDescription()"
+      />
       <div class="typo-body-regular text-ellipsis">
         {{ label }}
       </div>
@@ -20,11 +25,14 @@
       </div>
     </div>
   </div>
+  <div v-if="isDescriptionVisible" class="alarm-description">
+    {{ description }}
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
-import { useTimeAgo } from '@vueuse/core'
+import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
+import { useTimeAgo, useToggle } from '@vueuse/core'
 import { computed } from 'vue'
 import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 
@@ -32,6 +40,7 @@ const { date } = defineProps<{
   label: string
   value: string
   date: Date | number | string
+  description: string
 }>()
 
 defineSlots<{
@@ -39,6 +48,7 @@ defineSlots<{
 }>()
 
 const timeAgo = computed(() => useTimeAgo(date))
+const [isDescriptionVisible, toggleDescription] = useToggle(false)
 </script>
 
 <style scoped lang="postcss">
@@ -54,16 +64,17 @@ const timeAgo = computed(() => useTimeAgo(date))
   min-width: max-content;
 }
 
-/* Modification pour cibler uniquement le texte dans object-time */
 .object-time {
   gap: 0.6rem;
 }
 
-.object-time > :not(span) {
-  color: var(--color-neutral-txt-secondary); /* Applique la couleur uniquement au texte */
+.object-time > :not(span),
+.alarm-description {
+  color: var(--color-neutral-txt-secondary);
 }
 
-.alarm-item {
+.alarm-item,
+.alarm-description {
   display: flex;
   justify-content: space-between;
   padding: 0.8rem 1.2rem;
