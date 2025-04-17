@@ -34,3 +34,10 @@ import UiAlarmItem from '@core/components/ui/alarm-item/UiAlarmItem.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 </script>
+
+<style scoped lang="postcss">
+.object-link {
+  display: flex;
+  gap: 0.8rem;
+}
+</style>
