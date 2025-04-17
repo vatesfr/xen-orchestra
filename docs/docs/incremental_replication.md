@@ -23,7 +23,7 @@ If you lose your main pool, you can start the copy on the other side, with very 
 :::warning
 It is normal that you can't boot the copied VM directly: we protect it. The normal workflow is to make a clone and then work on it.
 
-This also affects VMs with "Auto Power On" enabled, because of our protections you can ensure these won't start on your CR destination if you happen to reboot it.
+This also affects VMs with "Auto Power On" enabled, because of our protections you can ensure these won't start on your Incremental replication destination if you happen to reboot it.
 :::
 
 ## Configure it
