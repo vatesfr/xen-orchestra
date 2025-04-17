@@ -5,6 +5,7 @@ import * as xoData from '@xen-orchestra/xapi/xoData.mjs'
 import ensureArray from './_ensureArray.mjs'
 import normalizeVmNetworks from './_normalizeVmNetworks.mjs'
 import semver from 'semver'
+import { compareVersions, validate as validateVersion } from 'compare-versions'
 import { createLogger } from '@xen-orchestra/log'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
@@ -92,6 +93,82 @@ const getVmGuestToolsProps = vm => {
     pvDriversUpToDate: pvDriversDetected ? guestMetrics.PV_drivers_up_to_date : undefined,
   }
 }
+
+// ***** May 2025 - Xen Security Advisory XSA-468 - Windows PV drivers vulnerability *****
+
+// Vendor → (driver → version)
+const XSA468_VULNERABLE_VERSIONS = {
+  Xen_Project: {
+    xencons: '9.1.0.2',
+    xeniface: '9.1.0.0',
+    xenbus: '9.1.0.1',
+  },
+  Amazon_Inc_: {
+    xeniface: '8.3.0',
+  },
+  XenServer: {
+    xeniface: '9.1.12.93',
+    xenbus: '9.1.11.114',
+  },
+  Citrix: {
+    xeniface: '9.1.1.11',
+    xenbus: '9.1.2.14',
+  },
+  XCP_ng: {
+    xencons: '9.0.9048.9047',
+    xeniface: '9.0.9048.9047',
+    xenbus: '9.0.9048.9047',
+  },
+}
+const isVmVulnerable_XSA468 = vm => {
+  const guestMetrics = vm.$guest_metrics
+
+  if (vm.platform?.device_id !== '0002') {
+    // Not a Windows VM
+    return false
+  }
+
+  if (!guestMetrics.PV_drivers_detected) {
+    // No PV drivers installed: no vulnerability
+    return false
+  }
+
+  const pvDriversVersion = guestMetrics.PV_drivers_version
+  let versionDetected = false
+  for (const [key, value] of Object.entries(pvDriversVersion)) {
+    if (['major', 'minor', 'micro', 'build'].includes(key)) {
+      continue
+    }
+
+    const [vendor, version] = value.split(' ')
+    if (!validateVersion(version)) {
+      warn(`Invalid version number for ${vendor}: ${key} ${version}`)
+      continue
+    }
+
+    const vendorVulnerableVersion = XSA468_VULNERABLE_VERSIONS[vendor]?.[key]
+    if (vendorVulnerableVersion === undefined) {
+      continue
+    }
+
+    versionDetected = true
+
+    try {
+      if (compareVersions(version, vendorVulnerableVersion) <= 0) {
+        // PV drivers installed and vulnerable version detected
+        return { reason: 'pv-driver-version-vulnerable', driver: key, version }
+      }
+    } catch (err) {
+      warn(err)
+    }
+  }
+
+  // - PV drivers installed and could check safe versions: no vulnerability
+  // - PV drivers installed but could not check versions: potential vulnerability
+  return versionDetected ? false : { reason: 'no-pv-drivers-detected' }
+}
+
+// ***************************************************************************************
 
 // ===================================================================
 
@@ -405,6 +482,7 @@ const TRANSFORMS = {
       isNestedVirtEnabled: semver.satisfies(String(obj.$pool.$master.software_version.platform_version), '>=3.4')
         ? obj.platform['nested-virt'] === 'true'
         : obj.platform['exp-nested-hvm'] === 'true',
+      vulnerabilities: { xsa468: isVmVulnerable_XSA468(obj) },
       viridian: obj.platform.viridian === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,

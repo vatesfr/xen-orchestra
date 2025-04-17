@@ -496,6 +496,7 @@ const NoObjects = props =>
               }
               return acc
             }, []),
+            vulnerable: Object.values(vm.vulnerabilities).filter(Boolean).length > 0,
           },
           {
             container: { value: containers[vm.$container || vm.$pool] },

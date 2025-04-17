@@ -67,6 +67,7 @@
     "blocked-at": "^1.2.0",
     "bluebird": "^3.5.1",
     "body-parser": "^1.20.0",
+    "compare-versions": "^6.1.1",
     "complex-matcher": "^0.7.1",
     "compression": "^1.7.3",
     "connect-flash": "^0.1.1",
