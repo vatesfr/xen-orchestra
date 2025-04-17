@@ -16,9 +16,14 @@ class ForkedDisk extends DiskPassthrough {
     /* source has already been open , */
   }
   async *diskBlocks(): AsyncGenerator<DiskBlock> {
-    for await (const block of this.#generator) {
-      this.#generatedDiskBlocks++
-      yield block
+    try {
+      for await (const block of this.#generator) {
+        this.#generatedDiskBlocks++
+        yield block
+      }
+    } finally {
+      await this.progressHandler?.done()
+      await this.close()
     }
   }
   getNbGeneratedBlock(): number {

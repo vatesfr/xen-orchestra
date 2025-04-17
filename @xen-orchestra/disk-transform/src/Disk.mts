@@ -1,3 +1,5 @@
+import { ProgressHandler } from './ProgressHandler.mjs'
+
 export type DiskBlockData = Buffer
 export type DiskBlock = {
   index: number // the index of the block. Offset in raw disk is index * blockSize
@@ -7,8 +9,9 @@ export type DiskBlock = {
 export type BytesLength = number
 
 export abstract class Disk {
-  #generatedDiskBlocks = 0 
+  #generatedDiskBlocks = 0
   #parent?: Disk
+  progressHandler?: ProgressHandler
   get parent(): Disk | undefined {
     return this.#parent
   }
@@ -45,7 +48,7 @@ export abstract class Disk {
   abstract buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> | AsyncGenerator<DiskBlock>
   async *diskBlocks(uid?: string): AsyncGenerator<DiskBlock> {
     try {
-      // compute next block while the destination is consuming the current block 
+      // compute next block while the destination is consuming the current block
       const blockGenerator = await this.buildDiskBlockGenerator()
       let next = blockGenerator.next()
       while (true) {
@@ -58,11 +61,12 @@ export abstract class Disk {
         yield res.value
       }
     } finally {
+      await this.progressHandler?.done()
       await this.close()
     }
   }
 
-  getNbGeneratedBlock():number{
+  getNbGeneratedBlock(): number {
     return this.#generatedDiskBlocks
   }
   check() {
@@ -93,8 +97,20 @@ export abstract class RandomAccessDisk extends Disk {
   // but only if this disk has data on this block
   abstract readBlock(index: number): Promise<DiskBlock>
   async *buildDiskBlockGenerator(): AsyncGenerator<DiskBlock> {
-    for (const index of this.getBlockIndexes()) {
-      yield this.readBlock(index)
+    const indexes = this.getBlockIndexes()
+    try {
+      if (indexes.length > 0) {
+        let previous = this.readBlock(indexes[0])
+        for (let i = 1; i < indexes.length; i++) {
+          let next = this.readBlock(indexes[i])
+          yield previous
+          previous = next
+          await this.progressHandler?.setProgress(i / indexes.length)
+        }
+        yield previous
+      }
+    } finally {
+      await this.close()
     }
   }
 }

@@ -9,6 +9,7 @@ import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiVhdStreamNbdSource } from './XapiVhdStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
 import { createLogger } from '@xen-orchestra/log'
+import { XapiProgressHandler } from './XapiProgress.mjs'
 
 // @todo how to type this ?
 const { warn } = createLogger('@xen-orchestra/xapi/disks/Xapi')
@@ -80,7 +81,9 @@ export class XapiDiskSource extends DiskPassthrough {
       }
     }
     this.#useNbd = true
-    return new ReadAhead(source)
+    const readAhead = new ReadAhead(source)
+    readAhead.progressHandler = new XapiProgressHandler(xapi, 'NBD transfer')
+    return readAhead
   }
 
   /**
@@ -125,7 +128,9 @@ export class XapiDiskSource extends DiskPassthrough {
       await source.init()
       this.#useNbd = true
       this.#useCbt = true
-      return new ReadAhead(source)
+      const readAhead = new ReadAhead(source)
+      readAhead.progressHandler = new XapiProgressHandler(xapi, 'NBD transfer')
+      return readAhead
     } catch (error) {
       warn('openNbdCBT', error)
       await source.close()

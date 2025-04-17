@@ -8,7 +8,7 @@ import { Disk } from '@xen-orchestra/disk-transform'
 import { readChunkStrict, skipStrict } from '@vates/read-chunk'
 
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
-import Constants from 'vhd-lib/_constants.js'
+import Constants, { DEFAULT_BLOCK_SIZE } from 'vhd-lib/_constants.js'
 import assert from 'node:assert'
 
 const { BLOCK_UNUSED, DISK_TYPES, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } = Constants
@@ -190,7 +190,7 @@ export class XapiVhdStreamSource extends Disk {
     async function* generator() {
       for (const { offset, index } of blockIndexes) {
         await self.#skip(offset - self.#streamOffset) // this will skip the bitmap
-        const data = await self.#read(2 * 1024 * 1024)
+        const data = await self.#read(DEFAULT_BLOCK_SIZE)
         yield {
           index,
           data,
