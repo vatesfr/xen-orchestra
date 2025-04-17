@@ -1,17 +1,24 @@
 <template>
-  <UiButtonIcon :icon="faAngleRight" size="small" accent="brand" />
-  <div class="typo-body-regular">
-    {{ label }}
-  </div>
-  <div class="typo-body-regular value">
-    {{ value }}
-  </div>
-  <div class="typo-body-regular-small object">
-    {{ $t('on-object') }}
-    <slot name="objectLink" />
-  </div>
-  <div class="typo-body-regular-small time-ago">
-    {{ timeAgo }}
+  <div class="alarm-item">
+    <div class="object-description">
+      <UiButtonIcon :icon="faAngleRight" size="small" accent="brand" />
+      <div class="typo-body-regular text-ellipsis">
+        {{ label }}
+      </div>
+      <div class="typo-body-regular value">
+        {{ value }}
+      </div>
+    </div>
+    <div class="typo-body-regular-small object-time">
+      {{ $t('on-object') }}
+      <span>
+        <slot name="objectLink" />
+      </span>
+      <div class="divider" />
+      <div class="typo-body-regular-small">
+        {{ timeAgo }}
+      </div>
+    </div>
   </div>
 </template>
 
@@ -37,5 +44,36 @@ const timeAgo = computed(() => useTimeAgo(date))
 <style scoped lang="postcss">
 .value {
   color: var(--color-danger-txt-base);
+}
+
+.alarm-item,
+.object-time,
+.object-description {
+  display: flex;
+  flex-direction: row;
+  min-width: max-content;
+}
+
+/* Modification pour cibler uniquement le texte dans object-time */
+.object-time {
+  gap: 0.6rem;
+}
+
+.object-time > :not(span) {
+  color: var(--color-neutral-txt-secondary); /* Applique la couleur uniquement au texte */
+}
+
+.alarm-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 1.2rem;
+}
+
+.object-description {
+  gap: 1.6rem;
+}
+
+.divider::before {
+  content: '•';
 }
 </style>
