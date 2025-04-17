@@ -427,16 +427,18 @@ class AuditXoPlugin {
   }
 
   async _handleImportRecords($defer, { fileStream, zipped }) {
-    $defer(await this._storage.acquireLock())
+    const fnReleaseLock = await this._storage.acquireLock()
+    $defer(fnReleaseLock)
+
     if (!(await this._storage.isEmpty())) {
       throw new Error('Audit log database must be empty')
     }
 
     const processRecord = async source => {
-      const invalidRecords = []
-      const missingRecords = []
+      let nInvalidRecords = 0
+      let nMissingRecords = 0
       // entries are listed backwards, from newest to oldest. nextLog is the last log we imported
-      let chainLastLog, lastId, nextLog
+      let lastLogId, lastId, nextLog
       for await (const record of source) {
         const { id, isValid } = await this._auditCore._importRecord(record)
         if (lastId === undefined) {
@@ -444,16 +446,16 @@ class AuditXoPlugin {
           await this._storage.setLastId(lastId)
         }
         if (!isValid) {
-          invalidRecords.push(record.id)
+          nInvalidRecords++
         }
         if (nextLog !== undefined && nextLog.previousId !== record.id) {
-          missingRecords.push(nextLog.previousId)
-          chainLastLog ??= nextLog
+          nMissingRecords++
+          lastLogId ??= nextLog.id
         }
         nextLog = record
       }
-      chainLastLog ??= nextLog // in case no log was missing
-      return { chainLastLog, invalidRecords, missingRecords }
+      lastLogId ??= nextLog.id // in case no log was missing
+      return { lastLogId, nInvalidRecords, nMissingRecords }
     }
 
     try {

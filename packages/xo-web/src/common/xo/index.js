@@ -4249,16 +4249,10 @@ export const importAuditRecords = async recordsFile => {
     throw new Error(text)
   }
 
-  let body
   try {
-    body = JSON.parse(text)
+    return JSON.parse(text)
   } catch (error) {
     throw new Error(`Body is not a JSON, original message is : ${text}`)
-  }
-  return {
-    nInvalid: body.invalidRecords.length,
-    nMissing: body.missingRecords.length,
-    lastLogId: body.chainLastLog?.id,
   }
 }
 

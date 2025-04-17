@@ -2800,7 +2800,7 @@ const messages = {
   importAuditRecordsTooltip: 'Import audit record from another XOA. Audit log database must be empty.',
   importAuditRecordsSuccess: 'Audit records successfully imported',
   importAuditRecordsSuccessWithProblems:
-    "Audit records successfully imported, but {nInvalid} invalid records were imported and at least {nMissing} records were missing. Logs prior to the missing entries will not appear. The oldest visible log's ID is {lastLogId}",
+    "Audit records successfully imported, but {nInvalidRecords} invalid records were imported and at least {nMissingRecords} records were missing. Logs prior to the missing entries will not appear. The oldest visible log's ID is {lastLogId}",
   importAuditRecordsError: 'Error while importing audit records: {importError}',
   noAuditRecordsFile: 'No audit records file selected',
 
