@@ -176,7 +176,7 @@ const displayRecord = record =>
 const renderImportStatus = ({
   recordsFile,
   importError,
-  importResults: { nInvalid, nMissing, lastLogId } = {},
+  importResults: { nInvalidRecords, nMissingRecords, lastLogId } = {},
   importStatus,
 }) => {
   switch (importStatus) {
@@ -187,12 +187,12 @@ const renderImportStatus = ({
     case 'start':
       return <Icon icon='loading' />
     case 'end':
-      if (nInvalid === 0 && nMissing === 0) {
+      if (nInvalidRecords === 0 && nMissingRecords === 0) {
         return <span className='text-success'>{_('importAuditRecordsSuccess')}</span>
       } else {
         return (
           <span className='text-warning'>
-            {_('importAuditRecordsSuccessWithProblems', { nInvalid, nMissing, lastLogId })}
+            {_('importAuditRecordsSuccessWithProblems', { nInvalidRecords, nMissingRecords, lastLogId })}
           </span>
         )
       }
