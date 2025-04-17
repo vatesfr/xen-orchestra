@@ -1,5 +1,6 @@
+<!-- v1 -->
 <template>
-  <div class="alarm-item">
+  <div class="alarm-item" :class="{ 'alarm-item-column': size === 'small' }">
     <div class="object-description">
       <UiButtonIcon
         :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
@@ -25,7 +26,7 @@
       </div>
     </div>
   </div>
-  <div v-if="isDescriptionVisible" class="alarm-description">
+  <div v-if="isDescriptionVisible" class="alarm-description" :class="{ 'alarm-description-small': size === 'small' }">
     {{ description }}
   </div>
 </template>
@@ -41,6 +42,7 @@ const { date } = defineProps<{
   value: string
   date: Date | number | string
   description: string
+  size: 'small' | 'large'
 }>()
 
 defineSlots<{
@@ -56,7 +58,6 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
   color: var(--color-danger-txt-base);
 }
 
-.alarm-item,
 .object-time,
 .object-description {
   display: flex;
@@ -73,11 +74,22 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
   color: var(--color-neutral-txt-secondary);
 }
 
+.alarm-item {
+  flex-direction: row;
+}
+.alarm-item-column {
+  flex-direction: column;
+}
+
 .alarm-item,
 .alarm-description {
   display: flex;
   justify-content: space-between;
-  padding: 0.8rem 1.2rem;
+  padding: 0.8rem 1.2rem 0 1.2rem;
+}
+.alarm-item,
+.alarm-description-small {
+  padding: 0 1.2rem 0.4rem 1.2rem;
 }
 
 .object-description {
