@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('accent').enum('info', 'success', 'warning', 'danger').required().preset('info').widget(),
+      prop('accent').enum('info', 'success', 'warning', 'danger', 'muted').required().preset('info').widget(),
       prop('wrap').bool().help('Choose if the text should wrap if too long').widget(),
       slot(),
       setting('defaultSlot').widget(text()).preset('message'),

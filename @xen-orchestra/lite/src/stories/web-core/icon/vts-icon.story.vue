@@ -3,7 +3,7 @@
     v-slot="{ properties }"
     :params="[
       prop('accent')
-        .enum('current', 'brand', 'info', 'success', 'warning', 'danger')
+        .enum('current', 'brand', 'info', 'success', 'warning', 'danger', 'muted')
         .required()
         .preset('current')
         .widget(),
