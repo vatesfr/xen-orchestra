@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [VM/New] Add possibility to add some tags in VM creation (PR [#8515](https://github.com/vatesfr/xen-orchestra/pull/8515))
+
 ## **0.9.1** (2025-04-02)
 
 - Fix blank page in production mode (PR [#8471](https://github.com/vatesfr/xen-orchestra/pull/8471))
