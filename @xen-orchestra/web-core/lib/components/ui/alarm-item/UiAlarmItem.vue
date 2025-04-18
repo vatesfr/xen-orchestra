@@ -78,12 +78,12 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
   border-bottom: 0.1rem solid var(--color-neutral-border);
   .content {
     display: flex;
+    justify-content: space-between;
     padding: 0.8rem 1.2rem;
     gap: 0.6rem;
 
     .label-value {
       gap: 1.6rem;
-      flex-shrink: 1;
     }
 
     .info,
