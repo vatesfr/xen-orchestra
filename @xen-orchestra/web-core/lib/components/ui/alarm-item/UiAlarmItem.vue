@@ -2,7 +2,7 @@
 <template>
   <li class="ui-alarm-item" :class="className">
     <div class="content">
-      <div class="label-value">
+      <div class="label-value text-ellipsis">
         <UiButtonIcon
           v-if="alarm.description"
           :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
@@ -74,12 +74,12 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
 
 <style scoped lang="postcss">
 .ui-alarm-item {
-  border-block: 0.1rem solid var(truc);
+  border-top: 0.1rem solid var(--color-neutral-border);
+  border-bottom: 0.1rem solid var(--color-neutral-border);
   .content {
     display: flex;
     padding: 0.8rem 1.2rem;
     gap: 0.6rem;
-    width: 35vw;
 
     .label-value {
       gap: 1.6rem;
@@ -105,9 +105,6 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
 
       .on-text {
         text-transform: capitalize;
-      }
-      .descriptor {
-        color: inherit;
       }
     }
     .divider::before {
