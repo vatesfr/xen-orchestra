@@ -118,7 +118,14 @@
                 <VtsInputWrapper :label="$t('new-vm.name')">
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
-                <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" :label=" $t('tags')" /> -->
+                <VtsInputWrapper :label="$t('tags')">
+                  <UiInput v-model="vmState.tag" :label-icon="faTags" accent="brand" @keydown.enter.prevent="addTag" />
+                </VtsInputWrapper>
+                <div v-if="vmState.tags.length > 0" class="chips">
+                  <UiChip v-for="(tag, index) in vmState.tags" :key="index" accent="info" @remove="removeTag(index)">
+                    {{ tag }}
+                  </UiChip>
+                </div>
                 <VtsInputWrapper :label="$t('boot-firmware')">
                   <FormSelect v-model="vmState.boot_firmware">
                     <option v-for="boot in bootFirmwares" :key="boot" :value="boot">
@@ -429,6 +436,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
+import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
@@ -447,6 +455,7 @@ import {
   faMicrochip,
   faNetworkWired,
   faPlus,
+  faTags,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -484,6 +493,7 @@ const vmState = reactive<VmState>({
   description: '',
   toggle: false,
   installMode: '',
+  tag: '',
   tags: [],
   affinity_host: OPAQUE_REF.EMPTY,
   boot_firmware: '',
@@ -548,6 +558,18 @@ const addStorageEntry = () => {
 // const removeSshKey = (index: number) => {
 //   vmState.sshKeys.splice(index, 1)
 // }
+
+const addTag = () => {
+  const tag = vmState.tag.trim()
+  if (tag && !vmState.tags.includes(tag)) {
+    vmState.tags.push(tag)
+  }
+  vmState.tag = ''
+}
+
+const removeTag = (index: number) => {
+  vmState.tags.splice(index, 1)
+}
 
 const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
@@ -713,11 +735,15 @@ const getExistingVdis = (template: XenApiVm) => {
   return template.VBDs.reduce<Vdi[]>((acc, vbdRef) => {
     const vbd = getVbdByOpaqueRef(vbdRef)
 
-    if (!vbd || vbd.type === 'CD') return acc
+    if (!vbd || vbd.type === 'CD') {
+      return acc
+    }
 
     const vdi = getVdiByOpaqueRef(vbd.VDI)
 
-    if (!vdi) return acc
+    if (!vdi) {
+      return acc
+    }
 
     acc.push({
       name_label: vdi.name_label,
@@ -725,6 +751,7 @@ const getExistingVdis = (template: XenApiVm) => {
       size: bytesToGiB(vdi.virtual_size),
       SR: vdi.SR,
     })
+
     return acc
   }, [])
 }
@@ -831,6 +858,7 @@ const _createVm = async ($defer: Defer) => {
     await Promise.all([
       xapi.vm.setNameLabel(vmRefs, vmCreationParams.value.name_label),
       xapi.vm.setNameDescription(vmRefs, vmCreationParams.value.name_description),
+      xapi.vm.setTags(vmRefs, vmCreationParams.value.tags),
       xapi.vm.setAffinityHost(vmRefs, vmCreationParams.value.affinityHost),
       xapi.vm.setMemory(vmRefs, vmCreationParams.value.memory),
       xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron),
@@ -1019,6 +1047,12 @@ const createVM = defer(_createVm)
             width: 100%;
           }
         }
+      }
+
+      .chips {
+        display: flex;
+        gap: 0.5rem;
+        margin-block-end: 1rem;
       }
     }
 
