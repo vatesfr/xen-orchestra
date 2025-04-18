@@ -32,6 +32,8 @@
 - **XO 6:**
   - [VM/Create] Fix TS type-check errors (PR [#8472](https://github.com/vatesfr/xen-orchestra/pull/8472))
 
+- [VM/Advanced] Fix vGPU support where multiple GPU groups have the same vGPU type [#5750](https://github.com/vatesfr/xen-orchestra/issues/5750)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
