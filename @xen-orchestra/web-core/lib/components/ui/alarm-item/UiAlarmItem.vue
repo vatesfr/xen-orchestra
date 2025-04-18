@@ -1,102 +1,145 @@
 <!-- v1 -->
 <template>
-  <div class="alarm-item" :class="{ 'alarm-item-column': size === 'small' }">
-    <div class="object-description">
-      <UiButtonIcon
-        :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
-        size="small"
-        accent="brand"
-        @click="toggleDescription()"
-      />
-      <div class="typo-body-regular text-ellipsis">
-        {{ label }}
+  <li class="ui-alarm-item" :class="className">
+    <div class="content">
+      <div class="label-value">
+        <UiButtonIcon
+          v-if="alarm.description"
+          :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
+          size="small"
+          accent="brand"
+          @click="toggleDescription()"
+        />
+        <span class="typo-body-regular text-ellipsis">
+          {{ alarm.label }}
+        </span>
+        <span class="typo-body-regular value">
+          {{ alarm.value }}
+        </span>
       </div>
-      <div class="typo-body-regular value">
-        {{ value }}
+      <div class="typo-body-regular-small info">
+        <div v-if="slots['object-link']" class="object-link">
+          <span class="on-text">
+            {{ $t('on-object') }}
+          </span>
+          <span class="descriptor">
+            <slot name="object-link" />
+          </span>
+          <span class="divider" />
+        </div>
+        <span class="typo-body-regular-small">
+          {{ timeAgo }}
+        </span>
       </div>
     </div>
-    <div class="typo-body-regular-small object-time">
-      {{ $t('on-object') }}
-      <span>
-        <slot name="objectLink" />
-      </span>
-      <div class="divider" />
-      <div class="typo-body-regular-small">
-        {{ timeAgo }}
-      </div>
+    <div v-if="isDescriptionVisible" class="description">
+      {{ alarm.description }}
     </div>
-  </div>
-  <div v-if="isDescriptionVisible" class="alarm-description" :class="{ 'alarm-description-small': size === 'small' }">
-    {{ description }}
-  </div>
+  </li>
 </template>
 
 <script lang="ts" setup>
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import { toVariants } from '@core/utils/to-variants.util'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo, useToggle } from '@vueuse/core'
 import { computed } from 'vue'
-import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 
-const { date } = defineProps<{
+type Alarm = {
   label: string
   value: string
   date: Date | number | string
-  description: string
+  description?: string
+}
+
+const { alarm, size } = defineProps<{
+  alarm: Alarm
   size: 'small' | 'large'
 }>()
 
-defineSlots<{
-  objectLink: any
+const slots = defineSlots<{
+  'object-link'?(): any
 }>()
 
-const timeAgo = computed(() => useTimeAgo(date))
+const timeAgo = computed(() => useTimeAgo(alarm.date))
+
+const className = computed(() =>
+  toVariants({
+    size,
+  })
+)
+
 const [isDescriptionVisible, toggleDescription] = useToggle(false)
 </script>
 
 <style scoped lang="postcss">
-.value {
-  color: var(--color-danger-txt-base);
-}
+.ui-alarm-item {
+  border-block: 0.1rem solid var(truc);
+  .content {
+    display: flex;
+    padding: 0.8rem 1.2rem;
+    gap: 0.6rem;
+    width: 35vw;
 
-.object-time,
-.object-description {
-  display: flex;
-  flex-direction: row;
-  min-width: max-content;
-}
+    .label-value {
+      gap: 1.6rem;
+      flex-shrink: 1;
+    }
 
-.object-time {
-  gap: 0.6rem;
-}
+    .info,
+    .label-value,
+    .object-link {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
 
-.object-time > :not(span),
-.alarm-description {
-  color: var(--color-neutral-txt-secondary);
-}
+      .value {
+        color: var(--color-danger-txt-base);
+      }
+    }
 
-.alarm-item {
-  flex-direction: row;
-}
-.alarm-item-column {
-  flex-direction: column;
-}
+    .info,
+    .object-link {
+      gap: 0.6rem;
+      white-space: nowrap;
 
-.alarm-item,
-.alarm-description {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.8rem 1.2rem 0 1.2rem;
-}
-.alarm-item,
-.alarm-description-small {
-  padding: 0 1.2rem 0.4rem 1.2rem;
-}
+      .on-text {
+        text-transform: capitalize;
+      }
+      .descriptor {
+        color: inherit;
+      }
+    }
+    .divider::before {
+      content: '•';
+    }
+  }
 
-.object-description {
-  gap: 1.6rem;
-}
+  .info > :not(.descriptor),
+  .description {
+    color: var(--color-neutral-txt-secondary);
+  }
 
-.divider::before {
-  content: '•';
+  &.size--large {
+    .content {
+      flex-direction: row;
+    }
+
+    .description {
+      padding: 0.8rem 1.2rem;
+    }
+  }
+
+  &.size--small {
+    .content {
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .description {
+      padding: 0 1.2rem 0.4rem 1.2rem;
+      gap: 0.4rem;
+    }
+  }
 }
 </style>
