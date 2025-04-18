@@ -1,12 +1,20 @@
-version
+<!-- v1 -->
 <template>
-  <ul>
+  <ul class="ui-alarm-list">
     <slot />
   </ul>
 </template>
 
 <script setup lang="ts">
-defineSlots()
+defineSlots<{
+  default(): any
+}>()
 </script>
 
-<!-- gerer le depassement -->
+<style scoped lang="postcss">
+.ui-alarm-list {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: 100%;
+}
+</style>
