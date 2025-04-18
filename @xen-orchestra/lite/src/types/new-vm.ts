@@ -19,6 +19,7 @@ export interface VmState {
   description: string
   toggle: boolean
   installMode: string
+  tag: string
   tags: string[]
   affinity_host: string
   boot_firmware: string
