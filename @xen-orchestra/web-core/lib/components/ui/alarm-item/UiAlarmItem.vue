@@ -74,8 +74,10 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
 
 <style scoped lang="postcss">
 .ui-alarm-item {
-  border-top: 0.1rem solid var(--color-neutral-border);
-  border-bottom: 0.1rem solid var(--color-neutral-border);
+  &:not(:first-child) {
+    border-block-start: none;
+  }
+  border-block: 0.1rem solid var(--color-neutral-border);
   .content {
     display: flex;
     justify-content: space-between;
