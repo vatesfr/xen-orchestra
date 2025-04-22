@@ -51,7 +51,7 @@ export class OpenFlowPlugin {
           bridge: $network.bridge,
         })
         const json = JSON.parse(response)
-        strictEqual(json.returncode, 0, `plugin check should have a return code of 0 to succeed, got ${response}`)
+        strictEqual(json.returncode, 0, `plugin check should have a return code of 0 to succeed, got ${json.returncode}`)
       })
     )
   }
