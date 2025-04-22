@@ -14,8 +14,13 @@
 - **XO 6:**
   - [VM/system] Display system information in vm/system tab (PR [#8522](https://github.com/vatesfr/xen-orchestra/pull/8522))
   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
-
 - [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
+- [Host/System] Create system page (PR [#8521](https://github.com/vatesfr/xen-orchestra/pull/8521))
+- Hub recipe
+  - Upgrade Pyrgos/Kubernetes recipe to use MicroK8s
+- **Migrated REST API endpoints**:
+  - `/rest/v0/users` (PR [#8494](https://github.com/vatesfr/xen-orchestra/pull/8494))
+  - `/rest/v0/users/<user-id>` (PR [#8494](https://github.com/vatesfr/xen-orchestra/pull/8494))
 
 ### Bug fixes
 
@@ -45,6 +50,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
 - xo-server-auth-oidc patch
