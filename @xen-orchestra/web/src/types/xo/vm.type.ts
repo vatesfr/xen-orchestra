@@ -38,4 +38,21 @@ export type XoVm = {
     max: number
     number: number
   }
+  tags: Array<string>
+  os_version: {
+    name: string
+    uname: string
+    distro: string
+  }
+  virtualizationMode: string
+  secureBoot: boolean
+  VTPMs: Array<string>
+  viridian: boolean
+  isNestedVirtEnabled: boolean
+  memory: {
+    dynamic: [number, number]
+    static: [number, number]
+    size: number
+  }
+  VGPUs: Array<string>
 }

@@ -29,7 +29,8 @@ export const xoApiDefinition = {
   vm: {
     type: 'collection',
     path: 'vms',
-    fields: 'id,name_label,name_description,power_state,$container,$pool,other,current_operations,CPUs,addresses',
+    fields:
+      'id,name_label,name_description,power_state,$container,$pool,other,current_operations,CPUs,addresses,tags,os_version,virtualizationMode,secureBoot,VTPMs,viridian,isNestedVirtEnabled,memory,VGPUs',
     handler: (record: XoVm) => record,
   },
   sr: {
