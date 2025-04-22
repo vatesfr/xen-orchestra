@@ -20,7 +20,6 @@
   - `/rest/v0/alarms/<alarm-id>` (PR [#8485](https://github.com/vatesfr/xen-orchestra/pull/8485))
   - `/rest/v0/messages` (PR [#8485](https://github.com/vatesfr/xen-orchestra/pull/8485))
   - `/rest/v0/messages/<message-id>` (PR [#8485](https://github.com/vatesfr/xen-orchestra/pull/8485))
-
 - [VM/Advanced] Rename `Block migration` to `Prevent migration` (PR [#8500](https://github.com/vatesfr/xen-orchestra/pull/8500))
 - [Dashboard/Health] Display snapshots older than 30 days for which no schedules are enabled (PR [#8487](https://github.com/vatesfr/xen-orchestra/pull/8487))
 - [REST API] Expose `/rest/v0/schedules` and `/rest/v0/schedules/<schedule-id>` enpoints (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
@@ -29,9 +28,9 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-- [Backups] Don't flood logs when a remote doesn't have any VM   (PR [#8489](https://github.com/vatesfr/xen-orchestra/pull/8489))
-- [Backups] Properly show a permission error during config backup (PR [#8489](https://github.com/vatesfr/xen-orchestra/pull/8489))
 
+- [Backups] Don't flood logs when a remote doesn't have any VM (PR [#8489](https://github.com/vatesfr/xen-orchestra/pull/8489))
+- [Backups] Properly show a permission error during config backup (PR [#8489](https://github.com/vatesfr/xen-orchestra/pull/8489))
 - [New VM] Fix `DEVICE_ALREADY_EXISTS(#)` (PR [#8473](https://github.com/vatesfr/xen-orchestra/pull/8473))
 - [OpenAPI spec] Fixed some required properties being marked as optional (PR [#8480](https://github.com/vatesfr/xen-orchestra/pull/8480))
 - **XO 6:**
