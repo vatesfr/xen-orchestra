@@ -83,7 +83,7 @@ export default {
         'full_backups',
         'delta_backups',
         'disaster_recovery',
-        'continuous_replication',
+        'incremental_replication',
         'mirror_backup',
         'metadata_backup',
         'backup_reports',
