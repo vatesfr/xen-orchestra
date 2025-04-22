@@ -9,6 +9,7 @@ import type { XoTask } from '@/types/xo/task.type'
 import type { XoVbd } from '@/types/xo/vbd.type'
 import type { XoVdi } from '@/types/xo/vdi.type'
 import type { XoVif } from '@/types/xo/vif.type'
+import type { XoVmController } from '@/types/xo/vm-controller.type'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { XoVm } from '@/types/xo/vm.type'
 
@@ -23,7 +24,7 @@ export const xoApiDefinition = {
     type: 'collection',
     path: 'hosts',
     fields:
-      'id,name_label,name_description,power_state,controlDomain,residentVms,$pool,current_operations,address,startTime,version,bios_strings,cpus,memory,tags',
+      'id,name_label,name_description,power_state,controlDomain,residentVms,$pool,current_operations,address,startTime,version,bios_strings,cpus,CPUs,memory,tags,iscsiIqn,powerOnMode,build,otherConfig,multipathing,logging',
     handler: (record: XoHost) => record,
   },
   vm: {
@@ -88,5 +89,11 @@ export const xoApiDefinition = {
     fields:
       'id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate',
     handler: (record: XoVmTemplate) => record,
+  },
+  vm_controller: {
+    type: 'collection',
+    path: 'vm-controllers',
+    fields: 'id,memory',
+    handler: (record: XoVmController) => record,
   },
 } satisfies ApiDefinition

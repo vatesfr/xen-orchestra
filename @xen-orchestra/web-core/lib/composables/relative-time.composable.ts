@@ -54,7 +54,7 @@ export default function useRelativeTime(fromDate: MaybeRef<Date>, toDate: MaybeR
         parts.push(t('relative-time.minute', { n: minutes }))
       }
 
-      if (days === 0 && seconds > 0) {
+      if (minutes === 0 && seconds > 0) {
         parts.push(t('relative-time.second', { n: seconds }))
       }
     }
