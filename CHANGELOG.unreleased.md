@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **Migrated REST API endpoints**:
+
   - `/rest/v0/vifs` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
   - `/rest/v0/vifs/<vif-id>` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
   - `/rest/v0/pools` (PR [#8490](https://github.com/vatesfr/xen-orchestra/pull/8490))
@@ -25,6 +26,8 @@
 - [Dashboard/Health] Display snapshots older than 30 days for which no schedules are enabled (PR [#8487](https://github.com/vatesfr/xen-orchestra/pull/8487))
 - [REST API] Expose `/rest/v0/schedules` and `/rest/v0/schedules/<schedule-id>` enpoints (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
 - [REST API] Expose the possibility to run a schedule `/rest/v0/schedules/<schedule-id>/actions/run` (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
+- [sdn-controller] handle network wide rules (PR [8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
+- [sdn-controller] manage multiple bridges throught the XCP-ng plugin (PR [8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 
 ### Bug fixes
 
@@ -60,6 +63,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
+- xo-server-sdn-controller minor
 - xo-web minor
 
 <!--packages-end-->
