@@ -22,9 +22,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Protect-from-accidental-shutdown')">
       <template #value>
-        <UiInfo :accent="vm.viridian ? 'success' : 'muted'">
-          <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
-        </UiInfo>
+        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Auto-power-on')">

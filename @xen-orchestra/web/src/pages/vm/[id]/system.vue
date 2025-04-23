@@ -32,6 +32,7 @@ const { vm } = defineProps<{ vm: XoVm }>()
 .system {
   display: flex;
   gap: 0.8rem;
+  padding: 0.8rem;
   div {
     display: flex;
     flex-direction: column;
