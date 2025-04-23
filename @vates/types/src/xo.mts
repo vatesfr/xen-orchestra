@@ -345,7 +345,7 @@ export type XoUser = {
   id: Branded<'user'>
   name: string
   permission: string
-  pw_hash: string
+  pw_hash?: string
   preferences: Record<string, string>
 }
 
