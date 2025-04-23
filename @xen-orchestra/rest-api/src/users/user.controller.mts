@@ -14,18 +14,24 @@ import { partialUsers, user, userIds } from '../open-api/oa-examples/user.oa-exa
 @provide(UserController)
 export class UserController extends XoController<XoUser> {
   // --- abstract methods
-  getAllCollectionObjects(): Promise<XoUser[]> {
-    return this.restApi.xoApp.getAllUsers()
-  }
-  getCollectionObject(id: XoUser['id']): Promise<XoUser> {
-    return this.restApi.xoApp.getUser(id)
+  async getAllCollectionObjects(): Promise<XoUser[]> {
+    const users = this.restApi.xoApp.getAllUsers()
+    return (await users).map(user => this.sanitizeUser(user))
   }
 
-  partialUser(user: XoUser): Partial<Unbrand<XoUser>> {
-    return {
-      ...user,
-      pw_hash: '***obfuscated***',
+  async getCollectionObject(id: XoUser['id']): Promise<XoUser> {
+    const user = await this.restApi.xoApp.getUser(id)
+    return this.sanitizeUser(user)
+  }
+
+  private sanitizeUser(user: XoUser): XoUser {
+    const sanitizedUser = { ...user }
+
+    if (sanitizedUser.pw_hash !== undefined) {
+      sanitizedUser.pw_hash = '***obfuscated***'
     }
+
+    return sanitizedUser
   }
 
   /**
@@ -41,9 +47,9 @@ export class UserController extends XoController<XoUser> {
     @Query() fields?: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<string[] | WithHref<Partial<Unbrand<XoUser>>>[]> {
-    const users = Object.values(await this.getObjects({ filter, limit })).map(this.partialUser)
-    return this.sendObjects(users as XoUser[], req)
+  ): Promise<string[] | WithHref<XoUser>[] | WithHref<Partial<XoUser>>[]> {
+    const users = Object.values(await this.getObjects({ filter, limit }))
+    return this.sendObjects(users, req)
   }
 
   /**
@@ -52,8 +58,8 @@ export class UserController extends XoController<XoUser> {
   @Example(user)
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
-  async getUser(@Path() id: string): Promise<Partial<Unbrand<XoUser>>> {
+  async getUser(@Path() id: string): Promise<Unbrand<XoUser>> {
     const user = await this.getObject(id as XoUser['id'])
-    return this.partialUser(user)
+    return this.sanitizeUser(user)
   }
 }
