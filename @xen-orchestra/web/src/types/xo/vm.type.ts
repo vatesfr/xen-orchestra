@@ -55,8 +55,9 @@ export type XoVm = {
     size: number
   }
   VGPUs: Array<string>
-  // from packages/xo-server/src/api/vm.mjs getHaValues()
   high_availability: 'best-effort' | 'restart' | ''
   auto_poweron: boolean
   startDelay: number
+  vga: 'std' | 'cirrus'
+  videoram: string
 }

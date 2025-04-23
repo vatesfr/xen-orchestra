@@ -1,0 +1,29 @@
+<template>
+  <UiPanel>
+    <UiTitle>
+      {{ $t('Graphics-Display') }}
+    </UiTitle>
+    <VtsQuickInfoRow :label="$t('graphics.VGA')">
+      <template #value>
+        <UiInfo :accent="vm.vga == 'std' ? 'muted' : 'success'">
+          {{ vm.vga == 'std' ? $t('disabled') : $t('enabled') }}
+        </UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Video-RAM')">
+      <template #value>
+        {{ vm.videoram + $t('bytes.mi') }}
+      </template>
+    </VtsQuickInfoRow>
+  </UiPanel>
+</template>
+
+<script setup lang="ts">
+import type { XoVm } from '@/types/xo/vm.type'
+import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+
+const { vm } = defineProps<{ vm: XoVm }>()
+</script>
