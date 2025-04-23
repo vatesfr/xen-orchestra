@@ -1,4 +1,3 @@
-<!-- vtsQuickInfoRow n'a pas les bonne couleur. proposition de généré depuis un objet -->
 <template>
   <UiPanel class="vm-resource">
     <UiTitle>
@@ -37,7 +36,7 @@ type GeneralInfo = {
 
 const { vm } = defineProps<{ vm: XoVm }>()
 const { t } = useI18n()
-// on lite we have FromByteSize, should we take it back? ?
+// on lite we have FromByteSize, should we take it back?
 const generalInfo: GeneralInfo = {
   'CPU-cap': vm.cpuCap ? vm.cpuCap : 0 /* XEN_DEFAULT_CPU_CAP */,
   'CPU-mask': vm.cpuMask ? vm.cpuMask.join(', ') : '',

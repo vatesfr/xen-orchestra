@@ -2,6 +2,7 @@ import type { XoHost } from '@/types/xo/host.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVbd } from '@/types/xo/vbd.type'
 import type { Branded } from '@core/types/utility.type'
+import type { XoSr } from './sr.type'
 
 export enum VM_POWER_STATE {
   HALTED = 'Halted',
@@ -59,7 +60,7 @@ export type XoVm = {
   auto_poweron: boolean
   startDelay: number
   vga: 'std' | 'cirrus'
-  videoram: string
+  videoram?: string
   pvDriversVersion?: string
   cpuWeight?: number
   cpuCap?: number
@@ -67,4 +68,5 @@ export type XoVm = {
   coresPerSocket?: number
   nicType?: string
   affinityHost?: XoHost['id']
+  suspendSr?: XoSr['id']
 }

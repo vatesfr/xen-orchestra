@@ -1,6 +1,5 @@
-<!-- vtsQuickInfoRow n'a pas les bonne couleur. proposition de généré depuis un objet -->
 <template>
-  <UiPanel class="vm-gereral-info">
+  <UiPanel class="vm-general-info">
     <UiTitle>
       {{ $t('general-information') }}
     </UiTitle>
@@ -33,22 +32,24 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('tags')">
-      <template #value>
-        <UiTagsList v-for="tag in vm.tags" :key="tag">
-          <UiTag accent="info" variant="secondary">{{ tag }}</UiTag>
-        </UiTagsList>
+      <template v-if="tags.length >= 1" #value>
+        <div class="tag-list">
+          <UiTagsList v-for="tag in tags" :key="tag">
+            <UiTag accent="info" variant="secondary">{{ tag }}</UiTag>
+          </UiTagsList>
+        </div>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('os-name')">
       <template #value>
-        <div class="text-ellipsis">
+        <div v-if="vm.os_version.name" class="text-ellipsis">
           {{ vm.os_version.name }}
         </div>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('os-kernel')">
       <template #value>
-        <div class="text-ellipsis">
+        <div v-if="vm.os_version.name" class="text-ellipsis">
           {{ vm.os_version.distro }}
         </div>
       </template>
@@ -70,11 +71,17 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
+const tags = vm.tags.filter(tag => tag !== '')
 </script>
 
 <style lang="postcss" scoped>
-.vm-gereral-info {
+.vm-general-info {
   background-color: var(--color-neutral-background-primary);
   border-inline-start: none;
+}
+
+.tag-list {
+  display: flex;
+  gap: 0.8rem;
 }
 </style>
