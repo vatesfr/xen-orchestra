@@ -3,11 +3,12 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
 import type { XoNetwork } from '@vates/types'
-import { RestApi } from '../../rest-api/rest-api.mjs'
+
+import { network, networkIds, partialNetworks } from '../oa-examples/network.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, Unbrand } from '../common/response.common.mjs'
+import { RestApi } from '../../rest-api/rest-api.mjs'
 import { WithHref } from '../../helpers/helper.type.mjs'
 import { XapiXoController } from '../../abstract-classes/xapi-xo-controller.mjs'
-import { network, networkIds, partialNetworks } from '../oa-examples/network.oa-example.mjs'
 
 @Route('networks')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
@@ -19,7 +20,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   }
 
   /**
-   * @example fields "name_label,id"
+   * @example fields "nbd,name_label,id"
    * @example filter "nbd?"
    * @example limit 42
    */

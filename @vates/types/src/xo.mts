@@ -240,11 +240,11 @@ export type XoNetwork = BaseXapiXo & {
   current_operations?: Record<string, NETWORK_OPERATIONS>
   defaultIsLocked: boolean
   id: Branded<'network'>
-  insecureNbd: boolean
+  insecureNbd?: boolean
   MTU: number
   name_description: string
   name_label: string
-  nbd: boolean
+  nbd?: boolean
   other_config: Record<string, string>
   PIFs: XoPif['id'][]
   tags: string[]

@@ -48,6 +48,4 @@ export const network = {
   $pool: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
   $poolId: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
   _xapiRef: 'OpaqueRef:eb906e77-2221-5399-4a26-60f0ad069b61',
-  messages_href: '/rest/v0/networks/9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f/messages',
-  alarms_href: '/rest/v0/networks/9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f/alarms',
 }
