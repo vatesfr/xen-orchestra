@@ -17,7 +17,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Virtual-TPM-(VTPM)')">
       <template #value>
-        {{ vm.VTPMs }}
+        {{ vm.VTPMs.join(', ') }}
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Viridian')">
@@ -27,10 +27,9 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('Manage-Citrix-PV-drivers-via-Windows-Update')">
+    <VtsQuickInfoRow :label="$t('Manage-Citrix-PV-drivers-via-Windows-Update')" class="text-ellipsis">
       <template #value>
-        <!-- no data -->
-        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+        {{ vm.pvDriversVersion }}
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Nested-virtualization')">
@@ -50,3 +49,10 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 </script>
+
+<style lang="postcss" scoped>
+.vm-virtualisation-and-boot {
+  background-color: var(--color-neutral-background-primary);
+  border-inline-start: none;
+}
+</style>

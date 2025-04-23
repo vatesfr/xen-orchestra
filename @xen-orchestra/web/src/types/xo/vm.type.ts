@@ -60,4 +60,11 @@ export type XoVm = {
   startDelay: number
   vga: 'std' | 'cirrus'
   videoram: string
+  pvDriversVersion?: string
+  cpuWeight?: number
+  cpuCap?: number
+  cpuMask?: Array<number>
+  coresPerSocket?: number
+  nicType?: string
+  affinityHost?: XoHost['id']
 }

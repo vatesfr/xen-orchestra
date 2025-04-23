@@ -30,3 +30,10 @@ const generalInfo: GeneralInfo = {
   'Suspend-Storage-Repository': vm?._xapiRef ?? '-',
 }
 </script>
+
+<style lang="postcss" scoped>
+.vm-storage-config {
+  background-color: var(--color-neutral-background-primary);
+  border-inline-start: none;
+}
+</style>

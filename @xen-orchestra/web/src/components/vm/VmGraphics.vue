@@ -27,3 +27,10 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 </script>
+
+<style lang="postcss" scoped>
+.vm-graphics {
+  background-color: var(--color-neutral-background-primary);
+  border-inline-start: none;
+}
+</style>

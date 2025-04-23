@@ -27,6 +27,13 @@ type GeneralInfo = {
 const { vm } = defineProps<{ vm: XoVm }>()
 
 const generalInfo: GeneralInfo = {
-  'nic-type': vm?._xapiRef ?? '-',
+  'nic-type': vm?.nicType ?? '',
 }
 </script>
+
+<style lang="postcss" scoped>
+.vm-system-networking {
+  background-color: var(--color-neutral-background-primary);
+  border-inline-start: none;
+}
+</style>

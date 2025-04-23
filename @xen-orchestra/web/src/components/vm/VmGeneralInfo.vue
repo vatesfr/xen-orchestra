@@ -35,7 +35,7 @@
     <VtsQuickInfoRow :label="$t('tags')">
       <template #value>
         <UiTagsList v-for="tag in vm.tags" :key="tag">
-          <UiTag accent="warning" variant="secondary">{{ tag }}</UiTag>
+          <UiTag accent="info" variant="secondary">{{ tag }}</UiTag>
         </UiTagsList>
       </template>
     </VtsQuickInfoRow>
@@ -55,7 +55,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Management-agent-version')">
       <template #value>
-        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+        {{ vm.pvDriversVersion }}
       </template>
     </VtsQuickInfoRow>
   </UiPanel>
@@ -64,7 +64,6 @@
 <script setup lang="ts">
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
@@ -72,3 +71,10 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 </script>
+
+<style lang="postcss" scoped>
+.vm-gereral-info {
+  background-color: var(--color-neutral-background-primary);
+  border-inline-start: none;
+}
+</style>
