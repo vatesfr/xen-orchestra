@@ -14,7 +14,7 @@ import _, { IntlProvider } from 'intl'
 // TODO: Replace all `getXoaPlan` by `getXoaPlan` from "xoa-plans"
 import { addSubscriptions, connectStore, getXoaPlan, noop, routes } from 'utils'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
-import { checkXoa, clearXoaCheckCache } from 'xo'
+import { checkXoa, clearXoaCheckCache, subscribeSelfLicenses } from 'xo'
 import { forEach, groupBy, keyBy, pick } from 'lodash'
 import { Host as HostItem } from 'render-xo-item'
 import { Notification } from 'notification'
@@ -57,6 +57,7 @@ import Tooltip from '../common/tooltip'
 import { createCollectionWrapper, createGetObjectsOfType } from '../common/selectors'
 import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses, subscribeXostorLicenses } from '../common/xo'
 import { SOURCES } from '../common/xoa-plans'
+import { getLicenseNearExpiration } from '../common/xoa-updater'
 
 const shortcutManager = new ShortcutManager(keymap)
 
@@ -139,6 +140,7 @@ export const ICON_POOL_LICENSE = {
 @addSubscriptions({
   xcpLicenses: subscribeXcpngLicenses,
   xostorLicenses: subscribeXostorLicenses,
+  selfLicences: subscribeSelfLicenses
 })
 @connectStore(state => {
   const getHosts = createGetObjectsOfType('host')
@@ -313,6 +315,7 @@ export const ICON_POOL_LICENSE = {
 
       return xostorLicenseInfoByXostorId
     },
+    licenseNearExpiration:  (_, { selfLicences }) => getLicenseNearExpiration(selfLicences)
   },
 })
 export default class XoApp extends Component {
@@ -327,10 +330,37 @@ export default class XoApp extends Component {
   state = {
     dismissedSourceBanner: Boolean(cookies.get('dismissedSourceBanner')),
     dismissedTrialBanner: Boolean(cookies.get('dismissedTrialBanner')),
+    dismissedNearExpirationBanner: cookies.get('dismissedNearExpirationBanner'),
   }
 
   displayOpenSourceDisclaimer() {
     const previousDisclaimer = cookies.get('previousDisclaimer')
+    const now = Math.floor(Date.now() / 1e3)
+    const oneWeekAgo = now - 7 * 24 * 3600
+    if (!previousDisclaimer || previousDisclaimer < oneWeekAgo) {
+      alert(
+        _('disclaimerTitle'),
+        <div>
+          <p>{_('disclaimerText1')}</p>
+          <p>
+            {_('disclaimerText2')}{' '}
+            <a
+              href='https://vates.tech/deploy/?pk_campaign=xoa_source_upgrade&pk_kwd=ossmodal'
+              target='_blank'
+              rel='noreferrer'
+            >
+              XOA (turnkey appliance)
+            </a>
+          </p>
+          <p>{_('disclaimerText3')}</p>
+        </div>
+      )
+      cookies.set('previousDisclaimer', now)
+    }
+  }
+
+  displayOExpirationIsNear() {
+    const previousDisclaimer = cookies.get('dismissedSourceBanner')
     const now = Math.floor(Date.now() / 1e3)
     const oneWeekAgo = now - 7 * 24 * 3600
     if (!previousDisclaimer || previousDisclaimer < oneWeekAgo) {
@@ -363,6 +393,11 @@ export default class XoApp extends Component {
   dismissTrialBanner = () => {
     cookies.set('dismissedTrialBanner', true, { expires: 1 })
     this.setState({ dismissedTrialBanner: true })
+  }
+
+  dismissNearExpirationBanner = ({strCode}) => {
+    cookies.set('dismissedNearExpirationBanner', strCode, { expires: 100 /* more than the total duration of the warnings */ })
+    this.setState({ dismissedNearExpirationBanner: strCode })
   }
 
   componentDidMount() {
@@ -486,6 +521,17 @@ export default class XoApp extends Component {
                     date: new Date(trial.trial.end),
                   })}
                   <button className='close' onClick={this.dismissTrialBanner}>
+                    &times;
+                  </button>
+                </div>
+              )}
+              {this.state.licenseNearExpiration  && this.state.dismissedNearExpirationBanner !== this.state.licenseNearExpiration.code && (
+                <div className='alert alert-info mb-0'>
+                  {_(this.state.licenseNearExpiration.strCode, {
+                    duration: this.state.licenseNearExpiration.textDuration,
+                    date: new Date(this.state.licenseNearExpiration.license.expires),
+                  })}
+                  <button className='close' onClick={()=>this.dismissNearExpirationBanner(this.state.licenseNearExpiration.strCode)}>
                     &times;
                   </button>
                 </div>

@@ -35,6 +35,71 @@ export function blockXoaAccess(xoaState) {
   return block
 }
 
+export function getLicenseNearExpiration(licenses) {
+  if (licenses.find(({ expires }) => expires === undefined) !== undefined) {
+    return
+  }
+  if (licenses.length === 0) {
+    throw new Error('No license found')
+  }
+
+  licenses.sort(({ expires: expires1 }, { expires: expires2 }) => expires2 - expires1)
+  const newestLicence = licenses[0]
+
+  const SLOTS = [{
+    strCode: 'licenseNearlyExpired',
+    textDuration: '3 months',
+    duration: -90 * 24 * 3600 * 1000
+  }
+    ,
+  {
+    strCode: 'licenseNearlyExpired',
+    textDuration: '2 months',
+    duration: -60 * 24 * 3600 * 1000,
+    message: `Your current Xen Orchestra license is about to expire (2 months to ${newestLicence.expires}). Please reach out to your vendor.`
+  }
+    ,
+  {
+    strCode: 'licenseNearlyExpired',
+    textDuration: '1 month',
+    duration: -30 * 24 * 3600 * 1000,
+    message: `Your current Xen Orchestra license is about to expire (1 month to ${newestLicence.expires}). Please reach out to your vendor.`
+  }
+    ,
+  {
+    strCode: 'licenseNearlyExpired',
+    textDuration: '1 week',
+    duration: -7 * 24 * 3600 * 1000,
+    message: `Your current Xen Orchestra license is about to expire (1 week to ${newestLicence.expires}). Please reach out to your vendor.`
+  }
+    ,
+  {
+    code: 'EXPIRED',
+    duration: 0,
+    lock: true,
+    message: `Your current Xen Orchestra license has expired (${newestLicence.expires}). Please reach out to your vendor.`
+  }
+  ]
+  const candidates = SLOTS.filter(
+    ({ duration }) =>
+      newestLicence.expires + duration < Date.now()
+  )
+
+  if (candidates.length === 0) {
+    // no license near expiration
+    return
+  }
+
+  // only show the most recent expire slot 
+  candidates.sort(({ duration: duration1 }, { duration: duration2 }) => {
+    return duration2 - duration1
+  })
+  return {
+    ...candidates[0],
+    licence: newestLicence
+  }
+}
+
 // ===================================================================
 
 export const NotRegistered = makeError('NotRegistered')

@@ -2864,6 +2864,8 @@ const messages = {
   enterpriseLicense: 'Enterprise license',
   premiumLicense: 'Premium license',
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
+  licenseNearlyExpired: 'Your current Xen Orchestra license is about to expire ({duration} to {date, date, medium}). Please reach out to your vendor.',
+  licenseExpired: 'Your current Xen Orchestra license has expired ({date, date, medium}). Please reach out to your vendor.',
   proxyMultipleLicenses: 'This proxy has more than 1 license!',
   proxyUnknownVm: 'Unknown proxy VM.',
   xostorProSupportEnabled: 'XOSTOR Pro Support enabled',
