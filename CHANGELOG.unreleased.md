@@ -34,6 +34,7 @@
 - [Backups] Properly show a permission error during config backup (PR [#8489](https://github.com/vatesfr/xen-orchestra/pull/8489))
 - [New VM] Fix `DEVICE_ALREADY_EXISTS(#)` (PR [#8473](https://github.com/vatesfr/xen-orchestra/pull/8473))
 - [OpenAPI spec] Fixed some required properties being marked as optional (PR [#8480](https://github.com/vatesfr/xen-orchestra/pull/8480))
+- [VM/Advanced] Do not show VM creator to non-admins [#8463](https://github.com/vatesfr/xen-orchestra/issues/8463) (PR [#8503](https://github.com/vatesfr/xen-orchestra/pull/8503))
 - **XO 6:**
   - [VM/Create] Fix TS type-check errors (PR [#8472](https://github.com/vatesfr/xen-orchestra/pull/8472))
 
