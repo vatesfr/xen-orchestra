@@ -527,5 +527,13 @@
   "xoa-password-confirm-different": "XOA password confirmation is different",
   "xoa-ssh-account": "XOA SSH account",
   "xoa-ssh-password-confirm-different": "SSH password confirmation is different",
-  "you-are-currently-on": "You are currently on: {0}"
+  "you-are-currently-on": "You are currently on: {0}",
+  "VM-Managment": "VM Managment",
+  "High-availability": "High availability  (HA)",
+  "Affinity-host": "Affinity host",
+  "Protect-from-accidental-deletion": "Protect from accidental deletion",
+  "Protect-from-accidental-shutdown": "Protect from accidental shutdown",
+  "Auto-power-on": "Auto power on",
+  "Start-delay": "Start delay",
+  "best-effort": "best effort"
 }

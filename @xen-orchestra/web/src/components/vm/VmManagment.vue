@@ -1,0 +1,54 @@
+<template>
+  <UiPanel>
+    <UiTitle>
+      {{ $t('VM-Managment') }}
+    </UiTitle>
+    <VtsQuickInfoRow :label="$t('High-availability')">
+      <template #value>
+        <UiInfo :accent="vm.high_availability != '' ? 'success' : 'muted'">
+          {{ vm.high_availability ? $t(vm.high_availability) : $t('disabled') }}
+        </UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Affinity-host')">
+      <template #value>
+        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Protect-from-accidental-deletion')">
+      <template #value>
+        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Protect-from-accidental-shutdown')">
+      <template #value>
+        <UiInfo :accent="vm.viridian ? 'success' : 'muted'">
+          <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+        </UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Auto-power-on')">
+      <template #value>
+        <UiInfo :accent="vm.auto_poweron ? 'success' : 'muted'">
+          {{ vm.auto_poweron ? $t('enabled') : $t('disabled') }}
+        </UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Start-delay')">
+      {{ timeAgo }}
+    </VtsQuickInfoRow>
+  </UiPanel>
+</template>
+
+<script setup lang="ts">
+import type { XoVm } from '@/types/xo/vm.type'
+import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useTimeAgo } from '@vueuse/core'
+import { computed } from 'vue'
+
+const { vm } = defineProps<{ vm: XoVm }>()
+const timeAgo = computed(() => useTimeAgo(vm.startDelay))
+</script>

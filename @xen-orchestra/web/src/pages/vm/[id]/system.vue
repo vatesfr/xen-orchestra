@@ -8,13 +8,14 @@
     </div>
     <div class="colum2">
       <UiCard><VmVirtualisationAndBoot :vm /></UiCard>
-      <UiCard><VmResource :vm /></UiCard>
+      <UiCard><VmManagment :vm /></UiCard>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import VmGeneralInfo from '@/components/vm/VmGeneralInfo.vue'
+import VmManagment from '@/components/vm/VmManagment.vue'
 import VmResource from '@/components/vm/VmResource.vue'
 import VmStorageConfig from '@/components/vm/VmStorageConfig.vue'
 import VmSystemNetworking from '@/components/vm/VmSystemNetworking.vue'

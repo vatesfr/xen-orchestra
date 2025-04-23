@@ -37,11 +37,12 @@ type GeneralInfo = {
 
 const { vm } = defineProps<{ vm: XoVm }>()
 const { t } = useI18n()
+// on lite we have FromByteSize, should we take it back? ?
 const generalInfo: GeneralInfo = {
   'CPU-mask': 'no data',
-  'CPU-weight': '-',
-  'CPU-cap': '-',
-  'Minimum-CPU-limit': 'no data', // no min attribut
+  'CPU-weight': 'no data',
+  'CPU-cap': 'no data',
+  'Minimum-CPU-limit': 'no data',
   'Maximum-CPU-limit': vm.CPUs.max + ' ' + t('CPUs'),
   'Vm-limit-topologie': 'no data',
   'Minimum-static-memory': vm.memory.static[0] / 1_073_741_824 /* (1024 ** 3) */ + ' ' + t('bytes.gi'),
