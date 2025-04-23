@@ -1,12 +1,12 @@
 <template>
   <div class="system">
-    <div class="colum1">
+    <div class="colum">
       <UiCard><VmGeneralInfo :vm /></UiCard>
       <UiCard><VmSystemNetworking :vm /></UiCard>
       <UiCard><VmStorageConfig :vm /></UiCard>
       <UiCard><VmResource :vm /></UiCard>
     </div>
-    <div class="colum2">
+    <div class="colum">
       <UiCard><VmVirtualisationAndBoot :vm /></UiCard>
       <UiCard><VmManagment :vm /></UiCard>
       <UiCard><VmGraphics :vm /></UiCard>
@@ -33,10 +33,12 @@ const { vm } = defineProps<{ vm: XoVm }>()
   display: flex;
   gap: 0.8rem;
   padding: 0.8rem;
-  div {
+  width: 100%;
+  .colum {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
+    width: 50%;
   }
 }
 </style>

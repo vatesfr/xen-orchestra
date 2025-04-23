@@ -1,6 +1,6 @@
 <!-- vtsQuickInfoRow n'a pas les bonne couleur. proposition de généré depuis un objet -->
 <template>
-  <UiPanel>
+  <UiPanel class="vm-storage-config">
     <UiTitle>
       {{ $t('Storage-configuration') }}
     </UiTitle>

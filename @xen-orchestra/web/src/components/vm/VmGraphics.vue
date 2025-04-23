@@ -1,5 +1,5 @@
 <template>
-  <UiPanel>
+  <UiPanel class="vm-graphics">
     <UiTitle>
       {{ $t('Graphics-Display') }}
     </UiTitle>

@@ -1,5 +1,5 @@
 <template>
-  <UiPanel>
+  <UiPanel class="vm-resource">
     <UiTitle>
       {{ $t('VM-Managment') }}
     </UiTitle>

@@ -1,5 +1,5 @@
 <template>
-  <UiPanel>
+  <UiPanel class="vm-virtualisation-and-boot">
     <UiTitle>
       {{ $t('Virtualization-boot-settings') }}
     </UiTitle>

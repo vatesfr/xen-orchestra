@@ -1,43 +1,74 @@
 <!-- vtsQuickInfoRow n'a pas les bonne couleur. proposition de généré depuis un objet -->
 <template>
-  <UiPanel>
+  <UiPanel class="vm-gereral-info">
     <UiTitle>
       {{ $t('general-information') }}
     </UiTitle>
-    <template v-for="(value, key) in generalInfo" :key="key">
-      <VtsQuickInfoRow :label="$t(key)">
-        <template #value>
-          {{ value }}
-        </template>
-      </VtsQuickInfoRow>
-    </template>
+    <VtsQuickInfoRow :label="$t('name')">
+      <template #value>
+        <div class="text-ellipsis">
+          {{ vm.name_label }}
+        </div>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('id')">
+      <template #value>
+        <div class="text-ellipsis">
+          {{ vm.name_label }}
+        </div>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('name')">
+      <template #value>
+        <div class="text-ellipsis">
+          {{ vm.id }}
+        </div>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('description')">
+      <template #value>
+        <div class="text-ellipsis">
+          {{ vm.name_description }}
+        </div>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('tags')">
+      <template #value>
+        <UiTagsList v-for="tag in vm.tags" :key="tag">
+          <UiTag accent="warning" variant="secondary">{{ tag }}</UiTag>
+        </UiTagsList>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('os-name')">
+      <template #value>
+        <div class="text-ellipsis">
+          {{ vm.os_version.name }}
+        </div>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('os-kernel')">
+      <template #value>
+        <div class="text-ellipsis">
+          {{ vm.os_version.distro }}
+        </div>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Management-agent-version')">
+      <template #value>
+        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+      </template>
+    </VtsQuickInfoRow>
   </UiPanel>
 </template>
 
 <script setup lang="ts">
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
+import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-type GeneralInfo = {
-  name: string
-  id: string
-  description: string
-  tags: Array<string>
-  'os-name': string
-  'os-kernel': string
-  'Management-agent-version': string
-}
 
 const { vm } = defineProps<{ vm: XoVm }>()
-
-const generalInfo: GeneralInfo = {
-  name: vm.name_label,
-  id: vm.id,
-  description: vm.name_description,
-  tags: vm.tags,
-  'os-name': vm.os_version.name,
-  'os-kernel': vm.os_version.distro,
-  'Management-agent-version': '-',
-}
 </script>
