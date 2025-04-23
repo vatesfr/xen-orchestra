@@ -25,6 +25,7 @@
 - [REST API] Expose `/rest/v0/schedules` and `/rest/v0/schedules/<schedule-id>` enpoints (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
 - [REST API] Expose the possibility to run a schedule `/rest/v0/schedules/<schedule-id>/actions/run` (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
 - [Host/Networks] PIFs can now be filtered by network names
+- [Plugins/audit] Add an option to import audit logs from an XOA to another (PR [#8474](https://github.com/vatesfr/xen-orchestra/pull/8474))
 
 ### Bug fixes
 
@@ -55,12 +56,14 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/audit-core minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
+- xo-server-audit minor
 - xo-web minor
 
 <!--packages-end-->
