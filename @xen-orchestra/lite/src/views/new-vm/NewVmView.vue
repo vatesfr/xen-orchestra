@@ -546,10 +546,8 @@ const poolName = computed(() => pool.value?.name_label)
 
 const poolCpuInfo = computed(() => {
   return {
-    cpus: {
-      cores: pool.value?.cpu_info && +pool.value.cpu_info.cpu_count,
-      sockets: pool.value?.cpu_info && +pool.value.cpu_info.socket_count,
-    },
+    cores: pool.value?.cpu_info && +pool.value.cpu_info.cpu_count,
+    sockets: pool.value?.cpu_info && +pool.value.cpu_info.socket_count,
   }
 })
 
@@ -558,15 +556,17 @@ const coresPerSocket = computed(() => {
   const MAX_VM_SOCKETS = 16
   const minCores = vmState.vCPU / MAX_VM_SOCKETS
   const options = []
-  let cores = poolCpuInfo.value.cpus.cores
+  let cores = poolCpuInfo.value.cores
 
-  if (cores === undefined || vmState.vCPU === undefined) return []
+  if (cores === undefined || vmState.vCPU === undefined) {
+    return []
+  }
 
   for (cores; cores >= minCores; cores--) {
     if (vmState.vCPU % cores === 0) {
       options.push({
         // TODO Need to improve pluralization
-        label: t('vmSocketsWithCoresPerSocket', {
+        label: t('vm-sockets-with-cores-per-socket', {
           nSockets: vmState.vCPU / cores,
           nCores: cores,
         }),
@@ -726,7 +726,15 @@ const onTemplateChange = () => {
   const template = vmState.new_vm_template
   if (!template) return
 
-  const { name_label, name_description, HVM_boot_params, VCPUs_at_startup, memory_dynamic_max, other_config } = template
+  const {
+    name_label,
+    name_description,
+    HVM_boot_params,
+    VCPUs_at_startup,
+    memory_dynamic_max,
+    other_config,
+    platform,
+  } = template
 
   Object.assign(vmState, {
     name: name_label,
@@ -735,6 +743,7 @@ const onTemplateChange = () => {
     vCPU: VCPUs_at_startup,
     ram: memory_dynamic_max,
     vdis: getVdis(template),
+    topology: platform['cores-per-socket'] ?? null,
     existingVdis: getExistingVdis(template),
     networkInterfaces: getExistingInterface(template),
   })
@@ -815,7 +824,7 @@ const _createVm = async ($defer: Defer) => {
       xapi.vm.setNameDescription(vmRefs, vmCreationParams.value.name_description),
       xapi.vm.setMemory(vmRefs, vmCreationParams.value.memory),
       xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron),
-      xapi.vm.setCorePerSocket(vmRefs[0], vmCreationParams.value.coresPerSocket),
+      xapi.vm.setCoresPerSocket(vmRefs[0], vmCreationParams.value.coresPerSocket),
       xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
       xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
     ])

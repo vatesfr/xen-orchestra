@@ -108,11 +108,12 @@ export function createVmOperations(xenApi: XenApi) {
     setCopyBiosString: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_copy_bios_string', [vmRef, hostRef]))),
 
-    setCorePerSocket: async (vmRef: XenApiVm['$ref'], corePerSocket: string | null) => {
-      await Promise.all([
-        xenApi.call('VM.remove_from_platform', [vmRef, 'cores-per-socket']),
-        xenApi.call('VM.add_to_platform', [vmRef, 'cores-per-socket', String(corePerSocket) ?? null]),
-      ])
+    setCoresPerSocket: async (vmRef: XenApiVm['$ref'], coresPerSocket: number | null) => {
+      await xenApi.call('VM.remove_from_platform', [vmRef, 'cores-per-socket'])
+
+      if (coresPerSocket !== null) {
+        await xenApi.call('VM.add_to_platform', [vmRef, 'cores-per-socket', coresPerSocket ?? null])
+      }
     },
 
     setCpuMask: (vmRefs: VmRefs, mask: string[] | null) =>
