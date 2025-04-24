@@ -1,10 +1,8 @@
-import { type FormOption, IK_FORM_SELECT_CONTROLLER } from '@core/packages/form-select'
+import { type FormOption, IK_FORM_SELECT_CONTROLLER } from '@core/packages/form-select/types.ts'
 import { unrefElement, useEventListener, whenever } from '@vueuse/core'
 import { computed, inject, type MaybeRefOrGetter, ref, toValue } from 'vue'
 
-export function useFormOption<TEntry, TValue extends PropertyKey>(
-  _option: MaybeRefOrGetter<FormOption<TEntry, TValue>>
-) {
+export function useFormOptionController<TOption extends FormOption>(_option: MaybeRefOrGetter<TOption>) {
   const controller = inject(IK_FORM_SELECT_CONTROLLER)
 
   if (!controller) {
@@ -22,7 +20,9 @@ export function useFormOption<TEntry, TValue extends PropertyKey>(
     }
   )
 
-  useEventListener(elementRef, 'click', () => {
+  useEventListener(elementRef, 'click', event => {
+    event.preventDefault()
+
     if (option.value.properties.disabled) {
       return
     }

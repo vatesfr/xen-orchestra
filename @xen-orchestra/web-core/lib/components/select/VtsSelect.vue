@@ -27,34 +27,31 @@
       <UiDropdown v-if="loading || options.length === 0" accent="normal" disabled>
         {{ loading ? t('loading-in-progress') : t('no-results') }}
       </UiDropdown>
-      <slot>
-        <VtsOption v-for="option of options" :key="option.id" :option />
-      </slot>
+      <template v-for="option of options" :key="option.id">
+        <slot :option>
+          <VtsOption :option />
+        </slot>
+      </template>
     </UiDropdownList>
   </div>
 </template>
 
-<script generic="TOption extends FormOption<unknown, PropertyKey>" lang="ts" setup>
+<script generic="TOption extends FormOption" lang="ts" setup>
 import VtsBackdrop from '@core/components/backdrop/VtsBackdrop.vue'
 import VtsOption from '@core/components/select/VtsOption.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import type { FormOption } from '@core/packages/form-select/type.ts'
-import { useFormSelect } from '@core/packages/form-select/use-form-select.ts'
+import type { FormOption } from '@core/packages/form-select/types.ts'
+import { useFormSelectController } from '@core/packages/form-select/use-form-select-controller.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { faAngleDown, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const {
-  accent,
-  options,
-  selectedLabel: _selectedLabel,
-} = defineProps<{
+const { accent, options, selectedLabel } = defineProps<{
   accent: 'brand' | 'warning' | 'danger'
   options: TOption[]
-  selectedLabel?: string
+  selectedLabel: string
   required?: boolean
   placeholder?: string
   searchPlaceholder?: string
@@ -64,19 +61,15 @@ const {
 const searchTerm = defineModel<string>('search')
 
 defineSlots<{
-  default(): any
+  default(props: { option: TOption }): any
 }>()
 
 const { t } = useI18n()
 
-const { triggerRef, dropdownRef, searchRef, isOpen, floatingStyles } = useFormSelect({
+const { triggerRef, dropdownRef, searchRef, isOpen, floatingStyles } = useFormSelectController({
   options: () => options,
   searchTerm,
 })
-
-const selectedLabel = computed(
-  () => _selectedLabel ?? options.flatMap(option => (option.flags.selected ? option.properties.label : [])).join(', ')
-)
 </script>
 
 <style lang="postcss" scoped>

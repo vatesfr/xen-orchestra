@@ -7,18 +7,18 @@
     :selected="option.flags.selected"
     accent="normal"
   >
-    {{ option.properties.label }}
+    <slot>{{ option.properties.label }}</slot>
   </UiDropdown>
 </template>
 
-<script generic="TOption extends FormOption<unknown, PropertyKey>" lang="ts" setup>
+<script generic="TOption extends FormOption" lang="ts" setup>
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
-import type { FormOption } from '@core/packages/form-select/type.ts'
-import { useFormOption } from '@core/packages/form-select/use-form-option.ts'
+import type { FormOption } from '@core/packages/form-select/types.ts'
+import { useFormOptionController } from '@core/packages/form-select/use-form-option-controller.ts'
 
 const { option } = defineProps<{
   option: TOption
 }>()
 
-const { elementRef } = useFormOption(() => option)
+const { elementRef } = useFormOptionController(() => option)
 </script>

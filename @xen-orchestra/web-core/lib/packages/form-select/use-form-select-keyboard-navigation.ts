@@ -1,4 +1,4 @@
-import { FORM_SELECT_HANDLED_KEY, type FormOptionIndex } from '@core/packages/form-select'
+import { FORM_SELECT_HANDLED_KEY, type FormOptionIndex } from '@core/packages/form-select/types.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
 import { onKeyStroke } from '@vueuse/core'
 import { type EffectScope, effectScope, ref, type Ref } from 'vue'
