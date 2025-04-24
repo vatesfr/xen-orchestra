@@ -81,6 +81,7 @@ export async function runSequence({ schedules }) {
       const job = await this.getJob(schedule.jobId)
       await this.runJob(job, schedule)
     }
+    Task.set('progress', 100)
   })
 }
 runSequence.permission = 'admin'
