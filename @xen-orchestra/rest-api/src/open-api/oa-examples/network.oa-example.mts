@@ -5,11 +5,13 @@ export const networkIds = [
 
 export const partialNetworks = [
   {
+    nbd: true,
     name_label: 'Host internal management network',
     id: '9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f',
     href: '/rest/v0/networks/9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f',
   },
   {
+    nbd: true,
     name_label: 'Lab v2 (VLAN 11)',
     id: '6b6ca0f5-6611-0636-4b0a-1fb1c8e96414',
     href: '/rest/v0/networks/6b6ca0f5-6611-0636-4b0a-1fb1c8e96414',

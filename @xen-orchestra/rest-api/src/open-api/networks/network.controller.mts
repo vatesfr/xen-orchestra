@@ -5,12 +5,13 @@ import { Request as ExRequest } from 'express'
 import type { XoNetwork } from '@vates/types'
 
 import { network, networkIds, partialNetworks } from '../oa-examples/network.oa-example.mjs'
-import { notFoundResp, unauthorizedResp, Unbrand } from '../common/response.common.mjs'
+import { notFoundResp, unauthorizedResp, type Unbrand } from '../common/response.common.mjs'
 import { RestApi } from '../../rest-api/rest-api.mjs'
-import { WithHref } from '../../helpers/helper.type.mjs'
+import type { WithHref } from '../../helpers/helper.type.mjs'
 import { XapiXoController } from '../../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('networks')
+@Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('networks')
 @provide(NetworkController)
