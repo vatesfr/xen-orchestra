@@ -36,13 +36,7 @@
             </template>
             <template #value>{{ network.uuid }}</template>
             <template #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                accent="brand"
-                size="medium"
-                :icon="faCopy"
-                @click="copy(network.uuid)"
-              />
+              <UiCopyButton :copy-element="network.uuid" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DESCRIPTION -->
@@ -52,13 +46,7 @@
               <span class="value">{{ network.name_description }}</span>
             </template>
             <template v-if="network.name_description" #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                accent="brand"
-                size="medium"
-                :icon="faCopy"
-                @click="copy(network.name_description)"
-              />
+              <UiCopyButton :copy-element="network.name_description" />
             </template>
           </VtsCardRowKeyValue>
           <!-- VLAN -->
@@ -66,13 +54,7 @@
             <template #key>{{ $t('vlan') }}</template>
             <template #value>{{ networkVlan }}</template>
             <template v-if="pifs[0].VLAN !== -1" #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                accent="brand"
-                size="medium"
-                :icon="faCopy"
-                @click="copy(String(networkVlan))"
-              />
+              <UiCopyButton :copy-element="String(networkVlan)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- MTU -->
@@ -82,13 +64,7 @@
               <span>{{ network.MTU }}</span>
             </template>
             <template #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                accent="brand"
-                size="medium"
-                :icon="faCopy"
-                @click="copy(String(network.MTU))"
-              />
+              <UiCopyButton :copy-element="String(network.MTU)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NBD -->
@@ -96,13 +72,7 @@
             <template #key>{{ $t('network-block-device') }}</template>
             <template #value>{{ networkNbd }}</template>
             <template #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                accent="brand"
-                size="medium"
-                :icon="faCopy"
-                @click="copy(networkNbd)"
-              />
+              <UiCopyButton :copy-element="networkNbd" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DEFAULT LOCKING MODE -->
@@ -150,11 +120,11 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiCopyButton from '@core/components/ui/copy-button/UiCopyButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCopy, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
-import { useClipboard } from '@vueuse/core'
+import { faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -182,8 +152,6 @@ const networkDefaultLockingMode = computed(() =>
 )
 
 const pifsCount = computed(() => pifs.value.length)
-
-const { copy, copied } = useClipboard()
 </script>
 
 <style scoped lang="postcss">
