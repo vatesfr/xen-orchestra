@@ -14,7 +14,7 @@ import _, { IntlProvider } from 'intl'
 // TODO: Replace all `getXoaPlan` by `getXoaPlan` from "xoa-plans"
 import { addSubscriptions, connectStore, getXoaPlan, noop, routes } from 'utils'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
-import { checkXoa, clearXoaCheckCache, subscribeSelfLicenses } from 'xo'
+import { checkXoa, clearXoaCheckCache } from 'xo'
 import { forEach, groupBy, keyBy, pick } from 'lodash'
 import { Host as HostItem } from 'render-xo-item'
 import { Notification } from 'notification'
@@ -55,7 +55,7 @@ import Import from './import'
 import keymap, { help } from '../keymap'
 import Tooltip from '../common/tooltip'
 import { createCollectionWrapper, createGetObjectsOfType } from '../common/selectors'
-import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses, subscribeXostorLicenses } from '../common/xo'
+import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses, subscribeXostorLicenses, subscribeSelfLicenses } from '../common/xo'
 import { SOURCES } from '../common/xoa-plans'
 import { getLicenseNearExpiration } from '../common/xoa-updater'
 
@@ -314,8 +314,7 @@ export const ICON_POOL_LICENSE = {
       })
 
       return xostorLicenseInfoByXostorId
-    },
-    licenseNearExpiration:  (_, { selfLicences }) => getLicenseNearExpiration(selfLicences)
+    }
   },
 })
 export default class XoApp extends Component {
@@ -474,11 +473,11 @@ export default class XoApp extends Component {
   render() {
     const { signedUp, trial, registerNeeded } = this.props
     const { pathname } = this.context.router.location
+    const licenseNearExpiration = this.props.selfLicences && getLicenseNearExpiration(this.props.selfLicences)
     // If we are under expired or unstable trial (signed up only)
     const blocked =
-      signedUp && blockXoaAccess(trial) && !(pathname.startsWith('/xoa/') || pathname === '/backup/restore')
+      signedUp &&( blockXoaAccess(trial) || licenseNearExpiration?.blocked === true)&& !(pathname.startsWith('/xoa/') || pathname === '/backup/restore')
     const plan = getXoaPlan()
-
     return (
       <IntlProvider>
         <ThemeProvider theme={themes.base}>
@@ -525,13 +524,13 @@ export default class XoApp extends Component {
                   </button>
                 </div>
               )}
-              {this.state.licenseNearExpiration  && this.state.dismissedNearExpirationBanner !== this.state.licenseNearExpiration.code && (
-                <div className='alert alert-info mb-0'>
-                  {_(this.state.licenseNearExpiration.strCode, {
-                    duration: this.state.licenseNearExpiration.textDuration,
-                    date: new Date(this.state.licenseNearExpiration.license.expires),
+              {licenseNearExpiration  && this.state.dismissedNearExpirationBanner !==licenseNearExpiration.strCode && (
+                <div className={`alert alert-info mb-0 ${licenseNearExpiration.popupClass ?? 'alert-info'}`}>
+                  {_(licenseNearExpiration.strCode, {
+                    duration: licenseNearExpiration.textDuration,
+                    date: new Date(licenseNearExpiration.license.expires),
                   })}
-                  <button className='close' onClick={()=>this.dismissNearExpirationBanner(this.state.licenseNearExpiration.strCode)}>
+                  <button className='close' onClick={()=>this.dismissNearExpirationBanner(licenseNearExpiration.strCode)}>
                     &times;
                   </button>
                 </div>

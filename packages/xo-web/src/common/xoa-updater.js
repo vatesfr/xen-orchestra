@@ -44,45 +44,47 @@ export function getLicenseNearExpiration(licenses) {
   }
 
   licenses.sort(({ expires: expires1 }, { expires: expires2 }) => expires2 - expires1)
-  const newestLicence = licenses[0]
+  const newestLicense = licenses[0]
 
   const SLOTS = [{
     strCode: 'licenseNearlyExpired',
     textDuration: '3 months',
-    duration: -90 * 24 * 3600 * 1000
+    duration: -90 * 24 * 3600 * 1000,
+    popupClass: 'alert-info'
   }
     ,
   {
     strCode: 'licenseNearlyExpired',
     textDuration: '2 months',
     duration: -60 * 24 * 3600 * 1000,
-    message: `Your current Xen Orchestra license is about to expire (2 months to ${newestLicence.expires}). Please reach out to your vendor.`
+    popupClass: 'alert-info'
   }
     ,
   {
     strCode: 'licenseNearlyExpired',
     textDuration: '1 month',
     duration: -30 * 24 * 3600 * 1000,
-    message: `Your current Xen Orchestra license is about to expire (1 month to ${newestLicence.expires}). Please reach out to your vendor.`
-  }
+    popupClass: 'alert-danger'
+    }
     ,
   {
     strCode: 'licenseNearlyExpired',
     textDuration: '1 week',
     duration: -7 * 24 * 3600 * 1000,
-    message: `Your current Xen Orchestra license is about to expire (1 week to ${newestLicence.expires}). Please reach out to your vendor.`
+    message: `Your current Xen Orchestra license is about to expire (1 week to ${newestLicense.expires}). Please reach out to your vendor.`,
+    popupClass: 'alert-danger'
   }
     ,
   {
     code: 'EXPIRED',
     duration: 0,
-    lock: true,
-    message: `Your current Xen Orchestra license has expired (${newestLicence.expires}). Please reach out to your vendor.`
+    blocked: true,
+    message: `Your current Xen Orchestra license has expired (${newestLicense.expires}). Please reach out to your vendor.`
   }
   ]
   const candidates = SLOTS.filter(
     ({ duration }) =>
-      newestLicence.expires + duration < Date.now()
+      newestLicense.expires + duration < Date.now()
   )
 
   if (candidates.length === 0) {
@@ -96,7 +98,7 @@ export function getLicenseNearExpiration(licenses) {
   })
   return {
     ...candidates[0],
-    licence: newestLicence
+    license: newestLicense
   }
 }
 
