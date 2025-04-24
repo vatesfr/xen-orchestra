@@ -1,6 +1,7 @@
 # `useCollection` composable
 
-The `useCollection` composable helps you manage a collection of items with flags (boolean states) and computed properties. It provides a type-safe way to filter, flag, and manipulate items in a collection.
+The
+`useCollection` composable helps you manage a collection of items with flags (boolean states) and computed properties. It provides a type-safe way to filter, flag, and manipulate items in a collection.
 
 ## Usage
 
