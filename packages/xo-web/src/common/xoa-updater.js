@@ -46,59 +46,52 @@ export function getLicenseNearExpiration(licenses) {
   licenses.sort(({ expires: expires1 }, { expires: expires2 }) => expires2 - expires1)
   const newestLicense = licenses[0]
 
-  const SLOTS = [{
-    strCode: 'licenseNearlyExpired',
-    textDuration: '3 months',
-    duration: -90 * 24 * 3600 * 1000,
-    popupClass: 'alert-info'
-  }
-    ,
-  {
-    strCode: 'licenseNearlyExpired',
-    textDuration: '2 months',
-    duration: -60 * 24 * 3600 * 1000,
-    popupClass: 'alert-info'
-  }
-    ,
-  {
-    strCode: 'licenseNearlyExpired',
-    textDuration: '1 month',
-    duration: -30 * 24 * 3600 * 1000,
-    popupClass: 'alert-danger'
-    }
-    ,
-  {
-    strCode: 'licenseNearlyExpired',
-    textDuration: '1 week',
-    duration: -7 * 24 * 3600 * 1000,
-    message: `Your current Xen Orchestra license is about to expire (1 week to ${newestLicense.expires}). Please reach out to your vendor.`,
-    popupClass: 'alert-danger'
-  }
-    ,
-  {
-    code: 'EXPIRED',
-    duration: 0,
-    blocked: true,
-    message: `Your current Xen Orchestra license has expired (${newestLicense.expires}). Please reach out to your vendor.`
-  }
+  const SLOTS = [
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '3 months',
+      duration: -90 * 24 * 3600 * 1000,
+      popupClass: 'alert-info',
+    },
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '2 months',
+      duration: -60 * 24 * 3600 * 1000,
+      popupClass: 'alert-info',
+    },
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '1 month',
+      duration: -30 * 24 * 3600 * 1000,
+      popupClass: 'alert-danger',
+    },
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '1 week',
+      duration: -7 * 24 * 3600 * 1000,
+      popupClass: 'alert-danger',
+    },
+    {
+      strCode: 'licenseExpired',
+      code: 'EXPIRED',
+      duration: 0,
+      blocked: true,
+    },
   ]
-  const candidates = SLOTS.filter(
-    ({ duration }) =>
-      newestLicense.expires + duration < Date.now()
-  )
+  const candidates = SLOTS.filter(({ duration }) => newestLicense.expires + duration < Date.now())
 
   if (candidates.length === 0) {
     // no license near expiration
     return
   }
 
-  // only show the most recent expire slot 
+  // only show the most recent expire slot
   candidates.sort(({ duration: duration1 }, { duration: duration2 }) => {
     return duration2 - duration1
   })
   return {
     ...candidates[0],
-    license: newestLicense
+    license: newestLicense,
   }
 }
 
