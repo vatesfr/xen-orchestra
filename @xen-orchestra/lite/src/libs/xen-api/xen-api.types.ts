@@ -59,6 +59,7 @@ type ObjectTypeToRecordMapping = {
   host_metrics: XenApiHostMetrics
   message: XenApiMessage<any>
   network: XenApiNetwork
+  pbd: XenApiPbd
   pif: XenApiPif
   pif_metrics: XenApiPifMetrics
   pool: XenApiPool
@@ -125,6 +126,7 @@ export interface XenApiSr extends XenApiRecord<'sr'> {
   content_type: string
   name_label: string
   VDIs: XenApiVdi['$ref'][]
+  PBDs: XenApiPbd['$ref'][]
   physical_size: number
   physical_utilisation: number
   shared: boolean
@@ -132,6 +134,10 @@ export interface XenApiSr extends XenApiRecord<'sr'> {
   sm_config: {
     type?: string
   }
+}
+
+export interface XenApiPbd extends XenApiRecord<'pbd'> {
+  host: XenApiHost['$ref']
 }
 
 export interface XenApiVm extends XenApiRecord<'vm'> {
@@ -380,10 +386,15 @@ export interface XenApiHostMetrics extends XenApiRecord<'host_metrics'> {
 
 export interface XenApiVmMetrics extends XenApiRecord<'vm_metrics'> {
   VCPUs_number: number
+  start_time: string | undefined
+  install_time: string
 }
 
 export interface XenApiVmGuestMetrics extends XenApiRecord<'vm_guest_metrics'> {
   networks: string
+  os_version: Record<string, string>
+  PV_drivers_detected: boolean
+  memory: Record<string, string>
 }
 
 export interface XenApiTask extends XenApiRecord<'task'> {

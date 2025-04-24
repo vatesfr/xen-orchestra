@@ -1,7 +1,7 @@
 export default {
   path: '/vm/:uuid',
   component: () => import('@/views/vm/VmRootView.vue'),
-  redirect: { name: 'vm.console' },
+  redirect: { name: 'vm.dashboard' },
   children: [
     {
       path: 'dashboard',

@@ -3,6 +3,10 @@ import type { VmStats } from '@/libs/xapi-stats'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
+import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
+import { useVbdStore } from '@/stores/xen-api/vbd.store.ts'
+import { useVdiStore } from '@/stores/xen-api/vdi.store.ts'
 import { useVmRawStore } from '@/stores/xen-api/vm-raw.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
@@ -13,6 +17,10 @@ export const useVmStore = defineStore('xen-api-vm', () => {
   const deps = {
     hostStore: useHostStore(),
     vmRawStore: useVmRawStore(),
+    vbdStore: useVbdStore(),
+    vdiStore: useVdiStore(),
+    srStore: useSrStore(),
+    pbdStore: usePbdStore(),
   }
 
   const xenApiStore = useXenApiStore()
@@ -20,6 +28,14 @@ export const useVmStore = defineStore('xen-api-vm', () => {
   const hostContext = deps.hostStore.getContext()
 
   const vmRawContext = deps.vmRawStore.getContext()
+
+  const vbdContext = deps.vbdStore.getContext()
+
+  const vdiContext = deps.vdiStore.getContext()
+
+  const srContext = deps.srStore.getContext()
+
+  const pbdContext = deps.pbdStore.getContext()
 
   const records = computed(() =>
     vmRawContext.records.value.filter(vm => !vm.is_a_snapshot && !vm.is_control_domain && !vm.is_a_template)
@@ -71,6 +87,40 @@ export const useVmStore = defineStore('xen-api-vm', () => {
     })
   }) as GetStats<XenApiVm>
 
+  const getVmHost = (vm: XenApiVm): XenApiHost | undefined => {
+    // VM is RUNNING
+    if (vm.resident_on !== 'OpaqueRef:NULL') {
+      return hostContext.getByOpaqueRef(vm.resident_on)
+    }
+
+    // VM is HALTED
+    const vmVbds = vbdContext.records.value.filter(vbd => vbd.VM === vm.$ref)
+
+    for (const vbd of vmVbds) {
+      const vdi = vdiContext.getByOpaqueRef(vbd.VDI)
+
+      if (vdi === undefined) {
+        continue
+      }
+
+      const sr = srContext.getByOpaqueRef(vdi.SR)
+
+      if (sr === undefined || sr.shared) {
+        continue
+      }
+
+      const pbd = pbdContext.getByOpaqueRef(sr.PBDs[0])
+
+      if (pbd?.host === undefined) {
+        continue
+      }
+
+      return hostContext.getByOpaqueRef(pbd.host)
+    }
+
+    return vm.resident_on ? hostContext.getByOpaqueRef(vm.resident_on) : undefined
+  }
+
   const context = {
     ...vmRawContext,
     records,
@@ -78,6 +128,7 @@ export const useVmStore = defineStore('xen-api-vm', () => {
     runningVms,
     recordsByHostRef,
     getStats,
+    getVmHost,
   }
 
   return createSubscribableStoreContext({ context }, deps)
