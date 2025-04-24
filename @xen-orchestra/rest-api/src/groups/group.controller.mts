@@ -23,8 +23,8 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
-   * @example fields "name,id,users:!empty"
-   * @example filter "users:!empty"
+   * @example fields "name,id,users"
+   * @example filter "users:length:>0"
    * @example limit 42
    */
   @Example(groupIds)
