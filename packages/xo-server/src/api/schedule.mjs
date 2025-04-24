@@ -74,14 +74,13 @@ export async function runSequence({ schedules }) {
     const signal = Task.abortSignal
     for (let i = 0; i < nb; i++) {
       signal.throwIfAborted()
-      Task.set('progress', Math.round((i * 100) / nb))
       const idSchedule = schedules[i]
       // we can't auto resolve array parameters, we have to resolve them by hand
       const schedule = await this.getSchedule(idSchedule)
       const job = await this.getJob(schedule.jobId)
       await this.runJob(job, schedule)
+      Task.set('progress', Math.round((i * 100) / nb))
     }
-    Task.set('progress', 100)
   })
 }
 runSequence.permission = 'admin'
