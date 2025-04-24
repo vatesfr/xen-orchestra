@@ -1,16 +1,17 @@
 # `useCollection` composable
 
-The `useCollection` composable helps you manage a collection of items with flags (boolean states) and computed properties. It provides a type-safe way to filter, flag, and manipulate items in a collection.
+The
+`useCollection` composable helps you manage a collection of items with flags (boolean states) and computed properties. It provides a type-safe way to filter, flag, and manipulate items in a collection.
 
 ## Usage
 
 ```typescript
 const { items, useSubset, useFlag } = useCollection(sources, {
-  identifier: source => source.id,
   flags: ['selected', 'active', { highlighted: { multiple: false } }],
   properties: source => ({
-    isAvailable: computed(() => source.status === 'available'),
-    fullName: computed(() => `${source.firstName} ${source.lastName}`),
+    id: source.theId, // Required if TSource doesn't have an `id` property
+    isAvailable: source.status === 'available',
+    fullName: `${source.firstName} ${source.lastName}`,
   }),
 })
 ```
@@ -19,22 +20,27 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 
 - **Collection Item**: An object with a unique identifier, a reference to its source object, flags, computed properties, and methods to manipulate flags
 - **Flags**: Boolean states attached to items (like 'selected', 'active', 'highlighted')
-- **Properties**: Computed values derived from the source object
+- **Properties**: Additional custom values
 
 ## `useCollection` parameters
 
-| Name      | Type                              | Required | Description                                          |
-| --------- | --------------------------------- | :------: | ---------------------------------------------------- |
-| `sources` | `MaybeRefOrGetter<TSource[]>`     |    ✓     | Array of source objects for the collection           |
-| `options` | `CollectionOptions<TSource, TId>` |    ✓     | Configuration options for the collection (see below) |
+| Name      | Type                                             | Required | Description                                          |
+| --------- | ------------------------------------------------ | :------: | ---------------------------------------------------- |
+| `sources` | `MaybeRefOrGetter<TSource[]>`                    |    ✓     | Array of source objects for the collection           |
+| `options` | `CollectionOptions<TSource, TFlag, TProperties>` |    ~     | Configuration options for the collection (see below) |
 
 ### `options` object
 
-| Name         | Type                                               | Required | Description                                              |
-| ------------ | -------------------------------------------------- | :------: | -------------------------------------------------------- |
-| `identifier` | `(source: TSource) => TId`                         |    ✓     | Function to extract a unique identifier from each source |
-| `flags`      | `FlagsConfig<TFlag>`                               |          | Flags that can be applied to items in the collection     |
-| `properties` | `(source: TSource) => Record<string, ComputedRef>` |          | Function that returns computed properties for each item  |
+| Name         | Type                                           | Required | Description                                                           |
+| ------------ | ---------------------------------------------- | :------: | --------------------------------------------------------------------- |
+| `flags`      | `FlagsConfig<TFlag>`                           |          | Flags that can be applied to items in the collection                  |
+| `properties` | `(source: TSource) => Record<string, unknown>` |    ~     | Function that returns additional properties for each item (see below) |
+
+### Item ID
+
+The item ID will be retrieved automatically from `TSource.id`
+
+If `TSource` doesn't provide an `id`, then `options.properties` will be required and must return at least an `id`
 
 ### `FlagsConfig` type
 
@@ -44,17 +50,17 @@ type FlagsConfig<TFlag extends string> = TFlag[] | { [K in TFlag]: { multiple?: 
 
 Values for `multiple`:
 
-- `true` (default): multiple items can have the same flag.
+- `true` (default): multiple items can share the same flag.
 - `false`: only one item can have the flag at a time (exclusive selection). Setting the flag on one item will automatically unset it on all other items.
 
 ## Return Value
 
-| Name        | Type                                        | Description                                              |
-| ----------- | ------------------------------------------- | -------------------------------------------------------- |
-| `items`     | `ComputedRef<CollectionItem[]>`             | Array of collection items with flags and properties      |
-| `useSubset` | `(filter: (item) => boolean) => Collection` | Creates a new collection that's a subset of the original |
-| `useFlag`   | `(flag: TFlag) => UseFlag`                  | Utilities for working with a specific flag               |
-| `count`     | `ComputedRef<number>`                       | Number of items in the collection                        |
+| Name        | Type                                        | Description                                         |
+| ----------- | ------------------------------------------- | --------------------------------------------------- |
+| `items`     | `ComputedRef<CollectionItem[]>`             | Array of collection items with flags and properties |
+| `useSubset` | `(filter: (item) => boolean) => Collection` | Creates a sub collection matching the filter        |
+| `useFlag`   | `(flag: TFlag) => UseFlagReturn`            | Utilities for working with a specific flag          |
+| `count`     | `ComputedRef<number>`                       | Number of items in the collection                   |
 
 ### `CollectionItem` object
 
@@ -66,18 +72,19 @@ Values for `multiple`:
 | `properties` | `TProperties`                  | Object containing all computed properties for this item   |
 | `toggleFlag` | `(flag, forcedValue?) => void` | Method to toggle a flag on this item                      |
 
-### Return value of `useFlag(flag)`
+### UseFlagReturn object
 
-| Name        | Type                            | Description                                            |
-| ----------- | ------------------------------- | ------------------------------------------------------ |
-| `items`     | `ComputedRef<CollectionItem[]>` | Array of items that have this flag set                 |
-| `ids`       | `ComputedRef<TId[]>`            | Array of IDs of items that have this flag set          |
-| `count`     | `ComputedRef<number>`           | Number of items that have this flag set                |
-| `areAllOn`  | `ComputedRef<boolean>`          | Whether all items in the collection have this flag set |
-| `areSomeOn` | `ComputedRef<boolean>`          | Whether at least one item has this flag set            |
-| `areNoneOn` | `ComputedRef<boolean>`          | Whether no items have this flag set                    |
-| `toggle`    | `(id, forcedValue?) => void`    | Toggle this flag on a specific item                    |
-| `toggleAll` | `(forcedValue?) => void`        | Toggle this flag on all items in the collection        |
+| Name        | Type                                        | Description                                            |
+| ----------- | ------------------------------------------- | ------------------------------------------------------ |
+| `items`     | `ComputedRef<CollectionItem[]>`             | Array of items that have this flag set                 |
+| `ids`       | `ComputedRef<TId[]>`                        | Array of IDs of items that have this flag set          |
+| `count`     | `ComputedRef<number>`                       | Number of items that have this flag set                |
+| `areAllOn`  | `ComputedRef<boolean>`                      | Whether all items in the collection have this flag set |
+| `areSomeOn` | `ComputedRef<boolean>`                      | Whether at least one item has this flag set            |
+| `areNoneOn` | `ComputedRef<boolean>`                      | Whether no items have this flag set                    |
+| `toggle`    | `(id, forcedValue?) => void`                | Toggle this flag on a specific item                    |
+| `toggleAll` | `(forcedValue?) => void`                    | Toggle this flag on all items in the collection        |
+| `useSubset` | `(filter: (item) => boolean) => Collection` | Creates a sub collection matching the filter           |
 
 ## Flag Operations
 
@@ -136,10 +143,9 @@ const {
   useSubset,
   count,
 } = useCollection(rawUsers, {
-  identifier: user => user.id,
   flags: ['selected'],
   properties: user => ({
-    fullName: computed(() => `${user.firstName} ${user.lastName} (${user.group})`),
+    fullName: `${user.firstName} ${user.lastName} (${user.group})`,
   }),
 })
 
