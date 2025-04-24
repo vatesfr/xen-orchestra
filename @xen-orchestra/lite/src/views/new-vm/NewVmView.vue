@@ -150,7 +150,7 @@
                 <UiTextarea v-model="vmState.description" accent="brand">
                   {{ $t('new-vm.description') }}
                 </UiTextarea>
-                <VtsInputWrapper :label="$t('affinity-host')" :message="$t('none-by-default')">
+                <VtsInputWrapper :label="$t('affinity-host')">
                   <div class="affinity-host">
                     <FormSelect v-model="vmState.affinity_host" class="select">
                       <option :value="undefined">{{ $t('none') }}</option>
@@ -158,13 +158,6 @@
                         {{ host?.name_label }}
                       </option>
                     </FormSelect>
-                    <!-- TODO remove this button when new selector is available -->
-                    <UiButtonIcon
-                      size="medium"
-                      accent="brand"
-                      :icon="faClose"
-                      @click="vmState.affinity_host = undefined"
-                    />
                   </div>
                 </VtsInputWrapper>
               </div>
@@ -449,7 +442,6 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import {
   faAlignLeft,
   faAt,
-  faClose,
   faDatabase,
   faDisplay,
   faMemory,
@@ -615,16 +607,7 @@ const bootFirmwares = computed(() => [...new Set(templates.value.map(template =>
 
 const defaultSr = computed(() => pool.value!.default_SR)
 
-const filteredSrs = computed(() => {
-  return srs.value.filter(sr => {
-    const pbd = getPbdByOpaqueRef(sr.PBDs[0])
-    const hostRef = pbd?.host
-    const isSrOnAffinityHost =
-      vmState.affinity_host === undefined || sr.shared ? true : hostRef === vmState.affinity_host
-
-    return sr.content_type !== 'iso' && sr.physical_size > 0 && isSrOnAffinityHost
-  })
-})
+const filteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
 
 const allVdis = computed(() => [...vmState.existingVdis, ...vmState.vdis])
 
