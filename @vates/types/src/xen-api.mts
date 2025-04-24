@@ -161,7 +161,6 @@ export interface XenApiEvent {
   /** @deprecated */
   timestamp?: string
 }
-export type XenApiTaskWrapped = WrapperXenApi<XenApiTask, 'task'>
 
 export interface XenApiPool {
   $ref: Branded<'pool'>
@@ -1360,7 +1359,6 @@ export type WrappedXenApiRecord =
   | XenApiNetworkWrapped
   | XenApiPifWrapped
   | XenApiPoolWrapped
-  | XenApiTaskWrapped
   | XenApiSrWrapped
   | XenApiVbdWrapped
   | XenApiVdiWrapped
