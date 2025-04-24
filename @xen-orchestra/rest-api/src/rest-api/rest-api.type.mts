@@ -5,7 +5,6 @@ import type {
   XenApiHostWrapped,
   XenApiNetwork,
   XenApiPoolWrapped,
-  XenApiTaskWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
   XenApiVdiWrapped,
@@ -14,14 +13,13 @@ import type {
   XenApiVmWrapped,
   XenApiVtpmWrapped,
 } from '@vates/types/xen-api'
-import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm } from '@vates/types/xo'
+import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoTask } from '@vates/types/xo'
 
 type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
   network: XenApiNetwork
   pool: XenApiPoolWrapped
   SR: XenApiSrWrapped
-  task: XenApiTaskWrapped
   VBD: XenApiVbdWrapped
   VDI: XenApiVdiWrapped
   'VDI-snapshot': XenApiVdiWrapped
@@ -38,6 +36,8 @@ type XapiRecordByXapiXoRecord = {
 export type XoApp = {
   tasks: EventEmitter & {
     create: (params: { name: string; objectId?: string; type?: string }) => Task
+    get: (id: string) => Promise<XoTask>
+    list: (opts?: { filter?: string; limit?: number }) => Promise<XoTask[]>
   }
 
   // methods ------------

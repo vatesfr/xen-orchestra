@@ -1,39 +1,37 @@
 export const taskLocation = '/rest/v0/tasks/0m7kl0j9l'
 
-export const taskIds = [
-  '/rest/v0/tasks/03055ed9-fba2-180b-fc05-b4e13c5739a9',
-  '/rest/v0/tasks/74086fd8-3065-b647-a10a-6889b1f7ca05',
-]
+export const taskIds = ['/rest/v0/tasks/0m791h1sr', '/rest/v0/tasks/0m791u4je']
 
 export const partialTasks = [
   {
-    name_label: 'Garbage Collection',
-    uuid: '03055ed9-fba2-180b-fc05-b4e13c5739a9',
-    href: '/rest/v0/tasks/03055ed9-fba2-180b-fc05-b4e13c5739a9',
+    status: 'failure',
+    href: '/rest/v0/tasks/0m791h1sr',
   },
   {
-    name_label: 'Xapi#getResource /rrd_updates',
-    uuid: '74086fd8-3065-b647-a10a-6889b1f7ca05',
-    href: '/rest/v0/tasks/74086fd8-3065-b647-a10a-6889b1f7ca05',
+    status: 'failure',
+    href: '/rest/v0/tasks/0m791u4je',
   },
 ]
 
 export const task = {
-  allowedOperations: [],
-  created: 1744273744,
-  current_operations: {},
-  finished: null,
-  name_description: '',
-  name_label: 'Xapi#getResource /rrd_updates',
-  progress: 0,
-  result: '',
-  status: 'pending',
-  xapiRef: 'OpaqueRef:7c64afa3-8adb-a4f1-5256-950e6cfc5f22',
-  $host: 'b61a5c92-700e-4966-a13b-00633f03eea8',
-  id: '74086fd8-3065-b647-a10a-6889b1f7ca05',
-  type: 'task',
-  uuid: '74086fd8-3065-b647-a10a-6889b1f7ca05',
-  $pool: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
-  $poolId: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
-  _xapiRef: 'OpaqueRef:7c64afa3-8adb-a4f1-5256-950e6cfc5f22',
+  id: '0m791h1sr',
+  properties: {
+    credentials: {},
+    userData: {
+      ip: '::1',
+    },
+    name: 'XO user authentication',
+    type: 'xo:authentication:authenticateUser',
+  },
+  start: 1739795757148,
+  status: 'failure',
+  updatedAt: 1739795757159,
+  end: 1739795757148,
+  result: {
+    code: 3,
+    message: 'invalid credentials',
+    name: 'XoError',
+    stack:
+      'XoError: invalid credentials\n    at invalidCredentials (/home/melissa/xen-orchestra/packages/xo-common/api-errors.js:26:11)\n    at file:///home/melissa/xen-orchestra/packages/xo-server/src/xo-mixins/authentication.mjs:201:13\n    at Task.runInside (/home/melissa/xen-orchestra/@vates/task/index.js:172:22)\n    at Task.run (/home/melissa/xen-orchestra/@vates/task/index.js:156:20)',
+  },
 }

@@ -283,21 +283,17 @@ export type XoSr = BaseXapiXo & {
   usage: number
 }
 
-export type XoTask = BaseXapiXo & {
-  allowedOperations?: Record<string, TASK_ALLOWED_OPERATIONS>
-  applies_to: XoVm['id'] | XoVdi['id'] | XoSr['id'] | XoHost['id']
-  created: number
-  current_operations?: Record<string, TASK_ALLOWED_OPERATIONS>
-  finished: string
-  $host: XoHost['id']
+export type XoTask = {
   id: Branded<'task'>
-  name_description?: string
-  name_label: string
-  progress: number
-  result?: string
-  status: Record<string, TASK_STATUS_TYPE>
   type: 'task'
-  xapiRef: string
+  start: number
+  end: number
+  properties: {
+    type: string
+    name: string
+  }
+  status: Record<string, TASK_STATUS_TYPE>
+  tasks?: XoTask[]
 }
 
 export type XoUser = {
@@ -433,7 +429,6 @@ export type XapiXoRecord =
   | XoNetwork
   | XoPool
   | XoSr
-  | XoTask
   | XoVbd
   | XoVdi
   | XoVdiSnapshot
@@ -446,6 +441,6 @@ export type XapiXoRecord =
   | XoVmTemplate
   | XoVtpm
 
-export type NonXapiXoRecord = XoGroup | XoServer | XoUser
+export type NonXapiXoRecord = XoGroup | XoServer | XoUser | XoTask
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
