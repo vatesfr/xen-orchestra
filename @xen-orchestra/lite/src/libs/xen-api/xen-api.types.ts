@@ -428,6 +428,8 @@ export interface XenApiHostMetrics extends XenApiRecord<'host_metrics'> {
 
 export interface XenApiVmMetrics extends XenApiRecord<'vm_metrics'> {
   VCPUs_number: number
+  start_time: string | undefined
+  install_time: string
 }
 
 export const TRISTATE_TYPE = {
