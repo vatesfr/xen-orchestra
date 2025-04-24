@@ -89,6 +89,7 @@ export async function runSequence({ schedules }) {
         }
       }
     }
+    Task.set('progress', 100)
   })
 }
 runSequence.permission = 'admin'
