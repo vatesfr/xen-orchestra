@@ -86,6 +86,30 @@ Before deleting a template, make sure to find and remove any attached disks. Oth
 2. Check the box next to the template(s) you want to copy.
 3. Click the trash can icon in the header and confirm the deletion.
 
+## Viridian extensions
+
+VMs include a parameter to enable Viridian extensions.
+
+### What is Viridian?
+
+Viridian is a codename for [Hyper-V](https://learn.microsoft.com/en-us/windows-server/virtualization/hyper-v/hyper-v-overview), a native hypervisor developed by Microsoft that allows the creation of virtual machines on x86-64 systems running Windows.
+
+Viridian extensions —referred to as "Viridian enlightenments" by Microsoft— are used by any "recent" Windows OS to work properly. Consequently, the Viridian setting in Xen Orchestra is typically enabled by default for all Windows templates from Windows 2012 onwards.
+
+### Step-by-step guide
+
+To find and enable the Viridian setting for your template:
+
+1. Navigate to the **Home → VMs** menu.\
+A list of VMs appears.
+2. Choose your VM from the list and click its name.\
+The VM details screen appears.
+3. Click the **Advanced** tab to show more settings for your VM.
+4. In the **Xen settings** section, scroll to the end and activate the **Viridian** toggle switch:
+![Location of the Viridian toggle in XO](./assets/viridian-extensions.png)
+    Viridian extensions are now enabled for your VM. You can now safely use this VM to create your Windows template.
+
+
 ## Cloud-init and Cloudbase-init
 
 If you want VMs to set themselves up automatically after deployment, **Cloud-Init** (for Linux) and **Cloudbase-Init** (for Windows) can help.
