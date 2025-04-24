@@ -60,7 +60,7 @@ export type XoVm = {
   auto_poweron: boolean
   startDelay: number
   vga: 'std' | 'cirrus'
-  videoram?: string
+  videoram?: number
   pvDriversVersion?: string
   cpuWeight?: number
   cpuCap?: number

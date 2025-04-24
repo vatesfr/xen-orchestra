@@ -12,7 +12,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Video-RAM')">
       <template #value>
-        {{ vm.videoram + $t('bytes.mi') }}
+        {{ vm.videoram.toString() + $t('bytes.mi') }}
       </template>
     </VtsQuickInfoRow>
   </UiPanel>
