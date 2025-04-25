@@ -480,7 +480,7 @@
   "vm-is-running": "The VM is running",
   "vm.active": "Active",
   "vm.inactive": "Inactive",
-  "vm-sockets-with-cores-per-socket": "{nSockets} sockets × {nCores} cores/socket",
+  "vmSocketsWithCoresPerSocket": "{nSockets} sockets × {nCores} cores/socket",
   "vms": "VM | VMs",
   "vms-status": "VMs status",
   "vms-status.halted": "Halted",
