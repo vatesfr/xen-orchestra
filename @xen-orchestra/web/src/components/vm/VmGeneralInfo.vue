@@ -1,5 +1,5 @@
 <template>
-  <UiPanel class="vm-general-info">
+  <UiCard class="vm-general-info">
     <UiTitle>
       {{ $t('general-information') }}
     </UiTitle>
@@ -32,7 +32,7 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('tags')">
-      <template v-if="tags.length >= 1" #value>
+      <template v-if="tags.length > 0" #value>
         <div class="tag-list">
           <UiTagsList v-for="tag in tags" :key="tag">
             <UiTag accent="info" variant="secondary">{{ tag }}</UiTag>
@@ -59,13 +59,13 @@
         {{ vm.pvDriversVersion }}
       </template>
     </VtsQuickInfoRow>
-  </UiPanel>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -78,10 +78,10 @@ const tags = vm.tags.filter(tag => tag !== '')
 .vm-general-info {
   background-color: var(--color-neutral-background-primary);
   border-inline-start: none;
-}
 
-.tag-list {
-  display: flex;
-  gap: 0.8rem;
+  .tag-list {
+    display: flex;
+    gap: 0.8rem;
+  }
 }
 </style>

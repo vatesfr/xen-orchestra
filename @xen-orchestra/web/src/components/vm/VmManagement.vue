@@ -1,11 +1,11 @@
 <template>
-  <UiPanel class="vm-resource">
+  <UiCard class="vm-management">
     <UiTitle>
-      {{ $t('VM-Managment') }}
+      {{ $t('vm-management') }}
     </UiTitle>
     <VtsQuickInfoRow :label="$t('High-availability')">
       <template #value>
-        <UiInfo :accent="vm.high_availability != '' ? 'success' : 'muted'">
+        <UiInfo :accent="vm.high_availability !== '' ? 'success' : 'muted'">
           {{ vm.high_availability ? $t(vm.high_availability) : $t('disabled') }}
         </UiInfo>
       </template>
@@ -13,7 +13,7 @@
     <VtsQuickInfoRow :label="$t('affinity-host')">
       <template #value>
         <template v-if="vm.affinityHost">
-          <UiLink :icon="faServer" :href="'#/host/' + vm.affinityHost" size="small" target="_self">
+          <UiLink :icon="faServer" :href="`#/host/${vm.affinityHost}`" size="small" target="_self">
             {{ vm.affinityHost }}
           </UiLink>
         </template>
@@ -39,15 +39,15 @@
         {{ timeAgo }}
       </VtsQuickInfoRow>
     </VtsQuickInfoRow>
-  </UiPanel>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo } from '@vueuse/core'
@@ -58,7 +58,7 @@ const timeAgo = computed(() => useTimeAgo(vm.startDelay))
 </script>
 
 <style lang="postcss" scoped>
-.vm-resource {
+.vm-management {
   background-color: var(--color-neutral-background-primary);
   border-inline-start: none;
 }

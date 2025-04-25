@@ -1,5 +1,5 @@
 <template>
-  <UiPanel class="vm-resource">
+  <UiCard class="vm-resource">
     <UiTitle>
       {{ $t('resource-management') }}
     </UiTitle>
@@ -10,23 +10,24 @@
         </template>
       </VtsQuickInfoRow>
     </template>
-  </UiPanel>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { formatSizeRaw } from '@core/utils/size.util'
 import { useI18n } from 'vue-i18n'
 
 type GeneralInfo = {
-  'CPU-mask': string
+  'cpu-mask': string
   'CPU-weight': number
-  'CPU-cap': number
+  'cpu-cap': number
   'Minimum-CPU-limit': string
   'Maximum-CPU-limit': string
-  'Vm-limit-topologie': string
+  'vm-limit-typology': string
   'Minimum-static-memory': string
   'Maximum-static-memory': string
   'Minimum-dynamic-memory': string
@@ -36,23 +37,28 @@ type GeneralInfo = {
 
 const { vm } = defineProps<{ vm: XoVm }>()
 const { t } = useI18n()
-// on lite we have FromByteSize, should we take it back?
+
+const staticMinMemoryFormated = formatSizeRaw(vm.memory.static[0], 0)
+const staticMaxMemoryFormated = formatSizeRaw(vm.memory.static[1], 0)
+const dynamicMinMemoryFormated = formatSizeRaw(vm.memory.dynamic[0], 0)
+const dynamicMaxMemoryFormated = formatSizeRaw(vm.memory.dynamic[1], 0)
+
 const generalInfo: GeneralInfo = {
-  'CPU-cap': vm.cpuCap ? vm.cpuCap : 0 /* XEN_DEFAULT_CPU_CAP */,
-  'CPU-mask': vm.cpuMask ? vm.cpuMask.join(', ') : '',
+  'cpu-cap': vm.cpuCap ? vm.cpuCap : 0 /* XEN_DEFAULT_CPU_CAP */,
+  'cpu-mask': vm.cpuMask ? vm.cpuMask.join(', ') : '',
   'CPU-weight': vm.cpuWeight ? vm.cpuWeight : 256 /* XEN_DEFAULT_CPU_WEIGHT */,
   'Minimum-CPU-limit': 'no data',
   'Maximum-CPU-limit': vm.CPUs.max + ' ' + t('CPUs'),
-  'Vm-limit-topologie': vm.coresPerSocket
+  'vm-limit-typology': vm.coresPerSocket
     ? t('vmSocketsWithCoresPerSocket', {
         nSockets: vm.CPUs.max / vm.coresPerSocket,
         nCores: vm.coresPerSocket,
       })
     : '',
-  'Minimum-static-memory': vm.memory.static[0] / 1_073_741_824 /* (1024 ** 3) */ + ' ' + t('bytes.gi'),
-  'Maximum-static-memory': vm.memory.static[1] / 1_073_741_824 /* (1024 ** 3) */ + ' ' + t('bytes.gi'),
-  'Minimum-dynamic-memory': vm.memory.dynamic[0] / 1_073_741_824 /* (1024 ** 3) */ + ' ' + t('bytes.gi'),
-  'Maximum-dynamic-memory': vm.memory.dynamic[1] / 1_073_741_824 /* (1024 ** 3) */ + ' ' + t('bytes.gi'),
+  'Minimum-static-memory': `${staticMinMemoryFormated?.value} ${staticMinMemoryFormated?.prefix}`,
+  'Maximum-static-memory': `${staticMaxMemoryFormated?.value} ${staticMaxMemoryFormated?.prefix}`,
+  'Minimum-dynamic-memory': `${dynamicMinMemoryFormated?.value} ${dynamicMinMemoryFormated?.prefix}`,
+  'Maximum-dynamic-memory': `${dynamicMaxMemoryFormated?.value} ${dynamicMaxMemoryFormated?.prefix}`,
   GPUs: vm.VGPUs.join(', '),
 }
 </script>

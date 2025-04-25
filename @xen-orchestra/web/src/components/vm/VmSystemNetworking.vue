@@ -1,5 +1,5 @@
 <template>
-  <UiPanel class="vm-system-networking">
+  <UiCard class="vm-system-networking">
     <UiTitle>
       {{ $t('Networking') }}
     </UiTitle>
@@ -8,13 +8,13 @@
         {{ vm?.nicType }}
       </template>
     </VtsQuickInfoRow>
-  </UiPanel>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()

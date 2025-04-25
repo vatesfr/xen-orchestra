@@ -1,28 +1,30 @@
 <template>
-  <UiPanel class="vm-graphics">
+  <UiCard class="vm-graphics">
     <UiTitle>
-      {{ $t('Graphics-Display') }}
+      {{ $t('Graphics-display') }}
     </UiTitle>
     <VtsQuickInfoRow :label="$t('graphics.VGA')">
       <template #value>
-        <UiInfo :accent="vm.vga == 'std' ? 'muted' : 'success'">
-          {{ vm.vga == 'std' ? $t('disabled') : $t('enabled') }}
+        <UiInfo :accent="vm.vga === 'std' ? 'muted' : 'success'">
+          {{ vm.vga === 'std' ? $t('disabled') : $t('enabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Video-RAM')">
       <template #value>
-        {{ vm.videoram.toString() + $t('bytes.mi') }}
+        <div v-if="vm.videoram">
+          {{ vm.videoram.toString() + $t('bytes.mi') }}
+        </div>
       </template>
     </VtsQuickInfoRow>
-  </UiPanel>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
