@@ -7,7 +7,7 @@ function constructPayload(format, data, type) {
 
   switch (format) {
     case 'json':
-      payload = { ...data, type }
+      payload = JSON.stringify({ ...data, type })
       break
     case 'office365':
       {
@@ -17,20 +17,20 @@ function constructPayload(format, data, type) {
           return { name: key, value: typeof value === 'string' ? value : JSON.stringify(value) }
         })
 
-        payload = {
+        payload = JSON.stringify({
           '@type': 'MessageCard',
           '@context': 'https://schema.org/extensions',
           themeColor: 'BE1621',
           summary: 'New notification from the Xen-Orchestra webhook plugin',
           sections: [{ title: `XO ${type.toUpperCase()} notification` }, { facts }],
-        }
+        })
       }
       break
     default:
       throw new Error(`Unknown format: ${format}`)
   }
 
-  return JSON.stringify(payload)
+  return payload
 }
 
 function handleHook(type, data) {
