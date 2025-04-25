@@ -6,7 +6,7 @@
     </UiCardTitle>
     <VtsLoadingHero v-if="loading || data.stats === undefined" type="card" />
     <VtsErrorNoDataHero v-else-if="error" type="card" />
-    <VtsLinearChart v-else :data="loadAverage" :max-value="maxValue" />
+    <VtsLinearChart v-else :data="loadAverage" :max-value />
   </UiCard>
 </template>
 

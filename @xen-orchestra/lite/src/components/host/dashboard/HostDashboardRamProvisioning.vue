@@ -1,12 +1,22 @@
 <template>
-  <UiCard class="host-dashboard-ram-usage">
-    <UiCardTitle>{{ $t('ram-usage') }}</UiCardTitle>
+  <UiCard class="host-dashboard-ram-provisioning">
+    <UiCardTitle>{{ $t('ram-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
       <UiProgressBar :value="memory?.usage ?? 0" :max="memory?.size" :legend="host.name_label" />
       <div class="total">
-        <UiCardNumbers :label="$t('total-used')" :unit="ram.used?.prefix" :value="ram.used?.value" size="medium" />
-        <UiCardNumbers :label="$t('total-free')" :unit="ram.free?.prefix" :value="ram.free?.value" size="medium" />
+        <UiCardNumbers
+          :label="$t('total-assigned')"
+          :unit="ramUsage.used?.prefix"
+          :value="ramUsage.used?.value"
+          size="medium"
+        />
+        <UiCardNumbers
+          :label="$t('total-free')"
+          :unit="ramUsage.free?.prefix"
+          :value="ramUsage.free?.value"
+          size="medium"
+        />
       </div>
     </template>
   </UiCard>
@@ -33,7 +43,7 @@ const { getHostMemory } = useHostMetricsStore().subscribe()
 
 const memory = computed(() => getHostMemory(host))
 
-const ram = computed(() => {
+const ramUsage = computed(() => {
   const total = memory.value?.size ?? 0
   const used = memory.value?.usage ?? 0
 
@@ -46,7 +56,7 @@ const ram = computed(() => {
 </script>
 
 <style lang="postcss" scoped>
-.host-dashboard-ram-usage {
+.host-dashboard-ram-provisioning {
   .total {
     display: grid;
     grid-template-columns: 1fr 1fr;

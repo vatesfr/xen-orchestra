@@ -4,9 +4,9 @@
     <HostDashboardQuickInfo class="quick-info" :host />
     <HostDashboardVmsStatus class="vms-status" :host />
     <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
-    <HostDashboardRamUsage class="ram-usage" :host />
+    <HostDashboardRamProvisioning class="ram-provisioning" :host />
     <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :error="lastError" :loading="isFetching" />
-    <HostDashboardMemoryUsageChart class="memory-usage-chart" :data :error="lastError" :loading="isFetching" />
+    <HostDashboardRamUsageChart class="ram-usage-chart" :data :error="lastError" :loading="isFetching" />
     <HostDashboardNetworkUsageChart class="network-usage-chart" :data :error="lastError" :loading="isFetching" />
     <HostDashboardLoadAverageChart class="load-average-chart" :data :error="lastError" :loading="isFetching" />
   </div>
@@ -16,10 +16,10 @@
 import HostDashboardCpuProvisioning from '@/components/host/dashboard/HostDashboardCpuProvisioning.vue'
 import HostDashboardCpuUsageChart from '@/components/host/dashboard/HostDashboardCpuUsageChart.vue'
 import HostDashboardLoadAverageChart from '@/components/host/dashboard/HostDashboardLoadAverageChart.vue'
-import HostDashboardMemoryUsageChart from '@/components/host/dashboard/HostDashboardMemoryUsageChart.vue'
 import HostDashboardNetworkUsageChart from '@/components/host/dashboard/HostDashboardNetworkUsageChart.vue'
 import HostDashboardQuickInfo from '@/components/host/dashboard/HostDashboardQuickInfo.vue'
-import HostDashboardRamUsage from '@/components/host/dashboard/HostDashboardRamUsage.vue'
+import HostDashboardRamProvisioning from '@/components/host/dashboard/HostDashboardRamProvisioning.vue'
+import HostDashboardRamUsageChart from '@/components/host/dashboard/HostDashboardRamUsageChart.vue'
 import HostDashboardVmsStatus from '@/components/host/dashboard/HostDashboardVmsStatus.vue'
 import useFetchStats from '@/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/libs/xapi-stats.ts'
@@ -105,7 +105,7 @@ onUnmounted(() => setRegisteredHost(undefined))
     grid-area: cpu-provisioning;
   }
 
-  .ram-usage {
+  .ram-provisioning {
     grid-area: ram-usage;
   }
 
@@ -113,7 +113,7 @@ onUnmounted(() => setRegisteredHost(undefined))
     grid-area: cpu-usage-chart;
   }
 
-  .memory-usage-chart {
+  .ram-usage-chart {
     grid-area: memory-usage-chart;
   }
 

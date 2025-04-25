@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiCardTitle>
-      {{ $t('memory-usage') }}
+      {{ $t('ram-usage') }}
       <template #description>{{ $t('last-week') }}</template>
     </UiCardTitle>
     <VtsLoadingHero v-if="loading || data.stats === undefined" type="card" />
@@ -51,7 +51,7 @@ const memoryUsage = computed<LinearChartData>(() => {
 
   return [
     {
-      label: t('memory-usage'),
+      label: t('ram-usage'),
       data: result,
     },
   ]

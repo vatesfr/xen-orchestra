@@ -3,20 +3,27 @@
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="$t('state')">
         <template #value>
-          <span class="power-state">
-            <VtsIcon :accent="powerState.accent" :icon="powerState.icon" />
-            {{ powerState.text }}
-          </span>
+          <VtsIcon :accent="powerState.accent" :icon="powerState.icon" />
+          {{ powerState.text }}
         </template>
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="$t('ip-address')" :value="host.address" />
       <VtsQuickInfoRow :label="$t('started')" :value="relativeStartTime" />
-      <VtsQuickInfoRow v-if="isMaster">
+      <VtsQuickInfoRow>
         <template #label>
-          <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+          {{ $t('master') }}
         </template>
         <template #value>
-          {{ $t('is-primary-host', { name: host.name_label }) }}
+          <template v-if="isMaster">
+            <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+            {{ $t('this-host') }}
+          </template>
+          <UiObjectLink v-else-if="masterHost !== undefined" :route="`/host/${masterHost.uuid}/dashboard`">
+            <template #icon>
+              <UiObjectIcon size="medium" :state="isHostRunning(masterHost) ? 'running' : 'halted'" type="host" />
+            </template>
+            {{ masterHost.name_label }}
+          </UiObjectLink>
         </template>
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
@@ -58,6 +65,8 @@ import VtsIcon, { type IconAccent } from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
+import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import useRelativeTime from '@core/composables/relative-time.composable'
@@ -76,7 +85,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isMasterHost } = usePoolStore().subscribe()
+const { isMasterHost, masterHost } = usePoolStore().subscribe()
 const { isReady } = useHostStore().subscribe()
 const { isHostRunning, getHostMemory } = useHostMetricsStore().subscribe()
 
@@ -112,13 +121,3 @@ const ram = computed(() => {
   return formatSizeRaw(memory?.size, 0)
 })
 </script>
-
-<style lang="postcss" scoped>
-.host-dashboard-quick-info {
-  .power-state {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-}
-</style>

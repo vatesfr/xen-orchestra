@@ -59,15 +59,16 @@ type ObjectTypeToRecordMapping = {
   host_metrics: XenApiHostMetrics
   message: XenApiMessage<any>
   network: XenApiNetwork
+  pbd: XenApiPbd
   pif: XenApiPif
   pif_metrics: XenApiPifMetrics
   pool: XenApiPool
   sr: XenApiSr
+  vdi: XenApiVdi
   vif: XenApiVif
   vm: XenApiVm
   vm_guest_metrics: XenApiVmGuestMetrics
   vm_metrics: XenApiVmMetrics
-  vdi: XenApiVdi
 }
 
 export type ObjectTypeToRecord<Type extends ObjectType> = Type extends keyof ObjectTypeToRecordMapping

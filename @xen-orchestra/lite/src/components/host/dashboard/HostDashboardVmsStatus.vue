@@ -39,34 +39,34 @@ const hostVms = computed(() => recordsByHostRef.value.get(host.$ref) ?? [])
 
 const { t } = useI18n()
 
-const vmsStatuses = useItemCounter(hostVms, {
+const countByPowerState = useItemCounter(hostVms, {
   running: vm => vm.power_state === VM_POWER_STATE.RUNNING,
   paused: vm => vm.power_state === VM_POWER_STATE.PAUSED,
   suspended: vm => vm.power_state === VM_POWER_STATE.SUSPENDED,
   halted: vm => vm.power_state === VM_POWER_STATE.HALTED,
 })
 
-const total = useSum(() => Object.values(vmsStatuses.value))
+const total = useSum(() => Object.values(countByPowerState.value))
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vms-status.running'),
-    value: vmsStatuses.value.running,
+    value: countByPowerState.value.running,
     accent: 'success',
   },
   {
     label: t('vms-status.paused'),
-    value: vmsStatuses.value.paused,
+    value: countByPowerState.value.paused,
     accent: 'info',
   },
   {
     label: t('vms-status.suspended'),
-    value: vmsStatuses.value.suspended,
+    value: countByPowerState.value.suspended,
     accent: 'muted',
   },
   {
     label: t('vms-status.halted'),
-    value: vmsStatuses.value.halted,
+    value: countByPowerState.value.halted,
     accent: 'danger',
   },
 ])

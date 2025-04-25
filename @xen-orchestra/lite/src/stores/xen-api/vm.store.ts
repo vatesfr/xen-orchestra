@@ -47,50 +47,51 @@ export const useVmStore = defineStore('xen-api-vm', () => {
 
   const runningVms = computed(() => records.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING))
 
+  // Helper function to find a host with local SR for a VM
+  const findHostWithLocalSr = (vm: XenApiVm) => {
+    const vmVbds = vbdContext.records.value.filter(vbd => vbd.VM === vm.$ref)
+
+    for (const vbd of vmVbds) {
+      const vdi = vdiContext.getByOpaqueRef(vbd.VDI)
+      if (vdi === undefined) {
+        continue
+      }
+
+      const sr = srContext.getByOpaqueRef(vdi.SR)
+      if (sr === undefined || sr.shared) {
+        continue
+      }
+
+      const pbd = pbdContext.getByOpaqueRef(sr.PBDs[0])
+      if (pbd === undefined || pbd.host === undefined) {
+        continue
+      }
+
+      return pbd.host
+    }
+
+    return undefined
+  }
+
   const recordsByHostRef = computed(() => {
     const vmsByHostOpaqueRef = new Map<XenApiHost['$ref'], XenApiVm[]>()
 
+    const addToVmByHostMap = (hostRef: XenApiHost['$ref'], vm: XenApiVm) => {
+      if (!vmsByHostOpaqueRef.has(hostRef)) {
+        vmsByHostOpaqueRef.set(hostRef, [])
+      }
+      vmsByHostOpaqueRef.get(hostRef)?.push(vm)
+    }
     records.value.forEach(vm => {
-      // Get all VBDs for this VM
-      const vmVbds = vbdContext.records.value.filter(vbd => vbd.VM === vm.$ref)
+      // First try to find a host with local SR
+      const hostWithLocalSr = findHostWithLocalSr(vm)
 
-      // Find a local SR through VBDs, SR and PBD
-      const hasLocalSr = vmVbds.some(vbd => {
-        const vdi = vdiContext.getByOpaqueRef(vbd.VDI)
-        if (vdi === undefined) {
-          return false
-        }
-
-        const sr = srContext.getByOpaqueRef(vdi.SR)
-        if (sr === undefined || sr.shared) {
-          return false
-        }
-
-        const pbd = pbdContext.getByOpaqueRef(sr.PBDs[0])
-        if (pbd === undefined) {
-          return false
-        }
-
-        const hostRef = pbd.host
-        if (hostRef === undefined) {
-          return false
-        }
-
-        if (!vmsByHostOpaqueRef.has(hostRef)) {
-          vmsByHostOpaqueRef.set(hostRef, [])
-        }
-
-        vmsByHostOpaqueRef.get(hostRef)?.push(vm)
-
-        return true
-      })
-
-      if (!hasLocalSr && vm.resident_on) {
-        if (!vmsByHostOpaqueRef.has(vm.resident_on)) {
-          vmsByHostOpaqueRef.set(vm.resident_on, [])
-        }
-
-        vmsByHostOpaqueRef.get(vm.resident_on)?.push(vm)
+      if (hostWithLocalSr !== undefined) {
+        // If found, add VM to that host
+        addToVmByHostMap(hostWithLocalSr, vm)
+      } else if (vm.resident_on) {
+        // Otherwise, if VM is running on a host, add it there
+        addToVmByHostMap(vm.resident_on, vm)
       }
     })
 

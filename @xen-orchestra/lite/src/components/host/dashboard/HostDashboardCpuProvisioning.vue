@@ -3,10 +3,10 @@
     <UiCardTitle>{{ $t('cpu-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiProgressBar :value="cpuProvisioning.used" :max="cpuProvisioning.total" :legend="$t('vcpus')" />
+      <UiProgressBar :value="vCpusCount" :max="cpusCount" :legend="$t('vcpus')" />
       <div class="total">
-        <UiCardNumbers :label="$t('vcpus-used')" :value="cpuProvisioning.used" size="medium" />
-        <UiCardNumbers :label="$t('total-cpus')" :value="cpuProvisioning.total" size="medium" />
+        <UiCardNumbers :label="$t('vcpus-assigned')" :value="vCpusCount" size="medium" />
+        <UiCardNumbers :label="$t('total-cpus')" :value="cpusCount" size="medium" />
       </div>
     </template>
   </UiCard>
@@ -22,6 +22,8 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
+import { and } from '@vueuse/math'
+import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'
 
 const { host } = defineProps<{
@@ -32,22 +34,17 @@ const { isReady: isHostReady } = useHostStore().subscribe()
 const { recordsByHostRef, isReady: areVmsReady } = useVmStore().subscribe()
 const { getByOpaqueRef: getVmMetricsByOpaqueRef } = useVmMetricsStore().subscribe()
 
-const isReady = computed(() => isHostReady.value && areVmsReady.value)
+const isReady = and(isHostReady, areVmsReady)
 
 const hostVms = computed(() => recordsByHostRef.value.get(host.$ref) ?? [])
 
-const cpuProvisioning = computed(() => {
-  const totalHostCpus = Number(host.cpu_info.cpu_count)
-  const totalVcpus = hostVms.value.reduce(
-    (total, vm) => total + (getVmMetricsByOpaqueRef(vm.metrics)?.VCPUs_number ?? 0),
-    0
-  )
+const cpusCount = computed(() => Number(host.cpu_info.cpu_count))
 
-  return {
-    total: totalHostCpus,
-    used: totalVcpus,
-  }
-})
+const vCpusCount = useArrayReduce(
+  hostVms,
+  (total, vm) => total + (getVmMetricsByOpaqueRef(vm.metrics)?.VCPUs_number ?? 0),
+  0
+)
 </script>
 
 <style lang="postcss" scoped>
