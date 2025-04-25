@@ -482,7 +482,9 @@ const TRANSFORMS = {
     }
 
     if (isHvm) {
-      ;({ vga: vm.vga = 'cirrus', videoram: vm.videoram = 4 } = obj.platform)
+      const { vga, videoram } = obj.platform
+      vm.vga = vga ?? 'cirrus'
+      vm.videoram = +(videoram ?? 4)
     }
 
     const coresPerSocket = obj.platform['cores-per-socket']
