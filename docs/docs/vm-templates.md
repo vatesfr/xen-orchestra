@@ -102,9 +102,9 @@ Viridian extensions —referred to as "Viridian enlightenments" by Microsoft— 
 
 We strongly advise to create Windows templates by starting from a built-in Windows template, as the Viridian setting in Xen Orchestra is only relevant for those.
 
-If your template is not based on a built-in Windows template, apply the Viridian extensions to the template manually. To do this, run `xe vm-param-set uuid=<vm uuid> platform:viridian=true`.
-
 :::
+
+#### Templates based on built-in Windows templates
 
 To find and enable the Viridian setting for your template:
 
@@ -117,6 +117,22 @@ The VM details screen appears.
 ![Location of the Viridian toggle in XO](./assets/viridian-extensions.png)
     Viridian extensions are now enabled for your VM. You can now safely use this VM to create your Windows template.
 
+#### Enabling Viridian for other non-Windows VM templates
+
+To enable Viridian enlightenments for other non-Windows VM templates, you need to: 
+
+1. **Enable Viridian**. To do this, run `xe vm-param-set uuid=<vm uuid> platform:viridian=true` in your VM.
+2. **Enable the extra Viridian parameters** necessary for your template to run optimally with Windows. To do this, run the same `xe` command in your VM, but change the arguments with the following:
+
+    ```
+    "device_id": "0002", // ID used by XCP-ng to detect Windows VMs
+    "viridian": "true",
+    "viridian_time_ref_count": "true",
+    "viridian_reference_tsc": "true",
+    "viridian_apic_assist": "true",
+    "viridian_crash_ctl": "true",
+    "viridian_stimer": "true"
+    ```
 
 ## Cloud-init and Cloudbase-init
 
