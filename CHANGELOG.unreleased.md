@@ -13,6 +13,7 @@
 
 - **XO 6:**
   - [VM/system] Create system pages (PR [#8513](https://github.com/vatesfr/xen-orchestra/pull/8513))
+  - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
 
 ### Bug fixes
 
@@ -34,6 +35,12 @@
 
 <!--packages-start-->
 
+- @vates/node-vsphere-soap patch
+- @xen-orchestra/immutable-backups patch
+- @xen-orchestra/rest-api patch
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
+- xo-server patch
+- xo-vmdk-to-vhd patch
 
 <!--packages-end-->

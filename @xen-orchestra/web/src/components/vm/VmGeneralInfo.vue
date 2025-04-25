@@ -4,8 +4,7 @@
       {{ $t('general-information') }}
     </UiTitle>
     <VtsQuickInfoRow :label="$t('name')" :value="vm.name_label" />
-    <VtsQuickInfoRow :label="$t('id')" :value="vm.name_label" />
-    <VtsQuickInfoRow :label="$t('name')" :value="vm.id" />
+    <VtsQuickInfoRow :label="$t('id')" :value="vm.id" />
     <VtsQuickInfoRow :label="$t('description')" :value="vm.name_description" />
     <VtsQuickInfoRow :label="$t('tags')">
       <template v-if="vm.tags.length > 0" #value>

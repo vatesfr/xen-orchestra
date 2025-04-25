@@ -11,33 +11,31 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('affinity-host')">
-      <template #value>
-        <template v-if="vm.affinityHost">
-          <UiLink :icon="faServer" :to="`host/${vm.affinityHost}`" size="small" target="_self">
-            {{ vm.affinityHost }}
-          </UiLink>
-        </template>
+      <template v-if="vm.affinityHost" #value>
+        <UiLink :icon="faServer" :to="`host/${vm.affinityHost}`" size="small" target="_self">
+          {{ vm.affinityHost }}
+        </UiLink>
       </template>
-      <VtsQuickInfoRow :label="$t('Protect-from-accidental-deletion')">
-        <template #value>
-          <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
-        </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('Protect-from-accidental-shutdown')">
-        <template #value>
-          <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
-        </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('auto-power')">
-        <template #value>
-          <UiInfo :accent="vm.auto_poweron ? 'success' : 'muted'">
-            {{ vm.auto_poweron ? $t('enabled') : $t('disabled') }}
-          </UiInfo>
-        </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('Start-delay')">
-        {{ timeAgo }}
-      </VtsQuickInfoRow>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Protect-from-accidental-deletion')">
+      <template #value>
+        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Protect-from-accidental-shutdown')">
+      <template #value>
+        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('auto-power')">
+      <template #value>
+        <UiInfo :accent="vm.auto_poweron ? 'success' : 'muted'">
+          {{ vm.auto_poweron ? $t('enabled') : $t('disabled') }}
+        </UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Start-delay')">
+      {{ timeAgo }}
     </VtsQuickInfoRow>
   </UiCard>
 </template>
