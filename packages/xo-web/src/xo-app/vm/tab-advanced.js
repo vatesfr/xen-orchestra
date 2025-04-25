@@ -1519,12 +1519,14 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                 )}
-                <tr>
-                  <th>{_('vmCreator')}</th>
-                  <td>
-                    <SelectUser onChange={this._updateUser} value={vm.creation?.user} />
-                  </td>
-                </tr>
+                {isAdmin && (
+                  <tr>
+                    <th>{_('vmCreator')}</th>
+                    <td>
+                      <SelectUser onChange={this._updateUser} value={vm.creation?.user} />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </Col>

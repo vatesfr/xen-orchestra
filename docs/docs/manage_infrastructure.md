@@ -462,6 +462,14 @@ To prevent a virtual machine from migrating:
 
 When this option is enabled, the VM won't be able to migrate to another host.
 
+## Migrating from VMware with V2V
+
+XCP-ng is a type 1 hypervisor, similar to VMware ESXi.
+
+You can migrate your VM from VMware vSphere to a Vates environment (Xen Orchestra and XCP-ng), directly from Xen Orchestra. For this, we use V2V ("VMware to Vates").
+
+To know more on using V2V in Xen Orchestra to migrate your environment from VMware, refer to the [XO V2V section in the XCP-ng documentation](https://docs.xcp-ng.org/installation/migrate-to-xcp-ng/#xo-v2v).
+
 
 ## Hosts management
 

@@ -98,6 +98,17 @@ class AuditCore {
     return record
   }
 
+  async _importRecord(record) {
+    if (!record.id || !record.previousId) {
+      throw new Error('Invalid record')
+    }
+    await this._storage.put(record)
+    return {
+      id: record.id,
+      isValid: record.id === createHash(record),
+    }
+  }
+
   async checkIntegrity(oldest, newest) {
     const storage = this._storage
 

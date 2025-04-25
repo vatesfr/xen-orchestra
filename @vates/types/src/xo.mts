@@ -115,6 +115,18 @@ type BaseXoVm = BaseXapiXo & {
       }
 }
 
+export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
+  body: {
+    value: string
+    name: string
+  }
+  object: {
+    type: XapiXoRecord['type'] | 'unknown'
+    uuid: XapiXoRecord['uuid']
+    href?: string
+  }
+}
+
 export type XoGroup = {
   id: Branded<'group'>
   name: string
@@ -209,6 +221,16 @@ export type XoHost = BaseXapiXo & {
 export type XoHostPatch = BaseXapiXo & {
   id: Branded<'host_patch'>
   type: 'host_patch'
+}
+
+export type XoMessage = BaseXapiXo & {
+  $object: XapiXoRecord['id']
+
+  body: string
+  id: Branded<'message'>
+  name: string
+  time: number
+  type: 'message'
 }
 
 export type XoNetwork = BaseXapiXo & {
@@ -445,7 +467,9 @@ export type XoVtpm = BaseXapiXo & {
 }
 
 export type XapiXoRecord =
+  | XoAlarm
   | XoHost
+  | XoMessage
   | XoNetwork
   | XoPool
   | XoSr
