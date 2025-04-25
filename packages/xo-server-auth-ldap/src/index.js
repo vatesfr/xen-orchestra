@@ -266,6 +266,13 @@ class AuthLdap {
     return new Disposable(() => client.unbind(), client)
   }
 
+  _searchAll(client, base, options) {
+    return client.search(base, {
+      ...options,
+      paged: { pageSize: 100 },
+    })
+  }
+
   async _authenticate({ username, password }) {
     if (username === undefined || password === undefined) {
       logger.debug('require `username` and `password` to authenticate!')
@@ -331,7 +338,7 @@ class AuthLdap {
     return await Disposable.use(this._getClient(), async client => {
       logger.info('syncing groups...')
       const { base, displayNameAttribute, filter, idAttribute, membersMapping } = this._groupsConfig
-      const { searchEntries: ldapGroups } = await client.search(base, {
+      const { searchEntries: ldapGroups } = await this._searchAll(client, base, {
         scope: 'sub',
         filter: filter || '', // may be undefined
       })
