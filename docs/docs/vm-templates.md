@@ -119,20 +119,7 @@ The VM details screen appears.
 
 #### Enabling Viridian for other non-Windows VM templates
 
-To enable Viridian enlightenments for other non-Windows VM templates, you need to: 
-
-1. **Enable Viridian**. To do this, run `xe vm-param-set uuid=<vm uuid> platform:viridian=true` in your VM.
-2. **Enable the extra Viridian parameters** necessary for your template to run optimally with Windows. To do this, run the same `xe` command in your VM, but change the arguments with the following:
-
-    ```
-    "device_id": "0002", // ID used by XCP-ng to detect Windows VMs
-    "viridian": "true",
-    "viridian_time_ref_count": "true",
-    "viridian_reference_tsc": "true",
-    "viridian_apic_assist": "true",
-    "viridian_crash_ctl": "true",
-    "viridian_stimer": "true"
-    ```
+To enable Viridian enlightenments for other non-Windows VM templates, follow the instructions detailed in the **Virtual Machines (VMs)** section of the [XCP-ng technical documentation](https://docs.xcp-ng.org/vms/).
 
 ## Cloud-init and Cloudbase-init
 
