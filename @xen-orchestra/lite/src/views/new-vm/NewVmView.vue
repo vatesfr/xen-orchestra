@@ -1051,6 +1051,7 @@ const createVM = defer(_createVm)
 
       .chips {
         display: flex;
+        flex-wrap: wrap;
         gap: 0.5rem;
         margin-block-end: 1rem;
       }
