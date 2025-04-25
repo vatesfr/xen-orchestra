@@ -15,7 +15,7 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 export class TaskController extends XoController<XoTask> {
   async getAllCollectionObjects(opts?: { filter?: string; limit?: number }): Promise<XoTask[]> {
     const tasks: XoTask[] = []
-    for await (const task of await this.restApi.xoApp.tasks.list({ ...(opts ?? {}) })) {
+    for await (const task of this.restApi.xoApp.tasks.list({ ...(opts ?? {}) })) {
       tasks.push(task)
     }
     return tasks
@@ -25,7 +25,7 @@ export class TaskController extends XoController<XoTask> {
   }
 
   /**
-   * @example fields "status,uuid"
+   * @example fields "status,id"
    * @example filter "status:/^failure/"
    * @example limit 42
    */
