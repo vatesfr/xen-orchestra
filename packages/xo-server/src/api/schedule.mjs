@@ -81,6 +81,7 @@ export async function runSequence({ schedules }) {
       await this.runJob(job, schedule)
       Task.set('progress', Math.round((i * 100) / nb))
     }
+    Task.set('progress', 100)
   })
 }
 runSequence.permission = 'admin'
