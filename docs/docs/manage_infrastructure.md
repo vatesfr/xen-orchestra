@@ -762,7 +762,7 @@ To receive reports, you need to enable the **usage-report** plugin.
 A list of plugins appears.
 2. From the list, look for the **usage-report** plugin. You can scroll through the list or type the plugin name in the search bar.
 3. Enable the plugin by activating the toggle switch next to the plugin name.
-4. Click the **-** icon to reveal the plugin settings :
+4. Click the **+** icon to reveal the plugin settings :
     ![](./assets/usage-report-plugin.png)
 5. In the **emails** section, click **Add**. This will display a new text field.
 6. In that field, enter the email address where you wish to receive the usage reports.\
