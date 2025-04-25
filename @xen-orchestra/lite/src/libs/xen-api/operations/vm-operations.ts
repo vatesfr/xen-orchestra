@@ -112,7 +112,7 @@ export function createVmOperations(xenApi: XenApi) {
       await xenApi.call('VM.remove_from_platform', [vmRef, 'cores-per-socket'])
 
       if (coresPerSocket !== null) {
-        await xenApi.call('VM.add_to_platform', [vmRef, 'cores-per-socket', coresPerSocket ?? null])
+        await xenApi.call('VM.add_to_platform', [vmRef, 'cores-per-socket', String(coresPerSocket)])
       }
     },
 
