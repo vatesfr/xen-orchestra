@@ -43,7 +43,7 @@
                 :icon="faCircle"
                 :overlay-icon="faStar"
               />
-              <UiCopyButton :copy-string="pif.uuid" />
+              <VtsCopyButton :value="pif.uuid" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NETWORK -->
@@ -65,7 +65,7 @@
               </div>
             </template>
             <template v-if="network?.name_label" #addons>
-              <UiCopyButton :copy-string="network.name_label" />
+              <VtsCopyButton :value="network.name_label" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DEVICE -->
@@ -77,7 +77,7 @@
               {{ pif.device }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-string="pif.device" />
+              <VtsCopyButton :value="pif.device" />
             </template>
           </VtsCardRowKeyValue>
           <!-- PIF STATUS -->
@@ -107,7 +107,7 @@
               {{ pif.VLAN === -1 ? $t('none') : pif.VLAN }}
             </template>
             <template v-if="pif.VLAN !== -1" #addons>
-              <UiCopyButton :copy-string="String(pif.VLAN)" />
+              <VtsCopyButton :value="String(pif.VLAN)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- TAGS -->
@@ -139,7 +139,7 @@
                 <span v-tooltip class="text-ellipsis">{{ ip }}</span>
               </template>
               <template #addons>
-                <UiCopyButton :copy-string="ip" />
+                <VtsCopyButton :value="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="$t('coming-soon')"
@@ -168,7 +168,7 @@
               {{ pif.MAC }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-string="pif.MAC" />
+              <VtsCopyButton :value="pif.MAC" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NETMASK -->
@@ -180,7 +180,7 @@
               <span class="value">{{ pif.netmask }}</span>
             </template>
             <template v-if="pif.netmask" #addons>
-              <UiCopyButton :copy-string="String(pif.netmask)" />
+              <VtsCopyButton :value="String(pif.netmask)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DNS -->
@@ -194,7 +194,7 @@
               </span>
             </template>
             <template v-if="pif.DNS" #addons>
-              <UiCopyButton :copy-string="String(pif.DNS)" />
+              <VtsCopyButton :value="String(pif.DNS)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- GATEWAY -->
@@ -208,7 +208,7 @@
               </span>
             </template>
             <template v-if="pif.gateway" #addons>
-              <UiCopyButton :copy-string="String(pif.gateway)" />
+              <VtsCopyButton :value="String(pif.gateway)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- IP CONFIGURATION MODE -->
@@ -230,7 +230,7 @@
                 <span v-tooltip class="text-ellipsis">{{ device }}</span>
               </template>
               <template v-if="device" #addons>
-                <UiCopyButton :copy-string="device" />
+                <VtsCopyButton :value="device" />
                 <UiButtonIcon
                   v-if="index === 0 && bondDevices.length > 1"
                   v-tooltip="$t('coming-soon')"
@@ -257,7 +257,7 @@
               {{ pif.MTU === -1 ? $t('none') : pif.MTU }}
             </template>
             <template v-if="pif.MTU !== -1" #addons>
-              <UiCopyButton :copy-string="String(pif.MTU)" />
+              <VtsCopyButton :value="String(pif.MTU)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- SPEED -->
@@ -278,7 +278,7 @@
               {{ networkPurpose }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-string="networkPurpose" />
+              <VtsCopyButton :value="networkPurpose" />
             </template>
           </VtsCardRowKeyValue>
         </div>
@@ -294,12 +294,12 @@ import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCopyButton from '@core/components/ui/copy-button/UiCopyButton.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'

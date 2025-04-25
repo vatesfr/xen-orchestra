@@ -2,6 +2,6 @@
 
 ```typescript
 <template>
-    <UICopyButton copy-element="hello world" />
+    <VtsCopyButton copy-element="hello world" />
 </template>
 ```

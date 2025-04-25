@@ -36,7 +36,7 @@
             </template>
             <template #value>{{ network.id }}</template>
             <template #addons>
-              <UiCopyButton :copy-string="network.id" />
+              <VtsCopyButton :value="network.id" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DESCRIPTION -->
@@ -48,7 +48,7 @@
               </span>
             </template>
             <template v-if="network.name_description" #addons>
-              <UiCopyButton :copy-string="network.name_description" />
+              <VtsCopyButton :value="network.name_description" />
             </template>
           </VtsCardRowKeyValue>
           <!-- VLAN -->
@@ -56,7 +56,7 @@
             <template #key>{{ $t('vlan') }}</template>
             <template #value>{{ networkVlan }}</template>
             <template v-if="pifs[0].vlan !== -1" #addons>
-              <UiCopyButton :copy-string="String(networkVlan)" />
+              <VtsCopyButton :value="String(networkVlan)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- MTU -->
@@ -68,7 +68,7 @@
               </span>
             </template>
             <template #addons>
-              <UiCopyButton :copy-string="String(network.MTU)" />
+              <VtsCopyButton :value="String(network.MTU)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NBD -->
@@ -76,7 +76,7 @@
             <template #key>{{ $t('network-block-device') }}</template>
             <template #value>{{ networkNbd }}</template>
             <template #addons>
-              <UiCopyButton :copy-string="networkNbd" />
+              <VtsCopyButton :value="networkNbd" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DEFAULT LOCKING MODE -->
@@ -120,11 +120,11 @@ import PifRow from '@/components/pif/PifRow.vue'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoNetwork } from '@/types/xo/network.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCopyButton from '@core/components/ui/copy-button/UiCopyButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
