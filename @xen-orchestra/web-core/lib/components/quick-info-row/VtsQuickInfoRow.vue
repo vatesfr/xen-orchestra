@@ -1,6 +1,6 @@
 <template>
   <div class="vts-quick-info-row">
-    <span class="typo-body-bold">
+    <span class="typo-body-bold label">
       <slot name="label">
         {{ label }}
       </slot>
@@ -32,6 +32,10 @@ defineSlots<{
   display: flex;
   align-items: center;
   gap: 1rem;
+
+  .label {
+    flex-shrink: 0;
+  }
 
   .value:empty::before {
     content: '-';

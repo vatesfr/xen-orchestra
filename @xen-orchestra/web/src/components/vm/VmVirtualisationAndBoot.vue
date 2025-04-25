@@ -3,11 +3,7 @@
     <UiTitle>
       {{ $t('Virtualization-boot-settings') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('virtualization-mode')">
-      <template #value>
-        {{ vm.virtualizationMode }}
-      </template>
-    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('virtualization-mode')" :value="vm.virtualizationMode" />
     <VtsQuickInfoRow :label="$t('Secure-boot')">
       <template #value>
         <UiInfo :accent="vm.secureBoot ? 'success' : 'muted'">
@@ -15,11 +11,7 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('virtual-tpm')">
-      <template #value>
-        {{ vm.VTPMs.join(', ') }}
-      </template>
-    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm.VTPMs.join(', ')" />
     <VtsQuickInfoRow :label="$t('Viridian')">
       <template #value>
         <UiInfo :accent="vm.viridian ? 'success' : 'muted'">
@@ -27,11 +19,11 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('Manage-Citrix-PV-drivers-via-Windows-Update')" class="text-ellipsis">
-      <template #value>
-        {{ vm.pvDriversVersion }}
-      </template>
-    </VtsQuickInfoRow>
+    <VtsQuickInfoRow
+      :label="$t('manage-Citrix-PV-drivers-via-Windows-Update')"
+      class="text-ellipsis"
+      :value="vm.pvDriversVersion"
+    />
     <VtsQuickInfoRow :label="$t('Nested-virtualization')">
       <UiInfo :accent="vm.isNestedVirtEnabled ? 'success' : 'muted'">
         {{ vm.isNestedVirtEnabled ? $t('enabled') : $t('disabled') }}
@@ -49,10 +41,3 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 </script>
-
-<style lang="postcss" scoped>
-.vm-virtualisation-and-boot {
-  background-color: var(--color-neutral-background-primary);
-  border-inline-start: none;
-}
-</style>

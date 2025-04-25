@@ -3,11 +3,7 @@
     <UiTitle>
       {{ $t('Networking') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('nic-type')">
-      <template #value>
-        {{ vm?.nicType }}
-      </template>
-    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('nic-type')" :value="vm?.nicType" />
   </UiCard>
 </template>
 
@@ -19,10 +15,3 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 </script>
-
-<style lang="postcss" scoped>
-.vm-system-networking {
-  background-color: var(--color-neutral-background-primary);
-  border-inline-start: none;
-}
-</style>

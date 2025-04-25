@@ -40,11 +40,7 @@ export type XoVm = {
     number: number
   }
   tags: Array<string>
-  os_version: {
-    name: string
-    uname: string
-    distro: string
-  }
+  os_version: Record<string, string> | null
   virtualizationMode: string
   secureBoot: boolean
   VTPMs: Array<string>

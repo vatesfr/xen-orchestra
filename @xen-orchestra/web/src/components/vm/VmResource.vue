@@ -3,12 +3,8 @@
     <UiTitle>
       {{ $t('resource-management') }}
     </UiTitle>
-    <template v-for="(value, key) in generalInfo" :key="key">
-      <VtsQuickInfoRow :label="$t(key)">
-        <template #value>
-          {{ value }}
-        </template>
-      </VtsQuickInfoRow>
+    <template v-for="(value, key) in generalInfo" :key>
+      <VtsQuickInfoRow :label="$t(key)" :value="String(value)" />
     </template>
   </UiCard>
 </template>
@@ -25,13 +21,13 @@ type GeneralInfo = {
   'cpu-mask': string
   'CPU-weight': number
   'cpu-cap': number
-  'Minimum-CPU-limit': string
-  'Maximum-CPU-limit': string
-  'vm-limit-typology': string
-  'Minimum-static-memory': string
-  'Maximum-static-memory': string
-  'Minimum-dynamic-memory': string
-  'Maximum-dynamic-memory': string
+  'minimum-CPU-limit': string
+  'maximum-CPU-limit': string
+  'vm-limit-topology': string
+  'minimum-static-memory': string
+  'maximum-static-memory': string
+  'minimum-dynamic-memory': string
+  'maximum-dynamic-memory': string
   GPUs: string
 }
 
@@ -47,25 +43,18 @@ const generalInfo: GeneralInfo = {
   'cpu-cap': vm.cpuCap ? vm.cpuCap : 0 /* XEN_DEFAULT_CPU_CAP */,
   'cpu-mask': vm.cpuMask ? vm.cpuMask.join(', ') : '',
   'CPU-weight': vm.cpuWeight ? vm.cpuWeight : 256 /* XEN_DEFAULT_CPU_WEIGHT */,
-  'Minimum-CPU-limit': 'no data',
-  'Maximum-CPU-limit': vm.CPUs.max + ' ' + t('CPUs'),
-  'vm-limit-typology': vm.coresPerSocket
-    ? t('vmSocketsWithCoresPerSocket', {
+  'minimum-CPU-limit': 'no data',
+  'maximum-CPU-limit': vm.CPUs.max + ' ' + t('CPUs'),
+  'vm-limit-topology': vm.coresPerSocket
+    ? t('sockets-with-cores-per-socket', {
         nSockets: vm.CPUs.max / vm.coresPerSocket,
         nCores: vm.coresPerSocket,
       })
     : '',
-  'Minimum-static-memory': `${staticMinMemoryFormated?.value} ${staticMinMemoryFormated?.prefix}`,
-  'Maximum-static-memory': `${staticMaxMemoryFormated?.value} ${staticMaxMemoryFormated?.prefix}`,
-  'Minimum-dynamic-memory': `${dynamicMinMemoryFormated?.value} ${dynamicMinMemoryFormated?.prefix}`,
-  'Maximum-dynamic-memory': `${dynamicMaxMemoryFormated?.value} ${dynamicMaxMemoryFormated?.prefix}`,
+  'minimum-static-memory': `${staticMinMemoryFormated?.value} ${staticMinMemoryFormated?.prefix}`,
+  'maximum-static-memory': `${staticMaxMemoryFormated?.value} ${staticMaxMemoryFormated?.prefix}`,
+  'minimum-dynamic-memory': `${dynamicMinMemoryFormated?.value} ${dynamicMinMemoryFormated?.prefix}`,
+  'maximum-dynamic-memory': `${dynamicMaxMemoryFormated?.value} ${dynamicMaxMemoryFormated?.prefix}`,
   GPUs: vm.VGPUs.join(', '),
 }
 </script>
-
-<style lang="postcss" scoped>
-.vm-resource {
-  background-color: var(--color-neutral-background-primary);
-  border-inline-start: none;
-}
-</style>

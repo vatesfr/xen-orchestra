@@ -3,7 +3,7 @@
     <UiTitle>
       {{ $t('vm-management') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('High-availability')">
+    <VtsQuickInfoRow :label="$t('high-availability')">
       <template #value>
         <UiInfo :accent="vm.high_availability !== '' ? 'success' : 'muted'">
           {{ vm.high_availability ? $t(vm.high_availability) : $t('disabled') }}
@@ -13,7 +13,7 @@
     <VtsQuickInfoRow :label="$t('affinity-host')">
       <template #value>
         <template v-if="vm.affinityHost">
-          <UiLink :icon="faServer" :href="`#/host/${vm.affinityHost}`" size="small" target="_self">
+          <UiLink :icon="faServer" :to="`host/${vm.affinityHost}`" size="small" target="_self">
             {{ vm.affinityHost }}
           </UiLink>
         </template>
@@ -56,10 +56,3 @@ import { computed } from 'vue'
 const { vm } = defineProps<{ vm: XoVm }>()
 const timeAgo = computed(() => useTimeAgo(vm.startDelay))
 </script>
-
-<style lang="postcss" scoped>
-.vm-management {
-  background-color: var(--color-neutral-background-primary);
-  border-inline-start: none;
-}
-</style>

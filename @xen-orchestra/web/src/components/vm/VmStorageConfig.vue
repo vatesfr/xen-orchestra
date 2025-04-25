@@ -3,11 +3,7 @@
     <UiTitle>
       {{ $t('Storage-configuration') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('Suspend-Storage-Repository')">
-      <template #value>
-        {{ vm?.suspendSr }}
-      </template>
-    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Suspend-Storage-Repository')" :value="vm?.suspendSr" />
   </UiCard>
 </template>
 
@@ -19,10 +15,3 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 </script>
-
-<style lang="postcss" scoped>
-.vm-storage-config {
-  background-color: var(--color-neutral-background-primary);
-  border-inline-start: none;
-}
-</style>
