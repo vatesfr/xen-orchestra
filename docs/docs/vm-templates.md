@@ -98,6 +98,14 @@ Viridian extensions —referred to as "Viridian enlightenments" by Microsoft— 
 
 ### Step-by-step guide
 
+:::warning
+
+We strongly advise to create Windows templates by starting from a built-in Windows template, as the Viridian setting in Xen Orchestra is only relevant for those.
+
+If your template is not based on a built-in Windows template, apply the Viridian extensions to the template manually. To do this, run `xe vm-param-set uuid=<vm uuid> platform:viridian=true`.
+
+:::
+
 To find and enable the Viridian setting for your template:
 
 1. Navigate to the **Home → VMs** menu.\
