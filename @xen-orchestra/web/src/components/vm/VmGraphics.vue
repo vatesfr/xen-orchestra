@@ -28,5 +28,5 @@ import { formatSizeRaw } from '@core/utils/size.util'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
-const VideoRamValue = formatSizeRaw(vm.videoram, 0)?.value
+const VideoRamValue = vm.videoram ? formatSizeRaw(Number(vm.videoram), 0)?.value : null
 </script>
