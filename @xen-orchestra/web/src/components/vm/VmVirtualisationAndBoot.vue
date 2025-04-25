@@ -19,11 +19,13 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow
-      :label="$t('manage-Citrix-PV-drivers-via-Windows-Update')"
-      class="text-ellipsis"
-      :value="vm.pvDriversVersion"
-    />
+    <VtsQuickInfoRow :label="$t('manage-Citrix-PV-drivers-via-Windows-Update')" class="text-ellipsis">
+      <template #value>
+        <UiInfo accent="warning">
+          {{ $t('error-no-data') }}
+        </UiInfo>
+      </template>
+    </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Nested-virtualization')">
       <UiInfo :accent="vm.isNestedVirtEnabled ? 'success' : 'muted'">
         {{ vm.isNestedVirtEnabled ? $t('enabled') : $t('disabled') }}

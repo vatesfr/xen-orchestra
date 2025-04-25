@@ -1,4 +1,4 @@
-<!-- v3 -->
+<!-- v4 -->
 <template>
   <div class="ui-head-bar">
     <div class="label-wrapper">
@@ -41,7 +41,7 @@ const slots = defineSlots<{
 .ui-head-bar {
   padding: 0.8rem 1.6rem;
   display: flex;
-  gap: 4.8rem;
+  gap: 1.6rem;
   align-items: center;
   border-bottom: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);

@@ -4,6 +4,9 @@
       <UiObjectIcon size="medium" type="host" :state="host.power_state.toLocaleLowerCase() as HostState" />
     </template>
     {{ host.name_label }}
+    <template v-if="isMaster" #status>
+      <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+    </template>
   </UiHeadBar>
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/dashboard`" custom>
@@ -35,14 +38,22 @@
 </template>
 
 <script lang="ts" setup>
+import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import type { XoHost } from '@/types/xo/host.type'
 import type { HostState } from '@core/types/object-icon.type'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
+import { faCircle, faStar } from '@fortawesome/free-solid-svg-icons'
+import { computed } from 'vue'
 
-defineProps<{
+const { host } = defineProps<{
   host: XoHost
 }>()
+
+const { isMasterHost } = useHostStore().subscribe()
+const isMaster = computed(() => isMasterHost(host.id))
 </script>

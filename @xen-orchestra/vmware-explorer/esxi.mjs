@@ -3,8 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { dirname } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { strictEqual, notStrictEqual } from 'node:assert'
-import fetch from 'node-fetch'
-import https from 'https'
+import { Agent } from 'undici'
 
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
@@ -29,8 +28,10 @@ export default class Esxi extends EventEmitter {
     this.#user = user
     this.#password = password
     if (!sslVerify) {
-      this.#httpsAgent = new https.Agent({
-        rejectUnauthorized: false,
+      this.#httpsAgent = new Agent({
+        connect: {
+          rejectUnauthorized: false,
+        },
       })
     }
 
@@ -100,7 +101,7 @@ export default class Esxi extends EventEmitter {
       headers.Authorization = 'Basic ' + Buffer.from(this.#user + ':' + this.#password).toString('base64')
     }
     const res = await fetch(url, {
-      agent: this.#httpsAgent,
+      dispatcher: this.#httpsAgent,
       method: 'GET',
       headers,
       highWaterMark: 10 * 1024 * 1024,
@@ -429,7 +430,7 @@ export default class Esxi extends EventEmitter {
         Cookie: this.#client.authCookie.cookies,
         SOAPAction: '"urn:vim25/6.0"', // mandatory to have an answer when asking for httpNfcLease
       },
-      agent: this.#httpsAgent,
+      dispatcher: this.#httpsAgent,
       body: `<?xml version="1.0" encoding="UTF-8"?>
         <soapenv:Envelope 
           xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" 
