@@ -25,7 +25,9 @@ import { computed } from 'vue'
 const { host } = defineProps<{
   host: XenApiHost
 }>()
+
 const { runningHosts } = useHostStore().subscribe()
+
 const getHostPowerState = computed(() => {
   const isHostRunning = runningHosts.value.some(runningHost => runningHost.uuid === host.uuid)
   return isHostRunning ? 'running' : 'halted'
