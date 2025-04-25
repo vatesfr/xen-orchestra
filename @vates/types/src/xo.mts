@@ -6,7 +6,6 @@ import type {
   HOST_ALLOWED_OPERATIONS,
   HOST_POWER_STATE,
   STORAGE_OPERATIONS,
-  TASK_ALLOWED_OPERATIONS,
   TASK_STATUS_TYPE,
   VDI_OPERATIONS,
   VDI_TYPE,
@@ -285,14 +284,11 @@ export type XoSr = BaseXapiXo & {
 
 export type XoTask = {
   id: Branded<'task'>
-  type: 'task'
   start: number
   end: number
-  properties: {
-    type: string
-    name: string
-  }
-  status: Record<string, TASK_STATUS_TYPE>
+  updatedAt: number
+  properties: Record<string, unknown>
+  status: TASK_STATUS_TYPE
   tasks?: XoTask[]
 }
 

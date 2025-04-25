@@ -37,7 +37,7 @@ export type XoApp = {
   tasks: EventEmitter & {
     create: (params: { name: string; objectId?: string; type?: string }) => Task
     get: (id: string) => Promise<XoTask>
-    list: (opts?: { filter?: string; limit?: number }) => Promise<XoTask[]>
+    list: (opts?: { filter?: string; limit?: number }) => AsyncGenerator<XoTask>
   }
 
   // methods ------------
