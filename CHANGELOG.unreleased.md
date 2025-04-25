@@ -31,7 +31,11 @@
 
 <!--packages-start-->
 
+- @vates/node-vsphere-soap patch
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api patch
+- @xen-orchestra/vmware-explorer patch
 - xo-server patch
+- xo-vmdk-to-vhd patch
 
 <!--packages-end-->
