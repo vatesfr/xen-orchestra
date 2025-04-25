@@ -31,6 +31,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api patch
 - xo-server patch
 
