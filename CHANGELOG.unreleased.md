@@ -34,7 +34,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api patch
-- xo-server-web-hooks minor
 - xo-server patch
+- xo-server-web-hooks minor
 
 <!--packages-end-->
