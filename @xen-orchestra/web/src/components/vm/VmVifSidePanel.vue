@@ -36,7 +36,7 @@
               {{ vif.id }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="vif.id" />
+              <UiCopyButton :copy-string="vif.id" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NETWORK -->
@@ -56,7 +56,7 @@
               <span v-tooltip class="text-ellipsis value">{{ network?.name_label }}</span>
             </template>
             <template v-if="network?.name_label" #addons>
-              <UiCopyButton :copy-element="network.name_label" />
+              <UiCopyButton :copy-string="network.name_label" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DEVICE -->
@@ -68,7 +68,7 @@
               {{ $t('vif-device', { device: vif.device }) }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="vif.device" />
+              <UiCopyButton :copy-string="vif.device" />
             </template>
           </VtsCardRowKeyValue>
           <!-- VIF STATUS -->
@@ -89,7 +89,7 @@
               {{ vif.MTU }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="String(vif.MTU)" />
+              <UiCopyButton :copy-string="String(vif.MTU)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- LOCKING MODE -->
@@ -126,7 +126,7 @@
                 <span class="text-ellipsis">{{ ip }}</span>
               </template>
               <template #addons>
-                <UiCopyButton :copy-element="ip" />
+                <UiCopyButton :copy-string="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="$t('coming-soon')"
@@ -155,7 +155,7 @@
               {{ vif.MAC }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="vif.MAC" />
+              <UiCopyButton :copy-string="vif.MAC" />
             </template>
           </VtsCardRowKeyValue>
         </div>

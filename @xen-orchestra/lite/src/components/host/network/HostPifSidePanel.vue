@@ -43,7 +43,7 @@
                 :icon="faCircle"
                 :overlay-icon="faStar"
               />
-              <UiCopyButton :copy-element="pif.uuid" />
+              <UiCopyButton :copy-string="pif.uuid" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NETWORK -->
@@ -65,7 +65,7 @@
               </div>
             </template>
             <template v-if="network?.name_label" #addons>
-              <UiCopyButton :copy-element="network.name_label" />
+              <UiCopyButton :copy-string="network.name_label" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DEVICE -->
@@ -77,7 +77,7 @@
               {{ pif.device }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="pif.device" />
+              <UiCopyButton :copy-string="pif.device" />
             </template>
           </VtsCardRowKeyValue>
           <!-- PIF STATUS -->
@@ -107,7 +107,7 @@
               {{ pif.VLAN === -1 ? $t('none') : pif.VLAN }}
             </template>
             <template v-if="pif.VLAN !== -1" #addons>
-              <UiCopyButton :copy-element="String(pif.VLAN)" />
+              <UiCopyButton :copy-string="String(pif.VLAN)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- TAGS -->
@@ -139,7 +139,7 @@
                 <span v-tooltip class="text-ellipsis">{{ ip }}</span>
               </template>
               <template #addons>
-                <UiCopyButton :copy-element="ip" />
+                <UiCopyButton :copy-string="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="$t('coming-soon')"
@@ -168,7 +168,7 @@
               {{ pif.MAC }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="pif.MAC" />
+              <UiCopyButton :copy-string="pif.MAC" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NETMASK -->
@@ -180,7 +180,7 @@
               <span class="value">{{ pif.netmask }}</span>
             </template>
             <template v-if="pif.netmask" #addons>
-              <UiCopyButton :copy-element="String(pif.netmask)" />
+              <UiCopyButton :copy-string="String(pif.netmask)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DNS -->
@@ -194,7 +194,7 @@
               </span>
             </template>
             <template v-if="pif.DNS" #addons>
-              <UiCopyButton :copy-element="String(pif.DNS)" />
+              <UiCopyButton :copy-string="String(pif.DNS)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- GATEWAY -->
@@ -208,7 +208,7 @@
               </span>
             </template>
             <template v-if="pif.gateway" #addons>
-              <UiCopyButton :copy-element="String(pif.gateway)" />
+              <UiCopyButton :copy-string="String(pif.gateway)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- IP CONFIGURATION MODE -->
@@ -230,7 +230,7 @@
                 <span v-tooltip class="text-ellipsis">{{ device }}</span>
               </template>
               <template v-if="device" #addons>
-                <UiCopyButton :copy-element="device" />
+                <UiCopyButton :copy-string="device" />
                 <UiButtonIcon
                   v-if="index === 0 && bondDevices.length > 1"
                   v-tooltip="$t('coming-soon')"
@@ -257,7 +257,7 @@
               {{ pif.MTU === -1 ? $t('none') : pif.MTU }}
             </template>
             <template v-if="pif.MTU !== -1" #addons>
-              <UiCopyButton :copy-element="String(pif.MTU)" />
+              <UiCopyButton :copy-string="String(pif.MTU)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- SPEED -->
@@ -278,7 +278,7 @@
               {{ networkPurpose }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="networkPurpose" />
+              <UiCopyButton :copy-string="networkPurpose" />
             </template>
           </VtsCardRowKeyValue>
         </div>

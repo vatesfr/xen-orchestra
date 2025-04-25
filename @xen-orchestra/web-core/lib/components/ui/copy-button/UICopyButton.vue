@@ -15,8 +15,8 @@ import { useClipboard } from '@vueuse/core'
 import { ref } from 'vue'
 import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 
-const { copyElement } = defineProps<{
-  copyElement: string
+const { copyString } = defineProps<{
+  copyString: string
 }>()
 const { copy, copied } = useClipboard()
 
@@ -24,7 +24,7 @@ const icon = ref(faCopy)
 let timer: ReturnType<typeof setTimeout>
 
 function copyFunction() {
-  copy(copyElement)
+  copy(copyString)
   icon.value = faCheckCircle
   clearTimeout(timer)
   timer = setTimeout(() => {

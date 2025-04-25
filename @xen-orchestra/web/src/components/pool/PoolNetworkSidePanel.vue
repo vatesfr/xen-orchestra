@@ -36,7 +36,7 @@
             </template>
             <template #value>{{ network.id }}</template>
             <template #addons>
-              <UiCopyButton :copy-element="network.id" />
+              <UiCopyButton :copy-string="network.id" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DESCRIPTION -->
@@ -48,7 +48,7 @@
               </span>
             </template>
             <template v-if="network.name_description" #addons>
-              <UiCopyButton :copy-element="network.name_description" />
+              <UiCopyButton :copy-string="network.name_description" />
             </template>
           </VtsCardRowKeyValue>
           <!-- VLAN -->
@@ -56,7 +56,7 @@
             <template #key>{{ $t('vlan') }}</template>
             <template #value>{{ networkVlan }}</template>
             <template v-if="pifs[0].vlan !== -1" #addons>
-              <UiCopyButton :copy-element="String(networkVlan)" />
+              <UiCopyButton :copy-string="String(networkVlan)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- MTU -->
@@ -68,7 +68,7 @@
               </span>
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="String(network.MTU)" />
+              <UiCopyButton :copy-string="String(network.MTU)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NBD -->
@@ -76,7 +76,7 @@
             <template #key>{{ $t('network-block-device') }}</template>
             <template #value>{{ networkNbd }}</template>
             <template #addons>
-              <UiCopyButton :copy-element="networkNbd" />
+              <UiCopyButton :copy-string="networkNbd" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DEFAULT LOCKING MODE -->

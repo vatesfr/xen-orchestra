@@ -43,7 +43,7 @@
                 :icon="faCircle"
                 :overlay-icon="faStar"
               />
-              <UiCopyButton :copy-element="pif.id" />
+              <UiCopyButton :copy-string="pif.id" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NETWORK -->
@@ -63,7 +63,7 @@
               <span v-tooltip class="value text-ellipsis">{{ network?.name_label }}</span>
             </template>
             <template v-if="network?.name_label" #addons>
-              <UiCopyButton :copy-element="network.name_label" />
+              <UiCopyButton :copy-string="network.name_label" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DEVICE -->
@@ -75,7 +75,7 @@
               {{ pif.device }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="pif.device" />
+              <UiCopyButton :copy-string="pif.device" />
             </template>
           </VtsCardRowKeyValue>
           <!-- PIF STATUS -->
@@ -105,7 +105,7 @@
               {{ pif.vlan === -1 ? $t('none') : pif.vlan }}
             </template>
             <template v-if="pif.vlan !== -1" #addons>
-              <UiCopyButton :copy-element="String(pif.vlan)" />
+              <UiCopyButton :copy-string="String(pif.vlan)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- TAGS -->
@@ -137,7 +137,7 @@
                 <span class="text-ellipsis">{{ ip }}</span>
               </template>
               <template #addons>
-                <UiCopyButton :copy-element="ip" />
+                <UiCopyButton :copy-string="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="$t('coming-soon')"
@@ -166,7 +166,7 @@
               {{ pif.mac }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="pif.mac" />
+              <UiCopyButton :copy-string="pif.mac" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NETMASK -->
@@ -178,7 +178,7 @@
               <span class="value">{{ pif.netmask }}</span>
             </template>
             <template v-if="pif.netmask" #addons>
-              <UiCopyButton :copy-element="pif.netmask" />
+              <UiCopyButton :copy-string="pif.netmask" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DNS -->
@@ -192,7 +192,7 @@
               </span>
             </template>
             <template v-if="pif.dns" #addons>
-              <UiCopyButton :copy-element="pif.dns" />
+              <UiCopyButton :copy-string="pif.dns" />
             </template>
           </VtsCardRowKeyValue>
           <!-- GATEWAY -->
@@ -206,7 +206,7 @@
               </span>
             </template>
             <template v-if="pif.gateway" #addons>
-              <UiCopyButton :copy-element="pif.gateway" />
+              <UiCopyButton :copy-string="pif.gateway" />
             </template>
           </VtsCardRowKeyValue>
           <!-- IP CONFIGURATION MODE -->
@@ -228,7 +228,7 @@
                 <span v-tooltip class="text-ellipsis">{{ device }}</span>
               </template>
               <template #addons>
-                <UiCopyButton :copy-element="device" />
+                <UiCopyButton :copy-string="device" />
                 <UiButtonIcon
                   v-if="index === 0 && bondDevices.length > 1"
                   v-tooltip="$t('coming-soon')"
@@ -255,7 +255,7 @@
               {{ pif.mtu === -1 ? $t('none') : pif.mtu }}
             </template>
             <template v-if="pif.mtu !== -1" #addons>
-              <UiCopyButton :copy-element="String(pif.mtu)" />
+              <UiCopyButton :copy-string="String(pif.mtu)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- SPEED -->
@@ -276,7 +276,7 @@
               {{ networkNbd }}
             </template>
             <template #addons>
-              <UiCopyButton :copy-element="networkNbd" />
+              <UiCopyButton :copy-string="networkNbd" />
             </template>
           </VtsCardRowKeyValue>
         </div>
