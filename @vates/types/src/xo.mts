@@ -13,7 +13,6 @@ import type {
   POOL_ALLOWED_OPERATIONS,
   PRIMARY_ADDRESS_TYPE,
   STORAGE_OPERATIONS,
-  TASK_ALLOWED_OPERATIONS,
   TASK_STATUS_TYPE,
   VDI_OPERATIONS,
   VDI_TYPE,
@@ -489,6 +488,18 @@ export type XoSm = BaseXapiXo & {
   required_cluster_stack: string[]
   supported_image_formats: string[]
   type: 'SM'
+}
+
+export type XoTask = {
+  id: Branded<'task'>
+
+  start: number
+  end: number
+  pending: number
+  updatedAt: number
+  properties: Record<string, unknown>
+  status: TASK_STATUS_TYPE
+  tasks?: XoTask[]
 }
 
 export type XoUser = {
