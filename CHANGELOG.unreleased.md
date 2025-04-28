@@ -13,6 +13,8 @@
 
 - **XO6**:
   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
+- Hub recipe
+  - Upgrade Pyrgos/Kubernetes recipe to use MicroK8s
 
 ### Bug fixes
 
