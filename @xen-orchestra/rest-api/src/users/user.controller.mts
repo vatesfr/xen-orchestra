@@ -1,11 +1,12 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import type { Request as ExRequest } from 'express'
+import { provide } from 'inversify-binding-decorators'
+import type { XoUser } from '@vates/types'
+
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialUsers, user, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
-import { provide } from 'inversify-binding-decorators'
-import type { Request as ExRequest } from 'express'
 import type { WithHref } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
-import type { XoUser } from '@vates/types'
 
 @Route('users')
 @Security('*')
@@ -16,15 +17,15 @@ export class UserController extends XoController<XoUser> {
   // --- abstract methods
   async getAllCollectionObjects(): Promise<XoUser[]> {
     const users = await this.restApi.xoApp.getAllUsers()
-    return users.map(user => this.sanitizeUser(user))
+    return users.map(user => this.#sanitizeUser(user))
   }
 
   async getCollectionObject(id: XoUser['id']): Promise<XoUser> {
     const user = await this.restApi.xoApp.getUser(id)
-    return this.sanitizeUser(user)
+    return this.#sanitizeUser(user)
   }
 
-  sanitizeUser(user: XoUser): XoUser {
+  #sanitizeUser(user: XoUser): XoUser {
     const sanitizedUser = { ...user }
 
     if (sanitizedUser.pw_hash !== undefined) {
@@ -60,6 +61,6 @@ export class UserController extends XoController<XoUser> {
   @Response(notFoundResp.status, notFoundResp.description)
   async getUser(@Path() id: string): Promise<Unbrand<XoUser>> {
     const user = await this.getObject(id as XoUser['id'])
-    return this.sanitizeUser(user)
+    return this.#sanitizeUser(user)
   }
 }
