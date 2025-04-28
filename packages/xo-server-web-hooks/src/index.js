@@ -125,7 +125,7 @@ class XoServerHooks {
         params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
         timestamp: 0,
       }
-      // erase type to not send `type: 'pre/post'` in the payload
+      // overrides type to not send `type: 'pre/post'` in payload
       const preHooks = this._hooks[method].pre?.map(hook => ({ ...hook, type: 'pre' })) ?? []
       const postHooks = this._hooks[method].post?.map(hook => ({ ...hook, type: 'post' })) ?? []
 
