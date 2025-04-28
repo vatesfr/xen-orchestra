@@ -13,6 +13,7 @@
 
 - **XO6**:
   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
+  - [Host/System] Create system page (PR [#8521](https://github.com/vatesfr/xen-orchestra/pull/8521))
 - Hub recipe
   - Upgrade Pyrgos/Kubernetes recipe to use MicroK8s
 - **Migrated REST API endpoints**:
@@ -44,6 +45,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server patch
 - xo-vmdk-to-vhd patch
 
