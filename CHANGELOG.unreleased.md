@@ -11,14 +11,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- **XO6**:
-  - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
-- Hub recipe
-  - Upgrade Pyrgos/Kubernetes recipe to use MicroK8s
-- **Migrated REST API endpoints**:
-  - `/rest/v0/users` (PR [#8494](https://github.com/vatesfr/xen-orchestra/pull/8494))
-  - `/rest/v0/users/<user-id>` (PR [#8494](https://github.com/vatesfr/xen-orchestra/pull/8494))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -38,13 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @vates/node-vsphere-soap patch
-- @xen-orchestra/immutable-backups patch
-- @xen-orchestra/rest-api minor
-- @xen-orchestra/vmware-explorer patch
-- @xen-orchestra/web minor
-- xo-server patch
-- xo-vmdk-to-vhd patch
 
 <!--packages-end-->

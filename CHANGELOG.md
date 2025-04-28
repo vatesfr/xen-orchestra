@@ -13,14 +13,18 @@
   - `/rest/v0/alarms/<alarm-id>` (PR [#8485](https://github.com/vatesfr/xen-orchestra/pull/8485))
   - `/rest/v0/messages` (PR [#8485](https://github.com/vatesfr/xen-orchestra/pull/8485))
   - `/rest/v0/messages/<message-id>` (PR [#8485](https://github.com/vatesfr/xen-orchestra/pull/8485))
+  - `/rest/v0/users` (PR [#8494](https://github.com/vatesfr/xen-orchestra/pull/8494))
+  - `/rest/v0/users/<user-id>` (PR [#8494](https://github.com/vatesfr/xen-orchestra/pull/8494))
 - [VM/Advanced] Rename `Block migration` to `Prevent migration` (PR [#8500](https://github.com/vatesfr/xen-orchestra/pull/8500))
 - [Dashboard/Health] Display snapshots older than 30 days for which no schedules are enabled (PR [#8487](https://github.com/vatesfr/xen-orchestra/pull/8487))
 - [REST API] Expose `/rest/v0/schedules` and `/rest/v0/schedules/<schedule-id>` enpoints (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
 - [REST API] Expose the possibility to run a schedule `/rest/v0/schedules/<schedule-id>/actions/run` (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
 - [Host/Networks] PIFs can now be filtered by network names
 - [Plugins/audit] Add an option to import audit logs from an XOA to another (PR [#8474](https://github.com/vatesfr/xen-orchestra/pull/8474))
+- [Hub recipe] Upgrade Pyrgos/Kubernetes recipe to use MicroK8s (PR [#8530](https://github.com/vatesfr/xen-orchestra/pull/8530))
 - **XO 6:**
   - [i18n] Update Swedish, Czech, Spanish, Persian, Italian, Russian and add Dutch translations (PR [#8465](https://github.com/vatesfr/xen-orchestra/pull/8465))
+  - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
 
 ### Bug fixes
 
@@ -39,14 +43,17 @@
 - @xen-orchestra/audit-core 0.4.0
 - @xen-orchestra/backups 0.59.0
 - @xen-orchestra/backups-cli 1.0.30
-- @xen-orchestra/immutable-backups 1.0.18
 - @xen-orchestra/web-core 0.19.0
 - @xen-orchestra/proxy 0.29.17
-- @xen-orchestra/rest-api 0.4.0
-- @xen-orchestra/web 0.16.0
-- xo-server 5.176.1
 - xo-server-audit 0.14.0
-- xo-web 5.172.0
+- @vates/node-vsphere-soap 2.1.2
+- @xen-orchestra/immutable-backups 1.0.19
+- @xen-orchestra/rest-api 0.5.0
+- xo-vmdk-to-vhd 2.5.8
+- @xen-orchestra/vmware-explorer 0.9.4
+- @xen-orchestra/web 0.17.0
+- xo-server 5.176.2
+- xo-web 5.172.1
 
 ## **5.105.0** (2025-03-31)
 
