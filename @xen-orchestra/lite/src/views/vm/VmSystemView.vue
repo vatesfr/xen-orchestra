@@ -6,7 +6,9 @@
       <VmStorageConfig :vm />
       <VmResource :vm />
     </div>
-    <div class="colum" />
+    <div class="colum">
+      <VmVirtualisationAndBoot :vm />
+    </div>
   </div>
 </template>
 
@@ -21,6 +23,7 @@ import VmGeneralInfo from './VmGeneralInfo.vue'
 import VmResource from './VmResource.vue'
 import VmStorageConfig from './VmStorageConfig.vue'
 import VmSystemNetworking from './VmSystemNetworking.vue'
+import VmVirtualisationAndBoot from './VmVirtualisationAndBoot.vue'
 
 const route = useRoute()
 const { getByUuid } = useVmStore().subscribe()
