@@ -17,26 +17,26 @@
       <template #value>
         <UiLink :icon="faServer" :to="`host/${'hello'}`" size="small" target="_self"> {{ $t('add') }} </UiLink>
       </template>
-      <VtsQuickInfoRow :label="$t('Protect-from-accidental-deletion')">
-        <template #value>
-          <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
-        </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('Protect-from-accidental-shutdown')">
-        <template #value>
-          <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
-        </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('auto-power')">
-        <template #value>
-          <UiInfo :accent="true ? 'success' : 'muted'">
-            {{ true ? $t('enabled') : $t('disabled') }}
-          </UiInfo>
-        </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('Start-delay')">
-        {{ timeAgo }}
-      </VtsQuickInfoRow>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Protect-from-accidental-deletion')">
+      <template #value>
+        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Protect-from-accidental-shutdown')">
+      <template #value>
+        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('auto-power')">
+      <template #value>
+        <UiInfo :accent="true ? 'success' : 'muted'">
+          {{ true ? $t('enabled') : $t('disabled') }}
+        </UiInfo>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('Start-delay')">
+      {{ timeAgo }}
     </VtsQuickInfoRow>
   </UiCard>
 </template>
@@ -59,4 +59,6 @@ const timeAgo = computed(() => useTimeAgo(vm?.start_delay ?? NaN))
 // not found
 // high_availability
 // auto_poweron
+// Protect-from-accidental-shutdown
+// Protect-from-accidental-deletion
 </script>

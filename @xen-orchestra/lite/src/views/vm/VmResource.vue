@@ -45,7 +45,7 @@ const generalInfo: GeneralInfo = {
   'cpu-mask': /* vm.cpuMask ? vm.cpuMask.join(', ') : '' */ '',
   'CPU-weight': /* vm.cpuWeight ? vm.cpuWeight : 256 /* XEN_DEFAULT_CPU_WEIGHT */ 256,
   'minimum-CPU-limit': 'no data',
-  'maximum-CPU-limit': /* vm.CPUs.max */ 0 + ' ' + t('CPUs'),
+  'maximum-CPU-limit': vm?.VCPUs_max + ' ' + t('CPUs'),
   'vm-limit-topology':
     /* vm.coresPerSocket
     ? t('sockets-with-cores-per-socket', {
