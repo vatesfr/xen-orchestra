@@ -457,8 +457,7 @@ To prevent a virtual machine from migrating:
 
 1. Go to the VM's configuration page.
 2. Go to the **Advanced** tab.
-3. Activate the **Prevent migration** toggle switch. 
-
+3. Activate the **Prevent migration** toggle switch.
 
 When this option is enabled, the VM won't be able to migrate to another host.
 
@@ -469,7 +468,6 @@ XCP-ng is a type 1 hypervisor, similar to VMware ESXi.
 You can migrate your VM from VMware vSphere to a Vates environment (Xen Orchestra and XCP-ng), directly from Xen Orchestra. For this, we use V2V ("VMware to Vates").
 
 To know more on using V2V in Xen Orchestra to migrate your environment from VMware, refer to the [XO V2V section in the XCP-ng documentation](https://docs.xcp-ng.org/installation/migrate-to-xcp-ng/#xo-v2v).
-
 
 ## Hosts management
 
@@ -549,6 +547,7 @@ XO will restart the hosts one by one and wait for each host to be up and running
 [xapiOptions]
 restartHostTimeout = '40 minutes'
 ```
+
 :::
 
 ![](./assets/rpu1.png)
@@ -607,9 +606,10 @@ As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#po
 :::
 
 :::warning
+
 - Even with matching CPU vendors, in the case of different CPU models, XCP-ng/Citrix Hypervisor will "level" down to use the CPU having the least instructions.
 - All the hosts in a pool must run the same XCP-ng version.
-:::
+  :::
 
 ### Creating a pool
 
@@ -639,9 +639,10 @@ To remove one host from a pool, you can go to the "Advanced" tab of the host pag
 ![](./assets/detach-host.png)
 
 :::warning
+
 - Detaching a host will remove all the VM disks stored on the Local Storage of this host, and reboot the host.
 - The host you want to remove must be a slave, not the master!
-:::
+  :::
 
 ## Storage Management
 

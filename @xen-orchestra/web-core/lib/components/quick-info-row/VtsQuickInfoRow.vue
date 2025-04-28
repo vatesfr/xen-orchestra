@@ -34,7 +34,12 @@ defineSlots<{
   gap: 2.4rem;
 
   .label {
+    flex-shrink: 0;
     color: var(--color-neutral-txt-secondary);
+  }
+
+  .value:empty::before {
+    content: '-';
   }
 
   .value {

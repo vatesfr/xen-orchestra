@@ -11,7 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- **XO6**:
+- **XO 6:**
+  - [VM/system] Create system pages (PR [#8513](https://github.com/vatesfr/xen-orchestra/pull/8513))
   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
 - Hub recipe
   - Upgrade Pyrgos/Kubernetes recipe to use MicroK8s
