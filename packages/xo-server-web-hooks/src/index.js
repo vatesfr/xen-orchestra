@@ -3,34 +3,27 @@ import { createLogger } from '@xen-orchestra/log'
 const log = createLogger('xo:web-hooks')
 
 function constructPayload(format, data, type) {
-  let payload
-
   switch (format) {
     case 'json':
-      payload = JSON.stringify({ ...data, type })
-      break
-    case 'office365':
-      {
-        // https://learn.microsoft.com/en-us/outlook/actionable-messages/message-card-reference
-        const facts = Object.keys(data).map(key => {
-          const value = data[key]
-          return { name: key, value: typeof value === 'string' ? value : JSON.stringify(value) }
-        })
+      return JSON.stringify({ ...data, type })
+    case 'office365': {
+      // https://learn.microsoft.com/en-us/outlook/actionable-messages/message-card-reference
+      const facts = Object.keys(data).map(key => {
+        const value = data[key]
+        return { name: key, value: typeof value === 'string' ? value : JSON.stringify(value) }
+      })
 
-        payload = JSON.stringify({
-          '@type': 'MessageCard',
-          '@context': 'https://schema.org/extensions',
-          themeColor: 'BE1621',
-          summary: 'New notification from the Xen-Orchestra webhook plugin',
-          sections: [{ title: `XO ${type.toUpperCase()} notification` }, { facts }],
-        })
-      }
-      break
+      return JSON.stringify({
+        '@type': 'MessageCard',
+        '@context': 'https://schema.org/extensions',
+        themeColor: 'BE1621',
+        summary: 'New notification from the Xen-Orchestra webhook plugin',
+        sections: [{ title: `XO ${type.toUpperCase()} notification` }, { facts }],
+      })
+    }
     default:
       throw new Error(`Unknown format: ${format}`)
   }
-
-  return payload
 }
 
 function handleHook(type, data) {
@@ -121,35 +114,28 @@ class XoServerHooks {
     this._xo.removeListener('backup:postCall', this._handlePostHook)
   }
 
-  async test({ url, format }) {
-    const prePayload = constructPayload(
-      format,
-      {
+  async test() {
+    const methodNames = Object.keys(this._hooks)
+    for (const method of methodNames) {
+      const payload = {
         callId: '0',
         userId: 'b4tm4n',
         userName: 'bruce.wayne@waynecorp.com',
-        method: 'vm.start',
+        method,
         params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
         timestamp: 0,
-      },
-      'pre'
-    )
-    await this._makeRequest(url, prePayload)
+      }
+      // erase type to not send `type: 'pre/post'` in the payload
+      const preHooks = this._hooks[method].pre?.map(hook => ({ ...hook, type: 'pre' })) ?? []
+      const postHooks = this._hooks[method].post?.map(hook => ({ ...hook, type: 'post' })) ?? []
 
-    const postPayload = constructPayload(
-      format,
-      {
-        callId: '0',
-        userId: 'b4tm4n',
-        userName: 'bruce.wayne@waynecorp.com',
-        method: 'vm.start',
-        result: '',
-        timestamp: 500,
-        duration: 500,
-      },
-      'post'
-    )
-    await this._makeRequest(url, postPayload)
+      await Promise.all(
+        [...preHooks, ...postHooks].map(hook => {
+          const _payload = constructPayload(hook.format, payload, hook.type)
+          return this._makeRequest(hook.url, _payload)
+        })
+      )
+    }
   }
 }
 
@@ -203,24 +189,5 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
   },
   required: ['hooks'],
 })
-
-export const testSchema = {
-  type: 'object',
-  description: 'The test will simulate a hook on `vm.start` (both "pre" and "post" hooks)',
-  properties: {
-    url: {
-      title: 'URL',
-      type: 'string',
-      description: 'The URL the test request will be sent to',
-    },
-    format: {
-      default: 'json',
-      description: 'The format of the payload sent to the URL',
-      enum: ['json', 'office365'],
-      enumNames: ['JSON', 'Office 365 connector'],
-      title: 'Payload format',
-    },
-  },
-}
 
 export default opts => new XoServerHooks(opts)
