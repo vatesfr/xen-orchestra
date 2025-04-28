@@ -14,6 +14,11 @@ export default {
       component: () => import('@/views/host/HostConsoleView.vue'),
     },
     {
+      path: 'system',
+      name: 'host.system',
+      component: () => import('@/views/host/HostSystemView.vue'),
+    },
+    {
       path: 'network',
       name: 'host.network',
       component: () => import('@/views/host/HostNetworkView.vue'),
