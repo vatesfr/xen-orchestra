@@ -11,7 +11,7 @@ export class OpenFlowPlugin {
   async #callPluginOnAllNetwork(network, method, parameters) {
     const bridge = this.#getBridge(network)
     return asyncEach(network.PIFs, async PIF => {
-      const host = PIF.host
+      const host = PIF.$host
       return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...parameters, bridge })
     })
   }
