@@ -40,7 +40,7 @@
 
 - @vates/node-vsphere-soap patch
 - @xen-orchestra/immutable-backups patch
-- @xen-orchestra/rest-api patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - xo-server patch
