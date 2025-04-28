@@ -17,6 +17,7 @@ export class OpenFlowPlugin {
   }
 
   async addRule({ vif, allow, protocol, ipRange, direction, port }) {
+    console.log('addRule',{ vif, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(vif.$network, 'add-rule', {
       mac: vif.MAC,
       allow: allow ? 'true' : 'false',
@@ -28,6 +29,7 @@ export class OpenFlowPlugin {
   }
 
   async deleteRule({ vif, allow, protocol, ipRange, direction, port }) {
+    console.log('deleteRule',{ vif, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(vif.$network, 'del-rule', {
       mac: vif.MAC,
       allow: allow ? 'true' : 'false',
@@ -39,12 +41,15 @@ export class OpenFlowPlugin {
   }
 
   async addNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
+    console.log('addNetworkRule',{ network, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(network, 'add-rule', { allow, protocol, ipRange, direction, port })
   }
   async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
+    console.log('deleteNetworkRule',{ network, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(network, 'del-rule', { allow, protocol, ipRange, direction, port })
   }
   async check(host) {
+    console.log('check',{ host })
     await Promise.all(
       host.$PIFs.map(async ({ $network }) => {
         const response = await host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, 'dump-flows', {
