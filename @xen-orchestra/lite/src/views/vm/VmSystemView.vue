@@ -4,6 +4,7 @@
       <VmGeneralInfo :vm />
       <VmSystemNetworking :vm />
       <VmStorageConfig :vm />
+      <VmResource :vm />
     </div>
     <div class="colum" />
   </div>
@@ -17,6 +18,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import VmGeneralInfo from './VmGeneralInfo.vue'
+import VmResource from './VmResource.vue'
 import VmStorageConfig from './VmStorageConfig.vue'
 import VmSystemNetworking from './VmSystemNetworking.vue'
 
