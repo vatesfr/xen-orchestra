@@ -527,6 +527,7 @@
   "vms-status.suspended": "Suspended",
   "vms-status.unknown": "Unknown",
   "vms-status.unknown.tooltip": "For which XO has lost connection to the pool",
+  "vmSocketsWithCoresPerSocket": "{nSockets} sockets × {nCores} cores/socket",
   "xo-backups": "XO backups",
   "xo-lite-under-construction": "XOLite is under construction",
   "xo-replications": "XO replications",
