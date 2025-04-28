@@ -16,7 +16,7 @@ function constructPayload(format, data, type) {
       return JSON.stringify({
         '@type': 'MessageCard',
         '@context': 'https://schema.org/extensions',
-        themeColor: 'BE1621',
+        themeColor: '6B63BF',
         summary: 'New notification from the Xen-Orchestra webhook plugin',
         sections: [{ title: `XO ${type.toUpperCase()} notification` }, { facts }],
       })
