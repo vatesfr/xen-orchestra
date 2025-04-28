@@ -2,6 +2,7 @@
   <div class="system">
     <div class="colum">
       <VmGeneralInfo :vm />
+      <VmSystemNetworking :vm />
     </div>
     <div class="colum" />
   </div>
@@ -15,6 +16,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import VmGeneralInfo from './VmGeneralInfo.vue'
+import VmSystemNetworking from './VmSystemNetworking.vue'
 
 const route = useRoute()
 const { getByUuid } = useVmStore().subscribe()
