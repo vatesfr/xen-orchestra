@@ -235,21 +235,22 @@ export type XoMessage = BaseXapiXo & {
 }
 
 export type XoNetwork = BaseXapiXo & {
+  MTU: number
+  PIFs: XoPif['id'][]
+  VIFs: XoVif['id'][]
+
   automatic: boolean
   bridge: string
-  current_operations?: Record<string, NETWORK_OPERATIONS>
+  current_operations: Record<string, NETWORK_OPERATIONS>
   defaultIsLocked: boolean
   id: Branded<'network'>
   insecureNbd?: boolean
-  MTU: number
   name_description: string
   name_label: string
   nbd?: boolean
   other_config: Record<string, string>
-  PIFs: XoPif['id'][]
   tags: string[]
   type: 'network'
-  VIFs: XoVif['id'][]
 }
 
 export type XoPbd = BaseXapiXo & {
