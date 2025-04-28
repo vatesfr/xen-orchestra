@@ -143,7 +143,7 @@
     "xo-collection": "^0.5.0",
     "xo-common": "^0.8.0",
     "xo-remote-parser": "^0.9.3",
-    "xo-vmdk-to-vhd": "^2.5.7"
+    "xo-vmdk-to-vhd": "^2.5.8"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
