@@ -6,6 +6,9 @@
     <RouterTab :to="{ name: 'host.console', params: { uuid } }">
       {{ $t('console') }}
     </RouterTab>
+    <RouterTab :to="{ name: 'host.system', params: { uuid } }">
+      {{ $t('system') }}
+    </RouterTab>
     <RouterTab :to="{ name: 'host.network', params: { uuid } }">
       {{ $t('network') }}
     </RouterTab>

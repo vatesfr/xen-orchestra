@@ -138,11 +138,17 @@ export interface XenApiHost extends XenApiRecord<'host'> {
     xencenter_max: string
     xencenter_min: string
   }
+  cpu_info: { cpu_count: string; socket_count: string; modelname: string }
+  software_version: { product_version: string; build_number: string }
   control_domain: XenApiVm['$ref']
   current_operations: Record<string, HOST_OPERATION>
   other_config: Record<string, any>
   tags: string[]
   bios_strings: Record<string, any>
+  iscsi_iqn: string
+  logging: { syslog_destination: string }
+  power_on_mode: string
+  multipathing: boolean
 }
 
 export interface XenApiSr extends XenApiRecord<'sr'> {
