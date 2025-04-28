@@ -59,8 +59,7 @@ export class UserController extends XoController<XoUser> {
   @Example(user)
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
-  async getUser(@Path() id: string): Promise<Unbrand<XoUser>> {
-    const user = await this.getObject(id as XoUser['id'])
-    return this.#sanitizeUser(user)
+  getUser(@Path() id: string): Promise<Unbrand<XoUser>> {
+    return this.getObject(id as XoUser['id'])
   }
 }
