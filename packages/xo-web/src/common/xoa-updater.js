@@ -74,7 +74,7 @@ export function getLicenseNearExpiration(licenses) {
     {
       strCode: 'licenseExpired',
       code: 'EXPIRED',
-      duration: 0,
+      duration: 90 * 24 * 3600 * 1000,
       blocked: true,
     },
   ]
