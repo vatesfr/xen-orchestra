@@ -608,6 +608,7 @@ export default class RestApi {
       docs: {},
       messages: {},
       pools: {},
+      users: {},
       vifs: {},
       vms: {
         actions: {
@@ -1002,12 +1003,6 @@ export default class RestApi {
       },
     }
     collections.users = {
-      getObject(id) {
-        return app.getUser(id).then(getUserPublicProperties)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllUsers(), filter, limit)
-      },
       routes: {
         async authentication_tokens(req, res) {
           const { filter, limit } = req.query
