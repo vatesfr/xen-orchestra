@@ -10,6 +10,7 @@
 </template>
 
 <script setup lang="ts">
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -30,14 +31,14 @@ type GeneralInfo = {
   GPUs: string
 }
 
-/* const { vm } = defineProps<{ vm: XenApiVm | undefined }>() */
+const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
 
 const { t } = useI18n()
 
-const staticMinMemoryFormated = formatSizeRaw(/* vm.memory.static[0] */ 0, 0)
-const staticMaxMemoryFormated = formatSizeRaw(/* vm.memory.static[1] */ 0, 0)
-const dynamicMinMemoryFormated = formatSizeRaw(/* vm.memory.dynamic[0] */ 0, 0)
-const dynamicMaxMemoryFormated = formatSizeRaw(/* vm.memory.dynamic[1] */ 0, 0)
+const staticMinMemoryFormated = formatSizeRaw(vm?.memory_static_min, 0)
+const staticMaxMemoryFormated = formatSizeRaw(vm?.memory_static_max, 0)
+const dynamicMinMemoryFormated = formatSizeRaw(vm?.memory_dynamic_min, 0)
+const dynamicMaxMemoryFormated = formatSizeRaw(vm?.memory_dynamic_max, 0)
 
 const generalInfo: GeneralInfo = {
   'cpu-cap': /* vm.cpuCap ? vm.cpuCap : 0  XEN_DEFAULT_CPU_CAP */ 0,
