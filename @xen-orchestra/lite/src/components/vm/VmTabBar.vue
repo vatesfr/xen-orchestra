@@ -12,7 +12,7 @@
     <RouterTab :to="{ name: 'vm.stats', params: { uuid } }" disabled>
       {{ $t('stats') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'vm.system', params: { uuid } }" disabled>
+    <RouterTab :to="{ name: 'vm.system', params: { uuid } }">
       {{ $t('system') }}
     </RouterTab>
     <RouterTab :to="{ name: 'vm.network', params: { uuid } }">
