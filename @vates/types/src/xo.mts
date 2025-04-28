@@ -343,7 +343,7 @@ export type XoUser = {
   email: string
   groups: XoGroup['id'][]
   id: Branded<'user'>
-  name: string
+  name?: string
   permission: string
   pw_hash?: string
   preferences: Record<string, string>

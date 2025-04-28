@@ -15,8 +15,8 @@ import { partialUsers, user, userIds } from '../open-api/oa-examples/user.oa-exa
 export class UserController extends XoController<XoUser> {
   // --- abstract methods
   async getAllCollectionObjects(): Promise<XoUser[]> {
-    const users = this.restApi.xoApp.getAllUsers()
-    return (await users).map(user => this.sanitizeUser(user))
+    const users = await this.restApi.xoApp.getAllUsers()
+    return users.map(user => this.sanitizeUser(user))
   }
 
   async getCollectionObject(id: XoUser['id']): Promise<XoUser> {
@@ -24,7 +24,7 @@ export class UserController extends XoController<XoUser> {
     return this.sanitizeUser(user)
   }
 
-  private sanitizeUser(user: XoUser): XoUser {
+  sanitizeUser(user: XoUser): XoUser {
     const sanitizedUser = { ...user }
 
     if (sanitizedUser.pw_hash !== undefined) {
@@ -36,7 +36,7 @@ export class UserController extends XoController<XoUser> {
 
   /**
    * @example fields "permission,name,id"
-   * @example filter "permission:admin"
+   * @example filter "permission:none"
    * @example limit 42
    */
   @Example(userIds)
@@ -47,7 +47,7 @@ export class UserController extends XoController<XoUser> {
     @Query() fields?: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<string[] | WithHref<XoUser>[] | WithHref<Partial<XoUser>>[]> {
+  ): Promise<string[] | WithHref<Partial<Unbrand<XoUser>>>[]> {
     const users = Object.values(await this.getObjects({ filter, limit }))
     return this.sendObjects(users, req)
   }

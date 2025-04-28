@@ -5,16 +5,15 @@ export const userIds = [
 
 export const partialUsers = [
   {
-    permission: 'admin',
-    name: 'admin@admin.net',
-    id: '722d17b9-699b-49d2-8193-be1ac573d3de',
-    href: '/rest/v0/users/722d17b9-699b-49d2-8193-be1ac573d3de',
-  },
-  {
     permission: 'none',
     name: 'testName',
     id: '088124f3-41b6-4258-9653-6eedc7b46111',
     href: '/rest/v0/users/088124f3-41b6-4258-9653-6eedc7b46111',
+  },
+  {
+    permission: 'none',
+    id: 'a8715f02-20e7-4881-8b02-28ce2260c39d',
+    href: '/rest/v0/users/a8715f02-20e7-4881-8b02-28ce2260c39d',
   },
 ]
 
