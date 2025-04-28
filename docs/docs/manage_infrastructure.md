@@ -753,6 +753,23 @@ This is the place to compare metrics on comparable objects (VMs to VMs, hosts to
 
 [![](https://xen-orchestra.com/blog/content/images/2015/09/correlate_small.jpg)](https://xen-orchestra.com/blog/xen-orchestra-4-6#eventcorrelation).
 
+### Usage reports
+
+Xen Orchestra allows you to monitor the usage of some or all of your resources, by sending you regular reports via email.
+
+To receive reports, you need to enable the **usage-report** plugin.
+
+1. Navigate to the **Settings → Plugin** menu. A list of plugins appears.
+1. From the list, look for the **usage-report** plugin. You can scroll through the list or type the plugin name in the search bar.
+1. Enable the plugin by activating the toggle switch next to the plugin name.
+1. Click the **+** icon to reveal the plugin settings:
+    ![](./assets/usage-report-plugin.png)
+1. In the **emails** section, click **Add**. This will display a new text field.
+1. In that field, enter the email address where you wish to receive the usage reports. Repeat steps 5 and 6 to add more email addresses.
+1. Activate the toggle switch called **all** to include stats for all resources in your report.
+1. In the dropdown menu called **periodicity**, choose whether you want to receive **daily**, **weekly** or **monthly reports**.
+1. Click **Save configuration**. Your reports will be sent to the email addresses you've entered, at your desired frequency.
+
 ## Docker support
 
 This allows you to enjoy Docker containers displayed directly in Xen Orchestra.
