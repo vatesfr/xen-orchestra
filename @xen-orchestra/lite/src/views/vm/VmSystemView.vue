@@ -8,6 +8,7 @@
     </div>
     <div class="colum">
       <VmVirtualisationAndBoot :vm />
+      <VmManagement :vm />
     </div>
   </div>
 </template>
@@ -20,6 +21,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import VmGeneralInfo from './VmGeneralInfo.vue'
+import VmManagement from './VmManagement.vue'
 import VmResource from './VmResource.vue'
 import VmStorageConfig from './VmStorageConfig.vue'
 import VmSystemNetworking from './VmSystemNetworking.vue'
