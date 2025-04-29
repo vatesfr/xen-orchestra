@@ -2,16 +2,41 @@ import { createLogger } from '@xen-orchestra/log'
 
 const log = createLogger('xo:web-hooks')
 
+function constructPayload(format, data, type) {
+  switch (format) {
+    case 'json':
+      return JSON.stringify({ ...data, type })
+    case 'office365': {
+      // https://learn.microsoft.com/en-us/outlook/actionable-messages/message-card-reference
+      const facts = Object.keys(data).map(key => {
+        const value = data[key]
+        return { name: key, value: typeof value === 'string' ? value : JSON.stringify(value) }
+      })
+
+      return JSON.stringify({
+        '@type': 'MessageCard',
+        '@context': 'https://schema.org/extensions',
+        themeColor: '6B63BF',
+        summary: 'New notification from the Xen-Orchestra webhook plugin',
+        sections: [{ title: `XO ${type.toUpperCase()} notification`, facts }],
+      })
+    }
+    default:
+      throw new Error(`Unknown format: ${format}`)
+  }
+}
+
 function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
   if (hooks !== undefined) {
     return Promise.all(
       // eslint-disable-next-line array-callback-return
-      hooks.map(({ url, waitForResponse = false }) => {
-        const promise = this._makeRequest(url, type, data).catch(error => {
+      hooks.map(({ url, waitForResponse = false, format }) => {
+        const payload = constructPayload(format, data, type)
+        const promise = this._makeRequest(url, payload).catch(error => {
           log.error('web hook failed', {
             error,
-            webHook: { ...data, url, type },
+            webHook: { ...data, url, type, format },
           })
         })
         if (waitForResponse && type === 'pre') {
@@ -33,9 +58,9 @@ class XoServerHooks {
     this._handlePostHook = handleHook.bind(this, 'post')
   }
 
-  _makeRequest(url, type, data) {
+  _makeRequest(url, data) {
     return this._xo.httpRequest(url, {
-      body: JSON.stringify({ ...data, type }),
+      body: data,
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
       timeout: 1e4,
@@ -89,24 +114,28 @@ class XoServerHooks {
     this._xo.removeListener('backup:postCall', this._handlePostHook)
   }
 
-  async test({ url }) {
-    await this._makeRequest(url, 'pre', {
-      callId: '0',
-      userId: 'b4tm4n',
-      userName: 'bruce.wayne@waynecorp.com',
-      method: 'vm.start',
-      params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
-      timestamp: 0,
-    })
-    await this._makeRequest(url, 'post', {
-      callId: '0',
-      userId: 'b4tm4n',
-      userName: 'bruce.wayne@waynecorp.com',
-      method: 'vm.start',
-      result: '',
-      timestamp: 500,
-      duration: 500,
-    })
+  async test() {
+    const methodNames = Object.keys(this._hooks)
+    for (const method of methodNames) {
+      const payload = {
+        callId: '0',
+        userId: 'b4tm4n',
+        userName: 'bruce.wayne@waynecorp.com',
+        method,
+        params: { id: '67aac198-0174-11ea-8d71-362b9e155667' },
+        timestamp: 0,
+      }
+      // overrides type to not send `type: 'pre/post'` in payload
+      const preHooks = this._hooks[method].pre?.map(hook => ({ ...hook, type: 'pre' })) ?? []
+      const postHooks = this._hooks[method].post?.map(hook => ({ ...hook, type: 'post' })) ?? []
+
+      await Promise.all(
+        [...preHooks, ...postHooks].map(hook => {
+          const _payload = constructPayload(hook.format, payload, hook.type)
+          return this._makeRequest(hook.url, _payload)
+        })
+      )
+    }
   }
 }
 
@@ -141,29 +170,24 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
             title: 'URL',
             type: 'string',
           },
+          format: {
+            default: 'json',
+            description: 'The format of the payload sent to the URL',
+            enum: ['json', 'office365'],
+            enumNames: ['JSON', 'Office 365 connector'],
+            title: 'Payload format',
+          },
           waitForResponse: {
             description: 'Waiting for the server response before executing the call. Only available on "PRE" type',
             title: 'Wait for response',
             type: 'boolean',
           },
         },
-        required: ['method', 'type', 'url'],
+        required: ['method', 'type', 'url', 'format'],
       },
     },
   },
   required: ['hooks'],
 })
-
-export const testSchema = {
-  type: 'object',
-  description: 'The test will simulate a hook on `vm.start` (both "pre" and "post" hooks)',
-  properties: {
-    url: {
-      title: 'URL',
-      type: 'string',
-      description: 'The URL the test request will be sent to',
-    },
-  },
-}
 
 export default opts => new XoServerHooks(opts)

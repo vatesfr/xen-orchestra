@@ -18,6 +18,7 @@
   - `/rest/v0/networks/<network-id>` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
 - [V2V] Resume an incomplete warm migration (PR [#8440](https://github.com/vatesfr/xen-orchestra/pull/8440))
 - [Licences] Warn a user when the XOA's licence is near expiration, handle expired licences (PR [#8523](https://github.com/vatesfr/xen-orchestra/pull/8523))
+- [Plugin/Web hook] Web hook plugin now support `Office 365 connector` format (PR [#8498](https://github.com/vatesfr/xen-orchestra/pull/8498))
 
 ### Bug fixes
 
@@ -42,5 +43,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
 - xo-server minor
+- xo-server-web-hooks minor
 - xo-web minor
+
 <!--packages-end-->
