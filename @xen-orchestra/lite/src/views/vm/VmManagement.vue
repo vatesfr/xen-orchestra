@@ -5,17 +5,16 @@
     </UiTitle>
     <VtsQuickInfoRow :label="$t('high-availability')">
       <template #value>
-        <!--
- <UiInfo :accent="vm.high_availability !== '' ? 'success' : 'muted'">
-          {{ vm.high_availability ? $t(vm.high_availability) : $t('disabled') }}
+        <UiInfo :accent="vm?.ha_restart_priority !== '' ? 'success' : 'muted'">
+          {{ vm?.ha_restart_priority ? $t(vm.ha_restart_priority) : $t('disabled') }}
         </UiInfo>
--->
-        {{ $t('add') }}
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('affinity-host')">
-      <template #value>
-        <UiLink :icon="faServer" :to="`host/${'hello'}`" size="small" target="_self"> {{ $t('add') }} </UiLink>
+      <template v-if="affinity?.uuid" #value>
+        <UiLink :icon="faServer" :to="`host/${affinity?.uuid}`" size="small" target="_self">
+          {{ affinity?.name_label }}
+        </UiLink>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Protect-from-accidental-deletion')">
@@ -43,6 +42,7 @@
 
 <script setup lang="ts">
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { useHostStore } from '@/stores/xen-api/host.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
@@ -53,12 +53,11 @@ import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
+const { getByOpaqueRef: getMetricsByOpaqueRef } = useHostStore().subscribe()
 
 const timeAgo = computed(() => useTimeAgo(vm?.start_delay ?? NaN))
-
+const affinity = vm?.affinity ? getMetricsByOpaqueRef(vm?.affinity) : undefined
 // not found
-// high_availability
-// auto_poweron
 // Protect-from-accidental-shutdown
 // Protect-from-accidental-deletion
 </script>
