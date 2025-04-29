@@ -3,7 +3,7 @@
     <UiTitle>
       {{ $t('Networking') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('nic-type')" :value="vm?.uuid" />
+    <VtsQuickInfoRow :label="$t('nic-type')" :value="vm?.platform.nic_type" />
   </UiCard>
 </template>
 
@@ -15,5 +15,3 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
 </script>
-
-/* not found: vm?.nicType */
