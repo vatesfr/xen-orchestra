@@ -1,5 +1,5 @@
 <template>
-  <div class="system">
+  <div class="system" :class="className">
     <div class="colum">
       <VmGeneralInfo :vm />
       <VmSystemNetworking :vm />
@@ -18,6 +18,7 @@
 import type { RecordUuid } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -29,12 +30,22 @@ import VmStorageConfig from './VmStorageConfig.vue'
 import VmSystemNetworking from './VmSystemNetworking.vue'
 import VmVirtualisationAndBoot from './VmVirtualisationAndBoot.vue'
 
+const { size } = defineProps<{
+  size: 'small' | 'large'
+}>()
+
 const route = useRoute()
 
 const { getByUuid } = useVmStore().subscribe()
 const vm = computed(() => getByUuid(route.params.uuid as RecordUuid<'vm'>))
 
 usePageTitleStore().setTitle(useI18n().t('system'))
+
+const className = computed(() =>
+  toVariants({
+    size,
+  })
+)
 </script>
 
 <style scoped lang="postcss">
@@ -48,7 +59,22 @@ usePageTitleStore().setTitle(useI18n().t('system'))
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-    width: 50%;
+  }
+
+  @media not (--mobile) {
+    flex-direction: row;
+
+    .colum {
+      width: 50%;
+    }
+  }
+
+  @media (--mobile) {
+    flex-direction: column;
+
+    .colum {
+      width: 100%;
+    }
   }
 }
 </style>

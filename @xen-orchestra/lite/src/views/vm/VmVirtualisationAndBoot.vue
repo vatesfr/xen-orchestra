@@ -51,7 +51,9 @@ const virtualizationMode =
     : vm?.HVM_boot_policy === ''
       ? 'pv'
       : 'hvm'
-
-// not fond
-// NestedVirtEnabled
 </script>
+
+<!--
+ not fond
+NestedVirtEnabled 
+-->
