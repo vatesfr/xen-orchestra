@@ -36,5 +36,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api minor
+- xo-server patch
 
 <!--packages-end-->
