@@ -128,7 +128,7 @@ const LicenseManager = ({ item, userData }) => {
     }
   }
 
-  console.warn('encountered unsupported license type')
+  console.warn( `encountered unsupported license type ${type}`)
   return null
 }
 

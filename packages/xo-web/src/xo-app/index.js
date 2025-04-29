@@ -55,8 +55,9 @@ import Import from './import'
 import keymap, { help } from '../keymap'
 import Tooltip from '../common/tooltip'
 import { createCollectionWrapper, createGetObjectsOfType } from '../common/selectors'
-import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses, subscribeXostorLicenses } from '../common/xo'
+import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses, subscribeXostorLicenses, subscribeSelfLicenses } from '../common/xo'
 import { SOURCES } from '../common/xoa-plans'
+import { getLicenseNearExpiration } from '../common/xoa-updater'
 
 const shortcutManager = new ShortcutManager(keymap)
 
@@ -139,6 +140,7 @@ export const ICON_POOL_LICENSE = {
 @addSubscriptions({
   xcpLicenses: subscribeXcpngLicenses,
   xostorLicenses: subscribeXostorLicenses,
+  selfLicences: subscribeSelfLicenses
 })
 @connectStore(state => {
   const getHosts = createGetObjectsOfType('host')
@@ -312,7 +314,7 @@ export const ICON_POOL_LICENSE = {
       })
 
       return xostorLicenseInfoByXostorId
-    },
+    }
   },
 })
 export default class XoApp extends Component {
@@ -439,11 +441,11 @@ export default class XoApp extends Component {
   render() {
     const { signedUp, trial, registerNeeded } = this.props
     const { pathname } = this.context.router.location
+    const licenseNearExpiration = this.props.selfLicences && getLicenseNearExpiration(this.props.selfLicences)
     // If we are under expired or unstable trial (signed up only)
     const blocked =
-      signedUp && blockXoaAccess(trial) && !(pathname.startsWith('/xoa/') || pathname === '/backup/restore')
+      signedUp &&( blockXoaAccess(trial) || licenseNearExpiration?.blocked === true)&& !(pathname.startsWith('/xoa/') || pathname === '/backup/restore')
     const plan = getXoaPlan()
-
     return (
       <IntlProvider>
         <ThemeProvider theme={themes.base}>
@@ -488,6 +490,14 @@ export default class XoApp extends Component {
                   <button className='close' onClick={this.dismissTrialBanner}>
                     &times;
                   </button>
+                </div>
+              )}
+              {licenseNearExpiration  && (
+                <div className={`alert alert-info mb-0 ${licenseNearExpiration.popupClass ?? 'alert-info'}`}>
+                  {_(licenseNearExpiration.strCode, {
+                    duration: licenseNearExpiration.textDuration,
+                    date: new Date(licenseNearExpiration.license.expires),
+                  })}
                 </div>
               )}
               <div style={CONTAINER_STYLE}>
