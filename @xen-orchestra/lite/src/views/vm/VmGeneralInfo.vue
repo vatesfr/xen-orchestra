@@ -14,20 +14,40 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('os-name')" :value="vm?.reference_label" />
-    <VtsQuickInfoRow :label="$t('os-kernel')" :value="vm?.uuid" />
-    <VtsQuickInfoRow :label="$t('management-agent-version')" :value="vm?.uuid" />
+    <VtsQuickInfoRow :label="$t('os-kernel')" :value="(guestMetrics as any | undefined)?.os_version.uname" />
+    <VtsQuickInfoRow :label="$t('management-agent-version')" :value="pvDriversVersion" />
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
+
+const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
+
+const guestMetrics = computed(() => {
+  return vm ? getGuestMetricsByOpaqueRef(vm.guest_metrics) : undefined
+})
+
+const getVmGuestToolsProps = (vm: XenApiVm) => {
+  if (!vm || !vm.power_state || !guestMetrics.value) {
+    return undefined
+  }
+  // bad typescript
+  const { build, major, micro, minor } = (guestMetrics?.value as any | undefined)?.PV_drivers_version
+  const hasPvVersion = major !== undefined && minor !== undefined
+
+  return hasPvVersion ? `${major}.${minor}.${micro}-${build}` : undefined
+}
+const pvDriversVersion = vm ? getVmGuestToolsProps(vm) : undefined
 /* not found:
 vm?.os_version?.uname
 vm.pvDriversVersion
