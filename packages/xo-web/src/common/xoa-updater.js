@@ -74,8 +74,15 @@ export function getLicenseNearExpiration(licenses) {
     {
       strCode: 'licenseExpired',
       code: 'EXPIRED',
+      duration: 0,
+      popupClass: 'alert-danger',
+    },
+    {
+      strCode: 'licenseExpired',
+      code: 'EXPIRED',
       duration: 90 * 24 * 3600 * 1000,
       blocked: true,
+      popupClass: 'alert-danger',
     },
   ]
   const candidates = SLOTS.filter(({ duration }) => newestLicense.expires + duration < Date.now())

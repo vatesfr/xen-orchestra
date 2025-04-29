@@ -329,7 +329,6 @@ export default class XoApp extends Component {
   state = {
     dismissedSourceBanner: Boolean(cookies.get('dismissedSourceBanner')),
     dismissedTrialBanner: Boolean(cookies.get('dismissedTrialBanner')),
-    dismissedNearExpirationBanner: cookies.get('dismissedNearExpirationBanner'),
   }
 
   displayOpenSourceDisclaimer() {
@@ -366,11 +365,6 @@ export default class XoApp extends Component {
   dismissTrialBanner = () => {
     cookies.set('dismissedTrialBanner', true, { expires: 1 })
     this.setState({ dismissedTrialBanner: true })
-  }
-
-  dismissNearExpirationBanner = ({strCode}) => {
-    cookies.set('dismissedNearExpirationBanner', strCode, { expires: 100 /* more than the total duration of the warnings */ })
-    this.setState({ dismissedNearExpirationBanner: strCode })
   }
 
   componentDidMount() {
@@ -498,15 +492,12 @@ export default class XoApp extends Component {
                   </button>
                 </div>
               )}
-              {licenseNearExpiration  && this.state.dismissedNearExpirationBanner !==licenseNearExpiration.strCode && (
+              {licenseNearExpiration  && (
                 <div className={`alert alert-info mb-0 ${licenseNearExpiration.popupClass ?? 'alert-info'}`}>
                   {_(licenseNearExpiration.strCode, {
                     duration: licenseNearExpiration.textDuration,
                     date: new Date(licenseNearExpiration.license.expires),
                   })}
-                  <button className='close' onClick={()=>this.dismissNearExpirationBanner(licenseNearExpiration.strCode)}>
-                    &times;
-                  </button>
                 </div>
               )}
               <div style={CONTAINER_STYLE}>
