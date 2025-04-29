@@ -19,12 +19,16 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Protect-from-accidental-deletion')">
       <template #value>
-        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+        <UiInfo :accent="vm.blockedOperations.destroy ? 'success' : 'muted'">
+          {{ vm.blockedOperations.destroy ? $t('enabled') : $t('disabled') }}
+        </UiInfo>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Protect-from-accidental-shutdown')">
       <template #value>
-        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+        <UiInfo :accent="vm.blockedOperations.suspend ? 'success' : 'muted'">
+          {{ vm.blockedOperations.suspend ? $t('enabled') : $t('disabled') }}
+        </UiInfo>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('auto-power')">

@@ -65,4 +65,5 @@ export type XoVm = {
   nicType?: string
   affinityHost?: XoHost['id']
   suspendSr?: XoSr['id']
+  blockedOperations: Record<string, string>
 }
