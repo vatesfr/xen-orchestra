@@ -607,6 +607,7 @@ export default class RestApi {
       alarms: {},
       docs: {},
       messages: {},
+      networks: {},
       pools: {},
       groups: {},
       users: {},
