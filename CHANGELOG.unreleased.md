@@ -14,6 +14,7 @@
 - **Migrated REST API endpoints**:
   - `/rest/v0/networks` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
   - `/rest/v0/networks/<network-id>` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
+- [V2V] Resume an incomplete warm migration (PR [#8440](https://github.com/vatesfr/xen-orchestra/pull/8440))
 
 ### Bug fixes
 
@@ -37,6 +38,5 @@
 
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
-- xo-server patch
-
+- xo-server minor
 <!--packages-end-->

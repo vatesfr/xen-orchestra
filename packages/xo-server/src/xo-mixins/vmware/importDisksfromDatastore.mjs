@@ -14,10 +14,13 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
     return { vhd, vdi }
   }
   const isFullImport = chainByNode[0].isFull
+  let lookMissingBlockInParent = isFullImport
+  let lastDiskUid
   for (let diskIndex = 0; diskIndex < chainByNode.length; diskIndex++) {
     // the first one  is a RAW disk ( full )
     const disk = chainByNode[diskIndex]
     const { fileName, path, datastore: datastoreName, isFull } = disk
+    lastDiskUid = disk.uid
     if (isFull) {
       vhd = yield VhdEsxiRaw.open(datastoreName, path + '/' + fileName, {
         thin: false,
@@ -29,15 +32,24 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
         throw new Error(`Can't import delta of a running VM without its parent VHD`)
       }
       vhd = yield openDeltaVmdkasVhd(datastoreName, path + '/' + fileName, parentVhd, {
-        lookMissingBlockInParent: isFullImport, // only look to missing block on full import
+        lookMissingBlockInParent, // only look to missing block on full import
         esxi,
         dataStoreToHandlers,
       })
     }
+    // is this disk already imported ?
+    const previouslyImportedVdi = diskIsAlreadyImported(sr, disk)
+
+    if (previouslyImportedVdi === undefined) {
+      lookMissingBlockInParent = true // the block of this VHD must be migrated
+    } else {
+      vdi = previouslyImportedVdi // this vdi will be used as a base for the import
+      lookMissingBlockInParent = false // the next child won't need to load the missing blocks
+    }
     vhd.label = fileName
     parentVhd = vhd
   }
-  if (isFullImport) {
+  if (vdi === undefined) {
     const { capacity, descriptionLabel, nameLabel } = chainByNode[chainByNode.length - 1]
     // we don't need to read the BAT with the importVdiThroughXva process
     const vdiMetadata = {
@@ -47,7 +59,9 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
       virtual_size: capacity,
     }
     vdi = await importVdiThroughXva(vdiMetadata, vhd, sr.$xapi, sr)
-
+    if (lastDiskUid !== undefined) {
+      await sr.$xapi.setFieldEntries('VDI', vdi.$ref, 'other_config', { esxi_uuid: lastDiskUid })
+    }
     // it can fail before the vdi is connected to the vm
     $defer.onFailure.call(sr.$xapi, 'VDI_destroy', vdi.$ref)
 
@@ -64,9 +78,17 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
     const stream = vhd.stream()
     await vhd.readBlockAllocationTable()
     await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+    if (lastDiskUid !== undefined) {
+      await sr.$xapi.setFieldEntries('VDI', vdi.$ref, 'other_config', { esxi_uuid: lastDiskUid })
+    }
   }
   return { vdi, vhd }
 })
+
+function diskIsAlreadyImported(sr, disk) {
+  // look for a vdi with the right longContentId
+  return sr.$VDIs.find(vdi => vdi?.other_config.esxi_uuid === disk.uid)
+}
 
 export const importDisksFromDatastore = async function importDisksFromDatastore(
   $defer,
