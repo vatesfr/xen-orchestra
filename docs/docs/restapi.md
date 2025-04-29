@@ -384,3 +384,29 @@ $ curl \
 ## Future Improvements
 
 We are actively working on enhancing and expanding the REST API with new features and capabilities. If you have specific use cases, ideas, or feedback that you would like to share, feel free to participate in the discussion on our [Xen Orchestra forum](https://xcp-ng.org/forum/category/12/xen-orchestra).
+
+We encourage feedback and suggestions to help us make this documentation as useful and complete as possible.
+
+### OpenAPI/Swagger
+
+#### What is Swagger?
+
+[Swagger](https://swagger.io/specification/) allows you to describe the structure of an API so that machines can understand. By parsing the structure of the API, Swagger can automatically generate clear, user-friendly, and interactive API documentation. It also makes integration with tools and automatic client library generation possible.
+
+As part of our continuous efforts to improve the developer experience, we’ve begun documenting the Xen Orchestra REST API using the OpenAPI (Swagger) standard:
+
+![VM getID enpoints documented in Swagger](./assets/swagger-example.png)
+
+:::tip
+
+The Swagger API documentation is still a work in progress. Not all endpoints are currently covered, and some details may change as we continue to refine the specification. However, it already provides a solid foundation for understanding and interacting with key parts of the API.
+
+:::
+
+#### Accessing the Xen Orchestra API documentation in Swagger
+
+Both versions of the API are now available at `/rest/v0`. However, only the endpoints that have been migrated to the new Swagger setup will show up in the documentation at `/rest/v0/docs`. 
+
+As we continue the migration process, the documentation will expand and improve. Our goal is that once everything is fully transitioned, `/rest/v0` will automatically redirect to the docs.
+
+
