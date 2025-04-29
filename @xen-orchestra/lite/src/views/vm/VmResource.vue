@@ -80,5 +80,3 @@ const generalInfo: GeneralInfo = {
   GPUs: vm?.VGPUs.join(', ') ?? '',
 }
 </script>
-
-<!-- cpu-* -->

@@ -19,12 +19,16 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Protect-from-accidental-deletion')">
       <template #value>
-        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+        <UiInfo :accent="vm?.blocked_operations?.destroy === 'true' ? 'success' : 'muted'">
+          {{ vm?.blocked_operations?.destroy === 'true' ? $t('enabled') : $t('disabled') }}
+        </UiInfo>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('Protect-from-accidental-shutdown')">
       <template #value>
-        <UiInfo accent="danger">{{ $t('no-data') }}</UiInfo>
+        <UiInfo :accent="vm?.blocked_operations?.suspend === 'true' ? 'success' : 'muted'">
+          {{ vm?.blocked_operations?.suspend === 'true' ? $t('enabled') : $t('disabled') }}
+        </UiInfo>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('auto-power')">
@@ -57,7 +61,4 @@ const { getByOpaqueRef: getMetricsByOpaqueRef } = useHostStore().subscribe()
 
 const timeAgo = computed(() => useTimeAgo(vm?.start_delay ?? NaN))
 const affinity = vm?.affinity ? getMetricsByOpaqueRef(vm?.affinity) : undefined
-// not found
-// Protect-from-accidental-shutdown
-// Protect-from-accidental-deletion
 </script>
