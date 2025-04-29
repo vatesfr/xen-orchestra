@@ -407,6 +407,8 @@ The Swagger API documentation is still a work in progress. Not all endpoints are
 
 Both versions of the API are now available at `/rest/v0`. However, only the endpoints that have been migrated to the new Swagger setup will show up in the documentation at `/rest/v0/docs`. 
 
+The Swagger UI doesn't just provide documentation of available endpoints. It also **lets you test them directly from the interface**, making it easier to experiment with the API without writing any code.
+
 As we continue the migration process, the documentation will expand and improve. Our goal is that once everything is fully transitioned, `/rest/v0` will automatically redirect to the docs.
 
 
