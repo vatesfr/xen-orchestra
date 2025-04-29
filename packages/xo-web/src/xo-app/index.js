@@ -358,32 +358,6 @@ export default class XoApp extends Component {
     }
   }
 
-  displayOExpirationIsNear() {
-    const previousDisclaimer = cookies.get('dismissedSourceBanner')
-    const now = Math.floor(Date.now() / 1e3)
-    const oneWeekAgo = now - 7 * 24 * 3600
-    if (!previousDisclaimer || previousDisclaimer < oneWeekAgo) {
-      alert(
-        _('disclaimerTitle'),
-        <div>
-          <p>{_('disclaimerText1')}</p>
-          <p>
-            {_('disclaimerText2')}{' '}
-            <a
-              href='https://vates.tech/deploy/?pk_campaign=xoa_source_upgrade&pk_kwd=ossmodal'
-              target='_blank'
-              rel='noreferrer'
-            >
-              XOA (turnkey appliance)
-            </a>
-          </p>
-          <p>{_('disclaimerText3')}</p>
-        </div>
-      )
-      cookies.set('previousDisclaimer', now)
-    }
-  }
-
   dismissSourceBanner = () => {
     cookies.set('dismissedSourceBanner', true, { expires: 1 }) // 1 day
     this.setState({ dismissedSourceBanner: true })
