@@ -28,7 +28,6 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
-
 /* not found:
 vm?.os_version?.uname
 vm.pvDriversVersion
