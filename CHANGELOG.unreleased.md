@@ -36,6 +36,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer patch
 - xo-server patch
 
 <!--packages-end-->
