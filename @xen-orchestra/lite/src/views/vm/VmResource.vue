@@ -57,8 +57,8 @@ const generalInfo: GeneralInfo = {
   'maximum-static-memory': `${staticMaxMemoryFormated?.value} ${staticMaxMemoryFormated?.prefix}`,
   'minimum-dynamic-memory': `${dynamicMinMemoryFormated?.value} ${dynamicMinMemoryFormated?.prefix}`,
   'maximum-dynamic-memory': `${dynamicMaxMemoryFormated?.value} ${dynamicMaxMemoryFormated?.prefix}`,
-  GPUs: /* vm.VGPUs.join(', ') */ '',
+  GPUs: vm?.VGPUs.join(', ') ?? '',
 }
 </script>
 
-<!-- vm.memory cpu-* -->
+<!-- cpu-* -->
