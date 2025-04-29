@@ -18,7 +18,7 @@ function constructPayload(format, data, type) {
         '@context': 'https://schema.org/extensions',
         themeColor: '6B63BF',
         summary: 'New notification from the Xen-Orchestra webhook plugin',
-        sections: [{ title: `XO ${type.toUpperCase()} notification` }, { facts }],
+        sections: [{ title: `XO ${type.toUpperCase()} notification`, facts }],
       })
     }
     default:
