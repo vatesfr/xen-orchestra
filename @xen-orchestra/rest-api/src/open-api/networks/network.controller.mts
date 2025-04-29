@@ -28,7 +28,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   @Example(networkIds)
   @Example(partialNetworks)
   @Get('')
-  getNewtorks(
+  getNetworks(
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() filter?: string,
@@ -43,7 +43,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   @Example(network)
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
-  getNewtork(@Path() id: string): Unbrand<XoNetwork> {
+  getNetwork(@Path() id: string): Unbrand<XoNetwork> {
     return this.getObject(id as XoNetwork['id'])
   }
 }
