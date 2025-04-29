@@ -41,15 +41,10 @@ const getVmGuestToolsProps = (vm: XenApiVm) => {
   if (!vm || !vm.power_state || !guestMetrics.value) {
     return undefined
   }
-  // bad typescript
   const { build, major, micro, minor } = (guestMetrics?.value as any | undefined)?.PV_drivers_version
   const hasPvVersion = major !== undefined && minor !== undefined
 
   return hasPvVersion ? `${major}.${minor}.${micro}-${build}` : undefined
 }
 const pvDriversVersion = vm ? getVmGuestToolsProps(vm) : undefined
-/* not found:
-vm?.os_version?.uname
-vm.pvDriversVersion
-*/
 </script>

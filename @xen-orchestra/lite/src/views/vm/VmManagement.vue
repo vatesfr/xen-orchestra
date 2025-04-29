@@ -12,8 +12,8 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('affinity-host')">
       <template v-if="affinity?.uuid" #value>
-        <UiLink :icon="faServer" :to="`host/${affinity?.uuid}`" size="small" target="_self">
-          {{ affinity?.name_label }}
+        <UiLink :icon="faServer" :to="`host/${affinity.uuid}`" size="small" target="_self">
+          {{ affinity.name_label }}
         </UiLink>
       </template>
     </VtsQuickInfoRow>
@@ -29,8 +29,8 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('auto-power')">
       <template #value>
-        <UiInfo :accent="true ? 'success' : 'muted'">
-          {{ true ? $t('enabled') : $t('disabled') }}
+        <UiInfo :accent="vm?.other_config.auto_poweron === 'true' ? 'success' : 'muted'">
+          {{ vm?.other_config.auto_poweron === 'true' ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
