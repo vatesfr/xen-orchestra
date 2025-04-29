@@ -35,6 +35,73 @@ export function blockXoaAccess(xoaState) {
   return block
 }
 
+export function getLicenseNearExpiration(licenses) {
+  if (licenses.find(({ expires }) => expires === undefined) !== undefined) {
+    return
+  }
+  if (licenses.length === 0) {
+    throw new Error('No license found')
+  }
+
+  licenses.sort(({ expires: expires1 }, { expires: expires2 }) => expires2 - expires1)
+  const newestLicense = licenses[0]
+
+  const SLOTS = [
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '3 months',
+      duration: -90 * 24 * 3600 * 1000,
+      popupClass: 'alert-info',
+    },
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '2 months',
+      duration: -60 * 24 * 3600 * 1000,
+      popupClass: 'alert-info',
+    },
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '1 month',
+      duration: -30 * 24 * 3600 * 1000,
+      popupClass: 'alert-danger',
+    },
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '1 week',
+      duration: -7 * 24 * 3600 * 1000,
+      popupClass: 'alert-danger',
+    },
+    {
+      strCode: 'licenseExpired',
+      code: 'EXPIRED',
+      duration: 0,
+      popupClass: 'alert-danger',
+    },
+    {
+      strCode: 'licenseExpired',
+      code: 'EXPIRED',
+      duration: 90 * 24 * 3600 * 1000,
+      blocked: true,
+      popupClass: 'alert-danger',
+    },
+  ]
+  const candidates = SLOTS.filter(({ duration }) => newestLicense.expires + duration < Date.now())
+
+  if (candidates.length === 0) {
+    // no license near expiration
+    return
+  }
+
+  // only show the most recent expire slot
+  candidates.sort(({ duration: duration1 }, { duration: duration2 }) => {
+    return duration2 - duration1
+  })
+  return {
+    ...candidates[0],
+    license: newestLicense,
+  }
+}
+
 // ===================================================================
 
 export const NotRegistered = makeError('NotRegistered')
