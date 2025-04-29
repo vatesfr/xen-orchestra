@@ -212,7 +212,7 @@
                     </td>
                     <td>
                       <UiInput
-                        v-model="networkInterface.macAddress!"
+                        v-model="networkInterface.macAddress"
                         :placeholder="$t('auto-generated')"
                         accent="brand"
                       />
@@ -681,6 +681,7 @@ const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
       }
 
       acc.push({
+        id: vif.id,
         interface: network.id,
         macAddress: vif.MAC,
       })
@@ -696,7 +697,7 @@ const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
   }
 
   const pif = getPif(defaultNetwork.PIFs[0] as Branded<'pif'>)
-  const defaultMac = pif?.mac || ' '
+  const defaultMac = pif?.mac || ''
 
   return [{ interface: defaultNetwork.id, macAddress: defaultMac }]
 }
@@ -714,7 +715,7 @@ const addNetworkInterface = () => {
   vmState.networkInterfaces.push({
     interface: defaultNetwork.id,
     // change this when API will be handle empty mac adresses
-    macAddress: ' ',
+    macAddress: '',
   })
 }
 
@@ -819,31 +820,29 @@ const vmData = computed(() => {
       const vif = getVif(id)
       if (!vif) continue
 
-      const matchedInterface = vmState.networkInterfaces.find(
-        ni => ni.macAddress!.toLowerCase() === vif.MAC.toLowerCase()
-      )
+      const matchedInterface = vmState.networkInterfaces.find(ni => ni.id === vif.id)
 
       if (!matchedInterface) {
         result.push({
           device: vif.device,
           destroy: true,
         })
-      } else if (vif.$network !== matchedInterface.interface) {
+      } else if (vif.$network !== matchedInterface.interface || vif.MAC !== matchedInterface.macAddress) {
         result.push({
           network: matchedInterface.interface,
-          mac: vif.MAC,
+          mac: matchedInterface.macAddress,
           device: vif.device,
         })
       }
     }
 
-    const emptyMacAddress = vmState.networkInterfaces.filter(ni => ni.macAddress!.trim() === '')
-
-    for (const empty of emptyMacAddress) {
-      result.push({
-        network: empty.interface,
-        mac: ' ',
-      })
+    for (const ni of vmState.networkInterfaces) {
+      if (!ni.id) {
+        result.push({
+          network: ni.interface,
+          mac: ni.macAddress?.trim() === '' ? ' ' : ni.macAddress,
+        })
+      }
     }
 
     return result
@@ -856,7 +855,7 @@ const vmData = computed(() => {
     vmState.installMode !== 'no-config' && {
       install: {
         method: vmState.installMode,
-        repository: vmState.installMode === 'network' ? ' ' : vmState.selectedVdi,
+        repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
       },
     }
     // TODO: uncomment when radio will be implemented
