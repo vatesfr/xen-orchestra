@@ -38,7 +38,22 @@ const { vm } = defineProps<{ vm: XoVm }>()
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-    width: 50%;
+  }
+
+  @media not (--mobile) {
+    flex-direction: row;
+
+    .colum {
+      width: 50%;
+    }
+  }
+
+  @media (--mobile) {
+    flex-direction: column;
+
+    .colum {
+      width: 100%;
+    }
   }
 }
 </style>
