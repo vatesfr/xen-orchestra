@@ -164,7 +164,14 @@
                 <UiInput v-model="ramFormatted" accent="brand" />
               </VtsInputWrapper>
               <VtsInputWrapper :label="$t('topology')">
-                <UiInput v-model="vmState.topology" accent="brand" disabled />
+                <div class="topology">
+                  <FormSelect v-model="vmState.topology">
+                    <option :value="null">{{ $t('default-behavior') }}</option>
+                    <option v-for="core in coresPerSocket" :key="core.value" :value="core.value">
+                      {{ core.label }}
+                    </option>
+                  </FormSelect>
+                </div>
               </VtsInputWrapper>
             </div>
             <!-- NETWORK SECTION -->
@@ -480,7 +487,7 @@ const vmState = reactive<VmState>({
   vCPU: 0,
   VCPUs_max: 0,
   ram: 0,
-  topology: '',
+  topology: null,
   copyHostBiosStrings: false,
   sshKeys: [],
   existingVdis: [],
@@ -536,6 +543,40 @@ const deleteItem = <T,>(array: T[], index: number) => {
 }
 
 const poolName = computed(() => pool.value?.name_label)
+
+const poolCpuInfo = computed(() => {
+  return {
+    cores: pool.value?.cpu_info && +pool.value.cpu_info.cpu_count,
+    sockets: pool.value?.cpu_info && +pool.value.cpu_info.socket_count,
+  }
+})
+
+const coresPerSocket = computed(() => {
+  // https://github.com/xcp-ng/xenadmin/blob/0160cd0119fae3b871eef656c23e2b76fcc04cb5/XenModel/XenAPI-Extensions/VM.cs#L62
+  const MAX_VM_SOCKETS = 16
+  const minCores = vmState.vCPU / MAX_VM_SOCKETS
+  const options = []
+  let cores = poolCpuInfo.value.cores
+
+  if (cores === undefined || vmState.vCPU === undefined) {
+    return []
+  }
+
+  for (cores; cores >= minCores; cores--) {
+    if (vmState.vCPU % cores === 0) {
+      options.push({
+        // TODO Need to improve pluralization
+        label: t('sockets-with-cores-per-socket', {
+          nSockets: vmState.vCPU / cores,
+          nCores: cores,
+        }),
+        value: cores,
+      })
+    }
+  }
+
+  return options
+})
 
 const hostMasterRef = computed(() => pool.value?.master)
 
@@ -685,7 +726,15 @@ const onTemplateChange = () => {
   const template = vmState.new_vm_template
   if (!template) return
 
-  const { name_label, name_description, HVM_boot_params, VCPUs_at_startup, memory_dynamic_max, other_config } = template
+  const {
+    name_label,
+    name_description,
+    HVM_boot_params,
+    VCPUs_at_startup,
+    memory_dynamic_max,
+    other_config,
+    platform,
+  } = template
 
   Object.assign(vmState, {
     name: name_label,
@@ -694,6 +743,7 @@ const onTemplateChange = () => {
     vCPU: VCPUs_at_startup,
     ram: memory_dynamic_max,
     vdis: getVdis(template),
+    topology: platform['cores-per-socket'] ?? null,
     existingVdis: getExistingVdis(template),
     networkInterfaces: getExistingInterface(template),
   })
@@ -720,6 +770,7 @@ const vmCreationParams = computed(() => ({
   bootAfterCreate: vmState.boot_vm,
   copyHostBiosStrings: vmState.boot_firmware !== 'uefi' && !templateHasBiosStrings.value && vmState.copyHostBiosStrings,
   hvmBootFirmware: vmState.boot_firmware,
+  coresPerSocket: vmState.topology,
   tags: vmState.tags,
   cloudConfig: '',
 }))
@@ -772,9 +823,10 @@ const _createVm = async ($defer: Defer) => {
       xapi.vm.setNameLabel(vmRefs, vmCreationParams.value.name_label),
       xapi.vm.setNameDescription(vmRefs, vmCreationParams.value.name_description),
       xapi.vm.setMemory(vmRefs, vmCreationParams.value.memory),
-      xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
-      xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
       xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron),
+      xapi.vm.setCoresPerSocket(vmRefs[0], vmCreationParams.value.coresPerSocket),
+      xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
+      xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
     ])
 
     // INSTALL SETTINGS
@@ -987,6 +1039,10 @@ const createVM = defer(_createVm)
     .memory-container {
       display: flex;
       gap: 10.8rem;
+
+      .topology {
+        width: 32rem;
+      }
     }
 
     thead tr th:last-child {
