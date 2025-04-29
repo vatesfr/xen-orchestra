@@ -9,6 +9,7 @@
     <div class="colum">
       <VmVirtualisationAndBoot :vm />
       <VmManagement :vm />
+      <VmGraphics :vm />
     </div>
   </div>
 </template>
@@ -21,6 +22,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import VmGeneralInfo from './VmGeneralInfo.vue'
+import VmGraphics from './VmGraphics.vue'
 import VmManagement from './VmManagement.vue'
 import VmResource from './VmResource.vue'
 import VmStorageConfig from './VmStorageConfig.vue'
@@ -28,8 +30,10 @@ import VmSystemNetworking from './VmSystemNetworking.vue'
 import VmVirtualisationAndBoot from './VmVirtualisationAndBoot.vue'
 
 const route = useRoute()
+
 const { getByUuid } = useVmStore().subscribe()
 const vm = computed(() => getByUuid(route.params.uuid as RecordUuid<'vm'>))
+
 usePageTitleStore().setTitle(useI18n().t('system'))
 </script>
 
