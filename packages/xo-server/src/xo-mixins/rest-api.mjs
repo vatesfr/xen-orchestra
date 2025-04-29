@@ -609,6 +609,7 @@ export default class RestApi {
       messages: {},
       networks: {},
       pools: {},
+      groups: {},
       users: {},
       vifs: {},
       vms: {
@@ -943,12 +944,6 @@ export default class RestApi {
 
     collections.backup = {}
     collections.groups = {
-      getObject(id) {
-        return app.getGroup(id)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllGroups(), filter, limit)
-      },
       routes: {
         async users(req, res) {
           const { filter, limit } = req.query
