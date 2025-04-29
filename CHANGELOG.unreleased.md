@@ -11,10 +11,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- **XO6**:
-  - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
-- Hub recipe
-  - Upgrade Pyrgos/Kubernetes recipe to use MicroK8s
 - **Migrated REST API endpoints**:
   - `/rest/v0/groups` (PR [#8496](https://github.com/vatesfr/xen-orchestra/pull/8496))
   - `/rest/v0/groups/<group-id>` (PR [#8496](https://github.com/vatesfr/xen-orchestra/pull/8496))
@@ -38,5 +34,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/rest-api minor
 
 <!--packages-end-->
