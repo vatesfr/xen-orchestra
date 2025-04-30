@@ -83,7 +83,7 @@ export function getLicenseNearExpiration(licenses) {
     return {
       ...SLOTS.pop(),
       license: {
-        date: 0,
+        expires: 0,
       },
     }
   }
