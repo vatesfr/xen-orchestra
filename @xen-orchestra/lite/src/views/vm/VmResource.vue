@@ -11,6 +11,7 @@
 
 <script setup lang="ts">
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -21,6 +22,7 @@ import { useI18n } from 'vue-i18n'
 const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
 
 const { getByOpaqueRef: getMetricsByOpaqueRef } = useVmMetricsStore().subscribe()
+const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 
 type GeneralInfo = {
   'cpu-mask': string
@@ -43,16 +45,18 @@ const staticMaxMemoryFormated = formatSizeRaw(vm?.memory_static_max, 0)
 const dynamicMinMemoryFormated = formatSizeRaw(vm?.memory_dynamic_min, 0)
 const dynamicMaxMemoryFormated = formatSizeRaw(vm?.memory_dynamic_max, 0)
 
+const VMGestMetrics = vm?.guest_metrics ? getGuestMetricsByOpaqueRef(vm?.guest_metrics) : undefined
+const VmMetrics = vm?.metrics ? getMetricsByOpaqueRef(vm?.metrics) : undefined
+
 // @see packages/xo-server/src/xapi-object-to-xo.mjs
-const { major, minor } = (vm?.guest_metrics as any | undefined)?.PV_drivers_version ?? {}
+const { major, minor } = VMGestMetrics?.PV_drivers_version ?? {}
 const xenTools = !(
   !vm?.power_state ||
   !vm?.metrics ||
-  vm?.guest_metrics === undefined ||
+  VMGestMetrics === undefined ||
   major === undefined ||
   minor === undefined
 )
-const VmMetrics = vm?.metrics ? getMetricsByOpaqueRef(vm?.metrics) : undefined
 const maxCPU =
   vm && vm.power_state && vm.metrics && xenTools && VmMetrics ? VmMetrics.VCPUs_number : +(vm?.VCPUs_at_startup ?? 0)
 

@@ -413,8 +413,33 @@ export interface XenApiVmMetrics extends XenApiRecord<'vm_metrics'> {
   VCPUs_number: number
 }
 
+export const TRISTATE_TYPE = {
+  NO: 'no',
+  UNSPECIFIED: 'unspecified',
+  YES: 'yes',
+} as const
+
+export type TRISTATE_TYPE = (typeof TRISTATE_TYPE)[keyof typeof TRISTATE_TYPE]
+
 export interface XenApiVmGuestMetrics extends XenApiRecord<'vm_guest_metrics'> {
-  networks: string
+  $ref: RecordRef<'vm_guest_metrics'>
+  can_use_hotplug_vbd: TRISTATE_TYPE
+  can_use_hotplug_vif: TRISTATE_TYPE
+  /** @deprecated */
+  disks?: Record<string, string>
+  last_updated: string
+  live: boolean
+  /** @deprecated */
+  memory?: Record<string, string>
+  networks: Record<string, string>
+  os_version: Record<string, string>
+  other_config: Record<string, string>
+  other: Record<string, string>
+  PV_drivers_detected: boolean
+  /** @deprecated */
+  PV_drivers_up_to_date?: boolean
+  PV_drivers_version: Record<string, string>
+  uuid: RecordUuid<'vm_guest_metrics'>
 }
 
 export interface XenApiTask extends XenApiRecord<'task'> {
