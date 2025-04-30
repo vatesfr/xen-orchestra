@@ -39,12 +39,6 @@ export function getLicenseNearExpiration(licenses) {
   if (licenses.find(({ expires }) => expires === undefined) !== undefined) {
     return
   }
-  if (licenses.length === 0) {
-    throw new Error('No license found')
-  }
-
-  licenses.sort(({ expires: expires1 }, { expires: expires2 }) => expires2 - expires1)
-  const newestLicense = licenses[0]
 
   const SLOTS = [
     {
@@ -85,6 +79,18 @@ export function getLicenseNearExpiration(licenses) {
       popupClass: 'alert-danger',
     },
   ]
+  if (licenses.length === 0) {
+    return {
+      ...SLOTS.pop(),
+      license: {
+        date: 0,
+      },
+    }
+  }
+
+  licenses.sort(({ expires: expires1 }, { expires: expires2 }) => expires2 - expires1)
+  const newestLicense = licenses[0]
+
   const candidates = SLOTS.filter(({ duration }) => newestLicense.expires + duration < Date.now())
 
   if (candidates.length === 0) {
