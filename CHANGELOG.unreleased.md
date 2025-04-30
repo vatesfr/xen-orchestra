@@ -11,15 +11,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- **Migrated REST API endpoints**:
-  - `/rest/v0/groups` (PR [#8496](https://github.com/vatesfr/xen-orchestra/pull/8496))
-  - `/rest/v0/groups/<group-id>` (PR [#8496](https://github.com/vatesfr/xen-orchestra/pull/8496))
-  - `/rest/v0/networks` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
-  - `/rest/v0/networks/<network-id>` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
-- [V2V] Resume an incomplete warm migration (PR [#8440](https://github.com/vatesfr/xen-orchestra/pull/8440))
-- [Licences] Warn a user when the XOA's licence is near expiration, handle expired licences (PR [#8523](https://github.com/vatesfr/xen-orchestra/pull/8523))
-- [Plugin/Web hook] Web hook plugin now support `Office 365 connector` format (PR [#8498](https://github.com/vatesfr/xen-orchestra/pull/8498))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -39,12 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/rest-api minor
-- @xen-orchestra/vmware-explorer patch
-- @xen-orchestra/web patch
-- xo-server minor
-- xo-server-web-hooks minor
-- xo-web minor
 
 <!--packages-end-->
