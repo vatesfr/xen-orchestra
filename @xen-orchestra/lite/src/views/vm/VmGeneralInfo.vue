@@ -14,8 +14,8 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('os-name')" :value="vm?.reference_label" />
-    <VtsQuickInfoRow :label="$t('os-kernel')" :value="(guestMetrics as any | undefined)?.os_version.uname" />
-    <VtsQuickInfoRow :label="$t('management-agent-version')" :value="pvDriversVersion" />
+    <VtsQuickInfoRow :label="$t('os-kernel')" :value="guestMetrics?.os_version.uname" />
+    <VtsQuickInfoRow :label="$t('management-agent-version')" :value="PvVersion" />
   </UiCard>
 </template>
 
@@ -33,18 +33,24 @@ const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
 
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 
-const guestMetrics = computed(() => {
-  return vm ? getGuestMetricsByOpaqueRef(vm.guest_metrics) : undefined
-})
+const {
+  value: { guestMetrics, PvVersion },
+} = computed(() => {
+  const guestMetrics = vm ? getGuestMetricsByOpaqueRef(vm.guest_metrics) : undefined
 
-const getVmGuestToolsProps = (vm: XenApiVm) => {
-  if (!vm || !vm.power_state || !guestMetrics.value) {
-    return undefined
+  if (!vm || !vm.power_state || !guestMetrics) {
+    return {
+      guestMetrics,
+      PvVersion: '',
+    }
   }
-  const { build, major, micro, minor } = (guestMetrics?.value as any | undefined)?.PV_drivers_version
-  const hasPvVersion = major !== undefined && minor !== undefined
 
-  return hasPvVersion ? `${major}.${minor}.${micro}-${build}` : undefined
-}
-const pvDriversVersion = vm ? getVmGuestToolsProps(vm) : undefined
+  const { build, major, micro, minor } = guestMetrics?.PV_drivers_version
+
+  return {
+    guestMetrics,
+    PvVersion:
+      major !== undefined && minor !== undefined ? `${major}.${minor}.${micro}${build ? `-${build}` : ''}` : '',
+  }
+})
 </script>

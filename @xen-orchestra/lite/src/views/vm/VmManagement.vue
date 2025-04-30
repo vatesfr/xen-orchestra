@@ -57,8 +57,10 @@ import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
+
 const { getByOpaqueRef: getMetricsByOpaqueRef } = useHostStore().subscribe()
 
 const timeAgo = computed(() => useTimeAgo(vm?.start_delay ?? NaN))
+
 const affinity = vm?.affinity ? getMetricsByOpaqueRef(vm?.affinity) : undefined
 </script>

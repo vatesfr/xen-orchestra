@@ -29,5 +29,6 @@ import { formatSizeRaw } from '@core/utils/size.util'
 const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
 
 const VideoRamValue = formatSizeRaw(Number(vm?.platform.videoram ?? 4), 0)?.value
+
 const vga = vm?.platform.vga ?? 'cirrus'
 </script>
