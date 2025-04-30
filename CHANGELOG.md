@@ -1,9 +1,18 @@
 # ChangeLog
 
-## **next**
+## **5.106.0** (2025-04-30)
 
-### Enhancements
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
+### Highlights
+
+- [Dashboard/Health] Display snapshots older than 30 days for which no schedules are enabled (PR [#8487](https://github.com/vatesfr/xen-orchestra/pull/8487))
+- [Plugins/audit] Add an option to import audit logs from an XOA to another (PR [#8474](https://github.com/vatesfr/xen-orchestra/pull/8474))
+- [V2V] Resume an incomplete warm migration (PR [#8440](https://github.com/vatesfr/xen-orchestra/pull/8440))
+- [Licences] Warn a user when the XOA's licence is near expiration, handle expired licences (PR [#8523](https://github.com/vatesfr/xen-orchestra/pull/8523))
+- [Plugin/Web hook] Web hook plugin now support `Office 365 connector` format (PR [#8498](https://github.com/vatesfr/xen-orchestra/pull/8498))
+- [REST API] Expose `/rest/v0/schedules` and `/rest/v0/schedules/<schedule-id>` enpoints (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
+- [REST API] Expose the possibility to run a schedule `/rest/v0/schedules/<schedule-id>/actions/run` (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
 - **Migrated REST API endpoints**:
   - `/rest/v0/vifs` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
   - `/rest/v0/vifs/<vif-id>` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
@@ -19,16 +28,12 @@
   - `/rest/v0/groups/<group-id>` (PR [#8496](https://github.com/vatesfr/xen-orchestra/pull/8496))
   - `/rest/v0/networks` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
   - `/rest/v0/networks/<network-id>` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
+
+### Enhancements
+
 - [VM/Advanced] Rename `Block migration` to `Prevent migration` (PR [#8500](https://github.com/vatesfr/xen-orchestra/pull/8500))
-- [Dashboard/Health] Display snapshots older than 30 days for which no schedules are enabled (PR [#8487](https://github.com/vatesfr/xen-orchestra/pull/8487))
-- [REST API] Expose `/rest/v0/schedules` and `/rest/v0/schedules/<schedule-id>` enpoints (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
-- [REST API] Expose the possibility to run a schedule `/rest/v0/schedules/<schedule-id>/actions/run` (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
 - [Host/Networks] PIFs can now be filtered by network names
-- [Plugins/audit] Add an option to import audit logs from an XOA to another (PR [#8474](https://github.com/vatesfr/xen-orchestra/pull/8474))
 - [Hub recipe] Upgrade Pyrgos/Kubernetes recipe to use MicroK8s (PR [#8530](https://github.com/vatesfr/xen-orchestra/pull/8530))
-- [V2V] Resume an incomplete warm migration (PR [#8440](https://github.com/vatesfr/xen-orchestra/pull/8440))
-- [Licences] Warn a user when the XOA's licence is near expiration, handle expired licences (PR [#8523](https://github.com/vatesfr/xen-orchestra/pull/8523))
-- [Plugin/Web hook] Web hook plugin now support `Office 365 connector` format (PR [#8498](https://github.com/vatesfr/xen-orchestra/pull/8498))
 - **XO 6:**
   - [i18n] Update Swedish, Czech, Spanish, Persian, Italian, Russian and add Dutch translations (PR [#8465](https://github.com/vatesfr/xen-orchestra/pull/8465))
   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
@@ -65,7 +70,7 @@
 
 ## **5.105.0** (2025-03-31)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -139,8 +144,6 @@
 - xo-web 5.171.0
 
 ## **5.104.1** (2025-03-04)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
