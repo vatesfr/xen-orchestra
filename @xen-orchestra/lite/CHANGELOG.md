@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.10.0** (2025-04-30)
 
 - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
 - [Host] Add dashboard view (PR [#8504](https://github.com/vatesfr/xen-orchestra/pull/8504))
