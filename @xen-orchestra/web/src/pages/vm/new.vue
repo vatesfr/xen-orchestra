@@ -855,7 +855,7 @@ const vmData = computed(() => {
     vmState.installMode !== 'no-config' && {
       install: {
         method: vmState.installMode,
-        repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
+        repository: vmState.installMode === 'network' ? ' ' : vmState.selectedVdi,
       },
     }
     // TODO: uncomment when radio will be implemented
