@@ -15,9 +15,17 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router/auto'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute<'/vm/[id]'>()
+
+const router = useRouter()
+
+router.beforeEach(async to => {
+  if (to.name === '/vm/[id]') {
+    return `/vm/${route.params.id}/console`
+  }
+})
 
 const { isReady, get: getVm } = useVmStore().subscribe()
 const uiStore = useUiStore()
