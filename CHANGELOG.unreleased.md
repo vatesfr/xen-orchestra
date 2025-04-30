@@ -42,6 +42,7 @@
 
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/web patch
 - xo-server minor
 - xo-server-web-hooks minor
 - xo-web minor
