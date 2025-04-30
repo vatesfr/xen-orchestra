@@ -1,4 +1,10 @@
 <template>
+  <div class="top-bottom">
+    <div class="typo-body-regular-small label">
+      {{ tasks.length }} {{ $t('of') }} {{ tasks.length }} {{ $t('tasks', tasks.length) }}
+    </div>
+    <UiButton variant="tertiary" accent="brand" size="medium">{{ $t('refresh') }}</UiButton>
+  </div>
   <VtsDataTable
     class="task-table"
     :is-ready
@@ -27,7 +33,12 @@
       </template>
     </template>
   </VtsDataTable>
-  <UiTopBottomTable :selected-items="0" :total-items="tasks.length" />
+  <div class="top-bottom">
+    <div class="typo-body-regular-small label">
+      {{ tasks.length }} {{ $t('of') }} {{ tasks.length }} {{ $t('tasks', tasks.length) }}
+    </div>
+    <UiButton variant="tertiary" accent="brand" size="medium">{{ $t('refresh') }}</UiButton>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -37,7 +48,7 @@ import { useTaskTree } from '@/composables/task-tree.composable.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
-import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import { faTasks } from '@fortawesome/free-solid-svg-icons'
 
 const { tasks, isReady, hasError } = useTaskTree()
@@ -55,6 +66,16 @@ const { tasks, isReady, hasError } = useTaskTree()
 
   :deep(tbody) tr {
     border-bottom: 0 !important;
+  }
+}
+
+.top-bottom {
+  display: flex;
+  gap: 0.8rem;
+
+  .label {
+    color: var(--color-neutral-txt-secondary);
+    align-content: center;
   }
 }
 </style>

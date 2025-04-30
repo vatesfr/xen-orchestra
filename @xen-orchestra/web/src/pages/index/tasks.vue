@@ -17,8 +17,8 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 
   .container {
     height: fit-content;
-    gap: 4rem;
     margin: 0.8rem;
+    gap: 0.8rem;
   }
 }
 </style>
