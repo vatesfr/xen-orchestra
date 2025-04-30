@@ -119,7 +119,25 @@ export interface XenApiHost extends XenApiRecord<'host'> {
   metrics: XenApiHostMetrics['$ref']
   resident_VMs: XenApiVm['$ref'][]
   cpu_info: { cpu_count: string; socket_count: string }
-  software_version: { product_version: string }
+  software_version: {
+    build_number: string
+    date: string
+    db_schema: string
+    dbv: string
+    hostname: string
+    linux: string
+    network_backend: string
+    platform_name: string
+    platform_version: string
+    product_brand: string
+    product_version: string
+    product_version_text: string
+    product_version_text_short: string
+    xapi: string
+    xen: string
+    xencenter_max: string
+    xencenter_min: string
+  }
   control_domain: XenApiVm['$ref']
   current_operations: Record<string, HOST_OPERATION>
   other_config: Record<string, any>
