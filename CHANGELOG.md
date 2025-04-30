@@ -1,5 +1,15 @@
 # ChangeLog
 
+## **next** (2025-04-30)
+
+### Bug fixes
+
+- prevent XOA from failing with `an error has occured` due to license problems (PR [#8551](https://github.com/vatesfr/xen-orchestra/pull/8551))
+
+### Released packages
+
+- xo-web 5.173.1
+
 ## **5.106.0** (2025-04-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
