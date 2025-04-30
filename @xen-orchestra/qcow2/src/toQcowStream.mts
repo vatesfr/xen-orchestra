@@ -1,8 +1,12 @@
 import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 import { Readable } from 'node:stream'
 
-export function toQcow2Stream(disk: RandomAccessDisk, clusterSize: number): Readable {
+export function toQcow2Stream(disk: RandomAccessDisk, { clusterSize = 65536, refcount_bits = 16 } = {}): Readable {
   const nbEntriesPerL2Table = clusterSize / 8
+  const refcountsPerTable = clusterSize / 8
+  const refcountsPerBlock = (clusterSize * 8) / refcount_bits
+  const hdrRefcountBits = Math.log2(refcount_bits)
+
   let l1TableLength = Math.ceil(disk.getVirtualSize() / nbEntriesPerL2Table)
   // align to a clusterSize
   l1TableLength = Math.ceil(l1TableLength / clusterSize) * clusterSize
@@ -22,7 +26,10 @@ export function toQcow2Stream(disk: RandomAccessDisk, clusterSize: number): Read
   const qcowHeader = Buffer.alloc(71, 0)
 
   async function* generator() {
-    yield qcowHeader
+    yield qcowHeader // need to populate this
+    //yield L1 refcount
+    //yield L2 refcount
+
     const l1Table = Buffer.alloc(l1TableLength, 0)
     let offset = 72 + l1TableLength
     // compute l2 table  offsets
