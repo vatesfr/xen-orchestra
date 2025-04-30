@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **XO6**:
+  - [Task] Add global tasks (PR [#8518](https://github.com/vatesfr/xen-orchestra/pull/8518))
 - **Migrated REST API endpoints**:
   - `/rest/v0/groups` (PR [#8496](https://github.com/vatesfr/xen-orchestra/pull/8496))
   - `/rest/v0/groups/<group-id>` (PR [#8496](https://github.com/vatesfr/xen-orchestra/pull/8496))
@@ -42,6 +44,8 @@
 
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-web-hooks minor
 - xo-web minor
