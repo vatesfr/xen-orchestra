@@ -31,4 +31,5 @@
 
 <!--packages-start-->
 
+- xo-web patch
 <!--packages-end-->
