@@ -153,8 +153,8 @@
                 <VtsInputWrapper :label="$t('affinity-host')">
                   <div class="affinity-host">
                     <FormSelect v-model="vmState.affinity_host" class="select">
-                      <option :value="undefined">{{ $t('none') }}</option>
-                      <option v-for="host in affinityHosts" :key="host?.$ref" :value="host?.$ref">
+                      <option :value="OPAQUE_REF.EMPTY">{{ $t('none') }}</option>
+                      <option v-for="host in hosts" :key="host?.$ref" :value="host?.$ref">
                         {{ host?.name_label }}
                       </option>
                     </FormSelect>
@@ -408,7 +408,6 @@ import FormSelect from '@/components/form/FormSelect.vue'
 import type { XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
@@ -462,14 +461,13 @@ import { useRouter } from 'vue-router'
 // Store subscriptions
 const { templates } = useVmStore().subscribe()
 const { pool } = usePoolStore().subscribe()
-const { records: srs, vdiIsosBySrName, getByOpaqueRef: getSrByOpaqueRef } = useSrStore().subscribe()
-const { records: hosts, getByOpaqueRef: getHostByOpaqueRef } = useHostStore().subscribe()
+const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
+const { records: hosts } = useHostStore().subscribe()
 const { records: networks, getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
 const { getByOpaqueRef: getVdiByOpaqueRef } = useVdiStore().subscribe()
 const { getByOpaqueRef: getVifByOpaqueRef } = useVifStore().subscribe()
 const { getByOpaqueRef: getPifByOpaqueRef } = usePifStore().subscribe()
-const { getByOpaqueRef: getPbdByOpaqueRef } = usePbdStore().subscribe()
 
 // i18n setup
 const { t } = useI18n()
@@ -487,7 +485,7 @@ const vmState = reactive<VmState>({
   toggle: false,
   installMode: '',
   tags: [],
-  affinity_host: undefined,
+  affinity_host: OPAQUE_REF.EMPTY,
   boot_firmware: '',
   new_vm_template: undefined,
   boot_vm: true,
@@ -608,48 +606,6 @@ const bootFirmwares = computed(() => [...new Set(templates.value.map(template =>
 const defaultSr = computed(() => pool.value!.default_SR)
 
 const filteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
-
-const allVdis = computed(() => [...vmState.existingVdis, ...vmState.vdis])
-
-const isVdiOnSharedSr = computed(() => {
-  return allVdis.value.every(vdi => {
-    const sr = getSrByOpaqueRef(vdi.SR)
-
-    if (sr === undefined) return true
-
-    return sr.shared
-  })
-})
-
-const affinityHosts = computed(() => {
-  if (isVdiOnSharedSr.value) {
-    return hosts.value
-  }
-
-  const srRef = allVdis.value[0].SR
-
-  const areVdisOnSameSrOrShared = allVdis.value.every(vdi => {
-    const sr = getSrByOpaqueRef(vdi.SR)
-
-    return vdi.SR === srRef || sr?.shared
-  })
-
-  if (!areVdisOnSameSrOrShared) {
-    return []
-  }
-
-  const pbdRef = getSrByOpaqueRef(srRef)?.PBDs[0]
-
-  if (pbdRef === undefined) return []
-
-  const hostRef = getPbdByOpaqueRef(pbdRef)?.host
-
-  if (hostRef === undefined) return []
-
-  const host = getHostByOpaqueRef(hostRef)
-
-  return [host]
-})
 
 const templateHasBiosStrings = computed(
   () => vmState.new_vm_template !== null && Object.keys(vmState.new_vm_template!.bios_strings).length > 0
@@ -785,6 +741,7 @@ const onTemplateChange = () => {
     memory_dynamic_max,
     other_config,
     platform,
+    affinity,
   } = template
 
   Object.assign(vmState, {
@@ -795,6 +752,7 @@ const onTemplateChange = () => {
     ram: memory_dynamic_max,
     vdis: getVdis(template),
     topology: platform['cores-per-socket'] ?? null,
+    affinity_host: affinity,
     existingVdis: getExistingVdis(template),
     networkInterfaces: getExistingInterface(template),
   })

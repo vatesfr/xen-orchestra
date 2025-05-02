@@ -4,7 +4,7 @@ import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import type { MaybeArray } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'
-import { OPAQUE_REF } from '@vates/types'
+import type { OPAQUE_REF_NULL } from '@vates/types/common'
 
 export function createVmOperations(xenApi: XenApi) {
   type VmRefs = MaybeArray<XenApiVm['$ref']>
@@ -103,8 +103,8 @@ export function createVmOperations(xenApi: XenApi) {
       )
     },
 
-    setAffinityHost: (vmRefs: VmRefs, hostRef: HostRef | undefined) =>
-      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_affinity', [vmRef, hostRef ?? OPAQUE_REF.EMPTY]))),
+    setAffinityHost: (vmRefs: VmRefs, hostRef: HostRef | OPAQUE_REF_NULL) =>
+      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_affinity', [vmRef, hostRef]))),
 
     setAutoPowerOn: (vmRef: XenApiVm['$ref'], value: boolean) => setOtherConfig(vmRef, 'auto_poweron', value),
 
@@ -128,9 +128,6 @@ export function createVmOperations(xenApi: XenApi) {
       Promise.all(
         toArray(vmRefs).map(vmRef => xenApi.call('VM.set_VCPUs_params', [vmRef, 'weight', weight?.toString() ?? '']))
       ),
-
-    setCopyBiosString: (vmRefs: VmRefs, hostRef: HostRef) =>
-      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_copy_bios_string', [vmRef, hostRef]))),
 
     setHvmBootFirmware: async (vmRef: XenApiVm['$ref'], firmware: string) => {
       await Promise.all([

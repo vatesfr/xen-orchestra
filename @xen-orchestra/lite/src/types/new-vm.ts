@@ -1,5 +1,5 @@
 import type { XenApiHost, XenApiNetwork, XenApiSr, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
-import type { VDI_TYPE } from '@vates/types/common'
+import { type OPAQUE_REF_NULL, type VDI_TYPE } from '@vates/types/common'
 
 export interface Vdi {
   name_label: string
@@ -20,7 +20,7 @@ export interface VmState {
   toggle: boolean
   installMode: string
   tags: string[]
-  affinity_host: XenApiHost['$ref'] | undefined
+  affinity_host: XenApiHost['$ref'] | OPAQUE_REF_NULL
   boot_firmware: string
   new_vm_template: XenApiVm | undefined
   boot_vm: boolean
