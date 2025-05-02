@@ -30,8 +30,8 @@ const updateHasChildren = () => {
 }
 
 const handleClick = () => {
-  if (!hasChildren.value && uiStore.isMobile) {
-    sidebar.toggleExpand()
+  if (uiStore.isMobile) {
+    sidebar.toggleExpand(false)
   }
 }
 
