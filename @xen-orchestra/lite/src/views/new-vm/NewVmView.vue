@@ -118,8 +118,9 @@
                 <VtsInputWrapper :label="$t('new-vm.name')">
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
-                <VtsInputWrapper :label="$t('tags')">
-                  <UiInput v-model="vmState.tag" :label-icon="faTags" accent="brand" @keydown.enter.prevent="addTag" />
+                <VtsInputWrapper :label="$t('tags')" :icon="faTags">
+                  <!-- TODO Change input text into select when Thierry's component is available -->
+                  <UiInput v-model="vmState.tag" accent="brand" @keydown.enter.prevent="addTag" />
                 </VtsInputWrapper>
                 <div v-if="vmState.tags.length > 0" class="chips">
                   <UiChip v-for="(tag, index) in vmState.tags" :key="index" accent="info" @remove="removeTag(index)">
@@ -561,9 +562,11 @@ const addStorageEntry = () => {
 
 const addTag = () => {
   const tag = vmState.tag.trim()
+
   if (tag && !vmState.tags.includes(tag)) {
     vmState.tags.push(tag)
   }
+
   vmState.tag = ''
 }
 
@@ -768,6 +771,7 @@ const onTemplateChange = () => {
     memory_dynamic_max,
     other_config,
     platform,
+    tags,
     affinity,
   } = template
 
@@ -778,6 +782,7 @@ const onTemplateChange = () => {
     vCPU: VCPUs_at_startup,
     ram: memory_dynamic_max,
     vdis: getVdis(template),
+    tags,
     topology: platform['cores-per-socket'] ?? null,
     affinity_host: affinity,
     existingVdis: getExistingVdis(template),
