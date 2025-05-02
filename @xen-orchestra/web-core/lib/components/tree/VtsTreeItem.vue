@@ -7,6 +7,7 @@
 
 <script lang="ts" setup>
 import { useSidebarStore } from '@core/stores/sidebar.store'
+import { useUiStore } from '@core/stores/ui.store'
 import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN } from '@core/utils/injection-keys.util'
 import { onBeforeMount, onBeforeUpdate, provide, ref, toRef, useSlots } from 'vue'
 
@@ -20,6 +21,7 @@ defineSlots<{
 }>()
 
 const sidebar = useSidebarStore()
+const uiStore = useUiStore()
 const hasChildren = ref(false)
 
 const updateHasChildren = () => {
@@ -28,7 +30,7 @@ const updateHasChildren = () => {
 }
 
 const handleClick = () => {
-  if (!hasChildren.value) {
+  if (!hasChildren.value && uiStore.isMobile) {
     sidebar.toggleExpand()
   }
 }
