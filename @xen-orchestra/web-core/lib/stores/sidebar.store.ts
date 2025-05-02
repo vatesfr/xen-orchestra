@@ -2,7 +2,7 @@ import { useUiStore } from '@core/stores/ui.store'
 import { ifElse } from '@core/utils/if-else.utils'
 import { useLocalStorage, useRafFn, useStyleTag, useToggle } from '@vueuse/core'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 export const useSidebarStore = defineStore('layout', () => {
   const uiStore = useUiStore()
@@ -48,6 +48,13 @@ export const useSidebarStore = defineStore('layout', () => {
   )
 
   ifElse(isResizing, [load, resume], [pause, unload])
+
+  watch(
+    () => uiStore.isMobile,
+    isMobile => {
+      isExpanded.value = !isMobile
+    }
+  )
 
   return {
     isExpanded,
