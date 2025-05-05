@@ -49,6 +49,7 @@
     "@xen-orchestra/backups": "^0.58.4",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/defined": "^0.0.2",
+    "@xen-orchestra/disk-transform": "^0.0.0",
     "@xen-orchestra/emit-async": "^1.0.0",
     "@xen-orchestra/fs": "^4.4.1",
     "@xen-orchestra/log": "^0.7.1",

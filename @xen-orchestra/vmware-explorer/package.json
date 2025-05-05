@@ -1,7 +1,7 @@
 {
   "license": "ISC",
   "private": false,
-  "version": "0.9.3",
+  "version": "0.9.2",
   "name": "@xen-orchestra/vmware-explorer",
   "dependencies": {
     "@vates/node-vsphere-soap": "^2.1.1",
