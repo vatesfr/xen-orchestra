@@ -11,7 +11,7 @@
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <HostsRamUsage :hosts="hosts.slice(0, 5)" />
+      <HostsRamUsage :hosts="hosts.sort((a, b) => b.memory.usage - a.memory.usage)" />
     </template>
     <UiCardSubtitle>
       {{ $t('vms', vms.length) }}
@@ -21,7 +21,7 @@
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VmsRamUsage :vms="vms.slice(0, 5)" />
+      <VmsRamUsage :vms="vms.sort((a, b) => b.memory.dynamic[0] - a.memory.dynamic[0])" />
     </template>
   </UiCard>
 </template>
@@ -49,12 +49,10 @@ const { vmsByHost, isReady: areVmsReady, hostLessVmsByPool } = useVmStore().subs
 const { hostsByPool, isReady: areHostReady } = useHostStore().subscribe()
 
 const isReady = computed(() => isPoolReady.value && areHostReady.value && isHostReady.value && areVmsReady.value)
-const hosts = computed(() => (hostsByPool.value.get(pool.id) ?? []).sort((a, b) => b.memory.usage - a.memory.usage))
+const hosts = computed(() => hostsByPool.value.get(pool.id) ?? [])
 // no memory.usage for vm
-const vms = computed(() =>
-  [
-    ...hosts.value.flatMap(host => vmsByHost.value.get(host.id) ?? []),
-    ...(hostLessVmsByPool.value.get(pool.id) ?? []),
-  ].sort((a, b) => b.memory.dynamic[0] - a.memory.dynamic[0])
-)
+const vms = computed(() => [
+  ...hosts.value.flatMap(host => vmsByHost.value.get(host.id) ?? []),
+  ...(hostLessVmsByPool.value.get(pool.id) ?? []),
+])
 </script>

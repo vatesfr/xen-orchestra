@@ -7,10 +7,10 @@
     </div>
     <div class="dashboard-column">
       <div />
-      <div class="ram"><RamUsage :pool /></div>
+      <div class="ram"><PoolDashboardRamUsage :pool /></div>
       <div class="cpu">
-        <PoolDashboardCpu :pool />
-        <RamUsage :pool />
+        <PoolDashboardCpuProvisioning :pool />
+        <PoolDashboardCpuUsage :pool />
       </div>
     </div>
   </div>
@@ -18,9 +18,10 @@
 
 <script setup lang="ts">
 import Alarms from '@/components/pool/dashboard/PoolDashboardalarms.vue'
-import PoolDashboardCpu from '@/components/pool/dashboard/PoolDashboardCpu.vue'
+import PoolDashboardCpuProvisioning from '@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue'
+import PoolDashboardCpuUsage from '@/components/pool/dashboard/PoolDashboardCpuUsage.vue'
 import Patch from '@/components/pool/dashboard/PoolDashboardpatch.vue'
-import RamUsage from '@/components/pool/dashboard/PoolDashboardRamUsage.vue'
+import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamUsage.vue'
 import Status from '@/components/pool/dashboard/PoolDashboardstatus.vue'
 import type { XoPool } from '@/types/xo/pool.type'
 
