@@ -40,12 +40,12 @@ export function getLicenseNearExpiration(licenses, trial) {
   const plan = getXoaPlan()
   // user does not have a licence for free or source version
   // also don't crash the app if the licence is in unexpected state
-  if(![PREMIUM, ENTERPRISE,STARTER ].includes(plan)){
-    return 
+  if (![PREMIUM, ENTERPRISE, STARTER].includes(plan)) {
+    return
   }
   // user under trial are not expected to have licences
-  if(isTrialRunning(trial)){
-    return 
+  if (isTrialRunning(trial)) {
+    return
   }
   // got a unlimited license bound to this XO nothing can expires
   if (licenses.find(({ expires }) => expires === undefined) !== undefined) {

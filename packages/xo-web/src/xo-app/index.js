@@ -444,7 +444,9 @@ export default class XoApp extends Component {
     const licenseNearExpiration = this.props.selfLicences && getLicenseNearExpiration(this.props.selfLicences, trial)
     // If we are under expired or unstable trial (signed up only)
     const blocked =
-      signedUp &&( blockXoaAccess(trial) || licenseNearExpiration?.blocked === true)&& !(pathname.startsWith('/xoa/') || pathname === '/backup/restore')
+      signedUp &&
+      (blockXoaAccess(trial) || licenseNearExpiration?.blocked === true) &&
+      !(pathname.startsWith('/xoa/') || pathname === '/backup/restore')
     const plan = getXoaPlan()
     return (
       <IntlProvider>
@@ -492,7 +494,7 @@ export default class XoApp extends Component {
                   </button>
                 </div>
               )}
-              {licenseNearExpiration  && (
+              {licenseNearExpiration && (
                 <div className={`alert alert-info mb-0 ${licenseNearExpiration.popupClass ?? 'alert-info'}`}>
                   {_(licenseNearExpiration.strCode, {
                     duration: licenseNearExpiration.textDuration,
