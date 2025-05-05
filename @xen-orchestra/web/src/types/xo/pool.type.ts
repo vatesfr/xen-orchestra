@@ -11,4 +11,8 @@ export type XoPool = {
   name_label: string
   _xapiRef: string
   default_SR?: XoSr['id']
+  cpus: {
+    cores: number
+    sockets: number
+  }
 }
