@@ -2,6 +2,8 @@ import { readChunkStrict, skipStrict } from '@vates/read-chunk'
 
 /**
  * Implementation of FileAccessor for interacting with an ESXi datastore.
+ * Since most of the reading is done sequentially : works by opening a stream
+ * adn reading from it
  * @implements {FileAccessor}
  */
 export class EsxiDatastore {
