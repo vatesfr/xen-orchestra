@@ -1,14 +1,21 @@
-import type { CollectionItem, FlagRegistry } from '@core/packages/collection'
+import type {
+  Collection,
+  CollectionConfigProperties,
+  CollectionItem,
+  FlagRegistry,
+  GuessItemId,
+  UseFlagReturn,
+} from '@core/packages/collection/types.ts'
 import { useArrayFilter, useArrayMap } from '@vueuse/core'
 import { computed, type ComputedRef } from 'vue'
 
-export function createCollection<
-  TSource,
-  TId extends PropertyKey,
-  TFlag extends string,
-  TProperties extends Record<string, any>,
->(items: ComputedRef<CollectionItem<TSource, TId, TFlag, TProperties>[]>, flagRegistry: FlagRegistry<TFlag>) {
-  function useFlag(flag: TFlag) {
+export function createCollection<TSource, TFlag extends string, TProperties extends CollectionConfigProperties>(
+  items: ComputedRef<CollectionItem<TSource, TFlag, TProperties>[]>,
+  flagRegistry: FlagRegistry<TFlag>
+): Collection<TSource, TFlag, TProperties> {
+  function useFlag(flag: TFlag): UseFlagReturn<TSource, TFlag, TProperties> {
+    flagRegistry.assertFlag(flag)
+
     const flaggedItems = useArrayFilter(items, item => item.flags[flag])
 
     const ids = useArrayMap(flaggedItems, item => item.id)
@@ -21,7 +28,7 @@ export function createCollection<
 
     const areNoneOn = computed(() => count.value === 0)
 
-    function toggle(id: TId, forcedValue?: boolean) {
+    function toggle(id: GuessItemId<TSource, TProperties>, forcedValue?: boolean) {
       flagRegistry.toggleFlag(id, flag, forcedValue)
     }
 
@@ -29,6 +36,12 @@ export function createCollection<
       for (const item of items.value) {
         flagRegistry.toggleFlag(item.id, flag, forcedValue)
       }
+    }
+
+    function useSubset(
+      filter: (item: CollectionItem<TSource, TFlag, TProperties>) => boolean
+    ): Collection<TSource, TFlag, TProperties> {
+      return createCollection(useArrayFilter(flaggedItems, filter), flagRegistry)
     }
 
     return {
@@ -40,13 +53,14 @@ export function createCollection<
       areNoneOn,
       toggle,
       toggleAll,
+      useSubset,
     }
   }
 
-  function useSubset(filter: (item: CollectionItem<TSource, TId, TFlag, TProperties>) => boolean) {
-    const filteredItems = useArrayFilter(items, item => filter(item))
-
-    return createCollection(filteredItems, flagRegistry)
+  function useSubset(
+    filter: (item: CollectionItem<TSource, TFlag, TProperties>) => boolean
+  ): Collection<TSource, TFlag, TProperties> {
+    return createCollection(useArrayFilter(items, filter), flagRegistry)
   }
 
   const count = computed(() => items.value.length)
