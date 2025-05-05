@@ -7,17 +7,17 @@
     </div>
     <div class="dashboard-column">
       <div />
-      <div><RamUsage :pool /></div>
-      <div />
+      <div class="ram"><RamUsage :pool /></div>
+      <div class="cpu" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import Alarms from '@/components/pool/dashboard/alarms.vue'
-import Patch from '@/components/pool/dashboard/patch.vue'
+import Alarms from '@/components/pool/dashboard/PoolDashboardalarms.vue'
+import Patch from '@/components/pool/dashboard/PoolDashboardpatch.vue'
+import Status from '@/components/pool/dashboard/PoolDashboardstatus.vue'
 import RamUsage from '@/components/pool/dashboard/ramUsage.vue'
-import Status from '@/components/pool/dashboard/status.vue'
 import type { XoPool } from '@/types/xo/pool.type'
 
 const { pool } = defineProps<{
