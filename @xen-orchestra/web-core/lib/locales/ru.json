@@ -96,6 +96,7 @@
   "dark-mode.disable": "Отключить тёмный режим",
   "dark-mode.enable": "Включить тёмный режим",
   "dashboard": "Панель управления",
+  "default-behavior": "Стандартное поведение",
   "delete": "Удалить",
   "deploy-xoa": "Развернуть XOA",
   "deploy-xoa-status.configuring": "Настраиваем XOA…",
