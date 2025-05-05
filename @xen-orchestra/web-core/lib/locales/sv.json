@@ -119,6 +119,7 @@
   "dark-mode.disable": "Inaktivera mörkt läge",
   "dark-mode.enable": "Aktivera mörkt läge",
   "dashboard": "Kontrollpanel",
+  "default-behavior": "Standardbeteende",
   "default-locking-mode": "Standard låsläge",
   "delete": "Radera",
   "delete-vms": "Radera 1 VM | Radera {n} VMar",
