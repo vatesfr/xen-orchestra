@@ -441,7 +441,7 @@ export default class XoApp extends Component {
   render() {
     const { signedUp, trial, registerNeeded } = this.props
     const { pathname } = this.context.router.location
-    const licenseNearExpiration = this.props.selfLicences && getLicenseNearExpiration(this.props.selfLicences)
+    const licenseNearExpiration = this.props.selfLicences && getLicenseNearExpiration(this.props.selfLicences, trial)
     // If we are under expired or unstable trial (signed up only)
     const blocked =
       signedUp &&( blockXoaAccess(trial) || licenseNearExpiration?.blocked === true)&& !(pathname.startsWith('/xoa/') || pathname === '/backup/restore')
