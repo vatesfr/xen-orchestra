@@ -1,9 +1,9 @@
 <template>
-  <div class="host-ram-usage">
+  <div class="hosts-ram-usage">
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
       <UiProgressBar
-        v-for="ramUsage in ramUsages.hosts"
+        v-for="ramUsage in ramUsages.hosts.splice(0, 5)"
         :key="ramUsage.id"
         class="progressBar"
         :value="ramUsage.used?.value ?? 0"
@@ -49,7 +49,7 @@ const ramUsages = computed(() => {
   return {
     hosts: hosts.map(host => {
       ramUsageTotal += host.memory.usage
-      ramFreeTotal += host.memory.size
+      ramFreeTotal += host.memory.size - host.memory.usage
       return {
         total: formatSizeRaw(host.memory.size, 0),
         used: formatSizeRaw(host.memory.usage, 0),
@@ -65,7 +65,7 @@ const ramUsages = computed(() => {
 </script>
 
 <style scoped lang="postcss">
-.host-ram-usage {
+.hosts-ram-usage {
   .total {
     display: grid;
     grid-template-columns: 1fr 1fr;

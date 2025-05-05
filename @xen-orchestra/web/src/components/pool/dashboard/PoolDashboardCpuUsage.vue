@@ -1,28 +1,43 @@
 <template>
-  <UiCard class="host-dashboard-cpu-provisioning">
-    <UiCardTitle>{{ $t('cpu-provisioning') }}</UiCardTitle>
+  <UiCard class="pool-dashboard-cpu-usage">
+    <UiCardTitle>
+      {{ $t('cpu-usage') }}
+    </UiCardTitle>
+    <UiCardSubtitle>
+      {{ $t('host') }}
+      <template #info>
+        {{ $t('top-#', 5) }}
+      </template>
+    </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiProgressBar :max="pool.cpus.cores" :legend="$t('vcpus')" :value="cpuProvisioning.used" />
-      <div class="total">
-        <UiCardNumbers :label="$t('vcpus-used')" :value="cpuProvisioning.used" size="medium" />
-        <UiCardNumbers :label="$t('total-cpus')" :value="cpuProvisioning.total" size="medium" />
-      </div>
+      <HostsCpuUsage :hosts :vms />
+    </template>
+    <UiCardSubtitle>
+      {{ $t('vms', vms.length) }}
+      <template #info>
+        {{ $t('top-#', 5) }}
+      </template>
+    </UiCardSubtitle>
+    <VtsLoadingHero v-if="!isReady" type="card" />
+    <template v-else>
+      <VmsCpuUsage :vms />
     </template>
   </UiCard>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
+import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { computed } from 'vue'
+import HostsCpuUsage from './hostsCpuUsage.vue'
+import VmsCpuUsage from './vmsCpuUsage.vue'
 
 const { pool } = defineProps<{
   pool: XoPool
@@ -34,31 +49,19 @@ const { vmsByHost, isReady: areVmsReady, hostLessVmsByPool } = useVmStore().subs
 const { hostsByPool, isReady: areHostReady } = useHostStore().subscribe()
 
 const isReady = computed(() => isPoolReady.value && areHostReady.value && isHostReady.value && areVmsReady.value)
-const hosts = computed(() => (hostsByPool.value.get(pool.id) ?? []).sort((a, b) => b.memory.usage - a.memory.usage))
+const hosts = computed(() =>
+  // bad optimisation, operation vmsByHost, and reduce is too consuming
+  (hostsByPool.value.get(pool.id) ?? []).sort(
+    (a, b) =>
+      (vmsByHost.value.get(b.id)?.reduce((cpusUsed, vm) => cpusUsed + vm.CPUs.number, 0) ?? 0) -
+      (vmsByHost.value.get(a.id)?.reduce((cpusUsed, vm) => cpusUsed + vm.CPUs.number, 0) ?? 0)
+  )
+)
 // no memory.usage for vm
 const vms = computed(() =>
   [
     ...hosts.value.flatMap(host => vmsByHost.value.get(host.id) ?? []),
     ...(hostLessVmsByPool.value.get(pool.id) ?? []),
-  ].sort((a, b) => b.memory.dynamic[0] - a.memory.dynamic[0])
+  ].sort((a, b) => b.CPUs.number - a.CPUs.number)
 )
-const cpuProvisioning = computed(() => {
-  const totalHostCpus = pool.cpus.cores
-  const totalVcpus = vms.value.reduce((acc, vm) => acc + (vm.CPUs?.number ?? 0), 0)
-
-  return {
-    total: totalHostCpus,
-    used: totalVcpus,
-  }
-})
 </script>
-
-<style lang="postcss" scoped>
-.host-dashboard-cpu-provisioning {
-  .total {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    margin-block-start: auto;
-  }
-}
-</style>
