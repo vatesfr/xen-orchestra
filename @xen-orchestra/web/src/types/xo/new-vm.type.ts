@@ -22,6 +22,13 @@ export interface NetworkInterface {
   destroy?: boolean
 }
 
+export interface Vif {
+  network?: XoNetwork['id']
+  mac?: string
+  device?: string
+  destroy?: boolean
+}
+
 export type InstallMode = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
 
 export interface VmState {
