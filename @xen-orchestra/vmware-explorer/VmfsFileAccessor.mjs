@@ -42,7 +42,8 @@ export class EsxiDatastore {
     const res = await this.#esxi.download(this.#datastore, path, from || to ? `${from}-${to}` : undefined)
     const stream = res.body
     const size = Number(res.headers.get('content-length'))
-    this.#descriptors.set(descriptor, { stream, size, path, from, to, currentPosition: from ?? 0 })
+
+    this.#descriptors.set(descriptor, { stream, size, path, from, to: to ?? size, currentPosition: from ?? 0 })
     return descriptor
   }
 
@@ -59,8 +60,8 @@ export class EsxiDatastore {
     }
     const to = from + buffer.length
     const descriptor = this.#descriptors.get(fileDescriptorId)
-    const { path, stream, size, to: opennedTo, currentPosition } = descriptor
-    if (to > size || (opennedTo && opennedTo > to)) {
+    const { path, stream, to: opennedTo, currentPosition } = descriptor
+    if (to > opennedTo) {
       throw new Error('Try to read after the end of the file')
     }
 
