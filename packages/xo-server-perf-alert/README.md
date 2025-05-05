@@ -7,7 +7,7 @@
 ## Usage
 
 Like all xo-server plugins, it can be configured directly via
-the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
+the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/plugins).
 
 You can define monitors in the plugin configuration. Monitors let you check storage usage for your SRs, CPU usage or memory usage of your hosts and VMs.
 

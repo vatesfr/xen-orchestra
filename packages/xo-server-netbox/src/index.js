@@ -243,7 +243,7 @@ class Netbox {
 
     if (this.#netboxVersion === undefined || !semver.satisfies(this.#netboxVersion, SUPPORTED_VERSION)) {
       throw new Error(
-        `Netbox version ${this.#netboxVersion ?? '<2.10'} not supported. Please check https://xen-orchestra.com/docs/advanced.html#supported-versions`
+        `Netbox version ${this.#netboxVersion ?? '<2.10'} not supported. Please check https://docs.xen-orchestra.com/advanced#supported-versions`
       )
     }
   }

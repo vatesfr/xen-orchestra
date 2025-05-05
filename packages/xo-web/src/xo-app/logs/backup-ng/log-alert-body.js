@@ -42,7 +42,7 @@ const TaskDuration = ({ task }) =>
   ) : null
 
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
-const UNHEALTHY_VDI_CHAIN_LINK = 'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
+const UNHEALTHY_VDI_CHAIN_LINK = 'https://docs.xen-orchestra.com/backup_troubleshooting#vdi-chain-protection'
 
 const TaskError = ({ task }) => {
   let message

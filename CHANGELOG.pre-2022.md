@@ -328,7 +328,7 @@
 
 - [Smart backup] Report missing pools [#2844](https://github.com/vatesfr/xen-orchestra/issues/2844) (PR [#5768](https://github.com/vatesfr/xen-orchestra/pull/5768))
 - [Metadata Backup] Add a warning on restoring a metadata backup (PR [#5769](https://github.com/vatesfr/xen-orchestra/pull/5769))
-- [Netbox][plugin](https://xen-orchestra.com/docs/advanced.html#netbox) to synchronize pools, VMs and IPs with [Netbox](https://netbox.readthedocs.io/en/stable/) (PR [#5783](https://github.com/vatesfr/xen-orchestra/pull/5783))
+- [Netbox][plugin](https://docs.xen-orchestra.com/advanced#netbox) to synchronize pools, VMs and IPs with [Netbox](https://netbox.readthedocs.io/en/stable/) (PR [#5783](https://github.com/vatesfr/xen-orchestra/pull/5783))
 
 ### Enhancements
 
@@ -1324,7 +1324,7 @@
 
 - [Backup NG] Make report recipients configurable in the backup settings [#4581](https://github.com/vatesfr/xen-orchestra/issues/4581) (PR [#4646](https://github.com/vatesfr/xen-orchestra/pull/4646))
 - [Host] Advanced Live Telemetry (PR [#4680](https://github.com/vatesfr/xen-orchestra/pull/4680))
-- [Plugin][web hooks](https://xen-orchestra.com/docs/advanced.html#web-hooks) [#1946](https://github.com/vatesfr/xen-orchestra/issues/1946) (PR [#3155](https://github.com/vatesfr/xen-orchestra/pull/3155))
+- [Plugin][web hooks](https://docs.xen-orchestra.com/advanced#web-hooks) [#1946](https://github.com/vatesfr/xen-orchestra/issues/1946) (PR [#3155](https://github.com/vatesfr/xen-orchestra/pull/3155))
 
 ### Enhancements
 

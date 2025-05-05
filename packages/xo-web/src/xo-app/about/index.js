@@ -143,7 +143,7 @@ export default class About extends Component {
                     {_('getSupport', {
                       website: (
                         <a
-                          href='https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_source_upgrade&pk_kwd=about'
+                          href='https://vates.tech/pricing-and-support/?pk_campaign=xoa_source_upgrade&pk_kwd=about'
                           target='_blank'
                           rel='noreferrer'
                         >
