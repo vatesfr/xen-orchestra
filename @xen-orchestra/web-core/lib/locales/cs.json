@@ -119,6 +119,7 @@
   "dark-mode.disable": "Vypnout tmavý režim",
   "dark-mode.enable": "Zapnout tmavý režim",
   "dashboard": "Přehled",
+  "default-behavior": "Výchozí chování",
   "default-locking-mode": "Výchozí režim zamykání",
   "delete": "Smazat",
   "delete-vms": "Smazat 1 virt. stroj | Smazat {n} virt. strojů",
