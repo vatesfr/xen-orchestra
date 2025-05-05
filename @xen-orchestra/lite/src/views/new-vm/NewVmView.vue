@@ -150,7 +150,16 @@
                 <UiTextarea v-model="vmState.description" accent="brand">
                   {{ $t('new-vm.description') }}
                 </UiTextarea>
-                <!-- <UiInput v-model="vmState.affinity_host" accent="brand" :label="$t('affinity-host')" /> -->
+                <VtsInputWrapper :label="$t('affinity-host')">
+                  <div class="affinity-host">
+                    <FormSelect v-model="vmState.affinity_host" class="select">
+                      <option :value="OPAQUE_REF.EMPTY">{{ $t('none') }}</option>
+                      <option v-for="host in hosts" :key="host?.$ref" :value="host?.$ref">
+                        {{ host?.name_label }}
+                      </option>
+                    </FormSelect>
+                  </div>
+                </VtsInputWrapper>
               </div>
             </div>
             <!-- MEMORY SECTION -->
@@ -397,6 +406,7 @@ import FormSelect from '@/components/form/FormSelect.vue'
 
 // XenAPI Store imports
 import type { XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -452,6 +462,7 @@ import { useRouter } from 'vue-router'
 const { templates } = useVmStore().subscribe()
 const { pool } = usePoolStore().subscribe()
 const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
+const { records: hosts } = useHostStore().subscribe()
 const { records: networks, getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
 const { getByOpaqueRef: getVdiByOpaqueRef } = useVdiStore().subscribe()
@@ -474,7 +485,7 @@ const vmState = reactive<VmState>({
   toggle: false,
   installMode: '',
   tags: [],
-  affinity_host: '',
+  affinity_host: OPAQUE_REF.EMPTY,
   boot_firmware: '',
   new_vm_template: undefined,
   boot_vm: true,
@@ -699,27 +710,23 @@ const getVdis = (template: XenApiVm) => {
 }
 
 const getExistingVdis = (template: XenApiVm) => {
-  const existingVdisArray = [] as Vdi[]
-
-  template.VBDs.forEach(vbdRef => {
+  return template.VBDs.reduce<Vdi[]>((acc, vbdRef) => {
     const vbd = getVbdByOpaqueRef(vbdRef)
 
-    if (!vbd || vbd.type === 'CD') {
-      return
-    }
+    if (!vbd || vbd.type === 'CD') return acc
 
     const vdi = getVdiByOpaqueRef(vbd.VDI)
-    if (!vdi) return
 
-    existingVdisArray.push({
+    if (!vdi) return acc
+
+    acc.push({
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.virtual_size),
-      SR: vdi.SR ?? defaultSr.value,
+      SR: vdi.SR,
     })
-  })
-
-  return existingVdisArray
+    return acc
+  }, [])
 }
 
 const onTemplateChange = () => {
@@ -734,6 +741,7 @@ const onTemplateChange = () => {
     memory_dynamic_max,
     other_config,
     platform,
+    affinity,
   } = template
 
   Object.assign(vmState, {
@@ -744,6 +752,7 @@ const onTemplateChange = () => {
     ram: memory_dynamic_max,
     vdis: getVdis(template),
     topology: platform['cores-per-socket'] ?? null,
+    affinity_host: affinity,
     existingVdis: getExistingVdis(template),
     networkInterfaces: getExistingInterface(template),
   })
@@ -822,6 +831,7 @@ const _createVm = async ($defer: Defer) => {
     await Promise.all([
       xapi.vm.setNameLabel(vmRefs, vmCreationParams.value.name_label),
       xapi.vm.setNameDescription(vmRefs, vmCreationParams.value.name_description),
+      xapi.vm.setAffinityHost(vmRefs, vmCreationParams.value.affinityHost),
       xapi.vm.setMemory(vmRefs, vmCreationParams.value.memory),
       xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron),
       xapi.vm.setCoresPerSocket(vmRefs[0], vmCreationParams.value.coresPerSocket),
@@ -999,6 +1009,16 @@ const createVM = defer(_createVm)
         flex-direction: column;
         gap: 2.5rem;
         width: 40%;
+
+        .affinity-host {
+          display: flex;
+          align-items: center;
+          gap: 0.8rem;
+
+          .container {
+            width: 100%;
+          }
+        }
       }
     }
 

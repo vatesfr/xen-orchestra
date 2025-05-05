@@ -142,6 +142,8 @@ export interface XenApiSr extends XenApiRecord<'sr'> {
 }
 
 export interface XenApiPbd extends XenApiRecord<'pbd'> {
+  SR: XenApiSr['$ref']
+  currently_attached: boolean
   host: XenApiHost['$ref']
 }
 
