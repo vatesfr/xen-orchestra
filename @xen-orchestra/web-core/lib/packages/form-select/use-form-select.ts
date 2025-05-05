@@ -82,11 +82,11 @@ export function useFormSelect<
   TSource extends { label: string },
   TValue extends FormOptionValue,
   TProperties extends FormSelectBaseProperties & {
-    value?: TValue
-    label: string
+    value: TValue
+    label?: string
   } = FormSelectBaseProperties & {
-    value?: TValue
-    label: string
+    value: TValue
+    label?: string
   },
 >(
   sources: MaybeRefOrGetter<TSource[]>,

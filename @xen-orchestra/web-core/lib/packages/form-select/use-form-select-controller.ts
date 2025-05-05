@@ -71,7 +71,7 @@ export function useFormSelectController<TOption extends FormOption>(config: {
       return false
     }
 
-    searchRef.value?.focus?.()
+    searchRef.value.focus()
 
     return true
   }

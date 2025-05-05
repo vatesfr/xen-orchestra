@@ -1,5 +1,5 @@
 <template>
-  <div :class="toVariants({ accent })" class="vts-select">
+  <div :class="className" class="vts-select">
     <VtsBackdrop v-if="isOpen" />
 
     <UiInput
@@ -46,6 +46,7 @@ import type { FormOption } from '@core/packages/form-select/types.ts'
 import { useFormSelectController } from '@core/packages/form-select/use-form-select-controller.ts'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { faAngleDown, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { accent, options, selectedLabel } = defineProps<{
@@ -70,6 +71,8 @@ const { triggerRef, dropdownRef, searchRef, isOpen, floatingStyles } = useFormSe
   options: () => options,
   searchTerm,
 })
+
+const className = computed(() => toVariants({ accent }))
 </script>
 
 <style lang="postcss" scoped>
