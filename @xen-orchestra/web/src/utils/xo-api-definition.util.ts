@@ -21,7 +21,7 @@ export const xoApiDefinition = {
     type: 'collection',
     path: 'pools',
     fields:
-      'id,name_label,master,default_SR,tags,otherConfig,auto_poweron,HA_enabled,migrationCompression,suspendSr,crashDumpSr,haSrs',
+      'id,name_label,master,default_SR,tags,otherConfig,auto_poweron,HA_enabled,migrationCompression,suspendSr,crashDumpSr,haSrs,cpus',
     handler: (record: XoPool) => record,
     stream: false,
   },

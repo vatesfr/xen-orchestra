@@ -544,7 +544,6 @@
   "this-vm-cant-be-migrated": "This VM can't be migrated",
   "toolstack-uptime": "Toolstack uptime",
   "top-#": "Top {n}",
-  "top-5": "Top 5",
   "topology": "Topology",
   "total": "Total",
   "total-assigned": "Total assigned",

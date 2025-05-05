@@ -6,29 +6,27 @@
     <UiCardSubtitle>
       {{ $t('host') }}
       <template #info>
-        {{ $t('top-5') }}
+        {{ $t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <HostDashboadMultiRamUsage :hosts="hosts.slice(0, 5)" />
+      <HostsRamUsage :hosts="hosts.slice(0, 5)" />
     </template>
     <UiCardSubtitle>
       {{ $t('vms', vms.length) }}
       <template #info>
-        {{ $t('top-5') }}
+        {{ $t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VmDashboadMultiRamUsage :vms="vms.slice(0, 5)" />
+      <VmsRamUsage :vms="vms.slice(0, 5)" />
     </template>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import HostDashboadMultiRamUsage from '@/components/host/dashboard/HostDashboadMultiRamUsage.vue'
-import VmDashboadMultiRamUsage from '@/components/vm/VmDashboadMultiRamUsage.vue'
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
@@ -38,6 +36,8 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed } from 'vue'
+import HostsRamUsage from './hostsRamUsage.vue'
+import VmsRamUsage from './vmsRamUsage.vue'
 
 const { pool } = defineProps<{
   pool: XoPool
