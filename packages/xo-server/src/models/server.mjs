@@ -1,5 +1,6 @@
 import Collection from '../collection/redis.mjs'
 import { serializeError } from '../utils.mjs'
+import { objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import { parseProp } from './utils.mjs'
 
@@ -34,7 +35,11 @@ export class Servers extends Collection {
     const { host } = params
 
     if (await this.exists({ host })) {
-      throw new Error('server already exists')
+      const _host = await this.get({ host })
+      /* throw */ objectAlreadyExists({
+        objectId: _host.id,
+        objectType: 'server',
+      })
     }
 
     return /* await */ this.add(params)

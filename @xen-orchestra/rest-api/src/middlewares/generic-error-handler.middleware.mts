@@ -6,6 +6,7 @@ import {
   invalidParameters,
   noSuchObject,
   notImplemented,
+  objectAlreadyExists,
   unauthorized,
 } from 'xo-common/api-errors.js'
 import { NextFunction, Request, Response } from 'express'
@@ -28,6 +29,8 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     res.status(403)
   } else if (invalidCredentials.is(error)) {
     res.status(401)
+  } else if (objectAlreadyExists.is(error)) {
+    res.status(409)
   } else if (invalidParameters.is(error)) {
     res.status(422)
   } else if (notImplemented.is(error)) {

@@ -1,3 +1,5 @@
+export const serverId = { id: '38068475-3a1d-4a64-95df-8782cdea02ac' }
+
 export const serverIds = [
   '/rest/v0/servers/f07ab729-c0e8-721c-45ec-f11276377030',
   '/rest/v0/servers/d5d1c4a3-4c5e-ca7b-6be8-33c824f87571',
