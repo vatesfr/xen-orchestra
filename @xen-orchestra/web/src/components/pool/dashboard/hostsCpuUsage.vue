@@ -50,19 +50,26 @@ const cpuUsages = computed(() => {
   let cpuUsageTotal = 0
   let cpuFreeTotal = 0
   return {
-    hosts: hosts.map(host => {
-      const vms = vmsByHost.value.get(host.id)
-      const vmsCpuNumber = vms?.reduce((cpuUsed, vm) => cpuUsed + vm.CPUs.number, 0) ?? 0
-      cpuUsageTotal += vmsCpuNumber
-      cpuFreeTotal += host.cpus.cores - vmsCpuNumber
-      return {
-        total: host.cpus.cores,
-        used: vmsCpuNumber,
-        free: host.cpus.cores - vmsCpuNumber,
-        id: host.id,
-        name: host.name_label,
-      }
-    }),
+    hosts: hosts
+      .map(host => {
+        const vms = vmsByHost.value.get(host.id)
+        const vmsCpuNumber = vms?.reduce((cpuUsed, vm) => cpuUsed + vm.CPUs.number, 0) ?? 0
+        cpuUsageTotal += vmsCpuNumber
+        cpuFreeTotal += host.cpus.cores - vmsCpuNumber
+        return {
+          total: host.cpus.cores,
+          used: vmsCpuNumber,
+          free: host.cpus.cores - vmsCpuNumber,
+          id: host.id,
+          name: host.name_label,
+        }
+      })
+      .sort(
+        (a, b) =>
+          // reproduce calcul in progress bar.
+          (b.used ?? 0) / ((b.total ?? 0) > 1 ? (b.total ?? 1) : 1) -
+          (a.used ?? 0) / ((a.total ?? 0) > 1 ? (a.total ?? 1) : 1)
+      ),
     cpuUsageTotal,
     cpuFreeTotal,
   }
