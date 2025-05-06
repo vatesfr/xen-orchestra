@@ -1583,8 +1583,6 @@ const messages = {
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
-  vmSocketsWithCoresPerSocket:
-    '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket',
   vmCoresPerSocketNone: 'None',
   vmCoresPerSocket: '{nCores, number} core{nCores, plural, one {} other {s}} per socket',
   vmCoresPerSocketNotDivisor: "Not a divisor of the VM's max CPUs",
