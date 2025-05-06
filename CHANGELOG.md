@@ -1,5 +1,15 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Licence]: better handling of trial and free users (PR [#8557](https://github.com/vatesfr/xen-orchestra/pull/8557))
+
+### Released packages
+
+- xo-web 5.173.2
+
 ## **5.106.1** (2025-04-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
