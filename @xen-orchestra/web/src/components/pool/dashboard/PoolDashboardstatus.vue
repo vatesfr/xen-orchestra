@@ -3,10 +3,10 @@
     <UiCardTitle>{{ $t('status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VtsDonutChartWithLegend :segments="segmentsHost" :title="{ label: $t('hosts') }" />
+      <VtsDonutChartWithLegend :segments="segmentsHost" :title="{ label: $t('hosts') }" :icon="faServer" />
       <UiCardNumbers class="total" :label="$t('total')" :value="totalHost" size="small" />
       <VtsDivider type="stretch" />
-      <VtsDonutChartWithLegend :segments="segmentsVm" :title="{ label: $t('vms', totalVm) }" />
+      <VtsDonutChartWithLegend :segments="segmentsVm" :title="{ label: $t('vms', totalVm) }" :icon="faDisplay" />
       <UiCardNumbers class="total" :label="$t('total')" :value="totalVm" size="small" />
     </template>
   </UiCard>
@@ -28,6 +28,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable'
+import { faDisplay, faServer } from '@fortawesome/free-solid-svg-icons'
 import { useSum } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
