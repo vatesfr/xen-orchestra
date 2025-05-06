@@ -176,6 +176,9 @@ export function createVmOperations(xenApi: XenApi) {
     setNameLabel: (vmRefs: VmRefs, nameLabel: string) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_name_label', [vmRef, nameLabel]))),
 
+    setTags: (vmRefs: VmRefs, tags: string[]) =>
+      Promise.all([Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_tags', [vmRef, tags])))]),
+
     setVCPUsAtStartup: (vmRefs: VmRefs, count: number) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_VCPUs_at_startup', [vmRef, count]))),
 
