@@ -1,12 +1,13 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Path, Post, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoServer } from '@vates/types'
 
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialServers, server, serverIds } from '../open-api/oa-examples/server.oa-example.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('servers')
 @Security('*')
@@ -47,5 +48,41 @@ export class ServerController extends XoController<XoServer> {
   @Response(notFoundResp.status, notFoundResp.description)
   getServer(@Path() id: string): Promise<Unbrand<XoServer>> {
     return this.getObject(id as XoServer['id'])
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/disable')
+  disableServer(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+    const serverId = id as XoServer['id']
+    const action = async () => {
+      await this.restApi.xoApp.disconnectXenServer(id as XoServer['id'])
+    }
+
+    return this.createAction<void>(action, {
+      statusCode: noContentResp.status,
+      sync,
+      taskProperties: { name: 'disable server', objectId: serverId },
+    })
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/enable')
+  enableServer(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+    const serverId = id as XoServer['id']
+    const action = async () => {
+      await this.restApi.xoApp.connectXenServer(id as XoServer['id'])
+    }
+
+    return this.createAction<void>(action, {
+      statusCode: noContentResp.status,
+      sync,
+      taskProperties: { name: 'enable server', objectId: serverId },
+    })
   }
 }

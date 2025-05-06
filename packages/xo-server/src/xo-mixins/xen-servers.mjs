@@ -321,6 +321,8 @@ export default class XenServers {
       throw new Error('the server is already connected')
     }
 
+    await this.updateXenServer(id, { enabled: true })::ignoreErrors()
+
     const { config } = this._app
 
     let { poolMarkingInterval, poolMarkingMaxAge, poolMarkingPrefix, ...xapiOptions } = config.get('xapiOptions')
@@ -528,6 +530,7 @@ export default class XenServers {
   }
 
   async disconnectXenServer(id) {
+    await this.updateXenServer(id, { enabled: false })::ignoreErrors()
     const status = this._getXenServerStatus(id)
     if (status === 'disconnected') {
       return
