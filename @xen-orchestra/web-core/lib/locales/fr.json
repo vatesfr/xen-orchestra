@@ -326,7 +326,7 @@
   "off": "Éteint",
   "ok": "OK",
   "on": "Allumé",
-  "on-object": "sur {object}",
+  "on-object": "sur | sur {object}",
   "open-console-in-new-tab": "Ouvrir la console dans un nouvel onglet",
   "or": "Ou",
   "other": "Autre",

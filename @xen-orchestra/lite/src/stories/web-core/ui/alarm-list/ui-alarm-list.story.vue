@@ -1,8 +1,8 @@
 <template>
   <ComponentStory v-slot="{ properties }" :params="[slot('default').help('an list of ui-alarm-item element')]">
-    <div class="main-warper">
+    <div class="main-warpper">
       <UiAlarmList v-bind="properties">
-        <UiAlarmItem :alarm="alarmProp" size="large">
+        <UiAlarmItem :alarm size="large">
           <template #object-link>
             <UiObjectLink route="#">
               <template #icon>
@@ -12,7 +12,7 @@
             </UiObjectLink>
           </template>
         </UiAlarmItem>
-        <UiAlarmItem :alarm="alarmProp" size="small">
+        <UiAlarmItem :alarm size="small">
           <template #object-link>
             <UiObjectLink route="#">
               <template #icon>
@@ -22,7 +22,7 @@
             </UiObjectLink>
           </template>
         </UiAlarmItem>
-        <UiAlarmItem :alarm="alarmProp" size="large">
+        <UiAlarmItem :alarm size="large">
           <template #object-link>
             <UiObjectLink route="#">
               <template #icon>
@@ -45,7 +45,7 @@ import UiAlarmList from '@core/components/ui/alarm-list/UiAlarmList.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 
-const alarmProp = {
+const alarm = {
   label: 'title',
   value: '93.2%',
   date: Date.now(),
@@ -55,7 +55,7 @@ const alarmProp = {
 </script>
 
 <style scoped lang="postcss">
-.main-warper {
-  height: 15rem;
+.main-warpper {
+  height: 20rem;
 }
 </style>
