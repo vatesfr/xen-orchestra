@@ -8,7 +8,7 @@
         class="progressBar"
         :value="ramUsage.used?.value ?? 0"
         :max="ramUsage.total?.value"
-        :legend="ramUsage.name + ramUsage.used?.prefix"
+        :legend="ramUsage.name"
       />
       <div class="total">
         <UiCardNumbers
