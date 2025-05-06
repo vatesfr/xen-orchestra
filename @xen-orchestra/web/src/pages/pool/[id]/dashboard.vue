@@ -1,7 +1,7 @@
 <template>
   <div class="pool-dashboard">
     <div class="dashboard-row">
-      <div><Status :pool /></div>
+      <div><PoolDashboardstatus :pool /></div>
       <div class="alarms-box"><Alarms /></div>
       <div><Patch /></div>
     </div>
@@ -22,7 +22,7 @@ import PoolDashboardCpuProvisioning from '@/components/pool/dashboard/PoolDashbo
 import PoolDashboardCpuUsage from '@/components/pool/dashboard/PoolDashboardCpuUsage.vue'
 import Patch from '@/components/pool/dashboard/PoolDashboardpatch.vue'
 import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamUsage.vue'
-import Status from '@/components/pool/dashboard/PoolDashboardstatus.vue'
+import PoolDashboardstatus from '@/components/pool/dashboard/PoolDashboardstatus.vue'
 import PoolDashboardStorageUsage from '@/components/pool/dashboard/PoolDashboardStorageUsage.vue'
 import type { XoPool } from '@/types/xo/pool.type'
 
