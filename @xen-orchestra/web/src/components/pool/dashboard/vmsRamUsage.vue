@@ -47,17 +47,24 @@ const ramUsages = computed(() => {
   let ramUsageTotal = 0
   let ramFreeTotal = 0
   return {
-    vm: vms.map(vm => {
-      ramUsageTotal += vm.memory.dynamic[0]
-      ramFreeTotal += vm.memory.size - vm.memory.dynamic[0]
-      return {
-        total: formatSizeRaw(vm.memory.size, 0),
-        used: formatSizeRaw(vm.memory.dynamic[0], 0),
-        free: formatSizeRaw(vm.memory.size - vm.memory.dynamic[0], 0),
-        id: vm.id,
-        name: vm.name_label,
-      }
-    }),
+    vm: vms
+      .map(vm => {
+        ramUsageTotal += vm.memory.dynamic[0]
+        ramFreeTotal += vm.memory.size - vm.memory.dynamic[0]
+        return {
+          total: formatSizeRaw(vm.memory.size, 0),
+          used: formatSizeRaw(vm.memory.dynamic[0], 0),
+          free: formatSizeRaw(vm.memory.size - vm.memory.dynamic[0], 0),
+          id: vm.id,
+          name: vm.name_label,
+        }
+      })
+      .sort(
+        (a, b) =>
+          // reproduce calcul in progress bar.
+          (b.used?.value ?? 0) / ((b.total?.value ?? 0) > 1 ? b.total!.value : 1) -
+          (a.used?.value ?? 0) / ((a.total?.value ?? 0) > 1 ? a.total!.value : 1)
+      ),
     ramUsageTotal: formatSizeRaw(ramUsageTotal, 0),
     ramFreeTotal: formatSizeRaw(ramFreeTotal, 0),
   }
