@@ -40,7 +40,7 @@ const { pool } = defineProps<{
     gap: 0.8rem;
 
     .alarms-box {
-      flex-shrink: 1;
+      width: calc(200% / 3);
     }
   }
 
