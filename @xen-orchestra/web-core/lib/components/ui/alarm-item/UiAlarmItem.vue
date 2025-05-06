@@ -2,15 +2,16 @@
 <template>
   <li class="ui-alarm-item" :class="className">
     <div class="content">
-      <div class="label-value text-ellipsis">
+      <div class="title-progress text-ellipsis">
         <UiButtonIcon
           v-if="alarm.description"
           :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
           size="small"
           accent="brand"
+          :target-scale="2"
           @click="toggleDescription()"
         />
-        <span class="typo-body-regular text-ellipsis">
+        <span v-tooltip class="typo-body-regular text-ellipsis">
           {{ alarm.label }}
         </span>
         <span class="typo-body-regular value">
@@ -18,14 +19,12 @@
         </span>
       </div>
       <div class="typo-body-regular-small info">
-        <div v-if="slots['object-link']" class="object-link">
-          <span class="on-text">
-            {{ $t('on-object') }}
-          </span>
+        <div v-if="slots.link" class="object-link">
+          {{ $t('on-object') }}
           <span class="descriptor">
-            <slot name="object-link" />
+            <slot name="link" />
           </span>
-          <span class="divider" />
+          <span class="interpunct" />
         </div>
         <span class="typo-body-regular-small">
           {{ timeAgo }}
@@ -39,11 +38,12 @@
 </template>
 
 <script lang="ts" setup>
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { toVariants } from '@core/utils/to-variants.util'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo, useToggle } from '@vueuse/core'
 import { computed } from 'vue'
+import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 
 type Alarm = {
   label: string
@@ -58,10 +58,10 @@ const { alarm, size } = defineProps<{
 }>()
 
 const slots = defineSlots<{
-  'object-link'?(): any
+  link?(): any
 }>()
 
-const timeAgo = computed(() => useTimeAgo(alarm.date))
+const timeAgo = useTimeAgo(alarm.date)
 
 const className = computed(() =>
   toVariants({
@@ -74,44 +74,46 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
 
 <style scoped lang="postcss">
 .ui-alarm-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.8rem 1.2rem;
+  border-block: 0.1rem solid var(--color-neutral-border);
+  color: var(--color-neutral-txt-primary);
+
   &:not(:first-child) {
     border-block-start: none;
   }
-  border-block: 0.1rem solid var(--color-neutral-border);
+
   .content {
     display: flex;
     justify-content: space-between;
-    padding: 0.8rem 1.2rem;
     gap: 0.6rem;
+  }
 
-    .label-value {
-      gap: 1.6rem;
-    }
+  .title-progress {
+    gap: 1.6rem;
+  }
 
-    .info,
-    .label-value,
-    .object-link {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
+  .info,
+  .object-link,
+  .title-progress {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
 
-      .value {
-        color: var(--color-danger-txt-base);
-      }
-    }
+  .value {
+    color: var(--color-danger-txt-base);
+  }
 
-    .info,
-    .object-link {
-      gap: 0.6rem;
-      white-space: nowrap;
+  .info,
+  .object-link {
+    gap: 0.8rem;
+    white-space: nowrap;
+  }
 
-      .on-text {
-        text-transform: capitalize;
-      }
-    }
-    .divider::before {
-      content: '•';
-    }
+  .interpunct::before {
+    content: '•';
   }
 
   .info > :not(.descriptor),
@@ -120,24 +122,18 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
   }
 
   &.size--large {
+    gap: 0.8rem;
+
     .content {
       flex-direction: row;
-    }
-
-    .description {
-      padding: 0.8rem 1.2rem;
     }
   }
 
   &.size--small {
+    gap: 0.4rem;
+
     .content {
       flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .description {
-      padding: 0 1.2rem 0.4rem 1.2rem;
-      gap: 0.4rem;
     }
   }
 }
