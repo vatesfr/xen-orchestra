@@ -1,12 +1,12 @@
 <template>
-  <div class="host-dashboard">
+  <div class="pool-dashboard">
     <div class="dashboard-row">
       <div><Status :pool /></div>
       <div class="alarms-box"><Alarms /></div>
       <div><Patch /></div>
     </div>
     <div class="dashboard-column">
-      <div />
+      <div class="storage"><PoolDashboardStorageUsage :pool-id="pool.id" /></div>
       <div class="ram"><PoolDashboardRamUsage :pool /></div>
       <div class="cpu">
         <PoolDashboardCpuProvisioning :pool />
@@ -23,6 +23,7 @@ import PoolDashboardCpuUsage from '@/components/pool/dashboard/PoolDashboardCpuU
 import Patch from '@/components/pool/dashboard/PoolDashboardpatch.vue'
 import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamUsage.vue'
 import Status from '@/components/pool/dashboard/PoolDashboardstatus.vue'
+import PoolDashboardStorageUsage from '@/components/pool/dashboard/PoolDashboardStorageUsage.vue'
 import type { XoPool } from '@/types/xo/pool.type'
 
 const { pool } = defineProps<{
@@ -31,16 +32,34 @@ const { pool } = defineProps<{
 </script>
 
 <style scoped lang="postcss">
-.dashboard-row {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  .alarms-box {
-    flex-shrink: 1;
-  }
-}
+.pool-dashboard {
+  .dashboard-row {
+    padding: 0.8rem;
+    display: flex;
+    flex-direction: row;
+    gap: 0.8rem;
 
-.dashboard-column {
-  display: flex;
+    .alarms-box {
+      flex-shrink: 1;
+    }
+  }
+
+  .dashboard-column {
+    display: flex;
+    gap: 0.8rem;
+    padding: 0 0.8rem;
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .storage,
+    .ram,
+    .cpu {
+      width: calc(100% / 3);
+    }
+  }
 }
 </style>
