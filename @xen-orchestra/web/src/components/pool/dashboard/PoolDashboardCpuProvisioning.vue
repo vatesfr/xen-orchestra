@@ -35,21 +35,16 @@ const { hostsByPool, isReady: areHostReady } = useHostStore().subscribe()
 
 const isReady = computed(() => isPoolReady.value && areHostReady.value && isHostReady.value && areVmsReady.value)
 
-const hosts = computed(() =>
-  // bad optimisation, operation vmsByHost, and reduce is too consuming
-  (hostsByPool.value.get(pool.id) ?? []).sort(
-    (a, b) =>
-      (vmsByHost.value.get(b.id)?.reduce((cpusUsed, vm) => cpusUsed + vm.CPUs.number, 0) ?? 0) -
-      (vmsByHost.value.get(a.id)?.reduce((cpusUsed, vm) => cpusUsed + vm.CPUs.number, 0) ?? 0)
-  )
+const hosts = computed(
+  () =>
+    // bad optimisation, operation vmsByHost, and reduce is too consuming
+    hostsByPool.value.get(pool.id) ?? []
 )
 
-const vms = computed(() =>
-  [
-    ...hosts.value.flatMap(host => vmsByHost.value.get(host.id) ?? []),
-    ...(hostLessVmsByPool.value.get(pool.id) ?? []),
-  ].sort((a, b) => b.CPUs.number - a.CPUs.number)
-)
+const vms = computed(() => [
+  ...hosts.value.flatMap(host => vmsByHost.value.get(host.id) ?? []),
+  ...(hostLessVmsByPool.value.get(pool.id) ?? []),
+])
 
 const cpuProvisioning = computed(() => {
   const totalHostCpus = pool.cpus.cores

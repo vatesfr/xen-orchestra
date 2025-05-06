@@ -55,8 +55,10 @@ const cpuUsages = computed(() => {
         const vms = vmsByHost.value.get(host.id)
         const vmsCpuNumber = vms?.reduce((cpuUsed, vm) => cpuUsed + vm.CPUs.number, 0) ?? 0
         const cpuFree = host.cpus.cores - vmsCpuNumber
+
         cpuUsageTotal += vmsCpuNumber
         cpuFreeTotal += cpuFree
+
         return {
           total: host.cpus.cores,
           used: vmsCpuNumber,
