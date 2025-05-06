@@ -6,6 +6,37 @@ This page recaps the actions you can perform if you have any problems with your 
 If you have issues with XO installed from GitHub (not XOA), [please go to the dedicated section first!](community.md).
 :::
 
+## Recommendation
+
+If you think you have a problem with your XOA, start by running the `xoa check` command in your terminal:
+
+```console
+$ xoa check
+✔ Node version
+✔ Disk space for /var
+✔ Disk space for /
+✔ XOA version
+✔ xo-server config syntax
+✔ Appliance registration
+✔ Internet connectivity
+```
+
+If the result you have is completely different from that, or if error messages are displayed, lost packets, etc., you have, indeed, a problem. 
+
+The next step should be to check the rest of this page for an existing solution.
+
+:::tip
+You can also check the system logs, [as explained here](#cli).
+:::
+
+## Backup issues
+
+If you're having issues with your backups, check out the [Backup troubleshooting](backup_troubleshooting) page.
+
+## Didn't find a solution?
+
+Open a ticket for your issue in your [personal space](https://xen-orchestra.com/#!/member/support).
+
 ## Deploy error
 
 > Auto deploy failed. - No SR specified and Pool default SR is null
@@ -64,6 +95,12 @@ XOA is configured in HVM. It means you need hardware that supports HVM instructi
 2. Then it shuts down
 
 Please check that you have enabled virtualization settings in your BIOS or upgrade your hardware.
+
+## User login
+
+If you're having trouble logging in, please check the logs of `xo-server`.
+
+For more information, refer to the [Logs](#logs) section on this page.
 
 ## Logs
 
