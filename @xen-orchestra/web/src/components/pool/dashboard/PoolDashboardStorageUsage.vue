@@ -14,7 +14,7 @@
         class="progressBar"
         :value="storageUsage.used?.value ?? 0"
         :max="storageUsage.total?.value"
-        :legend="storageUsage.name + storageUsage.used?.prefix"
+        :legend="storageUsage.name"
       />
       <div class="total">
         <UiCardNumbers
@@ -70,7 +70,12 @@ const storageUsages = computed(() => {
           name: sr.name_label,
         }
       })
-      .sort((a, b) => (b.free?.value ?? 0) - (a.free?.value ?? 0)),
+      .sort(
+        (a, b) =>
+          // reproduce calcul in progress bar.
+          (b.used?.value ?? 0) / ((b.total?.value ?? 0) > 1 ? (b.total?.value ?? 1) : 1) -
+          (a.used?.value ?? 0) / ((a.total?.value ?? 0) > 1 ? (a.total?.value ?? 1) : 1)
+      ),
     storageUsageTotal: formatSizeRaw(storageUsageTotal, 0),
     storageFreeTotal: formatSizeRaw(storageFreeTotal, 0),
   }
