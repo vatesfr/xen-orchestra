@@ -11,7 +11,7 @@
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <HostsRamUsage :hosts="hosts.sort((a, b) => b.memory.usage - a.memory.usage)" />
+      <HostsRamUsage :hosts />
     </template>
     <UiCardSubtitle>
       {{ $t('vms', vms.length) }}
@@ -21,7 +21,7 @@
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VmsRamUsage :vms="vms.sort((a, b) => b.memory.dynamic[0] - a.memory.dynamic[0])" />
+      <VmsRamUsage :vms />
     </template>
   </UiCard>
 </template>

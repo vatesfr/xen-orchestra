@@ -49,8 +49,10 @@ const cpuUsages = computed(() => {
     vm: vms
       .map(vm => {
         const cpuFree = vm.CPUs.max - vm.CPUs.number
+
         cpuUsageTotal += vm.CPUs.number
         cpuFreeTotal += cpuFree
+
         return {
           total: vm.CPUs.max,
           used: vm.CPUs.number,

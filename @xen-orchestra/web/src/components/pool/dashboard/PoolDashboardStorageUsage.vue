@@ -60,12 +60,15 @@ const storageUsages = computed(() => {
   return {
     srs: filteredSrs.value
       .map(sr => {
+        const storageFree = sr.size - sr.physical_usage
+
         storageUsageTotal += sr.physical_usage
-        storageFreeTotal += sr.size - sr.physical_usage
+        storageFreeTotal += storageFree
+
         return {
           total: formatSizeRaw(sr.size, 0),
           used: formatSizeRaw(sr.physical_usage, 0),
-          free: formatSizeRaw(sr.size - sr.physical_usage, 0),
+          free: formatSizeRaw(storageFree, 0),
           id: sr.id,
           name: sr.name_label,
         }
@@ -73,8 +76,8 @@ const storageUsages = computed(() => {
       .sort(
         (a, b) =>
           // reproduce calcul in progress bar.
-          (b.used?.value ?? 0) / ((b.total?.value ?? 0) > 1 ? (b.total?.value ?? 1) : 1) -
-          (a.used?.value ?? 0) / ((a.total?.value ?? 0) > 1 ? (a.total?.value ?? 1) : 1)
+          (b.used?.value ?? 0) / ((b.total?.value ?? 0) > 1 ? b.total!.value : 1) -
+          (a.used?.value ?? 0) / ((a.total?.value ?? 0) > 1 ? a.total!.value : 1)
       ),
     storageUsageTotal: formatSizeRaw(storageUsageTotal, 0),
     storageFreeTotal: formatSizeRaw(storageFreeTotal, 0),
