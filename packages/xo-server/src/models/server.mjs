@@ -1,6 +1,6 @@
+import { objectAlreadyExists } from 'xo-common/api-errors.js'
 import Collection from '../collection/redis.mjs'
 import { serializeError } from '../utils.mjs'
-import { objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import { parseProp } from './utils.mjs'
 
