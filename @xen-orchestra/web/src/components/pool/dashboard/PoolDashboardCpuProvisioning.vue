@@ -35,11 +35,7 @@ const { hostsByPool, isReady: areHostReady } = useHostStore().subscribe()
 
 const isReady = computed(() => isPoolReady.value && areHostReady.value && isHostReady.value && areVmsReady.value)
 
-const hosts = computed(
-  () =>
-    // bad optimisation, operation vmsByHost, and reduce is too consuming
-    hostsByPool.value.get(pool.id) ?? []
-)
+const hosts = computed(() => hostsByPool.value.get(pool.id) ?? [])
 
 const vms = computed(() => [
   ...hosts.value.flatMap(host => vmsByHost.value.get(host.id) ?? []),
