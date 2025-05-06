@@ -47,17 +47,24 @@ const ramUsages = computed(() => {
   let ramUsageTotal = 0
   let ramFreeTotal = 0
   return {
-    hosts: hosts.map(host => {
-      ramUsageTotal += host.memory.usage
-      ramFreeTotal += host.memory.size - host.memory.usage
-      return {
-        total: formatSizeRaw(host.memory.size, 0),
-        used: formatSizeRaw(host.memory.usage, 0),
-        free: formatSizeRaw(host.memory.size - host.memory.usage, 0),
-        id: host.id,
-        name: host.name_label,
-      }
-    }),
+    hosts: hosts
+      .map(host => {
+        ramUsageTotal += host.memory.usage
+        ramFreeTotal += host.memory.size - host.memory.usage
+        return {
+          total: formatSizeRaw(host.memory.size, 0),
+          used: formatSizeRaw(host.memory.usage, 0),
+          free: formatSizeRaw(host.memory.size - host.memory.usage, 0),
+          id: host.id,
+          name: host.name_label,
+        }
+      })
+      .sort(
+        (a, b) =>
+          // reproduce calcul in progress bar.
+          (b.used?.value ?? 0) / ((b.total?.value ?? 0) > 1 ? b.total!.value : 1) -
+          (a.used?.value ?? 0) / ((a.total?.value ?? 0) > 1 ? a.total!.value : 1)
+      ),
     ramUsageTotal: formatSizeRaw(ramUsageTotal, 0),
     ramFreeTotal: formatSizeRaw(ramFreeTotal, 0),
   }
