@@ -810,7 +810,7 @@ const vmCreationParams = computed(() => ({
   autoPoweron: vmState.auto_power,
   bootAfterCreate: vmState.boot_vm,
   copyHostBiosStrings: vmState.boot_firmware !== 'uefi' && !templateHasBiosStrings.value && vmState.copyHostBiosStrings,
-  hvmBootFirmware: vmState.boot_firmware,
+  hvmBootFirmware: vmState.boot_firmware ?? 'bios',
   coresPerSocket: vmState.topology,
   tags: vmState.tags,
   cloudConfig: '',
