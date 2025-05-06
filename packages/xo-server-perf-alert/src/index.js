@@ -11,6 +11,7 @@ const PARAMS_JSON_SCHEMA = [
     properties: {
       uuids: { minItems: 1 },
       smartMode: { anyOf: [{ not: {} }, { const: false }] },
+      // we allow smartMode=false with excludeUuids=true because UI is not very clear, and we can't enforce smartMode value when excludeUuids=true
       excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
     },
     required: ['uuids'],
@@ -509,7 +510,7 @@ ${monitorBodies.join('\n')}`
                   }
 
                   if (
-                    definition.smartMode &&
+                    (definition.smartMode || definition.excludeUuids) &&
                     (objectType === 'VM' || objectType === 'host') &&
                     obj.power_state !== 'Running'
                   ) {
