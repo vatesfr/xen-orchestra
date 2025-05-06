@@ -5,9 +5,9 @@ import type { XoServer } from '@vates/types'
 
 import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialServers, server, serverIds } from '../open-api/oa-examples/server.oa-example.mjs'
+import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
-import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('servers')
 @Security('*')
