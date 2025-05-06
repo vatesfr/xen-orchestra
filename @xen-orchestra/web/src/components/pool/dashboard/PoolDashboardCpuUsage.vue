@@ -50,10 +50,8 @@ const { hostsByPool, isReady: areHostReady } = useHostStore().subscribe()
 
 const isReady = computed(() => isPoolReady.value && areHostReady.value && isHostReady.value && areVmsReady.value)
 const hosts = computed(() => hostsByPool.value.get(pool.id) ?? [])
-const vms = computed(() =>
-  [
-    ...hosts.value.flatMap(host => vmsByHost.value.get(host.id) ?? []),
-    ...(hostLessVmsByPool.value.get(pool.id) ?? []),
-  ].sort((a, b) => b.CPUs.number / b.CPUs.max - a.CPUs.number / a.CPUs.max)
-)
+const vms = computed(() => [
+  ...hosts.value.flatMap(host => vmsByHost.value.get(host.id) ?? []),
+  ...(hostLessVmsByPool.value.get(pool.id) ?? []),
+])
 </script>
