@@ -41,6 +41,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web-core minor
 - xo-server patch
 - xo-server-auth-oidc patch
 - xo-server-perf-alert patch
