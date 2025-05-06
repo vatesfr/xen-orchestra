@@ -17,10 +17,14 @@ export class RawDisk extends RandomAccessDisk{
         this.#blockSize = blockSize
     }
     async readBlock(index: number): Promise<DiskBlock> {
-        if(this.#descriptor === undefined){
+        if(this.#descriptor === undefined || this.#size === undefined){
             throw new Error("Can't call readBlock before init");
         }
-        const data = Buffer.alloc(this.getBlockSize(), 0)
+        const offset = index*this.getBlockSize() 
+        if( offset > this.#size){
+            throw new Error("Can't read after the en");
+        }
+        const data = Buffer.alloc(Math.min(this.getBlockSize(), this.#size - offset), 0)
         await this.#accessor.read(this.#descriptor, data, index*this.getBlockSize())
         return {
             index,

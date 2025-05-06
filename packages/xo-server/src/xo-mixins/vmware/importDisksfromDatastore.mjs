@@ -6,6 +6,7 @@ import { DiskChain, toRawStream } from '@xen-orchestra/disk-transform'
 import { VmdkDisk } from '@xen-orchestra/vmdk'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { EsxiDatastore } from '../../../../../@xen-orchestra/vmware-explorer/VmfsFileAccessor.mjs'
+import { toRaw } from '@xen-orchestra/disk-transform/dist/toRawStream.mjs'
 
 const importDiskChain = Disposable.factory(async function* importDiskChain(
   $defer,
@@ -22,6 +23,11 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
   await vmdk.init()
   const chain = await DiskChain.openFromChild(vmdk)
 
+  const stream = toRaw({disk: chain})
+  for await(const data of stream){
+    //process.stdout.write(data.length)
+  }
+  process.exit()
   if (chain.isDifferencing) {
     const stream = await toVhdStream({ disk: chain })
     await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })

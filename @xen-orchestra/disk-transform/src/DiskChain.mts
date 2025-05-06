@@ -1,5 +1,7 @@
-import { Disk, RandomAccessDisk, type DiskBlock } from './Disk.mjs'
-
+import {  RandomAccessDisk, type DiskBlock } from './Disk.mjs'
+import assert from 'node:assert'
+import { DiskSmallerBlock } from './DiskSmallerBlock.mjs'
+import { DiskLargerBlock } from './DiskLargerBlock.mjs'
 export class DiskChain extends RandomAccessDisk {
   #disks: Array<RandomAccessDisk> = []
 
@@ -59,8 +61,15 @@ export class DiskChain extends RandomAccessDisk {
     let disk = child
     const disks=[disk]
     while (disk.isDifferencing()) {
-      disk = await disk.openParent() as RandomAccessDisk
-      disks.unshift(disk)
+      let parent  = await disk.openParent() as RandomAccessDisk
+      if(parent.getBlockSize()> disk.getBlockSize()){
+        parent = new DiskSmallerBlock(parent,disk.getBlockSize() )
+      } else if(parent.getBlockSize()> disk.getBlockSize()){
+        parent = new DiskLargerBlock(parent,disk.getBlockSize() )
+      }
+      assert.strictEqual(parent.getBlockSize(), disk.getBlockSize(), `all the disk in a chain must have the same block size`)
+      disks.unshift(parent)
+      disk = parent
       // @todo handle until
     }
     return new DiskChain({ disks })

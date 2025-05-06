@@ -44,7 +44,6 @@ export class VmdkDisk extends RandomDiskPassthrough {
     if (extent.offset) {
       throw new Error('reading from monolithic file is not implemnted yet')
     }
-    console.log({ extent })
 
     let vmdk: RandomAccessDisk
     const targetPath = join(dirname(this.#vmdkMetadataPath), extent.fileName)
@@ -69,7 +68,7 @@ export class VmdkDisk extends RandomDiskPassthrough {
       default:
         throw new Error(`type${extent.type} not supported`)
     }
-
+    await vmdk.init() 
     return vmdk
   }
 }

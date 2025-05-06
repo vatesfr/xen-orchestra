@@ -86,7 +86,9 @@ export abstract class RandomAccessDisk extends Disk {
   // but only if this disk has data on this block
   abstract readBlock(index: number): Promise<DiskBlock>
   async *buildDiskBlockGenerator(): AsyncGenerator<DiskBlock> {
-    for (const index of this.getBlockIndexes()) {
+    const indexes = this.getBlockIndexes()
+    indexes.sort()
+    for (const index of indexes) {
       yield this.readBlock(index)
     }
   }

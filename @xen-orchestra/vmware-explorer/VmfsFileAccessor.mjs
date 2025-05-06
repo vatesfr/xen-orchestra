@@ -1,5 +1,8 @@
 import { readChunkStrict, skipStrict } from '@vates/read-chunk'
+import { createLogger } from '@xen-orchestra/log'
 
+const { debug } = createLogger('xo:vmware-explorer:vmffileaccessor')
+//const debug = console.log
 /**
  * Implementation of FileAccessor for interacting with an ESXi datastore.
  * Since most of the reading is done sequentially : works by opening a stream
@@ -38,13 +41,47 @@ export class EsxiDatastore {
    * @returns {Promise<number>} - A file descriptor.
    */
   async open(path, from, to, descriptorId) {
-    const descriptor = descriptorId ?? this.#nextDescriptor++
+    debug('open ', { path, from , to, descriptorId})
+    const newDescriptorId = descriptorId ?? this.#nextDescriptor++
     const res = await this.#esxi.download(this.#datastore, path, from || to ? `${from}-${to}` : undefined)
     const stream = res.body
-    const size = Number(res.headers.get('content-length'))
+    const size = Number(res.headers.get('content-length')) + (from ?? 0)
 
-    this.#descriptors.set(descriptor, { stream, size, path, from, to: to ?? size, currentPosition: from ?? 0 })
-    return descriptor
+    debug('open successfull ', {path, from , to, newDescriptorId})
+    this.#descriptors.set(newDescriptorId, { stream, size, path, from, to: to ?? size, currentPosition: from ?? 0 })
+    return newDescriptorId
+  }
+
+
+  /**
+   * 
+   * @param {number} descriptorId 
+   * @param {number} lengthToSkip 
+   * @returns void
+   */
+
+  async #skipStrict(descriptorId, lengthToSkip){
+    if (!this.#descriptors.has(descriptorId)) {
+      throw new Error('Descriptor not found')
+    }
+    const descriptor = this.#descriptors.get(descriptorId)
+    await skipStrict(descriptor.stream,lengthToSkip)
+    descriptor.currentPosition += lengthToSkip
+  }
+  /**
+   * 
+   * @param {number} descriptorId 
+   * @param {number} lengthToRead 
+   * @returns Promise<Buffer>
+   */
+  async #readStrict(descriptorId, lengthToRead){
+    if (!this.#descriptors.has(descriptorId)) {
+      throw new Error('Descriptor not found')
+    }
+    const descriptor = this.#descriptors.get(descriptorId)
+    const buffer = await readChunkStrict(descriptor.stream,lengthToRead)
+    descriptor.currentPosition += lengthToRead
+    return buffer
   }
 
   /**
@@ -54,20 +91,24 @@ export class EsxiDatastore {
    * @param {number?} from - Starting position.
    * @returns {Promise<{buffer:Buffer, bytes_read:number}>} - The read data.
    */
+
   async read(fileDescriptorId, buffer, from) {
+    debug('read ', {fileDescriptorId, from, length: buffer.length})
     if (!this.#descriptors.has(fileDescriptorId)) {
-      throw new Error('Descriptor not found')
+      throw new Error(`Descriptor ${fileDescriptorId} not found in ${[...this.#descriptors.keys()]}`)
     }
     const to = from + buffer.length
     const descriptor = this.#descriptors.get(fileDescriptorId)
-    const { path, stream, to: opennedTo, currentPosition } = descriptor
+    const { path, to: opennedTo, currentPosition, size } = descriptor
     if (to > opennedTo) {
-      throw new Error(`Try to read after the end of the file ${opennedTo}`)
+      throw new Error(`Try to read ${from}-${to}, after the end of the file ${opennedTo} , size ${size} for ${path}`)
     }
 
     // Check if a read is already in progress for this descriptor
     if (this.#activeReads.has(fileDescriptorId)) {
+      debug('read already reading stream ', {fileDescriptorId})
       await this.#activeReads.get(fileDescriptorId)
+      debug('read stream read in parallel done ', {fileDescriptorId})
     }
 
     // Handle parallel reads
@@ -75,18 +116,26 @@ export class EsxiDatastore {
       const maxSkipSize = 2 * 1024 * 1024 // 2MB
 
       // If the distance to skip is less than 2MB, skip
-      if (currentPosition <= from && from - currentPosition <= maxSkipSize) {
-        await skipStrict(stream, from - currentPosition)
+      if (currentPosition < from && from - currentPosition <= maxSkipSize) {
+        debug('will skip ', {fileDescriptorId,skip: from - currentPosition})
+        await this.#skipStrict(fileDescriptorId, from - currentPosition)
       } else {
-        // Otherwise, close and reopen the stream
-        this.close(fileDescriptorId)
-        await this.open(path, from, to, fileDescriptorId)
+        if (currentPosition !== from ){
+          debug('will reopen ',  {fileDescriptorId,from , currentPosition})
+          // Otherwise, close and reopen the stream
+          this.close(fileDescriptorId)
+          // open the stream until the end, we'll reuse it if possible
+          await this.open(path, from,size, fileDescriptorId)
+        } else {
+          debug('already there ',  {fileDescriptorId})
+        }
       }
 
       // Read the requested data
       const sizeToRead = to - from
-      const buffer = await readChunkStrict(stream, sizeToRead)
-      descriptor.currentPosition = to
+      debug('will read ', {fileDescriptorId,from ,  sizeToRead, size})
+
+      const buffer = await this.#readStrict(fileDescriptorId, sizeToRead)
       return buffer
     })()
 
@@ -103,9 +152,11 @@ export class EsxiDatastore {
    * @param {number} descriptor - The file descriptor.
    */
   close(descriptor) {
+    debug('will reopen ',  {descriptor})
     if (this.#descriptors.has(descriptor)) {
       const { stream } = this.#descriptors.get(descriptor)
       stream.destroy() // Close the stream
+      debug('stream destroyed ',  {descriptor})
       this.#descriptors.delete(descriptor)
     }
   }

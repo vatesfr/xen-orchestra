@@ -1,8 +1,7 @@
 import { DiskBlock, FileAccessor, RandomAccessDisk } from '@xen-orchestra/disk-transform'
 
 import { strictEqual } from 'node:assert'
-import { VmdkDisk } from './Vmdk.mjs'
-import { dirname, join } from 'node:path'
+import { SECTOR_SIZE } from '../definitions.mjs'
 
 const GRAIN_SIZE = 512
 const EMPTY_GRAIN = Buffer.alloc(GRAIN_SIZE, 0)
@@ -36,7 +35,7 @@ export class VmdkCowd extends RandomAccessDisk {
     }
     const grainOffset = this.#grainIndex.get(index)
     if (grainOffset === undefined) {
-      throw new Error("Can't read bunallocated block")
+      throw new Error( `Can't read unallocated block ${index}`)
     }
     if (grainOffset === EMPTY_GRAIN_KEY) {
       return {
@@ -66,7 +65,7 @@ export class VmdkCowd extends RandomAccessDisk {
     this.#descriptor = await this.#accessor.open(this.#path)
     const buffer = Buffer.alloc(2048)
     await this.#accessor.read(this.#descriptor, buffer, 0)
-
+    const fileSize = await this.#accessor.getSize(this.#path)
     strictEqual(buffer.slice(0, 4).toString('ascii'), 'COWD')
     strictEqual(buffer.readUInt32LE(4), 1) // version
     strictEqual(buffer.readUInt32LE(8), 3) // flags
@@ -85,7 +84,7 @@ export class VmdkCowd extends RandomAccessDisk {
     await this.#accessor.read(this.#descriptor, this.#grainDirectory, 2048)
 
     for (let tableIndex = 0; tableIndex < this.#grainDirectory.length / 4; tableIndex++) {
-      const grainTableOffset = this.#grainDirectory.readUInt32LE(tableIndex * 4)
+      const grainTableOffset = this.#grainDirectory.readUInt32LE(tableIndex * 4)*SECTOR_SIZE
       if (grainTableOffset === 0) {
         continue // empty grain table
       }
@@ -103,8 +102,14 @@ export class VmdkCowd extends RandomAccessDisk {
             grainIndex < Number.MAX_SAFE_INTEGER / GRAIN_SIZE,
             true,
             `Cowd can only handle offset up to ${Number.MAX_SAFE_INTEGER} (2^${Math.log2(Number.MAX_SAFE_INTEGER)}) -1 bytes`
+          )          
+          const offset =  grainOffset * GRAIN_SIZE
+          strictEqual(
+            offset < fileSize,
+            true,
+            `try to read after the end of the file ${offset} for grain ${TABLE_SIZE * tableIndex + grainIndex}`
           )
-          this.#grainIndex.set(TABLE_SIZE * tableIndex + grainIndex, grainOffset * GRAIN_SIZE)
+          this.#grainIndex.set(TABLE_SIZE * tableIndex + grainIndex,offset)
         }
       }
     }
@@ -116,26 +121,15 @@ export class VmdkCowd extends RandomAccessDisk {
     return true
   }
   getBlockIndexes(): Array<number> {
-    if (this.#grainDirectory === undefined) {
-      throw new Error("Can't getBlockIndexes before calling init")
-    }
-    const indexes = []
-    for (let i = 0; i < this.#grainDirectory.length / 4; i++) {
-      if (this.hasBlock(i)) {
-        indexes.push(i)
-      }
-    }
-    return indexes
+    if (this.#grainIndex === undefined) {
+      throw new Error("Can't hasBlock before calling init")
+    } 
+    return [...this.#grainIndex.keys()]
   }
   hasBlock(index: number): boolean {
-    if (this.#grainDirectory === undefined) {
+    if (this.#grainIndex === undefined) {
       throw new Error("Can't hasBlock before calling init")
     }
-    // only check if a grain table exist for on of the sector of the block
-    // the great news is that a grain size has 4096 entries of 512B = 2M
-    // and a vhd block is also 2M
-    // so we only need to check if a grain table exists (it's not created without data)
-
-    return this.#grainDirectory.readUInt32LE(index * 4) !== 0
+    return this.#grainIndex.has(index)
   }
 }
