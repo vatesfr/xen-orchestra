@@ -46,17 +46,24 @@ const cpuUsages = computed(() => {
   let cpuUsageTotal = 0
   let cpuFreeTotal = 0
   return {
-    vm: vms.map(vm => {
-      cpuUsageTotal += vm.CPUs.number
-      cpuFreeTotal += vm.CPUs.max - vm.CPUs.number
-      return {
-        total: vm.CPUs.max,
-        used: vm.CPUs.number,
-        free: vm.CPUs.max - vm.CPUs.number,
-        id: vm.id,
-        name: vm.name_label,
-      }
-    }),
+    vm: vms
+      .map(vm => {
+        const cpuFree = vm.CPUs.max - vm.CPUs.number
+        cpuUsageTotal += vm.CPUs.number
+        cpuFreeTotal += cpuFree
+        return {
+          total: vm.CPUs.max,
+          used: vm.CPUs.number,
+          free: cpuFree,
+          id: vm.id,
+          name: vm.name_label,
+        }
+      })
+      .sort(
+        (a, b) =>
+          // reproduce calcul in progress bar.
+          b.used / (b.total > 1 ? b.total : 1) - a.used / (a.total > 1 ? a.total : 1)
+      ),
     cpuUsageTotal,
     cpuFreeTotal,
   }
