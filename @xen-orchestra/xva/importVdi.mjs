@@ -5,7 +5,7 @@ export async function importVdi(vdi, rawStream, xapi, sr) {
   // create a fake VM
   const vmRef = await importVm(
     {
-      name_label: `[xva-disp-import]${vdi.name_label}`,
+      name_label: `[xva-disk-import]${vdi.name_label}`,
       memory: 1024 * 1024 * 32,
       nCpus: 1,
       firmware: 'bios',

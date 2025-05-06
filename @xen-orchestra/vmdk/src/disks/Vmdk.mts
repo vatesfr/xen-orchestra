@@ -1,6 +1,8 @@
 import { RandomDiskPassthrough, FileAccessor, RawDisk, RandomAccessDisk } from '@xen-orchestra/disk-transform'
 import { VmdkCowd } from './VmdkCowd.mjs'
 import { VmdkSeSparse } from './VmdkSeSparse.mjs'
+import { parseVMDKDescriptor, VMDKDescriptor } from './vmdkDescriptor.mjs'
+import { dirname, join } from 'path'
 
 /**
  * read the descriptor and instantiate the right type of vmdk
@@ -8,85 +10,64 @@ import { VmdkSeSparse } from './VmdkSeSparse.mjs'
 
 export class VmdkDisk extends RandomDiskPassthrough {
   #accessor: FileAccessor
-  #path: string
-  #parent: VmdkDisk | undefined
+  #vmdkMetadataPath: any
+  #vmdkDescriptor?: VMDKDescriptor
 
-  get parent(): VmdkDisk | undefined {
-    return this.#parent
-  }
-
-  constructor(accessor: FileAccessor, path: string, parent?: VmdkDisk) {
+  constructor(accessor: FileAccessor, vmdkPath: any) {
     super(undefined)
     this.#accessor = accessor
-    this.#path = path
-    this.#parent = parent
+    this.#vmdkMetadataPath = vmdkPath
   }
 
+  instantiateParent(): RandomAccessDisk {
+    if (this.#vmdkDescriptor === undefined) {
+      throw new Error('Call init before opening parent ')
+    }
+    const targetPath = join(dirname(this.#vmdkMetadataPath), this.#vmdkDescriptor.parentFileNameHint)
+    console.log('instantiate parent ', targetPath)
+    return new VmdkDisk(this.#accessor, targetPath)
+  }
   async openSource(): Promise<RandomAccessDisk> {
     // read the start of the vmdk file
     // extract the descriptor
     // depending on the descriptor type
 
-    const descriptor = await this.#accessor.open(this.#path)
-    let buffer = Buffer.alloc(1024, 0)
-    await this.#accessor.read(descriptor, buffer, 0)
-    const metadata = buffer.toString()
-    await this.#accessor.close(descriptor)
-
-    // Parse the descriptor to find the type
-    const createTypeMatch = metadata.match(/createType="([^"]+)"/)
-    const createType = createTypeMatch ? createTypeMatch[1] : null
-
-    const parentFileNameHintMatch = metadata.match(/createType="([^"]+)"/)
-    const parentFileNameHint = parentFileNameHintMatch ? parentFileNameHintMatch[1][0] : null
-
-    if (!createType) {
-      throw new Error('Unable to determine VMDK type: createType not found in descriptor.')
-    }
-
-    // check if the vmdk is monolithic or if it reference another
-    // by looking for a line RW 4192256 SPARSE "disk-flat.vmdk"
-    // in theory we could read a vmdk file only by checking the flags
-    // but in pracice there are some differences and constants
-    const extentMatches = [...metadata.matchAll(/([A-Z]+) ([0-9]+) ([A-Z]+) "(.*)" ?(.*)$/g)]
-    if (extentMatches.length !== 0) {
-      throw new Error(`No extent found in descriptor ${metadata}`)
-    }
-    if (extentMatches.length > 1) {
-      throw new Error(`${extentMatches.length} found in descriptor ${metadata}`)
-    }
-    const [, access, sizeSectors, type, name, offset] = extentMatches[0]
-    if (offset) {
+    const size = await this.#accessor.getSize(this.#vmdkMetadataPath)
+    if (size > 1024) {
       throw new Error('reading from monolithic file is not implemnted yet')
     }
+    const content = (await this.#accessor.readFile(this.#vmdkMetadataPath)).toString('utf8')
+
+    const vmdkDescriptor = parseVMDKDescriptor(content)
+    this.#vmdkDescriptor = vmdkDescriptor
+    const extent = vmdkDescriptor.extents[0]
+    if (extent.offset) {
+      throw new Error('reading from monolithic file is not implemnted yet')
+    }
+    console.log({ extent })
 
     let vmdk: RandomAccessDisk
-    switch (type) {
+    const targetPath = join(dirname(this.#vmdkMetadataPath), extent.fileName)
+    switch (extent.type) {
       case 'VMFS': //raw
-        vmdk = new RawDisk(this.#accessor, this.#path, 2 * 1024 * 1024)
+        vmdk = new RawDisk(this.#accessor, targetPath, 2 * 1024 * 1024)
         break
       case 'VMFSSPARSE': //cowd
-        if (parentFileNameHint === null) {
-          throw new Error(`no parentFileNameHint found in ${metadata}`)
+        if (!vmdkDescriptor.parentFileNameHint) {
+          throw new Error(`no parentFileNameHint found in ${content}`)
         }
-        if (this.#parent === undefined) {
-          throw new Error(`no parent gven for a delta vmdka`)
-        }
-        vmdk = new VmdkCowd(this.#accessor, this.#path, this.#parent)
+        vmdk = new VmdkCowd(this.#accessor, targetPath)
         break
       case 'SESPARSE':
-        if (parentFileNameHint === null) {
-          throw new Error(`no parentFileNameHint found in ${metadata}`)
+        if (!vmdkDescriptor.parentFileNameHint) {
+          throw new Error(`no parentFileNameHint found in ${content}`)
         }
-        if (this.#parent === undefined) {
-          throw new Error(`no parent gven for a delta vmdka`)
-        }
-        vmdk = new VmdkSeSparse(this.#accessor, this.#path, this.#parent)
+        vmdk = new VmdkSeSparse(this.#accessor, targetPath)
         break
       case 'SPARSE': // stream optimized , also check createType
         throw new Error('streamoptimized not supported')
       default:
-        throw new Error(`type${type} not supported`)
+        throw new Error(`type${extent.type} not supported`)
     }
 
     return vmdk

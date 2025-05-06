@@ -26,7 +26,7 @@ export default async function addDisk(pack, rawStream, basePath) {
   const MAX_INTERVAL_BETWEEN_BLOCKS = 60 * 1000
   const empty = Buffer.alloc(XVA_DISK_CHUNK_LENGTH, 0)
   let lastBlockLength
-  const diskSize = vhd.footer.currentSize
+  const diskSize = rawStream.length
   let remaining = diskSize
   while (remaining > 0) {
     lastBlockLength = Math.min(XVA_DISK_CHUNK_LENGTH, remaining)

@@ -6,7 +6,6 @@ import { strictEqual, notStrictEqual } from 'node:assert'
 import fetch from 'node-fetch'
 import https from 'https'
 
-import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
 import xml2js from 'xml2js'
@@ -249,14 +248,10 @@ export default class Esxi extends EventEmitter {
       diskDataStore = currentDataStore
       diskPath = currentPath + '/' + filePath
     }
-    const vmdkRes = await this.download(diskDataStore, diskPath)
-    const text = await vmdkRes.text()
-    const parsed = parseVmdk(text)
-
     return {
-      ...parsed,
       datastore: diskDataStore,
       path: dirname(diskPath),
+      diskPath,
       descriptionLabel: ' from esxi',
     }
   }

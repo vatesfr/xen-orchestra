@@ -5,6 +5,7 @@ import { Disposable } from 'promise-toolbox'
 import { DiskChain, toRawStream } from '@xen-orchestra/disk-transform'
 import { VmdkDisk } from '@xen-orchestra/vmdk'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
+import { EsxiDatastore } from '../../../../../@xen-orchestra/vmware-explorer/VmfsFileAccessor.mjs'
 
 const importDiskChain = Disposable.factory(async function* importDiskChain(
   $defer,
@@ -14,20 +15,13 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
   if (chainByNode.length === 0) {
     return { vhd, vdi }
   }
-  const vmdks = []
-  let parent = parentVmdk
-  for (let diskIndex = 0; diskIndex < chainByNode.length; diskIndex++) {
-    // the first one  is a RAW disk ( full )
-    const disk = chainByNode[diskIndex]
-    const { fileName, path, datastore: datastoreName } = disk
-    const handler = dataStoreToHandlers[datastoreName]
-    const vmdk = new VmdkDisk(handler ?? esxi, path + '/' + fileName, parent)
-    await vmdk.init()
-    vmdks.push(vmdk)
-    parent = vmdk
-  }
+  const activeDisk = chainByNode[chainByNode.length - 1]
+  const { datastore: datastoreName } = activeDisk
+  const handler = dataStoreToHandlers[datastoreName]
+  const vmdk = new VmdkDisk(handler ?? new EsxiDatastore(esxi, datastoreName), activeDisk.diskPath)
+  await vmdk.init()
+  const chain = await DiskChain.openFromChild(vmdk)
 
-  const chain = new DiskChain(vmdks)
   if (chain.isDifferencing) {
     const stream = await toVhdStream({ disk: chain })
     await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })

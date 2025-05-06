@@ -62,7 +62,7 @@ export class EsxiDatastore {
     const descriptor = this.#descriptors.get(fileDescriptorId)
     const { path, stream, to: opennedTo, currentPosition } = descriptor
     if (to > opennedTo) {
-      throw new Error('Try to read after the end of the file')
+      throw new Error(`Try to read after the end of the file ${opennedTo}`)
     }
 
     // Check if a read is already in progress for this descriptor
@@ -75,7 +75,7 @@ export class EsxiDatastore {
       const maxSkipSize = 2 * 1024 * 1024 // 2MB
 
       // If the distance to skip is less than 2MB, skip
-      if (currentPosition < from && from - currentPosition <= maxSkipSize) {
+      if (currentPosition <= from && from - currentPosition <= maxSkipSize) {
         await skipStrict(stream, from - currentPosition)
       } else {
         // Otherwise, close and reopen the stream
@@ -86,7 +86,7 @@ export class EsxiDatastore {
       // Read the requested data
       const sizeToRead = to - from
       const buffer = await readChunkStrict(stream, sizeToRead)
-      fileDescriptorId.currentPosition = to
+      descriptor.currentPosition = to
       return buffer
     })()
 
