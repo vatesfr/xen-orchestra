@@ -14,7 +14,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-- [xo-web]: better handling of trial and free users 
+- [Licence]: better handling of trial and free users 
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
