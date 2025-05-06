@@ -8,7 +8,7 @@
         class="progressBar"
         :value="cpuUsage.used ?? 0"
         :max="cpuUsage.total"
-        :legend="`${cpuUsage.name} ${cpuUsage.total} ${$t('vcpus', cpuUsages.cpuUsageTotal)}`"
+        :legend="cpuUsage.name"
       />
       <div class="total">
         <UiCardNumbers
