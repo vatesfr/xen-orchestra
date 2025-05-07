@@ -19,16 +19,16 @@ import { useI18n } from 'vue-i18n'
 
 type GeneralInfo = {
   'cpu-mask': string
-  'CPU-weight': number
+  'cpu-weight': number
   'cpu-cap': number
-  'minimum-CPU-limit': string
-  'maximum-CPU-limit': string
+  'minimum-cpu-limit': string
+  'maximum-cpu-limit': string
   'vm-limit-topology': string
   'minimum-static-memory': string
   'maximum-static-memory': string
   'minimum-dynamic-memory': string
   'maximum-dynamic-memory': string
-  GPUs: string
+  gpus: string
 }
 
 const { vm } = defineProps<{ vm: XoVm }>()
@@ -42,9 +42,9 @@ const dynamicMaxMemoryFormated = formatSizeRaw(vm.memory.dynamic[1], 0)
 const generalInfo: GeneralInfo = {
   'cpu-cap': vm.cpuCap ? vm.cpuCap : 0 /* XEN_DEFAULT_CPU_CAP */,
   'cpu-mask': vm.cpuMask ? vm.cpuMask.join(', ') : '',
-  'CPU-weight': vm.cpuWeight ? vm.cpuWeight : 256 /* XEN_DEFAULT_CPU_WEIGHT */,
-  'minimum-CPU-limit': 'no data',
-  'maximum-CPU-limit': vm.CPUs.max + ' ' + t('CPUs'),
+  'cpu-weight': vm.cpuWeight ? vm.cpuWeight : 256 /* XEN_DEFAULT_CPU_WEIGHT */,
+  'minimum-cpu-limit': 'no data',
+  'maximum-cpu-limit': vm.CPUs.max + ' ' + t('cpus'),
   'vm-limit-topology': vm.coresPerSocket
     ? t('sockets-with-cores-per-socket', {
         nSockets: vm.CPUs.max / vm.coresPerSocket,
@@ -55,6 +55,6 @@ const generalInfo: GeneralInfo = {
   'maximum-static-memory': `${staticMaxMemoryFormated?.value} ${staticMaxMemoryFormated?.prefix}`,
   'minimum-dynamic-memory': `${dynamicMinMemoryFormated?.value} ${dynamicMinMemoryFormated?.prefix}`,
   'maximum-dynamic-memory': `${dynamicMaxMemoryFormated?.value} ${dynamicMaxMemoryFormated?.prefix}`,
-  GPUs: vm.VGPUs.join(', '),
+  gpus: vm.VGPUs.join(', '),
 }
 </script>

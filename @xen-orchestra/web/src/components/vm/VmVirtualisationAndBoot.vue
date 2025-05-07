@@ -1,10 +1,10 @@
 <template>
   <UiCard class="vm-virtualisation-and-boot">
     <UiTitle>
-      {{ $t('Virtualization-boot-settings') }}
+      {{ $t('virtualization-boot-settings') }}
     </UiTitle>
     <VtsQuickInfoRow :label="$t('virtualization-mode')" :value="vm.virtualizationMode" />
-    <VtsQuickInfoRow :label="$t('Secure-boot')">
+    <VtsQuickInfoRow :label="$t('secure-boot')">
       <template #value>
         <UiInfo :accent="vm.secureBoot ? 'success' : 'muted'">
           {{ vm.secureBoot ? $t('enabled') : $t('disabled') }}
@@ -12,21 +12,21 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm.VTPMs.join(', ')" />
-    <VtsQuickInfoRow :label="$t('Viridian')">
+    <VtsQuickInfoRow :label="$t('viridian')">
       <template #value>
         <UiInfo :accent="vm.viridian ? 'success' : 'muted'">
           {{ vm.viridian ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('manage-Citrix-PV-drivers-via-Windows-Update')" class="text-ellipsis">
+    <VtsQuickInfoRow :label="$t('manage-citrix-pv-drivers-via-windows-update')" class="text-ellipsis">
       <template #value>
         <UiInfo accent="warning">
           {{ $t('error-no-data') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('Nested-virtualization')">
+    <VtsQuickInfoRow :label="$t('nested-virtualization')">
       <UiInfo :accent="vm.isNestedVirtEnabled ? 'success' : 'muted'">
         {{ vm.isNestedVirtEnabled ? $t('enabled') : $t('disabled') }}
       </UiInfo>
@@ -41,5 +41,5 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
-const { vm } = defineProps<{ vm: XoVm }>()
+defineProps<{ vm: XoVm }>()
 </script>

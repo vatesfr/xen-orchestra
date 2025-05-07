@@ -11,8 +11,8 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('video-ram')">
-      <template v-if="VideoRamValue" #value>
-        {{ VideoRamValue + $t('bytes.mi') }}
+      <template v-if="videoRamValue" #value>
+        {{ videoRamValue + $t('bytes.mi') }}
       </template>
     </VtsQuickInfoRow>
   </UiCard>
@@ -28,5 +28,5 @@ import { formatSizeRaw } from '@core/utils/size.util'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
-const VideoRamValue = vm.videoram ? formatSizeRaw(Number(vm.videoram), 0)?.value : null
+const videoRamValue = vm.videoram ? formatSizeRaw(Number(vm.videoram), 0)?.value : null
 </script>

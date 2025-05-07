@@ -1,12 +1,12 @@
 <template>
   <div class="system">
-    <div class="colum">
+    <div class="column">
       <VmGeneralInfo :vm />
       <VmSystemNetworking :vm />
       <VmStorageConfig :vm />
       <VmResource :vm />
     </div>
-    <div class="colum">
+    <div class="column">
       <VmVirtualisationAndBoot :vm />
       <VmManagement :vm />
       <VmGraphics :vm />
@@ -24,7 +24,7 @@ import VmSystemNetworking from '@/components/vm/VmSystemNetworking.vue'
 import VmVirtualisationAndBoot from '@/components/vm/VmVirtualisationAndBoot.vue'
 import type { XoVm } from '@/types/xo/vm.type'
 
-const { vm } = defineProps<{ vm: XoVm }>()
+defineProps<{ vm: XoVm }>()
 </script>
 
 <style scoped lang="postcss">
@@ -34,7 +34,7 @@ const { vm } = defineProps<{ vm: XoVm }>()
   padding: 0.8rem;
   width: 100%;
 
-  .colum {
+  .column {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
@@ -43,7 +43,7 @@ const { vm } = defineProps<{ vm: XoVm }>()
   @media not (--mobile) {
     flex-direction: row;
 
-    .colum {
+    .column {
       width: 50%;
     }
   }
@@ -51,7 +51,7 @@ const { vm } = defineProps<{ vm: XoVm }>()
   @media (--mobile) {
     flex-direction: column;
 
-    .colum {
+    .column {
       width: 100%;
     }
   }

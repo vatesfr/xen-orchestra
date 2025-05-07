@@ -1,7 +1,7 @@
 <template>
   <UiCard class="vm-system-networking">
     <UiTitle>
-      {{ $t('Networking') }}
+      {{ $t('networking') }}
     </UiTitle>
     <VtsQuickInfoRow :label="$t('nic-type')" :value="vm?.nicType" />
   </UiCard>
@@ -13,5 +13,5 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
-const { vm } = defineProps<{ vm: XoVm }>()
+defineProps<{ vm: XoVm }>()
 </script>

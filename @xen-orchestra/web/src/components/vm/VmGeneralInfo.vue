@@ -27,5 +27,5 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
-const { vm } = defineProps<{ vm: XoVm }>()
+defineProps<{ vm: XoVm }>()
 </script>

@@ -17,14 +17,14 @@
         </UiLink>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('Protect-from-accidental-deletion')">
+    <VtsQuickInfoRow :label="$t('protect-from-accidental-deletion')">
       <template #value>
         <UiInfo :accent="vm.blockedOperations.destroy ? 'success' : 'muted'">
           {{ vm.blockedOperations.destroy ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('Protect-from-accidental-shutdown')">
+    <VtsQuickInfoRow :label="$t('protect-from-accidental-shutdown')">
       <template #value>
         <UiInfo :accent="vm.blockedOperations.suspend ? 'success' : 'muted'">
           {{ vm.blockedOperations.suspend ? $t('enabled') : $t('disabled') }}
@@ -38,7 +38,7 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('Start-delay')">
+    <VtsQuickInfoRow :label="$t('start-delay')">
       {{ timeAgo }}
     </VtsQuickInfoRow>
   </UiCard>
@@ -53,8 +53,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo } from '@vueuse/core'
-import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
-const timeAgo = computed(() => useTimeAgo(vm.startDelay))
+const timeAgo = useTimeAgo(vm.startDelay)
 </script>

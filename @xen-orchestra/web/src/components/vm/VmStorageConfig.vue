@@ -1,9 +1,9 @@
 <template>
   <UiCard class="vm-storage-config">
     <UiTitle>
-      {{ $t('Storage-configuration') }}
+      {{ $t('storage-configuration') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('Suspend-Storage-Repository')" :value="vm?.suspendSr" />
+    <VtsQuickInfoRow :label="$t('suspend-Storage-Repository')" :value="vm?.suspendSr" />
   </UiCard>
 </template>
 
@@ -13,5 +13,5 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
-const { vm } = defineProps<{ vm: XoVm }>()
+defineProps<{ vm: XoVm }>()
 </script>

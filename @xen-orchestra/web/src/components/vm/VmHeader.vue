@@ -37,7 +37,5 @@ import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 
-defineProps<{
-  vm: XoVm
-}>()
+defineProps<{ vm: XoVm }>()
 </script>
