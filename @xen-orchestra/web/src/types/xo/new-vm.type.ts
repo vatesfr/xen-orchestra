@@ -3,6 +3,7 @@ import type { XoNetwork } from '@/types/xo/network.type.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoSr } from '@/types/xo/sr.type.ts'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
+import type { XoVif } from '@/types/xo/vif.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 
 export interface Vdi {
@@ -14,8 +15,18 @@ export interface Vdi {
 }
 
 export interface NetworkInterface {
-  interface: XoNetwork['id']
+  id?: XoVif['id']
+  interface?: XoNetwork['id']
   macAddress: string
+  device?: string
+  destroy?: boolean
+}
+
+export interface Vif {
+  network?: XoNetwork['id']
+  mac?: string
+  device?: string
+  destroy?: boolean
 }
 
 export type InstallMode = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 'network' | undefined
