@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backups] mirror full backup bigger han 50GB from encrypted source (PR [#8570](https://github.com/vatesfr/xen-orchestra/pull/8570))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -31,4 +33,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
+- @xen-orchestra/fs patch
 <!--packages-end-->

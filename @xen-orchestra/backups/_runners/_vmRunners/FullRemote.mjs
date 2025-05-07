@@ -26,6 +26,7 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
             stream: forkStreamUnpipe(stream),
             // stream will be forked and transformed, it's not safe to attach additionnal properties to it
             streamLength: stream.length,
+            maxStreamLength: stream.maxStreamLength, // on encrypted source
             timestamp: metadata.timestamp,
             vm: metadata.vm,
             vmSnapshot: metadata.vmSnapshot,
