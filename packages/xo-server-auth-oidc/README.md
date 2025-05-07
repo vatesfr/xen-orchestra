@@ -12,7 +12,7 @@ The first time a user signs in, XO will create a new XO user with the
 same identifier.
 
 Like all other xo-server plugins, it can be configured directly via
-the web interface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
+the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/architecture#plugins).
 
 > Important: When registering your instance to your identity provider,
 > you must configure its callback URL to

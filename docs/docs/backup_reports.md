@@ -38,7 +38,7 @@ Xen Orchestra is able to send backup reports to Slack or Mattermost.
 
 ### Plugin configuration
 
-Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](/plugins).
+Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](architecture#plugins).
 
 ### Generate the Webhook
 

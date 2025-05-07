@@ -20,7 +20,7 @@ This is the easiest purchase option: you can buy XOA with your registered email 
 
 You can choose the edition you want in two places:
 
-- [the pricing page](https://xen-orchestra.com/#!/pricing)
+- [the pricing page](https://vates.tech/pricing-and-support/)
 - [your account/purchases page](https://xen-orchestra.com/#!/purchases)
 
 :::tip

@@ -298,11 +298,11 @@ export default class TabPatches extends Component {
                       {_('xsCredentialsMissing', {
                         link: (
                           <a
-                            href='https://xen-orchestra.com/docs/updater.html#xenserver-updates'
+                            href='https://docs.xen-orchestra.com/updater#xenserver-updates'
                             target='_blank'
                             rel='noreferrer'
                           >
-                            https://xen-orchestra.com/docs/updater.html
+                            https://docs.xen-orchestra.com/updater
                           </a>
                         ),
                       })}

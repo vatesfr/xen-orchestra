@@ -4,7 +4,7 @@ Xen Orchestra is based on the concept of **one interface to rule all your pools,
 
 See the [Infrastructure management section](manage_infrastructure.md) for more details and examples.
 
-![](https://xen-orchestra.com/assets/stats.png)
+![](./assets/stats.png)
 
 But there's even more! You can:
 

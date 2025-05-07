@@ -122,7 +122,7 @@ const PREDICATES = {
 const NO_OBJECTS_MATCH_THIS_PATTERN = 'no objects match this pattern'
 const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const NO_SUCH_OBJECT_ERROR = 'no such object'
-const UNHEALTHY_VDI_CHAIN_LINK = 'https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection'
+const UNHEALTHY_VDI_CHAIN_LINK = 'https://docs.xen-orchestra.com/backup_troubleshooting#vdi-chain-protection'
 
 const isSkippedError = error => error.message === UNHEALTHY_VDI_CHAIN_ERROR || error.message === NO_SUCH_OBJECT_ERROR
 

@@ -99,7 +99,7 @@ Usage:
     filter=<filter>
       List only objects that match the filter
 
-      Syntax: https://xen-orchestra.com/docs/manage_infrastructure.html#filter-syntax
+      Syntax: https://docs.xen-orchestra.com/manage_infrastructure#filter-syntax
 
     limit=<limit>
       Maximum number of objects to list, e.g. `limit=10`

@@ -15,11 +15,11 @@ In this scenario, you will need a QA/pre-production XCP-ng pool with Internet ac
 
 ### Deployment
 
-[Follow the standard procedure](https://xen-orchestra.com/docs/installation.html) to deploy the XOA on your pool with Internet access.
+[Follow the standard procedure](installation) to deploy the XOA on your pool with Internet access.
 
-Make sure that your appliance is [properly registered](https://xen-orchestra.com/docs/installation.html#registration) and [up-to-date](https://xen-orchestra.com/docs/updater.html).
+Make sure that your appliance is [properly registered](installation#registration) and [up-to-date](updater).
 
-It's also good to take a quick look at [the XOA check](https://xen-orchestra.com/docs/xoa.html#xoa-check) to detect issues early.
+It's also good to take a quick look at [the XOA check](xoa.html#xoa-check) to detect issues early.
 
 When everything is good, you can shutdown your XOA and export it:
 
@@ -50,7 +50,7 @@ To upgrade your XOA, you need to:
 1. shutdown the XOA on your airgapped pool
 2. export it to an XVA file
 3. move it to your connected pool and import it
-4. start it, run the [upgrade process](https://xen-orchestra.com/docs/updater.html)
+4. start it, run the [upgrade process](updater)
 5. shutdown this XOA
 6. export it to an XVA file
 7. move it to your airgapped pool and import it

@@ -1,6 +1,6 @@
 const configurationSchema = {
   description:
-    'Synchronize pools managed by Xen Orchestra with Netbox. Configuration steps and supported versions: https://xen-orchestra.com/docs/advanced.html#netbox.',
+    'Synchronize pools managed by Xen Orchestra with Netbox. Configuration steps and supported versions: https://docs.xen-orchestra.com/advanced#netbox.',
   type: 'object',
   properties: {
     endpoint: {

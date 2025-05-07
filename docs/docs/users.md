@@ -486,4 +486,4 @@ Now, the audit plugin will record users' actions and upload the last record in t
 
 ## Debugging
 
-If you can't log in, please [check the logs of `xo-server`](https://xen-orchestra.com/docs/troubleshooting.html#logs).
+If you can't log in, please [check the logs of `xo-server`](https://docs.xen-orchestra.com/troubleshooting#logs).

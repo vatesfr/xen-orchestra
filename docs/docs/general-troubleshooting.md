@@ -18,19 +18,19 @@ $ xoa check
 If the result you have is completely different from that, or if error messages are displayed, lost packets, etc., you have, indeed, a problem. The next step should be to check in this document if there is an existing troubleshooting for the problem you have.
 
 :::tip
-You can also check the system logs, [as explained here](https://xen-orchestra.com/docs/troubleshooting.html#cli).
+You can also check the system logs, [as explained here](troubleshooting#cli).
 :::
 
 ## General
 
-- [Empty page after login](https://xen-orchestra.com/docs/troubleshooting.html#empty-page-after-login)
-- [Can't migrate XOA](https://xen-orchestra.com/docs/troubleshooting.html#xoa-migration-issues)
-- [Can't boot XOA](https://xen-orchestra.com/docs/troubleshooting.html#xoa-boot-issues)
-- [Network issues](https://xen-orchestra.com/docs/troubleshooting.html#network-issues)
-- [Out of memory](https://xen-orchestra.com/docs/troubleshooting.html#memory)
-- [Transparent proxy and updater](https://xen-orchestra.com/docs/troubleshooting.html#behind-a-transparent-proxy)
-- [SSL self-signed certificate expired](https://xen-orchestra.com/docs/troubleshooting.html#updating-ssl-self-signed-certificate)
-- [User authentication](https://xen-orchestra.com/docs/authentication.html#debugging)
+- [Empty page after login](troubleshooting#empty-page-after-login)
+- [Can't migrate XOA](troubleshooting#xoa-migration-issues)
+- [Can't boot XOA](troubleshooting#xoa-boot-issues)
+- [Network issues](troubleshooting#network-issues)
+- [Out of memory](troubleshooting#memory)
+- [Transparent proxy and updater](troubleshooting#behind-a-transparent-proxy)
+- [SSL self-signed certificate expired](troubleshooting#updating-ssl-self-signed-certificate)
+- [User authentication](authentication#debugging)
 
 ## Backup troubleshooting
 

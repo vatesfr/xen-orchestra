@@ -128,9 +128,9 @@ export const ReportRecipients = decorate([
   ),
 ])
 
-const SR_BACKEND_FAILURE_LINK = 'https://xen-orchestra.com/docs/backup_troubleshooting.html#sr-backend-failure-44'
+const SR_BACKEND_FAILURE_LINK = 'https://docs.xen-orchestra.com/backup_troubleshooting#sr_backend_failure_44'
 
-export const BACKUP_NG_DOC_LINK = 'https://xen-orchestra.com/docs/backup.html'
+export const BACKUP_NG_DOC_LINK = 'https://docs.xen-orchestra.com/backup'
 
 const ThinProvisionedTip = ({ label }) => (
   <Tooltip content={_(label)}>

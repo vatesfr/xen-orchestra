@@ -374,7 +374,7 @@ class NoObjectsWithoutServers extends Component {
               <Row>
                 <Col mediumSize={6}>
                   <a
-                    href='https://xen-orchestra.com/docs/'
+                    href='https://docs.xen-orchestra.com/'
                     rel='noopener noreferrer'
                     target='_blank'
                     className='btn btn-link'

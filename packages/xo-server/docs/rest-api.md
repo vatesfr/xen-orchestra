@@ -70,7 +70,7 @@ The following query parameters are supported:
 
 - `limit`: max number of objects returned
 - `fields`: if specified, instead of plain URLs, the results will be objects containing the requested fields
-- `filter`: a string that will be used to select only matching objects, see [the syntax documentation](https://xen-orchestra.com/docs/manage_infrastructure.html#live-filter-search)
+- `filter`: a string that will be used to select only matching objects, see [the syntax documentation](https://docs.xen-orchestra.com/manage_infrastructure#live-filter-search)
 - `ndjson`: if specified, the result will be in [NDJSON format](http://ndjson.org/)
 
 Simple request:
