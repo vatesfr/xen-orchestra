@@ -275,6 +275,7 @@
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
                         <select v-model="vdi.sr">
+                          <option :value="undefined">{{ $t('select-sr') }}</option>
                           <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
                             {{ `${sr.name_label} -` }}
                             {{
@@ -305,6 +306,7 @@
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
                         <select v-model="vdi.sr">
+                          <option :value="undefined">{{ $t('select-sr') }}</option>
                           <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
                             {{ `${sr.name_label} -` }}
                             {{
