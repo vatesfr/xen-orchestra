@@ -5,6 +5,7 @@ import type {
   XenApiHostWrapped,
   XenApiMessage,
   XenApiNetwork,
+  XenApiPifWrapped,
   XenApiPoolWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
@@ -22,6 +23,7 @@ type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
   message: XenApiMessage
   network: XenApiNetwork
+  PIF: XenApiPifWrapped
   pool: XenApiPoolWrapped
   SR: XenApiSrWrapped
   VBD: XenApiVbdWrapped
