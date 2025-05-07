@@ -1,7 +1,8 @@
 export default {
   path: '/vm/:uuid',
+  name: 'vm.default',
   component: () => import('@/views/vm/VmRootView.vue'),
-  redirect: { name: 'vm.console' },
+  redirect: { name: 'vm.console' }, // TODO: change for vm.dashboard when is enable
   children: [
     {
       path: 'dashboard',
