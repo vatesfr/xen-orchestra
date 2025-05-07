@@ -705,6 +705,7 @@ export interface XenApiPif {
   VLAN_slave_of: XenApiVlan['$ref'][]
   VLAN: number
 }
+export type XenApiPifWrapped = WrapperXenApi<XenApiPif, 'PIF'>
 
 export interface XenApiPifMetrics {
   $ref: Branded<'PIF_metrics'>
@@ -1336,6 +1337,7 @@ export type XenApiRecord =
 
 export type WrappedXenApiRecord =
   | XenApiHostWrapped
+  | XenApiPifWrapped
   | XenApiPoolWrapped
   | XenApiSrWrapped
   | XenApiVbdWrapped
