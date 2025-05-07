@@ -68,7 +68,7 @@ export class ServerController extends XoController<XoServer> {
   connectServer(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
     const serverId = id as XoServer['id']
     const action = async () => {
-      await this.restApi.xoApp.connectXenServer(id as XoServer['id'])
+      await this.restApi.xoApp.connectXenServer(serverId)
     }
 
     return this.createAction<void>(action, {
@@ -89,7 +89,7 @@ export class ServerController extends XoController<XoServer> {
   disconnectServer(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
     const serverId = id as XoServer['id']
     const action = async () => {
-      await this.restApi.xoApp.disconnectXenServer(id as XoServer['id'])
+      await this.restApi.xoApp.disconnectXenServer(serverId)
     }
 
     return this.createAction<void>(action, {
