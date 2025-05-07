@@ -48,3 +48,20 @@ export interface VmState {
   existingVdis: Vdi[]
   name: string
 }
+
+export interface NewVmData {
+  auto_poweron: boolean
+  boot: boolean
+  clone: boolean
+  memory: number
+  name_description: string
+  name_label: string
+  template: XoVmTemplate['uuid'] | undefined
+  vifs: any[]
+  vdis?: Vdi[]
+  affinity?: XoHost['id']
+  install?: {
+    method: InstallMode
+    repository: VmState['selectedVdi'] | string
+  }
+}
