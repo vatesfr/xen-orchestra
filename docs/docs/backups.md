@@ -266,6 +266,43 @@ All your scheduled backups are acccessible in the "Restore" view in the backup s
 You can restore your backup even on a brand new host/pool and on brand new hardware.
 :::
 
+## Differential restore
+
+Differential restores come in handy when you need to restore a VM to a storage unit that already contains your original VM, with **optimal restoration time**.
+
+### How it works
+
+Instead of performing a full restore, Xen Orchestra leverages the existing VM disk or snapshot as a foundation and restores only the differential data to a new disk. This method significantly cuts down on restore time, especially for large VMs. For instance, with a transfer rate of 60 MiB/s and a 200 GiB VM, a typical restore would take around an hour. However, with a differential restore, even a 600 GiB disk can be restored in just minutes.
+
+Most importantly, this process prioritizes **data integrity**. The original VM disk remains untouched throughout the restore; we simply read from the latest snapshot to use it as a foundation for creating the new VM and disk.
+
+### Step-by-step guide
+
+:::warning
+
+**Prerequisites**
+
+Make sure the following conditions are met in order to do a differential restore:
+
+- Restore the VM to the **same Storage Repository** that contains the VM to be restored.
+- The backup you're restoring must be a **delta backup** (not a full backup).
+- The delta chain — from the original snapshot to the backup you're restoring, excluding the base VM — must be **uninterrupted**.
+
+:::
+
+To perform a differential restore:
+
+1. Go to the **Backup → Restore** menu.\
+A list of VMs appears.
+2. Choose the VM you want to restore from the list. In the last column, click the **Restore** icon.\
+A pop-up window with a drop-down list appears.
+3. Choose the backup you want to restore from the drop-down list.\
+More parameters appear, including a drop-down list for your destination Storage Repository (SR).
+4. From that drop-down list, choose your destination SR.
+5. Activate the switch called **Use differential restore**:
+![](./assets/use-differential-restore.png)
+6. Click **OK** to start the restore.
+
 ## File level restore
 
 You can also restore specific files and directories inside a VM. It works with all your existing delta backups.
