@@ -1,7 +1,7 @@
 <template>
   <ComponentStory
     v-slot="{ properties }"
-    :params="[prop('copy-element').type('string').preset('hello world').required().widget()]"
+    :params="[prop('value').type('string').preset('hello world').required().widget()]"
   >
     <VtsCopyButton v-bind="properties" />
   </ComponentStory>
