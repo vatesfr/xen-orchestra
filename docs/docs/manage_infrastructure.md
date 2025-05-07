@@ -534,7 +534,7 @@ Xen Orchestra will request a plugin, bundled and hosted within your XCP-ng hosts
 
 #### Rolling Pool Updates (RPU)
 
-Also known as RPU, **this is the advised way to update your pool**. By just clicking on one button, Xen Orchestra will automatically move VMs around, apply updates and reboot the hosts, without any service interruption. The following button is available in the Pool view, on "Patches" tab:
+Also known as RPU, **this is the advised way to update your pool**. By just clicking on one button, Xen Orchestra will automatically move VMs around, apply updates and reboot the hosts, without any service interruption. The following button is available in the **Pool** view of the **Patches** tab:
 
 ![](./assets/rpubutton.png)
 
@@ -552,6 +552,25 @@ restartHostTimeout = '40 minutes'
 :::
 
 ![](./assets/rpu1.png)
+
+##### Scheduling a RPU
+
+You can schedule rolling pool updates to automate the patching and rebooting of your pools during off-peak hours.
+
+:::tip
+Of course, schedule the updates outside production hours. Although RPUs are designed to be transparent, it is always wise to schedule some buffer time in case something goes wrong.
+
+:::
+
+1. **Create a job**: Navigate to the **Jobs** screen and create a new job, using the `pool.rollingUpdate` method. Determine which pools you want to include in the update: 
+
+![](./assets/create-rpu.png)
+
+2. **Set the schedule**: Assign a schedule to the job (e.g., every Sunday at 3 AM) and apply it to your new job:
+
+![](./assets/schedule-rpu.png)
+
+3. **Monitor the process**: Once scheduled, the RPU will run automatically at the set time, applying updates and rebooting hosts as necessary.
 
 #### Pool updates
 
