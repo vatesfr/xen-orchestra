@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST] Ability to enable/disable a server `POST rest/v0/servers/<server-id>/actions/(enable|disable)` (PR [#8565](https://github.com/vatesfr/xen-orchestra/pull/8565))
+- [REST] Ability to connect/disconnect a server `POST rest/v0/servers/<server-id>/actions/(connect|disconnect)` (PR [#8565](https://github.com/vatesfr/xen-orchestra/pull/8565))
 
 ### Bug fixes
 
