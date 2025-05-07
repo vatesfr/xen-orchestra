@@ -12,6 +12,7 @@ export const useSidebarStore = defineStore('layout', () => {
   const toggleExpand = useToggle(isExpanded)
   const toggleLock = useToggle(isLocked)
   const isResizing = ref(false)
+  let desktopState = false
 
   let initialX: number
   let initialWidth: number
@@ -52,7 +53,9 @@ export const useSidebarStore = defineStore('layout', () => {
   watch(
     () => uiStore.isMobile,
     isMobile => {
-      isExpanded.value = !isMobile
+      // keep the state of desktop expention
+      if (isMobile) desktopState = isExpanded.value
+      isExpanded.value = desktopState && !isMobile
     }
   )
 

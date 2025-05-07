@@ -1,5 +1,5 @@
 <template>
-  <li class="vts-tree-item" @click="handleClick">
+  <li class="vts-tree-item" @click="handleClick()">
     <slot />
     <slot v-if="expanded" name="sublist" />
   </li>
