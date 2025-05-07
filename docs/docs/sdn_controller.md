@@ -42,8 +42,7 @@ In the network creation view:
 
 ### Configuration
 
-Like all other xo-server plugins, it can be configured directly via
-the web interface, see [the plugin documentation](https://docs.xen-orchestra.com/plugins).
+Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](architecture#plugins).
 
 The plugin's configuration contains:
 

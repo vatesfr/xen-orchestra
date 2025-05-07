@@ -38,6 +38,10 @@ const config: Config = {
             to: '/incremental_replication',
             from: '/continuous_replication',
           },
+          {
+            to: '/architecture#plugins',
+            from: '/plugins',
+          },
         ],
       },
     ],
