@@ -41,7 +41,7 @@ export const xoApiDefinition = {
   task: {
     type: 'collection',
     path: 'tasks',
-    fields: 'id,start,end,properties,status,progress,tasks',
+    fields: 'id,properties,start,status,updatedAt,end,tasks,infos,errors,warnings',
     handler: (record: XoTask) => record,
   },
   dashboard: {
