@@ -37,7 +37,7 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     res.status(501)
   } else if (incorrectState.is(error)) {
     res.status(409)
-    responseError.data = (error as unknown as XoError).data
+    responseError.data = (error as XoError).data
   } else {
     if (error.name === 'XapiError') {
       responseError.info = 'This is a XenServer/XCP-ng error, not an XO error'
