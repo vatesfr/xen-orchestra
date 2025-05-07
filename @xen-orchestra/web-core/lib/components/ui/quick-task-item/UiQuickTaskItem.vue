@@ -34,10 +34,21 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
-import type { Task } from '@core/types/task.type.ts'
 import { faAngleDown, faAngleRight, faArrowRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
+
+export type TaskStatus = 'pending' | 'success' | 'failure'
+
+export type Task = {
+  id: string | number
+  name: string
+  status: TaskStatus
+  tag?: string
+  start?: number
+  end?: number
+  subtasks?: Task[]
+}
 
 const props = defineProps<{
   task: Task

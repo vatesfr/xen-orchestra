@@ -4,7 +4,6 @@ import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { XapiStatsGranularity, XapiVmStats, XoVm } from '@vates/types'
-import { Task } from '@vates/task'
 
 import {
   actionAsyncroneResp,
@@ -106,46 +105,6 @@ export class VmController extends XapiXoController<XoVm> {
       taskProperties: {
         name: 'start VM',
         objectId: vmId,
-      },
-    })
-  }
-
-  @Post('fakeTask')
-  async fakeTake(@Query() sync?: boolean) {
-    const sleep = () => new Promise(resolve => setTimeout(resolve, 2000))
-    const action = async () => {
-      Task.set('progress', 0)
-      Task.info('Started')
-      await sleep()
-      Task.set('progress', 25)
-      Task.info('info bar')
-      await sleep()
-      const subTask = new Task({ name: 'sub task', objectId: 'b61a5c92-700e-4966-a13b-00633f03eea8' as XoVm['id'] })
-      await subTask.run(async () => {
-        subTask.set('progress', 0)
-        subTask.info('sub info')
-        await sleep()
-        subTask.set('progress', 50)
-        await sleep()
-        subTask.set('progress', 100)
-        return 'subtask success'
-      })
-      Task.set('progress', 50)
-      Task.warning('warn bar')
-      await sleep()
-      Task.set('progress', 75)
-      Task.warning('warn baz')
-      await sleep()
-      Task.set('progress', 85)
-      await sleep()
-      Task.set('progress', 100)
-    }
-
-    return this.createAction(action, {
-      sync,
-      taskProperties: {
-        name: 'fake task',
-        objectId: 'b61a5c92-700e-4966-a13b-00633f03eea8' as XoVm['id'],
       },
     })
   }

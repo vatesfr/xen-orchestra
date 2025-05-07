@@ -1,8 +1,8 @@
 <template>
-  <div class="vts-tree-item">
+  <li class="vts-tree-item">
     <slot />
     <slot v-if="expanded" name="sublist" />
-  </div>
+  </li>
 </template>
 
 <script lang="ts" setup>

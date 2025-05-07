@@ -46,7 +46,7 @@ const {
 
 const { n } = useI18n()
 
-export type CircleProgressBarAccent = 'info' | 'warning' | 'danger'
+type CircleProgressBarAccent = 'info' | 'warning' | 'danger'
 type CircleProgressBarSize = 'extra-small' | 'small' | 'medium' | 'large'
 
 const circleSizeMap = {
