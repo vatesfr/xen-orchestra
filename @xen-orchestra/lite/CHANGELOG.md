@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.10.1** (2025-05-07)
 
 - [VM/New] Add possibility to add some tags in VM creation (PR [#8515](https://github.com/vatesfr/xen-orchestra/pull/8515))
 - [VM/New] Add affinity host field in VM creation (PR [#8486](https://github.com/vatesfr/xen-orchestra/pull/8486))
