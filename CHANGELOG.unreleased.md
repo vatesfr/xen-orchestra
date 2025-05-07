@@ -17,7 +17,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [ACLs] Fix ACLs not being assigned properly when resource set is assigned to a VM
+- [ACLs] Fix ACLs not being assigned properly when resource set is assigned to a VM (PR [#8571](https://github.com/vatesfr/xen-orchestra/pull/8571))
 
 ### Packages to release
 
