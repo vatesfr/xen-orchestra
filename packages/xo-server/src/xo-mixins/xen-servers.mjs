@@ -315,18 +315,18 @@ export default class XenServers {
   }
 
   async connectXenServer(id) {
+    await this.updateXenServer(id, { enabled: true })::ignoreErrors()
     const server = await this.getXenServerWithCredentials(id)
 
-    if (this._getXenServerStatus(id) !== 'disconnected') {
+    const serverStatus = this._getXenServerStatus(id)
+    if (serverStatus !== 'disconnected') {
       /* throw */ incorrectState({
-        actual: 'connected',
+        actual: serverStatus,
         expected: 'disconnected',
         object: server.id,
         property: 'status',
       })
     }
-
-    await this.updateXenServer(id, { enabled: true })::ignoreErrors()
 
     const { config } = this._app
 
