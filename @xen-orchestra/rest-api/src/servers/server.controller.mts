@@ -85,7 +85,6 @@ export class ServerController extends XoController<XoServer> {
   @Post('{id}/actions/disconnect')
   @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
   @Response(noContentResp.status, noContentResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
   disconnectServer(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
     const serverId = id as XoServer['id']
     const action = async () => {
