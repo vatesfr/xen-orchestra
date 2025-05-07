@@ -17,8 +17,6 @@
 
 - **XO6**:
   - [VM] Add auto redirection from /vm/[id] to /vm/[id]/console (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
-- **XO-lite**:
-  - [VM] clarifying rooting of default vm page (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
 
 ### Packages to release
 
