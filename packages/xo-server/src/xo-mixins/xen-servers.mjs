@@ -10,7 +10,7 @@ import { defer } from 'golike-defer'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { fibonacci } from 'iterable-backoff'
 import { networkInterfaces } from 'os'
-import { noSuchObject } from 'xo-common/api-errors.js'
+import { noSuchObject, incorrectState } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
@@ -315,10 +315,17 @@ export default class XenServers {
   }
 
   async connectXenServer(id) {
+    await this.updateXenServer(id, { enabled: true })::ignoreErrors()
     const server = await this.getXenServerWithCredentials(id)
 
-    if (this._getXenServerStatus(id) !== 'disconnected') {
-      throw new Error('the server is already connected')
+    const serverStatus = this._getXenServerStatus(id)
+    if (serverStatus !== 'disconnected') {
+      /* throw */ incorrectState({
+        actual: serverStatus,
+        expected: 'disconnected',
+        object: server.id,
+        property: 'status',
+      })
     }
 
     const { config } = this._app
@@ -528,6 +535,7 @@ export default class XenServers {
   }
 
   async disconnectXenServer(id) {
+    await this.updateXenServer(id, { enabled: false })::ignoreErrors()
     const status = this._getXenServerStatus(id)
     if (status === 'disconnected') {
       return
