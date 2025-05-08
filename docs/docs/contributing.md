@@ -10,6 +10,10 @@ You can [open bug reports here](https://github.com/vatesfr/xen-orchestra/issues)
 Before creating an issue, please take a look [into this section](community.md) for more details.
 :::
 
+## Translations
+
+[Help us translate Xen Orchestra in more languages!](http://translate.vates.tech/engage/xen-orchestra/)
+
 ## Documentation / Code
 
 Using the GitHub fork/pull-request feature, you may send us fixes or enhancements.
