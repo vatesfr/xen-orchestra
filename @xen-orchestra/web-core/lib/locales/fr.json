@@ -10,7 +10,7 @@
   "admin-login": "Nom d'utilisateur administrateur",
   "admin-password": "Mot de passe administrateur",
   "admin-password-confirm": "Confirmer le mot de passe administrateur",
-  "affinity-host": "Affinity host",
+  "affinity-host": "Hôte de préférence",
   "alarm-type.cpu_usage": "L'utilisation du CPU dépasse {n}%",
   "alarm-type.disk_usage": "L'utilisation du disque dépasse {n}%",
   "alarm-type.fs_usage": "L'utilisation de FS dépasse {n}%",
