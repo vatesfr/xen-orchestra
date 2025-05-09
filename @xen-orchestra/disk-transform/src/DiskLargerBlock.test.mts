@@ -217,3 +217,14 @@ test('close propagation', async () => {
   await disk.close()
   assert.strictEqual(source.closed, true)
 })
+
+test('generator', async () => {
+  const source = new MockDisk(512, 1024)
+  await source.init()
+
+  const disk = new DiskLargerBlock(source, 1024)
+  await disk.init()
+  for await (const block of disk.diskBlocks()) {
+    assert.strictEqual(block.data.length, 1024)
+  }
+})

@@ -1,4 +1,4 @@
-import { RandomDiskPassthrough, FileAccessor, RawDisk, RandomAccessDisk } from '@xen-orchestra/disk-transform'
+import { RandomDiskPassthrough, FileAccessor, RawDisk, RandomAccessDisk, Disk } from '@xen-orchestra/disk-transform'
 import { VmdkCowd } from './VmdkCowd.mjs'
 import { VmdkSeSparse } from './VmdkSeSparse.mjs'
 import { parseVMDKDescriptor, VMDKDescriptor } from './vmdkDescriptor.mjs'
@@ -12,7 +12,16 @@ export class VmdkDisk extends RandomDiskPassthrough {
   #accessor: FileAccessor
   #vmdkMetadataPath: any
   #vmdkDescriptor?: VMDKDescriptor
-
+  #parent?: RandomAccessDisk
+  get parent(): RandomAccessDisk | undefined {
+    return this.#parent
+  }
+  get contentId(): string {
+    if (this.#vmdkDescriptor === undefined) {
+      throw new Error('Call init before looking for disk uid ')
+    }
+    return this.#vmdkDescriptor.cid
+  }
   constructor(accessor: FileAccessor, vmdkPath: any) {
     super(undefined)
     this.#accessor = accessor
@@ -27,6 +36,12 @@ export class VmdkDisk extends RandomDiskPassthrough {
     console.log('instantiate parent ', targetPath)
     return new VmdkDisk(this.#accessor, targetPath)
   }
+
+  openParent(): Promise<Disk> {
+    // don't call openParent on the source, call it here
+    return Disk.prototype.openParent.call(this)
+  }
+
   async openSource(): Promise<RandomAccessDisk> {
     // read the start of the vmdk file
     // extract the descriptor
@@ -68,7 +83,7 @@ export class VmdkDisk extends RandomDiskPassthrough {
       default:
         throw new Error(`type${extent.type} not supported`)
     }
-    await vmdk.init() 
+    await vmdk.init()
     return vmdk
   }
 }

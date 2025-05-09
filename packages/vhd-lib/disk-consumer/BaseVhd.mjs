@@ -3,6 +3,7 @@
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
  */
 
+import { DiskLargerBlock, DiskSmallerBlock, RandomAccessDisk } from '@xen-orchestra/disk-transform'
 import computeGeometryForSize from '../_computeGeometryForSize.js'
 import { DEFAULT_BLOCK_SIZE, DISK_TYPES, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from '../_constants.js'
 import { createFooter, createHeader } from '../_createFooterHeader.js'
@@ -26,7 +27,20 @@ export class BaseVhd {
    * @param {Disk} source
    */
   constructor(source) {
-    this.#source = source
+    // vmdk export can provide various disk blocks
+    if (source.getBlockSize() < DEFAULT_BLOCK_SIZE) {
+      if (!(source instanceof RandomAccessDisk)) {
+        throw new Error("Can't change disk block size of streamed disk ")
+      }
+      this.#source = new DiskLargerBlock(source, DEFAULT_BLOCK_SIZE)
+    } else if (source.getBlockSize() > DEFAULT_BLOCK_SIZE) {
+      if (!(source instanceof RandomAccessDisk)) {
+        throw new Error("Can't change disk block size of streamed disk ")
+      }
+      this.#source = new DiskSmallerBlock(source, DEFAULT_BLOCK_SIZE)
+    } else {
+      this.#source = source
+    }
   }
 
   /**
@@ -75,15 +89,5 @@ export class BaseVhd {
       fileSize += FULL_BLOCK_SIZE
     }
     return { bat, fileSize }
-  }
-
-  /**
-   * @returns {AsyncGenerator<Buffer>}
-   */
-  async *vhdblockGenerator() {
-    const generator = this.#source.diskBlocks()
-    for await (const { data } of generator) {
-      yield Buffer.concat([FULL_BLOCK_BITMAP, data])
-    }
   }
 }

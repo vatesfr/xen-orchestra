@@ -7,7 +7,7 @@ export type DiskBlock = {
 export type BytesLength = number
 
 export abstract class Disk {
-  #generatedDiskBlocks = 0 
+  #generatedDiskBlocks = 0
   #parent?: Disk
   get parent(): Disk | undefined {
     return this.#parent
@@ -55,7 +55,7 @@ export abstract class Disk {
     }
   }
 
-  getNbGeneratedBlock():number{
+  getNbGeneratedBlock(): number {
     return this.#generatedDiskBlocks
   }
   check() {
@@ -87,7 +87,6 @@ export abstract class RandomAccessDisk extends Disk {
   abstract readBlock(index: number): Promise<DiskBlock>
   async *buildDiskBlockGenerator(): AsyncGenerator<DiskBlock> {
     const indexes = this.getBlockIndexes()
-    indexes.sort()
     for (const index of indexes) {
       yield this.readBlock(index)
     }
