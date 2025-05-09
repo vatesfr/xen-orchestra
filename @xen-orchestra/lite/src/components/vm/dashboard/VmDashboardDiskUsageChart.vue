@@ -26,6 +26,7 @@ const { data } = defineProps<{
     stats: VmStats | undefined
     timestampStart: number
   }
+
   loading: boolean
   error?: string
 }>()
@@ -45,6 +46,7 @@ const diskUsage = computed<LinearChartData>(() => {
 
   const addDiskData = (type: 'r' | 'w') => ({
     label: type === 'r' ? t('disk-read') : t('disk-write'),
+
     data: Object.values(xvds[type])[0].map((_, index) => ({
       timestamp:
         (timestampStart -
@@ -63,14 +65,18 @@ const maxValue = computed(() => {
     (acc, series) => [...acc, ...series.data.map(item => item.value)],
     [] as number[]
   )
+
   if (values.length === 0) {
     return 100
   }
+
   const maxUsage = Math.max(...values)
+
   return Math.ceil(maxUsage / 100) * 100
 })
 const byteFormatter = (value: number) => {
   const result = formatSizeRaw(value, 1)
+
   return `${result?.value}${result?.prefix}`
 }
 </script>
