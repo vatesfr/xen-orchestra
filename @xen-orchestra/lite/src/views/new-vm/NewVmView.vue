@@ -4,7 +4,7 @@
       {{ $t('new-vm.add') }}
     </UiHeadBar>
     <div class="card-container">
-      <form @submit.prevent="createVM()">
+      <form @submit.prevent="createVm()">
         <UiCard>
           <!-- TEMPLATE SECTION -->
           <UiTitle>{{ $t('template') }}</UiTitle>
@@ -499,7 +499,7 @@ const vmState = reactive<VmState>({
   affinity_host: OPAQUE_REF.EMPTY,
   boot_firmware: '',
   new_vm_template: undefined,
-  boot_vm: false,
+  boot_vm: true,
   auto_power: false,
   fast_clone: true,
   ssh_key: '',
@@ -827,7 +827,7 @@ const vmCreationParams = computed(() => ({
 const xapi = useXenApiStore().getXapi()
 
 // TODO move in job system
-const _createVm = async ($defer: Defer) => {
+const _createVm = defer(async ($defer: Defer) => {
   const templateRef = vmCreationParams.value.template!
   const newVmName = vmCreationParams.value.name_label
   const selectedVdiRef = vmCreationParams.value.installRepository
@@ -973,6 +973,7 @@ const _createVm = async ($defer: Defer) => {
         await xapi.vdi.setNameLabel(vdiRef, vdi.name_label)
         await xapi.vdi.setNameDescription(vdiRef, vdi.name_description)
 
+        // EDIT SR: Migrate VDI or create new one
         if (vdi.SR !== srRef) {
           try {
             await xapi.vdi.poolMigrate(vdiRef, vdi.SR)
@@ -1035,17 +1036,14 @@ const _createVm = async ($defer: Defer) => {
       $defer.onFailure(() => xapi.vbd.delete(vbdRef))
     }
 
-    // BOOT VM AFTER CREATION
-    if (vmCreationParams.value.bootAfterCreate) {
-      await xapi.vm.start(vmRefs)
-    }
-
     isBusy.value = false
 
     await router.push({
       name: 'vm.console',
       params: { uuid: vm.uuid },
     })
+
+    return vmRefs
   } catch (error) {
     isBusy.value = false
 
@@ -1055,9 +1053,16 @@ const _createVm = async ($defer: Defer) => {
 
     throw error
   }
-}
+})
 
-const createVM = defer(_createVm)
+const createVm = async () => {
+  const vmRefs = await _createVm()
+
+  // BOOT VM AFTER CREATION
+  if (vmCreationParams.value.bootAfterCreate) {
+    await xapi.vm.start(vmRefs)
+  }
+}
 </script>
 
 <style scoped lang="postcss">
