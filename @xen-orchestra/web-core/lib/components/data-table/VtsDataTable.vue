@@ -1,5 +1,6 @@
 <template>
   <div class="table-container">
+    <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
     <VtsLoadingHero v-if="!isReady" type="table" />
     <VtsErrorNoDataHero v-else-if="hasError" type="table" />
     <VtsNoDataHero v-else-if="noDataMessage" type="table" />
@@ -8,7 +9,9 @@
         <slot name="thead" />
       </thead>
       <tbody>
-        <slot name="tbody" />
+        <template v-for="(vnode, index) in pageRecords" :key="index">
+          <component :is="vnode" />
+        </template>
       </tbody>
     </VtsTable>
   </div>
@@ -19,6 +22,8 @@ import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.v
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import { usePagination } from '@core/composables/pagination.composable'
+import UiTablePagination from '../ui/table-pagination/UiTablePagination.vue'
 
 defineProps<{
   isReady?: boolean
@@ -26,10 +31,31 @@ defineProps<{
   noDataMessage?: string
 }>()
 
-defineSlots<{
+const slots = defineSlots<{
   thead(): any
   tbody(): any
 }>()
+
+const vnodes = slots.tbody?.() || []
+const rowElement = new Array<any>()
+
+function countRow(vnodes: any[]): number {
+  let count = 0
+
+  for (const vnode of vnodes) {
+    if (vnode.type === 'tr') {
+      count++
+      rowElement.push(vnode)
+    } else if (Array.isArray(vnode.children)) {
+      count += countRow(vnode.children)
+    }
+  }
+  return count
+}
+
+countRow(vnodes)
+
+const { pageRecords, paginationBindings } = usePagination('items', rowElement)
 </script>
 
 <style lang="postcss" scoped>
