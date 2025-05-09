@@ -14,9 +14,9 @@
       <VtsQuickInfoRow :label="$t('started')" :value="relativeStartTime" />
       <VtsQuickInfoRow :label="$t('host')">
         <template #value>
-          <span v-if="getVmHost(vm)" class="host-name">
-            <UiObjectIcon size="medium" type="host" />
-            {{ getVmHost(vm)?.name_label }}
+          <span v-if="host" class="host-name">
+            <UiObjectIcon size="medium" type="host" :state="hostPowerState" />
+            {{ host.name_label }}
           </span>
         </template>
       </VtsQuickInfoRow>
@@ -39,7 +39,7 @@
       <VtsQuickInfoRow :label="$t('tags')">
         <template #value>
           <UiTagsList v-if="vm.tags.length > 0">
-            <UiTag v-for="tag in vm.tags" :key="tag" accent="neutral" variant="secondary">{{ tag }}</UiTag>
+            <UiTag v-for="tag in vm.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
           </UiTagsList>
         </template>
       </VtsQuickInfoRow>
@@ -49,6 +49,7 @@
 
 <script lang="ts" setup>
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
@@ -75,10 +76,21 @@ const { t } = useI18n()
 const { isReady, getVmHost } = useVmStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 const { getByOpaqueRef: getMetricsByOpaqueRef } = useVmMetricsStore().subscribe()
+const { isHostRunning } = useHostMetricsStore().subscribe()
 
 const guestMetrics = computed(() => getGuestMetricsByOpaqueRef(vm.guest_metrics))
 
 const metrics = computed(() => getMetricsByOpaqueRef(vm.metrics))
+
+const host = computed(() => getVmHost(vm))
+
+const hostPowerState = computed(() => {
+  if (host.value === undefined) {
+    return
+  }
+
+  return isHostRunning(host.value) ? 'running' : 'halted'
+})
 
 const powerStateConfig: Record<
   string,
@@ -116,15 +128,15 @@ const isoInstallTime = computed(() => (installTime.value ? toIsoDate(installTime
 const installDate = computed(() => (isoInstallTime.value ? new Date(isoInstallTime.value) : undefined))
 const installDateFormatted = computed(() =>
   installDate.value
-    ? installDate.value.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? installDate.value.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
     : t('unknown')
 )
 
-const ram = computed(() => {
-  const memory = vm.memory_dynamic_max
-
-  return formatSizeRaw(memory, 0)
-})
+const ram = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))
 
 const osVersion = computed(() => guestMetrics.value?.os_version.name)
 
@@ -144,7 +156,9 @@ const virtualizationType = computed(() =>
 )
 
 const mainIpAddress = computed(() => {
-  if (!guestMetrics.value?.networks) return undefined
+  if (!guestMetrics.value?.networks) {
+    return undefined
+  }
 
   return [...new Set(Object.values(guestMetrics.value.networks).sort())][0]
 })

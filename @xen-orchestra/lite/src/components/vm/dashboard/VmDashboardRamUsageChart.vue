@@ -26,6 +26,7 @@ const { data } = defineProps<{
     stats: VmStats | undefined
     timestampStart: number
   }
+
   loading: boolean
   error?: string
 }>()
@@ -67,6 +68,7 @@ const maxValue = computed(() => {
 
 const byteFormatter = (value: number) => {
   const result = formatSizeRaw(value, 1)
+
   return `${result?.value}${result?.prefix}`
 }
 </script>
