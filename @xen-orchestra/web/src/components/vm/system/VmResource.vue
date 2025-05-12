@@ -19,28 +19,28 @@ import { useI18n } from 'vue-i18n'
 const { vm } = defineProps<{ vm: XoVm }>()
 const { t } = useI18n()
 
+const staticMinMemoryFormated = computed(() => formatSizeRaw(vm.memory.static[0], 0))
+const staticMaxMemoryFormated = computed(() => formatSizeRaw(vm.memory.static[1], 0))
+const dynamicMinMemoryFormated = computed(() => formatSizeRaw(vm.memory.dynamic[0], 0))
+const dynamicMaxMemoryFormated = computed(() => formatSizeRaw(vm.memory.dynamic[1], 0))
+
 const resources = computed(() => {
-  const staticMinMemoryFormated = formatSizeRaw(vm.memory.static[0], 0)
-  const staticMaxMemoryFormated = formatSizeRaw(vm.memory.static[1], 0)
-  const dynamicMinMemoryFormated = formatSizeRaw(vm.memory.dynamic[0], 0)
-  const dynamicMaxMemoryFormated = formatSizeRaw(vm.memory.dynamic[1], 0)
   return [
     {
       label: t('cpu-cap'),
-      value: String(vm.cpuCap ? vm.cpuCap : 0) /* XEN_DEFAULT_CPU_CAP */,
+      value: vm.cpuCap ? String(vm.cpuCap) : '',
     },
     {
       label: t('cpu-mask'),
-      value: vm.cpuMask ? vm.cpuMask.join(', ') : t('none'),
+      value: vm.cpuMask?.join(', '),
     },
     {
       label: t('cpu-weight'),
-      value: String(vm.cpuWeight ? vm.cpuWeight : 256) /* XEN_DEFAULT_CPU_WEIGHT */,
+      value: vm.cpuWeight ? String(vm.cpuWeight) : '',
     },
     {
       label: t('minimum-cpu-limit'),
-      // TODO
-      value: '',
+      value: `${vm.CPUs.number} ${t('cpus')}`,
     },
     {
       label: t('maximum-cpu-limit'),
@@ -53,23 +53,23 @@ const resources = computed(() => {
             nSockets: vm.CPUs.max / vm.coresPerSocket,
             nCores: vm.coresPerSocket,
           })
-        : '',
+        : t('default-behavior'),
     },
     {
       label: t('minimum-static-memory'),
-      value: `${staticMinMemoryFormated?.value} ${staticMinMemoryFormated?.prefix}`,
+      value: `${staticMinMemoryFormated.value?.value} ${staticMinMemoryFormated.value?.prefix}`,
     },
     {
       label: t('maximum-static-memory'),
-      value: `${staticMaxMemoryFormated?.value} ${staticMaxMemoryFormated?.prefix}`,
+      value: `${staticMaxMemoryFormated.value?.value} ${staticMaxMemoryFormated.value?.prefix}`,
     },
     {
       label: t('minimum-dynamic-memory'),
-      value: `${dynamicMinMemoryFormated?.value} ${dynamicMinMemoryFormated?.prefix}`,
+      value: `${dynamicMinMemoryFormated.value?.value} ${dynamicMinMemoryFormated.value?.prefix}`,
     },
     {
       label: t('maximum-dynamic-memory'),
-      value: `${dynamicMaxMemoryFormated?.value} ${dynamicMaxMemoryFormated?.prefix}`,
+      value: `${dynamicMaxMemoryFormated.value?.value} ${dynamicMaxMemoryFormated.value?.prefix}`,
     },
   ]
 })

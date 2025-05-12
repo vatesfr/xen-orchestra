@@ -5,14 +5,14 @@
     </UiTitle>
     <VtsQuickInfoRow :label="$t('vga')">
       <template #value>
-        <UiInfo :accent="vm.vga === 'std' ? 'muted' : 'success'">
-          {{ vm.vga === 'std' ? $t('disabled') : $t('enabled') }}
+        <UiInfo :accent="vm.vga === 'std' ? 'success' : 'muted'">
+          {{ vm.vga === 'std' ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('video-ram')">
-      <template v-if="videoRamValue" #value>
-        {{ videoRamValue + $t('bytes.mi') }}
+      <template v-if="videoRamValue?.value" #value>
+        {{ videoRamValue.value + ' ' + (videoRamValue.prefix !== '' ? videoRamValue.prefix : $t('bytes.mi')) }}
       </template>
     </VtsQuickInfoRow>
   </UiCard>
@@ -29,5 +29,5 @@ import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
-const videoRamValue = computed(() => (vm.videoram ? formatSizeRaw(Number(vm.videoram), 0)?.value : null))
+const videoRamValue = computed(() => (vm.videoram ? formatSizeRaw(Number(vm.videoram), 0) : null))
 </script>

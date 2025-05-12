@@ -11,10 +11,13 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('affinity-host')">
-      <template v-if="vm.affinityHost" #value>
-        <UiLink :icon="faServer" :to="`host/${vm.affinityHost}`" size="small" target="_self">
-          {{ vm.affinityHost }}
+      <template #value>
+        <UiLink v-if="vm.affinityHost" :icon="faServer" :to="`/host/${vm.affinityHost}`" size="small" target="_self">
+          {{ affinityHostName }}
         </UiLink>
+        <template v-else>
+          {{ $t('none') }}
+        </template>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('protect-from-accidental-deletion')">
@@ -26,8 +29,8 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('protect-from-accidental-shutdown')">
       <template #value>
-        <UiInfo :accent="vm.blockedOperations.suspend ? 'success' : 'muted'">
-          {{ vm.blockedOperations.suspend ? $t('enabled') : $t('disabled') }}
+        <UiInfo :accent="protectedFromAccidentalShutdown ? 'success' : 'muted'">
+          {{ protectedFromAccidentalShutdown ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
@@ -39,12 +42,15 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('start-delay')">
-      {{ `${vm.startDelay} ${$t('relative-time.second', vm.startDelay)}` }}
+      <template #value>
+        {{ $t('relative-time.second', vm.startDelay) }}
+      </template>
     </VtsQuickInfoRow>
   </UiCard>
 </template>
 
 <script setup lang="ts">
+import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -52,6 +58,21 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
+import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
+
+const { hostsByUuid } = useHostStore().subscribe()
+
+const affinityHostName = computed(() => (vm.affinityHost ? hostsByUuid(vm.affinityHost)?.name_label : ''))
+const protectedFromAccidentalShutdown = computed(
+  () =>
+    vm.blockedOperations.clean_reboot ||
+    vm.blockedOperations.clean_shutdown ||
+    vm.blockedOperations.hard_reboot ||
+    vm.blockedOperations.hard_shutdown ||
+    vm.blockedOperations.pause ||
+    vm.blockedOperations.suspend ||
+    vm.blockedOperations.shutdown
+)
 </script>

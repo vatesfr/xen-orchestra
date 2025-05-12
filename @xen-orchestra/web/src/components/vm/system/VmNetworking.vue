@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="Vm-networking">
+  <UiCard class="vm-networking">
     <UiTitle>
       {{ $t('networking') }}
     </UiTitle>

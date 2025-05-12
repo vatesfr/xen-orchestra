@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="vm-virtualisation-and-boot">
+  <UiCard class="vm-virtualization-and-boot">
     <UiTitle>
       {{ $t('virtualization-boot-settings') }}
     </UiTitle>
@@ -11,7 +11,7 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm.VTPMs.join(', ')" />
+    <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : $t('none')" />
     <VtsQuickInfoRow :label="$t('viridian')">
       <template #value>
         <UiInfo :accent="vm.viridian ? 'success' : 'muted'">
@@ -19,7 +19,7 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('manage-citrix-pv-drivers-via-windows-update')" class="text-ellipsis">
+    <VtsQuickInfoRow :label="$t('manage-citrix-pv-drivers-via-windows-update')">
       <template #value>
         <UiInfo :accent="vm.hasVendorDevice ? 'success' : 'muted'">
           {{ vm.hasVendorDevice ? $t('enabled') : $t('disabled') }}
