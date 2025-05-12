@@ -28,7 +28,20 @@ const config: Config = {
     defaultLocale: 'en',
     locales: ['en'],
   },
-  plugins: [require.resolve('docusaurus-lunr-search')],
+  plugins: [
+    require.resolve('docusaurus-lunr-search'),
+     [
+      '@docusaurus/plugin-client-redirects',
+      {
+        redirects: [
+          {
+            to: '/incremental_replication',
+            from: '/continuous_replication',
+          },
+        ],
+      },
+    ],
+  ],
   scripts: [
     {
       src: '/js/matomo.js',

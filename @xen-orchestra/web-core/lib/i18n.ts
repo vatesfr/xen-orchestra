@@ -49,6 +49,10 @@ export const locales: Locales = {
     code: 'uk',
     name: 'Українська',
   },
+  nl: {
+    code: 'nl',
+    name: 'Nederlands',
+  },
 }
 
 export default createI18n({

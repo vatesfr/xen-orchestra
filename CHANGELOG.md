@@ -1,8 +1,98 @@
 # ChangeLog
 
-## **next**
+## **5.106.2** (2025-05-07)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Licence]: better handling of trial and free users (PR [#8557](https://github.com/vatesfr/xen-orchestra/pull/8557))
+
+### Released packages
+
+- xo-web 5.173.2
+
+## **5.106.1** (2025-04-30)
+
+### Bug fixes
+
+- prevent XOA from failing with `an error has occured` due to license problems (PR [#8551](https://github.com/vatesfr/xen-orchestra/pull/8551))
+
+### Released packages
+
+- xo-web 5.173.1
+
+## **5.106.0** (2025-04-30)
+
+### Highlights
+
+- [Dashboard/Health] Display snapshots older than 30 days for which no schedules are enabled (PR [#8487](https://github.com/vatesfr/xen-orchestra/pull/8487))
+- [Plugins/audit] Add an option to import audit logs from an XOA to another (PR [#8474](https://github.com/vatesfr/xen-orchestra/pull/8474))
+- [V2V] Resume an incomplete warm migration (PR [#8440](https://github.com/vatesfr/xen-orchestra/pull/8440))
+- [Licences] Warn a user when the XOA's licence is near expiration, handle expired licences (PR [#8523](https://github.com/vatesfr/xen-orchestra/pull/8523))
+- [Plugin/Web hook] Web hook plugin now support `Office 365 connector` format (PR [#8498](https://github.com/vatesfr/xen-orchestra/pull/8498))
+- [REST API] Expose `/rest/v0/schedules` and `/rest/v0/schedules/<schedule-id>` enpoints (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
+- [REST API] Expose the possibility to run a schedule `/rest/v0/schedules/<schedule-id>/actions/run` (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
+- **Migrated REST API endpoints**:
+  - `/rest/v0/vifs` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
+  - `/rest/v0/vifs/<vif-id>` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
+  - `/rest/v0/pools` (PR [#8490](https://github.com/vatesfr/xen-orchestra/pull/8490))
+  - `/rest/v0/pools/<pool-id>` (PR [#8490](https://github.com/vatesfr/xen-orchestra/pull/8490))
+  - `/rest/v0/alarms` (PR [#8485](https://github.com/vatesfr/xen-orchestra/pull/8485))
+  - `/rest/v0/alarms/<alarm-id>` (PR [#8485](https://github.com/vatesfr/xen-orchestra/pull/8485))
+  - `/rest/v0/messages` (PR [#8485](https://github.com/vatesfr/xen-orchestra/pull/8485))
+  - `/rest/v0/messages/<message-id>` (PR [#8485](https://github.com/vatesfr/xen-orchestra/pull/8485))
+  - `/rest/v0/users` (PR [#8494](https://github.com/vatesfr/xen-orchestra/pull/8494))
+  - `/rest/v0/users/<user-id>` (PR [#8494](https://github.com/vatesfr/xen-orchestra/pull/8494))
+  - `/rest/v0/groups` (PR [#8496](https://github.com/vatesfr/xen-orchestra/pull/8496))
+  - `/rest/v0/groups/<group-id>` (PR [#8496](https://github.com/vatesfr/xen-orchestra/pull/8496))
+  - `/rest/v0/networks` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
+  - `/rest/v0/networks/<network-id>` (PR [#8497](https://github.com/vatesfr/xen-orchestra/pull/8497))
 
 ### Enhancements
+
+- [VM/Advanced] Rename `Block migration` to `Prevent migration` (PR [#8500](https://github.com/vatesfr/xen-orchestra/pull/8500))
+- [Host/Networks] PIFs can now be filtered by network names
+- [Hub recipe] Upgrade Pyrgos/Kubernetes recipe to use MicroK8s (PR [#8530](https://github.com/vatesfr/xen-orchestra/pull/8530))
+- **XO 6:**
+  - [i18n] Update Swedish, Czech, Spanish, Persian, Italian, Russian and add Dutch translations (PR [#8465](https://github.com/vatesfr/xen-orchestra/pull/8465))
+  - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
+
+### Bug fixes
+
+- [Backups] Don't flood logs when a remote doesn't have any VM (PR [#8489](https://github.com/vatesfr/xen-orchestra/pull/8489))
+- [Backups] Properly show a permission error during config backup (PR [#8489](https://github.com/vatesfr/xen-orchestra/pull/8489))
+- [New VM] Fix `DEVICE_ALREADY_EXISTS(#)` (PR [#8473](https://github.com/vatesfr/xen-orchestra/pull/8473))
+- [OpenAPI spec] Fixed some required properties being marked as optional (PR [#8480](https://github.com/vatesfr/xen-orchestra/pull/8480))
+- [VM/Advanced] Do not show VM creator to non-admins [#8463](https://github.com/vatesfr/xen-orchestra/issues/8463) (PR [#8503](https://github.com/vatesfr/xen-orchestra/pull/8503))
+- **XO 6:**
+  - [VM/Create] Fix TS type-check errors (PR [#8472](https://github.com/vatesfr/xen-orchestra/pull/8472))
+
+### Released packages
+
+- @xen-orchestra/fs 4.5.0
+- @vates/types 1.2.0
+- @xen-orchestra/audit-core 0.4.0
+- @xen-orchestra/backups 0.59.0
+- @xen-orchestra/backups-cli 1.0.30
+- @xen-orchestra/web-core 0.19.0
+- @xen-orchestra/proxy 0.29.17
+- xo-server-audit 0.14.0
+- @vates/node-vsphere-soap 2.1.2
+- @xen-orchestra/immutable-backups 1.0.19
+- xo-vmdk-to-vhd 2.5.8
+- @xen-orchestra/rest-api 0.6.0
+- @xen-orchestra/vmware-explorer 0.9.5
+- @xen-orchestra/web 0.17.1
+- xo-server 5.177.0
+- xo-server-web-hooks 0.4.0
+- xo-web 5.173.0
+
+## **5.105.0** (2025-03-31)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Highlights
 
 - **XO6**:
   - [Host/Network]: Display pifs information in side panel (PR [#8287](https://github.com/vatesfr/xen-orchestra/pull/8287))
@@ -33,9 +123,14 @@
   - `/rest/v0/vm-controllers/<vm-controller-id>` (PR [#8454] (https://github.com/vatesfr/xen-orchestra/pull/8454))
   - `/rest/v0/vm-snapshots` (PR [#8453](https://github.com/vatesfr/xen-orchestra/pull/8453))
   - `/rest/v0/vm-snapshots/<vm-snapshot-id>` (PR [#8453] (https://github.com/vatesfr/xen-orchestra/pull/8453))
-- [New VM] Configure ACLs directly from VM creation form [#6996](https://github.com/vatesfr/xen-orchestra/issues/6996) (PR [#8412](https://github.com/vatesfr/xen-orchestra/pull/8412))
-- [Netbox] Support version 4.2.x (PR [#8417](https://github.com/vatesfr/xen-orchestra/pull/8417))
 - [RPU] Allows to perform an RPU even if an XOSTOR is present on the pool (PR [#8455](https://github.com/vatesfr/xen-orchestra/pull/8455))
+- [V2V] Fix assert error on import delta from esxi < 7.5 (PR [#8422](https://github.com/vatesfr/xen-orchestra/pull/8422))
+- [New VM] Configure ACLs directly from VM creation form [#6996](https://github.com/vatesfr/xen-orchestra/issues/6996) (PR [#8412](https://github.com/vatesfr/xen-orchestra/pull/8412))
+- [Plugins/Perf-alert] Fixing alert email notifications to be resent every minute for no reason [Forum#9658](https://xcp-ng.org/forum/topic/9658/lots-of-performance-alerts-after-upgrading-xo-to-commit-aa490) [Forum#10447](https://xcp-ng.org/forum/topic/10447/perf-alert-plugin-lots-of-alerts-but-no-option-to-exclude-sr) (PR [#8408](https://github.com/vatesfr/xen-orchestra/pull/8408))
+
+### Enhancements
+
+- [Netbox] Support version 4.2.x (PR [#8417](https://github.com/vatesfr/xen-orchestra/pull/8417))
 - [VM] Updated Nested Virtualization handling to use `platform:nested-virt` for XCP-ng 8.3+ (PR [#8395](https://github.com/vatesfr/xen-orchestra/pull/8395))
 
 ### Bug fixes
@@ -43,11 +138,9 @@
 - [VM/New] Fix _OTHER_OPERATION_IN_PROGRESS_ when creating a VM that requires a VDI migration (PR [#8399](https://github.com/vatesfr/xen-orchestra/pull/8399))
 - [REST API] Fix _Internal Error_ when importing a VM without default SR on the pool (PR [#8409](https://github.com/vatesfr/xen-orchestra/pull/8409))
 - [REST API] Fix the SR ID ignored when importing a VM (PR [#8409](https://github.com/vatesfr/xen-orchestra/pull/8409))
-- [Plugins/Perf-alert] Fixing alert email notifications to be resent every minute for no reason [Forum#9658](https://xcp-ng.org/forum/topic/9658/lots-of-performance-alerts-after-upgrading-xo-to-commit-aa490) [Forum#10447](https://xcp-ng.org/forum/topic/10447/perf-alert-plugin-lots-of-alerts-but-no-option-to-exclude-sr) (PR [#8408](https://github.com/vatesfr/xen-orchestra/pull/8408))
 - [Netbox] Fix synchronization not working if `checkNetboxVersion` is disabled in the config (PR [#8416](https://github.com/vatesfr/xen-orchestra/pull/8416))
 - [Continuous replication]: Fix `"Expected "actual" to be strictly unequal to: undefined"` when adding a new disk to an already replicated VM (PR [#8400](https://github.com/vatesfr/xen-orchestra/pull/8400))
 - [Netbox] Fix `500 Internal Server Error` when 2 VMs have the same name but different case (PR [#8413](https://github.com/vatesfr/xen-orchestra/pull/8413))
-- [V2V] Fix assert error on import delta from esxi < 7.5 (PR [#8422](https://github.com/vatesfr/xen-orchestra/pull/8422))
 - [Backups] Fix `Unsupported header 'x-amz-checksum-mode' received for this API call.` on backblaze (PR [#8393](https://github.com/vatesfr/xen-orchestra/pull/8393))
 - [Backup] Fix remove automatic disabling of CBT on export failure (PR [#8446](https://github.com/vatesfr/xen-orchestra/pull/8446))
 - [REST API] Correctly return a 404 not found error when trying to get a backup log that does not exist (PR [#8457](https://github.com/vatesfr/xen-orchestra/pull/8457))
@@ -71,8 +164,6 @@
 - xo-web 5.171.0
 
 ## **5.104.1** (2025-03-04)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -146,8 +237,6 @@
 - xo-web 5.169.0
 
 ## **5.103.1** (2025-02-04)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 

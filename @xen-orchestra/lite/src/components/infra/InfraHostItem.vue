@@ -1,6 +1,10 @@
 <template>
   <VtsTreeItem v-if="host !== undefined" :expanded="isExpanded" class="infra-host-item">
-    <UiTreeItemLabel :icon="faServer" :route="{ name: 'host.console', params: { uuid: host.uuid } }" @toggle="toggle()">
+    <UiTreeItemLabel
+      :icon="faServer"
+      :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
+      @toggle="toggle()"
+    >
       {{ host.name_label || '(Host)' }}
       <template #addons>
         <VtsIcon v-if="isPoolMaster" v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
@@ -38,19 +42,19 @@ import { faCircle, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/shared'
 import { computed } from 'vue'
 
-const props = defineProps<{
+const { hostOpaqueRef } = defineProps<{
   hostOpaqueRef: XenApiHost['$ref']
 }>()
 
 const { getByOpaqueRef } = useHostStore().subscribe()
-const host = computed(() => getByOpaqueRef(props.hostOpaqueRef))
+const host = computed(() => getByOpaqueRef(hostOpaqueRef))
 
 const { pool } = usePoolStore().subscribe()
-const isPoolMaster = computed(() => pool.value?.master === props.hostOpaqueRef)
+const isPoolMaster = computed(() => pool.value?.master === hostOpaqueRef)
 
-const { recordsByHostRef, isReady } = useVmStore().subscribe()
+const { runningVms, isReady } = useVmStore().subscribe()
 
-const vmCount = computed(() => recordsByHostRef.value.get(props.hostOpaqueRef)?.length ?? 0)
+const vmCount = computed(() => runningVms.value.filter(vm => vm.resident_on === hostOpaqueRef)?.length ?? 0)
 
 const [isExpanded, toggle] = useToggle(true)
 </script>

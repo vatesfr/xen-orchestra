@@ -3,6 +3,10 @@ import type { VmStats } from '@/libs/xapi-stats'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
+import { usePbdStore } from '@/stores/xen-api/pbd.store.ts'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
+import { useVbdStore } from '@/stores/xen-api/vbd.store.ts'
+import { useVdiStore } from '@/stores/xen-api/vdi.store.ts'
 import { useVmRawStore } from '@/stores/xen-api/vm-raw.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
@@ -13,6 +17,10 @@ export const useVmStore = defineStore('xen-api-vm', () => {
   const deps = {
     hostStore: useHostStore(),
     vmRawStore: useVmRawStore(),
+    vbdStore: useVbdStore(),
+    vdiStore: useVdiStore(),
+    srStore: useSrStore(),
+    pbdStore: usePbdStore(),
   }
 
   const xenApiStore = useXenApiStore()
@@ -20,6 +28,14 @@ export const useVmStore = defineStore('xen-api-vm', () => {
   const hostContext = deps.hostStore.getContext()
 
   const vmRawContext = deps.vmRawStore.getContext()
+
+  const vbdContext = deps.vbdStore.getContext()
+
+  const vdiContext = deps.vdiStore.getContext()
+
+  const srContext = deps.srStore.getContext()
+
+  const pbdContext = deps.pbdStore.getContext()
 
   const records = computed(() =>
     vmRawContext.records.value.filter(vm => !vm.is_a_snapshot && !vm.is_control_domain && !vm.is_a_template)
@@ -31,15 +47,52 @@ export const useVmStore = defineStore('xen-api-vm', () => {
 
   const runningVms = computed(() => records.value.filter(vm => vm.power_state === VM_POWER_STATE.RUNNING))
 
+  // Helper function to find a host with local SR for a VM
+  const findHostWithLocalSr = (vm: XenApiVm) => {
+    const vmVbds = vbdContext.records.value.filter(vbd => vbd.VM === vm.$ref)
+
+    for (const vbd of vmVbds) {
+      const vdi = vdiContext.getByOpaqueRef(vbd.VDI)
+      if (vdi === undefined) {
+        continue
+      }
+
+      const sr = srContext.getByOpaqueRef(vdi.SR)
+      if (sr === undefined || sr.shared) {
+        continue
+      }
+
+      const pbd = pbdContext.getByOpaqueRef(sr.PBDs[0])
+      if (pbd === undefined || pbd.host === undefined) {
+        continue
+      }
+
+      return pbd.host
+    }
+
+    return undefined
+  }
+
   const recordsByHostRef = computed(() => {
     const vmsByHostOpaqueRef = new Map<XenApiHost['$ref'], XenApiVm[]>()
 
-    records.value.forEach(vm => {
-      if (!vmsByHostOpaqueRef.has(vm.resident_on)) {
-        vmsByHostOpaqueRef.set(vm.resident_on, [])
+    const addToVmByHostMap = (hostRef: XenApiHost['$ref'], vm: XenApiVm) => {
+      if (!vmsByHostOpaqueRef.has(hostRef)) {
+        vmsByHostOpaqueRef.set(hostRef, [])
       }
+      vmsByHostOpaqueRef.get(hostRef)?.push(vm)
+    }
+    records.value.forEach(vm => {
+      // First try to find a host with local SR
+      const hostWithLocalSr = findHostWithLocalSr(vm)
 
-      vmsByHostOpaqueRef.get(vm.resident_on)?.push(vm)
+      if (hostWithLocalSr !== undefined) {
+        // If found, add VM to that host
+        addToVmByHostMap(hostWithLocalSr, vm)
+      } else if (vm.resident_on) {
+        // Otherwise, if VM is running on a host, add it there
+        addToVmByHostMap(vm.resident_on, vm)
+      }
     })
 
     return vmsByHostOpaqueRef

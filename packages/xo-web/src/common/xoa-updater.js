@@ -11,6 +11,7 @@ import {
   setXoaUpdaterLog,
   setXoaUpdaterState,
 } from 'store/actions'
+import { ENTERPRISE, getXoaPlan, PREMIUM, STARTER } from './xoa-plans'
 
 // ===================================================================
 
@@ -33,6 +34,90 @@ export function blockXoaAccess(xoaState) {
     block = block || xoaState.state === 'ERROR'
   }
   return block
+}
+
+export function getLicenseNearExpiration(licenses, trial) {
+  const plan = getXoaPlan()
+  // user does not have a licence for free or source version
+  // also don't crash the app if the licence is in unexpected state
+  if (![PREMIUM, ENTERPRISE, STARTER].includes(plan)) {
+    return
+  }
+  // user under trial are not expected to have licences
+  if (isTrialRunning(trial)) {
+    return
+  }
+  // got a unlimited license bound to this XO nothing can expires
+  if (licenses.find(({ expires }) => expires === undefined) !== undefined) {
+    return
+  }
+
+  const SLOTS = [
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '3 months',
+      duration: -90 * 24 * 3600 * 1000,
+      popupClass: 'alert-info',
+    },
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '2 months',
+      duration: -60 * 24 * 3600 * 1000,
+      popupClass: 'alert-info',
+    },
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '1 month',
+      duration: -30 * 24 * 3600 * 1000,
+      popupClass: 'alert-danger',
+    },
+    {
+      strCode: 'licenseNearlyExpired',
+      textDuration: '1 week',
+      duration: -7 * 24 * 3600 * 1000,
+      popupClass: 'alert-danger',
+    },
+    {
+      strCode: 'licenseExpired',
+      code: 'EXPIRED',
+      duration: 0,
+      popupClass: 'alert-danger',
+    },
+    {
+      strCode: 'licenseExpired',
+      code: 'EXPIRED',
+      duration: 90 * 24 * 3600 * 1000,
+      blocked: true,
+      popupClass: 'alert-danger',
+    },
+  ]
+  if (licenses.length === 0) {
+    return {
+      ...SLOTS.pop(),
+      license: {
+        expires: 0,
+      },
+    }
+  }
+
+  licenses.sort(({ expires: expires1 }, { expires: expires2 }) => expires2 - expires1)
+  const newestLicense = licenses[0]
+
+  const candidates = SLOTS.filter(({ duration }) => newestLicense.expires + duration < Date.now())
+
+  if (candidates.length === 0) {
+    // no license near expiration
+    return
+  }
+
+  // only show the most recent expire slot
+  candidates.sort(({ duration: duration1 }, { duration: duration2 }) => {
+    return duration2 - duration1
+  })
+  return {
+    ...candidates[0],
+    license: newestLicense,
+  }
 }
 
 // ===================================================================

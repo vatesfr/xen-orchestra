@@ -6,7 +6,7 @@ Here is a fake `UiComponent.vue` component that uses most of the guidelines docu
 <!-- v4 -->
 <template>
   <!-- Root class name matches the component's name -->
-  <div class="ui-component" :class="classNames">
+  <div class="ui-component" :class="className">
     <!-- Default slot-->
     <slot />
 
@@ -62,7 +62,7 @@ const fontClasses = {
   large: 'typo-h3',
 }
 
-const classNames = computed(() => [
+const className = computed(() => [
   fontClasses[size], // Use the correct font size based on the size variant
   toVariants({ accent, variant, size, disabled }), // Use the "toVariants" utility to generate the correct CSS classes
 ])

@@ -1,41 +1,41 @@
 <!-- v5 -->
 <template>
-  <div class="ui-input" :class="toVariants({ accent })">
-    <UiLabel v-if="slots.default || label" :accent="labelAccent" :required :icon="labelIcon" :href :for="id">
-      <slot>{{ label }}</slot>
-    </UiLabel>
-    <div>
-      <VtsIcon :icon accent="current" class="before" />
-      <input
-        :id
-        v-model.trim="modelValue"
-        class="typo-body-regular input text-ellipsis"
-        :type
-        :disabled
-        v-bind="attrs"
-      />
-      <VtsIcon
-        v-if="!attrs.disabled && modelValue && clearable"
-        :icon="faXmark"
-        class="after"
-        accent="brand"
-        @click="modelValue = ''"
-      />
-    </div>
-    <UiInfo v-if="slots.info || info" :accent="accent === 'brand' ? 'info' : accent">
-      <slot name="info">{{ info }}</slot>
-    </UiInfo>
+  <div :class="toVariants({ accent, disabled })" class="ui-input" @click.self="focus()">
+    <VtsIcon :icon accent="current" class="left-icon" />
+    <input
+      :id="wrapperController?.id ?? id"
+      ref="inputRef"
+      v-model.trim="modelValue"
+      :disabled
+      :required
+      :type
+      class="typo-body-regular input text-ellipsis"
+      v-bind="attrs"
+    />
+    <UiButtonIcon
+      v-if="!disabled && modelValue && clearable"
+      :icon="faXmark"
+      :target-scale="1.6"
+      accent="brand"
+      size="small"
+      @click="clear()"
+    />
+    <slot v-if="slots['right-icon'] || rightIcon" name="right-icon">
+      <VtsIcon :icon="rightIcon" accent="current" class="right-icon" />
+    </slot>
   </div>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiLabel from '@core/components/ui/label/UiLabel.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import type { LabelAccent } from '@core/components/ui/label/UiLabel.vue'
+import { useMapper } from '@core/composables/mapper.composable.ts'
+import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
-import { computed, useAttrs, useId } from 'vue'
+import { inject, ref, useAttrs, watchEffect } from 'vue'
 
 type InputAccent = 'brand' | 'warning' | 'danger'
 type InputType = 'text' | 'number' | 'password' | 'search'
@@ -44,135 +44,152 @@ defineOptions({
   inheritAttrs: false,
 })
 
-const { accent, id = useId() } = defineProps<{
+const {
+  accent: _accent,
+  required,
+  disabled,
+  id,
+} = defineProps<{
   accent: InputAccent
-  label?: string
-  info?: string
   id?: string
-  disabled?: boolean
-  clearable?: boolean
-  href?: string
   required?: boolean
-  labelIcon?: IconDefinition
-  icon?: IconDefinition
+  disabled?: boolean
   type?: InputType
+  icon?: IconDefinition
+  rightIcon?: IconDefinition
+  clearable?: boolean
 }>()
 
 const modelValue = defineModel<string | number>({ required: true })
 
 const slots = defineSlots<{
-  default?(): any
-  info?(): any
+  'right-icon'?(): any
 }>()
 
 const attrs = useAttrs()
 
-const labelAccent = computed(() => (accent === 'brand' ? 'neutral' : accent))
+const inputRef = ref<HTMLInputElement>()
+
+const wrapperController = inject(IK_INPUT_WRAPPER_CONTROLLER, undefined)
+
+const accent = useMapper<LabelAccent, InputAccent>(
+  () => wrapperController?.labelAccent,
+  {
+    neutral: _accent,
+    warning: 'warning',
+    danger: 'danger',
+  },
+  () => _accent
+)
+
+if (wrapperController) {
+  watchEffect(() => {
+    wrapperController.required = required
+  })
+}
+
+function focus() {
+  inputRef.value?.focus()
+}
+
+function clear() {
+  modelValue.value = ''
+  focus()
+}
+
+defineExpose({ focus })
 </script>
 
 <style lang="postcss" scoped>
-/* IMPLEMENTATION */
 .ui-input {
-  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  flex: 1;
+  align-items: center;
+  gap: 1.6rem;
+  border-radius: 0.4rem;
+  border-width: 0.1rem;
+  border-style: solid;
+  background-color: var(--color-neutral-background-primary);
+  color: var(--color-neutral-txt-primary);
+  height: 4rem;
+  width: 100%;
+  padding-inline: 1.6rem;
+
+  .left-icon,
+  .right-icon {
+    pointer-events: none;
+    color: var(--color-neutral-txt-secondary);
+  }
+
+  &:not(.disabled) .right-icon {
+    color: var(--color-brand-item-base);
+  }
 
   .input {
-    border-radius: 0.4rem;
-    border-width: 0.1rem;
-    border-style: solid;
-    background-color: var(--color-neutral-background-primary);
-    color: var(--color-neutral-txt-primary);
-    height: 4rem;
+    background-color: transparent;
+    border: none;
     outline: none;
-    width: 100%;
-    padding-block: 0.8rem;
-    padding-inline: 1.6rem;
+    flex: 1;
 
     &::placeholder {
       color: var(--color-neutral-txt-secondary);
-    }
-
-    &:focus {
-      border-width: 0.2rem;
-    }
-
-    &:has(+ .after) {
-      padding-inline-end: 4.8rem;
     }
   }
 
   /* VARIANT */
 
   &.accent--brand {
-    .input {
+    border-color: var(--color-neutral-border);
+
+    &:focus-within {
+      border-color: var(--color-brand-item-base);
+    }
+
+    &:hover {
+      border-color: var(--color-brand-item-hover);
+    }
+
+    &:has(input:active) {
+      border-color: var(--color-brand-item-active);
+    }
+
+    &:has(input:disabled) {
       border-color: var(--color-neutral-border);
-
-      &:hover {
-        border-color: var(--color-brand-item-hover);
-      }
-
-      &:focus {
-        border-color: var(--color-brand-item-base);
-      }
-
-      &:active {
-        border-color: var(--color-brand-item-active);
-      }
-
-      &:disabled {
-        border-color: var(--color-neutral-border);
-        background-color: var(--color-neutral-background-disabled);
-      }
+      background-color: var(--color-neutral-background-disabled);
     }
   }
 
   &.accent--warning {
-    .input {
-      border-color: var(--color-warning-item-base);
+    border-color: var(--color-warning-item-base);
 
-      &:disabled {
-        border-color: var(--color-neutral-border);
-        background-color: var(--color-neutral-background-disabled);
-      }
+    &:hover {
+      border-color: var(--color-warning-item-hover);
+    }
+
+    &:has(input:active) {
+      border-color: var(--color-warning-item-active);
+    }
+
+    &:has(input:disabled) {
+      border-color: var(--color-neutral-border);
+      background-color: var(--color-neutral-background-disabled);
     }
   }
 
   &.accent--danger {
-    .input {
-      border-color: var(--color-danger-item-base);
+    border-color: var(--color-danger-item-base);
 
-      &:disabled {
-        border-color: var(--color-neutral-border);
-        background-color: var(--color-neutral-background-disabled);
-      }
+    &:hover {
+      border-color: var(--color-danger-item-hover);
     }
-  }
 
-  /* ICON POSITION */
+    &:has(input:active) {
+      border-color: var(--color-danger-item-active);
+    }
 
-  .before + .input {
-    padding-inline-start: 4.8rem;
-  }
-
-  .before,
-  .after {
-    position: absolute;
-    inset-block: 1.2rem;
-  }
-
-  .before {
-    color: var(--color-neutral-txt-secondary);
-    inset-inline-start: 1.6rem;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  .after {
-    inset-inline-end: 1.6rem;
-    cursor: pointer;
+    &:has(input:disabled) {
+      border-color: var(--color-neutral-border);
+      background-color: var(--color-neutral-background-disabled);
+    }
   }
 }
 </style>

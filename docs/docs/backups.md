@@ -83,7 +83,7 @@ If the warning icon is still there, double-check that no encrypted backups remai
 
 ## Exclude disks
 
-During a backup job, you can avoid saving all disks of the VM. To do that is trivial: just edit the VM disk name and add `[NOBAK]` before the current name, eg: `data-disk` will become `[NOBAK] data-disk` (with a space or not, doesn't matter).
+During a backup job, you can avoid saving all disks of the VM. To do that is trivial: just edit the VM disk name so it contains `[NOBAK]` somewhere, eg: `data-disk` will become `data-disk [NOBAK]` or perhaps `[NOBAK] data-disk` (with a space or not, doesn't matter).
 
 The disks marked with `[NOBAK]` will be now ignored in all following backups.
 

@@ -124,7 +124,7 @@ Given the props we defined above, and to match the class names convention, we ca
 A way to do it is as follows:
 
 ```ts
-const classNames = computed(() => toVariants({ variant, accent, size, disabled }))
+const className = computed(() => toVariants({ variant, accent, size, disabled }))
 ```
 
 > [!TIP]

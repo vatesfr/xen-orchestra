@@ -165,14 +165,18 @@ export default class RemoteHandlerAbstract {
 
     if (this.isEncrypted) {
       stream = this.#encryptor.decryptStream(stream)
-    } else {
-      // try to add the length prop if missing and not a range stream
-      if (stream.length === undefined && options.end === undefined && options.start === undefined) {
-        try {
+    }
+
+    // try to add the length prop if missing and not a range stream
+    if (stream.length === undefined && options.end === undefined && options.start === undefined) {
+      try {
+        if (this.isEncrypted) {
+          stream.maxStreamLength = await this.getSizeOnDisk(file)
+        } else {
           stream.length = await this._getSize(file)
-        } catch (error) {
-          // ignore errors
         }
+      } catch (error) {
+        // ignore errors
       }
     }
 
@@ -638,7 +642,13 @@ export default class RemoteHandlerAbstract {
           // Unlink dir behavior is not consistent across platforms
           // https://github.com/nodejs/node-v0.x-archive/issues/5791
           if (error.code === 'EISDIR' || error.code === 'EPERM') {
-            return this._rmtree(`${dir}/${file}`)
+            return this._rmtree(`${dir}/${file}`).catch(rmTreeError => {
+              if (rmTreeError.code === 'ENOTDIR') {
+                // this was realy a EPERM error, maybe with immutable backups
+                throw error
+              }
+              throw rmTreeError
+            })
           }
           throw error
         },

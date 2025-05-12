@@ -451,6 +451,26 @@ VM migration with storage motion allows you to migrate a VM from one host to ano
 - Migrating a VM that has VDIs on a shared SR from host A to host B using a particular network must trigger a "VM Migration with Storage Motion" without moving its VDIs.
 - Migrating a VM from host A to host B with a destination SR must trigger a "VM Migration with Storage Motion" and move VDIs to the destination SR, regardless of where the VDIs were stored.
 
+### Preventing VM migration
+
+To prevent a virtual machine from migrating:
+
+1. Go to the VM's configuration page.
+2. Go to the **Advanced** tab.
+3. Activate the **Prevent migration** toggle switch. 
+
+
+When this option is enabled, the VM won't be able to migrate to another host.
+
+## Migrating from VMware with V2V
+
+XCP-ng is a type 1 hypervisor, similar to VMware ESXi.
+
+You can migrate your VM from VMware vSphere to a Vates environment (Xen Orchestra and XCP-ng), directly from Xen Orchestra. For this, we use V2V ("VMware to Vates").
+
+To know more on using V2V in Xen Orchestra to migrate your environment from VMware, refer to the [XO V2V section in the XCP-ng documentation](https://docs.xcp-ng.org/installation/migrate-to-xcp-ng/#xo-v2v).
+
+
 ## Hosts management
 
 Outside updates (see next section), you can also do host management via Xen Orchestra. Basic operations are supported, like reboot, shutdown and so on.
@@ -732,6 +752,23 @@ A heatmap allows its reader to understand when your VMs or hosts are stressed. V
 This is the place to compare metrics on comparable objects (VMs to VMs, hosts to hosts).
 
 [![](https://xen-orchestra.com/blog/content/images/2015/09/correlate_small.jpg)](https://xen-orchestra.com/blog/xen-orchestra-4-6#eventcorrelation).
+
+### Usage reports
+
+Xen Orchestra allows you to monitor the usage of some or all of your resources, by sending you regular reports via email.
+
+To receive reports, you need to enable the **usage-report** plugin.
+
+1. Navigate to the **Settings → Plugin** menu. A list of plugins appears.
+1. From the list, look for the **usage-report** plugin. You can scroll through the list or type the plugin name in the search bar.
+1. Enable the plugin by activating the toggle switch next to the plugin name.
+1. Click the **+** icon to reveal the plugin settings:
+    ![](./assets/usage-report-plugin.png)
+1. In the **emails** section, click **Add**. This will display a new text field.
+1. In that field, enter the email address where you wish to receive the usage reports. Repeat steps 5 and 6 to add more email addresses.
+1. Activate the toggle switch called **all** to include stats for all resources in your report.
+1. In the dropdown menu called **periodicity**, choose whether you want to receive **daily**, **weekly** or **monthly reports**.
+1. Click **Save configuration**. Your reports will be sent to the email addresses you've entered, at your desired frequency.
 
 ## Docker support
 

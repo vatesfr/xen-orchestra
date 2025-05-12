@@ -12,11 +12,11 @@ export abstract class XapiXoController<T extends XapiXoRecord> extends BaseContr
     this.#type = type
   }
 
-  getObjects({ filter, limit }: { filter?: string; limit?: number } = {}): Record<T['id'], T> {
-    if (filter !== undefined) {
+  getObjects({ filter, limit }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}): Record<T['id'], T> {
+    if (filter !== undefined && typeof filter === 'string') {
       filter = CM.parse(filter).createPredicate()
     }
-    return this.restApi.getObjectsByType<T>(this.#type, { filter, limit })
+    return this.restApi.getObjectsByType<T>(this.#type, { filter: filter as (obj: XapiXoRecord) => boolean, limit })
   }
 
   getObject(id: T['id']): T {

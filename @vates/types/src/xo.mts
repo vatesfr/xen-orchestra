@@ -5,9 +5,12 @@ import type {
   DOMAIN_TYPE,
   HOST_ALLOWED_OPERATIONS,
   HOST_POWER_STATE,
+  NETWORK_OPERATIONS,
+  POOL_ALLOWED_OPERATIONS,
   STORAGE_OPERATIONS,
   VDI_OPERATIONS,
   VDI_TYPE,
+  VIF_LOCKING_MODE,
   VM_OPERATIONS,
   VM_POWER_STATE,
 } from './common.mjs'
@@ -113,9 +116,23 @@ type BaseXoVm = BaseXapiXo & {
       }
 }
 
+export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
+  body: {
+    value: string
+    name: string
+  }
+  object: {
+    type: XapiXoRecord['type'] | 'unknown'
+    uuid: XapiXoRecord['uuid']
+    href?: string
+  }
+}
+
 export type XoGroup = {
   id: Branded<'group'>
   name: string
+  provider?: string
+  providerGroupId?: string
   users: XoUser['id'][]
 }
 
@@ -209,6 +226,35 @@ export type XoHostPatch = BaseXapiXo & {
   type: 'host_patch'
 }
 
+export type XoMessage = BaseXapiXo & {
+  $object: XapiXoRecord['id']
+
+  body: string
+  id: Branded<'message'>
+  name: string
+  time: number
+  type: 'message'
+}
+
+export type XoNetwork = BaseXapiXo & {
+  MTU: number
+  PIFs: XoPif['id'][]
+  VIFs: XoVif['id'][]
+
+  automatic: boolean
+  bridge: string
+  current_operations: Record<string, NETWORK_OPERATIONS>
+  defaultIsLocked: boolean
+  id: Branded<'network'>
+  insecureNbd?: boolean
+  name_description: string
+  name_label: string
+  nbd?: boolean
+  other_config: Record<string, string>
+  tags: string[]
+  type: 'network'
+}
+
 export type XoPbd = BaseXapiXo & {
   id: Branded<'PBD'>
   type: 'PBD'
@@ -230,8 +276,42 @@ export type XoPif = BaseXapiXo & {
 }
 
 export type XoPool = BaseXapiXo & {
+  auto_poweron: boolean
+  cpus: {
+    cores?: number
+    sockets?: number
+  }
+  crashDumpSr?: XoSr['id']
+  current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
+  defaultSr?: XoSr['id']
+  HA_enabled: boolean
+  haSrs: XoSr['id'][]
   id: Branded<'pool'>
+  master: XoHost['id']
+  migrationCompression?: boolean
+  name_description: string
+  name_label: string
+  otherConfig: Record<string, string>
+  platform_version: string
+  suspendSr?: XoSr['id']
+  tags: string[]
   type: 'pool'
+  vtpmSupported: boolean
+  xosanPackInstallationTime: number | null
+  zstdSupported: boolean
+}
+
+export type XoJob = {
+  id: Branded<'job'>
+}
+
+export type XoSchedule = {
+  cron: string
+  enable: boolean
+  id: Branded<'schedule'>
+  jobId: XoJob['id']
+  name?: string
+  timezone?: string
 }
 
 export type XoServer = {
@@ -280,9 +360,9 @@ export type XoUser = {
   email: string
   groups: XoGroup['id'][]
   id: Branded<'user'>
-  name: string
+  name?: string
   permission: string
-  pw_hash: string
+  pw_hash?: string
   preferences: Record<string, string>
 }
 
@@ -341,7 +421,24 @@ export type XoVgpu = BaseXapiXo & {
 }
 
 export type XoVif = BaseXapiXo & {
+  $VM: XoVm['id']
+
+  $network: XoNetwork['id']
+
+  allowedIpv4Addresses: string[]
+  allowedIpv6Addresses: string[]
+  attached: boolean
+  device: string
   id: Branded<'VIF'>
+  lockingMode: VIF_LOCKING_MODE
+  MAC: string
+  MTU: number
+  other_config: Record<string, string>
+  /**
+   * In kB/s
+   */
+  rateLimit?: number
+  txChecksumming: boolean
   type: 'VIF'
 }
 
@@ -387,7 +484,10 @@ export type XoVtpm = BaseXapiXo & {
 }
 
 export type XapiXoRecord =
+  | XoAlarm
   | XoHost
+  | XoMessage
+  | XoNetwork
   | XoPool
   | XoSr
   | XoVbd
@@ -402,6 +502,6 @@ export type XapiXoRecord =
   | XoVmTemplate
   | XoVtpm
 
-export type NonXapiXoRecord = XoGroup | XoServer | XoUser
+export type NonXapiXoRecord = XoGroup | XoJob | XoSchedule | XoServer | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord

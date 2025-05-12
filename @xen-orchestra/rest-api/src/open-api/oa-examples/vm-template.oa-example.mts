@@ -72,7 +72,7 @@ export const vmTemplate = {
   $VGPUs: [],
   xenStoreData: {},
   vga: 'std',
-  videoram: '8',
+  videoram: 8,
   id: 'b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d',
   isDefaultTemplate: true,
   template_info: {

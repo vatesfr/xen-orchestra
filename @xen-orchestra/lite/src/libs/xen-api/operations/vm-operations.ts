@@ -4,9 +4,12 @@ import type { VM_COMPRESSION_TYPE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiSr, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import type { MaybeArray } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'
+import type { OPAQUE_REF_NULL } from '@vates/types/common'
 
 export function createVmOperations(xenApi: XenApi) {
   type VmRefs = MaybeArray<XenApiVm['$ref']>
+
+  type HostRef = XenApiHost['$ref']
 
   type VmRefsWithPowerState = Record<XenApiVm['$ref'], XenApiVm['power_state']>
 
@@ -73,7 +76,7 @@ export function createVmOperations(xenApi: XenApi) {
     getAllowedVifDevices: (vmRefs: VmRefs): Promise<string[][]> =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call<string[]>('VM.get_allowed_VIF_devices', [vmRef]))),
 
-    migrate: (vmRefs: VmRefs, destinationHostRef: XenApiHost['$ref']) =>
+    migrate: (vmRefs: VmRefs, destinationHostRef: HostRef) =>
       Promise.all(
         toArray(vmRefs).map(vmRef => xenApi.call('VM.pool_migrate', [vmRef, destinationHostRef, { force: 'false' }]))
       ),
@@ -100,10 +103,21 @@ export function createVmOperations(xenApi: XenApi) {
       )
     },
 
-    setAffinityHost: (vmRefs: XenApiVm['$ref'], hostRef: XenApiHost['$ref'] | null) =>
-      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_affinity', [vmRef, hostRef ?? '']))),
+    setAffinityHost: (vmRefs: VmRefs, hostRef: HostRef | OPAQUE_REF_NULL) =>
+      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_affinity', [vmRef, hostRef]))),
 
     setAutoPowerOn: (vmRef: XenApiVm['$ref'], value: boolean) => setOtherConfig(vmRef, 'auto_poweron', value),
+
+    setCopyBiosString: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
+      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_copy_bios_string', [vmRef, hostRef]))),
+
+    setCoresPerSocket: async (vmRef: XenApiVm['$ref'], coresPerSocket: number | null) => {
+      await xenApi.call('VM.remove_from_platform', [vmRef, 'cores-per-socket'])
+
+      if (coresPerSocket !== null) {
+        await xenApi.call('VM.add_to_platform', [vmRef, 'cores-per-socket', String(coresPerSocket)])
+      }
+    },
 
     setCpuMask: (vmRefs: VmRefs, mask: string[] | null) =>
       Promise.all(
@@ -114,9 +128,6 @@ export function createVmOperations(xenApi: XenApi) {
       Promise.all(
         toArray(vmRefs).map(vmRef => xenApi.call('VM.set_VCPUs_params', [vmRef, 'weight', weight?.toString() ?? '']))
       ),
-
-    setCopyBiosString: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
-      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_copy_bios_string', [vmRef, hostRef]))),
 
     setHvmBootFirmware: async (vmRef: XenApiVm['$ref'], firmware: string) => {
       await Promise.all([
@@ -165,10 +176,8 @@ export function createVmOperations(xenApi: XenApi) {
     setNameLabel: (vmRefs: VmRefs, nameLabel: string) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_name_label', [vmRef, nameLabel]))),
 
-    setVCpuCap: (vmRefs: VmRefs, cap: number | null) =>
-      Promise.all(
-        toArray(vmRefs).map(vmRef => xenApi.call('VM.set_VCPUs_params', [vmRef, 'cap', cap?.toString() ?? '']))
-      ),
+    setTags: (vmRefs: VmRefs, tags: string[]) =>
+      Promise.all([Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_tags', [vmRef, tags])))]),
 
     setVCPUsAtStartup: (vmRefs: VmRefs, count: number) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_VCPUs_at_startup', [vmRef, count]))),
@@ -178,6 +187,11 @@ export function createVmOperations(xenApi: XenApi) {
 
     setVCPUsNumberLive: (vmRefs: VmRefs, count: number) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.set_VCPUs_number_live', [vmRef, String(count)]))),
+
+    setVCpuCap: (vmRefs: VmRefs, cap: number | null) =>
+      Promise.all(
+        toArray(vmRefs).map(vmRef => xenApi.call('VM.set_VCPUs_params', [vmRef, 'cap', cap?.toString() ?? '']))
+      ),
 
     setVirtualizationMode: (vmRefs: XenApiVm['$ref'], virtualizationMode: 'pv' | 'hvm') => {
       if (virtualizationMode !== 'pv' && virtualizationMode !== 'hvm') {
@@ -196,17 +210,17 @@ export function createVmOperations(xenApi: XenApi) {
     shutdown: (vmRefs: VmRefs, force = false) =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call(`VM.${force ? 'hard' : 'clean'}_shutdown`, [vmRef]))),
 
-    start: (vmRefs: VmRefs) =>
-      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.start', [vmRef, false, false]))),
-
-    startOn: (vmRefs: VmRefs, hostRef: XenApiHost['$ref']) =>
-      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.start_on', [vmRef, hostRef, false, false]))),
-
-    suspend: (vmRefs: VmRefs) => Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.suspend', [vmRef]))),
-
     snapshot: (vmRefsToSnapshot: VmRefsWithNameLabel) => {
       const vmRefs = Object.keys(vmRefsToSnapshot) as XenApiVm['$ref'][]
       return Promise.all(vmRefs.map(vmRef => xenApi.call('VM.snapshot', [vmRef, vmRefsToSnapshot[vmRef]])))
     },
+
+    start: (vmRefs: VmRefs) =>
+      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.start', [vmRef, false, false]))),
+
+    startOn: (vmRefs: VmRefs, hostRef: HostRef) =>
+      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.start_on', [vmRef, hostRef, false, false]))),
+
+    suspend: (vmRefs: VmRefs) => Promise.all(toArray(vmRefs).map(vmRef => xenApi.call('VM.suspend', [vmRef]))),
   }
 }

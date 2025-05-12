@@ -38,11 +38,24 @@
   vms.map(vm => vm.id)
   ```
 
+- Computed properties SHOULD not be prefixed with `get`:
+
+  ```ts
+  // ❌ Bad
+  const getVmIsRunning = computed(() => vm.running_state === 'running')
+  ```
+
+  ```ts
+  // ✅ Good
+  const isVmRunning = computed(() => vm.running_state === 'running')
+  ```
+
+## Code formatting
+
 - Add blank lines between code blocks for better readability:
 
-  ❌ Bad
-
   ```ts
+  // ❌ Bad
   const foo = doThis()
   if (!foo) {
     return 'that'
@@ -50,9 +63,8 @@
   return bars.filter(bar => bar.do(foo))
   ```
 
-  ✅ Good
-
   ```ts
+  // ✅ Good
   const foo = doThis()
 
   if (!foo) {
@@ -61,6 +73,56 @@
 
   return bars.filter(bar => bar.do(foo))
   ```
+
+- Always use brackets for code blocks:
+
+  ```ts
+  // ❌ Bad
+  if (!foo) return 'that'
+  ```
+
+  ```ts
+  // ✅ Good
+  if (!foo) {
+    return 'that'
+  }
+  ```
+
+## Use "_early return_" pattern when possible
+
+When possible, use "_early return_" pattern to improve readability and avoid unnecessary code nesting.
+
+```ts
+// ❌ Bad
+if (vm !== undefined) {
+  // Complex business logic here
+  if (...) {
+    // ...
+  } else {
+    if (...) {
+      // ...
+    }
+  }
+}
+```
+
+```ts
+// ✅ Good
+if (vm === undefined) {
+  return
+}
+
+// Complex business logic here
+if (...) {
+  // ...
+  return ...
+}
+
+if (...) {
+  // ...
+  return ...
+}
+```
 
 ## Component SHOULD use `defineProps()`, `defineEmits()`, `defineSlots()`, `defineModel()` macros whenever it's necessary
 

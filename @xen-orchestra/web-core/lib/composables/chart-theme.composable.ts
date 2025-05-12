@@ -1,10 +1,10 @@
 import { useUiStore } from '@core/stores/ui.store'
-import { storeToRefs } from 'pinia'
+import { storeToRefs, type Pinia } from 'pinia'
 import { computed, provide, ref, watch } from 'vue'
 import { THEME_KEY } from 'vue-echarts'
 
-export const useChartTheme = () => {
-  const { colorMode } = storeToRefs(useUiStore())
+export const useChartTheme = (pinia?: Pinia) => {
+  const { colorMode } = storeToRefs(useUiStore(pinia))
 
   const style = window.getComputedStyle(window.document.documentElement)
 

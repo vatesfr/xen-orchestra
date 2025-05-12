@@ -31,8 +31,6 @@ import {
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
 import { createPredicate } from 'value-matcher'
 
-// E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
-const ALARM_BODY_REGEX = /^value:\s*(Infinity|NaN|-Infinity|\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
 const DASHBOARD_CACHE = new Map()
 
 const { join } = path.posix
@@ -606,7 +604,14 @@ export default class RestApi {
     const collections = { __proto__: null }
     // add migrated collections to maintain their discoverability
     const swaggerEndpoints = {
+      alarms: {},
       docs: {},
+      messages: {},
+      networks: {},
+      pools: {},
+      groups: {},
+      users: {},
+      vifs: {},
       vms: {
         actions: {
           start: true,
@@ -939,12 +944,6 @@ export default class RestApi {
 
     collections.backup = {}
     collections.groups = {
-      getObject(id) {
-        return app.getGroup(id)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllGroups(), filter, limit)
-      },
       routes: {
         async users(req, res) {
           const { filter, limit } = req.query
@@ -1000,12 +999,6 @@ export default class RestApi {
       },
     }
     collections.users = {
-      getObject(id) {
-        return app.getUser(id).then(getUserPublicProperties)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllUsers(), filter, limit)
-      },
       routes: {
         async authentication_tokens(req, res) {
           const { filter, limit } = req.query
@@ -1036,73 +1029,6 @@ export default class RestApi {
       },
     }
     collections.dashboard = {}
-    collections.messages = {
-      getObject(id) {
-        const message = app.getObject(id, 'message')
-        if (isAlarm(message)) {
-          throw noSuchObject(id, 'message')
-        }
-
-        return message
-      },
-      getObjects(filter, limit) {
-        return handleArray(
-          Object.values(
-            app.getObjects({
-              filter: every(keepNonAlarmMessages, filter),
-              limit,
-            })
-          )
-        )
-      },
-    }
-    collections.alarms = {
-      getObject(id, req) {
-        const alarm = app.getObject(id, 'message')
-        if (!isAlarm(alarm)) {
-          throw noSuchObject(id, 'alarm')
-        }
-
-        const { $object, body } = alarm
-        let object = {}
-        try {
-          object = app.getObject($object)
-        } catch (error) {
-          object = {
-            type: 'unknown',
-            uuid: $object,
-          }
-        }
-
-        const { baseUrl } = req
-        const objType = object.type.toLowerCase() + 's'
-        const href = collections[objType] === undefined ? undefined : `${baseUrl}/${objType}/${object.uuid}`
-        const [, value, name] = body.match(ALARM_BODY_REGEX) ?? []
-
-        return {
-          ...alarm,
-          body: {
-            value, // Keep the value as a string because NaN, Infinity, -Infinity is not valid JSON
-            name: name ?? body, // for 'BOND_STATUS_CHANGED' and 'MULTIPATH_PERIODIC_ALERT', body is a non-xml string. ("body": "The status of the eth0+eth1 bond is: 1/2 up")
-          },
-          object: {
-            type: object.type,
-            uuid: object.uuid,
-            href,
-          },
-        }
-      },
-      getObjects(filter, limit) {
-        return handleArray(
-          Object.values(
-            app.getObjects({
-              filter: every(isAlarm, filter),
-              limit,
-            })
-          )
-        )
-      },
-    }
 
     // normalize collections
     for (const id of Object.keys(collections)) {

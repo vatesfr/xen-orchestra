@@ -13,7 +13,7 @@ import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-export type IconAccent = 'current' | 'brand' | 'info' | 'success' | 'warning' | 'danger'
+export type IconAccent = 'current' | 'brand' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
 
 defineProps<{
   accent: IconAccent
@@ -86,6 +86,14 @@ defineProps<{
 
     .overlay-icon {
       color: var(--color-danger-txt-item);
+    }
+  }
+
+  &.muted {
+    color: var(--color-neutral-background-disabled);
+
+    .overlay-icon {
+      color: var(--color-neutral-txt-secondary);
     }
   }
 }

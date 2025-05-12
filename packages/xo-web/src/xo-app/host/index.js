@@ -22,7 +22,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { isEmpty, map, pick, sortBy } from 'lodash'
+import { isEmpty, map, mapValues, pick, sortBy } from 'lodash'
 
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
@@ -92,6 +92,16 @@ const isRunning = host => host && host.power_state === 'Running'
     createSelector(getPifs, pifs => map(pifs, pif => pif.$network))
   )
 
+  const getDecoratedPifs = createSelector(getPifs, getNetworks, (pifs, networks) =>
+    mapValues(pifs, pif => {
+      const network = networks[pif.$network]
+      if (network === undefined) {
+        return pif
+      }
+      return { ...pif, nework$name_label: network.name_label }
+    })
+  )
+
   const getPrivateNetworks = createFilter(
     createGetObjectsOfType('network'),
     createSelector(getPool, pool => network => network.$pool === pool.id && isEmpty(network.PIFs))
@@ -116,7 +126,7 @@ const isRunning = host => host && host.power_state === 'Running'
       needsRestart: doesNeedRestart(state, props),
       networks: getNetworks(state, props),
       nVms: getNumberOfVms(state, props),
-      pifs: getPifs(state, props),
+      pifs: getDecoratedPifs(state, props),
       pool: getPool(state, props),
       privateNetworks: getPrivateNetworks(state, props),
       state: getHostState(state, props),

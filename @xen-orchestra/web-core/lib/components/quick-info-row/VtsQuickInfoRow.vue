@@ -1,6 +1,6 @@
 <template>
   <div class="vts-quick-info-row">
-    <span class="typo-body-bold">
+    <span class="typo-body-regular label">
       <slot name="label">
         {{ label }}
       </slot>
@@ -31,10 +31,21 @@ defineSlots<{
 .vts-quick-info-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 2.4rem;
 
-  .value:empty::before {
-    content: '-';
+  .label {
+    color: var(--color-neutral-txt-secondary);
+  }
+
+  .value {
+    color: var(--color-neutral-txt-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+
+    &:empty::before {
+      content: '-';
+    }
   }
 }
 </style>
