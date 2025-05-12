@@ -58,7 +58,7 @@ const ui = useUiStore()
   background-color: var(--color-neutral-background-secondary);
   border-right: 0.1rem solid var(--color-neutral-border);
   width: v-bind('sidebar.cssWidth');
-  z-index: 1001;
+  z-index: 1010;
   transition:
     margin-left 0.25s,
     transform 0.25s;
