@@ -13,8 +13,8 @@
         </UiTagsList>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('os-name')" :value="vm?.os_version?.name" />
-    <VtsQuickInfoRow :label="$t('os-kernel')" :value="vm?.os_version?.uname" />
+    <VtsQuickInfoRow :label="$t('os-name')" :value="vm.os_version?.name" />
+    <VtsQuickInfoRow :label="$t('os-kernel')" :value="vm.os_version?.uname" />
     <VtsQuickInfoRow :label="$t('management-agent-version')" :value="vm.pvDriversVersion" />
   </UiCard>
 </template>

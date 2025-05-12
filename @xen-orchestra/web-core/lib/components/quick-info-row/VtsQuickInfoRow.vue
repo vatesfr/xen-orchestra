@@ -38,10 +38,6 @@ defineSlots<{
     color: var(--color-neutral-txt-secondary);
   }
 
-  .value:empty::before {
-    content: '-';
-  }
-
   .value {
     color: var(--color-neutral-txt-primary);
     display: flex;

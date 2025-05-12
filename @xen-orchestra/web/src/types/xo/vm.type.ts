@@ -1,8 +1,8 @@
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoPool } from '@/types/xo/pool.type'
+import type { XoSr } from '@/types/xo/sr.type'
 import type { XoVbd } from '@/types/xo/vbd.type'
 import type { Branded } from '@core/types/utility.type'
-import type { XoSr } from './sr.type'
 
 export enum VM_POWER_STATE {
   HALTED = 'Halted',
@@ -66,4 +66,5 @@ export type XoVm = {
   affinityHost?: XoHost['id']
   suspendSr?: XoSr['id']
   blockedOperations: Record<string, string>
+  hasVendorDevice: boolean
 }

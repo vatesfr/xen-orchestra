@@ -25,8 +25,9 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
+import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
-const videoRamValue = vm.videoram ? formatSizeRaw(Number(vm.videoram), 0)?.value : null
+const videoRamValue = computed(() => (vm.videoram ? formatSizeRaw(Number(vm.videoram), 0)?.value : null))
 </script>

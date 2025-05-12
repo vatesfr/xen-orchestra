@@ -39,7 +39,7 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('start-delay')">
-      {{ timeAgo }}
+      {{ `${vm.startDelay} ${$t('relative-time.second', vm.startDelay)}` }}
     </VtsQuickInfoRow>
   </UiCard>
 </template>
@@ -52,8 +52,6 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
-import { useTimeAgo } from '@vueuse/core'
 
 const { vm } = defineProps<{ vm: XoVm }>()
-const timeAgo = useTimeAgo(vm.startDelay)
 </script>

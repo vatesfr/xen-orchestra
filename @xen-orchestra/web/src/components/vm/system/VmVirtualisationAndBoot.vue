@@ -21,15 +21,17 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('manage-citrix-pv-drivers-via-windows-update')" class="text-ellipsis">
       <template #value>
-        <UiInfo accent="warning">
-          {{ $t('error-no-data') }}
+        <UiInfo :accent="vm.hasVendorDevice ? 'success' : 'muted'">
+          {{ vm.hasVendorDevice ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('nested-virtualization')">
-      <UiInfo :accent="vm.isNestedVirtEnabled ? 'success' : 'muted'">
-        {{ vm.isNestedVirtEnabled ? $t('enabled') : $t('disabled') }}
-      </UiInfo>
+      <template #value>
+        <UiInfo :accent="vm.isNestedVirtEnabled ? 'success' : 'muted'">
+          {{ vm.isNestedVirtEnabled ? $t('enabled') : $t('disabled') }}
+        </UiInfo>
+      </template>
     </VtsQuickInfoRow>
   </UiCard>
 </template>

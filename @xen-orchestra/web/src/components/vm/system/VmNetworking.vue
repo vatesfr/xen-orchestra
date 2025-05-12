@@ -1,9 +1,9 @@
 <template>
-  <UiCard class="vm-system-networking">
+  <UiCard class="Vm-networking">
     <UiTitle>
       {{ $t('networking') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('nic-type')" :value="vm?.nicType" />
+    <VtsQuickInfoRow :label="$t('nic-type')" :value="vm.nicType" />
   </UiCard>
 </template>
 
