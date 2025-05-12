@@ -26,7 +26,7 @@ export class ReadAhead extends RandomDiskPassthrough {
       let counter = 0
       for (const index of blockIndexes) {
         counter++
-        await self.progressHandler?.setProgress(counter / blockIndexes.length)
+        await self.progressHandler?.setProgress(counter *100/ blockIndexes.length)
         if (preloaded.length < PRELOAD_SIZE) {
           preloaded.push(self.source.readBlock(index))
         }
@@ -39,6 +39,7 @@ export class ReadAhead extends RandomDiskPassthrough {
         const next = (await preloaded.shift())!
         yield next
       }
+      await self.progressHandler?.setProgress(100)
     }
     return generator()
   }
