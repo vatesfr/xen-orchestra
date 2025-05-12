@@ -13,6 +13,8 @@
 
 - [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
 
+- [sdn-controller] manage multiple bridges throught the XCP-ng plugin (PR [8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
+- [sdn-controller] handle network wide rules (PR [8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -39,6 +41,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
-- xo-server patch
+- xo-server-sdn-controller minor
+- xo-web minor
 
 <!--packages-end-->
