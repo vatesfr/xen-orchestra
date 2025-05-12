@@ -289,24 +289,23 @@ const methods = {
       })
 
       await Promise.all(_vifsToDestroy.map(vif => this._deleteVif(vif)))
-      await Promise.all(
-        _vifsToCreate.map(vif =>
-          this.VIF_create(
-            {
-              ipv4_allowed: vif.ipv4_allowed,
-              ipv6_allowed: vif.ipv6_allowed,
-              device: vif.device,
-              locking_mode: isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed) ? 'network_default' : 'locked',
-              MTU: vif.mtu,
-              network: this.getObject(vif.network).$ref,
-              VM: vm.$ref,
-            },
-            {
-              MAC: vif.mac,
-            }
-          )
+
+      for (const vif of _vifsToCreate) {
+        await this.VIF_create(
+          {
+            ipv4_allowed: vif.ipv4_allowed,
+            ipv6_allowed: vif.ipv6_allowed,
+            device: vif.device,
+            locking_mode: isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed) ? 'network_default' : 'locked',
+            MTU: vif.mtu,
+            network: this.getObject(vif.network).$ref,
+            VM: vm.$ref,
+          },
+          {
+            MAC: vif.mac,
+          }
         )
-      )
+      }
     }
 
     if (vgpuType !== undefined && gpuGroup !== undefined) {

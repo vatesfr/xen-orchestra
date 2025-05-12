@@ -5,6 +5,7 @@ import type {
   DOMAIN_TYPE,
   HOST_ALLOWED_OPERATIONS,
   HOST_POWER_STATE,
+  NETWORK_OPERATIONS,
   POOL_ALLOWED_OPERATIONS,
   STORAGE_OPERATIONS,
   VDI_OPERATIONS,
@@ -130,6 +131,8 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
 export type XoGroup = {
   id: Branded<'group'>
   name: string
+  provider?: string
+  providerGroupId?: string
   users: XoUser['id'][]
 }
 
@@ -234,7 +237,21 @@ export type XoMessage = BaseXapiXo & {
 }
 
 export type XoNetwork = BaseXapiXo & {
+  MTU: number
+  PIFs: XoPif['id'][]
+  VIFs: XoVif['id'][]
+
+  automatic: boolean
+  bridge: string
+  current_operations: Record<string, NETWORK_OPERATIONS>
+  defaultIsLocked: boolean
   id: Branded<'network'>
+  insecureNbd?: boolean
+  name_description: string
+  name_label: string
+  nbd?: boolean
+  other_config: Record<string, string>
+  tags: string[]
   type: 'network'
 }
 
@@ -343,9 +360,9 @@ export type XoUser = {
   email: string
   groups: XoGroup['id'][]
   id: Branded<'user'>
-  name: string
+  name?: string
   permission: string
-  pw_hash: string
+  pw_hash?: string
   preferences: Record<string, string>
 }
 

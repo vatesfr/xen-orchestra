@@ -103,6 +103,7 @@ export type RawXenApiRecord<T extends XenApiRecord<ObjectType>> = Omit<T, '$ref'
 
 export interface XenApiPool extends XenApiRecord<'pool'> {
   cpu_info: {
+    socket_count: string
     cpu_count: string
   }
   master: XenApiHost['$ref']
@@ -141,6 +142,8 @@ export interface XenApiSr extends XenApiRecord<'sr'> {
 }
 
 export interface XenApiPbd extends XenApiRecord<'pbd'> {
+  SR: XenApiSr['$ref']
+  currently_attached: boolean
   host: XenApiHost['$ref']
 }
 

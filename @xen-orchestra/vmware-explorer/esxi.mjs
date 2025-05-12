@@ -111,11 +111,8 @@ export default class Esxi extends EventEmitter {
       error.cause = res
       throw error
     }
-    if (res.headers.raw()['set-cookie']) {
-      this.#cookies = res.headers
-        .raw()
-        ['set-cookie'].map(cookie => cookie.split(';')[0])
-        .join('; ')
+    if (res.headers['set-cookie']) {
+      this.#cookies = res.headers['set-cookie'].map(cookie => cookie.split(';')[0]).join('; ')
     }
     return res
   }

@@ -43,7 +43,7 @@
     "pw": "^0.0.4",
     "xdg-basedir": "^4.0.0",
     "xo-lib": "^0.11.1",
-    "xo-vmdk-to-vhd": "^2.5.7"
+    "xo-vmdk-to-vhd": "^2.5.8"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
