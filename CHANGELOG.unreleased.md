@@ -40,5 +40,6 @@
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - xo-server patch
+- xo-server-auth-oidc patch
 
 <!--packages-end-->
