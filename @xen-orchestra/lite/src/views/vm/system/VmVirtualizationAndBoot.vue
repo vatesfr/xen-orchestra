@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="vm-virtualisation-and-boot">
+  <UiCard class="vm-virtualization-and-boot">
     <UiTitle>
       {{ $t('virtualization-boot-settings') }}
     </UiTitle>
