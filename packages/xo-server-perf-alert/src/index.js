@@ -9,8 +9,9 @@ const logger = createLogger('xo:xo-server-perf-alert')
 const PARAMS_JSON_SCHEMA = [
   {
     properties: {
-      uuids: {},
+      uuids: { minItems: 1 },
       smartMode: { anyOf: [{ not: {} }, { const: false }] },
+      // we allow smartMode=false with excludeUuids=true because UI is not very clear, and we can't enforce smartMode value when excludeUuids=true
       excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
     },
     required: ['uuids'],
@@ -19,13 +20,14 @@ const PARAMS_JSON_SCHEMA = [
   {
     properties: {
       smartMode: { const: true },
-      uuids: { not: {} },
+      // after being edited, uuids will be an empty list instead of undefined
+      uuids: { anyOf: [{ not: {} }, { maxItems: 0 }] },
     },
     required: ['smartMode'],
   },
   {
     properties: {
-      uuids: {},
+      uuids: { minItems: 1 },
       smartMode: { const: true },
       excludeUuids: { const: true },
     },
@@ -204,6 +206,8 @@ export const configurationSchema = {
             type: 'boolean',
           },
           uuids: {
+            description:
+              'List of hosts to monitor if "All running hosts" is disabled, or to not monitor if "Exclude hosts" is enabled.',
             title: 'Hosts',
             type: 'array',
             items: {
@@ -260,6 +264,8 @@ export const configurationSchema = {
             type: 'boolean',
           },
           uuids: {
+            description:
+              'List of VMs to monitor if "All running VMs" is disabled, or to not monitor if "Exclude VMs" is enabled.',
             title: 'Virtual Machines',
             type: 'array',
             items: {
@@ -316,6 +322,8 @@ export const configurationSchema = {
             type: 'boolean',
           },
           uuids: {
+            description:
+              'List of SRs to monitor if "All SRs" is disabled, or to not monitor if "Exclude SRs" is enabled.',
             title: 'SRs',
             type: 'array',
             items: {
@@ -502,7 +510,7 @@ ${monitorBodies.join('\n')}`
                   }
 
                   if (
-                    definition.smartMode &&
+                    (definition.smartMode || definition.excludeUuids) &&
                     (objectType === 'VM' || objectType === 'host') &&
                     obj.power_state !== 'Running'
                   ) {

@@ -16,6 +16,8 @@ import type {
 } from '@vates/types/xen-api'
 import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoSchedule, XoJob, XoGroup } from '@vates/types/xo'
 
+import type { InsertableXoServer } from '../servers/server.type.mjs'
+
 type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
   message: XenApiMessage
@@ -63,6 +65,8 @@ export type XoApp = {
   getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
+  /** Allow to add a new server in the DB (XCP-ng/XenServer) */
+  registerXenServer(body: InsertableXoServer): Promise<XoServer>
   runJob(job: XoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
 }

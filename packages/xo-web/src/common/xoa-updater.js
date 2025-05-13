@@ -11,6 +11,7 @@ import {
   setXoaUpdaterLog,
   setXoaUpdaterState,
 } from 'store/actions'
+import { ENTERPRISE, getXoaPlan, PREMIUM, STARTER } from './xoa-plans'
 
 // ===================================================================
 
@@ -35,16 +36,21 @@ export function blockXoaAccess(xoaState) {
   return block
 }
 
-export function getLicenseNearExpiration(licenses) {
+export function getLicenseNearExpiration(licenses, trial) {
+  const plan = getXoaPlan()
+  // user does not have a licence for free or source version
+  // also don't crash the app if the licence is in unexpected state
+  if (![PREMIUM, ENTERPRISE, STARTER].includes(plan)) {
+    return
+  }
+  // user under trial are not expected to have licences
+  if (isTrialRunning(trial)) {
+    return
+  }
+  // got a unlimited license bound to this XO nothing can expires
   if (licenses.find(({ expires }) => expires === undefined) !== undefined) {
     return
   }
-  if (licenses.length === 0) {
-    throw new Error('No license found')
-  }
-
-  licenses.sort(({ expires: expires1 }, { expires: expires2 }) => expires2 - expires1)
-  const newestLicense = licenses[0]
 
   const SLOTS = [
     {
@@ -85,6 +91,18 @@ export function getLicenseNearExpiration(licenses) {
       popupClass: 'alert-danger',
     },
   ]
+  if (licenses.length === 0) {
+    return {
+      ...SLOTS.pop(),
+      license: {
+        expires: 0,
+      },
+    }
+  }
+
+  licenses.sort(({ expires: expires1 }, { expires: expires2 }) => expires2 - expires1)
+  const newestLicense = licenses[0]
+
   const candidates = SLOTS.filter(({ duration }) => newestLicense.expires + duration < Date.now())
 
   if (candidates.length === 0) {

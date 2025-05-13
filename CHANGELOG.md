@@ -1,8 +1,28 @@
 # ChangeLog
 
-## **5.106.0** (2025-04-30)
+## **5.106.2** (2025-05-07)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Licence]: better handling of trial and free users (PR [#8557](https://github.com/vatesfr/xen-orchestra/pull/8557))
+
+### Released packages
+
+- xo-web 5.173.2
+
+## **5.106.1** (2025-04-30)
+
+### Bug fixes
+
+- prevent XOA from failing with `an error has occured` due to license problems (PR [#8551](https://github.com/vatesfr/xen-orchestra/pull/8551))
+
+### Released packages
+
+- xo-web 5.173.1
+
+## **5.106.0** (2025-04-30)
 
 ### Highlights
 

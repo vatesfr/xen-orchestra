@@ -475,7 +475,6 @@
   "vm-is-running": "De VM draait",
   "vm.active": "Actief",
   "vm.inactive": "Inactief",
-  "vmSocketsWithCoresPerSocket": "{nSockets} sockets × {nCores} kernen/socket",
   "vms": "VM | VM's",
   "vms-status": "VM's status",
   "vms-status.halted": "Gestopt",

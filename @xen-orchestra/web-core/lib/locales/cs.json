@@ -475,7 +475,6 @@
   "vm-is-running": "Virt. stroj je spuštěný",
   "vm.active": "Aktivní",
   "vm.inactive": "Neaktivní",
-  "vmSocketsWithCoresPerSocket": "{nSockets} patice × {nCores} jader/patici",
   "vms": "Virt. stroj | Virt. stroje",
   "vms-status": "Stav virt. strojů",
   "vms-status.halted": "Zastaveno",

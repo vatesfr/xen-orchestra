@@ -14,7 +14,11 @@
     </RouterLink>
     <TabItem disabled>{{ $t('alarms') }}</TabItem>
     <TabItem disabled>{{ $t('stats') }}</TabItem>
-    <TabItem disabled>{{ $t('system') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/system`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ $t('system') }}
+      </TabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/networks`" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ $t('network') }}
@@ -33,7 +37,5 @@ import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 
-defineProps<{
-  vm: XoVm
-}>()
+defineProps<{ vm: XoVm }>()
 </script>
