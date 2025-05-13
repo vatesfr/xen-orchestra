@@ -475,7 +475,6 @@
   "vm-is-running": "La máquina virtual está en marcha",
   "vm.active": "Activo | Activo | Activos",
   "vm.inactive": "No activo | No activo | No activos",
-  "vmSocketsWithCoresPerSocket": "{nSockets} sockets x {nCores} cores/socket",
   "vms": "VM | VMs",
   "vms-status": "Estatus máquinas virtuales",
   "vms-status.halted": "Detenido",

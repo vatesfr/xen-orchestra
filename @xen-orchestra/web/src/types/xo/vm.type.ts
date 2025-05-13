@@ -1,5 +1,6 @@
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoPool } from '@/types/xo/pool.type'
+import type { XoSr } from '@/types/xo/sr.type'
 import type { XoVbd } from '@/types/xo/vbd.type'
 import type { Branded } from '@core/types/utility.type'
 
@@ -38,4 +39,32 @@ export type XoVm = {
     max: number
     number: number
   }
+  tags: Array<string>
+  os_version: Record<string, string> | null
+  virtualizationMode: string
+  secureBoot: boolean
+  VTPMs: Array<string>
+  viridian: boolean
+  isNestedVirtEnabled: boolean
+  memory: {
+    dynamic: [number, number]
+    static: [number, number]
+    size: number
+  }
+  VGPUs: Array<string>
+  high_availability: 'best-effort' | 'restart' | ''
+  auto_poweron: boolean
+  startDelay: number
+  vga: 'std' | 'cirrus'
+  videoram?: number
+  pvDriversVersion?: string
+  cpuWeight?: number
+  cpuCap?: number
+  cpuMask?: Array<number>
+  coresPerSocket?: number
+  nicType?: string
+  affinityHost?: XoHost['id']
+  suspendSr?: XoSr['id']
+  blockedOperations: Record<string, string>
+  hasVendorDevice: boolean
 }
