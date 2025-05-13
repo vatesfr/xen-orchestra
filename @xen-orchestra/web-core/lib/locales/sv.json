@@ -475,7 +475,6 @@
   "vm-is-running": "Vmen är startad",
   "vm.active": "Aktiv",
   "vm.inactive": "Inaktiv",
-  "vmSocketsWithCoresPerSocket": "{nSockets} socklar × {nCores} kärnor/sockel",
   "vms": "VMar",
   "vms-status": "VM status",
   "vms-status.halted": "Stannad",

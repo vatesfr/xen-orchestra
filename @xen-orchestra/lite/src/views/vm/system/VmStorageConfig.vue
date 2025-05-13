@@ -1,17 +1,20 @@
 <template>
-  <UiCard class="vm-system-networking">
+  <UiCard class="vm-storage-config">
     <UiTitle>
-      {{ $t('Networking') }}
+      {{ $t('storage-configuration') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('nic-type')" :value="vm?.platform.nic_type" />
+    <VtsQuickInfoRow :label="$t('suspend-Storage-Repository')" :value="srRrepo?.uuid" />
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { useSrStore } from '@/stores/xen-api/sr.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
 const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
+
+const srRrepo = vm ? useSrStore().getContext().getByOpaqueRef(vm?.suspend_SR) : undefined
 </script>

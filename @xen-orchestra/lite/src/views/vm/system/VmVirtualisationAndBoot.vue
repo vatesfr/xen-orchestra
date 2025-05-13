@@ -1,32 +1,32 @@
 <template>
   <UiCard class="vm-virtualisation-and-boot">
     <UiTitle>
-      {{ $t('Virtualization-boot-settings') }}
+      {{ $t('virtualization-boot-settings') }}
     </UiTitle>
     <VtsQuickInfoRow :label="$t('virtualization-mode')" :value="virtualizationMode" />
-    <VtsQuickInfoRow :label="$t('Secure-boot')">
+    <VtsQuickInfoRow :label="$t('secure-boot')">
       <template #value>
-        <UiInfo :accent="vm?.platform.secureBoot ? 'success' : 'muted'">
-          {{ vm?.platform.secureBoot ? $t('enabled') : $t('disabled') }}
+        <UiInfo :accent="vm.platform.secureBoot ? 'success' : 'muted'">
+          {{ vm.platform.secureBoot ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm?.VTPMs.join(', ')" />
-    <VtsQuickInfoRow :label="$t('Viridian')">
+    <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm.VTPMs.join(', ')" />
+    <VtsQuickInfoRow :label="$t('viridian')">
       <template #value>
-        <UiInfo :accent="vm?.platform.viridian === 'true' ? 'success' : 'muted'">
-          {{ vm?.platform.viridian === 'true' ? $t('enabled') : $t('disabled') }}
+        <UiInfo :accent="vm.platform.viridian === 'true' ? 'success' : 'muted'">
+          {{ vm.platform.viridian === 'true' ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('manage-Citrix-PV-drivers-via-Windows-Update')" class="text-ellipsis">
+    <VtsQuickInfoRow :label="$t('manage-citrix-pv-drivers-via-windows-update')" class="text-ellipsis">
       <template #value>
-        <UiInfo accent="warning">
-          {{ $t('error-no-data') }}
+        <UiInfo :accent="vm.has_vendor_device ? 'success' : 'muted'">
+          {{ vm.has_vendor_device ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('Nested-virtualization')">
+    <VtsQuickInfoRow :label="$t('nested-virtualization')">
       <template #value>
         <UiInfo :accent="NestedVirtEnabled ? 'success' : 'muted'">
           {{ NestedVirtEnabled ? $t('enabled') : $t('disabled') }}
@@ -47,20 +47,21 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { satisfies } from 'semver'
 import { computed } from 'vue'
 
-const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
+const { vm } = defineProps<{ vm: XenApiVm }>()
+
+const { pool } = usePoolStore().subscribe()
+const { getByOpaqueRef: getHost } = useHostStore().subscribe()
+
 /**
  * @see `packages/xo-server/src/xapi/utils.mjs`:57
  **/
-const virtualizationMode =
-  vm?.domain_type !== undefined && vm?.domain_type !== 'unspecified'
-    ? vm?.domain_type
-    : vm?.HVM_boot_policy === ''
+const virtualizationMode = computed(() =>
+  vm.domain_type !== undefined && vm.domain_type !== 'unspecified'
+    ? vm.domain_type
+    : vm.HVM_boot_policy === ''
       ? 'pv'
       : 'hvm'
-
-const { pool } = usePoolStore().subscribe()
-
-const { getByOpaqueRef: getHost } = useHostStore().subscribe()
+)
 
 const NestedVirtEnabled = computed(() => {
   const poolMaster = pool.value ? getHost(pool.value.master)?.software_version.platform_version : undefined
