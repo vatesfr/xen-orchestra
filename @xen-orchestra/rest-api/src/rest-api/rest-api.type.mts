@@ -14,7 +14,9 @@ import type {
   XenApiVmWrapped,
   XenApiVtpmWrapped,
 } from '@vates/types/xen-api'
-import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoSchedule, XoJob } from '@vates/types/xo'
+import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoSchedule, XoJob, XoGroup } from '@vates/types/xo'
+
+import type { InsertableXoServer } from '../servers/server.type.mjs'
 
 type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
@@ -46,8 +48,11 @@ export type XoApp = {
     userData?: { ip?: string },
     opts?: { bypassOtp?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
+  getAllGroups(): Promise<XoGroup[]>
   getAllSchedules(): Promise<XoSchedule[]>
+  getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
+  getGroup(id: XoGroup['id']): Promise<XoGroup>
   getJob(id: XoJob['id']): Promise<XoJob>
   getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type']) => T
   getObjectsByType: <T extends XapiXoRecord>(
@@ -55,10 +60,13 @@ export type XoApp = {
     opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
   ) => Record<T['id'], T>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
+  getUser: (id: XoUser['id']) => Promise<XoUser>
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
+  /** Allow to add a new server in the DB (XCP-ng/XenServer) */
+  registerXenServer(body: InsertableXoServer): Promise<XoServer>
   runJob(job: XoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
 }

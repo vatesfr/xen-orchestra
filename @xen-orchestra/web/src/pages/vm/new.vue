@@ -118,7 +118,9 @@
             <!-- <UiToggle v-model="vmState.toggle">{{ $t('multi-creation') }}</UiToggle> -->
             <div class="system-container">
               <div class="column">
-                <UiInput v-model="vmState.name" accent="brand" :label="$t('new-vm.name')" />
+                <VtsInputWrapper :label="$t('new-vm.name')">
+                  <UiInput v-model="vmState.name" accent="brand" />
+                </VtsInputWrapper>
                 <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" :label=" $t('tags')" /> -->
                 <!--              <VtsInputWrapper :label="$t('boot-firmware')"> -->
                 <!--                <FormSelect v-model="vmState.boot_firmware"> -->
@@ -167,10 +169,16 @@
             <!-- MEMORY SECTION -->
             <UiTitle>{{ $t('memory') }}</UiTitle>
             <div class="memory-container">
-              <UiInput v-model="vmState.vCPU" accent="brand" :label="$t('vcpus')" />
+              <VtsInputWrapper :label="$t('vcpus')">
+                <UiInput v-model="vmState.vCPU" accent="brand" />
+              </VtsInputWrapper>
               <!-- TODO remove (GB) when we can use new selector -->
-              <UiInput v-model="ramFormatted" accent="brand" :label="`${$t('ram')} (GB)`" />
-              <UiInput v-model="vmState.topology" accent="brand" disabled :label="$t('topology')" />
+              <VtsInputWrapper :label="`${$t('ram')} (GB)`">
+                <UiInput v-model="ramFormatted" accent="brand" />
+              </VtsInputWrapper>
+              <VtsInputWrapper :label="$t('topology')">
+                <UiInput v-model="vmState.topology" accent="brand" disabled />
+              </VtsInputWrapper>
             </div>
             <!-- NETWORK SECTION -->
             <UiTitle>{{ $t('network') }}</UiTitle>
@@ -409,6 +417,7 @@ import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { Branded } from '@core/types/utility.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'

@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-vmdk-to-vhd",
-  "version": "2.5.7",
+  "version": "2.5.8",
   "license": "AGPL-3.0-or-later",
   "description": "JS lib reading and writing .vmdk and .ova files",
   "keywords": [

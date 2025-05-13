@@ -165,14 +165,18 @@ export default class RemoteHandlerAbstract {
 
     if (this.isEncrypted) {
       stream = this.#encryptor.decryptStream(stream)
-    } else {
-      // try to add the length prop if missing and not a range stream
-      if (stream.length === undefined && options.end === undefined && options.start === undefined) {
-        try {
+    }
+
+    // try to add the length prop if missing and not a range stream
+    if (stream.length === undefined && options.end === undefined && options.start === undefined) {
+      try {
+        if (this.isEncrypted) {
+          stream.maxStreamLength = await this.getSizeOnDisk(file)
+        } else {
           stream.length = await this._getSize(file)
-        } catch (error) {
-          // ignore errors
         }
+      } catch (error) {
+        // ignore errors
       }
     }
 

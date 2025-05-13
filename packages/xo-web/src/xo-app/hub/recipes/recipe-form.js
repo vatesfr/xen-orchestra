@@ -140,7 +140,7 @@ export default decorate([
         sr =>
           sr.$pool === get(() => value.pool.id) && isSrWritable(sr),
       versionList: async () => {
-        const res = await fetch('https://api.github.com/repos/kubernetes/kubernetes/releases')
+        const res = await fetch('https://api.github.com/repos/canonical/microk8s/releases')
         if (res.ok) {
           const rawList = await res.json()
           const versionList = rawList

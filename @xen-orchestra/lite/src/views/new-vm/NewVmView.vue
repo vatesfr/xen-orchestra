@@ -115,8 +115,18 @@
             <!-- <UiToggle v-model="vmState.toggle">{{ $t('multi-creation') }}</UiToggle> -->
             <div class="system-container">
               <div class="column">
-                <UiInput v-model="vmState.name" accent="brand" :label="$t('new-vm.name')" />
-                <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" :label=" $t('tags')" /> -->
+                <VtsInputWrapper :label="$t('new-vm.name')">
+                  <UiInput v-model="vmState.name" accent="brand" />
+                </VtsInputWrapper>
+                <VtsInputWrapper :label="$t('tags')" :icon="faTags">
+                  <!-- TODO Change input text into select when Thierry's component is available -->
+                  <UiInput v-model="vmState.tag" accent="brand" @keydown.enter.prevent="addTag" />
+                </VtsInputWrapper>
+                <div v-if="vmState.tags.length > 0" class="chips">
+                  <UiChip v-for="(tag, index) in vmState.tags" :key="index" accent="info" @remove="removeTag(index)">
+                    {{ tag }}
+                  </UiChip>
+                </div>
                 <VtsInputWrapper :label="$t('boot-firmware')">
                   <FormSelect v-model="vmState.boot_firmware">
                     <option v-for="boot in bootFirmwares" :key="boot" :value="boot">
@@ -148,16 +158,38 @@
                 <UiTextarea v-model="vmState.description" accent="brand">
                   {{ $t('new-vm.description') }}
                 </UiTextarea>
-                <!-- <UiInput v-model="vmState.affinity_host" accent="brand" :label="$t('affinity-host')" /> -->
+                <VtsInputWrapper :label="$t('affinity-host')">
+                  <div class="affinity-host">
+                    <FormSelect v-model="vmState.affinity_host" class="select">
+                      <option :value="OPAQUE_REF.EMPTY">{{ $t('none') }}</option>
+                      <option v-for="host in hosts" :key="host?.$ref" :value="host?.$ref">
+                        {{ host?.name_label }}
+                      </option>
+                    </FormSelect>
+                  </div>
+                </VtsInputWrapper>
               </div>
             </div>
             <!-- MEMORY SECTION -->
             <UiTitle>{{ $t('memory') }}</UiTitle>
             <div class="memory-container">
-              <UiInput v-model="vmState.vCPU" accent="brand" :label="$t('vcpus', Number(vmState.vCPU))" />
+              <VtsInputWrapper :label="$t('vcpus', Number(vmState.vCPU))">
+                <UiInput v-model="vmState.vCPU" accent="brand" />
+              </VtsInputWrapper>
               <!-- TODO remove (GB) when we can use new selector -->
-              <UiInput v-model="ramFormatted" accent="brand" :label="`${$t('ram')} (GB)`" />
-              <UiInput v-model="vmState.topology" accent="brand" disabled :label="$t('topology')" />
+              <VtsInputWrapper :label="`${$t('ram')} (GB)`">
+                <UiInput v-model="ramFormatted" accent="brand" />
+              </VtsInputWrapper>
+              <VtsInputWrapper :label="$t('topology')">
+                <div class="topology">
+                  <FormSelect v-model="vmState.topology">
+                    <option :value="null">{{ $t('default-behavior') }}</option>
+                    <option v-for="core in coresPerSocket" :key="core.value" :value="core.value">
+                      {{ core.label }}
+                    </option>
+                  </FormSelect>
+                </div>
+              </VtsInputWrapper>
             </div>
             <!-- NETWORK SECTION -->
             <UiTitle>{{ $t('network') }}</UiTitle>
@@ -382,6 +414,7 @@ import FormSelect from '@/components/form/FormSelect.vue'
 
 // XenAPI Store imports
 import type { XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -404,6 +437,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
+import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
@@ -422,6 +456,7 @@ import {
   faMicrochip,
   faNetworkWired,
   faPlus,
+  faTags,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -437,6 +472,7 @@ import { useRouter } from 'vue-router'
 const { templates } = useVmStore().subscribe()
 const { pool } = usePoolStore().subscribe()
 const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
+const { records: hosts } = useHostStore().subscribe()
 const { records: networks, getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
 const { getByOpaqueRef: getVdiByOpaqueRef } = useVdiStore().subscribe()
@@ -458,8 +494,9 @@ const vmState = reactive<VmState>({
   description: '',
   toggle: false,
   installMode: '',
+  tag: '',
   tags: [],
-  affinity_host: '',
+  affinity_host: OPAQUE_REF.EMPTY,
   boot_firmware: '',
   new_vm_template: undefined,
   boot_vm: true,
@@ -472,7 +509,7 @@ const vmState = reactive<VmState>({
   vCPU: 0,
   VCPUs_max: 0,
   ram: 0,
-  topology: '',
+  topology: null,
   copyHostBiosStrings: false,
   sshKeys: [],
   existingVdis: [],
@@ -523,11 +560,59 @@ const addStorageEntry = () => {
 //   vmState.sshKeys.splice(index, 1)
 // }
 
+const addTag = () => {
+  const tag = vmState.tag.trim()
+
+  if (tag && !vmState.tags.includes(tag)) {
+    vmState.tags.push(tag)
+  }
+
+  vmState.tag = ''
+}
+
+const removeTag = (index: number) => {
+  vmState.tags.splice(index, 1)
+}
+
 const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
 
 const poolName = computed(() => pool.value?.name_label)
+
+const poolCpuInfo = computed(() => {
+  return {
+    cores: pool.value?.cpu_info && +pool.value.cpu_info.cpu_count,
+    sockets: pool.value?.cpu_info && +pool.value.cpu_info.socket_count,
+  }
+})
+
+const coresPerSocket = computed(() => {
+  // https://github.com/xcp-ng/xenadmin/blob/0160cd0119fae3b871eef656c23e2b76fcc04cb5/XenModel/XenAPI-Extensions/VM.cs#L62
+  const MAX_VM_SOCKETS = 16
+  const minCores = vmState.vCPU / MAX_VM_SOCKETS
+  const options = []
+  let cores = poolCpuInfo.value.cores
+
+  if (cores === undefined || vmState.vCPU === undefined) {
+    return []
+  }
+
+  for (cores; cores >= minCores; cores--) {
+    if (vmState.vCPU % cores === 0) {
+      options.push({
+        // TODO Need to improve pluralization
+        label: t('sockets-with-cores-per-socket', {
+          nSockets: vmState.vCPU / cores,
+          nCores: cores,
+        }),
+        value: cores,
+      })
+    }
+  }
+
+  return options
+})
 
 const hostMasterRef = computed(() => pool.value?.master)
 
@@ -650,34 +735,45 @@ const getVdis = (template: XenApiVm) => {
 }
 
 const getExistingVdis = (template: XenApiVm) => {
-  const existingVdisArray = [] as Vdi[]
-
-  template.VBDs.forEach(vbdRef => {
+  return template.VBDs.reduce<Vdi[]>((acc, vbdRef) => {
     const vbd = getVbdByOpaqueRef(vbdRef)
 
     if (!vbd || vbd.type === 'CD') {
-      return
+      return acc
     }
 
     const vdi = getVdiByOpaqueRef(vbd.VDI)
-    if (!vdi) return
 
-    existingVdisArray.push({
+    if (!vdi) {
+      return acc
+    }
+
+    acc.push({
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.virtual_size),
-      SR: vdi.SR ?? defaultSr.value,
+      SR: vdi.SR,
     })
-  })
 
-  return existingVdisArray
+    return acc
+  }, [])
 }
 
 const onTemplateChange = () => {
   const template = vmState.new_vm_template
   if (!template) return
 
-  const { name_label, name_description, HVM_boot_params, VCPUs_at_startup, memory_dynamic_max, other_config } = template
+  const {
+    name_label,
+    name_description,
+    HVM_boot_params,
+    VCPUs_at_startup,
+    memory_dynamic_max,
+    other_config,
+    platform,
+    tags,
+    affinity,
+  } = template
 
   Object.assign(vmState, {
     name: name_label,
@@ -686,6 +782,9 @@ const onTemplateChange = () => {
     vCPU: VCPUs_at_startup,
     ram: memory_dynamic_max,
     vdis: getVdis(template),
+    tags,
+    topology: platform['cores-per-socket'] ?? null,
+    affinity_host: affinity,
     existingVdis: getExistingVdis(template),
     networkInterfaces: getExistingInterface(template),
   })
@@ -711,7 +810,8 @@ const vmCreationParams = computed(() => ({
   autoPoweron: vmState.auto_power,
   bootAfterCreate: vmState.boot_vm,
   copyHostBiosStrings: vmState.boot_firmware !== 'uefi' && !templateHasBiosStrings.value && vmState.copyHostBiosStrings,
-  hvmBootFirmware: vmState.boot_firmware,
+  hvmBootFirmware: vmState.boot_firmware ?? 'bios',
+  coresPerSocket: vmState.topology,
   tags: vmState.tags,
   cloudConfig: '',
 }))
@@ -763,10 +863,13 @@ const _createVm = async ($defer: Defer) => {
     await Promise.all([
       xapi.vm.setNameLabel(vmRefs, vmCreationParams.value.name_label),
       xapi.vm.setNameDescription(vmRefs, vmCreationParams.value.name_description),
+      xapi.vm.setTags(vmRefs, vmCreationParams.value.tags),
+      xapi.vm.setAffinityHost(vmRefs, vmCreationParams.value.affinityHost),
       xapi.vm.setMemory(vmRefs, vmCreationParams.value.memory),
-      xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
-      xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
       xapi.vm.setAutoPowerOn(vmRefs[0], vmCreationParams.value.autoPoweron),
+      xapi.vm.setCoresPerSocket(vmRefs[0], vmCreationParams.value.coresPerSocket),
+      xapi.vm.setHvmBootFirmware(vmRefs[0], vmCreationParams.value.hvmBootFirmware),
+      xapi.vm.setVCPUsAtStartup(vmRefs, vmCreationParams.value.cpus),
     ])
 
     // INSTALL SETTINGS
@@ -939,6 +1042,23 @@ const createVM = defer(_createVm)
         flex-direction: column;
         gap: 2.5rem;
         width: 40%;
+
+        .affinity-host {
+          display: flex;
+          align-items: center;
+          gap: 0.8rem;
+
+          .container {
+            width: 100%;
+          }
+        }
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-block-end: 1rem;
       }
     }
 
@@ -979,6 +1099,10 @@ const createVM = defer(_createVm)
     .memory-container {
       display: flex;
       gap: 10.8rem;
+
+      .topology {
+        width: 32rem;
+      }
     }
 
     thead tr th:last-child {

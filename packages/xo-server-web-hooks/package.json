@@ -1,6 +1,6 @@
 {
   "name": "xo-server-web-hooks",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "license": "AGPL-3.0-or-later",
   "description": "Sends HTTP requests on XO-Server API calls",
   "keywords": [

@@ -607,7 +607,10 @@ export default class RestApi {
       alarms: {},
       docs: {},
       messages: {},
+      networks: {},
       pools: {},
+      groups: {},
+      users: {},
       vifs: {},
       vms: {
         actions: {
@@ -941,12 +944,6 @@ export default class RestApi {
 
     collections.backup = {}
     collections.groups = {
-      getObject(id) {
-        return app.getGroup(id)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllGroups(), filter, limit)
-      },
       routes: {
         async users(req, res) {
           const { filter, limit } = req.query
@@ -1002,12 +999,6 @@ export default class RestApi {
       },
     }
     collections.users = {
-      getObject(id) {
-        return app.getUser(id).then(getUserPublicProperties)
-      },
-      async getObjects(filter, limit) {
-        return handleArray(await app.getAllUsers(), filter, limit)
-      },
       routes: {
         async authentication_tokens(req, res) {
           const { filter, limit } = req.query

@@ -216,9 +216,7 @@ import { faCopy, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg
 import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
 
-const { vif } = defineProps<{
-  vif: XoVif
-}>()
+const { vif } = defineProps<{ vif: XoVif }>()
 
 const { get: getNetwork } = useNetworkStore().subscribe()
 const { get: getVm } = useVmStore().subscribe()
