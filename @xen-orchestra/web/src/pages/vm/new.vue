@@ -198,11 +198,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(networkInterface, index) in vmState.networkInterfaces" :key="index">
+                  <tr v-for="(vif, index) in vmState.vifs" :key="index">
                     <td>
                       <!--        // Todo: Replace by the new select component -->
                       <div class="custom-select">
-                        <select v-model="networkInterface.interface">
+                        <select v-model="vif.network">
                           <option v-for="network in filteredNetworks" :key="network.id" :value="network.id">
                             {{ network.name_label }}
                           </option>
@@ -211,11 +211,7 @@
                       </div>
                     </td>
                     <td>
-                      <UiInput
-                        v-model="networkInterface.macAddress"
-                        :placeholder="$t('auto-generated')"
-                        accent="brand"
-                      />
+                      <UiInput v-model="vif.mac" :placeholder="$t('auto-generated')" accent="brand" />
                     </td>
                     <td>
                       <UiButtonIcon
@@ -223,19 +219,13 @@
                         size="medium"
                         accent="brand"
                         variant="secondary"
-                        @click="deleteItem(vmState.networkInterfaces, index)"
+                        @click="deleteItem(vmState.vifs, index)"
                       />
                     </td>
                   </tr>
                   <tr>
                     <td colspan="3">
-                      <UiButton
-                        :left-icon="faPlus"
-                        variant="tertiary"
-                        accent="brand"
-                        size="medium"
-                        @click="addNetworkInterface()"
-                      >
+                      <UiButton :left-icon="faPlus" variant="tertiary" accent="brand" size="medium" @click="addVif()">
                         {{ $t('new') }}
                       </UiButton>
                     </td>
@@ -372,7 +362,7 @@
                 :count="vmState.existingVdis.length + vmState.vdis.length"
                 :label="$t('vdis')"
               />
-              <VtsResource :icon="faNetworkWired" :count="vmState.networkInterfaces.length" :label="$t('interfaces')" />
+              <VtsResource :icon="faNetworkWired" :count="vmState.vifs.length" :label="$t('interfaces')" />
             </VtsResources>
           </div>
           <!-- TOASTER -->
@@ -412,10 +402,9 @@ import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
-import type { NetworkInterface, Vdi, VmState, Vif } from '@/types/xo/new-vm.type'
+import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
-import type { Branded } from '@core/types/utility.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
@@ -464,7 +453,7 @@ const isOpen = ref(false)
 const isBusy = ref(false)
 
 const { records: networks, get: getNetwork } = useNetworkStore().subscribe()
-const { getPifsByNetworkId, get: getPif } = usePifStore().subscribe()
+const { getPifsByNetworkId } = usePifStore().subscribe()
 const { records: pools } = usePoolStore().subscribe()
 const { vmsTemplatesByPool } = useVmTemplateStore().subscribe()
 const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
@@ -496,9 +485,8 @@ const vmState = reactive<VmState>({
   sshKeys: [],
   isDiskTemplateSelected: false,
   vdis: [],
-  networkInterfaces: [],
+  vifs: [],
   existingVdis: [],
-  defaultNetwork: undefined,
   pool: undefined,
 })
 
@@ -663,47 +651,46 @@ const getDefaultNetwork = (template?: XoVmTemplate): XoNetwork | undefined => {
   )
 }
 
-const getExistingInterface = (template: XoVmTemplate): NetworkInterface[] => {
-  if (template.VIFs.length > 0) {
-    return template.VIFs.reduce<NetworkInterface[]>((acc, vifId) => {
-      const vif = getVif(vifId)
-
-      if (vif === undefined) {
-        console.error('VIF not found')
-        return acc
-      }
-
-      const network = getNetwork(vif.$network)
-
-      if (network === undefined) {
-        console.error('Network not found')
-        return acc
-      }
-
-      acc.push({
-        id: vif.id,
-        interface: network.id,
-        macAddress: vif.MAC,
-      })
-
-      return acc
-    }, [])
-  }
-
-  const defaultNetwork = getDefaultNetwork(template)
-
-  if (defaultNetwork === undefined) {
+const getExistingVifs = (template: XoVmTemplate): Vif[] => {
+  if (template.VIFs.length === 0) {
     return []
   }
+  return template.VIFs.reduce<Vif[]>((acc, vifId) => {
+    const vif = getVif(vifId)
 
-  const pif = getPif(defaultNetwork.PIFs[0] as Branded<'pif'>)
-  const defaultMac = pif?.mac || ''
+    if (vif === undefined) {
+      console.error('VIF not found')
+      return acc
+    }
 
-  return [{ interface: defaultNetwork.id, macAddress: defaultMac }]
+    const network = getNetwork(vif.$network)
+
+    if (network === undefined) {
+      console.error('Network not found')
+      return acc
+    }
+
+    acc.push({
+      id: vif.id,
+      network: network.id,
+      mac: '',
+      device: vif.device,
+    })
+
+    return acc
+  }, []).sort((vif1, vif2) => {
+    if (!vif1.device || !vif2.device) {
+      return 0
+    }
+
+    return vif1.device.localeCompare(vif2.device)
+  })
 }
 
-const addNetworkInterface = () => {
-  if (!vmState.new_vm_template) return
+const addVif = () => {
+  if (!vmState.new_vm_template) {
+    return
+  }
 
   const defaultNetwork = getDefaultNetwork(vmState.new_vm_template)
 
@@ -712,10 +699,10 @@ const addNetworkInterface = () => {
     return
   }
 
-  vmState.networkInterfaces.push({
-    interface: defaultNetwork.id,
-    // change this when API will be handle empty mac adresses
-    macAddress: '',
+  vmState.vifs.push({
+    network: defaultNetwork.id,
+    // change this when API handles empty mac addresses
+    mac: '',
   })
 }
 
@@ -754,7 +741,9 @@ const isCreateVmDisabled = computed(() => {
 
 const onTemplateChange = () => {
   const template = vmState.new_vm_template
-  if (!template) return
+  if (template === undefined) {
+    return
+  }
 
   const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
 
@@ -767,7 +756,7 @@ const onTemplateChange = () => {
     vCPU: CPUs.number,
     vdis: getVmTemplateVdis(template),
     existingVdis: getExistingVdis(template),
-    networkInterfaces: getExistingInterface(template),
+    vifs: getExistingVifs(template),
     selectedVdi: undefined,
     installMode: undefined,
   })
@@ -806,49 +795,67 @@ const modifiedExistingVdis = computed(() => {
   }, [])
 })
 
+function getExistingVifsDiff(vif1: Vif, vif2: Vif) {
+  if (vif1.network !== vif2.network || vif1.mac !== vif2.mac) {
+    return {
+      network: vif2.network,
+      mac: vif2.mac?.trim() === '' ? ' ' : vif2.mac,
+    }
+  }
+
+  return undefined
+}
+
+const defaultExistingVifs = computed(() => {
+  if (!vmState.new_vm_template) {
+    return []
+  }
+
+  return getExistingVifs(vmState.new_vm_template)
+})
+
 const vifsToSend = computed(() => {
-  const result: Vif[] = []
+  const result: VifToSend[] = []
 
   if (vmState.new_vm_template === undefined) {
-    return
+    return result
   }
 
-  for (const vifId of vmState.new_vm_template.VIFs) {
-    const vif = getVif(vifId)
-    if (!vif) {
-      continue
-    }
+  // Handle existing VIFs
+  defaultExistingVifs.value.forEach(defaultVif => {
+    const currentVif = vmState.vifs.find(vif => vif.id === defaultVif.id)
 
-    const matchedInterface = vmState.networkInterfaces.find(networkInterface => networkInterface.id === vif.id)
-
-    if (!matchedInterface) {
+    if (currentVif === undefined) {
+      // VIF was deleted
       result.push({
-        device: vif.device,
+        device: defaultVif.device,
         destroy: true,
       })
-      continue
+
+      return
     }
 
-    const networkChanged = vif.$network !== matchedInterface.interface
-    const macChanged = vif.MAC !== matchedInterface.macAddress
+    const changes = getExistingVifsDiff(defaultVif, currentVif)
 
-    if (networkChanged || macChanged) {
+    if (changes) {
       result.push({
-        device: vif.device,
-        network: matchedInterface.interface,
-        mac: matchedInterface.macAddress,
+        device: defaultVif.device,
+        ...changes,
       })
     }
-  }
+  })
 
-  for (const networkInterface of vmState.networkInterfaces) {
-    if (!networkInterface.id) {
-      result.push({
-        network: networkInterface.interface,
-        mac: networkInterface.macAddress?.trim() === '' ? ' ' : networkInterface.macAddress,
+  // Handle new VIFs
+  vmState.vifs.reduce((acc, vif) => {
+    if (!vif.id) {
+      acc.push({
+        network: vif.network,
+        mac: vif.mac?.trim() === '' ? ' ' : vif.mac,
       })
     }
-  }
+
+    return acc
+  }, result)
 
   return result
 })
@@ -862,6 +869,7 @@ const vmData = computed(() => {
   const optionalFields = Object.assign(
     {},
     vdisToSend.length > 0 && { vdis: vdisToSend },
+    vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
     vmState.installMode !== 'no-config' && {
       install: {
@@ -884,8 +892,6 @@ const vmData = computed(() => {
     name_description: vmState.description,
     name_label: vmState.name,
     template: vmState.new_vm_template?.uuid,
-    // Todo: Handle in case we have less networks interfaces than templates vifs
-    vifs: vifsToSend.value,
     ...optionalFields,
   }
 })

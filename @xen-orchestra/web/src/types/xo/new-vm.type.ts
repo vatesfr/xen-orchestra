@@ -14,15 +14,14 @@ export interface Vdi {
   userdevice?: string
 }
 
-export interface NetworkInterface {
+export interface Vif {
   id?: XoVif['id']
-  interface?: XoNetwork['id']
-  macAddress: string
+  network: XoNetwork['id']
+  mac: string
   device?: string
-  destroy?: boolean
 }
 
-export interface Vif {
+export interface VifToSend {
   network?: XoNetwork['id']
   mac?: string
   device?: string
@@ -40,10 +39,9 @@ export interface VmState {
   clone: boolean
   cloudConfig?: string
   copyHostBiosStrings: boolean
-  defaultNetwork: NetworkInterface | undefined
   isDiskTemplateSelected: boolean
   networkConfig?: string
-  networkInterfaces: NetworkInterface[]
+  vifs: Vif[]
   new_vm_template: XoVmTemplate | undefined
   pool: XoPool | undefined
   ram: number
