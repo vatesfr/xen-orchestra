@@ -8,7 +8,7 @@
       <VmResource :vm />
     </div>
     <div class="column">
-      <VmVirtualisationAndBoot :vm />
+      <VmVirtualizationAndBoot :vm />
       <VmManagement :vm />
       <VmGraphics :vm />
     </div>
@@ -31,7 +31,7 @@ import VmManagement from './system/VmManagement.vue'
 import VmResource from './system/VmResource.vue'
 import VmStorageConfig from './system/VmStorageConfig.vue'
 import VmSystemNetworking from './system/VmSystemNetworking.vue'
-import VmVirtualisationAndBoot from './system/VmVirtualisationAndBoot.vue'
+import VmVirtualizationAndBoot from './system/VmVirtualizationAndBoot.vue'
 
 const uiStore = useUiStore()
 const route = useRoute()
