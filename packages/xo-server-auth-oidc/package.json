@@ -30,6 +30,6 @@
     "node": ">=12"
   },
   "dependencies": {
-    "passport-openidconnect": "^0.1.1"
+    "passport-openidconnect": "^0.1.2"
   }
 }
