@@ -61,6 +61,7 @@ import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
+import { parseDateTime } from '@core/utils/time.util.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faPlay, faStop } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo } from '@vueuse/core'
@@ -71,7 +72,7 @@ const { vm } = defineProps<{
   vm: XenApiVm
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const { isReady, getVmHost } = useVmStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
@@ -112,29 +113,30 @@ const powerState = computed(() => {
   }
 })
 
-function toIsoDate(str: string): string {
-  return str.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2}:\d{2}:\d{2}Z)$/, '$1-$2-$3T$4')
+function getValidDateTime(dateTime: string | undefined): string | undefined {
+  return dateTime === '19700101T00:00:00Z' ? undefined : dateTime
 }
 
-const startTime = computed(() => metrics.value?.start_time)
-const isoStartTime = computed(() => (startTime.value ? toIsoDate(startTime.value) : undefined))
-const startedDate = computed(() => (isoStartTime.value ? new Date(isoStartTime.value) : undefined))
-const relativeStartTime = computed(() => (startedDate.value ? useTimeAgo(startedDate.value).value : ''))
+const relativeStartTime = computed(() => {
+  const startTime = getValidDateTime(metrics.value?.start_time)
 
-const installTime = computed(() =>
-  metrics.value?.install_time === '19700101T00:00:00Z' ? undefined : metrics.value?.install_time
-)
-const isoInstallTime = computed(() => (installTime.value ? toIsoDate(installTime.value) : undefined))
-const installDate = computed(() => (isoInstallTime.value ? new Date(isoInstallTime.value) : undefined))
-const installDateFormatted = computed(() =>
-  installDate.value
-    ? installDate.value.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : t('unknown')
-)
+  if (startTime === undefined) {
+    return t('not-running')
+  }
+
+  // TODO replace by local-time-ago composable when merged
+  return useTimeAgo(new Date(parseDateTime(startTime))).value
+})
+
+const installDateFormatted = computed(() => {
+  const installTime = getValidDateTime(metrics.value?.install_time)
+
+  if (installTime === undefined) {
+    return t('unknown')
+  }
+
+  return new Intl.DateTimeFormat(locale.value, { dateStyle: 'long' }).format(new Date(parseDateTime(installTime)))
+})
 
 const ram = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))
 
