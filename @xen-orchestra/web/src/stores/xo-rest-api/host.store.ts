@@ -37,8 +37,6 @@ export const useHostStore = defineStore('host', () => {
     return hostsByPoolMap
   })
 
-  const hostsByUuid = (hostId: XoHost['id']) => baseContext.records.value.find(host => host.id === hostId)
-
   const isHostOperationPending = (host: XoHost, operations: HOST_OPERATION[] | HOST_OPERATION) => {
     const currentOperations = Object.values(host.current_operations)
 
@@ -50,7 +48,6 @@ export const useHostStore = defineStore('host', () => {
     isMasterHost,
     hostsByPool,
     isHostOperationPending,
-    hostsByUuid,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)

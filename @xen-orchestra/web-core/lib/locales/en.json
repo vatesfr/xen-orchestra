@@ -454,7 +454,7 @@
   "summary": "Summary",
   "support": "Support",
   "suspend": "Suspend",
-  "suspend-Storage-Repository": "Suspend storage repository",
+  "suspend-storage-repository": "Suspend storage repository",
   "switch-theme": "Switch theme",
   "system": "System",
   "table-actions": "Table actions",

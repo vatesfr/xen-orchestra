@@ -12,7 +12,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('affinity-host')">
       <template #value>
-        <UiLink v-if="vm.affinityHost" :icon="faServer" :to="`/host/${vm.affinityHost}`" size="small" target="_self">
+        <UiLink v-if="vm.affinityHost" :icon="faServer" :to="`/host/${vm.affinityHost}`" size="small">
           {{ affinityHostName }}
         </UiLink>
         <template v-else>
@@ -29,8 +29,8 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('protect-from-accidental-shutdown')">
       <template #value>
-        <UiInfo :accent="protectedFromAccidentalShutdown ? 'success' : 'muted'">
-          {{ protectedFromAccidentalShutdown ? $t('enabled') : $t('disabled') }}
+        <UiInfo :accent="isProtectedFromAccidentalShutdown ? 'success' : 'muted'">
+          {{ isProtectedFromAccidentalShutdown ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
@@ -62,10 +62,10 @@ import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
-const { hostsByUuid } = useHostStore().subscribe()
+const { get: getHostById } = useHostStore().subscribe()
 
-const affinityHostName = computed(() => (vm.affinityHost ? hostsByUuid(vm.affinityHost)?.name_label : ''))
-const protectedFromAccidentalShutdown = computed(
+const affinityHostName = computed(() => (vm.affinityHost ? getHostById(vm.affinityHost)?.name_label : ''))
+const isProtectedFromAccidentalShutdown = computed(
   () =>
     vm.blockedOperations.clean_reboot ||
     vm.blockedOperations.clean_shutdown ||
