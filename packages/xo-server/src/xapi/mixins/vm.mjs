@@ -21,7 +21,7 @@ import { isVmHvm, isVmRunning, makeEditObject } from '../utils.mjs'
 
 const log = createLogger('xo:server:xapi:vm')
 
-// According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
+// According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html (dead link).
 const XEN_VGA_VALUES = ['std', 'cirrus']
 const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 
