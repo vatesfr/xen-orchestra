@@ -117,7 +117,6 @@ set.params = {
 // -------------------------------------------------------------------
 
 export async function enable({ id }) {
-  this.updateXenServer(id, { enabled: true })::ignoreErrors()
   await this.connectXenServer(id)
 }
 
@@ -134,7 +133,6 @@ enable.params = {
 // -------------------------------------------------------------------
 
 export async function disable({ id }) {
-  this.updateXenServer(id, { enabled: false })::ignoreErrors()
   await this.disconnectXenServer(id)
 }
 
