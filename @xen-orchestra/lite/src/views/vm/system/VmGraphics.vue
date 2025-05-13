@@ -5,14 +5,14 @@
     </UiTitle>
     <VtsQuickInfoRow :label="$t('vga')">
       <template #value>
-        <UiInfo :accent="vga === 'std' ? 'muted' : 'success'">
-          {{ vga === 'std' ? $t('disabled') : $t('enabled') }}
+        <UiInfo :accent="vga === 'std' ? 'success' : 'muted'">
+          {{ vga === 'std' ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('video-ram')">
-      <template v-if="VideoRamValue" #value>
-        {{ `${VideoRamValue} ${$t('bytes.mi')}` }}
+      <template v-if="videoRamValue?.value" #value>
+        {{ videoRamValue.value + ' ' + (videoRamValue.prefix !== '' ? videoRamValue.prefix : $t('bytes.mi')) }}
       </template>
     </VtsQuickInfoRow>
   </UiCard>
@@ -25,10 +25,10 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
+import { computed } from 'vue'
 
-const { vm } = defineProps<{ vm: XenApiVm | undefined }>()
+const { vm } = defineProps<{ vm: XenApiVm }>()
 
-const VideoRamValue = formatSizeRaw(Number(vm?.platform.videoram ?? 4), 0)?.value
-
-const vga = vm?.platform.vga ?? 'cirrus'
+const videoRamValue = computed(() => (vm.platform.videoram ? formatSizeRaw(Number(vm.platform.videoram), 0) : null))
+const vga = computed(() => vm.platform.vga ?? 'cirrus')
 </script>
