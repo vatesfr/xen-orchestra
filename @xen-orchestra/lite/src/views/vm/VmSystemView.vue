@@ -1,6 +1,6 @@
 <template>
-  <VtsObjectNotFoundHero v-if="vm === undefined" :id type="page" :class="{ mobile: uiStore.isMobile }" />
-  <div v-else class="system" :class="className">
+  <VtsObjectNotFoundHero v-if="vm === undefined" :id type="page" />
+  <div v-else class="system" :class="{ mobile: uiStore.isMobile }">
     <div class="column">
       <VmGeneralInfo :vm />
       <VmSystemNetworking :vm />
@@ -21,7 +21,6 @@ import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import { toVariants } from '@core/utils/to-variants.util'
 import type { XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -34,10 +33,6 @@ import VmStorageConfig from './system/VmStorageConfig.vue'
 import VmSystemNetworking from './system/VmSystemNetworking.vue'
 import VmVirtualisationAndBoot from './system/VmVirtualisationAndBoot.vue'
 
-const { size } = defineProps<{
-  size: 'small' | 'large'
-}>()
-
 const uiStore = useUiStore()
 const route = useRoute()
 const { getByUuid } = useVmStore().subscribe()
@@ -46,11 +41,6 @@ usePageTitleStore().setTitle(useI18n().t('system'))
 
 const id = computed(() => route.params.uuid as XenApiVm['uuid'])
 const vm = computed(() => getByUuid(route.params.uuid as RecordUuid<'vm'>))
-const className = computed(() =>
-  toVariants({
-    size,
-  })
-)
 </script>
 
 <style scoped lang="postcss">
