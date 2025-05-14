@@ -25,7 +25,6 @@
         </template>
       </template>
     </VtsQuickInfoRow>
-
     <VtsQuickInfoRow :label="$t('crash-dump-storage-repository')">
       <template #value>
         <template v-if="defaultSr?.name_label">
@@ -37,7 +36,6 @@
         </template>
       </template>
     </VtsQuickInfoRow>
-
     <VtsQuickInfoRow :label="$t('heartbeat-storage-repository')">
       <template #value>
         <UiTagsList v-if="haSrs">
