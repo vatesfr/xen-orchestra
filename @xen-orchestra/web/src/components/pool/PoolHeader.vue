@@ -11,7 +11,11 @@
     <TabItem disabled>{{ $t('dashboard') }}</TabItem>
     <TabItem disabled>{{ $t('alarms') }}</TabItem>
     <TabItem disabled>{{ $t('stats') }}</TabItem>
-    <TabItem disabled>{{ $t('system') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/system`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ $t('system') }}
+      </TabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/networks`" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ $t('network') }}
