@@ -1,7 +1,7 @@
 <template>
-  <UiCard class="pool-licensing">
+  <UiCard class="pool-resource-management">
     <UiTitle>
-      {{ $t('licensing') }}
+      {{ $t('resource-management') }}
     </UiTitle>
     <VtsStateHero type="card" image="under-construction" />
   </UiCard>

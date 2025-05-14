@@ -4,19 +4,23 @@
       <PoolGeneralInfo :pool />
       <PoolNetworking :pool />
       <PoolStorageConfiguration :pool />
+      <PoolResourceManagement />
     </div>
     <div class="column">
-      <PoolLicensing :pool />
+      <PoolLicensing />
       <PoolManagement :pool />
+      <PoolConnections :pool />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import PoolConnections from '@/components/pool/system/PoolConnections.vue'
 import PoolGeneralInfo from '@/components/pool/system/PoolGeneralInfo.vue'
 import PoolLicensing from '@/components/pool/system/PoolLicensing.vue'
 import PoolManagement from '@/components/pool/system/PoolManagement.vue'
 import PoolNetworking from '@/components/pool/system/PoolNetworking.vue'
+import PoolResourceManagement from '@/components/pool/system/PoolResourceManagement.vue'
 import PoolStorageConfiguration from '@/components/pool/system/PoolStorageConfiguration.vue'
 import type { XoPool } from '@/types/xo/pool.type'
 import { useUiStore } from '@core/stores/ui.store'
