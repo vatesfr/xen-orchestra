@@ -12,4 +12,5 @@ export type XoPool = {
   _xapiRef: string
   default_SR?: XoSr['id']
   tags: Array<string>
+  otherConfig: Record<string, string>
 }

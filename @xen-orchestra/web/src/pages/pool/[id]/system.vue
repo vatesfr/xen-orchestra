@@ -2,6 +2,7 @@
   <div class="system" :class="{ mobile: uiStore.isMobile }">
     <div class="column">
       <PoolGeneralInfo :pool />
+      <PoolNetworking :pool />
     </div>
     <div class="column">
       <PoolLicensing :pool />
@@ -12,6 +13,7 @@
 <script setup lang="ts">
 import PoolGeneralInfo from '@/components/pool/system/PoolGeneralInfo.vue'
 import PoolLicensing from '@/components/pool/system/PoolLicensing.vue'
+import PoolNetworking from '@/components/pool/system/PoolNetworking.vue'
 import type { XoPool } from '@/types/xo/pool.type'
 import { useUiStore } from '@core/stores/ui.store'
 
