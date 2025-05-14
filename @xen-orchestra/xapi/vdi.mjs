@@ -209,11 +209,13 @@ class Vdi {
     $defer.onFailure(() => this.VDI_disconnectFromControlDomain(ref))
 
     if (format === VDI_FORMAT_RAW) {
+      const label = await this.getField('VDI', ref, 'name_label')
+
       // RAW export do not use NBD to simplify code
       assert.equal(baseRef, undefined)
       const { body } = await this.getResource(cancelToken, '/export_raw_vdi/', {
         query,
-        task: await this.task_create(`Exporting content of VDI VDI`),
+        task: await this.task_create(`Exporting content of VDI ${label}`),
       })
 
       await checkVdiExport(body)
