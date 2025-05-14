@@ -15,5 +15,8 @@ export type XoPool = {
   otherConfig: Record<string, string>
   auto_poweron: boolean
   HA_enabled: boolean
-  migrationCompression: boolean | undefined
+  migrationCompression?: boolean
+  suspendSr?: XoSr['id']
+  crashDumpSr?: XoSr['id']
+  haSrs?: Array<XoSr['id']>
 }
