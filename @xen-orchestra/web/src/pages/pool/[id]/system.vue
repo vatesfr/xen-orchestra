@@ -1,11 +1,14 @@
 <template>
   <div class="system" :class="{ mobile: uiStore.isMobile }">
-    <div class="column" />
+    <div class="column">
+      <PoolGeneralInfo :pool />
+    </div>
     <div class="column" />
   </div>
 </template>
 
 <script setup lang="ts">
+import PoolGeneralInfo from '@/components/pool/system/PoolGeneralInfo.vue'
 import type { XoPool } from '@/types/xo/pool.type'
 import { useUiStore } from '@core/stores/ui.store'
 
