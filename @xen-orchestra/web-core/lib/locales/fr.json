@@ -34,6 +34,7 @@
   "back-site-dashboard": "Revenir au tableau de bord du site",
   "backup": "Sauvegarde",
   "backup-issues": "Problèmes de sauvegarde",
+  "backup-network": "Réseau de sauvegarde",
   "backup-repository": "Dépôt de sauvegarde (local, NFS, SMB)",
   "backups": "Sauvegardes",
   "backups.jobs": "Jobs",

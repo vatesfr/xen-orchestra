@@ -34,6 +34,7 @@
   "back-site-dashboard": "Go back to your site dashboard",
   "backup": "Backup",
   "backup-issues": "Backup issues",
+  "backup-network": "Backup network",
   "backup-repository": "Backup repository (local, NFS, SMB)",
   "backups": "Backups",
   "backups.jobs": "Jobs",
