@@ -6,12 +6,12 @@
     <VtsQuickInfoRow :label="$t('backup-network')">
       <template #value>
         <UiLink
-          v-if="pool.otherConfig['xo:backupNetwork'] && backupNetworkName?.name_label"
+          v-if="pool.otherConfig['xo:backupNetwork'] && backupNetwork?.name_label"
           :icon="faNetworkWired"
           :to="`/pool/${pool.id}/networks?id=${pool.otherConfig['xo:backupNetwork']}`"
           size="small"
         >
-          {{ backupNetworkName?.name_label }}
+          {{ backupNetwork?.name_label }}
         </UiLink>
         <template v-else>
           {{ $t('none') }}
@@ -32,11 +32,13 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faNetworkWired } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
-const { pool } = defineProps<{ pool: XoPool }>()
+const { pool } = defineProps<{
+  pool: XoPool
+}>()
 
 const { get: getNetworkById } = useNetworkStore().subscribe()
 
-const backupNetworkName = computed(() =>
+const backupNetwork = computed(() =>
   pool.otherConfig['xo:backupNetwork']
     ? getNetworkById(pool.otherConfig['xo:backupNetwork'] as Branded<'network'>)
     : undefined

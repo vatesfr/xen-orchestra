@@ -13,4 +13,7 @@ export type XoPool = {
   default_SR?: XoSr['id']
   tags: Array<string>
   otherConfig: Record<string, string>
+  auto_poweron: boolean
+  HA_enabled: boolean
+  migrationCompression: boolean | undefined
 }
