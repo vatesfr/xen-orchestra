@@ -4,8 +4,9 @@
       {{ $t('cpu-usage') }}
       <template #description>{{ $t('last-week') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="loading || data.stats === undefined" type="card" />
-    <VtsErrorNoDataHero v-else-if="error" type="card" />
+    <VtsErrorNoDataHero v-if="error" type="card" />
+    <VtsLoadingHero v-else-if="loading || data.stats === undefined" type="card" />
+    <VtsNoDataHero v-else-if="cpuUsage.length === 0" type="card" />
     <VtsLinearChart v-else :data="cpuUsage" :max-value :value-formatter class="chart" />
   </UiCard>
 </template>
@@ -15,6 +16,7 @@ import { RRD_STEP_FROM_STRING, type VmStats } from '@/libs/xapi-stats.ts'
 import type { LinearChartData, ValueFormatter } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, defineAsyncComponent } from 'vue'
