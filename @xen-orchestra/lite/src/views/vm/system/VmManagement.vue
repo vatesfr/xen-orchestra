@@ -57,17 +57,17 @@ import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XenApiVm }>()
 
-const { getByOpaqueRef: getMetricsByOpaqueRef } = useHostStore().subscribe()
+const { getByOpaqueRef } = useHostStore().subscribe()
 
-const affinity = computed(() => (vm.affinity ? getMetricsByOpaqueRef(vm.affinity) : undefined))
+const affinity = computed(() => (vm.affinity ? getByOpaqueRef(vm.affinity) : undefined))
 const protectedFromAccidentalShutdown = computed(
   () =>
-    vm.blockedOperations?.clean_reboot ||
-    vm.blockedOperations?.clean_shutdown ||
-    vm.blockedOperations?.hard_reboot ||
-    vm.blockedOperations?.hard_shutdown ||
-    vm.blockedOperations?.pause ||
-    vm.blockedOperations?.suspend ||
-    vm.blockedOperations?.shutdown
+    vm.blocked_operations?.clean_reboot ||
+    vm.blocked_operations?.clean_shutdown ||
+    vm.blocked_operations?.hard_reboot ||
+    vm.blocked_operations?.hard_shutdown ||
+    vm.blocked_operations?.pause ||
+    vm.blocked_operations?.suspend ||
+    vm.blocked_operations?.shutdown
 )
 </script>

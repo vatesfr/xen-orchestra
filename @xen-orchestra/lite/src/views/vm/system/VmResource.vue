@@ -29,22 +29,18 @@ const staticMinMemoryFormated = computed(() => formatSizeRaw(vm.memory_static_mi
 const staticMaxMemoryFormated = computed(() => formatSizeRaw(vm.memory_static_max, 0))
 const dynamicMinMemoryFormated = computed(() => formatSizeRaw(vm.memory_dynamic_min, 0))
 const dynamicMaxMemoryFormated = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))
-const VMGestMetrics = computed(() => (vm.guest_metrics ? getGuestMetricsByOpaqueRef(vm.guest_metrics) : undefined))
-const VmMetrics = computed(() => (vm.metrics ? getMetricsByOpaqueRef(vm.metrics) : undefined))
+const vmGuestMetrics = computed(() => (vm.guest_metrics ? getGuestMetricsByOpaqueRef(vm.guest_metrics) : undefined))
+const vmMetrics = computed(() => (vm.metrics ? getMetricsByOpaqueRef(vm.metrics) : undefined))
 
 // @see packages/xo-server/src/xapi-object-to-xo.mjs
 const {
   value: { major, minor },
-} = computed(() => VMGestMetrics.value?.PV_drivers_version ?? {})
+} = computed(() => vmGuestMetrics.value?.PV_drivers_version ?? {})
 
-const xenTools = computed(
-  () => vm.power_state || vm.metrics || VMGestMetrics.value !== undefined || major !== undefined || minor !== undefined
-)
+const xenTools = computed(() => vmGuestMetrics.value !== undefined || major !== undefined || minor !== undefined)
 
 const maxCPU = computed(() =>
-  vm && vm.power_state && vm.metrics && xenTools && VmMetrics.value
-    ? VmMetrics.value.VCPUs_number
-    : +(vm.VCPUs_at_startup ?? 0)
+  xenTools.value && vmMetrics.value ? vmMetrics.value.VCPUs_number : +(vm.VCPUs_at_startup ?? 0)
 )
 
 const resources = computed(() => {
@@ -68,7 +64,7 @@ const resources = computed(() => {
     },
     {
       label: t('minimum-cpu-limit'),
-      value: `${vm && vm.power_state && vm.metrics && xenTools && VmMetrics.value ? +VmMetrics.value?.VCPUs_number : +vm.VCPUs_at_startup} ${t('cpus')}`,
+      value: `${xenTools.value && vmMetrics.value ? +vmMetrics.value?.VCPUs_number : +vm.VCPUs_at_startup} ${t('cpus')}`,
     },
     {
       label: t('maximum-cpu-limit'),

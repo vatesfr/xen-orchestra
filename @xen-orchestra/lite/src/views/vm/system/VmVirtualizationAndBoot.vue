@@ -28,8 +28,8 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('nested-virtualization')">
       <template #value>
-        <UiInfo :accent="NestedVirtEnabled ? 'success' : 'muted'">
-          {{ NestedVirtEnabled ? $t('enabled') : $t('disabled') }}
+        <UiInfo :accent="nestedVirtualizationEnabled ? 'success' : 'muted'">
+          {{ nestedVirtualizationEnabled ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
@@ -50,7 +50,7 @@ import { computed } from 'vue'
 const { vm } = defineProps<{ vm: XenApiVm }>()
 
 const { pool } = usePoolStore().subscribe()
-const { getByOpaqueRef: getHost } = useHostStore().subscribe()
+const { getByOpaqueRef } = useHostStore().subscribe()
 
 /**
  * @see `packages/xo-server/src/xapi/utils.mjs`:57
@@ -63,8 +63,8 @@ const virtualizationMode = computed(() =>
       : 'hvm'
 )
 
-const NestedVirtEnabled = computed(() => {
-  const poolMaster = pool.value ? getHost(pool.value.master)?.software_version.platform_version : undefined
+const nestedVirtualizationEnabled = computed(() => {
+  const poolMaster = pool.value ? getByOpaqueRef(pool.value.master)?.software_version.platform_version : undefined
   return satisfies(poolMaster ?? '', '>=3.4')
 })
 </script>

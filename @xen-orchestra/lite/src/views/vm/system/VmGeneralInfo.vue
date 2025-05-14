@@ -7,7 +7,7 @@
     <VtsQuickInfoRow :label="$t('id')" :value="vm.uuid" />
     <VtsQuickInfoRow :label="$t('description')" :value="vm.name_description" />
     <VtsQuickInfoRow :label="$t('tags')">
-      <template v-if="vm && vm.tags.length > 0" #value>
+      <template v-if="vm.tags.length > 0" #value>
         <UiTagsList>
           <UiTag v-for="tag in vm.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
         </UiTagsList>
@@ -15,7 +15,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('os-name')" :value="vm.reference_label" />
     <VtsQuickInfoRow :label="$t('os-kernel')" :value="guestMetrics?.os_version.uname" />
-    <VtsQuickInfoRow :label="$t('management-agent-version')" :value="PvVersion" />
+    <VtsQuickInfoRow :label="$t('management-agent-version')" :value="pvVersion" />
   </UiCard>
 </template>
 
@@ -31,11 +31,11 @@ import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XenApiVm }>()
 
-const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
+const { getByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 
-const guestMetrics = computed(() => (vm ? getGuestMetricsByOpaqueRef(vm.guest_metrics) : undefined))
-const PvVersion = computed(() => {
-  if (!vm || !vm.power_state || !guestMetrics.value) {
+const guestMetrics = computed(() => getByOpaqueRef(vm.guest_metrics))
+const pvVersion = computed(() => {
+  if (!guestMetrics?.value) {
     return
   }
 

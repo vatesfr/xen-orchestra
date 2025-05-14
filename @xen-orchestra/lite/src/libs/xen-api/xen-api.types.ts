@@ -253,7 +253,6 @@ export interface XenApiVm extends XenApiRecord<'vm'> {
   user_version: number
   version: number
   xenstore_data: Record<string, string>
-  blockedOperations: Record<string, string>
 }
 
 export interface XenApiVtpm extends XenApiRecord<'vtpm'> {
