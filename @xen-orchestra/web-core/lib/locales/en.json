@@ -557,6 +557,7 @@
   "virtual-tpm": "Virtual TPM (VTPM)",
   "virtualization-boot-settings": "Virtualization & boot settings",
   "virtualization-mode": "Virtualization mode",
+  "virtualization-type": "Virtualization type",
   "vlan": "VLAN",
   "vm": "VM",
   "vm-description": "VM description",
