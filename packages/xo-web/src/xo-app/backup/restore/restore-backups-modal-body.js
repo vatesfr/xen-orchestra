@@ -42,7 +42,7 @@ export default class RestoreBackupsModalBody extends Component {
           <a
             className='text-info'
             rel='noreferrer'
-            href='https://xen-orchestra.com/docs/backups.html#backup-health-check'
+            href='https://docs.xen-orchestra.com/backups#backup-health-check'
             target='_blank'
           >
             <Icon icon='info' />

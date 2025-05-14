@@ -16,7 +16,7 @@ _Incremental Backup_ and _Incremental Replication_ usually produce delta exports
 
 Nevertheless, there may be some reasons for XO to trigger a key (full) export instead:
 
-- the configured [_Full backup interval_](https://xen-orchestra.com/docs/incremental_backups.html#key-backup-interval) advanced setting has been reached for this VM
+- the configured [_Full backup interval_](incremental_backups#key-backup-interval) advanced setting has been reached for this VM
 - the _Force full backup_ is enabled for the current schedule
 - a new disk has been added to the VM (only this disk is completely exported)
 - the reference snapshot for this backup job on the source VM is missing

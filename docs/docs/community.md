@@ -1,6 +1,6 @@
 # Community support
 
-We do our best to assist users running Xen Orchestra from the sources on [our community forums](https://xcp-ng.org/forum/category/12/xen-orchestra). However there's no guarantee you will receive a solution (from us or the community), nor any guarantee on a timeframe. Usually we are responsive, but keep in mind that if you need production level support, you should consider subscribing to our [XOA offers](https://xen-orchestra.com).
+We do our best to assist users running Xen Orchestra from the sources on [our community forums](https://xcp-ng.org/forum/category/12/xen-orchestra). However there's no guarantee you will receive a solution (from us or the community), nor any guarantee on a timeframe. Usually we are responsive, but keep in mind that if you need production level support, you should consider subscribing to our [XOA offers](https://vates.tech/pricing-and-support/).
 
 :::warning
 If you installed your XO from a 3rd party script (any method outside [our official documentation](installation.md#from-the-sources)), please report your issue **first** on the 3rd party script repository. We can't waste time debugging 3rd party installers that very often lag behind our own deployment methods and fall out of date.

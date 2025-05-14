@@ -17,7 +17,7 @@ XOA is available in multiple plans:
 - Enterprise
 - Premium
 
-Higher tier support plans include faster ticket response times (and cover more features). Paid support plans and response times are based on the plan you have, plans can be [reviewed here](https://xen-orchestra.com/#!/xo-pricing).
+Higher tier support plans include faster ticket response times (and cover more features). Paid support plans and response times are based on the plan you have, plans can be [reviewed here](https://vates.tech/pricing-and-support/).
 
 :::tip
 If you have a subscription (or at least a registered free XOA), you can open a ticket describing your issue directly from your [personal account page here](https://xen-orchestra.com/#!/member/support)
@@ -29,6 +29,6 @@ With the free version of the Xen Orchestra Appliance (XOA free), **you can open 
 
 ## Community support
 
-Lastly while Xen Orchestra is free and Open Source software, supporting and developing it takes a lot of effort. If you are considering using Xen Orchestra in production, please subscribe for one of our [professional support plans](https://xen-orchestra.com/#!/xo-pricing).
+Lastly while Xen Orchestra is free and Open Source software, supporting and developing it takes a lot of effort. If you are considering using Xen Orchestra in production, please subscribe for one of our [professional support plans](https://vates.tech/pricing-and-support/).
 
 Read more in the [dedicated section for community support](community.md).

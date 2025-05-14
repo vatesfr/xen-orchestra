@@ -317,7 +317,7 @@ const NewNetwork = decorate([
                       <em>
                         <Icon icon='info' />{' '}
                         <a
-                          href='https://xen-orchestra.com/docs/sdn_controller.html#requirements'
+                          href='https://docs.xen-orchestra.com/sdn_controller#requirements'
                           target='_blank'
                           rel='noreferrer'
                         >

@@ -1415,7 +1415,7 @@
 
 ### Highlights
 
-- [Patches] Support new XenServer Updates system. See [our documentation](https://xen-orchestra.com/docs/updater.html#xenserver-updates). (PR [#7044](https://github.com/vatesfr/xen-orchestra/pull/7044))
+- [Patches] Support new XenServer Updates system. See [our documentation](https://docs.xen-orchestra.com/updater#xenserver-updates). (PR [#7044](https://github.com/vatesfr/xen-orchestra/pull/7044))
 - [Host/Advanced] New button to download system logs [#3968](https://github.com/vatesfr/xen-orchestra/issues/3968) (PR [#7048](https://github.com/vatesfr/xen-orchestra/pull/7048))
 - [Home/Hosts, Pools] Display host brand and version (PR [#7027](https://github.com/vatesfr/xen-orchestra/pull/7027))
 - [SR] Ability to reclaim space [#1204](https://github.com/vatesfr/xen-orchestra/issues/1204) (PR [#7054](https://github.com/vatesfr/xen-orchestra/pull/7054))
@@ -1526,7 +1526,7 @@
 ### Highlights
 
 - [Import/From VMWare] Support ESXi 6.5+ with snapshot (PR [#6909](https://github.com/vatesfr/xen-orchestra/pull/6909))
-- [Netbox] New major version. BREAKING: in order for this new version to work, you need to assign the type `virtualization > vminterface` to the custom field `UUID` in your Netbox instance. [See documentation](https://xen-orchestra.com/docs/advanced.html#netbox). [#6038](https://github.com/vatesfr/xen-orchestra/issues/6038) [#6135](https://github.com/vatesfr/xen-orchestra/issues/6135) [#6024](https://github.com/vatesfr/xen-orchestra/issues/6024) [#6036](https://github.com/vatesfr/xen-orchestra/issues/6036) [Forum#6070](https://xcp-ng.org/forum/topic/6070) [Forum#6149](https://xcp-ng.org/forum/topic/6149) [Forum#6332](https://xcp-ng.org/forum/topic/6332) [Forum#6902](https://xcp-ng.org/forum/topic/6902) (PR [#6950](https://github.com/vatesfr/xen-orchestra/pull/6950))
+- [Netbox] New major version. BREAKING: in order for this new version to work, you need to assign the type `virtualization > vminterface` to the custom field `UUID` in your Netbox instance. [See documentation](https://docs.xen-orchestra.com/advanced#netbox). [#6038](https://github.com/vatesfr/xen-orchestra/issues/6038) [#6135](https://github.com/vatesfr/xen-orchestra/issues/6135) [#6024](https://github.com/vatesfr/xen-orchestra/issues/6024) [#6036](https://github.com/vatesfr/xen-orchestra/issues/6036) [Forum#6070](https://xcp-ng.org/forum/topic/6070) [Forum#6149](https://xcp-ng.org/forum/topic/6149) [Forum#6332](https://xcp-ng.org/forum/topic/6332) [Forum#6902](https://xcp-ng.org/forum/topic/6902) (PR [#6950](https://github.com/vatesfr/xen-orchestra/pull/6950))
   - Synchronize VM description
   - Synchronize VM platform
   - Fix duplicated VMs in Netbox after disconnecting one pool
@@ -1749,7 +1749,7 @@
 
 - [Host] Smart reboot: suspend resident VMs, restart host and resume VMs [#6750](https://github.com/vatesfr/xen-orchestra/issues/6750) (PR [#6795](https://github.com/vatesfr/xen-orchestra/pull/6795))
 - [Backup/exports] Retry when failing to read a data block during Delta Backup, Continuous Replication, disk and OVA export when NBD is enabled [PR #6763](https://github.com/vatesfr/xen-orchestra/pull/6763)
-- [Backup/Health check] [Opt-in XenStore API](https://xen-orchestra.com/docs/backups.html#backup-health-check) to execute custom checks inside the VM (PR [#6784](https://github.com/vatesfr/xen-orchestra/pull/6784))
+- [Backup/Health check] [Opt-in XenStore API](https://docs.xen-orchestra.com/backups#backup-health-check) to execute custom checks inside the VM (PR [#6784](https://github.com/vatesfr/xen-orchestra/pull/6784))
 
 ### Enhancements
 
