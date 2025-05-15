@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  *
  * If the value is cached and not expired, it will return
@@ -9,33 +8,20 @@
  * takes too long, it resolves to `undefined` or returns the expired value based on the
  * cache's state.
  *
- * @param {Map<string, Promise<T>>} cache
- * @param {string} key
- * @param {() => Promise<T>} fn
- * @param {Object} [options]
- * @param {number} [options.timeout] - default to 5000ms
- * @param {number} [options.expiresIn] - default to 60000ms
- * @param {boolean} [options.forceRefresh] - default to `false`
- *
- * @returns {Promise<{value: T, isExpired?: boolean} | undefined>}
  */
-export const getFromAsyncCache = async (
-  cache,
-  key,
-  fn,
+export async function getFromAsyncCache<T>(
+  cache: Map<string, { current: Promise<T> | T; expires?: number; previous?: Promise<T> | T }>,
+  key: string,
+  fn: () => Promise<T>,
   { expiresIn = 60000, timeout = 5000, forceRefresh = false } = {}
-) => {
+): Promise<{ value: T | undefined; isExpired?: true } | undefined> {
   if (forceRefresh) {
     cache.delete(key)
   }
 
   const { current, expires } = cache.get(key) ?? {}
-  if (current === undefined || expires < Date.now()) {
+  if (current === undefined || (expires ?? 0) < Date.now()) {
     const _promise = fn()
-
-    if (_promise.then === undefined) {
-      throw new Error('fn need to be asynchronous')
-    }
 
     const promise = _promise.then(result => {
       cache.set(key, {
@@ -55,20 +41,24 @@ export const getFromAsyncCache = async (
   }
 
   let timeoutId
-  const timeoutPromise = new Promise(
+  const timeoutPromise = new Promise<never>(
     (resolve, reject) =>
       (timeoutId = setTimeout(() => reject(new Error('Promise timed out', { cause: 'ERR_TIMEOUT' })), timeout))
   )
 
-  const result = {}
+  const result = {} as {
+    value: T | undefined
+    isExpired?: true
+  }
+
   try {
-    result.value = await Promise.race([timeoutPromise, cache.get(key).current])
+    result.value = await Promise.race([timeoutPromise, cache.get(key)!.current])
   } catch (error) {
-    if (error.cause !== 'ERR_TIMEOUT') {
+    if (error instanceof Error && error.cause !== 'ERR_TIMEOUT') {
       throw error
     }
 
-    result.value = cache.get(key).previous
+    result.value = await cache.get(key)!.previous
     if (result.value !== undefined) {
       result.isExpired = true
     }
