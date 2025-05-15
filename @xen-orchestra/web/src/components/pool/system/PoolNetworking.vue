@@ -11,7 +11,7 @@
           :to="`/pool/${pool.id}/networks?id=${pool.otherConfig['xo:backupNetwork']}`"
           size="small"
         >
-          {{ backupNetwork?.name_label }}
+          {{ backupNetwork.name_label }}
         </UiLink>
         <template v-else>
           {{ $t('none') }}
