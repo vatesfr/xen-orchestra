@@ -125,11 +125,50 @@ export class XoaService {
     return resourcesOverview
   }
 
+  async #getPoolsStatus(): Promise<XoaDashboard['poolsStatus']> {
+    const servers = await this.#restApi.xoApp.getAllXenServers()
+    const pools = this.#restApi.getObjectsByType<XoPool>('pool')
+
+    let nConnectedServers = 0
+    let nUnreachableServers = 0
+    let nUnknownServers = 0
+    servers.forEach(server => {
+      // it may happen that some servers are marked as "connected", but no pool matches "server.pool"
+      // so they are counted as `nUnknownServers`
+      if (server.status === 'connected' && server.poolId !== undefined && pools[server.poolId] !== undefined) {
+        nConnectedServers++
+        return
+      }
+
+      if (
+        server.status === 'disconnected' &&
+        server.error !== undefined &&
+        server.error.connectedServerId === undefined
+      ) {
+        nUnreachableServers++
+        return
+      }
+
+      if (server.status === 'disconnected') {
+        return
+      }
+
+      nUnknownServers++
+    })
+
+    return {
+      connected: nConnectedServers,
+      unreachable: nUnreachableServers,
+      unknown: nUnknownServers,
+    }
+  }
+
   async getDashboard() {
     const nPools = this.#getNumberOfPools()
     const nHosts = this.#getNumberOfHosts()
     const resourcesOverview = this.#getResourcesOverview()
 
+    const poolsStatus = await this.#getPoolsStatus()
     const backupRepositories = await this.#getBackupRepositoriesSizeInfo().catch(err => {
       log.error('#getBackupRepositoriesSizeInfo failed', err)
     })
@@ -139,6 +178,7 @@ export class XoaService {
       nHosts,
       backupRepositories,
       resourcesOverview,
+      poolsStatus,
     }
   }
 }

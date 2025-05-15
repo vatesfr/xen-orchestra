@@ -54,21 +54,14 @@ export class XoaController extends Controller {
       }
     }
 
-    const pools = Object.values(app.objects.indexes.type.pool ?? {})
-    const poolIds = []
     const hosts = Object.values(app.objects.indexes.type.host ?? {})
     const srs = Object.values(app.objects.indexes.type.SR ?? {})
     const vms = Object.values(app.objects.indexes.type.VM ?? {})
-    const servers = await app.getAllXenServers()
 
     const writableSrs = srs.filter(isSrWritable)
     const nonReplicaVms = vms.filter(vm => !isReplicaVm(vm))
     const vmIdsProtected = new Set()
     const vmIdsUnprotected = new Set()
-
-    pools.forEach(pool => {
-      poolIds.push(pool.id)
-    })
 
     hosts.forEach(host => {
       if (
@@ -330,38 +323,6 @@ export class XoaController extends Controller {
       console.error(error)
     }
 
-    let nConnectedServers = 0
-    let nUnreachableServers = 0
-    let nUnknownServers = 0
-    servers.forEach(server => {
-      // it may happen that some servers are marked as "connected", but no pool matches "server.pool"
-      // so they are counted as `nUnknownServers`
-      if (server.status === 'connected' && poolIds.includes(server.poolId)) {
-        nConnectedServers++
-        return
-      }
-
-      if (
-        server.status === 'disconnected' &&
-        server.error !== undefined &&
-        server.error.connectedServerId === undefined
-      ) {
-        nUnreachableServers++
-        return
-      }
-
-      if (server.status === 'disconnected') {
-        return
-      }
-
-      nUnknownServers++
-    })
-
-    dashboard.poolsStatus = {
-      connected: nConnectedServers,
-      unreachable: nUnreachableServers,
-      unknown: nUnknownServers,
-    }
     return dashboard
   }
 
