@@ -130,7 +130,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     return backup
   }
 
-  async _transfer({ timestamp, deltaExport, sizeContainers, vm }) {
+  async _transfer({ timestamp, deltaExport, vm }) {
     const { _warmMigration } = this._settings
     const sr = this._sr
     const job = this._job
@@ -141,8 +141,12 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
       targetVmRef = await importIncrementalVm(this.#decorateVmMetadata(deltaExport), sr)
+      // size is mandatory to ensure the task have the right data
       return {
-        size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
+        size: Object.values(deltaExport.disks).reduce(
+          (sum, disk) => sum + disk.getNbGeneratedBlock() * disk.getBlockSize(),
+          0
+        ),
       }
     })
     this._targetVmRef = targetVmRef
