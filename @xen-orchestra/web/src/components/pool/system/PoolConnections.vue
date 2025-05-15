@@ -34,10 +34,10 @@ import { computed } from 'vue'
 
 const { pool } = defineProps<{ pool: XoPool }>()
 
-const { serverByPool } = useServerStore().subscribe()
+const { serversByPool } = useServerStore().subscribe()
 
 const server = computed(() => {
-  const server = serverByPool.value.get(pool.id)
+  const server = serversByPool.value.get(pool.id)
   return server && server.length > 0 ? server[0] : undefined
 })
 </script>
