@@ -45,6 +45,7 @@
 - @vates/generator-toolbox patch
 - @vates/nbd-client patch
 - @xen-orchestra/backups patch
+- @xen-orchestra/disk-transform major
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web-core minor
