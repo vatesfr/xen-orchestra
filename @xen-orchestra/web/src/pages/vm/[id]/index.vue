@@ -4,6 +4,6 @@
 // The `definePage` macro is removed during the build, leaving an empty script tag that causes the build to fail.
 definePage({
   name: '/vm/:id',
-  redirect: (to: any) => `/vm/${to.params.id}/console`,
+  redirect: (to: any) => `/vm/${to.params.id}/dashboard`,
 })
 </script>
