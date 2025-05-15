@@ -82,7 +82,6 @@ export class XoaController extends Controller {
       resourcesOverview.memorySize += host.memory.size
     })
 
-    dashboard.nHosts = hosts.length
     dashboard.nHostsEol = nHostsEol
 
     if (await app.hasFeatureAuthorization('LIST_MISSING_PATCHES')) {
