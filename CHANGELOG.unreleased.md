@@ -51,5 +51,6 @@
 - xo-server patch
 - xo-server-auth-oidc patch
 - xo-server-perf-alert patch
+- xo-web minor
 
 <!--packages-end-->
