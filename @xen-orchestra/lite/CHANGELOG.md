@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Host] Add system view (PR [#8536](https://github.com/vatesfr/xen-orchestra/pull/8536))
+
 ## **0.10.1** (2025-05-07)
 
 - [VM/New] Add possibility to add some tags in VM creation (PR [#8515](https://github.com/vatesfr/xen-orchestra/pull/8515))
