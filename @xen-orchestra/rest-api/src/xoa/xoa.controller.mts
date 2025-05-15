@@ -2,7 +2,6 @@
 import { asyncEach } from '@vates/async-each'
 import { Controller, Get, Response, Route, Security, Tags } from 'tsoa'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
-import semver from 'semver'
 import { provide } from 'inversify-binding-decorators'
 import { unauthorizedResp } from '../open-api/common/response.common.mjs'
 import { inject } from 'inversify'
@@ -43,17 +42,6 @@ export class XoaController extends Controller {
       expiresIn: app.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
     }
 
-    let hvSupportedVersions
-    let nHostsEol
-    if (typeof app.getHVSupportedVersions === 'function') {
-      try {
-        hvSupportedVersions = await app.getHVSupportedVersions()
-        nHostsEol = 0
-      } catch (error) {
-        console.error(error)
-      }
-    }
-
     const hosts = Object.values(app.objects.indexes.type.host ?? {})
     const srs = Object.values(app.objects.indexes.type.SR ?? {})
     const vms = Object.values(app.objects.indexes.type.VM ?? {})
@@ -62,17 +50,6 @@ export class XoaController extends Controller {
     const nonReplicaVms = vms.filter(vm => !isReplicaVm(vm))
     const vmIdsProtected = new Set()
     const vmIdsUnprotected = new Set()
-
-    hosts.forEach(host => {
-      if (
-        hvSupportedVersions !== undefined &&
-        !semver.satisfies(host.version, hvSupportedVersions[host.productBrand])
-      ) {
-        nHostsEol++
-      }
-    })
-
-    dashboard.nHostsEol = nHostsEol
 
     if (await app.hasFeatureAuthorization('LIST_MISSING_PATCHES')) {
       const poolsWithMissingPatches = new Set()
