@@ -3,32 +3,19 @@
     <UiTitle>
       {{ $t('software-tooling') }}
     </UiTitle>
-    <VtsCardRowKeyValue>
-      <template #key> {{ $t('version') }}</template>
-      <template #value> {{ host.version }}</template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('build-number') }}
-      </template>
-      <template #value>
-        {{ host.build }}
-      </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('toolstack-uptime') }}
-      </template>
-      <template #value>
+    <VtsQuickInfoRow :label="$t('version')" :value="host.version" />
+    <VtsQuickInfoRow :label="$t('build-number')" :value="host.build" />
+    <VtsQuickInfoRow :label="$t('toolstack-uptime')">
+      <template v-if="host.power_state === HOST_POWER_STATE.RUNNING" #value>
         <VtsRelativeTime :date="Number(host.otherConfig.agent_start_time) * 1000" />
       </template>
-    </VtsCardRowKeyValue>
+    </VtsQuickInfoRow>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import type { XoHost } from '@/types/xo/host.type.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import { HOST_POWER_STATE, type XoHost } from '@/types/xo/host.type.ts'
+import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -37,19 +24,3 @@ const { host } = defineProps<{
   host: XoHost
 }>()
 </script>
-
-<style lang="postcss" scoped>
-:deep(.key),
-:deep(.value) {
-  width: auto !important;
-  min-width: unset !important;
-}
-
-:deep(.vts-card-row-key-value) {
-  gap: 2.4rem !important;
-}
-
-.value:empty::before {
-  content: '-';
-}
-</style>

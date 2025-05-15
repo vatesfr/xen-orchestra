@@ -11,7 +11,7 @@
     <TabItem disabled>{{ $t('dashboard') }}</TabItem>
     <TabItem disabled>{{ $t('alarms') }}</TabItem>
     <TabItem disabled>{{ $t('stats') }}</TabItem>
-    <TabItem>{{ $t('system') }}</TabItem>
+    <TabItem disabled>{{ $t('system') }}</TabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/networks`" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ $t('network') }}

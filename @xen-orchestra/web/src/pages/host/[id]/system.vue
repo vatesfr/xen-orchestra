@@ -1,13 +1,17 @@
 <template>
-  <div class="system" :class="{ mobile: uiStore.isMobile }">
-    <HostSystemGeneralInformation class="general" :host />
-    <HostSystemNetworking class="networking" :host />
-    <HostSystemResourceManagement class="resource" :host />
-    <!--    Todo: wait for the licenses availability -->
-    <!--    <HostSystemLicensing class="licensing" /> -->
-    <HostSystemSoftwareTooling class="software" :host />
-    <HostSystemHardwareSpecifications class="hardware" :host />
-  </div>
+  <VtsColumns>
+    <VtsColumn>
+      <HostSystemGeneralInformation :host />
+      <HostSystemNetworking :host />
+      <HostSystemResourceManagement :host />
+    </VtsColumn>
+    <VtsColumn>
+      <!--    Todo: wait for the licenses availability -->
+      <!--    <HostSystemLicensing  /> -->
+      <HostSystemSoftwareTooling :host />
+      <HostSystemHardwareSpecifications :host />
+    </VtsColumn>
+  </VtsColumns>
 </template>
 
 <script lang="ts" setup>
@@ -18,28 +22,10 @@ import HostSystemNetworking from '@/components/host/system/HostSystemNetworking.
 import HostSystemResourceManagement from '@/components/host/system/HostSystemResourceManagement.vue'
 import HostSystemSoftwareTooling from '@/components/host/system/HostSystemSoftwareTooling.vue'
 import { type XoHost } from '@/types/xo/host.type'
-import { useUiStore } from '@core/stores/ui.store.ts'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
 
 const { host } = defineProps<{
   host: XoHost
 }>()
-
-const uiStore = useUiStore()
 </script>
-
-<style lang="postcss" scoped>
-.system {
-  column-count: 2;
-  column-gap: 0.8rem;
-  margin: 0.8rem;
-
-  & > * {
-    break-inside: avoid;
-    margin-bottom: 0.8rem;
-  }
-
-  &.mobile {
-    column-count: 1;
-  }
-}
-</style>

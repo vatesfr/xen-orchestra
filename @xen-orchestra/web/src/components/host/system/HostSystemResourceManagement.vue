@@ -3,30 +3,23 @@
     <UiTitle>
       {{ $t('resource-management') }}
     </UiTitle>
-    <VtsCardRowKeyValue>
-      <template #key> {{ $t('control-domain-memory') }}</template>
-      <template #value>
-        {{ getControllerMemoryInGb }}
-      </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('schedule-granularity') }}
-      </template>
-      <template #value>
-        <!--        Waiting for the API endpoint -->
-        <span class="value" />
-      </template>
-    </VtsCardRowKeyValue>
+    <VtsQuickInfoRow
+      :label="$t('control-domain-memory')"
+      :value="`${controllerMemory?.value} ${controllerMemory?.prefix}`"
+    />
+    <VtsQuickInfoRow :label="$t('schedule-granularity')">
+      <!--        Waiting for the API endpoint -->
+    </VtsQuickInfoRow>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import { useVmControllerStore } from '@/stores/xo-rest-api/vm-controller.store.ts'
 import type { XoHost } from '@/types/xo/host.type.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 
 const { host } = defineProps<{
@@ -35,28 +28,17 @@ const { host } = defineProps<{
 
 const { get: getController } = useVmControllerStore().subscribe()
 
-const getControllerMemoryInGb = computed(() => {
+const controllerMemory = computed(() => {
+  if (host.controlDomain === undefined) {
+    return
+  }
+
   const controllerDomain = getController(host.controlDomain)
+
   if (controllerDomain === undefined) {
     return
   }
-  const value = controllerDomain.memory.size / 1024 ** 3
-  return `${Number.isInteger(value) ? value : value.toFixed(1)} GB`
+
+  return formatSizeRaw(controllerDomain.memory.size, 2)
 })
 </script>
-
-<style lang="postcss" scoped>
-:deep(.key),
-:deep(.value) {
-  width: auto !important;
-  min-width: unset !important;
-}
-
-:deep(.vts-card-row-key-value) {
-  gap: 2.4rem !important;
-}
-
-.value:empty::before {
-  content: '-';
-}
-</style>

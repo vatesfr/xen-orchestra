@@ -1,4 +1,5 @@
 import type { XoPool } from '@/types/xo/pool.type'
+import type { XoVmController } from '@/types/xo/vm-controller.type.ts'
 import { type XoVm } from '@/types/xo/vm.type'
 import type { Branded } from '@core/types/utility.type'
 
@@ -23,7 +24,7 @@ export type XoHost = {
   enabled: boolean
   name_label: string
   name_description: string
-  controlDomain: Branded<'vm-controller'>
+  controlDomain?: XoVmController['id']
   power_state: HOST_POWER_STATE
   residentVms: XoVm['id'][]
   startTime: number
@@ -33,8 +34,11 @@ export type XoHost = {
   build: string
   multipathing: boolean
   bios_strings: {
-    'system-manufacturer': string
-    'system-product-name': string
+    'system-manufacturer'?: string
+    'system-product-name'?: string
+    'bios-version'?: string
+    'bios-vendor'?: string
+    [key: string]: string | undefined
   }
   cpus: {
     cores: number
@@ -42,9 +46,11 @@ export type XoHost = {
   }
   logging: {
     syslog_destination?: string
+    [key: string]: string | undefined
   }
   CPUs: {
-    modelname: string
+    modelname?: string
+    [key: string]: string | undefined
   }
   memory: {
     usage: number
