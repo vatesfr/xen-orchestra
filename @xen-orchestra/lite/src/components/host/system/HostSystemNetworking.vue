@@ -3,61 +3,28 @@
     <UiTitle>
       {{ $t('networking') }}
     </UiTitle>
-    <VtsCardRowKeyValue>
-      <template #key> {{ $t('ip-address') }}</template>
-      <template #value> {{ host.address }}</template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('remote-syslog') }}
-      </template>
+    <VtsQuickInfoRow :label="$t('ip-address')" :value="host.address" />
+    <VtsQuickInfoRow
+      :label="$t('remote-syslog')"
+      :value="host.logging.syslog_destination !== undefined ? host.logging.syslog_destination : $t('none')"
+    />
+    <VtsQuickInfoRow :label="$t('iscsi-iqn')" :value="host.iscsi_iqn" />
+    <VtsQuickInfoRow :label="$t('multi-pathing')">
       <template #value>
-        <span class="value"> {{ host.logging.syslog_destination }}</span>
+        <VtsEnabledState :enabled="host.multipathing" />
       </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('iscsi-iqn') }}
-      </template>
-      <template #value>
-        {{ host.iscsi_iqn }}
-      </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('multi-pathing') }}
-      </template>
-      <template #value>
-        <VtsStatusMode :status="host.multipathing" />
-      </template>
-    </VtsCardRowKeyValue>
+    </VtsQuickInfoRow>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsStatusMode from '@core/components/status-mode/VtsStatusMode.vue'
+import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
+import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
-const { host } = defineProps<{
+defineProps<{
   host: XenApiHost
 }>()
 </script>
-
-<style lang="postcss" scoped>
-:deep(.key),
-:deep(.value) {
-  width: auto !important;
-  min-width: unset !important;
-}
-
-:deep(.vts-card-row-key-value) {
-  gap: 2.4rem !important;
-}
-
-.value:empty::before {
-  content: '-';
-}
-</style>

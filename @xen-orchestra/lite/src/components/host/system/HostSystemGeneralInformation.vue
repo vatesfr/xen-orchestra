@@ -3,89 +3,56 @@
     <UiTitle>
       {{ $t('general-information') }}
     </UiTitle>
-    <VtsCardRowKeyValue>
-      <template #key> {{ $t('name') }}</template>
-      <template #value> {{ host.name_label }}</template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('id') }}
-      </template>
-      <template #value>
-        {{ host.uuid }}
-      </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('description') }}
-      </template>
-      <template #value>
-        {{ host.name_description }}
-      </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('tags') }}
-      </template>
-      <template #value>
+    <VtsQuickInfoRow :label="$t('name')" :value="host.name_label" />
+    <VtsQuickInfoRow :label="$t('uuid')" :value="host.uuid" />
+    <VtsQuickInfoRow :label="$t('description')" :value="host.name_description" />
+    <VtsQuickInfoRow :label="$t('tags')">
+      <template v-if="host.tags.length > 0" #value>
         <UiTagsList class="value">
-          <UiTag v-for="tag in host?.tags" :key="tag" accent="info" variant="secondary">
+          <UiTag v-for="tag in host.tags" :key="tag" accent="info" variant="secondary">
             {{ tag }}
           </UiTag>
         </UiTagsList>
       </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('status') }}
-      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('status')">
       <template #value>
-        <VtsStatusMode :status="isHostRunning(host)" />
+        <VtsEnabledState :enabled="isRunning" />
       </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('pool') }}
-      </template>
-      <template #value>
-        <UiObjectLink v-if="pool" :route="`/pool/${pool.uuid}/`" :icon="faCity">
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('pool')">
+      <template v-if="pool" #value>
+        <UiLink size="medium" :to="`/pool/${pool.uuid}/`" :icon="faCity">
           {{ pool.name_label }}
-        </UiObjectLink>
+        </UiLink>
       </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('primary-host') }}
-      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('primary-host')">
       <template #value>
         <template v-if="isMaster">
           <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
           {{ $t('this-host') }}
         </template>
-        <UiObjectLink v-else-if="masterHost !== undefined" :route="`/host/${masterHost.uuid}/dashboard`">
-          <template #icon>
-            <UiObjectIcon size="medium" :state="isHostRunning(masterHost) ? 'running' : 'halted'" type="host" />
-          </template>
+        <UiLink
+          v-else-if="masterHost !== undefined"
+          size="medium"
+          :to="`/host/${masterHost.uuid}/dashboard`"
+          :icon="faServer"
+        >
           {{ masterHost.name_label }}
-        </UiObjectLink>
+        </UiLink>
       </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('started') }}
-      </template>
-      <template #value>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('started')">
+      <template v-if="isRunning" #value>
         <VtsRelativeTime :date="host.other_config.boot_time * 1000" />
       </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ $t('power-on-mode') }}
-      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('power-on-mode')">
       <template #value>
-        <VtsStatusMode :status="host.power_on_mode" />
+        <VtsEnabledState :enabled="host.power_on_mode !== ''" />
       </template>
-    </VtsCardRowKeyValue>
+    </VtsQuickInfoRow>
   </UiCard>
 </template>
 
@@ -94,42 +61,25 @@ import VtsRelativeTime from '@/components/RelativeTime.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsStatusMode from '@core/components/status-mode/VtsStatusMode.vue'
+import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCircle, faCity, faStar } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faCity, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const { host } = defineProps<{
   host: XenApiHost
 }>()
 
-const { records, isMasterHost, masterHost } = usePoolStore().subscribe()
+const { pool, isMasterHost, masterHost } = usePoolStore().subscribe()
 const { isHostRunning } = useHostMetricsStore().subscribe()
 
-const pool = computed(() => records.value[0])
 const isMaster = computed(() => isMasterHost(host.$ref))
+const isRunning = computed(() => isHostRunning(host))
 </script>
-
-<style lang="postcss" scoped>
-:deep(.key),
-:deep(.value) {
-  width: auto !important;
-  min-width: unset !important;
-}
-
-:deep(.vts-card-row-key-value) {
-  gap: 2.4rem !important;
-}
-
-.value:empty::before {
-  content: '-';
-}
-</style>
