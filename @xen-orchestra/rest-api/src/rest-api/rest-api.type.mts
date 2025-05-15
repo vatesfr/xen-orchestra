@@ -82,6 +82,7 @@ export type XoApp = {
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getGroup(id: XoGroup['id']): Promise<XoGroup>
+  getHVSupportedVersions: undefined | (() => Promise<{ [key: XoHost['productBrand']]: string }>)
   getJob(id: XoJob['id']): Promise<XoJob>
   getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type']) => T
   getObjectsByType: <T extends XapiXoRecord>(
