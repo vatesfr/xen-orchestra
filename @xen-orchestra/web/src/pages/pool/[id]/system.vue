@@ -35,7 +35,6 @@ const uiStore = useUiStore()
   display: flex;
   gap: 0.8rem;
   padding: 0.8rem;
-  width: 100%;
   flex-direction: row;
 
   .column {

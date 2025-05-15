@@ -38,6 +38,6 @@ const { serverByPool } = useServerStore().subscribe()
 
 const server = computed(() => {
   const server = serverByPool.value.get(pool.id)
-  return server ? server[0] : undefined
+  return server && server.length > 0 ? server[0] : undefined
 })
 </script>
