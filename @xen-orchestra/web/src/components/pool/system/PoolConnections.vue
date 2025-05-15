@@ -8,16 +8,12 @@
     <VtsQuickInfoRow :label="$t('username')" :value="server?.username" />
     <VtsQuickInfoRow :label="$t('read-only')">
       <template #value>
-        <UiInfo :accent="server?.readOnly ? 'success' : 'muted'">
-          {{ server?.readOnly ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="server?.readOnly" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('self-signed-certificates')">
       <template #value>
-        <UiInfo :accent="server?.allowUnauthorized ? 'success' : 'muted'">
-          {{ server?.allowUnauthorized ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="server?.allowUnauthorized" />
       </template>
     </VtsQuickInfoRow>
   </UiCard>
@@ -26,9 +22,9 @@
 <script setup lang="ts">
 import { useServerStore } from '@/stores/xo-rest-api/server.store'
 import type { XoPool } from '@/types/xo/pool.type'
+import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
 
