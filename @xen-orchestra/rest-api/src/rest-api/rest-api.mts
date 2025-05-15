@@ -25,7 +25,10 @@ export class RestApi {
     return this.#xoApp.getObject(id, type)
   }
 
-  getObjectsByType<T extends XapiXoRecord>(type: T['type'], opts?: Parameters<XoApp['getObjectsByType']>[1]) {
+  getObjectsByType<T extends XapiXoRecord>(
+    type: T['type'],
+    opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
+  ) {
     return this.#xoApp.getObjectsByType(type, opts)
   }
 

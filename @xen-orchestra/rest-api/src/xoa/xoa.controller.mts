@@ -65,10 +65,8 @@ export class XoaController extends Controller {
     const nonReplicaVms = vms.filter(vm => !isReplicaVm(vm))
     const vmIdsProtected = new Set()
     const vmIdsUnprotected = new Set()
-    const resourcesOverview = { nCpus: 0, memorySize: 0, srSize: 0 }
 
     pools.forEach(pool => {
-      resourcesOverview.nCpus += pool.cpus.cores
       poolIds.push(pool.id)
     })
 
@@ -79,7 +77,6 @@ export class XoaController extends Controller {
       ) {
         nHostsEol++
       }
-      resourcesOverview.memorySize += host.memory.size
     })
 
     dashboard.nHostsEol = nHostsEol
@@ -167,10 +164,8 @@ export class XoaController extends Controller {
 
     storageRepositoriesSize.available = storageRepositoriesSize.total - storageRepositoriesSize.used
     storageRepositoriesSize.other = storageRepositoriesSize.used - storageRepositoriesSize.replicated
-    resourcesOverview.srSize = storageRepositoriesSize.total
 
     dashboard.storageRepositories = { size: storageRepositoriesSize }
-    dashboard.resourcesOverview = resourcesOverview
 
     async function _jobHasAtLeastOneScheduleEnabled(job) {
       for (const maybeScheduleId in job.settings) {
