@@ -68,7 +68,7 @@ export class XapiProgressHandler {
 
   /**
    * avoid spamming the xapi task api
-   * @param {number} progress number between 0 and 100
+   * @param {number} progress number between 0 and 1
    * @returns {Promise<void>}
    */
   async setProgress(progress) {
@@ -76,7 +76,7 @@ export class XapiProgressHandler {
       await this.start()
       return
     }
-    if (progress < 0 || progress > 100) {
+    if (progress < 0 || progress > 1) {
       return
     }
     if (

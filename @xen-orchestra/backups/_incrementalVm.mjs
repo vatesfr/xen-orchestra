@@ -181,7 +181,7 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
     let newVdi
 
     if (vdi.baseVdi !== undefined) {
-      newVdi = await xapi.getRecord('VDI', await vdi.baseVdi.$clone())
+      newVdi = await xapi.getRecord('VDI', await xapi.VDI_clone(vdi.baseVdi.$ref))
       $defer.onFailure(() => newVdi.$destroy())
 
       await newVdi.update_other_config(COPY_OF, vdi.uuid)

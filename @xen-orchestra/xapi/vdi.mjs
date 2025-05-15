@@ -208,14 +208,14 @@ class Vdi {
 
     $defer.onFailure(() => this.VDI_disconnectFromControlDomain(ref))
 
+    const label = await this.getField('VDI', ref, 'name_label')
     if (format === VDI_FORMAT_RAW) {
-      const label = await this.getField('VDI', ref, 'name_label')
 
       // RAW export do not use NBD to simplify code
       assert.equal(baseRef, undefined)
       const { body } = await this.getResource(cancelToken, '/export_raw_vdi/', {
         query,
-        task: await this.task_create(`Exporting content of VDI ${label}`),
+        task: await this.task_create(`Exporting content of VDI as raw stream`),
       })
 
       await checkVdiExport(body)
@@ -232,7 +232,7 @@ class Vdi {
     const stream = (
       await this.getResource(cancelToken, '/export_raw_vdi/', {
         query,
-        task: await this.task_create(`Exporting content of VDI `),
+        task: await this.task_create(`Exporting content of VDI  ${label} as VHD stream`),
       })
     ).body
 

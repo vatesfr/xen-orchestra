@@ -27,7 +27,7 @@ export class ReadAhead extends RandomDiskPassthrough {
       try{
         for (const index of blockIndexes) {
           counter++
-          await self.progressHandler?.setProgress(counter *100/ blockIndexes.length)
+          await self.progressHandler?.setProgress(counter/ blockIndexes.length)
           if (preloaded.length < PRELOAD_SIZE) {
             preloaded.push(self.source.readBlock(index))
           }

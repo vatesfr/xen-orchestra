@@ -82,7 +82,8 @@ export class XapiDiskSource extends DiskPassthrough {
     }
     this.#useNbd = true
     const readAhead = new ReadAhead(source)
-    readAhead.progressHandler = new XapiProgressHandler(xapi, 'NBD transfer')
+    const label = await xapi.getField('VDI', vdiRef, 'name_label')
+    readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD`)
     return readAhead
   }
 
@@ -129,7 +130,8 @@ export class XapiDiskSource extends DiskPassthrough {
       this.#useNbd = true
       this.#useCbt = true
       const readAhead = new ReadAhead(source)
-      readAhead.progressHandler = new XapiProgressHandler(xapi, 'NBD transfer')
+      const label = await xapi.getField('VDI', vdiRef, 'name_label')
+      readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD+CBT`)
       return readAhead
     } catch (error) {
       warn('openNbdCBT', error)

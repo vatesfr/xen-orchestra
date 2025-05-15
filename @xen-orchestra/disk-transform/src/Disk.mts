@@ -100,9 +100,9 @@ export abstract class RandomAccessDisk extends Disk {
       const indexes = this.getBlockIndexes()
       for (let i = 0; i < indexes.length; i++) {
         yield this.readBlock(indexes[i])
-        await this.progressHandler?.setProgress(i *100/ indexes.length)
+        await this.progressHandler?.setProgress(i / indexes.length)
       }
-      await this.progressHandler?.setProgress(100)
+      await this.progressHandler?.setProgress(1)
     } finally {
       await this.progressHandler?.done()
       await this.close()
