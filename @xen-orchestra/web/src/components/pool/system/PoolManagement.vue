@@ -14,17 +14,17 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('auto-power')">
-      <template #value>
+      <template v-if="pool.auto_poweron !== undefined" #value>
         <VtsEnabledState :enabled="pool.auto_poweron" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('high-availability')">
-      <template #value>
+      <template v-if="pool.migrationCompression !== undefined" #value>
         <VtsEnabledState :enabled="pool.migrationCompression" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('migration-compression')">
-      <template #value>
+      <template v-if="pool.migrationCompression !== undefined" #value>
         <VtsEnabledState :enabled="pool.migrationCompression" />
       </template>
     </VtsQuickInfoRow>

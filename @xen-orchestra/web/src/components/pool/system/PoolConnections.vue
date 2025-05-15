@@ -7,13 +7,13 @@
     <VtsQuickInfoRow :label="$t('proxy-url')" :value="server?.httpProxy" />
     <VtsQuickInfoRow :label="$t('username')" :value="server?.username" />
     <VtsQuickInfoRow :label="$t('read-only')">
-      <template #value>
-        <VtsEnabledState :enabled="server?.readOnly" />
+      <template v-if="server?.readOnly !== undefined" #value>
+        <VtsEnabledState :enabled="server?.readOnly ?? false" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('self-signed-certificates')">
-      <template #value>
-        <VtsEnabledState :enabled="server?.allowUnauthorized" />
+      <template v-if="server?.readOnly !== undefined" #value>
+        <VtsEnabledState :enabled="server?.allowUnauthorized ?? false" />
       </template>
     </VtsQuickInfoRow>
   </UiCard>

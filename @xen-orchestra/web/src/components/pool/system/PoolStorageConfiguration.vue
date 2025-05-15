@@ -5,10 +5,10 @@
     </UiTitle>
     <VtsQuickInfoRow :label="$t('default-storage-repository')">
       <template #value>
-        <template v-if="defaultSr?.name_label">
-          <!-- add link when sr pages is created -->
+        <!-- bad icon -->
+        <UiLink v-if="defaultSr?.id" :icon="faServer" size="small">
           {{ defaultSr?.name_label }}
-        </template>
+        </UiLink>
         <template v-else>
           {{ $t('none') }}
         </template>
@@ -16,10 +16,10 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('suspend-storage-repository')">
       <template #value>
-        <template v-if="defaultSr?.name_label">
-          <!-- add link when sr pages is created -->
+        <!-- bad icon -->
+        <UiLink v-if="suspendSr?.id" :icon="faServer" size="small">
           {{ suspendSr?.name_label }}
-        </template>
+        </UiLink>
         <template v-else>
           {{ $t('none') }}
         </template>
@@ -27,10 +27,10 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('crash-dump-storage-repository')">
       <template #value>
-        <template v-if="defaultSr?.name_label">
-          <!-- add link when sr pages is created -->
+        <!-- bad icon -->
+        <UiLink v-if="crashDumpSr?.id" :icon="faServer" size="small">
           {{ crashDumpSr?.name_label }}
-        </template>
+        </UiLink>
         <template v-else>
           {{ $t('none') }}
         </template>
@@ -40,8 +40,15 @@
       <template #value>
         <UiTagsList v-if="haSrs">
           <UiTag v-for="haSr in haSrs" :key="haSr?.id" accent="info" variant="secondary">
-            <!-- add link when sr pages is created -->
-            {{ haSr?.name_label }}
+            <template #default>
+              <!-- bad icon -->
+              <UiLink v-if="haSr?.id" :icon="faServer" size="small">
+                {{ haSr?.name_label }}
+              </UiLink>
+              <template v-else>
+                {{ $t('none') }}
+              </template>
+            </template>
           </UiTag>
         </UiTagsList>
         <template v-else>
@@ -57,9 +64,11 @@ import { useSrStore } from '@/stores/xo-rest-api/sr.store'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const { pool } = defineProps<{
