@@ -131,6 +131,17 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
   }
 }
 
+export type XoBackupRepository = {
+  benchmarks?: { readRate: number; timestamp: number; writeRate: number }[]
+  enabled: boolean
+  error?: Record<string, unknown>
+  id: Branded<'backup-repository'>
+  name: string
+  options?: string
+  proxy?: XoProxy['id']
+  url: string
+}
+
 export type XoGroup = {
   id: Branded<'group'>
   name: string
@@ -328,6 +339,10 @@ export type XoPool = BaseXapiXo & {
   vtpmSupported: boolean
   xosanPackInstallationTime: number | null
   zstdSupported: boolean
+}
+
+export type XoProxy = {
+  id: Branded<'proxy'>
 }
 
 export type XoJob = {
@@ -534,6 +549,6 @@ export type XapiXoRecord =
   | XoVmTemplate
   | XoVtpm
 
-export type NonXapiXoRecord = XoGroup | XoJob | XoSchedule | XoServer | XoUser
+export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord

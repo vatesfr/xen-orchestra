@@ -1,3 +1,12 @@
+export type DashboardBackupRepositoriesSizeInfo = {
+  s3: {
+    size: {
+      backups: number
+    }
+  }
+  other: { size: { available: number; backups: number; other: number; total: number; used: number } }
+}
+
 export type XoaDashboard = {
   nPools: number
   nHosts: number
@@ -6,22 +15,7 @@ export type XoaDashboard = {
     nHostsWithMissingPatches: number
     nPoolsWithMissingPatches: number
   }
-  backupRepositories?: {
-    s3: {
-      size: {
-        backups: number
-      }
-    }
-    other: {
-      size: {
-        available: number
-        backups: number
-        other: number
-        total: number
-        used: number
-      }
-    }
-  }
+  backupRepositories?: DashboardBackupRepositoriesSizeInfo
   storageRepositories: {
     size: {
       available: number
