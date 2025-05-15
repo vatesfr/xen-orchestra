@@ -42,6 +42,7 @@
 
 <!--packages-start-->
 
+- @vates/generator-toolbox patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
