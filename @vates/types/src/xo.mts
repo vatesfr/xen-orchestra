@@ -360,9 +360,9 @@ export type XoSr = BaseXapiXo & {
   name_description: string
   name_label: string
   other_config: Record<string, string>
-  physical_usage: number | null
+  physical_usage: number
   shared: boolean
-  size: number | null
+  size: number
   sm_config: Record<string, string>
   SR_type: string
   tags: string[]

@@ -3,9 +3,9 @@ import { parse } from 'xo-remote-parser'
 
 import { getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { DashboardBackupRepositoriesSizeInfo } from './xoa.type.mjs'
+import { DashboardBackupRepositoriesSizeInfo, XoaDashboard } from './xoa.type.mjs'
 import { MaybePromise } from '../helpers/helper.type.mjs'
-import { XoHost, XoPool } from '@vates/types'
+import { XoHost, XoPool, XoSr } from '@vates/types'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -94,9 +94,41 @@ export class XoaService {
     return Object.keys(hosts).length
   }
 
+  #getResourcesOverview(): XoaDashboard['resourcesOverview'] {
+    const pools = Object.values(this.#restApi.getObjectsByType<XoPool>('pool'))
+    const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host'))
+    const writableSrs = Object.values(
+      this.#restApi.getObjectsByType<XoSr>('SR', {
+        filter: sr => sr.content_type !== 'iso' && sr.size > 0,
+      })
+    )
+
+    const maxLenght = Math.max(hosts.length, writableSrs.length)
+
+    const resourcesOverview = { nCpus: 0, memorySize: 0, srSize: 0 }
+    for (let index = 0; index < maxLenght; index++) {
+      const pool = pools[index]
+      const host = hosts[index]
+      const sr = writableSrs[index]
+
+      if (pool !== undefined) {
+        resourcesOverview.nCpus += pool.cpus.cores ?? 0
+      }
+      if (host !== undefined) {
+        resourcesOverview.memorySize += host.memory.size
+      }
+      if (sr !== undefined) {
+        resourcesOverview.srSize += sr.size
+      }
+    }
+
+    return resourcesOverview
+  }
+
   async getDashboard() {
     const nPools = this.#getNumberOfPools()
     const nHosts = this.#getNumberOfHosts()
+    const resourcesOverview = this.#getResourcesOverview()
 
     const backupRepositories = await this.#getBackupRepositoriesSizeInfo().catch(err => {
       log.error('#getBackupRepositoriesSizeInfo failed', err)
@@ -106,6 +138,7 @@ export class XoaService {
       nPools,
       nHosts,
       backupRepositories,
+      resourcesOverview,
     }
   }
 }
