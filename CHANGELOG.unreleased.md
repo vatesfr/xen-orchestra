@@ -43,6 +43,7 @@
 <!--packages-start-->
 
 - @vates/generator-toolbox patch
+- @vates/nbd-client patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
