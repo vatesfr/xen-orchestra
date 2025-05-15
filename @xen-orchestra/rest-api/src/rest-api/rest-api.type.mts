@@ -14,7 +14,17 @@ import type {
   XenApiVmWrapped,
   XenApiVtpmWrapped,
 } from '@vates/types/xen-api'
-import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoSchedule, XoJob, XoGroup } from '@vates/types/xo'
+import type {
+  XoBackupRepository,
+  XoHost,
+  XoServer,
+  XoUser,
+  XapiXoRecord,
+  XoVm,
+  XoSchedule,
+  XoJob,
+  XoGroup,
+} from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
 
@@ -38,6 +48,9 @@ type XapiRecordByXapiXoRecord = {
 }
 
 export type XoApp = {
+  config: {
+    getOptionalDuration(path: string): number | undefined
+  }
   tasks: EventEmitter & {
     create: (params: { name: string; objectId?: string; type?: string }) => Task
   }
@@ -49,6 +62,22 @@ export type XoApp = {
     opts?: { bypassOtp?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
   getAllGroups(): Promise<XoGroup[]>
+  getAllRemotes(): Promise<XoBackupRepository[]>
+  getAllRemotesInfo(): Promise<
+    Record<
+      XoBackupRepository['id'],
+      {
+        size: number
+        used: number
+        available: number
+        encryption: {
+          algorithm: string
+          isLegacy: boolean
+          recommanded: string
+        }
+      }
+    >
+  >
   getAllSchedules(): Promise<XoSchedule[]>
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
@@ -59,6 +88,7 @@ export type XoApp = {
     type: T['type'],
     opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
   ) => Record<T['id'], T>
+  getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
   getUser: (id: XoUser['id']) => Promise<XoUser>
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
