@@ -5,6 +5,7 @@ import { getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { DashboardBackupRepositoriesSizeInfo } from './xoa.type.mjs'
 import { MaybePromise } from '../helpers/helper.type.mjs'
+import { XoPool } from '@vates/types'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -83,12 +84,20 @@ export class XoaService {
     }
   }
 
+  #getNumberOfPools() {
+    const pools = this.#restApi.getObjectsByType<XoPool>('pool')
+    return Object.keys(pools).length
+  }
+
   async getDashboard() {
+    const nPools = this.#getNumberOfPools()
+
     const backupRepositories = await this.#getBackupRepositoriesSizeInfo().catch(err => {
       log.error('#getBackupRepositoriesSizeInfo failed', err)
     })
 
     return {
+      nPools,
       backupRepositories,
     }
   }
