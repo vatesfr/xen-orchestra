@@ -129,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import { useNetworkStore } from '@/stores/xo-rest-api/network.store.ts'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store.ts'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
 import type { XoVif } from '@/types/xo/vif.type.ts'
@@ -143,10 +143,10 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import useMultiSelect from '@core/composables/table/multi-select.composable'
-import { useTable } from '@core/composables/table.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
+import { useTable } from '@core/composables/table.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
