@@ -74,7 +74,7 @@ type BaseXoVm = BaseXapiXo & {
   isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
   high_availability: string
-  installTime?: number
+  installTime?: number | null
   isFirmwareSupported: boolean
   memory: {
     dynamic: number[]
@@ -100,7 +100,7 @@ type BaseXoVm = BaseXapiXo & {
   secureBoot: boolean
   snapshots: XoVmSnapshot['id'][]
   startDelay: number
-  startTime?: number
+  startTime?: number | null
   suspendSr?: XoSr['id']
   tags: string[]
   vga?: string

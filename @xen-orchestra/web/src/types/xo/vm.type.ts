@@ -33,7 +33,7 @@ export type XoVm = {
   name_description: string
   power_state: VM_POWER_STATE
   addresses: Record<string, string>
-  mainIpAddress: string
+  mainIpAddress?: string
   other: { disable_pv_vnc: string }
   CPUs: {
     max: number
@@ -55,6 +55,9 @@ export type XoVm = {
   high_availability: 'best-effort' | 'restart' | ''
   auto_poweron: boolean
   startDelay: number
+  startTime?: number | null
+  installTime?: number | null
+  pvDriversDetected?: boolean
   vga: 'std' | 'cirrus'
   videoram?: number
   pvDriversVersion?: string
