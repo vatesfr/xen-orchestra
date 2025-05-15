@@ -82,7 +82,6 @@ export class XoaController extends Controller {
       resourcesOverview.memorySize += host.memory.size
     })
 
-    dashboard.nPools = pools.length
     dashboard.nHosts = hosts.length
     dashboard.nHostsEol = nHostsEol
 
