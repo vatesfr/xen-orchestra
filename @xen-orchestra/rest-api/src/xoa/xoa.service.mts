@@ -6,6 +6,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { DashboardBackupRepositoriesSizeInfo, XoaDashboard } from './xoa.type.mjs'
 import { MaybePromise } from '../helpers/helper.type.mjs'
 import { XoHost, XoPool, XoSr } from '@vates/types'
+import semver from 'semver'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -163,6 +164,28 @@ export class XoaService {
     }
   }
 
+  async #getNumberOfEolHosts(): Promise<XoaDashboard['nHostsEol']> {
+    const getHVSupportedVersions = this.#restApi.xoApp.getHVSupportedVersions
+
+    if (getHVSupportedVersions === undefined) {
+      return
+    }
+
+    const hvSupportedVersions = await getHVSupportedVersions()
+
+    const hosts = this.#restApi.getObjectsByType<XoHost>('host')
+    let nHostsEol = 0
+
+    for (const hostId in hosts) {
+      const host = hosts[hostId as XoHost['id']]
+      if (!semver.satisfies(host.version, hvSupportedVersions[host.productBrand])) {
+        nHostsEol++
+      }
+    }
+
+    return nHostsEol
+  }
+
   async getDashboard() {
     const nPools = this.#getNumberOfPools()
     const nHosts = this.#getNumberOfHosts()
@@ -172,6 +195,9 @@ export class XoaService {
     const backupRepositories = await this.#getBackupRepositoriesSizeInfo().catch(err => {
       log.error('#getBackupRepositoriesSizeInfo failed', err)
     })
+    const nHostsEol = await this.#getNumberOfEolHosts().catch(err => {
+      log.err('#getNumberOfEolHosts failed', err)
+    })
 
     return {
       nPools,
@@ -179,6 +205,7 @@ export class XoaService {
       backupRepositories,
       resourcesOverview,
       poolsStatus,
+      nHostsEol,
     }
   }
 }
