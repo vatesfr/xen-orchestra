@@ -9,9 +9,9 @@ import { inject } from 'inversify'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import groupBy from 'lodash/groupBy.js'
-import { parse } from 'xo-remote-parser'
 import { createPredicate } from 'value-matcher'
 import { XoaDashboard } from './xoa.type.mjs'
+import { XoaService } from './xoa.service.mjs'
 
 const DASHBOARD_CACHE = new Map()
 
@@ -26,10 +26,12 @@ export const vmContainsNoBakTag = vm => vm.tags.some(t => t.split('=', 1)[0] ===
 @provide(XoaController)
 export class XoaController extends Controller {
   #restApi: RestApi
+  #xoaService: XoaService
 
-  constructor(@inject(RestApi) restApi: RestApi) {
+  constructor(@inject(RestApi) restApi: RestApi, @inject(XoaService) xoaService: XoaService) {
     super()
     this.#restApi = restApi
+    this.#xoaService = xoaService
   }
 
   // @
@@ -107,53 +109,6 @@ export class XoaController extends Controller {
       }
 
       dashboard.missingPatches = missingPatches
-    }
-
-    try {
-      const brResult = await getFromAsyncCache(
-        DASHBOARD_CACHE,
-        'backupRepositories',
-        async () => {
-          const s3Brsize = { backups: 0 }
-          const otherBrSize = { available: 0, backups: 0, other: 0, total: 0, used: 0 }
-
-          const backupRepositories = await app.getAllRemotes()
-          const backupRepositoriesInfo = await app.getAllRemotesInfo()
-
-          for (const backupRepository of backupRepositories) {
-            const { type } = parse(backupRepository.url)
-            const backupRepositoryInfo = backupRepositoriesInfo[backupRepository.id]
-
-            if (!backupRepository.enabled || backupRepositoryInfo === undefined) {
-              continue
-            }
-
-            const totalBackupSize = await app.getTotalBackupSizeOnRemote(backupRepository.id)
-
-            const { available, size, used } = backupRepositoryInfo
-
-            const isS3 = type === 's3'
-            const target = isS3 ? s3Brsize : otherBrSize
-
-            target.backups += totalBackupSize.onDisk
-            if (!isS3) {
-              target.available += available
-              target.other += used - totalBackupSize.onDisk
-              target.total += size
-              target.used += used
-            }
-          }
-
-          return { s3: { size: s3Brsize }, other: { size: otherBrSize } }
-        },
-        dashboardCacheOps
-      )
-
-      if (brResult.value !== undefined) {
-        dashboard.backupRepositories = { ...brResult.value, isExpired: brResult.isExpired }
-      }
-    } catch (error) {
-      console.error(error)
     }
 
     function isReplicaVmInVdb($VBDs) {
@@ -418,8 +373,9 @@ export class XoaController extends Controller {
   }
 
   @Get('dashboard')
-  async getDashboard(): Promise<XoaDashboard> {
-    const dashboard = await this._getDashboardStats()
-    return dashboard
+  async getDashboard(): XoaDashboard {
+    const _dashboard = await this._getDashboardStats()
+    const dashboard = await this.#xoaService.getDashboard()
+    return { ..._dashboard, ...dashboard }
   }
 }
