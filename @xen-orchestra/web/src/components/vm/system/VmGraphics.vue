@@ -5,9 +5,7 @@
     </UiTitle>
     <VtsQuickInfoRow :label="$t('vga')">
       <template #value>
-        <UiInfo :accent="vm.vga === 'std' ? 'success' : 'muted'">
-          {{ vm.vga === 'std' ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.vga === 'std'" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('video-ram')">
@@ -22,8 +20,8 @@
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { computed } from 'vue'
 
