@@ -12,10 +12,12 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **XO 6:**
+
   - [VM/system] Display system information in vm/system tab (PR [#8522](https://github.com/vatesfr/xen-orchestra/pull/8522))
   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
 
 - [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
+- [Netbox] Support version 4.3.x
 
 ### Bug fixes
 
@@ -51,6 +53,7 @@
 - @xen-orchestra/web-core minor
 - xo-server patch
 - xo-server-auth-oidc patch
+- xo-server-netbox minor
 - xo-server-perf-alert patch
 - xo-web minor
 
