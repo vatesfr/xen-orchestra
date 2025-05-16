@@ -1,13 +1,13 @@
 <template>
   <UiCard>
     <UiCardTitle>
-      {{ $t('disk-throughput') }}
+      {{ $t('vdi-throughput') }}
       <template #description>{{ $t('last-week') }}</template>
     </UiCardTitle>
-    <VtsErrorNoDataHero v-if="error" type="card" />
-    <VtsLoadingHero v-else-if="loading || data.stats === undefined" type="card" />
-    <VtsNoDataHero v-else-if="diskUsage.length === 0" type="card" />
-    <VtsLinearChart v-else :data="diskUsage" :max-value :value-formatter="byteFormatter" />
+    <VtsLoadingHero v-if="loading || data.stats === undefined" type="card" />
+    <VtsErrorNoDataHero v-else-if="error" type="card" />
+    <VtsNoDataHero v-else-if="vdiUsage.length === 0" type="card" />
+    <VtsLinearChart v-else :data="vdiUsage" :max-value :value-formatter="byteFormatter" />
   </UiCard>
 </template>
 
@@ -37,7 +37,7 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
-const diskUsage = computed<LinearChartData>(() => {
+const vdiUsage = computed<LinearChartData>(() => {
   const { stats, timestampStart } = data
 
   const { xvds } = stats ?? {}
@@ -46,8 +46,8 @@ const diskUsage = computed<LinearChartData>(() => {
     return []
   }
 
-  const addDiskData = (type: 'r' | 'w') => ({
-    label: type === 'r' ? t('disk-read') : t('disk-write'),
+  const addVdiData = (type: 'r' | 'w') => ({
+    label: type === 'r' ? t('vdi-read') : t('vdi-write'),
 
     data: Object.values(xvds[type])[0].map((_, index) => ({
       timestamp:
@@ -59,11 +59,11 @@ const diskUsage = computed<LinearChartData>(() => {
     })),
   })
 
-  return [addDiskData('r'), addDiskData('w')]
+  return [addVdiData('r'), addVdiData('w')]
 })
 
 const maxValue = computed(() => {
-  const values = diskUsage.value.reduce(
+  const values = vdiUsage.value.reduce(
     (acc, series) => [...acc, ...series.data.map(item => item.value)],
     [] as number[]
   )

@@ -9,17 +9,17 @@
       <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="lastError" :loading="isFetching" />
       <VmDashboardRamUsageChart class="ram-usage-chart" :data :error="lastError" :loading="isFetching" />
       <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error="lastError" :loading="isFetching" />
-      <VmDashboardDiskUsageChart class="disk-usage-chart" :data :error="lastError" :loading="isFetching" />
+      <VmDashboardVdiUsageChart class="disk-usage-chart" :data :error="lastError" :loading="isFetching" />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import VmDashboardCpuUsageChart from '@/components/vm/dashboard/VmDashboardCpuUsageChart.vue'
-import VmDashboardDiskUsageChart from '@/components/vm/dashboard/VmDashboardDiskUsageChart.vue'
 import VmDashboardNetworkUsageChart from '@/components/vm/dashboard/VmDashboardNetworkUsageChart.vue'
 import VmDashboardQuickInfo from '@/components/vm/dashboard/VmDashboardQuickInfo.vue'
 import VmDashboardRamUsageChart from '@/components/vm/dashboard/VmDashboardRamUsageChart.vue'
+import VmDashboardVdiUsageChart from '@/components/vm/dashboard/VmDashboardVdiUsageChart.vue'
 import useFetchStats from '@/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/libs/xapi-stats.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
