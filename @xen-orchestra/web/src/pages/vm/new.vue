@@ -701,7 +701,6 @@ const addVif = () => {
 
   vmState.vifs.push({
     network: defaultNetwork.id,
-    // change this when API handles empty mac addresses
     mac: '',
   })
 }
@@ -799,6 +798,7 @@ function getExistingVifsDiff(vif1: Vif, vif2: Vif) {
   if (vif1.network !== vif2.network || vif1.mac !== vif2.mac) {
     return {
       network: vif2.network,
+      // change this when API handles empty mac addresses
       mac: vif2.mac?.trim() === '' ? ' ' : vif2.mac,
     }
   }
@@ -850,6 +850,7 @@ const vifsToSend = computed(() => {
     if (!vif.id) {
       acc.push({
         network: vif.network,
+        // change this when API handles empty mac addresses
         mac: vif.mac?.trim() === '' ? ' ' : vif.mac,
       })
     }
