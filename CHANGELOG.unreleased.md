@@ -17,7 +17,7 @@
   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
 
 - [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
-- [Netbox] Support version 4.3.x
+- [Netbox] Support version 4.3.x (PR [#8588](https://github.com/vatesfr/xen-orchestra/pull/8588))
 
 ### Bug fixes
 
