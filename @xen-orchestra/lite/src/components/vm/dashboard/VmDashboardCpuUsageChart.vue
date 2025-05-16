@@ -4,8 +4,8 @@
       {{ $t('cpu-usage') }}
       <template #description>{{ $t('last-week') }}</template>
     </UiCardTitle>
-    <VtsErrorNoDataHero v-if="error" type="card" />
-    <VtsLoadingHero v-else-if="loading || data.stats === undefined" type="card" />
+    <VtsLoadingHero v-if="loading || data.stats === undefined" type="card" />
+    <VtsErrorNoDataHero v-else-if="error" type="card" />
     <VtsNoDataHero v-else-if="cpuUsage.length === 0" type="card" />
     <VtsLinearChart v-else :data="cpuUsage" :max-value :value-formatter class="chart" />
   </UiCard>
