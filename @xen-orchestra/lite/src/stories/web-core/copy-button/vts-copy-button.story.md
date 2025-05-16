@@ -1,7 +1,5 @@
 # Usage
 
-```typescript
-<template>
-    <VtsCopyButton copy-element="hello world" />
-</template>
+```vue-template
+    <VtsCopyButton value="hello world" />
 ```
