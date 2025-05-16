@@ -42,12 +42,16 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
+- @vates/generator-toolbox patch
+- @vates/nbd-client patch
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform major
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web-core minor
 - xo-server patch
 - xo-server-auth-oidc patch
 - xo-server-perf-alert patch
+- xo-web minor
 
 <!--packages-end-->

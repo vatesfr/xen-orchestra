@@ -2,7 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
 import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
-import { createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } from 'vhd-lib'
+import { VhdDirectory, VhdSynthetic } from 'vhd-lib'
 import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { dirname, join, resolve } from 'node:path'
@@ -10,7 +10,6 @@ import { execFile } from 'child_process'
 import { mount } from '@vates/fuse-vhd'
 import { readdir, lstat } from 'node:fs/promises'
 import { synchronized } from 'decorator-synchronized'
-import { v4 as uuidv4 } from 'uuid'
 import { ZipFile } from 'yazl'
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
@@ -31,6 +30,10 @@ import { isValidXva } from './_isValidXva.mjs'
 import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions.mjs'
 import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
+
+import { RemoteVhd } from './disks/RemoteVhd.mjs'
+import { openDiskChain } from './disks/openDiskChain.mjs'
+import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -689,22 +692,24 @@ export class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency } = {}) {
+  async writeVhd(path, disk, { validator = noop, writeBlockConcurrency } = {}) {
     const handler = this._handler
+
     if (this.useVhdDirectory()) {
-      const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
-      const size = await createVhdDirectoryFromStream(handler, dataPath, input, {
-        concurrency: writeBlockConcurrency,
-        compression: this.#getCompressionType(),
-        async validator() {
-          await input.task
-          return validator.apply(this, arguments)
+      await writeToVhdDirectory({
+        disk,
+        target: {
+          handler,
+          path,
+          concurrency: writeBlockConcurrency,
+          validator,
+          compression: 'brotli',
         },
       })
-      await VhdAbstract.createAlias(handler, path, dataPath)
-      return size
     } else {
-      return this.outputStream(path, input, { checksum, validator })
+      const stream = await toVhdStream({ disk })
+      await this.outputStream(path, stream, { validator })
+      await validator(path)
     }
   }
 
@@ -728,30 +733,15 @@ export class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createVhdStream(handler, path, { useChain }) {
-    const disposableSynthetic = useChain ? await VhdSynthetic.fromVhdChain(handler, path) : await openVhd(handler, path)
-    // I don't want the vhds to be disposed on return
-    // but only when the stream is done ( or failed )
-
-    let disposed = false
-    const disposeOnce = async () => {
-      if (!disposed) {
-        disposed = true
-        try {
-          await disposableSynthetic.dispose()
-        } catch (error) {
-          warn('openVhd: failed to dispose VHDs', { error })
-        }
-      }
+  async _createVhdDisk(handler, path, { useChain }) {
+    let disk
+    if (useChain) {
+      disk = await openDiskChain({ handler, path })
+    } else {
+      disk = new RemoteVhd({ handler, path })
+      await disk.init()
     }
-    const synthetic = disposableSynthetic.value
-    await synthetic.readBlockAllocationTable()
-    const stream = await synthetic.stream()
-
-    stream.on('end', disposeOnce)
-    stream.on('close', disposeOnce)
-    stream.on('error', disposeOnce)
-    return stream
+    return disk
   }
 
   async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
@@ -759,14 +749,14 @@ export class RemoteAdapter {
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const dir = dirname(metadata._filename)
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
-
-    const streams = {}
+    const disks = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
-      streams[`${ref}.vhd`] = await this._createVhdStream(handler, join(dir, vhds[ref]), { useChain })
+      delete vdis[ref].baseVdi
+      disks[ref] = await this._createVhdDisk(handler, join(dir, vhds[ref]), { useChain })
     })
 
     return {
-      streams,
+      disks,
       vbds,
       vdis,
       version: '1.0.0',
