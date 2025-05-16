@@ -1,5 +1,6 @@
 import type { EventEmitter } from 'node:events'
 import type { Task } from '@vates/types/lib/vates/task'
+import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 import type { XapiHostStats, XapiVmStats, XapiStatsGranularity } from '@vates/types/common'
 import type {
   XenApiHostWrapped,
@@ -92,10 +93,12 @@ export type XoApp = {
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
   getUser: (id: XoUser['id']) => Promise<XoUser>
+  getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
+  hasFeatureAuthorization(featureCode: string): Promise<boolean>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(body: InsertableXoServer): Promise<XoServer>
   runJob(job: XoJob, schedule: XoSchedule): void
