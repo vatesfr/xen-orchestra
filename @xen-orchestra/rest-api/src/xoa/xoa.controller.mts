@@ -1,5 +1,4 @@
 // @ts-nocheck
-import { asyncEach } from '@vates/async-each'
 import { Controller, Get, Response, Route, Security, Tags } from 'tsoa'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { provide } from 'inversify-binding-decorators'
@@ -42,7 +41,6 @@ export class XoaController extends Controller {
       expiresIn: app.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
     }
 
-    const hosts = Object.values(app.objects.indexes.type.host ?? {})
     const srs = Object.values(app.objects.indexes.type.SR ?? {})
     const vms = Object.values(app.objects.indexes.type.VM ?? {})
 
@@ -50,31 +48,6 @@ export class XoaController extends Controller {
     const nonReplicaVms = vms.filter(vm => !isReplicaVm(vm))
     const vmIdsProtected = new Set()
     const vmIdsUnprotected = new Set()
-
-    if (await app.hasFeatureAuthorization('LIST_MISSING_PATCHES')) {
-      const poolsWithMissingPatches = new Set()
-      let nHostsWithMissingPatches = 0
-
-      await asyncEach(hosts, async host => {
-        const xapi = app.getXapi(host)
-        try {
-          const patches = await xapi.listMissingPatches(host)
-          if (patches.length > 0) {
-            nHostsWithMissingPatches++
-            poolsWithMissingPatches.add(host.$pool)
-          }
-        } catch (error) {
-          console.error(error)
-        }
-      })
-
-      const missingPatches = {
-        nHostsWithMissingPatches,
-        nPoolsWithMissingPatches: poolsWithMissingPatches.size,
-      }
-
-      dashboard.missingPatches = missingPatches
-    }
 
     function isReplicaVmInVdb($VBDs) {
       for (const vbd of $VBDs) {

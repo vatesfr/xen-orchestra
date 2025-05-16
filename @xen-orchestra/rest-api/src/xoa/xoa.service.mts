@@ -1,3 +1,4 @@
+import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { parse } from 'xo-remote-parser'
 
@@ -186,12 +187,49 @@ export class XoaService {
     return nHostsEol
   }
 
+  async #getMissingPatchesInfo(): Promise<XoaDashboard['missingPatches']> {
+    if (!(await this.#restApi.xoApp.hasFeatureAuthorization('LIST_MISSING_PATCHES'))) {
+      return {
+        hasAuthorization: false,
+      }
+    }
+
+    const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host'))
+    const poolsWithMissingPatches = new Set()
+    let nHostsWithMissingPatches = 0
+    let nHostsFailed = 0
+
+    await asyncEach(hosts, async (host: XoHost) => {
+      const xapi = this.#restApi.xoApp.getXapi(host)
+
+      try {
+        const patches = await xapi.listMissingPatches(host.id)
+
+        if (patches.length > 0) {
+          nHostsWithMissingPatches++
+          poolsWithMissingPatches.add(host.$pool)
+        }
+      } catch (err) {
+        log.error('listMissingPatches failed', err)
+        nHostsFailed++
+      }
+    })
+
+    return {
+      hasAuthorization: true,
+      nHostsFailed,
+      nHostsWithMissingPatches,
+      nPoolsWithMissingPatches: poolsWithMissingPatches.size,
+    }
+  }
+
   async getDashboard() {
     const nPools = this.#getNumberOfPools()
     const nHosts = this.#getNumberOfHosts()
     const resourcesOverview = this.#getResourcesOverview()
 
     const poolsStatus = await this.#getPoolsStatus()
+    const missingPatches = await this.#getMissingPatchesInfo()
     const backupRepositories = await this.#getBackupRepositoriesSizeInfo().catch(err => {
       log.error('#getBackupRepositoriesSizeInfo failed', err)
     })
@@ -206,6 +244,7 @@ export class XoaService {
       resourcesOverview,
       poolsStatus,
       nHostsEol,
+      missingPatches,
     }
   }
 }
