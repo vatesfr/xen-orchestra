@@ -17,6 +17,10 @@
     "./lib/vates/*": {
       "default": "./dist/lib/vates-*.mjs",
       "type": "./dist/lib/vates-*.d.mts"
+    },
+    "./lib/xen-orchestra/*": {
+      "default": "./dist/lib/xen-orchestra-*.mjs",
+      "type": "./dist/lib/xen-orchestra-*.d.mts"
     }
   },
   "type": "module",

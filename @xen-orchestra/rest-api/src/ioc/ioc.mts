@@ -4,6 +4,7 @@ import { Controller } from 'tsoa'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { XoApp } from '../rest-api/rest-api.type.mjs'
+import { XoaService } from '../xoa/xoa.service.mjs'
 
 const iocContainer = new Container()
 
@@ -18,6 +19,14 @@ export function setupContainer(xoApp: XoApp) {
   iocContainer
     .bind(RestApi)
     .toDynamicValue(() => new RestApi(xoApp))
+    .inSingletonScope()
+
+  iocContainer
+    .bind(XoaService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new XoaService(restApi)
+    })
     .inSingletonScope()
 }
 
