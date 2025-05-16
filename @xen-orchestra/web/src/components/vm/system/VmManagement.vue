@@ -5,9 +5,7 @@
     </UiTitle>
     <VtsQuickInfoRow :label="$t('high-availability')">
       <template #value>
-        <UiInfo :accent="vm.high_availability !== '' ? 'success' : 'muted'">
-          {{ vm.high_availability ? $t(vm.high_availability) : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.high_availability !== ''" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('affinity-host')">
@@ -22,23 +20,17 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('protect-from-accidental-deletion')">
       <template #value>
-        <UiInfo :accent="vm.blockedOperations.destroy ? 'success' : 'muted'">
-          {{ vm.blockedOperations.destroy ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.blockedOperations.destroy !== undefined" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('protect-from-accidental-shutdown')">
       <template #value>
-        <UiInfo :accent="isProtectedFromAccidentalShutdown ? 'success' : 'muted'">
-          {{ isProtectedFromAccidentalShutdown ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="isProtectedFromAccidentalShutdown" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('auto-power')">
       <template #value>
-        <UiInfo :accent="vm.auto_poweron ? 'success' : 'muted'">
-          {{ vm.auto_poweron ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.auto_poweron" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('start-delay')" :value="$t('relative-time.second', vm.startDelay)" />
@@ -50,9 +42,9 @@ import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
@@ -63,12 +55,12 @@ const { get: getHostById } = useHostStore().subscribe()
 const affinityHostName = computed(() => (vm.affinityHost ? getHostById(vm.affinityHost)?.name_label : ''))
 const isProtectedFromAccidentalShutdown = computed(
   () =>
-    vm.blockedOperations.clean_reboot ||
-    vm.blockedOperations.clean_shutdown ||
-    vm.blockedOperations.hard_reboot ||
-    vm.blockedOperations.hard_shutdown ||
-    vm.blockedOperations.pause ||
-    vm.blockedOperations.suspend ||
-    vm.blockedOperations.shutdown
+    vm.blockedOperations.clean_reboot !== undefined ||
+    vm.blockedOperations.clean_shutdown !== undefined ||
+    vm.blockedOperations.hard_reboot !== undefined ||
+    vm.blockedOperations.hard_shutdown !== undefined ||
+    vm.blockedOperations.pause !== undefined ||
+    vm.blockedOperations.suspend !== undefined ||
+    vm.blockedOperations.shutdown !== undefined
 )
 </script>
