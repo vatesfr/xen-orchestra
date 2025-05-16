@@ -1,13 +1,13 @@
 <template>
   <UiCard>
     <UiCardTitle>
-      {{ $t('ram-usage') }}
+      {{ $t('vdi-throughput') }}
       <template #description>{{ $t('last-week') }}</template>
     </UiCardTitle>
     <VtsLoadingHero v-if="loading" type="card" />
     <VtsErrorNoDataHero v-else-if="error" type="card" />
-    <VtsNoDataHero v-else-if="ramUsage.length === 0" type="card" />
-    <VtsLinearChart v-else :data="ramUsage" :max-value :value-formatter="byteFormatter" />
+    <VtsNoDataHero v-else-if="vdiUsage.length === 0" type="card" />
+    <VtsLinearChart v-else :data="vdiUsage" :max-value :value-formatter="byteFormatter" />
   </UiCard>
 </template>
 
@@ -33,52 +33,51 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
-const ramUsage = computed<LinearChartData>(() => {
-  if (!data?.stats.memory || !data?.stats.memoryFree) {
+const vdiUsage = computed<LinearChartData>(() => {
+  if (!data?.stats?.xvds) {
     return []
   }
 
-  const ramTotalValues = data.stats.memory
+  const timestamps = Array.from(
+    { length: data.stats.xvds.r.a.length },
+    (_, i) => data.endTimestamp * 1000 - (data.stats.xvds.r.a.length - 1 - i) * data.interval * 1000
+  )
 
-  const ramFreeValues = data.stats.memoryFree
-
-  const result = new Map<number, { timestamp: number; value: number }>()
-
-  const timestampStart = data.endTimestamp - data.interval * (ramTotalValues.length - 1)
-
-  for (let hourIndex = 0; hourIndex < ramTotalValues.length; hourIndex++) {
-    const timestamp = (timestampStart + hourIndex * data.interval) * 1000
-
-    const ramTotal = ramTotalValues[hourIndex]
-
-    const ramFree = ramFreeValues[hourIndex]
-
-    const ramUsed = ramTotal - ramFree
-
-    result.set(timestamp, {
-      timestamp,
-      value: ramUsed,
-    })
-  }
-  return [
+  const readSeries = [
     {
-      label: t('stacked-ram-usage'),
-      data: Array.from(result.values()),
+      label: t('vdi-read'),
+      data: timestamps.map((timestamp, index) => ({
+        timestamp,
+        value: Object.values(data.stats.xvds.r).reduce((sum, values) => sum + values[index], 0),
+      })),
     },
   ]
+
+  const writeSeries = [
+    {
+      label: t('vdi-write'),
+      data: timestamps.map((timestamp, index) => ({
+        timestamp,
+        value: Object.values(data.stats.xvds.w).reduce((sum, values) => sum + values[index], 0),
+      })),
+    },
+  ]
+
+  return [...readSeries, ...writeSeries]
 })
 
 const maxValue = computed(() => {
-  if (!data?.stats.memory?.length) {
-    return 1024 * 1024 * 1024 // 1 GB as fallback
-  }
+  const values = vdiUsage.value.flatMap(series => series.data.map(item => item.value))
 
-  return Math.max(...data.stats.memory, 0)
+  if (values.length === 0) return 100
+
+  const maxUsage = Math.max(...values)
+
+  return Math.ceil(maxUsage / 50) * 50
 })
 
 const byteFormatter = (value: number) => {
   const result = formatSizeRaw(value, 1)
-
   return `${result?.value}${result?.prefix}`
 }
 </script>
