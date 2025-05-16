@@ -8,10 +8,7 @@ import { defer } from 'golike-defer'
 import { readChunk } from '@vates/read-chunk'
 import { strict as assert } from 'node:assert'
 
-import MultiNbdClient from '@vates/nbd-client/multi.mjs'
-import { createNbdVhdStream } from 'vhd-lib/createStreamNbd.js'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
-import { finished } from 'node:stream'
 
 const { warn, info } = createLogger('xo:xapi:vdi')
 
@@ -38,7 +35,9 @@ async function checkVdiExport(stream) {
   stream.unshift(chunk)
   if (String(chunk) === 'HTTP/') {
     const error = new Error('invalid HTTP header in response body')
-    Object.defineProperty(error, 'response', { body: await readChunk(stream, 1024) })
+    const body = (await readChunk(stream, 1024)).toString('utf8')
+    warn('invalid HTTP header in response body', { body })
+    Object.defineProperty(error, 'response', { body })
     throw error
   }
 }
@@ -123,32 +122,6 @@ class Vdi {
     })
   }
 
-  async _connectNbdClientIfPossible(ref, { nbdConcurrency = 1 } = {}) {
-    let nbdInfos = await this.call('VDI.get_nbd_info', ref)
-    if (nbdInfos.length > 0) {
-      // filter nbd to only use backup network ( if set )
-      const poolBackupNetwork = this._pool.other_config['xo:backupNetwork']
-      if (poolBackupNetwork) {
-        const networkRef = await this.call('network.get_by_uuid', poolBackupNetwork)
-        const pifs = await this.getField('network', networkRef, 'PIFs')
-        // @todo implement ipv6
-        const adresses = await Promise.all(pifs.map(pifRef => this.getField('PIF', pifRef, 'IP')))
-        nbdInfos = nbdInfos.filter(({ address }) => adresses.includes(address))
-      }
-
-      try {
-        const nbdClient = new MultiNbdClient(nbdInfos, { ...this._nbdOptions, nbdConcurrency })
-        await nbdClient.connect()
-        return nbdClient
-      } catch (err) {
-        warn(`can't connect to nbd server `, {
-          err,
-          nbdInfos,
-        })
-      }
-    }
-  }
-
   /**
    * return an buffer with 0/1 bit, showing if the 64KB block corresponding
    * in the raw vdi has changed
@@ -229,33 +202,21 @@ class Vdi {
     )
   }
 
-  async exportContent(
-    $defer,
-    ref,
-    { baseRef, cancelToken = CancelToken.none, format, nbdConcurrency = 1, preferNbd = this._preferNbd }
-  ) {
+  async exportContent($defer, ref, { baseRef, cancelToken = CancelToken.none, format }) {
     const query = {
       format,
       vdi: ref,
     }
 
-    const [cbt_enabled, size, uuid, vdiName] = await Promise.all([
-      this.getField('VDI', ref, 'cbt_enabled').catch(() => {
-        /* on XS < 7.3 cbt is not supported */
-      }),
-      this.getField('VDI', ref, 'virtual_size'),
-      this.getField('VDI', ref, 'uuid'),
-      this.getField('VDI', ref, 'name_label'),
-    ])
-
     $defer.onFailure(() => this.VDI_disconnectFromControlDomain(ref))
 
+    const label = await this.getField('VDI', ref, 'name_label')
     if (format === VDI_FORMAT_RAW) {
       // RAW export do not use NBD to simplify code
       assert.equal(baseRef, undefined)
       const { body } = await this.getResource(cancelToken, '/export_raw_vdi/', {
         query,
-        task: await this.task_create(`Exporting content of VDI ${vdiName}`),
+        task: await this.task_create(`Exporting content of VDI as raw stream`),
       })
 
       await checkVdiExport(body)
@@ -269,96 +230,29 @@ class Vdi {
       query.base = baseRef
     }
 
-    let nbdClient, // optional : the nbd client used to transfer this vdi
-      exportStream, // the stream read from the XAPI
-      stream, // the stream that will be returned (exportStream or using NBD)
-      taskRef, // the reference to the export stream (if created manually)
-      changedBlocks, // the CBT list of blocks
-      baseParentUuid, // the uuid of the parent of the base for a delta export
-      baseParentType // the vdiType of the parent, to heck if its a metadata backup or not
-
-    if (baseRef !== undefined && preferNbd && cbt_enabled) {
-      // use CBT if possible
-      // call to list changed blocks must be done before the vdi is mounted for NBD export
-      try {
-        changedBlocks = await this.VDI_listChangedBlock(ref, baseRef)
-
-        info('found changed blocks', { changedBlocks })
-      } catch (error) {
-        // do not fail if CBT is not enabled/working
-        info(`can't get changed block`, { error, ref, baseRef })
-        changedBlocks = undefined
-      }
-
-      // this may be undefined and is a nice to have
-      // but backups and xapi don't trust nor use this value
-      // will only be used with CBT
-      baseParentUuid = await this.getField('VDI', baseRef, 'sm_config').then(sm_config => sm_config['vhd-parent'])
-      baseParentType = await this.getField('VDI', baseRef, 'type')
-    }
-
-    // really connect to NBD server
-    if (preferNbd) {
-      nbdClient = await this._connectNbdClientIfPossible(ref, { nbdConcurrency })
-      // disconnect on failure or when transfer is finished
-      $defer.onFailure(() => nbdClient?.disconnect())
-    }
-
-    // create a xapi export stream only if we won't make a delta from CBT
-    // a CBT export can only work if we have a NBD client and changed blocks
-    if (changedBlocks === undefined || nbdClient === undefined) {
-      if (baseParentType === 'cbt_metadata') {
-        const e = new Error(`can't create a stream from a metadata VDI, fall back to a base `)
-        e.code = 'VDI_CANT_DO_DELTA'
-        throw e
-      }
-
-      stream = exportStream = (
-        await this.getResource(cancelToken, '/export_raw_vdi/', {
-          query,
-          task: await this.task_create(`Exporting content of VDI ${vdiName}`),
-        })
-      ).body
-
-      await checkVdiExport(stream)
-
-      $defer.onFailure(() => {
-        exportStream.on('error', noop).destroy()
+    const stream = (
+      await this.getResource(cancelToken, '/export_raw_vdi/', {
+        query,
+        task: await this.task_create(`Exporting content of VDI  ${label} as VHD stream`),
       })
-    }
+    ).body
 
-    // we have a NBD client : use it to transfer download data
-    // use either the changed block or exportStream to compute the header/footer/BAT
-    if (nbdClient !== undefined) {
-      taskRef = await this.task_create(
-        `Exporting content of VDI ${vdiName} using NBD ${changedBlocks !== undefined ? ' and CBT' : ''}`
-      )
-      $defer.onFailure(() => this.task_destroy(taskRef).catch(warn))
-      // stream is now using CBT, exportStream still keep a ref to the XAPI export stream
-      stream = await createNbdVhdStream(nbdClient, exportStream, {
-        changedBlocks,
-        vdiInfos: { size, uuid, parentUuid: baseParentUuid },
-        onProgress: progress => {
-          this.call('task.set_progress', taskRef, progress).catch(warn)
-        },
-      })
-      // we don't need the export stream anymore, block data will be read through NBD
-      exportStream?.on('error', noop).destroy()
-    }
-
-    assert.notStrictEqual(stream, undefined)
-
-    // disconnect and clean everything when stream is completly transmitted
-    const self = this
-    finished(stream, async function () {
-      await nbdClient?.disconnect()
-      if (taskRef !== undefined) {
-        self.task_destroy(taskRef).catch(warn)
-      }
-      await self.VDI_disconnectFromControlDomain(ref).catch(warn)
+    $defer.onFailure(() => {
+      stream.on('error', noop).destroy()
     })
+
+    await checkVdiExport(stream)
+
     return stream
   }
+
+  /**
+   *
+   * @param {string} vdiRef
+   * @param {string | undefined} baseRef
+   * @param {boolean} preferNbd
+   * @returns
+   */
 
   async importContent(ref, stream, { cancelToken = CancelToken.none, format }) {
     assert.notEqual(format, undefined)
