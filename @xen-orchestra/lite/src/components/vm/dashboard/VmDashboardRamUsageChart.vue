@@ -4,8 +4,8 @@
       {{ $t('ram-usage') }}
       <template #description>{{ $t('last-week') }}</template>
     </UiCardTitle>
-    <VtsErrorNoDataHero v-if="error" type="card" />
-    <VtsLoadingHero v-else-if="loading || data.stats === undefined" type="card" />
+    <VtsLoadingHero v-if="loading || data.stats === undefined" type="card" />
+    <VtsErrorNoDataHero v-else-if="error" type="card" />
     <VtsNoDataHero v-else-if="ramUsage.length === 0" type="card" />
     <VtsLinearChart v-else :data="ramUsage" :max-value :value-formatter="byteFormatter" />
   </UiCard>
@@ -54,7 +54,7 @@ const ramUsage = computed<LinearChartData>(() => {
 
   return [
     {
-      label: t('ram-usage'),
+      label: t('stacked-ram-usage'),
       data: result,
     },
   ]
