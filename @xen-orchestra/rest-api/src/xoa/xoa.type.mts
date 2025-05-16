@@ -11,10 +11,14 @@ export type XoaDashboard = {
   nPools: number
   nHosts: number
   nHostsEol?: number
-  missingPatches?: {
-    nHostsWithMissingPatches: number
-    nPoolsWithMissingPatches: number
-  }
+  missingPatches:
+    | { hasAuthorization: false }
+    | {
+        hasAuthorization: true
+        nHostsWithMissingPatches: number
+        nPoolsWithMissingPatches: number
+        nHostsFailed: number
+      }
   backupRepositories?: DashboardBackupRepositoriesSizeInfo
   storageRepositories: {
     size: {
