@@ -118,44 +118,9 @@ You only need to use a template of a VM with Cloud-init (for Linux VMs) or Cloud
 In XOA 5.31, we changed the Cloud-init config drive type from [OpenStack](https://cloudinit.readthedocs.io/en/latest/topics/datasources/configdrive.html) to the [NoCloud](https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html) type. This will allow us to pass network configuration to VMs in the future. For 99% of users, including default cloud-init installs, this change will have no effect. However if you have previously modified your cloud-init installation in a VM template to only look for `openstack` drive types (for instance with the `datasource_list` setting in `/etc/cloud/cloud.cfg`) you need to modify it to also look for `nocloud`.
 :::
 
-### Example: How to create a Cloudbase-init template with Windows Server 2019?
+### Example: How to create a Cloudbase-init template with Windows Server?
 
-1. Create a VM.
-2. Install Windows Server 2019 on it.
-3. Upon boot, install Cloudbase-Init.
-   To do that, run the following commands:
-
-```sh
-# For 64-bit environments
-curl https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x64.msi --output installer.msi
-installer.msi
-
-# For 32-bit environments
-curl https://www.cloudbase.it/downloads/CloudbaseInitSetup_Stable_x86.msi --output installer.msi
-installer.msi
-```
-
-4. At the end of the installation, check the option **Run Sysprep**.
-   Do not check **Shutdown when SysPrep terminates**!
-5. (Optional). Delete the .msi installer.
-6. The Cloudbase-init installer creates these configuration files:
-   - `cloudbase-init-unattend.conf`
-   - `cloudbase-init.conf`
-7. Depending on your needs, choose the file that you need and make sure it contains the following three lines, with the same values:
-   ```
-   ...
-   config_drive_vfat=true
-   ...
-   metadata_services=cloudbaseinit.metadata.services.nocloudservice.NoCloudConfigDriveService
-   plugins=cloudbaseinit.plugins.common.userdata.UserDataPlugin
-   ...
-   ```
-
-If the file does not contain these lines or if the values are different, modify the file and set it to the values above.
-Cloudbase-init needs these settings to find the configuration disk and set up your VM.
-
-8. Shut the VM down.
-9. Convert the VM to a template.
+Refer to the [Windows Templates with Cloudbase-init: Step-by-step Guide & Best Practices](./windows-templates) document for complete instructions.
 
 ### Example: How to create a Cloud-init template with Ubuntu 22.04 LTS?
 
