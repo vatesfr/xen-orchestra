@@ -49,7 +49,7 @@ const wrappedGenerator = new Throttle(sourceGenerator, speed)
 Fork a generator. The rules ares:
 
 - if the source returns, all the forks returns
-- if the forks errors, all the forks errors with the same error
+- if the forks error, all the forks errors with the same error
 - if a fork return , it is stopped, but the generator continue with the other
 - if a fork error , it is stopped, but the generator continue with the other
 - if all the fork return , the source is stopped
