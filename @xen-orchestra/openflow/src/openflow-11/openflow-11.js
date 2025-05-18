@@ -35,7 +35,7 @@ export default {
      * port and those blocked or link down.
      */
     all: 0xfffffffc, // All physical ports except input port
-    contorller: 0xfffffffd, // Send to controller
+    controller: 0xfffffffd, // Send to controller
     local: 0xfffffffe, // Local openflow "port"
     any: 0xffffffff,
     /* Wildcard port used only for flow mod
