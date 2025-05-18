@@ -635,11 +635,11 @@ export const downloadLog = ({ log, date, type }) => {
 // )
 // ```
 export const createCompare =
-  criterias =>
+  criteria =>
   (...items) => {
     let res = 0
     // Array.find to stop when the result is != 0
-    criterias.find(fn => {
+    criteria.find(fn => {
       const [v1, v2] = items.map(item => {
         const v = typeof fn === 'string' ? item[fn] : fn(item)
         return v === true ? -1 : v === false ? 1 : v
