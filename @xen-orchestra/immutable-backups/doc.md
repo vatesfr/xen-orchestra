@@ -22,7 +22,7 @@ this package uses app-conf to store its config. The application name is `xo-immu
 
 when marking a file or a folder immutable, it create an alias file in the `<indexPath>/<DayOfFileCreation>/<sha256(fullpath)>`.
 
-`indexPath` can be defined in the config file, otherwise `XDG_HOME` is used. If not available it goes to `~/.local/share`
+`indexPath` can be defined in the config file; otherwise, `XDG_HOME` is used. If not available it goes to `~/.local/share`
 
 This index is used when lifting the immutability of the remote, it will only look at the old enough `<indexPath>/<DayOfFileCreation>/` folders.
 
