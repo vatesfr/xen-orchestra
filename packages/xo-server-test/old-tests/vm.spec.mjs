@@ -374,7 +374,7 @@ describe('vm', () => {
       })
     })
 
-    it('migrates the VM on an other host', async () => {
+    it('migrates the VM on another host', async () => {
       await xo.call('vm.migrate', {
         id: vmId,
         host_id: hostId,
@@ -421,7 +421,7 @@ describe('vm', () => {
       })
     })
 
-    it.skip('migrates the VM on an other host which is in an other pool', async () => {
+    it.skip('migrates the VM on another host which is in another pool', async () => {
       await xo.call('vm.migrate_pool', {
         id: vmId,
         target_host_id: hostId,
