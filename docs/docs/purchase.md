@@ -138,7 +138,7 @@ If you choose a Stripe payment, you can always edit the credit card information 
 
 If you want to upgrade your active plan to a higher version of Xen Orchestra, you can do it from your **personal space**.
 
-### Step by step:
+### Step by step
 
 1. Connect on your personal account on the [website](https://xen-orchestra.com/#!/login?source=member.index).
 
