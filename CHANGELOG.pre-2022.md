@@ -3335,7 +3335,7 @@ Delta backup, CloudInit...
 
 - Visible list of SR inside a VM [\#601](https://github.com/vatesfr/xen-orchestra/issues/601)
 - VDI move [\#591](https://github.com/vatesfr/xen-orchestra/issues/591)
-- Edit pre-existing disk configuration during VM creation [\#589](https://github.com/vatesfr/xen-orchestra/issues/589)
+- Edit preexisting disk configuration during VM creation [\#589](https://github.com/vatesfr/xen-orchestra/issues/589)
 - Allow disk size edition [\#587](https://github.com/vatesfr/xen-orchestra/issues/587)
 - Better VDI resize support [\#585](https://github.com/vatesfr/xen-orchestra/issues/585)
 - Remove manual VM export metadata in UI [\#580](https://github.com/vatesfr/xen-orchestra/issues/580)

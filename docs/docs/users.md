@@ -298,7 +298,7 @@ You can now connect with your Google account in the login page.
 ## ACLs
 
 :::tip
-ACLs are permissions that apply to pre-existing objects. Only a super admin (XO administrator) can create objects.
+ACLs are permissions that apply to preexisting objects. Only a super admin (XO administrator) can create objects.
 :::
 
 ACLs are the permissions for your users or groups. The ACLs view can be accessed in the "Settings" panel.
