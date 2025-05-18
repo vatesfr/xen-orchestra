@@ -2927,7 +2927,7 @@ const messages = {
   // ----- IPMI -----
   currentBiosVersion: 'Current BIOS version: {version}',
   downloadBiosUpdate: 'Download BIOS update ({version})',
-  highestCpuTemperature: '{n, number}x CPU{n, plural, one {} other {s}} (highest: {degres})',
+  highestCpuTemperature: '{n, number}x CPU{n, plural, one {} other {s}} (highest: {degrees})',
   highestFanSpeed: '{n, number}x fan{n, plural, one {} other {s}} (highest: {speed})',
   inletTemperature: 'Inlet temperature',
   ipmi: 'IPMI',
