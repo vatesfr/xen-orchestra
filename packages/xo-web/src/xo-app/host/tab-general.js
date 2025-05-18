@@ -325,7 +325,7 @@ export default decorate([
                 <IpmiSensorCard icon='cpu-temperature'>
                   {_('highestCpuTemperature', {
                     n: ipmiSensors.cpuTemp?.length ?? 0,
-                    degres: <b>{cpuHighestTemp?.value ?? _('unknown')}</b>,
+                    degrees: <b>{cpuHighestTemp?.value ?? _('unknown')}</b>,
                   })}
                 </IpmiSensorCard>
               </Row>
