@@ -227,7 +227,7 @@
   "hosts-status.unknown": "Unknown",
   "hosts-status.unknown.tooltip": "Hosts metrics are unavailable",
   "hyper-threading": "Hyper threading (SMT)",
-  "id": "Id",
+  "id": "ID",
   "in-last-three-jobs": "In their last three jobs",
   "install-settings": "Install settings",
   "interfaces": "Interface | Interface | Interfaces",
