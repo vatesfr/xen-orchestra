@@ -29,7 +29,7 @@ function createTask(opts) {
 }
 
 describe('Task', function () {
-  describe('contructor', function () {
+  describe('constructor', function () {
     it('data properties are passed to the start event', async function () {
       const properties = { foo: 0, bar: 1 }
       const task = createTask({ properties })
