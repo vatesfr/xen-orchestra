@@ -98,7 +98,7 @@ test('It remove broken vhd', async () => {
 
 test('it remove vhd with missing or multiple ancestors', async () => {
   // one with a broken parent, should be deleted
-  await generateVhd(`${basePath}/abandonned.vhd`, {
+  await generateVhd(`${basePath}/abandoned.vhd`, {
     header: {
       parentUnicodeName: 'gone.vhd',
       parentUuid: uniqueIdBuffer(),
@@ -118,7 +118,7 @@ test('it remove vhd with missing or multiple ancestors', async () => {
     `metadata.json`,
     JSON.stringify({
       mode: 'delta',
-      vhds: [`${basePath}/child.vhd`, `${basePath}/abandonned.vhd`],
+      vhds: [`${basePath}/child.vhd`, `${basePath}/abandoned.vhd`],
     }),
     { flags: 'w' }
   )
@@ -144,12 +144,12 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
       vhds: [
         `${relativePath}/orphan.vhd`,
         `${relativePath}/child.vhd`,
-        // abandonned.json is not here
+        // abandoned.json is not here
       ],
     })
   )
 
-  await generateVhd(`${basePath}/abandonned.vhd`)
+  await generateVhd(`${basePath}/abandoned.vhd`)
 
   // one orphan, which is a full vhd, no parent
   const orphan = await generateVhd(`${basePath}/orphan.vhd`)
@@ -179,7 +179,7 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
         `deleted.vhd`, // in metadata but not in vhds
         `orphan.vhd`,
         `child.vhd`,
-        // abandonned.vhd is not here anymore
+        // abandoned.vhd is not here anymore
       ],
     }),
     { flags: 'w' }
@@ -311,7 +311,7 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
         // a vhd non referenced in metadata
         await generateVhd(`${basePath}/nonreference.vhd`, { useAlias, mode: vhdMode })
         // an abandoned delta vhd without its parent
-        await generateVhd(`${basePath}/abandonned.vhd`, {
+        await generateVhd(`${basePath}/abandoned.vhd`, {
           useAlias,
           mode: vhdMode,
           header: {
