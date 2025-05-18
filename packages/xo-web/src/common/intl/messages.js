@@ -2763,7 +2763,7 @@ const messages = {
   recipeOneFaultTolerance: 'One fault tolerance (three control planes)',
   recipeTwoFaultTolerance: 'Two fault tolerances (five control planes)',
   recipeThreeFaultTolerance: 'Three fault tolerances (seven control planes)',
-  recipeHaControPlaneIpAddress: 'Control plane { i, number } node IP address/subnet mask',
+  recipeHaControlPlaneIpAddress: 'Control plane { i, number } node IP address/subnet mask',
   recipeVip: 'VIP address',
   recipeControlPlaneIpAddress: 'Control plane node IP address/subnet mask',
   recipeWorkerIpAddress: 'Worker node { i, number } IP address/subnet mask',
