@@ -90,7 +90,7 @@ const data = deepFreeze({
       allowUnauthorized: false,
     },
   },
-  's3 accepting self signed ': {
+  's3 accepting self-signed ': {
     string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir?allowUnauthorized=true',
     object: {
       type: 's3',
@@ -176,7 +176,7 @@ const parseData = deepFreeze({
       password: 'password',
     },
   },
-  'S3 accepting self signed certificate': {
+  'S3 accepting self-signed certificate': {
     string: 's3+http://Administrator:password@192.168.100.225/bucket/dir?allowUnauthorized=true#reg1',
     object: {
       type: 's3',
