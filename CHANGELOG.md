@@ -885,7 +885,7 @@
 
 ### Enhancements
 
-- [New XOSTOR] Display a warning when replication count is higher than number of hosts with disks (PR [#7625](https://github.com/vatesfr/xen-orchestra/pull/7625))
+- [New XOSTOR] Display a warning when replication count is greater than number of hosts with disks (PR [#7625](https://github.com/vatesfr/xen-orchestra/pull/7625))
 - [XOSTOR] Ability to copy VDI UUID in the resources table (PR [#7629](https://github.com/vatesfr/xen-orchestra/pull/7629))
 
 ### Bug fixes
