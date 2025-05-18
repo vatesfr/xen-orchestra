@@ -215,7 +215,7 @@ describe('host', () => {
   // ------------------------------------------------------------------
 
   describe('.installPatch()', () => {
-    it('installs a patch patch on the host')
+    it('installs a patch on the host')
   })
 
   // ------------------------------------------------------------------
