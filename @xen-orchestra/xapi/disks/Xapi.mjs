@@ -70,7 +70,7 @@ export class XapiDiskSource extends DiskPassthrough {
     } catch (err) {
       await source.close()
       if (err.code === 'NO_NBD_AVAILABLE') {
-        warn(`can't connect through NBD, fallback to stream export`)
+        warn(`can't connect through NBD, fall back to stream export`)
         return this.#openExportStream()
       } else if (err.code === 'VDI_CANT_DO_DELTA') {
         warn(`can't compute delta of XapiVhdStreamNbdSource ${vdiRef} from ${baseRef}, fallBack to a full`)
