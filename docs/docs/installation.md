@@ -292,7 +292,7 @@ That's why we have to notify these companies about XOA: it's better to run XO wi
 As a home user, you can support the XO project in a lot of ways: spreading the word, giving your feedback, finding bugs and ultimately contribute to the code. Keeping this banner is also a way to support us!
 
 :::tip
-Exceptional individual contributers are awarded with a free XOA Premium subscription. If you think you deserve it, feel free to contact us!
+Exceptional individual contributors are awarded with a free XOA Premium subscription. If you think you deserve it, feel free to contact us!
 :::
 
 ### Troubleshooting
