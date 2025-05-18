@@ -324,7 +324,7 @@ describe(`user tests on`, () => {
     })
 
     test('fails trying to delete a user with a nonexistent user', async () => {
-      await assert.rejects(sharedXo.call('user.delete', { id: 'nonexistent Id' }), ERROR_DELETE_NO_SUCH_USER)
+      await assert.rejects(sharedXo.call('user.delete', { id: 'nonexistent ID' }), ERROR_DELETE_NO_SUCH_USER)
     })
 
     test('fails trying to delete itself', async () => {
