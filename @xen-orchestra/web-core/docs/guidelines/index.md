@@ -14,6 +14,6 @@ For more in-depth information, see:
 - [Best practices](./best-practices.md)
 - [CSS](./css.md)
 - [Slots](./slots.md)
-- [Typescript](./typescript.md)
+- [TypeScript](./typescript.md)
 
 To summary all the above guidelines, see the example component here: [Component example](./component-example.md).
