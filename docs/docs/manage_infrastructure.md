@@ -426,7 +426,7 @@ You can create a snapshot with one click. It will be named automatically. After 
 - delete this snapshot
 
 :::tip
-By default, XOA will try to make a snapshot with quiesce. If the VM does not support it, it will fallback to the default snapshot system.
+By default, XOA will try to make a snapshot with quiesce. If the VM does not support it, it will fall back to the default snapshot system.
 :::
 
 ## VM import and export
@@ -501,7 +501,7 @@ To prevent a virtual machine from migrating:
 
 1. Go to the VM's configuration page.
 2. Go to the **Advanced** tab.
-3. Activate the **Prevent migration** toggle switch. 
+3. Activate the **Prevent migration** toggle switch.
 
 
 When this option is enabled, the VM won't be able to migrate to another host.
