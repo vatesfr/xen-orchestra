@@ -701,7 +701,7 @@ const messages = {
   remoteS3PlaceHolderEncryptionKey: 'Enter your encryption key here (32 characters)',
   remoteS3Region: 'Region, leave blank for default',
   remoteS3TooltipProtocol: 'Uncheck if you want HTTP instead of HTTPS',
-  remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
+  remoteS3TooltipAcceptInsecure: 'Check if you want to accept self-signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
   remoteUseVhdDirectory:
     'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up GB but allows faster merge)',
