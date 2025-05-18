@@ -2635,7 +2635,7 @@
 - IP pool UI improvement [\#2203](https://github.com/vatesfr/xen-orchestra/issues/2203)
 - Ability to clear "Auto power on" flag for DR-ed VM [\#2097](https://github.com/vatesfr/xen-orchestra/issues/2097)
 - [Delta backup restoration] Choose SR for each VDIs [\#2070](https://github.com/vatesfr/xen-orchestra/issues/2070)
-- Ability to forget an host (even if no longer present) [\#1934](https://github.com/vatesfr/xen-orchestra/issues/1934)
+- Ability to forget a host (even if no longer present) [\#1934](https://github.com/vatesfr/xen-orchestra/issues/1934)
 
 ### Bug fixes
 

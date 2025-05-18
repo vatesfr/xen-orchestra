@@ -369,7 +369,7 @@ ulimit -n 10240
 ln -s /usr/local/bin/node /tmp/node
 ```
 
-If `yarn` cannot find Python, give it an hand :
+If `yarn` cannot find Python, give it a hand :
 
 ```sh
 PYTHON=/usr/local/bin/python2 yarn
