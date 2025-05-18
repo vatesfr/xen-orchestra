@@ -91,7 +91,7 @@ describe('vbd', () => {
       })
     })
 
-    it('deletes the VBD only if it is deconnected', async () => {
+    it('deletes the VBD only if it is disconnected', async () => {
       await xo.call('vbd.delete', { id: vbdId }).then(
         () => {
           throw new Error('vbd.delete() should have thrown')
