@@ -24,4 +24,4 @@ After Citrix decided to close at lot of XenServer features, Olivier Lambert deci
 
 ## Team and contributors
 
-See the [dedicated Github page](https://github.com/vatesfr/xen-orchestra/graphs/contributors) for all contributors.
+See the [dedicated GitHub page](https://github.com/vatesfr/xen-orchestra/graphs/contributors) for all contributors.

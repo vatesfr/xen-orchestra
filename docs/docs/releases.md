@@ -24,7 +24,7 @@ In any case, we suggest that you try XOA first, regardless your future usage. It
 
 See the [updates dedicated section](updater.md) to learn how to keep your XOA up to date.
 
-## Github updates
+## GitHub updates
 
 If you decide to install it [from the sources](installation.md#from-the-sources), please **always** try to stick to `master` as possible. Before opening any bug report or topic on the forum, update to the latest commit.
 

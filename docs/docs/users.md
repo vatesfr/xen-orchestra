@@ -248,7 +248,7 @@ This plugin allows any GitHub user to authenticate to Xen Orchestra.
 
 The first time a user signs in, XO will create a new XO user with the same identifier (i.e. GitHub name), with _user_ permissions. An existing admin will need to apply the appropriate permissions for your environment.
 
-First you need to configure a new app in your GitHub account. Go to your Github settings > "Developer Settings" > "OAuth Apps" > "New OAuth App".
+First you need to configure a new app in your GitHub account. Go to your GitHub settings > "Developer Settings" > "OAuth Apps" > "New OAuth App".
 
 1. Name your GitHub application under "Application Name".
 2. Enter your Xen Orchestra URL (or IP) under "Homepage URL"
