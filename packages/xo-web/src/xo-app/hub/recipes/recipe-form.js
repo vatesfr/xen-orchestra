@@ -244,12 +244,12 @@ export default decorate([
             ? [
                 Array.from({ length: value.controlPlanePoolSize }).map((v, i) => (
                   <FormGrid.Row key={i}>
-                    <label>{_('recipeHaControPlaneIpAddress', { i: i + 1 })}</label>
+                    <label>{_('recipeHaControlPlaneIpAddress', { i: i + 1 })}</label>
                     <input
                       className='form-control'
                       name={`controlPlaneIpAddress.${i}`}
                       onChange={effects.onChangeCpIp}
-                      placeholder={formatMessage(messages.recipeHaControPlaneIpAddress, { i: i + 1 })}
+                      placeholder={formatMessage(messages.recipeHaControlPlaneIpAddress, { i: i + 1 })}
                       required
                       type='text'
                       value={value[`controlPlaneIpAddress.${i}`]}
