@@ -18,7 +18,7 @@ const ADMIN_USER = {
 const ERROR_INVALID_CREDENTIALS = /JsonRpcError: invalid credentials/
 const ERROR_USER_CANNOT_DELETE_ITSELF = /JsonRpcError: a user cannot delete itself/
 const ERROR_DELETE_NO_SUCH_USER = /JsonRpcError: no such user nonexistent Id/
-const ERROR_SET_NO_SUCH_USER = /JsonRpcError: no such user non-existent-id/
+const ERROR_SET_NO_SUCH_USER = /JsonRpcError: no such user nonexistent-id/
 const ERROR_INVALID_PARAMETERS = /JsonRpcError: invalid parameters/
 const ERROR_PROPERTY_CAN_ONLY_BE_CHANGED_BY_ADMIN = /JsonRpcError: this properties can only changed by an administrator/
 const ERROR_USER_CANNOT_CHANGE_ITS_OWN_PERMISSION = /JsonRpcError: a user cannot change its own permission/
@@ -281,10 +281,10 @@ describe(`user tests on`, () => {
         })
       }
 
-      await t.test('fails trying to set a property of a nonexistant user', async () => {
+      await t.test('fails trying to set a property of a nonexistent user', async () => {
         await assert.rejects(
           sharedXo.call('user.set', {
-            id: 'non-existent-id',
+            id: 'nonexistent-id',
             password: SIMPLE_USER.password,
           }),
           ERROR_SET_NO_SUCH_USER

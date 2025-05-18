@@ -19,7 +19,7 @@ exports[`job .delete() : deletes an existing job 1`] = `[JsonRpcError: no such j
 
 exports[`job .delete() : deletes an existing job 2`] = `[JsonRpcError: no such schedule [object Object]]`;
 
-exports[`job .get() : fails trying to get a job with a non existent id 1`] = `[JsonRpcError: no such job [object Object]]`;
+exports[`job .get() : fails trying to get a job with a nonexistent id 1`] = `[JsonRpcError: no such job [object Object]]`;
 
 exports[`job .get() : gets an existing job 1`] = `
 Object {
