@@ -90,7 +90,7 @@ function startTests(vol, waitTime) {
                 assert(path === file, "Fixed fluffy path matches normal one.");
             });
             fs.realpath([BASE_DIR,"non","existent","path"].join('/'), function (e) {
-                assert(e, "Expected error calling fs.realpath on non-existent file.");
+                assert(e, "Expected error calling fs.realpath on nonexistent file.");
             });
             
             fs.readdir(BASE_DIR, function (e, arr) {

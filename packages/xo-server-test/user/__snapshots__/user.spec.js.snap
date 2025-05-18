@@ -59,7 +59,7 @@ exports[`user .set() : fails trying to set a password with a non admin user conn
 
 exports[`user .set() : fails trying to set a permission with a non admin user connection 1`] = `[JsonRpcError: this properties can only changed by an administrator]`;
 
-exports[`user .set() : fails trying to set a property of a nonexistant user 1`] = `[JsonRpcError: no such user non-existent-id]`;
+exports[`user .set() : fails trying to set a property of a nonexistent user 1`] = `[JsonRpcError: no such user nonexistent-id]`;
 
 exports[`user .set() : fails trying to set an email with a non admin user connection 1`] = `[JsonRpcError: this properties can only changed by an administrator]`;
 

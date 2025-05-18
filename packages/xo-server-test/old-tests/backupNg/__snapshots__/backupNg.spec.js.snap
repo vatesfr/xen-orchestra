@@ -2,7 +2,7 @@
 
 exports[`backupNg .runJob() : fails trying to run a backup job with no matching VMs 1`] = `[JsonRpcError: unknown error from the peer]`;
 
-exports[`backupNg .runJob() : fails trying to run a backup job with non-existent vm 1`] = `
+exports[`backupNg .runJob() : fails trying to run a backup job with nonexistent vm 1`] = `
 Object {
   "data": Object {
     "id": Any<String>,
