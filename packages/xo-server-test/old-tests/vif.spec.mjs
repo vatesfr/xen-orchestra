@@ -84,7 +84,7 @@ describe('vif', () => {
       vifIds = []
     })
 
-    it('can not delete a VIF if it is connected', async () => {
+    it('cannot delete a VIF if it is connected', async () => {
       await xo.call('vif.delete', { id: vifId }).then(
         () => {
           throw new Error('vif.delete() should have thrown')

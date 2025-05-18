@@ -596,7 +596,7 @@ describe('vm', () => {
       })
     })
 
-    it('can not create two interfaces on the same device', async () => {
+    it('cannot create two interfaces on the same device', async () => {
       vifId = await xo.call('vm.createInterface', {
         vm: vmId,
         network: networkId,
