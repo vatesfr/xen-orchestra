@@ -167,5 +167,5 @@ If you want to upgrade your active plan to a higher version of Xen Orchestra, yo
 7. **Enjoy your new plan!**
 
 :::tip
-As a reseller, the process is quite the same. The only difference is that you have to pick your customer line into you reseller space an not your personal space.
+As a reseller, the process is quite the same. The only difference is that you have to pick your customer line into you reseller space and not your personal space.
 :::
