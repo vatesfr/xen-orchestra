@@ -53,7 +53,7 @@ Well, sort of…
 
 ### Temporary
 
-- **BETA** **BETA** **BETA**. Seriously, this is a _brand new_, _from scratch_, _completely unproven_ filesystem implementation. It does not have full automated test coverage, and it has not been manually tested very much either. Please please please **make sure you have a backup** of any important drive/image/card you unleash this upon.
+- **BETA** **BETA** **BETA**. Seriously, this is a _brand new_, _from scratch_, _completely unproven_ filesystem implementation. It does not have full automated test coverage, and it has not been manually tested very much either. Please, please, please, **make sure you have a backup** of any important drive/image/card you unleash this upon.
 - A few methods are not quite implemented, either: `fs.rename`, `fs.unlink` and `fs.rmdir`, as well as `fs.watchFile`/`fs.unwatchFile` and `fs.watch`. These are Coming Soon™.
 - There are several internal housekeeping items (redundant FAT tables, extra FAT32 information, etc.) that are not done. These do not seem to affect interop, but you may see warnings when repairing a filesystem written by this module.
 - Oh, and not to scare you, but if an IO error happens while writing, the library usually just bails — bubbling an error up to your callback as if it were a hot potato. Although some attempt has been made to do separate writes in the safest order (e.g. allocating an additional file cluster, then appending data into it, and then finally updating the file's size), but this behavior has not been thoroughly audited for all operations. There's certainly no attempt to retry/cleanup/rollback if a multi-step change runs into trouble partway through.
