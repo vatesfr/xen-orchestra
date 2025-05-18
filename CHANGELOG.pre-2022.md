@@ -2563,7 +2563,7 @@
 - Allow xo-server-recover-account to generate a random password [#2360](https://github.com/vatesfr/xen-orchestra/issues/2360)
 - Add disk in existing VM as self user [#2348](https://github.com/vatesfr/xen-orchestra/issues/2348)
 - Sorted table for Settings/server [#2340](https://github.com/vatesfr/xen-orchestra/issues/2340)
-- Sign in should be case insensitive [#2337](https://github.com/vatesfr/xen-orchestra/issues/2337)
+- Sign in should be case-insensitive [#2337](https://github.com/vatesfr/xen-orchestra/issues/2337)
 - [SortedTable] Extend checkbox click to whole column [#2329](https://github.com/vatesfr/xen-orchestra/issues/2329)
 - [SortedTable] Ability to select all items (across pages) [#2324](https://github.com/vatesfr/xen-orchestra/issues/2324)
 - [SortedTable] Range selection [#2323](https://github.com/vatesfr/xen-orchestra/issues/2323)

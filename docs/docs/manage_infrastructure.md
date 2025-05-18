@@ -131,7 +131,7 @@ Simply type the string, if it contains special characters just surround it with 
 - `"string with special characters like whitespaces"`
 
 :::tip
-The search is recursive, case insensitive and non-anchored (i.e. matches if the pattern is contained in a string).
+The search is recursive, case-insensitive and non-anchored (i.e. matches if the pattern is contained in a string).
 :::
 
 A simple string can also contain a wildcard character (`*`) to match any character in a portion of the string:
