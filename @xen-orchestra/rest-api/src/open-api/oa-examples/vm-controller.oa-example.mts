@@ -60,7 +60,7 @@ export const vmController = {
   VTPMs: [],
   virtualizationMode: 'pv',
   xenTools: false,
-  $containe: 'b61a5c92-700e-4966-a13b-00633f03eea8',
+  $container: 'b61a5c92-700e-4966-a13b-00633f03eea8',
   $VBDs: [],
   VGPUs: [],
   $VGPUs: [],
