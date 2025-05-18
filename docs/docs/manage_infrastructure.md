@@ -773,7 +773,7 @@ If your infrastructure works properly, this view should be empty. If not, the ca
 
 ### Orphan VDIs
 
-Orphan VDIs are are disks not associated with a VM. If you're sure you don't need it, you can easily delete them using the trash icon.
+Orphan VDIs are disks not associated with a VM. If you're sure you don't need it, you can easily delete them using the trash icon.
 
 ### VDIs attached to Control Domain
 
