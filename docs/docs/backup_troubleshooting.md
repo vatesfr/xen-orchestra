@@ -35,7 +35,7 @@ Without this detection, you could have 2 potential issues:
 
 The first issue is a chain that contains more than 30 elements (fixed XCP-ng/XenServer limit), and the other one means it's full because the "coalesce" process couldn't keep up the pace and the storage filled up.
 
-In the end, this message is a **protection mechanism preventing damage to your SR**. The backup job will fail, but XCP-ng/XenServer itself should eventually automatically coalesce the snapshot chain, and the the next time the backup job should complete.
+In the end, this message is a **protection mechanism preventing damage to your SR**. The backup job will fail, but XCP-ng/XenServer itself should eventually automatically coalesce the snapshot chain, and the next time the backup job should complete.
 
 Just remember this: **a coalesce should happen every time a snapshot is removed**.
 
