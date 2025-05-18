@@ -41,7 +41,7 @@ $ echo $?
 1
 ```
 
-## Mount LVM physical volume (partition type equals to `0x8e`)
+## Mount LVM physical volume (partition type equals `0x8e`)
 
 > Tip: `offset` and `sizelimit` are only required on a partionned disk
 
