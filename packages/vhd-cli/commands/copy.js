@@ -22,7 +22,7 @@ module.exports = async function copy(rawArgs) {
     },
   })
   if (args.length < 4 || help) {
-    return `Usage: index.js copy <sourceRemoteUrl> <source VHD> <destionationRemoteUrl> <destination> --directory`
+    return `Usage: index.js copy <sourceRemoteUrl> <source VHD> <destinationRemoteUrl> <destination> --directory`
   }
   const [sourceRemoteUrl, sourcePath, destRemoteUrl, destPath] = args
 
