@@ -128,8 +128,8 @@ describe('job', () => {
       expect(job.paramsVector).toEqual(defaultJob.paramsVector)
     })
 
-    it('fails trying to get a job with a non existent id', async () => {
-      await expect(xo.call('job.get', { id: 'non-existent-id' })).rejects.toMatchSnapshot()
+    it('fails trying to get a job with a nonexistent id', async () => {
+      await expect(xo.call('job.get', { id: 'nonexistent-id' })).rejects.toMatchSnapshot()
     })
   })
 
@@ -189,8 +189,8 @@ describe('job', () => {
       await expect(xo.call('schedule.get', { id: scheduleId })).rejects.toMatchSnapshot()
     })
 
-    it.skip('fails trying to delete a job with a non existent id', async () => {
-      await expect(xo.call('job.delete', { id: 'non-existent-id' })).rejects.toMatchSnapshot()
+    it.skip('fails trying to delete a job with a nonexistent id', async () => {
+      await expect(xo.call('job.delete', { id: 'nonexistent-id' })).rejects.toMatchSnapshot()
     })
   })
 
