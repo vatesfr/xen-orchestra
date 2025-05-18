@@ -128,7 +128,7 @@ export async function set({
   ])
 }
 
-set.description = 'changes the properties of an host'
+set.description = 'changes the properties of a host'
 
 set.params = {
   id: { type: 'string' },

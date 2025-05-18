@@ -265,7 +265,7 @@ describe('Task', function () {
       assert.throws(() => task.set(name, value), { message: /^task has not started yet\b/ })
     })
 
-    it(`emits an property message`, async function () {
+    it(`emits a property message`, async function () {
       const task = createTask()
       await task.run(async () => {
         await Task.run(() => {
@@ -339,7 +339,7 @@ describe('Task', function () {
       Task.warning('foo')
     })
 
-    it('emits an warning message when run inside a task', async function () {
+    it('emits a warning message when run inside a task', async function () {
       const task = createTask()
       await task.run(() => {
         Task.warning('foo')
