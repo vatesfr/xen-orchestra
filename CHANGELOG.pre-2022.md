@@ -1451,7 +1451,7 @@
 - [VM/disks] Don't hide disks that are attached to the same VM twice [#4400](https://github.com/vatesfr/xen-orchestra/issues/4400) (PR [#4414](https://github.com/vatesfr/xen-orchestra/pull/4414))
 - [SDN Controller] Ability to configure MTU for private networks (PR [#4491](https://github.com/vatesfr/xen-orchestra/pull/4491))
 - [VM Export] Filenames are now prefixed with datetime [#4503](https://github.com/vatesfr/xen-orchestra/issues/4503)
-- [Settings/Logs] Differenciate XS/XCP-ng errors from XO errors [#4101](https://github.com/vatesfr/xen-orchestra/issues/4101) (PR [#4385](https://github.com/vatesfr/xen-orchestra/pull/4385))
+- [Settings/Logs] Differentiate XS/XCP-ng errors from XO errors [#4101](https://github.com/vatesfr/xen-orchestra/issues/4101) (PR [#4385](https://github.com/vatesfr/xen-orchestra/pull/4385))
 - [Backups] Improve performance by caching logs consolidation (PR [#4541](https://github.com/vatesfr/xen-orchestra/pull/4541))
 - [New VM] Cloud Init available for all plans (PR [#4543](https://github.com/vatesfr/xen-orchestra/pull/4543))
 - [Servers] IPv6 addresses can be used [#4520](https://github.com/vatesfr/xen-orchestra/issues/4520) (PR [#4521](https://github.com/vatesfr/xen-orchestra/pull/4521)) \

@@ -537,7 +537,7 @@ If a VM has the tag **xo-backup-healthcheck-xenstore** during a backup health ch
 In case of `failure`, it will mark the health check as failed, and will show the (optional) message contained in `vm-data/xo-backup-health-check-error`
 
 The script needs to be planned on boot. It can check if the record `vm-data/xo-backup-health-check` of the local xenstore contains `planned`
-to differenciate a normal boot and a boot during health check.
+to differentiate a normal boot and a boot during health check.
 On success it must write `success`in `vm-data/xo-backup-health-check`.
 On failure it must write `failure` in `vm-data/xo-backup-health-check`, and may optionally add details in `vm-data/xo-backup-health-check-error` .
 
