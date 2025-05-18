@@ -28,7 +28,7 @@ fs.stat('autoexec.bat', function (e, stats) {
 
 ## API
 
-- `fs = fatfs.createFileSystem(vol, [opts], [cb])` — Simply pass in a block driver (see below) mapped to a FAT partition somewhere, and get back the API documented [here](http://nodejs.org/api/fs.html). An options dictionary can be provided, details are in the next section. You may also optionally provide a callback `cb(err)` which will be automatically registered for the on `'ready'` or `'error'` event.
+- `fs = fatfs.createFileSystem(vol, [opts], [cb])` — Simply pass in a block driver (see below) mapped to a FAT partition somewhere, and get back an instance of an [`fs`](http://nodejs.org/api/fs.html). An options dictionary can be provided, details are in the next section. You may also optionally provide a callback `cb(err)` which will be automatically registered for the on `'ready'` or `'error'` event.
 - `'ready'` event — fired on `fs` when initial volume information has been determined and the API is ready to use. It is safe to call other `fs` methods before this fires **only if** you are sure the first sector will be readable and represents a valid FAT volume.
 - `'error'` event — fired if initialization fails for whatever reason.
 
