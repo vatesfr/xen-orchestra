@@ -26,7 +26,7 @@ export const configurationSchema = {
   properties: {
     server: {
       type: 'string',
-      description: 'The nagios server adress',
+      description: 'The nagios server address',
     },
     port: {
       type: 'integer',

@@ -1,5 +1,5 @@
 import assert from 'assert'
-import addressParser from '../../../util/addrress-parser'
+import addressParser from '../../../util/address-parser'
 import uIntHelper from '../../../util/uint-helper'
 import of from '../../openflow-11'
 

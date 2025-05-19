@@ -15,8 +15,8 @@ export async function connectNbdClientIfPossible(xapi, vdiRef, nbdConcurrency) {
     const networkRef = await xapi.call('network.get_by_uuid', poolBackupNetwork)
     const pifs = await xapi.getField('network', networkRef, 'PIFs')
     // @todo implement ipv6
-    const adresses = await Promise.all(pifs.map(pifRef => xapi.getField('PIF', pifRef, 'IP')))
-    nbdInfos = nbdInfos.filter(({ address }) => adresses.includes(address))
+    const addresses = await Promise.all(pifs.map(pifRef => xapi.getField('PIF', pifRef, 'IP')))
+    nbdInfos = nbdInfos.filter(({ address }) => addresses.includes(address))
   }
 
   if (nbdInfos.length === 0) {
