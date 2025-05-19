@@ -97,7 +97,7 @@
 
 - [Delta Backup Restoration] Fix assertion error [Forum#5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/16)
 - [Delta Backup Restoration] `TypeError: this disposable has already been disposed` [Forum#5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/20)
-- [Backups] Fix: `Error: Chaining alias is forbidden xo-vm-backups/..alias.vhd to xo-vm-backups/....alias.vhd` when backuping a file to s3 [Forum#5226](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it)
+- [Backups] Fix: `Error: Chaining alias is forbidden xo-vm-backups/..alias.vhd to xo-vm-backups/....alias.vhd` when backing up a file to s3 [Forum#5226](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it)
 - [Delta Backup Restoration] `VDI_IO_ERROR(Device I/O errors)` [Forum#5727](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/4) (PR [#6031](https://github.com/vatesfr/xen-orchestra/pull/6031))
 - [Delta Backup] Fix `Cannot read property 'uuid' of undefined` when a VDI has been removed from a backed up VM (PR [#6034](https://github.com/vatesfr/xen-orchestra/pull/6034))
 
