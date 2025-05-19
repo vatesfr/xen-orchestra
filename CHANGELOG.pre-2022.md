@@ -20,7 +20,7 @@
 
 ### Bug fixes
 
-- [Dashboard/Health] Fix `error has occured` when a pool has no default SR
+- [Dashboard/Health] Fix `error has occurred` when a pool has no default SR
 - [Delta Backup] Fix unnecessary full backup when not using S3 [Forum#5371](https://xcp-ng.org/forum/topic/5371/delta-backup-changes-in-5-66) (PR [#6070](https://github.com/vatesfr/xen-orchestra/pull/6070))
 - [Backup] Fix incorrect warnings `incorrect size [...] instead of undefined`
 
@@ -270,7 +270,7 @@
 
 ### Bug fixes
 
-- [VM/disks] Fix `an error has occured` when self service user was on VM disk view (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
+- [VM/disks] Fix `an error has occurred` when self service user was on VM disk view (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
 - [Backup] Protect replicated VMs from being started on specific hosts (PR [#5852](https://github.com/vatesfr/xen-orchestra/pull/5852))
 
 ### Released packages

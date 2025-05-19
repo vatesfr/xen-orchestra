@@ -16,7 +16,7 @@
 
 ### Bug fixes
 
-- prevent XOA from failing with `an error has occured` due to license problems (PR [#8551](https://github.com/vatesfr/xen-orchestra/pull/8551))
+- prevent XOA from failing with `an error has occurred` due to license problems (PR [#8551](https://github.com/vatesfr/xen-orchestra/pull/8551))
 
 ### Released packages
 
@@ -649,8 +649,8 @@
 - [Import/VM Ware] Shows only SRs and networks of the selected pool (PR [#7905](https://github.com/vatesfr/xen-orchestra/pull/7905))
 - [Backups] Work around XAPI not automatically updating VM's `allowed_operations` after backups [Forum#81327](https://xcp-ng.org/forum/post/81327) (PR [#7924](https://github.com/vatesfr/xen-orchestra/pull/7924))
 - [REST API] Fix VDI export in raw format broken in XO 5.96.0
-- [New/SR] Fix 'an error as occured' when creating a new SR (PR [#7931](https://github.com/vatesfr/xen-orchestra/pull/7931))
-- [VM/General] Fix 'an error as occured' in general tab view for non-admin users (PR [#7928](https://github.com/vatesfr/xen-orchestra/pull/7928))
+- [New/SR] Fix 'an error as occurred' when creating a new SR (PR [#7931](https://github.com/vatesfr/xen-orchestra/pull/7931))
+- [VM/General] Fix 'an error as occurred' in general tab view for non-admin users (PR [#7928](https://github.com/vatesfr/xen-orchestra/pull/7928))
 - [Plugin/perf-alert] Fix 'NaN' values in CPU usage (PR [#7925](https://github.com/vatesfr/xen-orchestra/pull/7925))
 - [Backups] Fix the replication failing with "disk attached to Dom0" error (PR [#7920](https://github.com/vatesfr/xen-orchestra/pull/7920))
 - [VM/SR/Disks tab] Fix error not displaying when toggling CBT (PR [#7947](https://github.com/vatesfr/xen-orchestra/pull/7947))
@@ -892,7 +892,7 @@
 
 - [Pool] Fix `Headers Timeout Error` when installing patches on XCP-ng
 - [Pool/Advanced] Only show current pool's SRs in default SR selector (PR [#7626](https://github.com/vatesfr/xen-orchestra/pull/7626))
-- [SR/XOSTOR] Fix `an error has occured` in the Resource List (PR [#7630](https://github.com/vatesfr/xen-orchestra/pull/7630))
+- [SR/XOSTOR] Fix `an error has occurred` in the Resource List (PR [#7630](https://github.com/vatesfr/xen-orchestra/pull/7630))
 - [XOSTOR] Don't require host licenses to run XOSTOR (PR [#7628](https://github.com/vatesfr/xen-orchestra/pull/7628))
 
 ### Released packages

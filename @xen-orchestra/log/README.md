@@ -187,7 +187,7 @@ configure(
 )
 ```
 
-Duplicate logs will be buffered for `timeout` milliseconds or until a different log is emitted, at which time a dedicated log entry is emitted which indicate the number of duplicates that occured.
+Duplicate logs will be buffered for `timeout` milliseconds or until a different log is emitted, at which time a dedicated log entry is emitted which indicate the number of duplicates that occurred.
 
 ```js
 const logger = createLogger('app')
