@@ -3820,7 +3820,7 @@ _[XO-Web](https://www.npmjs.org/package/xo-web) and [XO-Server](https://www.npmj
 - settings page now only accessible to admin ([#77](https://github.com/vatesfr/xen-orchestra/issues/77))
 - redirection to the home page when a VM is deleted from its own page ([#56](https://github.com/vatesfr/xen-orchestra/issues/56))
 - XO-Web published on npm ([#123](https://github.com/vatesfr/xen-orchestra/issues/123))
-- buid process now use Browserify (([#125](https://github.com/vatesfr/xen-orchestra/issues/125), [#135](https://github.com/vatesfr/xen-orchestra/issues/135)))
+- build process now use Browserify (([#125](https://github.com/vatesfr/xen-orchestra/issues/125), [#135](https://github.com/vatesfr/xen-orchestra/issues/135)))
 - view are now written in Jade instead of HTML ([#124](https://github.com/vatesfr/xen-orchestra/issues/124))
 - CSS autoprefixer to improve compatibility ([#132](https://github.com/vatesfr/xen-orchestra/issues/132), [#137](https://github.com/vatesfr/xen-orchestra/issues/137))
 
