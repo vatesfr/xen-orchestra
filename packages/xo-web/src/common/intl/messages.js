@@ -708,7 +708,7 @@ const messages = {
   remoteUseVhdDirectoryTooltip:
     'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500-1000 files per GB of backed up data)',
   remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
-  remoteEncryptionEncryptedfiles:
+  remoteEncryptionEncryptedFiles:
     'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote.',
   remoteEncryptionMustUseVhd: 'Delta backup must use VHD saved as blocks',
   remoteEncryptionKey: 'Encrypt all new data sent to this remote',
