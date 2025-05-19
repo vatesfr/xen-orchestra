@@ -85,7 +85,7 @@ Please enter your xen-orchestra.com identifiers to register your XOA:
 ? Email: myemail@example.net
 ? Password: *****
 
-ℹ Your Xen Orchestra Appliance has been succesfully registered
+ℹ Your Xen Orchestra Appliance has been successfully registered
 ```
 
 #### Check for new versions
