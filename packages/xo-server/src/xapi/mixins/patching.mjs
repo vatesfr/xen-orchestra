@@ -364,10 +364,10 @@ const methods = {
 
       if ((conflictId = find(patch.conflicts, conflictId => find(installable, { id: conflictId }))) !== undefined) {
         if (getAll) {
-          log.debug(`patches ${id} and ${conflictId} conflict with eachother`)
+          log.debug(`patches ${id} and ${conflictId} conflict with each other`)
           return
         }
-        throw new Error(`patches ${id} and ${conflictId} conflict with eachother`)
+        throw new Error(`patches ${id} and ${conflictId} conflict with each other`)
       }
 
       // add requirements
