@@ -5,7 +5,7 @@ import RemoteHandlerLocal from './local'
 import RemoteHandlerNfs from './nfs'
 import RemoteHandlerS3 from './s3'
 import RemoteHandlerSmb from './smb'
-export { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, isLegacyEncryptionAlgorithm } from './_encryptor'
+export { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, isLegacyEncryptionAlgorithm } from './_encrypter'
 
 const HANDLERS = {
   file: RemoteHandlerLocal,
