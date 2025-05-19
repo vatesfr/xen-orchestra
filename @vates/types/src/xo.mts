@@ -350,7 +350,7 @@ export type XoSr = BaseXapiXo & {
 
   $container: XoPool['id'] | XoHost['id']
 
-  VDIs: XoVdi['id'][]
+  VDIs: AnyXoVdi['id'][]
 
   allocationStrategy: 'thin' | 'thick' | 'unknown'
   content_type: string
@@ -390,8 +390,8 @@ export type XoVbd = BaseXapiXo & {
   position: string
   read_only: boolean
   type: 'VBD'
-  VDI: XoVdi['id']
-  VM: XoVm['id']
+  VDI: AnyXoVdi['id']
+  VM: AnyXoVm['id']
 }
 
 type BaseXoVdi = BaseXapiXo & {
@@ -520,3 +520,7 @@ export type XapiXoRecord =
 export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
+
+export type AnyXoVm = XoVm | XoVmSnapshot | XoVmTemplate | XoVmController
+
+export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged

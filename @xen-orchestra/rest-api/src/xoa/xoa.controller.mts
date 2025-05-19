@@ -41,74 +41,11 @@ export class XoaController extends Controller {
       expiresIn: app.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
     }
 
-    const srs = Object.values(app.objects.indexes.type.SR ?? {})
     const vms = Object.values(app.objects.indexes.type.VM ?? {})
 
-    const writableSrs = srs.filter(isSrWritable)
     const nonReplicaVms = vms.filter(vm => !isReplicaVm(vm))
     const vmIdsProtected = new Set()
     const vmIdsUnprotected = new Set()
-
-    function isReplicaVmInVdb($VBDs) {
-      for (const vbd of $VBDs) {
-        try {
-          const vdbObject = app.getObject(vbd, ['VBD'])
-          const { VM } = vdbObject
-          const vmObject = app.getObject(VM, ['VM', 'VM-snapshot', 'VM-template'])
-          if (isReplicaVm(vmObject)) {
-            return true
-          }
-        } catch (err) {}
-      }
-      return false
-    }
-
-    function calculateReplicatedSize(vdi, cache) {
-      if (cache.has(vdi)) {
-        return 0
-      }
-
-      let vdiObject
-      try {
-        vdiObject = app.getObject(vdi, ['VDI', 'VDI-snapshot', 'VDI-unmanaged'])
-        cache.set(vdi, vdiObject)
-      } catch (err) {
-        return 0
-      }
-
-      const { parent, usage, $VBDs } = vdiObject
-      const replicaUsage = isReplicaVmInVdb($VBDs) && usage ? usage : 0
-      const parentUsage = parent ? calculateReplicatedSize(parent, cache) : 0
-
-      return replicaUsage + parentUsage
-    }
-
-    const storageRepositoriesSize = writableSrs.reduce(
-      function processSr(acc, sr) {
-        const cache = new Map()
-        const { VDIs } = sr
-
-        const replicated = VDIs.reduce((total, vdi) => {
-          return total + calculateReplicatedSize(vdi, cache)
-        }, 0)
-
-        return {
-          replicated: acc.replicated + replicated,
-          total: acc.total + sr.size,
-          used: acc.used + sr.physical_usage,
-        }
-      },
-      {
-        replicated: 0,
-        total: 0,
-        used: 0,
-      }
-    )
-
-    storageRepositoriesSize.available = storageRepositoriesSize.total - storageRepositoriesSize.used
-    storageRepositoriesSize.other = storageRepositoriesSize.used - storageRepositoriesSize.replicated
-
-    dashboard.storageRepositories = { size: storageRepositoriesSize }
 
     async function _jobHasAtLeastOneScheduleEnabled(job) {
       for (const maybeScheduleId in job.settings) {
