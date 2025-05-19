@@ -32,15 +32,20 @@
     "typescript-eslint": "^8.23.0"
   },
   "dependencies": {
+    "@vates/async-each": "^1.0.0",
     "@vates/types": "^1.2.0",
+    "@xen-orchestra/backups": "^0.59.0",
     "@xen-orchestra/log": "^0.7.1",
     "complex-matcher": "^0.7.1",
     "inversify": "^6.2.2",
     "inversify-binding-decorators": "^4.0.0",
     "lodash": "^4.17.21",
+    "semver": "^7.7.2",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0",
-    "xo-common": "^0.8.0"
+    "value-matcher": "^0.2.0",
+    "xo-common": "^0.8.0",
+    "xo-remote-parser": "^0.9.3"
   },
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
