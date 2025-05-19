@@ -8,7 +8,7 @@ Xen Orchestra is an Open Source project created by [Olivier Lambert](https://www
 
 ## Initial idea
 
-The idea of Xen Orchestra was origally born in 2009, see the original announcement on [Xen User mailing list](https://lists.xenproject.org/archives/html/xen-users/2009-09/msg00537.html). It worked on Xen and `xend` (now deprecated).
+The idea of Xen Orchestra was originally born in 2009, see the original announcement on [Xen User mailing list](https://lists.xenproject.org/archives/html/xen-users/2009-09/msg00537.html). It worked on Xen and `xend` (now deprecated).
 
 ## XO reboot for XCP-ng/XenServer
 
