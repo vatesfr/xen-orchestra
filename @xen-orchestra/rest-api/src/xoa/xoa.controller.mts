@@ -1,7 +1,8 @@
 import { Controller, Get, Response, Route, Security, Tags } from 'tsoa'
-import { provide } from 'inversify-binding-decorators'
-import { unauthorizedResp } from '../open-api/common/response.common.mjs'
 import { inject } from 'inversify'
+import { provide } from 'inversify-binding-decorators'
+
+import { unauthorizedResp } from '../open-api/common/response.common.mjs'
 import { XoaDashboard } from './xoa.type.mjs'
 import { XoaService } from './xoa.service.mjs'
 
@@ -21,7 +22,6 @@ export class XoaController extends Controller {
   @Get('dashboard')
   async getDashboard(): Promise<XoaDashboard> {
     const dashboard = await this.#xoaService.getDashboard()
-    // @ts-expect-error type not done
     return dashboard
   }
 }

@@ -21,7 +21,8 @@
     "prepublishOnly": "npm run build",
     "postversion": "npm publish --access public",
     "prebuild": "npm run clean",
-    "predev": "npm run clean"
+    "predev": "npm run clean",
+    "test": "tsc && node --test dist/**/*.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
