@@ -61,11 +61,11 @@ export class ImportVmBackup {
     const { mapVdisSrs } = this._importIncrementalVmSettings
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const disks = {}
-    const metdataDir = dirname(metadata._filename)
+    const metadataDir = dirname(metadata._filename)
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
 
     for (const [vdiRef, vdi] of Object.entries(vdis)) {
-      const vhdPath = join(metdataDir, vhds[vdiRef])
+      const vhdPath = join(metadataDir, vhds[vdiRef])
 
       let xapiDisk
       try {
@@ -112,7 +112,7 @@ export class ImportVmBackup {
       }
 
       let disk
-      const backupWithSnapshotPath = join(metdataDir, backupCandidate ?? '')
+      const backupWithSnapshotPath = join(metadataDir, backupCandidate ?? '')
       if (vhdPath === backupWithSnapshotPath) {
         // all the data are already on the host
         debug('direct reuse of a snapshot')

@@ -312,8 +312,8 @@ export class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const metadatas = await asyncMap(files, file => this.readVmBackupMetadata(file))
-    const { delta, full, ...others } = groupBy(metadatas, 'mode')
+    const metadata = await asyncMap(files, file => this.readVmBackupMetadata(file))
+    const { delta, full, ...others } = groupBy(metadata, 'mode')
 
     const unsupportedModes = Object.keys(others)
     if (unsupportedModes.length !== 0) {
