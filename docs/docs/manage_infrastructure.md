@@ -296,7 +296,7 @@ This is the network section of the VM configuration: in general, MAC field is ke
 This section is for configuring new or existing disks (according to your selected template).
 
 :::tip
-Protip: avoid using large disks for your VMs. Want to store a lot of files? Use a network share for that (NFS, SMB) and keep using VMs with small system disks. It's far easier to maintain, migrate, backup and restore!
+Pro tip: avoid using large disks for your VMs. Want to store a lot of files? Use a network share for that (NFS, SMB) and keep using VMs with small system disks. It's far easier to maintain, migrate, backup and restore!
 :::
 
 ## VM management
