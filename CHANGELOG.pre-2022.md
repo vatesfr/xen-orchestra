@@ -3129,7 +3129,7 @@ File level restore.
 - ACL: Ability to view/sort/group by User/Group, Objects or Role [\#875](https://github.com/vatesfr/xen-orchestra/issues/875)
 - ACL: Ability to select multiple users & group when creating a rule [\#874](https://github.com/vatesfr/xen-orchestra/issues/874)
 - Translation [\#839](https://github.com/vatesfr/xen-orchestra/issues/839)
-- XO offer useless network interfaces for XenMontion [\#833](https://github.com/vatesfr/xen-orchestra/issues/833)
+- XO offer useless network interfaces for XenMotion [\#833](https://github.com/vatesfr/xen-orchestra/issues/833)
 - Show HVM, PVM, PVHVM modes in guest details [\#806](https://github.com/vatesfr/xen-orchestra/issues/806)
 - Tree view: display cpu available/total for each host [\#696](https://github.com/vatesfr/xen-orchestra/issues/696)
 - Greenkeeper integration [\#667](https://github.com/vatesfr/xen-orchestra/issues/667)
