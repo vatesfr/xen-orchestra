@@ -235,7 +235,7 @@ Use the screenshots below as a reference as how to setup SAML with Google Worksp
 
 > If you get a certificate error. Try to add a newline at the bottom of the Certificate field in Xen Orchestra.
 
-The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the apropriate group. (XO: Settings/Users).
+The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the appropriate group. (XO: Settings/Users).
 
 ![](./assets/saml-googleworkspace1.png)
 
