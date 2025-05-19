@@ -2072,7 +2072,7 @@
 ### Bug fixes
 
 - [Dashboard/Health] Fix `Unknown SR` and `Unknown VDI` in Unhealthy VDIs (PR [#6519](https://github.com/vatesfr/xen-orchestra/pull/6519))
-- [Delta Backup] Can now recover VHD merge when failed at the begining
+- [Delta Backup] Can now recover VHD merge when failed at the beginning
 - [Delta Backup] Fix `ENOENT` errors when merging a VHD directory on non-S3 remote
 - [Remote] Prevent the browser from auto-completing the encryption key field
 
