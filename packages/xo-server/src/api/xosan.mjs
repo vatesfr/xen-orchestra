@@ -825,7 +825,7 @@ export async function replaceBrick({ xosansr, previousBrick, newLvmSr, brickSize
 
   const OPERATION_OBJECT = {
     operation: 'replaceBrick',
-    states: ['insertingNewVm', 'swapingBrick', 'deletingVm', 'scaningSr'],
+    states: ['insertingNewVm', 'swapingBrick', 'deletingVm', 'scanningSr'],
   }
   if (onSameVM) {
     return this::replaceBrickOnSameVM(xosansr, previousBrick, newLvmSr, brickSize)
@@ -1040,7 +1040,7 @@ export const addBricks = defer(async function ($defer, { xosansr, lvmsrs, brickS
 
   const OPERATION_OBJECT = {
     operation: 'addBricks',
-    states: ['insertingNewVms', 'addingBricks', 'scaningSr'],
+    states: ['insertingNewVms', 'addingBricks', 'scanningSr'],
   }
   const xapi = this.getXapi(xosansr)
   const poolId = xapi.pool.$id
