@@ -3106,7 +3106,7 @@ File level restore.
 - Missing SRs [\#1123](https://github.com/vatesfr/xen-orchestra/issues/1123)
 - Continuous replication email alert does not obey per job setting [\#1121](https://github.com/vatesfr/xen-orchestra/issues/1121)
 - Safari XO5 issue [\#1120](https://github.com/vatesfr/xen-orchestra/issues/1120)
-- ACLs shoud be available in Enterprise Edition [\#1118](https://github.com/vatesfr/xen-orchestra/issues/1118)
+- ACLs should be available in Enterprise Edition [\#1118](https://github.com/vatesfr/xen-orchestra/issues/1118)
 - SR edit name or description doesn't work [\#1116](https://github.com/vatesfr/xen-orchestra/issues/1116)
 - Bad RRD parsing for VIFs [\#969](https://github.com/vatesfr/xen-orchestra/issues/969)
 
