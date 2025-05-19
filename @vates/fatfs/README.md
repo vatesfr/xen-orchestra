@@ -36,7 +36,7 @@ fs.stat('autoexec.bat', function (e, stats) {
 
 The `opts` dictionary you pass to `fatfs.createFileSystem` can contain any of the following options:
 
-- `ro` — Enables readonly mode if `true`. It defaults to `false`, but if your volume driver does not provide a `writeSectors` method it will be overriden to `true`.
+- `ro` — Enables readonly mode if `true`. It defaults to `false`, but if your volume driver does not provide a `writeSectors` method it will be overridden to `true`.
 - `noatime` — The FAT filesystem can track the last access time (just a date, actually) but this means every read operation would also incur some write overhead. Defaults to `true`, meaning by default access times will **not** be updated on reads. Set this to `false` to track access times.
 - `modmode` — chooses how `fs.chmod` (and the mode field from `fs.stat`–family calls) should map FAT attributes to POSIX permissions. Set to the number `0111` to map the readonly flag to the user's write bit being unset, and the archive/system/hidden flags to the user/group/other executable bits respectively. Set to the number `07000` to map the readonly flag to _all_ write bits being unset, and the archive/system/hidden flags to the sticky/setgid/setuid bits respectively. Set to `null` for readonly mapping. Defaults to `0111`.
 - `umask` — any bits _set_ in this octal number will be _unset_ in the 'mode' field from `fs.stat`–family calls. It does not affect anything else. Defaults to `process.umask()`, or `0022` if that is unavailable.
