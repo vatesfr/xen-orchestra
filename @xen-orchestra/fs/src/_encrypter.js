@@ -66,7 +66,7 @@ function getEncrypter(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
          * WARNING
          *
          * the crypted size has an initialization vector + eventually an auth tag + a padding at the end
-         * whe can't predict the decrypted size from the start of the encrypted size
+         * we can't predict the decrypted size from the start of the encrypted size
          * thus, we can't set decrypted.length reliably
          *
          */
