@@ -70,28 +70,28 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
   }
 
   async #computeTransferListPerJob(sourceBackups, remotesBackups) {
-    const localMetada = new Map()
+    const localMetadata = new Map()
     sourceBackups.forEach(metadata => {
       const timestamp = metadata.timestamp
-      localMetada.set(timestamp, metadata)
+      localMetadata.set(timestamp, metadata)
     })
     const nbRemotes = remotesBackups.length
-    const remoteMetadatas = {}
+    const remoteMetadata = {}
     remotesBackups.forEach(async remoteBackups => {
       remoteBackups.forEach(metadata => {
         const timestamp = metadata.timestamp
-        remoteMetadatas[timestamp] = (remoteMetadatas[timestamp] ?? 0) + 1
+        remoteMetadata[timestamp] = (remoteMetadata[timestamp] ?? 0) + 1
       })
     })
 
     let transferList = []
-    const timestamps = [...localMetada.keys()]
+    const timestamps = [...localMetadata.keys()]
     timestamps.sort()
     for (const timestamp of timestamps) {
-      if (remoteMetadatas[timestamp] !== nbRemotes) {
+      if (remoteMetadata[timestamp] !== nbRemotes) {
         // this backup is not present in all the remote
         // should be retransferred if not found later
-        transferList.push(localMetada.get(timestamp))
+        transferList.push(localMetadata.get(timestamp))
       } else {
         // backup is present in local and remote : the chain has already been transferred
         transferList = []
