@@ -1667,7 +1667,7 @@
 
 ### Highlights
 
-- [Backup] Implementation of mirror backup (Entreprise plan) (PRs [#6858](https://github.com/vatesfr/xen-orchestra/pull/6858), [#6854](https://github.com/vatesfr/xen-orchestra/pull/6854))
+- [Backup] Implementation of mirror backup (Enterprise plan) (PRs [#6858](https://github.com/vatesfr/xen-orchestra/pull/6858), [#6854](https://github.com/vatesfr/xen-orchestra/pull/6854))
 - [Self service] Add default tags to all VMs that will be created by a Self Service (PRs [#6810](https://github.com/vatesfr/xen-orchestra/pull/6810), [#6812](https://github.com/vatesfr/xen-orchestra/pull/6812))
 - [Self Service] Ability to set a default value for the "Share VM" feature for Self Service users during creation/edition (PR [#6838](https://github.com/vatesfr/xen-orchestra/pull/6838))
 - [REST API] Add endpoints to display missing patches for pools and hosts (PR [#6855](https://github.com/vatesfr/xen-orchestra/pull/6855))
