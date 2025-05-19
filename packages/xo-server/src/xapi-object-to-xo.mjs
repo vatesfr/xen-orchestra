@@ -942,7 +942,7 @@ const TRANSFORMS = {
       gpuGroup: link(obj, 'GPU_group'),
       isSystemDisplayDevice: Boolean(obj.is_system_display_device),
       pci: link(obj, 'PCI'),
-      supportedVgpuMaxCapcities: link(obj, 'supported_VGPU_max_capacities'),
+      supportedVgpuMaxCapacities: link(obj, 'supported_VGPU_max_capacities'),
       supportedVgpuTypes: link(obj, 'supported_VGPU_types'),
 
       // TODO: dedupe.
