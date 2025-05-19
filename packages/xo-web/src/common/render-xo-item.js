@@ -739,7 +739,7 @@ const xoItemToRender = {
       )}
       {backup.dynamicVhds > 0 && (
         <span className='tag tag-info'>
-          {backup.dynamicVhds} {_('backupisKey')}{' '}
+          {backup.dynamicVhds} {_('backupIsKey')}{' '}
         </span>
       )}
       {backup.withMemory && <span className='tag tag-info'>{_('withMemory')} </span>}
