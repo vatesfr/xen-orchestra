@@ -45,6 +45,6 @@ const pvVersion = computed(() => {
     return
   }
 
-  return `${major}.${minor}.${micro ? `-${micro}` : ''}.${build ? `-${build}` : ''}`
+  return `${major}.${minor}.${micro ? `${micro}` : ''}.${build ? `-${build}` : ''}`
 })
 </script>

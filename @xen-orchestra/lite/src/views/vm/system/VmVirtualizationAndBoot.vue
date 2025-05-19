@@ -6,9 +6,7 @@
     <VtsQuickInfoRow :label="$t('virtualization-mode')" :value="virtualizationMode" />
     <VtsQuickInfoRow :label="$t('secure-boot')">
       <template #value>
-        <UiInfo :accent="vm.platform.secureBoot ? 'success' : 'muted'">
-          {{ vm.platform.secureBoot ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.platform.secureBoot !== undefined" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : $t('none')" />
@@ -21,16 +19,12 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('manage-citrix-pv-drivers-via-windows-update')">
       <template #value>
-        <UiInfo :accent="vm.has_vendor_device ? 'success' : 'muted'">
-          {{ vm.has_vendor_device ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.has_vendor_device" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('nested-virtualization')">
       <template #value>
-        <UiInfo :accent="isNestedVirtualizationEnabled ? 'success' : 'muted'">
-          {{ isNestedVirtualizationEnabled ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="isNestedVirtualizationEnabled" />
       </template>
     </VtsQuickInfoRow>
   </UiCard>
@@ -44,6 +38,7 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'
 import { satisfies } from 'semver'
 import { computed } from 'vue'
 

@@ -5,6 +5,8 @@
     </UiTitle>
     <VtsQuickInfoRow :label="$t('high-availability')">
       <template #value>
+        <VtsEnabledState :enabled="vm.platform.vga === 'std'" />
+
         <UiInfo :accent="vm.ha_restart_priority !== '' ? 'success' : 'muted'">
           {{ vm.ha_restart_priority ? $t(vm.ha_restart_priority) : $t('disabled') }}
         </UiInfo>
@@ -20,23 +22,17 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('protect-from-accidental-deletion')">
       <template #value>
-        <UiInfo :accent="vm.blocked_operations?.destroy === 'true' ? 'success' : 'muted'">
-          {{ vm.blocked_operations?.destroy === 'true' ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.blocked_operations?.destroy === 'true'" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('protect-from-accidental-shutdown')">
       <template #value>
-        <UiInfo :accent="isPprotectedFromAccidentalShutdown ? 'success' : 'muted'">
-          {{ isPprotectedFromAccidentalShutdown ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="isProtectedFromAccidentalShutdown !== undefined" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('auto-power')">
       <template #value>
-        <UiInfo :accent="vm.other_config.auto_poweron === 'true' ? 'success' : 'muted'">
-          {{ vm.other_config.auto_poweron === 'true' ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.other_config.auto_poweron === 'true'" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('start-delay')" :value="$t('relative-time.second', vm.start_delay)" />
@@ -51,6 +47,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
@@ -59,7 +56,7 @@ const { vm } = defineProps<{ vm: XenApiVm }>()
 const { getByOpaqueRef } = useHostStore().subscribe()
 
 const affinityHost = computed(() => (vm.affinity ? getByOpaqueRef(vm.affinity) : undefined))
-const isPprotectedFromAccidentalShutdown = computed(
+const isProtectedFromAccidentalShutdown = computed(
   () =>
     vm.blocked_operations?.clean_reboot ||
     vm.blocked_operations?.clean_shutdown ||

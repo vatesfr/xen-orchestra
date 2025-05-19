@@ -5,9 +5,7 @@
     </UiTitle>
     <VtsQuickInfoRow :label="$t('vga')">
       <template #value>
-        <UiInfo :accent="vm.platform.vga === 'std' ? 'success' : 'muted'">
-          {{ vm.platform.vga === 'std' ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.platform.vga === 'std'" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('video-ram')">
@@ -22,8 +20,8 @@
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { computed } from 'vue'
 
