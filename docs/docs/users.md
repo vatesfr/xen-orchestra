@@ -173,7 +173,7 @@ On the Xen Orchestra login page, click **Sign in with OpenID Connect**
 
 ![OpenID Connect sign in](./assets/openid-connect-signin-button.png)
 
-You’ll be redirected to the login page of your internal portal. Once authentificated on it, you will be redirected to the Xen Orchestra home page.
+You’ll be redirected to the login page of your internal portal. Once authenticated on it, you will be redirected to the Xen Orchestra home page.
 
 #### Administrator Guide
 
