@@ -29,7 +29,7 @@ Once you have started the VM, you can access the web UI by putting the IP you co
 
 ### Registration
 
-**The first thing** you need to do with your XOA is register. [Read the documentation on the page dedicated to the updater/register inferface](updater.md#register).
+**The first thing** you need to do with your XOA is register. [Read the documentation on the page dedicated to the updater/register interface](updater.md#register).
 
 :::tip
 We don't generate virtual appliances every month (unlike XO code itself). It's very likely you'll need to update Xen Orchestra after the initial deploy. You need to register to do so!
