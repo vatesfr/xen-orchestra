@@ -1,3 +1,5 @@
+import { BACKUP_TYPE } from '@vates/types'
+
 export type DashboardBackupRepositoriesSizeInfo = {
   s3: {
     size: {
@@ -5,6 +7,27 @@ export type DashboardBackupRepositoriesSizeInfo = {
     }
   }
   other: { size: { available: number; backups: number; other: number; total: number; used: number } }
+}
+
+export type DashboardBackupsInfo = {
+  jobs: {
+    disabled: number
+    failed: number
+    skipped: number
+    successful: number
+    total: number
+  }
+  issues: {
+    logs: ('failure' | 'interrupted' | 'skipped' | 'success')[]
+    name?: string
+    type: BACKUP_TYPE
+    uuid: string
+  }[]
+  vmsProtection: {
+    protected: number
+    unprotected: number
+    notInJob: number
+  }
 }
 
 export type XoaDashboard = {
@@ -29,26 +52,7 @@ export type XoaDashboard = {
       used: number
     }
   }
-  backups?: {
-    jobs: {
-      disabled: number
-      failed: number
-      skipped: number
-      successful: number
-      total: number
-    }
-    issues: {
-      logs: ('failure' | 'interrupted' | 'skipped' | 'success')[]
-      name: string
-      type: 'backup' | 'metadataBackup' | 'mirrorBackup'
-      uuid: string
-    }[]
-    vmsProtection: {
-      protected: number
-      unprotected: number
-      notInJob: number
-    }
-  }
+  backups?: DashboardBackupsInfo
   resourcesOverview: {
     nCpus: number
     memorySize: number

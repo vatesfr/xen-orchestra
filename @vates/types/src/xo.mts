@@ -1,6 +1,7 @@
 // Types based on xapi-object-to-xo
 
 import type {
+  BACKUP_TYPE,
   Branded,
   DOMAIN_TYPE,
   HOST_ALLOWED_OPERATIONS,
@@ -316,15 +317,61 @@ export type XoProxy = {
   id: Branded<'proxy'>
 }
 
-export type XoJob = {
+type BaseXoJob = {
   id: Branded<'job'>
+}
+// @TODO: create type for complex matcher
+export type XoBackupJob = BaseXoJob & {
+  compression?: 'native' | 'zstd' | ''
+  proxy?: XoProxy['id']
+  mode: 'full' | 'delta'
+  name?: string
+  remotes?: {
+    id: XoRemote['id'] | { __or: XoRemote['id'][] }
+  }
+  vms?: {
+    id: XoVm['id'] | { __or: XoVm['id'][] } | Record<string, unknown>
+  }
+  srs: {
+    id: XoSr['id'] | { __or: XoSr['id'][] }
+  }
+  type: BACKUP_TYPE
+  settings: {
+    '': {
+      cbtDestroySnapshotData?: boolean
+      concurrency?: number
+      longTermRetention?: {
+        daily?: { retention: number; settings: Record<string, unknown> }
+        weekly?: { retention: number; settings: Record<string, unknown> }
+        monthly?: { retention: number; settings: Record<string, unknown> }
+        yearly?: { retention: number; settings: Record<string, unknown> }
+      }
+      maxExportRate?: number
+      nbdConcurrency?: number
+      nRetriesVmBackupFailures?: number
+      preferNbd?: boolean
+      timezone?: string
+      [key: string]: unknown
+    }
+    [key: XoSchedule['id']]: {
+      exportRetention?: number
+      healthCheckSr?: XoSr['id']
+      healthCheckVmsWithTags?: string[]
+      [key: string]: unknown
+    }
+  }
+}
+export type XoJob = BaseXoJob & {}
+
+export type XoRemote = {
+  id: Branded<'remote'>
 }
 
 export type XoSchedule = {
   cron: string
-  enable: boolean
+  enabled: boolean
   id: Branded<'schedule'>
-  jobId: XoJob['id']
+  jobId: (XoJob | XoBackupJob)['id']
   name?: string
   timezone?: string
 }
@@ -517,10 +564,12 @@ export type XapiXoRecord =
   | XoVmTemplate
   | XoVtpm
 
-export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
+export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser | XoRemote
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
 export type AnyXoVm = XoVm | XoVmSnapshot | XoVmTemplate | XoVmController
 
 export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
+
+export type AnyXoJob = XoJob | XoBackupJob
