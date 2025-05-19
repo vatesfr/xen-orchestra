@@ -825,7 +825,7 @@ export async function replaceBrick({ xosansr, previousBrick, newLvmSr, brickSize
 
   const OPERATION_OBJECT = {
     operation: 'replaceBrick',
-    states: ['insertingNewVm', 'swapingBrick', 'deletingVm', 'scanningSr'],
+    states: ['insertingNewVm', 'swappingBrick', 'deletingVm', 'scanningSr'],
   }
   if (onSameVM) {
     return this::replaceBrickOnSameVM(xosansr, previousBrick, newLvmSr, brickSize)
