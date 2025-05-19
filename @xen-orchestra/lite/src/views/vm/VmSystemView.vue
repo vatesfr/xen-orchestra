@@ -1,24 +1,26 @@
 <template>
   <VtsObjectNotFoundHero v-if="vm === undefined" :id type="page" />
-  <div v-else class="system" :class="{ mobile: uiStore.isMobile }">
-    <div class="column">
+  <VtsColumns v-else :class="{ mobile: uiStore.isMobile }">
+    <VtsColumn>
       <VmGeneralInfo :vm />
       <VmSystemNetworking :vm />
       <VmStorageConfig :vm />
       <VmResource :vm />
-    </div>
-    <div class="column">
+    </VtsColumn>
+    <VtsColumn>
       <VmVirtualizationAndBoot :vm />
       <VmManagement :vm />
       <VmGraphics :vm />
-    </div>
-  </div>
+    </VtsColumn>
+  </VtsColumns>
 </template>
 
 <script lang="ts" setup>
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { RecordUuid } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
@@ -38,7 +40,7 @@ const { getByUuid } = useVmStore().subscribe()
 
 usePageTitleStore().setTitle(useI18n().t('system'))
 
-const id = computed(() => route.params.uuid as XenApiVm['uuid'])
+const id = computed(() => route.params.uuid as RecordUuid<'vm'>)
 const vm = computed(() => getByUuid(id.value))
 </script>
 
