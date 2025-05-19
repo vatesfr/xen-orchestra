@@ -2365,7 +2365,7 @@ const messages = {
   disclaimerTitle: 'Xen Orchestra from the sources',
   disclaimerText1: "You are using XO from the sources! That's great for a personal/non-profit usage.",
   disclaimerText2: "If you are a company, it's better to use it with our appliance + pro support included:",
-  disclaimerText3: 'This version is not bundled with any support nor updates. Use it with caution.',
+  disclaimerText3: 'This version is neither bundled with support nor updates. Use it with caution.',
   disclaimerText4: 'Why do I see this message?',
   notRegisteredDisclaimerInfo: 'You are not registered. Your XOA may not be up to date.',
   notRegisteredDisclaimerCreateAccount: 'Click here to create an account.',
