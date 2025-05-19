@@ -77,7 +77,7 @@ export class ImportVmBackup {
 
       let snapshotCandidate, backupCandidate
       if (xapiDisk !== undefined) {
-        debug('found disks, wlll search its snapshots', { snapshots: xapiDisk.snapshots })
+        debug('found disks, will search its snapshots', { snapshots: xapiDisk.snapshots })
         for (const snapshotRef of xapiDisk.snapshots) {
           const snapshot = await this._xapi.getRecord('VDI', snapshotRef)
 
