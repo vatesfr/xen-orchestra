@@ -834,7 +834,7 @@ const messages = {
   pluginConfigurationPresetTitle: 'Predefined configuration',
   pluginConfigurationChoosePreset: 'Choose a predefined configuration.',
   applyPluginPreset: 'Apply',
-  disabledTestPluginTootltip: 'This plugin is not loaded',
+  disabledTestPluginTooltip: 'This plugin is not loaded',
 
   // ----- User preferences -----
   saveNewUserFilterErrorTitle: 'Save filter error',
@@ -1449,7 +1449,7 @@ const messages = {
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
   nbd: 'NBD',
-  nbdTootltip: 'Network Block Device status',
+  nbdTooltip: 'Network Block Device status',
   nbdInsecureTooltip: 'Use of insecure NBD is not advised',
   nbdSecureTooltip: 'Nbd connection is secure and ready',
 
