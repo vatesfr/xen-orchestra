@@ -256,7 +256,7 @@ Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so y
 
 ## Restore a backup
 
-All your scheduled backups are acccessible in the "Restore" view in the backup section of Xen Orchestra.
+All your scheduled backups are accessible in the "Restore" view in the backup section of Xen Orchestra.
 
 1. Search the VM Name and click on the blue button with a white arrow
 2. Choose the backup you want to restore
