@@ -4,7 +4,7 @@
       {{ $t('ram-usage') }}
       <template #description>{{ $t('last-week') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="loading || data.stats === undefined" type="card" />
+    <VtsLoadingHero v-if="loading" type="card" />
     <VtsErrorNoDataHero v-else-if="error" type="card" />
     <VtsNoDataHero v-else-if="ramUsage.length === 0" type="card" />
     <VtsLinearChart v-else :data="ramUsage" :max-value :value-formatter="byteFormatter" />
