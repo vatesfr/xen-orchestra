@@ -71,7 +71,7 @@ export class XapiProgressHandler {
     this.#starting = false
   }
   async done() {
-    this.#taskRef && (await this.#xapi.call('task_destroy', this.#taskRef))
+    this.#taskRef && (await this.#xapi.call('task_set_status', this.#taskRef, 'success'))
   }
 
   /**
