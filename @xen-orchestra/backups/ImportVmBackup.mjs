@@ -96,7 +96,7 @@ export class ImportVmBackup {
           // have a corresponding backup more recent than metadata ?
           const pathToSnapshotData = await this.#getPathOfVdiSnapshot(snapshot.uuid)
           if (pathToSnapshotData === undefined) {
-            debug('no backup linked to this snaphot')
+            debug('no backup linked to this snapshot')
             continue
           }
           if (snapshot.$SR.uuid !== (mapVdisSrs[vdi.$snapshot_of$uuid] ?? this._srUuid)) {
