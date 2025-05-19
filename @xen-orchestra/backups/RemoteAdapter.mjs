@@ -40,7 +40,7 @@ export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
 export const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 
-const IMMUTABILTY_METADATA_FILENAME = '/immutability.json'
+const IMMUTABILITY_METADATA_FILENAME = '/immutability.json'
 
 const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
 
@@ -779,7 +779,7 @@ export class RemoteAdapter {
     // if the remote is immutable, check if this metadata is also immutable
     try {
       // this file is not encrypted
-      await this._handler._readFile(IMMUTABILTY_METADATA_FILENAME)
+      await this._handler._readFile(IMMUTABILITY_METADATA_FILENAME)
       remoteIsImmutable = true
     } catch (error) {
       if (error.code !== 'ENOENT') {
