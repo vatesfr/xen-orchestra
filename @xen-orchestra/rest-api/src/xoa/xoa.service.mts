@@ -6,8 +6,10 @@ import { getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { DashboardBackupRepositoriesSizeInfo, XoaDashboard } from './xoa.type.mjs'
 import { MaybePromise } from '../helpers/helper.type.mjs'
-import { XoHost, XoPool, XoSr } from '@vates/types'
+import { AnyXoVdi, AnyXoVm, XoHost, XoPool, XoSr, XoVbd } from '@vates/types'
 import semver from 'semver'
+import { isReplicaVm, isSrWritable } from '../helpers/utils.helper.mjs'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -101,7 +103,7 @@ export class XoaService {
     const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host'))
     const writableSrs = Object.values(
       this.#restApi.getObjectsByType<XoSr>('SR', {
-        filter: sr => sr.content_type !== 'iso' && sr.size > 0,
+        filter: isSrWritable,
       })
     )
 
@@ -223,10 +225,75 @@ export class XoaService {
     }
   }
 
+  #isReplicaVmInVdb(vbds: XoVbd['id'][]): boolean {
+    for (const vbd of vbds) {
+      try {
+        const vdbObject = this.#restApi.getObject<XoVbd>(vbd)
+        const { VM } = vdbObject
+        const vmObject = this.#restApi.getObject<AnyXoVm>(VM)
+        return isReplicaVm(vmObject)
+      } catch (err) {
+        if (!noSuchObject.is(err)) {
+          throw err
+        }
+      }
+    }
+    return false
+  }
+
+  #calculateReplicatedSize(vdiId: AnyXoVdi['id'], cache: Set<AnyXoVdi['id']>): number {
+    if (cache.has(vdiId)) {
+      return 0
+    }
+
+    let vdiObject: AnyXoVdi
+    try {
+      vdiObject = this.#restApi.getObject<AnyXoVdi>(vdiId)
+      cache.add(vdiId)
+    } catch (err) {
+      if (!noSuchObject.is(err)) {
+        throw err
+      }
+      return 0
+    }
+
+    const { parent, usage, $VBDs } = vdiObject
+    const replicaUsage = this.#isReplicaVmInVdb($VBDs) && usage ? usage : 0
+    const parentUsage = parent ? this.#calculateReplicatedSize(parent, cache) : 0
+
+    return replicaUsage + parentUsage
+  }
+
+  #getStorageRepositoriesSizeInfo() {
+    const writableSrs = this.#restApi.getObjectsByType<XoSr>('SR', {
+      filter: isSrWritable,
+    })
+
+    let replicated = 0
+    let total = 0
+    let used = 0
+
+    for (const srId in writableSrs) {
+      const sr = writableSrs[srId as XoSr['id']]
+
+      const cache = new Set<AnyXoVdi['id']>()
+      const { VDIs } = sr
+
+      replicated += VDIs.reduce((total, vdi) => total + this.#calculateReplicatedSize(vdi, cache), 0)
+      total += sr.size
+      used += sr.physical_usage
+    }
+
+    return {
+      size: { available: total - used, other: used - replicated, replicated, total, used },
+    }
+  }
+
   async getDashboard() {
     const nPools = this.#getNumberOfPools()
     const nHosts = this.#getNumberOfHosts()
     const resourcesOverview = this.#getResourcesOverview()
+    const storageRepositoriesSize = this.#getStorageRepositoriesSizeInfo()
 
     const poolsStatus = await this.#getPoolsStatus()
     const missingPatches = await this.#getMissingPatchesInfo()
@@ -245,6 +312,7 @@ export class XoaService {
       poolsStatus,
       nHostsEol,
       missingPatches,
+      storageRepositoriesSize,
     }
   }
 }
