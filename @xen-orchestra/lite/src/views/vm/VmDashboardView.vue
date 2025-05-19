@@ -2,8 +2,9 @@
   <VtsObjectNotFoundHero v-if="vm === undefined" :id type="page" />
   <div v-else class="vm-dashboard-view" :class="{ mobile: uiStore.isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
+    <!--     TODO replace with vtsStateOffline component when available -->
     <div v-if="data.stats === undefined">
-      <p>{{ t('shutdown') }}</p>
+      <p>{{ t('offline') }}</p>
     </div>
     <div v-else class="charts-container">
       <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="lastError" :loading="isFetching" />
