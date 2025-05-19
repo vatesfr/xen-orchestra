@@ -2934,7 +2934,7 @@ File level restore.
 - Backup restore stalled on some SMB shares [\#1412](https://github.com/vatesfr/xen-orchestra/issues/1412)
 - Wrong bond display [\#1156](https://github.com/vatesfr/xen-orchestra/issues/1156)
 - Multiple reboot selection doesn't work [\#1562](https://github.com/vatesfr/xen-orchestra/issues/1562)
-- Server logs should be displayed in reverse chonological order [\#1547](https://github.com/vatesfr/xen-orchestra/issues/1547)
+- Server logs should be displayed in reverse chronological order [\#1547](https://github.com/vatesfr/xen-orchestra/issues/1547)
 - Cannot create resource sets without limits [\#1537](https://github.com/vatesfr/xen-orchestra/issues/1537)
 - UI - Weird display when editing long VM desc [\#1528](https://github.com/vatesfr/xen-orchestra/issues/1528)
 - Useless iso selector in host console [\#1527](https://github.com/vatesfr/xen-orchestra/issues/1527)
