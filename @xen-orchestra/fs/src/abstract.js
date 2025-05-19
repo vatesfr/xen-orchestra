@@ -191,7 +191,7 @@ export default class RemoteHandlerAbstract {
    * @param {object} [options]
    * @param {boolean} [options.checksum]
    * @param {number} [options.dirMode]
-   * @param {(this: RemoteHandlerAbstract, path: string) => Promise<undefined>} [options.validator] Function that will be called before the data is commited to the remote, if it fails, file should not exist
+   * @param {(this: RemoteHandlerAbstract, path: string) => Promise<undefined>} [options.validator] Function that will be called before the data is committed to the remote, if it fails, file should not exist
    */
   async outputStream(path, input, { checksum = true, dirMode, maxStreamLength, streamLength, validator } = {}) {
     path = normalizePath(path)
