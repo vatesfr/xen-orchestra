@@ -1140,7 +1140,7 @@ export const stop = defer(async function ($defer, { vm, force, forceShutdownDela
 stop.params = {
   id: { type: 'string' },
   force: { type: 'boolean', optional: true },
-  forceShutdownDelay: { type: 'number', default: 0 },
+  forceShutdownDelay: { type: 'number', default: 5 * 60 * 1e3 },
   bypassBlockedOperation: { type: 'boolean', optional: true },
 }
 
