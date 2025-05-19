@@ -7,7 +7,7 @@ var _ = require('struct-fu'),
 var bootBase = _.struct([
     _.byte('jmpBoot', 3),
     _.char('OEMName', 8),
-    _.uint16le('BytsPerSec'),
+    _.uint16le('BytesPerSec'),
     _.uint8('SecPerClus'),
     _.uint16le('ResvdSecCnt'),      // Rsvd in table, but Resvd in calcs…
     _.uint8('NumFATs'),
