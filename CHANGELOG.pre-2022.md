@@ -2580,7 +2580,7 @@
 - Errors in VM copy are not properly reported [#2347](https://github.com/vatesfr/xen-orchestra/issues/2347)
 - Removing a PIF IP fails [#2346](https://github.com/vatesfr/xen-orchestra/issues/2346)
 - Review and fix creating a VM from a snapshot [#2343](https://github.com/vatesfr/xen-orchestra/issues/2343)
-- iSCSI LUN Detection fails with authentification [#2339](https://github.com/vatesfr/xen-orchestra/issues/2339)
+- iSCSI LUN Detection fails with authentication [#2339](https://github.com/vatesfr/xen-orchestra/issues/2339)
 - Fix PoolActionBar to add a new SR [#2307](https://github.com/vatesfr/xen-orchestra/issues/2307)
 - [VM migration] Error if default SR not accessible to target host [#2180](https://github.com/vatesfr/xen-orchestra/issues/2180)
 - A job shouldn't executable more than once at the same time [#2053](https://github.com/vatesfr/xen-orchestra/issues/2053)
