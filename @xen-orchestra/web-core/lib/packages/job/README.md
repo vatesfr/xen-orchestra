@@ -57,7 +57,7 @@ const myJob = defineJob('processItems', [userIdArg, itemsArg, optionsArg], () =>
   },
   run(userId, items, force) {
     // Job implementation
-    return procesItems(userId, items, force)
+    return processItems(userId, items, force)
   },
 }))
 ```
