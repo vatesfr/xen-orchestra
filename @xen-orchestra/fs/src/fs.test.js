@@ -262,7 +262,7 @@ handlers.forEach(url => {
     })
 
     describe('#rmtree', () => {
-      it(`should remove a directory resursively`, async () => {
+      it(`should remove a directory recursively`, async () => {
         await handler.outputFile('dir/file', '')
         await handler.rmtree('dir')
 
