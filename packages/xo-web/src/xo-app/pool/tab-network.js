@@ -244,7 +244,7 @@ const NETWORKS_COLUMNS = [
 
   {
     itemRenderer: network => <Nbd network={network} />,
-    name: <Tooltip content={_('nbdTootltip')}>{_('nbd')}</Tooltip>,
+    name: <Tooltip content={_('nbdTooltip')}>{_('nbd')}</Tooltip>,
   },
   {
     name: (
