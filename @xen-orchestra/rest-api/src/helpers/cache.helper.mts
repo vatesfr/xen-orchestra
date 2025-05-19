@@ -1,3 +1,11 @@
+import { MaybePromise } from './helper.type.mjs'
+
+export type AsyncCacheEntry<T> = {
+  current: T | Promise<T>
+  expires?: number
+  previous?: T | Promise<T>
+}
+
 /**
  *
  * If the value is cached and not expired, it will return
@@ -10,7 +18,7 @@
  *
  */
 export async function getFromAsyncCache<T>(
-  cache: Map<string, { current: Promise<T> | T; expires?: number; previous?: Promise<T> | T }>,
+  cache: Map<string, AsyncCacheEntry<MaybePromise<T>>>,
   key: string,
   fn: () => Promise<T>,
   { expiresIn = 60000, timeout = 5000, forceRefresh = false } = {}

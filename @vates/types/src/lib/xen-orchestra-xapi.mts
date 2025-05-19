@@ -1,5 +1,5 @@
 import { WrappedXenApiRecord, XenApiNetworkWrapped, XenApiRecord } from '../xen-api.mjs'
-import type { XoHost, XoNetwork } from '../xo.mjs'
+import type { XoHost, XoNetwork, XoPif } from '../xo.mjs'
 
 type XcpPatches = {
   changelog?: {
