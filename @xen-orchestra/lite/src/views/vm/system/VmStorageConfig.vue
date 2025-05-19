@@ -3,7 +3,7 @@
     <UiTitle>
       {{ $t('storage-configuration') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('suspend-storage-repository')" :value="srRepo?.uuid" />
+    <VtsQuickInfoRow :label="$t('suspend-storage-repository')" :value="srRepo?.uuid ?? $t('none')" />
   </UiCard>
 </template>
 

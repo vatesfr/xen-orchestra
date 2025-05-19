@@ -11,7 +11,7 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm.VTPMs.join(', ')" />
+    <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : $t('none')" />
     <VtsQuickInfoRow :label="$t('viridian')">
       <template #value>
         <UiInfo :accent="vm.platform.viridian === 'true' ? 'success' : 'muted'">
@@ -19,7 +19,7 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('manage-citrix-pv-drivers-via-windows-update')" class="text-ellipsis">
+    <VtsQuickInfoRow :label="$t('manage-citrix-pv-drivers-via-windows-update')">
       <template #value>
         <UiInfo :accent="vm.has_vendor_device ? 'success' : 'muted'">
           {{ vm.has_vendor_device ? $t('enabled') : $t('disabled') }}
@@ -28,8 +28,8 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('nested-virtualization')">
       <template #value>
-        <UiInfo :accent="nestedVirtualizationEnabled ? 'success' : 'muted'">
-          {{ nestedVirtualizationEnabled ? $t('enabled') : $t('disabled') }}
+        <UiInfo :accent="isNestedVirtualizationEnabled ? 'success' : 'muted'">
+          {{ isNestedVirtualizationEnabled ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
@@ -63,8 +63,15 @@ const virtualizationMode = computed(() =>
       : 'hvm'
 )
 
-const nestedVirtualizationEnabled = computed(() => {
-  const poolMaster = pool.value ? getByOpaqueRef(pool.value.master)?.software_version.platform_version : undefined
-  return satisfies(poolMaster ?? '', '>=3.4')
+const isNestedVirtualizationEnabled = computed(() => {
+  const poolMaster = pool.value !== undefined ? getByOpaqueRef(pool.value.master) : undefined
+
+  if (poolMaster === undefined) {
+    return false
+  }
+
+  return satisfies(poolMaster.software_version.platform_version, '>=3.4')
+    ? vm.platform['nested-virt'] === 'true' || vm.platform['exp-nested-hvm'] === 'true'
+    : false
 })
 </script>

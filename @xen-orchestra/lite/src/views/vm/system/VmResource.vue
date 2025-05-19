@@ -29,42 +29,46 @@ const staticMinMemoryFormated = computed(() => formatSizeRaw(vm.memory_static_mi
 const staticMaxMemoryFormated = computed(() => formatSizeRaw(vm.memory_static_max, 0))
 const dynamicMinMemoryFormated = computed(() => formatSizeRaw(vm.memory_dynamic_min, 0))
 const dynamicMaxMemoryFormated = computed(() => formatSizeRaw(vm.memory_dynamic_max, 0))
-const vmGuestMetrics = computed(() => (vm.guest_metrics ? getGuestMetricsByOpaqueRef(vm.guest_metrics) : undefined))
-const vmMetrics = computed(() => (vm.metrics ? getMetricsByOpaqueRef(vm.metrics) : undefined))
+const vmGuestMetrics = computed(() => getGuestMetricsByOpaqueRef(vm.guest_metrics))
+const vmMetrics = computed(() => getMetricsByOpaqueRef(vm.metrics))
 
 // @see packages/xo-server/src/xapi-object-to-xo.mjs
-const {
-  value: { major, minor },
-} = computed(() => vmGuestMetrics.value?.PV_drivers_version ?? {})
 
-const xenTools = computed(() => vmGuestMetrics.value !== undefined || major !== undefined || minor !== undefined)
+const hasXenTools = computed(() => {
+  if (vmGuestMetrics.value === undefined) {
+    return false
+  }
 
-const maxCPU = computed(() =>
-  xenTools.value && vmMetrics.value ? vmMetrics.value.VCPUs_number : +(vm.VCPUs_at_startup ?? 0)
+  return (
+    vmGuestMetrics.value.PV_drivers_version?.major !== undefined &&
+    vmGuestMetrics.value.PV_drivers_version?.minor !== undefined
+  )
+})
+
+const maxCpu = computed(() =>
+  hasXenTools.value && vmMetrics.value ? vmMetrics.value.VCPUs_number : (vm.VCPUs_at_startup ?? 0)
 )
 
+const minimumCpuLimitText = computed(
+  () => `${hasXenTools.value && vmMetrics.value ? vmMetrics.value.VCPUs_number : vm.VCPUs_at_startup} ${t('cpus')}`
+)
 const resources = computed(() => {
   return [
     {
       label: t('cpu-cap'),
-      value: vm.VCPUs_params.cap ? String(+vm.VCPUs_params.cap) : '',
+      value: vm.VCPUs_params.cap,
     },
     {
       label: t('cpu-mask'),
-      value: vm.VCPUs_params.mask
-        ? vm.VCPUs_params.mask
-            .split(',')
-            .map(toPositive => +toPositive)
-            .join(', ')
-        : '',
+      value: vm.VCPUs_params.mask?.replace(',', ', '),
     },
     {
       label: t('cpu-weight'),
-      value: vm.VCPUs_params.weight ? String(+vm.VCPUs_params.weight) : '',
+      value: vm.VCPUs_params.weight,
     },
     {
       label: t('minimum-cpu-limit'),
-      value: `${xenTools.value && vmMetrics.value ? +vmMetrics.value?.VCPUs_number : +vm.VCPUs_at_startup} ${t('cpus')}`,
+      value: minimumCpuLimitText.value,
     },
     {
       label: t('maximum-cpu-limit'),
@@ -74,10 +78,10 @@ const resources = computed(() => {
       label: t('vm-limit-topology'),
       value: vm.platform['cores-per-socket']
         ? t('sockets-with-cores-per-socket', {
-            nSockets: maxCPU.value / Number(vm.platform['cores-per-socket'] ?? 0),
+            nSockets: vm.platform['cores-per-socket'] ? maxCpu.value / Number(vm.platform['cores-per-socket']) : 0,
             nCores: vm.platform['cores-per-socket'] ?? 0,
           })
-        : '',
+        : t('default-behavior'),
     },
     {
       label: t('minimum-static-memory'),
@@ -97,7 +101,7 @@ const resources = computed(() => {
     },
     {
       label: t('gpus'),
-      value: vm.VGPUs.join(', ') ?? '',
+      value: vm.VGPUs.length > 0 ? vm.VGPUs.join(', ') : t('none'),
     },
   ]
 })

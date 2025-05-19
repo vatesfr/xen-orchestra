@@ -16,12 +16,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { RecordUuid } from '@/libs/xen-api/xen-api.types'
+import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import type { XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -40,7 +39,7 @@ const { getByUuid } = useVmStore().subscribe()
 usePageTitleStore().setTitle(useI18n().t('system'))
 
 const id = computed(() => route.params.uuid as XenApiVm['uuid'])
-const vm = computed(() => getByUuid(route.params.uuid as RecordUuid<'vm'>))
+const vm = computed(() => getByUuid(id.value))
 </script>
 
 <style scoped lang="postcss">

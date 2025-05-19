@@ -200,7 +200,7 @@ export interface XenApiVm extends XenApiRecord<'vm'> {
   consoles: XenApiConsole['$ref'][]
   crash_dumps: XenApiCrashdump['$ref'][]
   current_operations: Record<string, VM_OPERATION>
-  domain_type: DOMAIN_TYPE
+  domain_type?: DOMAIN_TYPE
   domarch: string
   domid: number
   generation_id: string

@@ -13,7 +13,7 @@
         </UiTagsList>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('os-name')" :value="vm.reference_label" />
+    <VtsQuickInfoRow :label="$t('os-name')" :value="guestMetrics?.os_version.name" />
     <VtsQuickInfoRow :label="$t('os-kernel')" :value="guestMetrics?.os_version.uname" />
     <VtsQuickInfoRow :label="$t('management-agent-version')" :value="pvVersion" />
   </UiCard>
@@ -35,16 +35,16 @@ const { getByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 
 const guestMetrics = computed(() => getByOpaqueRef(vm.guest_metrics))
 const pvVersion = computed(() => {
-  if (!guestMetrics?.value) {
+  if (guestMetrics.value === undefined) {
     return
   }
 
-  const { build, major, micro, minor } = guestMetrics.value?.PV_drivers_version
+  const { build, major, micro, minor } = guestMetrics.value.PV_drivers_version
 
   if (!major || !minor) {
     return
   }
 
-  return `${major}.${minor}.${micro}${build ? `-${build}` : ''}`
+  return `${major}.${minor}.${micro ? `-${micro}` : ''}.${build ? `-${build}` : ''}`
 })
 </script>

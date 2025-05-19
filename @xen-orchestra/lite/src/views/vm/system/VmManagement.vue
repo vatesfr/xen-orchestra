@@ -11,11 +11,12 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('affinity-host')">
-      <template v-if="affinity?.uuid" #value>
-        <UiLink :icon="faServer" :to="`/host/${affinity.uuid}`" size="small" target="_self">
-          {{ affinity.name_label }}
+      <template v-if="affinityHost?.uuid" #value>
+        <UiLink :icon="faServer" :to="`/host/${affinityHost.uuid}`" size="medium" target="_self">
+          {{ affinityHost.name_label }}
         </UiLink>
       </template>
+      <template v-else #value>{{ $t('none') }}</template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('protect-from-accidental-deletion')">
       <template #value>
@@ -26,8 +27,8 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('protect-from-accidental-shutdown')">
       <template #value>
-        <UiInfo :accent="protectedFromAccidentalShutdown ? 'success' : 'muted'">
-          {{ protectedFromAccidentalShutdown ? $t('enabled') : $t('disabled') }}
+        <UiInfo :accent="isPprotectedFromAccidentalShutdown ? 'success' : 'muted'">
+          {{ isPprotectedFromAccidentalShutdown ? $t('enabled') : $t('disabled') }}
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
@@ -38,9 +39,7 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('start-delay')">
-      {{ $t('relative-time.second', vm.start_delay ?? NaN) }}
-    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('start-delay')" :value="$t('relative-time.second', vm.start_delay)" />
   </UiCard>
 </template>
 
@@ -59,8 +58,8 @@ const { vm } = defineProps<{ vm: XenApiVm }>()
 
 const { getByOpaqueRef } = useHostStore().subscribe()
 
-const affinity = computed(() => (vm.affinity ? getByOpaqueRef(vm.affinity) : undefined))
-const protectedFromAccidentalShutdown = computed(
+const affinityHost = computed(() => (vm.affinity ? getByOpaqueRef(vm.affinity) : undefined))
+const isPprotectedFromAccidentalShutdown = computed(
   () =>
     vm.blocked_operations?.clean_reboot ||
     vm.blocked_operations?.clean_shutdown ||
