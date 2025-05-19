@@ -1950,7 +1950,7 @@ const messages = {
   availableBackupsColumn: 'Available Backups',
   backupRestoreErrorTitle: 'Missing parameters',
   backupRestoreErrorMessage: 'Choose a SR and a backup',
-  backupisKey: 'key',
+  backupIsKey: 'key',
   backupIsIncremental: 'incremental',
   backupIsDifferencing: 'differencing',
   vmsToBackup: 'VMs to backup',
