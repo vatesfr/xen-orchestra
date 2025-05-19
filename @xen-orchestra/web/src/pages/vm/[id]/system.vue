@@ -1,17 +1,17 @@
 <template>
-  <div class="system" :class="{ mobile: uiStore.isMobile }">
-    <div class="column">
+  <VtsColumns class="system" :class="{ mobile: uiStore.isMobile }">
+    <VtsColumn>
       <VmGeneralInfo :vm />
       <VmNetworking :vm />
       <VmStorageConfig :vm />
       <VmResource :vm />
-    </div>
-    <div class="column">
+    </VtsColumn>
+    <VtsColumn>
       <VmVirtualizationAndBoot :vm />
       <VmManagement :vm />
       <VmGraphics :vm />
-    </div>
-  </div>
+    </VtsColumn>
+  </VtsColumns>
 </template>
 
 <script setup lang="ts">
@@ -23,6 +23,8 @@ import VmResource from '@/components/vm/system/VmResource.vue'
 import VmStorageConfig from '@/components/vm/system/VmStorageConfig.vue'
 import VmVirtualizationAndBoot from '@/components/vm/system/VmVirtualizationAndBoot.vue'
 import type { XoVm } from '@/types/xo/vm.type'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import { useUiStore } from '@core/stores/ui.store'
 
 defineProps<{ vm: XoVm }>()
