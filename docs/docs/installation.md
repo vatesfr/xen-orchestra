@@ -83,7 +83,7 @@ This installation has been validated against a fresh Debian 12 (Bookworm) x64 in
 
 As you may have seen in other parts of the documentation, XO is composed of two parts: [xo-server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server/) and [xo-web](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
-### Packages and Pre-requisites
+### Packages and Prerequisites
 
 #### NodeJS
 
