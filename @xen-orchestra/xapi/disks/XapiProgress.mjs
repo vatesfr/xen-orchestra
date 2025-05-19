@@ -4,7 +4,7 @@
  */
 
 const MAX_DURATION_BETWEEN_PROGRESS_EMIT = 5e3
-const MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT = 0.01
+const MIN_THRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT = 0.01
 
 /**
  * @implements {ProgressHandler}
@@ -31,7 +31,7 @@ export class XapiProgressHandler {
   /**
    * @type {number}
    */
-  #minTresholdPercentBetweenProgressEmit
+  #minThresholdPercentBetweenProgressEmit
   /**
    * @type {string|undefined}
    */
@@ -57,12 +57,12 @@ export class XapiProgressHandler {
     label,
     {
       maxDurationBetweenProgressEmit = MAX_DURATION_BETWEEN_PROGRESS_EMIT,
-      minTresholdPercentBetweenProgressEmit = MIN_TRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT,
+      minThresholdPercentBetweenProgressEmit = MIN_THRESHOLD_PERCENT_BETWEEN_PROGRESS_EMIT,
     } = {}
   ) {
     this.#label = label
     this.#maxDurationBetweenProgressEmit = maxDurationBetweenProgressEmit
-    this.#minTresholdPercentBetweenProgressEmit = minTresholdPercentBetweenProgressEmit
+    this.#minThresholdPercentBetweenProgressEmit = minThresholdPercentBetweenProgressEmit
     this.#xapi = xapi
   }
   async start() {
@@ -95,7 +95,7 @@ export class XapiProgressHandler {
       this.#lastProgressDate !== undefined &&
       this.#lastProgressValue !== undefined &&
       Date.now() - this.#lastProgressDate < this.#maxDurationBetweenProgressEmit &&
-      progress - this.#lastProgressValue < this.#minTresholdPercentBetweenProgressEmit
+      progress - this.#lastProgressValue < this.#minThresholdPercentBetweenProgressEmit
     ) {
       return
     }
