@@ -3215,7 +3215,7 @@ Load balancing, SMB delta support, advanced network operations...
 - Self service: should the user be able to set the CPU weight? [\#767](https://github.com/vatesfr/xen-orchestra/issues/767)
 - host & pool Citrix license status [\#763](https://github.com/vatesfr/xen-orchestra/issues/763)
 - pool view: Provide "updates" section [\#762](https://github.com/vatesfr/xen-orchestra/issues/762)
-- XOA ISO image: ambigious root disk label [\#761](https://github.com/vatesfr/xen-orchestra/issues/761)
+- XOA ISO image: ambiguous root disk label [\#761](https://github.com/vatesfr/xen-orchestra/issues/761)
 - Host info: provide system serial number [\#760](https://github.com/vatesfr/xen-orchestra/issues/760)
 - CIFS ISO SR Creation [\#731](https://github.com/vatesfr/xen-orchestra/issues/731)
 - MAC address not preserved on VM restore [\#707](https://github.com/vatesfr/xen-orchestra/issues/707)
