@@ -98,7 +98,7 @@ const isRunning = host => host && host.power_state === 'Running'
       if (network === undefined) {
         return pif
       }
-      return { ...pif, nework$name_label: network.name_label }
+      return { ...pif, network$name_label: network.name_label }
     })
   )
 
