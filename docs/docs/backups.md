@@ -545,7 +545,7 @@ The total timeout of a backup health check (boot + guest tools + scripts) is 10m
 
 The restored VM is then deleted.
 
-An example in bash is shown in `@xen-orchestra/backups/docs/healtcheck example/wait30seconds.sh`
+An example in bash is shown in `@xen-orchestra/backups/docs/healthcheck example/wait30seconds.sh`
 
 ### Running Health checks
 

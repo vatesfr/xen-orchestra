@@ -180,7 +180,7 @@ job:
   sourceRemote: IdPattern
 
 # Indicates which XAPI to use to connect to a specific VM or SR
-# for remote to remote backup job,this is only needed if there is healtcheck
+# for remote to remote backup job,this is only needed if there is healthcheck
 recordToXapi:
   [ObjectId]: XapiId
 
