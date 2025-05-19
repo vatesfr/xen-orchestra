@@ -451,7 +451,7 @@ const messages = {
   successfulJobCall: 'Successful',
   failedJobCall: 'Failed',
   jobCallSkipped: 'Skipped',
-  jobCallInProgess: 'In progress',
+  jobCallInProgress: 'In progress',
   jobTransferredDataSize: 'Transfer size:',
   jobTransferredDataSpeed: 'Transfer speed:',
   operationSize: 'Size',
