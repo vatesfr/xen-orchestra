@@ -2,7 +2,7 @@
 [XO] {{{jobName}}}
 {{~/ifCond}}
 {{#ifCond task.data.type '===' 'remote'}}
-[remote] {{{task.additionnalData.name}}}
+[remote] {{{task.additionalData.name}}}
 {{~/ifCond}}
 {{#ifCond task.data.type '===' 'pool'}}
 [pool] {{#if task.data.pool.name_label ~}} {{{task.data.pool.name_label}}} {{~else if task.data.poolMaster.name_label ~}} {{{task.data.poolMaster.name_label}}} {{~else~}} Unknown {{~/if}}
