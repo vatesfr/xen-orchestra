@@ -347,9 +347,9 @@ async function remoteSsh(glusterEndpoint, cmd, ignoreError = false) {
   throw new Error(result != null ? formatSshError(result) : 'no suitable SSH host: ' + JSON.stringify(glusterEndpoint))
 }
 
-function findErrorMessage(commandResut) {
-  if (commandResut.exit === 0 && commandResut.parsed) {
-    const cliOut = commandResut.parsed.cliOutput
+function findErrorMessage(commandResult) {
+  if (commandResult.exit === 0 && commandResult.parsed) {
+    const cliOut = commandResult.parsed.cliOutput
     if (cliOut.opErrstr && cliOut.opErrstr.length) {
       return cliOut.opErrstr
     }
@@ -358,7 +358,7 @@ function findErrorMessage(commandResut) {
       return cliOut.output
     }
   }
-  return commandResut.stderr.length ? commandResut.stderr : commandResut.stdout
+  return commandResult.stderr.length ? commandResult.stderr : commandResult.stdout
 }
 
 async function glusterCmd(glusterEndpoint, cmd, ignoreError = false) {
