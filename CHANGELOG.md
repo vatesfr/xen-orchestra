@@ -1601,7 +1601,7 @@
 ### Bug fixes
 
 - [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
-- [ESXi Import] was depending on an older unmaintened library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
+- [ESXi Import] was depending on an older unmaintained library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
 - [Backup] Fix memory consumption when deleting _VHD directory_ incremental backups
 - [Remote] Fix `remote is disabled` error when editing a disabled remote
 - [Settings/Servers] Fix connection using an explicit IPv6 address
