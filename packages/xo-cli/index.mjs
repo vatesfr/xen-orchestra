@@ -356,7 +356,7 @@ const help = wrap(
       Full path of the action to execute
 
     <name>=<value>...
-      Paramaters to pass to the action
+      Parameters to pass to the action
 
     Examples:
       $name rest post tasks/<task id>/actions/abort
