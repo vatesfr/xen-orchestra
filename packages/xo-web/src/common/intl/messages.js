@@ -2816,7 +2816,7 @@ const messages = {
   licensesBinding: 'Licenses binding',
   notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
   notBoundSelectLicense: 'Not bound (Plan (ID), expiration date)',
-  xcpngLicensesBindingAvancedView: "To bind an XCP-ng license, go to the pool's Advanced tab.",
+  xcpngLicensesBindingAdvancedView: "To bind an XCP-ng license, go to the pool's Advanced tab.",
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
   xosanSourcesDisclaimer:
