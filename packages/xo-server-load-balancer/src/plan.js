@@ -144,7 +144,7 @@ export default class Plan {
     this._antiAffinityTags = antiAffinityTags
     // balanceVcpus variable name was kept for compatibility with past configuration schema
     this._performanceSubmode =
-      balanceVcpus === false ? 'conservative' : balanceVcpus === true ? 'vCpuPrepositionning' : balanceVcpus
+      balanceVcpus === false ? 'conservative' : balanceVcpus === true ? 'vCpuPrepositioning' : balanceVcpus
     this._globalOptions = globalOptions
     this._concurrentMigrationLimiter = concurrentMigrationLimiter
 
@@ -311,7 +311,7 @@ export default class Plan {
   // vCPU pre-positioning helpers
   // ===================================================================
 
-  async _processVcpuPrepositionning(hosts) {
+  async _processVcpuPrepositioning(hosts) {
     const promises = []
 
     const idToHost = keyBy(hosts, 'id')
@@ -320,7 +320,7 @@ export default class Plan {
     const idealVcpuPerCpuRatio =
       hostList.reduce((sum, host) => sum + host.vcpuCount, 0) / hostList.reduce((sum, host) => sum + host.cpuCount, 0)
 
-    debugVcpuBalancing('Trying to apply vCPU prepositionning.')
+    debugVcpuBalancing('Trying to apply vCPU prepositioning.')
     debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
     debugVcpuBalancing(`Average vCPUs per CPU: ${idealVcpuPerCpuRatio}`)
 
@@ -336,7 +336,7 @@ export default class Plan {
     const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts })
     const poolAverageCpu = computeAverageCpu(hostsAverages)
     if (poolAverageCpu > THRESHOLD_POOL_CPU) {
-      debugVcpuBalancing(`Pool too much loaded for vCPU prepositionning: ${poolAverageCpu}% CPU used`)
+      debugVcpuBalancing(`Pool too much loaded for vCPU prepositioning: ${poolAverageCpu}% CPU used`)
       return
     }
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
