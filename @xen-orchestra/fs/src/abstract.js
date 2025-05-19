@@ -12,7 +12,7 @@ import { synchronized } from 'decorator-synchronized'
 
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
-import { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, _getEncryptor } from './_encryptor'
+import { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, _getEncrypter } from './_encrypter'
 
 const { info, warn } = createLogger('xo:fs:abstract')
 
@@ -75,13 +75,13 @@ class PrefixWrapper {
 }
 
 export default class RemoteHandlerAbstract {
-  #rawEncryptor
+  #rawEncrypter
 
-  get #encryptor() {
-    if (this.#rawEncryptor === undefined) {
-      throw new Error(`Can't access to encryptor before remote synchronization`)
+  get #encrypter() {
+    if (this.#rawEncrypter === undefined) {
+      throw new Error(`Can't access to encrypter before remote synchronization`)
     }
-    return this.#rawEncryptor
+    return this.#rawEncrypter
   }
 
   constructor(remote, options = {}) {
@@ -164,7 +164,7 @@ export default class RemoteHandlerAbstract {
     }
 
     if (this.isEncrypted) {
-      stream = this.#encryptor.decryptStream(stream)
+      stream = this.#encrypter.decryptStream(stream)
     }
 
     // try to add the length prop if missing and not a range stream
@@ -197,7 +197,7 @@ export default class RemoteHandlerAbstract {
     path = normalizePath(path)
     let checksumStream
 
-    input = this.#encryptor.encryptStream(input)
+    input = this.#encrypter.encryptStream(input)
     if (checksum) {
       checksumStream = createChecksumStream()
       pipeline(input, checksumStream, noop)
@@ -277,7 +277,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async outputFile(file, data, { dirMode, flags = 'wx' } = {}) {
-    const encryptedData = this.#encryptor.encryptData(data)
+    const encryptedData = this.#encrypter.encryptData(data)
     await this._outputFile(normalizePath(file), encryptedData, { dirMode, flags })
   }
 
@@ -288,7 +288,7 @@ export default class RemoteHandlerAbstract {
 
   async __readFile(file, { flags = 'r' } = {}) {
     const data = await this._readFile(normalizePath(file), { flags })
-    return this.#encryptor.decryptData(data)
+    return this.#encrypter.decryptData(data)
   }
 
   async #rename(oldPath, newPath, { checksum }, createTree = true) {
@@ -355,7 +355,7 @@ export default class RemoteHandlerAbstract {
 
   async #createMetadata() {
     const encryptionAlgorithm = this._remote.encryptionKey === undefined ? 'none' : DEFAULT_ENCRYPTION_ALGORITHM
-    this.#rawEncryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
+    this.#rawEncrypter = _getEncrypter(encryptionAlgorithm, this._remote.encryptionKey)
 
     await Promise.all([
       this._writeFile(normalizePath(ENCRYPTION_DESC_FILENAME), JSON.stringify({ algorithm: encryptionAlgorithm }), {
@@ -381,7 +381,7 @@ export default class RemoteHandlerAbstract {
     }
 
     try {
-      this.#rawEncryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
+      this.#rawEncrypter = _getEncrypter(encryptionAlgorithm, this._remote.encryptionKey)
       // this file is encrypted
       const data = await this.__readFile(ENCRYPTION_METADATA_FILENAME)
       JSON.parse(data)
@@ -466,7 +466,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async __writeFile(file, data, { flags = 'wx' } = {}) {
-    const encryptedData = this.#encryptor.encryptData(data)
+    const encryptedData = this.#encrypter.encryptData(data)
     await this._writeFile(normalizePath(file), encryptedData, { flags })
   }
 
@@ -689,11 +689,11 @@ export default class RemoteHandlerAbstract {
   }
 
   get isEncrypted() {
-    return this.#encryptor.id !== 'NULL_ENCRYPTOR'
+    return this.#encrypter.id !== 'NULL_ENCRYPTER'
   }
 
   get encryptionAlgorithm() {
-    return this.#encryptor?.algorithm ?? UNENCRYPTED_ALGORITHM
+    return this.#encrypter?.algorithm ?? UNENCRYPTED_ALGORITHM
   }
 }
 
