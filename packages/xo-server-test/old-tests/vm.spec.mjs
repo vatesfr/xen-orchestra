@@ -610,7 +610,7 @@ describe('vm', () => {
         })
         .then(
           () => {
-            throw new Error('createInterface() should have trown')
+            throw new Error('createInterface() should have thrown')
           },
           function (error) {
             expect(error.message).to.be.equal('unknown error from the peer')
