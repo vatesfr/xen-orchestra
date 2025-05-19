@@ -2842,7 +2842,7 @@ File level restore.
 - Expose XAPI exceptions in the UI [\#1481](https://github.com/vatesfr/xen-orchestra/issues/1481)
 - Running VMs in the host overview, all VMs in the pool overview [\#1432](https://github.com/vatesfr/xen-orchestra/issues/1432)
 - Move location of NFS mount point [\#1405](https://github.com/vatesfr/xen-orchestra/issues/1405)
-- Home: Pool list - additionnal informations for pool [\#1226](https://github.com/vatesfr/xen-orchestra/issues/1226)
+- Home: Pool list - additional informations for pool [\#1226](https://github.com/vatesfr/xen-orchestra/issues/1226)
 - Modify VLAN of an existing network [\#1092](https://github.com/vatesfr/xen-orchestra/issues/1092)
 - Wrong instructions for CLI upgrade [\#787](https://github.com/vatesfr/xen-orchestra/issues/787)
 - Ability to export/import XO config [\#786](https://github.com/vatesfr/xen-orchestra/issues/786)
