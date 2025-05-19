@@ -29,10 +29,10 @@ export class ImportVmBackup {
     metadata,
     srUuid,
     xapi,
-    settings: { additionnalVmTag, newMacAddresses, mapVdisSrs = {}, useDifferentialRestore = false } = {},
+    settings: { additionalVmTag, newMacAddresses, mapVdisSrs = {}, useDifferentialRestore = false } = {},
   }) {
     this._adapter = adapter
-    this._importIncrementalVmSettings = { additionnalVmTag, newMacAddresses, mapVdisSrs, useDifferentialRestore }
+    this._importIncrementalVmSettings = { additionalVmTag, newMacAddresses, mapVdisSrs, useDifferentialRestore }
     this._metadata = metadata
     this._srUuid = srUuid
     this._xapi = xapi
@@ -194,7 +194,7 @@ export class ImportVmBackup {
   }
 
   async #decorateIncrementalVmMetadata() {
-    const { additionnalVmTag, mapVdisSrs, useDifferentialRestore } = this._importIncrementalVmSettings
+    const { additionalVmTag, mapVdisSrs, useDifferentialRestore } = this._importIncrementalVmSettings
 
     const ignoredVdis = new Set(
       Object.entries(mapVdisSrs)
@@ -211,8 +211,8 @@ export class ImportVmBackup {
 
     const cache = new Map()
     const mapVdisSrRefs = {}
-    if (additionnalVmTag !== undefined) {
-      backup.vm.tags.push(additionnalVmTag)
+    if (additionalVmTag !== undefined) {
+      backup.vm.tags.push(additionalVmTag)
     }
     for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
       mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')
