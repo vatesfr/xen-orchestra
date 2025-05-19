@@ -1,5 +1,4 @@
 <template>
-  <!-- //vts truc row -->
   <UiCard class="vm-general-info">
     <UiTitle>
       {{ $t('general-information') }}
