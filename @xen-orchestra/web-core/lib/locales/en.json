@@ -347,6 +347,7 @@
   "object": "Object",
   "object-not-found": "Object {id} can't be found…",
   "off": "Off",
+  "offline": "Offline",
   "ok": "OK",
   "on": "On",
   "on-object": "on {object}",
