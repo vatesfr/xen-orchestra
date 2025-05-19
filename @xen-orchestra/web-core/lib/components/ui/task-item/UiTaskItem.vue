@@ -5,7 +5,7 @@
       <UiButtonIcon accent="brand" :icon="isExpanded ? faAngleDown : faAngleRight" size="small" />
     </div>
     <div class="task-item">
-      <div class="warper">
+      <span class="warper">
         <div class="content">
           <div class="typo-body-bold">
             {{ task.name }}
@@ -28,7 +28,12 @@
             {{ `${$t('task.estimated-end')} ${end}` }}
           </template>
         </div>
-      </div>
+        <span class="circle-progress">
+          <template v-if="slots.progresion">
+            <slot name="progresion" />
+          </template>
+        </span>
+      </span>
       <VtsQuickTaskList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist />
     </div>
   </li>
@@ -60,6 +65,9 @@ const { task } = defineProps<{
   task: Task
 }>()
 
+const slots = defineSlots<{
+  progresion?: any
+}>()
 const [isExpanded, toggleExpand] = useToggle()
 
 const subTasks = computed(() => task.subtasks ?? [])
@@ -85,6 +93,7 @@ const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) 
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    gap: 1.6rem;
   }
 
   &:not(:last-child) {
@@ -111,14 +120,19 @@ const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) 
     }
   }
 
+  .typo-body-regular-small {
+    color: var(--color-neutral-txt-secondary);
+  }
+
+  .circle-progress {
+    width: 4rem;
+    height: 4rem;
+  }
+
   .subtasks {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-  }
-
-  .typo-body-regular-small {
-    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>
