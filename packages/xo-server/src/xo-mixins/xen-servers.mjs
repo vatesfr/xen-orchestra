@@ -696,14 +696,14 @@ export default class XenServers {
 
     const poolId = pool.id
 
-    const jobsOfthePool = []
+    const jobsOfThePool = []
     jobs.forEach(({ id: jobId, vms }) => {
       if (vms.id !== undefined) {
         for (const vmId of extractIdsFromSimplePattern(vms)) {
           // try/catch to avoid `no such object`
           try {
             if (app.getObject(vmId).$poolId === poolId) {
-              jobsOfthePool.push(jobId)
+              jobsOfThePool.push(jobId)
               break
             }
           } catch {}
@@ -715,7 +715,7 @@ export default class XenServers {
         //   check if it concerns this pool
         // - if not, the job may concern this pool so we add it to `jobsOfThePool`
         if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
-          jobsOfthePool.push(jobId)
+          jobsOfThePool.push(jobId)
         }
       }
     })
@@ -723,7 +723,7 @@ export default class XenServers {
     // Disable schedules
     await Promise.all(
       schedules
-        .filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
+        .filter(schedule => jobsOfThePool.includes(schedule.jobId) && schedule.enabled)
         .map(async schedule => {
           await app.updateSchedule({ ...schedule, enabled: false })
           $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
