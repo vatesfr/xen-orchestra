@@ -141,17 +141,17 @@ exports.checksumName = function (buf,off) {
 
 /* comparing C rounding trick from FAT spec with Math.ceil
 function tryBoth(d) {
-    var a = ((D.RootEntCnt * 32) + (D.BytsPerSec - 1)) / D.BytsPerSec >>> 0,
-        b = Math.ceil((D.RootEntCnt * 32) / D.BytsPerSec);
+    var a = ((D.RootEntCnt * 32) + (D.BytesPerSec - 1)) / D.BytesPerSec >>> 0,
+        b = Math.ceil((D.RootEntCnt * 32) / D.BytesPerSec);
     if (b !== a) console.log("try", b, a, (b === a) ? '' : '*');
     return (b === a);
 }
-// BytsPerSec — "may take on only the following values: 512, 1024, 2048 or 4096"
+// BytesPerSec — "may take on only the following values: 512, 1024, 2048 or 4096"
 [512, 1024, 2048, 4096].forEach(function (bps) {
-    // RootEntCnt — "a count that when multiplied by 32 results in an even multiple of BPB_BytsPerSec"
+    // RootEntCnt — "a count that when multiplied by 32 results in an even multiple of BPB_BytesPerSec"
     for (var evenMultiplier = 0; evenMultiplier < 1024*1024*16; evenMultiplier += 2) {
         var rec = (bps * evenMultiplier) / 32;
-        tryBoth({RootEntCnt:rec, BytsPerSec:bps});
+        tryBoth({RootEntCnt:rec, BytesPerSec:bps});
     }
 });
 */

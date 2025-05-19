@@ -11,11 +11,11 @@ exports.init = function (volume, opts, bootSector) {
         BS = bootStruct.valueFromBytes(bootSector);
     _.log(_.log.DBG, "Boot sector info:", BS);
     bootSector = null;      // allow GC
-    if (!BS.BytsPerSec) throw Error("This looks like an ExFAT volume! (unsupported)");
-    else if (BS.BytsPerSec !== volume.sectorSize) throw Error("Sector size mismatch with FAT table.");
+    if (!BS.BytesPerSec) throw Error("This looks like an ExFAT volume! (unsupported)");
+    else if (BS.BytesPerSec !== volume.sectorSize) throw Error("Sector size mismatch with FAT table.");
     
     var FATSz = (isFAT16) ? BS.FATSz16 : BS.FATSz32,
-        rootDirSectors = Math.ceil((BS.RootEntCnt * 32) / BS.BytsPerSec),
+        rootDirSectors = Math.ceil((BS.RootEntCnt * 32) / BS.BytesPerSec),
         firstDataSector = BS.ResvdSecCnt + (BS.NumFATs * FATSz) + rootDirSectors,
         totSec = (BS.TotSec16) ? BS.TotSec16 : BS.TotSec32,
         dataSec = totSec - firstDataSector,
@@ -38,7 +38,7 @@ exports.init = function (volume, opts, bootSector) {
     
     vol.opts = opts;
     
-    vol._sectorSize = BS.BytsPerSec;
+    vol._sectorSize = BS.BytesPerSec;
     vol._sectorsPerCluster = BS.SecPerClus;
     vol._firstSectorOfCluster = function (n) {
         return firstDataSector + (n-2)*vol._sectorsPerCluster;
@@ -70,8 +70,8 @@ exports.init = function (volume, opts, bootSector) {
     function fatInfoForCluster(n) {
         var entryStruct = S.fatField[fatType],
             FATOffset = (fatType === 'fat12') ? Math.floor(n/2) * entryStruct.size : n * entryStruct.size,
-            SecNum = BS.ResvdSecCnt + Math.floor(FATOffset / BS.BytsPerSec);
-            EntOffset = FATOffset % BS.BytsPerSec;
+            SecNum = BS.ResvdSecCnt + Math.floor(FATOffset / BS.BytesPerSec);
+            EntOffset = FATOffset % BS.BytesPerSec;
         return {sector:SecNum-BS.ResvdSecCnt, offset:EntOffset, struct:entryStruct};
     }
     
