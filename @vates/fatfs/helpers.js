@@ -62,7 +62,7 @@ exports.parseFlags = function (flags) {
         case 'ax':  info = {read:false, write:true, create:true, append:true, exclusive:true}; break;
         case 'a+':  info = {read:true, write:true, create:true, append:true}; break;
         case 'ax+': info = {read:true, write:true, create:true, append:true, exclusive:true}; break;
-        default: throw Error("Uknown mode: "+flags);       // TODO: throw as `S.err.INVAL`
+        default: throw Error("Unknown mode: "+flags);       // TODO: throw as `S.err.INVAL`
     }
     if (info.sync) throw Error("Mode not implemented.");    // TODO: what would this require of us?
     if (_dir) info._openDir = true;
