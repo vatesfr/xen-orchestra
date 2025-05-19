@@ -2404,7 +2404,7 @@
 - Backup paths should not contain tags but job ids [#1854](https://github.com/vatesfr/xen-orchestra/issues/1854)
 - Add a button to delete a backup [#1751](https://github.com/vatesfr/xen-orchestra/issues/1751)
 - Dashboard available for Pool and Host level [#1631](https://github.com/vatesfr/xen-orchestra/issues/1631)
-- UI Enhancement - VM list - Allways show the Toolbar [#1581](https://github.com/vatesfr/xen-orchestra/issues/1581)
+- UI Enhancement - VM list - Always show the Toolbar [#1581](https://github.com/vatesfr/xen-orchestra/issues/1581)
 - xoa-updater --register: unable to define proxy using the CLI [#873](https://github.com/vatesfr/xen-orchestra/issues/873)
 
 ### Bugs
