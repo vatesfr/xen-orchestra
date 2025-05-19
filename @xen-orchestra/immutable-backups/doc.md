@@ -1,6 +1,6 @@
 # Imutability
 
-the goal is to make a remote that XO can write, but not modify during the immutability duration set on the remote. That way, it's not possible for XO to delete or encrypt any backup during this period. It protects your backup agains ransomware, at least as long as the attacker does not have a root access to the remote server.
+the goal is to make a remote that XO can write, but not modify during the immutability duration set on the remote. That way, it's not possible for XO to delete or encrypt any backup during this period. It protects your backup against ransomware, at least as long as the attacker does not have a root access to the remote server.
 
 We target `governance` type of immutability, **the local root account of the remote server will be able to lift immutability**.
 
