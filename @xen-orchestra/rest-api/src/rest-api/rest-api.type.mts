@@ -1,7 +1,7 @@
 import type { EventEmitter } from 'node:events'
 import type { Task } from '@vates/types/lib/vates/task'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
-import type { XapiHostStats, XapiVmStats, XapiStatsGranularity } from '@vates/types/common'
+import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, BACKUP_TYPE } from '@vates/types/common'
 import type {
   XenApiHostWrapped,
   XenApiMessage,
@@ -26,6 +26,7 @@ import type {
   XoSchedule,
   XoJob,
   XoGroup,
+  AnyXoJob,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -69,6 +70,7 @@ export type XoApp = {
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
+  getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
   getAllRemotes(): Promise<XoBackupRepository[]>
   getAllRemotesInfo(): Promise<
     Record<
@@ -88,6 +90,8 @@ export type XoApp = {
   getAllSchedules(): Promise<XoSchedule[]>
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
+  // @TODO: Correctly type this methods and XoLogs when migrate the endpoint "backup/logs"
+  getBackupNgLogsSorted(opts: { filter: (log: Record<string, string>) => boolean }): Promise<Record<string, string>[]>
   getGroup(id: XoGroup['id']): Promise<XoGroup>
   getHVSupportedVersions: undefined | (() => Promise<{ [key: XoHost['productBrand']]: string }>)
   getJob(id: XoJob['id']): Promise<XoJob>
@@ -105,6 +109,7 @@ export type XoApp = {
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
+  hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(body: InsertableXoServer): Promise<XoServer>
   runJob(job: XoJob, schedule: XoSchedule): void
