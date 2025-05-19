@@ -32,7 +32,7 @@ $ echo $?
 0
 ```
 
-Non-partionned disk:
+Non-partioned disk:
 
 ```console
 $ partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs /tmp/vhd-mount/vhdi2
@@ -43,7 +43,7 @@ $ echo $?
 
 ## Mount LVM physical volume (partition type equals `0x8e`)
 
-> Tip: `offset` and `sizelimit` are only required on a partionned disk
+> Tip: `offset` and `sizelimit` are only required on a partioned disk
 
 ```console
 $ losetup -o $(($START * 512)) --sizelimit $(($SIZE)) --show -f /tmp/vhd-mount/vhdi2
@@ -85,7 +85,7 @@ vgchange -an debian-vg
 
 ## Mount block device
 
-> Tip: `offset` and `sizelimit` are only required on a partionned disk
+> Tip: `offset` and `sizelimit` are only required on a partioned disk
 
 ```console
 $ mkdir /tmp/block-mount
