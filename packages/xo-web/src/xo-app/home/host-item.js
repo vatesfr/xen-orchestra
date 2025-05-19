@@ -326,7 +326,7 @@ export default class HostItem extends Component {
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>
               <EllipsisContainer>
-                <span className={styles.itemActionButons}>
+                <span className={styles.itemActionButtons}>
                   <Tooltip
                     content={
                       <span>
