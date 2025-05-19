@@ -139,7 +139,7 @@ describe('VhdFile', async () => {
     assert.equal((await fs.readFile(recoveredFileName)).equals(randomData), true)
   })
 
-  it('writes Data in 2 non-overlaping operations', async () => {
+  it('writes Data in 2 non-overlapping operations', async () => {
     const mbOfRandom = 3
     const rawFileName = `${tempDir}/randomfile`
     const emptyFileName = `${tempDir}/empty.vhd`
@@ -158,7 +158,7 @@ describe('VhdFile', async () => {
     assert.equal((await fs.readFile(recoveredFileName)).equals(randomData), true)
   })
 
-  it('writes Data in 2 overlaping operations', async () => {
+  it('writes Data in 2 overlapping operations', async () => {
     const mbOfRandom = 3
     const rawFileName = `${tempDir}/randomfile`
     const emptyFileName = `${tempDir}/empty.vhd`
