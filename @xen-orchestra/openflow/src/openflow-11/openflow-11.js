@@ -387,7 +387,7 @@ export default {
     badQueue: 8, // Problem validating output queue
     badOutGroup: 9, // Invalid group id in forward action
     matchInconsistent: 10, // Action can't apply for this match
-    unsuportedOrder: 11, // Action order is unsupported for the action list in an Apply-Actions instruction
+    unsupportedOrder: 11, // Action order is unsupported for the action list in an Apply-Actions instruction
     badTag: 12, // Actions uses an unsupported tag/encap
   },
 
