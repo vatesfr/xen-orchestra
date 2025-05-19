@@ -11,7 +11,7 @@ XOA (**X**en **O**rchestra virtual **A**ppliance) is the pre-installed VM with:
 - complete QA (tested) to guarantee it will work
 - a web updater
 - bundled remote support capabilities
-- extra services (XO Hub, XO Recipies, Advanced metrics, XOSAN…)
+- extra services (XO Hub, XO Recipes, Advanced metrics, XOSAN…)
 - secured system (sudo, firewall)
 
 It's really trivial to deploy it, as you can see [in the XOA install section](installation.md#xoa).
