@@ -194,7 +194,7 @@ export default class PoolItem extends Component {
             </Col>
             <Col mediumSize={1} className='hidden-md-down'>
               <EllipsisContainer>
-                <span className={styles.itemActionButons}>
+                <span className={styles.itemActionButtons}>
                   <Tooltip
                     content={
                       <span>

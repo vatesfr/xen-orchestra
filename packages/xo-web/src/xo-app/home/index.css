@@ -24,17 +24,17 @@
   background: #f4f4f4;
 }
 
-.item:hover .itemActionButons {
+.item:hover .itemActionButtons {
   opacity: 1;
 }
 
-.itemActionButons {
+.itemActionButtons {
   margin-right: 0.6em;
   color: #999;
   opacity: 0;
 }
 
-.itemActionButons:hover {
+.itemActionButtons:hover {
   color: #111;
 }
 
