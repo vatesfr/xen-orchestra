@@ -2765,7 +2765,7 @@ Reporting, LVM File level restore.
 - Do not stop patches install if already applied [\#1904](https://github.com/vatesfr/xen-orchestra/issues/1904)
 - Improve scheduling UI [\#1893](https://github.com/vatesfr/xen-orchestra/issues/1893)
 - Smart backup and tag [\#1885](https://github.com/vatesfr/xen-orchestra/issues/1885)
-- Missing embeded API documentation [\#1882](https://github.com/vatesfr/xen-orchestra/issues/1882)
+- Missing embedded API documentation [\#1882](https://github.com/vatesfr/xen-orchestra/issues/1882)
 - Add local DVD in CD selector [\#1880](https://github.com/vatesfr/xen-orchestra/issues/1880)
 - File level restore for LVM [\#1878](https://github.com/vatesfr/xen-orchestra/issues/1878)
 - Restore multiple files from file level restore [\#1877](https://github.com/vatesfr/xen-orchestra/issues/1877)
