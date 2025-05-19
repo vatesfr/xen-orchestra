@@ -156,7 +156,7 @@ If you want to upgrade your active plan to a higher version of Xen Orchestra, yo
 
 ![](./assets/upgradestep4.png)
 
-5. If you chosse wire transfer, you have now the possibility to download a quote. As you can see, the remaining period of your previous plan is now a credit note applied on this upgrade.
+5. If you choose wire transfer, you have now the possibility to download a quote. As you can see, the remaining period of your previous plan is now a credit note applied on this upgrade.
 
 ![](./assets/upgradestep5.png)
 
