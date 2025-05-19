@@ -231,7 +231,7 @@ Use the screenshots below as a reference as how to setup SAML with Google Worksp
 4. Give your app a name and optionally a description.
 5. To see how the fields should be filled out, refer to the screenshots below.
 
-> Note: Right now even when the authorization is successfull, you will be redirected to the `https://xo.company.net/signin` page. However, just browse directly into the bare URL `https://xo.company.net`, and you'll now be logged in and can use the XO-dashboard.
+> Note: Right now even when the authorization is successful, you will be redirected to the `https://xo.company.net/signin` page. However, just browse directly into the bare URL `https://xo.company.net`, and you'll now be logged in and can use the XO-dashboard.
 
 > If you get a certificate error. Try to add a newline at the bottom of the Certificate field in Xen Orchestra.
 

@@ -869,7 +869,7 @@
 ### Bug fixes
 
 - [Console] Fix support of consoles behind an HTTP/HTTPS proxy [Forum#76935](https://xcp-ng.org/forum/post/76935')
-- [Rolling Pool Update] Fixed RPU failing to install patches on hosts (and still appearing as successfull) (PR [#7640](https://github.com/vatesfr/xen-orchestra/pull/7640))
+- [Rolling Pool Update] Fixed RPU failing to install patches on hosts (and still appearing as successful) (PR [#7640](https://github.com/vatesfr/xen-orchestra/pull/7640))
 - [XOSTOR] Throw clearer error if attempt to create multiple trials (PR [#7649](https://github.com/vatesfr/xen-orchestra/pull/7649))
 - [V2V] Fix import stuck (PR [#7653](https://github.com/vatesfr/xen-orchestra/pull/7653))
 - [REST API] Don't wait for a new state of a task when the `wait` query string is not used
