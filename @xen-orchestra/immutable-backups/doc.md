@@ -33,7 +33,7 @@ It will also do a checkup to ensure immutability could work on this remote and h
 
 The watching process depends on the backup type, since we don't want to make temporary files and cache immutable.
 
-It won't protect files during upload, only when the files have been completly written on disk. Real time, in this case, means "protecting critical files as soon as possible after they are uploaded"
+It won't protect files during upload, only when the files have been completely written on disk. Real time, in this case, means "protecting critical files as soon as possible after they are uploaded"
 
 This can be alleviated by :
 
