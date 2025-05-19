@@ -37,9 +37,15 @@ export class XapiProgressHandler {
    */
   #taskRef
   /**
+   * @type {boolean}
+   */
+  #starting = false
+  /**
    * @type {any}
    */
+
   #xapi
+
   /**
    *
    * @param {any} xapi
@@ -60,7 +66,9 @@ export class XapiProgressHandler {
     this.#xapi = xapi
   }
   async start() {
+    this.#starting = true
     this.#taskRef = await this.#xapi.call('task_create', this.#label, '')
+    this.#starting = false
   }
   async done() {
     this.#taskRef && (await this.#xapi.call('task_destroy', this.#taskRef))
@@ -74,6 +82,10 @@ export class XapiProgressHandler {
   async setProgress(progress) {
     if (this.#taskRef === undefined) {
       await this.start()
+      return
+    }
+    if (this.#starting === true) {
+      // the data will be updated on next progress call
       return
     }
     if (progress < 0 || progress > 1) {
