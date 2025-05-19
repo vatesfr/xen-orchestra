@@ -575,7 +575,7 @@ export class RemoteAdapter {
     }
   }
 
-  async #getCachabledDataListVmBackups(dir) {
+  async #getCacheableDataListVmBackups(dir) {
     debug('generating cache', { path: dir })
 
     const handler = this._handler
@@ -622,7 +622,7 @@ export class RemoteAdapter {
     }
 
     // nothing cached, or cache unreadable => regenerate it
-    const backups = await this.#getCachabledDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
+    const backups = await this.#getCacheableDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
     if (backups === undefined) {
       return
     }

@@ -1447,7 +1447,7 @@ export class Xapi extends EventEmitter {
   }
 }
 
-function cachable(fn, getCache) {
+function cacheable(fn, getCache) {
   return async function (...args) {
     const cache = getCache(args)
     if (cache === undefined) {
@@ -1471,7 +1471,7 @@ function cachable(fn, getCache) {
 
 decorateClass(Xapi, {
   call: [
-    cachable,
+    cacheable,
     args => {
       if (typeof args[0] !== 'string') {
         return args.shift()
@@ -1480,7 +1480,7 @@ decorateClass(Xapi, {
   ],
   callAsync: compose([
     [
-      cachable,
+      cacheable,
       args => {
         const maybeCache = args[1]
         if (typeof maybeCache !== 'string') {
