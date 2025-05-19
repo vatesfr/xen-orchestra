@@ -1,14 +1,5 @@
-import { asyncEach } from '@vates/async-each'
-import { createLogger } from '@xen-orchestra/log'
-import { parse } from 'xo-remote-parser'
-
-import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
-import { createPredicate } from 'value-matcher'
-
-import { AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
-import { RestApi } from '../rest-api/rest-api.mjs'
-import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
-import { MaybePromise } from '../helpers/helper.type.mjs'
+import groupBy from 'lodash/groupBy.js'
+import semver from 'semver'
 import {
   AnyXoVdi,
   AnyXoVm,
@@ -21,10 +12,18 @@ import {
   XoVbd,
   XoVm,
 } from '@vates/types'
-import semver from 'semver'
-import { isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
+import { asyncEach } from '@vates/async-each'
+import { createLogger } from '@xen-orchestra/log'
+import { createPredicate } from 'value-matcher'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
-import groupBy from 'lodash/groupBy.js'
+import { parse } from 'xo-remote-parser'
+
+import { AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
+import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
+import { isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
+import { MaybePromise } from '../helpers/helper.type.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -461,7 +460,6 @@ export class XoaService {
             notInJob: nVmsNotInJob,
           },
         }
-        //
       },
       this.#dashboardCacheOpts
     )
@@ -475,18 +473,22 @@ export class XoaService {
     const nPools = this.#getNumberOfPools()
     const nHosts = this.#getNumberOfHosts()
     const resourcesOverview = this.#getResourcesOverview()
-    const storageRepositoriesSize = this.#getStorageRepositoriesSizeInfo()
+    const storageRepositories = this.#getStorageRepositoriesSizeInfo()
 
     const poolsStatus = await this.#getPoolsStatus()
     const missingPatches = await this.#getMissingPatchesInfo()
     const backupRepositories = await this.#getBackupRepositoriesSizeInfo().catch(err => {
       log.error('#getBackupRepositoriesSizeInfo failed', err)
+      // explicitly return undefined because typescript understand it as void instead of undefined
+      return undefined
     })
     const nHostsEol = await this.#getNumberOfEolHosts().catch(err => {
       log.err('#getNumberOfEolHosts failed', err)
+      return undefined
     })
     const backups = await this.#getbackupsInfo().catch(err => {
       log.error('#getbackupsInfo failed', err)
+      return undefined
     })
 
     return {
@@ -497,7 +499,7 @@ export class XoaService {
       poolsStatus,
       nHostsEol,
       missingPatches,
-      storageRepositoriesSize,
+      storageRepositories,
       backups,
     }
   }

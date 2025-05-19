@@ -327,7 +327,7 @@ export type XoBackupJob = BaseXoJob & {
   mode: 'full' | 'delta'
   name?: string
   remotes?: {
-    id: XoRemote['id'] | { __or: XoRemote['id'][] }
+    id: XoBackupRepository['id'] | { __or: XoBackupRepository['id'][] }
   }
   vms?: {
     id: XoVm['id'] | { __or: XoVm['id'][] } | Record<string, unknown>
@@ -362,10 +362,6 @@ export type XoBackupJob = BaseXoJob & {
   }
 }
 export type XoJob = BaseXoJob & {}
-
-export type XoRemote = {
-  id: Branded<'remote'>
-}
 
 export type XoSchedule = {
   cron: string
@@ -564,7 +560,7 @@ export type XapiXoRecord =
   | XoVmTemplate
   | XoVtpm
 
-export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser | XoRemote
+export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
