@@ -849,9 +849,9 @@ export default class Xapi extends XapiBase {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
 
-    const accrossPools = vm.$pool !== host.$pool
+    const acrossPools = vm.$pool !== host.$pool
     const useStorageMotion =
-      accrossPools ||
+      acrossPools ||
       sr !== undefined ||
       migrationNetworkId !== undefined ||
       !isEmpty(mapVifsNetworks) ||
