@@ -4,28 +4,33 @@
     <div v-if="hasSubTasks" class="toggle" @click="toggleExpand()">
       <UiButtonIcon accent="brand" :icon="isExpanded ? faAngleDown : faAngleRight" size="small" />
     </div>
-    <div class="content">
-      <div class="typo-body-bold">
-        {{ task.name }}
+    <div class="task-item">
+      <div class="warper">
+        <div class="content">
+          <div class="typo-body-bold">
+            {{ task.name }}
+          </div>
+          <UiTag v-if="task.tag" accent="info" variant="secondary">{{ task.tag }}</UiTag>
+          <div v-if="hasSubTasks" class="subtasks">
+            <VtsIcon :icon="faCircleNotch" accent="current" />
+            <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
+          </div>
+        </div>
+        <div class="informations typo-body-regular-small">
+          <!-- todo add user link. wating user page and user icon -->
+          <template v-if="task.start">
+            {{ `${$t('started-at')} ${started}` }}
+          </template>
+          <template v-if="task.start && task.end">
+            <span class="interpunct" />
+          </template>
+          <template v-if="task.end">
+            {{ `${$t('task.estimated-end')} ${end}` }}
+          </template>
+        </div>
       </div>
-      <UiTag v-if="task.tag" accent="info" variant="secondary">{{ task.tag }}</UiTag>
-      <div v-if="hasSubTasks" class="subtasks">
-        <VtsIcon :icon="faCircleNotch" accent="current" />
-        <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
-      </div>
+      <VtsQuickTaskList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist />
     </div>
-    <div class="informations typo-body-regular-small">
-      <template v-if="task.start">
-        {{ `${$t('started-at')} ${started}` }}
-      </template>
-      <template v-if="task.start && task.end">
-        <span class="interpunct" />
-      </template>
-      <template v-if="task.end">
-        {{ `${$t('task.estimated-end')} ${end}` }}
-      </template>
-    </div>
-    <VtsQuickTaskList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist />
   </li>
 </template>
 
@@ -48,6 +53,7 @@ export type Task = {
   start?: number
   end?: number
   subtasks?: Task[]
+  // TODO when add suport of user
 }
 
 const { task } = defineProps<{
@@ -66,6 +72,20 @@ const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) 
 <style lang="postcss" scoped>
 .ui-task-item {
   display: flex;
+  width: 100%;
+
+  .task-item {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .warper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
 
   &:not(:last-child) {
     border-bottom: 0.1rem solid var(--color-neutral-border);
