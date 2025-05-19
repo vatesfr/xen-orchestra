@@ -441,6 +441,7 @@
   "start-delay": "Start delay",
   "start-on-host": "Start on specific host",
   "started": "Started",
+  "started-at": "Started",
   "state": "State",
   "static": "Static",
   "static-ip": "Static IP",

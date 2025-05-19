@@ -441,6 +441,7 @@
   "start-delay": "Départ différé",
   "start-on-host": "Démarrer sur un hôte spécifique",
   "started": "Démarré",
+  "started-at": "Démarré il y a",
   "state": "État",
   "static": "Statique",
   "static-ip": "IP statique",
