@@ -3400,7 +3400,7 @@ Job management, email notifications, CoreOS/Docker, Quiesce snapshots...
 - Logs from CLI ([xo-web#486](https://github.com/vatesfr/xen-orchestra/issues/486))
 - Save disconnected servers ([xo-web#489](https://github.com/vatesfr/xen-orchestra/issues/489))
 - Snapshot with quiesce ([xo-web#491](https://github.com/vatesfr/xen-orchestra/issues/491))
-- Start VM in reovery mode ([xo-web#495](https://github.com/vatesfr/xen-orchestra/issues/495))
+- Start VM in recovery mode ([xo-web#495](https://github.com/vatesfr/xen-orchestra/issues/495))
 - Username in logs ([xo-web#498](https://github.com/vatesfr/xen-orchestra/issues/498))
 - Delete associated tokens with user ([xo-web#500](https://github.com/vatesfr/xen-orchestra/issues/500))
 - Validate plugin configuration ([xo-web#503](https://github.com/vatesfr/xen-orchestra/issues/503))
