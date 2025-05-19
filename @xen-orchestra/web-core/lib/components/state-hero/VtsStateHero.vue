@@ -17,7 +17,16 @@ export type StateHeroType = 'page' | 'card' | 'panel' | 'table'
 const props = defineProps<{
   type: StateHeroType
   busy?: boolean
-  image?: 'no-result' | 'under-construction' | 'no-data' | 'no-selection' | 'error' | 'not-found' // TODO: 'offline' | 'all-good' | 'all-done''
+  image?:
+    | 'no-result'
+    | 'under-construction'
+    | 'no-data'
+    | 'no-selection'
+    | 'error'
+    | 'not-found'
+    | 'offline'
+    | 'all-good'
+    | 'all-done'
 }>()
 
 const slots = defineSlots<{
