@@ -1,4 +1,4 @@
-# Imutability
+# Immutability
 
 the goal is to make a remote that XO can write, but not modify during the immutability duration set on the remote. That way, it's not possible for XO to delete or encrypt any backup during this period. It protects your backup against ransomware, at least as long as the attacker does not have a root access to the remote server.
 
@@ -10,7 +10,7 @@ It is compatible with encryption at rest made by XO.
 
 ## Prerequisites
 
-The commands must be run as root on the remote, or by a user with the `CAP_LINUX_IMMUTABLE` capability . On start, the protect process writes into the remote `imutability.json` file its status and the immutability duration.
+The commands must be run as root on the remote, or by a user with the `CAP_LINUX_IMMUTABLE` capability . On start, the protect process writes into the remote `immutability.json` file its status and the immutability duration.
 
 the `chattr` and `lsattr` should be installed on the system
 
