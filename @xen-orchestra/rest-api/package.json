@@ -21,8 +21,7 @@
     "prepublishOnly": "npm run build",
     "postversion": "npm publish --access public",
     "prebuild": "npm run clean",
-    "predev": "npm run clean",
-    "test": "tsc && node --test dist/**/*.test.mjs"
+    "predev": "npm run clean"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
@@ -33,6 +32,7 @@
     "typescript-eslint": "^8.23.0"
   },
   "dependencies": {
+    "@isaacs/ttlcache": "^1.4.1",
     "@vates/async-each": "^1.0.0",
     "@vates/types": "^1.2.0",
     "@xen-orchestra/backups": "^0.59.0",

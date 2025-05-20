@@ -4,6 +4,8 @@ import {
   AnyXoVdi,
   AnyXoVm,
   BACKUP_TYPE,
+  HOST_POWER_STATE,
+  VM_POWER_STATE,
   XoBackupJob,
   XoHost,
   XoPool,
@@ -18,92 +20,77 @@ import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { parse } from 'xo-remote-parser'
+import { Writable } from 'node:stream'
+import TTLCache from '@isaacs/ttlcache'
 
-import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
 import { isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
-import type { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
-type DashboardAsyncCache = {
-  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo>
-  backups: MaybePromise<DashboardBackupsInfo>
+function writeInStream(data: unknown, stream?: Writable) {
+  stream?.write(JSON.stringify(data) + '\n')
 }
 
 export class XoaService {
   #restApi: RestApi
-  #dashboardAsyncCache = new Map<
-    keyof DashboardAsyncCache,
-    AsyncCacheEntry<DashboardAsyncCache[keyof DashboardAsyncCache]>
-  >()
-  #dashboardCacheOpts: { timeout?: number; expiresIn?: number }
+  #dashboardCache: TTLCache<string, unknown>
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
-    this.#dashboardCacheOpts = {
-      timeout: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheTimeout'),
-      expiresIn: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
-    }
+    this.#dashboardCache = new TTLCache({
+      max: 4,
+      ttl: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn') ?? 60 * 1000,
+    })
   }
 
-  async #getBackupRepositoriesSizeInfo(): Promise<
-    (DashboardBackupRepositoriesSizeInfo & { isExpired?: true }) | undefined
-  > {
-    const brResult = await getFromAsyncCache<DashboardAsyncCache['backupRepositories']>(
-      this.#dashboardAsyncCache as Map<
-        'backupRepositories',
-        AsyncCacheEntry<DashboardAsyncCache['backupRepositories']>
-      >,
-      'backupRepositories',
-      async () => {
-        const xoApp = this.#restApi.xoApp
-
-        const s3Brsize: DashboardBackupRepositoriesSizeInfo['s3']['size'] = { backups: 0 }
-        const otherBrSize: DashboardBackupRepositoriesSizeInfo['other']['size'] = {
-          available: 0,
-          backups: 0,
-          other: 0,
-          total: 0,
-          used: 0,
-        }
-
-        const backupRepositories = await xoApp.getAllRemotes()
-        const backupRepositoriesInfo = await xoApp.getAllRemotesInfo()
-        for (const backupRepository of backupRepositories) {
-          const { type } = parse(backupRepository.url)
-          const backupRepositoryInfo = backupRepositoriesInfo[backupRepository.id]
-
-          if (!backupRepository.enabled || backupRepositoryInfo === undefined) {
-            continue
-          }
-
-          const totalBackupSize = await xoApp.getTotalBackupSizeOnRemote(backupRepository.id)
-
-          const { available, size, used } = backupRepositoryInfo
-
-          const isS3 = type === 's3'
-          const target = isS3 ? s3Brsize : otherBrSize
-
-          target.backups += totalBackupSize.onDisk
-          if (!isS3) {
-            const _target = target as DashboardBackupRepositoriesSizeInfo['other']['size']
-            _target.available += available
-            _target.other += used - totalBackupSize.onDisk
-            _target.total += size
-            _target.used += used
-          }
-        }
-
-        return { s3: { size: s3Brsize }, other: { size: otherBrSize } }
-      },
-      this.#dashboardCacheOpts
-    )
-
-    if (brResult?.value !== undefined) {
-      return { ...brResult.value, isExpired: brResult.isExpired }
+  async #getBackupRepositoriesSizeInfo(): Promise<DashboardBackupRepositoriesSizeInfo> {
+    if (this.#dashboardCache.has('backupRepositories')) {
+      return this.#dashboardCache.get('backupRepositories') as DashboardBackupRepositoriesSizeInfo
     }
+
+    const xoApp = this.#restApi.xoApp
+
+    const s3Brsize: DashboardBackupRepositoriesSizeInfo['s3']['size'] = { backups: 0 }
+    const otherBrSize: DashboardBackupRepositoriesSizeInfo['other']['size'] = {
+      available: 0,
+      backups: 0,
+      other: 0,
+      total: 0,
+      used: 0,
+    }
+
+    const backupRepositories = await xoApp.getAllRemotes()
+    const backupRepositoriesInfo = await xoApp.getAllRemotesInfo()
+    for (const backupRepository of backupRepositories) {
+      const { type } = parse(backupRepository.url)
+      const backupRepositoryInfo = backupRepositoriesInfo[backupRepository.id]
+
+      if (!backupRepository.enabled || backupRepositoryInfo === undefined) {
+        continue
+      }
+
+      const totalBackupSize = await xoApp.getTotalBackupSizeOnRemote(backupRepository.id)
+
+      const { available, size, used } = backupRepositoryInfo
+
+      const isS3 = type === 's3'
+      const target = isS3 ? s3Brsize : otherBrSize
+
+      target.backups += totalBackupSize.onDisk
+      if (!isS3) {
+        const _target = target as DashboardBackupRepositoriesSizeInfo['other']['size']
+        _target.available += available
+        _target.other += used - totalBackupSize.onDisk
+        _target.total += size
+        _target.used += used
+      }
+    }
+
+    const result = { s3: { size: s3Brsize }, other: { size: otherBrSize } }
+    this.#dashboardCache.set('backupRepositories', result)
+    return result
   }
 
   #getNumberOfPools() {
@@ -186,6 +173,10 @@ export class XoaService {
   }
 
   async #getNumberOfEolHosts(): Promise<XoaDashboard['nHostsEol']> {
+    if (this.#dashboardCache.has('nHostsEol')) {
+      return this.#dashboardCache.get('nHostsEol') as XoaDashboard['nHostsEol']
+    }
+
     const getHVSupportedVersions = this.#restApi.xoApp.getHVSupportedVersions
 
     if (getHVSupportedVersions === undefined) {
@@ -204,10 +195,15 @@ export class XoaService {
       }
     }
 
+    this.#dashboardCache.set('nHostsEol', nHostsEol)
     return nHostsEol
   }
 
   async #getMissingPatchesInfo(): Promise<XoaDashboard['missingPatches']> {
+    if (this.#dashboardCache.has('missingPatches')) {
+      return this.#dashboardCache.get('missingPatches') as XoaDashboard['missingPatches']
+    }
+
     if (!(await this.#restApi.xoApp.hasFeatureAuthorization('LIST_MISSING_PATCHES'))) {
       return {
         hasAuthorization: false,
@@ -235,12 +231,14 @@ export class XoaService {
       }
     })
 
-    return {
+    const result = {
       hasAuthorization: true,
       nHostsFailed,
       nHostsWithMissingPatches,
       nPoolsWithMissingPatches: poolsWithMissingPatches.size,
     }
+    this.#dashboardCache.set('missingPatches', result)
+    return result
   }
 
   #isReplicaVmInVdb(vbds: XoVbd['id'][]): boolean {
@@ -307,7 +305,11 @@ export class XoaService {
     }
   }
 
-  async #getbackupsInfo(): Promise<(DashboardBackupsInfo & { isExpired?: true }) | undefined> {
+  async #getbackupsInfo(): Promise<DashboardBackupsInfo> {
+    if (this.#dashboardCache.has('backups')) {
+      return this.#dashboardCache.get('backups') as DashboardBackupsInfo
+    }
+
     const vmIdsProtected = new Set<XoVm['id']>()
     const vmIdsUnprotected = new Set<XoVm['id']>()
     const nonReplicaVms = Object.values(this.#restApi.getObjectsByType<XoVm>('VM', { filter: vm => !isReplicaVm(vm) }))
@@ -371,125 +373,204 @@ export class XoaService {
       return false
     }
 
-    const backupsResult = await getFromAsyncCache<DashboardAsyncCache['backups']>(
-      this.#dashboardAsyncCache as Map<'backups', AsyncCacheEntry<DashboardAsyncCache['backups']>>,
-      'backups',
-      async () => {
-        const [logs, jobs] = await Promise.all([
-          xoApp.getBackupNgLogsSorted({
-            filter: log => log.message === 'backup' || log.message === 'metadata',
-          }),
-          Promise.all([
-            xoApp.getAllJobs('backup'),
-            xoApp.getAllJobs('mirrorBackup'),
-            xoApp.getAllJobs('metadataBackup'),
-          ]).then(jobs => jobs.flat(1)) as Promise<XoBackupJob[]>,
-        ])
-        const logsByJob = groupBy(logs, 'jobId')
+    const [logs, jobs] = await Promise.all([
+      xoApp.getBackupNgLogsSorted({
+        filter: log => log.message === 'backup' || log.message === 'metadata',
+      }),
+      Promise.all([
+        xoApp.getAllJobs('backup'),
+        xoApp.getAllJobs('mirrorBackup'),
+        xoApp.getAllJobs('metadataBackup'),
+      ]).then(jobs => jobs.flat(1)) as Promise<XoBackupJob[]>,
+    ])
+    const logsByJob = groupBy(logs, 'jobId')
 
-        let disabledJobs = 0
-        let failedJobs = 0
-        let skippedJobs = 0
-        let successfulJobs = 0
-        const backupJobIssues: DashboardBackupsInfo['issues'] = []
+    let disabledJobs = 0
+    let failedJobs = 0
+    let skippedJobs = 0
+    let successfulJobs = 0
+    const backupJobIssues: DashboardBackupsInfo['issues'] = []
 
-        for (const job of jobs) {
-          if (!(await _jobHasAtLeastOneScheduleEnabled(job))) {
-            _processVmsProtection(job, false)
-            disabledJobs++
-            continue
-          }
+    for (const job of jobs) {
+      if (!(await _jobHasAtLeastOneScheduleEnabled(job))) {
+        _processVmsProtection(job, false)
+        disabledJobs++
+        continue
+      }
 
-          // Get only the last 3 runs
-          const jobLogs = logsByJob[job.id]?.slice(-3).reverse()
-          if (jobLogs === undefined || jobLogs.length === 0) {
-            _processVmsProtection(job, false)
-            continue
-          }
+      // Get only the last 3 runs
+      const jobLogs = logsByJob[job.id]?.slice(-3).reverse()
+      if (jobLogs === undefined || jobLogs.length === 0) {
+        _processVmsProtection(job, false)
+        continue
+      }
 
-          if (job.type === BACKUP_TYPE.backup) {
-            const lastJobLog = jobLogs[0]
-            const { tasks, status } = lastJobLog
+      if (job.type === BACKUP_TYPE.backup) {
+        const lastJobLog = jobLogs[0]
+        const { tasks, status } = lastJobLog
 
-            if (tasks === undefined) {
-              _processVmsProtection(job, status === 'success')
-            } else {
-              // @TODO: remove as when logs are correctly typed
-              ;(tasks as unknown as { data: { id: XoVm['id'] }; status: string }[]).forEach(task => {
-                _updateVmProtection(task.data.id, task.status === 'success')
-              })
-            }
-          }
-
-          const failedLog = jobLogs.find(log => log.status !== 'success')
-          if (failedLog !== undefined) {
-            const { status } = failedLog
-            if (status === 'failure' || status === 'interrupted') {
-              failedJobs++
-            } else if (status === 'skipped') {
-              skippedJobs++
-            }
-            backupJobIssues.push({
-              // @TODO: remove as when logs are correctly typed
-              logs: jobLogs.map(log => log.status) as DashboardBackupsInfo['issues'][number]['logs'],
-              name: job.name,
-              type: job.type,
-              uuid: job.id,
-            })
-          } else {
-            successfulJobs++
-          }
+        if (tasks === undefined) {
+          _processVmsProtection(job, status === 'success')
+        } else {
+          // @TODO: remove as when logs are correctly typed
+          ;(tasks as unknown as { data: { id: XoVm['id'] }; status: string }[]).forEach(task => {
+            _updateVmProtection(task.data.id, task.status === 'success')
+          })
         }
+      }
 
-        const nVmsProtected = vmIdsProtected.size
-        const nVmsUnprotected = vmIdsUnprotected.size
-        const nVmsNotInJob = nonReplicaVms.length - (nVmsProtected + nVmsUnprotected)
-
-        return {
-          jobs: {
-            disabled: disabledJobs,
-            failed: failedJobs,
-            skipped: skippedJobs,
-            successful: successfulJobs,
-            total: jobs.length,
-          },
-          issues: backupJobIssues,
-          vmsProtection: {
-            protected: nVmsProtected,
-            unprotected: nVmsUnprotected,
-            notInJob: nVmsNotInJob,
-          },
+      const failedLog = jobLogs.find(log => log.status !== 'success')
+      if (failedLog !== undefined) {
+        const { status } = failedLog
+        if (status === 'failure' || status === 'interrupted') {
+          failedJobs++
+        } else if (status === 'skipped') {
+          skippedJobs++
         }
+        backupJobIssues.push({
+          // @TODO: remove as when logs are correctly typed
+          logs: jobLogs.map(log => log.status) as DashboardBackupsInfo['issues'][number]['logs'],
+          name: job.name,
+          type: job.type,
+          uuid: job.id,
+        })
+      } else {
+        successfulJobs++
+      }
+    }
+
+    const nVmsProtected = vmIdsProtected.size
+    const nVmsUnprotected = vmIdsUnprotected.size
+    const nVmsNotInJob = nonReplicaVms.length - (nVmsProtected + nVmsUnprotected)
+
+    const result = {
+      jobs: {
+        disabled: disabledJobs,
+        failed: failedJobs,
+        skipped: skippedJobs,
+        successful: successfulJobs,
+        total: jobs.length,
       },
-      this.#dashboardCacheOpts
-    )
+      issues: backupJobIssues,
+      vmsProtection: {
+        protected: nVmsProtected,
+        unprotected: nVmsUnprotected,
+        notInJob: nVmsNotInJob,
+      },
+    }
 
-    if (backupsResult?.value !== undefined) {
-      return { ...backupsResult.value, isExpired: backupsResult.isExpired }
+    this.#dashboardCache.set('backups', result)
+    return result
+  }
+
+  #getHostsStatus(): XoaDashboard['hostsStatus'] {
+    const hosts = this.#restApi.getObjectsByType<XoHost>('host')
+    let nRunning = 0
+    let nHalted = 0
+    let nUnknown = 0
+    let total = 0
+    for (const id in hosts) {
+      total++
+      const host = hosts[id as XoHost['id']]
+      switch (host.power_state) {
+        case HOST_POWER_STATE.RUNNING:
+          nRunning++
+          break
+        case HOST_POWER_STATE.HALTED:
+          nHalted++
+          break
+        default:
+          nUnknown++
+          break
+      }
+    }
+
+    return {
+      running: nRunning,
+      halted: nHalted,
+      unknown: nUnknown,
+      total,
     }
   }
 
-  async getDashboard() {
-    const nPools = this.#getNumberOfPools()
-    const nHosts = this.#getNumberOfHosts()
-    const resourcesOverview = this.#getResourcesOverview()
-    const storageRepositories = this.#getStorageRepositoriesSizeInfo()
+  #getVmsStatus(): XoaDashboard['vmsStatus'] {
+    const vms = this.#restApi.getObjectsByType<XoVm>('VM')
+    let nActive = 0
+    let nInactive = 0
+    let nUnknown = 0
+    let total = 0
+    for (const id in vms) {
+      total++
+      const vm = vms[id as XoVm['id']]
+      switch (vm.power_state) {
+        case VM_POWER_STATE.RUNNING:
+        case VM_POWER_STATE.PAUSED:
+          nActive++
+          break
+        case VM_POWER_STATE.HALTED:
+        case VM_POWER_STATE.SUSPENDED:
+          nInactive++
+          break
+        default:
+          nUnknown++
+          break
+      }
+    }
 
-    const poolsStatus = await this.#getPoolsStatus()
-    const missingPatches = await this.#getMissingPatchesInfo()
-    const backupRepositories = await this.#getBackupRepositoriesSizeInfo().catch(err => {
-      log.error('#getBackupRepositoriesSizeInfo failed', err)
-      // explicitly return undefined because typescript understand it as void instead of undefined
-      return undefined
-    })
-    const nHostsEol = await this.#getNumberOfEolHosts().catch(err => {
-      log.err('#getNumberOfEolHosts failed', err)
-      return undefined
-    })
-    const backups = await this.#getbackupsInfo().catch(err => {
-      log.error('#getbackupsInfo failed', err)
-      return undefined
-    })
+    return {
+      active: nActive,
+      inactive: nInactive,
+      unknown: nUnknown,
+      total,
+    }
+  }
+
+  async getDashboard({ stream }: { stream?: Writable } = {}) {
+    async function promiseWriteInStream<T>(promise: Promise<T>, key: string): Promise<T> {
+      const data = await promise
+      writeInStream({ [key]: data }, stream)
+      return data
+    }
+
+    const nPools = this.#getNumberOfPools()
+    writeInStream({ nPools }, stream)
+    const nHosts = this.#getNumberOfHosts()
+    writeInStream({ nHosts }, stream)
+    const hostsStatus = this.#getHostsStatus()
+    writeInStream({ hostsStatus }, stream)
+    const resourcesOverview = this.#getResourcesOverview()
+    writeInStream({ resourcesOverview }, stream)
+    const vmsStatus = this.#getVmsStatus()
+    writeInStream({ vmsStatus }, stream)
+    const storageRepositories = this.#getStorageRepositoriesSizeInfo()
+    writeInStream({ storageRepositories }, stream)
+
+    const [poolsStatus, missingPatches, backupRepositories, nHostsEol, backups] = await Promise.all([
+      promiseWriteInStream(this.#getPoolsStatus(), 'poolsStatus'),
+      promiseWriteInStream(this.#getMissingPatchesInfo(), 'missingPatches'),
+      promiseWriteInStream(
+        this.#getBackupRepositoriesSizeInfo().catch(err => {
+          log.error('#getBackupRepositoriesSizeInfo failed', err)
+          // explicitly return undefined because typescript understand it as void instead of undefined
+          return undefined
+        }),
+        'backupRepositories'
+      ),
+      promiseWriteInStream(
+        this.#getNumberOfEolHosts().catch(err => {
+          log.error('#getNumberOfEolHosts failed', err)
+          return undefined
+        }),
+        'nHostsEol'
+      ),
+      promiseWriteInStream(
+        this.#getbackupsInfo().catch(err => {
+          log.error('#getbackupsInfo failed', err)
+          return undefined
+        }),
+        'backups'
+      ),
+    ])
 
     return {
       nPools,
@@ -501,6 +582,8 @@ export class XoaService {
       missingPatches,
       storageRepositories,
       backups,
+      hostsStatus,
+      vmsStatus,
     }
   }
 }
