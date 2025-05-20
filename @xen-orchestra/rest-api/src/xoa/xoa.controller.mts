@@ -1,9 +1,11 @@
-import { Controller, Get, Response, Route, Security, Tags } from 'tsoa'
+import { Controller, Example, Get, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 
+import type { XoaDashboard } from './xoa.type.mjs'
+
 import { unauthorizedResp } from '../open-api/common/response.common.mjs'
-import { XoaDashboard } from './xoa.type.mjs'
+import { xoaDashboard } from '../open-api/oa-examples/xoa.oa-example.mjs'
 import { XoaService } from './xoa.service.mjs'
 
 @Route('')
@@ -19,6 +21,7 @@ export class XoaController extends Controller {
     this.#xoaService = xoaService
   }
 
+  @Example(xoaDashboard)
   @Get('dashboard')
   async getDashboard(): Promise<XoaDashboard> {
     const dashboard = await this.#xoaService.getDashboard()

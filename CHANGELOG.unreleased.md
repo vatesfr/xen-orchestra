@@ -18,6 +18,9 @@
 
 - [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
 
+- **Migrated REST API endpoint**
+  - `/rest/v0/dashboard` (PR [#8580](https://github.com/vatesfr/xen-orchestra/pull/8580))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -48,7 +51,7 @@
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web-core minor
-- xo-server patch
+- xo-server minor
 - xo-server-auth-oidc patch
 - xo-server-perf-alert patch
 
