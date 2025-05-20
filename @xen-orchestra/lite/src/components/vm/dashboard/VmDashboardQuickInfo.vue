@@ -15,8 +15,12 @@
       <VtsQuickInfoRow :label="$t('host')">
         <template #value>
           <span v-if="host" class="host-name">
-            <UiObjectIcon size="medium" type="host" :state="hostPowerState" />
-            {{ host.name_label }}
+            <UiLink v-if="host" :icon="faServer" :to="`/host/${host.uuid}`" size="medium">
+              {{ host.name_label }}
+            </UiLink>
+          </span>
+          <span v-else>
+            {{ $t('none') }}
           </span>
         </template>
       </VtsQuickInfoRow>
@@ -49,7 +53,6 @@
 
 <script lang="ts" setup>
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
-import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
@@ -57,13 +60,13 @@ import VtsIcon, { type IconAccent } from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faPlay, faStop } from '@fortawesome/free-solid-svg-icons'
+import { faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -77,7 +80,7 @@ const { t, locale } = useI18n()
 const { isReady, getVmHost } = useVmStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 const { getByOpaqueRef: getMetricsByOpaqueRef } = useVmMetricsStore().subscribe()
-const { isHostRunning } = useHostMetricsStore().subscribe()
+// const { isHostRunning } = useHostMetricsStore().subscribe()
 
 const guestMetrics = computed(() => getGuestMetricsByOpaqueRef(vm.guest_metrics))
 
@@ -85,13 +88,14 @@ const metrics = computed(() => getMetricsByOpaqueRef(vm.metrics))
 
 const host = computed(() => getVmHost(vm))
 
-const hostPowerState = computed(() => {
-  if (host.value === undefined) {
-    return
-  }
-
-  return isHostRunning(host.value) ? 'running' : 'halted'
-})
+// TODO add this to icon when new component is available
+// const hostPowerState = computed(() => {
+//   if (host.value === undefined) {
+//     return
+//   }
+//
+//   return isHostRunning(host.value) ? 'running' : 'halted'
+// })
 
 const powerStateConfig: Record<
   string,
