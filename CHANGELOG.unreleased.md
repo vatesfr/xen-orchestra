@@ -14,6 +14,9 @@
 - **XO 6:**
   - [Host/Dashboard] Update RAM usage components wordings and update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
 
+- **Migrated REST API endpoint**
+  - `/rest/v0/dashboard` (PR [#8580](https://github.com/vatesfr/xen-orchestra/pull/8580))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
