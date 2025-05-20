@@ -5,12 +5,17 @@
         <UiCircleProgressBar accent="info" size="small" :value="75" />
       </template>
     </UiTaskItem>
-    <UiTaskItem :task="task as any" />
+    <UiTaskItem :task="task as any">
+      <template #status>
+        <UiInfo accent="danger">cassé</UiInfo>
+      </template>
+    </UiTaskItem>
   </ul>
 </template>
 
 <script lang="ts" setup>
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTaskItem from '@core/components/ui/task-item/UiTaskItem.vue'
 
 const task2 = {

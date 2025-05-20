@@ -15,6 +15,9 @@
             <VtsIcon :icon="faCircleNotch" accent="current" />
             <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
           </div>
+          <div v-if="slots.status">
+            <slot name="status" />
+          </div>
         </div>
         <div class="informations typo-body-regular-small">
           <!-- todo add user link. wating user page and user icon -->
@@ -67,6 +70,7 @@ const { task } = defineProps<{
 
 const slots = defineSlots<{
   progresion?: any
+  status?: any
 }>()
 const [isExpanded, toggleExpand] = useToggle()
 
