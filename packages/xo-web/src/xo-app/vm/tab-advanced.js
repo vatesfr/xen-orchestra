@@ -1303,7 +1303,7 @@ export default class TabAdvanced extends Component {
                     >
                       <Icon icon='info' /> {_('seeVtpmDocumentation')}
                     </a> */}
-                    {vtpmId === undefined ? (
+                    {vtpmId == null ? (
                       <Tooltip content={addVtpmTooltip}>
                         <ActionButton
                           btnStyle='primary'
