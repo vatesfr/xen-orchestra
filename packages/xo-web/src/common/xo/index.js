@@ -1418,7 +1418,13 @@ export const installCertificateOnHost = (id, props) => _call('host.installCertif
 
 export const setControlDomainMemory = (id, memory) => _call('host.setControlDomainMemory', { id, memory })
 
-export const isPubKeyTooShort = id => _call('host.isPubKeyTooShort', { id })
+export const isPubKeyTooShort = host => {
+  // this check is only relevant for old hosts, and cannot be done on offline hosts
+  if (host.productBrand !== 'XCP-ng' || semver.satisfies(host.version, '>=8.3.0') || host.power_state === 'Halted') {
+    return Promise.resolve(false)
+  }
+  return _call('host.isPubKeyTooShort', { id: host.id })
+}
 
 // for XCP-ng now
 export const installAllPatchesOnHost = ({ host }) =>
