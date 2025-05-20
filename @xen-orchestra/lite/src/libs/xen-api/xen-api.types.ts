@@ -393,10 +393,15 @@ export interface XenApiHostMetrics extends XenApiRecord<'host_metrics'> {
 
 export interface XenApiVmMetrics extends XenApiRecord<'vm_metrics'> {
   VCPUs_number: number
+  start_time: string | undefined
+  install_time: string
 }
 
 export interface XenApiVmGuestMetrics extends XenApiRecord<'vm_guest_metrics'> {
   networks: string
+  os_version: Record<string, string>
+  PV_drivers_detected: boolean
+  memory: Record<string, string>
 }
 
 export interface XenApiTask extends XenApiRecord<'task'> {
