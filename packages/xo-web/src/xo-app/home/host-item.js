@@ -64,7 +64,7 @@ export default class HostItem extends Component {
   }
 
   componentWillMount() {
-    isPubKeyTooShort(this.props.item.id).then(value =>
+    isPubKeyTooShort(this.props.item).then(value =>
       this.setState({
         isPubKeyTooShort: value,
       })
