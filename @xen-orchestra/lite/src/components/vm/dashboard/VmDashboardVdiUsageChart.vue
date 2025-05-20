@@ -28,7 +28,6 @@ const { data } = defineProps<{
     stats: VmStats | undefined
     timestampStart: number
   }
-
   loading: boolean
   error?: string
 }>()
