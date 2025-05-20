@@ -13,7 +13,7 @@ Log in to your account and use the deploy form available from the [Vates website
 
 ## 📚 Documentation
 
-The official documentation is available at https://xen-orchestra.com/docs
+The official documentation is available at https://docs.xen-orchestra.com/
 
 ## 🚀 Features
 

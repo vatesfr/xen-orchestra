@@ -739,7 +739,7 @@ List of VMs with missing or outdated guest tools. It's best practice to [install
 
 ### Alarms
 
-This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](https://xen-orchestra.com/docs/alerts.html#alerts).
+This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](alerts#alerts).
 
 ### Heatmap
 
@@ -769,6 +769,53 @@ To receive reports, you need to enable the **usage-report** plugin.
 1. Activate the toggle switch called **all** to include stats for all resources in your report.
 1. In the dropdown menu called **periodicity**, choose whether you want to receive **daily**, **weekly** or **monthly reports**.
 1. Click **Save configuration**. Your reports will be sent to the email addresses you've entered, at your desired frequency.
+
+## Software RAID
+
+### About `mdadm`
+
+Software RAID in the Vates stack is managed using `mdadm`.
+
+`mdadm` is a Linux utility used to manage and monitor software RAID devices. It is used in modern Linux distributions in place of older software RAID utilities such as `raidtools2` or `raidtools`.
+
+### Support status
+
+:::tip
+
+We **strongly recommend** using a **hardware RAID** solution over software RAID whenever possible.
+
+:::
+
+:::warning
+
+**Software RAID integration is provided as-is**, with no official support.
+We do not offer support for issues arising from the use of software RAID for your storage repositories.
+
+:::
+
+### Setup instructions
+
+For detailed instructions on setting up a software RAID storage for your VMs, refer to the [Guides](https://docs.xcp-ng.org/guides/software-RAID-SR/) section in the XCP-ng documentation.
+
+### Troubleshooting
+
+If you encounter issues with your software RAID array, you can find answers regarding disk replacement at the [Troubleshooting](https://docs.xcp-ng.org/troubleshooting/storage/disk-failure-softwaire-RAID/#%EF%B8%8F-disk-replacement-with-software-raid) section in the XCP-ng documentation.
+
+### Monitoring software RAID health
+
+#### Checking RAID status
+
+Xen Orchestra allows you to monitor the health of your software RAID arrays directly from the interface.
+
+To check the status reported by `mdadm`, go to the **Host → Advanced** section. You'll get a clear, real-time view of your RAID array’s condition:
+
+![](./assets/mdadm-status.png)
+
+#### RAID status alerts
+
+If a host has a degraded software RAID array, a red warning triangle will appear in the host view. Clicking on it will display detailed information about the issue, so you can quickly identify and address critical problems:
+
+![](./assets/raid-status-alert.png)
 
 ## Docker support
 

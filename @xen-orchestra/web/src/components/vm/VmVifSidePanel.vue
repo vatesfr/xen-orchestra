@@ -36,13 +36,7 @@
               {{ vif.id }}
             </template>
             <template #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                :icon="faCopy"
-                size="medium"
-                accent="brand"
-                @click="copy(vif.id)"
-              />
+              <VtsCopyButton :value="vif.id" />
             </template>
           </VtsCardRowKeyValue>
           <!-- NETWORK -->
@@ -62,13 +56,7 @@
               <span v-tooltip class="text-ellipsis value">{{ network?.name_label }}</span>
             </template>
             <template v-if="network?.name_label" #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                :icon="faCopy"
-                size="medium"
-                accent="brand"
-                @click="copy(network.name_label)"
-              />
+              <VtsCopyButton :value="network.name_label" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DEVICE -->
@@ -80,13 +68,7 @@
               {{ $t('vif-device', { device: vif.device }) }}
             </template>
             <template #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                :icon="faCopy"
-                size="medium"
-                accent="brand"
-                @click="copy(vif.device)"
-              />
+              <VtsCopyButton :value="vif.device" />
             </template>
           </VtsCardRowKeyValue>
           <!-- VIF STATUS -->
@@ -107,13 +89,7 @@
               {{ vif.MTU }}
             </template>
             <template #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                :icon="faCopy"
-                size="medium"
-                accent="brand"
-                @click="copy(String(vif.MTU))"
-              />
+              <VtsCopyButton :value="String(vif.MTU)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- LOCKING MODE -->
@@ -150,13 +126,7 @@
                 <span class="text-ellipsis">{{ ip }}</span>
               </template>
               <template #addons>
-                <UiButtonIcon
-                  v-tooltip="copied && $t('core.copied')"
-                  :icon="faCopy"
-                  size="medium"
-                  accent="brand"
-                  @click="copy(ip)"
-                />
+                <VtsCopyButton :value="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="$t('coming-soon')"
@@ -185,13 +155,7 @@
               {{ vif.MAC }}
             </template>
             <template #addons>
-              <UiButtonIcon
-                v-tooltip="copied && $t('core.copied')"
-                :icon="faCopy"
-                size="medium"
-                accent="brand"
-                @click="copy(vif.MAC)"
-              />
+              <VtsCopyButton :value="vif.MAC" />
             </template>
           </VtsCardRowKeyValue>
         </div>
@@ -206,24 +170,20 @@ import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
 import type { XoVif } from '@/types/xo/vif.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCopy, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
-import { useClipboard } from '@vueuse/core'
+import { faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
-const { vif } = defineProps<{
-  vif: XoVif
-}>()
+const { vif } = defineProps<{ vif: XoVif }>()
 
 const { get: getNetwork } = useNetworkStore().subscribe()
 const { get: getVm } = useVmStore().subscribe()
-
-const { copy, copied } = useClipboard()
 
 const ipAddresses = computed(() => {
   const addresses = getVm(vif.$VM)?.addresses

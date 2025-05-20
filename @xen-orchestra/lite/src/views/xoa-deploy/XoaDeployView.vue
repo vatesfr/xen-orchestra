@@ -90,7 +90,7 @@
             </FormInputWrapper>
             <FormInputWrapper
               :label="$t('deploy-xoa-custom-ntp-servers')"
-              learn-more-url="https://xen-orchestra.com/docs/xoa.html#setting-a-custom-ntp-server"
+              learn-more-url="https://docs.xen-orchestra.com/xoa#setting-a-custom-ntp-server"
             >
               <FormInput v-model="ntp" placeholder="xxx.xxx.xxx.xxx" />
             </FormInputWrapper>
@@ -112,7 +112,7 @@
           <div class="row">
             <FormInputWrapper
               :label="$t('xoa-ip')"
-              learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
             >
               <FormInput v-model="ip" :disabled="!requireIpConf" placeholder="xxx.xxx.xxx.xxx" />
             </FormInputWrapper>

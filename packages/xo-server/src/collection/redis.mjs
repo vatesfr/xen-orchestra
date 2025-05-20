@@ -277,7 +277,7 @@ export default class Redis extends Collection {
     const { indexes, prefix, redis } = this
 
     // update main index
-    let promise = redis.sRem(prefix + '_ids', ...ids)
+    let promise = redis.sRem(prefix + '_ids', ids)
 
     // update other indexes
     if (indexes.length !== 0) {

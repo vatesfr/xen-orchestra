@@ -2,7 +2,7 @@ import { useUiStore } from '@core/stores/ui.store'
 import { ifElse } from '@core/utils/if-else.utils'
 import { useLocalStorage, useRafFn, useStyleTag, useToggle } from '@vueuse/core'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 export const useSidebarStore = defineStore('layout', () => {
   const uiStore = useUiStore()
@@ -12,6 +12,7 @@ export const useSidebarStore = defineStore('layout', () => {
   const toggleExpand = useToggle(isExpanded)
   const toggleLock = useToggle(isLocked)
   const isResizing = ref(false)
+  let desktopState = false
 
   let initialX: number
   let initialWidth: number
@@ -48,6 +49,18 @@ export const useSidebarStore = defineStore('layout', () => {
   )
 
   ifElse(isResizing, [load, resume], [pause, unload])
+
+  watch(
+    () => uiStore.isMobile,
+    isMobile => {
+      // keep the state of desktop expention
+      if (isMobile) {
+        desktopState = isExpanded.value
+      }
+
+      isExpanded.value = desktopState && !isMobile
+    }
+  )
 
   return {
     isExpanded,

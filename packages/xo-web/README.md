@@ -10,7 +10,7 @@ It is a web client for [XO-Server](https://github.com/vatesfr/xen-orchestra/tree
 
 ## Installation
 
-XOA or manual install procedure is [available here](https://xen-orchestra.com/docs/installation.html)
+XOA or manual install procedure is [available here](https://docs.xen-orchestra.com/installation)
 
 ## Compilation
 
