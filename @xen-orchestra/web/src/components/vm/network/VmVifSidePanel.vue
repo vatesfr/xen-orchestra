@@ -165,9 +165,9 @@
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store.ts'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
-import type { XoVif } from '@/types/xo/vif.type.ts'
+import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import type { XoVif } from '@/types/xo/vif.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
