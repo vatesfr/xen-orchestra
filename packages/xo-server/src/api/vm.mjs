@@ -828,7 +828,7 @@ export const setAndRestart = defer(async function ($defer, params) {
   const vm = params.VM
   const force = extract(params, 'force')
 
-  await stop.bind(this)({ vm, force })
+  await stop.bind(this)({ vm, force, forceShutdownDelay: 0 })
 
   $defer(start.bind(this), { vm, force })
 
@@ -1140,7 +1140,7 @@ export const stop = defer(async function ($defer, { vm, force, forceShutdownDela
 stop.params = {
   id: { type: 'string' },
   force: { type: 'boolean', optional: true },
-  forceShutdownDelay: { type: 'number', default: 5 * 60 * 1e3 },
+  forceShutdownDelay: { type: 'number', default: 0 },
   bypassBlockedOperation: { type: 'boolean', optional: true },
 }
 
