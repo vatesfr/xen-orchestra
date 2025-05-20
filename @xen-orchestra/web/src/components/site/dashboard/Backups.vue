@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ t('backups') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!areBackupsReady" type="card" />
     <VtsNoDataHero v-else-if="record?.backups === undefined" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :segments="jobsSegments" :title="jobsTitle" />
@@ -27,7 +27,11 @@ import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { record, isReady } = useDashboardStore().subscribe()
+const { record } = useDashboardStore().subscribe()
+
+const areBackupsReady = computed(
+  () => record.value?.backups?.jobs !== undefined && record.value?.backups?.vmsProtection !== undefined
+)
 
 const { t } = useI18n()
 

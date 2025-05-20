@@ -1,18 +1,22 @@
 export type BackupIssue = {
   logs: ('failure' | 'interrupted' | 'skipped' | 'success')[]
-  name: string
+  name?: string
   type: 'backup' | 'metadataBackup' | 'mirrorBackup'
   uuid: string
 }
 
 export type XoDashboard = {
-  nPools: number
-  nHosts: number
+  nPools?: number
+  nHosts?: number
   nHostsEol?: number
-  missingPatches?: {
-    nHostsWithMissingPatches: number
-    nPoolsWithMissingPatches: number
-  }
+  missingPatches?:
+    | { hasAuthorization: false }
+    | {
+        hasAuthorization: true
+        nHostsWithMissingPatches: number
+        nPoolsWithMissingPatches: number
+        nHostsFailed: number
+      }
   backupRepositories?: {
     s3: {
       size: {
@@ -29,7 +33,7 @@ export type XoDashboard = {
       }
     }
   }
-  storageRepositories: {
+  storageRepositories?: {
     size: {
       available: number
       other: number
@@ -53,14 +57,26 @@ export type XoDashboard = {
       notInJob: number
     }
   }
-  resourcesOverview: {
+  resourcesOverview?: {
     nCpus: number
     memorySize: number
     srSize: number
   }
-  poolsStatus: {
+  poolsStatus?: {
     connected: number
     unreachable: number
     unknown: number
+  }
+  hostsStatus?: {
+    running: number
+    halted: number
+    unknown: number
+    total: number
+  }
+  vmsStatus?: {
+    active: number
+    inactive: number
+    unknown: number
+    total: number
   }
 }

@@ -19,7 +19,7 @@ import type { RouteLocationRaw } from 'vue-router'
 export type BackupStates = BackupState[]
 
 export type Backup = {
-  label: string
+  label?: string
   route?: RouteLocationRaw
   states: BackupStates
 }
