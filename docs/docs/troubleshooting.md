@@ -98,7 +98,7 @@ Please check that you have enabled virtualization settings in your BIOS or upgra
 
 ## User login
 
-If you're having trouble logging in, look into the `xo-server` logs.
+If you're having trouble logging in, look into `xo-server`'s logs.
 
 For more information, refer to the [Logs](#logs) section on this page.
 
