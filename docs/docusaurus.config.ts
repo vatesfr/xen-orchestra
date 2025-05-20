@@ -42,6 +42,10 @@ const config: Config = {
             to: '/architecture#plugins',
             from: '/plugins',
           },
+          {
+            to: '/troubleshooting',
+            from: '/general-troubleshooting',
+          },
         ],
       },
     ],
