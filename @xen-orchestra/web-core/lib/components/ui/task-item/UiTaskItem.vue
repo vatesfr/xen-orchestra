@@ -34,19 +34,19 @@
           </template>
         </span>
       </span>
-      <VtsQuickTaskList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist />
+      <VtsTaskItremsList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist />
     </div>
   </li>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { faAngleDown, faAngleRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo, useToggle } from '@vueuse/core'
 import { computed } from 'vue'
+import VtsTaskItremsList from '../../task/VtsTaskItremsList.vue'
 
 export type TaskStatus = 'pending' | 'success' | 'failure'
 
@@ -80,7 +80,8 @@ const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) 
 <style lang="postcss" scoped>
 .ui-task-item {
   display: flex;
-  width: 100%;
+  margin: 0 4rem;
+  padding-right: 1.6rem;
 
   .task-item {
     display: flex;
