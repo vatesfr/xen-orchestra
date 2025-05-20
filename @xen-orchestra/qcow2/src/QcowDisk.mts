@@ -1,6 +1,10 @@
-import { Disk, DiskBlock, FileAccessor } from '@xen-orchestra/disk-transform'
+import { Disk, DiskBlock, FileAccessor, ProgressHandler } from '@xen-orchestra/disk-transform'
 
+import { getHandler } from '@xen-orchestra/fs'
 import assert from 'node:assert'
+import { Readable } from 'node:stream'
+import { readChunkStrict, skipStrict } from '@vates/read-chunk'
+import fs from 'node:fs'
 
 interface Qcow2Header {
   magic: number
@@ -18,45 +22,39 @@ interface Qcow2Header {
   snapshots_offset: bigint
 }
 
-export abstract class QcowDisk extends Disk {
-  #accessor: FileAccessor
-  #path: string
+abstract class QcowDisk extends Disk {
   #qcowHeader: Qcow2Header | undefined
-  #grainIndex = new Map<number, number>()
+  #clustersIndex = new Map<number, number>()
 
-  #descriptor: number | undefined
+  get clustersIndex(): Map<number, number> {
+    return this.#clustersIndex
+  }
 
-  get qcowHeader(): Qcow2Header {
+  get header(): Qcow2Header {
     if (this.#qcowHeader === undefined) {
       throw new Error('Call Init before reading the header')
     }
     return this.#qcowHeader
   }
-  constructor(accessor: FileAccessor, path: string) {
-    super()
-    this.#accessor = accessor
-    this.#path = path
-  }
-
   getVirtualSize(): number {
-    const size = this.qcowHeader.size
+    const size = this.header.size
     assert.ok(size < Number.MAX_SAFE_INTEGER)
     return Number(size)
   }
   getBlockSize(): number {
-    const clusterSize = 1 << this.qcowHeader.cluster_bits
+    const clusterSize = 1 << this.header.cluster_bits
     return clusterSize
   }
 
   isDifferencing(): boolean {
-    return this.qcowHeader.backing_file_offset !== 0n
+    return this.header.backing_file_offset !== 0n
   }
 
+  abstract readBuffer(offset: number, length: number): Promise<Buffer>
+
   async init(): Promise<void> {
-    this.#descriptor = await this.#accessor.open(this.#path)
-    const buffer = Buffer.alloc(1024)
-    await this.#accessor.read(this.#descriptor, buffer, 0)
-    const header = (this.#qcowHeader = {
+    const buffer = await this.readBuffer(0, 1024)
+    this.#qcowHeader = {
       magic: buffer.readUInt32BE(0),
       version: buffer.readUInt32BE(4),
       backing_file_offset: buffer.readBigUInt64BE(8),
@@ -70,104 +68,153 @@ export abstract class QcowDisk extends Disk {
       refcount_table_clusters: buffer.readUInt32BE(56),
       nb_snapshots: buffer.readUInt32BE(60),
       snapshots_offset: buffer.readBigUInt64BE(64),
-    })
+    }
 
-    const clusterSize = this.getBlockSize()
+    const nbL1Entries = this.header.l1_size
 
-    const l1Table = Buffer.alloc(header.l1_size * 8)
-    await this.#accessor.read(this.#descriptor, l1Table, Number(header.l1_table_offset))
+    assert.ok(this.header.l1_table_offset < Number.MAX_SAFE_INTEGER)
+    const l1TableBuffer = await this.readBuffer(Number(this.header.l1_table_offset), this.header.l1_size * 8)
+    const l1Table = new Map()
+    const nbClustersInFile = Math.ceil(this.getVirtualSize() / this.getBlockSize())
+    const nbClusterPerL2Table = this.getBlockSize() / 8
 
-    const l2TableBuffer = Buffer.alloc(clusterSize)
-    for (let i = 0; i < header.l1_size; i++) {
-      const l2Offset = l1Table.readBigUInt64BE(i * 8)
+    const clusters = this.#clustersIndex
+    clusters.clear()
 
-      if (l2Offset === 0n) {
-        continue
-      }
-      assert.ok(l2Offset < Number.MAX_SAFE_INTEGER)
-
-      await this.#accessor.read(this.#descriptor, l2TableBuffer, Number(l2Offset))
-      for (let j = 0; j < clusterSize / 8; j++) {
-        const clusterOffset = l2TableBuffer.readBigUInt64BE(j * 8)
-
-        if (clusterOffset === 0n) {
-          continue
+    for (let i = 0; i < l1TableBuffer.length; i += 8) {
+      const l2TableIndex = i / 8
+      const l2Offset = Number(l1TableBuffer.readBigUInt64BE(i) & 0x00fffffffffff8n)
+      if (l2Offset !== 0) {
+        // the last table may be smaller
+        const nbClusterInTable = Math.min(nbClusterPerL2Table, nbClustersInFile - l2TableIndex * nbClusterPerL2Table)
+        const l2TableBuffer = await this.readBuffer(l2Offset, nbClusterInTable * 8)
+        for (let j = 0; j < l2TableBuffer.length; j += 8) {
+          const clusterOffset = Number(l2TableBuffer.readBigUInt64BE(j) & 0x00fffffffffff8n)
+          if (clusterOffset !== 0) {
+            clusters.set(l2TableIndex * nbClusterPerL2Table + j / 8, clusterOffset)
+          }
         }
-        assert.ok(clusterOffset < Number.MAX_SAFE_INTEGER)
-        this.#grainIndex.set(i * (clusterSize / 8) + j, Number(clusterOffset))
       }
+    }
+
+    for (const [index, offset] of clusters) {
+      console.log(`0x${(index * 64 * 1024).toString(16)} 0x${offset.toString(16)}`)
     }
   }
   getBlockIndexes(): Array<number> {
-    return [...this.#grainIndex.keys()]
+    return [...this.#clustersIndex.keys()]
   }
   hasBlock(index: number): boolean {
-    return this.#grainIndex.has(index)
+    return this.#clustersIndex.has(index)
   }
-  buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> | AsyncGenerator<DiskBlock> {
+
+  async *buildDiskBlockGenerator(): AsyncGenerator<DiskBlock> {
+    try {
+      const indexes = this.getBlockIndexes()
+      const blockSize = this.getBlockSize()
+      for (let index = 0; index < indexes.length; index++) {
+        const data = await this.readBuffer(indexes[index] * blockSize, blockSize)
+        yield {
+          index,
+          data,
+        }
+        await this.progressHandler?.setProgress(index / indexes.length)
+      }
+      await this.progressHandler?.setProgress(1)
+    } finally {
+      await this.progressHandler?.done()
+      await this.close()
+    }
+  }
+}
+
+class QCowFromAccessor extends QcowDisk {
+  async readBuffer(offset: number, length: number): Promise<Buffer> {
+    const buffer = Buffer.alloc(length)
+    await this.#accessor.read(this.descriptor, buffer, offset)
+    return buffer
+  }
+  _readBlock(index: number): Promise<DiskBlock> {
     throw new Error('Method not implemented.')
   }
 
+  #accessor: FileAccessor
+  #path: string
+  #descriptor: number | undefined
+  get descriptor(): number {
+    if (this.#descriptor === undefined) {
+      throw new Error("Can't get file decriptor before init")
+    }
+    return this.#descriptor
+  }
+  constructor(accessor: FileAccessor, path: string) {
+    super()
+    this.#accessor = accessor
+    this.#path = path
+  }
+  _read
+
+  async init() {
+    this.#descriptor = await this.#accessor.openFile(this.#path)
+    await super.init()
+  }
+  close(): Promise<void> {
+    return this.#accessor.closeFile(this.descriptor)
+  }
+}
+
+class QcowFromStream extends QcowDisk {
+  #stream: Readable
+  #streamOffset: number = 0
+  #busy = false
+
+  constructor(stream: Readable) {
+    super()
+    this.#stream = stream
+  }
+  async #read(length: number) {
+    if (this.#busy) {
+      throw new Error("Can't read/skip multiple block in parallel")
+    }
+    this.#busy = true
+    const data = await readChunkStrict(this.#stream, length)
+    this.#streamOffset += length
+    this.#busy = false
+    return data
+  }
+
+  async #skip(length: number) {
+    if (this.#busy) {
+      throw new Error("Can't read/skip multiple block in parallel")
+    }
+    this.#busy = true
+    await skipStrict(this.#stream, length)
+    this.#streamOffset += length
+    this.#busy = false
+  }
+
+  async readBuffer(offset: number, length: number): Promise<Buffer> {
+    if (offset < this.#streamOffset) {
+      throw new Error("Can't read backward in stream")
+    }
+    if (offset > this.#streamOffset) {
+      await this.#skip(offset - this.#streamOffset)
+    }
+    return this.#read(length)
+  }
   async close(): Promise<void> {
-    this.#descriptor && this.#accessor.close(this.#descriptor)
+    this.#stream.destroy()
   }
 }
 
 /*
-async function* readQcow2(filePath: string): AsyncGenerator<{ index: number, data: Buffer }> {
-    const fd = fs.openSync(filePath, 'r');
-    const buffer = Buffer.alloc(1024); // Lire l'en-tête (taille suffisante pour l'en-tête QCOW2)
-    fs.readSync(fd, buffer, 0, buffer.length, 0);
-
-    // Exemple de lecture de l'en-tête (simplifié)
-    const header: Qcow2Header = {
-        magic: buffer.readUInt32BE(0),
-        version: buffer.readUInt32BE(4),
-        backing_file_offset: buffer.readBigUInt64BE(8),
-        backing_file_size: buffer.readUInt32BE(16),
-        cluster_bits: buffer.readUInt32BE(20),
-        size: buffer.readBigUInt64BE(24),
-        crypt_method: buffer.readUInt32BE(32),
-        l1_size: buffer.readUInt32BE(36),
-        l1_table_offset: buffer.readBigUInt64BE(40),
-        refcount_table_offset: buffer.readBigUInt64BE(48),
-        refcount_table_clusters: buffer.readUInt32BE(56),
-        nb_snapshots: buffer.readUInt32BE(60),
-        snapshots_offset: buffer.readBigUInt64BE(64),
-    };
-
-    const clusterSize = 1 << header.cluster_bits;
-
-    // Lire la table L1 (simplifié)
-    const l1TableBuffer = Buffer.alloc(header.l1_size * 8);
-    fs.readSync(fd, l1TableBuffer, 0, l1TableBuffer.length, Number(header.l1_table_offset));
-
-    for (let i = 0; i < header.l1_size; i++) {
-        const l2Offset = l1TableBuffer.readBigUInt64BE(i * 8);
-
-        if (l2Offset === 0n) {
-            continue; // Cluster non alloué
-        }
-
-        // Lire la table L2 (simplifié)
-        const l2TableBuffer = Buffer.alloc(clusterSize);
-        fs.readSync(fd, l2TableBuffer, 0, l2TableBuffer.length, Number(l2Offset));
-
-        for (let j = 0; j < clusterSize / 8; j++) {
-            const clusterOffset = l2TableBuffer.readBigUInt64BE(j * 8);
-
-            if (clusterOffset === 0n) {
-                continue; // Cluster non alloué
-            }
-
-            // Lire les données du cluster
-            const clusterData = Buffer.alloc(clusterSize);
-            fs.readSync(fd, clusterData, 0, clusterSize, Number(clusterOffset));
-
-            yield { index: i * (clusterSize / 8) + j, data: clusterData };
-        }
-    }
-
-    fs.closeSync(fd);
-}
+const handler = getHandler({url:`file:///mnt/work/xen-orchestra/@xen-orchestra/qcow2`})
+await handler.sync()
+console.log({handler})
+const disk = new QCowFromAccessor(handler, 'disk.qcow2')
+await disk.init()
 */
+const stream = fs.createReadStream('/mnt/work/xen-orchestra/@xen-orchestra/qcow2/disk.qcow2')
+
+const disk = new QcowFromStream(stream)
+await disk.init()
