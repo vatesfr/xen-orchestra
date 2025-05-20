@@ -23,6 +23,9 @@
 - [REST API] Ability to create a network `POST /rest/v0/pools/<pool-id/actions/createNetwork` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
 - [REST API] Ability to delete a network `DELETE /rest/v0/networks/<network-id>` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
 
+- **Migrated REST API endpoint**
+  - `/rest/v0/dashboard` (PR [#8580](https://github.com/vatesfr/xen-orchestra/pull/8580))
+
 ### Bug fixes
 
 [REST API] Ability to use `ndjson` query parameter also on migrated collections (PR [#8628](https://github.com/vatesfr/xen-orchestra/pull/8628))

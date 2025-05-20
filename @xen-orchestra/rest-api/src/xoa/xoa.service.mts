@@ -19,10 +19,10 @@ import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFr
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { parse } from 'xo-remote-parser'
 
-import { AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
+import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
 import { isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
-import { MaybePromise } from '../helpers/helper.type.mjs'
+import type { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
