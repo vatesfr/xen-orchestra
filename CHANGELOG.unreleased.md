@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [xo-server] Fix size of the icon on login pages for Safari browsers. This issue was introduced by [@rtjdamen](https://github.com/rtjdamen) on [this issue](https://github.com/vatesfr/xen-orchestra/issues/8301) (PR [#8572](https://github.com/vatesfr/xen-orchestra/pull/8572)).
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
