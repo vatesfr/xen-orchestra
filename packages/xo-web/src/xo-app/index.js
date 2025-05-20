@@ -449,7 +449,7 @@ export default class XoApp extends Component {
     return (
       <IntlProvider>
         <ThemeProvider theme={themes.base}>
-          <DocumentTitle title='Xen Orchestra'>
+          <DocumentTitle title='Whitestack XOA'>
             <div>
               {plan !== 'Community' && registerNeeded && (
                 <div className='alert alert-danger mb-0'>

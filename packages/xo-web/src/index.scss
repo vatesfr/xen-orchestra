@@ -3,8 +3,8 @@
 
 $nav-pills-border-radius: 0;
 $nav-pills-active-link-color: white;
-$nav-pills-active-link-bg: #366e98;
-$brand-primary: #366e98;
+$nav-pills-active-link-bg: #044b7f;
+$brand-primary: #044b7f;
 $brand-secondary: #047f75;
 $brand-success: #089944;
 $brand-danger: #990822;
@@ -42,7 +42,7 @@ $fa-font-path: '.';
 
 // ROOT STYLES =================================================================
 
-$side-menu-bg: #044b7f;
+$side-menu-bg: #002263;
 $side-menu-color: white;
 
 @include media-breakpoint-down(md) {
@@ -162,6 +162,24 @@ $select-input-height: 40px; // Bootstrap input height
 }
 
 // GENERAL STYLES ==============================================================
+
+h1 {
+  font-size: 2em;
+}
+
+h2 {
+  font-size: 1.5em;
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+}
+
+h3 {
+  font-size: 1.25em;
+}
+
+h4 {
+  font-size: 1em;
+}
 
 .tag-ip {
   margin-left: 1em;
