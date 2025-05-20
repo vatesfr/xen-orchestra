@@ -8,43 +8,34 @@
         </template>
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="$t('ip-address')" :value="host.address" />
-      <VtsQuickInfoRow :label="$t('started')" :value="relativeStartTime" />
-      <VtsQuickInfoRow>
-        <template #label>
-          {{ $t('master') }}
-        </template>
+      <VtsQuickInfoRow :label="$t('started')" :value="isRunning ? relativeStartTime : undefined" />
+      <VtsQuickInfoRow :label="$t('master')">
         <template #value>
           <template v-if="isMaster">
             <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
             {{ $t('this-host') }}
           </template>
-          <UiObjectLink v-else-if="masterHost !== undefined" :route="`/host/${masterHost.uuid}/dashboard`">
-            <template #icon>
-              <UiObjectIcon size="medium" :state="isHostRunning(masterHost) ? 'running' : 'halted'" type="host" />
-            </template>
+          <UiLink v-else-if="masterHost !== undefined" :to="`/host/${masterHost.uuid}/`" size="medium" :icon="faServer">
             {{ masterHost.name_label }}
-          </UiObjectLink>
+          </UiLink>
         </template>
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('id')" :value="host.uuid" />
+      <VtsQuickInfoRow :label="$t('uuid')" :value="host.uuid" />
       <VtsQuickInfoRow :label="$t('description')" :value="host.name_description" />
       <VtsQuickInfoRow :label="$t('version')" :value="host.software_version.product_version" />
-      <VtsQuickInfoRow :label="$t('hardware')">
-        <template #value>
-          {{ host.bios_strings['system-manufacturer'] }}
-          {{ `(${host.bios_strings['system-product-name']})` }}
-        </template>
-      </VtsQuickInfoRow>
+      <VtsQuickInfoRow
+        :label="$t('hardware')"
+        :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
+      />
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('cores-with-sockets')">
-        <template #value>{{ host.cpu_info.cpu_count }} {{ `(${host.cpu_info.socket_count})` }}</template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('ram')">
-        <template #value>{{ `${ram?.value} ${ram?.prefix}` }}</template>
-      </VtsQuickInfoRow>
+      <VtsQuickInfoRow
+        :label="$t('cores-with-sockets')"
+        :value="`${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`"
+      />
+      <VtsQuickInfoRow :label="$t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
       <VtsQuickInfoRow :label="$t('tags')">
         <template #value>
           <UiTagsList v-if="host.tags.length">
@@ -65,8 +56,7 @@ import VtsIcon, { type IconAccent } from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import useRelativeTime from '@core/composables/relative-time.composable'
@@ -74,7 +64,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faCircle, faPlay, faStar, faStop } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faPlay, faServer, faStar, faStop } from '@fortawesome/free-solid-svg-icons'
 import { useNow } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -100,14 +90,12 @@ const powerStateConfig: Record<
   halted: { icon: faStop, accent: 'danger' },
 }
 
-const powerState = computed(() => {
-  const isRunning = isHostRunning(host)
+const isRunning = computed(() => isHostRunning(host))
 
-  return {
-    text: t(`host-status.${isRunning ? 'running' : 'halted'}`),
-    ...powerStateConfig[isRunning ? 'running' : 'halted'],
-  }
-})
+const powerState = computed(() => ({
+  text: t(`host-status.${isRunning.value ? 'running' : 'halted'}`),
+  ...powerStateConfig[isRunning.value ? 'running' : 'halted'],
+}))
 
 const date = computed(() => new Date(parseDateTime(Number(host.other_config.boot_time) * 1000)))
 const now = useNow({ interval: 1000 })
