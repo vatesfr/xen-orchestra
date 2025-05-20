@@ -2,10 +2,10 @@
   <UiCard>
     <UiCardTitle>
       {{ $t('backup-issues') }}
-      <UiCounter :value="backupIssues.length" accent="danger" size="medium" variant="primary" />
+      <UiCounter :value="record?.backups?.issues.length ?? 0" accent="danger" size="medium" variant="primary" />
       <template #description>{{ $t('in-last-three-jobs') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!backupsIsReady" type="card" />
     <VtsNoDataHero v-else-if="!hasBackupIssues" type="card" />
     <div v-else class="backup-items">
       <VtsBackupItem v-for="(coreBackupIssue, index) in coreBackupIssues" :key="index" :backup="coreBackupIssue" />
@@ -24,11 +24,13 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { computed } from 'vue'
 
-const { backupIssues, isReady } = useDashboardStore().subscribe()
+const { record } = useDashboardStore().subscribe()
 
-const hasBackupIssues = computed(() => backupIssues.value.length !== 0)
+const backupsIsReady = computed(() => record.value?.backups?.issues !== undefined)
 
-const coreBackupIssues = computed(() => backupIssues.value.map(convertBackupIssueToCore))
+const hasBackupIssues = computed(() => backupsIsReady.value && record.value!.backups!.issues.length > 0)
+
+const coreBackupIssues = computed(() => record.value?.backups?.issues.map(convertBackupIssueToCore))
 </script>
 
 <style lang="postcss" scoped>

@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ $t('patches') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!patchesIsReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" />
       <VtsDivider type="stretch" />
@@ -24,7 +24,9 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const { record, isReady } = useDashboardStore().subscribe()
+const { record } = useDashboardStore().subscribe()
+
+const patchesIsReady = computed(() => record.value?.missingPatches !== undefined)
 
 const poolsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() => ({
   label: t('pools'),
