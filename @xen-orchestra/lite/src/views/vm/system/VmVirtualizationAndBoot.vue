@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="vm-virtualization-and-boot">
+  <UiCard>
     <UiTitle>
       {{ $t('virtualization-boot-settings') }}
     </UiTitle>
@@ -12,9 +12,7 @@
     <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : $t('none')" />
     <VtsQuickInfoRow :label="$t('viridian')">
       <template #value>
-        <UiInfo :accent="vm.platform.viridian === 'true' ? 'success' : 'muted'">
-          {{ vm.platform.viridian === 'true' ? $t('enabled') : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.platform.viridian === 'true'" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('manage-citrix-pv-drivers-via-windows-update')">
@@ -36,7 +34,6 @@ import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'
 import { satisfies } from 'semver'

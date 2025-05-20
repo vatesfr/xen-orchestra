@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="vm-graphics">
+  <UiCard>
     <UiTitle>
       {{ $t('graphics-display') }}
     </UiTitle>

@@ -1,20 +1,16 @@
 <template>
-  <UiCard class="vm-management">
+  <UiCard>
     <UiTitle>
       {{ $t('vm-management') }}
     </UiTitle>
     <VtsQuickInfoRow :label="$t('high-availability')">
       <template #value>
-        <VtsEnabledState :enabled="vm.platform.vga === 'std'" />
-
-        <UiInfo :accent="vm.ha_restart_priority !== '' ? 'success' : 'muted'">
-          {{ vm.ha_restart_priority ? $t(vm.ha_restart_priority) : $t('disabled') }}
-        </UiInfo>
+        <VtsEnabledState :enabled="vm.ha_restart_priority !== ''" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('affinity-host')">
       <template v-if="affinityHost?.uuid" #value>
-        <UiLink :icon="faServer" :to="`/host/${affinityHost.uuid}`" size="medium" target="_self">
+        <UiLink :icon="faServer" :to="`/host/${affinityHost.uuid}`" size="medium">
           {{ affinityHost.name_label }}
         </UiLink>
       </template>
@@ -44,7 +40,6 @@ import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'

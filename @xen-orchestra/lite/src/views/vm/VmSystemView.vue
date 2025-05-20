@@ -41,25 +41,3 @@ usePageTitleStore().setTitle(useI18n().t('system'))
 const id = computed(() => route.params.uuid as XenApiVm['uuid'])
 const vm = computed(() => getByUuid(id.value))
 </script>
-
-<style scoped lang="postcss">
-.system {
-  display: flex;
-  gap: 0.8rem;
-  padding: 0.8rem;
-  width: 100%;
-  flex-direction: row;
-  .column {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    width: 50%;
-  }
-  &.mobile {
-    flex-direction: column;
-    .column {
-      width: 100%;
-    }
-  }
-}
-</style>
