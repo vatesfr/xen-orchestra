@@ -6,11 +6,12 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "clean": "rimraf dist/"
   },
   "author": "",
   "license": "ISC",
-  "private": true,
+  "private": false,
   "homepage": "https://github.com/vatesfr/xen-orchestra",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {

@@ -27,8 +27,8 @@ export function toQcow2Stream(disk: RandomAccessDisk, { clusterSize = 65536, ref
 
   async function* generator() {
     yield qcowHeader // need to populate this
-    //yield L1 refcount
-    //yield L2 refcount
+    //yield refcount table
+    //yield refcount blocks
 
     const l1Table = Buffer.alloc(l1TableLength, 0)
     let offset = 72 + l1TableLength
