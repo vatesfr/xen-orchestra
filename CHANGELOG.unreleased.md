@@ -33,7 +33,6 @@
 
 <!--packages-start-->
 
-- @vates/types patch
 - @xen-orchestra/rest-api minor
 - xo-server patch
 

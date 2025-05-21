@@ -50,7 +50,7 @@ type BaseXoVm = BaseXapiXo & {
   blockedOperations: Record<VM_OPERATIONS, string>
   boot: Record<string, string>
   coresPerSocket?: number
-  cpuCap?: number | null
+  cpuCap?: number
   cpuMask?: number[]
   cpuWeight?: number
   creation: Record<string, string>

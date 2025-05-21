@@ -537,12 +537,15 @@ const TRANSFORMS = {
       }
     }
 
-    let tmp
-    if ((tmp = obj.VCPUs_params)) {
-      tmp.cap && (vm.cpuCap = +tmp.cap)
-      tmp.mask && (vm.cpuMask = tmp.mask.split(',').map(_ => +_))
-      tmp.weight && (vm.cpuWeight = +tmp.weight)
+    const { cap, mask, weight } = obj.VCPUs_params ?? {}
+    if (cap != null) {
+      vm.cpuCap = +cap
     }
+    if (weight != null) {
+      vm.cpuWeight = +weight
+    }
+
+    vm.cpuMask = mask?.split(',').map(_ => +_)
 
     if (!isHvm) {
       vm.PV_args = obj.PV_args
