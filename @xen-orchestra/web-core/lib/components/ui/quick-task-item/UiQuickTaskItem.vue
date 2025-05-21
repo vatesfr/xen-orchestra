@@ -6,7 +6,7 @@
     </div>
     <div class="content">
       <div class="typo-body-bold">
-        {{ task.name }}
+        {{ task.label }}
       </div>
       <div class="informations">
         <div class="line-1">
@@ -34,24 +34,11 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
+import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { faAngleDown, faAngleRight, faArrowRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-export type TaskStatus = 'pending' | 'success' | 'failure'
-
-export type Task = {
-  id: string
-  start: number
-  end?: number
-  type?: string
-  label?: string
-  progress?: number
-  warningsCount?: number
-  infosCount?: number
-  tasks?: Task[]
-}
 
 const props = defineProps<{
   task: Task
@@ -61,7 +48,7 @@ const { t, d } = useI18n()
 
 const [isExpanded, toggleExpand] = useToggle()
 
-const subTasks = computed(() => props.task.subtasks ?? [])
+const subTasks = computed(() => props.task.tasks ?? [])
 const subTasksCount = computed(() => subTasks.value.length)
 const hasSubTasks = computed(() => subTasksCount.value > 0)
 </script>

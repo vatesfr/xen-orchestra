@@ -48,7 +48,7 @@ import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import type { TaskStatus } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
+import type { TaskStatus } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { useTabList } from '@core/composables/tab-list.composable'
 import { useI18n } from 'vue-i18n'
 

@@ -14,9 +14,11 @@
 </template>
 
 <script lang="ts" setup>
+import type { Task } from '../ui/task-item/UiTaskItem.vue'
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiQuickTaskItem, { type Task } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
 import { useI18n } from 'vue-i18n'
+import UiQuickTaskItem from '../ui/quick-task-item/UiQuickTaskItem.vue'
 
 defineProps<{
   tasks: Task[]

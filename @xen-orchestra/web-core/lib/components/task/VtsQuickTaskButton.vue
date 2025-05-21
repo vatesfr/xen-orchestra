@@ -17,8 +17,8 @@
 <script lang="ts" setup>
 import VtsBackdrop from '@core/components/backdrop/VtsBackdrop.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import type { Task } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
 import UiQuickTaskPanel from '@core/components/ui/quick-task-panel/UiQuickTaskPanel.vue'
+import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faBarsProgress } from '@fortawesome/free-solid-svg-icons'
 import { unrefElement, watchArray, whenever } from '@vueuse/core'
