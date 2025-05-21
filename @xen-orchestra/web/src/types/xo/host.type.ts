@@ -1,3 +1,4 @@
+import type { XoPgpu } from '@/types/xo/pgpu.type.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVmController } from '@/types/xo/vm-controller.type.ts'
 import { type XoVm } from '@/types/xo/vm.type'
@@ -21,6 +22,7 @@ export type XoHost = {
   _xapiRef: string
   current_operations: Record<string, HOST_OPERATION>
   address: string
+  agentStartTime: number | null
   enabled: boolean
   name_label: string
   name_description: string
@@ -38,7 +40,7 @@ export type XoHost = {
     'system-product-name'?: string
     'bios-version'?: string
     'bios-vendor'?: string
-    [key: string]: string | undefined
+    [key: string]: unknown | undefined
   }
   cpus: {
     cores: number
@@ -46,8 +48,11 @@ export type XoHost = {
   }
   logging: {
     syslog_destination?: string
-    [key: string]: string | undefined
+    [key: string]: unknown | undefined
   }
+  /**
+   * @deprecated
+   */
   CPUs: {
     modelname?: string
     [key: string]: string | undefined
@@ -58,6 +63,7 @@ export type XoHost = {
   }
   tags: string[]
   otherConfig: {
-    agent_start_time: string
+    [key: string]: unknown | undefined
   }
+  PGPUs: XoPgpu['id'][]
 }

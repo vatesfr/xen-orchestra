@@ -7,7 +7,7 @@
     <VtsQuickInfoRow :label="$t('build-number')" :value="host.build" />
     <VtsQuickInfoRow :label="$t('toolstack-uptime')">
       <template v-if="host.power_state === HOST_POWER_STATE.RUNNING" #value>
-        <VtsRelativeTime :date="Number(host.otherConfig.agent_start_time) * 1000" />
+        <VtsRelativeTime :date="Number(host.agentStartTime) * 1000" />
       </template>
     </VtsQuickInfoRow>
   </UiCard>

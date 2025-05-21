@@ -24,7 +24,7 @@ export const xoApiDefinition = {
     type: 'collection',
     path: 'hosts',
     fields:
-      'id,name_label,name_description,power_state,controlDomain,residentVms,$pool,current_operations,address,startTime,version,bios_strings,cpus,CPUs,memory,tags,iscsiIqn,powerOnMode,build,otherConfig,multipathing,logging',
+      'id,name_label,name_description,power_state,controlDomain,residentVms,$pool,current_operations,address,startTime,version,bios_strings,cpus,CPUs,memory,tags,iscsiIqn,powerOnMode,build,otherConfig,multipathing,logging,enabled,agentStartTime,PGPUs',
     handler: (record: XoHost) => record,
   },
   vm: {
@@ -90,7 +90,7 @@ export const xoApiDefinition = {
       'id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate',
     handler: (record: XoVmTemplate) => record,
   },
-  vm_controller: {
+  'vm-controller': {
     type: 'collection',
     path: 'vm-controllers',
     fields: 'id,memory',

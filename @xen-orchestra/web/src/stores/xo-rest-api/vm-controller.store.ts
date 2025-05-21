@@ -3,7 +3,7 @@ import { createSubscribableStoreContext } from '@core/utils/create-subscribable-
 import { defineStore } from 'pinia'
 
 export const useVmControllerStore = defineStore('vm-controller', () => {
-  const config = createXoStoreConfig('vm_controller')
+  const config = createXoStoreConfig('vm-controller')
 
   return createSubscribableStoreContext(config, {})
 })

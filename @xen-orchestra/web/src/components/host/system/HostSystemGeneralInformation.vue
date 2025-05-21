@@ -17,11 +17,11 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('status')">
       <template #value>
-        <VtsEnabledState :enabled="host.power_state === HOST_POWER_STATE.RUNNING" />
+        <VtsEnabledState :enabled="host.enabled" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('pool')">
-      <template v-if="pool" #value>
+      <template v-if="pool !== undefined" #value>
         <UiLink size="medium" :to="`/pool/${pool.id}/`" :icon="faCity">
           {{ pool.name_label }}
         </UiLink>
@@ -78,11 +78,11 @@ const { host } = defineProps<{
 }>()
 
 const { get: getPoolById } = usePoolStore().subscribe()
-const { records: hosts, isMasterHost } = useHostStore().subscribe()
+const { getMasterHostByPoolId, isMasterHost } = useHostStore().subscribe()
 
 const pool = computed(() => getPoolById(host.$pool))
 
 const isMaster = computed(() => isMasterHost(host.id))
 
-const masterHost = hosts.value.find(host => host.id === pool.value?.master)
+const masterHost = computed(() => getMasterHostByPoolId(host.$pool))
 </script>

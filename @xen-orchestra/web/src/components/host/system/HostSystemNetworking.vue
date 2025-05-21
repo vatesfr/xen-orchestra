@@ -4,10 +4,7 @@
       {{ $t('networking') }}
     </UiTitle>
     <VtsQuickInfoRow :label="$t('ip-address')" :value="host.address" />
-    <VtsQuickInfoRow
-      :label="$t('remote-syslog')"
-      :value="host.logging.syslog_destination !== undefined ? host.logging.syslog_destination : $t('none')"
-    />
+    <VtsQuickInfoRow :label="$t('remote-syslog')" :value="host.logging.syslog_destination" />
     <VtsQuickInfoRow :label="$t('iscsi-iqn')" :value="host.iscsiIqn" />
     <VtsQuickInfoRow :label="$t('multi-pathing')">
       <template #value>
