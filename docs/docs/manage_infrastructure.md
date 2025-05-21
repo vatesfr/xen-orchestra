@@ -345,6 +345,50 @@ This button will allow you to boot directly from the CD drive, ignoring your cur
 
 Activating "Auto Power on" for a VM will also configure the pool accordingly. If your host is rebooted, the VM will be started right after the host is up.
 
+### Network locking mode
+
+#### What's a VIF?
+
+In the Vates stack, each VM connects to the network through a **Virtual Interface**, or **VIF**. 
+
+Think of it as the VM’s virtual network card —it handles all incoming and outgoing traffic on a specific virtual network, which is linked to a physical NIC on the host via a bridge. Every VIF comes with a fixed MAC address and can be tied to a particular VLAN (or virtual network), depending on how your environment is set up.
+
+#### What does VIF locking mode do?
+
+**VIF locking mode** is a security feature that helps prevent unauthorized or spoofed traffic from getting in or out of a VM. 
+
+In practical terms, enabling locking mode means **the VM can’t send traffic using a fake MAC address** — and if an IP address is set, it won’t be able to use anything else either. This is **especially helpful in multi-tenant setups** or anytime you need tight control over which VM is allowed to do what on the network.
+
+#### Default behavior
+
+**By default, VIFs are not locked.** Users can assign any IP address to their VM, and they will work without restriction. 
+However, if you add restricted IPs, the VIF becomes locked, meaning only the specified IP addresses are allowed to send traffic outside the VM.
+
+#### Adding restricted IP addresses
+
+To add a restricted IP address:
+
+1. Go to the **VM view** and open the **Network** tab. You will see a column called **Allowed IPs**:
+   ![](./assets/allowed-ip-column.png)
+1. Click the **+** icon to add authorized IP addresses:
+   ![](./assets/add-allowed-ip.png)
+
+#### How do I enable VIF locking mode?
+
+1. Select the VM.
+1. Head over to the **Network** tab to see each VIF along with its current locking mode status:
+   ![](./assets/vif-locking-status.png)
+1. To change the locking mode status:
+   1. Click the pencil icon (with the **Edit locking mode** label). A dropdown menu appears.
+   1. Choose your desired mode from that menu:
+      ![](./assets/choose-vif-locking-mode.png)
+    
+If Xen Orchestra knows the VM’s IP address — either through the guest agent or DHCP — it will automatically apply IP-level locking when the mode is enabled.
+
+#### How do I automate VIF locking mode?
+
+If you’re automating things or working with scripts, you can also control VIF locking mode through the XO [command-line interface](architecture#xo-cli-cli). 
+
 ### VM high availability (HA)
 
 If you pool supports HA (must have shared storage), you can activate "HA". Read our blog post for more details on [VM high availability with XCP-ng/XenServer](https://xen-orchestra.com/blog/xenserver-and-vm-high-availability/).
