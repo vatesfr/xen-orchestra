@@ -1,6 +1,6 @@
 <template>
   <template v-for="taskItem of taskItems" :key="taskItem.id">
-    <UiTaskItem :task="taskItem.source" />
+    <UiTaskItem :task="taskItem.source" :depth />
     <UiTaskList
       v-if="taskItem.source.tasks?.length && taskItem.flags.expanded"
       :tasks="taskItem.source.tasks"
