@@ -1,35 +1,38 @@
 <!-- WIP -->
 <template>
-  <li class="ui-task-item">
-    <div v-if="hasSubTasks" class="toggle" @click="toggleExpand()">
-      <UiButtonIcon accent="brand" :icon="isExpanded ? faAngleDown : faAngleRight" size="small" />
-    </div>
+  <div class="ui-task-item">
     <div class="task-item">
-      <span class="warper">
-        <div class="content">
-          <div class="typo-body-bold">
-            {{ task.label }}
-          </div>
-          <UiTag v-if="task.type" accent="info" variant="secondary">{{ task.type }}</UiTag>
-          <div v-if="hasSubTasks" class="subtasks">
-            <VtsIcon :icon="faCircleNotch" accent="current" />
-            <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
-          </div>
+      <div class="content">
+        <UiButtonIcon
+          v-if="hasSubTasks"
+          class="toggle"
+          accent="brand"
+          :icon="isExpanded ? faAngleDown : faAngleRight"
+          size="small"
+          @click="toggleExpand()"
+        />
+        <div class="typo-body-bold">
+          {{ task.label }}
         </div>
-        <div class="informations typo-body-regular-small">
-          <!-- todo add user link. wating user page -->
-          <span v-if="task.start" class="start">
-            {{ `${$t('started-at')} ${started}` }}
-          </span>
-          <span v-if="task.end" class="end">
-            {{ `${$t('task.estimated-end')} ${end}` }}
-          </span>
+        <UiTag v-if="task.type" accent="info" variant="secondary">{{ task.type }}</UiTag>
+        <div v-if="hasSubTasks" class="subtasks">
+          <VtsIcon :icon="faCircleNotch" accent="current" />
+          <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
         </div>
+      </div>
+      <div class="informations typo-body-regular-small">
+        <!-- todo add user link. wating user page -->
+        <span v-if="task.start" class="start">
+          {{ `${$t('started-at')} ${started}` }}
+        </span>
+        <span v-if="task.end" class="end">
+          {{ `${$t('task.estimated-end')} ${end}` }}
+        </span>
         <UiCircleProgressBar v-if="task.progress" accent="info" size="small" :value="task.progress" />
-      </span>
-      <UiTaskList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist />
+      </div>
     </div>
-  </li>
+    <UiTaskList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist :depth="depth + 1" />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -56,6 +59,7 @@ export type Task = {
 
 const { task } = defineProps<{
   task: Task
+  depth: number
 }>()
 
 const [isExpanded, toggleExpand] = useToggle()
@@ -69,55 +73,32 @@ const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) 
 
 <style lang="postcss" scoped>
 .ui-task-item {
-  display: flex;
-  margin: 0 4rem;
-  padding-right: 1.6rem;
-
-  .task-item {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .warper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.6rem;
-  }
+  margin: 0 2.4rem;
 
   &:not(:last-child) {
     border-bottom: 0.1rem solid var(--color-neutral-border);
   }
 
-  .toggle {
-    padding: 0.4rem 0;
-  }
-
-  .content {
-    flex: 1;
-    padding: 0.4rem 0.4rem 0.4rem 0.8rem;
+  .task-item {
     display: flex;
-    gap: 1.6rem;
-  }
+    justify-content: space-between;
 
-  .informations {
-    display: flex;
-    gap: 0.8rem;
-
-    .start + .end::before {
-      content: '•';
-      margin-right: 0.8rem;
+    .informations,
+    .content {
+      display: flex;
+      align-items: center;
+      gap: 1.6rem;
+      padding: 0.4rem 0;
     }
+  }
+
+  .start + .end::before {
+    content: '•';
+    margin-right: 0.8rem;
   }
 
   .typo-body-regular-small {
     color: var(--color-neutral-txt-secondary);
-  }
-
-  .circle-progress {
-    width: 4rem;
-    height: 4rem;
   }
 
   .subtasks {
