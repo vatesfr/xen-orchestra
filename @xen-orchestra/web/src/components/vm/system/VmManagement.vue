@@ -33,7 +33,11 @@
         <VtsEnabledState :enabled="vm.auto_poweron" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('start-delay')" :value="$t('relative-time.second', vm.startDelay)" />
+    <VtsQuickInfoRow :label="$t('start-delay')">
+      <template #value>
+        {{ startDelay }}
+      </template>
+    </VtsQuickInfoRow>
   </UiCard>
 </template>
 
@@ -47,20 +51,38 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{ vm: XoVm }>()
+const { t } = useI18n()
 
 const { get: getHostById } = useHostStore().subscribe()
 
 const affinityHostName = computed(() => (vm.affinityHost ? getHostById(vm.affinityHost)?.name_label : ''))
-const isProtectedFromAccidentalShutdown = computed(
-  () =>
-    vm.blockedOperations.clean_reboot !== undefined ||
-    vm.blockedOperations.clean_shutdown !== undefined ||
-    vm.blockedOperations.hard_reboot !== undefined ||
-    vm.blockedOperations.hard_shutdown !== undefined ||
-    vm.blockedOperations.pause !== undefined ||
-    vm.blockedOperations.suspend !== undefined ||
-    vm.blockedOperations.shutdown !== undefined
+const protectedOperations = [
+  'clean_reboot',
+  'clean_shutdown',
+  'hard_reboot',
+  'hard_shutdown',
+  'pause',
+  'suspend',
+  'shutdown',
+]
+
+const isProtectedFromAccidentalShutdown = computed(() =>
+  protectedOperations.some(operation => vm.blockedOperations[operation] !== undefined)
 )
+
+const startDelay = computed(() => {
+  const days = Math.floor(vm.startDelay / 86_400)
+  const hours = Math.floor((vm.startDelay % 86_400) / 3_600)
+  const minutes = Math.floor((vm.startDelay % 3_600) / 60)
+  const seconds = vm.startDelay % 60
+  const parts = []
+  if (days > 0) parts.push(t('relative-time.day', days))
+  if (hours > 0) parts.push(t('relative-time.hour', hours))
+  if (minutes > 0) parts.push(t('relative-time.minute', minutes))
+  if (seconds > 0 || parts.length === 0) parts.push(t('relative-time.second', seconds))
+  return parts.join(' ')
+})
 </script>
