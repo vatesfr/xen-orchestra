@@ -30,7 +30,7 @@ const task: Task = {
   type: 'cassé',
   label: "c'est cassé",
   progress: 42,
-  tasks: [task2, task4],
+  tasks: [task4, task2],
 }
 
 const task3: Task = {
@@ -40,7 +40,7 @@ const task3: Task = {
   type: 'cassé',
   label: "c'est cassé",
   progress: 42,
-  tasks: [task4, task],
+  tasks: [task, task4],
 }
 
 task2.tasks = [task]
