@@ -7,7 +7,7 @@
       :label="$t('control-domain-memory')"
       :value="`${controllerMemory?.value} ${controllerMemory?.prefix}`"
     />
-    <VtsQuickInfoRow :label="$t('schedule-granularity')" />
+    <VtsQuickInfoRow disabled :label="$t('scheduler-granularity')" />
   </UiCard>
 </template>
 

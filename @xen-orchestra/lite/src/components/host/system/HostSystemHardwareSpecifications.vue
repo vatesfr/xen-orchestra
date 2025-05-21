@@ -13,9 +13,20 @@
     />
     <VtsQuickInfoRow :label="$t('cpu-model')" :value="host.cpu_info.modelname" />
     <VtsQuickInfoRow :label="$t('core-socket')" :value="`${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`" />
-    <VtsQuickInfoRow :label="$t('hyper-threading')" />
-    <VtsQuickInfoRow :label="$t('gpus')" />
-    <VtsQuickInfoRow :label="$t('system-disks-health')" />
+    <VtsQuickInfoRow disabled :label="$t('hyper-threading')" />
+    <VtsQuickInfoRow :label="$t('gpus')">
+      <template #value>
+        <ul v-if="host.PGPUs.length > 0">
+          <li v-for="pGpuId in host.PGPUs" :key="pGpuId">
+            {{ pGpuId }}
+          </li>
+        </ul>
+        <template v-else>
+          {{ $t('none') }}
+        </template>
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow disabled :label="$t('system-disks-health')" />
   </UiCard>
 </template>
 

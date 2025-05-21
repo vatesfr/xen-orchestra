@@ -17,11 +17,11 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('status')">
       <template #value>
-        <VtsEnabledState :enabled="isRunning" />
+        <VtsEnabledState :enabled="host.enabled" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('pool')">
-      <template v-if="pool" #value>
+      <template v-if="pool !== undefined" #value>
         <UiLink size="medium" :to="`/pool/${pool.uuid}/`" :icon="faCity">
           {{ pool.name_label }}
         </UiLink>
@@ -33,12 +33,7 @@
           <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
           {{ $t('this-host') }}
         </template>
-        <UiLink
-          v-else-if="masterHost !== undefined"
-          size="medium"
-          :to="`/host/${masterHost.uuid}/dashboard`"
-          :icon="faServer"
-        >
+        <UiLink v-else-if="masterHost !== undefined" size="medium" :to="`/host/${masterHost.uuid}/`" :icon="faServer">
           {{ masterHost.name_label }}
         </UiLink>
       </template>

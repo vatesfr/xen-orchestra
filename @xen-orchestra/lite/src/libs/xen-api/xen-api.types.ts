@@ -118,7 +118,6 @@ export interface XenApiHost extends XenApiRecord<'host'> {
   name_description: string
   metrics: XenApiHostMetrics['$ref']
   resident_VMs: XenApiVm['$ref'][]
-  cpu_info: { cpu_count: string; socket_count: string }
   software_version: {
     build_number: string
     date: string
@@ -139,7 +138,6 @@ export interface XenApiHost extends XenApiRecord<'host'> {
     xencenter_min: string
   }
   cpu_info: { cpu_count: string; socket_count: string; modelname: string }
-  software_version: { product_version: string; build_number: string }
   control_domain: XenApiVm['$ref']
   current_operations: Record<string, HOST_OPERATION>
   other_config: Record<string, any>
@@ -149,6 +147,8 @@ export interface XenApiHost extends XenApiRecord<'host'> {
   logging: { syslog_destination: string }
   power_on_mode: string
   multipathing: boolean
+  enabled: boolean
+  PGPUs: XenApiPgpu['$ref'][]
 }
 
 export interface XenApiSr extends XenApiRecord<'sr'> {
