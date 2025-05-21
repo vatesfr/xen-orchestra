@@ -4,11 +4,11 @@ import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
 import type { XoNetwork } from '@vates/types'
 
-import { network, networkIds, partialNetworks } from '../oa-examples/network.oa-example.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../common/response.common.mjs'
-import { RestApi } from '../../rest-api/rest-api.mjs'
-import type { WithHref } from '../../helpers/helper.type.mjs'
-import { XapiXoController } from '../../abstract-classes/xapi-xo-controller.mjs'
+import { network, networkIds, partialNetworks } from '../open-api/oa-examples/network.oa-example.mjs'
+import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
+import type { WithHref } from '../helpers/helper.type.mjs'
+import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('networks')
 @Security('*')
