@@ -559,7 +559,6 @@ You can schedule rolling pool updates to automate the patching and rebooting of 
 
 :::tip
 Of course, schedule the updates outside production hours. Although RPUs are designed to be transparent, it is always wise to schedule some buffer time in case something goes wrong.
-
 :::
 
 1. **Create a job**: Navigate to the **Jobs** screen and create a new job, using the `pool.rollingUpdate` method. Determine which pools you want to include in the update: 
