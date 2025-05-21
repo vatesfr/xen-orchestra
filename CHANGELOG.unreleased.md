@@ -21,6 +21,8 @@
 - **Migrated REST API endpoints**
   - `/rest/v0/vms/<vm-id>/actions/clean_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
   - `/rest/v0/vms/<vm-id>/actions/hard_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
+  - `/rest/v0/vms/<vm-id>/actions/clean_reboot`
+  - `/rest/v0/vms/<vm-id>/actions/hard_reboot`
 
 ### Bug fixes
 

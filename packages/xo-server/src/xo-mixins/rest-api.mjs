@@ -617,6 +617,8 @@ export default class RestApi {
           start: true,
           clean_shutdown: true,
           hard_shutdown: true,
+          clean_reboot: true,
+          hard_reboot: true,
         },
       },
       'vm-controllers': {},
