@@ -563,14 +563,10 @@ Of course, schedule the updates outside production hours. Although RPUs are desi
 :::
 
 1. **Create a job**: Navigate to the **Jobs** screen and create a new job, using the `pool.rollingUpdate` method. Determine which pools you want to include in the update: 
-
-![](./assets/create-rpu.png)
-
-2. **Set the schedule**: Assign a schedule to the job (e.g., every Sunday at 3 AM) and apply it to your new job:
-
-![](./assets/schedule-rpu.png)
-
-3. **Monitor the process**: Once scheduled, the RPU will run automatically at the set time, applying updates and rebooting hosts as necessary.
+   ![](./assets/create-rpu.png)
+1. **Set the schedule**: Assign a schedule to the job (e.g., every Sunday at 3 AM) and apply it to your new job:
+   ![](./assets/schedule-rpu.png)
+1. **Monitor the process**: Once scheduled, the RPU will run automatically at the set time, applying updates and rebooting hosts as necessary.
 
 #### Pool updates
 
