@@ -24,7 +24,6 @@
         :target-scale="{ x: 1.5, y: 2 }"
         @click="emit('toggle')"
       />
-      <div v-else class="h-line" />
       <a v-tooltip="{ selector: '.text' }" :href class="link typo-body-bold-small" @click="navigate">
         <slot name="icon">
           <VtsIcon :icon accent="current" class="icon" />
