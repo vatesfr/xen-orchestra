@@ -36,6 +36,7 @@
 </template>
 
 <script setup lang="ts">
+import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
@@ -44,6 +45,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
+import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XenApiVm }>()
@@ -51,14 +53,19 @@ const { vm } = defineProps<{ vm: XenApiVm }>()
 const { getByOpaqueRef } = useHostStore().subscribe()
 
 const affinityHost = computed(() => (vm.affinity ? getByOpaqueRef(vm.affinity) : undefined))
-const isProtectedFromAccidentalShutdown = computed(
-  () =>
-    vm.blocked_operations?.clean_reboot ||
-    vm.blocked_operations?.clean_shutdown ||
-    vm.blocked_operations?.hard_reboot ||
-    vm.blocked_operations?.hard_shutdown ||
-    vm.blocked_operations?.pause ||
-    vm.blocked_operations?.suspend ||
-    vm.blocked_operations?.shutdown
+
+const protectedOperations = [
+  VM_OPERATION.CLEAN_REBOOT,
+  VM_OPERATION.CLEAN_SHUTDOWN,
+  VM_OPERATION.HARD_REBOOT,
+  VM_OPERATION.HARD_SHUTDOWN,
+  VM_OPERATION.PAUSE,
+  VM_OPERATION.SUSPEND,
+  VM_OPERATION.SHUTDOWN,
+]
+
+const isProtectedFromAccidentalShutdown = useArraySome(
+  protectedOperations,
+  operation => vm.blocked_operations[operation] !== undefined
 )
 </script>
