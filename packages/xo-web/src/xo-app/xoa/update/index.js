@@ -9,7 +9,7 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import Tooltip from 'tooltip'
-import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
+import xoaUpdater, { blockXoaAccess, exposeTrial, isTrialRunning } from 'xoa-updater'
 import { addSubscriptions, adminOnly, connectStore } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { confirm } from 'modal'
@@ -325,11 +325,7 @@ const Updates = decorate([
                   )}
                   {state.isDisconnected && (
                     <p>
-                      <a
-                        href='https://docs.xen-orchestra.com/updater#troubleshooting'
-                        target='_blank'
-                        rel='noreferrer'
-                      >
+                      <a href='https://docs.xen-orchestra.com/updater#troubleshooting' target='_blank' rel='noreferrer'>
                         {_('updaterTroubleshootingLink')}
                       </a>
                     </p>
@@ -485,6 +481,7 @@ const Updates = decorate([
                       <div className='form-group'>
                         <input
                           className='form-control'
+                          disabled={state.askRegisterAgain && (state.isTrialAvailable || blockXoaAccess(xoaTrialState))}
                           name='email'
                           onChange={effects.linkState}
                           placeholder={formatMessage(messages.updateRegistrationEmailPlaceHolder)}
