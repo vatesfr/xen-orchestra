@@ -42,13 +42,15 @@ import { useI18n } from 'vue-i18n'
 export type TaskStatus = 'pending' | 'success' | 'failure'
 
 export type Task = {
-  id: string | number
-  name: string
-  status: TaskStatus
-  tag?: string
-  start?: number
+  id: string
+  start: number
   end?: number
-  subtasks?: Task[]
+  type?: string
+  label?: string
+  progress?: number
+  warningsCount?: number
+  infosCount?: number
+  tasks?: Task[]
 }
 
 const props = defineProps<{

@@ -8,36 +8,26 @@
       <span class="warper">
         <div class="content">
           <div class="typo-body-bold">
-            {{ task.name }}
+            {{ task.label }}
           </div>
-          <UiTag v-if="task.tag" accent="info" variant="secondary">{{ task.tag }}</UiTag>
+          <UiTag v-if="task.type" accent="info" variant="secondary">{{ task.type }}</UiTag>
           <div v-if="hasSubTasks" class="subtasks">
             <VtsIcon :icon="faCircleNotch" accent="current" />
             <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
           </div>
-          <div v-if="slots.status">
-            <slot name="status" />
-          </div>
         </div>
         <div class="informations typo-body-regular-small">
-          <!-- todo add user link. wating user page and user icon -->
-          <template v-if="task.start">
+          <!-- todo add user link. wating user page -->
+          <span v-if="task.start" class="start">
             {{ `${$t('started-at')} ${started}` }}
-          </template>
-          <template v-if="task.start && task.end">
-            <span class="interpunct" />
-          </template>
-          <template v-if="task.end">
+          </span>
+          <span v-if="task.end" class="end">
             {{ `${$t('task.estimated-end')} ${end}` }}
-          </template>
+          </span>
         </div>
-        <span class="circle-progress">
-          <template v-if="slots.progresion">
-            <slot name="progresion" />
-          </template>
-        </span>
+        <UiCircleProgressBar v-if="task.progress" accent="info" size="small" :value="task.progress" />
       </span>
-      <VtsTaskItremsList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist />
+      <UiTaskList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist />
     </div>
   </li>
 </template>
@@ -49,32 +39,28 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { faAngleDown, faAngleRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo, useToggle } from '@vueuse/core'
 import { computed } from 'vue'
-import VtsTaskItremsList from '../../task/VtsTaskItremsList.vue'
-
-export type TaskStatus = 'pending' | 'success' | 'failure'
+import UiCircleProgressBar from '../circle-progress-bar/UiCircleProgressBar.vue'
+import UiTaskList from '../task-list/UiTaskList.vue'
 
 export type Task = {
-  id: string | number
-  name: string
-  status: TaskStatus
-  tag?: string
+  id: string
   start?: number
   end?: number
-  subtasks?: Task[]
-  // TODO when add suport of user
+  type?: string
+  label?: string
+  progress?: number
+  warningsCount?: number
+  infosCount?: number
+  tasks?: Task[]
 }
 
 const { task } = defineProps<{
   task: Task
 }>()
 
-const slots = defineSlots<{
-  progresion?: any
-  status?: any
-}>()
 const [isExpanded, toggleExpand] = useToggle()
 
-const subTasks = computed(() => task.subtasks ?? [])
+const subTasks = computed(() => task.tasks ?? [])
 const subTasksCount = computed(() => subTasks.value.length)
 const hasSubTasks = computed(() => subTasksCount.value > 0)
 const started = typeof task.start === 'number' ? useTimeAgo(() => task.start as number) : undefined
@@ -97,7 +83,6 @@ const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) 
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 100%;
     gap: 1.6rem;
   }
 
@@ -120,8 +105,9 @@ const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) 
     display: flex;
     gap: 0.8rem;
 
-    .interpunct::before {
+    .start + .end::before {
       content: '•';
+      margin-right: 0.8rem;
     }
   }
 

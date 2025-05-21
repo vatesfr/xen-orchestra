@@ -1,39 +1,26 @@
 <template>
-  <ul>
-    <UiTaskItem :task="task as any">
-      <template #progresion>
-        <UiCircleProgressBar accent="info" size="small" :value="75" />
-      </template>
-    </UiTaskItem>
-    <UiTaskItem :task="task as any">
-      <template #status>
-        <UiInfo accent="danger">cassé</UiInfo>
-      </template>
-    </UiTaskItem>
-  </ul>
+  <UiTaskList :tasks="[task, task]" />
 </template>
 
 <script lang="ts" setup>
-import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiTaskItem from '@core/components/ui/task-item/UiTaskItem.vue'
+import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 
 const task2 = {
-  id: '12345',
-  name: "c'est cassé",
-  status: 'failure',
-  tag: 'cassé',
-  end: Date.now(),
+  id: '1234',
   start: Date.now() - 31_536_000_000,
+  end: Date.now(),
+  type: 'cassé',
+  label: "c''est cassé",
+  progress: 42,
 }
 
 const task = {
-  id: '12345',
-  name: "c'est cassé",
-  status: 'failure',
-  tag: 'cassé',
-  end: Date.now(),
+  id: '1234',
   start: Date.now() - 31_536_000_000,
-  subtasks: [task2, task2],
+  end: Date.now(),
+  type: 'cassé',
+  label: "c''est cassé",
+  progress: 42,
+  tasks: [task2, task2],
 }
 </script>
