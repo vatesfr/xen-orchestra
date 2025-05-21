@@ -17,6 +17,7 @@ export type ApiDefinition = Record<
     path: string
     fields: string
     handler: (data: any) => any
+    stream: boolean
   }
 >
 

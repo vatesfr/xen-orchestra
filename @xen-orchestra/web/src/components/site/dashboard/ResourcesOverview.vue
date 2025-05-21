@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ $t('resources-overview') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!resourcesOverviewIsReady" type="card" />
     <template v-else>
       <div class="line-1">
         <UiCardNumbers
@@ -31,8 +31,9 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { computed } from 'vue'
 
-const { record, isReady } = useDashboardStore().subscribe()
+const { record } = useDashboardStore().subscribe()
 
+const resourcesOverviewIsReady = computed(() => record.value?.resourcesOverview !== undefined)
 const nCpus = computed(() => record.value?.resourcesOverview?.nCpus)
 const memorySize = computed(() => formatSizeRaw(record.value?.resourcesOverview?.memorySize, 1))
 const srSize = computed(() => formatSizeRaw(record.value?.resourcesOverview?.srSize, 1))
