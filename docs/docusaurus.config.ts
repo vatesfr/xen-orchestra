@@ -39,6 +39,10 @@ const config: Config = {
             from: '/continuous_replication',
           },
           {
+            to: '/advanced#alerts',
+            from: '/alerts',
+          },
+          {
             to: '/architecture#plugins',
             from: '/plugins',
           },

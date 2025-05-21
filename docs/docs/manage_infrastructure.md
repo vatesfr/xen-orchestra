@@ -739,7 +739,7 @@ List of VMs with missing or outdated guest tools. It's best practice to [install
 
 ### Alarms
 
-This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](alerts#alerts).
+This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](advanced#alerts).
 
 ### Heatmap
 
