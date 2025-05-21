@@ -368,22 +368,20 @@ However, if you add restricted IPs, the VIF becomes locked, meaning only the spe
 
 To add a restricted IP address:
 
-1. Go to the **VM view** and open the **Network** tab. You will see a column called **Allowed IPs**:\
-    ![](./assets/allowed-ip-column.png)
-2. Click the **+** icon to add authorized IP addresses:\
-    ![](./assets/add-allowed-ip.png)
+1. Go to the **VM view** and open the **Network** tab. You will see a column called **Allowed IPs**:
+   ![](./assets/allowed-ip-column.png)
+1. Click the **+** icon to add authorized IP addresses:
+   ![](./assets/add-allowed-ip.png)
 
 #### How do I enable VIF locking mode?
 
 1. Select the VM.
-2. Head over to the **Network** tab:
-    ![](./assets/vif-locking-status.png)
-    You’ll see each VIF along with its current locking mode status. 
-
-3. To change the locking mode status:
-    1. Click the pencil icon (with the **Edit locking mode** label). A dropdown menu appears.
-    2. Choose your desired mode from that menu:\
-    ![](./assets/choose-vif-locking-mode.png)
+1. Head over to the **Network** tab to see each VIF along with its current locking mode status:
+   ![](./assets/vif-locking-status.png)
+1. To change the locking mode status:
+   1. Click the pencil icon (with the **Edit locking mode** label). A dropdown menu appears.
+   1. Choose your desired mode from that menu:
+      ![](./assets/choose-vif-locking-mode.png)
     
 If Xen Orchestra knows the VM’s IP address — either through the guest agent or DHCP — it will automatically apply IP-level locking when the mode is enabled.
 
