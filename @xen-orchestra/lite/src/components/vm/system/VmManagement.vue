@@ -31,7 +31,7 @@
         <VtsEnabledState :enabled="vm.other_config.auto_poweron === 'true'" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('start-delay')" :value="$t('relative-time.second', vm.start_delay)" />
+    <VtsQuickInfoRow :label="$t('start-delay')" :value="formattedStartDelay" />
   </UiCard>
 </template>
 
@@ -47,8 +47,10 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{ vm: XenApiVm }>()
+const { t } = useI18n()
 
 const { getByOpaqueRef } = useHostStore().subscribe()
 
@@ -68,4 +70,27 @@ const isProtectedFromAccidentalShutdown = useArraySome(
   protectedOperations,
   operation => vm.blocked_operations[operation] !== undefined
 )
+
+const formattedStartDelay = computed(() => {
+  const days = Math.floor(vm.start_delay / 86_400)
+  const hours = Math.floor((vm.start_delay % 86_400) / 3_600)
+  const minutes = Math.floor((vm.start_delay % 3_600) / 60)
+  const seconds = vm.start_delay % 60
+  const parts = []
+
+  if (days > 0) {
+    parts.push(t('relative-time.day', days))
+  }
+  if (hours > 0) {
+    parts.push(t('relative-time.hour', hours))
+  }
+  if (minutes > 0) {
+    parts.push(t('relative-time.minute', minutes))
+  }
+  if (seconds > 0 || parts.length === 0) {
+    parts.push(t('relative-time.second', seconds))
+  }
+
+  return parts.join(' ')
+})
 </script>

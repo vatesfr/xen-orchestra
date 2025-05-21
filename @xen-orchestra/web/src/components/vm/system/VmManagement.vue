@@ -33,11 +33,7 @@
         <VtsEnabledState :enabled="vm.auto_poweron" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('start-delay')">
-      <template #value>
-        {{ startDelay }}
-      </template>
-    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('start-delay')" :value="formattedStartDelay" />
   </UiCard>
 </template>
 
@@ -75,7 +71,7 @@ const isProtectedFromAccidentalShutdown = useArraySome(
   operation => vm.blockedOperations[operation] !== undefined
 )
 
-const startDelay = computed(() => {
+const formattedStartDelay = computed(() => {
   const days = Math.floor(vm.startDelay / 86_400)
   const hours = Math.floor((vm.startDelay % 86_400) / 3_600)
   const minutes = Math.floor((vm.startDelay % 3_600) / 60)
@@ -85,6 +81,7 @@ const startDelay = computed(() => {
   if (hours > 0) parts.push(t('relative-time.hour', hours))
   if (minutes > 0) parts.push(t('relative-time.minute', minutes))
   if (seconds > 0 || parts.length === 0) parts.push(t('relative-time.second', seconds))
+
   return parts.join(' ')
 })
 </script>
