@@ -5,11 +5,18 @@
       <div class="typo-body-bold">
         {{ task.label }}
       </div>
-      <UiTag v-if="task.type" accent="info" variant="secondary">{{ task.type }}</UiTag>
+      <UiTag v-if="task.tag" accent="info" variant="secondary">{{ task.tag }}</UiTag>
       <div v-if="hasSubTasks" class="subtasks">
         <VtsIcon :icon="faCircleNotch" accent="current" />
         <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
       </div>
+      <UiInfo v-if="task.errored" accent="danger">{{ 1 + ' ' + $t('errors') }}</UiInfo>
+      <UiInfo v-if="task.warningsCount && task.warningsCount !== 0" accent="warning">
+        {{ task.warningsCount + ' ' + $t('warnings', task.warningsCount!) }}
+      </UiInfo>
+      <UiInfo v-if="task.infosCount && task.infosCount !== 0" accent="info">
+        {{ task.infosCount + ' ' + $t('infos', task.infosCount!) }}
+      </UiInfo>
     </div>
     <div class="informations typo-body-regular-small">
       <!-- todo add user link. wating user page -->
@@ -31,12 +38,17 @@ import { faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
 import UiCircleProgressBar from '../circle-progress-bar/UiCircleProgressBar.vue'
+import UiInfo from '../info/UiInfo.vue'
+
+export type TaskStatus = 'pending' | 'success' | 'failure' | 'interrupted'
 
 export type Task = {
   id: string
-  start?: number
+  start: number
+  errored: boolean
+  status: TaskStatus
   end?: number
-  type?: string
+  tag?: string
   label?: string
   progress?: number
   warningsCount?: number

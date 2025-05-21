@@ -16,5 +16,6 @@ export type XoTask = {
     [key: string]: unknown | undefined
   }
   status: 'pending' | 'success' | 'failure' | 'interrupted'
+  result?: string
   tasks?: XoTask[]
 }
