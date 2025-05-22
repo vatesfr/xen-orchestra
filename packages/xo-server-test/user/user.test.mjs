@@ -24,7 +24,7 @@ const ERROR_PROPERTY_CAN_ONLY_BE_CHANGED_BY_ADMIN = /JsonRpcError: this properti
 const ERROR_USER_CANNOT_CHANGE_ITS_OWN_PERMISSION = /JsonRpcError: a user cannot change its own permission/
 const ERROR_USER_ALREADY_EXISTS = /JsonRpcError: the user .* already exists/
 // eslint-disable-next-line no-unused-vars
-const ERROR_TOO_FAST_AUTHENTIFICATION_TRIES = /Error: too fast authentication tries/
+const ERROR_TOO_FAST_AUTHENTICATION_TRIES = /Error: too fast authentication tries/
 
 describe(`user tests on`, () => {
   let sharedXo
@@ -216,7 +216,7 @@ describe(`user tests on`, () => {
               assert.deepStrictEqual(updatedUser[key], value)
             }
 
-            // prevents ERROR_TOO_FAST_AUTHENTIFICATION_TRIES
+            // prevents ERROR_TOO_FAST_AUTHENTICATION_TRIES
             await new Promise(resolve => setTimeout(resolve, 2_000))
 
             await assert.doesNotReject(
