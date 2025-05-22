@@ -34,7 +34,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       return
     }
     await asyncEach(Object.entries(metadata.vdis), async ([id, vdi]) => {
-      const isDifferencing = metadata.isVhdDifferencing[`${id}.vhd`]
+      const isDifferencing = metadata.isVhdDifferencing[id]
       if (isDifferencing) {
         const vmDir = getVmBackupDir(metadata.vm.uuid)
         const path = `${vmDir}/${metadata.vhds[id]}`
