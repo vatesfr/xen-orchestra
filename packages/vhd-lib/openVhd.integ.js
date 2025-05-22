@@ -67,7 +67,7 @@ describe('OpenVhd', { concurrency: 1 }, async () => {
   it('fails correctly when opening a broken vhd', async () => {
     const initalSize = 4
 
-    // emtpy file
+    // empty file
     await assert.rejects(
       Disposable.use(async function* () {
         const handler = yield getSyncedHandler({ url: `file://${tempDir}` })

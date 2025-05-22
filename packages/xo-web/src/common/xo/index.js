@@ -1562,7 +1562,7 @@ export const hidePcis = async (pcis, hide) => {
 
 export const isPciHidden = async pci => (await _call('pci.getDom0AccessStatus', { id: resolveId(pci) })) === 'disabled'
 
-//  ATM, unknown date for the availablity on XS, since they are doing rolling release
+//  ATM, unknown date for the availability on XS, since they are doing rolling release
 // FIXME: When XS release methods to do PCI passthrough, update this check
 export const isPciPassthroughAvailable = host =>
   host.productBrand === 'XCP-ng' && semver.satisfies(host.version, '>=8.3.0')
@@ -4285,7 +4285,7 @@ export const esxiListVms = (host, user, password, sslVerify) =>
 
 export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
 
-// Github API ---------------------------------------------------------------
+// GitHub API ---------------------------------------------------------------
 const _callGithubApi = async (endpoint = '') => {
   const url = new URL('https://api.github.com/repos/vatesfr/xen-orchestra')
   url.pathname += endpoint

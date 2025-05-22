@@ -854,7 +854,7 @@ const _createVm = async ($defer: Defer) => {
     // creates VDIs and VBDs and then executes any applicable post-install script.
     await xapi.vm.provision(vmRefs)
 
-    // We set VCPUs max before, otherwise we cannot assign new values to the CPUs
+    // We set VCPUs max before; otherwise, we cannot assign new values to the CPUs
     if (vmCreationParams.value.cpus > vmCreationParams.value.vcpusMax) {
       await xapi.vm.setVCPUsMax(vmRefs, vmCreationParams.value.cpus)
     }

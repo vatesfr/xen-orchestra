@@ -1,4 +1,4 @@
-/** EXPERIMENT: this is here to avoid a littel code dupplication, but is not admitted as a highly recommendable component */
+/** EXPERIMENT: this is here to avoid a little code duplication, but is not admitted as a highly recommendable component */
 import { connectStore } from 'utils'
 import { createGetObject } from 'selectors'
 import React, { Component } from 'react'

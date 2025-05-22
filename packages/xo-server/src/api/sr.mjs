@@ -723,7 +723,7 @@ export async function probeIscsiIqns({ host, target: targetIp, port, chapUser, c
 
   const targets = []
   forEach(ensureArray(xml['iscsi-target-iqns'].TGT), target => {
-    // if the target is on another IP adress, do not display it
+    // if the target is on another IP address, do not display it
     if (target.IPAddress.trim() === targetIp) {
       targets.push({
         iqn: target.TargetIQN.trim(),

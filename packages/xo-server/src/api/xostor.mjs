@@ -248,7 +248,7 @@ export const create = defer(async function (
             needInstallPackages =
               JSON.parse(
                 await pluginCall(xapi, host, 'updater.py', 'query_installed', {
-                  // Only check xcp-ng-linstor because xcp-ng-release-linstor will not be present in an airgap environement
+                  // Only check xcp-ng-linstor because xcp-ng-release-linstor will not be present in an airgap environment
                   packages: MAIN_XOSTOR_DEPENDENCY,
                 })
               )[MAIN_XOSTOR_DEPENDENCY] === ''

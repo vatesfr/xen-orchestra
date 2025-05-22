@@ -164,7 +164,7 @@ export default class XenServers {
     ]) {
       let value = properties[key]
       if (value !== undefined) {
-        // if value is falseish pass undefined to the model to delete this property
+        // if value is falsish pass undefined to the model to delete this property
         if (value === null || value === '') {
           value = undefined
         }

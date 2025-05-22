@@ -192,7 +192,7 @@ describe('VhdAbstract', { concurrency: 1 }, async () => {
       const bufHeader = buffer.slice(FOOTER_SIZE, HEADER_SIZE + FOOTER_SIZE)
       assert.doesNotThrow(() => unpackHeader(bufHeader, footer))
 
-      // 1 deleted block should be in ouput
+      // 1 deleted block should be in output
       let start = FOOTER_SIZE + HEADER_SIZE + vhd.batSize
 
       const parentLocatorData = buffer.slice(start, start + SECTOR_SIZE)
@@ -220,7 +220,7 @@ describe('VhdAbstract', { concurrency: 1 }, async () => {
   })
 
   it('can stream content', async () => {
-    const initalSizeMb = 5 // 2 block and an half
+    const initalSizeMb = 5 // 2 block and a half
     const initialNbBlocks = Math.ceil(initalSizeMb / 2)
     const initialByteSize = initalSizeMb * 1024 * 1024
     const rawFileName = `${tempDir}/randomfile`

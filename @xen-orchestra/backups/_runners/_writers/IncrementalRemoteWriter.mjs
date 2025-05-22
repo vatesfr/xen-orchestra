@@ -230,7 +230,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
           const path = `${this._vmBackupDir}/${vhds[diskRef]}`
           await adapter.writeVhd(path, disk, {
             // no checksum for VHDs, because they will be invalidated by
-            // merges and chainings
+            // merges and chains
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,

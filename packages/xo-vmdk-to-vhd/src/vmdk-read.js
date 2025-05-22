@@ -202,7 +202,7 @@ export default class VMDKDirectParser {
       yield { logicalAddressBytes: lba, data: grain }
     }
     // drain remaining
-    // stream.resume does not seems to be enough to consume completly the stream
+    // stream.resume does not seems to be enough to consume completely the stream
     // especially when this stream is part of a tar ( ova) , potentially gzipped
     if (this._length !== undefined) {
       while (this.virtualBuffer.position < this._length) {
