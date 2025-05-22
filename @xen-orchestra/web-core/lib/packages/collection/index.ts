@@ -1,2 +1,6 @@
+export * from './create-collection.ts'
+export * from './create-item.ts'
+export * from './guess-item-id.ts'
 export * from './types.ts'
 export * from './use-collection.ts'
+export * from './use-flag-registry.ts'
