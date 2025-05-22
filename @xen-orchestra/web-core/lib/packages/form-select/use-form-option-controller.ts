@@ -1,6 +1,6 @@
-import { type FormOption, IK_FORM_SELECT_CONTROLLER } from '@core/packages/form-select/types.ts'
 import { unrefElement, useEventListener, whenever } from '@vueuse/core'
 import { computed, inject, type MaybeRefOrGetter, ref, toValue } from 'vue'
+import { type FormOption, IK_FORM_SELECT_CONTROLLER } from './types.ts'
 
 export function useFormOptionController<TOption extends FormOption>(_option: MaybeRefOrGetter<TOption>) {
   const controller = inject(IK_FORM_SELECT_CONTROLLER)
@@ -21,13 +21,17 @@ export function useFormOptionController<TOption extends FormOption>(_option: May
   )
 
   useEventListener(elementRef, 'click', event => {
+    if (controller.isDisabled) {
+      return
+    }
+
     event.preventDefault()
 
     if (option.value.properties.disabled) {
       return
     }
 
-    if (option.value.properties.multiple) {
+    if (controller.isMultiple) {
       option.value.toggleFlag('selected')
       controller.focusSearchOrTrigger()
     } else {
@@ -37,7 +41,7 @@ export function useFormOptionController<TOption extends FormOption>(_option: May
   })
 
   useEventListener(elementRef, 'mouseenter', () => {
-    if (option.value.properties.disabled || controller.isNavigatingWithKeyboard) {
+    if (controller.isDisabled || option.value.properties.disabled || controller.isNavigatingWithKeyboard) {
       return
     }
 
