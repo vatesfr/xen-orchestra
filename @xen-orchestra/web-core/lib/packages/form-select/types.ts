@@ -1,45 +1,38 @@
 import type { CollectionItem, CollectionItemProperties } from '@core/packages/collection'
-import type { MaybeArray } from '@core/types/utility.type.ts'
-import type { ComputedRef, InjectionKey, Reactive, WritableComputedRef } from 'vue'
+import type { KeyOfByValue } from '@core/types/utility.type.ts'
+import type { ComputedRef, InjectionKey, Reactive, Ref, UnwrapRef } from 'vue'
 
-export type FormSelectBaseConfig = {
-  multiple?: boolean
-  selectedLabel?: (count: number, labels: string[]) => string | undefined
-}
+export type FormSelectId<
+  TCustomProperties extends CollectionItemProperties = CollectionItemProperties,
+  TSource = unknown,
+  TValue = unknown,
+  TMultiple extends boolean = boolean,
+> = InjectionKey<FormSelect<TCustomProperties, TSource, TValue, TMultiple>>
 
-export type FormSelectBaseProperties = Record<string, unknown> & {
-  disabled?: boolean
-  searchableTerm?: MaybeArray<string>
-}
+export type FormSelectIdToOption<TSelectId extends FormSelectId> =
+  TSelectId extends FormSelectId<infer TCustomProperties, infer TSource, infer TValue>
+    ? FormOption<TCustomProperties, TSource, TValue>
+    : never
 
-export type FormOptionValue = string | number
+export type ExtractValue<TOptionSource, TGetValue> = TGetValue extends keyof TOptionSource
+  ? TOptionSource[TGetValue]
+  : TGetValue extends (source: TOptionSource) => infer R
+    ? R
+    : TOptionSource
 
-export type FormOptionProperties<TValue extends FormOptionValue> = {
-  id: TValue
-  label: string
-  multiple: boolean
-  disabled: boolean
-  matching: boolean
-}
+export type FormOptionCollectionItemProperties<TCustomProperties extends CollectionItemProperties, TValue> = {
+  value: ComputedRef<TValue>
+  label: ComputedRef<string>
+  selectedLabel: ComputedRef<string | undefined>
+  disabled: ComputedRef<boolean>
+  matching: ComputedRef<boolean>
+} & TCustomProperties
 
 export type FormOption<
-  TSource = unknown,
-  TValue extends FormOptionValue = FormOptionValue,
-  TProperties extends CollectionItemProperties = CollectionItemProperties,
-> = CollectionItem<TSource, 'active' | 'selected', TProperties & FormOptionProperties<TValue>>
-
-export type UseFormSelectReturn<
-  TSource,
-  TValue extends FormOptionValue,
-  TProperties extends CollectionItemProperties,
-> = {
-  searchTerm: WritableComputedRef<string>
-  allOptions: ComputedRef<FormOption<TSource, TValue, TProperties>[]>
-  options: ComputedRef<FormOption<TSource, TValue, TProperties>[]>
-  selectedOptions: ComputedRef<FormOption<TSource, TValue, TProperties>[]>
-  selectedValues: ComputedRef<TValue[]>
-  selectedLabel: ComputedRef<string>
-}
+  TCustomProperties extends CollectionItemProperties = CollectionItemProperties,
+  TSource = any,
+  TValue = any,
+> = CollectionItem<TSource, 'selected' | 'active', FormOptionCollectionItemProperties<TCustomProperties, TValue>>
 
 export type FormOptionIndex =
   | number
@@ -50,6 +43,16 @@ export type FormOptionIndex =
   | 'first'
   | 'last'
   | 'selected'
+
+export type FormSelectController = Reactive<{
+  isDisabled: ComputedRef<boolean>
+  isMultiple: ComputedRef<boolean>
+  isNavigatingWithKeyboard: Ref<boolean>
+  closeDropdown(keepFocus: boolean): void
+  focusSearchOrTrigger(): void
+}>
+
+export const IK_FORM_SELECT_CONTROLLER = Symbol('IK_FORM_SELECT_CONTROLLER') as InjectionKey<FormSelectController>
 
 export enum FORM_SELECT_HANDLED_KEY {
   DOWN = 'ArrowDown',
@@ -66,10 +69,55 @@ export enum FORM_SELECT_HANDLED_KEY {
   PAGE_UP = 'PageUp',
 }
 
-export type FormSelectController = Reactive<{
-  isNavigatingWithKeyboard: boolean
-  closeDropdown(keepFocus: boolean): void
-  focusSearchOrTrigger(): void
-}>
+export type FormSelect<
+  TCustomProperties extends CollectionItemProperties = CollectionItemProperties,
+  TSource = unknown,
+  TValue = unknown,
+  TMultiple extends boolean = boolean,
+  TFormOption extends FormOption<TCustomProperties, TSource, TValue> = FormOption<TCustomProperties, TSource, TValue>,
+> = {
+  isMultiple: ComputedRef<TMultiple>
+  isDisabled: ComputedRef<boolean>
+  isRequired: ComputedRef<boolean>
+  isSearchable: ComputedRef<boolean>
+  isLoading: ComputedRef<boolean>
+  placeholder: ComputedRef<string>
+  searchPlaceholder: ComputedRef<string>
+  searchTerm: Ref<string>
+  allOptions: ComputedRef<TFormOption[]>
+  options: ComputedRef<TFormOption[]>
+  selectedLabel: ComputedRef<string>
+} & (TMultiple extends true
+  ? {
+      selectedValues: ComputedRef<UnwrapRef<TValue>[]>
+      selectedOptions: ComputedRef<TFormOption[]>
+    }
+  : {
+      selectedValue: ComputedRef<UnwrapRef<TValue>>
+      selectedOption: ComputedRef<TFormOption>
+    })
 
-export const IK_FORM_SELECT_CONTROLLER = Symbol('IK_FORM_SELECT_CONTROLLER') as InjectionKey<FormSelectController>
+export type UseFormSelectReturn<
+  TCustomProperties extends CollectionItemProperties,
+  TSource,
+  TValue,
+  TMultiple extends boolean,
+  $TSelect extends FormSelect<TCustomProperties, TSource, TValue, TMultiple> = FormSelect<
+    TCustomProperties,
+    TSource,
+    TValue,
+    TMultiple
+  >,
+> = $TSelect & {
+  id: FormSelectId<TCustomProperties, TSource, TValue, TMultiple>
+}
+
+export type GetOptionValue<TSource, TCustomProperties extends CollectionItemProperties> =
+  | undefined
+  | keyof TSource
+  | ((source: TSource, properties: TCustomProperties) => unknown)
+
+export type GetOptionLabel<TSource, TCustomProperties extends CollectionItemProperties> =
+  | undefined
+  | KeyOfByValue<TSource, string>
+  | ((source: TSource, properties: TCustomProperties) => string)
