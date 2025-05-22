@@ -394,9 +394,7 @@
               accent="brand"
               size="medium"
               :busy="isBusy"
-              :disabled="
-                vmState.new_vm_template === undefined || !hasInstallSettings || !hasVdis || hasInvalidSrVdi || isBusy
-              "
+              :disabled="vmState.new_vm_template === undefined || !hasInstallSettings || hasInvalidSrVdi || isBusy"
             >
               {{ $t('create') }}
             </UiButton>
@@ -650,8 +648,6 @@ const hasInstallSettings = computed(() => {
       return false
   }
 })
-
-const hasVdis = computed(() => vmState.vdis.length > 0 || vmState.existingVdis.length > 0)
 
 const hasInvalidSrVdi = computed(() => vmState.vdis.some(vdi => vdi.SR && vdi.SR === OPAQUE_REF.EMPTY))
 
