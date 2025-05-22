@@ -25,6 +25,7 @@ const task4: Task = {
   tag: 'cassé',
   label: "c'est cassé",
   progress: 42,
+  tasks: [task2, task2],
 }
 
 const task: Task = {
@@ -53,5 +54,19 @@ const task3: Task = {
   tasks: [task, task4],
 }
 
-task2.tasks = [task]
+task2.tasks = [task, task4]
 </script>
+
+<style lang="postcss" scoped>
+.truc {
+  height: 20vh;
+  width: 20vw;
+  border: 1px solid lime;
+  display: flex;
+  align-items: center;
+
+  gap: 0.4rem;
+  padding: 0 0.8rem;
+  margin-bottom: 0.2rem;
+}
+</style>
