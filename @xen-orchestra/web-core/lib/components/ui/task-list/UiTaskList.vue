@@ -2,7 +2,13 @@
   <div v-for="taskItem of taskItems" :key="taskItem.id" class="vts-tree-item">
     <div class="ui-tree-item-label">
       <template v-if="depth != 0">
-        <VtsTreeLine v-for="i in depth - 1" :key="i" :half-height="false" :right="false" />
+        <VtsTreeLine
+          v-for="i in depth - 1"
+          :key="i"
+          :half-height="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded"
+          :right="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded"
+          :half-width="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded"
+        />
         <VtsTreeLine :half-height="!taskItem.flags.expanded" right />
       </template>
       <UiButtonIcon
@@ -18,7 +24,7 @@
     <div>
       <UiTaskList
         v-if="taskItem.source.tasks?.length && taskItem.flags.expanded"
-        :tasks="taskItem.source.tasks"
+        :tasks="[task2, task]"
         :depth="depth + 1"
       />
     </div>
@@ -40,6 +46,40 @@ const { tasks, depth = 0 } = defineProps<{
 const { items: taskItems } = useCollection(() => tasks, {
   flags: ['expanded'],
 })
+
+const task2: Task = {
+  errored: false,
+  id: 'dfdfv' + Date.now(),
+  status: 'success',
+  start: Date.now() - 31_536_000_000,
+  end: Date.now(),
+  tag: 'cassé',
+  label: "c'est cassé",
+  progress: 42,
+}
+const task4: Task = {
+  errored: true,
+  status: 'success',
+  id: 'sdfghj' + Date.now(),
+  start: Date.now() - 31_536_000_000,
+  end: Date.now(),
+  tag: 'cassé',
+  label: "c'est cassé",
+  progress: 42,
+}
+
+const task: Task = {
+  errored: false,
+  status: 'success',
+  id: 'efzefsd' + Date.now(),
+  start: Date.now() - 31_536_000_000,
+  end: Date.now(),
+  tag: 'cassé',
+  label: "c'est cassé",
+  progress: 42,
+  warningsCount: 4,
+  tasks: [task4, task2],
+}
 </script>
 
 <style lang="postcss" scoped>

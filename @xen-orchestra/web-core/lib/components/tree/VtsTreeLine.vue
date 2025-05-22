@@ -1,5 +1,5 @@
 <template>
-  <div class="vts-tree-line">
+  <div class="vts-tree-line" :class="{ 'tree-line-half-width': halfWidth }">
     <div :class="{ 'tree-line-half-height': halfHeight }" class="tree-line-vertical" />
     <div :class="{ right }" class="tree-line-horizontal" />
   </div>
@@ -9,6 +9,7 @@
 defineProps<{
   halfHeight?: boolean
   right?: boolean
+  halfWidth?: boolean
 }>()
 </script>
 
@@ -43,6 +44,15 @@ defineProps<{
     .tree-line-half-height {
       align-self: start;
       height: calc(50% + 0.7rem);
+    }
+    .tree-line-half-width {
+      .tree-line-vertical {
+        transform: translateY(calc(0.7rem * -1)) translateX(0.7rem);
+      }
+      .tree-line-horizontal {
+        transform: translateX(0.7rem);
+        width: calc(50% + 0.7rem);
+      }
     }
   }
 }
