@@ -12,8 +12,8 @@ const task2: Task = {
   status: 'success',
   start: Date.now() - 31_536_000_000,
   end: Date.now(),
-  tag: 'cassé',
-  label: "c'est cassé",
+  tag: 'xo:xostore:destroy',
+  label: 'task',
   progress: 42,
 }
 const task4: Task = {
@@ -22,8 +22,8 @@ const task4: Task = {
   id: 'sdfghj' + Date.now(),
   start: Date.now() - 31_536_000_000,
   end: Date.now(),
-  tag: 'cassé',
-  label: "c'est cassé",
+  tag: 'xo:xostore:destroy',
+  label: 'task',
   progress: 42,
 }
 
@@ -33,8 +33,8 @@ const task: Task = {
   id: 'efzefsd' + Date.now(),
   start: Date.now() - 31_536_000_000,
   end: Date.now(),
-  tag: 'cassé',
-  label: "c'est cassé",
+  tag: 'xo:xostore:destroy',
+  label: 'task',
   progress: 42,
   warningsCount: 4,
   tasks: [task4, task2],
@@ -46,8 +46,8 @@ const task3: Task = {
   id: 'wxcwx' + Date.now(),
   start: Date.now() - 31_536_000_000 / 2,
   end: Date.now(),
-  tag: 'cassé',
-  label: "c'est cassé",
+  tag: 'xo:xostore:destroy',
+  label: 'task',
   progress: 42,
   infosCount: 8,
   tasks: [task, task4],
