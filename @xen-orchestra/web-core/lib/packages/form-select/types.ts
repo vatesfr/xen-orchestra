@@ -1,4 +1,4 @@
-import type { CollectionConfigProperties, CollectionItem } from '@core/packages/collection'
+import type { CollectionItem, CollectionItemProperties } from '@core/packages/collection'
 import type { MaybeArray } from '@core/types/utility.type.ts'
 import type { ComputedRef, InjectionKey, Reactive, WritableComputedRef } from 'vue'
 
@@ -25,13 +25,13 @@ export type FormOptionProperties<TValue extends FormOptionValue> = {
 export type FormOption<
   TSource = unknown,
   TValue extends FormOptionValue = FormOptionValue,
-  TProperties extends CollectionConfigProperties = CollectionConfigProperties,
+  TProperties extends CollectionItemProperties = CollectionItemProperties,
 > = CollectionItem<TSource, 'active' | 'selected', TProperties & FormOptionProperties<TValue>>
 
 export type UseFormSelectReturn<
   TSource,
   TValue extends FormOptionValue,
-  TProperties extends CollectionConfigProperties,
+  TProperties extends CollectionItemProperties,
 > = {
   searchTerm: WritableComputedRef<string>
   allOptions: ComputedRef<FormOption<TSource, TValue, TProperties>[]>
