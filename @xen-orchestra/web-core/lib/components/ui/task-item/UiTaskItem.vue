@@ -1,4 +1,4 @@
-<!-- WIP -->
+<!-- v1 -->
 <template>
   <div class="ui-task-item">
     <div class="content">
@@ -63,6 +63,7 @@ const { task } = defineProps<{
 const subTasks = computed(() => task.tasks ?? [])
 const subTasksCount = computed(() => subTasks.value.length)
 const hasSubTasks = computed(() => subTasksCount.value > 0)
+// reactivity issue ?
 const started = typeof task.start === 'number' ? useTimeAgo(() => task.start as number) : undefined
 const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) : undefined
 </script>
