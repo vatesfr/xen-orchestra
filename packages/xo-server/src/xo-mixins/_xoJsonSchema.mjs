@@ -20,7 +20,7 @@ function makeIsType({ type }) {
  *   - properties can be marked as `optional` in place of listing them with `required`
  *   - additional properties disabled by default
  *   - a wildcard `*` property can be used in place of `additionalProperties`
- * - strings must be non emtpy by default
+ * - strings must be non empty by default
  */
 function xoToJsonSchema(schema) {
   if (schema.enum !== undefined) {

@@ -45,8 +45,8 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
     for (const vdiRef of vdis) {
       const vdi = await this._xapi.getRecord('VDI', vdiRef)
 
-      // the size a of fully allocated vdi will be virtual_size  exaclty, it's a gross over evaluation
-      // of the real stream size in general, since a disk is never completly full
+      // the size a of fully allocated vdi will be virtual_size exactly, it's a gross over evaluation
+      // of the real stream size in general, since a disk is never completely full
       // vdi.physical_size seems to underevaluate a lot the real disk usage of a VDI, as of 2023-10-30
       maxStreamLength += vdi.virtual_size
     }

@@ -34,7 +34,7 @@ Returns a promise wich rejects as soon as a call to `iteratee` throws or a promi
 
 - `concurrency`: a number which indicates the maximum number of parallel call to `iteratee`, defaults to `10`. The value `0` means no concurrency limit.
 - `signal`: an abort signal to stop the iteration
-- `stopOnError`: wether to stop iteration of first error, or wait for all calls to finish and throw an `AggregateError`, defaults to `true`
+- `stopOnError`: whether to stop iteration of first error, or wait for all calls to finish and throw an `AggregateError`, defaults to `true`
 
 ```js
 import { asyncEach } from '@vates/async-each'

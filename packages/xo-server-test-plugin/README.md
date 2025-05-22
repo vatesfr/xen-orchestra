@@ -16,7 +16,7 @@ Or globally:
 
 ## Documentation
 
-### Plugin life cyle
+### Plugin life cycle
 
 #### Initialization
 

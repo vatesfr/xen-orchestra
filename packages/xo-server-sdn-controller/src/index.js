@@ -269,7 +269,7 @@ class SDNController extends EventEmitter {
 
   Attributes on VIFs (OpenFlow entries):
   - `other_config`:
-    - `xo:sdn-controller:of-rules`: A list of openflow entries to aply to this VIF
+    - `xo:sdn-controller:of-rules`: A list of openflow entries to apply to this VIF
   */
 
   constructor({ xo, getDataDir }) {

@@ -100,7 +100,7 @@ created in the output file according the VHD specification.
 For their inner working some applications will compute a disk size from
 the geometry while others will simply read the size from the appropriate
 header. This can cause some misunderstanding when converting a file from
-one application an other.
+one application to another.
 
 ### Stream length
 

@@ -55,7 +55,7 @@ describe('VhdFile', async () => {
     // add a fake footer at the end
     handler.write(fd, buffer, size)
     await handler.closeFile(fd)
-    // not using openVhd to be able to call readHeaderAndFooter separatly
+    // not using openVhd to be able to call readHeaderAndFooter separately
     const vhd = new VhdFile(handler, 'randomfile.vhd')
 
     await assert.rejects(async () => await vhd.readHeaderAndFooter())

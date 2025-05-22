@@ -29,7 +29,7 @@ export default class ActionButton extends Component {
     // form for the submit event
     form: PropTypes.string,
 
-    // function to call when the action is triggered (via a clik on the
+    // function to call when the action is triggered (via a click on the
     // button or submit on the form)
     handler: PropTypes.func.isRequired,
 

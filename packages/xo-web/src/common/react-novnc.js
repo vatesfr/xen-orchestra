@@ -95,7 +95,7 @@ export default class NoVnc extends Component {
 
     // remove leading slashes from the path
     //
-    // a leading slassh will be added by noVNC
+    // a leading slash will be added by noVNC
     const clippedPath = url.pathname.replace(/^\/+/, '')
 
     // a port is required

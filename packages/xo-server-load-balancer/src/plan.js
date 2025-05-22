@@ -20,11 +20,11 @@ const LOW_THRESHOLD_MEMORY_FREE_FACTOR = 1.5
 
 const THRESHOLD_VCPU_RATIO = 0.9
 
-// Constants relative to vCPU-prepositionning
+// Constants relative to vCPU-prepositioning
 
 // How close to ideal vCPU/CPU ratio do we want hosts to be (must be >= 1)
 const VCPU_NUMBER_TOLERANCE = 1
-// Max percentage of pool's CPU usage allowed to execute vCPU prepositionning
+// Max percentage of pool's CPU usage allowed to execute vCPU prepositioning
 const THRESHOLD_POOL_CPU = 40
 
 const numberOrDefault = (value, def) => (value >= 0 ? value : def)
@@ -308,7 +308,7 @@ export default class Plan {
   }
 
   // ===================================================================
-  // vCPU pre-positionning helpers
+  // vCPU pre-positioning helpers
   // ===================================================================
 
   async _processVcpuPrepositionning(hosts) {
@@ -324,7 +324,7 @@ export default class Plan {
     debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
     debugVcpuBalancing(`Average vCPUs per CPU: ${idealVcpuPerCpuRatio}`)
 
-    // execute prepositionning only if vCPU/CPU ratios are different enough, to prevent executing too often
+    // execute prepositioning only if vCPU/CPU ratios are different enough, to prevent executing too often
     // TODO: maybe we should apply a more complex function than just a ratio, to have more coherent values on both small and big architectures
     const ratio = vcpuPerCpuRatio(minBy(hostList, vcpuPerCpuRatio)) / vcpuPerCpuRatio(maxBy(hostList, vcpuPerCpuRatio))
     if (ratio > THRESHOLD_VCPU_RATIO) {
@@ -332,7 +332,7 @@ export default class Plan {
       return
     }
 
-    // execute prepositionning only if the pool is not loaded too much
+    // execute prepositioning only if the pool is not loaded too much
     const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts })
     const poolAverageCpu = computeAverageCpu(hostsAverages)
     if (poolAverageCpu > THRESHOLD_POOL_CPU) {

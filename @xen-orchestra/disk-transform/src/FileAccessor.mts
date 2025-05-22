@@ -6,8 +6,8 @@ export type FileDescriptor = number
  * a base interface is defined to be able to add other accessor ,
  * for example in browser or from a vmware datastore
  *
- * NOTE : file acessor on datastore should try to use a stream
- * and read/skip from this when possible, since openingn a new stream is costly
+ * NOTE : file accessor on datastore should try to use a stream
+ * and read/skip from this when possible, since opening a new stream is costly
  * and we are generally reading the vhd sequentially
  */
 export interface FileAccessor {

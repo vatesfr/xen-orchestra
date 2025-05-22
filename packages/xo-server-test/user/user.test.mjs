@@ -216,7 +216,7 @@ describe(`user tests on`, () => {
               assert.deepStrictEqual(updatedUser[key], value)
             }
 
-            // prevents ERROR_TOO_FAST_AUTHENTIFICATION_TRIES
+            // prevents ERROR_TOO_FAST_AUTHENTICATION_TRIES
             await new Promise(resolve => setTimeout(resolve, 2_000))
 
             await assert.doesNotReject(
