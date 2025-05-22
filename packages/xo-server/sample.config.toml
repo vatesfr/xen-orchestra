@@ -99,7 +99,7 @@
 #
 # Sets it to 'localhost' for IP to listen only on the local host.
 #
-# Default: all IPv6 addresses if available, otherwise all IPv4 addresses.
+# Default: all IPv6 addresses if available; otherwise, all IPv4 addresses.
 # hostname = 'localhost'
 
 # Port on which the server is listening on.
@@ -123,7 +123,7 @@ port = 80
 # #hostname = '127.0.0.1'
 # port = 443
 #
-# # Whether to autogenerate a self signed certificate if the `cert` or `key`
+# # Whether to autogenerate a self-signed certificate if the `cert` or `key`
 # # files could not be found.
 # #
 # # Default: true

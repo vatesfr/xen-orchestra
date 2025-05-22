@@ -132,7 +132,7 @@ test('it remove vhd with missing or multiple ancestors', async () => {
   const deletedOrphanVhd = loggued.match(/deleting orphan VHD/g) || []
   assert.equal(deletedOrphanVhd.length, 1) // only one vhd should have been deleted
 
-  // we don't test the filew on disk, since they will all be marker as unused and deleted without a metadata.json file
+  // we don't test the file on disk, since they will all be marker as unused and deleted without a metadata.json file
 })
 
 test('it remove backup meta data referencing a missing vhd in delta backup', async () => {
@@ -287,7 +287,7 @@ test('it finish unterminated merge ', async () => {
 })
 
 // each of the vhd can be a file, a directory, an alias to a file or an alias to a directory
-// the message an resulting files should be identical to the output with vhd files which is tested independantly
+// the message and resulting files should be identical to the output with vhd files which is tested independently
 describe('tests multiple combination ', { concurrency: 1 }, () => {
   for (const useAlias of [true, false]) {
     for (const vhdMode of ['file', 'directory']) {
@@ -308,9 +308,9 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
           await VhdAbstract.createAlias(handler, 'broken.alias.vhd', brokenVhdDataPath)
         }
 
-        // a vhd non referenced in metada
+        // a vhd non referenced in metadata
         await generateVhd(`${basePath}/nonreference.vhd`, { useAlias, mode: vhdMode })
-        // an abandonded delta vhd without its parent
+        // an abandoned delta vhd without its parent
         await generateVhd(`${basePath}/abandonned.vhd`, {
           useAlias,
           mode: vhdMode,
@@ -404,7 +404,7 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
         // size should be the size of children + grand children + clean after the merge
         assert.deepEqual(metadata.size, vhdMode === 'file' ? 6502400 : 6501888)
 
-        // broken vhd, non referenced, abandonned should be deleted ( alias and data)
+        // broken vhd, non referenced, abandoned should be deleted ( alias and data)
         // ancestor and child should be merged
         // grand child and clean vhd should not have changed
         const survivors = await handler.list(basePath)
@@ -454,7 +454,7 @@ test('check Aliases should work alone', async () => {
     logWarn: () => {},
   })
 
-  // only ok have suvived
+  // only ok have survived
   const alias = (await handler.list('vhds')).filter(f => f.endsWith('.vhd'))
   assert.equal(alias.length, 1)
 

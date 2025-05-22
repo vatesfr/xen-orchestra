@@ -428,7 +428,7 @@ const UserAuthTokens = addSubscriptions({
     subscribeUserAuthTokens(tokens => {
       cb(
         tokens.map(token => {
-          // find and inject last_use_ip from last_uses dictionnary
+          // find and inject last_use_ip from last_uses dictionary
           const { last_uses } = token
           if (last_uses !== undefined) {
             const ips = Object.keys(last_uses)

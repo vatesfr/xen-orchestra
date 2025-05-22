@@ -81,7 +81,7 @@ export default class Redis extends Collection {
         switch (version) {
           case undefined:
             // - clean indexes
-            // - indexes are now case insensitive
+            // - indexes are now case-insensitive
             p = p.then(() => this.rebuildIndexes())
         }
         return p

@@ -110,7 +110,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
     )
   }
 
-  // since most of the data are writtent sequentially we always open a stream from start to the end of the file
+  // since most of the data are written sequentially we always open a stream from start to the end of the file
   // If we have to rewind it, we destroy the stream and recreate with the right "start"
   // We also recreate the stream if there is too much distance between current position and the wanted position
 
@@ -241,7 +241,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
           const offsetByte = grainIndex * GRAIN_SIZE_BYTES + this.#grainOffsetBytes
           addGrain(offsetByte)
         } else {
-          // multiply by -1 to differenciate type and offset
+          // multiply by -1 to differentiate type and offset
           // no offset can be zero
           addGrain(-grainType)
         }
@@ -259,7 +259,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
       grainOffsets !== undefined && !grainOffsets.some(value => value === -SE_SPARSE_GRAIN_NON_ALLOCATED)
 
     let parentBuffer, parentBlock
-    // don't read from parent is current block is already completly described
+    // don't read from parent is current block is already completely described
     if (isLocallyFull) {
       parentBuffer = Buffer.alloc(512 /* bitmap */ + 2 * 1024 * 1024 /* data */, 0)
       parentBuffer.fill(255, 0, 512) // bitmap is full  of bit 1

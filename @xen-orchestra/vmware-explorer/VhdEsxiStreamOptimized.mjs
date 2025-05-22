@@ -22,7 +22,7 @@ export default class VhdEsxiStreamOptimized extends VhdAbstract {
 
   get header() {
     // a grain directory entry contains the address of a grain table
-    // a grain table can adresses at most 4096 grain of 512 Bytes of data
+    // a grain table can addresses at most 4096 grain of 512 Bytes of data
     return unpackHeader(
       createHeader(Math.ceil((this.#vmdkHeader.capacitySectors * SECTOR_SIZE) / DEFAULT_VHD_BLOCK_SIZE))
     )

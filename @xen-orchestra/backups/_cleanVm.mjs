@@ -512,7 +512,7 @@ export async function cleanVm(
         remove,
         mergeBlockConcurrency,
       })
-      const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
+      const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metadata file
       metadataWithMergedVhd[metadataPath] = (metadataWithMergedVhd[metadataPath] ?? 0) + finalVhdSize
     })
   }

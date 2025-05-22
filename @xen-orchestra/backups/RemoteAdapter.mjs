@@ -204,7 +204,7 @@ export class RemoteAdapter {
     })
   }
 
-  // check if we will be allowed to merge a a vhd created in this adapter
+  // check if we will be allowed to merge a vhd created in this adapter
   // with the vhd at path `path`
   async isMergeableParent(packedParentUid, path) {
     return await Disposable.use(VhdSynthetic.fromVhdChain(this.handler, path), vhd => {
@@ -774,7 +774,7 @@ export class RemoteAdapter {
     let json
     let isImmutable = false
     let remoteIsImmutable = false
-    // if the remote is immutable, check if this metadatas are also immutables
+    // if the remote is immutable, check if this metadata is also immutable
     try {
       // this file is not encrypted
       await this._handler._readFile(IMMUTABILTY_METADATA_FILENAME)
@@ -790,7 +790,7 @@ export class RemoteAdapter {
       json = await this.handler.readFile(path, { flag: 'r+' })
       // s3 handler don't respect flags
     } catch (err) {
-      // retry without triggerring immutbaility check ,only on immutable remote
+      // retry without triggering immutability check ,only on immutable remote
       if (err.code === 'EPERM' && remoteIsImmutable) {
         isImmutable = true
         json = await this._handler.readFile(path, { flag: 'r' })

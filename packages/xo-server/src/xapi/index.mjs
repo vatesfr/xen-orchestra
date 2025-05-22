@@ -791,7 +791,7 @@ export default class Xapi extends XapiBase {
 
         try {
           // vmdk size can be wrong in ova
-          // we use the size ine the vmdk descriptor to create the vdi
+          // we use the size in the vmdk descriptor to create the vdi
           const vdi = (vdis[diskMetadata.path] = await this._getOrWaitObject(
             await this.VDI_create({
               name_description: diskMetadata.descriptionLabel,
@@ -1337,7 +1337,7 @@ export default class Xapi extends XapiBase {
     const config = await this.call('host.call_plugin', host.$ref, 'xscontainer', 'get_config_drive_default', {
       templateuuid: template.uuid,
     })
-    return config.slice(4) // FIXME remove the "True" string on the begining
+    return config.slice(4) // FIXME remove the "True" string on the beginning
   }
 
   // Specific CoreOS Config Drive

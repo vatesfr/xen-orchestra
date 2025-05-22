@@ -57,7 +57,7 @@ const Li = props => (
 )
 
 const TASK_ITEM_STYLE = {
-  // Remove all margin, otherwise it breaks vertical alignment.
+  // Remove all margin; otherwise, it breaks vertical alignment.
   margin: 0,
 }
 

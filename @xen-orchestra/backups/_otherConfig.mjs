@@ -43,7 +43,7 @@ async function getDeltaChainLength(xapi, type, ref) {
 }
 
 /**
- * set the delta chain lenght ( number of delta since last base backup) to a VM and its associated VDIs
+ * set the delta chain length ( number of delta since last base backup) to a VM and its associated VDIs
  *
  * @param {Xapi} xapi
  * @param {String} vmRef
@@ -58,7 +58,7 @@ export async function setVmDeltaChainLength(xapi, vmRef, length) {
 
 /**
  * Compute the delta chain length of a VM and its associated VDIs
- * if there is a discrependcy, use, the highest value
+ * if there is a discrepancy, use, the highest value
  * @param {Xapi} xapi
  * @param {String} vmRef
  * @returns {Promise}
@@ -92,7 +92,7 @@ export function resetVmOtherConfig(xapi, vmRef) {
 
 /**
  *
- * used to ensure compatibiliy with the previous snapshots that were having the config stored only into VM
+ * used to ensure compatibility with the previous snapshots that were having the config stored only into VM
  *
  * @param {Xapi} xapi
  * @param {String} vmRef
@@ -152,7 +152,7 @@ export async function setVmOtherConfig(xapi, vmRef, { timestamp, jobId, schedule
 }
 /**
  *
- * mark the export of he VM and its VDIs as successfull
+ * mark the export of he VM and its VDIs as successful
  *
  * @param {Xapi} xapi
  * @param {String} vmRef

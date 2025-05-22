@@ -15,7 +15,7 @@ describe('REMOVE_CACHE_ENTRY', () => {
       id => id
     )
 
-    // not cached accross keys
+    // not cached across keys
     assert.equal(await debouncedFn(1), 1)
     assert.equal(await debouncedFn(2), 2)
 

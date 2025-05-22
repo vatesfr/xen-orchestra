@@ -101,7 +101,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     ]
     WITH_RETRY.forEach(functionName => {
       if (this[functionName] !== undefined) {
-        // adding the retry on the top level mtehod won't
+        // adding the retry on the top level method won't
         // cover when _functionName are called internally
         this[functionName] = pRetry.wrap(this[functionName], {
           delays: [100, 200, 500, 1000, 2000],
@@ -408,7 +408,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     // nothing to do, directories do not exist, they are part of the files' path
   }
 
-  // reimplement _rmtree to handle efficiantly path with more than 1000 entries in trees
+  // reimplement _rmtree to handle efficiently path with more than 1000 entries in trees
   // @todo : use parallel processing for unlink
   async _rmtree(path) {
     let NextContinuationToken
@@ -461,7 +461,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         this.#s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this.#s3.config))
       }
     } catch (error) {
-      // maybe the account doesn't have enought privilege to query the object lock configuration
+      // maybe the account doesn't have enough privilege to query the object lock configuration
       // be defensive and apply the md5  just in case
       if (error.$metadata.httpStatusCode === 403) {
         info(`s3 user doesnt have enough privilege to check for Object Lock, enable content MD5 header`)

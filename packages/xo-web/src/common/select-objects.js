@@ -669,7 +669,7 @@ export const SelectSubject = makeSubscriptionSelect(
     const set = newSubjects => {
       subjects = newSubjects
       /* We must wait for groups AND users options to be loaded,
-       * or a previously setted value belonging to one type or another might be discarded
+       * or a previously set value belonging to one type or another might be discarded
        * by the internal <GenericSelect>
        */
       if (usersLoaded && groupsLoaded) {
