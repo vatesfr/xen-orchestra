@@ -16,11 +16,9 @@
     <VtsQuickInfoRow disabled :label="$t('hyper-threading')" />
     <VtsQuickInfoRow :label="$t('gpus')">
       <template #value>
-        <ul v-if="host.PGPUs.length > 0">
-          <li v-for="pGpuId in host.PGPUs" :key="pGpuId">
-            {{ pGpuId }}
-          </li>
-        </ul>
+        <template v-if="host.PGPUs.length > 0">
+          {{ pGpusIds }}
+        </template>
         <template v-else>
           {{ $t('none') }}
         </template>
@@ -35,8 +33,11 @@ import type { XoHost } from '@/types/xo/host.type.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { computed } from 'vue'
 
-defineProps<{
+const { host } = defineProps<{
   host: XoHost
 }>()
+
+const pGpusIds = computed(() => host.PGPUs.join(', '))
 </script>
