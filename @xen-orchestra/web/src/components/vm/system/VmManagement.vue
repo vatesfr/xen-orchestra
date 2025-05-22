@@ -77,10 +77,22 @@ const formattedStartDelay = computed(() => {
   const minutes = Math.floor((vm.startDelay % 3_600) / 60)
   const seconds = vm.startDelay % 60
   const parts = []
-  if (days > 0) parts.push(t('relative-time.day', days))
-  if (hours > 0) parts.push(t('relative-time.hour', hours))
-  if (minutes > 0) parts.push(t('relative-time.minute', minutes))
-  if (seconds > 0 || parts.length === 0) parts.push(t('relative-time.second', seconds))
+
+  if (days > 0) {
+    parts.push(t('relative-time.day', days))
+  }
+
+  if (hours > 0) {
+    parts.push(t('relative-time.hour', hours))
+  }
+
+  if (minutes > 0) {
+    parts.push(t('relative-time.minute', minutes))
+  }
+
+  if (seconds > 0 || parts.length === 0) {
+    parts.push(t('relative-time.second', seconds))
+  }
 
   return parts.join(' ')
 })
