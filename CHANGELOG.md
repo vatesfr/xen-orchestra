@@ -1,14 +1,14 @@
 # ChangeLog
 
-## **next**
+## **5.106.3** (2025-05-22)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Released packages
 
 - xo-web 5.174.0
 
 ## **5.106.2** (2025-05-07)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
