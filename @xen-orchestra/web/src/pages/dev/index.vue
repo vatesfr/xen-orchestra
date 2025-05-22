@@ -8,28 +8,29 @@ import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 
 const task2: Task = {
   errored: false,
-  id: 'dfdfv',
+  id: 'dfdfv' + Date.now(),
   status: 'success',
   start: Date.now() - 31_536_000_000,
   end: Date.now(),
   tag: 'cassé',
   label: "c'est cassé",
+  progress: 42,
 }
 const task4: Task = {
   errored: true,
   status: 'success',
-  id: 'sdfghj',
+  id: 'sdfghj' + Date.now(),
   start: Date.now() - 31_536_000_000,
   end: Date.now(),
   tag: 'cassé',
   label: "c'est cassé",
-  tasks: [task2, task2],
+  progress: 42,
 }
 
 const task: Task = {
   errored: false,
   status: 'success',
-  id: 'efzefsd',
+  id: 'efzefsd' + Date.now(),
   start: Date.now() - 31_536_000_000,
   end: Date.now(),
   tag: 'cassé',
@@ -42,7 +43,7 @@ const task: Task = {
 const task3: Task = {
   errored: true,
   status: 'success',
-  id: 'wxcwx',
+  id: 'wxcwx' + Date.now(),
   start: Date.now() - 31_536_000_000 / 2,
   end: Date.now(),
   tag: 'cassé',
@@ -52,7 +53,7 @@ const task3: Task = {
   tasks: [task, task4],
 }
 
-task2.tasks = [task, task4]
+task2.tasks = [task]
 </script>
 
 <style lang="postcss" scoped>
