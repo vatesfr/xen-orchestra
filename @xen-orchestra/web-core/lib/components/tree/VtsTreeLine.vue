@@ -14,7 +14,7 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .vts-tree-line {
-  flex: 0 1 1em;
+  flex: 0 0 1em;
   align-self: stretch;
   display: flex;
   align-items: center;

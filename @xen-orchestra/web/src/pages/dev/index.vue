@@ -14,7 +14,6 @@ const task2: Task = {
   end: Date.now(),
   tag: 'cassé',
   label: "c'est cassé",
-  progress: 42,
 }
 const task4: Task = {
   errored: true,
@@ -24,7 +23,6 @@ const task4: Task = {
   end: Date.now(),
   tag: 'cassé',
   label: "c'est cassé",
-  progress: 42,
   tasks: [task2, task2],
 }
 
