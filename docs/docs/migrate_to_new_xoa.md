@@ -2,7 +2,7 @@
 
 ### Deploy new appliance
 
-First step, you have to deploy a new appliance. All needed information is [here](installation.md)
+First step, you have to deploy a new appliance. All necessary information can be found in [installation](installation.md).
 
 ### Export configuration
 

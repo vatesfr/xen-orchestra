@@ -1,5 +1,5 @@
 import of from '../openflow-11'
-import addressParser from '../../util/addrress-parser'
+import addressParser from '../../util/address-parser'
 
 // =============================================================================
 

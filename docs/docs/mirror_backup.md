@@ -18,7 +18,7 @@ If you have full and incremental backups on a remote, you must configure 2 mirro
 
 ## synchronizing algorithm for full backups
 
-Any new backup on the source is transfered to the remote
+Any new backup on the source is transferred to the remote
 
 _key backup(full) are in upper case, delta backup are in lowercase_ . _Source has a retention of 3, destination has 4_
 
@@ -31,7 +31,7 @@ _key backup(full) are in upper case, delta backup are in lowercase_ . _Source ha
 
 will transfer in order A , then B, and C. Destination will contains ABC
 
-> **Limitation:** if the mirror retention is lower than the backup retention on the source remote, more data than necessary may be transferred during the first run, since all the backups of the source will be transfered to the destinations. Then the older backups will be purged on the destinations.
+> **Limitation:** if the mirror retention is lower than the backup retention on the source remote, more data than necessary may be transferred during the first run, since all the backups of the source will be transferred to the destinations. Then the older backups will be purged on the destinations.
 
 ### Second transfer
 
@@ -75,7 +75,7 @@ _key backup(full) are in upper case, delta backup are in lowercase_ . _Source ha
 
 will transfer in order A , then b, and c. Destination will contains Abc
 
-> **Limitation:** if the mirror retention is lower than the backup retention on the source remote, more data than necessary may be transferred during the first run, since all the backups of the source will be transfered to the destinations. Then the older backups will be purged on the destinations.
+> **Limitation:** if the mirror retention is lower than the backup retention on the source remote, more data than necessary may be transferred during the first run, since all the backups of the source will be transferred to the destinations. Then the older backups will be purged on the destinations.
 
 ### Second transfer
 

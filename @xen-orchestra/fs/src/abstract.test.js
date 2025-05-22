@@ -2,7 +2,7 @@ import { after, beforeEach, describe, it } from 'node:test'
 import { strict as assert } from 'assert'
 import sinon from 'sinon'
 
-import { DEFAULT_ENCRYPTION_ALGORITHM, _getEncryptor } from './_encryptor'
+import { DEFAULT_ENCRYPTION_ALGORITHM, _getEncrypter } from './_encrypter'
 import { Disposable, pFromCallback, TimeoutError } from 'promise-toolbox'
 import { getSyncedHandler } from '.'
 import { rimraf } from 'rimraf'
@@ -16,7 +16,7 @@ class TestHandler extends AbstractHandler {
   constructor(impl) {
     super({ url: 'test://' }, { timeout: TIMEOUT })
     Object.defineProperty(this, 'isEncrypted', {
-      get: () => false, // encryption is tested separatly
+      get: () => false, // encryption is tested separately
     })
     Object.keys(impl).forEach(method => {
       this[`_${method}`] = impl[method]
@@ -172,10 +172,10 @@ describe('encryption', () => {
   it(
     'sync should work with encrypted',
     Disposable.wrap(async function* () {
-      const encryptor = _getEncryptor(DEFAULT_ENCRYPTION_ALGORITHM, '73c1838d7d8a6088ca2317fb5f29cd91')
+      const encrypter = _getEncrypter(DEFAULT_ENCRYPTION_ALGORITHM, '73c1838d7d8a6088ca2317fb5f29cd91')
 
       await fs.writeFile(`${dir}/encryption.json`, `{"algorithm": "${DEFAULT_ENCRYPTION_ALGORITHM}"}`)
-      await fs.writeFile(`${dir}/metadata.json`, encryptor.encryptData(`{"random": "NOTSORANDOM"}`))
+      await fs.writeFile(`${dir}/metadata.json`, encrypter.encryptData(`{"random": "NOTSORANDOM"}`))
 
       const handler = yield getSyncedHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd91"` })
 
@@ -187,10 +187,10 @@ describe('encryption', () => {
   )
 
   it('sync should fail when changing key on non empty remote ', async () => {
-    const encryptor = _getEncryptor(DEFAULT_ENCRYPTION_ALGORITHM, '73c1838d7d8a6088ca2317fb5f29cd91')
+    const encrypter = _getEncrypter(DEFAULT_ENCRYPTION_ALGORITHM, '73c1838d7d8a6088ca2317fb5f29cd91')
 
     await fs.writeFile(`${dir}/encryption.json`, `{"algorithm": "${DEFAULT_ENCRYPTION_ALGORITHM}"}`)
-    await fs.writeFile(`${dir}/metadata.json`, encryptor.encryptData(`{"random": "NOTSORANDOM"}`))
+    await fs.writeFile(`${dir}/metadata.json`, encrypter.encryptData(`{"random": "NOTSORANDOM"}`))
 
     // different key but empty remote => ok
     await Disposable.use(
@@ -207,10 +207,10 @@ describe('encryption', () => {
 
   it('sync should fail when changing algorithm', async () => {
     // encrypt with a non default algorithm
-    const encryptor = _getEncryptor('aes-256-cbc', '73c1838d7d8a6088ca2317fb5f29cd91')
+    const encrypter = _getEncrypter('aes-256-cbc', '73c1838d7d8a6088ca2317fb5f29cd91')
 
     await fs.writeFile(`${dir}/encryption.json`, `{"algorithm": "aes-256-gcm"}`)
-    await fs.writeFile(`${dir}/metadata.json`, encryptor.encryptData(`{"random": "NOTSORANDOM"}`))
+    await fs.writeFile(`${dir}/metadata.json`, encrypter.encryptData(`{"random": "NOTSORANDOM"}`))
 
     // remote is now non empty : can't modify key anymore
     await fs.writeFile(`${dir}/nonempty.json`, 'content')

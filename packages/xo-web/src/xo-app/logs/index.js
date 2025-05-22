@@ -64,7 +64,7 @@ const JobCallStateInfos = ({ end, error, isJobInterrupted }) => {
         ? ['running', 'successfulJobCall']
         : isJobInterrupted
           ? ['halted', 'jobInterrupted']
-          : ['busy', 'jobCallInProgess']
+          : ['busy', 'jobCallInProgress']
 
   return (
     <Tooltip content={_(tooltip)}>
@@ -104,7 +104,7 @@ const DEFAULT_CALL_FILTER = { label: 'allJobCalls', value: 'all' }
 const CALL_FILTER_OPTIONS = [
   DEFAULT_CALL_FILTER,
   { label: 'failedJobCall', value: 'error' },
-  { label: 'jobCallInProgess', value: 'running' },
+  { label: 'jobCallInProgress', value: 'running' },
   { label: 'jobCallSkipped', value: 'skipped' },
   { label: 'successfulJobCall', value: 'success' },
   { label: 'jobInterrupted', value: 'interrupted' },

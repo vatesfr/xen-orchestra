@@ -128,7 +128,7 @@ export async function set({
   ])
 }
 
-set.description = 'changes the properties of an host'
+set.description = 'changes the properties of a host'
 
 set.params = {
   id: { type: 'string' },
@@ -173,7 +173,7 @@ export async function restart({
     const master = this.getObject(pool.master, 'host')
     const hostRebootRequired = host.rebootRequired
 
-    // we are currently in an host upgrade process
+    // we are currently in a host upgrade process
     if (hostRebootRequired && host.id !== master.id) {
       // this error is not ideal but it means that the pool master must be fully upgraded/rebooted before the current host can be rebooted.
       //

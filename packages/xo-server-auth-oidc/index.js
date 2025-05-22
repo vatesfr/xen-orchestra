@@ -53,7 +53,7 @@ exports.configurationSchema = {
 
 Scopes should be listed separated by a single whitespace.
 
-Note: The \`openid\` scope is implicitely included.
+Note: The \`openid\` scope is implicitly included.
 `,
           default: 'profile',
           title: 'Scopes',

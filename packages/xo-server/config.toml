@@ -112,7 +112,7 @@ vhdDirectoryCompression = 'brotli'
 mergeBlockConcurrency = 2
 
 # how many block can be uploaded in parallel
-# increase to in rease performance, reduce if you have timeout or memory error during transfer
+# increase to increase performance, reduce if you have timeout or memory error during transfer
 writeBlockConcurrency = 16
 
 # https://github.com/naugtur/blocked-at#params-and-return-value
@@ -132,7 +132,7 @@ useForwardedHeaders = false
 # Each `http.listen.<name>` entry defines a specific listening configuration for
 # the HTTP server.
 #
-# `<name>` can be freely choosen.
+# `<name>` can be freely chosen.
 #
 # Historically, `http.listen` was an array with the first config for HTTP and
 # the second for HTTPS. To avoid breaking existing user configs, this convention

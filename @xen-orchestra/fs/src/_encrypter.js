@@ -12,10 +12,10 @@ export function isLegacyEncryptionAlgorithm(algorithm) {
   return algorithm !== UNENCRYPTED_ALGORITHM && algorithm !== DEFAULT_ENCRYPTION_ALGORITHM
 }
 
-function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
+function getEncrypter(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
   if (key === undefined) {
     return {
-      id: 'NULL_ENCRYPTOR',
+      id: 'NULL_ENCRYPTER',
       algorithm: 'none',
       key: 'none',
       ivLength: 0,
@@ -65,8 +65,8 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
         /**
          * WARNING
          *
-         * the crypted size has an initializtion vector + eventually an auth tag + a padding at the end
-         * whe can't predict the decrypted size from the start of the encrypted size
+         * the crypted size has an initialization vector + eventually an auth tag + a padding at the end
+         * we can't predict the decrypted size from the start of the encrypted size
          * thus, we can't set decrypted.length reliably
          *
          */
@@ -135,4 +135,4 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
   }
 }
 
-exports._getEncryptor = getEncryptor
+exports._getEncrypter = getEncrypter

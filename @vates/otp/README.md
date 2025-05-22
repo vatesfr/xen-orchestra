@@ -18,7 +18,7 @@ npm install --save @vates/otp
 
 ### Usual workflow
 
-> This section presents how this library should be used to implement a classic two factor authentification.
+> This section presents how this library should be used to implement a classic two factor authentication.
 
 #### Setup
 

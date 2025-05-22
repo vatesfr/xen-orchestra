@@ -43,9 +43,9 @@ export default class NbdClient {
   // AFAIK, there is no guaranty the server answers in the same order as the queries
   // so we handle a backlog of command waiting for response and handle concurrency manually
 
-  #waitingForResponse // there is already a listenner waiting for a response
+  #waitingForResponse // there is already a listener waiting for a response
   #nextCommandQueryId = BigInt(0)
-  #commandQueryBacklog // map of command waiting for an response queryId => { size/*in byte*/, resolve, reject}
+  #commandQueryBacklog // map of command waiting for a response queryId => { size/*in byte*/, resolve, reject}
   #connected = false
 
   #reconnectingPromise
@@ -196,7 +196,7 @@ export default class NbdClient {
     }
 
     // send export name we want to access.
-    // it's  implictly closing the negociation phase.
+    // it's implicitly closing the negotiation phase.
     await this.#write(OPTS_MAGIC)
     await this.#writeInt32(NBD_OPT_EXPORT_NAME)
     const exportNameBuffer = Buffer.from(this.#exportName)

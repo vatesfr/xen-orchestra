@@ -127,7 +127,7 @@ const COLUMN_PROXY = {
 const COLUMN_ENCRYPTION = {
   itemRenderer: remote => {
     // remote.info?.encryption undefined means that remote is not enabled and synced
-    // we don't have the agorithm used at this step
+    // we don't have the algorithm used at this step
     if (remote.info?.encryption === undefined) {
       return remote.encryptionKey !== undefined ? <Icon size='lg' icon='lock' /> : null
     } else {

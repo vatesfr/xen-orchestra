@@ -12,7 +12,7 @@ import { synchronized } from 'decorator-synchronized'
 
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
-import { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, _getEncryptor } from './_encryptor'
+import { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, _getEncrypter } from './_encrypter'
 
 const { info, warn } = createLogger('xo:fs:abstract')
 
@@ -75,13 +75,13 @@ class PrefixWrapper {
 }
 
 export default class RemoteHandlerAbstract {
-  #rawEncryptor
+  #rawEncrypter
 
-  get #encryptor() {
-    if (this.#rawEncryptor === undefined) {
-      throw new Error(`Can't access to encryptor before remote synchronization`)
+  get #encrypter() {
+    if (this.#rawEncrypter === undefined) {
+      throw new Error(`Can't access to encrypter before remote synchronization`)
     }
-    return this.#rawEncryptor
+    return this.#rawEncrypter
   }
 
   constructor(remote, options = {}) {
@@ -164,7 +164,7 @@ export default class RemoteHandlerAbstract {
     }
 
     if (this.isEncrypted) {
-      stream = this.#encryptor.decryptStream(stream)
+      stream = this.#encrypter.decryptStream(stream)
     }
 
     // try to add the length prop if missing and not a range stream
@@ -191,13 +191,13 @@ export default class RemoteHandlerAbstract {
    * @param {object} [options]
    * @param {boolean} [options.checksum]
    * @param {number} [options.dirMode]
-   * @param {(this: RemoteHandlerAbstract, path: string) => Promise<undefined>} [options.validator] Function that will be called before the data is commited to the remote, if it fails, file should not exist
+   * @param {(this: RemoteHandlerAbstract, path: string) => Promise<undefined>} [options.validator] Function that will be called before the data is committed to the remote, if it fails, file should not exist
    */
   async outputStream(path, input, { checksum = true, dirMode, maxStreamLength, streamLength, validator } = {}) {
     path = normalizePath(path)
     let checksumStream
 
-    input = this.#encryptor.encryptStream(input)
+    input = this.#encrypter.encryptStream(input)
     if (checksum) {
       checksumStream = createChecksumStream()
       pipeline(input, checksumStream, noop)
@@ -210,16 +210,16 @@ export default class RemoteHandlerAbstract {
       validator,
     })
     if (checksum) {
-      // using _outpuFile means the checksum will NOT be encrypted
+      // using _outputFile means the checksum will NOT be encrypted
       // it is by design to allow checking of encrypted files without the key
       await this._outputFile(checksumFile(path), await checksumStream.checksum, { dirMode, flags: 'wx' })
     }
   }
 
   // Free the resources possibly dedicated to put the remote at work, when it
-  // is no more needed
+  // is no longer needed
   //
-  // FIXME: Some handlers are implemented based on system-wide mecanisms (such
+  // FIXME: Some handlers are implemented based on system-wide mechanisms (such
   // as mount), forgetting them might breaking other processes using the same
   // remote.
   @synchronized()
@@ -277,7 +277,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async outputFile(file, data, { dirMode, flags = 'wx' } = {}) {
-    const encryptedData = this.#encryptor.encryptData(data)
+    const encryptedData = this.#encrypter.encryptData(data)
     await this._outputFile(normalizePath(file), encryptedData, { dirMode, flags })
   }
 
@@ -288,7 +288,7 @@ export default class RemoteHandlerAbstract {
 
   async __readFile(file, { flags = 'r' } = {}) {
     const data = await this._readFile(normalizePath(file), { flags })
-    return this.#encryptor.decryptData(data)
+    return this.#encrypter.decryptData(data)
   }
 
   async #rename(oldPath, newPath, { checksum }, createTree = true) {
@@ -331,7 +331,7 @@ export default class RemoteHandlerAbstract {
     await this._rmtree(normalizePath(dir))
   }
 
-  // Asks the handler to sync the state of the effective remote with its'
+  // Asks the handler to sync the state of the effective remote with its
   // metadata
   //
   // This method MUST ALWAYS be called before using the handler.
@@ -355,7 +355,7 @@ export default class RemoteHandlerAbstract {
 
   async #createMetadata() {
     const encryptionAlgorithm = this._remote.encryptionKey === undefined ? 'none' : DEFAULT_ENCRYPTION_ALGORITHM
-    this.#rawEncryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
+    this.#rawEncrypter = _getEncrypter(encryptionAlgorithm, this._remote.encryptionKey)
 
     await Promise.all([
       this._writeFile(normalizePath(ENCRYPTION_DESC_FILENAME), JSON.stringify({ algorithm: encryptionAlgorithm }), {
@@ -381,12 +381,12 @@ export default class RemoteHandlerAbstract {
     }
 
     try {
-      this.#rawEncryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
+      this.#rawEncrypter = _getEncrypter(encryptionAlgorithm, this._remote.encryptionKey)
       // this file is encrypted
       const data = await this.__readFile(ENCRYPTION_METADATA_FILENAME)
       JSON.parse(data)
     } catch (error) {
-      // can be enoent, bad algorithm, or broeken json ( bad key or algorithm)
+      // can be enoent, bad algorithm, or broken json ( bad key or algorithm)
       if (encryptionAlgorithm !== 'none') {
         if (await this.#canWriteMetadata()) {
           // any other error , but on empty remote => update with remote settings
@@ -394,7 +394,7 @@ export default class RemoteHandlerAbstract {
           info('will update metadata of this remote')
           return this.#createMetadata()
         } else {
-          // to add a new encrypted fs remote, the remote directory must be empty, otherwise metadata.json is not created
+          // to add a new encrypted fs remote, the remote directory must be empty; otherwise, metadata.json is not created
           if (error.code === 'ENOENT' && error.path.includes('metadata.json')) {
             throw new Error('Remote directory must be empty.')
           }
@@ -466,7 +466,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async __writeFile(file, data, { flags = 'wx' } = {}) {
-    const encryptedData = this.#encryptor.encryptData(data)
+    const encryptedData = this.#encrypter.encryptData(data)
     await this._writeFile(normalizePath(file), encryptedData, { flags })
   }
 
@@ -644,7 +644,7 @@ export default class RemoteHandlerAbstract {
           if (error.code === 'EISDIR' || error.code === 'EPERM') {
             return this._rmtree(`${dir}/${file}`).catch(rmTreeError => {
               if (rmTreeError.code === 'ENOTDIR') {
-                // this was realy a EPERM error, maybe with immutable backups
+                // this was really a EPERM error, maybe with immutable backups
                 throw error
               }
               throw rmTreeError
@@ -689,11 +689,11 @@ export default class RemoteHandlerAbstract {
   }
 
   get isEncrypted() {
-    return this.#encryptor.id !== 'NULL_ENCRYPTOR'
+    return this.#encrypter.id !== 'NULL_ENCRYPTER'
   }
 
   get encryptionAlgorithm() {
-    return this.#encryptor?.algorithm ?? UNENCRYPTED_ALGORITHM
+    return this.#encrypter?.algorithm ?? UNENCRYPTED_ALGORITHM
   }
 }
 

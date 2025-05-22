@@ -58,7 +58,7 @@ export function init({ label = 'NO LABEL   ' } = {}) {
     {
       jmpBoot: Buffer.from('eb3c90', 'hex'),
       OEMName: 'mkfs.fat',
-      BytsPerSec: SECTOR_SIZE,
+      BytesPerSec: SECTOR_SIZE,
       SecPerClus: 4,
       ResvdSecCnt: 1,
       NumFATs: 2,

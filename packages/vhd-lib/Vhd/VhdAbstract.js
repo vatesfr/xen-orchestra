@@ -266,7 +266,7 @@ exports.VhdAbstract = class VhdAbstract {
   // it's an approximation, ignoring the footer/header/bat size
   stream({ onProgress } = {}) {
     const { footer, batSize } = this
-    const { ...header } = this.header // copy since we don't ant to modifiy the current header
+    const { ...header } = this.header // copy since we don't want to modify the current header
     const rawFooter = fuFooter.pack(footer)
     checksumStruct(rawFooter, fuFooter)
 

@@ -192,7 +192,7 @@ describe('backupNg', () => {
       await expect(xo.call('backupNg.runJob', { id: jobId, schedule: schedule.id })).rejects.toMatchSnapshot()
     })
 
-    it('fails trying to run a backup job with non-existent vm', async () => {
+    it('fails trying to run a backup job with nonexistent vm', async () => {
       jest.setTimeout(7e3)
       const scheduleTempId = randomId()
       const jobInput = {
@@ -203,7 +203,7 @@ describe('backupNg', () => {
           [scheduleTempId]: { snapshotRetention: 1 },
         },
         vms: {
-          id: 'non-existent-id',
+          id: 'nonexistent-id',
         },
       }
       const { id: jobId } = await xo.createTempBackupNgJob(jobInput)

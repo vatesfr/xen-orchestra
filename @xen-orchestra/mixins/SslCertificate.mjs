@@ -150,9 +150,9 @@ export default class SslCertificates {
   #handlers = new Map()
 
   constructor(app, { httpServer }) {
-    // don't setup the proxy if httpServer is not present
+    // don't set up the proxy if httpServer is not present
     //
-    // that can happen when the app is instanciated in another context like xo-server-recover-account
+    // that can happen when the app is instantiated in another context like xo-server-recover-account
     if (httpServer === undefined) {
       return
     }
@@ -161,7 +161,7 @@ export default class SslCertificates {
       const { url } = req
       if (url.startsWith(prefix)) {
         const token = url.slice(prefix.length)
-        this.#acmeChallendMiddleware(req, res, token)
+        this.#acmeChallengeMiddleware(req, res, token)
       }
     })
 
@@ -176,7 +176,7 @@ export default class SslCertificates {
 
     const { acmeDomain } = config
 
-    // not a let's encrypt protected end point, sommething changed in the configuration
+    // not a let's encrypt protected end point, something changed in the configuration
     if (acmeDomain === undefined) {
       handlers.delete(configKey)
       return
@@ -197,7 +197,7 @@ export default class SslCertificates {
   }
 
   // middleware that will serve the http challenge to let's encrypt servers
-  #acmeChallendMiddleware(req, res, token) {
+  #acmeChallengeMiddleware(req, res, token) {
     debug('fetching challenge for token ', token)
     const challenge = this.#challenges.get(token)
     debug('challenge content is ', challenge)

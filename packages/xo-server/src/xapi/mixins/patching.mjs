@@ -246,7 +246,7 @@ const methods = {
       const guidances = new Set(Object.values(update.guidance).flat())
 
       // issued date are in invalid format: '20240926T08:30:08Z'
-      // add - to resepct the ISO 8601 format
+      // add - to respect the ISO 8601 format
       const formattedDate = update.issued.replace(/^(\d{4})(\d{2})(\d{2})T/, '$1-$2-$3T')
 
       // Sometimes the update description can be an empty string.
@@ -364,10 +364,10 @@ const methods = {
 
       if ((conflictId = find(patch.conflicts, conflictId => find(installable, { id: conflictId }))) !== undefined) {
         if (getAll) {
-          log.debug(`patches ${id} and ${conflictId} conflict with eachother`)
+          log.debug(`patches ${id} and ${conflictId} conflict with each other`)
           return
         }
-        throw new Error(`patches ${id} and ${conflictId} conflict with eachother`)
+        throw new Error(`patches ${id} and ${conflictId} conflict with each other`)
       }
 
       // add requirements

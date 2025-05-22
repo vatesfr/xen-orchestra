@@ -23,4 +23,4 @@
 | `value`          | `Object` or `Array` of `Object`s when `multi` is `true` |         | Required. Current value.                                                                             |
 | `onChange`       | `Function`                                              |         | Manage the changed value. Parameters: selected value(s).                                             |
 | `optionRenderer` | `Function`                                              |         | Manage option display. Parameter: an element of `options`.                                           |
-| `children`       |                                                         |         | How the component will be rendered. Will fallback to `optionRenderer` if not used.                   |
+| `children`       |                                                         |         | How the component will be rendered. Will fall back to `optionRenderer` if not used.                  |

@@ -11,7 +11,7 @@ beforeAll(async () => {
   jest.setTimeout(150e3)
 })
 
-describe('the VM life cyle', () => {
+describe('the VM life cycle', () => {
   const vmsToDelete = []
   // hvm with tools behave like pv vm
   let hvmWithToolsId

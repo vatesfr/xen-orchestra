@@ -257,7 +257,7 @@ Usage:
       Full path of the action to execute
 
     <name>=<value>...
-      Paramaters to pass to the action
+      Parameters to pass to the action
 
     Examples:
       xo-cli rest post tasks/<task id>/actions/abort

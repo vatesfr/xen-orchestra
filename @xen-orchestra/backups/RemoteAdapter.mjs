@@ -39,7 +39,7 @@ export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
 export const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 
-const IMMUTABILTY_METADATA_FILENAME = '/immutability.json'
+const IMMUTABILITY_METADATA_FILENAME = '/immutability.json'
 
 const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
 
@@ -204,7 +204,7 @@ export class RemoteAdapter {
     })
   }
 
-  // check if we will be allowed to merge a a vhd created in this adapter
+  // check if we will be allowed to merge a vhd created in this adapter
   // with the vhd at path `path`
   async isMergeableParent(packedParentUid, path) {
     return await Disposable.use(VhdSynthetic.fromVhdChain(this.handler, path), vhd => {
@@ -311,8 +311,8 @@ export class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const metadatas = await asyncMap(files, file => this.readVmBackupMetadata(file))
-    const { delta, full, ...others } = groupBy(metadatas, 'mode')
+    const metadata = await asyncMap(files, file => this.readVmBackupMetadata(file))
+    const { delta, full, ...others } = groupBy(metadata, 'mode')
 
     const unsupportedModes = Object.keys(others)
     if (unsupportedModes.length !== 0) {
@@ -574,7 +574,7 @@ export class RemoteAdapter {
     }
   }
 
-  async #getCachabledDataListVmBackups(dir) {
+  async #getCacheableDataListVmBackups(dir) {
     debug('generating cache', { path: dir })
 
     const handler = this._handler
@@ -621,7 +621,7 @@ export class RemoteAdapter {
     }
 
     // nothing cached, or cache unreadable => regenerate it
-    const backups = await this.#getCachabledDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
+    const backups = await this.#getCacheableDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
     if (backups === undefined) {
       return
     }
@@ -774,10 +774,10 @@ export class RemoteAdapter {
     let json
     let isImmutable = false
     let remoteIsImmutable = false
-    // if the remote is immutable, check if this metadatas are also immutables
+    // if the remote is immutable, check if this metadata is also immutable
     try {
       // this file is not encrypted
-      await this._handler._readFile(IMMUTABILTY_METADATA_FILENAME)
+      await this._handler._readFile(IMMUTABILITY_METADATA_FILENAME)
       remoteIsImmutable = true
     } catch (error) {
       if (error.code !== 'ENOENT') {
@@ -790,7 +790,7 @@ export class RemoteAdapter {
       json = await this.handler.readFile(path, { flag: 'r+' })
       // s3 handler don't respect flags
     } catch (err) {
-      // retry without triggerring immutbaility check ,only on immutable remote
+      // retry without triggering immutability check ,only on immutable remote
       if (err.code === 'EPERM' && remoteIsImmutable) {
         isImmutable = true
         json = await this._handler.readFile(path, { flag: 'r' })

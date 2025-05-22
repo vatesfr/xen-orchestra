@@ -35,7 +35,7 @@ export default {
      * port and those blocked or link down.
      */
     all: 0xfffffffc, // All physical ports except input port
-    contorller: 0xfffffffd, // Send to controller
+    controller: 0xfffffffd, // Send to controller
     local: 0xfffffffe, // Local openflow "port"
     any: 0xffffffff,
     /* Wildcard port used only for flow mod
@@ -292,8 +292,8 @@ export default {
   defaultPriority: 0x8000,
 
   instructionType: {
-    goToTable: 1, // Setup the next table in the lookup pipeline
-    writeMetadata: 2, // Setup the metadata field for use later in pipeline
+    goToTable: 1, // Set up the next table in the lookup pipeline
+    writeMetadata: 2, // Set up the metadata field for use later in pipeline
     writeActions: 3, // Write the action(s) onto the datapath action set
     applyActions: 4, // Applies the action(s) immediately (no writing in action set)
     clearActions: 5, // Clears all actions from the datapath action set
@@ -387,7 +387,7 @@ export default {
     badQueue: 8, // Problem validating output queue
     badOutGroup: 9, // Invalid group id in forward action
     matchInconsistent: 10, // Action can't apply for this match
-    unsuportedOrder: 11, // Action order is unsupported for the action list in an Apply-Actions instruction
+    unsupportedOrder: 11, // Action order is unsupported for the action list in an Apply-Actions instruction
     badTag: 12, // Actions uses an unsupported tag/encap
   },
 
@@ -449,7 +449,7 @@ export default {
     loop: 7, // Group entry would cause a loop
     unknownGroup: 8,
     /* Group not modified because a group
-     * MODIFY attempted to modify a non-existent group.
+     * MODIFY attempted to modify a nonexistent group.
      */
   },
 

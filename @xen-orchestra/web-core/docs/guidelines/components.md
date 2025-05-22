@@ -1,8 +1,8 @@
 ## Components and Subcomponents MUST be defined as Vue SFC (Single-File Component)
 
-## DS Components MUST be stored in the `/ui` directory of `/web-core`.
+## DS Components MUST be stored in the `/ui` directory of `/web-core`
 
-## DS Components MUST be stored in their own directory.
+## DS Components MUST be stored in their own directory
 
 ## Directory name MUST be in kebab-case (e.g. `my-component`)
 

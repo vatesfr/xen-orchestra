@@ -6,7 +6,7 @@ export default class MigrateVm {
     this._app = app
   }
 
-  // Backup should be reinstentiated each time
+  // Backup should be reinstantiated each time
   #createWarmBackup(sourceVmId, srId, jobId) {
     const app = this._app
     const config = {

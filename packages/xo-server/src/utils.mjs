@@ -206,7 +206,7 @@ export const DONE = {}
 // `iteratee`.
 //
 // If `target` is undefined, it defaults to a new array if
-// `collection` is array-like (has a `length` property), otherwise an
+// `collection` is array-like (has a `length` property); otherwise, an
 // object.
 //
 // The context of `iteratee` can be specified via `thisArg`.

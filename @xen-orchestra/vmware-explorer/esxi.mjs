@@ -379,7 +379,7 @@ export default class Esxi extends EventEmitter {
         }
       }
     } catch (error) {
-      // no vmsd file :fall back to a full withou snapshots
+      // no vmsd file :fall back to a full without snapshots
     }
     return {
       name_label: config.name[0],

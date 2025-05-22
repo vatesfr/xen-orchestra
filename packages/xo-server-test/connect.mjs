@@ -13,7 +13,7 @@ const hostname = xoServerHttpConfig.hostname || 'localhost'
 const SERVER_URL = `http://${hostname}:${port}`
 
 /**
- * @param params Contains {url, email, password} as the optionnal server url, and the email/password of the user
+ * @param params Contains {url, email, password} as the optional server url, and the email/password of the user
  * @return Xo A Xo object connection
  **/
 export async function connect({ url = SERVER_URL, email, password }) {

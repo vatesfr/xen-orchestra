@@ -18,13 +18,13 @@ const ADMIN_USER = {
 const ERROR_INVALID_CREDENTIALS = /JsonRpcError: invalid credentials/
 const ERROR_USER_CANNOT_DELETE_ITSELF = /JsonRpcError: a user cannot delete itself/
 const ERROR_DELETE_NO_SUCH_USER = /JsonRpcError: no such user nonexistent Id/
-const ERROR_SET_NO_SUCH_USER = /JsonRpcError: no such user non-existent-id/
+const ERROR_SET_NO_SUCH_USER = /JsonRpcError: no such user nonexistent-id/
 const ERROR_INVALID_PARAMETERS = /JsonRpcError: invalid parameters/
 const ERROR_PROPERTY_CAN_ONLY_BE_CHANGED_BY_ADMIN = /JsonRpcError: this properties can only changed by an administrator/
 const ERROR_USER_CANNOT_CHANGE_ITS_OWN_PERMISSION = /JsonRpcError: a user cannot change its own permission/
 const ERROR_USER_ALREADY_EXISTS = /JsonRpcError: the user .* already exists/
 // eslint-disable-next-line no-unused-vars
-const ERROR_TOO_FAST_AUTHENTIFICATION_TRIES = /Error: too fast authentication tries/
+const ERROR_TOO_FAST_AUTHENTICATION_TRIES = /Error: too fast authentication tries/
 
 describe(`user tests on`, () => {
   let sharedXo
@@ -216,7 +216,7 @@ describe(`user tests on`, () => {
               assert.deepStrictEqual(updatedUser[key], value)
             }
 
-            // prevents ERROR_TOO_FAST_AUTHENTIFICATION_TRIES
+            // prevents ERROR_TOO_FAST_AUTHENTICATION_TRIES
             await new Promise(resolve => setTimeout(resolve, 2_000))
 
             await assert.doesNotReject(
@@ -281,10 +281,10 @@ describe(`user tests on`, () => {
         })
       }
 
-      await t.test('fails trying to set a property of a nonexistant user', async () => {
+      await t.test('fails trying to set a property of a nonexistent user', async () => {
         await assert.rejects(
           sharedXo.call('user.set', {
-            id: 'non-existent-id',
+            id: 'nonexistent-id',
             password: SIMPLE_USER.password,
           }),
           ERROR_SET_NO_SUCH_USER
@@ -324,7 +324,7 @@ describe(`user tests on`, () => {
     })
 
     test('fails trying to delete a user with a nonexistent user', async () => {
-      await assert.rejects(sharedXo.call('user.delete', { id: 'nonexistent Id' }), ERROR_DELETE_NO_SUCH_USER)
+      await assert.rejects(sharedXo.call('user.delete', { id: 'nonexistent ID' }), ERROR_DELETE_NO_SUCH_USER)
     })
 
     test('fails trying to delete itself', async () => {

@@ -40,7 +40,7 @@ async function test(remotePath, indexPath) {
 }
 async function handleExistingFile(root, indexPath, path) {
   try {
-    // a vhd block directory is completly immutable
+    // a vhd block directory is completely immutable
     if (isInVhdDirectory(path)) {
       // this will trigger 3 times per vhd blocks
       const dir = join(root, dirname(path))
