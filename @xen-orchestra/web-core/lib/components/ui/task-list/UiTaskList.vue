@@ -1,13 +1,10 @@
-<!-- v1 -->
 <template>
-  <div v-for="taskItem of taskItems" :key="taskItem.id" class="task">
-    <div class="task-item">
-      <VtsTreeLine
-        v-for="i in Math.max(0, depth)"
-        :key="i"
-        :half-height="(!taskItem.flags.expanded && i === Math.max(0, depth)) || !taskItem.flags.expanded"
-        :right="i === Math.max(0, depth)"
-      />
+  <div v-for="taskItem of taskItems" :key="taskItem.id" class="vts-tree-item">
+    <div class="ui-tree-item-label">
+      <template v-if="depth != 0">
+        <VtsTreeLine v-for="i in depth - 1" :key="i" :half-height="false" :right="false" />
+        <VtsTreeLine :half-height="!taskItem.flags.expanded" right />
+      </template>
       <UiButtonIcon
         v-if="taskItem.source.tasks?.length"
         class="toggle"
@@ -40,15 +37,14 @@ const { tasks, depth = 0 } = defineProps<{
   tasks: Task[]
   depth?: number
 }>()
-
 const { items: taskItems } = useCollection(() => tasks, {
   flags: ['expanded'],
 })
 </script>
 
 <style lang="postcss" scoped>
-.task {
-  .task-item {
+.vts-tree-item {
+  .ui-tree-item-label {
     display: flex;
     align-items: center;
 
