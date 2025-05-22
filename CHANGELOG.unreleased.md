@@ -18,6 +18,9 @@
 
 - [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
 - [REST] Ability to connect/disconnect a server `POST rest/v0/servers/<server-id>/actions/(connect|disconnect)` (PR [#8565](https://github.com/vatesfr/xen-orchestra/pull/8565))
+- **Migrated REST API endpoints**
+  - `/rest/v0/vms/<vm-id>/actions/clean_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
+  - `/rest/v0/vms/<vm-id>/actions/hard_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
 
 ### Bug fixes
 
@@ -48,6 +51,7 @@
 
 - @vates/generator-toolbox patch
 - @vates/nbd-client patch
+- @vates/types minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/disk-transform major
 - @xen-orchestra/fs patch
