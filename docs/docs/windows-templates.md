@@ -1,30 +1,30 @@
 # Windows Templates with Cloudbase-init: Step-by-step Guide & Best Practices
 
-In this guide, we provide a basic step-by-step guide for creating Windows templates with cloud-init support using [Cloudbase-init](https://cloudbase.it/cloudbase-init/).
-With these templates, you can specify numerous system settings (hostname, users, password, etc.) without having to configure each VM manually.
-Read the [online documentation](https://cloudbase-init.readthedocs.io/en/latest/index.html) for more details on how to use Cloudbase-init.
+This section provides step-by-step instructions for creating Windows templates that support cloud-init, using [Cloudbase-init](https://cloudbase.it/cloudbase-init/).
+With these templates, you can specify many system settings (hostname, users, password, etc.) without setting up each VM manually.
+For more details on how to use Cloudbase-init, read the [online documentation](https://cloudbase-init.readthedocs.io/en/latest/index.html).
 
 In short, you will maintain a *master VM* containing a fresh, up-to-date copy of Windows.
 From this master VM, you can branch out *template VMs* and customize them with drivers, tooling and settings as desired.
 Finally, these template VMs will be generalized with Sysprep and converted into templates that can be used for VM creation.
-You will find an overview diagram below:
+See the following diagram:
 
 ![Overview diagram](./assets/windows-templates/overview.png)
 
-Following is a list of steps for preparing a Windows template:
+Here is a list of steps for preparing a Windows template:
 
 1. Create and install master VM (for Windows Update)
 2. Branch out master VM to template VM
 3. Install software in template VM
-4. Sysprep and reseal; template creation
+4. Sysprep, reseal and template creation
 5. Instantiate new VM
 
 :::tip
 **Why use a master VM?**
 
-- Windows installed from older media may take a very long time to catch up with updates (especially in the case of Server 2016).
+- Windows installed from older media may take a very long time to catch up with updates (especially Windows Server 2016).
 - Creating VMs from a recently-updated template also reduces the time and resources needed to bring each new VM up to date.
-- Many different kinds of template VMs can be branched from the same master, saving time and effort.
+- You can save time and effort by branching many different kinds of template VMs from the same master.
 - Note that you don't need to produce a new template every time you update Windows.
   Instead, consider your VM update policy and refresh your templates as necessary.
 - If you don't expect to have multiple different kinds of templates, feel free to install software directly onto your master VM.
@@ -33,21 +33,21 @@ Following is a list of steps for preparing a Windows template:
 
 ## Installing master VM
 
+:::tip
+In this guide, we install Windows in Audit mode, a special Windows boot mode that skips customizations normally applied after Setup.
+Using Audit mode helps avoid certain Sysprep issues, especially with Store apps.
+:::
+
 Create a Windows VM using the included default templates for Windows, then install Windows as usual.
-However, at the initial Welcome screen after Windows starts up, we will enter Audit mode by pressing **Ctrl+Shift+F3**.
+However, at the initial Welcome screen after Windows starts up, press  **Ctrl+Shift+F3** to enter Audit mode.
 
 :::tip
-Our guide uses Windows Server 2022, however any supported version of Windows would also work.
+Our guide uses Windows Server 2022 as a reference, but any supported version of Windows works the same way.
 :::
 
 :::tip
 We highly recommend starting from the default Windows templates, as they contain optimal settings for Windows guests.
 Use at least 4 vCPUs and 4 GB of RAM to ensure that the update process goes smoothly.
-:::
-
-:::tip
-Audit mode is a special Windows boot mode that skips customizations normally applied after Setup
-Using Audit mode helps avoid certain Sysprep issues, especially with Store apps.
 :::
 
 ![Windows OOBE screen](./assets/windows-templates/1-audit1.png)
@@ -73,7 +73,7 @@ Every time you want to refresh your templates, copy your master VM into a new *t
 As its name indicated, this VM will become your new Windows template for future production VMs.
 
 :::tip
-Use a full VM copy (*Copy* button) to avoid having too many VM disk layers, which may degrade performance.
+Use a full VM copy (**Copy** button) to avoid having too many VM disk layers, which may degrade performance.
 :::
 
 ![Copy VM](./assets/windows-templates/1-copyvm.png)
@@ -94,7 +94,7 @@ Grab the latest installer from [cloudbase.it](https://cloudbase.it/cloudbase-ini
 
 ![Installing Cloudbase-init](./assets/windows-templates/2-cbi1.png)
 
-Don't run Sysprep at this step yet; you still need to configure Cloudbase-init.
+Don't run Sysprep yet; you still need to configure Cloudbase-init.
 
 ![Cloudbase-init is installed, don't sysprep yet](./assets/windows-templates/2-cbi2.png)
 
@@ -114,22 +114,22 @@ Your VM is now ready for conversion to template.
 
 ## Sysprep and reseal
 
-Close the running Sysprep window, then run the following command in a PowerShell window running as Administrator:
+Close the running Sysprep window and run the following command in a PowerShell window running as Administrator:
 
 ```
 C:\Windows\System32\Sysprep\sysprep.exe /generalize /oobe /shutdown "/unattend:C:\Program Files\Cloudbase Solutions\Cloudbase-Init\conf\Unattend.xml"
 ```
 
 :::warning
-- You must specify Cloudbase-init's Unattend.xml since this file is what starts the cloud-init configuration process.
-- The Unattend parameter should be fully quoted because the Unattend.xml path contains spaces.
+- Specify Cloudbase-init's Unattend.xml. This file is necessary to start the cloud-init configuration process.
+- The **Unattend** parameter should be fully quoted because the Unattend.xml path contains spaces.
 :::
 
-Once the Sysprep process is complete, your template VM will shut itself down.
+Once the Sysprep process is complete, your template VM will shut down.
 
 ![Sysprep is running](./assets/windows-templates/4-sysprep.png)
 
-Finally, immediately convert your VM to a template; do not start it again or the cloud-init configuration process will begin.
+Convert your VM to a template; do not start it again or the cloud-init configuration process will begin.
 
 ## Instantiating new VMs
 
@@ -141,15 +141,15 @@ Create VMs from your prepared template and enter your cloud-init configs as nece
 Refer to the [Cloudbase-init plugins documentation](https://cloudbase-init.readthedocs.io/en/latest/plugins.html) for information on how to configure cloud-init for Windows guests.
 :::
 
-Your VMs will reboot several times during the unseal process.
+Your VMs will reboot several times during the unsealing process.
 
 ![Windows is getting ready](./assets/windows-templates/5-unseal.png)
 
-Enjoy your finished product.
+Enjoy your finished product!
 
 ![VM with hostname set as desired](./assets/windows-templates/6-finish.png)
 
 ## Tips and tricks
 
-- If you are Sysprepping an installation containing the XenServer/XCP-ng PV drivers, you may need to set the PersistAllDeviceInstalls option in your Unattend.xml. (Cloudbase-init's Unattend.xml already includes this option)
+- If you are Sysprepping an installation containing the XenServer/XCP-ng PV drivers, you may need to set the `PersistAllDeviceInstalls` option in your `Unattend.xml` (Cloudbase-init's `Unattend.xml` already includes this option).
 - Windows Server in Audit mode is not activated, and will automatically shut down after 1 hour. Be sure to either finish your work in 1 hour, or simply reboot before the timeout expires.
