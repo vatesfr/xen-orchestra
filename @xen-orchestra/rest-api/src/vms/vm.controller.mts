@@ -109,7 +109,7 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
-   * Require guest tools to be installed
+   * Requires guest tools to be installed
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(taskLocation)
