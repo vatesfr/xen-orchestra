@@ -33,12 +33,7 @@
           <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
           {{ $t('this-host') }}
         </template>
-        <UiLink
-          v-else-if="masterHost !== undefined"
-          size="medium"
-          :to="`/host/${masterHost.id}/dashboard`"
-          :icon="faServer"
-        >
+        <UiLink v-else-if="masterHost !== undefined" size="medium" :to="`/host/${masterHost.id}/`" :icon="faServer">
           {{ masterHost.name_label }}
         </UiLink>
       </template>
