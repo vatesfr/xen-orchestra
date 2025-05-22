@@ -5,9 +5,9 @@
         <VtsTreeLine
           v-for="i in depth - 1"
           :key="i"
-          :half-height="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded"
-          :right="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded"
-          :half-width="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded"
+          :half-height="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded && deepest"
+          :right="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded && deepest"
+          :half-width="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded && deepest"
         />
         <VtsTreeLine :half-height="!taskItem.flags.expanded" right />
       </template>
@@ -26,6 +26,7 @@
         v-if="taskItem.source.tasks?.length && taskItem.flags.expanded"
         :tasks="[task2, task]"
         :depth="depth + 1"
+        :deepest="taskItem.id === taskItems[taskItems.length - 1].id"
       />
     </div>
   </div>
@@ -39,9 +40,14 @@ import { useCollection } from '@core/packages/collection'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 
-const { tasks, depth = 0 } = defineProps<{
+const {
+  tasks,
+  depth = 0,
+  deepest = false,
+} = defineProps<{
   tasks: Task[]
   depth?: number
+  deepest?: boolean
 }>()
 const { items: taskItems } = useCollection(() => tasks, {
   flags: ['expanded'],
