@@ -1,3 +1,4 @@
+<!-- v1 -->
 <template>
   <div v-for="taskItem of taskItems" :key="taskItem.id" class="task">
     <div class="task-item">
@@ -50,6 +51,27 @@ const { items: taskItems } = useCollection(() => tasks, {
   .task-item {
     display: flex;
     align-items: center;
+
+    &:hover {
+      background-color: var(--color-brand-background-hover);
+    }
+
+    &:active {
+      background-color: var(--color-brand-background-active);
+    }
+
+    &.selected {
+      background-color: var(--color-brand-background-selected);
+    }
+
+    &.disabled {
+      background-color: var(--color-neutral-background-disabled);
+    }
+
+    &:focus {
+      border: 0.2rem solid var(--color-info-txt-base);
+      border-radius: 0.4rem;
+    }
   }
 }
 </style>
