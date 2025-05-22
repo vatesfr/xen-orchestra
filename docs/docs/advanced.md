@@ -129,7 +129,7 @@ const handleHook = data => {
 
 Alerts are a way to warn the administrator about various events. The first kind of alerts will be emails and also in a dedicated area of `xo-web` to display them.
 
-### Performances alerts
+### Performance alerts
 
 The administrator will configure alerts based on performance thresholds.
 
@@ -146,7 +146,7 @@ If any configured values exceed the threshold during a selected period of time, 
 
 Those alerts will be also stored and accessible in the web interface, and also later for the load balancing feature (helping it to solve those performance problems).
 
-### Updates alerts
+### Update alerts
 
 :::warning
 :construction_worker: This feature might be missing. We are investigating. :construction_worker:

@@ -119,7 +119,25 @@ export interface XenApiHost extends XenApiRecord<'host'> {
   metrics: XenApiHostMetrics['$ref']
   resident_VMs: XenApiVm['$ref'][]
   cpu_info: { cpu_count: string; socket_count: string }
-  software_version: { product_version: string }
+  software_version: {
+    build_number: string
+    date: string
+    db_schema: string
+    dbv: string
+    hostname: string
+    linux: string
+    network_backend: string
+    platform_name: string
+    platform_version: string
+    product_brand: string
+    product_version: string
+    product_version_text: string
+    product_version_text_short: string
+    xapi: string
+    xen: string
+    xencenter_max: string
+    xencenter_min: string
+  }
   control_domain: XenApiVm['$ref']
   current_operations: Record<string, HOST_OPERATION>
   other_config: Record<string, any>
@@ -182,7 +200,7 @@ export interface XenApiVm extends XenApiRecord<'vm'> {
   consoles: XenApiConsole['$ref'][]
   crash_dumps: XenApiCrashdump['$ref'][]
   current_operations: Record<string, VM_OPERATION>
-  domain_type: DOMAIN_TYPE
+  domain_type?: DOMAIN_TYPE
   domarch: string
   domid: number
   generation_id: string
@@ -395,8 +413,33 @@ export interface XenApiVmMetrics extends XenApiRecord<'vm_metrics'> {
   VCPUs_number: number
 }
 
+export const TRISTATE_TYPE = {
+  NO: 'no',
+  UNSPECIFIED: 'unspecified',
+  YES: 'yes',
+} as const
+
+export type TRISTATE_TYPE = (typeof TRISTATE_TYPE)[keyof typeof TRISTATE_TYPE]
+
 export interface XenApiVmGuestMetrics extends XenApiRecord<'vm_guest_metrics'> {
-  networks: string
+  $ref: RecordRef<'vm_guest_metrics'>
+  can_use_hotplug_vbd: TRISTATE_TYPE
+  can_use_hotplug_vif: TRISTATE_TYPE
+  /** @deprecated */
+  disks?: Record<string, string>
+  last_updated: string
+  live: boolean
+  /** @deprecated */
+  memory?: Record<string, string>
+  networks: Record<string, string>
+  os_version: Record<string, string>
+  other_config: Record<string, string>
+  other: Record<string, string>
+  PV_drivers_detected: boolean
+  /** @deprecated */
+  PV_drivers_up_to_date?: boolean
+  PV_drivers_version: Record<string, string>
+  uuid: RecordUuid<'vm_guest_metrics'>
 }
 
 export interface XenApiTask extends XenApiRecord<'task'> {

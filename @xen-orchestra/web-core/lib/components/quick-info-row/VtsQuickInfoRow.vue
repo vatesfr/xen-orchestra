@@ -1,11 +1,11 @@
 <template>
-  <div class="vts-quick-info-row">
-    <span class="typo-body-regular label">
+  <div class="vts-quick-info-row" :class="{ mobile: uiStore.isMobile }">
+    <span v-tooltip class="typo-body-regular label text-ellipsis">
       <slot name="label">
         {{ label }}
       </slot>
     </span>
-    <span v-tooltip class="typo-body-regular value text-ellipsis">
+    <span class="typo-body-regular value">
       <slot name="value">
         {{ value }}
       </slot>
@@ -15,6 +15,7 @@
 
 <script lang="ts" setup>
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { useUiStore } from '@core/stores/ui.store.ts'
 
 defineProps<{
   label?: string
@@ -25,13 +26,19 @@ defineSlots<{
   label?(): any
   value?(): any
 }>()
+
+const uiStore = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
 .vts-quick-info-row {
   display: flex;
-  align-items: center;
   gap: 2.4rem;
+
+  &.mobile {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
 
   .label {
     flex-shrink: 0;
