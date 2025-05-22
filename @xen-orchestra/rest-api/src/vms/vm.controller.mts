@@ -207,7 +207,8 @@ export class VmController extends XapiXoController<XoVm> {
       },
     })
   }
-   /**
+
+  /**
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body { "name_label": "my_awesome_snapshot" }
    */
