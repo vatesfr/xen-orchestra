@@ -16,11 +16,9 @@
     <VtsQuickInfoRow disabled :label="$t('hyper-threading')" />
     <VtsQuickInfoRow :label="$t('gpus')">
       <template #value>
-        <ul v-if="host.PGPUs.length > 0">
-          <li v-for="pGpuId in host.PGPUs" :key="pGpuId">
-            {{ pGpuId }}
-          </li>
-        </ul>
+        <template v-if="pGpus.length > 0">
+          {{ pGpusIds }}
+        </template>
         <template v-else>
           {{ $t('none') }}
         </template>
@@ -32,11 +30,19 @@
 
 <script setup lang="ts">
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { usePgpuStore } from '@/stores/xen-api/pgpu.store.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { computed } from 'vue'
 
-defineProps<{
+const { host } = defineProps<{
   host: XenApiHost
 }>()
+
+const { pGpusByHost } = usePgpuStore().subscribe()
+
+const pGpus = computed(() => pGpusByHost.value.get(host.$ref) ?? [])
+
+const pGpusIds = computed(() => pGpus.value.map(pGpu => pGpu.uuid).join(', '))
 </script>
