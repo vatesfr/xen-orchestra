@@ -10,11 +10,11 @@
         <VtsIcon :icon="faCircleNotch" accent="current" />
         <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
       </div>
-      <UiInfo v-if="task.errored" accent="danger">{{ 1 + ' ' + $t('errors') }}</UiInfo>
-      <UiInfo v-if="task.warningsCount && task.warningsCount !== 0" accent="warning">
+      <UiInfo v-if="task.errored" class="typo-body-regular-small" accent="danger">{{ 1 + ' ' + $t('errors') }}</UiInfo>
+      <UiInfo v-if="task.warningsCount && task.warningsCount !== 0" class="typo-body-regular-small" accent="warning">
         {{ task.warningsCount + ' ' + $t('warnings', task.warningsCount!) }}
       </UiInfo>
-      <UiInfo v-if="task.infosCount && task.infosCount !== 0" accent="info">
+      <UiInfo v-if="task.infosCount && task.infosCount !== 0" class="typo-body-regular-small" accent="info">
         {{ task.infosCount + ' ' + $t('infos', task.infosCount!) }}
       </UiInfo>
     </div>
@@ -27,6 +27,7 @@
         {{ `${$t('task.estimated-end')} ${end}` }}
       </span>
       <UiCircleProgressBar v-if="task.progress" accent="info" size="small" :value="task.progress" />
+      <span v-else class="circle-hero" />
     </div>
   </div>
 </template>
@@ -71,12 +72,18 @@ const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) 
 <style lang="postcss" scoped>
 .ui-task-item {
   width: 100%;
-  margin: 0 2.4rem;
+  margin: 0 0.4rem;
   display: flex;
   justify-content: space-between;
 
   &:not(:last-child) {
     border-bottom: 0.1rem solid var(--color-neutral-border);
+  }
+
+  .subtasks {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
   }
 
   .informations,
@@ -96,10 +103,9 @@ const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) 
     color: var(--color-neutral-txt-secondary);
   }
 
-  .subtasks {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
+  .circle-hero {
+    height: 4rem;
+    width: 4rem;
   }
 }
 </style>
