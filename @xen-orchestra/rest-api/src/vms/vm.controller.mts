@@ -16,7 +16,7 @@ import {
 import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('vms')
@@ -43,9 +43,10 @@ export class VmController extends XapiXoController<XoVm> {
   getVms(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoVm>>>[] {
+  ): SendObjects<Partial<Unbrand<XoVm>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

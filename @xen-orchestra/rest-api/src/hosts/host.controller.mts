@@ -6,7 +6,7 @@ import type { XapiHostStats, XapiStatsGranularity, XoHost } from '@vates/types'
 
 import { host, hostIds, hostStats, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import {
   internalServerErrorResp,
@@ -36,9 +36,10 @@ export class HostController extends XapiXoController<XoHost> {
   getHosts(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoHost>>>[] {
+  ): SendObjects<Partial<Unbrand<XoHost>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

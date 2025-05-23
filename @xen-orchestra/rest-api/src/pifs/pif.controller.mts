@@ -7,7 +7,7 @@ import type { XoPif } from '@vates/types'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialPifs, pif, pifIds } from '../open-api/oa-examples/pif.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 type UnbrandedXoPif = Unbrand<XoPif>
@@ -33,9 +33,10 @@ export class PifController extends XapiXoController<XoPif> {
   getPifs(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<UnbrandedXoPif>>[] {
+  ): SendObjects<Partial<UnbrandedXoPif>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

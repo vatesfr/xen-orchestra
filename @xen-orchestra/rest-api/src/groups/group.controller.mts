@@ -5,7 +5,7 @@ import type { XoGroup } from '@vates/types'
 
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { group, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('groups')
@@ -33,9 +33,10 @@ export class GroupController extends XoController<XoGroup> {
   async getGroups(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<string[] | WithHref<Partial<Unbrand<XoGroup>>>[]> {
+  ): Promise<SendObjects<Partial<Unbrand<XoGroup>>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
   }
 
