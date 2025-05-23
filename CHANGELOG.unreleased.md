@@ -31,4 +31,5 @@
 
 <!--packages-start-->
 
+- vhd-lib minor
 <!--packages-end-->
