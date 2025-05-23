@@ -1,6 +1,6 @@
 <template>
   <VtsTreeItem v-if="vm !== undefined" ref="rootElement" expanded class="infra-vm-item">
-    <UiTreeItemLabel v-if="isVisible" :route="{ name: 'vm.console', params: { uuid: vm.uuid } }" no-indent>
+    <UiTreeItemLabel v-if="isVisible" :route="{ name: 'vm.default', params: { uuid: vm.uuid } }" no-indent>
       {{ vm.name_label || '(VM)' }}
       <template #icon>
         <UiObjectIcon size="medium" :state="vmPowerState!" type="vm" />
