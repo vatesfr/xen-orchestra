@@ -6,7 +6,7 @@ import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { XoVmSnapshot } from '@vates/types'
-import { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { partialVmSnapshots, vmSnapshot, vmSnapshotIds } from '../open-api/oa-examples/vm-snapshot.oa-example.mjs'
 
@@ -32,9 +32,10 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   getVmSnapshots(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoVmSnapshot>>>[] {
+  ): SendObjects<Partial<Unbrand<XoVmSnapshot>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
