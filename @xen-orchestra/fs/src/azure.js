@@ -36,7 +36,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     }
 
     const parts = split(path)
-    this.#container = parts.shift()
+    this.#container = parts.shift() // in azurite, container = first component after host, only lowercase allowed
     this.#dir = join(...parts)
     this.#containerClient = this.#blobServiceClient.getContainerClient(this.#container)
     const WITH_RETRY = ['_copy', '_getSize', '_list', '_outputFile', '_read', '_rename', '_unlink', '_writeFile']
@@ -63,10 +63,29 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     return 'azure'
   }
 
+  /**
+   *
+   * @param {string} path String to format
+   * @returns add / at the end of path to allow azure to understand it is a "folder"
+   */
   #makePrefix(path) {
     return path === '.' ? '' : path.endsWith('/') ? path : `${path}/`
   }
 
+  #fullPath(path) {
+    let prefixedPath = path
+    if (path.startsWith('/')) {
+      prefixedPath = path.substring(1)
+    }
+    prefixedPath = prefixedPath === '.' ? this.#makePrefix(this.#dir) : `${this.#makePrefix(this.#dir)}${prefixedPath}`
+    return prefixedPath
+  }
+
+  /**
+   *
+   * @param {string} dir
+   * @returns true if dir is not empty
+   */
   async #isNotEmptyDir(dir) {
     const prefix = this.#makePrefix(dir)
     const iterator = this.#containerClient.listBlobsFlat({ prefix }).byPage({ maxPageSize: 1 })
@@ -75,17 +94,26 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     return (value?.segment?.blobItems?.length ?? 0) > 0
   }
 
+  /**
+   * Create container if it does not exist
+   */
   async _sync() {
     await this.#containerClient.createIfNotExists()
     await super._sync()
   }
 
+  /**
+   *
+   * @param {string} path
+   * @param {object} input
+   * @param {*} param2
+   */
   async _outputStream(path, input, { streamLength, maxStreamLength = streamLength, validator }) {
-    const blobClient = this.#containerClient.getBlockBlobClient(path)
+    const blobClient = this.#containerClient.getBlockBlobClient(this.#fullPath(path))
     let blockSize
     if (maxStreamLength === undefined) {
       warn(
-        `Writing ${path} to a azure blob storage without a max size set will cut it to ${MAX_BLOCK_COUNT * MAX_BLOCK_SIZE} bytes`,
+        `Writing ${this.#fullPath(path)} to a azure blob storage without a max size set will cut it to ${MAX_BLOCK_COUNT * MAX_BLOCK_SIZE} bytes`,
         { path }
       )
       blockSize = MIN_BLOCK_SIZE
@@ -126,16 +154,20 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     }
   }
 
-  // list blobs in container
+  /**
+   *
+   * @param {string} path folder name inside container
+   * @param {*} options
+   * @returns
+   */
   async _list(path, options = {}) {
     const { ignoreMissing = false } = options
-    const enoentError = new Error(`ENOENT: No such file or directory from list`)
+    const enoentError = new Error(`ENOENT: No such file or directory from list ${path}`)
     enoentError.code = 'ENOENT'
     enoentError.path = path
-
     try {
       const result = []
-      for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix: this.#makePrefix(path) })) {
+      for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix: this.#fullPath(path) })) {
         const strippedName = item.name.replace(`${path}/`, '')
         result.push(strippedName.endsWith('/') ? strippedName.slice(0, -1) : strippedName)
       }
@@ -153,13 +185,13 @@ export default class AzureHandler extends RemoteHandlerAbstract {
 
   // uploads a file to a blob
   async _writeFile(file, data) {
-    const blobClient = this.#containerClient.getBlockBlobClient(file)
+    const blobClient = this.#containerClient.getBlockBlobClient(this.#fullPath(file))
     await blobClient.upload(data, data.length)
   }
 
   async _createReadStream(file) {
     try {
-      const blobClient = this.#containerClient.getBlobClient(file)
+      const blobClient = this.#containerClient.getBlobClient(this.#fullPath(file))
       const response = await blobClient.download()
       return await response.readableStreamBody
     } catch (e) {
@@ -180,7 +212,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       throw error
     }
     try {
-      const blobClient = this.#containerClient.getBlobClient(file)
+      const blobClient = this.#containerClient.getBlobClient(this.#fullPath(file))
       await blobClient.delete()
     } catch (e) {
       if (e.name === 'RestError' && ![400, 404].includes(e.statusCode)) {
@@ -199,12 +231,12 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     error.code = 'ENOENT'
     error.path = oldPath
     try {
-      const sourceBlob = this.#containerClient.getBlobClient(oldPath)
+      const sourceBlob = this.#containerClient.getBlobClient(this.#fullPath(oldPath))
       const exists = await sourceBlob.exists()
       if (!exists) {
         throw error
       }
-      const destinationBlob = this.#containerClient.getBlobClient(newPath)
+      const destinationBlob = this.#containerClient.getBlobClient(this.#fullPath(newPath))
       await destinationBlob.beginCopyFromURL(sourceBlob.url, { requiresSync: true })
     } catch (e) {
       if (e.statusCode === 404) {
@@ -218,7 +250,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.fd
     }
-    const blobClient = this.#containerClient.getBlobClient(file)
+    const blobClient = this.#containerClient.getBlobClient(this.#fullPath(file))
     const properties = await blobClient.getProperties()
     return properties.contentLength
   }
@@ -228,7 +260,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       file = file.fd
     }
     try {
-      const blobClient = this.#containerClient.getBlobClient(file)
+      const blobClient = this.#containerClient.getBlobClient(this.#fullPath(file))
       const downloadResponse = await blobClient.download(position, buffer.length)
       const bytesRead = await copyStreamToBuffer(downloadResponse.readableStreamBody, buffer)
       return { bytesRead, buffer }
@@ -246,7 +278,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _mkdir(path) {
-    const blobClient = this.#containerClient.getBlobClient(path)
+    const blobClient = this.#containerClient.getBlobClient(this.#fullPath(path))
     if (await blobClient.exists()) {
       const error = new Error(`ENOTDIR: file already exists, mkdir '${path}'`)
       error.code = 'ENOTDIR'
@@ -259,7 +291,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       file = file.fd
     }
 
-    const blobClient = this.#containerClient.getBlockBlobClient(file)
+    const blobClient = this.#containerClient.getBlockBlobClient(this.#fullPath(file))
     const blockSize = MIN_BLOCK_SIZE
     const blockIds = []
     let totalWritten = 0
