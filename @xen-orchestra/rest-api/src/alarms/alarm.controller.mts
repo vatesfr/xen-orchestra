@@ -10,7 +10,7 @@ import { alarm, alarmIds, partialAlarms } from '../open-api/oa-examples/alarm.oa
 import { BASE_URL } from '../index.mjs'
 import { notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 // E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
@@ -112,9 +112,10 @@ export class AlarmController extends XapiXoController<XoAlarm> {
   getAlarms(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<UnbrandedXoAlarm>>[] {
+  ): SendObjects<Partial<UnbrandedXoAlarm>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

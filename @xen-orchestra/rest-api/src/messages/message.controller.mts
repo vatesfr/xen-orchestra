@@ -10,7 +10,7 @@ import { alarmPredicate } from '../alarms/alarm.controller.mjs'
 import { message, messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 type UnbrandedXoMessage = Unbrand<XoMessage>
@@ -65,9 +65,10 @@ export class MessageController extends XapiXoController<XoMessage> {
   getMessages(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<UnbrandedXoMessage>>[] {
+  ): SendObjects<Partial<UnbrandedXoMessage>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
