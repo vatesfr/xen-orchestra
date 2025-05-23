@@ -3,12 +3,12 @@
   <div class="ui-card-numbers" :class="sizeClass">
     <span class="label typo-caption-small">{{ label }}</span>
     <div class="values" :class="sizeClass">
-      <span v-if="percentValue" class="value typo-caption-small">
-        {{ percentValue }}
+      <span v-if="percentValue" class="value" :class="fontClass">
+        <I18nN tag="span" :value="percentValue" :class="fontClass" format="percent" />
       </span>
 
-      <div class="value" :class="valueFontClass">
-        {{ value ?? '-' }}<span class="unit" :class="unitFontClass">{{ unit }}</span>
+      <div class="value" :class="fontClass">
+        {{ value ?? '-' }}<span class="unit" :class="fontClass">{{ unit }}</span>
       </div>
     </div>
   </div>
@@ -17,34 +17,26 @@
 <script setup lang="ts" generic="TSize extends 'small' | 'medium'">
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { I18nN } from 'vue-i18n'
 
 const props = defineProps<{
   label: string
   size: TSize
   value?: number
   unit?: string
-  max?: TSize extends 'small' ? number : never
+  max?: number
 }>()
-
-const { n } = useI18n()
 
 const sizeClass = computed(() => toVariants({ size: props.size }))
 
-const valueFontClass = computed(() => (props.size === 'medium' ? 'typo-h3' : 'typo-caption-small'))
-
-const unitFontClass = computed(() => (props.size === 'medium' ? 'typo-body-bold-small' : 'typo-caption-small'))
+const fontClass = computed(() => (props.size === 'medium' ? 'typo-h3' : 'typo-caption-small'))
 
 const percentValue = computed(() => {
-  if (props.size !== 'small' || props.max === undefined || props.max === 0) {
+  if (props.value === undefined || props.max === undefined || props.max === 0) {
     return undefined
   }
 
-  if (props.value === undefined) {
-    return n(0, 'percent').replace('0', '-')
-  }
-
-  return n(props.value / props.max, 'percent')
+  return props.value / props.max
 })
 </script>
 
