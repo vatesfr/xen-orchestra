@@ -16,7 +16,8 @@ export type Unbrand<T> = {
 export const createdResp = {
   status: 201,
   description: 'Resource created',
-}
+} as const
+
 export const actionAsyncroneResp = {
   status: 202,
   description: 'Action executed asynchronously',

@@ -77,9 +77,16 @@ type WrapperXenApi<T, Type extends string, Fn = { (): void }> = T & {
   $call: Fn
   $callAsync: Fn
   $type: Type
+  $snapshot(params: {
+    cancelToken?: unknown
+    ignoredVdisTag?: string
+    name_label?: string
+    unplugVusbs?: boolean
+  }): Promise<XenApiVm['$ref']>
   $xapi: {
     call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
     callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
+    getField<T extends XenApiRecord, K extends keyof T>(type: Type, ref: T['$ref'], field: K): Promise<T[K]>
   }
 }
 
