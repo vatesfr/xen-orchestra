@@ -1,36 +1,31 @@
 <!-- v1 -->
 <template>
-  <div class="ui-card-numbers" :class="sizeClass">
+  <div class="ui-card-numbers" :class="className">
     <span class="label typo-caption-small">{{ label }}</span>
-    <div class="values" :class="sizeClass">
-      <span v-if="percentValue !== undefined" class="value" :class="fontClass">
-        <I18nN tag="span" :value="percentValue" :class="fontClass" format="percent" />
+    <div class="values" :class="fontClass">
+      <span v-if="percentValue !== undefined">
+        {{ $n(percentValue, 'percent') }}
       </span>
-      <div class="value" :class="fontClass">
-        {{ value ?? '-' }}
-        <span class="unit" :class="fontClass">
-          {{ unit }}
-        </span>
-      </div>
+      <span>
+        {{ `${value ?? '-'}${unit}` }}
+      </span>
     </div>
   </div>
 </template>
 
-<script setup lang="ts" generic="TSize extends 'small' | 'medium'">
+<script setup lang="ts">
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
-import { I18nN } from 'vue-i18n'
 
-const { label, size, value, unit, max } = defineProps<{
+const { size, value, max } = defineProps<{
   label: string
-  size: TSize
+  size: 'small' | 'medium'
   value?: number
   unit?: string
   max?: number
 }>()
 
-const sizeClass = computed(() => toVariants({ size }))
-
+const className = computed(() => toVariants({ size }))
 const fontClass = computed(() => (size === 'medium' ? 'typo-h3' : 'typo-caption-small'))
 
 const percentValue = computed(() => {
@@ -51,16 +46,6 @@ const percentValue = computed(() => {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-  }
-
-  .value {
-    color: var(--color-neutral-txt-primary);
-    display: flex;
-    gap: 0.2rem;
-    align-items: center;
-  }
-
-  .unit {
     color: var(--color-neutral-txt-primary);
   }
 
