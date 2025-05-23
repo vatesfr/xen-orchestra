@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- **XO6**:
+- **XO 6**:
   - [VM] Add auto redirection from /vm/[id] to /vm/[id]/console (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
 
 ### Packages to release
@@ -33,5 +33,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web patch
 
 <!--packages-end-->
