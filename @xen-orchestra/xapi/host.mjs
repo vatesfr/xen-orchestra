@@ -191,7 +191,11 @@ class Host {
 
       return parsedResult
     } catch (error) {
-      if (error.code === 'XENAPI_MISSING_PLUGIN' || error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION') {
+      if (
+        error.code === 'XENAPI_MISSING_PLUGIN' ||
+        error.code === 'UNKNOWN_XENAPI_PLUGIN_FUNCTION' ||
+        error.code === 'HOST_OFFLINE'
+      ) {
         return null
       } else {
         throw error
