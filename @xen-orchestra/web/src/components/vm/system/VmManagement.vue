@@ -40,11 +40,11 @@
 <script setup lang="ts">
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { VM_OPERATION, type XoVm } from '@/types/xo/vm.type'
+import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'

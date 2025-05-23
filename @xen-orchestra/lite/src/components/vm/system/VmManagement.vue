@@ -23,7 +23,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('protect-from-accidental-shutdown')">
       <template #value>
-        <VtsEnabledState :enabled="isProtectedFromAccidentalShutdown !== undefined" />
+        <VtsEnabledState :enabled="isProtectedFromAccidentalShutdown" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('auto-power')">

@@ -10,7 +10,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('video-ram')">
       <template v-if="videoRamValue?.value" #value>
-        {{ videoRamValue.value + ' ' + (videoRamValue.prefix !== '' ? videoRamValue.prefix : $t('bytes.mi')) }}
+        {{ `${videoRamValue.value} ${videoRamValue.prefix || $t('bytes.mi')}` }}
       </template>
     </VtsQuickInfoRow>
   </UiCard>
@@ -18,14 +18,14 @@
 
 <script setup lang="ts">
 import type { XoVm } from '@/types/xo/vm.type'
+import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { computed } from 'vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
-const videoRamValue = computed(() => (vm.videoram ? formatSizeRaw(Number(vm.videoram), 0) : null))
+const videoRamValue = computed(() => (vm.videoram ? formatSizeRaw(vm.videoram, 0) : null))
 </script>
