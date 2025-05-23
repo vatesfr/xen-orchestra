@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="vm-storage-config">
+  <UiCard>
     <UiTitle>
       {{ $t('storage-configuration') }}
     </UiTitle>
