@@ -6,9 +6,11 @@
       <span v-if="percentValue !== undefined" class="value" :class="fontClass">
         <I18nN tag="span" :value="percentValue" :class="fontClass" format="percent" />
       </span>
-
       <div class="value" :class="fontClass">
-        {{ value ?? '-' }}<span class="unit" :class="fontClass">{{ unit }}</span>
+        {{ value ?? '-' }}
+        <span class="unit" :class="fontClass">
+          {{ unit }}
+        </span>
       </div>
     </div>
   </div>
