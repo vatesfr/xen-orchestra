@@ -67,5 +67,6 @@
 - xo-server-auth-oidc patch
 - xo-server-netbox minor
 - xo-server-perf-alert patch
+- xo-web patch
 
 <!--packages-end-->

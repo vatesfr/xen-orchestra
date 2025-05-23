@@ -9,7 +9,7 @@ import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import Tooltip from 'tooltip'
-import xoaUpdater, { blockXoaAccess, exposeTrial, isTrialRunning } from 'xoa-updater'
+import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
 import { addSubscriptions, adminOnly, connectStore } from 'utils'
 import { Card, CardBlock, CardHeader } from 'card'
 import { confirm } from 'modal'
@@ -481,7 +481,9 @@ const Updates = decorate([
                       <div className='form-group'>
                         <input
                           className='form-control'
-                          disabled={state.askRegisterAgain && (state.isTrialAvailable || blockXoaAccess(xoaTrialState))}
+                          disabled={
+                            state.askRegisterAgain && ['trustedTrial', 'untrustedTrial'].includes(xoaTrialState.state)
+                          }
                           name='email'
                           onChange={effects.linkState}
                           placeholder={formatMessage(messages.updateRegistrationEmailPlaceHolder)}
