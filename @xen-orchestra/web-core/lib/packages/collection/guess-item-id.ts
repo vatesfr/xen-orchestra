@@ -1,26 +1,36 @@
-import type { CollectionConfigProperties, GuessItemId } from '@core/packages/collection/types.ts'
+import { hasObjectProperty } from '@core/utils/object.util.ts'
+import type { CollectionItemId, GetItemId } from './types.ts'
 
-function assertValidId(id: unknown): asserts id is PropertyKey {
-  const type = typeof id
+export function guessItemId<TSource>(source: TSource, getter: GetItemId<TSource>): CollectionItemId {
+  const id = extractItemId(source, getter)
 
-  if (!['string', 'number', 'symbol'].includes(type)) {
-    throw new TypeError(`Invalid ID type: ${type}. Expected string, number, or bigint.`)
+  if (isCollectionId(id)) {
+    return id
   }
+
+  throw new Error(`Unable to guess id from source: ${JSON.stringify(source)}`)
 }
 
-export function guessItemId<TSource, TProperties extends CollectionConfigProperties>(
-  source: TSource,
-  properties: TProperties | undefined
-) {
-  let id
+function isCollectionId(value: unknown): value is CollectionItemId {
+  return typeof value === 'string' || typeof value === 'number'
+}
 
-  if (typeof properties === 'object' && properties !== null && 'id' in properties) {
-    id = properties.id
-  } else if (typeof source === 'object' && source !== null && 'id' in source) {
-    id = source.id
+function extractItemId<TSource>(source: TSource, getter: GetItemId<TSource>) {
+  if (getter === undefined) {
+    if (hasObjectProperty(source, 'id')) {
+      return source.id
+    }
+
+    return source
   }
 
-  assertValidId(id)
+  if (typeof getter === 'function') {
+    return getter(source)
+  }
 
-  return id as GuessItemId<TSource, TProperties>
+  if (hasObjectProperty(source, getter)) {
+    return source[getter]
+  }
+
+  throw new Error(`Property "${String(getter)}" not found in source: ${JSON.stringify(source)}`)
 }

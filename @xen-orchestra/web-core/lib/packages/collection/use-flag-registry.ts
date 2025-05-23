@@ -1,12 +1,21 @@
-import type { CollectionConfigFlags, FlagRegistry } from '@core/packages/collection/types.ts'
-import { reactive } from 'vue'
+import { objectFromEntries, objectEntries } from '@core/utils/object.util.ts'
+import type { CollectionConfigFlags, CollectionItemId, FlagConfig, FlagRegistry } from './types.ts'
+import { isRef, reactive, toValue, watch } from 'vue'
 
-export function useFlagRegistry<TFlag extends string>(
+export function useFlagRegistry<TFlag extends string, TId extends CollectionItemId>(
   config: CollectionConfigFlags<TFlag> = [] as TFlag[]
-): FlagRegistry<TFlag> {
-  const registry = reactive(new Map<TFlag, Set<PropertyKey>>())
+): FlagRegistry<TId, TFlag> {
+  const registry = reactive(new Map()) as Map<TFlag, Set<TId>>
 
-  const flags = Array.isArray(config) ? Object.fromEntries(config.map(flag => [flag, { multiple: true }])) : config
+  const flags = Array.isArray(config)
+    ? objectFromEntries(config.map(flag => [flag, { multiple: true } as FlagConfig]))
+    : config
+
+  for (const [flag, { multiple }] of objectEntries(flags)) {
+    if (isRef(multiple)) {
+      watch(multiple, () => clearFlag(flag))
+    }
+  }
 
   function isFlagDefined(flag: TFlag) {
     return Object.prototype.hasOwnProperty.call(flags, flag)
@@ -18,39 +27,51 @@ export function useFlagRegistry<TFlag extends string>(
     }
   }
 
-  function isFlagged(id: PropertyKey, flag: TFlag) {
+  function isFlagged(id: TId, flag: TFlag) {
     assertFlag(flag)
 
     return registry.get(flag)?.has(id) ?? false
   }
 
-  function toggleFlag(id: PropertyKey, flag: TFlag, forcedValue = !isFlagged(id, flag)) {
+  function toggleFlag(id: TId, flag: TFlag, shouldBeFlagged = !isFlagged(id, flag)) {
     assertFlag(flag)
 
     if (!registry.has(flag)) {
       registry.set(flag, new Set())
     }
 
-    if (forcedValue) {
-      if (!isMultipleAllowed(flag)) {
-        clearFlag(flag)
-      }
-      registry.get(flag)!.add(id)
-    } else {
-      registry.get(flag)!.delete(id)
+    const flagSet = registry.get(flag)!
+
+    if (shouldBeFlagged === flagSet.has(id)) {
+      return
     }
+
+    if (!shouldBeFlagged) {
+      flagSet.delete(id)
+      return
+    }
+
+    if (!isMultipleAllowed(flag) && flagSet.size > 0) {
+      clearFlag(flag)
+    }
+
+    flagSet.add(id)
   }
 
   function clearFlag(flag: TFlag) {
     assertFlag(flag)
 
-    registry.set(flag, new Set())
+    if (!registry.has(flag) || registry.get(flag)!.size === 0) {
+      return
+    }
+
+    registry.get(flag)!.clear()
   }
 
   function isMultipleAllowed(flag: TFlag) {
     assertFlag(flag)
 
-    return flags[flag]?.multiple ?? false
+    return toValue(flags[flag]?.multiple) ?? true
   }
 
   return {
