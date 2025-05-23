@@ -144,9 +144,10 @@
 - @xen-orchestra/rest-api 0.6.0
 - @xen-orchestra/vmware-explorer 0.9.5
 - @xen-orchestra/web 0.17.1
-- xo-server 5.177.0
 - xo-server-web-hooks 0.4.0
 - xo-web 5.173.0
+- vhd-lib 4.12.0
+- xo-server 5.177.2
 
 ## **5.105.0** (2025-03-31)
 
