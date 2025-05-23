@@ -21,7 +21,7 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 
-const { host } = defineProps<{
+defineProps<{
   host: XoHost
 }>()
 </script>

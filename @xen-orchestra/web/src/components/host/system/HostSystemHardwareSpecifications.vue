@@ -13,9 +13,9 @@
     />
     <VtsQuickInfoRow :label="$t('cpu-model')" :value="host.CPUs.modelname" />
     <VtsQuickInfoRow :label="$t('core-socket')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
-    <VtsQuickInfoRow disabled :label="$t('hyper-threading')" />
     <VtsQuickInfoRow :label="$t('gpus')">
       <template #value>
+        <!-- TODO: display PGPUs name when available -->
         <template v-if="host.PGPUs.length > 0">
           {{ pGpusIds }}
         </template>
@@ -24,7 +24,6 @@
         </template>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow disabled :label="$t('system-disks-health')" />
   </UiCard>
 </template>
 
