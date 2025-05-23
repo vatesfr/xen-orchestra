@@ -608,6 +608,7 @@ export default class RestApi {
       docs: {},
       messages: {},
       networks: {},
+      pifs: {},
       pools: {},
       groups: {},
       users: {},
