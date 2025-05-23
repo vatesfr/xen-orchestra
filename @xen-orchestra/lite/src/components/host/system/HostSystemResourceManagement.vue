@@ -7,7 +7,6 @@
       :label="$t('control-domain-memory')"
       :value="`${controllerMemory?.value} ${controllerMemory?.prefix}`"
     />
-    <VtsQuickInfoRow disabled :label="$t('scheduler-granularity')" />
   </UiCard>
 </template>
 
@@ -26,13 +25,13 @@ const { host } = defineProps<{
 
 const { getByOpaqueRef } = useControlDomainStore().subscribe()
 
-const controlDomain = computed(() => getByOpaqueRef(host.control_domain))
-
 const controllerMemory = computed(() => {
-  if (controlDomain.value === undefined) {
+  const controlDomain = getByOpaqueRef(host.control_domain)
+
+  if (controlDomain === undefined) {
     return
   }
 
-  return formatSizeRaw(controlDomain.value.memory_dynamic_max, 2)
+  return formatSizeRaw(controlDomain.memory_dynamic_max, 2)
 })
 </script>
