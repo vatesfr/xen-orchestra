@@ -248,6 +248,8 @@ export default class {
   // - name: the name of the user according to the provider
   // - data: additional data about the user that the provider may want to store
   async registerUser2(providerId, { user: { id, name }, data }) {
+    assert.equal(typeof id, 'string')
+    assert.notEqual(id, '')
     assert.equal(typeof name, 'string')
     assert.notEqual(name, '')
 

@@ -54,6 +54,7 @@
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
 - xo-server minor
+- xo-server-auth-ldap patch
 - xo-web minor
 
 <!--packages-end-->
