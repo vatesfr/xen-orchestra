@@ -725,15 +725,12 @@ const hasInstallSettings = computed(() => {
   }
 })
 
-const hasVdis = computed(() => vmState.vdis.length > 0 || vmState.existingVdis.length > 0)
-
 const isCreateVmDisabled = computed(() => {
   return (
     isBusy.value ||
     !vmState.new_vm_template ||
     !vmState.name.length ||
     !hasInstallSettings.value ||
-    !hasVdis.value ||
     hasInvalidSrVdi.value
   )
 })
