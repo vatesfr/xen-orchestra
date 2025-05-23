@@ -19,7 +19,7 @@ import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 import { I18nN } from 'vue-i18n'
 
-const props = defineProps<{
+const { label, size, value, unit, max } = defineProps<{
   label: string
   size: TSize
   value?: number
@@ -27,16 +27,16 @@ const props = defineProps<{
   max?: number
 }>()
 
-const sizeClass = computed(() => toVariants({ size: props.size }))
+const sizeClass = computed(() => toVariants({ size }))
 
-const fontClass = computed(() => (props.size === 'medium' ? 'typo-h3' : 'typo-caption-small'))
+const fontClass = computed(() => (size === 'medium' ? 'typo-h3' : 'typo-caption-small'))
 
 const percentValue = computed(() => {
-  if (props.value === undefined || props.max === undefined || props.max === 0) {
+  if (value === undefined || max === undefined || max === 0) {
     return undefined
   }
 
-  return props.value / props.max
+  return value / max
 })
 </script>
 
