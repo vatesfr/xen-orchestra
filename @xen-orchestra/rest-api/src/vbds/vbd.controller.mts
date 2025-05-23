@@ -7,7 +7,7 @@ import type { XoVbd } from '@vates/types'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialVbds, vbd, vbdIds } from '../open-api/oa-examples/vbd.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('vbds')
@@ -32,9 +32,10 @@ export class VbdController extends XapiXoController<XoVbd> {
   getVbds(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoVbd>>>[] {
+  ): SendObjects<Partial<Unbrand<XoVbd>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
