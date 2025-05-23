@@ -7,7 +7,6 @@ import urlParser from 'url-parse'
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:?]+)(\?[^?]*)?$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
-const AZURE_RE = /^([^:]+):([^@]+)(?:@([^:]+)(?::(\d+)))?(\/\/[^?]+)(\?[^?]*)?$/
 
 const sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
 
@@ -79,21 +78,14 @@ export const parse = string => {
     object.password = decodeURIComponent(parsed.password)
     object = { ...parseOptionList(parsed.query), ...object }
   } else if (type === 'azure') {
-    let username, password, host, port, path, optionList
-    try {
-      // using regex to parse the url instead of normal url parsing because password might contain slashes and to handle optional host and port for azurite connection
-      ;[, username, password, host, port, path, optionList] = AZURE_RE.exec(rest)
-    } catch (err) {
-      ;[username, password, path] = rest.split(':')
-      object.invalidUrl = true
-    }
+    const parsed = urlParser(string, false)
+    object.protocol = parsed.protocol === parsed.host ? 'https' : 'http'
     object.type = 'azure'
-    object.username = username
-    object.password = decodeURIComponent(password)
-    object.host = host ? `${host}:${port}` : undefined
-    object.protocol = host ? 'http' : 'https'
-    object.path = path.slice(2)
-    object = { ...parseOptionList(optionList), ...object }
+    object.host = parsed.host
+    object.path = parsed.pathname
+    object.username = decodeURIComponent(parsed.username)
+    object.password = decodeURIComponent(parsed.password)
+    object = { ...parseOptionList(parsed.query), ...object }
   }
   return object
 }
@@ -112,10 +104,7 @@ export const format = ({ type, host, path, port, username, password, domain, pro
     string += `${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
   if (type === 'azure') {
-    // used a double slash to seperate path cause password might contain slashes
-    string = host
-      ? `${protocol}://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}//${path}`
-      : `azure://${username}:${encodeURIComponent(password)}//${path}`
+    string = `azure://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
   path = sanitizePath(path)
   if (type === 'smb') {
