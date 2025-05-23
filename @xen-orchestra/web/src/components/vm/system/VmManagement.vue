@@ -41,11 +41,7 @@
         </UiInfo>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('start-delay')">
-      <template #value>
-        {{ $t('relative-time.second', vm.startDelay) }}
-      </template>
-    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="$t('start-delay')" :value="$t('relative-time.second', vm.startDelay)" />
   </UiCard>
 </template>
 

@@ -107,4 +107,102 @@ export class VmController extends XapiXoController<XoVm> {
       },
     })
   }
+
+  /**
+   * Requires guest tools to be installed
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/clean_shutdown')
+  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async cleanShutdownVm(@Path() id: string, @Query() sync?: boolean): Promise<string | void> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      await this.getXapiObject(vmId).$callAsync('clean_shutdown')
+    }
+
+    return this.createAction(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'clean shutdown VM',
+        objectId: vmId,
+      },
+    })
+  }
+
+  /**
+   * Requires guest tools to be installed
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/clean_reboot')
+  async cleanRebootVm(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      await this.getXapiObject(vmId).$callAsync('clean_reboot')
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'clean reboot VM',
+        objectId: vmId,
+      },
+    })
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/hard_shutdown')
+  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async hardShutdownVm(@Path() id: string, @Query() sync?: boolean): Promise<string | void> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      await this.getXapiObject(vmId).$callAsync('hard_shutdown')
+    }
+
+    return this.createAction(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'hard shutdown VM',
+        objectId: vmId,
+      },
+    })
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/hard_reboot')
+  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async hardRebootVm(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      await this.getXapiObject(vmId).$callAsync('hard_reboot')
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'hard reboot VM',
+        objectId: vmId,
+      },
+    })
+  }
 }

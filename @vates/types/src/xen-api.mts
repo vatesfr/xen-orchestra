@@ -254,6 +254,10 @@ export interface XenApiPoolUpdate {
 
 type XenApiVmCallMethods = {
   (method: 'start', start_paused: boolean, force: boolean): Promise<void>
+  (method: 'clean_shutdown'): Promise<void>
+  (method: 'hard_shutdown'): Promise<void>
+  (method: 'clean_reboot'): Promise<void>
+  (method: 'hard_reboot'): Promise<void>
 }
 export interface XenApiVm {
   $ref: Branded<'VM'>

@@ -71,6 +71,10 @@ const resources = computed(() => {
       label: t('maximum-dynamic-memory'),
       value: `${dynamicMaxMemoryFormated.value?.value} ${dynamicMaxMemoryFormated.value?.prefix}`,
     },
+    {
+      label: t('gpus'),
+      value: vm.VGPUs.length > 0 ? vm.VGPUs.join(', ') : t('none'),
+    },
   ]
 })
 </script>
