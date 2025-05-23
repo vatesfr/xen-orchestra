@@ -3,7 +3,7 @@
   <div class="ui-card-numbers" :class="sizeClass">
     <span class="label typo-caption-small">{{ label }}</span>
     <div class="values" :class="sizeClass">
-      <span v-if="percentValue" class="value" :class="fontClass">
+      <span v-if="percentValue !== undefined" class="value" :class="fontClass">
         <I18nN tag="span" :value="percentValue" :class="fontClass" format="percent" />
       </span>
 
