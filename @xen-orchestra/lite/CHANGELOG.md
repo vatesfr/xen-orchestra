@@ -3,6 +3,7 @@
 ## **next**
 
 - [VM/system] Display system information in vm/system tab (PR [##8547](https://github.com/vatesfr/xen-orchestra/pull/8547))
+- [Host/system] Display system view information in host/system tab (PR [#8536](https://github.com/vatesfr/xen-orchestra/pull/8536))
 
 ## **0.10.1** (2025-05-07)
 

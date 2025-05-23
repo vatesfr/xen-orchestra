@@ -1,9 +1,6 @@
 <template>
-  <div class="vts-quick-info-row" :class="{ disabled, mobile: uiStore.isMobile }">
-    <span
-      v-tooltip="disabled ? $t('not-yet-available') : uiStore.isMobile"
-      class="typo-body-regular label text-ellipsis"
-    >
+  <div class="vts-quick-info-row" :class="{ mobile: uiStore.isMobile }">
+    <span v-tooltip class="typo-body-regular label text-ellipsis">
       <slot name="label">
         {{ label }}
       </slot>
@@ -23,7 +20,6 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 defineProps<{
   label?: string
   value?: string
-  disabled?: boolean
 }>()
 
 defineSlots<{
@@ -58,14 +54,6 @@ const uiStore = useUiStore()
     &:empty::before {
       content: '-';
     }
-  }
-
-  /* Temporary style when the property displayed */
-  /* by the component is not available in the REST API */
-  /* TODO: update when design ready */
-
-  &.disabled {
-    opacity: 0.5;
   }
 }
 </style>
