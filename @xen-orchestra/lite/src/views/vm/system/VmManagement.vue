@@ -38,11 +38,11 @@
 <script setup lang="ts">
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
+import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import VtsEnabledState from '@core/enabled-state/VtsEnabledState.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
