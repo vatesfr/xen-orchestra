@@ -13,7 +13,7 @@
       <tbody>
         <tr v-for="vm in vms" :key="vm.id">
           <VtsCellObject :id="vm.data.id">
-            <UiObjectLink :route="`/vm/${vm.data.id}/console`">
+            <UiObjectLink :route="`/vm/${vm.data.id}/`">
               <template #icon>
                 <UiObjectIcon size="medium" :state="vm.data.power_state.toLocaleLowerCase() as VmState" type="vm" />
               </template>
