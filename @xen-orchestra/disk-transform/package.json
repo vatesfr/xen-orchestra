@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/disk-transform",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "main": "./dist/index.mjs",
   "license": "MIT",
   "private": false,
@@ -35,6 +35,6 @@
   },
   "dependencies": {
     "vhd-lib": "^4.11.2",
-    "@vates/generator-toolbox": "^1.0.1"
+    "@vates/generator-toolbox": "^1.0.2"
   }
 }
