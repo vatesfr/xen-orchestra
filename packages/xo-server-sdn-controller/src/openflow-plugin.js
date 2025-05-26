@@ -1,7 +1,10 @@
 import { asyncEach } from '@vates/async-each'
+import { createLogger } from '@xen-orchestra/log'
 import { strictEqual } from 'node:assert'
+
 const PLUGIN_NAME = 'sdn-controller.py'
 
+const log = createLogger('xo:sdn-controller:openflowplugin')
 export class OpenFlowPlugin {
   #getBridge(network) {
     return network.bridge // following discussion with David, it may not be the right bridge
@@ -17,7 +20,7 @@ export class OpenFlowPlugin {
   }
 
   async addRule({ vif, allow, protocol, ipRange, direction, port }) {
-    console.log('addRule',{ vif, allow, protocol, ipRange, direction, port })
+    log.debug('addRule', { vif, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(vif.$network, 'add-rule', {
       mac: vif.MAC,
       allow: allow ? 'true' : 'false',
@@ -29,7 +32,7 @@ export class OpenFlowPlugin {
   }
 
   async deleteRule({ vif, allow, protocol, ipRange, direction, port }) {
-    console.log('deleteRule',{ vif, allow, protocol, ipRange, direction, port })
+    log.debug('deleteRule', { vif, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(vif.$network, 'del-rule', {
       mac: vif.MAC,
       allow: allow ? 'true' : 'false',
@@ -41,22 +44,26 @@ export class OpenFlowPlugin {
   }
 
   async addNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
-    console.log('addNetworkRule',{ network, allow, protocol, ipRange, direction, port })
+    log.debug('addNetworkRule', { network, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(network, 'add-rule', { allow, protocol, ipRange, direction, port })
   }
   async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
-    console.log('deleteNetworkRule',{ network, allow, protocol, ipRange, direction, port })
+    log.debug('deleteNetworkRule', { network, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(network, 'del-rule', { allow, protocol, ipRange, direction, port })
   }
   async check(host) {
-    console.log('check',{ host })
+    log.debug('check', { host })
     await Promise.all(
       host.$PIFs.map(async ({ $network }) => {
         const response = await host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, 'dump-flows', {
           bridge: $network.bridge,
         })
         const json = JSON.parse(response)
-        strictEqual(json.returncode, 0, `plugin check should have a return code of 0 to succeed, got ${json.returncode}`)
+        strictEqual(
+          json.returncode,
+          0,
+          `plugin check should have a return code of 0 to succeed, got ${json.returncode}`
+        )
       })
     )
   }
