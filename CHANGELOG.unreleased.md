@@ -38,9 +38,9 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web patch
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web patch
 - xo-server patch
 
 <!--packages-end-->
