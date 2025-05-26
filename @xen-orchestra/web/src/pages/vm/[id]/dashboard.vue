@@ -1,9 +1,8 @@
 <template>
   <div class="vm-dashboard-view" :class="{ mobile: uiStore.isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
-    <div v-if="!data">
-      <!--  TODO add vtsOfflineHero component when available -->
-      <p>{{ t('offline') }}</p>
+    <div v-if="!data" class="offline-hero-container">
+      <VtsOfflineHero type="page" />
     </div>
     <div v-else class="charts-container">
       <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
@@ -23,14 +22,12 @@ import VmDashboardVdiUsageChart from '@/components/vm/dashboard/VmDashboardVdiUs
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
 import { type XoVm } from '@/types/xo/vm.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
+import VtsOfflineHero from '@core/components/state-hero/VtsOfflineHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
   vm: XoVm
 }>()
-
-const { t } = useI18n()
 
 const { data, isFetching, error } = useFetchStats('vms', () => vm.id, GRANULARITY.Hours)
 
@@ -45,12 +42,14 @@ const uiStore = useUiStore()
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
+    'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart';
 
   &.mobile {
     grid-template-columns: 1fr;
     grid-template-areas:
       'quick-info'
+      'offline-hero-container'
       'cpu-usage-chart'
       'ram-usage-chart'
       'network-usage-chart'
@@ -59,6 +58,12 @@ const uiStore = useUiStore()
 
   .quick-info {
     grid-area: quick-info;
+  }
+
+  .offline-hero-container {
+    grid-area: offline-hero-container;
+    width: 50rem;
+    margin: 0 auto;
   }
 
   .charts-container {
