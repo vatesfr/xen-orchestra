@@ -114,7 +114,7 @@ Content-Type: application/json
 As NDJSON:
 
 ```http
-GET /rest/v0/vms?fields=name_label,power_state&ndjson HTTP/1.1
+GET /rest/v0/vms?fields=name_label,power_state&ndjson=true HTTP/1.1
 Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 
 HTTP/1.1 200 OK
@@ -147,7 +147,7 @@ The `fields` and `filter` parameters are supported.
 Example:
 
 ```http
-GET /rest/v0/vms?fields=start,status&ndjson&watch HTTP/1.1
+GET /rest/v0/vms?fields=start,status&ndjson=true&watch HTTP/1.1
 Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 
 HTTP/1.1 200 OK
