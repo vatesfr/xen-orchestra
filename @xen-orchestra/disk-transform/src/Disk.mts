@@ -105,7 +105,6 @@ export abstract class RandomAccessDisk extends Disk {
       await this.progressHandler?.setProgress(1)
     } finally {
       await this.progressHandler?.done()
-      await this.close()
     }
   }
 }
