@@ -4,6 +4,7 @@ import type { XoHost } from '@/types/xo/host.type'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import type { XoPool } from '@/types/xo/pool.type'
+import type { XoServer } from '@/types/xo/server.type'
 import type { XoSr } from '@/types/xo/sr.type'
 import type { XoTask } from '@/types/xo/task.type'
 import type { XoVbd } from '@/types/xo/vbd.type'
@@ -95,5 +96,11 @@ export const xoApiDefinition = {
     path: 'vm-controllers',
     fields: 'id,memory',
     handler: (record: XoVmController) => record,
+  },
+  server: {
+    type: 'collection',
+    path: 'servers',
+    fields: 'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId,poolNameLabel',
+    handler: (record: XoServer) => record,
   },
 } satisfies ApiDefinition
