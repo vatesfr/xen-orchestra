@@ -12,8 +12,12 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **Migrated REST API endpoints**:
+
   - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
   - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+
+- **Azure Blob Storage**:
+  - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PR [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415))
 
 ### Bug fixes
 
@@ -40,6 +44,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - xo-server patch

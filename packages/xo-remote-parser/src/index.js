@@ -77,6 +77,15 @@ export const parse = string => {
     object.username = decodeURIComponent(parsed.username)
     object.password = decodeURIComponent(parsed.password)
     object = { ...parseOptionList(parsed.query), ...object }
+  } else if (type === 'azure') {
+    const parsed = urlParser(string, false)
+    object.protocol = parsed.protocol === parsed.host ? 'https' : 'http'
+    object.type = 'azure'
+    object.host = parsed.host
+    object.path = parsed.pathname
+    object.username = decodeURIComponent(parsed.username)
+    object.password = decodeURIComponent(parsed.password)
+    object = { ...parseOptionList(parsed.query), ...object }
   }
   return object
 }
@@ -93,6 +102,9 @@ export const format = ({ type, host, path, port, username, password, domain, pro
   if (type === 's3') {
     string = protocol === 'https' ? 's3://' : 's3+http://'
     string += `${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
+  }
+  if (type === 'azure') {
+    string = `azure://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
   path = sanitizePath(path)
   if (type === 'smb') {
