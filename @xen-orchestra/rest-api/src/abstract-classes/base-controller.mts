@@ -12,6 +12,7 @@ import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type
 import type { Response as ExResponse } from 'express'
 
 const noop = () => {}
+const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
 
 export abstract class BaseController<T extends XoRecord, IsSync extends boolean> extends Controller {
   abstract getObjects(): IsSync extends false ? Promise<Record<T['id'], T>> : Record<T['id'], T>
@@ -30,7 +31,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
 
     if (req.query.ndjson === 'true') {
       const res = req.res as ExResponse
-      res.setHeader('Content-Type', 'application/x-ndjson')
+      res.setHeader('Content-Type', NDJSON_CONTENT_TYPE)
 
       const stream = Readable.from(makeNdJsonStream(mappedObjects))
       stream.pipe(res)
