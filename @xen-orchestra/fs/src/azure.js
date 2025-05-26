@@ -169,7 +169,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     try {
       const result = []
       for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix: fullPath })) {
-        const strippedName = item.name.replace(`${fullPath}/`, '')
+        const strippedName = item.name.replace(`${fullPath}`, '')
         result.push(strippedName.endsWith('/') ? strippedName.slice(0, -1) : strippedName)
       }
       if (result.length === 0 && !ignoreMissing) {
