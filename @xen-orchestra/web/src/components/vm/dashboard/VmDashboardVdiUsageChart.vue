@@ -38,9 +38,11 @@ const vdiUsage = computed<LinearChartData>(() => {
     return []
   }
 
+  const readArrays = Object.values(data.stats.xvds.r)
+
   const timestamps = Array.from(
-    { length: data.stats.xvds.r.a.length },
-    (_, i) => data.endTimestamp * 1000 - (data.stats.xvds.r.a.length - 1 - i) * data.interval * 1000
+    { length: readArrays[0].length },
+    (_, i) => data.endTimestamp * 1000 - (readArrays[0].length - 1 - i) * data.interval * 1000
   )
 
   const readSeries = [

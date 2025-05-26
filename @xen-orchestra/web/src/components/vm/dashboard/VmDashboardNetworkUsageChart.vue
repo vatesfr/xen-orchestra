@@ -38,9 +38,11 @@ const networkUsage = computed<LinearChartData>(() => {
     return []
   }
 
+  const rxArrays = Object.values(data.stats.vifs.rx)
+
   const timestamps = Array.from(
-    { length: data.stats.vifs.rx['0'].length },
-    (_, i) => data.endTimestamp * 1000 - (data.stats.vifs.rx['0'].length - 1 - i) * data.interval * 1000
+    { length: rxArrays[0].length },
+    (_, i) => data.endTimestamp * 1000 - (rxArrays[0].length - 1 - i) * data.interval * 1000
   )
 
   const rxSeries = [
