@@ -34,6 +34,7 @@ import { watchStreamSize } from './_watchStreamSize.mjs'
 import { RemoteVhd } from './disks/RemoteVhd.mjs'
 import { openDiskChain } from './disks/openDiskChain.mjs'
 import { toVhdStream, writeToVhdDirectory } from 'vhd-lib/disk-consumer/index.mjs'
+import { ReadAhead } from '@xen-orchestra/disk-transform'
 
 export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
@@ -741,6 +742,7 @@ export class RemoteAdapter {
       disk = new RemoteVhd({ handler, path })
       await disk.init()
     }
+    disk = new ReadAhead(disk)
     return disk
   }
 
