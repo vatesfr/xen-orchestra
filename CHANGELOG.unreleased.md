@@ -17,6 +17,8 @@
 
 ### Bug fixes
 
+[REST API] Ability to use `ndjson` query parameter also on migrated collections (PR [#8628](https://github.com/vatesfr/xen-orchestra/pull/8628))
+
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 ### Packages to release
