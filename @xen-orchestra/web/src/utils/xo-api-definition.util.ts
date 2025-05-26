@@ -104,4 +104,10 @@ export const xoApiDefinition = {
     fields: 'id,memory',
     handler: (record: XoVmController) => record,
   },
+  server: {
+    type: 'collection',
+    path: 'servers',
+    fields: 'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId,poolNameLabel',
+    handler: (record: XoServer) => record,
+  },
 } satisfies ApiDefinition
