@@ -121,7 +121,7 @@ export const xoApiDefinition = {
   server: {
     type: 'collection',
     path: 'servers',
-    fields: 'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId,poolNameLabel',
+    fields: 'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId,poolNameLabel,id',
     handler: (record: XoServer) => record,
   },
 } satisfies ApiDefinition
