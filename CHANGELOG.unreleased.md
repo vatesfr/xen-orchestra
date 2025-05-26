@@ -36,6 +36,8 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/rest-api minor
 - xo-server patch
 
