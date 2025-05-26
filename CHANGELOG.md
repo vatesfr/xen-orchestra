@@ -40,13 +40,13 @@
 - @xen-orchestra/backups-cli 1.0.31
 - @xen-orchestra/immutable-backups 1.0.20
 - @xen-orchestra/web-core 0.20.0
-- @xen-orchestra/proxy 0.29.18
 - @xen-orchestra/rest-api 0.7.0
 - @xen-orchestra/web 0.18.0
 - xo-server 5.177.1
 - xo-server-auth-oidc 0.3.2
 - xo-server-netbox 1.9.0
 - xo-server-perf-alert 0.6.2
+- @xen-orchestra/proxy 0.29.19
 
 ## **5.106.4** (2025-05-23)
 
