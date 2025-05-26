@@ -2,9 +2,8 @@
   <VtsObjectNotFoundHero v-if="vm === undefined" :id type="page" />
   <div v-else class="vm-dashboard-view" :class="{ mobile: uiStore.isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
-    <!--     TODO replace with vtsStateOffline component when available -->
-    <div v-if="data.stats === undefined">
-      <p>{{ t('offline') }}</p>
+    <div v-if="data.stats === undefined" class="offline-hero-container">
+      <VtsOfflineHero type="page" />
     </div>
     <div v-else class="charts-container">
       <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="lastError" :loading="isFetching" />
@@ -27,6 +26,7 @@ import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
+import VtsOfflineHero from '@core/components/state-hero/VtsOfflineHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed, onUnmounted, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -77,12 +77,14 @@ onUnmounted(() => setRegisteredVm(undefined))
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
+    'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart disk-usage-chart disk-usage-chart';
 
   &.mobile {
     grid-template-columns: 1fr;
     grid-template-areas:
       'quick-info'
+      'offline-hero-container'
       'cpu-usage-chart'
       'ram-usage-chart'
       'network-usage-chart'
@@ -91,6 +93,12 @@ onUnmounted(() => setRegisteredVm(undefined))
 
   .quick-info {
     grid-area: quick-info;
+  }
+
+  .offline-hero-container {
+    grid-area: offline-hero-container;
+    width: 50rem;
+    margin: 0 auto;
   }
 
   .charts-container {
