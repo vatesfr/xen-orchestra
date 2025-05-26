@@ -458,9 +458,8 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
-import { type DOMAIN_TYPE, OPAQUE_REF, VBD_TYPE } from '@vates/types/common'
-
 // Vue imports
+import { OPAQUE_REF, VBD_TYPE, type DOMAIN_TYPE } from '@vates/types'
 import defer, { type Defer } from 'golike-defer'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -1035,7 +1034,7 @@ const _createVm = defer(async ($defer: Defer) => {
     isBusy.value = false
 
     await router.push({
-      name: 'vm.console',
+      name: 'vm.default',
       params: { uuid: vm.uuid },
     })
 
