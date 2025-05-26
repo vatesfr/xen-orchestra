@@ -17,6 +17,9 @@
   - [Site/Backups] Add side panel to backup jobs view (PR [#8966](https://github.com/vatesfr/xen-orchestra/pull/8966))
   - [VM/Backups] Add side panel to VM backup jobs view (PR [#8978](https://github.com/vatesfr/xen-orchestra/pull/8978))
 
+
+- [sdn-controller] Use the Xapi plugin instead of a direct channel to drive openflow (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -42,5 +45,6 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server-sdn-controller minor
 
 <!--packages-end-->
