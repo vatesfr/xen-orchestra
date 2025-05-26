@@ -33,6 +33,7 @@
 
 - **Azure Blob Storage**:
   - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PR [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415))
+- [sdn-controller] Use the Xapi plugin instead of a direct channel to drive openflow (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 
 ### Bug fixes
 
@@ -67,6 +68,7 @@
 - xo-remote-parser minor
 - xo-server minor
 - xo-server-perf-alert patch
-- xo-web patch
+- xo-server-sdn-controller minor
+- xo-web minor
 
 <!--packages-end-->
