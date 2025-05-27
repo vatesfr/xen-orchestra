@@ -296,6 +296,10 @@ class AuthLdap {
           }
 
           const ldapId = entry[this._userIdAttribute]
+          if (ldapId === undefined) {
+            throw new Error(`could not find field ${this._userIdAttribute} on user ${username}`)
+          }
+
           const user = await this._xo.registerUser2('ldap', {
             user: { id: ldapId, name: username },
           })
