@@ -36,6 +36,7 @@
 - [Signin] Fix size of the icon on login pages for Safari browser [#8301](https://github.com/vatesfr/xen-orchestra/issues/8301) (PR [#8572](https://github.com/vatesfr/xen-orchestra/pull/8572)).
 - [VM/Edit RAM] Fix hard-reboot being triggered instead of soft-reboot when RAM is edited and VM restarted (PR [#8592](https://github.com/vatesfr/xen-orchestra/pull/8592))
 - [Hosts] Prevent a HOST_OFFLINE error from being logged when displaying offline hosts (PR [#8597](https://github.com/vatesfr/xen-orchestra/pull/8597))
+- [XOA] Fix "an error has occurred" when XOA is not registered (PR [#8646](https://github.com/vatesfr/xen-orchestra/pull/8646))
 
 - **XO 6**:
 
@@ -63,8 +64,8 @@
 - @xen-orchestra/rest-api 0.8.0
 - xo-server 5.178.0
 - xo-server-auth-ldap 0.10.11
-- xo-web 5.175.0
 - @xen-orchestra/web 0.18.2
+- xo-web 5.175.1
 
 ## **5.106.4** (2025-05-23)
 
