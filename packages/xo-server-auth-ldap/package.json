@@ -1,6 +1,6 @@
 {
   "name": "xo-server-auth-ldap",
-  "version": "0.10.10",
+  "version": "0.10.11",
   "license": "AGPL-3.0-or-later",
   "description": "LDAP authentication plugin for XO-Server",
   "keywords": [
