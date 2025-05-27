@@ -254,6 +254,10 @@ export interface XenApiPoolUpdate {
 
 type XenApiVmCallMethods = {
   (method: 'start', start_paused: boolean, force: boolean): Promise<void>
+  (method: 'clean_shutdown'): Promise<void>
+  (method: 'hard_shutdown'): Promise<void>
+  (method: 'clean_reboot'): Promise<void>
+  (method: 'hard_reboot'): Promise<void>
 }
 export interface XenApiVm {
   $ref: Branded<'VM'>
@@ -705,6 +709,7 @@ export interface XenApiPif {
   VLAN_slave_of: XenApiVlan['$ref'][]
   VLAN: number
 }
+export type XenApiPifWrapped = WrapperXenApi<XenApiPif, 'PIF'>
 
 export interface XenApiPifMetrics {
   $ref: Branded<'PIF_metrics'>
@@ -1336,6 +1341,7 @@ export type XenApiRecord =
 
 export type WrappedXenApiRecord =
   | XenApiHostWrapped
+  | XenApiPifWrapped
   | XenApiPoolWrapped
   | XenApiSrWrapped
   | XenApiVbdWrapped

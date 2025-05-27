@@ -15,7 +15,7 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router/auto'
+import { useRoute } from 'vue-router'
 
 const route = useRoute<'/vm/[id]'>()
 

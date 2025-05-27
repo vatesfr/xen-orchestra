@@ -17,6 +17,8 @@ _Short explanation of this PR (feel free to re-use commit message)_
 
 ### Review process
 
+If you are an external contributor, you can skip this part. Simply create the pull request, and we'll get back to you as soon as possible.
+
 > This 2-passes review process aims to:
 >
 > - develop skills of junior reviewers

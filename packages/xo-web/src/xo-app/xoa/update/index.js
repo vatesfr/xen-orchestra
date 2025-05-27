@@ -325,11 +325,7 @@ const Updates = decorate([
                   )}
                   {state.isDisconnected && (
                     <p>
-                      <a
-                        href='https://docs.xen-orchestra.com/updater#troubleshooting'
-                        target='_blank'
-                        rel='noreferrer'
-                      >
+                      <a href='https://docs.xen-orchestra.com/updater#troubleshooting' target='_blank' rel='noreferrer'>
                         {_('updaterTroubleshootingLink')}
                       </a>
                     </p>
@@ -485,6 +481,9 @@ const Updates = decorate([
                       <div className='form-group'>
                         <input
                           className='form-control'
+                          disabled={
+                            state.askRegisterAgain && ['trustedTrial', 'untrustedTrial'].includes(xoaTrialState.state)
+                          }
                           name='email'
                           onChange={effects.linkState}
                           placeholder={formatMessage(messages.updateRegistrationEmailPlaceHolder)}

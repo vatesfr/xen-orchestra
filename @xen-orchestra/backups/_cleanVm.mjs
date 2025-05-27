@@ -595,7 +595,7 @@ export async function cleanVm(
         // all disks are now key disk
         metadata.isVhdDifferencing = {}
         for (const id of Object.keys(metadata.vdis ?? {})) {
-          metadata.isVhdDifferencing[`${id}.vhd`] = false
+          metadata.isVhdDifferencing[id] = false
         }
       }
       mustRegenerateCache = true
