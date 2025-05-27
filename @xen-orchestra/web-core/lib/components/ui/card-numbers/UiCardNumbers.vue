@@ -7,7 +7,7 @@
         {{ $n(percentValue, 'percent') }}
       </span>
       <span>
-        {{ `${value ?? '-'}${unit}` }}
+        {{ `${value ?? '-'} ${unit ?? ''}` }}
       </span>
     </div>
   </div>
