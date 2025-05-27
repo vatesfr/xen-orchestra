@@ -4,10 +4,25 @@
       <template v-if="depth != 0">
         <VtsTreeLine
           v-for="depthIndex in depth - 1"
-          :key="depthIndex"
-          :half-height="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded && deepest"
-          :right="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded && deepest"
-          :half-width="taskItem.id === taskItems[taskItems.length - 1].id && !taskItem.flags.expanded && deepest"
+          :key="taskItem.id + depthIndex"
+          :half-height="
+            taskItem.id === taskItems[taskItems.length - 1].id &&
+            !taskItem.flags.expanded &&
+            deepest &&
+            depthIndex == depth - 1
+          "
+          :right="
+            taskItem.id === taskItems[taskItems.length - 1].id &&
+            !taskItem.flags.expanded &&
+            deepest &&
+            depthIndex == depth - 1
+          "
+          :half-width="
+            taskItem.id === taskItems[taskItems.length - 1].id &&
+            !taskItem.flags.expanded &&
+            deepest &&
+            depthIndex == depth - 1
+          "
         />
         <VtsTreeLine :half-height="!taskItem.flags.expanded" right />
       </template>

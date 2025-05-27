@@ -2,7 +2,7 @@
 <template>
   <div class="ui-task-item">
     <div class="content">
-      <div class="typo-body-bold">
+      <div v-if="task.label" class="typo-body-bold">
         {{ task.label }}
       </div>
       <UiTag v-if="task.tag" accent="info" variant="secondary">{{ task.tag }}</UiTag>
@@ -10,7 +10,7 @@
         <VtsIcon :icon="faCircleNotch" accent="current" />
         <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
       </div>
-      <UiInfo v-if="task.errored" class="typo-body-regular-small" accent="danger">{{ 1 + ' ' + $t('errors') }}</UiInfo>
+      <UiInfo v-if="task.errored" class="typo-body-regular-small" accent="danger">{{ `1 ${$t('errors')}` }}</UiInfo>
       <UiInfo v-if="task.warningsCount && task.warningsCount !== 0" class="typo-body-regular-small" accent="warning">
         {{ task.warningsCount + ' ' + $t('warnings', task.warningsCount!) }}
       </UiInfo>

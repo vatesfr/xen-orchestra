@@ -1,5 +1,15 @@
 <template>
-  <ComponentStory v-slot="{ properties }" :params="[iconProp(), prop('task').type('Task').required().preset(task)]">
+  <ComponentStory
+    v-slot="{ properties }"
+    :params="[
+      iconProp(),
+      prop('task')
+        .type('Task')
+        .required()
+        .preset(task)
+        .help('is an object contain task. warning all id must be diferent in all subtask'),
+    ]"
+  >
     <UiTaskItem v-bind="properties" />
   </ComponentStory>
 </template>

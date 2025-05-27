@@ -2,10 +2,13 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      iconProp(),
-      prop('tasks').type('Task[]').required().preset([task]),
-      prop('depth').type('Number').preset('0'),
-      prop('deepest').type('Boolean').preset(false),
+      prop('tasks')
+        .type('Task[]')
+        .required()
+        .preset([task])
+        .help('is an object contain all tasks. warning all id must be diferent in all subtask'),
+      prop('depth').type('Number').preset('0').help('internal property for recursion'),
+      prop('deepest').type('Boolean').preset(false).help('internal property for recursion'),
     ]"
   >
     <UiTaskList v-bind="properties" />
@@ -14,7 +17,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop } from '@/libs/story/story-param'
+import { prop } from '@/libs/story/story-param'
 import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 let task: Task
@@ -31,6 +34,7 @@ task = {
   progress: 42,
 }
 
+// recustion dont works
 task = {
   errored: true,
   status: 'success',
