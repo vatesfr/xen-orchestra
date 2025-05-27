@@ -2,6 +2,11 @@
 
 ## **next**
 
+### Security
+
+- [VM] Detect XSA-468 vulnerable VMs. Read our announcement on the [XCP-ng blog](https://xcp-ng.org/blog/2025/05/27/xsa-468-windows-pv-driver-vulnerabilities/) for more details. (PR [#8638](https://github.com/vatesfr/xen-orchestra/pull/8638))
+- Contains an XO security update. Update as soon as possible
+
 ### Enhancements
 
 - **XO 6:**
@@ -9,6 +14,7 @@
   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
   - [Host/Dashboard] Update Quick Info section to display a link to the primary host (PR [#8606](https://github.com/vatesfr/xen-orchestra/pull/8606))
   - [Host/System] Display system information in host/system tab (PR [#8521](https://github.com/vatesfr/xen-orchestra/pull/8521))
+  - [i18n] Update Czech, German, Spanish, Dutch, Russian and Swedish translations (PR [#8534](https://github.com/vatesfr/xen-orchestra/pull/8534))
 - [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
 - [REST] Ability to connect/disconnect a server `POST rest/v0/servers/<server-id>/actions/(connect|disconnect)` (PR [#8565](https://github.com/vatesfr/xen-orchestra/pull/8565))
 - [Netbox] Support version 4.3.x (PR [#8588](https://github.com/vatesfr/xen-orchestra/pull/8588))
@@ -17,6 +23,9 @@
   - `/rest/v0/vms/<vm-id>/actions/hard_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
   - `/rest/v0/vms/<vm-id>/actions/clean_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
   - `/rest/v0/vms/<vm-id>/actions/hard_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
+  - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+  - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+  - `/rest/v0/vms/<vm-id>/actions/snapshot` (PR [#8622](https://github.com/vatesfr/xen-orchestra/pull/8622))
 
 ### Bug fixes
 
@@ -28,25 +37,34 @@
 - [VM/Edit RAM] Fix hard-reboot being triggered instead of soft-reboot when RAM is edited and VM restarted (PR [#8592](https://github.com/vatesfr/xen-orchestra/pull/8592))
 - [Hosts] Prevent a HOST_OFFLINE error from being logged when displaying offline hosts (PR [#8597](https://github.com/vatesfr/xen-orchestra/pull/8597))
 
+- **XO 6**:
+
+  - [VM] Add auto redirection from /vm/[id] to /vm/[id]/console (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
+
+- [Hosts] Avoid getting XO tasks logs flooded with errors on `host.isPubKeyTooShort` (PR [#8605](https://github.com/vatesfr/xen-orchestra/pull/8605))
+- [VM] Fix "an error has occurred" in Advanced tab when VTPM is `null` (PR [#8601](https://github.com/vatesfr/xen-orchestra/pull/8601))
+
 ### Released packages
 
 - @xen-orchestra/fs 4.5.1
 - @vates/generator-toolbox 1.0.2
 - @vates/nbd-client 3.1.3
-- @vates/types 1.3.0
-- @xen-orchestra/disk-transform 1.0.0
 - @xen-orchestra/xapi 8.2.0
-- @xen-orchestra/backups 0.60.0
-- @xen-orchestra/backups-cli 1.0.31
-- @xen-orchestra/immutable-backups 1.0.20
-- @xen-orchestra/web-core 0.20.0
-- @xen-orchestra/rest-api 0.7.0
-- @xen-orchestra/web 0.18.0
-- xo-server 5.177.1
 - xo-server-auth-oidc 0.3.2
 - xo-server-netbox 1.9.0
 - xo-server-perf-alert 0.6.2
-- @xen-orchestra/proxy 0.29.19
+- @vates/types 1.4.0
+- @xen-orchestra/disk-transform 1.0.1
+- @xen-orchestra/backups 0.61.0
+- @xen-orchestra/backups-cli 1.0.32
+- @xen-orchestra/immutable-backups 1.0.21
+- @xen-orchestra/web-core 0.20.1
+- @xen-orchestra/proxy 0.29.20
+- @xen-orchestra/rest-api 0.8.0
+- @xen-orchestra/web 0.18.1
+- xo-server 5.178.0
+- xo-server-auth-ldap 0.10.11
+- xo-web 5.175.0
 
 ## **5.106.4** (2025-05-23)
 
