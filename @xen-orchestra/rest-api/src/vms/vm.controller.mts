@@ -1,23 +1,27 @@
-import { Example, Get, Path, Post, Query, Request, Response, Route, Security, Tags, SuccessResponse } from 'tsoa'
+import { Example, Get, Path, Post, Query, Request, Response, Route, Security, Tags, SuccessResponse, Body } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
-import type { XapiStatsGranularity, XapiVmStats, XoVm } from '@vates/types'
+import type { XapiStatsGranularity, XapiVmStats, XenApiVm, XoVm, XoVmSnapshot } from '@vates/types'
 
 import {
   actionAsyncroneResp,
+  createdResp,
   internalServerErrorResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import { BASE_URL } from '../index.mjs'
 import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+
+const IGNORED_VDIS_TAG = '[NOSNAP]'
 
 @Route('vms')
 @Security('*')
@@ -201,6 +205,44 @@ export class VmController extends XapiXoController<XoVm> {
       statusCode: noContentResp.status,
       taskProperties: {
         name: 'hard reboot VM',
+        objectId: vmId,
+      },
+    })
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body { "name_label": "my_awesome_snapshot" }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/snapshot')
+  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @Response(createdResp.status, 'Snapshot created')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async snapshotVm(
+    @Path() id: string,
+    @Body() body?: { name_label?: XoVmSnapshot['name_label'] },
+    @Query() sync?: boolean
+  ): Promise<string | { id: XenApiVm['uuid'] }> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      const xapiVm = this.getXapiObject(vmId)
+      const ref = await xapiVm.$snapshot({ ignoredVdisTag: IGNORED_VDIS_TAG, name_label: body?.name_label })
+      const snapshotId = await xapiVm.$xapi.getField<XenApiVm, 'uuid'>('VM', ref, 'uuid')
+
+      if (sync) {
+        this.setHeader('Location', `${BASE_URL}/vm-snapshots/${snapshotId}`)
+      }
+
+      return { id: snapshotId }
+    }
+
+    return this.createAction<Promise<{ id: XenApiVm['uuid'] }>>(action, {
+      sync,
+      statusCode: createdResp.status,
+      taskProperties: {
+        name: 'snapshot VM',
         objectId: vmId,
       },
     })
