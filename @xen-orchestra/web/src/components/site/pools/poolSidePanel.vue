@@ -76,6 +76,7 @@
         <UiCardTitle class="typo-body-bold text-ellipsis">
           {{ $t('connection') }}
         </UiCardTitle>
+        <!-- status -->
         <VtsCardRowKeyValue>
           <template #key>{{ $t('status') }}</template>
           <template #value>
@@ -84,6 +85,7 @@
             </UiInfo>
           </template>
         </VtsCardRowKeyValue>
+        <!-- primary-host -->
         <VtsCardRowKeyValue>
           <template #key>{{ $t('primary-host') }}</template>
           <template v-if="primaryHost" #value>
@@ -95,6 +97,7 @@
             <VtsCopyButton :value="primaryHost?.name_label ?? ''" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- ip-address -->
         <VtsCardRowKeyValue>
           <template #key>{{ $t('ip-address') }}</template>
           <template #value> {{ server.host }}</template>
@@ -102,6 +105,7 @@
             <VtsCopyButton :value="server.host" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- proxy-url -->
         <VtsCardRowKeyValue>
           <template #key>{{ $t('proxy-url') }}</template>
           <template #value> {{ server.httpProxy }}</template>
@@ -109,6 +113,7 @@
             <VtsCopyButton :value="server.httpProxy ?? ''" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- username -->
         <VtsCardRowKeyValue>
           <template #key>{{ $t('username') }}</template>
           <template #value> {{ server.username }}</template>
@@ -116,13 +121,21 @@
             <VtsCopyButton :value="server.username" />
           </template>
         </VtsCardRowKeyValue>
+        <!-- read-only -->
         <VtsCardRowKeyValue>
           <template #key>{{ $t('read-only') }}</template>
           <template #value>
             <VtsEnabledState :enabled="server.readOnly" />
           </template>
         </VtsCardRowKeyValue>
-        <VtsCardRowKeyValue />
+        <!-- self-signed-certificates -->
+        <VtsCardRowKeyValue>
+          <template #key>{{ $t('self-signed-certificates') }}</template>
+          <template #value>
+            <!-- todo add information button. waiting modal -->
+            <VtsEnabledState :enabled="server.allowUnauthorized" />
+          </template>
+        </VtsCardRowKeyValue>
       </UiCard>
       <UiCard>
         <UiCardTitle>
