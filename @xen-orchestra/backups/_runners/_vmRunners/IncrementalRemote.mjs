@@ -9,6 +9,7 @@ import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs
 import { Disposable } from 'promise-toolbox'
 import { openVhd } from 'vhd-lib'
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
+import { SynchronizedDisk } from '@xen-orchestra/disk-transform'
 
 const { warn } = createLogger('xo:backups:Incrementalremote')
 class IncrementalRemoteVmBackupRunner extends AbstractRemote {
@@ -68,9 +69,12 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       // recompute if disks are differencing or not
       const isVhdDifferencing = {}
 
-      Object.entries(incrementalExport.disks).forEach(([key, disk]) => {
+      for (const key in incrementalExport.disks) {
+        const disk = incrementalExport.disks[key]
         isVhdDifferencing[key] = disk.isDifferencing()
-      })
+        incrementalExport.disks[key] = new SynchronizedDisk(disk)
+      }
+
       const hasDifferencingDisk = Object.values(isVhdDifferencing).includes(true)
       if (metadata.isBase === hasDifferencingDisk) {
         warn(`Metadata isBase and real disk value are different`, {
@@ -84,10 +88,18 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       await this._selectBaseVm(metadata)
       await this._callWriters(writer => writer.prepare({ isBase: metadata.isBase }), 'writer.prepare()')
 
+      function fork(incrementalExport, label) {
+        const { disks, ...forked } = incrementalExport
+        forked.disks = {}
+        for (const key in disks) {
+          forked.disks[key] = disks[key].fork(label)
+        }
+        return forked
+      }
       await this._callWriters(
         writer =>
           writer.transfer({
-            deltaExport: incrementalExport,
+            deltaExport: fork(incrementalExport, writer.constructor.name + ' ' + Math.random()),
             isVhdDifferencing,
             timestamp: metadata.timestamp,
             vm: metadata.vm,
