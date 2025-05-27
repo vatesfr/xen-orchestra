@@ -124,6 +124,21 @@
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue />
       </UiCard>
+      <UiCard>
+        <UiCardTitle>
+          <span>
+            {{ $t('hosts') }}
+            <UiCounter :value="hosts?.length ?? 0" accent="neutral" size="small" variant="primary" />
+          </span>
+        </UiCardTitle>
+        <VtsNoDataHero v-if="hosts?.length == 0" type="panel" />
+        <template v-else>
+          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" :icon="faServer" size="small">
+            {{ host.name_label }}
+            <VtsIcon v-if="primaryHost?.id == host.id" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+          </UiLink>
+        </template>
+      </UiCard>
     </template>
   </UiPanel>
 </template>
@@ -135,17 +150,20 @@ import type { XoServer } from '@/types/xo/server.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCity, faEdit, faEllipsis, faServer, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faCircle, faCity, faEdit, faEllipsis, faServer, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -156,7 +174,7 @@ const { server } = defineProps<{
 const { t } = useI18n()
 
 const { isReady: isPoolReady, get: getpool } = usePoolStore().subscribe()
-const { isReady: isHostready, getMasterHostByPoolId } = useHostStore().subscribe()
+const { isReady: isHostready, getMasterHostByPoolId, hostsByPool } = useHostStore().subscribe()
 const pool = computed(() => (server.poolId ? getpool(server.poolId) : undefined))
 
 const connectionStatus: ComputedRef<{ accent: InfoAccent; text: string }> = computed(() => {
@@ -177,6 +195,9 @@ const connectionStatus: ComputedRef<{ accent: InfoAccent; text: string }> = comp
 })
 
 const primaryHost = computed(() => (server.poolId ? getMasterHostByPoolId(server.poolId) : undefined))
+const hosts = computed(() => {
+  return server.poolId ? hostsByPool.value.get(server.poolId) : undefined
+})
 </script>
 
 <style scoped lang="postcss">
