@@ -1,7 +1,7 @@
 <template>
   <VtsNoDataHero v-if="!records.length" type="page" />
   <div v-else class="pools">
-    <UiCard v-if="isReady" class="container">
+    <UiCard v-if="isReady" class="pool-table">
       <PoolsTable :servers="records" />
     </UiCard>
     <UiPanel v-else>
@@ -33,8 +33,14 @@ const selectedServer = useRouteQuery<XoServer | undefined>('id', {
 })
 </script>
 
-<style lang="postcss" scoped>
+<style scoped lang="postcss">
 .pools {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40rem;
+  .pool-table {
+    height: fit-content;
+    gap: 4rem;
+    margin: 0.8rem;
+  }
 }
 </style>
