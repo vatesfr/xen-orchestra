@@ -1,5 +1,5 @@
 <template>
-  <div class="ui-task-item">
+  <li class="ui-task-item">
     <div class="content">
       <UiButtonIcon
         v-if="hasSubTasks"
@@ -36,7 +36,7 @@
       <UiCircleProgressBar v-if="task.progress" accent="info" size="small" :value="task.progress" />
       <span v-else class="circle-hero" />
     </div>
-  </div>
+  </li>
 </template>
 
 <script lang="ts" setup>
