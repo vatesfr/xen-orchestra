@@ -224,21 +224,21 @@ export class VmController extends XapiXoController<XoVm> {
     @Path() id: string,
     @Body() body?: { name_label?: XoVmSnapshot['name_label'] },
     @Query() sync?: boolean
-  ): Promise<string | { uuid: XenApiVm['uuid'] }> {
+  ): Promise<string | { id: XenApiVm['uuid'] }> {
     const vmId = id as XoVm['id']
     const action = async () => {
       const xapiVm = this.getXapiObject(vmId)
       const ref = await xapiVm.$snapshot({ ignoredVdisTag: IGNORED_VDIS_TAG, name_label: body?.name_label })
-      const snapshotUuid = await xapiVm.$xapi.getField<XenApiVm, 'uuid'>('VM', ref, 'uuid')
+      const snapshotId = await xapiVm.$xapi.getField<XenApiVm, 'uuid'>('VM', ref, 'uuid')
 
       if (sync) {
-        this.setHeader('Location', `${BASE_URL}/vm-snapshots/${snapshotUuid}`)
+        this.setHeader('Location', `${BASE_URL}/vm-snapshots/${snapshotId}`)
       }
 
-      return { uuid: snapshotUuid }
+      return { id: snapshotId }
     }
 
-    return this.createAction<Promise<{ uuid: XenApiVm['uuid'] }>>(action, {
+    return this.createAction<Promise<{ id: XenApiVm['uuid'] }>>(action, {
       sync,
       statusCode: createdResp.status,
       taskProperties: {
