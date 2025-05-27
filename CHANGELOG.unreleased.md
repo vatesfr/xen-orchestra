@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [XOA] Fix "an error has occurred" when XOA is not registered (PR [#8646](https://github.com/vatesfr/xen-orchestra/pull/8646))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-web patch
 
 <!--packages-end-->
