@@ -4060,7 +4060,19 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
     .then(() => _call('xoa.licenses.bindToSelf', { licenseId: id, oldXoaId }), noop)
     ::tap(subscribeSelfLicenses.forceRefresh)
 
-export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
+export const subscribeSelfLicenses = createSubscription(() =>
+  _call('xoa.licenses.getSelf').then(licenses => {
+    if (!Array.isArray(licenses)) {
+      if (licenses?.state === 'register-needed') {
+        return []
+      }
+
+      throw new Error(licenses?.message || 'Could not fetch licenses')
+    }
+
+    return licenses
+  })
+)
 
 const createLicenseSubscription = productType =>
   createSubscription(() =>
