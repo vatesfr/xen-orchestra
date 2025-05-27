@@ -1,7 +1,14 @@
-<!-- v1 -->
 <template>
   <div class="ui-task-item">
     <div class="content">
+      <UiButtonIcon
+        v-if="hasSubTasks"
+        class="toggle"
+        accent="brand"
+        :icon="expanded ? faAngleDown : faAngleRight"
+        size="small"
+        @click.stop="emit('expend')"
+      />
       <div v-if="task.label" class="typo-body-bold">
         {{ task.label }}
       </div>
@@ -19,7 +26,6 @@
       </UiInfo>
     </div>
     <div class="informations typo-body-regular-small">
-      <!-- todo add user link. wating user page -->
       <span v-if="task.start" class="start">
         {{ `${$t('started-at')} ${started}` }}
       </span>
@@ -35,9 +41,10 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons'
+import { faCircleNotch, faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
+import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 import UiCircleProgressBar from '../circle-progress-bar/UiCircleProgressBar.vue'
 import UiInfo from '../info/UiInfo.vue'
 
@@ -57,16 +64,18 @@ export type Task = {
   tasks?: Task[]
 }
 
-const { task } = defineProps<{
+const props = defineProps<{
   task: Task
+  expanded?: boolean
 }>()
 
-const subTasks = computed(() => task.tasks ?? [])
+const emit = defineEmits<{ expend: [] }>()
+
+const subTasks = computed(() => props.task.tasks ?? [])
 const subTasksCount = computed(() => subTasks.value.length)
 const hasSubTasks = computed(() => subTasksCount.value > 0)
-// reactivity issue ?
-const started = typeof task.start === 'number' ? useTimeAgo(() => task.start as number) : undefined
-const end = typeof task.end === 'number' ? useTimeAgo(() => task.end as number) : undefined
+const started = typeof props.task.start === 'number' ? useTimeAgo(() => props.task.start as number) : undefined
+const end = typeof props.task.end === 'number' ? useTimeAgo(() => props.task.end as number) : undefined
 </script>
 
 <style lang="postcss" scoped>
