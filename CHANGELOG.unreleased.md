@@ -14,6 +14,8 @@
 - **Migrated REST API endpoints**:
   - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
   - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+- **XO 6:**
+  - [i18n] Update Czech, German, Spanish, Dutch, Russian and Swedish translations (PR [#8534](https://github.com/vatesfr/xen-orchestra/pull/8534))
 
 ### Bug fixes
 
@@ -42,6 +44,7 @@
 - @vates/types minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
 - xo-server patch
 - xo-web patch
 
