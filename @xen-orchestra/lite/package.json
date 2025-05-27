@@ -34,7 +34,7 @@
     "@vueuse/core": "^13.0.0",
     "@vueuse/math": "^13.0.0",
     "@vueuse/shared": "^13.0.0",
-    "@xen-orchestra/web-core": "^0.20.0",
+    "@xen-orchestra/web-core": "^0.20.1",
     "complex-matcher": "^0.7.1",
     "d3-time-format": "^4.1.0",
     "decorator-synchronized": "^0.6.0",
