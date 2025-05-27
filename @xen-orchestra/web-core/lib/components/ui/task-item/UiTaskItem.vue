@@ -3,6 +3,7 @@
     <div class="content">
       <UiButtonIcon
         v-if="hasSubTasks"
+        :target-scale="{ x: 2, y: 3 }"
         class="toggle"
         accent="brand"
         :icon="expanded ? faAngleDown : faAngleRight"
