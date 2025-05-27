@@ -41,7 +41,7 @@
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
       </div>
       <VtsDataTable
-        :is-ready
+        :is-ready="isServerReady && isHostReady"
         :has-error
         :no-data-message="servers.length === 0 ? $t('no-network-detected') : undefined"
       >
@@ -89,13 +89,18 @@
                 disabled
                 size="small"
               />
-              <div v-else-if="column.id === 'label'">
-                <UiLink size="medium" :to="`/pool/${column.value.id}/`" @click.stop>
-                  {{ column.value.label }}
+              <div v-else-if="column.id === 'label' || column.id === 'primary_host'">
+                <UiLink
+                  size="medium"
+                  :disabled="column.value.value?.to === undefined"
+                  :to="column.value.value?.to"
+                  @click.stop
+                >
+                  {{ column.value.value.label }}
                 </UiLink>
               </div>
-              <UiInfo v-else-if="column.id === 'status'" :accent="column.value.accent">
-                {{ column.value.text }}
+              <UiInfo v-else-if="column.id === 'status'" :accent="column.value.value.accent">
+                {{ column.value.value.text }}
               </UiInfo>
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
@@ -113,6 +118,7 @@
 </template>
 
 <script setup lang="ts">
+import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useServerStore } from '@/stores/xo-rest-api/server.store.ts'
 import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -132,9 +138,17 @@ import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faCaretDown, faCity, faEdit, faEllipsis, faEraser, faHashtag } from '@fortawesome/free-solid-svg-icons'
+import {
+  faCaretDown,
+  faCity,
+  faEdit,
+  faEllipsis,
+  faEraser,
+  faHashtag,
+  faServer,
+} from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
-import { computed, ref } from 'vue'
+import { computed, ref, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { servers } = defineProps<{
@@ -143,7 +157,8 @@ const { servers } = defineProps<{
 
 const { t } = useI18n()
 
-const { isReady, hasError } = useServerStore().subscribe()
+const { isReady: isServerReady, hasError } = useServerStore().subscribe()
+const { isReady: isHostReady, getMasterHostByPoolId } = useHostStore().subscribe()
 
 const selectedServerId = useRouteQuery('id')
 
@@ -169,36 +184,45 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? serverIds.value : []
 }
 
-const getStatus = (server: XoServer): { accent: InfoAccent; text: string } => {
-  if (server.error) {
-    return { accent: 'danger', text: t('error') }
-  }
-
-  switch (server.status) {
-    case 'disconnected':
-      return { accent: 'muted', text: t('disconnected') }
-    case 'connected':
-      return { accent: 'success', text: t('connected') }
-    case 'connecting':
-      return { accent: 'info', text: t('connecting') }
-    default:
-      return { accent: 'muted', text: t('unknown') }
-  }
-}
-
-const getPoolInfo = (server: XoServer) => {
-  if (server.poolNameLabel) {
-    return {
-      label: server.poolNameLabel,
-      id: server.poolId,
+const getStatus = (server: XoServer): ComputedRef<{ accent: InfoAccent; text: string }> =>
+  computed(() => {
+    if (server.error) {
+      return { accent: 'danger', text: t('error') }
     }
-  }
 
-  return {
-    label: server.id,
-    id: server.id,
-  }
-}
+    switch (server.status) {
+      case 'disconnected':
+        return { accent: 'muted', text: t('disconnected') }
+      case 'connected':
+        return { accent: 'success', text: t('connected') }
+      case 'connecting':
+        return { accent: 'info', text: t('connecting') }
+      default:
+        return { accent: 'muted', text: t('unknown') }
+    }
+  })
+
+const getPoolInfo = (server: XoServer) =>
+  computed(() => {
+    if (server.poolNameLabel) {
+      return {
+        label: server.poolNameLabel,
+        to: server.poolId ? `/pool/${server.poolId}/` : undefined,
+      }
+    }
+
+    return {
+      label: server.id,
+      to: server.poolId ? `/pool/${server.poolId}/` : undefined,
+    }
+  })
+
+// compute this
+const getPrimaryHost = (server: XoServer) =>
+  computed(() => {
+    const host = server.poolId ? getMasterHostByPoolId(server.poolId) : undefined
+    return host ? { label: host.name_label, to: `/host/${host.id}/` } : { label: '', to: undefined }
+  })
 
 const { visibleColumns, rows } = useTable('servers', filteredServers, {
   rowId: record => record.id,
@@ -207,16 +231,18 @@ const { visibleColumns, rows } = useTable('servers', filteredServers, {
     define('label', record => getPoolInfo(record), { label: t('pool') }),
     define('host', { label: t('ip-address') }),
     define('status', record => getStatus(record), { label: t('status') }),
+    define('primary_host', record => getPrimaryHost(record), { label: t('master') }),
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
-type ServerHeader = 'label' | 'host' | 'status'
+type ServerHeader = 'label' | 'host' | 'status' | 'primary_host'
 
 const headerIcon: Record<ServerHeader, IconDefinition> = {
   label: faCity,
   host: faHashtag,
   status: faCaretDown,
+  primary_host: faServer,
 }
 </script>
 
