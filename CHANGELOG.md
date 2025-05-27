@@ -1,6 +1,25 @@
 # ChangeLog
 
-## **next**
+## **5.107.0** (2025-05-27)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
+- [REST] Ability to connect/disconnect a server `POST rest/v0/servers/<server-id>/actions/(connect|disconnect)` (PR [#8565](https://github.com/vatesfr/xen-orchestra/pull/8565))
+- **Migrated REST API endpoints**
+  - `/rest/v0/vms/<vm-id>/actions/clean_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
+  - `/rest/v0/vms/<vm-id>/actions/hard_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
+  - `/rest/v0/vms/<vm-id>/actions/clean_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
+  - `/rest/v0/vms/<vm-id>/actions/hard_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
+  - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+  - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+  - `/rest/v0/vms/<vm-id>/actions/snapshot` (PR [#8622](https://github.com/vatesfr/xen-orchestra/pull/8622))
+- **XO 6:**
+  - [VM/system] Display system information in vm/system tab (PR [#8522](https://github.com/vatesfr/xen-orchestra/pull/8522))
+  - [Host/System] Display system information in host/system tab (PR [#8521](https://github.com/vatesfr/xen-orchestra/pull/8521))
+  - [i18n] Update Czech, German, Spanish, Dutch, Russian and Swedish translations (PR [#8534](https://github.com/vatesfr/xen-orchestra/pull/8534))
 
 ### Security
 
@@ -10,22 +29,9 @@
 ### Enhancements
 
 - **XO 6:**
-  - [VM/system] Display system information in vm/system tab (PR [#8522](https://github.com/vatesfr/xen-orchestra/pull/8522))
   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
   - [Host/Dashboard] Update Quick Info section to display a link to the primary host (PR [#8606](https://github.com/vatesfr/xen-orchestra/pull/8606))
-  - [Host/System] Display system information in host/system tab (PR [#8521](https://github.com/vatesfr/xen-orchestra/pull/8521))
-  - [i18n] Update Czech, German, Spanish, Dutch, Russian and Swedish translations (PR [#8534](https://github.com/vatesfr/xen-orchestra/pull/8534))
-- [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
-- [REST] Ability to connect/disconnect a server `POST rest/v0/servers/<server-id>/actions/(connect|disconnect)` (PR [#8565](https://github.com/vatesfr/xen-orchestra/pull/8565))
 - [Netbox] Support version 4.3.x (PR [#8588](https://github.com/vatesfr/xen-orchestra/pull/8588))
-- **Migrated REST API endpoints**
-  - `/rest/v0/vms/<vm-id>/actions/clean_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
-  - `/rest/v0/vms/<vm-id>/actions/hard_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
-  - `/rest/v0/vms/<vm-id>/actions/clean_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
-  - `/rest/v0/vms/<vm-id>/actions/hard_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
-  - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
-  - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
-  - `/rest/v0/vms/<vm-id>/actions/snapshot` (PR [#8622](https://github.com/vatesfr/xen-orchestra/pull/8622))
 
 ### Bug fixes
 
@@ -69,7 +75,7 @@
 
 ## **5.106.4** (2025-05-23)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Released packages
 
@@ -169,8 +175,6 @@
 - xo-server 5.177.2
 
 ## **5.105.0** (2025-03-31)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
