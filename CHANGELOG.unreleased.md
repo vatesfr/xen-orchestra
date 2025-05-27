@@ -7,7 +7,7 @@
 
 > Security fixes and new features should go in this section
 
-- [VM] Detect XSA-468 vulnerable VMs. Read our announcement on the [XCP-ng blog](https://xcp-ng.org/blog/xsa-468-windows-pv-driver-vulnerabilities) for more details.
+- [VM] Detect XSA-468 vulnerable VMs. Read our announcement on the [XCP-ng blog](https://xcp-ng.org/blog/2025/05/27/xsa-468-windows-pv-driver-vulnerabilities/) for more details. (PR [#8638](https://github.com/vatesfr/xen-orchestra/pull/8638))
 
 ### Enhancements
 
