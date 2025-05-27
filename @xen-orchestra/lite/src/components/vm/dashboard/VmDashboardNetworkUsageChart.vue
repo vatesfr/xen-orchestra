@@ -39,32 +39,45 @@ const { t } = useI18n()
 const networkUsage = computed<LinearChartData>(() => {
   const { stats, timestampStart } = data
 
-  const { vifs } = stats ?? {}
+  const vifs = stats?.vifs
 
-  if (vifs === undefined) {
+  if (!vifs) {
     return []
   }
 
-  const addNetworkData = (type: 'rx' | 'tx') => ({
-    label: type === 'rx' ? t('network-upload') : t('network-download'),
+  const addNetworkData = (type: 'rx' | 'tx') => {
+    const vifArrays = Object.values(vifs[type])
 
-    data: Object.values(vifs[type])[0].map((_, index) => ({
-      timestamp:
-        (timestampStart -
-          RRD_STEP_FROM_STRING.hours * (Object.values(vifs[type])[0].length - 1) +
-          index * RRD_STEP_FROM_STRING.hours) *
-        1000,
+    if (vifArrays.length === 0) {
+      return { label: '', data: [] }
+    }
 
-      value: Object.values(vifs[type]).reduce((sum, values) => sum + values[index], 0),
-    })),
-  })
+    const data = Array.from({ length: vifArrays[0].length }, (_, idx) => {
+      const timestamp =
+        (timestampStart - RRD_STEP_FROM_STRING.hours * (vifArrays[0].length - 1) + idx * RRD_STEP_FROM_STRING.hours) *
+        1000
+
+      const value = vifArrays.reduce((sum, arr) => sum + (arr[idx] ?? 0), 0)
+
+      return {
+        timestamp,
+        // Sometimes we got infinity values in the result, we need to replace it with null
+        value: Number.isFinite(value) ? value : null,
+      }
+    })
+
+    return {
+      label: type === 'rx' ? t('network-upload') : t('network-download'),
+      data,
+    }
+  }
 
   return [addNetworkData('rx'), addNetworkData('tx')]
 })
 
 const maxValue = computed(() => {
   const values = networkUsage.value.reduce(
-    (acc, series) => [...acc, ...series.data.map(item => item.value)],
+    (acc, series) => [...acc, ...series.data.map(item => item.value ?? 0)],
 
     [] as number[]
   )
@@ -72,12 +85,17 @@ const maxValue = computed(() => {
   if (values.length === 0) {
     return 100
   }
-  const maxUsage = Math.max(...values)
+
+  const maxUsage = Math.max(...values) * 1.2
 
   return Math.ceil(maxUsage / 100) * 100
 })
 
-const byteFormatter = (value: number) => {
+const byteFormatter = (value: number | null) => {
+  if (value === null) {
+    return ''
+  }
+
   const result = formatSizeRaw(value, 1)
 
   return `${result?.value}${result?.prefix}`
