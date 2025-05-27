@@ -37,7 +37,7 @@ const task: Task = {
   label: 'task',
   progress: 42,
   warningsCount: 4,
-  tasks: [task4, task2],
+  tasks: [task2, task4],
 }
 
 const task3: Task = {
@@ -50,7 +50,7 @@ const task3: Task = {
   label: 'task',
   progress: 42,
   infosCount: 8,
-  tasks: [task, task4],
+  tasks: [task],
 }
 
 task2.tasks = [task]
