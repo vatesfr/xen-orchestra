@@ -3970,12 +3970,13 @@ const downloadAndInstallXosanPack = (pack, pool, { version }) =>
     pool: resolveId(pool),
   })
 
-export const downloadAndInstallResource = ({ namespace, id, version, sr }) =>
+export const downloadAndInstallResource = ({ namespace, id, version, sr, templateOnly }) =>
   _call('cloud.downloadAndInstallResource', {
     namespace,
     id,
     version,
     sr: resolveId(sr),
+    templateOnly,
   })
 
 import UpdateXosanPacksModal from './update-xosan-packs-modal' // eslint-disable-line import/first
