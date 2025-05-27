@@ -106,6 +106,7 @@ type BaseXoVm = BaseXapiXo & {
   videoram?: number
   viridian: boolean
   virtualizationMode: DOMAIN_TYPE
+  vulnerabilities: { xsa468: boolean | { reason: string; driver?: string; version?: string } }
   xenStoreData: Record<string, string>
   /**
    * @deprecated use pvDriversVersion instead
