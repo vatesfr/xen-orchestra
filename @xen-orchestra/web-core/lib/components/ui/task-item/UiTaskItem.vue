@@ -106,7 +106,7 @@ const end = typeof props.task.end === 'number' ? useTimeAgo(() => props.task.end
 
   .start + .end::before {
     content: '•';
-    margin-right: 0.8rem;
+    margin-inline-end: 0.8rem;
   }
 
   .typo-body-regular-small {

@@ -8,19 +8,19 @@
           :half-height="
             taskItem.id === taskItems[taskItems.length - 1].id &&
             !taskItem.flags.expanded &&
-            deepest &&
+            isDeepestTask &&
             depthIndex == depth - 1
           "
           :right="
             taskItem.id === taskItems[taskItems.length - 1].id &&
             !taskItem.flags.expanded &&
-            deepest &&
+            isDeepestTask &&
             depthIndex == depth - 1
           "
           :half-width="
             taskItem.id === taskItems[taskItems.length - 1].id &&
             !taskItem.flags.expanded &&
-            deepest &&
+            isDeepestTask &&
             depthIndex == depth - 1
           "
         />
@@ -52,7 +52,7 @@ import { useCollection } from '@core/packages/collection'
 const {
   tasks,
   depth = 0,
-  deepest = false,
+  deepest: isDeepestTask = false,
 } = defineProps<{
   tasks: Task[]
   depth?: number
