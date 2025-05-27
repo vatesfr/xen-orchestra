@@ -18,7 +18,7 @@ export const xoApiDefinition = {
   pool: {
     type: 'collection',
     path: 'pools',
-    fields: 'id,name_label,master,default_SR',
+    fields: 'id,name_label,$pool,master,name_description,name_label,_xapiRef,default_SR,tags',
     handler: (record: XoPool) => record,
   },
   host: {
