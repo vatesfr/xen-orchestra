@@ -1,6 +1,6 @@
 <template>
   <div v-for="taskItem of taskItems" :key="taskItem.id" class="vts-tree-item">
-    <div class="ui-tree-item-label">
+    <ul class="ui-tree-item-label">
       <template v-if="depth != 0">
         <VtsTreeLine
           v-for="depthIndex in depth - 1"
@@ -31,7 +31,7 @@
         :expanded="taskItem.flags.expanded"
         @expend="taskItem.toggleFlag('expanded')"
       />
-    </div>
+    </ul>
     <div>
       <UiTaskList
         v-if="taskItem.source.tasks?.length && taskItem.flags.expanded"
