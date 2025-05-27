@@ -65,7 +65,7 @@ const maxValue = computed(() => {
 
   const maxCpuUsage = Math.max(...values)
 
-  return Math.ceil(maxCpuUsage / 10) * 10
+  return Math.ceil(maxCpuUsage / 100) * 100
 })
 
 const valueFormatter: ValueFormatter = value => n(value / 100, 'percent')
