@@ -61,10 +61,10 @@
 - @xen-orchestra/web-core 0.20.1
 - @xen-orchestra/proxy 0.29.20
 - @xen-orchestra/rest-api 0.8.0
-- @xen-orchestra/web 0.18.1
 - xo-server 5.178.0
 - xo-server-auth-ldap 0.10.11
 - xo-web 5.175.0
+- @xen-orchestra/web 0.18.2
 
 ## **5.106.4** (2025-05-23)
 
