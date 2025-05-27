@@ -202,8 +202,8 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
 
     let metadataContent = await this._isAlreadyTransferred(timestamp)
     if (metadataContent !== undefined) {
-      // skip backup while being vigilant to not stuck the forked stream
-      /** @todo destroy fork  */
+      // skip backup while being vigilant to not stuck the forked disk
+      await Promise.all(Object.values(deltaExport.disks).map(async disk => disk.close()))
       return { size: 0 }
     }
 

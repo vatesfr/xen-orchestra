@@ -44,6 +44,8 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
