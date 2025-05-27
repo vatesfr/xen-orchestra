@@ -21,6 +21,8 @@ import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
+const IGNORED_VDIS_TAG = '[NOSNAP]'
+
 @Route('vms')
 @Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
@@ -226,7 +228,7 @@ export class VmController extends XapiXoController<XoVm> {
     const vmId = id as XoVm['id']
     const action = async () => {
       const xapiVm = this.getXapiObject(vmId)
-      const ref = await xapiVm.$snapshot({ ignoredVdisTag: '[NOSNAP]', name_label: body?.name_label })
+      const ref = await xapiVm.$snapshot({ ignoredVdisTag: IGNORED_VDIS_TAG, name_label: body?.name_label })
       const snapshotUuid = await xapiVm.$xapi.getField<XenApiVm, 'uuid'>('VM', ref, 'uuid')
 
       if (sync) {
