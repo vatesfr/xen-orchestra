@@ -23,7 +23,9 @@
 
 - **XO 6**:
   - [VM] Add auto redirection from /vm/[id] to /vm/[id]/console (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
-  - [Hosts] Avoid getting XO tasks logs flooded with errors on `host.isPubKeyTooShort` (PR [#8605](https://github.com/vatesfr/xen-orchestra/pull/8605))
+
+ - [Hosts] Avoid getting XO tasks logs flooded with errors on `host.isPubKeyTooShort` (PR [#8605](https://github.com/vatesfr/xen-orchestra/pull/8605))
+ - [VM] Fix "an error has occurred" in Advanced tab when VTPM is `null` (PR [#8601](https://github.com/vatesfr/xen-orchestra/pull/8601))
 
 ### Packages to release
 
