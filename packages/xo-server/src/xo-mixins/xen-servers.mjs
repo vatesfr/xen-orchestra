@@ -599,7 +599,9 @@ export default class XenServers {
     }
     server.status = this._getXenServerStatus(server.id)
     if (server.status === 'connected') {
-      server.poolId = xapis[server.id].pool.uuid
+      const xapi = xapis[server.id]
+      server.poolId = xapi.pool.uuid
+      server.master = xapi.getObjectByRef(xapi.pool.master).uuid
     }
     if (server.label === undefined) {
       server.label = server.poolNameLabel

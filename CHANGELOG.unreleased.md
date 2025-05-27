@@ -31,4 +31,7 @@
 
 <!--packages-start-->
 
+- @vates/types minor
+- xo-server minor
+
 <!--packages-end-->
