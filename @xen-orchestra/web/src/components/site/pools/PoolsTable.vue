@@ -10,7 +10,7 @@
           <UiButton
             v-tooltip="$t('coming-soon')"
             disabled
-            :left-icon="faCaretDown"
+            :left-icon="faCaretSquareDown"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -94,6 +94,7 @@
                   size="medium"
                   :disabled="column.value.value?.to === undefined"
                   :to="column.value.value?.to"
+                  :icon="column.value.value.icon"
                   @click.stop
                 >
                   {{ column.value.value.label }}
@@ -139,7 +140,7 @@ import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
-  faCaretDown,
+  faCaretSquareDown,
   faCity,
   faEdit,
   faEllipsis,
@@ -208,12 +209,14 @@ const getPoolInfo = (server: XoServer) =>
       return {
         label: server.poolNameLabel,
         to: server.poolId ? `/pool/${server.poolId}/` : undefined,
+        icon: faCity,
       }
     }
 
     return {
       label: server.id,
       to: server.poolId ? `/pool/${server.poolId}/` : undefined,
+      icon: faCity,
     }
   })
 
@@ -221,7 +224,9 @@ const getPoolInfo = (server: XoServer) =>
 const getPrimaryHost = (server: XoServer) =>
   computed(() => {
     const host = server.poolId ? getMasterHostByPoolId(server.poolId) : undefined
-    return host ? { label: host.name_label, to: `/host/${host.id}/` } : { label: '', to: undefined }
+    return host
+      ? { label: host.name_label, to: `/host/${host.id}/`, icon: faServer }
+      : { label: '', to: undefined, icon: faServer }
   })
 
 const { visibleColumns, rows } = useTable('servers', filteredServers, {
@@ -241,7 +246,7 @@ type ServerHeader = 'label' | 'host' | 'status' | 'primary_host'
 const headerIcon: Record<ServerHeader, IconDefinition> = {
   label: faCity,
   host: faHashtag,
-  status: faCaretDown,
+  status: faCaretSquareDown,
   primary_host: faServer,
 }
 </script>
