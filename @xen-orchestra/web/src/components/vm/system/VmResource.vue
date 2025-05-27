@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="vm-resource">
+  <UiCard>
     <UiTitle>
       {{ $t('resource-management') }}
     </UiTitle>

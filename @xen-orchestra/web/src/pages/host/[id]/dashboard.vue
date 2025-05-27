@@ -12,13 +12,13 @@
 </template>
 
 <script lang="ts" setup>
-import HostDashboardCpuProvisioning from '@/components/host/dashboard/HostDashboadCpuProvisioning.vue'
-import HostDashboardCpuUsageChart from '@/components/host/dashboard/HostDashboadCpuUsageChart.vue'
-import HostDashboardRamUsage from '@/components/host/dashboard/HostDashboadRamUsage.vue'
+import HostDashboardCpuProvisioning from '@/components/host/dashboard/HostDashboardCpuProvisioning.vue'
+import HostDashboardCpuUsageChart from '@/components/host/dashboard/HostDashboardCpuUsageChart.vue'
 import HostDashboardLoadAverageChart from '@/components/host/dashboard/HostDashboardLoadAverageChart.vue'
 import HostDashboardMemoryUsageChart from '@/components/host/dashboard/HostDashboardMemoryUsageChart.vue'
 import HostDashboardNetworkUsageChart from '@/components/host/dashboard/HostDashboardNetworkUsageChart.vue'
 import HostDashboardQuickInfo from '@/components/host/dashboard/HostDashboardQuickInfo.vue'
+import HostDashboardRamUsage from '@/components/host/dashboard/HostDashboardRamUsage.vue'
 import HostDashboardVmsStatus from '@/components/host/dashboard/HostDashboardVmsStatus.vue'
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
 import { type XoHost } from '@/types/xo/host.type'

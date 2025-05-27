@@ -3,17 +3,20 @@
 ## **next**
 
 - [VM/system] Display system information in vm/system tab (PR [##8547](https://github.com/vatesfr/xen-orchestra/pull/8547))
+- [Host/system] Display system view information in host/system tab (PR [#8536](https://github.com/vatesfr/xen-orchestra/pull/8536))
 
 ## **0.10.1** (2025-05-07)
 
 - [VM/New] Add possibility to add some tags in VM creation (PR [#8515](https://github.com/vatesfr/xen-orchestra/pull/8515))
 - [VM/New] Add affinity host field in VM creation (PR [#8486](https://github.com/vatesfr/xen-orchestra/pull/8486))
+- [VM/New] Add possibility to edit SR field on existing vdis in VM creation (PR [#8507](https://github.com/vatesfr/xen-orchestra/pull/8507))
 
 ## **0.10.0** (2025-04-30)
 
 - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
 - [Host] Add dashboard view (PR [#8504](https://github.com/vatesfr/xen-orchestra/pull/8504))
 - [VM/New] Add topology field in VM creation (PR [#8491](https://github.com/vatesfr/xen-orchestra/pull/8491))
+- [VM] Improved rooting of default vm page (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
 
 ## **0.9.1** (2025-04-02)
 

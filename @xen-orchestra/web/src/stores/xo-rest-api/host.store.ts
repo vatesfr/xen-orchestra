@@ -37,6 +37,16 @@ export const useHostStore = defineStore('host', () => {
     return hostsByPoolMap
   })
 
+  const getMasterHostByPoolId = (poolId: XoPool['id']) => {
+    const masterHostId = poolContext.get(poolId)?.master
+
+    if (masterHostId === undefined) {
+      return
+    }
+
+    return baseContext.get(masterHostId)
+  }
+
   const isHostOperationPending = (host: XoHost, operations: HOST_OPERATION[] | HOST_OPERATION) => {
     const currentOperations = Object.values(host.current_operations)
 
@@ -47,6 +57,7 @@ export const useHostStore = defineStore('host', () => {
     ...baseContext,
     isMasterHost,
     hostsByPool,
+    getMasterHostByPoolId,
     isHostOperationPending,
   }
 

@@ -535,9 +535,9 @@ export default class XenServers {
 
   async disconnectXenServer(id) {
     // throw no such object if the server does not exist
-    await this.getXenServer(id)
+    const server = await this.getXenServer(id)
     const status = this._getXenServerStatus(id)
-    if (status === 'disconnected') {
+    if (status === 'disconnected' && !server.enabled) {
       /* throw */ incorrectState({
         actual: status,
         expected: ['connected', 'connecting'],
@@ -547,6 +547,10 @@ export default class XenServers {
     }
     await this.updateXenServer(id, { enabled: false })
 
+    /**
+     * if the server is enabled but disconnected, xapi is undefined
+     * @type {Xapi | undefined}
+     */
     const xapi = this._xapis[id]
     delete this._xapis[id]
 
@@ -556,7 +560,7 @@ export default class XenServers {
       delete serverIdsByPool[id]
     }
 
-    return xapi.disconnect()
+    return xapi?.disconnect()
   }
 
   getAllXapis() {
