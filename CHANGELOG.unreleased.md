@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Templates] Fix Windows templates not being shown (PR [#8652](https://github.com/vatesfr/xen-orchestra/pull/8652))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @vates/types patch
+- xo-server patch
 
 <!--packages-end-->
