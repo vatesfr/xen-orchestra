@@ -613,6 +613,7 @@ export default class RestApi {
         actions: {
           emergency_shutdown: true,
           rolling_reboot: true,
+          rolling_update: true,
         },
       },
       groups: {},
