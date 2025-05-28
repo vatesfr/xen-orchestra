@@ -739,6 +739,7 @@ const TRANSFORMS = {
       name_description: obj.name_description,
       name_label: obj.name_label,
       parent: obj.sm_config['vhd-parent'],
+      image_format: obj.sm_config['image-format'],
       size: +obj.virtual_size,
       snapshots: link(obj, 'snapshots'),
       tags: obj.tags,
