@@ -15,7 +15,7 @@ import type {
   XenApiVmWrapped,
   XenApiVtpmWrapped,
 } from '@vates/types/xen-api'
-import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoSchedule, XoJob, XoGroup } from '@vates/types/xo'
+import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoSchedule, XoJob, XoGroup, XoPool } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
 
@@ -75,6 +75,7 @@ export type XoApp = {
   getXenServer(id: XoServer['id']): Promise<XoServer>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(body: InsertableXoServer): Promise<XoServer>
+  rollingPoolReboot(pool: XoPool, opts?: { parentTask?: Task }): Promise<void>
   runJob(job: XoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
 }
