@@ -1,8 +1,104 @@
 # ChangeLog
 
-## **5.106.2** (2025-05-07)
+## **next**
+
+### Bug fixes
+
+- [Templates] Fix Windows templates not being shown (PR [#8652](https://github.com/vatesfr/xen-orchestra/pull/8652))
+
+### Released packages
+
+- @vates/types 1.4.1
+- xo-server 5.178.1
+
+## **5.107.0** (2025-05-27)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
+- [REST] Ability to connect/disconnect a server `POST rest/v0/servers/<server-id>/actions/(connect|disconnect)` (PR [#8565](https://github.com/vatesfr/xen-orchestra/pull/8565))
+- **Migrated REST API endpoints**
+  - `/rest/v0/vms/<vm-id>/actions/clean_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
+  - `/rest/v0/vms/<vm-id>/actions/hard_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
+  - `/rest/v0/vms/<vm-id>/actions/clean_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
+  - `/rest/v0/vms/<vm-id>/actions/hard_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
+  - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+  - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+  - `/rest/v0/vms/<vm-id>/actions/snapshot` (PR [#8622](https://github.com/vatesfr/xen-orchestra/pull/8622))
+- **XO 6:**
+  - [VM/system] Display system information in vm/system tab (PR [#8522](https://github.com/vatesfr/xen-orchestra/pull/8522))
+  - [Host/System] Display system information in host/system tab (PR [#8521](https://github.com/vatesfr/xen-orchestra/pull/8521))
+  - [i18n] Update Czech, German, Spanish, Dutch, Russian and Swedish translations (PR [#8534](https://github.com/vatesfr/xen-orchestra/pull/8534))
+
+### Security
+
+- [VM] Detect XSA-468 vulnerable VMs. Read our announcement on the [XCP-ng blog](https://xcp-ng.org/blog/2025/05/27/xsa-468-windows-pv-driver-vulnerabilities/) for more details. (PR [#8638](https://github.com/vatesfr/xen-orchestra/pull/8638))
+- Contains an XO security update. Update as soon as possible
+
+### Enhancements
+
+- **XO 6:**
+  - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
+  - [Host/Dashboard] Update Quick Info section to display a link to the primary host (PR [#8606](https://github.com/vatesfr/xen-orchestra/pull/8606))
+- [Netbox] Support version 4.3.x (PR [#8588](https://github.com/vatesfr/xen-orchestra/pull/8588))
+
+### Bug fixes
+
+- [Backups] mirror full backup bigger han 50GB from encrypted source (PR [#8570](https://github.com/vatesfr/xen-orchestra/pull/8570))
+- [ACLs] Fix ACLs not being assigned properly when resource set is assigned to a VM (PR [#8571](https://github.com/vatesfr/xen-orchestra/pull/8571))
+- [Plugins/Perf-alert] Fixing plugin configuration error happening while editing config [Forum#9658](https://xcp-ng.org/forum/post/90573) (PR [#8561](https://github.com/vatesfr/xen-orchestra/pull/8561))
+- [Plugins/Perf-alert] Prevent non-running VMs and hosts to be monitored in specific cases [Forum#10802](https://xcp-ng.org/forum/topic/10802/performance-alerts-fail-when-turning-on-all-running-hosts-all-running-vm-s-etc) (PR [#8561](https://github.com/vatesfr/xen-orchestra/pull/8561))
+- [Signin] Fix size of the icon on login pages for Safari browser [#8301](https://github.com/vatesfr/xen-orchestra/issues/8301) (PR [#8572](https://github.com/vatesfr/xen-orchestra/pull/8572)).
+- [VM/Edit RAM] Fix hard-reboot being triggered instead of soft-reboot when RAM is edited and VM restarted (PR [#8592](https://github.com/vatesfr/xen-orchestra/pull/8592))
+- [Hosts] Prevent a HOST_OFFLINE error from being logged when displaying offline hosts (PR [#8597](https://github.com/vatesfr/xen-orchestra/pull/8597))
+- [XOA] Fix "an error has occurred" when XOA is not registered (PR [#8646](https://github.com/vatesfr/xen-orchestra/pull/8646))
+
+- **XO 6**:
+
+  - [VM] Add auto redirection from /vm/[id] to /vm/[id]/console (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
+
+- [Hosts] Avoid getting XO tasks logs flooded with errors on `host.isPubKeyTooShort` (PR [#8605](https://github.com/vatesfr/xen-orchestra/pull/8605))
+- [VM] Fix "an error has occurred" in Advanced tab when VTPM is `null` (PR [#8601](https://github.com/vatesfr/xen-orchestra/pull/8601))
+
+### Released packages
+
+- @xen-orchestra/fs 4.5.1
+- @vates/generator-toolbox 1.0.2
+- @vates/nbd-client 3.1.3
+- @xen-orchestra/xapi 8.2.0
+- xo-server-auth-oidc 0.3.2
+- xo-server-netbox 1.9.0
+- xo-server-perf-alert 0.6.2
+- @vates/types 1.4.0
+- @xen-orchestra/disk-transform 1.0.1
+- @xen-orchestra/backups 0.61.0
+- @xen-orchestra/backups-cli 1.0.32
+- @xen-orchestra/immutable-backups 1.0.21
+- @xen-orchestra/web-core 0.20.1
+- @xen-orchestra/proxy 0.29.20
+- @xen-orchestra/rest-api 0.8.0
+- xo-server 5.178.0
+- xo-server-auth-ldap 0.10.11
+- @xen-orchestra/web 0.18.2
+- xo-web 5.175.1
+
+## **5.106.4** (2025-05-23)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Released packages
+
+- xo-web 5.174.1
+
+## **5.106.3** (2025-05-22)
+
+### Released packages
+
+- xo-web 5.174.0
+
+## **5.106.2** (2025-05-07)
 
 ### Bug fixes
 
@@ -84,13 +180,12 @@
 - @xen-orchestra/rest-api 0.6.0
 - @xen-orchestra/vmware-explorer 0.9.5
 - @xen-orchestra/web 0.17.1
-- xo-server 5.177.0
 - xo-server-web-hooks 0.4.0
 - xo-web 5.173.0
+- vhd-lib 4.12.0
+- xo-server 5.177.2
 
 ## **5.105.0** (2025-03-31)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 

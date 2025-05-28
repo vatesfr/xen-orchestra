@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.173.2",
+  "version": "5.175.1",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [

@@ -55,7 +55,13 @@ import Import from './import'
 import keymap, { help } from '../keymap'
 import Tooltip from '../common/tooltip'
 import { createCollectionWrapper, createGetObjectsOfType } from '../common/selectors'
-import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses, subscribeXostorLicenses, subscribeSelfLicenses } from '../common/xo'
+import {
+  bindXcpngLicense,
+  rebindLicense,
+  subscribeXcpngLicenses,
+  subscribeXostorLicenses,
+  subscribeSelfLicenses,
+} from '../common/xo'
 import { SOURCES } from '../common/xoa-plans'
 import { getLicenseNearExpiration } from '../common/xoa-updater'
 
@@ -140,16 +146,20 @@ export const ICON_POOL_LICENSE = {
 @addSubscriptions({
   xcpLicenses: subscribeXcpngLicenses,
   xostorLicenses: subscribeXostorLicenses,
-  selfLicences: subscribeSelfLicenses
+  selfLicences: subscribeSelfLicenses,
 })
 @connectStore(state => {
   const getHosts = createGetObjectsOfType('host')
   const getXostors = createGetObjectsOfType('SR').filter([sr => sr.SR_type === 'linstor'])
+  const getXsa468VulnerableVms = createGetObjectsOfType('VM').filter([
+    vm => vm.vulnerabilities?.xsa468?.reason === 'pv-driver-version-vulnerable',
+  ])
   return {
     trial: state.xoaTrialState,
     registerNeeded: state.xoaUpdaterState === 'registerNeeded',
     signedUp: !!state.user,
     hosts: getHosts(state),
+    xsa468VulnerableVms: getXsa468VulnerableVms(state),
     xostors: getXostors(state),
   }
 })
@@ -314,7 +324,7 @@ export const ICON_POOL_LICENSE = {
       })
 
       return xostorLicenseInfoByXostorId
-    }
+    },
   },
 })
 export default class XoApp extends Component {
@@ -439,7 +449,7 @@ export default class XoApp extends Component {
   }
 
   render() {
-    const { signedUp, trial, registerNeeded } = this.props
+    const { signedUp, trial, registerNeeded, xsa468VulnerableVms } = this.props
     const { pathname } = this.context.router.location
     const licenseNearExpiration = this.props.selfLicences && getLicenseNearExpiration(this.props.selfLicences, trial)
     // If we are under expired or unstable trial (signed up only)
@@ -448,6 +458,7 @@ export default class XoApp extends Component {
       (blockXoaAccess(trial) || licenseNearExpiration?.blocked === true) &&
       !(pathname.startsWith('/xoa/') || pathname === '/backup/restore')
     const plan = getXoaPlan()
+
     return (
       <IntlProvider>
         <ThemeProvider theme={themes.base}>
@@ -500,6 +511,12 @@ export default class XoApp extends Component {
                     duration: licenseNearExpiration.textDuration,
                     date: new Date(licenseNearExpiration.license.expires),
                   })}
+                </div>
+              )}
+              {Object.keys(xsa468VulnerableVms).length > 0 && (
+                <div className='alert alert-danger mb-0'>
+                  IMPORTANT! Some of your VMs are vulnerable.{' '}
+                  <Link to='/home?s=vulnerable%3F'>Please check immediately.</Link>
                 </div>
               )}
               <div style={CONTAINER_STYLE}>

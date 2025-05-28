@@ -1,4 +1,5 @@
 import _ from 'intl'
+import BulkIcons from 'bulk-icons'
 import Component from 'base-component'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
@@ -65,6 +66,60 @@ export default class VmItem extends Component {
     (powerState, operations) => (!isEmpty(operations) ? 'Busy' : powerState)
   )
 
+  _getAlerts = createSelector(
+    () => this.props.item,
+    vm => {
+      const alerts = []
+
+      if (vm.vulnerabilities.xsa468) {
+        const { reason, driver, version } = vm.vulnerabilities.xsa468
+
+        if (reason === 'no-pv-drivers-detected') {
+          alerts.push({
+            level: 'warning',
+            render: (
+              <p>
+                <span>
+                  We cannot detect the version of Windows PV drivers on this VM. You may be running an outdated version.
+                  Check XCP-ng's{' '}
+                  <a href='https://docs.xcp-ng.org/vms/#windows-guest-tools-security' target='_blank' rel='noreferrer'>
+                    Windows Guest Tools Security documentation
+                  </a>{' '}
+                  for more details.
+                </span>
+                <br />
+                <br />
+                Still seeing this message even though you updated PV drivers? Please update your XCP-ng.
+              </p>
+            ),
+          })
+        } else {
+          alerts.push({
+            level: 'danger',
+            render: (
+              <p>
+                <span>
+                  This VM is running a Windows PV driver vulnerable to XSA-468 ({driver} {version}). You must upgrade
+                  your Windows PV drivers now. See{' '}
+                  <a
+                    href='https://docs.xcp-ng.org/vms/#xsa-468-multiple-windows-pv-driver-vulnerabilities'
+                    target='_blank'
+                    rel='noreferrer'
+                  >
+                    XCP-ng's documentation
+                  </a>{' '}
+                  for more details.
+                </span>
+              </p>
+            ),
+          })
+        }
+      }
+
+      return alerts
+    }
+  )
+
   render() {
     const { item: vm, container, expandAll, isAdmin, selected } = this.props
     const resourceSet = this._getResourceSet()
@@ -103,6 +158,8 @@ export default class VmItem extends Component {
                     useLongClick
                   />
                 </Ellipsis>
+                &nbsp;
+                <BulkIcons alerts={this._getAlerts()} />
               </EllipsisContainer>
             </Col>
             <Col mediumSize={4} className='hidden-md-down'>

@@ -1,50 +1,39 @@
 <!-- v1 -->
 <template>
-  <div class="ui-card-numbers" :class="sizeClass">
+  <div class="ui-card-numbers" :class="className">
     <span class="label typo-caption-small">{{ label }}</span>
-    <div class="values" :class="sizeClass">
-      <span v-if="percentValue" class="value typo-caption-small">
-        {{ percentValue }}
+    <div class="values" :class="fontClass">
+      <span v-if="percentValue !== undefined">
+        {{ $n(percentValue, 'percent') }}
       </span>
-
-      <div class="value" :class="valueFontClass">
-        {{ value ?? '-' }}<span class="unit" :class="unitFontClass">{{ unit }}</span>
-      </div>
+      <span>
+        {{ `${value ?? '-'} ${unit ?? ''}` }}
+      </span>
     </div>
   </div>
 </template>
 
-<script setup lang="ts" generic="TSize extends 'small' | 'medium'">
+<script setup lang="ts">
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { size, value, max } = defineProps<{
   label: string
-  size: TSize
+  size: 'small' | 'medium'
   value?: number
   unit?: string
-  max?: TSize extends 'small' ? number : never
+  max?: number
 }>()
 
-const { n } = useI18n()
-
-const sizeClass = computed(() => toVariants({ size: props.size }))
-
-const valueFontClass = computed(() => (props.size === 'medium' ? 'typo-h3' : 'typo-caption-small'))
-
-const unitFontClass = computed(() => (props.size === 'medium' ? 'typo-body-bold-small' : 'typo-caption-small'))
+const className = computed(() => toVariants({ size }))
+const fontClass = computed(() => (size === 'medium' ? 'typo-h3' : 'typo-caption-small'))
 
 const percentValue = computed(() => {
-  if (props.size !== 'small' || props.max === undefined || props.max === 0) {
+  if (value === undefined || max === undefined || max === 0) {
     return undefined
   }
 
-  if (props.value === undefined) {
-    return n(0, 'percent').replace('0', '-')
-  }
-
-  return n(props.value / props.max, 'percent')
+  return value / max
 })
 </script>
 
@@ -57,16 +46,6 @@ const percentValue = computed(() => {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-  }
-
-  .value {
-    color: var(--color-neutral-txt-primary);
-    display: flex;
-    gap: 0.2rem;
-    align-items: center;
-  }
-
-  .unit {
     color: var(--color-neutral-txt-primary);
   }
 

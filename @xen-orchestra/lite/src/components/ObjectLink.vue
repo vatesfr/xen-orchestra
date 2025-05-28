@@ -41,7 +41,7 @@ const props = defineProps<{
 
 const config: Config = {
   host: { context: useHostStore().subscribe({ defer: true }), routeName: 'host.console' },
-  vm: { context: useVmStore().subscribe({ defer: true }), routeName: 'vm.console' },
+  vm: { context: useVmStore().subscribe({ defer: true }), routeName: 'vm.default' },
   sr: { context: useSrStore().subscribe({ defer: true }), routeName: undefined },
   pool: { context: usePoolStore().subscribe({ defer: true }), routeName: 'pool.dashboard' },
 } satisfies Record<HandledTypes, any>

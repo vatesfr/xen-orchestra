@@ -73,6 +73,7 @@ export default decorate([
                 id,
                 version,
                 sr: defined(resourceParams.mapPoolsSrs[pool.id], pool.default_SR),
+                templateOnly: true,
               })
               const oldTemplates = filter(
                 templates,

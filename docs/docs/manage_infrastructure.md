@@ -345,6 +345,50 @@ This button will allow you to boot directly from the CD drive, ignoring your cur
 
 Activating "Auto Power on" for a VM will also configure the pool accordingly. If your host is rebooted, the VM will be started right after the host is up.
 
+### Network locking mode
+
+#### What's a VIF?
+
+In the Vates stack, each VM connects to the network through a **Virtual Interface**, or **VIF**. 
+
+Think of it as the VM’s virtual network card —it handles all incoming and outgoing traffic on a specific virtual network, which is linked to a physical NIC on the host via a bridge. Every VIF comes with a fixed MAC address and can be tied to a particular VLAN (or virtual network), depending on how your environment is set up.
+
+#### What does VIF locking mode do?
+
+**VIF locking mode** is a security feature that helps prevent unauthorized or spoofed traffic from getting in or out of a VM. 
+
+In practical terms, enabling locking mode means **the VM can’t send traffic using a fake MAC address** — and if an IP address is set, it won’t be able to use anything else either. This is **especially helpful in multi-tenant setups** or anytime you need tight control over which VM is allowed to do what on the network.
+
+#### Default behavior
+
+**By default, VIFs are not locked.** Users can assign any IP address to their VM, and they will work without restriction. 
+However, if you add restricted IPs, the VIF becomes locked, meaning only the specified IP addresses are allowed to send traffic outside the VM.
+
+#### Adding restricted IP addresses
+
+To add a restricted IP address:
+
+1. Go to the **VM view** and open the **Network** tab. You will see a column called **Allowed IPs**:
+   ![](./assets/allowed-ip-column.png)
+1. Click the **+** icon to add authorized IP addresses:
+   ![](./assets/add-allowed-ip.png)
+
+#### How do I enable VIF locking mode?
+
+1. Select the VM.
+1. Head over to the **Network** tab to see each VIF along with its current locking mode status:
+   ![](./assets/vif-locking-status.png)
+1. To change the locking mode status:
+   1. Click the pencil icon (with the **Edit locking mode** label). A dropdown menu appears.
+   1. Choose your desired mode from that menu:
+      ![](./assets/choose-vif-locking-mode.png)
+    
+If Xen Orchestra knows the VM’s IP address — either through the guest agent or DHCP — it will automatically apply IP-level locking when the mode is enabled.
+
+#### How do I automate VIF locking mode?
+
+If you’re automating things or working with scripts, you can also control VIF locking mode through the XO [command-line interface](architecture#xo-cli-cli). 
+
 ### VM high availability (HA)
 
 If you pool supports HA (must have shared storage), you can activate "HA". Read our blog post for more details on [VM high availability with XCP-ng/XenServer](https://xen-orchestra.com/blog/xenserver-and-vm-high-availability/).
@@ -534,7 +578,7 @@ Xen Orchestra will request a plugin, bundled and hosted within your XCP-ng hosts
 
 #### Rolling Pool Updates (RPU)
 
-Also known as RPU, **this is the advised way to update your pool**. By just clicking on one button, Xen Orchestra will automatically move VMs around, apply updates and reboot the hosts, without any service interruption. The following button is available in the Pool view, on "Patches" tab:
+Also known as RPU, **this is the advised way to update your pool**. By just clicking on one button, Xen Orchestra will automatically move VMs around, apply updates and reboot the hosts, without any service interruption. The following button is available in the **Pool** view of the **Patches** tab:
 
 ![](./assets/rpubutton.png)
 
@@ -552,6 +596,20 @@ restartHostTimeout = '40 minutes'
 :::
 
 ![](./assets/rpu1.png)
+
+##### Scheduling a RPU
+
+You can schedule rolling pool updates to automate the patching and rebooting of your pools during off-peak hours.
+
+:::tip
+Of course, schedule the updates outside production hours. Although RPUs are designed to be transparent, it is always wise to schedule some buffer time in case something goes wrong.
+:::
+
+1. **Create a job**: Navigate to the **Jobs** screen and create a new job, using the `pool.rollingUpdate` method. Determine which pools you want to include in the update: 
+   ![](./assets/create-rpu.png)
+1. **Set the schedule**: Assign a schedule to the job (e.g., every Sunday at 3 AM) and apply it to your new job:
+   ![](./assets/schedule-rpu.png)
+1. **Monitor the process**: Once scheduled, the RPU will run automatically at the set time, applying updates and rebooting hosts as necessary.
 
 #### Pool updates
 
@@ -739,7 +797,7 @@ List of VMs with missing or outdated guest tools. It's best practice to [install
 
 ### Alarms
 
-This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](alerts#alerts).
+This sections details the alerts coming from XCP-ng/XenServer hosts. More information can be found on [this page](advanced#alerts).
 
 ### Heatmap
 
@@ -769,6 +827,53 @@ To receive reports, you need to enable the **usage-report** plugin.
 1. Activate the toggle switch called **all** to include stats for all resources in your report.
 1. In the dropdown menu called **periodicity**, choose whether you want to receive **daily**, **weekly** or **monthly reports**.
 1. Click **Save configuration**. Your reports will be sent to the email addresses you've entered, at your desired frequency.
+
+## Software RAID
+
+### About `mdadm`
+
+Software RAID in the Vates stack is managed using `mdadm`.
+
+`mdadm` is a Linux utility used to manage and monitor software RAID devices. It is used in modern Linux distributions in place of older software RAID utilities such as `raidtools2` or `raidtools`.
+
+### Support status
+
+:::tip
+
+We **strongly recommend** using a **hardware RAID** solution over software RAID whenever possible.
+
+:::
+
+:::warning
+
+**Software RAID integration is provided as-is**, with no official support.
+We do not offer support for issues arising from the use of software RAID for your storage repositories.
+
+:::
+
+### Setup instructions
+
+For detailed instructions on setting up a software RAID storage for your VMs, refer to the [Guides](https://docs.xcp-ng.org/guides/software-RAID-SR/) section in the XCP-ng documentation.
+
+### Troubleshooting
+
+If you encounter issues with your software RAID array, you can find answers regarding disk replacement at the [Troubleshooting](https://docs.xcp-ng.org/troubleshooting/storage/disk-failure-softwaire-RAID/#%EF%B8%8F-disk-replacement-with-software-raid) section in the XCP-ng documentation.
+
+### Monitoring software RAID health
+
+#### Checking RAID status
+
+Xen Orchestra allows you to monitor the health of your software RAID arrays directly from the interface.
+
+To check the status reported by `mdadm`, go to the **Host → Advanced** section. You'll get a clear, real-time view of your RAID array’s condition:
+
+![](./assets/mdadm-status.png)
+
+#### RAID status alerts
+
+If a host has a degraded software RAID array, a red warning triangle will appear in the host view. Clicking on it will display detailed information about the issue, so you can quickly identify and address critical problems:
+
+![](./assets/raid-status-alert.png)
 
 ## Docker support
 

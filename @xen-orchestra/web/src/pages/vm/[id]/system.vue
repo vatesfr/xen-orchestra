@@ -1,5 +1,5 @@
 <template>
-  <VtsColumns class="system" :class="{ mobile: uiStore.isMobile }">
+  <VtsColumns>
     <VtsColumn>
       <VmGeneralInfo :vm />
       <VmNetworking :vm />
@@ -25,33 +25,6 @@ import VmVirtualizationAndBoot from '@/components/vm/system/VmVirtualizationAndB
 import type { XoVm } from '@/types/xo/vm.type'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
-import { useUiStore } from '@core/stores/ui.store'
 
 defineProps<{ vm: XoVm }>()
-const uiStore = useUiStore()
 </script>
-
-<style scoped lang="postcss">
-.system {
-  display: flex;
-  gap: 0.8rem;
-  padding: 0.8rem;
-  width: 100%;
-  flex-direction: row;
-
-  .column {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    width: 50%;
-  }
-
-  &.mobile {
-    flex-direction: column;
-
-    .column {
-      width: 100%;
-    }
-  }
-}
-</style>

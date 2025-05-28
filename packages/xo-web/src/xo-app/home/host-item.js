@@ -47,10 +47,6 @@ import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 }))
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$pool),
-  isPubKeyTooShort: createSelector(
-    (_, props) => props.item.id,
-    hostId => isPubKeyTooShort(hostId)
-  ),
   needsRestart: createDoesHostNeedRestart((_, props) => props.item),
   nVms: createGetObjectsOfType('VM').count(
     createSelector(
@@ -68,7 +64,11 @@ export default class HostItem extends Component {
   }
 
   componentWillMount() {
-    this.props.isPubKeyTooShort.then(isPubKeyTooShort => this.setState({ isPubKeyTooShort }))
+    isPubKeyTooShort(this.props.item).then(value =>
+      this.setState({
+        isPubKeyTooShort: value,
+      })
+    )
     Promise.resolve(isHostTimeConsistentWithXoaTime(this.props.item)).then(value =>
       this.setState({
         isHostTimeConsistentWithXoaTime: value,

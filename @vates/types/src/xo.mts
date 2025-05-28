@@ -5,8 +5,11 @@ import type {
   DOMAIN_TYPE,
   HOST_ALLOWED_OPERATIONS,
   HOST_POWER_STATE,
+  IP_CONFIGURATION_MODE,
+  IPV6_CONFIGURATION_MODE,
   NETWORK_OPERATIONS,
   POOL_ALLOWED_OPERATIONS,
+  PRIMARY_ADDRESS_TYPE,
   STORAGE_OPERATIONS,
   VDI_OPERATIONS,
   VDI_TYPE,
@@ -271,8 +274,34 @@ export type XoPgpu = BaseXapiXo & {
 }
 
 export type XoPif = BaseXapiXo & {
+  $host: XoHost['id']
+  $network: XoNetwork['id']
+
+  attached: boolean
+  bondMaster?: XoPif['id']
+  bondSalves?: XoPif['id'][]
+  carrier: boolean
+  device: string
+  deviceName?: string
+  disallowUnplug: boolean
+  dns: string
+  gateway: string
   id: Branded<'PIF'>
+  ip: string
+  ipv6: string[]
+  ipv6Mode: IPV6_CONFIGURATION_MODE
+  isBondMaster: boolean
+  isBondSlave: boolean
+  mac: string
+  management: boolean
+  mode: IP_CONFIGURATION_MODE
+  mtu: number
+  netmask: string
+  physical: boolean
+  primaryAddressType: PRIMARY_ADDRESS_TYPE
+  speed?: number
   type: 'PIF'
+  vlan: number
 }
 
 export type XoPool = BaseXapiXo & {
@@ -445,6 +474,7 @@ export type XoVif = BaseXapiXo & {
 export type XoVm = BaseXoVm & {
   id: Branded<'VM'>
   type: 'VM'
+  vulnerabilities: { xsa468: boolean | { reason: string; driver?: string; version?: string } }
 }
 
 export type XoVmController = BaseXoVm & {
@@ -488,6 +518,7 @@ export type XapiXoRecord =
   | XoHost
   | XoMessage
   | XoNetwork
+  | XoPif
   | XoPool
   | XoSr
   | XoVbd

@@ -5,6 +5,7 @@ import type {
   XenApiHostWrapped,
   XenApiMessage,
   XenApiNetwork,
+  XenApiPifWrapped,
   XenApiPoolWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
@@ -22,6 +23,7 @@ type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
   message: XenApiMessage
   network: XenApiNetwork
+  PIF: XenApiPifWrapped
   pool: XenApiPoolWrapped
   SR: XenApiSrWrapped
   VBD: XenApiVbdWrapped
@@ -48,6 +50,10 @@ export type XoApp = {
     userData?: { ip?: string },
     opts?: { bypassOtp?: boolean }
   ) => Promise<{ bypassOtp: boolean; expiration: number; user: XoUser }>
+  /* connect a server (XCP-ng/XenServer) */
+  connectXenServer(id: XoServer['id']): Promise<void>
+  /* disconnect a server (XCP-ng/XenServer) */
+  disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
   getAllSchedules(): Promise<XoSchedule[]>
   getAllUsers(): Promise<XoUser[]>

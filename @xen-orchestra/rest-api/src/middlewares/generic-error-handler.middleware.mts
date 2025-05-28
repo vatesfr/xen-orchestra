@@ -2,6 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import {
   featureUnauthorized,
   forbiddenOperation,
+  incorrectState,
   invalidCredentials,
   invalidParameters,
   noSuchObject,
@@ -10,6 +11,8 @@ import {
   unauthorized,
 } from 'xo-common/api-errors.js'
 import { NextFunction, Request, Response } from 'express'
+
+import type { XoError } from '../helpers/helper.type.mjs'
 
 const log = createLogger('xo:rest-api:error-handler')
 
@@ -22,7 +25,7 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     return
   }
 
-  const responseError: { error: string; info?: string } = { error: error.message }
+  const responseError: { error: string; data?: Record<string, unknown>; info?: string } = { error: error.message }
   if (noSuchObject.is(error)) {
     res.status(404)
   } else if (unauthorized.is(error) || forbiddenOperation.is(error) || featureUnauthorized.is(error)) {
@@ -35,6 +38,9 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     res.status(422)
   } else if (notImplemented.is(error)) {
     res.status(501)
+  } else if (incorrectState.is(error)) {
+    res.status(409)
+    responseError.data = (error as XoError).data
   } else {
     if (error.name === 'XapiError') {
       responseError.info = 'This is a XenServer/XCP-ng error, not an XO error'

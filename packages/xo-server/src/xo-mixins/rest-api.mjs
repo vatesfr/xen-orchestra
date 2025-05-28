@@ -608,6 +608,7 @@ export default class RestApi {
       docs: {},
       messages: {},
       networks: {},
+      pifs: {},
       pools: {},
       groups: {},
       users: {},
@@ -615,6 +616,11 @@ export default class RestApi {
       vms: {
         actions: {
           start: true,
+          clean_shutdown: true,
+          hard_shutdown: true,
+          clean_reboot: true,
+          hard_reboot: true,
+          snapshot: true,
         },
       },
       'vm-controllers': {},

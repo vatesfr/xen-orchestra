@@ -77,9 +77,16 @@ type WrapperXenApi<T, Type extends string, Fn = { (): void }> = T & {
   $call: Fn
   $callAsync: Fn
   $type: Type
+  $snapshot(params: {
+    cancelToken?: unknown
+    ignoredVdisTag?: string
+    name_label?: string
+    unplugVusbs?: boolean
+  }): Promise<XenApiVm['$ref']>
   $xapi: {
     call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
     callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
+    getField<T extends XenApiRecord, K extends keyof T>(type: Type, ref: T['$ref'], field: K): Promise<T[K]>
   }
 }
 
@@ -254,6 +261,10 @@ export interface XenApiPoolUpdate {
 
 type XenApiVmCallMethods = {
   (method: 'start', start_paused: boolean, force: boolean): Promise<void>
+  (method: 'clean_shutdown'): Promise<void>
+  (method: 'hard_shutdown'): Promise<void>
+  (method: 'clean_reboot'): Promise<void>
+  (method: 'hard_reboot'): Promise<void>
 }
 export interface XenApiVm {
   $ref: Branded<'VM'>
@@ -705,6 +716,7 @@ export interface XenApiPif {
   VLAN_slave_of: XenApiVlan['$ref'][]
   VLAN: number
 }
+export type XenApiPifWrapped = WrapperXenApi<XenApiPif, 'PIF'>
 
 export interface XenApiPifMetrics {
   $ref: Branded<'PIF_metrics'>
@@ -1336,6 +1348,7 @@ export type XenApiRecord =
 
 export type WrappedXenApiRecord =
   | XenApiHostWrapped
+  | XenApiPifWrapped
   | XenApiPoolWrapped
   | XenApiSrWrapped
   | XenApiVbdWrapped
