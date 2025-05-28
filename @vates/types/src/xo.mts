@@ -351,6 +351,7 @@ export type XoServer = {
   httpProxy?: string
   id: Branded<'server'>
   label?: string
+  master?: XoHost['id']
   poolId?: XoPool['id']
   poolNameDescription?: string
   poolNameLabel?: string
