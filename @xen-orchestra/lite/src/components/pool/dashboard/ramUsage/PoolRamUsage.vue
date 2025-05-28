@@ -105,6 +105,6 @@ const customValueFormatter = (value: number | null) => {
     return ''
   }
 
-  return String(formatSize(value))
+  return formatSize(value)
 }
 </script>
