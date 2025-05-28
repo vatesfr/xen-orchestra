@@ -157,6 +157,11 @@ export type XoGroup = {
   users: XoUser['id'][]
 }
 
+export type XoGpuGroup = BaseXapiXo & {
+  id: Branded<'gpu-group'>
+  type: 'gpuGroup'
+}
+
 export type XoHost = BaseXapiXo & {
   $PBDs: XoPbd['id'][]
   $PCIs: XoPci['id'][]
@@ -553,6 +558,11 @@ export type XoVdiUnmanaged = BaseXoVdi & {
 export type XoVgpu = BaseXapiXo & {
   id: Branded<'VGPU'>
   type: 'vgpu'
+}
+
+export type XoVgpuType = BaseXapiXo & {
+  id: Branded<'vgpu-type'>
+  type: 'vgpuType'
 }
 
 export type XoVgpuType = BaseXapiXo & {

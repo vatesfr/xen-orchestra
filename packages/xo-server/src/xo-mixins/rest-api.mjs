@@ -227,6 +227,7 @@ export default class RestApi {
       pifs: {},
       pools: {
         actions: {
+          create_vm: true,
           emergency_shutdown: true,
           rolling_reboot: true,
           rolling_update: true,
