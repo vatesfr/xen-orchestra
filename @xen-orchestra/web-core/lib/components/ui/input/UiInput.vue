@@ -30,7 +30,7 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { LabelAccent } from '@core/components/ui/label/UiLabel.vue'
-import { useMapper } from '@core/composables/mapper.composable.ts'
+import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
@@ -79,7 +79,7 @@ const accent = useMapper<LabelAccent, InputAccent>(
     warning: 'warning',
     danger: 'danger',
   },
-  () => _accent
+  'neutral'
 )
 
 if (wrapperController) {
