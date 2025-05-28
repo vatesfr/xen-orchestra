@@ -20,7 +20,9 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   asynchronousActionResp,
   createdResp,
+  featureUnauthorized,
   internalServerErrorResp,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -111,6 +113,32 @@ export class PoolController extends XapiXoController<XoPool> {
         name: 'create network',
         objectId: poolId,
         args: body,
+      },
+    })
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/emergency_shutdown')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  emergencyShutdown(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+    const poolId = id as XoPool['id']
+    const action = async () => {
+      await this.restApi.xoApp.checkFeatureAuthorization('POOL_EMERGENCY_SHUTDOWN')
+      await this.getXapiObject(poolId).$xapi.pool_emergencyShutdown()
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'pool emergency shutdown',
+        objectId: poolId,
       },
     })
   }
