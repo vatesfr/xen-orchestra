@@ -689,7 +689,7 @@ export default class XenServers {
       ::ignoreErrors()
   }
 
-  async rollingPoolUpdate($defer, pool, { rebootVm } = {}) {
+  async rollingPoolUpdate($defer, pool, { rebootVm, parentTask } = {}) {
     const app = this._app
     await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
     const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
@@ -742,18 +742,25 @@ export default class XenServers {
       $defer(() => xapi.call('pool.set_wlb_enabled', pool._xapiRef, true))
     }
 
-    const task = app.tasks.create({
-      name: `Rolling pool update`,
-      poolId,
-      poolName: pool.name_label,
-      progress: 0,
-    })
-    await task.run(async () =>
+    const hasParentTask = parentTask !== undefined
+    let task = parentTask
+    const fn = async () =>
       this.getXapi(pool).rollingPoolUpdate(task, {
         xsCredentials: app.apiContext.user.preferences.xsCredentials,
         rebootVm,
       })
-    )
+
+    if (!hasParentTask) {
+      task = app.tasks.create({
+        name: `Rolling pool update`,
+        poolId,
+        poolName: pool.name_label,
+        progress: 0,
+      })
+      await task.run(fn)
+    } else {
+      await fn()
+    }
   }
 }
 

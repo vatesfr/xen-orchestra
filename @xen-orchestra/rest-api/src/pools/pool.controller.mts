@@ -171,4 +171,31 @@ export class PoolController extends XapiXoController<XoPool> {
       },
     })
   }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/rolling_update')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  rollingUpdate(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+    const poolId = id as XoPool['id']
+    const action = async (task: Task) => {
+      const pool = this.getObject(poolId)
+      await this.restApi.xoApp.rollingPoolUpdate(pool, { parentTask: task })
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'rolling pool update',
+        objectId: poolId,
+        progress: 0,
+      },
+    })
+  }
 }
