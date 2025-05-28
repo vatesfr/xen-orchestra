@@ -26,7 +26,7 @@
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('id')" :value="vm.uuid" />
+      <VtsQuickInfoRow :label="$t('uuid')" :value="vm.uuid" />
       <VtsQuickInfoRow :label="$t('description')" :value="vm.name_description" />
       <VtsQuickInfoRow :label="$t('os-name')" :value="osVersion" />
       <VtsQuickInfoRow :label="$t('virtualization-type')">
@@ -52,6 +52,7 @@
 </template>
 
 <script lang="ts" setup>
+import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
@@ -67,7 +68,7 @@ import { useTimeAgo } from '@core/composables/local-time-ago.composable.ts'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
+import { faMoon, faPause, faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -97,6 +98,7 @@ const host = computed(() => getVmHost(vm))
 //   return isHostRunning(host.value) ? 'running' : 'halted'
 // })
 
+// TODO Same as above, add this to icon when new component is available
 const powerStateConfig: Record<
   string,
   {
@@ -104,16 +106,16 @@ const powerStateConfig: Record<
     accent: IconAccent
   }
 > = {
-  running: { icon: faPlay, accent: 'success' },
-  halted: { icon: faStop, accent: 'danger' },
+  [VM_POWER_STATE.RUNNING]: { icon: faPlay, accent: 'success' },
+  [VM_POWER_STATE.HALTED]: { icon: faStop, accent: 'danger' },
+  [VM_POWER_STATE.PAUSED]: { icon: faPause, accent: 'brand' },
+  [VM_POWER_STATE.SUSPENDED]: { icon: faMoon, accent: 'info' },
 }
 
 const powerState = computed(() => {
-  const isRunning = vm.power_state === 'Running'
-
   return {
-    text: t(`vms-status.${isRunning ? 'running' : 'halted'}`),
-    ...powerStateConfig[isRunning ? 'running' : 'halted'],
+    text: t(`vms-status.${vm.power_state.toLowerCase()}`),
+    ...powerStateConfig[vm.power_state],
   }
 })
 
