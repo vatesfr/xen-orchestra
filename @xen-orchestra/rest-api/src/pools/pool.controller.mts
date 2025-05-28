@@ -2,6 +2,8 @@ import { Example, Get, Path, Query, Response, Request, Route, Security, Tags, Po
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
+import { Task } from '@vates/types/lib/vates/task'
+
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   actionAsyncroneResp,
@@ -77,6 +79,33 @@ export class PoolController extends XapiXoController<XoPool> {
       taskProperties: {
         name: 'pool emergency shutdown',
         objectId: poolId,
+      },
+    })
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/rolling_reboot')
+  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  rollingReboot(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+    const poolId = id as XoPool['id']
+    const action = async (task: Task) => {
+      const pool = this.getObject(poolId)
+      await this.restApi.xoApp.rollingPoolReboot(pool, { parentTask: task })
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'rolling pool reboot',
+        objectId: poolId,
+        progress: 0,
       },
     })
   }

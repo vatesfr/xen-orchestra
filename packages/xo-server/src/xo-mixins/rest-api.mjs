@@ -612,6 +612,7 @@ export default class RestApi {
       pools: {
         actions: {
           emergency_shutdown: true,
+          rolling_reboot: true,
         },
       },
       groups: {},
