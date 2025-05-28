@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [sdn-controller] Use the Xapi plugin instead of a direct channel to drive openflow (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,4 +33,6 @@
 
 <!--packages-start-->
 
+- xo-server-sdn-controller minor
+- xo-web minor
 <!--packages-end-->
