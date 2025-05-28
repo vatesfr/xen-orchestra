@@ -21,11 +21,12 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { asynchronousActionResp, createdResp, featureUnauthorized, internalServerErrorResp, noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import type { SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import type { Xapi, XoNetwork, XoPif, XoPool } from '@vates/types'
+import type { Xapi, XoNetwork, XoPif, XoPool, XoSr, XoVgpuType, XoVmTemplate } from '@vates/types'
 import { partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
 import type { CreateNetworkBody } from './pool.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
+import type { CreateVmBody } from './pool.type.mjs'
 
 @Route('pools')
 @Security('*')
@@ -191,11 +192,7 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   @Post('{id}/actions/create_vm')
-  async createVm(
-    @Path() id: string,
-    @Body() body: Omit<Unbrand<Parameters<Xapi['createVm']>[1]>, 'existingVdis' | 'nameLabel'>,
-    @Query() sync?: boolean
-  ): Promise<void | string> {
+  async createVm(@Path() id: string, @Body() body: CreateVmBody, @Query() sync?: boolean): Promise<void | string> {
     const poolId = id as XoPool['id']
     const action = async () => {
       // params.affinityHost = affinity;

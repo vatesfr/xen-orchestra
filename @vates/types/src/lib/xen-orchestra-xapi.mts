@@ -70,13 +70,15 @@ export interface Xapi {
           }
         | {
             userdevice: string
-            destroy?: boolean
+            destroy?: undefined
             name_label?: string
             size?: number
             sr?: XoSr['id']
             name_description?: string
           }
+        | { userdevice: string; destroy: true }
       )[]
+      // @TODO: improve VIFs types (like for VDIs)
       vifs?: {
         destroy?: boolean
         device?: string
