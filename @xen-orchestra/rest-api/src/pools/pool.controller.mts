@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import type { XoPool } from '@vates/types'
 import { partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
@@ -31,9 +31,10 @@ export class PoolController extends XapiXoController<XoPool> {
   getPools(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoPool>>>[] {
+  ): SendObjects<Partial<Unbrand<XoPool>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

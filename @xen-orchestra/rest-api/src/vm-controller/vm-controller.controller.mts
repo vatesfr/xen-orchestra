@@ -7,7 +7,7 @@ import { Request as ExRequest } from 'express'
 
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import {
   partialVmControllers,
   vmController,
@@ -36,9 +36,10 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   getVmControllers(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoVmController>>>[] {
+  ): SendObjects<Partial<Unbrand<XoVmController>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
