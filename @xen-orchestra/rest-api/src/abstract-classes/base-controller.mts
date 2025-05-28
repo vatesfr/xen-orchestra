@@ -1,5 +1,6 @@
 import { Controller, HttpStatusCodeLiteral } from 'tsoa'
 import { Request } from 'express'
+import type { Task } from '@vates/types/lib/vates/task'
 import { XoRecord } from '@vates/types/xo'
 
 import { BASE_URL } from '../index.mjs'
@@ -31,7 +32,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
    * statusCode must represent the status code in case of a synchronous request. Default 200
    */
   async createAction<CbType>(
-    cb: () => MaybePromise<CbType>,
+    cb: (task: Task) => MaybePromise<CbType>,
     {
       statusCode = 200,
       sync = false,
@@ -46,7 +47,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     taskProperties.type = 'xo:rest-api:action'
 
     const task = this.restApi.tasks.create(taskProperties)
-    const pResult = task.run(cb)
+    const pResult = task.run(() => cb(task))
 
     if (sync) {
       this.setStatus(statusCode)
