@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.107.1** (2025-05-28)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
@@ -12,8 +14,6 @@
 - xo-server 5.178.1
 
 ## **5.107.0** (2025-05-27)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
