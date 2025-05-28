@@ -2,6 +2,7 @@ import type { EventEmitter } from 'node:events'
 import type { Task } from '@vates/types/lib/vates/task'
 import type { XapiHostStats, XapiVmStats, XapiStatsGranularity } from '@vates/types/common'
 import type {
+  XenApiGpuGroup,
   XenApiHostWrapped,
   XenApiMessage,
   XenApiNetwork,
@@ -10,6 +11,7 @@ import type {
   XenApiSrWrapped,
   XenApiVbdWrapped,
   XenApiVdiWrapped,
+  XenApiVgpuType,
   XenApiVgpuWrapped,
   XenApiVifWrapped,
   XenApiVmWrapped,
@@ -18,8 +20,10 @@ import type {
 import type { XoHost, XoServer, XoUser, XapiXoRecord, XoVm, XoSchedule, XoJob, XoGroup } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
+import { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 type XapiRecordByXapiXoRecord = {
+  gpuGroup: XenApiGpuGroup
   host: XenApiHostWrapped
   message: XenApiMessage
   network: XenApiNetwork
@@ -31,6 +35,7 @@ type XapiRecordByXapiXoRecord = {
   'VDI-snapshot': XenApiVdiWrapped
   'VDI-unmanaged': XenApiVdiWrapped
   VGPU: XenApiVgpuWrapped
+  vgpuType: XenApiVgpuType
   VIF: XenApiVifWrapped
   VM: XenApiVmWrapped
   'VM-controller': XenApiVmWrapped
@@ -42,6 +47,10 @@ type XapiRecordByXapiXoRecord = {
 export type XoApp = {
   tasks: EventEmitter & {
     create: (params: { name: string; objectId?: string; type?: string }) => Task
+  }
+  // TODO: enhance this type, and maybe expose 'getUser' in the restApi
+  apiContext: {
+    user: XoUser
   }
 
   // methods ------------
@@ -67,6 +76,7 @@ export type XoApp = {
   ) => Record<T['id'], T>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
   getUser: (id: XoUser['id']) => Promise<XoUser>
+  getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
