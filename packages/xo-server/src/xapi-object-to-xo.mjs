@@ -121,10 +121,13 @@ const XSA468_VULNERABLE_VERSIONS = {
   },
 }
 const isVmVulnerable_XSA468 = vm => {
-  const guestMetrics = vm.$guest_metrics
-
   if (vm.platform?.device_id !== '0002') {
     // Not a Windows VM
+    return false
+  }
+
+  const guestMetrics = vm.$guest_metrics
+  if (guestMetrics === undefined) {
     return false
   }
 
@@ -482,7 +485,7 @@ const TRANSFORMS = {
       isNestedVirtEnabled: semver.satisfies(String(obj.$pool.$master.software_version.platform_version), '>=3.4')
         ? obj.platform['nested-virt'] === 'true'
         : obj.platform['exp-nested-hvm'] === 'true',
-      vulnerabilities: { xsa468: isVmVulnerable_XSA468(obj) },
+      vulnerabilities: obj.is_a_template || obj.is_a_snapshot ? undefined : { xsa468: isVmVulnerable_XSA468(obj) },
       viridian: obj.platform.viridian === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
