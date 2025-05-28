@@ -1,8 +1,8 @@
 <template>
   <UiCard>
     <UiCardTitle>
-      {{ $t('vdi-throughput') }}
-      <template #description>{{ $t('last-week') }}</template>
+      {{ t('vdi-throughput') }}
+      <template #description>{{ t('last-week') }}</template>
     </UiCardTitle>
     <VtsLoadingHero v-if="loading" type="card" />
     <VtsErrorNoDataHero v-else-if="error" type="card" />
