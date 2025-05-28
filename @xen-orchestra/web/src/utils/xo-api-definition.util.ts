@@ -95,8 +95,9 @@ export const xoApiDefinition = {
   server: {
     type: 'collection',
     path: 'servers',
-    fields: 'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId',
+    fields: 'id,host,httpProxy,username,readOnly,allowUnauthorized,label,poolId',
     handler: (record: XoServer) => record,
+  },
   'vm-controller': {
     type: 'collection',
     path: 'vm-controllers',

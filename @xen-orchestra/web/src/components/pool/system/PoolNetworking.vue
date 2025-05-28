@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="pool-networking">
+  <UiCard>
     <UiTitle>
       {{ $t('networking') }}
     </UiTitle>
@@ -8,8 +8,8 @@
         <UiLink
           v-if="pool.otherConfig['xo:backupNetwork'] && backupNetwork?.name_label"
           :icon="faNetworkWired"
-          :to="`/pool/${pool.id}/networks?id=${pool.otherConfig['xo:backupNetwork']}`"
-          size="small"
+          :to="`/pool/${pool.id}/networks?id=${pool.otherConfig['xo:backupNetwork']}/`"
+          size="medium"
         >
           {{ backupNetwork.name_label }}
         </UiLink>
@@ -23,8 +23,8 @@
 
 <script setup lang="ts">
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPool } from '@/types/xo/pool.type'
-import type { Branded } from '@core/types/utility.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -40,7 +40,7 @@ const { get: getNetworkById } = useNetworkStore().subscribe()
 
 const backupNetwork = computed(() =>
   pool.otherConfig['xo:backupNetwork']
-    ? getNetworkById(pool.otherConfig['xo:backupNetwork'] as Branded<'network'>)
+    ? getNetworkById(pool.otherConfig['xo:backupNetwork'] as XoNetwork['id'])
     : undefined
 )
 </script>

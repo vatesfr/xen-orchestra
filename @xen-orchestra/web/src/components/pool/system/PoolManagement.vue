@@ -1,11 +1,11 @@
 <template>
-  <UiCard class="pool-management">
+  <UiCard>
     <UiTitle>
       {{ $t('pool-management') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('primary-host')">
+    <VtsQuickInfoRow :label="$t('master')">
       <template #value>
-        <UiLink v-if="primaryHost" :icon="faServer" :to="`/host/${pool.master}`" size="small">
+        <UiLink v-if="primaryHost" :icon="faServer" :to="`/host/${pool.master}/`" size="medium">
           {{ primaryHost.name_label }}
         </UiLink>
         <template v-else>
@@ -14,18 +14,18 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('auto-power')">
-      <template v-if="pool.auto_poweron !== undefined" #value>
+      <template #value>
         <VtsEnabledState :enabled="pool.auto_poweron" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('high-availability')">
-      <template v-if="pool.migrationCompression !== undefined" #value>
-        <VtsEnabledState :enabled="pool.migrationCompression" />
+      <template #value>
+        <VtsEnabledState :enabled="pool.HA_enabled" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="$t('migration-compression')">
-      <template v-if="pool.migrationCompression !== undefined" #value>
-        <VtsEnabledState :enabled="pool.migrationCompression" />
+      <template #value>
+        <VtsEnabledState :enabled="pool.migrationCompression ?? false" />
       </template>
     </VtsQuickInfoRow>
   </UiCard>

@@ -8,23 +8,28 @@ import { computed } from 'vue'
 export const useServerStore = defineStore('server', () => {
   const { context: baseContext, ...config } = createXoStoreConfig('server')
 
-  const serversByPool = computed(() => {
-    const vmServerByPoolMap = new Map<XoPool['id'], XoServer[]>()
+  const serverByPool = computed(() => {
+    const serverByPoolMap = new Map<XoPool['id'], XoServer[]>()
 
     baseContext.records.value.forEach(server => {
       const poolId = server.poolId
-      if (!vmServerByPoolMap.has(poolId)) {
-        vmServerByPoolMap.set(poolId, [])
+
+      if (!poolId) {
+        return
       }
-      vmServerByPoolMap.get(poolId)!.push(server)
+
+      if (!serverByPoolMap.has(poolId)) {
+        serverByPoolMap.set(poolId, [])
+      }
+      serverByPoolMap.get(poolId)!.push(server)
     })
 
-    return vmServerByPoolMap
+    return serverByPoolMap
   })
 
   const context = {
     ...baseContext,
-    serversByPool,
+    serverByPool,
   }
 
   return createSubscribableStoreContext({ context, ...config }, {})

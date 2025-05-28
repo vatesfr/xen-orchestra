@@ -11,7 +11,6 @@ import { useI18n } from 'vue-i18n'
 
 type StatesMap = { label: string; accent: InfoAccent }
 
-
 const { enabled } = defineProps<{
   enabled: boolean
 }>()
