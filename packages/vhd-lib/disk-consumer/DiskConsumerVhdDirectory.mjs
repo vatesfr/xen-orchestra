@@ -45,7 +45,8 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
     const { handler, path, compression, flags, validator, concurrency } = this.#target
     const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
     const uid = 'to stream ' + Math.random()
-    const generator = this.source.diskBlocks(uid)
+    const source = this.source
+    const generator = source.diskBlocks(uid)
     try {
       await handler.mktree(dataPath)
       const vhd = new VhdDirectory(handler, dataPath, { flags, compression })

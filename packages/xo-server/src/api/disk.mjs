@@ -86,12 +86,13 @@ create.resolve = {
 
 const VHD = 'vhd'
 const VMDK = 'vmdk'
+const QCOW2 = 'qcow2'
 
 async function handleExportContent(req, res, { filename, format, nbdConcurrency, preferNbd, vdi }) {
   const stream =
     format === VMDK
       ? await vdi.$xapi.exportVdiAsVmdk(vdi.$id, filename, { nbdConcurrency, preferNbd })
-      : await vdi.$exportContent({ format: VDI_FORMAT_VHD, nbdConcurrency, preferNbd })
+      : await vdi.$exportContent({ format, nbdConcurrency, preferNbd })
   req.on('close', () => stream.destroy())
 
   // stream can be an HTTP response, in this case, extract interesting data
@@ -135,7 +136,7 @@ export async function exportContent({ vdi, format = VHD, nbdConcurrency, preferN
 exportContent.description = 'export the content of a VDI'
 exportContent.params = {
   id: { type: 'string' },
-  format: { enum: [VMDK, VHD], optional: true },
+  format: { enum: [VMDK, VHD, QCOW2], optional: true },
   preferNbd: { type: 'boolean', optional: true },
   nbdConcurrency: { type: 'number', optional: true },
 }
