@@ -106,6 +106,7 @@ type WrapperXenApi<T, Type extends string, Fn = { (): void }> = T & {
           }
     ): Promise<XenApiNetworkWrapped>
     deleteNetwork(id: XoNetwork['id']): Promise<void>
+    pool_emergencyShutdown(): Promise<void>
   }
 }
 
