@@ -26,7 +26,7 @@ snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 vhdDirectoryCompression = 'brotli'
 
 
-# This is a work-around.
+# This is a workaround.
 #
 # See https://github.com/vatesfr/xen-orchestra/pull/4674
 maxMergedDeltasPerRun = 2
@@ -34,7 +34,7 @@ maxMergedDeltasPerRun = 2
 # Each `http.listen.<name>` entry defines a specific listening configuration for
 # the HTTP server.
 #
-# `<name>` can be freely choosen.
+# `<name>` can be freely chosen.
 [http.listen.https]
 
 # Generate self-signed certificate if missing
@@ -73,13 +73,13 @@ watchEvents = ['network', 'PIF', 'pool', 'SR', 'task', 'VBD', 'VDI', 'VIF', 'VM'
 [reverseProxies]
 # '/http/' = 'http://localhost:8081/'
 #The target can have a path ( like `http://target/sub/directory/`),
-# parameters (`?param=one`) and hash (`#jwt:32154`) that are automatically added to all queries transfered by the proxy.
+# parameters (`?param=one`) and hash (`#jwt:32154`) that are automatically added to all queries transferred by the proxy.
 # If a parameter is present in the configuration and in the query, only the config parameter is transferred.
 # '/another' = http://hiddenServer:8765/path/
 
 # And use the extended mode when required
-# The additionnal options of a proxy's configuraiton's section are used to instantiate the `https` Agent(respectively the `http`).
-# A notable option is `rejectUnauthorized` which allow to connect to a HTTPS backend  with an invalid/ self signed certificate
+# The additional options of a proxy's configuration's section are used to instantiate the `https` Agent(respectively the `http`).
+# A notable option is `rejectUnauthorized` which allow to connect to a HTTPS backend  with an invalid/ self-signed certificate
 #[reverseProxies.'/https/']
 # target = 'https://localhost:8080/'
 # rejectUnauthorized = false

@@ -184,7 +184,7 @@ export const ICON_POOL_LICENSE = {
     },
   },
   computed: {
-    // In case an host have more than 1 license, it's an issue.
+    // In case a host have more than 1 license, it's an issue.
     // poolLicenseInfoByPoolId can be impacted because the license expiration check may not yield the right information.
     xcpngLicenseByBoundObjectId: (_, { xcpLicenses }) =>
       xcpLicenses === undefined ? undefined : keyBy(xcpLicenses, 'boundObjectId'),

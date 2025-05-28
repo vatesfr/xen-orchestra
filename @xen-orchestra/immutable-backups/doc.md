@@ -1,6 +1,6 @@
-# Imutability
+# Immutability
 
-the goal is to make a remote that XO can write, but not modify during the immutability duration set on the remote. That way, it's not possible for XO to delete or encrypt any backup during this period. It protects your backup agains ransomware, at least as long as the attacker does not have a root access to the remote server.
+the goal is to make a remote that XO can write, but not modify during the immutability duration set on the remote. That way, it's not possible for XO to delete or encrypt any backup during this period. It protects your backup against ransomware, at least as long as the attacker does not have a root access to the remote server.
 
 We target `governance` type of immutability, **the local root account of the remote server will be able to lift immutability**.
 
@@ -10,7 +10,7 @@ It is compatible with encryption at rest made by XO.
 
 ## Prerequisites
 
-The commands must be run as root on the remote, or by a user with the `CAP_LINUX_IMMUTABLE` capability . On start, the protect process writes into the remote `imutability.json` file its status and the immutability duration.
+The commands must be run as root on the remote, or by a user with the `CAP_LINUX_IMMUTABLE` capability . On start, the protect process writes into the remote `immutability.json` file its status and the immutability duration.
 
 the `chattr` and `lsattr` should be installed on the system
 
@@ -22,7 +22,7 @@ this package uses app-conf to store its config. The application name is `xo-immu
 
 when marking a file or a folder immutable, it create an alias file in the `<indexPath>/<DayOfFileCreation>/<sha256(fullpath)>`.
 
-`indexPath` can be defined in the config file, otherwise `XDG_HOME` is used. If not available it goes to `~/.local/share`
+`indexPath` can be defined in the config file; otherwise, `XDG_HOME` is used. If not available it goes to `~/.local/share`
 
 This index is used when lifting the immutability of the remote, it will only look at the old enough `<indexPath>/<DayOfFileCreation>/` folders.
 
@@ -33,7 +33,7 @@ It will also do a checkup to ensure immutability could work on this remote and h
 
 The watching process depends on the backup type, since we don't want to make temporary files and cache immutable.
 
-It won't protect files during upload, only when the files have been completly written on disk. Real time, in this case, means "protecting critical files as soon as possible after they are uploaded"
+It won't protect files during upload, only when the files have been completely written on disk. Real time, in this case, means "protecting critical files as soon as possible after they are uploaded"
 
 This can be alleviated by :
 

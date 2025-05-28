@@ -20,7 +20,7 @@ function main([inputPath = 0]) {
   try {
     data = JSON.parse(input)
   } catch (error) {
-    // fallback to XML
+    // fall back to XML
     log(parseXml(input))
     return
   }

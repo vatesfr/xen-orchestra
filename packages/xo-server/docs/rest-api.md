@@ -128,7 +128,7 @@ Content-Type: application/x-ndjson
 
 ### Specific task
 
-When fetching a task record, the special `wait` query string can be used. If its value is `result` it will wait for the task to be resolved (either success or failure) before returning, otherwise it will wait for the next change of state.
+When fetching a task record, the special `wait` query string can be used. If its value is `result` it will wait for the task to be resolved (either success or failure) before returning; otherwise, it will wait for the next change of state.
 
 ```sh
 curl \

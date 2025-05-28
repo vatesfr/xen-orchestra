@@ -1,4 +1,4 @@
-# Typescript
+# TypeScript
 
 ## Types' naming SHOULD be meaningful
 

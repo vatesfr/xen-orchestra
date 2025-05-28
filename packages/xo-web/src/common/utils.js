@@ -624,7 +624,7 @@ export const downloadLog = ({ log, date, type }) => {
 
 // ===================================================================
 
-// Creates compare function based on different criterias
+// Creates compare function based on different criteria
 //
 // ```js
 // [{ name: 'bar', value: v2 }, { name: 'foo', value: v1 }].sort(

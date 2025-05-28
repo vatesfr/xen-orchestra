@@ -210,16 +210,16 @@ export default class RemoteHandlerAbstract {
       validator,
     })
     if (checksum) {
-      // using _outpuFile means the checksum will NOT be encrypted
+      // using _outputFile means the checksum will NOT be encrypted
       // it is by design to allow checking of encrypted files without the key
       await this._outputFile(checksumFile(path), await checksumStream.checksum, { dirMode, flags: 'wx' })
     }
   }
 
   // Free the resources possibly dedicated to put the remote at work, when it
-  // is no more needed
+  // is no longer needed
   //
-  // FIXME: Some handlers are implemented based on system-wide mecanisms (such
+  // FIXME: Some handlers are implemented based on system-wide mechanisms (such
   // as mount), forgetting them might breaking other processes using the same
   // remote.
   @synchronized()
@@ -331,7 +331,7 @@ export default class RemoteHandlerAbstract {
     await this._rmtree(normalizePath(dir))
   }
 
-  // Asks the handler to sync the state of the effective remote with its'
+  // Asks the handler to sync the state of the effective remote with its
   // metadata
   //
   // This method MUST ALWAYS be called before using the handler.
@@ -386,7 +386,7 @@ export default class RemoteHandlerAbstract {
       const data = await this.__readFile(ENCRYPTION_METADATA_FILENAME)
       JSON.parse(data)
     } catch (error) {
-      // can be enoent, bad algorithm, or broeken json ( bad key or algorithm)
+      // can be enoent, bad algorithm, or broken json ( bad key or algorithm)
       if (encryptionAlgorithm !== 'none') {
         if (await this.#canWriteMetadata()) {
           // any other error , but on empty remote => update with remote settings
@@ -394,7 +394,7 @@ export default class RemoteHandlerAbstract {
           info('will update metadata of this remote')
           return this.#createMetadata()
         } else {
-          // to add a new encrypted fs remote, the remote directory must be empty, otherwise metadata.json is not created
+          // to add a new encrypted fs remote, the remote directory must be empty; otherwise, metadata.json is not created
           if (error.code === 'ENOENT' && error.path.includes('metadata.json')) {
             throw new Error('Remote directory must be empty.')
           }
@@ -644,7 +644,7 @@ export default class RemoteHandlerAbstract {
           if (error.code === 'EISDIR' || error.code === 'EPERM') {
             return this._rmtree(`${dir}/${file}`).catch(rmTreeError => {
               if (rmTreeError.code === 'ENOTDIR') {
-                // this was realy a EPERM error, maybe with immutable backups
+                // this was really a EPERM error, maybe with immutable backups
                 throw error
               }
               throw rmTreeError

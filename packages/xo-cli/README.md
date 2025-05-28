@@ -26,7 +26,7 @@ Usage:
       Accept invalid certificate (e.g. self-signed).
 
     --url <url>, -u <url>
-      Specify an XO instance instance to use for the command instead of relying
+      Specify an XO instance to use for the command instead of relying
       on the one registered.
 
       The URL must include credentials: https://token@xo.company.net/
@@ -150,7 +150,7 @@ Usage:
       Full path of the action to execute
 
     <name>=<value>...
-      Paramaters to pass to the action
+      Parameters to pass to the action
 
     Examples:
       xo-cli rest post tasks/<task id>/actions/abort

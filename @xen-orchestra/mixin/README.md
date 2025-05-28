@@ -14,7 +14,7 @@ npm install --save @xen-orchestra/mixin
 
 ## Usage
 
-- mixins can depend on each other, they will be instanciated on-demand
+- mixins can depend on each other, they will be instantiated on-demand
 
 ```js
 import mixin from '@xen-orchestra/mixin'

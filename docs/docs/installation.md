@@ -29,7 +29,7 @@ Once you have started the VM, you can access the web UI by putting the IP you co
 
 ### Registration
 
-**The first thing** you need to do with your XOA is register. [Read the documentation on the page dedicated to the updater/register inferface](updater.md#register).
+**The first thing** you need to do with your XOA is register. [Read the documentation on the page dedicated to the updater/register interface](updater.md#register).
 
 :::tip
 We don't generate virtual appliances every month (unlike XO code itself). It's very likely you'll need to update Xen Orchestra after the initial deploy. You need to register to do so!
@@ -83,7 +83,7 @@ This installation has been validated against a fresh Debian 12 (Bookworm) x64 in
 
 As you may have seen in other parts of the documentation, XO is composed of two parts: [xo-server](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server/) and [xo-web](https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
-### Packages and Pre-requisites
+### Packages and Prerequisites
 
 #### NodeJS
 
@@ -292,7 +292,7 @@ That's why we have to notify these companies about XOA: it's better to run XO wi
 As a home user, you can support the XO project in a lot of ways: spreading the word, giving your feedback, finding bugs and ultimately contribute to the code. Keeping this banner is also a way to support us!
 
 :::tip
-Exceptional individual contributers are awarded with a free XOA Premium subscription. If you think you deserve it, feel free to contact us!
+Exceptional individual contributors are awarded with a free XOA Premium subscription. If you think you deserve it, feel free to contact us!
 :::
 
 ### Troubleshooting
@@ -369,7 +369,7 @@ ulimit -n 10240
 ln -s /usr/local/bin/node /tmp/node
 ```
 
-If `yarn` cannot find Python, give it an hand :
+If `yarn` cannot find Python, give it a hand :
 
 ```sh
 PYTHON=/usr/local/bin/python2 yarn

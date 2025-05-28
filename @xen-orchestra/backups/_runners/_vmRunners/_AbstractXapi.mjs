@@ -195,7 +195,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       }
     })
     await Promise.all(vmSnapshots.map(snapshot => populateVdisOtherConfig(xapi, snapshot.$ref)))
-    // end of compatibiliy handling
+    // end of compatibility handling
 
     // handle snapshot by VDI
     this._jobSnapshotVdis = []
@@ -298,7 +298,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       // preferNbd is not a guarantee that the backup used NBD, depending on the network configuration,
       // in that case next runs will be full, but there is not an easy way to prevent that
       this._settings.preferNbd &&
-      // only delete snapshost data if the config allows it
+      // only delete snapshot data if the config allows it
       this._settings.cbtDestroySnapshotData
     ) {
       Task.info('will delete snapshot data')

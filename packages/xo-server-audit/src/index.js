@@ -500,7 +500,7 @@ class AuditXoPlugin {
   async _uploadLastHash() {
     const xo = this._xo
 
-    // In case of non-existent XOA plugin
+    // In case of nonexistent XOA plugin
     if (xo.audit === undefined) {
       return
     }

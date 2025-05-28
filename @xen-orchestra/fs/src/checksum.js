@@ -48,9 +48,9 @@ export const createChecksumStream = (algorithm = 'md5') => {
   return stream
 }
 
-// Check if the checksum of a readable stream is equals to an expected checksum.
+// Check if the checksum of a readable stream is equal to an expected checksum.
 // The given stream is wrapped in a stream which emits an error event
-// if the computed checksum is not equals to the expected checksum.
+// if the computed checksum is not equal to the expected checksum.
 export const validChecksumOfReadStream = (stream, expectedChecksum) => {
   const algorithmId = expectedChecksum.slice(1, expectedChecksum.indexOf('$', 1))
 

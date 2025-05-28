@@ -123,7 +123,7 @@ class Vdi {
   }
 
   /**
-   * return an buffer with 0/1 bit, showing if the 64KB block corresponding
+   * return a buffer with 0/1 bit, showing if the 64KB block corresponding
    * in the raw vdi has changed
    */
   async listChangedBlock(ref, baseRef) {

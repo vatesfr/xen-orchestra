@@ -131,7 +131,7 @@ Simply type the string, if it contains special characters just surround it with 
 - `"string with special characters like whitespaces"`
 
 :::tip
-The search is recursive, case insensitive and non-anchored (i.e. matches if the pattern is contained in a string).
+The search is recursive, case-insensitive and non-anchored (i.e. matches if the pattern is contained in a string).
 :::
 
 A simple string can also contain a wildcard character (`*`) to match any character in a portion of the string:
@@ -296,7 +296,7 @@ This is the network section of the VM configuration: in general, MAC field is ke
 This section is for configuring new or existing disks (according to your selected template).
 
 :::tip
-Protip: avoid using large disks for your VMs. Want to store a lot of files? Use a network share for that (NFS, SMB) and keep using VMs with small system disks. It's far easier to maintain, migrate, backup and restore!
+Pro tip: avoid using large disks for your VMs. Want to store a lot of files? Use a network share for that (NFS, SMB) and keep using VMs with small system disks. It's far easier to maintain, migrate, backup and restore!
 :::
 
 ## VM management
@@ -426,7 +426,7 @@ You can create a snapshot with one click. It will be named automatically. After 
 - delete this snapshot
 
 :::tip
-By default, XOA will try to make a snapshot with quiesce. If the VM does not support it, it will fallback to the default snapshot system.
+By default, XOA will try to make a snapshot with quiesce. If the VM does not support it, it will fall back to the default snapshot system.
 :::
 
 ## VM import and export
@@ -501,7 +501,7 @@ To prevent a virtual machine from migrating:
 
 1. Go to the VM's configuration page.
 2. Go to the **Advanced** tab.
-3. Activate the **Prevent migration** toggle switch. 
+3. Activate the **Prevent migration** toggle switch.
 
 
 When this option is enabled, the VM won't be able to migrate to another host.
@@ -773,7 +773,7 @@ If your infrastructure works properly, this view should be empty. If not, the ca
 
 ### Orphan VDIs
 
-Orphan VDIs are are disks not associated with a VM. If you're sure you don't need it, you can easily delete them using the trash icon.
+Orphan VDIs are disks not associated with a VM. If you're sure you don't need it, you can easily delete them using the trash icon.
 
 ### VDIs attached to Control Domain
 

@@ -19,7 +19,7 @@ export default {
         // a ref property, an user had the case on XenServer 7.0 on the CD VBD
         // of a VM created by XenCenter
         val === '' ||
-        // 2021-03-08 - JFT: there is an bug in XCP-ng/XenServer which leads to
+        // 2021-03-08 - JFT: there is a bug in XCP-ng/XenServer which leads to
         // some refs to be `Ref:*` instead of being rewritten
         //
         // We'll consider them as empty refs in this lib to avoid issues with

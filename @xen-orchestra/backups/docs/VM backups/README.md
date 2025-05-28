@@ -53,7 +53,7 @@ Add the following file: `xo-vm-backups/<VM UUID>/cache.json.gz`.
 
 This cache is compressed in Gzip and contains an JSON object with the metadata for all the backups of this VM indexed by their absolute path (i.e. `/xo-vm-backups/<VM UUID>/<timestamp>.json`).
 
-This file is generated on demande when listing the backups, and directly updated on backup creation/deletion.
+This file is generated on demand when listing the backups, and directly updated on backup creation/deletion.
 
 In case any incoherence is detected, the file is deleted so it will be fully generated when required.
 
@@ -180,7 +180,7 @@ job:
   sourceRemote: IdPattern
 
 # Indicates which XAPI to use to connect to a specific VM or SR
-# for remote to remote backup job,this is only needed if there is healtcheck
+# for remote to remote backup job,this is only needed if there is healthcheck
 recordToXapi:
   [ObjectId]: XapiId
 
