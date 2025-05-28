@@ -1,5 +1,16 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Templates] Fix Windows templates not being shown (PR [#8652](https://github.com/vatesfr/xen-orchestra/pull/8652))
+
+### Released packages
+
+- @vates/types 1.4.1
+- xo-server 5.178.1
+
 ## **5.107.0** (2025-05-27)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
