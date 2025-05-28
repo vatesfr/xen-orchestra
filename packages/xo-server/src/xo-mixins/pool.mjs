@@ -185,17 +185,24 @@ export default class Pools {
     )
   }
 
-  async rollingPoolReboot(pool) {
+  async rollingPoolReboot(pool, { parentTask } = {}) {
     const { _app } = this
     await _app.checkFeatureAuthorization('ROLLING_POOL_REBOOT')
+    const hasParentTask = parentTask !== undefined
+    let task = parentTask
+    const fn = async () => _app.getXapi(pool).rollingPoolReboot(task)
 
-    const task = _app.tasks.create({
-      name: `Rolling pool reboot`,
-      poolId: pool.id,
-      poolName: pool.name_label,
-      progress: 0,
-    })
-    await task.run(async () => _app.getXapi(pool).rollingPoolReboot(task))
+    if (!hasParentTask) {
+      task = _app.tasks.create({
+        name: `Rolling pool reboot`,
+        poolId: pool.id,
+        poolName: pool.name_label,
+        progress: 0,
+      })
+      await task.run(fn)
+    } else {
+      await fn()
+    }
   }
 }
 

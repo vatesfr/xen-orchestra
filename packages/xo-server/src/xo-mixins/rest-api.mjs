@@ -609,7 +609,13 @@ export default class RestApi {
       messages: {},
       networks: {},
       pifs: {},
-      pools: {},
+      pools: {
+        actions: {
+          emergency_shutdown: true,
+          rolling_reboot: true,
+          rolling_update: true,
+        },
+      },
       groups: {},
       users: {},
       vifs: {},
