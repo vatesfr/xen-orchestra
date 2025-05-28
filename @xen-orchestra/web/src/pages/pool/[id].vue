@@ -14,7 +14,7 @@ import type { XoPool } from '@/types/xo/pool.type'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
 import { computed } from 'vue'
-import { useRoute } from 'vue-router/auto'
+import { useRoute } from 'vue-router'
 
 const route = useRoute<'/pool/[id]'>()
 
