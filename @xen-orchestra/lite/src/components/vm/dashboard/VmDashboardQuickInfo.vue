@@ -63,11 +63,11 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import { useTimeAgo } from '@core/composables/local-time-ago.composable.ts'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
-import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -121,15 +121,21 @@ function getValidDateTime(dateTime: string | undefined): string | undefined {
   return dateTime === '19700101T00:00:00Z' ? undefined : dateTime
 }
 
-const relativeStartTime = computed(() => {
-  const startTime = getValidDateTime(metrics.value?.start_time)
+const startTime = computed(() => {
+  const dateTime = getValidDateTime(metrics.value?.start_time)
 
-  if (startTime === undefined) {
+  return dateTime ? new Date(parseDateTime(dateTime)) : undefined
+})
+
+// TODO check if we can do better instead of `?? ''`
+const timeAgo = useTimeAgo(() => startTime.value ?? '')
+
+const relativeStartTime = computed(() => {
+  if (startTime.value === undefined) {
     return t('not-running')
   }
 
-  // TODO replace by local-time-ago composable when merged
-  return useTimeAgo(new Date(parseDateTime(startTime))).value
+  return timeAgo?.value
 })
 
 const installDateFormatted = computed(() => {
