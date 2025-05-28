@@ -1,7 +1,7 @@
 <template>
   <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!isReady">
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('state')">
+      <VtsQuickInfoRow :label="t('state')">
         <template #value>
           <span class="power-state">
             <VtsIcon :accent="powerState.accent" :icon="powerState.icon" />
@@ -9,10 +9,10 @@
           </span>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('ip-address')" :value="vm.mainIpAddress" />
-      <VtsQuickInfoRow :label="$t('created-on')" :value="installDateFormatted" />
-      <VtsQuickInfoRow :label="$t('started')" :value="relativeStartTime" />
-      <VtsQuickInfoRow :label="$t('host')">
+      <VtsQuickInfoRow :label="t('ip-address')" :value="vm.mainIpAddress" />
+      <VtsQuickInfoRow :label="t('created-on')" :value="installDateFormatted" />
+      <VtsQuickInfoRow :label="t('started')" :value="relativeStartTime" />
+      <VtsQuickInfoRow :label="t('host')">
         <template #value>
           <span v-if="host" class="host-name">
             <UiLink v-if="host" :icon="faServer" :to="`/host/${host.id}`" size="medium">
@@ -20,25 +20,25 @@
             </UiLink>
           </span>
           <span v-else>
-            {{ $t('none') }}
+            {{ t('none') }}
           </span>
         </template>
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('id')" :value="vm.id" />
-      <VtsQuickInfoRow :label="$t('description')" :value="vm.name_description" />
-      <VtsQuickInfoRow :label="$t('os-name')" :value="vm.os_version?.name" />
-      <VtsQuickInfoRow :label="$t('virtualization-type')" :value="virtualizationType" />
+      <VtsQuickInfoRow :label="t('uuid')" :value="vm.id" />
+      <VtsQuickInfoRow :label="t('description')" :value="vm.name_description" />
+      <VtsQuickInfoRow :label="t('os-name')" :value="vm.os_version?.name" />
+      <VtsQuickInfoRow :label="t('virtualization-type')" :value="virtualizationType" />
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('vcpus')">
+      <VtsQuickInfoRow :label="t('vcpus')">
         <template #value>{{ vm.CPUs.number }}</template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('ram')">
+      <VtsQuickInfoRow :label="t('ram')">
         <template #value>{{ `${ram?.value} ${ram?.prefix}` }}</template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('tags')">
+      <VtsQuickInfoRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="vm.tags.length > 0">
             <UiTag v-for="tag in vm.tags" :key="tag" accent="info" variant="secondary">
@@ -61,11 +61,11 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import { useTimeAgo } from '@core/composables/local-time-ago.composable.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faMoon, faPause, faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
-import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -116,7 +116,6 @@ const relativeStartTime = computed(() => {
     return t('not-running')
   }
 
-  // TODO replace by local-time-ago composable when merged
   return useTimeAgo(new Date(parseDateTime(vm.startTime * 1000))).value
 })
 
