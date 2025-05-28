@@ -26,7 +26,7 @@
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('id')" :value="vm.id" />
+      <VtsQuickInfoRow :label="$t('uuid')" :value="vm.id" />
       <VtsQuickInfoRow :label="$t('description')" :value="vm.name_description" />
       <VtsQuickInfoRow :label="$t('os-name')" :value="vm.os_version?.name" />
       <VtsQuickInfoRow :label="$t('virtualization-type')" :value="virtualizationType" />
@@ -61,11 +61,11 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import { useTimeAgo } from '@core/composables/local-time-ago.composable.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faMoon, faPause, faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
-import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -116,7 +116,6 @@ const relativeStartTime = computed(() => {
     return t('not-running')
   }
 
-  // TODO replace by local-time-ago composable when merged
   return useTimeAgo(new Date(parseDateTime(vm.startTime * 1000))).value
 })
 
