@@ -33,6 +33,7 @@
 
 <!--packages-start-->
 
+- @vates/types patch
 - xo-server patch
 
 <!--packages-end-->
