@@ -3,9 +3,9 @@
     <HostDashboardQuickInfo class="quick-info" :host />
     <HostDashboardVmsStatus class="vms-status" :host />
     <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
-    <HostDashboardRamUsage class="ram-usage" :host />
+    <HostDashboardRamProvisioning class="ram-provisioning" :host />
     <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :loading="isFetching" :error />
-    <HostDashboardMemoryUsageChart class="memory-usage-chart" :data :loading="isFetching" :error />
+    <HostDashboardRamUsageChart class="ram-usage-chart" :data :loading="isFetching" :error />
     <HostDashboardNetworkUsageChart class="network-usage-chart" :data :loading="isFetching" :error />
     <HostDashboardLoadAverageChart class="load-average-chart" :data :loading="isFetching" :error />
   </div>
@@ -15,10 +15,10 @@
 import HostDashboardCpuProvisioning from '@/components/host/dashboard/HostDashboardCpuProvisioning.vue'
 import HostDashboardCpuUsageChart from '@/components/host/dashboard/HostDashboardCpuUsageChart.vue'
 import HostDashboardLoadAverageChart from '@/components/host/dashboard/HostDashboardLoadAverageChart.vue'
-import HostDashboardMemoryUsageChart from '@/components/host/dashboard/HostDashboardMemoryUsageChart.vue'
 import HostDashboardNetworkUsageChart from '@/components/host/dashboard/HostDashboardNetworkUsageChart.vue'
 import HostDashboardQuickInfo from '@/components/host/dashboard/HostDashboardQuickInfo.vue'
-import HostDashboardRamUsage from '@/components/host/dashboard/HostDashboardRamUsage.vue'
+import HostDashboardRamProvisioning from '@/components/host/dashboard/HostDashboardRamProvisioning.vue'
+import HostDashboardRamUsageChart from '@/components/host/dashboard/HostDashboardRamUsageChart.vue'
 import HostDashboardVmsStatus from '@/components/host/dashboard/HostDashboardVmsStatus.vue'
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
 import { type XoHost } from '@/types/xo/host.type'
@@ -42,8 +42,8 @@ const uiStore = useUiStore()
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
-    'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-usage ram-usage ram-usage'
-    'cpu-usage-chart cpu-usage-chart memory-usage-chart memory-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart';
+    'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-provisioning ram-provisioning ram-provisioning'
+    'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart';
 
   &.mobile {
     grid-template-columns: 1fr;
@@ -51,9 +51,9 @@ const uiStore = useUiStore()
       'quick-info'
       'vms-status'
       'cpu-provisioning'
-      'ram-usage'
+      'ram-provisioning'
       'cpu-usage-chart'
-      'memory-usage-chart'
+      'ram-usage-chart'
       'network-usage-chart'
       'load-average-chart';
   }
@@ -70,16 +70,16 @@ const uiStore = useUiStore()
     grid-area: cpu-provisioning;
   }
 
-  .ram-usage {
-    grid-area: ram-usage;
+  .ram-provisioning {
+    grid-area: ram-provisioning;
   }
 
   .cpu-usage-chart {
     grid-area: cpu-usage-chart;
   }
 
-  .memory-usage-chart {
-    grid-area: memory-usage-chart;
+  .ram-usage-chart {
+    grid-area: ram-usage-chart;
   }
 
   .network-usage-chart {
