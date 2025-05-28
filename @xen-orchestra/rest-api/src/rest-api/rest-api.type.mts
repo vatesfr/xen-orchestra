@@ -3,6 +3,7 @@ import type { Task } from '@vates/types/lib/vates/task'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, BACKUP_TYPE } from '@vates/types/common'
 import type {
+  XenApiGpuGroup,
   XenApiHostWrapped,
   XenApiMessage,
   XenApiNetworkWrapped,
@@ -12,6 +13,7 @@ import type {
   XenApiSrWrapped,
   XenApiVbdWrapped,
   XenApiVdiWrapped,
+  XenApiVgpuType,
   XenApiVgpuWrapped,
   XenApiVifWrapped,
   XenApiVmWrapped,
@@ -32,8 +34,10 @@ import type {
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
+import { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 type XapiRecordByXapiXoRecord = {
+  gpuGroup: XenApiGpuGroup
   host: XenApiHostWrapped
   message: XenApiMessage
   network: XenApiNetworkWrapped
@@ -46,6 +50,7 @@ type XapiRecordByXapiXoRecord = {
   'VDI-snapshot': XenApiVdiWrapped
   'VDI-unmanaged': XenApiVdiWrapped
   VGPU: XenApiVgpuWrapped
+  vgpuType: XenApiVgpuType
   VIF: XenApiVifWrapped
   VM: XenApiVmWrapped
   'VM-controller': XenApiVmWrapped
@@ -60,6 +65,10 @@ export type XoApp = {
   }
   tasks: EventEmitter & {
     create: (params: { name: string; objectId?: string; type?: string }) => Task
+  }
+  // TODO: enhance this type, and maybe expose 'getUser' in the restApi
+  apiContext: {
+    user: XoUser
   }
 
   // methods ------------
