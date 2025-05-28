@@ -6,9 +6,9 @@ The `useCollection` composable helps you manage a collection of items with flags
 
 ```typescript
 const { items, useSubset, useFlag } = useCollection(sources, {
+  itemId: source => source.theId, // Required only if TSource doesn't have an `id` property
   flags: ['selected', 'active', { highlighted: { multiple: false } }],
   properties: source => ({
-    id: source.theId, // Required if TSource doesn't have an `id` property
     isAvailable: source.status === 'available',
     fullName: `${source.firstName} ${source.lastName}`,
   }),
@@ -18,8 +18,8 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 ## Core Concepts
 
 - **Collection Item**: An object with a unique identifier, a reference to its source object, flags, computed properties, and methods to manipulate flags
-- **Flags**: Boolean states attached to items (like 'selected', 'active', 'highlighted')
-- **Properties**: Additional custom values
+- **Flags**: Arbitrary `boolean` states attached to items (like `selected`, `active`, `highlighted`, etc.)
+- **Properties**: Additional custom values attached to items, computed from the source object (like `fullName`, `isAvailable`, etc.)
 
 ## `useCollection` parameters
 
@@ -30,21 +30,22 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 
 ### `options` object
 
-| Name         | Type                                           | Required | Description                                                           |
-| ------------ | ---------------------------------------------- | :------: | --------------------------------------------------------------------- |
-| `flags`      | `FlagsConfig<TFlag>`                           |          | Flags that can be applied to items in the collection                  |
-| `properties` | `(source: TSource) => Record<string, unknown>` |    ~     | Function that returns additional properties for each item (see below) |
+| Name         | Type                                           | Required | Description                                                              |
+| ------------ | ---------------------------------------------- | :------: | ------------------------------------------------------------------------ |
+| `itemId`     | `(source: TSource) => TId`                     |    ~     | Function to retrieve the item ID (if not provided, `TSource.id` is used) |
+| `flags`      | `FlagsConfig<TFlag>`                           |          | Flags that can be applied to items in the collection                     |
+| `properties` | `(source: TSource) => Record<string, unknown>` |          | Function that returns additional properties for each item (see below)    |
 
 ### Item ID
 
 The item ID will be retrieved automatically from `TSource.id`
 
-If `TSource` doesn't provide an `id`, then `options.properties` will be required and must return at least an `id`
+If `TSource` doesn't provide an `id`, then `options.itemId` will be required.
 
 ### `FlagsConfig` type
 
 ```typescript
-type FlagsConfig<TFlag extends string> = TFlag[] | { [K in TFlag]: { multiple?: boolean } }
+type FlagsConfig = string[] | Record<string, { multiple?: MaybeRef<boolean> }>
 ```
 
 Values for `multiple`:
@@ -169,4 +170,8 @@ const { items: users, useSubset } = useCollection(rawUsers, {
 const { items: admins, useSubset: useAdminSubset } = useSubset(item => item.source.group === 'admin')
 
 const { items: activeAdmins } = useAdminSubset(item => item.source.status === 'active')
+
+// This would be equivalent to:
+
+const { items: activeAdmins } = useSubset(item => item.source.group === 'admin' && item.source.status === 'active')
 ```
