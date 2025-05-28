@@ -255,6 +255,7 @@ export default class XapiStats {
           json: 'true',
           start: timestamp,
         },
+        ignoreDefaultBackupNetwork: true,
       })
       .then(response => response.body.text())
       .then(data => {
