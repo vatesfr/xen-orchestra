@@ -53,7 +53,7 @@
 
 <script lang="ts" setup>
 import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
-import type { XoVm } from '@/types/xo/vm.type.ts'
+import { VM_POWER_STATE, type XoVm } from '@/types/xo/vm.type.ts'
 import VtsIcon, { type IconAccent } from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
@@ -64,7 +64,7 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
+import { faMoon, faPause, faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -88,6 +88,7 @@ const host = computed(() => getVmHost(vm))
 //   return host.value.power_state === 'Running' ? 'running' : 'halted'
 // })
 
+// TODO as above, add this to icon when new component is available
 const powerStateConfig: Record<
   string,
   {
@@ -95,15 +96,16 @@ const powerStateConfig: Record<
     accent: IconAccent
   }
 > = {
-  running: { icon: faPlay, accent: 'success' },
-  halted: { icon: faStop, accent: 'danger' },
+  [VM_POWER_STATE.RUNNING]: { icon: faPlay, accent: 'success' },
+  [VM_POWER_STATE.HALTED]: { icon: faStop, accent: 'danger' },
+  [VM_POWER_STATE.PAUSED]: { icon: faPause, accent: 'brand' },
+  [VM_POWER_STATE.SUSPENDED]: { icon: faMoon, accent: 'info' },
 }
 
 const powerState = computed(() => {
-  const isRunning = vm.power_state === 'Running'
   return {
-    text: t(`vms-status.${isRunning ? 'running' : 'halted'}`),
-    ...powerStateConfig[isRunning ? 'running' : 'halted'],
+    text: t(`vms-status.${vm.power_state.toLowerCase()}`),
+    ...powerStateConfig[vm.power_state],
   }
 })
 
