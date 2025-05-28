@@ -16,13 +16,12 @@ import UiCard from '@/components/ui/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { formatSize } from '@/libs/utils'
-import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
 import type { HostStats } from '@/libs/xapi-stats'
+import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
 import type { LinearChartData } from '@core/types/chart'
-import { map } from 'lodash-es'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -100,11 +99,27 @@ const isStatFetched = computed(() => {
 
 const isLoading = computed(() => isFetching.value || !isStatFetched.value)
 
-// TODO: improve the way to get the max value of graph
-// See: https://github.com/vatesfr/xen-orchestra/pull/6610/files#r1072237279
-const customMaxValue = computed(
-  () => Math.max(...map(data.value[0].data, 'value'), ...map(data.value[1].data, 'value')) * 1.5
-)
+const customMaxValue = computed(() => {
+  const values = data.value.reduce(
+    (acc, series) => [...acc, ...series.data.map(item => item.value ?? 0)],
 
-const customValueFormatter = (value: number) => String(formatSize(value))
+    [] as number[]
+  )
+
+  if (values.length === 0) {
+    return 100
+  }
+
+  const maxUsage = Math.max(...values) * 1.2
+
+  return Math.ceil(maxUsage / 100) * 100
+})
+
+const customValueFormatter = (value: number | null) => {
+  if (value === null) {
+    return ''
+  }
+
+  return formatSize(value)
+}
 </script>
