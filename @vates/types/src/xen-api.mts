@@ -87,6 +87,7 @@ type WrapperXenApi<T, Type extends string, Fn = { (): void }> = T & {
     call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
     callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
     getField<T extends XenApiRecord, K extends keyof T>(type: Type, ref: T['$ref'], field: K): Promise<T[K]>
+    pool_emergencyShutdown(): Promise<void>
   }
 }
 

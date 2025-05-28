@@ -28,8 +28,11 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
   const responseError: { error: string; data?: Record<string, unknown>; info?: string } = { error: error.message }
   if (noSuchObject.is(error)) {
     res.status(404)
-  } else if (unauthorized.is(error) || forbiddenOperation.is(error) || featureUnauthorized.is(error)) {
+  } else if (unauthorized.is(error) || forbiddenOperation.is(error)) {
     res.status(403)
+  } else if (featureUnauthorized.is(error)) {
+    res.status(403)
+    responseError.data = (error as XoError).data
   } else if (invalidCredentials.is(error)) {
     res.status(401)
   } else if (objectAlreadyExists.is(error)) {
