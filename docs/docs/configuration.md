@@ -84,6 +84,37 @@ systemctl restart xo-server.service
 
 > For XO Proxy, the process is almost the same except the file to create is `/etc/systemd/system/xo-proxy.service.d/ca.conf` and the service to restart is `xo-proxy.service`.
 
+### Let's Encrypt support
+
+#### What's Let's Encrypt?
+
+[Let's Encrypt](https://letsencrypt.org/?ref=xen-orchestra.com) is a Certificate Authority developed by the Internet Security Research Group. It provides free TLS certificates and makes it easy for websites to enable HTTPS encryption and create a more secure Internet for everyone.
+
+#### What can it do for me?
+
+Xen Orchestra Appliance (XOA) can **automatically request and renew HTTPS certificates from Let's Encrypt**. This lets you use a free, publicly trusted certificate instead of manually installing your own or relying on self-signed ones.
+
+:::tip
+
+Let's Encrypt will automatically renew your certificate **30 days** before expiration. And unlike "normal" certificates, no need to restart `xo-server` to enjoy your renewed certificate!
+
+:::
+
+#### How do I use it?
+
+To configure your XOA with Let's Encrypt:
+
+1. In the HTTPS section of your XO configuration file, add the following entries:
+    - `autoCert = true`
+    - `acmeDomain = example.org` 
+2. Load https://example.org in your browser.\
+    After a few seconds, the certificate will be automatically generated and installed
+
+#### I want to know more!
+
+For more details on using Let's Encrypt with XOA, check out the documentation for the SslCertificate module on [GitHub](https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/mixins/docs/SslCertificate.md?ref=xen-orchestra.com).
+
+
 ## Redis server
 
 For advanced usage, you can customize the way XO connect to Redis:
