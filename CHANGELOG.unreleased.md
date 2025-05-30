@@ -32,5 +32,6 @@
 <!--packages-start-->
 
 - xo-server-auth-oidc patch
+- xo-server-perf-alert patch
 
 <!--packages-end-->
