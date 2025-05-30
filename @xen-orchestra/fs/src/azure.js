@@ -4,7 +4,6 @@ import { parse } from 'xo-remote-parser'
 import { join, split } from './path'
 import RemoteHandlerAbstract from './abstract'
 import { pRetry } from 'promise-toolbox'
-import { asyncEach } from '@vates/async-each'
 import { readChunk } from '@vates/read-chunk'
 import copyStreamToBuffer from './_copyStreamToBuffer'
 
@@ -12,6 +11,7 @@ createLogger('xo:fs:azure')
 const MAX_BLOCK_SIZE = 1024 * 1024 * 4000 // 4000 MiB
 const MIN_BLOCK_SIZE = 1024 * 4 // 4 KiB
 const MAX_BLOCK_COUNT = 50000
+const AZURE_BATCH_MAX_REQUEST = 256 // BATCH_MAX_REQUEST constant from Azure
 const { warn, info } = createLogger('xo:fs:azure')
 
 export default class AzureHandler extends RemoteHandlerAbstract {
@@ -72,12 +72,13 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     return path === '.' ? '' : path.endsWith('/') ? path : `${path}/`
   }
 
-  #makeFullPath(path) {
+  #makeFullPath(path, isDir = false) {
     let prefixedPath = path
     if (path.startsWith('/')) {
       prefixedPath = path.substring(1)
     }
-    prefixedPath = prefixedPath === '.' ? this.#makePrefix(this.#dir) : `${this.#makePrefix(this.#dir)}${prefixedPath}`
+    prefixedPath = isDir ? this.#makePrefix(prefixedPath) : prefixedPath
+    prefixedPath = `${this.#makePrefix(this.#dir)}${prefixedPath}`
     return prefixedPath
   }
 
@@ -162,7 +163,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
    */
   async _list(path, options = {}) {
     const { ignoreMissing = false } = options
-    const fullPath = this.#makeFullPath(path)
+    const fullPath = this.#makeFullPath(path, true)
     const enoentError = new Error(`ENOENT: No such file or directory from list ${path}`)
     enoentError.code = 'ENOENT'
     enoentError.path = path
@@ -319,19 +320,18 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   async _closeFile(fd) {}
 
   async _rmtree(path) {
-    const iter = this.#containerClient.listBlobsFlat({ prefix: this.#makePrefix(path) })
-    await asyncEach(
-      iter,
-      async item => {
-        if (item.kind === 'prefix') {
-          await this._rmtree(item.name)
-        } else {
-          await this._unlink(item.name)
-        }
-      },
-      {
-        concurrency: 8,
+    const blobIterator = this.#containerClient.listBlobsFlat({ prefix: this.#makeFullPath(path, true) })
+    const blobBatchClient = this.#containerClient.getBlobBatchClient()
+    let batch = blobBatchClient.createBatch()
+    for await (const urlOrBlobClient of blobIterator) {
+      await batch.deleteBlob(this.#containerClient.getBlobClient(urlOrBlobClient.name))
+      if (batch.batchRequest.operationCount >= AZURE_BATCH_MAX_REQUEST - 1) {
+        await blobBatchClient.submitBatch(batch)
+        batch = blobBatchClient.createBatch()
       }
-    )
+    }
+    if (batch.batchRequest.operationCount > 0) {
+      await blobBatchClient.submitBatch(batch)
+    }
   }
 }
