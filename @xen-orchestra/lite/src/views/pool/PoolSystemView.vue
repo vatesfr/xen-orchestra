@@ -5,6 +5,7 @@
     <VtsColumn>
       <PoolGeneralInfo :pool />
       <PoolNetworking :pool />
+      <PoolStorageConfiguration :pool />
     </VtsColumn>
     <VtsColumn>
       <PoolManagement :pool />
@@ -16,6 +17,7 @@
 import PoolGeneralInfo from '@/components/pool/system/PoolGeneralInfo.vue'
 import PoolManagement from '@/components/pool/system/PoolManagement.vue'
 import PoolNetworking from '@/components/pool/system/PoolNetworking.vue'
+import PoolStorageConfiguration from '@/components/pool/system/PoolStorageConfiguration.vue'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'

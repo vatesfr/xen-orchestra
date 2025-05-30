@@ -116,6 +116,9 @@ export interface XenApiPool extends XenApiRecord<'pool'> {
   name_description: string
   ha_enabled: string
   migration_compression?: boolean
+  suspendSr: XenApiSr['$ref']
+  crashDumpSr: XenApiSr['$ref']
+  ha_statefiles: Array<XenApiSr['$ref']>
 }
 
 export interface XenApiHost extends XenApiRecord<'host'> {

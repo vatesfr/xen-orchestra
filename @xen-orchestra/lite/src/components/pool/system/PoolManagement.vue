@@ -5,8 +5,8 @@
     </UiTitle>
     <VtsQuickInfoRow :label="$t('master')">
       <template #value>
-        <UiLink v-if="primaryHost" :icon="faServer" :to="`/host/${pool.master}/`" size="medium">
-          {{ primaryHost.name_label }}
+        <UiLink v-if="masterHost" :icon="faServer" :to="`/host/${pool.master}/`" size="medium">
+          {{ masterHost.name_label }}
         </UiLink>
         <template v-else>
           {{ $t('none') }}
@@ -33,32 +33,17 @@
 
 <script setup lang="ts">
 import type { XenApiPool } from '@/libs/xen-api/xen-api.types'
-import { useHostStore } from '@/stores/xen-api/host.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
-import { computed } from 'vue'
 
 const { pool } = defineProps<{
   pool: XenApiPool
 }>()
 
-const { getByUuid } = useHostStore().subscribe()
-
-function link(obj: any, prop: string, idField = '$id') {
-  const dynamicValue = obj[`$${prop}`]
-  if (dynamicValue == null) {
-    return dynamicValue // Properly handles null and undefined.
-  }
-
-  if (Array.isArray(dynamicValue)) {
-    return dynamicValue.map(_ => _?.[idField])
-  }
-
-  return dynamicValue[idField]
-}
-const primaryHost = computed(() => getByUuid(link(pool, 'master')))
+const { masterHost } = usePoolStore().subscribe()
 </script>
