@@ -77,14 +77,15 @@ export const parse = string => {
     object.username = decodeURIComponent(parsed.username)
     object.password = decodeURIComponent(parsed.password)
     object = { ...parseOptionList(parsed.query), ...object }
-  } else if (type === 'azure') {
+  } else if (type === 'azure' || type === 'azurite') {
     const parsed = urlParser(string, false)
-    object.protocol = parsed.protocol === parsed.host ? 'https' : 'http'
+    object.protocol = parsed.protocol === 'azure:' ? 'https' : 'http'
     object.type = 'azure'
     object.host = parsed.host
     object.path = parsed.pathname
-    object.username = decodeURIComponent(parsed.username)
-    object.password = decodeURIComponent(parsed.password)
+    const [username, password] = parsed.host.split(':')
+    object.username = decodeURIComponent(username)
+    object.password = decodeURIComponent(password)
     object = { ...parseOptionList(parsed.query), ...object }
   }
   return object
