@@ -633,6 +633,7 @@ const messages = {
   numberOfWeeklyBackupsKept: 'Number of weekly backups kept',
   numberOfMonthlyBackupsKept: 'Number of monthly backups kept',
   numberOfYearlyBackupsKept: 'Number of yearly backups kept',
+  hideSuccessfulVms: 'Hide successful VMs in failure reports',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
