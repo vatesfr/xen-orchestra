@@ -197,6 +197,9 @@ export default decorate([
       setBackupReportTpl({ setGlobalSettings }, compactBackupTpl) {
         setGlobalSettings('backupReportTpl', compactBackupTpl ? 'compactMjml' : 'mjml')
       },
+      setHideSucessfulVms({ setGlobalSettings }, hideSuccessfulVms) {
+        setGlobalSettings('hideSuccessfulVms', hideSuccessfulVms)
+      },
       toggleMode:
         (_, { mode }) =>
         state => ({
@@ -218,6 +221,7 @@ export default decorate([
     computed: {
       idForm: generateId,
       inputBackupReportTplId: generateId,
+      inputHideSuccessfulVmsId: generateId,
 
       modePoolMetadata: ({ _modePoolMetadata }, { job }) =>
         defined(_modePoolMetadata, () => !isEmpty(destructPattern(job.pools))),
@@ -296,6 +300,7 @@ export default decorate([
       reportWhen = 'failure',
       reportRecipients = [],
       backupReportTpl = 'mjml',
+      hideSuccessfulVms,
     } = defined(() => state.settings[GLOBAL_SETTING_KEY], {})
 
     return (
@@ -396,6 +401,17 @@ export default decorate([
                       id={state.inputBackupReportTplId}
                       value={backupReportTpl === 'compactMjml'}
                       onChange={effects.setBackupReportTpl}
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <label htmlFor={state.inputHideSuccessfulVmsId}>
+                      <strong>{_('hideSuccessfulVms')}</strong>
+                    </label>
+                    <Toggle
+                      className='pull-right'
+                      id={state.inputHideSuccessfulVmsId}
+                      value={hideSuccessfulVms}
+                      onChange={effects.setHideSucessfulVms}
                     />
                   </FormGroup>
                 </CardBlock>

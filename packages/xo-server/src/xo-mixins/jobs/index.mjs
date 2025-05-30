@@ -176,6 +176,7 @@ export default class Jobs {
               mode: job.mode,
               reportWhen: job.settings['']?.reportWhen ?? 'failure',
               backupReportTpl: job.settings['']?.backupReportTpl,
+              hideSuccessfulVms: job.settings['']?.hideSuccessfulVms,
             }
           : undefined,
       event: 'job.start',

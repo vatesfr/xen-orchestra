@@ -137,6 +137,7 @@ class BackupReportsXoPlugin {
         // https://github.com/vatesfr/xen-orchestra/commit/753ee994f2948bbaca9d3161eaab82329a682773#diff-9c044ab8a42ed6576ea927a64c1ec3ebR105
         reportWhen === 'Never' ||
         (reportWhen === 'failure' && log.status === 'success') ||
+        // 'error' refers to 'Skipped and failure'
         (reportWhen === 'error' && (log.status === 'success' || log.status === 'skipped')))
     ) {
       return
@@ -150,15 +151,15 @@ class BackupReportsXoPlugin {
     ])
 
     if (job.type === 'backup' || job.type === 'mirrorBackup') {
-      return this._vmHandler(log, job, schedule, force)
+      return this._vmHandler(log, job, schedule)
     } else if (job.type === 'metadataBackup') {
-      return this._metadataHandler(log, job, schedule, force)
+      return this._metadataHandler(log, job, schedule)
     }
 
     throw new Error(`Unknown backup job type: ${job.type}`)
   }
 
-  async _metadataHandler(log, { name: jobName, settings }, schedule, force) {
+  async _metadataHandler(log, { name: jobName, settings }, schedule) {
     const xo = this._xo
 
     const formatDate = createDateFormatter(schedule?.timezone)
@@ -167,7 +168,7 @@ class BackupReportsXoPlugin {
 
     const tasksByStatus = groupBy(log.tasks, 'status')
 
-    if (!force && log.data.reportWhen === 'failure') {
+    if (log.status === 'failure' && log.data?.hideSuccessfulVms) {
       delete tasksByStatus.success
     }
 
@@ -203,11 +204,10 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _vmHandler(log, { name: jobName, settings }, schedule, force) {
+  async _vmHandler(log, { name: jobName, settings }, schedule) {
     const xo = this._xo
 
     const mailReceivers = get(() => settings[''].reportRecipients)
-    const { reportWhen } = log.data || {}
 
     const formatDate = createDateFormatter(schedule?.timezone)
 
@@ -248,7 +248,7 @@ class BackupReportsXoPlugin {
         continue
       }
 
-      if (!force && taskLog.status === 'success' && reportWhen === 'failure') {
+      if (taskLog.status === 'success' && log.status === 'failure' && log.data?.hideSuccessfulVms) {
         ++nSuccesses
         continue
       }
@@ -365,7 +365,10 @@ class BackupReportsXoPlugin {
         failure: { tasks: failedTasks, count: nFailures },
         skipped: { tasks: skippedVms, count: nSkipped },
         interrupted: { tasks: interruptedVms, count: nInterrupted },
-        success: { tasks: force || reportWhen !== 'failure' ? successfulVms : [], count: nSuccesses },
+        success: {
+          tasks: log.status === 'failure' && log.data?.hideSuccessfulVms ? [] : successfulVms,
+          count: nSuccesses,
+        },
         vmTasks: { count: nVmTasks },
       },
       formatDate,
