@@ -4,6 +4,7 @@
   <VtsColumns v-else>
     <VtsColumn>
       <PoolGeneralInfo :pool />
+      <PoolNetworking :pool />
     </VtsColumn>
     <VtsColumn>
       <PoolManagement :pool />
@@ -14,6 +15,7 @@
 <script lang="ts" setup>
 import PoolGeneralInfo from '@/components/pool/system/PoolGeneralInfo.vue'
 import PoolManagement from '@/components/pool/system/PoolManagement.vue'
+import PoolNetworking from '@/components/pool/system/PoolNetworking.vue'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
