@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- xo-server-auth-oidc patch
+
 <!--packages-end-->
