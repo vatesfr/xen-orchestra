@@ -17,6 +17,11 @@ export default class {
   constructor(app) {
     this._ajv = new Ajv({
       strict: 'log',
+      // `strictRequired` option seems to require that the object's properties are defined in the same sub-schema (even
+      // though the documentation says that it can also be defined in a parent schema) which is inconvenient with
+      // features such as `anyOf` (see xo-server-auth-oidc)
+      // https://ajv.js.org/strict-mode.html#defined-required-properties
+      strictRequired: false,
       useDefaults: true,
     }).addVocabulary(['$multiline', '$type', 'enumNames'])
     this._plugins = { __proto__: null }
