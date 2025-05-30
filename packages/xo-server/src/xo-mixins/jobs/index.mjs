@@ -276,7 +276,7 @@ export default class Jobs {
       runs[runJobId] = { cancel }
       $defer(() => delete runs[runJobId])
 
-      const status = await executor({
+      await executor({
         app,
         cancelToken: token,
         connection,
@@ -296,7 +296,7 @@ export default class Jobs {
         true
       )
 
-      app.emit('job:terminated', runJobId, { status, type })
+      app.emit('job:terminated', runJobId, { type })
     } catch (error) {
       await logger.error(
         `The execution of ${id} has failed.`,
