@@ -16,6 +16,7 @@
         {{ t('system') }}
       </TabItem>
     </RouterLink>
+    <TabItem disabled>{{ t('system') }}</TabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/networks`" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('network') }}
@@ -50,9 +51,8 @@ const { pool } = defineProps<{
   pool: XoPool
 }>()
 
-const { t } = useI18n()
-
 const router = useRouter()
+const { t } = useI18n()
 
 const goToNewVm = () => router.push({ name: '/vm/new', query: { poolid: pool.id } })
 </script>
