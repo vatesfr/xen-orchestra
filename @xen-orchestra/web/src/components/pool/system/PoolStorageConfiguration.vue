@@ -3,50 +3,53 @@
     <UiTitle>
       {{ $t('storage-configuration') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('default-storage-repository')">
-      <template #value>
-        <UiLink v-if="defaultSr" :icon="faDatabase" size="medium">
-          {{ defaultSr.name_label }}
-        </UiLink>
-        <template v-else>
-          {{ $t('none') }}
+    <VtsLoadingHero v-if="!isReady" type="card" />
+    <template v-else>
+      <VtsQuickInfoRow :label="$t('default-storage-repository')">
+        <template #value>
+          <UiLink v-if="defaultSr" :icon="faDatabase" size="medium">
+            {{ defaultSr.name_label }}
+          </UiLink>
+          <template v-else>
+            {{ $t('none') }}
+          </template>
         </template>
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('suspend-storage-repository')">
-      <template #value>
-        <UiLink v-if="suspendSr" :icon="faDatabase" size="medium">
-          {{ suspendSr.name_label }}
-        </UiLink>
-        <template v-else>
-          {{ $t('none') }}
+      </VtsQuickInfoRow>
+      <VtsQuickInfoRow :label="$t('suspend-storage-repository')">
+        <template #value>
+          <UiLink v-if="suspendSr" :icon="faDatabase" size="medium">
+            {{ suspendSr.name_label }}
+          </UiLink>
+          <template v-else>
+            {{ $t('none') }}
+          </template>
         </template>
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('crash-dump-storage-repository')">
-      <template #value>
-        <UiLink v-if="crashDumpSr" :icon="faDatabase" size="medium">
-          {{ crashDumpSr.name_label }}
-        </UiLink>
-        <template v-else>
-          {{ $t('none') }}
+      </VtsQuickInfoRow>
+      <VtsQuickInfoRow :label="$t('crash-dump-storage-repository')">
+        <template #value>
+          <UiLink v-if="crashDumpSr" :icon="faDatabase" size="medium">
+            {{ crashDumpSr.name_label }}
+          </UiLink>
+          <template v-else>
+            {{ $t('none') }}
+          </template>
         </template>
-      </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('heartbeat-storage-repository')">
-      <template #value>
-        <ul v-if="haSrs !== undefined && haSrs.length > 0">
-          <li v-for="haSr in haSrs" :key="haSr.id">
-            <UiLink :icon="faDatabase" size="medium">
-              {{ haSr.name_label }}
-            </UiLink>
-          </li>
-        </ul>
-        <template v-else>
-          {{ $t('none') }}
+      </VtsQuickInfoRow>
+      <VtsQuickInfoRow :label="$t('heartbeat-storage-repository')">
+        <template #value>
+          <ul v-if="haSrs !== undefined && haSrs.length > 0">
+            <li v-for="haSr in haSrs" :key="haSr.id">
+              <UiLink :icon="faDatabase" size="medium">
+                {{ haSr.name_label }}
+              </UiLink>
+            </li>
+          </ul>
+          <template v-else>
+            {{ $t('none') }}
+          </template>
         </template>
-      </template>
-    </VtsQuickInfoRow>
+      </VtsQuickInfoRow>
+    </template>
   </UiCard>
 </template>
 
@@ -55,6 +58,7 @@ import { useSrStore } from '@/stores/xo-rest-api/sr.store'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoSr } from '@/types/xo/sr.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -65,7 +69,7 @@ const { pool } = defineProps<{
   pool: XoPool
 }>()
 
-const { get: getSrById } = useSrStore().subscribe()
+const { get: getSrById, isReady } = useSrStore().subscribe()
 
 const defaultSr = computed(() => (pool.default_SR ? getSrById(pool.default_SR) : undefined))
 const suspendSr = computed(() => (pool.suspendSr ? getSrById(pool.suspendSr) : undefined))
