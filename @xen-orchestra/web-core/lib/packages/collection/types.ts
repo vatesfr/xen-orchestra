@@ -11,7 +11,7 @@ export type CollectionItem<
   source: TSource
   flags: Record<TFlag, boolean>
   properties: Reactive<TProperties>
-  toggleFlag: (flag: TFlag, forcedValue?: boolean) => void
+  toggleFlag: (flag: TFlag, shouldBeFlagged?: boolean) => void
 }
 
 export type Collection<
@@ -24,7 +24,7 @@ export type Collection<
   items: ComputedRef<$TItem[]>
   count: ComputedRef<number>
   useFlag: (flag: TFlag) => UseFlagReturn<TSource, TFlag, TProperties, TId>
-  toggleFlag: (id: TId, flag: TFlag, forcedValue?: boolean) => void
+  toggleFlag: (id: TId, flag: TFlag, shouldBeFlagged?: boolean) => void
   useSubset: (filter: ArrayFilterPredicate<$TItem>) => Collection<TSource, TFlag, TProperties, TId>
 }
 
@@ -55,7 +55,7 @@ export type CollectionConfigFlags<TFlag extends string> = TFlag[] | Record<TFlag
 export type FlagRegistry<TId extends CollectionItemId, TFlag extends string> = {
   isFlagged: (id: TId, flag: TFlag) => boolean
   isFlagDefined: (flag: TFlag) => boolean
-  toggleFlag: (id: TId, flag: TFlag, forcedValue?: boolean) => void
+  toggleFlag: (id: TId, flag: TFlag, shouldBeFlagged?: boolean) => void
   clearFlag: (flag: TFlag) => void
   isMultipleAllowed: (flag: TFlag) => boolean
   assertFlag: (flag: TFlag) => void
@@ -74,8 +74,8 @@ export type UseFlagReturn<
   areAllOn: ComputedRef<boolean>
   areSomeOn: ComputedRef<boolean>
   areNoneOn: ComputedRef<boolean>
-  toggle: (id: TId, forcedValue?: boolean) => void
-  toggleAll: (forcedValue?: boolean) => void
+  toggle: (id: TId, shouldBeFlagged?: boolean) => void
+  toggleAll: (shouldBeFlagged?: boolean) => void
   useSubset: (filter: ArrayFilterPredicate<$TItem>) => Collection<TSource, TFlag, TProperties, TId>
 }
 

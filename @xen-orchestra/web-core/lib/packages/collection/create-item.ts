@@ -15,8 +15,8 @@ export function createItem<
   return {
     id,
     source,
-    toggleFlag(flag: TFlag, forcedValue?: boolean) {
-      flagRegistry.toggleFlag(id, flag, forcedValue)
+    toggleFlag(flag: TFlag, shouldBeFlagged?: boolean) {
+      flagRegistry.toggleFlag(id, flag, shouldBeFlagged)
     },
     flags: new Proxy({} as Record<TFlag, boolean>, {
       has(_, flag) {

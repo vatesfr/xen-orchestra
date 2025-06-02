@@ -32,13 +32,13 @@ export function createCollection<
 
     const areNoneOn = computed(() => count.value === 0)
 
-    function toggle(id: TId, forcedValue?: boolean) {
-      flagRegistry.toggleFlag(id, flag, forcedValue)
+    function toggle(id: TId, shouldBeFlagged?: boolean) {
+      flagRegistry.toggleFlag(id, flag, shouldBeFlagged)
     }
 
-    function toggleAll(forcedValue = !areAllOn.value) {
+    function toggleAll(shouldBeFlagged = !areAllOn.value) {
       for (const item of items.value) {
-        flagRegistry.toggleFlag(item.id, flag, forcedValue)
+        flagRegistry.toggleFlag(item.id, flag, shouldBeFlagged)
       }
     }
 
@@ -57,8 +57,8 @@ export function createCollection<
     }
   }
 
-  function toggleFlag(id: TId, flag: TFlag, forcedValue?: boolean) {
-    flagRegistry.toggleFlag(id, flag, forcedValue)
+  function toggleFlag(id: TId, flag: TFlag, shouldBeFlagged?: boolean) {
+    flagRegistry.toggleFlag(id, flag, shouldBeFlagged)
   }
 
   const useSubset = createUseSubset<TSource, TFlag, TProperties, TId>(items, flagRegistry)

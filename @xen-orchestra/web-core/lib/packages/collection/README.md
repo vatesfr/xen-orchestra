@@ -30,11 +30,11 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 
 ### `options` object
 
-| Name         | Type                                           | Required | Description                                                              |
-| ------------ | ---------------------------------------------- | :------: | ------------------------------------------------------------------------ |
-| `itemId`     | `(source: TSource) => TId`                     |    ~     | Function to retrieve the item ID (if not provided, `TSource.id` is used) |
-| `flags`      | `FlagsConfig<TFlag>`                           |          | Flags that can be applied to items in the collection                     |
-| `properties` | `(source: TSource) => Record<string, unknown>` |          | Function that returns additional properties for each item (see below)    |
+| Name         | Type                                           | Required | Description                                                                                     |
+| ------------ | ---------------------------------------------- | :------: | ----------------------------------------------------------------------------------------------- |
+| `itemId`     | `keyof TSource \| ((source: TSource) => TId)`  |    ~     | Function to retrieve the item ID or property of TSource (if not provided, `TSource.id` is used) |
+| `flags`      | `FlagsConfig<TFlag>`                           |          | Flags that can be applied to items in the collection                                            |
+| `properties` | `(source: TSource) => Record<string, unknown>` |          | Function that returns additional properties for each item (see below)                           |
 
 ### Item ID
 
@@ -64,13 +64,13 @@ Values for `multiple`:
 
 ### `CollectionItem` object
 
-| Name         | Type                           | Description                                               |
-| ------------ | ------------------------------ | --------------------------------------------------------- |
-| `id`         | `TId`                          | Unique identifier for the item (string, number or symbol) |
-| `source`     | `TSource`                      | The original source object                                |
-| `flags`      | `Record<TFlag, boolean>`       | Object containing the state of all flags for this item    |
-| `properties` | `TProperties`                  | Object containing all computed properties for this item   |
-| `toggleFlag` | `(flag, forcedValue?) => void` | Method to toggle a flag on this item                      |
+| Name         | Type                               | Description                                               |
+| ------------ | ---------------------------------- | --------------------------------------------------------- |
+| `id`         | `TId`                              | Unique identifier for the item (string, number or symbol) |
+| `source`     | `TSource`                          | The original source object                                |
+| `flags`      | `Record<TFlag, boolean>`           | Object containing the state of all flags for this item    |
+| `properties` | `TProperties`                      | Object containing all computed properties for this item   |
+| `toggleFlag` | `(flag, shouldBeFlagged?) => void` | Method to toggle a flag on this item                      |
 
 ### UseFlagReturn object
 
@@ -82,8 +82,8 @@ Values for `multiple`:
 | `areAllOn`  | `ComputedRef<boolean>`                      | Whether all items in the collection have this flag set |
 | `areSomeOn` | `ComputedRef<boolean>`                      | Whether at least one item has this flag set            |
 | `areNoneOn` | `ComputedRef<boolean>`                      | Whether no items have this flag set                    |
-| `toggle`    | `(id, forcedValue?) => void`                | Toggle this flag on a specific item                    |
-| `toggleAll` | `(forcedValue?) => void`                    | Toggle this flag on all items in the collection        |
+| `toggle`    | `(id, shouldBeFlagged?) => void`            | Toggle this flag on a specific item                    |
+| `toggleAll` | `(shouldBeFlagged?) => void`                | Toggle this flag on all items in the collection        |
 | `useSubset` | `(filter: (item) => boolean) => Collection` | Creates a sub collection matching the filter           |
 
 ## Flag Operations
