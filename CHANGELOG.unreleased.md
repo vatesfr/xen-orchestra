@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [xo-web] Fix cpu mask list in VM
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -31,4 +33,5 @@
 
 <!--packages-start-->
 
+- xo-web patch
 <!--packages-end-->

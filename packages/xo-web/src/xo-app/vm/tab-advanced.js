@@ -581,8 +581,9 @@ export default class TabAdvanced extends Component {
 
   _getCpuMaskOptions = createSelector(
     () => this.props.vm,
-    vm =>
-      times(vm.CPUs.max, number => ({
+    () => this.props.vmHosts,
+    (vm, vmHosts) =>
+      times(vmHosts[vm.$container]?.cpus.cores, number => ({
         value: number,
         label: `Core ${number}`,
       }))
