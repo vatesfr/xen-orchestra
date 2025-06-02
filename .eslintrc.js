@@ -217,7 +217,16 @@ module.exports = {
         '@intlify/vue-i18n/no-raw-text': [
           'error',
           {
-            ignoreText: ['Xen Orchestra Lite', 'Xen Orchestra', 'XO Lite', 'XCP-ng', 'XO 5', '404', '⚠️'],
+            ignoreText: [
+              'Xen Orchestra Lite',
+              'Xen Orchestra',
+              'Xen Orchestra Appliance',
+              'XO Lite',
+              'XCP-ng',
+              'XO 5',
+              '404',
+              '⚠️',
+            ],
           },
         ],
         '@intlify/vue-i18n/no-v-html': 'error',
