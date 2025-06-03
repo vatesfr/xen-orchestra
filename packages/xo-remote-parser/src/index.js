@@ -77,15 +77,22 @@ export const parse = string => {
     object.username = decodeURIComponent(parsed.username)
     object.password = decodeURIComponent(parsed.password)
     object = { ...parseOptionList(parsed.query), ...object }
-  } else if (type === 'azure' || type === 'azurite') {
+  } else if (type === 'azure' || type === 'azurite' || type === 'azurite+http') {
     const parsed = urlParser(string, false)
-    object.protocol = parsed.protocol === 'azure:' ? 'https' : 'http'
+
+    // default https for azure and azurite.
+    // If the user wants azurite in http (not possible for azure),
+    // he will need to type "azurite+http:"
+    if (parsed.protocol === 'azure:' || parsed.protocol === 'azurite:') {
+      object.protocol = 'https'
+    } else {
+      object.protocol = 'http'
+    }
     object.type = 'azure'
     object.host = parsed.host
     object.path = parsed.pathname
-    const [username, password] = parsed.host.split(':')
-    object.username = decodeURIComponent(username)
-    object.password = decodeURIComponent(password)
+    object.username = decodeURIComponent(parsed.username)
+    object.password = decodeURIComponent(parsed.password)
     object = { ...parseOptionList(parsed.query), ...object }
   }
   return object
