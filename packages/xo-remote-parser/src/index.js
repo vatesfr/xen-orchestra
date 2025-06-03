@@ -90,6 +90,7 @@ export const parse = string => {
     }
     object.type = 'azure'
     object.host = parsed.host
+    object.port = parsed.port
     object.path = parsed.pathname
     object.username = decodeURIComponent(parsed.username)
     object.password = decodeURIComponent(parsed.password)
@@ -112,7 +113,12 @@ export const format = ({ type, host, path, port, username, password, domain, pro
     string += `${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
   if (type === 'azure') {
-    string = `azure://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
+    if (port) {
+      string = protocol === 'https' ? 'azurite://' : 'azurite+http://'
+    } else {
+      string = 'azure://'
+    }
+    string += `${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
   path = sanitizePath(path)
   if (type === 'smb') {
