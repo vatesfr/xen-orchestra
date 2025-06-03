@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM] Ability to hide XSA-468 warnings for specific VMs by adding `HIDE_XSA468` tag
+- [VM] Ability to hide XSA-468 warnings for specific VMs by adding `HIDE_XSA468` tag (PR [#8665](https://github.com/vatesfr/xen-orchestra/pull/8665))
 
 ### Bug fixes
 
