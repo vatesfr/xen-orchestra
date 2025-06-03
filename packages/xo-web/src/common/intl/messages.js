@@ -2436,6 +2436,7 @@ const messages = {
   removeOtpConfirm: 'Remove OTP authentication',
   removeOtpConfirmMessage: 'Are you sure you want to remove OTP authentication?',
   OtpAuthentication: 'OTP authentication',
+  OtpCode: 'OTP code',
 
   // ----- Usage -----
   others: '{nOthers, number} other{nOthers, plural, one {} other {s}}',
