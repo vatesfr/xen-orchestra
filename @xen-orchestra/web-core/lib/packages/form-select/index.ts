@@ -1,6 +1,6 @@
 export * from './guess-label.ts'
 export * from './guess-value.ts'
-export * from './to-search-term.ts'
+export * from './normalize-search-term.ts'
 export * from './types.ts'
 export * from './use-form-option-controller.ts'
 export * from './use-form-select.ts'

@@ -19,7 +19,7 @@ import type {
 import { computed, type ComputedRef, type MaybeRefOrGetter, provide, ref, type Ref, toValue, watch } from 'vue'
 import { guessLabel } from './guess-label.ts'
 import { guessValue } from './guess-value.ts'
-import { toSearchTerm } from './to-search-term.ts'
+import { normalizeSearchTerm } from './normalize-search-term.ts'
 
 // Overload #1: Source is CollectionItemId
 
@@ -232,7 +232,7 @@ export function useFormSelect<
 ): UseFormSelectReturn<TCustomProperties, $TSource, $TValue, TMultiple> {
   const searchTerm = ref('')
 
-  const normalizedSearchTerm = computed(() => toSearchTerm(searchTerm))
+  const normalizedSearchTerm = computed(() => normalizeSearchTerm(searchTerm))
 
   const isMultiple = computed(() => toValue(config?.multiple) ?? false) as ComputedRef<TMultiple>
 
@@ -272,7 +272,7 @@ export function useFormSelect<
       const selectedLabel = computed(() => config?.option?.selectedLabel?.(source, customProperties))
 
       const searchableTerms = computed(() =>
-        toArray(toValue(searchableTerm) ?? toValue(label)).map(term => toSearchTerm(term))
+        toArray(toValue(searchableTerm) ?? toValue(label)).map(term => normalizeSearchTerm(term))
       )
 
       const matching = computed(() => {
