@@ -2,6 +2,7 @@ import { SynchronizedDisk } from '@xen-orchestra/disk-transform'
 import cloneDeep from 'lodash/cloneDeep.js'
 
 export function forkDeltaExport(deltaExport, label) {
+  label += ' ' + Math.random()
   const { disks, ...rest } = deltaExport
   const fork = cloneDeep(rest)
   fork.disks = {}
