@@ -386,6 +386,10 @@ export type XoBackupJob = BaseXoJob & {
       exportRetention?: number
       healthCheckSr?: XoSr['id']
       healthCheckVmsWithTags?: string[]
+      fullInterval?: number
+      copyRetention?: number
+      snapshotRetention?: number
+      cbtDestroySnapshotData?: boolean
       [key: string]: unknown
     }
   }
