@@ -13,6 +13,7 @@
 </template>
 
 <script lang="ts" setup>
+import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
@@ -31,10 +32,10 @@ const { host } = defineProps<{
 }>()
 
 const { isReady: isHostReady } = useHostStore().subscribe()
-const { recordsByHostRef, isReady: areVmsReady } = useVmStore().subscribe()
-const { getByOpaqueRef: getVmMetricsByOpaqueRef } = useVmMetricsStore().subscribe()
+const { recordsByHostRef, isReady: isVmReady } = useVmStore().subscribe()
+const { getByOpaqueRef: getVmMetricsByOpaqueRef, isReady: isVmMetricsReady } = useVmMetricsStore().subscribe()
 
-const isReady = and(isHostReady, areVmsReady)
+const isReady = and(isHostReady, isVmReady, isVmMetricsReady)
 
 const hostVms = computed(() => recordsByHostRef.value.get(host.$ref) ?? [])
 
@@ -42,7 +43,13 @@ const cpusCount = computed(() => Number(host.cpu_info.cpu_count))
 
 const vCpusCount = useArrayReduce(
   hostVms,
-  (total, vm) => total + (getVmMetricsByOpaqueRef(vm.metrics)?.VCPUs_number ?? 0),
+  (total, vm) => {
+    if (vm.power_state !== VM_POWER_STATE.RUNNING && vm.power_state !== VM_POWER_STATE.PAUSED) {
+      return total
+    }
+
+    return total + (getVmMetricsByOpaqueRef(vm.metrics)?.VCPUs_number ?? 0)
+  },
   0
 )
 </script>
