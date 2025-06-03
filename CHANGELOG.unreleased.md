@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [OTP] Change wording from "Password" to "OTP code" when enabling OTP
+- [OTP] Change wording from "Password" to "OTP code" when enabling OTP (PR [#8666](https://github.com/vatesfr/xen-orchestra/pull/8666))
 
 ### Bug fixes
 
