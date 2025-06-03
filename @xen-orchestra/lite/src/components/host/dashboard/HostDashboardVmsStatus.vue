@@ -22,7 +22,7 @@ import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable'
 import { VM_POWER_STATE } from '@vates/types'
-import { useSum } from '@vueuse/math'
+import { logicAnd, useSum } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -31,9 +31,9 @@ const { host } = defineProps<{
 }>()
 
 const { isReady: isHostReady } = useHostStore().subscribe()
-const { isReady: areVmsReady, recordsByHostRef } = useVmStore().subscribe()
+const { isReady: isVmReady, recordsByHostRef } = useVmStore().subscribe()
 
-const isReady = computed(() => isHostReady.value && areVmsReady.value)
+const isReady = logicAnd(isHostReady, isVmReady)
 
 const hostVms = computed(() => recordsByHostRef.value.get(host.$ref) ?? [])
 
