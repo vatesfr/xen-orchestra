@@ -1,12 +1,12 @@
 <template>
   <UiCard>
     <UiCardTitle>
-      {{ $t('memory-usage') }}
+      {{ $t('ram-usage') }}
       <template #description>{{ $t('last-week') }}</template>
     </UiCardTitle>
     <VtsLoadingHero v-if="loading || data === null" type="card" />
     <VtsErrorNoDataHero v-else-if="error" type="card" />
-    <VtsLinearChart v-else :data="memoryUsage" :max-value :value-formatter="byteFormatter" />
+    <VtsLinearChart v-else :data="ramUsage" :max-value :value-formatter="byteFormatter" />
   </UiCard>
 </template>
 
@@ -31,7 +31,7 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
-const memoryUsage = computed<LinearChartData>(() => {
+const ramUsage = computed<LinearChartData>(() => {
   if (!data?.stats.memory || !data?.stats.memoryFree) {
     return []
   }
@@ -55,7 +55,7 @@ const memoryUsage = computed<LinearChartData>(() => {
 
   return [
     {
-      label: t('memory-usage'),
+      label: t('ram-usage'),
       data: Array.from(result.values()),
     },
   ]
