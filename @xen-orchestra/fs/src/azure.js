@@ -23,14 +23,14 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
     const { username, path, password, host, protocol } = parse(remote.url)
-    const credentials = new StorageSharedKeyCredential(username, password)
-    const url =
-      remote.protocol === 'http'
-        ? `${protocol}://${host}/${username}`
-        : `${protocol}://${username}.blob.core.windows.net`
+    const credential = new StorageSharedKeyCredential(username, password)
+
+    // if azurite, we need to put the username in url
+    // if azure, we only need the host. Until now, it is {username}.blob.core.windows.net
+    const url = remote.url.startsWith('azure:') ? `${protocol}://${host}` : `${protocol}://${host}/${username}`
 
     info('Connecting to Azure blob storage...')
-    this.#blobServiceClient = new BlobServiceClient(url, credentials)
+    this.#blobServiceClient = new BlobServiceClient(url, credential)
 
     const parts = split(path)
     this.#container = parts.shift() // in azurite, container = first component after host, only lowercase allowed
