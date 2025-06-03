@@ -38,7 +38,7 @@ export function useFormSelect<
     multiple?: MaybeRefOrGetter<TMultiple>
     model?: Ref<unknown>
     disabled?: MaybeRefOrGetter<boolean>
-    selectedLabel?: (count: number, labels: string[]) => string
+    selectedLabel?: (count: number, labels: string[]) => string | undefined
     placeholder?: MaybeRefOrGetter<string>
     searchPlaceholder?: MaybeRefOrGetter<string>
     loading?: MaybeRefOrGetter<boolean>
@@ -73,7 +73,7 @@ export function useFormSelect<
     multiple?: MaybeRefOrGetter<TMultiple>
     model?: Ref<unknown>
     disabled?: MaybeRefOrGetter<boolean>
-    selectedLabel?: (count: number, labels: string[]) => string
+    selectedLabel?: (count: number, labels: string[]) => string | undefined
     placeholder?: MaybeRefOrGetter<string>
     searchPlaceholder?: MaybeRefOrGetter<string>
     loading?: MaybeRefOrGetter<boolean>
@@ -108,7 +108,7 @@ export function useFormSelect<
     multiple?: MaybeRefOrGetter<TMultiple>
     model?: Ref<unknown>
     disabled?: MaybeRefOrGetter<boolean>
-    selectedLabel?: (count: number, labels: string[]) => string
+    selectedLabel?: (count: number, labels: string[]) => string | undefined
     placeholder?: MaybeRefOrGetter<string>
     searchPlaceholder?: MaybeRefOrGetter<string>
     loading?: MaybeRefOrGetter<boolean>
@@ -143,7 +143,7 @@ export function useFormSelect<
     multiple?: MaybeRefOrGetter<TMultiple>
     model?: Ref<unknown>
     disabled?: MaybeRefOrGetter<boolean>
-    selectedLabel?: (count: number, labels: string[]) => string
+    selectedLabel?: (count: number, labels: string[]) => string | undefined
     placeholder?: MaybeRefOrGetter<string>
     searchPlaceholder?: MaybeRefOrGetter<string>
     loading?: MaybeRefOrGetter<boolean>
@@ -178,7 +178,7 @@ export function useFormSelect<
     multiple?: MaybeRefOrGetter<TMultiple>
     model?: Ref<unknown>
     disabled?: MaybeRefOrGetter<boolean>
-    selectedLabel?: (count: number, labels: string[]) => string
+    selectedLabel?: (count: number, labels: string[]) => string | undefined
     placeholder?: MaybeRefOrGetter<string>
     searchPlaceholder?: MaybeRefOrGetter<string>
     loading?: MaybeRefOrGetter<boolean>
@@ -213,7 +213,7 @@ export function useFormSelect<
     multiple?: MaybeRefOrGetter<boolean>
     model?: Ref<unknown>
     disabled?: MaybeRefOrGetter<boolean>
-    selectedLabel?: (count: number, labels: string[]) => string
+    selectedLabel?: (count: number, labels: string[]) => string | undefined
     placeholder?: MaybeRefOrGetter<string>
     searchPlaceholder?: MaybeRefOrGetter<string>
     loading?: MaybeRefOrGetter<boolean>

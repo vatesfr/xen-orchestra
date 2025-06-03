@@ -8,8 +8,8 @@
       :model-value="selectedLabel"
       :placeholder
       :required="isRequired"
-      readonly
       :right-icon="faAngleDown"
+      readonly
     />
 
     <Teleport v-if="isOpen" to="body">
@@ -22,8 +22,8 @@
               ref="searchRef"
               v-model="searchTerm"
               :placeholder="searchPlaceholder"
-              accent="brand"
               :right-icon="faMagnifyingGlass"
+              accent="brand"
             />
           </div>
         </template>
@@ -67,7 +67,6 @@ const { accent, id } = defineProps<{
 
 defineSlots<{
   default(props: { option: FormSelectIdToOption<TSelectId> }): any
-  before(): any
 }>()
 
 const { t } = useI18n()
@@ -106,6 +105,7 @@ const minWidth = computed(() => `${width.value}px`)
   }
 }
 
+/* Teleported */
 .dropdown-list {
   min-width: v-bind(minWidth);
   max-height: 36.2rem; /* 8 Dropdown items */
