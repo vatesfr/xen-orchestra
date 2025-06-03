@@ -7,9 +7,10 @@
     <template v-else>
       <VtsQuickInfoRow :label="$t('default-storage-repository')">
         <template #value>
-          <UiLink v-if="defaultSr" :icon="faDatabase" size="medium">
+          <template v-if="defaultSr">
+            <VtsIcon :icon="faDatabase" accent="current" />
             {{ defaultSr.name_label }}
-          </UiLink>
+          </template>
           <template v-else>
             {{ $t('none') }}
           </template>
@@ -17,9 +18,10 @@
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="$t('suspend-storage-repository')">
         <template #value>
-          <UiLink v-if="suspendSr" :icon="faDatabase" size="medium">
+          <template v-if="suspendSr">
+            <VtsIcon :icon="faDatabase" accent="current" />
             {{ suspendSr.name_label }}
-          </UiLink>
+          </template>
           <template v-else>
             {{ $t('none') }}
           </template>
@@ -27,9 +29,10 @@
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="$t('crash-dump-storage-repository')">
         <template #value>
-          <UiLink v-if="crashDumpSr" :icon="faDatabase" size="medium">
+          <template v-if="crashDumpSr">
+            <VtsIcon :icon="faDatabase" accent="current" />
             {{ crashDumpSr.name_label }}
-          </UiLink>
+          </template>
           <template v-else>
             {{ $t('none') }}
           </template>
@@ -39,9 +42,8 @@
         <template #value>
           <ul v-if="haSrs !== undefined && haSrs.length > 0">
             <li v-for="haSr in haSrs" :key="haSr.id">
-              <UiLink :icon="faDatabase" size="medium">
-                {{ haSr.name_label }}
-              </UiLink>
+              <VtsIcon :icon="faDatabase" accent="current" />
+              {{ haSr.name_label }}
             </li>
           </ul>
           <template v-else>
@@ -57,10 +59,10 @@
 import { useSrStore } from '@/stores/xo-rest-api/sr.store'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoSr } from '@/types/xo/sr.type'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faDatabase } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'

@@ -8,9 +8,9 @@
       <VtsQuickInfoRow :label="$t('backup-network')">
         <template #value>
           <UiLink
-            v-if="pool.otherConfig['xo:backupNetwork'] && backupNetwork?.name_label"
+            v-if="backupNetwork !== undefined"
             :icon="faNetworkWired"
-            :to="`/pool/${pool.id}/networks?id=${pool.otherConfig['xo:backupNetwork']}/`"
+            :to="`/pool/${pool.id}/networks?id=${backupNetwork.id}`"
             size="medium"
           >
             {{ backupNetwork.name_label }}
