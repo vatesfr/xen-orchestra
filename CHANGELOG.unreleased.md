@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM] Ability to hide XSA-468 warnings for specific VMs by adding `HIDE_XSA468` tag
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-web minor
 
 <!--packages-end-->
