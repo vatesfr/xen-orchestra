@@ -12,7 +12,11 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **XO 6:**
+
   - [Host/Dashboard] Update RAM usage components wordings and update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
+
+- **Migrated REST API endpoint**
+  - `/rest/v0/dashboard` (PR [#8580](https://github.com/vatesfr/xen-orchestra/pull/8580))
 
 ### Bug fixes
 
@@ -33,5 +37,9 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @vates/types minor
+- @xen-orchestra/rest-api minor
+- xo-server minor
 
 <!--packages-end-->
