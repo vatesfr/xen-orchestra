@@ -89,9 +89,9 @@ export class XoaService {
           target.backups += totalBackupSize.onDisk
           if (!isS3) {
             const _target = target as DashboardBackupRepositoriesSizeInfo['other']['size']
-            _target.available += available
+            _target.available += available ?? 0
             _target.other += used - totalBackupSize.onDisk
-            _target.total += size
+            _target.total += size ?? 0
             _target.used += used
           }
         }
