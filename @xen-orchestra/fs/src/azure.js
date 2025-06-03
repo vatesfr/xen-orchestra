@@ -4,12 +4,12 @@ import { parse } from 'xo-remote-parser'
 import { join, split } from './path'
 import RemoteHandlerAbstract from './abstract'
 import { pRetry } from 'promise-toolbox'
-import { readChunk } from '@vates/read-chunk'
 import copyStreamToBuffer from './_copyStreamToBuffer'
+import { PassThrough, Transform, pipeline } from 'stream'
 
 createLogger('xo:fs:azure')
 const MAX_BLOCK_SIZE = 1024 * 1024 * 4000 // 4000 MiB
-const MIN_BLOCK_SIZE = 1024 * 4 // 4 KiB
+const MIN_BLOCK_SIZE = 1024 * 1024 * 4 // 4 MiB, default max block size
 const MAX_BLOCK_COUNT = 50000
 const AZURE_BATCH_MAX_REQUEST = 256 // BATCH_MAX_REQUEST constant from Azure
 const { warn, info } = createLogger('xo:fs:azure')
@@ -65,18 +65,21 @@ export default class AzureHandler extends RemoteHandlerAbstract {
    * @param {string} path String to format
    * @returns add / at the end of path to allow azure to understand it is a "folder"
    */
-  #makePrefix(path) {
+  #ensureIsDir(path) {
     return path === '.' ? '' : path.endsWith('/') ? path : `${path}/`
   }
 
-  #makeFullPath(path, isDir = false) {
-    let prefixedPath = path
-    if (path.startsWith('/')) {
-      prefixedPath = path.substring(1)
+  #makeFullPath(path) {
+    if (path.startsWith(this.#dir) || path.substring('/').startsWith(this.#dir)) {
+      let prefixedPath = path
+      if (path.startsWith('/')) {
+        prefixedPath = path.substring(1)
+      }
+      prefixedPath = `${this.#ensureIsDir(this.#dir)}${prefixedPath}`
+      return prefixedPath
+    } else {
+      return path
     }
-    prefixedPath = isDir ? this.#makePrefix(prefixedPath) : prefixedPath
-    prefixedPath = `${this.#makePrefix(this.#dir)}${prefixedPath}`
-    return prefixedPath
   }
 
   /**
@@ -85,7 +88,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
    * @returns true if dir is not empty
    */
   async #isNotEmptyDir(dir) {
-    const prefix = this.#makePrefix(dir)
+    const prefix = this.#ensureIsDir(dir)
     const iterator = this.#containerClient.listBlobsFlat({ prefix }).byPage({ maxPageSize: 1 })
 
     const { value } = await iterator.next()
@@ -110,10 +113,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     const blobClient = this.#containerClient.getBlockBlobClient(this.#makeFullPath(path))
     let blockSize
     if (maxStreamLength === undefined) {
-      warn(
-        `Writing ${this.#makeFullPath(path)} to a azure blob storage without a max size set will cut it to ${MAX_BLOCK_COUNT * MAX_BLOCK_SIZE} bytes`,
-        { path }
-      )
+      warn(`Writing ${path} to a azure blob storage without a max size set will cut it to 50GB`, { path })
       blockSize = MIN_BLOCK_SIZE
     } else {
       const minBlockSize = Math.ceil(maxStreamLength / MAX_BLOCK_COUNT) // Minimal possible block size for the block count allowed
@@ -121,27 +121,29 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       blockSize = Math.min(adjustedMinSize, MAX_BLOCK_SIZE) // Block size must be smaller than max block size allowed
     }
 
-    const blockIds = []
-    let blockIndex = 0
-    let done = false
+    const MAX_SIZE = MAX_BLOCK_COUNT * blockSize
 
-    while (!done) {
-      if (!input.readable) {
-        input.readableEnded = true
-        break
-      }
-      const chunk = await readChunk(input, blockSize)
-      if (!chunk || chunk.length === 0) {
-        done = true
-        break
-      }
+    let readCounter = 0
 
-      const blockId = Buffer.from(blockIndex.toString().padStart(6, '0')).toString('base64')
-      blockIds.push(blockId)
-      await blobClient.stageBlock(blockId, chunk, chunk.length)
-      blockIndex++
-    }
-    await blobClient.commitBlockList(blockIds)
+    const streamCutter = new Transform({
+      transform(chunk, encoding, callback) {
+        readCounter += chunk.length
+        if (readCounter > MAX_SIZE) {
+          callback(new Error(`read ${readCounter} bytes, maximum size allowed  is ${MAX_SIZE} `))
+        } else {
+          callback(null, chunk)
+        }
+      },
+    })
+
+    const body = new PassThrough()
+    pipeline(input, streamCutter, body, () => {})
+
+    await blobClient.uploadStream(body, blockSize, 5, {
+      onProgress: ev => {},
+      abortSignal: undefined,
+    })
+
     if (validator !== undefined) {
       try {
         await validator.call(this, path)
@@ -160,7 +162,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
    */
   async _list(path, options = {}) {
     const { ignoreMissing = false } = options
-    const fullPath = this.#makeFullPath(path, true)
+    const fullPath = this.#makeFullPath(this.#ensureIsDir(path))
     const enoentError = new Error(`ENOENT: No such file or directory from list ${path}`)
     enoentError.code = 'ENOENT'
     enoentError.path = path
@@ -204,6 +206,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   async _unlink(file) {
+    file = this.#makeFullPath(file)
     if (await this.#isNotEmptyDir(file)) {
       const error = new Error(`EISDIR: illegal operation on a directory, unlink '${file}'`)
       error.code = 'EISDIR'
@@ -249,7 +252,8 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.fd
     }
-    const blobClient = this.#containerClient.getBlobClient(this.#makeFullPath(file))
+    file = this.#makeFullPath(file)
+    const blobClient = this.#containerClient.getBlobClient(file)
     const properties = await blobClient.getProperties()
     return properties.contentLength
   }
@@ -258,8 +262,9 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     if (typeof file !== 'string') {
       file = file.fd
     }
+    file = this.#makeFullPath(file)
     try {
-      const blobClient = this.#containerClient.getBlobClient(this.#makeFullPath(file))
+      const blobClient = this.#containerClient.getBlobClient(file)
       const downloadResponse = await blobClient.download(position, buffer.length)
       const bytesRead = await copyStreamToBuffer(downloadResponse.readableStreamBody, buffer)
       return { bytesRead, buffer }
@@ -317,7 +322,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   async _closeFile(fd) {}
 
   async _rmtree(path) {
-    const blobIterator = this.#containerClient.listBlobsFlat({ prefix: this.#makeFullPath(path, true) })
+    const blobIterator = this.#containerClient.listBlobsFlat({ prefix: this.#makeFullPath(this.#ensureIsDir(path)) })
     const blobBatchClient = this.#containerClient.getBlobBatchClient()
     let batch = blobBatchClient.createBatch()
     for await (const urlOrBlobClient of blobIterator) {
@@ -330,5 +335,9 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     if (batch.batchRequest.operationCount > 0) {
       await blobBatchClient.submitBatch(batch)
     }
+  }
+
+  useVhdDirectory() {
+    return true
   }
 }
