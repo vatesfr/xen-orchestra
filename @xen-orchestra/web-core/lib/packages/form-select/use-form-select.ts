@@ -138,6 +138,7 @@ export function useFormSelect<
     useFlag,
     useSubset,
   } = useCollection(sources, {
+    itemId: source => (source as { value: FormOptionValue }).value ?? (source as { id: FormOptionValue }).id,
     flags: {
       active: { multiple: false },
       selected: { multiple: config?.multiple ?? false },

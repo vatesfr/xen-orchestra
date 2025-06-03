@@ -152,7 +152,7 @@ export const ICON_POOL_LICENSE = {
   const getHosts = createGetObjectsOfType('host')
   const getXostors = createGetObjectsOfType('SR').filter([sr => sr.SR_type === 'linstor'])
   const getXsa468VulnerableVms = createGetObjectsOfType('VM').filter([
-    vm => vm.vulnerabilities?.xsa468?.reason === 'pv-driver-version-vulnerable',
+    vm => vm.vulnerabilities?.xsa468?.reason === 'pv-driver-version-vulnerable' && !vm.tags.includes('HIDE_XSA468'),
   ])
   return {
     trial: state.xoaTrialState,

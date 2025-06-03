@@ -32,14 +32,17 @@ import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
+import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 
 const { host } = defineProps<{
   host: XenApiHost
 }>()
 
-const { isReady } = useHostStore().subscribe()
-const { getHostMemory } = useHostMetricsStore().subscribe()
+const { isReady: isHostReady } = useHostStore().subscribe()
+const { getHostMemory, isReady: isHostMetricsReady } = useHostMetricsStore().subscribe()
+
+const isReady = logicAnd(isHostReady, isHostMetricsReady)
 
 const memory = computed(() => getHostMemory(host))
 
