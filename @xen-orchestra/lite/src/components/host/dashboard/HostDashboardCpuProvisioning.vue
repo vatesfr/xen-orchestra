@@ -32,10 +32,10 @@ const { host } = defineProps<{
 }>()
 
 const { isReady: isHostReady } = useHostStore().subscribe()
-const { recordsByHostRef, isReady: areVmsReady } = useVmStore().subscribe()
-const { getByOpaqueRef: getVmMetricsByOpaqueRef } = useVmMetricsStore().subscribe()
+const { recordsByHostRef, isReady: isVmReady } = useVmStore().subscribe()
+const { getByOpaqueRef: getVmMetricsByOpaqueRef, isReady: isVmMetricsReady } = useVmMetricsStore().subscribe()
 
-const isReady = and(isHostReady, areVmsReady)
+const isReady = and(isHostReady, isVmReady, isVmMetricsReady)
 
 const hostVms = computed(() => recordsByHostRef.value.get(host.$ref) ?? [])
 

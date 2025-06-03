@@ -55,7 +55,7 @@ const ramUsage = computed<LinearChartData>(() => {
 
   return [
     {
-      label: t('memory-usage'),
+      label: t('ram-usage'),
       data: Array.from(result.values()),
     },
   ]

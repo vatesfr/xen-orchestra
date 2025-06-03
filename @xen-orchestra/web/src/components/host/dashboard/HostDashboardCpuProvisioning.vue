@@ -5,7 +5,7 @@
     <template v-else>
       <UiProgressBar :value="vCpusCount" :max="cpusCount" :legend="$t('vcpus')" />
       <div class="total">
-        <UiCardNumbers :label="$t('vcpus-used')" :value="vCpusCount" size="medium" />
+        <UiCardNumbers :label="$t('vcpus-assigned')" :value="vCpusCount" size="medium" />
         <UiCardNumbers :label="$t('total-cpus')" :value="cpusCount" size="medium" />
       </div>
     </template>
@@ -22,6 +22,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
+import { logicAnd } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'
 
@@ -30,9 +31,9 @@ const { host } = defineProps<{
 }>()
 
 const { isReady: isHostReady } = useHostStore().subscribe()
-const { vmsByHost, isReady: areVmsReady } = useVmStore().subscribe()
+const { vmsByHost, isReady: isVmReady } = useVmStore().subscribe()
 
-const isReady = computed(() => isHostReady.value && areVmsReady.value)
+const isReady = logicAnd(isHostReady, isVmReady)
 
 const hostVms = computed(() => vmsByHost.value.get(host.id) ?? [])
 

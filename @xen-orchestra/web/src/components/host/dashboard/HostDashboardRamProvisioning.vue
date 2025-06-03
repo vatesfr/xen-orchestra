@@ -6,7 +6,7 @@
       <UiProgressBar :value="host.memory.usage" :max="host.memory.size" :legend="host.name_label" />
       <div class="total">
         <UiCardNumbers
-          :label="$t('total-used')"
+          :label="$t('total-assigned')"
           :unit="ramUsage.used?.prefix"
           :value="ramUsage.used?.value"
           size="medium"
