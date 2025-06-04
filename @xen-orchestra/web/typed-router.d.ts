@@ -20,7 +20,6 @@ declare module 'vue-router/auto-routes' {
   export interface RouteNamedMap {
     '/(site)': RouteRecordInfo<'/(site)', '/', Record<never, never>, Record<never, never>>,
     '/(site)/(dashboard)': RouteRecordInfo<'/(site)/(dashboard)', '/', Record<never, never>, Record<never, never>>,
-    '/(site)/connectPool': RouteRecordInfo<'/(site)/connectPool', '/connectPool', Record<never, never>, Record<never, never>>,
     '/[...path]': RouteRecordInfo<'/[...path]', '/:path(.*)', { path: ParamValue<true> }, { path: ParamValue<false> }>,
     '/dev/': RouteRecordInfo<'/dev/', '/dev', Record<never, never>, Record<never, never>>,
     '/dev/colors': RouteRecordInfo<'/dev/colors', '/dev/colors', Record<never, never>, Record<never, never>>,
@@ -37,6 +36,7 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/hosts': RouteRecordInfo<'/pool/[id]/hosts', '/pool/:id/hosts', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/[id]/networks': RouteRecordInfo<'/pool/[id]/networks', '/pool/:id/networks', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/[id]/vms': RouteRecordInfo<'/pool/[id]/vms', '/pool/:id/vms', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/pool/connect': RouteRecordInfo<'/pool/connect', '/pool/connect', Record<never, never>, Record<never, never>>,
     '/vm/[id]': RouteRecordInfo<'/vm/[id]', '/vm/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/:id': RouteRecordInfo<'/vm/:id', '/vm/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/console': RouteRecordInfo<'/vm/[id]/console', '/vm/:id/console', { id: ParamValue<true> }, { id: ParamValue<false> }>,
