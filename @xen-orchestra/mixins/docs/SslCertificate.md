@@ -1,5 +1,7 @@
 > This module provides [Let's Encrypt](https://letsencrypt.org/) integration to `xo-proxy` and `xo-server`.
 
+## Set up
+
 First of all, make sure your server is listening on HTTP on port 80 and on HTTPS 443.
 
 In `xo-server`, to avoid HTTP access, enable the redirection to HTTPs:
@@ -11,16 +13,8 @@ redirectToHttps = true
 
 Your server must be reachable with the configured domain to the certificate provider (e.g. Let's Encrypt), it usually means publicly reachable.
 
-Finally, add the following entries to your HTTPS configuration.
-
 ```toml
-# Must be set to true for this feature
-autoCert = true
-
-# These entries are required and indicates where the certificate and the
-# private key will be saved.
-cert = 'path/to/cert.pem'
-key = 'path/to/key.pem'
+[acme]
 
 # ACME (e.g. Let's Encrypt, ZeroSSL) CA directory
 #
@@ -35,15 +29,33 @@ key = 'path/to/key.pem'
 # application to generate new ones.
 #
 # Default is 'letsencrypt/production'
-acmeCa = 'zerossl/production'
-
-# Domain for which the certificate should be created.
-#
-# This entry is required.
-acmeDomain = 'my.domain.net'
+ca = 'zerossl/production'
 
 # Optional email address which will be used for the certificate creation.
 #
 # It will be notified of any issues.
-acmeEmail = 'admin@my.domain.net'
+email = 'admin@my.domain.net'
+
+# Domain for which the certificate should be created.
+[acme."my.domain.net"]
+
+# Options documented above can be overriden for a specific domain.
+# ca =
+# email =
 ```
+
+## Behind the scenes
+
+The certificates are stored in:
+
+```
+$XDG_CONFIG_HOME/<app name>/acme/<ca hostname>/sites/<domain>
+├─ cert.pem
+└─ key.pem
+```
+
+When a request arrives:
+
+- if no ACME domain is configured for it, the certificate configured for this `http.listen` entry will be used;
+- if the ACME certificate for this domain and this CA is missing or no longer valid, a new one will be generated and used for this request;
+- if the ACME certificate for this domain and this CA expires soon, it is used for this request and a new one is generated.
