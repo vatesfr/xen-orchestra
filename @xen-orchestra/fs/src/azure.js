@@ -61,7 +61,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   /**
-   *
+   * Make sure a given path is a folder path
    * @param {string} path String to format
    * @returns add / at the end of path to allow azure to understand it is a "folder"
    */
@@ -69,7 +69,15 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     return path === '.' ? '' : path.endsWith('/') ? path : `${path}/`
   }
 
+  /**
+   * As Azure does not have prefix option in every methods
+   * we need to add the path everywhere it is needed
+   * @param {*} path relative path or blob name
+   * @returns absolute path in container
+   */
   #makeFullPath(path) {
+    // safety check to avoid adding #dir multiple times
+    // as some methods are used outside this class
     if (!path.startsWith(this.#dir) || !path.substring('/').startsWith(this.#dir)) {
       let prefixedPath = path
       if (path.startsWith('/')) {
@@ -104,10 +112,10 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   /**
-   *
-   * @param {string} path
-   * @param {object} input
-   * @param {*} param2
+   * upload file from a stream
+   * @param {string} path destination file
+   * @param {object} input stream
+   * @param {*} param2 details given by stream input
    */
   async _outputStream(path, input, { streamLength, maxStreamLength = streamLength, validator }) {
     const blobClient = this.#containerClient.getBlockBlobClient(this.#makeFullPath(path))
@@ -155,7 +163,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   /**
-   *
+   * List all blobs inside a folder
    * @param {string} path folder name inside container and #dir
    * @param {*} options only used for ignoreMissing, if set to true, avoid throing error about empty list
    * @returns list of blobs in folder container/#dir
@@ -184,7 +192,11 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     }
   }
 
-  // uploads a file to a blob
+  /**
+   * uploads a file to a blob
+   * @param {string} file file name
+   * @param {*} data file content
+   */
   async _writeFile(file, data) {
     const blobClient = this.#containerClient.getBlockBlobClient(this.#makeFullPath(file))
     await blobClient.upload(data, data.length)
@@ -290,6 +302,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       throw error
     }
   }
+
   async _writeFd(file, buffer, position) {
     if (typeof file !== 'string') {
       file = file.fd
@@ -321,17 +334,29 @@ export default class AzureHandler extends RemoteHandlerAbstract {
 
   async _closeFile(fd) {}
 
+  /**
+   * Delete recursively a given folder
+   * @param {string} path
+   */
   async _rmtree(path) {
+    // Create an iterator with all blobs inside a folder and its subfolder
     const blobIterator = this.#containerClient.listBlobsFlat({ prefix: this.#makeFullPath(this.#ensureIsDir(path)) })
+
+    // create a batch client with a maximum number
+    // of instructions given by AZURE_BATCH_MAX_REQUEST
     const blobBatchClient = this.#containerClient.getBlobBatchClient()
     let batch = blobBatchClient.createBatch()
     for await (const urlOrBlobClient of blobIterator) {
       await batch.deleteBlob(this.#containerClient.getBlobClient(urlOrBlobClient.name))
+
+      // if the batch limit is reached, we send it and recreate a new one
       if (batch.batchRequest.operationCount >= AZURE_BATCH_MAX_REQUEST - 1) {
         await blobBatchClient.submitBatch(batch)
         batch = blobBatchClient.createBatch()
       }
     }
+
+    // send the last batch as it can be between 0 and AZURE_BATCH_MAX_REQUEST
     if (batch.batchRequest.operationCount > 0) {
       await blobBatchClient.submitBatch(batch)
     }
