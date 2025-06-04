@@ -699,9 +699,9 @@ const New = decorate([
           backupReportTpl: compactBackupTpl ? 'compactMjml' : 'mjml',
         })
       },
-      setHideSucessfulVms({ setGlobalSettings }, hideSuccessfulVms) {
+      setHideSuccessfulItems({ setGlobalSettings }, hideSuccessfulItems) {
         setGlobalSettings({
-          hideSuccessfulVms,
+          hideSuccessfulItems,
         })
       },
       setMergeBackupsSynchronously({ setGlobalSettings }, mergeBackupsSynchronously) {
@@ -721,7 +721,7 @@ const New = decorate([
       inputNbdConcurrency: generateId,
       inputNRetriesVmBackupFailures: generateId,
       inputBackupReportTplId: generateId,
-      inputHideSuccessfulVmsId: generateId,
+      inputHideSuccessfulItemsId: generateId,
       inputMergeBackupsSynchronously: generateId,
       inputTimeoutId: generateId,
       inputLongTermRetentionDaily: generateId,
@@ -848,7 +848,7 @@ const New = decorate([
       reportRecipients,
       reportWhen = 'failure',
       backupReportTpl = 'mjml',
-      hideSuccessfulVms,
+      hideSuccessfulItems,
       mergeBackupsSynchronously,
       timeout,
     } = settings.get('') || {}
@@ -1245,14 +1245,14 @@ const New = decorate([
                         />
                       </FormGroup>
                       <FormGroup>
-                        <label htmlFor={state.inputHideSuccessfulVmsId}>
-                          <strong>{_('hideSuccessfulVms')}</strong>
+                        <label htmlFor={state.inputHideSuccessfulItemsId}>
+                          <strong>{_('hideSuccessfulItems')}</strong>
                         </label>
                         <Toggle
                           className='pull-right'
-                          id={state.inputHideSuccessfulVmsId}
-                          value={hideSuccessfulVms}
-                          onChange={effects.setHideSucessfulVms}
+                          id={state.inputHideSuccessfulItemsId}
+                          value={hideSuccessfulItems}
+                          onChange={effects.setHideSuccessfulItems}
                         />
                       </FormGroup>
                       <FormGroup>

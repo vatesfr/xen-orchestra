@@ -322,7 +322,7 @@ class JobsTable extends React.Component {
             compression,
             concurrency,
             fullInterval,
-            hideSuccessfulVms,
+            hideSuccessfulItems,
             maxExportRate,
             nbdConcurrency,
             nRetriesVmBackupFailures,
@@ -352,8 +352,10 @@ class JobsTable extends React.Component {
                   )}
                 </Li>
               )}
-              {hideSuccessfulVms !== undefined && (
-                <Li>{_.keyValue(_('hideSuccessfulVms'), _(hideSuccessfulVms ? 'stateEnabled' : 'stateDisabled'))}</Li>
+              {hideSuccessfulItems !== undefined && (
+                <Li>
+                  {_.keyValue(_('hideSuccessfulItems'), _(hideSuccessfulItems ? 'stateEnabled' : 'stateDisabled'))}
+                </Li>
               )}
               {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}
               {preferNbd && <Li>{_.keyValue(_('nbdConnections'), nbdConcurrency ?? 1)}</Li>}

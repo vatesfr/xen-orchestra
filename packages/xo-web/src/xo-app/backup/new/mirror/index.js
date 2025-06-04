@@ -154,9 +154,9 @@ const NewMirrorBackup = decorate([
         setAdvancedSettings({ nRetriesVmBackupFailures }),
       setBackupReportTpl: ({ setAdvancedSettings }, compactBackupTpl) =>
         setAdvancedSettings({ backupReportTpl: compactBackupTpl ? 'compactMjml' : 'mjml' }),
-      setHideSucessfulVms({ setAdvancedSettings }, hideSuccessfulVms) {
+      setHideSuccessfulItems({ setAdvancedSettings }, hideSuccessfulItems) {
         setAdvancedSettings({
-          hideSuccessfulVms,
+          hideSuccessfulItems,
         })
       },
       setSourceRemote: (_, obj) => () => ({
@@ -275,7 +275,7 @@ const NewMirrorBackup = decorate([
       inputMaxExportRateId: generateId,
       inputNRetriesVmBackupFailures: generateId,
       inputBackupReportTplId: generateId,
-      inputHideSuccessfulVmsId: generateId,
+      inputHideSuccessfulItemsId: generateId,
       inputMirrorAllId: generateId,
       isBackupInvalid: state =>
         state.isMissingName ||
@@ -315,7 +315,7 @@ const NewMirrorBackup = decorate([
       timeout,
       maxExportRate,
       backupReportTpl = 'mjml',
-      hideSuccessfulVms,
+      hideSuccessfulItems,
       nRetriesVmBackupFailures = 0,
     } = state.advancedSettings
     return (
@@ -448,14 +448,14 @@ const NewMirrorBackup = decorate([
                         />
                       </FormGroup>
                       <FormGroup>
-                        <label htmlFor={state.inputHideSuccessfulVmsId}>
-                          <strong>{_('hideSuccessfulVms')}</strong>
+                        <label htmlFor={state.inputHideSuccessfulItemsId}>
+                          <strong>{_('hideSuccessfulItems')}</strong>
                         </label>
                         <Toggle
                           className='pull-right'
-                          id={state.inputHideSuccessfulVmsId}
-                          value={hideSuccessfulVms}
-                          onChange={effects.setHideSucessfulVms}
+                          id={state.inputHideSuccessfulItemsId}
+                          value={hideSuccessfulItems}
+                          onChange={effects.setHideSuccessfulItems}
                         />
                       </FormGroup>
                     </div>

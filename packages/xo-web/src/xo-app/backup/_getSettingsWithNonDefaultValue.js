@@ -9,7 +9,7 @@ const DEFAULTS = {
   compression: '',
   concurrency: 0,
   fullInterval: 0,
-  hideSuccessfulVms: false,
+  hideSuccessfulItems: false,
   nbdConcurrency: 1,
   offlineBackup: false,
   offlineSnapshot: false,

@@ -197,8 +197,8 @@ export default decorate([
       setBackupReportTpl({ setGlobalSettings }, compactBackupTpl) {
         setGlobalSettings('backupReportTpl', compactBackupTpl ? 'compactMjml' : 'mjml')
       },
-      setHideSucessfulVms({ setGlobalSettings }, hideSuccessfulVms) {
-        setGlobalSettings('hideSuccessfulVms', hideSuccessfulVms)
+      setHideSuccessfulItems({ setGlobalSettings }, hideSuccessfulItems) {
+        setGlobalSettings('hideSuccessfulItems', hideSuccessfulItems)
       },
       toggleMode:
         (_, { mode }) =>
@@ -221,7 +221,7 @@ export default decorate([
     computed: {
       idForm: generateId,
       inputBackupReportTplId: generateId,
-      inputHideSuccessfulVmsId: generateId,
+      inputHideSuccessfulItemsId: generateId,
 
       modePoolMetadata: ({ _modePoolMetadata }, { job }) =>
         defined(_modePoolMetadata, () => !isEmpty(destructPattern(job.pools))),
@@ -300,7 +300,7 @@ export default decorate([
       reportWhen = 'failure',
       reportRecipients = [],
       backupReportTpl = 'mjml',
-      hideSuccessfulVms,
+      hideSuccessfulItems,
     } = defined(() => state.settings[GLOBAL_SETTING_KEY], {})
 
     return (
@@ -404,14 +404,14 @@ export default decorate([
                     />
                   </FormGroup>
                   <FormGroup>
-                    <label htmlFor={state.inputHideSuccessfulVmsId}>
-                      <strong>{_('hideSuccessfulVms')}</strong>
+                    <label htmlFor={state.inputHideSuccessfulItemsId}>
+                      <strong>{_('hideSuccessfulItems')}</strong>
                     </label>
                     <Toggle
                       className='pull-right'
-                      id={state.inputHideSuccessfulVmsId}
-                      value={hideSuccessfulVms}
-                      onChange={effects.setHideSucessfulVms}
+                      id={state.inputHideSuccessfulItemsId}
+                      value={hideSuccessfulItems}
+                      onChange={effects.setHideSuccessfulItems}
                     />
                   </FormGroup>
                 </CardBlock>
