@@ -8,8 +8,8 @@
       <VtsQuickInfoRow :label="$t('backup-network')">
         <template #value>
           <UiLink
-            v-if="pool.other_config['xo:backupNetwork'] && backupNetwork?.name_label"
-            :to="`/pool/${pool.uuid}/network?id=${pool.other_config['xo:backupNetwork']}`"
+            v-if="backupNetwork !== undefined"
+            :to="`/pool/${pool.uuid}/network?id=${backupNetwork.uuid}`"
             :icon="faNetworkWired"
             size="medium"
           >
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import type { RecordUuid, XenApiPool } from '@/libs/xen-api/xen-api.types'
+import type { XenApiNetwork, XenApiPool } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -43,7 +43,7 @@ const { getByUuid, isReady } = useNetworkStore().subscribe()
 
 const backupNetwork = computed(() =>
   pool.other_config['xo:backupNetwork']
-    ? getByUuid(pool.other_config['xo:backupNetwork'] as RecordUuid<'network'>)
+    ? getByUuid(pool.other_config['xo:backupNetwork'] as XenApiNetwork['uuid'])
     : undefined
 )
 </script>

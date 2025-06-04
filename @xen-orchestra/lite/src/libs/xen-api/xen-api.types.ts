@@ -44,6 +44,7 @@ import type {
   VUSB_OPERATION,
 } from '@/libs/xen-api/xen-api.enums'
 import type { XEN_API_OBJECT_TYPES } from '@/libs/xen-api/xen-api.utils'
+import type { OPAQUE_REF_NULL } from '@vates/types'
 
 type TypeMapping = typeof XEN_API_OBJECT_TYPES
 export type ObjectType = keyof TypeMapping
@@ -111,14 +112,15 @@ export interface XenApiPool extends XenApiRecord<'pool'> {
   master: XenApiHost['$ref']
   name_label: string
   other_config: Record<string, string>
+  // TODO add | OPAQUE_REF_NULL, warning with newVm
   default_SR: XenApiSr['$ref']
   tags: Array<string>
   name_description: string
   ha_enabled: string
   migration_compression?: boolean
-  suspendSr: XenApiSr['$ref']
-  crash_dump_SR: XenApiSr['$ref']
-  ha_statefiles: Array<XenApiSr['$ref']>
+  suspend_image_SR: XenApiSr['$ref'] | OPAQUE_REF_NULL
+  crash_dump_SR: XenApiSr['$ref'] | OPAQUE_REF_NULL
+  ha_statefiles: Array<XenApiVdi['$ref']>
 }
 
 export interface XenApiHost extends XenApiRecord<'host'> {

@@ -7,9 +7,10 @@
     <template v-else>
       <VtsQuickInfoRow :label="$t('default-storage-repository')">
         <template #value>
-          <UiLink v-if="defaultSr" v-tooltip="$t('coming-soon')" :icon="faDatabase" size="medium">
+          <template v-if="defaultSr">
+            <VtsIcon :icon="faDatabase" accent="current" />
             {{ defaultSr.name_label }}
-          </UiLink>
+          </template>
           <template v-else>
             {{ $t('none') }}
           </template>
@@ -17,9 +18,10 @@
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="$t('suspend-storage-repository')">
         <template #value>
-          <UiLink v-if="suspendSr" v-tooltip="$t('coming-soon')" :icon="faDatabase" size="medium">
+          <template v-if="suspendSr">
+            <VtsIcon :icon="faDatabase" accent="current" />
             {{ suspendSr.name_label }}
-          </UiLink>
+          </template>
           <template v-else>
             {{ $t('none') }}
           </template>
@@ -27,9 +29,10 @@
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="$t('crash-dump-storage-repository')">
         <template #value>
-          <UiLink v-if="crashDumpSr" v-tooltip="$t('coming-soon')" :icon="faDatabase" size="medium">
+          <template v-if="crashDumpSr">
+            <VtsIcon :icon="faDatabase" accent="current" />
             {{ crashDumpSr.name_label }}
-          </UiLink>
+          </template>
           <template v-else>
             {{ $t('none') }}
           </template>
@@ -39,9 +42,8 @@
         <template #value>
           <ul v-if="haSrs !== undefined && haSrs.length > 0">
             <li v-for="haSr in haSrs" :key="haSr.uuid">
-              <UiLink v-tooltip="$t('coming-soon')" :icon="faDatabase" size="medium">
-                {{ haSr.name_label }}
-              </UiLink>
+              <VtsIcon :icon="faDatabase" accent="current" />
+              {{ haSr.name_label }}
             </li>
           </ul>
           <template v-else>
@@ -56,12 +58,12 @@
 <script setup lang="ts">
 import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types'
 import { useSrStore } from '@/stores/xen-api/sr.store'
+import { useVdiStore } from '@/stores/xen-api/vdi.store'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { faDatabase } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
@@ -70,20 +72,30 @@ const { pool } = defineProps<{
 }>()
 
 const { getByOpaqueRef, isReady } = useSrStore().subscribe()
+const { getByOpaqueRef: getVdiByOpaqueRef } = useVdiStore().subscribe()
 
-const defaultSr = computed(() => (pool.default_SR ? getByOpaqueRef(pool.default_SR) : undefined))
-const suspendSr = computed(() => (pool.suspendSr ? getByOpaqueRef(pool.suspendSr) : undefined))
-const crashDumpSr = computed(() => (pool.crash_dump_SR ? getByOpaqueRef(pool.crash_dump_SR) : undefined))
+const defaultSr = computed(() => (pool.default_SR !== 'OpaqueRef:NULL' ? getByOpaqueRef(pool.default_SR) : undefined))
+const suspendSr = computed(() =>
+  pool.suspend_image_SR !== 'OpaqueRef:NULL' ? getByOpaqueRef(pool.suspend_image_SR) : undefined
+)
+const crashDumpSr = computed(() =>
+  pool.crash_dump_SR !== 'OpaqueRef:NULL' ? getByOpaqueRef(pool.crash_dump_SR) : undefined
+)
 
 const haSrs = computed(() => {
   const haSrs = pool.ha_statefiles.filter(vdi => vdi !== undefined)
 
-  if (haSrs === undefined || haSrs?.length === 0) {
+  if (haSrs.length === 0) {
     return
   }
 
-  return haSrs.reduce((acc, srId) => {
-    const sr = getByOpaqueRef(srId)
+  return haSrs.reduce((acc, vdiRef) => {
+    const vdi = getVdiByOpaqueRef(vdiRef)
+    if (vdi === undefined) {
+      return acc
+    }
+
+    const sr = getByOpaqueRef(vdi.SR)
 
     return sr ? [...acc, sr] : acc
   }, [] as XenApiSr[])
