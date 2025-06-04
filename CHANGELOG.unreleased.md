@@ -36,6 +36,7 @@
 
 - **Azure Blob Storage**:
   - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PR [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415))
+- [Tasks] Only show failed xo task by default (PR [#8676](https://github.com/vatesfr/xen-orchestra/pull/8676))
 
 ### Bug fixes
 
