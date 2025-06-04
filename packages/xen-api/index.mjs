@@ -25,6 +25,7 @@ import makeCallSetting from './_makeCallSetting.mjs'
 import parseUrl from './_parseUrl.mjs'
 import Ref from './_Ref.mjs'
 import transports from './transports/index.mjs'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 const { debug } = createLogger('xen-api')
 
@@ -722,7 +723,7 @@ export class Xapi extends EventEmitter {
 
     if (arguments.length > 1) return defaultValue
 
-    throw new Error('no object with UUID or opaque ref: ' + idOrUuidOrRef)
+    /* throw */ noSuchObject(idOrUuidOrRef)
   }
 
   // Returns the object for a given opaque reference (internal to
@@ -734,7 +735,7 @@ export class Xapi extends EventEmitter {
 
     if (arguments.length > 1) return defaultValue
 
-    throw new Error('no object with opaque ref: ' + ref)
+    /* throw */ noSuchObject(ref)
   }
 
   // Returns the object for a given UUID (unique identifier that some
@@ -747,7 +748,7 @@ export class Xapi extends EventEmitter {
 
     if (arguments.length > 1) return defaultValue
 
-    throw new Error('no object with UUID: ' + uuid)
+    /* throw */ noSuchObject(uuid)
   }
 
   // manually run events watching if set to `false` in constructor
