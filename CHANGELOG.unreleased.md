@@ -22,6 +22,7 @@
 
 - [REST API] Ability to create a network `POST /rest/v0/pools/<pool-id/actions/createNetwork` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
 - [REST API] Ability to delete a network `DELETE /rest/v0/networks/<network-id>` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
+- [Xapi] Support qcow2 disk export and processing (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
 
 ### Bug fixes
 
@@ -47,10 +48,14 @@
 
 <!--packages-start-->
 
+- @vates/generator-toolbox patch
 - @vates/types minor
+- @xen-orchestra/backups patch
+- @xen-orchestra/disk-transform minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi minor
 - xen-api patch
 - xo-server minor
 - xo-server-perf-alert patch
