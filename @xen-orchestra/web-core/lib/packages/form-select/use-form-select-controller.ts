@@ -1,20 +1,13 @@
-import { type FormOption, type FormOptionIndex, IK_FORM_SELECT_CONTROLLER } from '@core/packages/form-select/types.ts'
-import { useFormSelectKeyboardNavigation } from '@core/packages/form-select/use-form-select-keyboard-navigation.ts'
 import { ifElse } from '@core/utils/if-else.utils'
-import { type MaybeElement, useFloating } from '@floating-ui/vue'
+import { autoUpdate, flip, type MaybeElement, shift, size, useFloating } from '@floating-ui/vue'
 import { clamp, onClickOutside, useEventListener, useFocusWithin, whenever } from '@vueuse/core'
 import { logicOr } from '@vueuse/math'
-import { computed, type MaybeRefOrGetter, provide, reactive, type Ref, ref, toValue, watch } from 'vue'
+import { computed, provide, reactive, ref, watch } from 'vue'
+import { type FormOptionIndex, type FormSelect, IK_FORM_SELECT_CONTROLLER } from './types.ts'
+import { useFormSelectKeyboardNavigation } from './use-form-select-keyboard-navigation.ts'
 
-export function useFormSelectController<TOption extends FormOption>(config: {
-  options: MaybeRefOrGetter<TOption[]>
-  searchTerm: Ref<string | undefined>
-}) {
-  const options = computed(() => toValue(config.options))
-
-  const isMultiple = computed(() => options.value[0]?.properties.multiple ?? false)
-
-  const activeOption = computed(() => options.value.find(option => option.flags.active))
+export function useFormSelectController(select: FormSelect) {
+  const activeOption = computed(() => select.options.value.find(option => option.flags.active))
 
   const isOpen = ref(false)
 
@@ -36,7 +29,7 @@ export function useFormSelectController<TOption extends FormOption>(config: {
 
   const { isNavigatingWithKeyboard, stopKeyboardNavigation } = useFormSelectKeyboardNavigation({
     isActive,
-    isMultiple,
+    isMultiple: select.isMultiple,
     isOpen,
     onSelect: () => activeOption.value?.toggleFlag('selected', true),
     onToggle: () => activeOption.value?.toggleFlag('selected'),
@@ -56,13 +49,15 @@ export function useFormSelectController<TOption extends FormOption>(config: {
   /* DROPDOWN PLACEMENT */
 
   const { floatingStyles } = useFloating(triggerRef, dropdownRef, {
+    whileElementsMounted: autoUpdate,
+    middleware: [shift(), flip(), size()],
     placement: 'bottom-start',
     open: isOpen,
   })
 
   /* SEARCH */
 
-  watch(config.searchTerm, () => stopKeyboardNavigation())
+  watch(select.searchTerm, () => stopKeyboardNavigation())
 
   const searchRef = ref<MaybeElement<HTMLElement> & { focus?: () => void }>()
 
@@ -78,13 +73,17 @@ export function useFormSelectController<TOption extends FormOption>(config: {
 
   whenever(isOpen, () => focusSearch(), { flush: 'post' })
 
-  const currentIndex = computed(() => options.value.findIndex(option => option.flags.active))
+  const currentIndex = computed(() => select.options.value.findIndex(option => option.flags.active))
 
-  whenever(options, () => moveToOptionIndex('first'), { flush: 'post' })
+  whenever(select.options, () => moveToOptionIndex('first'), { flush: 'post' })
 
   ifElse(isOpen, () => moveToOptionIndex('selected'), clear, { flush: 'post' })
 
   function openDropdown() {
+    if (select.isDisabled.value) {
+      return
+    }
+
     if (!isOpen.value) {
       isOpen.value = true
     }
@@ -103,16 +102,14 @@ export function useFormSelectController<TOption extends FormOption>(config: {
   }
 
   function clear() {
-    if (config.searchTerm.value !== undefined) {
-      config.searchTerm.value = ''
-    }
+    select.searchTerm.value = ''
   }
 
   const boundaryIndexes = computed(() => {
     let firstIndex: number | undefined
     let lastIndex: number | undefined
 
-    options.value.forEach((option, index) => {
+    select.options.value.forEach((option, index) => {
       if (option.properties.disabled) {
         return
       }
@@ -141,15 +138,15 @@ export function useFormSelectController<TOption extends FormOption>(config: {
       case 'next':
         return currentIndex.value + 1
       case 'previous-page':
-        return currentIndex.value - 7 // TODO: Better handle page size.
+        return currentIndex.value - 7 // TODO: Handle page size in a better way
       case 'next-page':
-        return currentIndex.value + 7 // TODO: Better handle page size.
+        return currentIndex.value + 7 // TODO: Handle page size in a better way
       case 'first':
         return 0
       case 'last':
-        return options.value.length - 1
+        return select.options.value.length - 1
       case 'selected':
-        return options.value.findIndex(option => option.flags.selected)
+        return select.options.value.findIndex(option => option.flags.selected)
       default:
         return index
     }
@@ -163,7 +160,15 @@ export function useFormSelectController<TOption extends FormOption>(config: {
 
     const index = clamp(parseIndex(_index), boundaryIndexes.value.first, boundaryIndexes.value.last)
 
-    options.value[getClosestEnabledIndex(index)]?.toggleFlag('active', true)
+    const closestIndex = getClosestEnabledIndex(index)
+
+    if (closestIndex === undefined) {
+      activeOption.value?.toggleFlag('active', false)
+
+      return
+    }
+
+    select.options.value[closestIndex]?.toggleFlag('active', true)
   }
 
   function getClosestEnabledIndex(expectedIndex: number) {
@@ -171,8 +176,12 @@ export function useFormSelectController<TOption extends FormOption>(config: {
 
     const direction = expectedIndex < currentIndex.value ? -1 : 1
 
-    while (options.value[index]?.properties.disabled) {
+    while (select.options.value[index]?.properties.disabled) {
       index += direction
+    }
+
+    if (index > (boundaryIndexes.value?.last ?? -1)) {
+      return undefined
     }
 
     return index
@@ -187,6 +196,8 @@ export function useFormSelectController<TOption extends FormOption>(config: {
   provide(
     IK_FORM_SELECT_CONTROLLER,
     reactive({
+      isDisabled: select.isDisabled,
+      isMultiple: select.isMultiple,
       isNavigatingWithKeyboard,
       focusSearchOrTrigger,
       closeDropdown,
