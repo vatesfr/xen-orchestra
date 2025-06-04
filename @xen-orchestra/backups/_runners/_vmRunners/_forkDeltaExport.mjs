@@ -6,8 +6,7 @@ export function forkDeltaExport(deltaExport, label) {
   const { disks, ...rest } = deltaExport
   const fork = cloneDeep(rest)
   fork.disks = {}
-  for (const key in deltaExport.disks) {
-    const disk = deltaExport.disks[key]
+  for (const [key, disk] of Object.entries(disks)) {
     if (!(disk instanceof SynchronizedDisk)) {
       throw new Error('Can only fork synchronized disks ')
     }
