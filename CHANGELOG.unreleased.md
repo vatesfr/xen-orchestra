@@ -17,6 +17,7 @@
   - [Host/Dashboard] Update RAM usage components wordings and update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
 - [VM] Ability to hide XSA-468 warnings for specific VMs by adding `HIDE_XSA468` tag (PR [#8665](https://github.com/vatesfr/xen-orchestra/pull/8665))
 - [OTP] Change wording from "Password" to "OTP code" when enabling OTP (PR [#8666](https://github.com/vatesfr/xen-orchestra/pull/8666))
+- [Backups] Fix `HANDLE_INVALID(SR)` when replicated to multiples tagret (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
 
 ### Bug fixes
 
@@ -38,6 +39,8 @@
 
 <!--packages-start-->
 
+- @vates/generator-toolbox patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server-perf-alert patch

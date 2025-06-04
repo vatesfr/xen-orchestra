@@ -139,4 +139,12 @@ suite('error', () => {
     await first.next()
     assert.throws(() => forker.fork('second'))
   })
+  test('It should not allow fork with the same uid', async () => {
+    const progress = { yielded: 0 }
+    const generator = makeRangeGenerator(5, progress)
+    const forker = new Synchronized(generator)
+    forker.fork('first')
+    forker.fork('second')
+    assert.throws(() => forker.fork('first'))
+  })
 })

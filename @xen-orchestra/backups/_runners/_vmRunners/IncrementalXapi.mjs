@@ -2,6 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import keyBy from 'lodash/keyBy.js'
 
 import { AbstractXapi } from './_AbstractXapi.mjs'
+import { forkDeltaExport } from './_forkDeltaExport.mjs'
 import { exportIncrementalVm } from '../../_incrementalVm.mjs'
 import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs'
 import { IncrementalXapiWriter } from '../_writers/IncrementalXapiWriter.mjs'
@@ -50,21 +51,14 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     if (useNbd) {
       Task.info('Transfer data using NBD')
     }
-    function fork(deltaExport, label) {
-      const { disks, ...forked } = deltaExport
-      forked.disks = {}
-      for (const key in disks) {
-        forked.disks[key] = disks[key].fork(label)
-      }
-      return forked
-    }
 
-    // @todo : reimplement throttle,nbsource: d use
+    // @todo : reimplement throttle
+
     const timestamp = Date.now()
     await this._callWriters(
       writer =>
         writer.transfer({
-          deltaExport: fork(deltaExport, writer.constructor.name + ' ' + Math.random()),
+          deltaExport: forkDeltaExport(deltaExport, writer.constructor.name),
           isVhdDifferencing,
           timestamp,
           vm,
