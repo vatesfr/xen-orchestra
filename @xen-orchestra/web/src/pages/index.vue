@@ -30,7 +30,7 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'pools-status pools-status hosts-status hosts-status vms-status vms-status resources-overview resources-overview'
-    'backups backups backups backups backup-issues backup-issues backup-issues backup-issues'
+    'backups backups backups backup-issues backup-issues backup-issues backup-issues backup-issues'
     'repositories repositories repositories repositories repositories repositories repositories repositories'
     'alarms alarms alarms alarms alarms alarms patches patches';
 }
