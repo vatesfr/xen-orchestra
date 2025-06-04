@@ -1,23 +1,25 @@
 <template>
   <UiCard class="pool-connection-card">
-    <div class="input-content">
+    <div class="input-warpper">
       <UiTitle class="primary-host-title">{{ $t('primary-host') }}</UiTitle>
-      <VtsInputWrapper :label="$t('ip-address')" required>
-        <UiInput v-model="ip" accent="brand" />
-        <UiInfo accent="info" wrap>
-          {{ $t('pool-connection-ip-info') }}
-        </UiInfo>
-      </VtsInputWrapper>
-      <VtsInputWrapper :label="$t('proxy-url')"> <UiInput v-model="proxy" accent="brand" /> </VtsInputWrapper>
-      <VtsInputWrapper :label="$t('username')" required>
-        <UiInput v-model="username" accent="brand" />
-        <UiInfo accent="info" wrap>
-          {{ $t('root-by-default') }}
-        </UiInfo>
-      </VtsInputWrapper>
-      <VtsInputWrapper :label="$t('password')" required>
-        <UiInput v-model="password" accent="brand" />
-      </VtsInputWrapper>
+      <div class="input-content">
+        <VtsInputWrapper :label="$t('ip-address')">
+          <UiInput v-model="ip" accent="brand" required />
+          <UiInfo accent="info" wrap>
+            {{ $t('pool-connection-ip-info') }}
+          </UiInfo>
+        </VtsInputWrapper>
+        <VtsInputWrapper :label="$t('proxy-url')"> <UiInput v-model="proxy" accent="brand" /> </VtsInputWrapper>
+        <VtsInputWrapper :label="$t('username')">
+          <UiInput v-model="username" accent="brand" required />
+          <UiInfo accent="info" wrap>
+            {{ $t('root-by-default') }}
+          </UiInfo>
+        </VtsInputWrapper>
+        <VtsInputWrapper :label="$t('password')">
+          <UiInput v-model="password" accent="brand" required />
+        </VtsInputWrapper>
+      </div>
     </div>
     <UiTitle>{{ $t('option') }}</UiTitle>
     <div class="checkbox-wrapper">
@@ -61,6 +63,12 @@ const selfSigned = ref(false)
     .primary-host-title {
       grid-column: 1 / 3;
     }
+  }
+
+  .input-warpper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
   }
 
   .checkbox-wrapper {
