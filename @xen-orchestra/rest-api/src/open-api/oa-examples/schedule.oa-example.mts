@@ -29,3 +29,7 @@ export const schedule = {
   userId: 'd558dd75-c928-45f6-b8e3-4375bdda59f8',
   id: 'cf7249f8-d20b-494f-97f4-b1f32f94e780',
 }
+
+export const createNetwork = {
+  id: '9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f',
+}

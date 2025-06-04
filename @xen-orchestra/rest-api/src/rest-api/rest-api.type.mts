@@ -4,7 +4,7 @@ import type { XapiHostStats, XapiVmStats, XapiStatsGranularity } from '@vates/ty
 import type {
   XenApiHostWrapped,
   XenApiMessage,
-  XenApiNetwork,
+  XenApiNetworkWrapped,
   XenApiPifWrapped,
   XenApiPoolWrapped,
   XenApiSrWrapped,
@@ -22,7 +22,7 @@ import type { InsertableXoServer } from '../servers/server.type.mjs'
 type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
   message: XenApiMessage
-  network: XenApiNetwork
+  network: XenApiNetworkWrapped
   PIF: XenApiPifWrapped
   pool: XenApiPoolWrapped
   SR: XenApiSrWrapped

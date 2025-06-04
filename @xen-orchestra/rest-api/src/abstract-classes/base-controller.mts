@@ -5,7 +5,7 @@ import { XoRecord } from '@vates/types/xo'
 import { BASE_URL } from '../index.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { MaybePromise, WithHref } from '../helpers/helper.type.mjs'
 
 const noop = () => {}
 
@@ -31,7 +31,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
    * statusCode must represent the status code in case of a synchronous request. Default 200
    */
   async createAction<CbType>(
-    cb: () => CbType,
+    cb: () => MaybePromise<CbType>,
     {
       statusCode = 200,
       sync = false,
@@ -39,9 +39,9 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     }: {
       statusCode?: HttpStatusCodeLiteral
       sync?: boolean
-      taskProperties: { name: string; objectId: T['id']; args?: Record<string, unknown>; [key: string]: unknown }
+      taskProperties: { name: string; objectId: T['id']; args?: unknown; [key: string]: unknown }
     }
-  ) {
+  ): Promise<string | CbType> {
     taskProperties.name = 'REST API: ' + taskProperties.name
     taskProperties.type = 'xo:rest-api:action'
 
