@@ -42,6 +42,7 @@
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xen-api patch
 - xo-server minor
 - xo-server-perf-alert patch
 - xo-web patch
