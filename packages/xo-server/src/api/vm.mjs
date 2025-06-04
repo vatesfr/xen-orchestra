@@ -1532,7 +1532,7 @@ export async function importMultipleFromEsxi({
       return result
     } catch (error) {
       // if stopOnError is true :
-      //   error is the original error , `suceeded` property {[esxi vm id]: xen vm id} contains only the VMs migrated before the error.
+      //   error is the original error , `succeeded` property {[esxi vm id]: xen vm id} contains only the VMs migrated before the error.
       //   VMs started before the error and finished migration after won't be in
       // else
       //    error is an AggregatedError with an `errors` property containing all the errors

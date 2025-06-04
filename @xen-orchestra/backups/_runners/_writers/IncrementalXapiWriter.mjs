@@ -21,7 +21,7 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     }
 
     // @todo use an index if possible
-    // @todo : this seems similare to decorateVmMetadata
+    // @todo : this seems similar to decorateVmMetadata
     const replicatedVdis = sr.$VDIs
       .filter(vdi => {
         // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs

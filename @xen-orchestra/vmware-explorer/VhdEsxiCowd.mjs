@@ -41,12 +41,12 @@ export default class VhdEsxiCowd extends VhdAbstract {
 
   containsBlock(blockId) {
     notEqual(this.#grainDirectory, undefined, "bat must be loaded to use contain blocks'")
-    // only check if a grain table exist for on of the sector of the block
+    // only check if a grain table exist for one of the sector of the block
     // the great news is that a grain size has 4096 entries of 512B = 2M
     // and a vhd block is also 2M
     // so we only need to check if a grain table exists (it's not created without data)
 
-    // depending on the paramters we also look into the parent data
+    // depending on the parameters we also look into the parent data
     return (
       this.#grainDirectory.readUInt32LE(blockId * 4) !== 0 ||
       (this.#lookMissingBlockInParent && this.#parentVhd.containsBlock(blockId))
@@ -84,7 +84,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
     this.#grainDirectory = await this.#read(2048 /* header length */, nbBlocks * 4)
   }
 
-  // we're lucky : a grain address can address exacty a full block
+  // we're lucky : a grain address can address exactly a full block
   async readBlock(blockId) {
     notEqual(this.#grainDirectory, undefined, 'grainDirectory is not loaded')
     const sectorOffset = this.#grainDirectory.readUInt32LE(blockId * 4)

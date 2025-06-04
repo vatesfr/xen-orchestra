@@ -241,7 +241,7 @@ function reconfigurePifIP(xapi, pif, newIP) {
   xapi.call('PIF.reconfigure_ip', pif.$ref, 'Static', newIP, '255.255.255.0', '', '')
 }
 
-// this function should probably become fixSomething(thingToFix, parmas)
+// this function should probably become fixSomething(thingToFix, params)
 export async function fixHostNotInNetwork({ xosanSr, host }) {
   await this.checkXosanLicense({ srId: xosanSr.uuid })
 
@@ -1122,7 +1122,7 @@ export const removeBricks = defer(async function ($defer, { xosansr, bricks }) {
     // IPV6
     const ips = map(bricks, b => b.split(':')[0])
     const glusterEndpoint = this::_getGlusterEndpoint(xosansr.id)
-    // "peer detach" doesn't allow removal of locahost
+    // "peer detach" doesn't allow removal of localhost
     remove(glusterEndpoint.addresses, ip => ips.includes(ip))
     const dict = _getIPToVMDict(xapi, xosansr.id)
     const brickVMs = map(bricks, b => dict[b])

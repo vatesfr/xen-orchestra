@@ -160,7 +160,7 @@ export class PrivateNetwork {
    * @returns {Pif} returns one transport_PIF of the private network
    */
   async getTransportPif(network) {
-    // ensure to get an fresh version of the network
+    // ensure to get a fresh version of the network
     network = await network.$xapi.getRecord('network', network.$ref)
     const privatePif = network.$PIFs[0]
     const tunnels = privatePif.$tunnel_access_PIF_of

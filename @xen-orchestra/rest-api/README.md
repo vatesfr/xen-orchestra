@@ -42,7 +42,7 @@ class Foo extends Controller {
 
 
  /**
-  * any jsdoc anotations
+  * any jsdoc annotations
   * @example id 1234
   */
  @Example(['foo', 'bar'])

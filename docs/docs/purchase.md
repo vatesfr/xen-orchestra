@@ -138,7 +138,7 @@ If you choose a Stripe payment, you can always edit the credit card information 
 
 If you want to upgrade your active plan to a higher version of Xen Orchestra, you can do it from your **personal space**.
 
-### Step by step:
+### Step by step
 
 1. Connect on your personal account on the [website](https://xen-orchestra.com/#!/login?source=member.index).
 
@@ -156,7 +156,7 @@ If you want to upgrade your active plan to a higher version of Xen Orchestra, yo
 
 ![](./assets/upgradestep4.png)
 
-5. If you chosse wire transfer, you have now the possibility to download a quote. As you can see, the remaining period of your previous plan is now a credit note applied on this upgrade.
+5. If you choose wire transfer, you have now the possibility to download a quote. As you can see, the remaining period of your previous plan is now a credit note applied on this upgrade.
 
 ![](./assets/upgradestep5.png)
 
@@ -167,5 +167,5 @@ If you want to upgrade your active plan to a higher version of Xen Orchestra, yo
 7. **Enjoy your new plan!**
 
 :::tip
-As a reseller, the process is quite the same. The only difference is that you have to pick your customer line into you reseller space an not your personal space.
+As a reseller, the process is quite the same. The only difference is that you have to pick your customer line into you reseller space and not your personal space.
 :::
