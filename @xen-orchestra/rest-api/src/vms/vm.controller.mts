@@ -6,7 +6,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XapiStatsGranularity, XapiVmStats, XenApiVm, XoVm, XoVmSnapshot } from '@vates/types'
 
 import {
-  actionAsyncroneResp,
+  asynchronousAction,
   createdResp,
   internalServerErrorResp,
   noContentResp,
@@ -94,7 +94,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousAction.status, asynchronousAction.description, asynchronousAction.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -118,7 +118,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/clean_shutdown')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousAction.status, asynchronousAction.description, asynchronousAction.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -165,7 +165,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/hard_shutdown')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousAction.status, asynchronousAction.description, asynchronousAction.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -190,7 +190,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/hard_reboot')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousAction.status, asynchronousAction.description, asynchronousAction.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -216,7 +216,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/snapshot')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousAction.status, asynchronousAction.description, asynchronousAction.produce)
   @Response(createdResp.status, 'Snapshot created')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
