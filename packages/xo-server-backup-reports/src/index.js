@@ -168,7 +168,7 @@ class BackupReportsXoPlugin {
 
     const tasksByStatus = groupBy(log.tasks, 'status')
 
-    if (log.status === 'failure' && log.data?.hideSuccessfulVms) {
+    if (log.status === 'failure' && log.data?.hideSuccessfulItems) {
       delete tasksByStatus.success
     }
 
@@ -248,7 +248,7 @@ class BackupReportsXoPlugin {
         continue
       }
 
-      if (taskLog.status === 'success' && log.status === 'failure' && log.data?.hideSuccessfulVms) {
+      if (taskLog.status === 'success' && log.status === 'failure' && log.data?.hideSuccessfulItems) {
         ++nSuccesses
         continue
       }
@@ -366,7 +366,7 @@ class BackupReportsXoPlugin {
         skipped: { tasks: skippedVms, count: nSkipped },
         interrupted: { tasks: interruptedVms, count: nInterrupted },
         success: {
-          tasks: log.status === 'failure' && log.data?.hideSuccessfulVms ? [] : successfulVms,
+          tasks: log.status === 'failure' && log.data?.hideSuccessfulItems ? [] : successfulVms,
           count: nSuccesses,
         },
         vmTasks: { count: nVmTasks },
