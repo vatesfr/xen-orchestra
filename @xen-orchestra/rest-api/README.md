@@ -49,6 +49,7 @@ class Foo extends Controller {
  @Get('{id}')
  @Security('*')
  @Middlewares(json())
+ @Tags('foo')
  @SuccessResponse(202)
  @Response(404)
  getFoo(@Path() id: string) {
