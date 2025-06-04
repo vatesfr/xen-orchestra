@@ -118,8 +118,8 @@ xo.on('closed', () => {
 ```
 
 ```javascript
-xo.on('notification', function (notice) {
-  console.log('notification:', notice.method, notice.params)
+xo.on('notification', function (notif) {
+  console.log('notification:', notif.method, notif.params)
 })
 ```
 
