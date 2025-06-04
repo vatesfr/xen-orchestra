@@ -2,6 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import keyBy from 'lodash/keyBy.js'
 
 import { AbstractXapi } from './_AbstractXapi.mjs'
+import { forkDeltaExport } from './_forkDeltaExport.mjs'
 import { exportIncrementalVm } from '../../_incrementalVm.mjs'
 import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs'
 import { IncrementalXapiWriter } from '../_writers/IncrementalXapiWriter.mjs'
@@ -14,7 +15,6 @@ import {
   markExportSuccessfull,
 } from '../../_otherConfig.mjs'
 import { SynchronizedDisk } from '@xen-orchestra/disk-transform'
-import { forkDeltaExport } from './_forkDeltaExport.mjs'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
