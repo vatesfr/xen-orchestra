@@ -20,7 +20,7 @@ import type { XoServer } from '@vates/types'
 import type { InsertableXoServer } from './server.type.mjs'
 
 import {
-  asynchronousAction,
+  asynchronousActionResp,
   createdResp,
   invalidParameters,
   noContentResp,
@@ -100,7 +100,7 @@ export class ServerController extends XoController<XoServer> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/connect')
-  @SuccessResponse(asynchronousAction.status, asynchronousAction.description, asynchronousAction.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already connected')
@@ -122,7 +122,7 @@ export class ServerController extends XoController<XoServer> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/disconnect')
-  @SuccessResponse(asynchronousAction.status, asynchronousAction.description, asynchronousAction.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already disconnected')

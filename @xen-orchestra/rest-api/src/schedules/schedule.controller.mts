@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 
 import {
-  asynchronousAction,
+  asynchronousActionResp,
   featureUnauthorized,
   internalServerErrorResp,
   noContentResp,
@@ -63,7 +63,7 @@ export class ScheduleController extends XoController<XoSchedule> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/run')
-  @SuccessResponse(asynchronousAction.status, asynchronousAction.description, asynchronousAction.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)

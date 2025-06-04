@@ -18,7 +18,7 @@ export const createdResp = {
   description: 'Resource created',
 } as const
 
-export const asynchronousAction = {
+export const asynchronousActionResp = {
   status: 202,
   description: 'Action executed asynchronously',
   produce: 'text/plain',
