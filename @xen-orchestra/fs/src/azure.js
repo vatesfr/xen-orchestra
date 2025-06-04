@@ -70,7 +70,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   #makeFullPath(path) {
-    if (path.startsWith(this.#dir) || path.substring('/').startsWith(this.#dir)) {
+    if (!path.startsWith(this.#dir) || !path.substring('/').startsWith(this.#dir)) {
       let prefixedPath = path
       if (path.startsWith('/')) {
         prefixedPath = path.substring(1)
