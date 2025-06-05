@@ -1,5 +1,24 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [VM] Ability to hide XSA-468 warnings for specific VMs by adding `HIDE_XSA468` tag (PR [#8665](https://github.com/vatesfr/xen-orchestra/pull/8665))
+- [OTP] Change wording from "Password" to "OTP code" when enabling OTP (PR [#8666](https://github.com/vatesfr/xen-orchestra/pull/8666))
+
+### Bug fixes
+
+- [Backups] Fix `HANDLE_INVALID(SR)` when replicated to multiples tagret (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
+
+### Released packages
+
+- @vates/generator-toolbox 1.0.3
+- @xen-orchestra/backups 0.61.1
+- @xen-orchestra/proxy 0.29.21
+- xo-server 5.178.2
+- xo-web 5.176.0
+
 ## **5.107.1** (2025-05-28)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
