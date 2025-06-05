@@ -3,7 +3,7 @@
     <div class="label-placeholder">
       <div class="link-placeholder">
         <template v-if="depth > 1">
-          <VtsTreeLine v-for="i in depth - 1" :key="i" :right="i === depth - 1" full-height />
+          <VtsTreeLine v-for="i in depth - 1" :key="i" :right="i === depth - 1" half-height />
         </template>
         <VtsIcon :icon accent="current" />
         <div class="loader">&nbsp;</div>

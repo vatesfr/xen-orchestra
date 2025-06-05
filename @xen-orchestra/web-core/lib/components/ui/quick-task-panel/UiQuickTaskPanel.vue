@@ -15,7 +15,7 @@
 <script lang="ts" setup>
 import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
 import VtsQuickTaskTabBar, { type TaskTab } from '@core/components/task/VtsQuickTaskTabBar.vue'
-import type { Task } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
+import type { Task } from '@core/components/ui/task-item/UiTaskItem.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed, ref } from 'vue'
 
