@@ -1,4 +1,4 @@
-import { DiskBlock, RandomAccessDisk } from '@xen-orchestra/disk-transform'
+import { DiskLargerBlock, DiskSmallerBlock, RandomAccessDisk } from '@xen-orchestra/disk-transform'
 import assert from 'node:assert'
 import { Readable } from 'node:stream'
 
@@ -33,15 +33,20 @@ type WithLength<T> = T & { length?: number }
 export class QcowStreamGenerator {
   #disk: RandomAccessDisk
   #offset = 0
-  #expectedStreamLength?: number
 
   /**
    * Creates a new QCOW2 stream generator
    * @param disk The disk to convert to QCOW2 format
    */
   constructor(disk: RandomAccessDisk) {
-    assert.strictEqual(disk.getBlockSize(), CLUSTER_SIZE)
-    this.#disk = disk
+    if (disk.getBlockSize() < CLUSTER_SIZE) {
+      this.#disk = new DiskLargerBlock(disk, CLUSTER_SIZE)
+    } else if (disk.getBlockSize() > CLUSTER_SIZE) {
+      this.#disk = new DiskSmallerBlock(disk, CLUSTER_SIZE)
+    } else {
+      this.#disk = disk
+    }
+    assert.strictEqual(this.#disk.getBlockSize(), CLUSTER_SIZE)
   }
 
   /**
