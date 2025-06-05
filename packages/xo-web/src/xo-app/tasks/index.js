@@ -63,6 +63,7 @@ const TASK_ITEM_STYLE = {
 
 const FILTERS = {
   filterOutShortTasks: '!name_label: |(SR.scan host.call_plugin "/rrd_updates")',
+  filterKeepFailed: 'status:fail',
 }
 
 @connectStore(() => ({
@@ -372,6 +373,7 @@ export default class Tasks extends Component {
                 <SortedTable
                   className='mt-1'
                   collection={this._getFinishedTasks()}
+                  defaultFilter='filterKeepFailed'
                   columns={FINISHED_TASKS_COLUMNS}
                   filters={FILTERS}
                   stateUrlParam='s_previous'
