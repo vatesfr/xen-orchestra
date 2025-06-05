@@ -39,7 +39,7 @@
 - @vates/types minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xo-server-perf-alert patch
 - xo-server minor
+- xo-server-perf-alert patch
 
 <!--packages-end-->
