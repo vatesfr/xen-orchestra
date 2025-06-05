@@ -159,9 +159,11 @@ describe('QCOW2 Stream Generation', () => {
 
   it('should handle large disks', async () => {
     // Test with a larger disk (1GB)
+    const NB_BLOCKS = 16384
+    const RATIO = 3
     const disk = new MockDisk(
-      16000,
-      Array.from({ length: 15 }, (_, i) => i * 100)
+      NB_BLOCKS,
+      Array.from({ length: NB_BLOCKS / RATIO }, (_, i) => i * RATIO)
     )
     const tmpFile = join(tmpdir(), `test-large-${Date.now()}.qcow2`)
     try {

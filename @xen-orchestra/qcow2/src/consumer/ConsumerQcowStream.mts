@@ -1,7 +1,6 @@
 import { DiskBlock, RandomAccessDisk } from '@xen-orchestra/disk-transform'
 import assert from 'node:assert'
 import { Readable } from 'node:stream'
-import fs from 'node:fs/promises'
 
 // QCOW2 constants based on specification:
 // https://github.com/qemu/qemu/blob/master/docs/interop/qcow2.txt
@@ -146,7 +145,7 @@ export class QcowStreamGenerator {
     let l2Offset = this.#offset + l1Table.length
 
     // Write L1 entries pointing to L2 tables
-    for (let i = 0; i < nbL1Entries; i++) {
+    for (let i = 0; i < nbRefCountClusters; i++) {
       l1Table.writeBigUint64BE(BigInt(l2Offset), i * 8)
       l2Offset += CLUSTER_SIZE
     }
@@ -154,7 +153,7 @@ export class QcowStreamGenerator {
 
     // Generate L2 refcount tables with initial refcount of 1
     let written = 0
-    for (let i = 0; i < nbL1Entries; i++) {
+    for (let i = 0; i < nbRefCountClusters; i++) {
       const l2Table = getAlignedBuffer(1)
       for (let j = 0; j < refCountsPerCluster; j++) {
         if (written >= nbClusters) break
@@ -230,10 +229,10 @@ export class QcowStreamGenerator {
   }
 
   /**
-   * Generates the complete QCOW2 stream
-   * @returns Async generator yielding QCOW2 data chunks
+   * Creates a Readable stream from the generator
+   * @returns Readable stream with optional length property
    */
-  async *generator(): AsyncGenerator<Buffer, void, unknown> {
+  stream(): WithLength<Readable> {
     const disk = this.#disk
     const nbAllocatedBlocks = disk.getBlockIndexes().length
     const nbTotalBlock = disk.getVirtualSize() / disk.getBlockSize()
@@ -254,41 +253,47 @@ export class QcowStreamGenerator {
     header.writeUInt32BE(nbL1Entries, 36) // l1_size
     header.writeBigUInt64BE(BigInt(header.length + refCountL1Size + refCountL2Size), 40) // l1_table_offset
     header.writeBigUInt64BE(BigInt(header.length), 48) // refcount_table_offset
-    header.writeUInt32BE(refCountL2Size / CLUSTER_SIZE, 56) // refcount_table_clusters
+    header.writeUInt32BE(refCountL1Size / CLUSTER_SIZE, 56) // refcount_table_clusters
     header.writeUInt32BE(0, 60) // nb_snapshots
     header.writeUInt32BE(0, 64) // snapshots_offset
-
     // Calculate total stream length
-    this.#expectedStreamLength =
+    const expectedStreamLength =
       header.length + refCountL1Size + refCountL2Size + addressTableSize + nbAllocatedBlocks * CLUSTER_SIZE
 
-    // Yield all parts in order
-    yield* this.#trackAndYield(header)
-    yield* this.#yieldRefCounts(this.#expectedStreamLength / CLUSTER_SIZE)
-    yield* this.#yieldAddressingTables()
+    const self = this
+    async function* generator(): AsyncGenerator<Buffer, void, unknown> {
+      // Yield all parts in order
+      yield* self.#trackAndYield(header)
+      assert.strictEqual(self.#offset, CLUSTER_SIZE, 'header aligned')
+      yield* self.#yieldRefCounts(expectedStreamLength / CLUSTER_SIZE)
+      assert.strictEqual(self.#offset, CLUSTER_SIZE + refCountL1Size + refCountL2Size, 'refcounts aligned')
+      yield* self.#yieldAddressingTables()
+      assert.strictEqual(
+        self.#offset,
+        CLUSTER_SIZE + refCountL1Size + refCountL2Size + addressTableSize,
+        'addresses aligned'
+      )
 
-    // Yield data clusters
-    for (let i = 0; i < nbTotalBlock; i++) {
-      if (disk.hasBlock(i)) {
-        const { data } = await disk.readBlock(i)
-        yield* this.#trackAndYield(data)
+      // Yield data clusters
+      let nbGeneratedBlock = 0
+
+      for (let i = 0; i < nbTotalBlock; i++) {
+        if (disk.hasBlock(i)) {
+          const { data } = await disk.readBlock(i)
+          yield* self.#trackAndYield(data)
+          nbGeneratedBlock++
+        }
       }
+
+      assert.strictEqual(nbGeneratedBlock, nbAllocatedBlocks, 'nb block ')
+      // Verify we generated the expected amount of data
+      assert.strictEqual(self.#offset, expectedStreamLength, 'stream length')
     }
-
-    // Verify we generated the expected amount of data
-    assert.strictEqual(this.#offset, this.#expectedStreamLength)
-  }
-
-  /**
-   * Creates a Readable stream from the generator
-   * @returns Readable stream with optional length property
-   */
-  stream(): WithLength<Readable> {
-    const stream = Readable.from(this.generator(), {
+    const stream = Readable.from(generator(), {
       highWaterMark: 10 * 1024 * 1024,
       objectMode: false,
     }) as WithLength<Readable>
-    stream.length = this.#expectedStreamLength
+    stream.length = expectedStreamLength
     return stream
   }
 }
