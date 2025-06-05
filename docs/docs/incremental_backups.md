@@ -61,7 +61,7 @@ This advanced setting defines the number of backups after which a key backup is 
 
 For example, with a value of 2, the first two backups will be a key and a delta, and the third will start a new chain with a full backup.
 
-This is important because on rare occasions a backup can be corrupted, and in the case of incremetnal backups, this corruption might impact all the following backups in the chain. Occasionally performing a full backup limits how far a corrupted delta backup can propagate.
+This is important because on rare occasions a backup can be corrupted, and in the case of incremental backups, this corruption might impact all the following backups in the chain. Occasionally performing a full backup limits how far a corrupted delta backup can propagate.
 
 The value to use depends on your storage constraints and the frequency of your backups, but a value of 20 is a good start.
 

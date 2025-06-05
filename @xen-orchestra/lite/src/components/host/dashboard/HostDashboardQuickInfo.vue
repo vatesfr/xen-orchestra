@@ -66,6 +66,7 @@ import { parseDateTime } from '@core/utils/time.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faCircle, faPlay, faServer, faStar, faStop } from '@fortawesome/free-solid-svg-icons'
 import { useNow } from '@vueuse/core'
+import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -75,9 +76,11 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isMasterHost, masterHost } = usePoolStore().subscribe()
-const { isReady } = useHostStore().subscribe()
-const { isHostRunning, getHostMemory } = useHostMetricsStore().subscribe()
+const { isMasterHost, masterHost, isReady: isPoolReady } = usePoolStore().subscribe()
+const { isReady: isHostReady } = useHostStore().subscribe()
+const { isHostRunning, getHostMemory, isReady: isHostMetricsReady } = useHostMetricsStore().subscribe()
+
+const isReady = logicAnd(isPoolReady, isHostReady, isHostMetricsReady)
 
 const powerStateConfig: Record<
   string,

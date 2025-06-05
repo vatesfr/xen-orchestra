@@ -90,7 +90,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     for (const timestamp of timestamps) {
       if (remoteMetadatas[timestamp] !== nbRemotes) {
         // this backup is not present in all the remote
-        // should be retransfered if not found later
+        // should be retransferred if not found later
         transferList.push(localMetada.get(timestamp))
       } else {
         // backup is present in local and remote : the chain has already been transferred

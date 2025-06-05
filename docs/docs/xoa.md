@@ -85,8 +85,8 @@ bash -c "$(wget --no-verbose -O- https://xoa.io/deploy)"
 
 Follow the instructions:
 
-- Your IP configuration will be requested: it's set to **DHCP by default**, otherwise you can enter a fixed IP address (eg `192.168.0.10`)
-- If DHCP is selected, the script will continue automatically. Otherwise a netmask, gateway, and DNS server should be provided.
+- Your IP configuration will be requested: it's set to **DHCP by default**; otherwise, you can enter a fixed IP address (eg `192.168.0.10`)
+- If DHCP is selected, the script will continue automatically. Otherwise, a netmask, gateway, and DNS server should be provided.
 - XOA will be deployed on your default storage repository. You can move it elsewhere anytime after.
 
 ### Via a manual XVA download

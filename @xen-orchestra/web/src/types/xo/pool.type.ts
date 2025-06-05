@@ -11,4 +11,12 @@ export type XoPool = {
   name_label: string
   _xapiRef: string
   default_SR?: XoSr['id']
+  tags: Array<string>
+  otherConfig: Record<string, string>
+  auto_poweron: boolean
+  HA_enabled: boolean
+  migrationCompression?: boolean
+  suspendSr?: XoSr['id']
+  crashDumpSr?: XoSr['id']
+  haSrs?: Array<XoSr['id']>
 }

@@ -4,7 +4,7 @@ import { ProxyAgent } from 'proxy-agent'
 const { env } = process
 
 export default class Http {
-  // automatically fetches the proxy to use for the requested URL from the environnement
+  // automatically fetches the proxy to use for the requested URL from the environment
   _agent = new ProxyAgent()
 
   // whether XO has a proxy set from its own config/environment
@@ -33,7 +33,7 @@ export default class Http {
     })
   }
 
-  // Inject the proxy into the environnement, it will be automatically used by `_agent` and by most libs (e.g `axios`)
+  // Inject the proxy into the environment, it will be automatically used by `_agent` and by most libs (e.g `axios`)
   setHttpProxy(proxy, noProxy) {
     if (proxy == null) {
       delete env.http_proxy

@@ -4,7 +4,7 @@ The SDN Controller enables a user to **create pool-wide and cross-pool private n
 
 ## Global Private Networks
 
-Interconnect your VMs and hosts within a dedicated and secured private network, even accross different pools all around the world. This is a great way to protect "private links" (eg between applications and databases, management networks etc.) without any complicated deployment.
+Interconnect your VMs and hosts within a dedicated and secured private network, even across different pools all around the world. This is a great way to protect "private links" (eg between applications and databases, management networks etc.) without any complicated deployment.
 
 ![](./assets/gpn.png)
 

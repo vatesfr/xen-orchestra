@@ -242,7 +242,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
             let buffer
             const CHUNK_SIZE = 1024 * 1024
             // drain remaining content ( padding .header)
-            // didn't succeed to ensure the stream is completly consumed with resume/finished
+            // didn't succeed to ensure the stream is completely consumed with resume/finished
             do {
               buffer = await readChunk(part, CHUNK_SIZE)
             } while (buffer?.length === CHUNK_SIZE)

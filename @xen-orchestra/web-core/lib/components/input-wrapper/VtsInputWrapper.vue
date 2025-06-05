@@ -20,8 +20,8 @@
 <script lang="ts" setup>
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLabel, { type LabelAccent } from '@core/components/ui/label/UiLabel.vue'
-import { useMapper } from '@core/composables/mapper.composable'
 import { useRanked } from '@core/composables/ranked.composable.ts'
+import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import type { MaybeArray } from '@core/types/utility.type'
 import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util'
 import { toArray } from '@core/utils/to-array.utils'
@@ -70,7 +70,7 @@ const labelAccent = useMapper<InfoAccent, LabelAccent>(
     danger: 'danger',
     muted: 'neutral',
   },
-  'neutral'
+  'info'
 )
 
 const wrapperController = reactive({

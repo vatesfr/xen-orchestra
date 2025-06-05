@@ -1,9 +1,14 @@
 # ChangeLog
 
+## **next**
+
+- [Pool/system] Display pool information in pool/system tab (PR [#8660](https://github.com/vatesfr/xen-orchestra/pull/8660))
+
 ## **0.11.0** (2025-05-27)
 
 - [VM/system] Display system information in vm/system tab (PR [##8547](https://github.com/vatesfr/xen-orchestra/pull/8547))
 - [Host/system] Display system view information in host/system tab (PR [#8536](https://github.com/vatesfr/xen-orchestra/pull/8536))
+- [Host/Dashboard] Update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
 
 ## **0.10.1** (2025-05-07)
 
@@ -89,7 +94,7 @@
 
 ## **0.2.0** (2024-02-29)
 
-- Fix Typescript typings errors when running `yarn type-check` command (PR [#7278](https://github.com/vatesfr/xen-orchestra/pull/7278))
+- Fix TypeScript typings errors when running `yarn type-check` command (PR [#7278](https://github.com/vatesfr/xen-orchestra/pull/7278))
 - Introduce PWA Json Manifest (PR [#7291](https://github.com/vatesfr/xen-orchestra/pull/7291))
 
 ## **0.1.7** (2023-12-28)
