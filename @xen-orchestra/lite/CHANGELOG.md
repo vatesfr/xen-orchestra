@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Pool/system] Display pool information in pool/system tab (PR [#8660](https://github.com/vatesfr/xen-orchestra/pull/8660))
+
 ## **0.11.0** (2025-05-27)
 
 - [VM/system] Display system information in vm/system tab (PR [##8547](https://github.com/vatesfr/xen-orchestra/pull/8547))

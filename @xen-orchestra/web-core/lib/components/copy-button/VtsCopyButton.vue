@@ -19,7 +19,7 @@ const icon = ref(faCopy)
 
 const { start: changeIcon } = useTimeoutFn(() => {
   icon.value = faCopy
-}, 1_500) // 1.5s is time to toltips is visible
+}, 1_500) // 1.5s is time to Tooltip is visible
 
 function copyToClipboard() {
   copy(value)
