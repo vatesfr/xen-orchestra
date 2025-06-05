@@ -92,7 +92,7 @@ systemctl restart xo-server.service
 
 :::tip
 
-Although Let's Encrypt is the most popular, free public certificate authority (CA), XOA supports other CAs as well.
+Although Let's Encrypt is the most popular free public certificate authority (CA), XOA supports other CAs as well.
 
 :::
 
