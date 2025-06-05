@@ -13,12 +13,11 @@ const L2_ADDRESS_ENTRY_SIZE = 8 // Size of L2 table entries (64 bits)
 /**
  * Creates a buffer aligned to cluster size boundaries, initialized with a value
  * @param length Desired minimum length
- * @param value Value to initialize the buffer with (default 0)
  * @returns Buffer with length rounded up to nearest cluster size multiple
  */
-function getAlignedBuffer(length: number, value: number = 0): Buffer {
+function getAlignedBuffer(length: number): Buffer {
   const aligned = Math.ceil(length / CLUSTER_SIZE) * CLUSTER_SIZE
-  return Buffer.alloc(aligned, value)
+  return Buffer.alloc(aligned, 0)
 }
 
 /**
@@ -42,6 +41,7 @@ export class QcowStreamGenerator {
    * @param disk The disk to convert to QCOW2 format
    */
   constructor(disk: RandomAccessDisk) {
+    assert.strictEqual(disk.getBlockSize(), CLUSTER_SIZE)
     this.#disk = disk
   }
 
@@ -72,7 +72,7 @@ export class QcowStreamGenerator {
     // Add size for each L2 table that contains at least one allocated block
     for (let i = 0; i < nbL1Entries; i++) {
       for (let j = 0; j < nbL2PerL1Entry; j++) {
-        const blockIndex = i * nbL1Entries + j
+        const blockIndex = i * nbL2PerL1Entry + j
         if (blockIndex >= nbBlocks) {
           break // Last L2 table
         }
@@ -189,7 +189,7 @@ export class QcowStreamGenerator {
     // First pass: determine which L2 tables are needed
     for (let i = 0; i < nbL1Entries; i++) {
       for (let j = 0; j < nbEntriesPerL2Table; j++) {
-        const blockIndex = i * nbL1Entries + j
+        const blockIndex = i * nbEntriesPerL2Table + j
         if (blockIndex >= nbBlocks) {
           break // Last L2 table
         }
@@ -208,7 +208,7 @@ export class QcowStreamGenerator {
       let l2Table: Buffer | undefined
 
       for (let j = 0; j < nbEntriesPerL2Table; j++) {
-        const blockIndex = i * nbL1Entries + j
+        const blockIndex = i * nbEntriesPerL2Table + j
         if (blockIndex >= nbBlocks) {
           break // Last L2 table
         }
