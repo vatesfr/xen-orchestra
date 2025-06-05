@@ -22,7 +22,7 @@ type BackupStateMap = Record<BackupState, { text: string; accent: InfoAccent }>
 const states: ComputedRef<BackupStateMap> = computed(() => ({
   success: { text: t('success'), accent: 'success' },
   failure: { text: t('failure'), accent: 'danger' },
-  skipped: { text: t('skipped'), accent: 'muted' },
+  skipped: { text: t('skipped'), accent: 'warning' },
   interrupted: { text: t('interrupted'), accent: 'danger' },
 }))
 
