@@ -161,7 +161,6 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   /**
    * List all blobs inside a folder
    * @param {string} path folder name inside container and #dir
-   * @param {*} options only used for ignoreMissing, if set to true, avoid throing error about empty list
    * @returns list of blobs in folder container/#dir
    */
   async _list(path) {
@@ -169,7 +168,10 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     try {
       const result = []
       for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix: fullPath })) {
-        const strippedName = item.name.replace(`${fullPath}`, '')
+        let strippedName = item.name
+        if (item.name.startsWith(fullPath)) {
+          strippedName = item.name.substring(fullPath.length)
+        }
         result.push(strippedName.endsWith('/') ? strippedName.slice(0, -1) : strippedName)
       }
       return result
@@ -294,31 +296,6 @@ export default class AzureHandler extends RemoteHandlerAbstract {
       error.path = path
       throw error
     }
-  }
-
-  async _writeFd(file, buffer, position) {
-    if (typeof file !== 'string') {
-      file = file.fd
-    }
-
-    const blobClient = this.#containerClient.getBlockBlobClient(this.#makeFullPath(file))
-    const blockSize = MIN_BLOCK_SIZE
-    const blockIds = []
-    let totalWritten = 0
-    let blockIndex = 0
-
-    while (totalWritten < buffer.length) {
-      const chunkSize = Math.min(blockSize, buffer.length - totalWritten)
-      const chunk = buffer.slice(totalWritten, totalWritten + chunkSize)
-
-      const blockId = Buffer.from(blockIndex.toString().padStart(6, '0')).toString('base64')
-      blockIds.push(blockId)
-      await blobClient.stageBlock(blockId, chunk, chunkSize)
-      totalWritten += chunkSize
-      blockIndex++
-    }
-
-    await blobClient.commitBlockList(blockIds)
   }
 
   async _openFile(path, flags) {
