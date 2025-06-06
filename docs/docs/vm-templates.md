@@ -99,9 +99,7 @@ Viridian extensions —referred to as "Viridian enlightenments" by Microsoft— 
 ### Step-by-step guide
 
 :::warning
-
 We strongly advise to create Windows templates by starting from a built-in Windows template, as the Viridian setting in Xen Orchestra is only relevant for those.
-
 :::
 
 #### Templates based on built-in Windows templates
@@ -114,8 +112,8 @@ A list of VMs appears.
 The VM details screen appears.
 3. Click the **Advanced** tab to show more settings for your VM.
 4. In the **Xen settings** section, scroll to the end and activate the **Viridian** toggle switch:
-![Location of the Viridian toggle in XO](./assets/viridian-extensions.png)
-    Viridian extensions are now enabled for your VM. You can now safely use this VM to create your Windows template.
+   ![Location of the Viridian toggle in XO](./assets/viridian-extensions.png)
+   Viridian extensions are now enabled for your VM. You can now safely use this VM to create your Windows template.
 
 #### Enabling Viridian for other non-Windows VM templates
 
