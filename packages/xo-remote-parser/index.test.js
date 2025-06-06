@@ -148,7 +148,7 @@ const data = deepFreeze({
     string:
       'azurite://devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq%2FK1SZFPTOtr%2FKBHBeksoGMGw%3D%3D@127.0.0.1:10000/xodevtest/folder/subfolder',
     object: {
-      type: 'azure',
+      type: 'azurite',
       host: '127.0.0.1:10000',
       port: '10000',
       protocol: 'https',
@@ -161,7 +161,7 @@ const data = deepFreeze({
     string:
       'azurite+http://devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq%2FK1SZFPTOtr%2FKBHBeksoGMGw%3D%3D@127.0.0.1:10000/xodevtest/folder/subfolder',
     object: {
-      type: 'azure',
+      type: 'azurite',
       host: '127.0.0.1:10000',
       port: '10000',
       protocol: 'http',

@@ -88,7 +88,11 @@ export const parse = string => {
     } else {
       object.protocol = 'http'
     }
-    object.type = 'azure'
+    if (parsed.protocol === 'azure:') {
+      object.type = 'azure'
+    } else {
+      object.type = 'azurite'
+    }
     object.host = parsed.host
     object.port = parsed.port
     object.path = parsed.pathname
@@ -112,11 +116,11 @@ export const format = ({ type, host, path, port, username, password, domain, pro
     string = protocol === 'https' ? 's3://' : 's3+http://'
     string += `${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
-  if (type === 'azure') {
-    if (port) {
-      string = protocol === 'https' ? 'azurite://' : 'azurite+http://'
-    } else {
+  if (type === 'azure' || type === 'azurite') {
+    if (type === 'azure') {
       string = 'azure://'
+    } else if (type === 'azurite') {
+      string = protocol === 'https' ? 'azurite://' : 'azurite+http://'
     }
     string += `${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
