@@ -5,8 +5,8 @@
       asTooltip && {
         placement: 'right',
         content: `
-      ${$t('you-are-currently-on', [masterSessionStorage])}.
-      ${$t('click-to-return-default-pool')}
+      ${t('you-are-currently-on', [masterSessionStorage])}.
+      ${t('click-to-return-default-pool')}
       `,
       }
     "
@@ -20,7 +20,7 @@
           <strong>{{ masterSessionStorage }}</strong>
         </I18nT>
         <br />
-        {{ $t('click-to-return-default-pool') }}
+        {{ t('click-to-return-default-pool') }}
       </p>
     </div>
   </div>
@@ -32,10 +32,13 @@ import { useXenApiStore } from '@/stores/xen-api.store'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faWarning } from '@fortawesome/free-solid-svg-icons'
 import { useSessionStorage } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   asTooltip?: boolean
 }>()
+
+const { t } = useI18n()
 
 const xenApi = useXenApiStore()
 const masterSessionStorage = useSessionStorage('master', null)

@@ -13,7 +13,7 @@
         target="_blank"
       >
         <UiIcon :icon="faInfoCircle" />
-        <span>{{ $t('learn-more') }}</span>
+        <span>{{ t('learn-more') }}</span>
       </a>
     </div>
     <div class="input-container">
@@ -44,6 +44,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 import { uniqueId } from 'lodash-es'
 import { computed, provide } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   label?: string
@@ -56,6 +57,8 @@ const props = defineProps<{
   disabled?: boolean
   light?: boolean
 }>()
+
+const { t } = useI18n()
 
 const id = computed(() => props.id ?? uniqueId('form-input-'))
 provide(IK_INPUT_ID, id)

@@ -1,15 +1,15 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('licensing') }}
+      {{ t('licensing') }}
     </UiTitle>
     <VtsCardRowKeyValue>
-      <template #key> {{ $t('license-type') }}</template>
+      <template #key> {{ t('license-type') }}</template>
       <!--        Waiting for the API endpoint -->
     </VtsCardRowKeyValue>
     <VtsCardRowKeyValue>
       <template #key>
-        {{ $t('license-socket') }}
+        {{ t('license-socket') }}
       </template>
       <template #value>
         <!--        Waiting for the API endpoint -->
@@ -17,7 +17,7 @@
     </VtsCardRowKeyValue>
     <VtsCardRowKeyValue>
       <template #key>
-        {{ $t('expiration-date') }}
+        {{ t('expiration-date') }}
       </template>
       <template #value>
         <!--        Waiting for the API endpoint -->
@@ -30,4 +30,7 @@
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 </script>

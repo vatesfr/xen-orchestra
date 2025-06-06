@@ -1,8 +1,8 @@
 <template>
   <div :class="{ 'no-ui': !uiStore.hasUi }" class="host-console-view">
-    <div v-if="hasError">{{ $t('error-occurred') }}</div>
+    <div v-if="hasError">{{ t('error-occurred') }}</div>
     <UiSpinner v-else-if="!isReady" class="spinner" />
-    <UiStatusPanel v-else-if="!isHostRunning" :image-source="monitor" :title="$t('power-on-host-for-console')" />
+    <UiStatusPanel v-else-if="!isHostRunning" :image-source="monitor" :title="t('power-on-host-for-console')" />
     <template v-else-if="host && hostConsole">
       <VtsLayoutConsole>
         <VtsRemoteConsole v-if="url" ref="console-element" :url :is-console-available="isConsoleAvailable" />
@@ -37,6 +37,8 @@ import { useUiStore } from '@core/stores/ui.store'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+
+const { t } = useI18n()
 
 const STOP_OPERATIONS = [HOST_OPERATION.SHUTDOWN]
 

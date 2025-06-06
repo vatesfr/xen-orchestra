@@ -16,7 +16,7 @@
       </template>
       <UiButtonIcon
         v-if="hasToggle"
-        v-tooltip="isExpanded ? $t('core.close') : $t('core.open')"
+        v-tooltip="isExpanded ? t('core.close') : t('core.open')"
         class="toggle"
         accent="brand"
         :icon="isExpanded ? faAngleDown : faAngleRight"
@@ -47,6 +47,7 @@ import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN, IK_TREE_LIST_DEPTH } 
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { inject, ref, useAttrs } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
 defineOptions({
@@ -68,6 +69,8 @@ defineSlots<{
   icon?(): any
   addons?(): any
 }>()
+
+const { t } = useI18n()
 
 const attrs = useAttrs()
 

@@ -312,7 +312,7 @@ const objectIcon = computed(() => (object.connected ? 'check' : 'close'))
 
 If you find yourself using this kind of functions in the template, maybe it's a good sign that a refactoring is needed (i.e., extracting the logic in a subcomponent).
 
-There are some exceptions, for example, when using `$t` for translations inside the template.
+There are some exceptions, for example, when using `t()` for translations inside the template.
 
 ## Components SHOULD have a Story
 

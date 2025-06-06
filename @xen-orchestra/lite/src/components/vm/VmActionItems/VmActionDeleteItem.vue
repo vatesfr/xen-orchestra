@@ -1,11 +1,11 @@
 <template>
   <MenuItem
-    v-tooltip="areSomeVmsInExecution && $t('selected-vms-in-execution')"
+    v-tooltip="areSomeVmsInExecution && t('selected-vms-in-execution')"
     :disabled="isDisabled"
     :icon="faTrashCan"
     @click="openDeleteModal"
   >
-    {{ $t('delete') }}
+    {{ t('delete') }}
   </MenuItem>
 </template>
 
@@ -18,10 +18,13 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef: getVm } = useVmStore().subscribe()
 

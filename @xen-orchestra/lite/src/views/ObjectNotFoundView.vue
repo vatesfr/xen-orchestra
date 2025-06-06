@@ -1,9 +1,9 @@
 <template>
   <div>
     <img alt="" src="../assets/object-not-found.svg" />
-    <p class="text">{{ $t('object-not-found', { id }) }}</p>
+    <p class="text">{{ t('object-not-found', { id }) }}</p>
     <UiButton size="medium" accent="brand" variant="primary" @click="router.push({ name: 'home' })">
-      {{ $t('back-pool-dashboard') }}
+      {{ t('back-pool-dashboard') }}
     </UiButton>
   </div>
 </template>
@@ -17,6 +17,8 @@ import { useRouter } from 'vue-router'
 defineProps<{
   id: string
 }>()
+
+const { t } = useI18n()
 
 usePageTitleStore().setTitle(useI18n().t('not-found'))
 

@@ -1,6 +1,6 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined">
-    <UiCardTitle :left="$t('storage-usage')" :right="$t('top-#', { n: N_ITEMS })" />
+    <UiCardTitle :left="t('storage-usage')" :right="t('top-#', { n: N_ITEMS })" />
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="!isReady" />
     <UsageBar v-else :data="data.result" :n-items="N_ITEMS">
@@ -21,6 +21,9 @@ import UsageBar from '@/components/UsageBar.vue'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { N_ITEMS } from '@/views/pool/PoolDashboardView.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { records: srs, isReady, hasError } = useSrStore().subscribe()
 

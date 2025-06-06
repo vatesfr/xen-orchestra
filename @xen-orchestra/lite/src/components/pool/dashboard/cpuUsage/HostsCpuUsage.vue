@@ -1,9 +1,5 @@
 <template>
-  <UiCardTitle
-    :left="$t('hosts')"
-    :level="UiCardTitleLevel.SubtitleWithUnderline"
-    :right="$t('top-#', { n: N_ITEMS })"
-  />
+  <UiCardTitle :left="t('hosts')" :level="UiCardTitleLevel.SubtitleWithUnderline" :right="t('top-#', { n: N_ITEMS })" />
   <NoDataError v-if="hasError" />
   <UiCardSpinner v-else-if="isLoading" />
   <NoResult v-else-if="isStatEmpty" />
@@ -24,8 +20,11 @@ import { IK_HOST_STATS } from '@/types/injection-keys'
 import type { StatData } from '@/types/stat'
 import { N_ITEMS } from '@/views/pool/PoolDashboardView.vue'
 import { computed, inject } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { hasError, isFetching } = useHostStore().subscribe()
+
+const { t } = useI18n()
 
 const stats = inject(
   IK_HOST_STATS,

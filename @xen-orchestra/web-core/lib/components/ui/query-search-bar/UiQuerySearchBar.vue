@@ -2,29 +2,29 @@
 <template>
   <form class="ui-query-search-bar" @submit.prevent="emit('search', value)">
     <label v-if="uiStore.isDesktop" :for="id" class="typo-body-regular-small label">
-      {{ $t('core.query-search-bar.label') }}
+      {{ t('core.query-search-bar.label') }}
     </label>
     <UiInput
       :id
       v-model="value"
       type="text"
       accent="brand"
-      :aria-label="uiStore.isMobile ? $t('core.query-search-bar.label') : undefined"
+      :aria-label="uiStore.isMobile ? t('core.query-search-bar.label') : undefined"
       :icon="uiStore.isDesktop ? faMagnifyingGlass : undefined"
-      :placeholder="$t('core.query-search-bar.placeholder')"
+      :placeholder="t('core.query-search-bar.placeholder')"
     />
     <template v-if="uiStore.isDesktop">
-      <UiButton size="medium" accent="brand" variant="primary" type="submit">{{ $t('core.search') }}</UiButton>
+      <UiButton size="medium" accent="brand" variant="primary" type="submit">{{ t('core.search') }}</UiButton>
       <VtsDivider type="stretch" />
       <UiButton
-        v-tooltip="$t('coming-soon')"
+        v-tooltip="t('coming-soon')"
         size="medium"
         accent="brand"
         variant="secondary"
         :left-icon="faFilter"
         disabled
       >
-        {{ $t('core.query-search-bar.use-query-builder') }}
+        {{ t('core.query-search-bar.use-query-builder') }}
       </UiButton>
     </template>
     <template v-else>
@@ -44,10 +44,13 @@ import { useUiStore } from '@core/stores/ui.store'
 import { uniqueId } from '@core/utils/unique-id.util'
 import { faFilter, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
   search: [value: string]
 }>()
+
+const { t } = useI18n()
 
 const id = uniqueId('search-input-')
 
