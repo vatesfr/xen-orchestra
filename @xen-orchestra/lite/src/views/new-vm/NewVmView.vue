@@ -9,7 +9,7 @@
           <!-- TEMPLATE SECTION -->
           <UiTitle>{{ t('template') }}</UiTitle>
           <div class="template-container">
-            <FormInputWrapper :label="t('pick-template')" light>
+            <VtsInputWrapper :label="t('pick-template')">
               <FormSelect v-model="vmState.new_vm_template" @change="onTemplateChange()">
                 <optgroup :label="poolName">
                   <option v-for="template in templates" :key="template.uuid" :value="template">
@@ -17,7 +17,7 @@
                   </option>
                 </optgroup>
               </FormSelect>
-            </FormInputWrapper>
+            </VtsInputWrapper>
           </div>
           <div v-if="vmState.new_vm_template" class="form-container">
             <!-- INSTALL SETTINGS SECTION -->
@@ -406,7 +406,6 @@
 
 <script setup lang="ts">
 // Lite import
-import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
 
 // XenAPI Store imports

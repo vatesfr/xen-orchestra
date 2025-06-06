@@ -55,7 +55,7 @@
       <form @submit.prevent="deploy">
         <FormSection :label="t('configuration')">
           <div class="row">
-            <FormInputWrapper :label="t('storage')" :help="t('n-gb-required', { n: REQUIRED_GB })">
+            <VtsInputWrapper :label="t('storage')" :message="t('n-gb-required', { n: REQUIRED_GB })">
               <FormSelect v-model="selectedSr" required>
                 <option disabled :value="undefined">
                   {{ t('select.storage') }}
@@ -75,10 +75,10 @@
                   <template v-if="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3">⚠️</template>
                 </option>
               </FormSelect>
-            </FormInputWrapper>
+            </VtsInputWrapper>
           </div>
           <div class="row">
-            <FormInputWrapper :label="t('network')" required>
+            <VtsInputWrapper :label="t('network')">
               <FormSelect v-model="selectedNetwork" required>
                 <option disabled :value="undefined">
                   {{ t('select.network') }}
@@ -87,100 +87,92 @@
                   {{ network.name_label }}
                 </option>
               </FormSelect>
-            </FormInputWrapper>
-            <FormInputWrapper
+            </VtsInputWrapper>
+            <VtsInputWrapper
               :label="t('deploy-xoa-custom-ntp-servers')"
               learn-more-url="https://docs.xen-orchestra.com/xoa#setting-a-custom-ntp-server"
             >
               <FormInput v-model="ntp" placeholder="xxx.xxx.xxx.xxx" />
-            </FormInputWrapper>
+            </VtsInputWrapper>
           </div>
           <div class="row">
-            <FormInputWrapper>
-              <div class="radio-group">
-                <label>
-                  <FormRadio v-model="ipStrategy" value="static" />
-                  {{ t('static-ip') }}</label
-                >
-                <label>
-                  <FormRadio v-model="ipStrategy" value="dhcp" />
-                  {{ t('dhcp') }}</label
-                >
-              </div>
-            </FormInputWrapper>
+            <VtsInputWrapper>
+              <UiRadioButtonGroup accent="brand">
+                <UiRadioButton v-model="ipStrategy" accent="brand" value="static">
+                  {{ t('static-ip') }}
+                </UiRadioButton>
+                <UiRadioButton v-model="ipStrategy" accent="brand" value="dhcp">
+                  {{ t('dhcp') }}
+                </UiRadioButton>
+              </UiRadioButtonGroup>
+            </VtsInputWrapper>
           </div>
           <div class="row">
-            <FormInputWrapper
+            <VtsInputWrapper
               :label="t('xoa-ip')"
               learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
             >
               <FormInput v-model="ip" :disabled="!requireIpConf" placeholder="xxx.xxx.xxx.xxx" />
-            </FormInputWrapper>
-            <FormInputWrapper
+            </VtsInputWrapper>
+            <VtsInputWrapper
               :label="t('netmask')"
               learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
             >
               <FormInput v-model="netmask" :disabled="!requireIpConf" placeholder="255.255.255.0" />
-            </FormInputWrapper>
+            </VtsInputWrapper>
           </div>
           <div class="row">
-            <FormInputWrapper
+            <VtsInputWrapper
               :label="t('dns')"
               learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
             >
               <FormInput v-model="dns" :disabled="!requireIpConf" placeholder="8.8.8.8" />
-            </FormInputWrapper>
-            <FormInputWrapper
+            </VtsInputWrapper>
+            <VtsInputWrapper
               :label="t('gateway')"
               learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
             >
               <FormInput v-model="gateway" :disabled="!requireIpConf" placeholder="xxx.xxx.xxx.xxx" />
-            </FormInputWrapper>
+            </VtsInputWrapper>
           </div>
         </FormSection>
 
         <FormSection :label="t('xoa-admin-account')">
           <div class="row">
-            <FormInputWrapper
+            <VtsInputWrapper
               :label="t('admin-login')"
               learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
               <FormInput v-model="xoaUser" required placeholder="email@example.com" />
-            </FormInputWrapper>
+            </VtsInputWrapper>
           </div>
           <div class="row">
-            <FormInputWrapper
+            <VtsInputWrapper
               :label="t('admin-password')"
               learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
               <FormInput v-model="xoaPwd" type="password" required :placeholder="t('password')" />
-            </FormInputWrapper>
-            <FormInputWrapper
+            </VtsInputWrapper>
+            <VtsInputWrapper
               :label="t('admin-password-confirm')"
               learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
             >
               <FormInput v-model="xoaPwdConfirm" type="password" required :placeholder="t('password')" />
-            </FormInputWrapper>
+            </VtsInputWrapper>
           </div>
         </FormSection>
 
         <FormSection :label="t('xoa-ssh-account')">
           <div class="row">
-            <FormInputWrapper :label="t('ssh-account')">
-              <label
-                ><span>{{ t('disabled') }}</span>
-                <FormToggle v-model="enableSshAccount" />
-                <span>{{ t('enabled') }}</span></label
-              >
-            </FormInputWrapper>
+            <UiToggle v-model="enableSshAccount">{{ t('ssh-account') }}</UiToggle>
           </div>
           <div class="row">
-            <FormInputWrapper :label="t('ssh-login')">
+            <VtsInputWrapper :label="t('ssh-login')">
               <FormInput value="xoa" placeholder="xoa" disabled />
-            </FormInputWrapper>
+            </VtsInputWrapper>
           </div>
           <div class="row">
-            <FormInputWrapper :label="t('ssh-password')">
+            <VtsInputWrapper :label="t('ssh-password')">
               <FormInput
                 v-model="sshPwd"
                 type="password"
@@ -188,8 +180,8 @@
                 :disabled="!enableSshAccount"
                 :required="enableSshAccount"
               />
-            </FormInputWrapper>
-            <FormInputWrapper :label="t('ssh-password-confirm')">
+            </VtsInputWrapper>
+            <VtsInputWrapper :label="t('ssh-password-confirm')">
               <FormInput
                 v-model="sshPwdConfirm"
                 type="password"
@@ -197,7 +189,7 @@
                 :disabled="!enableSshAccount"
                 :required="enableSshAccount"
               />
-            </FormInputWrapper>
+            </VtsInputWrapper>
           </div>
         </FormSection>
 
@@ -216,11 +208,8 @@
 
 <script lang="ts" setup>
 import FormInput from '@/components/form/FormInput.vue'
-import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
-import FormRadio from '@/components/form/FormRadio.vue'
 import FormSection from '@/components/form/FormSection.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
-import FormToggle from '@/components/form/FormToggle.vue'
 import TitleBar from '@/components/TitleBar.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiCard from '@/components/ui/UiCard.vue'
@@ -232,7 +221,11 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
+import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
+import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
+import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import {
   faArrowUpRightFromSquare,
@@ -500,33 +493,16 @@ async function cancel() {
   display: flex;
   flex-wrap: wrap;
   column-gap: 10rem;
-}
+  margin-bottom: 2.4rem;
 
-.form-toggle {
-  margin: 0 1.5rem;
-}
-
-.form-input-wrapper {
-  flex-grow: 1;
-  min-width: 60rem;
+  & > div {
+    flex: 1;
+    max-width: calc(50% - 4rem);
+  }
 }
 
 .input-container * {
   vertical-align: middle;
-}
-
-.radio-group {
-  display: flex;
-  flex-direction: row;
-  margin: 1.67rem 0;
-
-  & > * {
-    min-width: 20rem;
-  }
-}
-
-.form-radio {
-  margin-right: 1rem;
 }
 
 .not-available,
