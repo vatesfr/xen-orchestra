@@ -41,10 +41,9 @@
 
 <!--packages-start-->
 
-- @vates/types minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
+- xo-remote-parser minor
 - xo-server patch
-- xo-web patch
 
 <!--packages-end-->
