@@ -80,7 +80,6 @@ const pifHost = computed(() => {
   }
 
   .host-container {
-    width: 14rem;
     max-width: 14rem;
 
     .host {
@@ -93,6 +92,7 @@ const pifHost = computed(() => {
       color: var(--color-brand-txt-base);
     }
   }
+
   .device {
     width: 8rem;
     max-width: 8rem;

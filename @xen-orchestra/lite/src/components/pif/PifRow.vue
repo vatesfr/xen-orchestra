@@ -82,7 +82,6 @@ const pifHost = computed(() => {
   }
 
   .host-container {
-    width: 14rem;
     max-width: 14rem;
 
     .host {
