@@ -1,10 +1,10 @@
 <template>
   <UiCard class="host-dashboard-vms-status">
-    <UiCardTitle>{{ $t('vms-status') }}</UiCardTitle>
+    <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :segments />
-      <UiCardNumbers class="total" :label="$t('total')" :value="total" size="small" />
+      <UiCardNumbers class="total" :label="t('total')" :value="total" size="small" />
     </template>
   </UiCard>
 </template>

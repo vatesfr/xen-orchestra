@@ -2,13 +2,13 @@
   <UiModal @submit.prevent="handleSubmit">
     <FormModalLayout :icon="faDisplay">
       <template #title>
-        {{ $t('export-n-vms', { n: vmRefs.length }) }}
+        {{ t('export-n-vms', { n: vmRefs.length }) }}
       </template>
 
       <FormInputWrapper
         light
         learn-more-url="https://xcp-ng.org/blog/2018/12/19/zstd-compression-for-xcp-ng/"
-        :label="$t('select-compression')"
+        :label="t('select-compression')"
       >
         <FormSelect v-model="compressionType">
           <option
@@ -16,7 +16,7 @@
             :key
             :value="VM_COMPRESSION_TYPE[key as keyof typeof VM_COMPRESSION_TYPE]"
           >
-            {{ $t(key.toLowerCase()) }}
+            {{ t(key.toLowerCase()) }}
           </option>
         </FormSelect>
       </FormInputWrapper>
@@ -24,7 +24,7 @@
       <template #buttons>
         <ModalDeclineButton />
         <ModalApproveButton>
-          {{ $t('export-n-vms', { n: vmRefs.length }) }}
+          {{ t('export-n-vms', { n: vmRefs.length }) }}
         </ModalApproveButton>
       </template>
     </FormModalLayout>
@@ -45,10 +45,13 @@ import { useXenApiStore } from '@/stores/xen-api.store'
 import { IK_MODAL } from '@/types/injection-keys'
 import { faDisplay } from '@fortawesome/free-solid-svg-icons'
 import { inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
+
+const { t } = useI18n()
 
 const modal = inject(IK_MODAL)!
 

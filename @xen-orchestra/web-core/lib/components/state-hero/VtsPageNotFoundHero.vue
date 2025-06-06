@@ -1,16 +1,19 @@
 <template>
   <VtsStateHero class="vts-page-not-found-hero" image="not-found" :type>
     <span class="numeric">404</span><br />
-    {{ $t('page-not-found') }}
+    {{ t('page-not-found') }}
   </VtsStateHero>
 </template>
 
 <script lang="ts" setup>
 import VtsStateHero, { type StateHeroType } from '@core/components/state-hero/VtsStateHero.vue'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   type: StateHeroType
 }>()
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

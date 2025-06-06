@@ -1,7 +1,7 @@
 <template>
   <UiButtonIcon
     ref="buttonRef"
-    v-tooltip="{ content: $t('tasks.quick-view'), placement: 'bottom-end' }"
+    v-tooltip="{ content: t('tasks.quick-view'), placement: 'bottom-end' }"
     accent="brand"
     :dot="hasNewTask"
     :icon="faBarsProgress"
@@ -24,11 +24,14 @@ import { faBarsProgress } from '@fortawesome/free-solid-svg-icons'
 import { unrefElement, watchArray, whenever } from '@vueuse/core'
 import placementJs from 'placement.js'
 import { computed, nextTick, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   tasks: Task[]
   loading?: boolean
 }>()
+
+const { t } = useI18n()
 
 const ids = computed(() => props.tasks.map(task => task.id))
 

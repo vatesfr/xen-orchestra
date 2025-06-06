@@ -1,9 +1,9 @@
 <template>
   <UiCard class="pool-dashboard-hosts-patches">
     <UiCardTitle class="patches-title">
-      {{ $t('patches') }}
+      {{ t('patches') }}
       <template v-if="areAllLoaded && count > 0" #right>
-        {{ $t('n-missing', { n: count }) }}
+        {{ t('n-missing', { n: count }) }}
       </template>
     </UiCardTitle>
     <div class="table-container">
@@ -23,6 +23,9 @@ import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { useHostPatches } from '@/composables/host-patches.composable'
 import { useHostStore } from '@/stores/xen-api/host.store'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { records: hosts } = useHostStore().subscribe()
 

@@ -5,7 +5,7 @@
     <label :for="htmlFor" :class="{ required }" class="typo-caption label">
       <slot />
     </label>
-    <UiLink v-if="href" class="learn-more-link" size="small" :href>{{ $t('learn-more') }}</UiLink>
+    <UiLink v-if="href" class="learn-more-link" size="small" :href>{{ t('learn-more') }}</UiLink>
   </div>
 </template>
 
@@ -14,6 +14,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import { useI18n } from 'vue-i18n'
 
 export type LabelAccent = 'neutral' | 'warning' | 'danger'
 
@@ -24,6 +25,8 @@ const { for: htmlFor } = defineProps<{
   required?: boolean
   href?: string
 }>()
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

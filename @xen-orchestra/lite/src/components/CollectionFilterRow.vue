@@ -1,13 +1,13 @@
 <template>
   <div class="collection-filter-row">
-    <span class="or">{{ $t('or') }}</span>
+    <span class="or">{{ t('or') }}</span>
     <FormWidget v-if="newFilter.isAdvanced" class="form-widget-advanced">
       <input v-model="newFilter.content" />
     </FormWidget>
     <template v-else>
       <FormWidget :before="currentFilterIcon">
         <select v-model="newFilter.builder.property">
-          <option v-if="!newFilter.builder.property" value="">{{ `- ${$t('property')} -` }}</option>
+          <option v-if="!newFilter.builder.property" value="">{{ `- ${t('property')} -` }}</option>
           <option v-for="(filter, property) in availableFilters" :key="property" :value="property">
             {{ filter.label ?? property }}
           </option>

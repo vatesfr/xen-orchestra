@@ -1,11 +1,11 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('networking') }}
+      {{ t('networking') }}
     </UiTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VtsQuickInfoRow :label="$t('backup-network')">
+      <VtsQuickInfoRow :label="t('backup-network')">
         <template #value>
           <UiLink
             v-if="backupNetwork !== undefined"
@@ -16,7 +16,7 @@
             {{ backupNetwork.name_label }}
           </UiLink>
           <template v-else>
-            {{ $t('none') }}
+            {{ t('none') }}
           </template>
         </template>
       </VtsQuickInfoRow>
@@ -35,10 +35,13 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faNetworkWired } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
   pool: XoPool
 }>()
+
+const { t } = useI18n()
 
 const { get: getNetworkById, isReady } = useNetworkStore().subscribe()
 

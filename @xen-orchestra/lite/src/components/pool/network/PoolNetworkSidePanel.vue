@@ -2,26 +2,26 @@
   <UiPanel>
     <template #header>
       <UiButton
-        v-tooltip="$t('coming-soon')"
+        v-tooltip="t('coming-soon')"
         disabled
         variant="tertiary"
         size="medium"
         accent="brand"
         :left-icon="faEdit"
       >
-        {{ $t('edit') }}
+        {{ t('edit') }}
       </UiButton>
       <UiButton
-        v-tooltip="$t('coming-soon')"
+        v-tooltip="t('coming-soon')"
         disabled
         variant="tertiary"
         size="medium"
         accent="danger"
         :left-icon="faTrash"
       >
-        {{ $t('delete') }}
+        {{ t('delete') }}
       </UiButton>
-      <UiButtonIcon v-tooltip="$t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
+      <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
     </template>
     <template #default>
       <UiCard class="card-container">
@@ -32,7 +32,7 @@
           <!-- UUID -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('uuid') }}
+              {{ t('uuid') }}
             </template>
             <template #value>{{ network.uuid }}</template>
             <template #addons>
@@ -41,7 +41,7 @@
           </VtsCardRowKeyValue>
           <!-- DESCRIPTION -->
           <VtsCardRowKeyValue>
-            <template #key>{{ $t('description') }}</template>
+            <template #key>{{ t('description') }}</template>
             <template #value>
               <span class="value">{{ network.name_description }}</span>
             </template>
@@ -51,7 +51,7 @@
           </VtsCardRowKeyValue>
           <!-- VLAN -->
           <VtsCardRowKeyValue>
-            <template #key>{{ $t('vlan') }}</template>
+            <template #key>{{ t('vlan') }}</template>
             <template #value>{{ networkVlan }}</template>
             <template v-if="pifs[0].VLAN !== -1" #addons>
               <VtsCopyButton :value="String(networkVlan)" />
@@ -59,7 +59,7 @@
           </VtsCardRowKeyValue>
           <!-- MTU -->
           <VtsCardRowKeyValue>
-            <template #key>{{ $t('mtu') }}</template>
+            <template #key>{{ t('mtu') }}</template>
             <template #value>
               <span>{{ network.MTU }}</span>
             </template>
@@ -69,7 +69,7 @@
           </VtsCardRowKeyValue>
           <!-- NBD -->
           <VtsCardRowKeyValue>
-            <template #key>{{ $t('network-block-device') }}</template>
+            <template #key>{{ t('network-block-device') }}</template>
             <template #value>{{ networkNbd }}</template>
             <template #addons>
               <VtsCopyButton :value="networkNbd" />
@@ -77,27 +77,27 @@
           </VtsCardRowKeyValue>
           <!-- DEFAULT LOCKING MODE -->
           <VtsCardRowKeyValue>
-            <template #key>{{ $t('locking-mode-default') }}</template>
+            <template #key>{{ t('locking-mode-default') }}</template>
             <template #value>{{ networkDefaultLockingMode }}</template>
           </VtsCardRowKeyValue>
         </div>
       </UiCard>
       <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
         <div class="typo-body-bold">
-          {{ $t('pifs') }}
+          {{ t('pifs') }}
           <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
         </div>
         <table class="simple-table">
           <thead>
             <tr>
               <th class="text-left typo-body-regular-small">
-                {{ $t('host') }}
+                {{ t('host') }}
               </th>
               <th class="text-left typo-body-regular-small">
-                {{ $t('device') }}
+                {{ t('device') }}
               </th>
               <th class="text-left typo-body-regular-small">
-                {{ $t('pifs-status') }}
+                {{ t('pifs-status') }}
               </th>
               <th />
             </tr>

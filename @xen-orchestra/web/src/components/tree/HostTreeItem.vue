@@ -11,9 +11,9 @@
         />
       </template>
       <template #addons>
-        <VtsIcon v-if="isMaster" v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+        <VtsIcon v-if="isMaster" v-tooltip="t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
         <UiCounter
-          v-tooltip="$t('running-vm', runningVmsCount)"
+          v-tooltip="t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
           accent="brand"
           variant="secondary"
@@ -44,10 +44,13 @@ import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCircle, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   branch: HostBranch
 }>()
+
+const { t } = useI18n()
 
 const { isMasterHost } = useHostStore().subscribe()
 const { runningVms } = useVmStore().subscribe()

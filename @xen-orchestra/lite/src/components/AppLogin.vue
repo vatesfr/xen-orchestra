@@ -5,7 +5,7 @@
       <PoolOverrideWarning />
       <p v-if="isHostIsSlaveErr(error)" class="error">
         <UiIcon :icon="faExclamationCircle" />
-        {{ $t('login-only-on-master') }}
+        {{ t('login-only-on-master') }}
         <a :href="masterUrl.href">{{ masterUrl.hostname }}</a>
       </p>
       <template v-else>
@@ -18,17 +18,17 @@
           name="password"
           type="password"
           :class="{ error: isInvalidPassword }"
-          :placeholder="$t('password')"
+          :placeholder="t('password')"
           :readonly="isConnecting"
           required
         />
         <LoginError :error />
         <label class="remember-me-label">
           <FormCheckbox v-model="rememberMe" />
-          {{ $t('keep-me-logged') }}
+          {{ t('keep-me-logged') }}
         </label>
         <UiButton size="medium" accent="brand" variant="primary" type="submit" :busy="isConnecting">
-          {{ $t('login') }}
+          {{ t('login') }}
         </UiButton>
       </template>
     </form>

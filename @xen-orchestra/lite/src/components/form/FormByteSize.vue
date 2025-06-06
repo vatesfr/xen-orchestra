@@ -2,9 +2,9 @@
   <FormInputGroup>
     <FormNumber v-model="sizeInput" :max-decimals="3" />
     <FormSelect v-model="prefixInput">
-      <option value="Ki">{{ $t('bytes.ki') }}</option>
-      <option value="Mi">{{ $t('bytes.mi') }}</option>
-      <option value="Gi">{{ $t('bytes.gi') }}</option>
+      <option value="Ki">{{ t('bytes.ki') }}</option>
+      <option value="Mi">{{ t('bytes.mi') }}</option>
+      <option value="Gi">{{ t('bytes.gi') }}</option>
     </FormSelect>
   </FormInputGroup>
 </template>
@@ -16,6 +16,7 @@ import FormSelect from '@/components/form/FormSelect.vue'
 import { useVModel } from '@vueuse/core'
 import format, { type Prefix } from 'human-format'
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   modelValue: number | undefined
@@ -24,6 +25,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: number]
 }>()
+
+const { t } = useI18n()
 
 const availablePrefixes: Prefix<'binary'>[] = ['Ki', 'Mi', 'Gi']
 

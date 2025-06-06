@@ -6,7 +6,7 @@
     <div v-if="!ui.isMobile" class="lock">
       <UiButtonIcon
         v-tooltip="{
-          content: sidebar.isLocked ? $t('core.sidebar.unlock') : $t('core.sidebar.lock'),
+          content: sidebar.isLocked ? t('core.sidebar.unlock') : t('core.sidebar.lock'),
           placement: 'right',
         }"
         accent="brand"
@@ -39,12 +39,15 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { useSidebarStore } from '@core/stores/sidebar.store'
 import { useUiStore } from '@core/stores/ui.store'
 import { faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons'
+import { useI18n } from 'vue-i18n'
 
 const slots = defineSlots<{
   default(): any
   header?(): any
   footer?(): any
 }>()
+
+const { t } = useI18n()
 
 const sidebar = useSidebarStore()
 const ui = useUiStore()

@@ -1,7 +1,7 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined">
     <UiTitle class="title-with-counter" type="h4">
-      {{ $t('tasks') }}
+      {{ t('tasks') }}
       <UiCounter :value="pendingTasks.length" accent="info" size="medium" variant="primary" />
     </UiTitle>
     <TasksTable :finished-tasks="finishedTasks" :pending-tasks="pendingTasks" />

@@ -1,31 +1,31 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('pool-management') }}
+      {{ t('pool-management') }}
     </UiTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VtsQuickInfoRow :label="$t('master')">
+      <VtsQuickInfoRow :label="t('master')">
         <template #value>
           <UiLink v-if="masterHost" :icon="faServer" :to="`/host/${masterHost.uuid}/`" size="medium">
             {{ masterHost.name_label }}
           </UiLink>
           <template v-else>
-            {{ $t('none') }}
+            {{ t('none') }}
           </template>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('auto-power')">
+      <VtsQuickInfoRow :label="t('auto-power')">
         <template #value>
           <VtsEnabledState :enabled="pool.other_config.auto_poweron === 'true'" />
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('high-availability')">
+      <VtsQuickInfoRow :label="t('high-availability')">
         <template #value>
           <VtsEnabledState :enabled="Boolean(pool.ha_enabled)" />
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('migration-compression')">
+      <VtsQuickInfoRow :label="t('migration-compression')">
         <template #value>
           <VtsEnabledState :enabled="pool.migration_compression ?? false" />
         </template>
@@ -44,10 +44,13 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   pool: XenApiPool
 }>()
+
+const { t } = useI18n()
 
 const { masterHost, isReady } = usePoolStore().subscribe()
 </script>

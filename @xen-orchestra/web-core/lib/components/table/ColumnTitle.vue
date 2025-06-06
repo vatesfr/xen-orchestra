@@ -19,14 +19,14 @@
     <MenuItem
       v-for="interaction in interactions"
       :key="interaction.id"
-      v-tooltip="$t('coming-soon')"
+      v-tooltip="t('coming-soon')"
       :disabled="interaction.disabled"
       :on-click="() => updateInteraction(interaction)"
     >
       <VtsIcon :icon="interaction.icon" accent="current" />
       {{ interaction.label }}
       <i v-if="currentInteraction?.id === interaction.id" class="current-interaction typo-body-regular-small">
-        {{ $t('core.current').toLowerCase() }}
+        {{ t('core.current').toLowerCase() }}
       </i>
     </MenuItem>
   </MenuList>

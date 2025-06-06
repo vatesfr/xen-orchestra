@@ -1,17 +1,20 @@
 <!-- v1 -->
 <template>
   <span class="ui-character-limit" :class="classes">
-    {{ $t('core.character-limit', { count, max }) }}
+    {{ t('core.character-limit', { count, max }) }}
   </span>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { count, max } = defineProps<{
   count: number
   max: number
 }>()
+
+const { t } = useI18n()
 
 const isTooLong = computed(() => count > max)
 

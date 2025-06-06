@@ -1,31 +1,31 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('pool-management') }}
+      {{ t('pool-management') }}
     </UiTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VtsQuickInfoRow :label="$t('master')">
+      <VtsQuickInfoRow :label="t('master')">
         <template #value>
           <UiLink v-if="primaryHost" :icon="faServer" :to="`/host/${pool.master}/`" size="medium">
             {{ primaryHost.name_label }}
           </UiLink>
           <template v-else>
-            {{ $t('none') }}
+            {{ t('none') }}
           </template>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('auto-power')">
+      <VtsQuickInfoRow :label="t('auto-power')">
         <template #value>
           <VtsEnabledState :enabled="pool.auto_poweron" />
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('high-availability')">
+      <VtsQuickInfoRow :label="t('high-availability')">
         <template #value>
           <VtsEnabledState :enabled="pool.HA_enabled" />
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('migration-compression')">
+      <VtsQuickInfoRow :label="t('migration-compression')">
         <template #value>
           <VtsEnabledState :enabled="pool.migrationCompression ?? false" />
         </template>
@@ -45,10 +45,13 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
   pool: XoPool
 }>()
+
+const { t } = useI18n()
 
 const { get: getHostById, isReady } = useHostStore().subscribe()
 

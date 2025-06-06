@@ -1,9 +1,9 @@
 <template>
   <MenuItem :busy="areVmsBusyToStart" :disabled="!areVmsHalted" :icon="faPlay" @click="xenApi.vm.start(vmRefs)">
-    {{ $t('start') }}
+    {{ t('start') }}
   </MenuItem>
   <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" :icon="faServer">
-    {{ $t('start-on-host') }}
+    {{ t('start-on-host') }}
     <template #submenu>
       <MenuItem v-for="host in hosts" :key="host.$ref" :icon="faServer" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
         <div class="wrapper">
@@ -17,10 +17,10 @@
     </template>
   </MenuItem>
   <MenuItem :busy="areVmsBusyToPause" :disabled="!areVmsRunning" :icon="faPause" @click="xenApi.vm.pause(vmRefs)">
-    {{ $t('pause') }}
+    {{ t('pause') }}
   </MenuItem>
   <MenuItem :busy="areVmsBusyToSuspend" :disabled="!areVmsRunning" :icon="faMoon" @click="xenApi.vm.suspend(vmRefs)">
-    {{ $t('suspend') }}
+    {{ t('suspend') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToResume"
@@ -28,7 +28,7 @@
     :icon="faCirclePlay"
     @click="xenApi.vm.resume(vmRefsWithPowerState)"
   >
-    {{ $t('resume') }}
+    {{ t('resume') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToReboot"
@@ -36,7 +36,7 @@
     :icon="faRotateLeft"
     @click="xenApi.vm.reboot(vmRefs)"
   >
-    {{ $t('reboot') }}
+    {{ t('reboot') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToForceReboot"
@@ -44,7 +44,7 @@
     :icon="faRepeat"
     @click="xenApi.vm.reboot(vmRefs, true)"
   >
-    {{ $t('force-reboot') }}
+    {{ t('force-reboot') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToShutdown"
@@ -52,7 +52,7 @@
     :icon="faPowerOff"
     @click="xenApi.vm.shutdown(vmRefs)"
   >
-    {{ $t('shutdown') }}
+    {{ t('shutdown') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToForceShutdown"
@@ -60,7 +60,7 @@
     :icon="faPlug"
     @click="xenApi.vm.shutdown(vmRefs, true)"
   >
-    {{ $t('force-shutdown') }}
+    {{ t('force-shutdown') }}
   </MenuItem>
 </template>
 
@@ -89,10 +89,13 @@ import {
   faStar,
 } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef: getVm } = useVmStore().subscribe()
 const { records: hosts } = useHostStore().subscribe()

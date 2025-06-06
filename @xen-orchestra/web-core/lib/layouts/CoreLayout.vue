@@ -4,7 +4,7 @@
       <slot name="app-logo" />
       <UiButtonIcon
         v-tooltip="{
-          content: sidebarStore.isExpanded ? $t('core.sidebar.close') : $t('core.sidebar.open'),
+          content: sidebarStore.isExpanded ? t('core.sidebar.close') : t('core.sidebar.open'),
           placement: 'right',
         }"
         accent="brand"
@@ -48,6 +48,9 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { useSidebarStore } from '@core/stores/sidebar.store'
 import { useUiStore } from '@core/stores/ui.store'
 import { faAngleDoubleLeft, faBars } from '@fortawesome/free-solid-svg-icons'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const uiStore = useUiStore()
 const sidebarStore = useSidebarStore()

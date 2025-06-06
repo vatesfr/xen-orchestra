@@ -1,6 +1,6 @@
 <template>
   <UiCard>
-    <UiCardTitle>{{ $t('vms-status') }}</UiCardTitle>
+    <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :icon="faDesktop" :segments />

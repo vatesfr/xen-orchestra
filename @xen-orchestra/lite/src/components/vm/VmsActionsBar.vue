@@ -10,15 +10,15 @@
       <UiButtonIcon accent="brand" size="medium" :selected="isOpen" :icon="faEllipsis" @click="open" />
     </template>
     <MenuItem :icon="faPowerOff">
-      {{ $t('change-state') }}
+      {{ t('change-state') }}
       <template #submenu>
         <VmActionPowerStateItems :vm-refs="selectedRefs" />
       </template>
     </MenuItem>
     <VmActionMigrateItem :selected-refs="selectedRefs" />
     <VmActionCopyItem :selected-refs="selectedRefs" />
-    <MenuItem v-tooltip="$t('coming-soon')" :icon="faEdit">
-      {{ $t('edit-config') }}
+    <MenuItem v-tooltip="t('coming-soon')" :icon="faEdit">
+      {{ t('edit-config') }}
     </MenuItem>
     <VmActionSnapshotItem :vm-refs="selectedRefs" />
     <VmActionExportItems :vm-refs="selectedRefs" />
@@ -40,11 +40,14 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { faEdit, faEllipsis, faPowerOff } from '@fortawesome/free-solid-svg-icons'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   disabled?: boolean
   selectedRefs: XenApiVm['$ref'][]
 }>()
+
+const { t } = useI18n()
 
 const uiStore = useUiStore()
 </script>

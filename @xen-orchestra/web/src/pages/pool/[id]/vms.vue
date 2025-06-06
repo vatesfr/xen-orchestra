@@ -2,12 +2,12 @@
   <VtsLoadingHero v-if="!isReady" type="page" />
   <UiCard v-else class="vms">
     <!-- TODO: update with item selection button and TopBottomTable component when available -->
-    <p class="typo-body-regular-small count">{{ $t('n-vms', { n: vms.length }) }}</p>
+    <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
     <VtsTable vertical-border>
       <thead>
         <tr>
-          <ColumnTitle id="vm" :icon="faDesktop">{{ $t('vm') }}</ColumnTitle>
-          <ColumnTitle id="description" :icon="faAlignLeft">{{ $t('vm-description') }}</ColumnTitle>
+          <ColumnTitle id="vm" :icon="faDesktop">{{ t('vm') }}</ColumnTitle>
+          <ColumnTitle id="description" :icon="faAlignLeft">{{ t('vm-description') }}</ColumnTitle>
         </tr>
       </thead>
       <tbody>
@@ -43,10 +43,13 @@ import { defineTree } from '@core/composables/tree/define-tree'
 import { useTree } from '@core/composables/tree.composable'
 import { faAlignLeft, faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   pool: XoPool
 }>()
+
+const { t } = useI18n()
 
 const { isReady, records } = useVmStore().subscribe()
 

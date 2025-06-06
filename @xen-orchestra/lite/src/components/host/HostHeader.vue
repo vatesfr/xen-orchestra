@@ -5,7 +5,7 @@
     </template>
     {{ host.name_label }}
     <template v-if="isMaster" #status>
-      <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+      <VtsIcon v-tooltip="t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
     </template>
   </UiHeadBar>
 </template>
@@ -21,10 +21,13 @@ import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCircle, faStar } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: XenApiHost
 }>()
+
+const { t } = useI18n()
 
 const { isHostRunning } = useHostMetricsStore().subscribe()
 

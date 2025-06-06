@@ -1,9 +1,9 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle>
-      {{ $t('cpu-usage') }}
+      {{ t('cpu-usage') }}
       <template v-if="vmStatsCanBeExpired || hostStatsCanBeExpired" #right>
-        <UiSpinner v-tooltip="$t('fetching-fresh-data')" />
+        <UiSpinner v-tooltip="t('fetching-fresh-data')" />
       </template>
     </UiCardTitle>
     <HostsCpuUsage />
@@ -23,6 +23,9 @@ import { useHostStore } from '@/stores/xen-api/host.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { computed, type ComputedRef, inject } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { hasError: hasVmError } = useVmStore().subscribe()
 const { hasError: hasHostError } = useHostStore().subscribe()

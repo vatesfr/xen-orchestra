@@ -1,12 +1,12 @@
 <template>
   <UiCard class="host-dashboard-cpu-provisioning">
-    <UiCardTitle>{{ $t('cpu-provisioning') }}</UiCardTitle>
+    <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiProgressBar :value="vCpusCount" :max="cpusCount" :legend="$t('vcpus')" />
+      <UiProgressBar :value="vCpusCount" :max="cpusCount" :legend="t('vcpus')" />
       <div class="total">
-        <UiCardNumbers :label="$t('vcpus-assigned')" :value="vCpusCount" size="medium" />
-        <UiCardNumbers :label="$t('total-cpus')" :value="cpusCount" size="medium" />
+        <UiCardNumbers :label="t('vcpus-assigned')" :value="vCpusCount" size="medium" />
+        <UiCardNumbers :label="t('total-cpus')" :value="cpusCount" size="medium" />
       </div>
     </template>
   </UiCard>
@@ -26,10 +26,13 @@ import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { and } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: XenApiHost
 }>()
+
+const { t } = useI18n()
 
 const { isReady: isHostReady } = useHostStore().subscribe()
 const { recordsByHostRef, isReady: isVmReady } = useVmStore().subscribe()

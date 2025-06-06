@@ -2,30 +2,30 @@
   <MenuList placement="bottom-end">
     <template #trigger="{ open, isOpen }">
       <UiAccountMenuButton
-        v-tooltip="isOpen ? false : { content: $t('settings'), placement: 'left' }"
+        v-tooltip="isOpen ? false : { content: t('settings'), placement: 'left' }"
         :selected="isOpen"
         size="medium"
         @click="open($event)"
       />
     </template>
-    <MenuItem :icon="faGear" @click="openSettings">{{ $t('settings') }}</MenuItem>
+    <MenuItem :icon="faGear" @click="openSettings">{{ t('settings') }}</MenuItem>
     <MenuItem :icon="faBook" @click="openUrl('https://docs.xcp-ng.org?utm_campaign=xolite&utm_term=xcpdoc')">
-      {{ $t('documentation-name', { name: 'XCP-ng' }) }}
+      {{ t('documentation-name', { name: 'XCP-ng' }) }}
     </MenuItem>
     <MenuItem
       :icon="faHeadset"
       @click="openUrl('https://vates.tech/pricing-and-support?utm_campaign=xolite&utm_term=pricing')"
     >
-      {{ $t('professional-support') }}
+      {{ t('professional-support') }}
     </MenuItem>
     <MenuItem
       :icon="faComments"
       @click="openUrl('https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite?utm_campaign=xolite&utm_term=forum')"
     >
-      {{ $t('access-forum') }}
+      {{ t('access-forum') }}
     </MenuItem>
     <MenuItem :icon="faArrowRightFromBracket" class="menu-item-logout" @click="logout">
-      {{ $t('log-out') }}
+      {{ t('log-out') }}
     </MenuItem>
   </MenuList>
 </template>
@@ -38,7 +38,10 @@ import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccou
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faArrowRightFromBracket, faBook, faComments, faGear, faHeadset } from '@fortawesome/free-solid-svg-icons'
 import { nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const router = useRouter()
 

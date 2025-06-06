@@ -5,8 +5,8 @@
       <div class="fill" :style="{ width: `${fillWidth}%` }" />
     </div>
     <div v-if="shouldShowSteps" class="steps typo-body-regular-small">
-      <span>{{ $n(0, 'percent') }}</span>
-      <span v-for="step in steps" :key="step">{{ $n(step, 'percent') }}</span>
+      <span>{{ n(0, 'percent') }}</span>
+      <span v-for="step in steps" :key="step">{{ n(step, 'percent') }}</span>
     </div>
     <VtsLegendList class="legend">
       <UiLegend :accent :value="Math.round(percentage)" unit="%">{{ legend }}</UiLegend>
@@ -20,6 +20,7 @@ import UiLegend from '@core/components/ui/legend/UiLegend.vue'
 import { toVariants } from '@core/utils/to-variants.util'
 import { useClamp, useMax } from '@vueuse/math'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const {
   value: _value,
@@ -31,6 +32,8 @@ const {
   max?: number
   showSteps?: boolean
 }>()
+
+const { n } = useI18n()
 
 const value = useMax(0, () => _value)
 

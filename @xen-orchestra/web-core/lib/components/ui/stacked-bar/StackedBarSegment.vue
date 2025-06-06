@@ -7,7 +7,7 @@
     class="stacked-bar-segment typo-caption-small"
   >
     <div ref="ellipsisElement" :class="{ hidden }" class="text-ellipsis">
-      {{ $n(percentage / 100, 'percent') }}
+      {{ n(percentage / 100, 'percent') }}
     </div>
   </div>
 </template>
@@ -17,6 +17,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { hasEllipsis } from '@core/utils/has-ellipsis.util'
 import { useResizeObserver } from '@vueuse/core'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type StackedBarSegmentAccent = 'info' | 'success' | 'warning' | 'danger'
 
@@ -26,6 +27,8 @@ export type StackedBarSegmentProps = {
 }
 
 defineProps<StackedBarSegmentProps>()
+
+const { n } = useI18n()
 
 const hidden = ref(false)
 const ellipsisElement = ref<HTMLElement | null>(null)

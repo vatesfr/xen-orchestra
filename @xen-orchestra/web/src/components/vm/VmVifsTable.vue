@@ -1,67 +1,67 @@
 <template>
   <div class="vm-vifs-table">
     <UiTitle>
-      {{ $t('vifs') }}
+      {{ t('vifs') }}
       <template #actions>
         <UiButton
-          v-tooltip="$t('coming-soon')"
+          v-tooltip="t('coming-soon')"
           disabled
           size="medium"
           variant="secondary"
           accent="brand"
           :left-icon="faPlus"
         >
-          {{ $t('new-vif') }}
+          {{ t('new-vif') }}
         </UiButton>
       </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions :title="$t('table-actions')">
+        <UiTableActions :title="t('table-actions')">
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
             :left-icon="faPowerOff"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ $t('change-state') }}
+            {{ t('change-state') }}
           </UiButton>
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
             :left-icon="faEdit"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ $t('edit') }}
+            {{ t('edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
             :left-icon="faTrash"
             variant="tertiary"
             accent="danger"
             size="medium"
           >
-            {{ $t('delete') }}
+            {{ t('delete') }}
           </UiButton>
         </UiTableActions>
 
         <UiTopBottomTable :selected-items="0" :total-items="0" />
       </div>
-      <VtsDataTable :is-ready :has-error :no-data-message="vifs.length === 0 ? $t('no-vif-detected') : undefined">
+      <VtsDataTable :is-ready :has-error :no-data-message="vifs.length === 0 ? t('no-vif-detected') : undefined">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')" class="checkbox">
+              <th v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')" class="checkbox">
                 <UiCheckbox :v-model="areAllSelected" accent="brand" disabled />
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
@@ -85,12 +85,12 @@
               class="typo-body-regular-small"
               :class="{ checkbox: column.id === 'checkbox' }"
             >
-              <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
+              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
                 <UiCheckbox v-model="selected" accent="brand" :value="row.id" disabled />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
-                v-tooltip="$t('coming-soon')"
+                v-tooltip="t('coming-soon')"
                 :icon="faEllipsis"
                 accent="brand"
                 disabled

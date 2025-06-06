@@ -2,35 +2,35 @@
   <UiPanel>
     <template #header>
       <UiButton
-        v-tooltip="$t('coming-soon')"
+        v-tooltip="t('coming-soon')"
         disabled
         size="medium"
         variant="tertiary"
         accent="brand"
         :left-icon="faEdit"
       >
-        {{ $t('edit') }}
+        {{ t('edit') }}
       </UiButton>
       <UiButton
-        v-tooltip="$t('coming-soon')"
+        v-tooltip="t('coming-soon')"
         disabled
         size="medium"
         variant="tertiary"
         accent="danger"
         :left-icon="faTrash"
       >
-        {{ $t('delete') }}
+        {{ t('delete') }}
       </UiButton>
     </template>
     <template #default>
       <!-- PIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ isBond ? $t('bond') : $t('pif') }}</UiCardTitle>
+        <UiCardTitle>{{ isBond ? t('bond') : t('pif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('uuid') }}
+              {{ t('uuid') }}
             </template>
             <template #value>
               {{ pif.uuid }}
@@ -38,7 +38,7 @@
             <template #addons>
               <VtsIcon
                 v-if="pif.management"
-                v-tooltip="$t('management')"
+                v-tooltip="t('management')"
                 accent="info"
                 :icon="faCircle"
                 :overlay-icon="faStar"
@@ -49,7 +49,7 @@
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('network') }}
+              {{ t('network') }}
             </template>
             <template #value>
               <div class="network">
@@ -71,7 +71,7 @@
           <!-- DEVICE -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('device') }}
+              {{ t('device') }}
             </template>
             <template #value>
               {{ pif.device }}
@@ -83,7 +83,7 @@
           <!-- PIF STATUS -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ isBond ? $t('bond-status') : $t('pif-status') }}
+              {{ isBond ? t('bond-status') : t('pif-status') }}
             </template>
             <template #value>
               <VtsConnectionStatus :status />
@@ -92,7 +92,7 @@
           <!-- PHYSICAL INTERFACE STATUS -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('physical-interface-status') }}
+              {{ t('physical-interface-status') }}
             </template>
             <template #value>
               <VtsConnectionStatus :status="physicalInterfaceStatus" />
@@ -101,10 +101,10 @@
           <!-- VLAN -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('vlan') }}
+              {{ t('vlan') }}
             </template>
             <template #value>
-              {{ pif.VLAN === -1 ? $t('none') : pif.VLAN }}
+              {{ pif.VLAN === -1 ? t('none') : pif.VLAN }}
             </template>
             <template v-if="pif.VLAN !== -1" #addons>
               <VtsCopyButton :value="String(pif.VLAN)" />
@@ -113,7 +113,7 @@
           <!-- TAGS -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('tags') }}
+              {{ t('tags') }}
             </template>
             <template #value>
               <UiTagsList class="tags value">
@@ -127,13 +127,13 @@
       </UiCard>
       <!-- NETWORK INFORMATION -->
       <UiCard class="card">
-        <UiCardTitle>{{ $t('network-information') }}</UiCardTitle>
+        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
             <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
               <template #key>
-                <div v-if="index === 0">{{ $t('ip-addresses') }}</div>
+                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
               </template>
               <template #value>
                 <span v-tooltip class="text-ellipsis">{{ ip }}</span>
@@ -142,7 +142,7 @@
                 <VtsCopyButton :value="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
-                  v-tooltip="$t('coming-soon')"
+                  v-tooltip="t('coming-soon')"
                   disabled
                   :icon="faEllipsis"
                   size="medium"
@@ -153,7 +153,7 @@
           </div>
           <VtsCardRowKeyValue v-else>
             <template #key>
-              {{ $t('ip-addresses') }}
+              {{ t('ip-addresses') }}
             </template>
             <template #value>
               <span class="value" />
@@ -162,7 +162,7 @@
           <!-- MAC ADDRESSES -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('mac-address') }}
+              {{ t('mac-address') }}
             </template>
             <template #value>
               {{ pif.MAC }}
@@ -174,7 +174,7 @@
           <!-- NETMASK -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('netmask') }}
+              {{ t('netmask') }}
             </template>
             <template #value>
               <span class="value">{{ pif.netmask }}</span>
@@ -186,7 +186,7 @@
           <!-- DNS -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('dns') }}
+              {{ t('dns') }}
             </template>
             <template #value>
               <span class="value">
@@ -200,7 +200,7 @@
           <!-- GATEWAY -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('gateway') }}
+              {{ t('gateway') }}
             </template>
             <template #value>
               <span class="value">
@@ -214,7 +214,7 @@
           <!-- IP CONFIGURATION MODE -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('ip-mode') }}
+              {{ t('ip-mode') }}
             </template>
             <template #value>
               {{ ipConfigurationMode }}
@@ -224,7 +224,7 @@
           <div>
             <VtsCardRowKeyValue v-for="(device, index) in bondDevices" :key="device">
               <template #key>
-                <div v-if="index === 0">{{ $t('bond-devices') }}</div>
+                <div v-if="index === 0">{{ t('bond-devices') }}</div>
               </template>
               <template #value>
                 <span v-tooltip class="text-ellipsis">{{ device }}</span>
@@ -233,7 +233,7 @@
                 <VtsCopyButton :value="device" />
                 <UiButtonIcon
                   v-if="index === 0 && bondDevices.length > 1"
-                  v-tooltip="$t('coming-soon')"
+                  v-tooltip="t('coming-soon')"
                   disabled
                   :icon="faEllipsis"
                   size="medium"
@@ -246,15 +246,15 @@
       </UiCard>
       <!-- PROPERTIES -->
       <UiCard class="card">
-        <UiCardTitle>{{ $t('properties') }}</UiCardTitle>
+        <UiCardTitle>{{ t('properties') }}</UiCardTitle>
         <div class="content">
           <!-- MTU -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('mtu') }}
+              {{ t('mtu') }}
             </template>
             <template #value>
-              {{ pif.MTU === -1 ? $t('none') : pif.MTU }}
+              {{ pif.MTU === -1 ? t('none') : pif.MTU }}
             </template>
             <template v-if="pif.MTU !== -1" #addons>
               <VtsCopyButton :value="String(pif.MTU)" />
@@ -263,7 +263,7 @@
           <!-- SPEED -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('speed') }}
+              {{ t('speed') }}
             </template>
             <template #value>
               {{ speed }}
@@ -272,7 +272,7 @@
           <!-- NETWORK BLOCK DEVICE -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('network-block-device') }}
+              {{ t('network-block-device') }}
             </template>
             <template #value>
               {{ networkPurpose }}

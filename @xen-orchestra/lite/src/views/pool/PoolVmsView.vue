@@ -1,7 +1,7 @@
 <template>
   <UiCard class="pool-vms-view">
     <UiCardTitle subtitle>
-      {{ $t('vms') }}
+      {{ t('vms') }}
       <template v-if="uiStore.isMobile" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
       </template>
@@ -15,8 +15,8 @@
     >
       <template #head-row>
         <ColumnHeader :icon="faPowerOff" />
-        <ColumnHeader>{{ $t('name') }}</ColumnHeader>
-        <ColumnHeader>{{ $t('description') }}</ColumnHeader>
+        <ColumnHeader>{{ t('name') }}</ColumnHeader>
+        <ColumnHeader>{{ t('description') }}</ColumnHeader>
       </template>
       <template #body-row="{ item: vm }">
         <td>

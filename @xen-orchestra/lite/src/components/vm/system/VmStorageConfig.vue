@@ -1,9 +1,9 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('storage-configuration') }}
+      {{ t('storage-configuration') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('suspend-storage-repository')" :value="srRepo?.uuid ?? $t('none')" />
+    <VtsQuickInfoRow :label="t('suspend-storage-repository')" :value="srRepo?.uuid ?? t('none')" />
   </UiCard>
 </template>
 
@@ -14,8 +14,11 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{ vm: XenApiVm }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef } = useSrStore().subscribe()
 

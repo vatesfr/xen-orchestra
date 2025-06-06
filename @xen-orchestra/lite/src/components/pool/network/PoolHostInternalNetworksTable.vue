@@ -1,17 +1,17 @@
 <template>
   <div class="pool-host-internal-networks-table">
     <UiTitle>
-      {{ $t('host-internal-networks') }}
+      {{ t('host-internal-networks') }}
       <template #actions>
         <UiButton
-          v-tooltip="$t('coming-soon')"
+          v-tooltip="t('coming-soon')"
           disabled
           :left-icon="faPlus"
           variant="secondary"
           accent="brand"
           size="medium"
         >
-          {{ $t('new') }}
+          {{ t('new') }}
         </UiButton>
       </template>
     </UiTitle>
@@ -20,24 +20,24 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
         <UiTableActions :title="t('table-actions')">
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
             :left-icon="faEdit"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ $t('edit') }}
+            {{ t('edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
             :left-icon="faTrash"
             variant="tertiary"
             accent="danger"
             size="medium"
           >
-            {{ $t('delete') }}
+            {{ t('delete') }}
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
@@ -45,18 +45,18 @@
       <VtsDataTable
         :is-ready
         :has-error
-        :no-data-message="networks.length === 0 ? $t('no-network-detected') : undefined"
+        :no-data-message="networks.length === 0 ? t('no-network-detected') : undefined"
       >
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="$t('coming-soon')">
+                <div v-tooltip="t('coming-soon')">
                   <UiCheckbox disabled :v-model="areAllSelected" accent="brand" @update:model-value="toggleSelect" />
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
@@ -80,12 +80,12 @@
               class="typo-body-regular-small"
               :class="{ checkbox: column.id === 'checkbox' }"
             >
-              <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
+              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
                 <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
-                v-tooltip="$t('coming-soon')"
+                v-tooltip="t('coming-soon')"
                 :icon="faEllipsis"
                 accent="brand"
                 disabled
@@ -99,7 +99,7 @@
         </template>
       </VtsDataTable>
       <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
-        <div>{{ $t('no-result') }}</div>
+        <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
     </div>

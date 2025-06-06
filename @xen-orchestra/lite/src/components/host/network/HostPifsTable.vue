@@ -1,58 +1,58 @@
 <template>
   <div class="host-pif-table">
     <UiTitle>
-      {{ $t('pifs') }}
+      {{ t('pifs') }}
       <template #actions>
         <UiButton
-          v-tooltip="$t('coming-soon')"
+          v-tooltip="t('coming-soon')"
           disabled
           :left-icon="faPlus"
           variant="secondary"
           accent="brand"
           size="medium"
         >
-          {{ $t('scan-pifs') }}
+          {{ t('scan-pifs') }}
         </UiButton>
       </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions :title="$t('table-actions')">
+        <UiTableActions :title="t('table-actions')">
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
             :left-icon="faEdit"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ $t('edit') }}
+            {{ t('edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
             :left-icon="faTrash"
             variant="tertiary"
             accent="danger"
             size="medium"
           >
-            {{ $t('delete') }}
+            {{ t('delete') }}
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0" />
       </div>
-      <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? $t('no-pif-detected') : undefined">
+      <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? t('no-pif-detected') : undefined">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="$t('coming-soon')">
+                <div v-tooltip="t('coming-soon')">
                   <UiCheckbox disabled :v-model="areAllSelected" accent="brand" />
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
@@ -76,12 +76,12 @@
               class="typo-body-regular-small"
               :class="{ checkbox: column.id === 'checkbox' }"
             >
-              <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
+              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
                 <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
-                v-tooltip="$t('coming-soon')"
+                v-tooltip="t('coming-soon')"
                 :icon="faEllipsis"
                 accent="brand"
                 disabled
@@ -102,7 +102,7 @@
                 <span v-tooltip class="text-ellipsis">{{ column.value.name }}</span>
                 <VtsIcon
                   v-if="column.value.management"
-                  v-tooltip="$t('management')"
+                  v-tooltip="t('management')"
                   accent="info"
                   :icon="faCircle"
                   :overlay-icon="faStar"
@@ -122,7 +122,7 @@
         </template>
       </VtsDataTable>
       <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" type="table" image="no-result">
-        <div>{{ $t('no-result') }}</div>
+        <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" />
     </div>

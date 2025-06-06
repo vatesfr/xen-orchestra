@@ -13,7 +13,7 @@
     </UiFilter>
 
     <UiActionButton :icon="faPlus" class="add-sort" @click="openModal()">
-      {{ $t('add-sort') }}
+      {{ t('add-sort') }}
     </UiActionButton>
   </UiFilterGroup>
 </template>
@@ -27,6 +27,7 @@ import { useModal } from '@/composables/modal.composable'
 import type { ActiveSorts, NewSort, Sorts } from '@/types/sort'
 import { faCaretDown, faCaretUp, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   availableSorts: Sorts
@@ -38,6 +39,8 @@ const emit = defineEmits<{
   addSort: [property: string, isAscending: boolean]
   removeSort: [property: string]
 }>()
+
+const { t } = useI18n()
 
 const openModal = () => {
   const { onApprove } = useModal<NewSort>(() => import('@/components/modals/CollectionSorterModal.vue'), {

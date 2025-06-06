@@ -1,22 +1,22 @@
 <template>
   <UiCard class="pool-dashboard-status" :color="hasError ? 'error' : undefined">
-    <UiCardTitle>{{ $t('status') }}</UiCardTitle>
+    <UiCardTitle>{{ t('status') }}</UiCardTitle>
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="!isReady" />
     <template v-else>
       <PoolDashboardStatusItem
         :active="activeHostsCount"
-        :label="$t('hosts')"
-        :active-label="$t('host.active', activeHostsCount)"
-        :inactive-label="$t('host.inactive', totalHostsCount - activeHostsCount)"
+        :label="t('hosts')"
+        :active-label="t('host.active', activeHostsCount)"
+        :inactive-label="t('host.inactive', totalHostsCount - activeHostsCount)"
         :total="totalHostsCount"
       />
       <UiSeparator />
       <PoolDashboardStatusItem
         :active="activeVmsCount"
-        :label="$t('vms')"
-        :active-label="$t('vm.active', activeVmsCount)"
-        :inactive-label="$t('vm.inactive', totalVmsCount - activeVmsCount)"
+        :label="t('vms')"
+        :active-label="t('vm.active', activeVmsCount)"
+        :inactive-label="t('vm.inactive', totalVmsCount - activeVmsCount)"
         :total="totalVmsCount"
       />
     </template>
@@ -33,6 +33,9 @@ import UiSeparator from '@/components/ui/UiSeparator.vue'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { isReady: isVmReady, records: vms, hasError: hasVmError } = useVmStore().subscribe()
 

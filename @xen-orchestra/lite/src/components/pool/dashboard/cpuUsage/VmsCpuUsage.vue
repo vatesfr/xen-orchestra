@@ -1,5 +1,5 @@
 <template>
-  <UiCardTitle :left="$t('vms')" :level="UiCardTitleLevel.SubtitleWithUnderline" :right="$t('top-#', { n: N_ITEMS })" />
+  <UiCardTitle :left="t('vms')" :level="UiCardTitleLevel.SubtitleWithUnderline" :right="t('top-#', { n: N_ITEMS })" />
   <NoDataError v-if="hasError" />
   <UiCardSpinner v-else-if="isLoading" />
   <NoResult v-else-if="isStatEmpty" />
@@ -20,6 +20,9 @@ import { IK_VM_STATS } from '@/types/injection-keys'
 import type { StatData } from '@/types/stat'
 import { N_ITEMS } from '@/views/pool/PoolDashboardView.vue'
 import { computed, inject } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { hasError, isFetching } = useVmStore().subscribe()
 

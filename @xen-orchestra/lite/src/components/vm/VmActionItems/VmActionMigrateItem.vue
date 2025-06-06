@@ -3,14 +3,14 @@
     v-tooltip="
       selectedRefs.length > 0 &&
       !isMigratable &&
-      $t(isSingleAction ? 'this-vm-cant-be-migrated' : 'no-selected-vm-can-be-migrated')
+      t(isSingleAction ? 'this-vm-cant-be-migrated' : 'no-selected-vm-can-be-migrated')
     "
     :busy="isMigrating"
     :disabled="isDisabled"
     :icon="faRoute"
     @click="openModal()"
   >
-    {{ $t('migrate') }}
+    {{ t('migrate') }}
   </MenuItem>
 </template>
 
@@ -25,11 +25,14 @@ import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faRoute } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   selectedRefs: XenApiVm['$ref'][]
   isSingleAction?: boolean
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRefs } = useVmStore().subscribe()
 

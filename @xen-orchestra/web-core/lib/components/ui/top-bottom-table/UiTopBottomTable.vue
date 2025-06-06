@@ -3,7 +3,7 @@
   <div class="ui-top-bottom-table">
     <div class="content">
       <span class="typo-body-regular-small label">
-        {{ $t('core.select.n-selected-of', { count: selectedItems, total: totalItems }) }}
+        {{ t('core.select.n-selected-of', { count: selectedItems, total: totalItems }) }}
       </span>
 
       <UiButton
@@ -13,7 +13,7 @@
         variant="tertiary"
         @click="emit('toggleSelectAll', true)"
       >
-        {{ $t('core.select.all') }}
+        {{ t('core.select.all') }}
       </UiButton>
       <UiButton
         :disabled="selectedItems === 0"
@@ -22,7 +22,7 @@
         variant="tertiary"
         @click="emit('toggleSelectAll', false)"
       >
-        {{ $t('core.select.unselect') }}
+        {{ t('core.select.unselect') }}
       </UiButton>
     </div>
     <slot />
@@ -31,6 +31,7 @@
 
 <script setup lang="ts">
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   selectedItems: number
@@ -44,6 +45,8 @@ const emit = defineEmits<{
 defineSlots<{
   default(): any
 }>()
+
+const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">

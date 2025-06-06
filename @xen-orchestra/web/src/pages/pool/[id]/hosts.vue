@@ -2,12 +2,12 @@
   <VtsLoadingHero v-if="!isReady" type="page" />
   <UiCard v-else class="hosts">
     <!-- TODO: update with item selection button and TopBottomTable component when available -->
-    <p class="typo-body-regular-small count">{{ $t('n-hosts', { n: hosts.length }) }}</p>
+    <p class="typo-body-regular-small count">{{ t('n-hosts', { n: hosts.length }) }}</p>
     <VtsTable vertical-border>
       <thead>
         <tr>
-          <ColumnTitle id="host" :icon="faServer">{{ $t('host') }}</ColumnTitle>
-          <ColumnTitle id="description" :icon="faAlignLeft">{{ $t('host-description') }}</ColumnTitle>
+          <ColumnTitle id="host" :icon="faServer">{{ t('host') }}</ColumnTitle>
+          <ColumnTitle id="description" :icon="faAlignLeft">{{ t('host-description') }}</ColumnTitle>
         </tr>
       </thead>
       <tbody>
@@ -47,10 +47,13 @@ import { defineTree } from '@core/composables/tree/define-tree'
 import { useTree } from '@core/composables/tree.composable'
 import { faAlignLeft, faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   pool: XoPool
 }>()
+
+const { t } = useI18n()
 
 const { isReady, hostsByPool } = useHostStore().subscribe()
 

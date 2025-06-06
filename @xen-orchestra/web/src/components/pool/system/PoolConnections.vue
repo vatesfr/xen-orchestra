@@ -1,19 +1,19 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('connections') }}
+      {{ t('connections') }}
     </UiTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VtsQuickInfoRow :label="$t('ip-address')" :value="server?.host" />
-      <VtsQuickInfoRow :label="$t('proxy-url')" :value="server?.httpProxy" />
-      <VtsQuickInfoRow :label="$t('username')" :value="server?.username" />
-      <VtsQuickInfoRow :label="$t('read-only')">
+      <VtsQuickInfoRow :label="t('ip-address')" :value="server?.host" />
+      <VtsQuickInfoRow :label="t('proxy-url')" :value="server?.httpProxy" />
+      <VtsQuickInfoRow :label="t('username')" :value="server?.username" />
+      <VtsQuickInfoRow :label="t('read-only')">
         <template #value>
           <VtsEnabledState :enabled="server?.readOnly ?? false" />
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('self-signed-certificates')">
+      <VtsQuickInfoRow :label="t('self-signed-certificates')">
         <template #value>
           <VtsEnabledState :enabled="server?.allowUnauthorized ?? false" />
         </template>
@@ -31,8 +31,11 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{ pool: XoPool }>()
+
+const { t } = useI18n()
 
 const { serverByPool, isReady } = useServerStore().subscribe()
 

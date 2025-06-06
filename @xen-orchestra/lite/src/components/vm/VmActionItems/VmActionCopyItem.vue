@@ -1,12 +1,12 @@
 <template>
   <MenuItem
-    v-tooltip="!areAllSelectedVmsHalted && $t(isSingleAction ? 'vm-is-running' : 'selected-vms-in-execution')"
+    v-tooltip="!areAllSelectedVmsHalted && t(isSingleAction ? 'vm-is-running' : 'selected-vms-in-execution')"
     :busy="areSomeSelectedVmsCloning"
     :disabled="isDisabled"
     :icon="faCopy"
     @click="handleCopy"
   >
-    {{ $t('copy') }}
+    {{ t('copy') }}
   </MenuItem>
 </template>
 
@@ -20,11 +20,14 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCopy } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   selectedRefs: XenApiVm['$ref'][]
   isSingleAction?: boolean
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef } = useVmStore().subscribe()
 

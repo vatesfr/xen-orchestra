@@ -8,13 +8,13 @@
       <PaginationButton :disabled="isLastPage" :icon="faAngleDoubleRight" @click="emit('last')" />
     </div>
     <span class="typo-body-regular-small label">
-      {{ $t('core.select.n-object-of', { from, to, total }) }}
+      {{ t('core.select.n-object-of', { from, to, total }) }}
     </span>
-    <span class="typo-body-regular-small label show">{{ $t('core.pagination.show-by') }}</span>
+    <span class="typo-body-regular-small label show">{{ t('core.pagination.show-by') }}</span>
     <div class="dropdown-wrapper">
       <select v-model="showBy" class="dropdown typo-body-regular-small">
         <option v-for="option in [50, 100, 150, 200, -1]" :key="option" :value="option" class="typo-body-bold-small">
-          {{ option === -1 ? $t('core.pagination.all') : option }}
+          {{ option === -1 ? t('core.pagination.all') : option }}
         </option>
       </select>
       <VtsIcon :icon="faAngleDown" accent="current" class="icon" />
@@ -32,6 +32,7 @@ import {
   faAngleLeft,
   faAngleRight,
 } from '@fortawesome/free-solid-svg-icons'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   from: number
@@ -49,6 +50,8 @@ const emit = defineEmits<{
 }>()
 
 const showBy = defineModel<number>('showBy', { default: 50 })
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
