@@ -3,15 +3,18 @@ import type { Task } from '@vates/types/lib/vates/task'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, BACKUP_TYPE } from '@vates/types/common'
 import type {
+  XenApiGpuGroup,
   XenApiHostWrapped,
   XenApiMessage,
   XenApiNetworkWrapped,
   XenApiPciWrapped,
+  XenApiPgpu,
   XenApiPifWrapped,
   XenApiPoolWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
   XenApiVdiWrapped,
+  XenApiVgpuType,
   XenApiVgpuWrapped,
   XenApiVifWrapped,
   XenApiVmWrapped,
@@ -34,10 +37,12 @@ import type {
 import type { InsertableXoServer } from '../servers/server.type.mjs'
 
 type XapiRecordByXapiXoRecord = {
+  gpuGroup: XenApiGpuGroup
   host: XenApiHostWrapped
   message: XenApiMessage
   network: XenApiNetworkWrapped
   PCI: XenApiPciWrapped
+  PGPU: XenApiPgpu
   PIF: XenApiPifWrapped
   pool: XenApiPoolWrapped
   SR: XenApiSrWrapped
@@ -45,7 +50,8 @@ type XapiRecordByXapiXoRecord = {
   VDI: XenApiVdiWrapped
   'VDI-snapshot': XenApiVdiWrapped
   'VDI-unmanaged': XenApiVdiWrapped
-  VGPU: XenApiVgpuWrapped
+  vgpu: XenApiVgpuWrapped
+  vgpuType: XenApiVgpuType
   VIF: XenApiVifWrapped
   VM: XenApiVmWrapped
   'VM-controller': XenApiVmWrapped
