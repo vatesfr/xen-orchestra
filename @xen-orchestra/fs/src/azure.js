@@ -164,24 +164,21 @@ export default class AzureHandler extends RemoteHandlerAbstract {
    * @param {*} options only used for ignoreMissing, if set to true, avoid throing error about empty list
    * @returns list of blobs in folder container/#dir
    */
-  async _list(path, options = {}) {
-    const { ignoreMissing = false } = options
+  async _list(path) {
     const fullPath = this.#makeFullPath(this.#ensureIsDir(path))
-    const enoentError = new Error(`ENOENT: No such file or directory from list ${path}`)
-    enoentError.code = 'ENOENT'
-    enoentError.path = path
     try {
       const result = []
       for await (const item of this.#containerClient.listBlobsByHierarchy('/', { prefix: fullPath })) {
         const strippedName = item.name.replace(`${fullPath}`, '')
         result.push(strippedName.endsWith('/') ? strippedName.slice(0, -1) : strippedName)
       }
-      if (result.length === 0 && !ignoreMissing) {
-        throw enoentError
-      }
       return result
     } catch (e) {
       if (e.statusCode === 404) {
+        const enoentError = new Error(`ENOENT: No such file or directory from list ${path}`)
+        enoentError.code = 'ENOENT'
+        enoentError.path = path
+        enoentError.cause = e
         throw enoentError
       }
       throw e
