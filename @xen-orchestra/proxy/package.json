@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@xen-orchestra/proxy",
-  "version": "0.29.20",
+  "version": "0.29.21",
   "license": "AGPL-3.0-or-later",
   "description": "XO Proxy used to remotely execute backup jobs",
   "keywords": [
@@ -33,7 +33,7 @@
     "@vates/disposable": "^0.1.6",
     "@vates/task": "^0.6.1",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/backups": "^0.61.0",
+    "@xen-orchestra/backups": "^0.61.1",
     "@xen-orchestra/fs": "^4.5.1",
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/mixin": "^0.2.0",
