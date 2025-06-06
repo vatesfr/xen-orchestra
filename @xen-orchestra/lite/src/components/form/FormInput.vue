@@ -1,24 +1,7 @@
 <template>
   <span :class="wrapperClass" class="container" v-bind="wrapperAttrs">
-    <template v-if="inputType === 'select'">
-      <select
-        :id
-        ref="inputElement"
-        v-model="value"
-        :class="inputClass"
-        :disabled="isDisabled"
-        :required
-        class="select"
-        v-bind="attrs"
-      >
-        <slot />
-      </select>
-      <span class="caret">
-        <UiIcon :fixed-width="false" :icon="faAngleDown" />
-      </span>
-    </template>
     <textarea
-      v-else-if="inputType === 'textarea'"
+      v-if="inputType === 'textarea'"
       :id
       ref="textarea"
       v-model="value"
@@ -58,7 +41,6 @@ import type { Color } from '@/types'
 import { IK_INPUT_ID, IK_INPUT_TYPE } from '@/types/injection-keys'
 import { useDisabled } from '@core/composables/disabled.composable'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 import { useTextareaAutosize, useVModel } from '@vueuse/core'
 import { computed, type HTMLAttributes, inject, nextTick, ref, useAttrs, watch } from 'vue'
 
@@ -134,7 +116,6 @@ defineExpose({
 }
 
 .form-input,
-.form-select,
 .form-textarea {
   display: grid;
   align-items: stretch;
@@ -142,7 +123,6 @@ defineExpose({
 
   --before-width: v-bind('beforeWidth || "1.75em"');
   --after-width: v-bind('afterWidth || "1.625em"');
-  --caret-width: 1.5em;
 
   --text-color: var(--color-neutral-txt-primary);
 
@@ -160,17 +140,8 @@ defineExpose({
   grid-template-columns: var(--before-width) auto var(--after-width);
 }
 
-.form-select {
-  grid-template-columns:
-    var(--before-width)
-    auto
-    var(--after-width)
-    var(--caret-width);
-}
-
 .input,
-.textarea,
-.select {
+.textarea {
   font-size: 1em;
   width: 100%;
   height: 4rem;
@@ -285,24 +256,8 @@ defineExpose({
   }
 }
 
-.select {
-  min-width: fit-content;
-  padding: 0 calc(var(--caret-width) + 0.25em) 0 0.625em;
-  grid-column: 1 / 5;
-  appearance: none;
-
-  &.has-before {
-    padding-left: calc(var(--before-width) + 0.25em);
-  }
-
-  &.has-after {
-    padding-right: calc(var(--after-width) + 0.25em + var(--caret-width));
-  }
-}
-
 .before,
-.after,
-.caret {
+.after {
   display: inline-flex;
   align-items: center;
   pointer-events: none;
@@ -318,10 +273,5 @@ defineExpose({
 .after {
   justify-self: start;
   grid-column: 3 / 4;
-}
-
-.caret {
-  justify-self: start;
-  grid-column: 4 / 5;
 }
 </style>
