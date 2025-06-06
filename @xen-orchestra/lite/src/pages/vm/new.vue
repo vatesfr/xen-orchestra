@@ -10,13 +10,7 @@
           <UiTitle>{{ t('template') }}</UiTitle>
           <div class="template-container">
             <VtsInputWrapper :label="t('pick-template')">
-              <FormSelect v-model="vmState.new_vm_template" @change="onTemplateChange()">
-                <optgroup :label="poolName">
-                  <option v-for="template in templates" :key="template.uuid" :value="template">
-                    {{ template.name_label }}
-                  </option>
-                </optgroup>
-              </FormSelect>
+              <VtsSelect :id="templateSelectId" accent="brand" />
             </VtsInputWrapper>
           </div>
           <div v-if="vmState.new_vm_template" class="form-container">
@@ -41,15 +35,7 @@
                     </UiRadioButton>
                   -->
                 </div>
-                <FormSelect v-if="vmState.installMode === 'ISO'" v-model="vmState.selectedVdi">
-                  <template v-for="(vdis, srName) in vdiIsosBySrName" :key="srName">
-                    <optgroup :label="srName">
-                      <option v-for="vdi in vdis" :key="vdi.$ref" :value="vdi.$ref">
-                        {{ vdi.name_label }}
-                      </option>
-                    </optgroup>
-                  </template>
-                </FormSelect>
+                <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
                 <!-- TODO need to be add later after confirmation -->
                 <!--
                  <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
@@ -99,15 +85,7 @@
                     {{ t('pxe') }}
                   </UiRadioButton>
                 </div>
-                <FormSelect v-if="vmState.installMode === 'ISO'" v-model="vmState.selectedVdi">
-                  <template v-for="(vdis, srName) in vdiIsosBySrName" :key="srName">
-                    <optgroup :label="srName">
-                      <option v-for="vdi in vdis" :key="vdi.$ref" :value="vdi.$ref">
-                        {{ vdi.name_label }}
-                      </option>
-                    </optgroup>
-                  </template>
-                </FormSelect>
+                <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
               </div>
             </div>
             <!-- SYSTEM SECTION -->
@@ -128,11 +106,7 @@
                   </UiChip>
                 </div>
                 <VtsInputWrapper :label="t('boot-firmware')">
-                  <FormSelect v-model="vmState.boot_firmware">
-                    <option v-for="boot in bootFirmwares" :key="boot" :value="boot">
-                      {{ boot === undefined ? t('bios-default') : boot }}
-                    </option>
-                  </FormSelect>
+                  <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
                 <div
                   v-tooltip="
@@ -158,14 +132,7 @@
                   {{ t('new-vm.description') }}
                 </UiTextarea>
                 <VtsInputWrapper :label="t('affinity-host')">
-                  <div class="affinity-host">
-                    <FormSelect v-model="vmState.affinity_host" class="select">
-                      <option :value="OPAQUE_REF.EMPTY">{{ t('none') }}</option>
-                      <option v-for="host in hosts" :key="host?.$ref" :value="host?.$ref">
-                        {{ host?.name_label }}
-                      </option>
-                    </FormSelect>
-                  </div>
+                  <VtsSelect :id="affinityHostSelectId" accent="brand" />
                 </VtsInputWrapper>
               </div>
             </div>
@@ -181,12 +148,7 @@
               </VtsInputWrapper>
               <VtsInputWrapper :label="t('topology')">
                 <div class="topology">
-                  <FormSelect v-model="vmState.topology">
-                    <option :value="null">{{ t('default-behavior') }}</option>
-                    <option v-for="core in coresPerSocket" :key="core.value" :value="core.value">
-                      {{ core.label }}
-                    </option>
-                  </FormSelect>
+                  <VtsSelect :id="topologySelectId" accent="brand" />
                 </div>
               </VtsInputWrapper>
             </div>
@@ -210,13 +172,7 @@
                 <tbody>
                   <tr v-for="(networkInterface, index) in vmState.networkInterfaces" :key="index">
                     <td>
-                      <FormSelect v-model="networkInterface.interface">
-                        <optgroup :label="poolName">
-                          <option v-for="network in networks" :key="network.$ref" :value="network.$ref">
-                            {{ network.name_label }}
-                          </option>
-                        </optgroup>
-                      </FormSelect>
+                      <NetworkInterfaceSelect v-model="networkInterface.interface" />
                     </td>
                     <td>
                       <UiInput
@@ -280,16 +236,7 @@
                 <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
                   <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
                     <td>
-                      <FormSelect v-model="vdi.SR">
-                        <option v-for="sr in filteredSrs" :key="sr.$ref" :value="sr.$ref">
-                          {{ `${sr.name_label} -` }}
-                          {{
-                            t('n-gb-left', {
-                              n: bytesToGiB(sr.physical_size - sr.physical_utilisation),
-                            })
-                          }}
-                        </option>
-                      </FormSelect>
+                      <SrSelect v-model="vdi.SR" disabled />
                     </td>
                     <td>
                       <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
@@ -306,16 +253,7 @@
                 <template v-if="vmState.vdis && vmState.vdis.length > 0">
                   <tr v-for="(vdi, index) in vmState.vdis" :key="index">
                     <td>
-                      <FormSelect v-model="vdi.SR">
-                        <option v-for="sr in filteredSrs" :key="sr.$ref" :value="sr.$ref">
-                          {{ `${sr.name_label} -` }}
-                          {{
-                            t('n-gb-left', {
-                              n: bytesToGiB(sr.physical_size - sr.physical_utilisation),
-                            })
-                          }}
-                        </option>
-                      </FormSelect>
+                      <SrSelect v-model="vdi.SR" />
                     </td>
                     <td>
                       <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
@@ -405,9 +343,9 @@
   </div>
 </template>
 
-<script setup lang="ts">
-// Lite import
-import FormSelect from '@/components/form/FormSelect.vue'
+<script lang="ts" setup>
+import NetworkInterfaceSelect from '@/components/select/NetworkInterfaceSelect.vue'
+import SrSelect from '@/components/select/SrSelect.vue'
 
 // XenAPI Store imports
 import type { XenApiSr, XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
@@ -428,6 +366,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -442,6 +381,7 @@ import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useFormSelect } from '@core/packages/form-select'
 
 // Icon Imports
 import {
@@ -459,15 +399,16 @@ import {
 
 // Vue imports
 import { type DOMAIN_TYPE, OPAQUE_REF, VBD_TYPE } from '@vates/types'
+import { logicNot } from '@vueuse/math'
 import defer, { type Defer } from 'golike-defer'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 // Store subscriptions
-const { templates } = useVmStore().subscribe()
+const { templates, isReady: areTemplatesReady } = useVmStore().subscribe()
 const { pool } = usePoolStore().subscribe()
-const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
+const { vdiIsosBySrName } = useSrStore().subscribe()
 const { records: hosts } = useHostStore().subscribe()
 const { records: networks, getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()
@@ -574,8 +515,6 @@ const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
 
-const poolName = computed(() => pool.value?.name_label)
-
 const poolCpuInfo = computed(() => {
   return {
     cores: pool.value?.cpu_info && +pool.value.cpu_info.cpu_count,
@@ -622,11 +561,11 @@ const isDiskTemplate = computed(() => {
 
 const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
-const bootFirmwares = computed(() => [...new Set(templates.value.map(template => template.HVM_boot_params.firmware))])
+const bootFirmwares = computed(() => [
+  ...new Set(templates.value.map(template => template.HVM_boot_params.firmware ?? '')),
+])
 
 const defaultSr = computed(() => pool.value!.default_SR)
-
-const filteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
 
 const templateHasBiosStrings = computed(
   () => vmState.new_vm_template !== null && Object.keys(vmState.new_vm_template!.bios_strings).length > 0
@@ -756,40 +695,6 @@ const getExistingVdis = (template: XenApiVm) => {
 
     return acc
   }, [])
-}
-
-const onTemplateChange = () => {
-  const template = vmState.new_vm_template
-
-  if (!template) {
-    return
-  }
-
-  const {
-    name_label,
-    name_description,
-    HVM_boot_params,
-    VCPUs_at_startup,
-    memory_dynamic_max,
-    other_config,
-    platform,
-    tags,
-    affinity,
-  } = template
-
-  Object.assign(vmState, {
-    name: name_label,
-    description: other_config.default_template === 'true' ? '' : name_description,
-    boot_firmware: HVM_boot_params.firmware,
-    vCPU: VCPUs_at_startup,
-    ram: memory_dynamic_max,
-    vdis: getVdis(template),
-    tags,
-    topology: platform['cores-per-socket'] ?? null,
-    affinity_host: affinity,
-    existingVdis: getExistingVdis(template),
-    networkInterfaces: getExistingInterface(template),
-  })
 }
 
 const vmCreationParams = computed(() => ({
@@ -1057,9 +962,115 @@ const createVm = async () => {
     await xapi.vm.start(vmRefs)
   }
 }
+
+// TEMPLATE SELECTOR
+
+const { id: templateSelectId, selectedValue: selectedVmTemplate } = useFormSelect(templates, {
+  model: toRef(vmState, 'new_vm_template'),
+  loading: logicNot(areTemplatesReady),
+  searchable: true,
+  option: {
+    id: 'uuid',
+    label: 'name_label',
+  },
+})
+
+watch(selectedVmTemplate, template => {
+  if (!template) {
+    return
+  }
+
+  const {
+    name_label,
+    name_description,
+    HVM_boot_params,
+    VCPUs_at_startup,
+    memory_dynamic_max,
+    other_config,
+    platform,
+    tags,
+    affinity,
+  } = template
+
+  Object.assign(vmState, {
+    name: name_label,
+    description: other_config.default_template === 'true' ? '' : name_description,
+    boot_firmware: HVM_boot_params.firmware ?? '',
+    vCPU: VCPUs_at_startup,
+    ram: memory_dynamic_max,
+    vdis: getVdis(template),
+    tags,
+    topology: platform['cores-per-socket'] ?? null,
+    affinity_host: affinity,
+    existingVdis: getExistingVdis(template),
+    networkInterfaces: getExistingInterface(template),
+  })
+})
+
+// VDI ISOS SELECTOR
+
+const selectedVdi = toRef(vmState, 'selectedVdi')
+
+const vdiIsos = computed(() =>
+  Object.entries(vdiIsosBySrName.value).flatMap(([srName, vdis]) =>
+    vdis.map((vdi: XenApiVdi) => ({
+      vdi,
+      label: `[${srName}] ${vdi.name_label}`,
+    }))
+  )
+)
+
+const { id: vdiIsoSelectId } = useFormSelect(vdiIsos, {
+  model: selectedVdi,
+  searchable: true,
+  option: {
+    id: source => source.vdi.$ref,
+    value: source => source.vdi.$ref,
+  },
+})
+
+// BOOT FIRMWARE SELECTOR
+
+const { id: bootFirmwareSelectId } = useFormSelect(bootFirmwares, {
+  model: toRef(vmState, 'boot_firmware'),
+  option: {
+    id: boot => boot ?? '-',
+    label: boot => boot || t('bios-default'),
+  },
+})
+
+// TOPOLOGY SELECTOR
+// t('default-behavior')
+const { id: topologySelectId } = useFormSelect(coresPerSocket, {
+  model: toRef(vmState, 'topology'),
+  emptyOption: {
+    label: t('default-behavior'),
+    value: undefined,
+  },
+  option: {
+    id: 'value',
+    value: 'value',
+  },
+})
+
+// AFFINITY HOST SELECTOR
+
+const { id: affinityHostSelectId } = useFormSelect(hosts, {
+  model: toRef(vmState, 'affinity_host'),
+  searchable: true,
+  emptyOption: {
+    label: t('none'),
+    value: OPAQUE_REF.EMPTY,
+  },
+  option: {
+    id: '$ref',
+    label: 'name_label',
+    value: '$ref',
+  },
+})
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .new-vm-view {
   .card-container {
     margin: 1rem;
@@ -1085,16 +1096,6 @@ const createVm = async () => {
         flex-direction: column;
         gap: 2.5rem;
         width: 40%;
-
-        .affinity-host {
-          display: flex;
-          align-items: center;
-          gap: 0.8rem;
-
-          .container {
-            width: 100%;
-          }
-        }
       }
 
       .chips {
