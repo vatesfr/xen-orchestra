@@ -3,7 +3,7 @@
     {{ name }}
     <template #actions>
       <RouterLink :to="{ name: 'new-vm' }">
-        <UiButton :left-icon="faPlus" variant="primary" accent="brand" size="medium">{{ t('new-vm') }}</UiButton>
+        <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium">{{ t('new-vm') }}</UiButton>
       </RouterLink>
     </template>
   </UiHeadBar>
