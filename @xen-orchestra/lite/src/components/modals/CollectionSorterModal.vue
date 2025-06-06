@@ -3,20 +3,16 @@
     <ConfirmModalLayout>
       <template #default>
         <div class="form-widgets">
-          <FormWidget :label="t('sort-by')">
-            <select v-model="newSortProperty">
-              <option v-if="!newSortProperty" />
-              <option v-for="(sort, property) in availableSorts" :key="property" :value="property">
-                {{ sort.label ?? property }}
-              </option>
-            </select>
-          </FormWidget>
-          <FormWidget>
-            <select v-model="newSortIsAscending">
-              <option :value="true">{{ t('ascending') }}</option>
-              <option :value="false">{{ t('descending') }}</option>
-            </select>
-          </FormWidget>
+          <FormSelect v-model="newSortProperty" :label="t('sort-by')">
+            <option v-if="!newSortProperty" />
+            <option v-for="(sort, property) in availableSorts" :key="property" :value="property">
+              {{ sort.label ?? property }}
+            </option>
+          </FormSelect>
+          <FormSelect v-model="newSortIsAscending">
+            <option :value="true">{{ t('ascending') }}</option>
+            <option :value="false">{{ t('descending') }}</option>
+          </FormSelect>
         </div>
       </template>
 
@@ -29,7 +25,7 @@
 </template>
 
 <script lang="ts" setup>
-import FormWidget from '@/components/FormWidget.vue'
+import FormSelect from '@/components/form/FormSelect.vue'
 import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayout.vue'
 import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
 import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'

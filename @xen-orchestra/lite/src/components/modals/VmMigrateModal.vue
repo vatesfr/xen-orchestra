@@ -6,7 +6,7 @@
       </template>
 
       <div>
-        <FormInputWrapper :label="t('select-destination-host')" light>
+        <VtsInputWrapper :label="t('select-destination-host')">
           <FormSelect v-model="selectedHost">
             <option :value="undefined">
               {{ t('select-destination-host') }}
@@ -15,7 +15,7 @@
               {{ host.name_label }}
             </option>
           </FormSelect>
-        </FormInputWrapper>
+        </VtsInputWrapper>
       </div>
 
       <template #buttons>
@@ -29,7 +29,6 @@
 </template>
 
 <script lang="ts" setup>
-import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
 import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
 import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
@@ -38,6 +37,7 @@ import UiModal from '@/components/ui/modals/UiModal.vue'
 import { useVmMigration } from '@/composables/vm-migration.composable'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { IK_MODAL } from '@/types/injection-keys'
+import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
