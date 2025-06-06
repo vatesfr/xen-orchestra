@@ -6,7 +6,7 @@ import type { XoVmTemplate } from '@vates/types'
 
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVmTemplates, vmTemplate, vmTemplateIds } from '../open-api/oa-examples/vm-template.oa-example.mjs'
@@ -32,9 +32,10 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   getVmTemplates(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoVmTemplate>>>[] {
+  ): SendObjects<Partial<Unbrand<XoVmTemplate>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

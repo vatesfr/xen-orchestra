@@ -7,7 +7,7 @@ import type { XoNetwork } from '@vates/types'
 import { network, networkIds, partialNetworks } from '../open-api/oa-examples/network.oa-example.mjs'
 import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('networks')
@@ -31,9 +31,10 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   getNetworks(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoNetwork>>>[] {
+  ): SendObjects<Partial<Unbrand<XoNetwork>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
