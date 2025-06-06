@@ -19,16 +19,20 @@ export const useSrStore = defineStore('sr', () => {
 
   const isoSrs = computed(() => srs.value.filter(sr => sr.SR_type === 'iso'))
 
-  const concatVdisArray = computed(() =>
-    isoSrs.value.reduce((acc: XoVdi['id'][], sr) => {
-      if (sr.VDIs) acc.push(...sr.VDIs)
+  const isoVdiIds = computed(() =>
+    isoSrs.value.reduce((acc, sr) => {
+      if (sr.VDIs) {
+        sr.VDIs.forEach(vdiId => acc.add(vdiId))
+      }
+
       return acc
-    }, [])
+    }, new Set<XoVdi['id']>())
   )
+
   const vdiIsosBySrName = computed(() => {
     const groupedVDIs: Record<string, XoVdi[]> = {}
 
-    concatVdisArray.value.forEach(vdiId => {
+    isoVdiIds.value.forEach(vdiId => {
       const vdi = vdiContext.get(vdiId)
 
       if (vdi) {
