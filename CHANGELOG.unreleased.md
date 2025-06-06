@@ -20,6 +20,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/Advanced] Fix CPU mask list in VM (PR [#8661](https://github.com/vatesfr/xen-orchestra/pull/8661))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -41,5 +43,6 @@
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-perf-alert patch
+- xo-web patch
 
 <!--packages-end-->
