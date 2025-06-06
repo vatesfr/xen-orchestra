@@ -79,12 +79,8 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     // safety check to avoid adding #dir multiple times
     // as some methods are used outside this class
     if (!path.startsWith(this.#dir) || !path.substring('/').startsWith(this.#dir)) {
-      let prefixedPath = path
-      if (path.startsWith('/')) {
-        prefixedPath = path.substring(1)
-      }
-      prefixedPath = `${this.#ensureIsDir(this.#dir)}${prefixedPath}`
-      return prefixedPath
+      const prefixedPath = path.startsWith('/') ? path.substring(1) : path
+      return `${this.#ensureIsDir(this.#dir)}${prefixedPath}`
     } else {
       return path
     }
