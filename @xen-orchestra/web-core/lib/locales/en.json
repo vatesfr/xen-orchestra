@@ -77,6 +77,7 @@
   "confirm-cancel": "Are you sure you want to cancel?",
   "confirm-delete": "You're about to delete {0}",
   "connect-pool": "Connect pool",
+  "connect-to-ip": "Connected to {ip}",
   "connected": "Connected",
   "connect": "Connect",
   "console": "Console",
