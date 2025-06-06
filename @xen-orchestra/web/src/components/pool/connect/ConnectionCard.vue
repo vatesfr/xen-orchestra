@@ -1,50 +1,50 @@
 <template>
   <UiCard class="pool-connection-card">
-    <form class="pool-connection-card" @submit.prevent="submit">
-      <div class="input-warpper">
-        <UiTitle class="primary-host-title">{{ $t('primary-host') }}</UiTitle>
+    <form class="pool-connection-card" @submit.prevent="submit()">
+      <div class="input-wrapper">
+        <UiTitle class="primary-host-title">{{ t('primary-host') }}</UiTitle>
         <div class="input-content">
-          <VtsInputWrapper :label="$t('ip-address')">
+          <VtsInputWrapper :label="t('ip-address')">
             <!-- TODO validation -->
             <UiInput v-model="form.host" accent="brand" required />
             <UiInfo accent="info" wrap>
-              {{ $t('pool-connection-ip-info') }}
+              {{ t('pool-connection-ip-info') }}
             </UiInfo>
           </VtsInputWrapper>
           <!-- TODO validation -->
-          <VtsInputWrapper :label="$t('proxy-url')">
+          <VtsInputWrapper :label="t('proxy-url')">
             <UiInput v-model="form.httpProxy" accent="brand" />
           </VtsInputWrapper>
           <!-- TODO validation -->
-          <VtsInputWrapper :label="$t('username')">
+          <VtsInputWrapper :label="t('username')">
             <UiInput v-model="form.username" accent="brand" required />
             <UiInfo accent="info" wrap>
-              {{ $t('root-by-default') }}
+              {{ t('root-by-default') }}
             </UiInfo>
           </VtsInputWrapper>
           <!-- TODO validation -->
-          <VtsInputWrapper :label="$t('password')">
+          <VtsInputWrapper :label="t('password')">
             <UiInput v-model="form.password" accent="brand" required />
           </VtsInputWrapper>
         </div>
       </div>
-      <UiTitle>{{ $t('option') }}</UiTitle>
+      <UiTitle>{{ t('option') }}</UiTitle>
       <div class="checkbox-wrapper">
-        <UiCheckbox v-model="form.readOnly" accent="brand">{{ $t('read-only') }}</UiCheckbox>
+        <UiCheckbox v-model="form.readOnly" accent="brand">{{ t('read-only') }}</UiCheckbox>
         <UiCheckbox v-model="form.allowUnauthorized" accent="brand">
-          {{ $t('accept-self-signed-certificates') }}
+          {{ t('accept-self-signed-certificates') }}
         </UiCheckbox>
       </div>
       <div class="button-warper">
-        <UiButton :onclick="cancel" accent="brand" size="medium" variant="secondary">{{ $t('cancel') }}</UiButton>
-        <UiButton type="submit" accent="brand" size="medium" variant="primary">{{ $t('connect') }}</UiButton>
+        <UiButton accent="brand" size="medium" variant="secondary" @click="cancel()">{{ t('cancel') }}</UiButton>
+        <UiButton type="submit" accent="brand" size="medium" variant="primary">{{ t('connect') }}</UiButton>
       </div>
     </form>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import createServer, { type connectServerPayload } from '@/jobs/create-server.job'
+import createAndConnectServer, { type ConnectServerPayload } from '@/jobs/create-server.job'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -53,10 +53,13 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { reactive } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+const { t } = useI18n()
+
 const router = useRouter()
-const form: connectServerPayload = reactive({
+const form: ConnectServerPayload = reactive({
   host: '',
   httpProxy: '',
   username: '',
@@ -68,13 +71,13 @@ const form: connectServerPayload = reactive({
 function submit() {
   // Clone the form to avoid reactivity issues
   const payload = { ...form }
-  createServer(payload).then(response => {
+  createAndConnectServer(payload).then(response => {
     if (response) {
-      const successObj = { ...payload, ...JSON.parse(response) }
-      // console.log(successObj)
+      // Response is the serverID
+      // console.log('response', response)
       router.push({
-        name: '/pool/connect/sucess',
-        params: successObj,
+        name: '/pool/connect/success',
+        params: response,
       })
     }
   })
@@ -105,7 +108,7 @@ function cancel() {
     }
   }
 
-  .input-warpper {
+  .input-wrapper {
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
