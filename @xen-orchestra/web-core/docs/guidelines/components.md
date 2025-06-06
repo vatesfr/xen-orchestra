@@ -1,8 +1,8 @@
 ## Components and Subcomponents MUST be defined as Vue SFC (Single-File Component)
 
-## DS Components MUST be stored in the `/ui` directory of `/web-core`.
+## DS Components MUST be stored in the `/ui` directory of `/web-core`
 
-## DS Components MUST be stored in their own directory.
+## DS Components MUST be stored in their own directory
 
 ## Directory name MUST be in kebab-case (e.g. `my-component`)
 
@@ -17,6 +17,26 @@
 ✅ Good
 
 `components/ui/square/UiSquare.vue`
+
+## List and list item components names MUST reflect their purpose
+
+A component that lists items MUST have a name that reflects this purpose, such as `UiTagList.vue`.
+
+A list item component MUST have a name that reflects its purpose, such as `UiTagItem.vue`.
+
+If a list item component is present in the DS, but not the list component, the list component MUST be implemented and stored in the `/ui` directory, and named accordingly.
+
+List item components SHOULD be used only in the context of their list component.
+
+❌ Bad
+
+`components/tag-list/VtsTagList.vue` -> component that lists tags
+`components/ui/tag/UiTag.vue` -> component that represents a tag item
+
+✅ Good
+
+`components/ui/tag-list/UiTagList.vue` -> component that lists tags
+`components/ui/tag-item/UiTagItem.vue` -> component that represents a tag item
 
 ## Components SHOULD be kept short and be split into multiple subcomponents if necessary, stored in the same directory as the main component
 

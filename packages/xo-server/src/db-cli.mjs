@@ -122,7 +122,7 @@ xo-server-logs repl
 
     Available objects:
       - redis: a raw node-redis instance connected to the database
-      - <namespace>: an xo-collection instance to the coresponding namespace in the database
+      - <namespace>: an xo-collection instance to the corresponding namespace in the database
 
 `)
     return

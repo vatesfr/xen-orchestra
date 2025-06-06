@@ -168,13 +168,13 @@ export class ImportVmBackup {
           vdis[vdiRef].baseVdi = snapshotCandidate
         } catch (error) {
           // can be a broken VHD chain, a vhd chain with a key backup, ....
-          // not an irrecuperable error, don't dispose parentVhd, and fallback to full restore
+          // not an irrecuperable error, don't dispose parentVhd, and fall back to full restore
           warn(`can't use differential restore`, { error })
           descendant?.close()
           negativeDisk?.close()
         }
       }
-      // didn't make a negative stream : fallback to classic stream
+      // didn't make a negative stream : fall back to classic stream
       if (disk === undefined) {
         debug('use legacy restore')
         disk = parent

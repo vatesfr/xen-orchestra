@@ -478,7 +478,7 @@ class Vm {
     // must be done before destroying the VM
     const disks = await this.VM_getDisks(vmRef, vm.VBDs)
 
-    // this cannot be done in parallel, otherwise disks and snapshots will be
+    // this cannot be done in parallel; otherwise, disks and snapshots will be
     // destroyed even if this fails
     await this.callAsync('VM.destroy', vmRef)
 

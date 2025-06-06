@@ -16,7 +16,7 @@ class TestHandler extends AbstractHandler {
   constructor(impl) {
     super({ url: 'test://' }, { timeout: TIMEOUT })
     Object.defineProperty(this, 'isEncrypted', {
-      get: () => false, // encryption is tested separatly
+      get: () => false, // encryption is tested separately
     })
     Object.keys(impl).forEach(method => {
       this[`_${method}`] = impl[method]

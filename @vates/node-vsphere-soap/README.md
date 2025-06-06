@@ -24,7 +24,7 @@ $ npm install node-vsphere-soap --save
 
 ## Sample Code
 
-### To connect to a vCenter server:
+### To connect to a vCenter server
 
     var nvs = require('node-vsphere-soap');
     var vc = new nvs.Client(host, user, password, sslVerify);
@@ -54,7 +54,7 @@ $ npm install node-vsphere-soap --save
 - userName - username of authenticated user
 - fullName - full name of authenticated user
 
-### To run a command:
+### To run a command
 
     var vcCmd = vc.runCommand( commandToRun, arguments );
     vcCmd.once('result', function( result, raw, soapHeader) {

@@ -51,7 +51,7 @@ const _computeArraysAvg = arrays => {
 // See: https://github.com/vatesfr/xen-orchestra/issues/969
 //
 // It's a fix to avoid error like `Uncaught TypeError: Cannot read property 'length' of null`.
-// FIXME: Repare this bug in xo-server. (Warning: Can break the stats of xo-web v4.)
+// FIXME: Repair this bug in xo-server. (Warning: Can break the stats of xo-web v4.)
 const removeUndefinedArrays = arrays =>
   mapPlus(arrays, (array, push) => {
     if (array != null) {

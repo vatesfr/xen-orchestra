@@ -1,8 +1,28 @@
 # ChangeLog
 
-## **5.107.1** (2025-05-28)
+## **5.107.2** (2025-06-05)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [VM] Ability to hide XSA-468 warnings for specific VMs by adding `HIDE_XSA468` tag (PR [#8665](https://github.com/vatesfr/xen-orchestra/pull/8665))
+- [OTP] Change wording from "Password" to "OTP code" when enabling OTP (PR [#8666](https://github.com/vatesfr/xen-orchestra/pull/8666))
+
+### Bug fixes
+
+- [Backups] Fix `HANDLE_INVALID(SR)` when replicated to multiples tagret (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
+
+### Released packages
+
+- @vates/generator-toolbox 1.0.3
+- @xen-orchestra/backups 0.61.1
+- @xen-orchestra/proxy 0.29.21
+- xo-server 5.178.2
+- xo-web 5.176.0
+
+## **5.107.1** (2025-05-28)
+
 
 ### Bug fixes
 
@@ -20,17 +40,17 @@
 - [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
 - [REST] Ability to connect/disconnect a server `POST rest/v0/servers/<server-id>/actions/(connect|disconnect)` (PR [#8565](https://github.com/vatesfr/xen-orchestra/pull/8565))
 - **Migrated REST API endpoints**
-  - `/rest/v0/vms/<vm-id>/actions/clean_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
-  - `/rest/v0/vms/<vm-id>/actions/hard_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
-  - `/rest/v0/vms/<vm-id>/actions/clean_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
-  - `/rest/v0/vms/<vm-id>/actions/hard_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
-  - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
-  - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
-  - `/rest/v0/vms/<vm-id>/actions/snapshot` (PR [#8622](https://github.com/vatesfr/xen-orchestra/pull/8622))
+   - `/rest/v0/vms/<vm-id>/actions/clean_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
+   - `/rest/v0/vms/<vm-id>/actions/hard_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
+   - `/rest/v0/vms/<vm-id>/actions/clean_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
+   - `/rest/v0/vms/<vm-id>/actions/hard_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
+   - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+   - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+   - `/rest/v0/vms/<vm-id>/actions/snapshot` (PR [#8622](https://github.com/vatesfr/xen-orchestra/pull/8622))
 - **XO 6:**
-  - [VM/system] Display system information in vm/system tab (PR [#8522](https://github.com/vatesfr/xen-orchestra/pull/8522))
-  - [Host/System] Display system information in host/system tab (PR [#8521](https://github.com/vatesfr/xen-orchestra/pull/8521))
-  - [i18n] Update Czech, German, Spanish, Dutch, Russian and Swedish translations (PR [#8534](https://github.com/vatesfr/xen-orchestra/pull/8534))
+   - [VM/system] Display system information in vm/system tab (PR [#8522](https://github.com/vatesfr/xen-orchestra/pull/8522))
+   - [Host/System] Display system information in host/system tab (PR [#8521](https://github.com/vatesfr/xen-orchestra/pull/8521))
+   - [i18n] Update Czech, German, Spanish, Dutch, Russian and Swedish translations (PR [#8534](https://github.com/vatesfr/xen-orchestra/pull/8534))
 
 ### Security
 
@@ -40,8 +60,8 @@
 ### Enhancements
 
 - **XO 6:**
-  - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
-  - [Host/Dashboard] Update Quick Info section to display a link to the primary host (PR [#8606](https://github.com/vatesfr/xen-orchestra/pull/8606))
+   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
+   - [Host/Dashboard] Update Quick Info section to display a link to the primary host (PR [#8606](https://github.com/vatesfr/xen-orchestra/pull/8606))
 - [Netbox] Support version 4.3.x (PR [#8588](https://github.com/vatesfr/xen-orchestra/pull/8588))
 
 ### Bug fixes
@@ -54,11 +74,8 @@
 - [VM/Edit RAM] Fix hard-reboot being triggered instead of soft-reboot when RAM is edited and VM restarted (PR [#8592](https://github.com/vatesfr/xen-orchestra/pull/8592))
 - [Hosts] Prevent a HOST_OFFLINE error from being logged when displaying offline hosts (PR [#8597](https://github.com/vatesfr/xen-orchestra/pull/8597))
 - [XOA] Fix "an error has occurred" when XOA is not registered (PR [#8646](https://github.com/vatesfr/xen-orchestra/pull/8646))
-
 - **XO 6**:
-
-  - [VM] Add auto redirection from /vm/[id] to /vm/[id]/console (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
-
+   - [VM] Add auto redirection from /vm/[id] to /vm/[id]/console (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
 - [Hosts] Avoid getting XO tasks logs flooded with errors on `host.isPubKeyTooShort` (PR [#8605](https://github.com/vatesfr/xen-orchestra/pull/8605))
 - [VM] Fix "an error has occurred" in Advanced tab when VTPM is `null` (PR [#8601](https://github.com/vatesfr/xen-orchestra/pull/8601))
 
@@ -112,7 +129,7 @@
 
 ### Bug fixes
 
-- prevent XOA from failing with `an error has occured` due to license problems (PR [#8551](https://github.com/vatesfr/xen-orchestra/pull/8551))
+- prevent XOA from failing with `an error has occurred` due to license problems (PR [#8551](https://github.com/vatesfr/xen-orchestra/pull/8551))
 
 ### Released packages
 
@@ -127,7 +144,7 @@
 - [V2V] Resume an incomplete warm migration (PR [#8440](https://github.com/vatesfr/xen-orchestra/pull/8440))
 - [Licences] Warn a user when the XOA's licence is near expiration, handle expired licences (PR [#8523](https://github.com/vatesfr/xen-orchestra/pull/8523))
 - [Plugin/Web hook] Web hook plugin now support `Office 365 connector` format (PR [#8498](https://github.com/vatesfr/xen-orchestra/pull/8498))
-- [REST API] Expose `/rest/v0/schedules` and `/rest/v0/schedules/<schedule-id>` enpoints (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
+- [REST API] Expose `/rest/v0/schedules` and `/rest/v0/schedules/<schedule-id>` endpoints (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
 - [REST API] Expose the possibility to run a schedule `/rest/v0/schedules/<schedule-id>/actions/run` (PR [#8477](https://github.com/vatesfr/xen-orchestra/pull/8477))
 - **Migrated REST API endpoints**:
   - `/rest/v0/vifs` (PR [#8483](https://github.com/vatesfr/xen-orchestra/pull/8483))
@@ -360,7 +377,7 @@
 - [Settings/Remotes] Only allow using encryption when using data block storage to prevent errors during backups (PR [#8244](https://github.com/vatesfr/xen-orchestra/pull/8244))
 - Fix _Rolling Pool Update_ and _Install Patches_ for XenServer >= 8.4 [Forum#9550](https://xcp-ng.org/forum/topic/9550/xenserver-8-patching/27?_=1736774010376) (PR [#8241](https://github.com/vatesfr/xen-orchestra/pull/8241))
 - [New/VM] Fix premature destruction of the cloudConfig VDI when using the option _destroyCloudConfigVdiAfterBoot_ [#8219](https://github.com/vatesfr/xen-orchestra/issues/8219) (PR [#8247](https://github.com/vatesfr/xen-orchestra/pull/8247))
-- [V2V] Improve compatiblity whith VSphere handling multiple vSAN storages (PR [#8243](https://github.com/vatesfr/xen-orchestra/pull/8243))
+- [V2V] Improve compatiblity with VSphere handling multiple vSAN storages (PR [#8243](https://github.com/vatesfr/xen-orchestra/pull/8243))
 - **XO 6**:
   - [UI] Use user language set in XO 5 to set the language in XO 6 (PR [#8242](https://github.com/vatesfr/xen-orchestra/pull/8242))
   - [Console] Add fullscreen functionality for console (PR [#8238](https://github.com/vatesfr/xen-orchestra/pull/8238))
@@ -567,7 +584,7 @@
 ### Bug fixes
 
 - [Backup/Mirror] Fix `checkbasevdi must be called before updateUuidAndChain` error (PR [#8037](https://github.com/vatesfr/xen-orchestra/pull/8037))
-- [Backups] Fix MESSAGE_METHOD_UNKOWN(VDI.get_cbt_enabled) on XenServer < 7.3 (PR [#8038](https://github.com/vatesfr/xen-orchestra/pull/8038))
+- [Backups] Fix MESSAGE_METHOD_UNKNOWN(VDI.get_cbt_enabled) on XenServer < 7.3 (PR [#8038](https://github.com/vatesfr/xen-orchestra/pull/8038))
 - [SR/New] Fix reattach button not displayed for HBA (PR [#7986](https://github.com/vatesfr/xen-orchestra/pull/7986))
 - [New VM] Fix cryptic error notification (PR [#8052](https://github.com/vatesfr/xen-orchestra/pull/8052))
 - [Netbox] Ignore tags that have an empty label (PR [#8056](https://github.com/vatesfr/xen-orchestra/pull/8056))
@@ -744,8 +761,8 @@
 - [Import/VM Ware] Shows only SRs and networks of the selected pool (PR [#7905](https://github.com/vatesfr/xen-orchestra/pull/7905))
 - [Backups] Work around XAPI not automatically updating VM's `allowed_operations` after backups [Forum#81327](https://xcp-ng.org/forum/post/81327) (PR [#7924](https://github.com/vatesfr/xen-orchestra/pull/7924))
 - [REST API] Fix VDI export in raw format broken in XO 5.96.0
-- [New/SR] Fix 'an error as occured' when creating a new SR (PR [#7931](https://github.com/vatesfr/xen-orchestra/pull/7931))
-- [VM/General] Fix 'an error as occured' in general tab view for non-admin users (PR [#7928](https://github.com/vatesfr/xen-orchestra/pull/7928))
+- [New/SR] Fix 'an error as occurred' when creating a new SR (PR [#7931](https://github.com/vatesfr/xen-orchestra/pull/7931))
+- [VM/General] Fix 'an error as occurred' in general tab view for non-admin users (PR [#7928](https://github.com/vatesfr/xen-orchestra/pull/7928))
 - [Plugin/perf-alert] Fix 'NaN' values in CPU usage (PR [#7925](https://github.com/vatesfr/xen-orchestra/pull/7925))
 - [Backups] Fix the replication failing with "disk attached to Dom0" error (PR [#7920](https://github.com/vatesfr/xen-orchestra/pull/7920))
 - [VM/SR/Disks tab] Fix error not displaying when toggling CBT (PR [#7947](https://github.com/vatesfr/xen-orchestra/pull/7947))
@@ -964,7 +981,7 @@
 ### Bug fixes
 
 - [Console] Fix support of consoles behind an HTTP/HTTPS proxy [Forum#76935](https://xcp-ng.org/forum/post/76935')
-- [Rolling Pool Update] Fixed RPU failing to install patches on hosts (and still appearing as successfull) (PR [#7640](https://github.com/vatesfr/xen-orchestra/pull/7640))
+- [Rolling Pool Update] Fixed RPU failing to install patches on hosts (and still appearing as successful) (PR [#7640](https://github.com/vatesfr/xen-orchestra/pull/7640))
 - [XOSTOR] Throw clearer error if attempt to create multiple trials (PR [#7649](https://github.com/vatesfr/xen-orchestra/pull/7649))
 - [V2V] Fix import stuck (PR [#7653](https://github.com/vatesfr/xen-orchestra/pull/7653))
 - [REST API] Don't wait for a new state of a task when the `wait` query string is not used
@@ -980,14 +997,14 @@
 
 ### Enhancements
 
-- [New XOSTOR] Display a warning when replication count is higher than number of hosts with disks (PR [#7625](https://github.com/vatesfr/xen-orchestra/pull/7625))
+- [New XOSTOR] Display a warning when replication count is greater than number of hosts with disks (PR [#7625](https://github.com/vatesfr/xen-orchestra/pull/7625))
 - [XOSTOR] Ability to copy VDI UUID in the resources table (PR [#7629](https://github.com/vatesfr/xen-orchestra/pull/7629))
 
 ### Bug fixes
 
 - [Pool] Fix `Headers Timeout Error` when installing patches on XCP-ng
 - [Pool/Advanced] Only show current pool's SRs in default SR selector (PR [#7626](https://github.com/vatesfr/xen-orchestra/pull/7626))
-- [SR/XOSTOR] Fix `an error has occured` in the Resource List (PR [#7630](https://github.com/vatesfr/xen-orchestra/pull/7630))
+- [SR/XOSTOR] Fix `an error has occurred` in the Resource List (PR [#7630](https://github.com/vatesfr/xen-orchestra/pull/7630))
 - [XOSTOR] Don't require host licenses to run XOSTOR (PR [#7628](https://github.com/vatesfr/xen-orchestra/pull/7628))
 
 ### Released packages
@@ -1160,7 +1177,7 @@
 ### Bug fixes
 
 - [Jobs] Fix `t.value is undefined` when saving a new job (broken in XO 5.91)
-- [XOSTOR] Move `ignore file sytems` outside of advanced settings (PR [#7429](https://github.com/vatesfr/xen-orchestra/pull/7429))
+- [XOSTOR] Move `ignore file systems` outside of advanced settings (PR [#7429](https://github.com/vatesfr/xen-orchestra/pull/7429))
 - Allow unauthenticated access to `robots.txt`
 - [SR/XOSTOR] VG `linstor_group` removed if SR creation failed. (Deletion occurs only if `xo-server` was responsible for this VG creation) (PR [#7426](https://github.com/vatesfr/xen-orchestra/pull/7426))
 
@@ -1176,7 +1193,7 @@
 - Disable search engine indexing via a `robots.txt`
 - [Stats] Support format used by XAPI 23.31
 - [REST API] Export host [SMT](https://en.wikipedia.org/wiki/Simultaneous_multithreading) status at `/hosts/:id/smt` [Forum#71374](https://xcp-ng.org/forum/post/71374)
-- [Home & REST API] `$container` field of an halted VM now points to a host if a VDI is on a local storage [Forum#71769](https://xcp-ng.org/forum/post/71769)
+- [Home & REST API] `$container` field of a halted VM now points to a host if a VDI is on a local storage [Forum#71769](https://xcp-ng.org/forum/post/71769)
 - [Pool/Advanced] _Auto power on_ can be disabled at pool level (PR [#7401](https://github.com/vatesfr/xen-orchestra/pull/7401))
 - [Pool/Network] Ability to edit MTU [#7039](https://github.com/vatesfr/xen-orchestra/issues/7039) (PR [#7393](https://github.com/vatesfr/xen-orchestra/pull/7393))
 - [Backup] Ability to set a number of retries for VM backup failures [#2139](https://github.com/vatesfr/xen-orchestra/issues/2139) (PR [#7308](https://github.com/vatesfr/xen-orchestra/pull/7308))
@@ -1194,7 +1211,7 @@
 - [Plugins/audit] Don't log `tag.getAllConfigured` calls
 - [Remotes] Correctly clear error when the remote is tested with success
 - [Import/VMWare] Fix importing last snapshot (PR [#7370](https://github.com/vatesfr/xen-orchestra/pull/7370))
-- [Host/Reboot] Fix false positive warning when restarting an host after updates (PR [#7366](https://github.com/vatesfr/xen-orchestra/pull/7366))
+- [Host/Reboot] Fix false positive warning when restarting a host after updates (PR [#7366](https://github.com/vatesfr/xen-orchestra/pull/7366))
 - [New/VM] Respect _Fast clone_ setting broken since 5.91.0 (PR [#7388](https://github.com/vatesfr/xen-orchestra/issues/7388))
 - [Backup] Remove incorrect _unused VHD_ warning because the situation is normal (PR [#7406](https://github.com/vatesfr/xen-orchestra/issues/7406))
 - [Backup] Remove display of empty directories for mirror backups (PR [#7340](https://github.com/vatesfr/xen-orchestra/pull/7340))
@@ -1696,10 +1713,10 @@
 ### Bug fixes
 
 - [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
-- [ESXi Import] was depending on an older unmaintened library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
+- [ESXi Import] was depending on an older unmaintained library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
 - [Backup] Fix memory consumption when deleting _VHD directory_ incremental backups
 - [Remote] Fix `remote is disabled` error when editing a disabled remote
-- [Settings/Servers] Fix connectiong using an explicit IPv6 address
+- [Settings/Servers] Fix connection using an explicit IPv6 address
 - [Backups/Health check] Use the right SR for health check during replication job (PR [#6902](https://github.com/vatesfr/xen-orchestra/pull/6902))
 
 ### Released packages
@@ -1762,7 +1779,7 @@
 
 ### Highlights
 
-- [Backup] Implementation of mirror backup (Entreprise plan) (PRs [#6858](https://github.com/vatesfr/xen-orchestra/pull/6858), [#6854](https://github.com/vatesfr/xen-orchestra/pull/6854))
+- [Backup] Implementation of mirror backup (Enterprise plan) (PRs [#6858](https://github.com/vatesfr/xen-orchestra/pull/6858), [#6854](https://github.com/vatesfr/xen-orchestra/pull/6854))
 - [Self service] Add default tags to all VMs that will be created by a Self Service (PRs [#6810](https://github.com/vatesfr/xen-orchestra/pull/6810), [#6812](https://github.com/vatesfr/xen-orchestra/pull/6812))
 - [Self Service] Ability to set a default value for the "Share VM" feature for Self Service users during creation/edition (PR [#6838](https://github.com/vatesfr/xen-orchestra/pull/6838))
 - [REST API] Add endpoints to display missing patches for pools and hosts (PR [#6855](https://github.com/vatesfr/xen-orchestra/pull/6855))
@@ -1782,7 +1799,7 @@
 - [Sorted table] In collapsed actions, a spinner is displayed during the action time (PR [#6831](https://github.com/vatesfr/xen-orchestra/pull/6831))
 - [VM] Show SUSE icon when distro name is `opensuse` (PR [#6852](https://github.com/vatesfr/xen-orchestra/pull/6852))
 - [ACL] Fix various `an error has occurred` due to ACLs (PR [#6848](https://github.com/vatesfr/xen-orchestra/pull/6848))
-- [Home/host] When ahost has an inconsistent time with XOA, an alert is displayed (PR [#6833](https://github.com/vatesfr/xen-orchestra/pull/6833))
+- [Home/host] When a host has an inconsistent time with XOA, an alert is displayed (PR [#6833](https://github.com/vatesfr/xen-orchestra/pull/6833))
 - [Incremental Replication] Fix task showing as _interrupted_ when running without health check [Forum#62669](https://xcp-ng.org/forum/post/62669) (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
 - [Host evacuation] Better error message when migration network no longer exists
 
@@ -1851,7 +1868,7 @@
 - [VM/Advanced] Automatically eject removable medias when converting a VM to a template [#6752](https://github.com/vatesfr/xen-orchestra/issues/6752) (PR [#6769](https://github.com/vatesfr/xen-orchestra/pull/6769))
 - [Dashboard/Health] Add free space column for storage state table (PR [#6778](https://github.com/vatesfr/xen-orchestra/pull/6778))
 - [VM/General] Displays the template name used to create the VM, as well as the email address of the VM creator for admin users (PR [#6771](https://github.com/vatesfr/xen-orchestra/pull/6771))
-- [Kubernetes] Give the possibility to create an high availability cluster (PR [#6794](https://github.com/vatesfr/xen-orchestra/pull/6794))
+- [Kubernetes] Give the possibility to create a high availability cluster (PR [#6794](https://github.com/vatesfr/xen-orchestra/pull/6794))
 
 ### Bug fixes
 
@@ -1899,7 +1916,7 @@
 
 ### Bug fixes
 
-- [Backup/Restore] Fix restore via a proxy showing as interupted (PR [#6702](https://github.com/vatesfr/xen-orchestra/pull/6702))
+- [Backup/Restore] Fix restore via a proxy showing as interrupted (PR [#6702](https://github.com/vatesfr/xen-orchestra/pull/6702))
 - [ESXI import] Fix failing imports when using non default datacenter name [Forum#59543](https://xcp-ng.org/forum/post/59543) PR [#6729](https://github.com/vatesfr/xen-orchestra/pull/6729)
 - [Backup] Fix backup worker consuming too much memory and being killed by system during full VM backup to S3 compatible remote PR [#6732](https://github.com/vatesfr/xen-orchestra/pull/6732)
 - [Plugin/perf-alert] Ignore special SRs (e.g. _XCP-ng Tools_, _DVD drives_, etc) as their usage is always 100% (PR [#6755](https://github.com/vatesfr/xen-orchestra/pull/6755))
@@ -2161,13 +2178,13 @@
 - [Remotes] Prevent remote path from ending with `xo-vm-backups` as it's usually a mistake
 - [OVA export] Speed up OVA generation by 2. Generated file will be bigger (as big as uncompressed XVA) (PR [#6487](https://github.com/vatesfr/xen-orchestra/pull/6487))
 - [Settings/Users] Add `Remove` button to delete OTP of users from the admin panel [Forum#6521](https://xcp-ng.org/forum/topic/6521/remove-totp-on-a-user-account) (PR [#6541](https://github.com/vatesfr/xen-orchestra/pull/6541))
-- [Plugin/transport-nagios] XO now reports backed up VMs invidually with the VM name label used as _host_ and backup job name used as _service_
+- [Plugin/transport-nagios] XO now reports backed up VMs individually with the VM name label used as _host_ and backup job name used as _service_
 - [VM/Advanced] Add warm migration button (PR [#6533](https://github.com/vatesfr/xen-orchestra/pull/6533))
 
 ### Bug fixes
 
 - [Dashboard/Health] Fix `Unknown SR` and `Unknown VDI` in Unhealthy VDIs (PR [#6519](https://github.com/vatesfr/xen-orchestra/pull/6519))
-- [Delta Backup] Can now recover VHD merge when failed at the begining
+- [Delta Backup] Can now recover VHD merge when failed at the beginning
 - [Delta Backup] Fix `ENOENT` errors when merging a VHD directory on non-S3 remote
 - [Remote] Prevent the browser from auto-completing the encryption key field
 
@@ -2521,7 +2538,7 @@
 ### Highlights
 
 - [Backup] _Restore Health Check_ can now be configured to be run automatically during a backup schedule (PRs [#6227](https://github.com/vatesfr/xen-orchestra/pull/6227), [#6228](https://github.com/vatesfr/xen-orchestra/pull/6228), [#6238](https://github.com/vatesfr/xen-orchestra/pull/6238) & [#6242](https://github.com/vatesfr/xen-orchestra/pull/6242))
-- [Backup] VMs with USB Pass-through devices are now supported! The advanced _Offline Snapshot Mode_ setting must be enabled. For Full Backup or Disaster Recovery jobs, Rolling Snapshot needs to be anabled as well. (PR [#6239](https://github.com/vatesfr/xen-orchestra/pull/6239))
+- [Backup] VMs with USB Pass-through devices are now supported! The advanced _Offline Snapshot Mode_ setting must be enabled. For Full Backup or Disaster Recovery jobs, Rolling Snapshot needs to be enabled as well. (PR [#6239](https://github.com/vatesfr/xen-orchestra/pull/6239))
 - [Backup] Implement file cache for listing the backups of a VM (PR [#6220](https://github.com/vatesfr/xen-orchestra/pull/6220))
 - [RPU/Host] If some backup jobs are running on the pool, ask for confirmation before starting an RPU, shutdown/rebooting a host or restarting a host's toolstack (PR [6232](https://github.com/vatesfr/xen-orchestra/pull/6232))
 - [XO Web] Add ability to configure a default filter for Storage [#6236](https://github.com/vatesfr/xen-orchestra/issues/6236) (PR [#6237](https://github.com/vatesfr/xen-orchestra/pull/6237))
@@ -2539,7 +2556,7 @@
 ### Bug fixes
 
 - [S3] Fix S3 remote with empty directory not showing anything to restore (PR [#6218](https://github.com/vatesfr/xen-orchestra/pull/6218))
-- [S3] remote fom did not save the `https` and `allow unatuhorized`during remote creation (PR [#6219](https://github.com/vatesfr/xen-orchestra/pull/6219))
+- [S3] remote fom did not save the `https` and `allow unauthorized`during remote creation (PR [#6219](https://github.com/vatesfr/xen-orchestra/pull/6219))
 - [VM/advanced] Fix various errors when adding ACLs [#6213](https://github.com/vatesfr/xen-orchestra/issues/6213) (PR [#6230](https://github.com/vatesfr/xen-orchestra/pull/6230))
 - [Home/Self] Don't make VM's resource set name clickable for non admin users as they aren't allowed to view the Self Service page (PR [#6252](https://github.com/vatesfr/xen-orchestra/pull/6252))
 - [load-balancer] Fix density mode failing to shutdown hosts (PR [#6253](https://github.com/vatesfr/xen-orchestra/pull/6253))
@@ -2707,7 +2724,7 @@
 ### Highlights
 
 - [New SR] Add confirmation message before creating local SR (PR [#6121](https://github.com/vatesfr/xen-orchestra/pull/6121))
-- [Dashboad/Health] List all VDIs that need coalescing (PR [#6120](https://github.com/vatesfr/xen-orchestra/pull/6120))
+- [Dashboard/Health] List all VDIs that need coalescing (PR [#6120](https://github.com/vatesfr/xen-orchestra/pull/6120))
 - [Delta Backup/Restore] Ability to choose SR for each VDI [#4605](https://github.com/vatesfr/xen-orchestra/issues/4605), [#4016](https://github.com/vatesfr/xen-orchestra/issues/4016) (PR [#6117](https://github.com/vatesfr/xen-orchestra/pull/6117))
 
 ### Enhancements
@@ -2757,7 +2774,7 @@
 - [Backup] Delete S3 backups completely, even if there are more than 1000 files (PR [#6103](https://github.com/vatesfr/xen-orchestra/pull/6103))
 - [Backup] Fix merge resuming (PR [#6099](https://github.com/vatesfr/xen-orchestra/pull/6099))
 - [Plugin/Audit] Fix `key cannot be 'null' or 'undefined'` error when no audit log in the database [#6040](https://github.com/vatesfr/xen-orchestra/issues/6040) (PR [#6071](https://github.com/vatesfr/xen-orchestra/pull/6071))
-- [Backup] Fix backuping restored VMs
+- [Backup] Fix backing up restored VMs
 - [Audit Log] Don't log `proxy.getApplianceUpdaterState` API calls
 - [Audit Log] Fix long data loading when displaying logs (PR [#6113](https://github.com/vatesfr/xen-orchestra/pull/6113))
 

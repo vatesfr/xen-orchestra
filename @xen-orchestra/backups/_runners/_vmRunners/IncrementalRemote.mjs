@@ -5,6 +5,7 @@ import assert from 'node:assert'
 import * as UUID from 'uuid'
 
 import { AbstractRemote } from './_AbstractRemote.mjs'
+import { forkDeltaExport } from './_forkDeltaExport.mjs'
 import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs'
 import { Disposable } from 'promise-toolbox'
 import { openVhd } from 'vhd-lib'
@@ -17,7 +18,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
     return IncrementalRemoteWriter
   }
 
-  // we'll transfer the full list if at least one backup should be transfered
+  // we'll transfer the full list if at least one backup should be transferred
   // to ensure we don't cut the delta chain
   _filterTransferList(transferList) {
     if (transferList.some(vmBackupMetadata => this._filterPredicate(vmBackupMetadata))) {
@@ -88,18 +89,10 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       await this._selectBaseVm(metadata)
       await this._callWriters(writer => writer.prepare({ isBase: metadata.isBase }), 'writer.prepare()')
 
-      function fork(incrementalExport, label) {
-        const { disks, ...forked } = incrementalExport
-        forked.disks = {}
-        for (const key in disks) {
-          forked.disks[key] = disks[key].fork(label)
-        }
-        return forked
-      }
       await this._callWriters(
         writer =>
           writer.transfer({
-            deltaExport: fork(incrementalExport, writer.constructor.name + ' ' + Math.random()),
+            deltaExport: forkDeltaExport(incrementalExport, writer.constructor.name),
             isVhdDifferencing,
             timestamp: metadata.timestamp,
             vm: metadata.vm,

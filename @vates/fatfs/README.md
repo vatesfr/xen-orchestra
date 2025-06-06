@@ -28,7 +28,7 @@ fs.stat('autoexec.bat', function (e, stats) {
 
 ## API
 
-- `fs = fatfs.createFileSystem(vol, [opts], [cb])` — Simply pass in a block driver (see below) mapped to a FAT partition somewhere, and get back the API documented [here](http://nodejs.org/api/fs.html). An options dictionary can be provided, details are in the next section. You may also optionally provide a callback `cb(err)` which will be automatically registered for the on `'ready'` or `'error'` event.
+- `fs = fatfs.createFileSystem(vol, [opts], [cb])` — Simply pass in a block driver (see below) mapped to a FAT partition somewhere, and get back an instance of an [`fs`](http://nodejs.org/api/fs.html). An options dictionary can be provided, details are in the next section. You may also optionally provide a callback `cb(err)` which will be automatically registered for the on `'ready'` or `'error'` event.
 - `'ready'` event — fired on `fs` when initial volume information has been determined and the API is ready to use. It is safe to call other `fs` methods before this fires **only if** you are sure the first sector will be readable and represents a valid FAT volume.
 - `'error'` event — fired if initialization fails for whatever reason.
 
@@ -36,7 +36,7 @@ fs.stat('autoexec.bat', function (e, stats) {
 
 The `opts` dictionary you pass to `fatfs.createFileSystem` can contain any of the following options:
 
-- `ro` — Enables readonly mode if `true`. It defaults to `false`, but if your volume driver does not provide a `writeSectors` method it will be overriden to `true`.
+- `ro` — Enables readonly mode if `true`. It defaults to `false`, but if your volume driver does not provide a `writeSectors` method it will be overridden to `true`.
 - `noatime` — The FAT filesystem can track the last access time (just a date, actually) but this means every read operation would also incur some write overhead. Defaults to `true`, meaning by default access times will **not** be updated on reads. Set this to `false` to track access times.
 - `modmode` — chooses how `fs.chmod` (and the mode field from `fs.stat`–family calls) should map FAT attributes to POSIX permissions. Set to the number `0111` to map the readonly flag to the user's write bit being unset, and the archive/system/hidden flags to the user/group/other executable bits respectively. Set to the number `07000` to map the readonly flag to _all_ write bits being unset, and the archive/system/hidden flags to the sticky/setgid/setuid bits respectively. Set to `null` for readonly mapping. Defaults to `0111`.
 - `umask` — any bits _set_ in this octal number will be _unset_ in the 'mode' field from `fs.stat`–family calls. It does not affect anything else. Defaults to `process.umask()`, or `0022` if that is unavailable.
@@ -53,7 +53,7 @@ Well, sort of…
 
 ### Temporary
 
-- **BETA** **BETA** **BETA**. Seriously, this is a _brand new_, _from scratch_, _completely unproven_ filesystem implementation. It does not have full automated test coverage, and it has not been manually tested very much either. Please please please **make sure you have a backup** of any important drive/image/card you unleash this upon.
+- **BETA** **BETA** **BETA**. Seriously, this is a _brand new_, _from scratch_, _completely unproven_ filesystem implementation. It does not have full automated test coverage, and it has not been manually tested very much either. Please, please, please, **make sure you have a backup** of any important drive/image/card you unleash this upon.
 - A few methods are not quite implemented, either: `fs.rename`, `fs.unlink` and `fs.rmdir`, as well as `fs.watchFile`/`fs.unwatchFile` and `fs.watch`. These are Coming Soon™.
 - There are several internal housekeeping items (redundant FAT tables, extra FAT32 information, etc.) that are not done. These do not seem to affect interop, but you may see warnings when repairing a filesystem written by this module.
 - Oh, and not to scare you, but if an IO error happens while writing, the library usually just bails — bubbling an error up to your callback as if it were a hot potato. Although some attempt has been made to do separate writes in the safest order (e.g. allocating an additional file cluster, then appending data into it, and then finally updating the file's size), but this behavior has not been thoroughly audited for all operations. There's certainly no attempt to retry/cleanup/rollback if a multi-step change runs into trouble partway through.

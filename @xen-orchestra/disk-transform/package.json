@@ -35,6 +35,6 @@
   },
   "dependencies": {
     "vhd-lib": "^4.12.0",
-    "@vates/generator-toolbox": "^1.0.2"
+    "@vates/generator-toolbox": "^1.0.3"
   }
 }

@@ -51,7 +51,7 @@ exports.BUF_BLOCK_UNUSED = BUF_BLOCK_UNUSED
  */
 
 /**
- * Check and parse the header buffer to build an header object
+ * Check and parse the header buffer to build a header object
  *
  * @param {Buffer} bufHeader
  * @param {Object} footer
