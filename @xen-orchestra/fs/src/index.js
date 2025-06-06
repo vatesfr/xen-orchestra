@@ -13,6 +13,7 @@ const HANDLERS = {
   nfs: RemoteHandlerNfs,
   s3: RemoteHandlerS3,
   azure: RemoteHandlerAzure,
+  azurite: RemoteHandlerAzure,
 }
 
 try {

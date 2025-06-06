@@ -57,7 +57,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   }
 
   get type() {
-    return 'azure'
+    return this._remote.url.startsWith('azure:') ? 'azure' : 'azurite'
   }
 
   /**
