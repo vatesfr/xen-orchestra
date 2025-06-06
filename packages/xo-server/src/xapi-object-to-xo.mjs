@@ -670,6 +670,22 @@ const TRANSFORMS = {
     }
   },
 
+  sm(obj) {
+    const srType = obj.type
+    return {
+      type: 'SM',
+      content_type: obj.content_type,
+      name_description: obj.name_description,
+      name_label: obj.name_label,
+
+      SM_type: srType,
+      tags: obj.tags,
+      other_config: obj.other_config,
+      sm_config: obj.sm_config,
+      vendor: obj.vendor,
+    }
+  },
+
   // -----------------------------------------------------------------
 
   pbd(obj) {
