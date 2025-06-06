@@ -56,37 +56,12 @@
         <FormSection :label="$t('configuration')">
           <div class="row">
             <FormInputWrapper :label="$t('storage')" :help="$t('n-gb-required', { n: REQUIRED_GB })">
-              <FormSelect v-model="selectedSr" required>
-                <option disabled :value="undefined">
-                  {{ $t('select.storage') }}
-                </option>
-                <option
-                  v-for="sr in filteredSrs"
-                  :key="sr.uuid"
-                  :value="sr"
-                  :class="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3 ? 'warning' : 'success'"
-                >
-                  {{ `${sr.name_label} -` }}
-                  {{
-                    $t('n-gb-left', {
-                      n: Math.round((sr.physical_size - sr.physical_utilisation) / 1024 ** 3),
-                    })
-                  }}
-                  <template v-if="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3">⚠️</template>
-                </option>
-              </FormSelect>
+              <VtsSelect :id="srSelectId" accent="brand" />
             </FormInputWrapper>
           </div>
           <div class="row">
             <FormInputWrapper :label="$t('network')" required>
-              <FormSelect v-model="selectedNetwork" required>
-                <option disabled :value="undefined">
-                  {{ $t('select.network') }}
-                </option>
-                <option v-for="network in filteredNetworks" :key="network.uuid" :value="network">
-                  {{ network.name_label }}
-                </option>
-              </FormSelect>
+              <VtsSelect :id="networkSelectId" accent="brand" />
             </FormInputWrapper>
             <FormInputWrapper
               :label="$t('deploy-xoa-custom-ntp-servers')"
@@ -219,20 +194,20 @@ import FormInput from '@/components/form/FormInput.vue'
 import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import FormRadio from '@/components/form/FormRadio.vue'
 import FormSection from '@/components/form/FormSection.vue'
-import FormSelect from '@/components/form/FormSelect.vue'
 import FormToggle from '@/components/form/FormToggle.vue'
 import TitleBar from '@/components/TitleBar.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiRaw from '@/components/ui/UiRaw.vue'
 import { useModal } from '@/composables/modal.composable'
-import type { XenApiNetwork, XenApiSr } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import { useFormSelect } from '@core/packages/form-select'
 import { useUiStore } from '@core/stores/ui.store'
 import {
   faArrowUpRightFromSquare,
@@ -240,6 +215,7 @@ import {
   faDownload,
   faExclamationCircle,
 } from '@fortawesome/free-solid-svg-icons'
+import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -260,7 +236,7 @@ const uiStore = useUiStore()
 
 const xapi = useXenApiStore().getXapi()
 
-const { records: srs } = useSrStore().subscribe()
+const { records: srs, isReady: isSrReady } = useSrStore().subscribe()
 const filteredSrs = computed(() =>
   srs.value
     .filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0)
@@ -274,7 +250,7 @@ const filteredSrs = computed(() =>
     })
 )
 
-const { records: networks } = useNetworkStore().subscribe()
+const { records: networks, isReady: isNetworkReady } = useNetworkStore().subscribe()
 const filteredNetworks = computed(() =>
   [...networks.value].sort((network1, network2) => (network1.name_label < network2.name_label ? -1 : 1))
 )
@@ -297,8 +273,39 @@ const openXoa = () => {
   window.open(url.value, '_blank', 'noopener')
 }
 
-const selectedSr = ref<XenApiSr>()
-const selectedNetwork = ref<XenApiNetwork>()
+// SR SELECTOR
+
+const { id: srSelectId, selectedValue: selectedSr } = useFormSelect(filteredSrs, {
+  loading: logicNot(isSrReady),
+  placeholder: t('select.storage'),
+  option: {
+    properties: sr => {
+      const spaceLeft = computed(() => sr.physical_size - sr.physical_utilisation)
+      return {
+        spaceLeft,
+        accent: computed(() => (spaceLeft.value < REQUIRED_GB * 1024 ** 3 ? 'warning' : 'normal')),
+      }
+    },
+    id: sr => sr.uuid,
+    label: (sr, { spaceLeft }) => {
+      const gbLeft = t('n-gb-left', { n: Math.round(spaceLeft.value / 1024 ** 3) })
+      return `${sr.name_label} - ${gbLeft}`
+    },
+  },
+})
+
+// NETWORK SELECTOR
+
+const { id: networkSelectId, selectedValue: selectedNetwork } = useFormSelect(filteredNetworks, {
+  loading: logicNot(isNetworkReady),
+  searchable: true,
+  placeholder: t('select.network'),
+  option: {
+    id: 'uuid',
+    label: 'name_label',
+  },
+})
+
 const ntp = ref('')
 const ipStrategy = ref<'static' | 'dhcp'>('dhcp')
 const requireIpConf = computed(() => ipStrategy.value === 'static')
@@ -523,10 +530,6 @@ async function cancel() {
   & > * {
     min-width: 20rem;
   }
-}
-
-.form-radio {
-  margin-right: 1rem;
 }
 
 .not-available,

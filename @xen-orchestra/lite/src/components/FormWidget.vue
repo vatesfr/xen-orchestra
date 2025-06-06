@@ -95,7 +95,6 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition => typeof maybeIcon
 }
 
 :slotted(input),
-:slotted(select),
 :slotted(textarea) {
   font-size: inherit;
   border: none;

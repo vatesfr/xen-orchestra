@@ -7,14 +7,7 @@
 
       <div>
         <FormInputWrapper :label="$t('select-destination-host')" light>
-          <FormSelect v-model="selectedHost">
-            <option :value="undefined">
-              {{ $t('select-destination-host') }}
-            </option>
-            <option v-for="host in availableHosts" :key="host.$ref" :value="host">
-              {{ host.name_label }}
-            </option>
-          </FormSelect>
+          <VtsSelect :id="hostSelectId" accent="brand" />
         </FormInputWrapper>
       </div>
 
@@ -30,7 +23,6 @@
 
 <script lang="ts" setup>
 import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
-import FormSelect from '@/components/form/FormSelect.vue'
 import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
 import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
 import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
@@ -38,11 +30,16 @@ import UiModal from '@/components/ui/modals/UiModal.vue'
 import { useVmMigration } from '@/composables/vm-migration.composable'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { IK_MODAL } from '@/types/injection-keys'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { useFormSelect } from '@core/packages/form-select'
 import { inject } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
+
+const { t } = useI18n()
 
 const modal = inject(IK_MODAL)!
 
@@ -55,4 +52,13 @@ const handleSubmit = () => {
 
   modal.approve(migrate())
 }
+
+const { id: hostSelectId } = useFormSelect(availableHosts, {
+  model: selectedHost,
+  placeholder: () => t('select-destination-host'),
+  option: {
+    id: '$ref',
+    label: 'name_label',
+  },
+})
 </script>

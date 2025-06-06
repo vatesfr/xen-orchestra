@@ -19,10 +19,13 @@ export const useSrStore = defineStore('xen-api-sr', () => {
   const isoSrs = computed(() => srs.value.filter(sr => sr.type === 'iso'))
 
   const concatVdisArray = computed(() =>
-    isoSrs.value.reduce((acc: XenApiVdi['$ref'][], sr) => {
-      if (sr.VDIs) acc.push(...sr.VDIs)
+    isoSrs.value.reduce((acc, sr) => {
+      if (sr.VDIs) {
+        sr.VDIs.forEach(vdiRef => acc.add(vdiRef))
+      }
+
       return acc
-    }, [])
+    }, new Set<XenApiVdi['$ref']>())
   )
 
   // TODO remove when the select component is ready to use

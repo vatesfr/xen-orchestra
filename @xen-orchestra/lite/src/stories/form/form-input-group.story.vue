@@ -3,11 +3,7 @@
     <FormInputGroup>
       <FormInput />
       <FormInput />
-      <FormSelect>
-        <option>Option 1</option>
-        <option>Option 2</option>
-        <option>Option 3</option>
-      </FormSelect>
+      <VtsSelect :id accent="brand" />
     </FormInputGroup>
   </ComponentStory>
 </template>
@@ -16,6 +12,9 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import FormInput from '@/components/form/FormInput.vue'
 import FormInputGroup from '@/components/form/FormInputGroup.vue'
-import FormSelect from '@/components/form/FormSelect.vue'
 import { slot } from '@/libs/story/story-param'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { useFormSelect } from '@core/packages/form-select'
+
+const { id } = useFormSelect(['A', 'B', 'C'])
 </script>
