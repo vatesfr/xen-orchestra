@@ -18623,6 +18623,11 @@ simple-concat@^1.0.0:
   resolved "https://registry.yarnpkg.com/simple-concat/-/simple-concat-1.0.1.tgz#f46976082ba35c2263f1c8ab5edfe26c41c9552f"
   integrity sha512-cSFtAPtRhljv69IK0hTVZQ+OfE9nePi/rtJmw5UjHeVyVroEqJXP1sFztKUy1qU+xvz3u/sfYJLa947b7nAN2Q==
 
+simple-icons@^14.14.0:
+  version "14.14.0"
+  resolved "https://registry.yarnpkg.com/simple-icons/-/simple-icons-14.14.0.tgz#1e713df174d144dda9d57f0a087d5f2fe92ec849"
+  integrity sha512-HqWjAA2Zl7ZPIycMvg71ojT7ZTtFNjJL6mLNv1oqtSAcd94EjcOvjDAW9P/MgTaKcutmZgQal84LlCmJb6WBPQ==
+
 simple-token@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/simple-token/-/simple-token-0.1.0.tgz#5882259356222a316a27bdc1f11b8e9f035fa0f8"
