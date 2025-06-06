@@ -97,17 +97,12 @@
     </UiCard>
     <UiCard class="group">
       <UiCardTitle>{{ t('language') }}</UiCardTitle>
-      <FormSelect v-model="$i18n.locale" :before="faEarthAmericas">
-        <option v-for="availableLocale in $i18n.availableLocales" :key="availableLocale" :value="availableLocale">
-          {{ locales[availableLocale].name ?? availableLocale }}
-        </option>
-      </FormSelect>
+      <VtsSelect :id="localeSelectId" :icon="faEarthAmericas" accent="brand" />
     </UiCard>
   </div>
 </template>
 
 <script lang="ts" setup>
-import FormSelect from '@/components/form/FormSelect.vue'
 import TitleBar from '@/components/TitleBar.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiCard from '@/components/ui/UiCard.vue'
@@ -117,7 +112,9 @@ import UiKeyValueRow from '@/components/ui/UiKeyValueRow.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { locales } from '@core/i18n'
+import { useFormSelect } from '@core/packages/form-select'
 import { useUiStore } from '@core/stores/ui.store'
 import { faEarthAmericas, faGear, faCheck } from '@fortawesome/free-solid-svg-icons'
 import type { BasicColorSchema } from '@vueuse/core'
@@ -126,7 +123,7 @@ import { useI18n } from 'vue-i18n'
 
 const xoLiteVersion = XO_LITE_VERSION
 const xoLiteGitHead = XO_LITE_GIT_HEAD
-const { t, locale } = useI18n()
+const { t, locale, availableLocales } = useI18n()
 
 usePageTitleStore().setTitle(() => t('settings'))
 
@@ -142,6 +139,13 @@ watch(locale, newLocale => localStorage.setItem('lang', newLocale))
 const colorModeOptions = ['light', 'dark', 'auto'] as BasicColorSchema[]
 
 const uiStore = useUiStore()
+
+const { id: localeSelectId } = useFormSelect(availableLocales, {
+  model: locale,
+  option: {
+    label: locale => locales[locale]?.name ?? locale,
+  },
+})
 </script>
 
 <style lang="postcss" scoped>

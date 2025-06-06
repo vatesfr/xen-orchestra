@@ -11,7 +11,7 @@ export type EmptyObject = Record<string, never>
 export type StringKeyOf<T> = Extract<keyof T, string>
 
 export type KeyOfByValue<T, TValue> =
-  T extends Record<PropertyKey, unknown>
+  T extends Record<PropertyKey, any>
     ? keyof {
         [K in keyof T as T[K] extends TValue ? K : never]: T[K]
       }
