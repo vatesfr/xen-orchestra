@@ -4,8 +4,8 @@
       <PoolNetworksTable :networks />
       <PoolHostInternalNetworksTable :networks="internalNetworks" />
     </UiCard>
-    <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" />
-    <UiPanel v-else>
+    <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
+    <UiPanel v-else-if="!uiStore.isMobile">
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
   </div>
@@ -22,6 +22,7 @@ import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.v
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 
 const { pool } = defineProps<{
@@ -29,6 +30,7 @@ const { pool } = defineProps<{
 }>()
 
 const { networksWithoutPifs, networksWithPifs, get } = useNetworkStore().subscribe()
+const uiStore = useUiStore()
 
 const internalNetworks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
 
@@ -42,12 +44,15 @@ const selectedNetwork = useRouteQuery<XoNetwork | undefined>('id', {
 
 <style scoped lang="postcss">
 .networks {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 40rem;
   .container {
     height: fit-content;
-    gap: 4rem;
     margin: 0.8rem;
+    gap: 4rem;
+  }
+
+  @media (min-width: 1024px) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40rem;
   }
 }
 </style>

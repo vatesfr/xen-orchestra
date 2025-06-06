@@ -3,8 +3,8 @@
     <UiCard class="container">
       <HostPifsTable :pifs />
     </UiCard>
-    <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" />
-    <UiPanel v-else>
+    <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" @close="selectedPif = undefined" />
+    <UiPanel v-else-if="!uiStore.isMobile">
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
   </div>
@@ -21,12 +21,14 @@ import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.v
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const { records } = usePifStore().subscribe()
 const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
+const uiStore = useUiStore()
 
 const route = useRoute()
 
@@ -48,13 +50,15 @@ const selectedPif = useRouteQuery<XenApiPif | undefined>('id', {
 
 <style lang="postcss" scoped>
 .host-network-view {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 40rem;
-
   .container {
     height: fit-content;
-    gap: 4rem;
     margin: 0.8rem;
+    gap: 4rem;
+  }
+
+  @media (min-width: 1024px) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40rem;
   }
 }
 </style>

@@ -1,27 +1,40 @@
 <template>
-  <UiPanel>
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
-      <UiButton
-        v-tooltip="t('coming-soon')"
-        disabled
-        variant="tertiary"
-        size="medium"
-        accent="brand"
-        :left-icon="faEdit"
-      >
-        {{ t('edit') }}
-      </UiButton>
-      <UiButton
-        v-tooltip="t('coming-soon')"
-        disabled
-        variant="tertiary"
-        size="medium"
-        accent="danger"
-        :left-icon="faTrash"
-      >
-        {{ t('delete') }}
-      </UiButton>
-      <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
+      <div :class="{ 'container-buttons-action': uiStore.isMobile }">
+        <UiButtonIcon
+          v-if="uiStore.isMobile"
+          v-tooltip="t('close')"
+          size="medium"
+          variant="tertiary"
+          accent="brand"
+          :icon="faArrowLeft"
+          @click="$emit('close')"
+        />
+        <div class="buttons-action">
+          <UiButton
+            v-tooltip="t('coming-soon')"
+            disabled
+            size="medium"
+            variant="tertiary"
+            accent="brand"
+            :left-icon="faEdit"
+          >
+            {{ t('edit') }}
+          </UiButton>
+          <UiButton
+            v-tooltip="t('coming-soon')"
+            disabled
+            size="medium"
+            variant="tertiary"
+            accent="danger"
+            :left-icon="faTrash"
+          >
+            {{ t('delete') }}
+          </UiButton>
+          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
+        </div>
+      </div>
     </template>
     <template #default>
       <UiCard class="card-container">
@@ -52,10 +65,10 @@
             </template>
           </VtsCardRowKeyValue>
           <!-- VLAN -->
-          <VtsCardRowKeyValue>
+          <VtsCardRowKeyValue v-if="networkVlan">
             <template #key>{{ t('vlan') }}</template>
             <template #value>{{ networkVlan }}</template>
-            <template v-if="pifs[0].vlan !== -1" #addons>
+            <template #addons>
               <VtsCopyButton :value="String(networkVlan)" />
             </template>
           </VtsCardRowKeyValue>
@@ -128,7 +141,8 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import { faArrowLeft, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -136,7 +150,12 @@ const { network } = defineProps<{
   network: XoNetwork
 }>()
 
+defineEmits<{
+  close: []
+}>()
+
 const { getPifsByNetworkId } = usePifStore().subscribe()
+const uiStore = useUiStore()
 
 const { t } = useI18n()
 
@@ -146,6 +165,7 @@ const networkVlan = computed(() => {
   if (pifs.value.length === 0) {
     return ''
   }
+
   return pifs.value[0].vlan !== -1 ? pifs.value[0].vlan.toString() : t('none')
 })
 
@@ -186,5 +206,22 @@ const pifsCount = computed(() => pifs.value.length)
       color: var(--color-neutral-txt-secondary);
     }
   }
+}
+
+.mobile-drawer {
+  position: fixed;
+  inset: 0;
+
+  .container-buttons-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+}
+
+.buttons-action {
+  display: flex;
+  align-items: center;
 }
 </style>
