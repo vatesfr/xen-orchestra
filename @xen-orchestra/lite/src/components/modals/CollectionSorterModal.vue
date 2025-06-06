@@ -50,7 +50,7 @@ const { id: sortPropertySelectId } = useFormSelect(Object.entries(availableSorts
   model: newSortProperty,
   option: {
     id: ([property]) => property,
-    label: ([, sort]) => sort.label ?? '',
+    label: ([property, sort]) => sort.label ?? property,
     value: ([property]) => property,
   },
 })
