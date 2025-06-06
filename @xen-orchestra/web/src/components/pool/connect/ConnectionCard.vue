@@ -1,34 +1,42 @@
 <template>
-  <UiCard>
-    <form class="pool-connection-card">
+  <UiCard class="pool-connection-card">
+    <form class="pool-connection-card" @submit.prevent="submit">
       <div class="input-warpper">
         <UiTitle class="primary-host-title">{{ $t('primary-host') }}</UiTitle>
         <div class="input-content">
           <VtsInputWrapper :label="$t('ip-address')">
-            <UiInput v-model="ip" accent="brand" required />
+            <!-- TODO validation -->
+            <UiInput v-model="form.host" accent="brand" required />
             <UiInfo accent="info" wrap>
               {{ $t('pool-connection-ip-info') }}
             </UiInfo>
           </VtsInputWrapper>
-          <VtsInputWrapper :label="$t('proxy-url')"> <UiInput v-model="proxy" accent="brand" /> </VtsInputWrapper>
+          <!-- TODO validation -->
+          <VtsInputWrapper :label="$t('proxy-url')">
+            <UiInput v-model="form.httpProxy" accent="brand" />
+          </VtsInputWrapper>
+          <!-- TODO validation -->
           <VtsInputWrapper :label="$t('username')">
-            <UiInput v-model="username" accent="brand" required />
+            <UiInput v-model="form.username" accent="brand" required />
             <UiInfo accent="info" wrap>
               {{ $t('root-by-default') }}
             </UiInfo>
           </VtsInputWrapper>
+          <!-- TODO validation -->
           <VtsInputWrapper :label="$t('password')">
-            <UiInput v-model="password" accent="brand" required />
+            <UiInput v-model="form.password" accent="brand" required />
           </VtsInputWrapper>
         </div>
       </div>
       <UiTitle>{{ $t('option') }}</UiTitle>
       <div class="checkbox-wrapper">
-        <UiCheckbox v-model="readOnly" accent="brand">{{ $t('read-only') }}</UiCheckbox>
-        <UiCheckbox v-model="selfSigned" accent="brand">{{ $t('accept-self-signed-certificates') }}</UiCheckbox>
+        <UiCheckbox v-model="form.readOnly" accent="brand">{{ $t('read-only') }}</UiCheckbox>
+        <UiCheckbox v-model="form.allowUnauthorized" accent="brand">
+          {{ $t('accept-self-signed-certificates') }}
+        </UiCheckbox>
       </div>
       <div class="button-warper">
-        <UiButton accent="brand" size="medium" variant="secondary">{{ $t('cancel') }}</UiButton>
+        <UiButton :onclick="cancel" accent="brand" size="medium" variant="secondary">{{ $t('cancel') }}</UiButton>
         <UiButton type="submit" accent="brand" size="medium" variant="primary">{{ $t('connect') }}</UiButton>
       </div>
     </form>
@@ -36,6 +44,7 @@
 </template>
 
 <script setup lang="ts">
+import createServer, { type connectServerPayload } from '@/jobs/create-server.job'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -43,21 +52,49 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { ref } from 'vue'
-const ip = ref()
-const proxy = ref()
-const username = ref()
-const password = ref()
-const readOnly = ref(false)
-const selfSigned = ref(false)
+import { reactive } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const form: connectServerPayload = reactive({
+  host: '',
+  httpProxy: '',
+  username: '',
+  password: '',
+  readOnly: false,
+  allowUnauthorized: false,
+})
+
+function submit() {
+  // Clone the form to avoid reactivity issues
+  const payload = { ...form }
+  createServer(payload).then(response => {
+    if (response) {
+      const successObj = { ...payload, ...JSON.parse(response) }
+      // console.log(successObj)
+      router.push({
+        name: '/pool/connect/sucess',
+        params: successObj,
+      })
+    }
+  })
+}
+
+function cancel() {
+  router.push('/')
+}
 </script>
 
 <style lang="postcss" scoped>
 .pool-connection-card {
   margin: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 4rem;
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+  }
+
   .input-content {
     display: grid;
     grid-template-columns: 40rem 40rem;
