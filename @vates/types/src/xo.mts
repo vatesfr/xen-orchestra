@@ -264,7 +264,12 @@ export type XoPbd = BaseXapiXo & {
 }
 
 export type XoPci = BaseXapiXo & {
+  $host?: XoHost['id']
+
+  class_name: string
+  device_name: string
   id: Branded<'PCI'>
+  pci_id: string
   type: 'PCI'
 }
 
@@ -519,6 +524,7 @@ export type XapiXoRecord =
   | XoHost
   | XoMessage
   | XoNetwork
+  | XoPci
   | XoPif
   | XoPool
   | XoSr
