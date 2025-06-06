@@ -35,7 +35,7 @@ export default {
      * port and those blocked or link down.
      */
     all: 0xfffffffc, // All physical ports except input port
-    contorller: 0xfffffffd, // Send to controller
+    controller: 0xfffffffd, // Send to controller
     local: 0xfffffffe, // Local openflow "port"
     any: 0xffffffff,
     /* Wildcard port used only for flow mod
@@ -387,7 +387,7 @@ export default {
     badQueue: 8, // Problem validating output queue
     badOutGroup: 9, // Invalid group id in forward action
     matchInconsistent: 10, // Action can't apply for this match
-    unsuportedOrder: 11, // Action order is unsupported for the action list in an Apply-Actions instruction
+    unsupportedOrder: 11, // Action order is unsupported for the action list in an Apply-Actions instruction
     badTag: 12, // Actions uses an unsupported tag/encap
   },
 

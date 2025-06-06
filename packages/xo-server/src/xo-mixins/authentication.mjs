@@ -12,7 +12,7 @@ import { forEach, generateToken } from '../utils.mjs'
 
 // ===================================================================
 
-const log = createLogger('xo:authentification')
+const log = createLogger('xo:authentication')
 
 const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 

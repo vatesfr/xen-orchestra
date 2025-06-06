@@ -164,7 +164,7 @@ export default class VmItem extends Component {
             </Col>
             <Col mediumSize={4} className='hidden-md-down'>
               <EllipsisContainer>
-                <span className={styles.itemActionButons}>
+                <span className={styles.itemActionButtons}>
                   {this._isRunning ? (
                     <span>
                       <Tooltip content={_('vmConsoleLabel')}>

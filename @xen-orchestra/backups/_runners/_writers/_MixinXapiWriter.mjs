@@ -29,7 +29,7 @@ export const MixinXapiWriter = (BaseClass = Object) =>
       // the SR that the VM has been replicated on
       const sr = this._sr
       assert.notStrictEqual(sr, undefined, 'SR should be defined before making a health check')
-      assert.notEqual(this._targetVmRef, undefined, 'A vm should have been transfered to be health checked')
+      assert.notEqual(this._targetVmRef, undefined, 'A vm should have been transferred to be health checked')
       // copy VM
       return Task.run(
         {

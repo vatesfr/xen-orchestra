@@ -85,7 +85,7 @@ export class Synchronized<T, TReturn, TNext> {
         // already removed
         return { done: true, value: undefined }
       }
-      throw new Error(`trying to remove fork wih uid ${uid} that is not a fork of this one`)
+      throw new Error(`trying to remove fork with uid ${uid} that is not a fork of this one`)
     }
     this.#forks.delete(uid)
     this.#waitingForks.delete(uid)

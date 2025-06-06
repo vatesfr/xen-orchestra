@@ -484,7 +484,7 @@ export default decorate([
               </p>
             )}
             <ul className='small'>
-              <li>{_('remoteEncryptionEncryptedfiles')}</li>
+              <li>{_('remoteEncryptionEncryptedFiles')}</li>
               <li>{_('remoteEncryptionKeyStorageLocation')}</li>
               <li>{_('remoteEncryptionBackupSize')}</li>
             </ul>

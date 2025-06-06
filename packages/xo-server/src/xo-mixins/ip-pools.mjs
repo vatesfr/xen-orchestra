@@ -141,12 +141,12 @@ export default class IpPools {
     const vif = xapi.getObject(xoVif._xapiId)
 
     const allocAndSave = (() => {
-      const resourseSetId = xapi.xo.getData(vif.VM, 'resourceSet')
+      const resourceSetId = xapi.xo.getData(vif.VM, 'resourceSet')
 
       return () => {
         const saveIpPools = () => Promise.all(mapToArray(updatedIpPools, ipPool => this._save(ipPool)))
-        return resourseSetId
-          ? this._app.allocateLimitsInResourceSet(limits, resourseSetId).then(saveIpPools)
+        return resourceSetId
+          ? this._app.allocateLimitsInResourceSet(limits, resourceSetId).then(saveIpPools)
           : saveIpPools()
       }
     })()

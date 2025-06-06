@@ -740,7 +740,7 @@ const COLUMNS = [
       }
       return null
     },
-    name: <Tooltip content={_('nbdTootltip')}>{_('nbd')}</Tooltip>,
+    name: <Tooltip content={_('nbdTooltip')}>{_('nbd')}</Tooltip>,
   },
   {
     itemRenderer: ({ device }, { ipsByDevice }) => {

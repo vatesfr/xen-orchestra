@@ -97,7 +97,7 @@ export default async function proxyConsole(clientSocket, vmConsole, sessionId, a
     clientEvents.removeAll()
     serverEvents.removeAll()
 
-    log.warn('failing to open the server socket, fallback to legacy implementation', { error })
+    log.warn('failing to open the server socket, fall back to legacy implementation', { error })
     return proxyConsoleLegacy(clientSocket, url, sessionId)
   }
 

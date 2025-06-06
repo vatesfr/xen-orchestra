@@ -155,7 +155,7 @@ export default class SrItem extends Component {
             </Col>
             <Col largeSize={1} className='hidden-md-down'>
               <EllipsisContainer>
-                <span className={styles.itemActionButons}>
+                <span className={styles.itemActionButtons}>
                   <Tooltip content={_('srReconnectAll')}>
                     <a onClick={this._reconnectAllHostSr}>
                       <Icon icon='sr-reconnect-all' size='1' />

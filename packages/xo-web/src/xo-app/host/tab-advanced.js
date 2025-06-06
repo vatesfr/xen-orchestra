@@ -309,14 +309,14 @@ export default class extends Component {
     if (_isPciPassthroughAvailable) {
       await Promise.all(
         Object.keys(this.props.pcis).map(async id => {
-          const pciSate = {}
+          const pciState = {}
           try {
-            pciSate.isHidden = await isPciHidden(id)
+            pciState.isHidden = await isPciHidden(id)
           } catch (error) {
             console.error(error)
-            pciSate.error = error.message
+            pciState.error = error.message
           }
-          pciStateById[id] = pciSate
+          pciStateById[id] = pciState
         })
       )
     }

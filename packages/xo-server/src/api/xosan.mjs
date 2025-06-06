@@ -25,7 +25,7 @@ const VM_FIRST_NUMBER = 101
 const HOST_FIRST_NUMBER = 1
 const GIGABYTE = 1024 * 1024 * 1024
 const XOSAN_VM_SYSTEM_DISK_SIZE = 10 * GIGABYTE
-const XOSAN_DATA_DISK_USEAGE_RATIO = 0.99
+const XOSAN_DATA_DISK_USAGE_RATIO = 0.99
 const XOSAN_LICENSE_QUOTA = 200 * GIGABYTE
 
 const CURRENT_POOL_OPERATIONS = {}
@@ -347,9 +347,9 @@ async function remoteSsh(glusterEndpoint, cmd, ignoreError = false) {
   throw new Error(result != null ? formatSshError(result) : 'no suitable SSH host: ' + JSON.stringify(glusterEndpoint))
 }
 
-function findErrorMessage(commandResut) {
-  if (commandResut.exit === 0 && commandResut.parsed) {
-    const cliOut = commandResut.parsed.cliOutput
+function findErrorMessage(commandResult) {
+  if (commandResult.exit === 0 && commandResult.parsed) {
+    const cliOut = commandResult.parsed.cliOutput
     if (cliOut.opErrstr && cliOut.opErrstr.length) {
       return cliOut.opErrstr
     }
@@ -358,7 +358,7 @@ function findErrorMessage(commandResut) {
       return cliOut.output
     }
   }
-  return commandResut.stderr.length ? commandResut.stderr : commandResut.stdout
+  return commandResult.stderr.length ? commandResult.stderr : commandResult.stdout
 }
 
 async function glusterCmd(glusterEndpoint, cmd, ignoreError = false) {
@@ -825,7 +825,7 @@ export async function replaceBrick({ xosansr, previousBrick, newLvmSr, brickSize
 
   const OPERATION_OBJECT = {
     operation: 'replaceBrick',
-    states: ['insertingNewVm', 'swapingBrick', 'deletingVm', 'scaningSr'],
+    states: ['insertingNewVm', 'swappingBrick', 'deletingVm', 'scanningSr'],
   }
   if (onSameVM) {
     return this::replaceBrickOnSameVM(xosansr, previousBrick, newLvmSr, brickSize)
@@ -952,7 +952,7 @@ async function _prepareGlusterVm(
   const localEndpoint = { xapi, hosts: [host], addresses: [ip] }
   const srFreeSpace = sr.physical_size - sr.physical_utilisation
   // we use a percentage because it looks like the VDI overhead is proportional
-  const newSize = floor2048(Math.min(maxDiskSize - rootDiskSize, srFreeSpace * XOSAN_DATA_DISK_USEAGE_RATIO))
+  const newSize = floor2048(Math.min(maxDiskSize - rootDiskSize, srFreeSpace * XOSAN_DATA_DISK_USAGE_RATIO))
   const smallDiskSize = 1073741824
   const deviceFile = await createNewDisk(xapi, lvmSr, newVM, increaseDataDisk ? newSize : smallDiskSize)
   const brickName = await mountNewDisk(localEndpoint, ip, deviceFile)
@@ -1040,7 +1040,7 @@ export const addBricks = defer(async function ($defer, { xosansr, lvmsrs, brickS
 
   const OPERATION_OBJECT = {
     operation: 'addBricks',
-    states: ['insertingNewVms', 'addingBricks', 'scaningSr'],
+    states: ['insertingNewVms', 'addingBricks', 'scanningSr'],
   }
   const xapi = this.getXapi(xosansr)
   const poolId = xapi.pool.$id
@@ -1200,7 +1200,7 @@ function computeBrickSize(srs, brickSize = Infinity) {
   const srsObjects = map(srs, srId => xapi.getObject(srId))
   const srSizes = map(srsObjects, sr => sr.physical_size - sr.physical_utilisation)
   const minSize = Math.min(brickSize, ...srSizes)
-  return Math.floor((minSize - XOSAN_VM_SYSTEM_DISK_SIZE) * XOSAN_DATA_DISK_USEAGE_RATIO)
+  return Math.floor((minSize - XOSAN_VM_SYSTEM_DISK_SIZE) * XOSAN_DATA_DISK_USAGE_RATIO)
 }
 
 export async function computeXosanPossibleOptions({ lvmSrs, brickSize = Infinity }) {

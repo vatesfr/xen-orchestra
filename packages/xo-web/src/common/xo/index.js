@@ -4144,7 +4144,7 @@ export const registerProxy = async () => {
     title: _('registerProxy'),
   })
 
-  const proxyId = await registerProxyApplicance({
+  const proxyId = await registerProxyAppliance({
     address: getStringOrUndefined(address),
     authenticationToken: getStringOrUndefined(authenticationToken),
     name: getStringOrUndefined(name),
@@ -4163,7 +4163,7 @@ export const registerProxy = async () => {
   }
 }
 
-export const registerProxyApplicance = proxyInfo =>
+export const registerProxyAppliance = proxyInfo =>
   _call('proxy.register', proxyInfo)::tap(subscribeProxies.forceRefresh)
 
 export const editProxyAppliance = (proxy, { vm, ...props }) =>

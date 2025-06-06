@@ -83,12 +83,12 @@ test('It remove broken vhd', async () => {
 
   await handler.writeFile(`${basePath}/notReallyAVhd.vhd`, 'I AM NOT A VHD')
   assert.equal((await handler.list(basePath)).length, 1)
-  let loggued = ''
+  let logged = ''
   const logInfo = message => {
-    loggued += message
+    logged += message
   }
   await adapter.cleanVm(rootPath, { remove: false, logInfo, logWarn: logInfo, lock: false })
-  assert.equal(loggued, `VHD check error`)
+  assert.equal(logged, `VHD check error`)
   // not removed
   assert.deepEqual(await handler.list(basePath), ['notReallyAVhd.vhd'])
   // really remove it
@@ -98,7 +98,7 @@ test('It remove broken vhd', async () => {
 
 test('it remove vhd with missing or multiple ancestors', async () => {
   // one with a broken parent, should be deleted
-  await generateVhd(`${basePath}/abandonned.vhd`, {
+  await generateVhd(`${basePath}/abandoned.vhd`, {
     header: {
       parentUnicodeName: 'gone.vhd',
       parentUuid: uniqueIdBuffer(),
@@ -118,18 +118,18 @@ test('it remove vhd with missing or multiple ancestors', async () => {
     `metadata.json`,
     JSON.stringify({
       mode: 'delta',
-      vhds: [`${basePath}/child.vhd`, `${basePath}/abandonned.vhd`],
+      vhds: [`${basePath}/child.vhd`, `${basePath}/abandoned.vhd`],
     }),
     { flags: 'w' }
   )
   // clean
-  let loggued = ''
+  let logged = ''
   const logInfo = message => {
-    loggued += message + '\n'
+    logged += message + '\n'
   }
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
 
-  const deletedOrphanVhd = loggued.match(/deleting orphan VHD/g) || []
+  const deletedOrphanVhd = logged.match(/deleting orphan VHD/g) || []
   assert.equal(deletedOrphanVhd.length, 1) // only one vhd should have been deleted
 
   // we don't test the file on disk, since they will all be marker as unused and deleted without a metadata.json file
@@ -144,12 +144,12 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
       vhds: [
         `${relativePath}/orphan.vhd`,
         `${relativePath}/child.vhd`,
-        // abandonned.json is not here
+        // abandoned.json is not here
       ],
     })
   )
 
-  await generateVhd(`${basePath}/abandonned.vhd`)
+  await generateVhd(`${basePath}/abandoned.vhd`)
 
   // one orphan, which is a full vhd, no parent
   const orphan = await generateVhd(`${basePath}/orphan.vhd`)
@@ -162,12 +162,12 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
     },
   })
 
-  let loggued = ''
+  let logged = ''
   const logInfo = message => {
-    loggued += message + '\n'
+    logged += message + '\n'
   }
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
-  let matched = loggued.match(/deleting unused VHD/g) || []
+  let matched = logged.match(/deleting unused VHD/g) || []
   assert.equal(matched.length, 1) // only one vhd should have been deleted
 
   // a missing vhd cause clean to remove all vhds
@@ -179,14 +179,14 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
         `deleted.vhd`, // in metadata but not in vhds
         `orphan.vhd`,
         `child.vhd`,
-        // abandonned.vhd is not here anymore
+        // abandoned.vhd is not here anymore
       ],
     }),
     { flags: 'w' }
   )
-  loggued = ''
+  logged = ''
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: () => {}, lock: false })
-  matched = loggued.match(/deleting unused VHD/g) || []
+  matched = logged.match(/deleting unused VHD/g) || []
   assert.equal(matched.length, 2) // all vhds (orphan and  child  ) should have been deleted
 })
 
@@ -221,16 +221,16 @@ test('it merges delta of non destroyed chain', async () => {
     },
   })
 
-  let loggued = []
+  let logged = []
   const logInfo = message => {
-    loggued.push(message)
+    logged.push(message)
   }
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
-  assert.equal(loggued[0], `unexpected number of entries in backup cache`)
+  assert.equal(logged[0], `unexpected number of entries in backup cache`)
 
-  loggued = []
+  logged = []
   await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
-  const [merging] = loggued
+  const [merging] = logged
   assert.equal(merging, `merging VHD chain`)
 
   const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
@@ -311,7 +311,7 @@ describe('tests multiple combination ', { concurrency: 1 }, () => {
         // a vhd non referenced in metadata
         await generateVhd(`${basePath}/nonreference.vhd`, { useAlias, mode: vhdMode })
         // an abandoned delta vhd without its parent
-        await generateVhd(`${basePath}/abandonned.vhd`, {
+        await generateVhd(`${basePath}/abandoned.vhd`, {
           useAlias,
           mode: vhdMode,
           header: {

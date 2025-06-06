@@ -67,7 +67,7 @@ const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_MESSAGE =
   '(unhealthy VDI chain) Job canceled to protect the VDI chain. See https://docs.xen-orchestra.com/backup_troubleshooting#vdi-chain-protection'
 
-const getAdditionnalData = async (task, props) => {
+const getAdditionalData = async (task, props) => {
   if (task.data?.type === 'remote') {
     const name = await props.xo.getRemote(task.data.id).then(
       ({ name }) => name,
@@ -173,12 +173,12 @@ class BackupReportsXoPlugin {
 
     for (const taskBatch of Object.values(tasksByStatus)) {
       for (const task of taskBatch) {
-        task.additionnalData = await getAdditionnalData(task, { xo })
+        task.additionalData = await getAdditionalData(task, { xo })
 
         const subTasks = task.tasks
         if (subTasks !== undefined) {
           for (const subTask of subTasks) {
-            subTask.additionnalData = await getAdditionnalData(subTask, { xo })
+            subTask.additionalData = await getAdditionalData(subTask, { xo })
           }
         }
       }
