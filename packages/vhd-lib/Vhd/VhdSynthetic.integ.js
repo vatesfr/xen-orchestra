@@ -41,14 +41,14 @@ describe('VhdSynthetic', async () => {
 
       const bigVhd = yield openVhd(handler, bigVhdFileName)
       await bigVhd.readBlockAllocationTable()
-      // add parent locato
+      // add parent locator
       // this will also scramble the block inside the vhd files
       await bigVhd.writeParentLocator({
         id: 0,
         platformCode: PLATFORMS.W2KU,
         data: Buffer.from('I am in the big one'),
       })
-      // header changed since thre is a new parent locator
+      // header changed since there is a new parent locator
       await bigVhd.writeHeader()
       // the footer at the end changed since the block have been moved
       await bigVhd.writeFooter()

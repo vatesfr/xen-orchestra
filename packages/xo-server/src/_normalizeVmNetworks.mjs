@@ -23,7 +23,7 @@ export default function normalizeVmNetworks(networks) {
   for (const key of Object.keys(networks).sort()) {
     const address = networks[key].trim()
 
-    // Some fields may be emtpy
+    // Some fields may be empty
     // See https://xcp-ng.org/forum/topic/4810/netbox-plugin-error-ipaddr-the-address-has-neither-ipv6-nor-ipv4-format/27?_=1658735770330
     if (address === '') {
       continue

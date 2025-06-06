@@ -9,7 +9,7 @@ const logger = createLogger('xo:xo-server-perf-alert')
 const PARAMS_JSON_SCHEMA = [
   {
     properties: {
-      uuids: { minItems: 1 },
+      uuids: { type: 'array', minItems: 1 },
       smartMode: { anyOf: [{ not: {} }, { const: false }] },
       // we allow smartMode=false with excludeUuids=true because UI is not very clear, and we can't enforce smartMode value when excludeUuids=true
       excludeUuids: { anyOf: [{ not: {} }, { const: true }, { const: false }] },
@@ -21,13 +21,13 @@ const PARAMS_JSON_SCHEMA = [
     properties: {
       smartMode: { const: true },
       // after being edited, uuids will be an empty list instead of undefined
-      uuids: { anyOf: [{ not: {} }, { maxItems: 0 }] },
+      uuids: { anyOf: [{ not: {} }, { type: 'array', maxItems: 0 }] },
     },
     required: ['smartMode'],
   },
   {
     properties: {
-      uuids: { minItems: 1 },
+      uuids: { type: 'array', minItems: 1 },
       smartMode: { const: true },
       excludeUuids: { const: true },
     },

@@ -6,9 +6,9 @@ The `useCollection` composable helps you manage a collection of items with flags
 
 ```typescript
 const { items, useSubset, useFlag } = useCollection(sources, {
+  itemId: source => source.theId, // Required only if TSource doesn't have an `id` property
   flags: ['selected', 'active', { highlighted: { multiple: false } }],
   properties: source => ({
-    id: source.theId, // Required if TSource doesn't have an `id` property
     isAvailable: source.status === 'available',
     fullName: `${source.firstName} ${source.lastName}`,
   }),
@@ -18,8 +18,8 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 ## Core Concepts
 
 - **Collection Item**: An object with a unique identifier, a reference to its source object, flags, computed properties, and methods to manipulate flags
-- **Flags**: Boolean states attached to items (like 'selected', 'active', 'highlighted')
-- **Properties**: Additional custom values
+- **Flags**: Arbitrary `boolean` states attached to items (like `selected`, `active`, `highlighted`, etc.)
+- **Properties**: Additional custom values attached to items, computed from the source object (like `fullName`, `isAvailable`, etc.)
 
 ## `useCollection` parameters
 
@@ -30,21 +30,22 @@ const { items, useSubset, useFlag } = useCollection(sources, {
 
 ### `options` object
 
-| Name         | Type                                           | Required | Description                                                           |
-| ------------ | ---------------------------------------------- | :------: | --------------------------------------------------------------------- |
-| `flags`      | `FlagsConfig<TFlag>`                           |          | Flags that can be applied to items in the collection                  |
-| `properties` | `(source: TSource) => Record<string, unknown>` |    ~     | Function that returns additional properties for each item (see below) |
+| Name         | Type                                           | Required | Description                                                                                     |
+| ------------ | ---------------------------------------------- | :------: | ----------------------------------------------------------------------------------------------- |
+| `itemId`     | `keyof TSource \| ((source: TSource) => TId)`  |    ~     | Function to retrieve the item ID or property of TSource (if not provided, `TSource.id` is used) |
+| `flags`      | `FlagsConfig<TFlag>`                           |          | Flags that can be applied to items in the collection                                            |
+| `properties` | `(source: TSource) => Record<string, unknown>` |          | Function that returns additional properties for each item (see below)                           |
 
 ### Item ID
 
 The item ID will be retrieved automatically from `TSource.id`
 
-If `TSource` doesn't provide an `id`, then `options.properties` will be required and must return at least an `id`
+If `TSource` doesn't provide an `id`, then `options.itemId` will be required.
 
 ### `FlagsConfig` type
 
 ```typescript
-type FlagsConfig<TFlag extends string> = TFlag[] | { [K in TFlag]: { multiple?: boolean } }
+type FlagsConfig = string[] | Record<string, { multiple?: MaybeRef<boolean> }>
 ```
 
 Values for `multiple`:
@@ -63,13 +64,13 @@ Values for `multiple`:
 
 ### `CollectionItem` object
 
-| Name         | Type                           | Description                                               |
-| ------------ | ------------------------------ | --------------------------------------------------------- |
-| `id`         | `TId`                          | Unique identifier for the item (string, number or symbol) |
-| `source`     | `TSource`                      | The original source object                                |
-| `flags`      | `Record<TFlag, boolean>`       | Object containing the state of all flags for this item    |
-| `properties` | `TProperties`                  | Object containing all computed properties for this item   |
-| `toggleFlag` | `(flag, forcedValue?) => void` | Method to toggle a flag on this item                      |
+| Name         | Type                               | Description                                               |
+| ------------ | ---------------------------------- | --------------------------------------------------------- |
+| `id`         | `TId`                              | Unique identifier for the item (string, number or symbol) |
+| `source`     | `TSource`                          | The original source object                                |
+| `flags`      | `Record<TFlag, boolean>`           | Object containing the state of all flags for this item    |
+| `properties` | `TProperties`                      | Object containing all computed properties for this item   |
+| `toggleFlag` | `(flag, shouldBeFlagged?) => void` | Method to toggle a flag on this item                      |
 
 ### UseFlagReturn object
 
@@ -81,8 +82,8 @@ Values for `multiple`:
 | `areAllOn`  | `ComputedRef<boolean>`                      | Whether all items in the collection have this flag set |
 | `areSomeOn` | `ComputedRef<boolean>`                      | Whether at least one item has this flag set            |
 | `areNoneOn` | `ComputedRef<boolean>`                      | Whether no items have this flag set                    |
-| `toggle`    | `(id, forcedValue?) => void`                | Toggle this flag on a specific item                    |
-| `toggleAll` | `(forcedValue?) => void`                    | Toggle this flag on all items in the collection        |
+| `toggle`    | `(id, shouldBeFlagged?) => void`            | Toggle this flag on a specific item                    |
+| `toggleAll` | `(shouldBeFlagged?) => void`                | Toggle this flag on all items in the collection        |
 | `useSubset` | `(filter: (item) => boolean) => Collection` | Creates a sub collection matching the filter           |
 
 ## Flag Operations
@@ -169,4 +170,8 @@ const { items: users, useSubset } = useCollection(rawUsers, {
 const { items: admins, useSubset: useAdminSubset } = useSubset(item => item.source.group === 'admin')
 
 const { items: activeAdmins } = useAdminSubset(item => item.source.status === 'active')
+
+// This would be equivalent to:
+
+const { items: activeAdmins } = useSubset(item => item.source.group === 'admin' && item.source.status === 'active')
 ```

@@ -307,7 +307,7 @@ export class Xapi extends EventEmitter {
     return jsonHash(args)
   }
 
-  // this should be used for instantaneous calls, otherwise use `callAsync`
+  // this should be used for instantaneous calls; otherwise, use `callAsync`
   call(method, ...args) {
     return isReadOnlyCall(method, args)
       ? this._roCall(method, args)
@@ -514,7 +514,7 @@ export class Xapi extends EventEmitter {
     // XAPI does not support chunk encoding so there is no proper way to send
     // data without knowing its length
     //
-    // as a work-around, a huge content length (1PiB) is added (so that the
+    // as a workaround, a huge content length (1PiB) is added (so that the
     // server won't prematurely cut the connection), and the connection will be
     // cut once all the data has been sent without waiting for a response
     const isStream = typeof body.pipe === 'function'
@@ -1326,7 +1326,7 @@ export class Xapi extends EventEmitter {
   // - `$<name>` fields: return the cached object(s) pointed by the `<name>` field
   // - `add_<name>(value)` async method: add a value to a set field
   // - `remove_<name>(value)` async method: remove a value from a set field
-  // - `set_<name>(value)` async method: assigne a value to a field
+  // - `set_<name>(value)` async method: assign a value to a field
   // - `update_<name>(entry, value)` async method: set an entry of a map field to a value (remove if `null`)
   // - `update_<name>(entries)` async method: update entries of a map field
   _wrapRecord(type, ref, data) {

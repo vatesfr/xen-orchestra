@@ -230,7 +230,7 @@ const methods = {
       }
 
       // Modify existing (previous template) disks if necessary
-      // Wait until all VDIs are created, otherwise VBD_create may throw an OTHER_OPERATION_IN_PROGRESS error
+      // Wait until all VDIs are created; otherwise, VBD_create may throw an OTHER_OPERATION_IN_PROGRESS error
       // in case a VDI is migrating
       await Promise.all(
         _vdisToUpdate.map(async ({ $ref, sr, size, userdevice, ...properties }) => {

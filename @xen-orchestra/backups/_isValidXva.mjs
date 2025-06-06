@@ -44,7 +44,7 @@ const isValidTar = async (handler, size, fd) => {
   return buf.every(_ => _ === 0)
 }
 
-// TODO: find an heuristic for compressed files
+// TODO: find a heuristic for compressed files
 export async function isValidXva(path) {
   const handler = this._handler
 

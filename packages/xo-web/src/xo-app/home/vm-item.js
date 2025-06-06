@@ -71,7 +71,7 @@ export default class VmItem extends Component {
     vm => {
       const alerts = []
 
-      if (vm.vulnerabilities.xsa468) {
+      if (vm.vulnerabilities.xsa468 && !vm.tags.includes('HIDE_XSA468')) {
         const { reason, driver, version } = vm.vulnerabilities.xsa468
 
         if (reason === 'no-pv-drivers-detected') {

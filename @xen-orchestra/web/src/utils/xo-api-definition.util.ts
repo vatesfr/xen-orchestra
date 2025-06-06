@@ -4,6 +4,7 @@ import type { XoHost } from '@/types/xo/host.type'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import type { XoPool } from '@/types/xo/pool.type'
+import type { XoServer } from '@/types/xo/server.type'
 import type { XoSr } from '@/types/xo/sr.type'
 import type { XoTask } from '@/types/xo/task.type'
 import type { XoVbd } from '@/types/xo/vbd.type'
@@ -17,7 +18,8 @@ export const xoApiDefinition = {
   pool: {
     type: 'collection',
     path: 'pools',
-    fields: 'id,name_label,master,default_SR',
+    fields:
+      'id,name_label,master,default_SR,tags,otherConfig,auto_poweron,HA_enabled,migrationCompression,suspendSr,crashDumpSr,haSrs',
     handler: (record: XoPool) => record,
   },
   host: {
@@ -89,6 +91,12 @@ export const xoApiDefinition = {
     fields:
       'id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate',
     handler: (record: XoVmTemplate) => record,
+  },
+  server: {
+    type: 'collection',
+    path: 'servers',
+    fields: 'id,host,httpProxy,username,readOnly,allowUnauthorized,label,poolId',
+    handler: (record: XoServer) => record,
   },
   'vm-controller': {
     type: 'collection',

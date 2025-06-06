@@ -27,7 +27,7 @@
         </UiLink>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('primary-host')">
+    <VtsQuickInfoRow :label="$t('master')">
       <template #value>
         <template v-if="isMaster">
           <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />

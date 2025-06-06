@@ -32,7 +32,7 @@ ee.on('start', async function () {
   // whatever
 })
 
-// similar to EventEmmiter#emit() but returns a promise which resolves when all
+// similar to EventEmitter#emit() but returns a promise which resolves when all
 // listeners have settled
 await ee.emitAsync('start')
 

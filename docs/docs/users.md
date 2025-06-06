@@ -173,7 +173,7 @@ On the Xen Orchestra login page, click **Sign in with OpenID Connect**
 
 ![OpenID Connect sign in](./assets/openid-connect-signin-button.png)
 
-You’ll be redirected to the login page of your internal portal. Once authentificated on it, you will be redirected to the Xen Orchestra home page.
+You’ll be redirected to the login page of your internal portal. Once authenticated on it, you will be redirected to the Xen Orchestra home page.
 
 #### Administrator Guide
 
@@ -231,11 +231,11 @@ Use the screenshots below as a reference as how to setup SAML with Google Worksp
 4. Give your app a name and optionally a description.
 5. To see how the fields should be filled out, refer to the screenshots below.
 
-> Note: Right now even when the authorization is successfull, you will be redirected to the `https://xo.company.net/signin` page. However, just browse directly into the bare URL `https://xo.company.net`, and you'll now be logged in and can use the XO-dashboard.
+> Note: Right now even when the authorization is successful, you will be redirected to the `https://xo.company.net/signin` page. However, just browse directly into the bare URL `https://xo.company.net`, and you'll now be logged in and can use the XO-dashboard.
 
 > If you get a certificate error. Try to add a newline at the bottom of the Certificate field in Xen Orchestra.
 
-The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the apropriate group. (XO: Settings/Users).
+The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the appropriate group. (XO: Settings/Users).
 
 ![](./assets/saml-googleworkspace1.png)
 
@@ -248,7 +248,7 @@ This plugin allows any GitHub user to authenticate to Xen Orchestra.
 
 The first time a user signs in, XO will create a new XO user with the same identifier (i.e. GitHub name), with _user_ permissions. An existing admin will need to apply the appropriate permissions for your environment.
 
-First you need to configure a new app in your GitHub account. Go to your Github settings > "Developer Settings" > "OAuth Apps" > "New OAuth App".
+First you need to configure a new app in your GitHub account. Go to your GitHub settings > "Developer Settings" > "OAuth Apps" > "New OAuth App".
 
 1. Name your GitHub application under "Application Name".
 2. Enter your Xen Orchestra URL (or IP) under "Homepage URL"
@@ -298,7 +298,7 @@ You can now connect with your Google account in the login page.
 ## ACLs
 
 :::tip
-ACLs are permissions that apply to pre-existing objects. Only a super admin (XO administrator) can create objects.
+ACLs are permissions that apply to preexisting objects. Only a super admin (XO administrator) can create objects.
 :::
 
 ACLs are the permissions for your users or groups. The ACLs view can be accessed in the "Settings" panel.

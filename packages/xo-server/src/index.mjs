@@ -888,7 +888,7 @@ export default async function main(args) {
   await xo.hooks.clean()
 
   const useForwardedHeaders = (() => {
-    // recompile the fonction when the setting change
+    // recompile the function when the setting change
     let useForwardedHeaders
     xo.config.watch('http.useForwardedHeaders', val => {
       useForwardedHeaders = typeof val === 'boolean' ? () => val : proxyAddr.compile(val)

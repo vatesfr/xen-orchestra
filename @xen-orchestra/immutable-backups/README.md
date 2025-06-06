@@ -23,7 +23,7 @@ This script must be kept running to make file immutable reliably.
 
 launch the `xo-lift-remote-immutability` cli. The configuration is stored in the config file .
 
-If the config file have a `liftEvery`, this script will contiue to run and check regularly if there are files to update.
+If the config file have a `liftEvery`, this script will continue to run and check regularly if there are files to update.
 
 ## Contributions
 
