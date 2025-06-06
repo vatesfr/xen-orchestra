@@ -1,15 +1,13 @@
 <template>
   <svg v-if="icon.paths.length > 0" :viewBox="icon.viewBox" class="display-icon-single" v-bind="icon.bindings">
-    <template v-if="icon.config.borderColor">
-      <path
-        v-for="(path, index) of icon.paths"
-        :key="index"
-        :d="path"
-        :stroke="icon.config.borderColor"
-        class="border-path"
-      />
-    </template>
-    <path v-for="(path, index) of icon.paths" :key="index" :d="path" class="icon-path" />
+    <path
+      v-for="(path, index) of icon.paths"
+      :key="index"
+      :d="path"
+      class="icon-path"
+      :stroke="stroke ?? icon.config.borderColor"
+      :stroke-width="stroke ? 64 : 16"
+    />
   </svg>
 </template>
 
@@ -18,6 +16,7 @@ import type { IconSingle } from './types.ts'
 
 defineProps<{
   icon: IconSingle
+  stroke?: string
 }>()
 </script>
 
@@ -28,10 +27,6 @@ defineProps<{
   overflow: visible;
   grid-row: 1;
   grid-column: 1;
-
-  .border-path {
-    stroke-width: 64;
-  }
 
   .icon-path {
     fill: currentColor;

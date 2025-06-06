@@ -17,13 +17,10 @@ Currently supported icon format: FontAwesome, SimpleIcons
 
 ```vue
 <template>
-  <DisplayIconAny :icon="icon" />
+  <DisplayIcon :icon />
 </template>
 
 <script lang="ts" setup>
-import { defineIcon, DisplayIconAny } from '@core/packages/icon'
-import { faUser } from '@fortawesome/free-solid-svg-icons'
-
 const icon = defineIcon({
   icon: faUser,
   color: 'blue',
@@ -36,13 +33,10 @@ const icon = defineIcon({
 
 ```vue
 <template>
-  <DisplayIconAny :icon="stackedIcon" />
+  <DisplayIcon :icon="stackedIcon" />
 </template>
 
 <script lang="ts" setup>
-import { defineIcon, DisplayIconAny } from '@core/packages/icon'
-import { faCircle, faStar } from '@fortawesome/free-solid-svg-icons'
-
 const stackedIcon = defineIcon([
   { icon: faCircle, size: 24, color: 'blue' },
   { icon: faStar, size: 18, color: 'white' },
@@ -54,14 +48,11 @@ const stackedIcon = defineIcon([
 
 ```vue
 <template>
-  <DisplayIconAny :icon="icons['user']" />
-  <DisplayIconAny :icon="icons['star']" />
+  <DisplayIcon :icon="icons.user" />
+  <DisplayIcon :icon="icons.star" />
 </template>
 
 <script lang="ts" setup>
-import { defineIconPack, DisplayIconAny } from '@core/packages/icon'
-import { faUser, faStar } from '@fortawesome/free-solid-svg-icons'
-
 const icons = defineIconPack({
   user: { icon: faUser, color: 'blue' },
   star: { icon: faStar, color: 'gold' },
@@ -73,14 +64,11 @@ const icons = defineIconPack({
 
 ```vue
 <template>
-  <DisplayIconAny :icon="alerts['error:circle']" />
-  <DisplayIconAny :icon="alerts['warning:triangle']" />
+  <DisplayIcon :icon="alerts['error:triangle']" />
+  <DisplayIcon :icon="alerts['warning:circle']" />
 </template>
 
 <script lang="ts" setup>
-import { defineIcon, DisplayIconAny } from '@core/packages/icon'
-import { faCircle, faTriangle, faExclamation } from '@fortawesome/free-solid-svg-icons'
-
 const alerts = defineIcon(
   [
     ['error', 'warning'],
@@ -141,28 +129,12 @@ defineIconPack(config: IconPackConfig): IconPack<string>
 
 ### Components
 
-#### `DisplayIconAny`
+#### `DisplayIcon`
 
-Universal component that renders either a single icon or an icon stack.
-
-```vue
-<DisplayIconAny :icon="icon" />
-```
-
-#### `DisplayIconSingle`
-
-Component for rendering a single icon.
+Root component that renders either a single icon or an icon stack.
 
 ```vue
-<DisplayIconSingle :icon="icon" />
-```
-
-#### `DisplayIconStack`
-
-Component for rendering an icon stack.
-
-```vue
-<DisplayIconStack :stack="stack" />
+<DisplayIcon :icon />
 ```
 
 ### Types
@@ -206,9 +178,6 @@ type IconStackConfig = IconTransforms
 
 ```vue
 <script lang="ts" setup>
-import { defineIcon, DisplayIconAny } from '@core/packages/icon'
-import { faUser } from '@fortawesome/free-solid-svg-icons'
-
 // Color
 const blueIcon = defineIcon({ icon: faUser, color: 'blue' })
 
