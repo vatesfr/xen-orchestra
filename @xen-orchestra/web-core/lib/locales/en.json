@@ -83,6 +83,7 @@
   "connect": "Connect",
   "Connect-another-pool": "Connect another pool",
   "connect-pool": "Connect pool",
+  "connect-to-ip": "Connected to {ip}",
   "connected": "Connected",
   "connecting": "Connecting",
   "connection": "Connection",
