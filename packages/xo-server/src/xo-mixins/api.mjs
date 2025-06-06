@@ -23,10 +23,13 @@ import { noop, safeDateFormat, serializeError } from '../utils.mjs'
 
 import * as errors from 'xo-common/api-errors.js'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
+import  { trace } from '@opentelemetry/api'
 
 // ===================================================================
 
 const log = createLogger('xo:api')
+
+const tracer = trace.getTracer('xo')
 
 const ALLOWED_METHOD_PROPS = {
   description: true,
@@ -409,7 +412,6 @@ export default class Api {
       checkParams.call(app, method, params)
 
       const resolvedParams = await resolveParams.call(app, method, params)
-
       const run = () =>
         name in NO_LOG_METHODS
           ? method.call(app, resolvedParams)
@@ -418,7 +420,17 @@ export default class Api {
                 { name: 'API call: ' + name, method: name, params: data.params, type: 'api.call' },
                 { clearLogOnSuccess: true }
               )
-              .run(() => method.call(app, resolvedParams))
+              .run(async () => {
+                return tracer.startActiveSpan(`xo:api:call:${name}`, span=>{
+                  try{
+                    const res =   method.call(app, resolvedParams)
+                    return res
+                  }
+                  finally{
+                    span.end()
+                  }
+                })
+              })
 
       if (_log === undefined) {
         _log = app.config.getOptional(['api', 'logs', name]) ?? false
