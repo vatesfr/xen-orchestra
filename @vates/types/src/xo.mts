@@ -131,6 +131,11 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
   }
 }
 
+export type XoGpuGroup = BaseXapiXo & {
+  id: Branded<'gpu-group'>
+  type: 'gpuGroup'
+}
+
 export type XoGroup = {
   id: Branded<'group'>
   name: string
@@ -450,6 +455,11 @@ export type XoVgpu = BaseXapiXo & {
   type: 'VGPU'
 }
 
+export type XoVgpuType = BaseXapiXo & {
+  id: Branded<'vgpu-type'>
+  type: 'vgpuType'
+}
+
 export type XoVif = BaseXapiXo & {
   $VM: XoVm['id']
 
@@ -516,6 +526,7 @@ export type XoVtpm = BaseXapiXo & {
 
 export type XapiXoRecord =
   | XoAlarm
+  | XoGpuGroup
   | XoHost
   | XoMessage
   | XoNetwork
@@ -527,6 +538,7 @@ export type XapiXoRecord =
   | XoVdiSnapshot
   | XoVdiUnmanaged
   | XoVgpu
+  | XoVgpuType
   | XoVif
   | XoVm
   | XoVmController
