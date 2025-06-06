@@ -30,7 +30,7 @@ azure://{accountName}:{key}@{host}/{container}{path}
 #### Azurite
 
 azurite://{accountName}:{key}@{host}/{container}{path}  
-**example:** azure://xodev123:password@127.0.0.1:10000/xodev/folder/to/backups
+**example:** azurite://xodev123:password@127.0.0.1:10000/xodev/folder/to/backups
 
 #### Azurite in http
 
