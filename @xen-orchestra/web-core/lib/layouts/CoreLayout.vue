@@ -9,8 +9,9 @@
         }"
         accent="brand"
         size="medium"
-        :icon="sidebarStore.isExpanded ? faAngleDoubleLeft : faBars"
+        :icon="faBars"
         class="sidebar-toggle"
+        :target-scale="1.8"
         @click="sidebarStore.toggleExpand()"
       />
       <slot name="app-header" />
@@ -47,7 +48,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useSidebarStore } from '@core/stores/sidebar.store'
 import { useUiStore } from '@core/stores/ui.store'
-import { faAngleDoubleLeft, faBars } from '@fortawesome/free-solid-svg-icons'
+import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
