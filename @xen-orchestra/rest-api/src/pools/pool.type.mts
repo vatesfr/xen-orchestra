@@ -12,10 +12,13 @@ export interface CreateNetworkBody {
    */
   vlan: number
 }
-import type { Xapi } from '@vates/types'
+import type { Xapi, XoVdi } from '@vates/types'
 
 type CreateVmParams = Parameters<Xapi['createVm']>
-export type CreateVmBody = Omit<CreateVmParams[1], 'nameLabel' | 'existingVdis' | 'vdis'> & {
+export type CreateVmBody = Omit<
+  CreateVmParams[1],
+  'nameLabel' | 'existingVdis' | 'vdis' | 'affinityHost' | 'installRepository'
+> & {
   templateUuid: CreateVmParams[0]
   // Need to rewrite VDIs type because Unbrand cannot work with Union types
   vdis?: (
@@ -37,4 +40,9 @@ export type CreateVmBody = Omit<CreateVmParams[1], 'nameLabel' | 'existingVdis' 
         userdervice: string
       }
   )[]
+  affinity?: string
+  install?: {
+    method: 'cdrom' | 'network'
+    repository: XoVdi['id'] | ''
+  }
 }

@@ -1,4 +1,4 @@
-import { WrappedXenApiRecord,XenApiVm, XenApiNetworkWrapped, XenApiRecord } from '../xen-api.mjs'
+import { WrappedXenApiRecord, XenApiVm, XenApiNetworkWrapped, XenApiRecord, XenApiVmWrapped } from '../xen-api.mjs'
 import type { XoGpuGroup, XoVgpuType, XoHost, XoNetwork, XoPif, XoSr, XoUser, XoVdi, XoVmTemplate } from '../xo.mjs'
 
 type XcpPatches = {
@@ -55,14 +55,13 @@ export interface Xapi {
   createVm(
     templateUuid: XoVmTemplate['uuid'],
     metadataVm: {
+      affinityHost?: XoHost['id']
       name_label: string
       nameLabel?: string
       clone?: boolean
       installRepository?: XoVdi['_xapiRef'] | null
       vdis?: (
         | {
-            userdevice?: undefined
-            destroy?: undefined
             name_label: string
             size: number
             sr?: XoSr['id']
@@ -70,7 +69,6 @@ export interface Xapi {
           }
         | {
             userdevice: string
-            destroy?: undefined
             name_label?: string
             size?: number
             sr?: XoSr['id']
@@ -98,7 +96,7 @@ export interface Xapi {
     checkLimits?: boolean,
     creatorId?: XoUser['id'],
     opts?: { destroyAllVifs: boolean }
-  ): Promise<XenApiVm>  
+  ): Promise<XenApiVmWrapped>
   getField<T extends XenApiRecord, K extends keyof T>(
     type: Extract<WrappedXenApiRecord, T>['$type'],
     ref: T['$ref'],

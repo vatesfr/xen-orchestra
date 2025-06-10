@@ -30,11 +30,10 @@ import type {
   XoSchedule,
   XoJob,
   XoGroup,
-  XoPool
+  XoPool,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
-import { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 type XapiRecordByXapiXoRecord = {
   gpuGroup: XenApiGpuGroup

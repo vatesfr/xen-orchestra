@@ -31,7 +31,7 @@ import {
 } from '../open-api/common/response.common.mjs'
 import type { SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import type { Xapi, XoNetwork, XoPif, XoPool, XoSr, XoVgpuType, XoVmTemplate } from '@vates/types'
+import type { Xapi, XoGpuGroup, XoHost, XoNetwork, XoPif, XoPool, XoSr, XoVm } from '@vates/types'
 import { partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
 import type { CreateNetworkBody } from './pool.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
@@ -202,40 +202,48 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   @Post('{id}/actions/create_vm')
-  async createVm(@Path() id: string, @Body() body: CreateVmBody, @Query() sync?: boolean): Promise<void | string> {
+  async createVm(
+    @Path() id: string,
+    @Body() body: CreateVmBody,
+    @Query() sync?: boolean
+  ): Promise<string | { id: Unbrand<XoVm>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
-      // params.affinityHost = affinity;
-      // params.installRepository = install === null || install === void 0 ? void 0 : install.repository;
+      // ' '
       // Mac expect min length 1
-      // params.vifs = params.vifs.map(vif => {
-      //  var _vif$mac;
-      //   return {
-      //    ...vif,
-      //    mac: ((_vif$mac = vif.mac) === null || _vif$mac === void 0 ? void 0 : _vif$mac.trim()) ?? ''
-      //  };
-      // });
+      // Mac expect min length 1
+      //  params.vifs = params.vifs.map(vif => ({ ...vif, mac: vif.mac?.trim() ?? '' }))
 
-      // myFn(@Path() id: string, @Body() body: {templateId: XoVmTeplate['id']})
-      // const app = this.restApi.xoApp
-      // const xapi = app.getXapi(poolId)
-      // const vm = await xapi.createVm(
-      //   body.templateUuid,
-      //   {
-      //     name_label: body.name_label,
-      //     clone: body.clone,
-      //     installRepository: body.installRepository,
-      //     vdis: body.vdis,
-      //     vifs: body.vifs,
-      //     vgpuType: body.vgpuType,
-      //     gpuGroup: body.gpuGroup as XoGpuGroup['_xapiRef'],
-      //     copyHostBiosStrings: body.copyHostBiosStrings,
-      //   },
-      //   undefined,
-      //   app.apiContext.user.id,
-      // )
+      const app = this.restApi.xoApp
+      const xapi = app.getXapi(poolId)
+      // @TODO: see if possible to enhance the type checking without this ugly workaround
+      const vdis = body.vdis as Parameters<Xapi['createVm']>[1]['vdis']
 
-      // const vm = await xapi.createVm(template, params, undefined, app.apiContext.user.id);
+      const xenApiVm = await xapi.createVm(
+        body.templateUuid,
+        {
+          name_label: body.name_label,
+          clone: body.clone,
+          installRepository: body.install?.repository,
+          vdis,
+          vifs: body.vifs,
+          vgpuType: body.vgpuType,
+          gpuGroup: body.gpuGroup as XoGpuGroup['_xapiRef'],
+          copyHostBiosStrings: body.copyHostBiosStrings,
+          affinityHost: body.affinity as XoHost['id'],
+        },
+        undefined,
+        app.apiContext.user.id
+      )
+      const vm = this.restApi.getObject<XoVm>(xenApiVm.uuid as XoVm['id'])
+
+      return { id: vm.id }
+
+      // @ts-ignore
+      console.log(vm.$xapi) // XenApiVmWrapped
+      // @ts-ignore
+      console.log(vm.type) // XO VM
+
       // $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref);
       let cloudConfigVdiUuid
       // if (cloud_config !== undefined) {
@@ -268,7 +276,7 @@ export class PoolController extends XapiXoController<XoPool> {
       // return vm.uuid;
     }
 
-    return this.createAction(action, {
+    return this.createAction<string | { id: XoVm['id'] }>(action, {
       sync,
       statusCode: createdResp.status,
       taskProperties: {
