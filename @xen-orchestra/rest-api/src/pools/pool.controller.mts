@@ -209,11 +209,6 @@ export class PoolController extends XapiXoController<XoPool> {
   ): Promise<string | { id: Unbrand<XoVm>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
-      // ' '
-      // Mac expect min length 1
-      // Mac expect min length 1
-      //  params.vifs = params.vifs.map(vif => ({ ...vif, mac: vif.mac?.trim() ?? '' }))
-
       const app = this.restApi.xoApp
       const xapi = app.getXapi(poolId)
       // @TODO: see if possible to enhance the type checking without this ugly workaround
@@ -238,11 +233,6 @@ export class PoolController extends XapiXoController<XoPool> {
       const vm = this.restApi.getObject<XoVm>(xenApiVm.uuid as XoVm['id'])
 
       return { id: vm.id }
-
-      // @ts-ignore
-      console.log(vm.$xapi) // XenApiVmWrapped
-      // @ts-ignore
-      console.log(vm.type) // XO VM
 
       // $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref);
       let cloudConfigVdiUuid
