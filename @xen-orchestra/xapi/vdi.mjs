@@ -2,13 +2,12 @@ import CancelToken from 'promise-toolbox/CancelToken'
 import pCatch from 'promise-toolbox/catch'
 import pRetry from 'promise-toolbox/retry'
 import { createLogger } from '@xen-orchestra/log'
-import { createVhdStreamWithLength } from 'vhd-lib'
 import { decorateClass } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { readChunk } from '@vates/read-chunk'
 import { strict as assert } from 'node:assert'
 
-import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
+import { VDI_FORMAT_RAW } from './index.mjs'
 
 const { warn, info } = createLogger('xo:xapi:vdi')
 
@@ -224,12 +223,11 @@ class Vdi {
       return body
     }
 
-    // now we'll handle the VHD
-    assert.equal(format, VDI_FORMAT_VHD)
+    // now we'll handle the VHD and qcow2 export
+
     if (baseRef !== undefined) {
       query.base = baseRef
     }
-
     const stream = (
       await this.getResource(cancelToken, '/export_raw_vdi/', {
         query,
@@ -250,7 +248,6 @@ class Vdi {
    *
    * @param {string} vdiRef
    * @param {string | undefined} baseRef
-   * @param {boolean} preferNbd
    * @returns
    */
 
@@ -258,11 +255,7 @@ class Vdi {
     assert.notEqual(format, undefined)
 
     if (stream.length === undefined) {
-      if (format !== VDI_FORMAT_VHD) {
-        throw new Error('Trying to import a VDI without a length field. Please report this error to Xen Orchestra.')
-      }
-
-      stream = await createVhdStreamWithLength(stream)
+      throw new Error('Trying to import a VDI without a length field. Please report this error to Xen Orchestra.')
     }
 
     const vdi = await this.getRecord('VDI', ref)
