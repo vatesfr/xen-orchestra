@@ -1,5 +1,5 @@
 <template>
-  <div class="networks">
+  <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
       <PoolNetworksTable :networks />
       <PoolHostInternalNetworksTable :networks="internalNetworks" />
@@ -44,15 +44,17 @@ const selectedNetwork = useRouteQuery<XoNetwork | undefined>('id', {
 
 <style scoped lang="postcss">
 .networks {
-  .container {
-    height: fit-content;
-    margin: 0.8rem;
-    gap: 4rem;
-  }
+  height: 100%;
 
-  @media (min-width: 1024px) {
+  &:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
+}
+
+.container {
+  height: fit-content;
+  margin: 0.8rem;
+  gap: 4rem;
 }
 </style>

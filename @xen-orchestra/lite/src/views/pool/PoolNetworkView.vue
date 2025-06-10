@@ -1,5 +1,5 @@
 <template>
-  <div class="pool-network-view">
+  <div class="pool-network-view" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
       <PoolNetworksTable :networks="networksWithPifs" />
       <PoolHostInternalNetworksTable :networks="networksWithoutPifs" />
@@ -38,15 +38,17 @@ const selectedNetwork = useRouteQuery<XenApiNetwork | undefined>('id', {
 
 <style lang="postcss" scoped>
 .pool-network-view {
-  .container {
-    height: fit-content;
-    margin: 0.8rem;
-    gap: 4rem;
-  }
+  height: calc(100dvh - 16.5rem);
 
-  @media (min-width: 1024px) {
+  &:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
+}
+
+.container {
+  height: fit-content;
+  margin: 0.8rem;
+  gap: 4rem;
 }
 </style>

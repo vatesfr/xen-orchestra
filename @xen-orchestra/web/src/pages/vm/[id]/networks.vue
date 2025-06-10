@@ -1,5 +1,5 @@
 <template>
-  <div class="networks">
+  <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
       <VmVifsTable :vifs />
     </UiCard>
@@ -40,15 +40,15 @@ const selectedVif = useRouteQuery<XoVif | undefined>('id', {
 .networks {
   height: 100%;
 
-  .container {
-    height: fit-content;
-    margin: 0.8rem;
-    gap: 4rem;
-  }
-
-  @media (min-width: 1024px) {
+  &:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
+}
+
+.container {
+  height: fit-content;
+  margin: 0.8rem;
+  gap: 4rem;
 }
 </style>

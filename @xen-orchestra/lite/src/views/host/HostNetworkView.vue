@@ -1,5 +1,5 @@
 <template>
-  <div class="host-network-view">
+  <div class="host-network-view" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
       <HostPifsTable :pifs />
     </UiCard>
@@ -50,15 +50,17 @@ const selectedPif = useRouteQuery<XenApiPif | undefined>('id', {
 
 <style lang="postcss" scoped>
 .host-network-view {
-  .container {
-    height: fit-content;
-    margin: 0.8rem;
-    gap: 4rem;
-  }
+  height: calc(100dvh - 16.5rem);
 
-  @media (min-width: 1024px) {
+  &:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
+}
+
+.container {
+  height: fit-content;
+  margin: 0.8rem;
+  gap: 4rem;
 }
 </style>
