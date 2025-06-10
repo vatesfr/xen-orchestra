@@ -5,7 +5,6 @@ import type {
   XenApiHostWrapped,
   XenApiMessage,
   XenApiNetworkWrapped,
-  XenApiPci,
   XenApiPciWrapped,
   XenApiPifWrapped,
   XenApiPoolWrapped,
