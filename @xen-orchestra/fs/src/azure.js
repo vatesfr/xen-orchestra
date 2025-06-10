@@ -27,7 +27,8 @@ export default class AzureHandler extends RemoteHandlerAbstract {
 
     // if azurite, we need to put the username in url
     // if azure, we only need the host. Until now, it is {username}.blob.core.windows.net
-    const url = remote.url.startsWith('azure:') ? `${protocol}://${host}` : `${protocol}://${host}/${username}`
+    // const url = remote.url.startsWith('azure:') ? `${protocol}://${host}` : `${protocol}://${host}/${username}`
+    const url = this.type === 'azure' ? `${protocol}://${host}` : `${protocol}://${host}/${username}`
 
     info('Connecting to Azure blob storage...')
     this.#blobServiceClient = new BlobServiceClient(url, credential)
