@@ -759,7 +759,7 @@ const onTemplateChange = () => {
 }
 
 const redirectToHome = () => {
-  router.push({ name: '/' })
+  router.push({ name: '/pool/:id' })
 }
 
 function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
