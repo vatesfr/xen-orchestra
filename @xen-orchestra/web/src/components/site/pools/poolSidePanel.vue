@@ -10,7 +10,7 @@
         accent="brand"
         :left-icon="faEdit"
       >
-        {{ $t('change-status') }}
+        {{ $t('change-state') }}
       </UiButton>
       <UiButton
         v-tooltip="$t('coming-soon')"
@@ -74,7 +74,7 @@
       </UiCard>
       <UiCard class="card-container">
         <UiCardTitle class="typo-body-bold text-ellipsis">
-          {{ $t('connection') }}
+          {{ $t('connections') }}
         </UiCardTitle>
         <!-- status -->
         <VtsCardRowKeyValue>
@@ -87,7 +87,7 @@
         </VtsCardRowKeyValue>
         <!-- primary-host -->
         <VtsCardRowKeyValue>
-          <template #key>{{ $t('primary-host') }}</template>
+          <template #key>{{ $t('master') }}</template>
           <template v-if="primaryHost" #value>
             <UiLink :icon="faServer" size="small" :to="`/host/${primaryHost.id}/`">
               {{ primaryHost.name_label }}
