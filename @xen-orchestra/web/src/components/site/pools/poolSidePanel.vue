@@ -3,82 +3,87 @@
   <UiPanel v-else>
     <template #header>
       <UiButton
-        v-tooltip="$t('coming-soon')"
+        v-tooltip="t('coming-soon')"
         disabled
         variant="tertiary"
         size="medium"
         accent="brand"
         :left-icon="faEdit"
       >
-        {{ $t('change-state') }}
+        {{ t('change-state') }}
       </UiButton>
       <UiButton
-        v-tooltip="$t('coming-soon')"
+        v-tooltip="t('coming-soon')"
         disabled
         variant="tertiary"
         size="medium"
         accent="danger"
         :left-icon="faTrash"
       >
-        {{ $t('forget') }}
+        {{ t('forget') }}
       </UiButton>
-      <UiButtonIcon v-tooltip="$t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
+      <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
     </template>
     <template #default>
       <UiCard class="card-container">
-        <UiCardTitle class="typo-body-bold text-ellipsis">
-          {{ $t('general-information') }}
+        <UiCardTitle>
+          {{ t('general-information') }}
         </UiCardTitle>
         <div class="content">
           <!-- Pool -->
           <VtsCardRowKeyValue>
-            <template #key>{{ $t('pool') }}</template>
+            <template #key>{{ t('pool') }}</template>
             <template #value>
-              <UiLink :icon="faCity" size="small" :to="`/pool/${server.poolId}/`">
+              <UiLink
+                v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
+                :icon="faCity"
+                size="small"
+                :to="`/pool/${server.poolId}/`"
+              >
                 {{ server.poolNameLabel }}
               </UiLink>
             </template>
-            <template #addons>
-              <VtsCopyButton :value="server.poolNameLabel ?? ''" />
+            <template v-if="server.poolId !== undefined" #addons>
+              <VtsCopyButton :value="server.poolId" />
             </template>
           </VtsCardRowKeyValue>
           <!-- ID -->
           <VtsCardRowKeyValue>
-            <template #key>{{ $t('id') }}</template>
+            <template #key>{{ t('id') }}</template>
             <template #value>{{ server.id }}</template>
             <template #addons>
-              <VtsCopyButton :value="server.host" />
+              <VtsCopyButton :value="server.id" />
             </template>
           </VtsCardRowKeyValue>
           <!-- Description -->
           <VtsCardRowKeyValue>
-            <template #key>{{ $t('description') }}</template>
+            <template #key>{{ t('description') }}</template>
             <template #value>{{ server.poolNameDescription }}</template>
-            <template #addons>
-              <VtsCopyButton :value="server.username" />
+            <template v-if="server.poolNameDescription !== undefined" #addons>
+              <VtsCopyButton :value="server.poolNameDescription" />
             </template>
           </VtsCardRowKeyValue>
           <!-- tag -->
           <VtsCardRowKeyValue>
-            <template #key>{{ $t('tags') }}</template>
-            <template v-if="(pool?.tags.length ?? 0) > 0" #value>
-              <div class="tags">
-                <UiTag v-for="tag in pool?.tags" :key="tag" accent="info" variant="primary">{{ tag }}</UiTag>
-              </div>
+            <template #key>{{ t('tags') }}</template>
+            <template #value>
+              <UiTagsList v-if="pool !== undefined && pool.tags.length > 0">
+                <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="primary">{{ tag }}</UiTag>
+              </UiTagsList>
             </template>
-            <template #addons>
-              <VtsCopyButton :value="pool?.tags.join(', ')!" />
+            <template v-if="pool !== undefined && pool.tags.length > 0" #addons>
+              <VtsCopyButton :value="pool.tags.join(', ')" />
             </template>
           </VtsCardRowKeyValue>
         </div>
       </UiCard>
       <UiCard class="card-container">
         <UiCardTitle class="typo-body-bold text-ellipsis">
-          {{ $t('connections') }}
+          {{ t('connections') }}
         </UiCardTitle>
         <!-- status -->
         <VtsCardRowKeyValue>
-          <template #key>{{ $t('status') }}</template>
+          <template #key>{{ t('status') }}</template>
           <template #value>
             <UiInfo :accent="connectionStatus.accent">
               {{ connectionStatus.text }}
@@ -87,50 +92,50 @@
         </VtsCardRowKeyValue>
         <!-- primary-host -->
         <VtsCardRowKeyValue>
-          <template #key>{{ $t('master') }}</template>
-          <template v-if="primaryHost" #value>
-            <UiLink :icon="faServer" size="small" :to="`/host/${primaryHost.id}/`">
+          <template #key>{{ t('master') }}</template>
+          <template #value>
+            <UiLink v-if="primaryHost" :icon="faServer" size="small" :to="`/host/${primaryHost.id}/`">
               {{ primaryHost.name_label }}
             </UiLink>
           </template>
-          <template #addons>
-            <VtsCopyButton :value="primaryHost?.name_label ?? ''" />
+          <template v-if="primaryHost !== undefined" #addons>
+            <VtsCopyButton :value="primaryHost.id" />
           </template>
         </VtsCardRowKeyValue>
         <!-- ip-address -->
         <VtsCardRowKeyValue>
-          <template #key>{{ $t('ip-address') }}</template>
-          <template #value> {{ server.host }}</template>
+          <template #key>{{ t('ip-address') }}</template>
+          <template #value>{{ server.host }}</template>
           <template #addons>
             <VtsCopyButton :value="server.host" />
           </template>
         </VtsCardRowKeyValue>
         <!-- proxy-url -->
         <VtsCardRowKeyValue>
-          <template #key>{{ $t('proxy-url') }}</template>
-          <template #value> {{ server.httpProxy }}</template>
-          <template #addons>
-            <VtsCopyButton :value="server.httpProxy ?? ''" />
+          <template #key>{{ t('proxy-url') }}</template>
+          <template #value>{{ server.httpProxy }}</template>
+          <template v-if="server.httpProxy !== undefined" #addons>
+            <VtsCopyButton :value="server.httpProxy" />
           </template>
         </VtsCardRowKeyValue>
         <!-- username -->
         <VtsCardRowKeyValue>
-          <template #key>{{ $t('username') }}</template>
-          <template #value> {{ server.username }}</template>
+          <template #key>{{ t('username') }}</template>
+          <template #value>{{ server.username }}</template>
           <template #addons>
             <VtsCopyButton :value="server.username" />
           </template>
         </VtsCardRowKeyValue>
         <!-- read-only -->
         <VtsCardRowKeyValue>
-          <template #key>{{ $t('read-only') }}</template>
+          <template #key>{{ t('read-only') }}</template>
           <template #value>
             <VtsEnabledState :enabled="server.readOnly" />
           </template>
         </VtsCardRowKeyValue>
         <!-- self-signed-certificates -->
         <VtsCardRowKeyValue>
-          <template #key>{{ $t('self-signed-certificates') }}</template>
+          <template #key>{{ t('self-signed-certificates') }}</template>
           <template #value>
             <!-- todo add information button. waiting modal -->
             <VtsEnabledState :enabled="server.allowUnauthorized" />
@@ -140,15 +145,15 @@
       <UiCard>
         <UiCardTitle>
           <span>
-            {{ $t('hosts') }}
+            {{ t('hosts') }}
             <UiCounter :value="hosts?.length ?? 0" accent="neutral" size="small" variant="primary" />
           </span>
         </UiCardTitle>
-        <VtsNoDataHero v-if="hosts?.length == 0" type="panel" />
+        <VtsNoDataHero v-if="hosts?.length === 0" type="panel" />
         <template v-else>
           <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" :icon="faServer" size="small">
             {{ host.name_label }}
-            <VtsIcon v-if="primaryHost?.id == host.id" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+            <VtsIcon v-if="primaryHost?.id === host.id" accent="info" :icon="faCircle" :overlay-icon="faStar" />
           </UiLink>
         </template>
       </UiCard>
@@ -175,6 +180,7 @@ import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
+import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCircle, faCity, faEdit, faEllipsis, faServer, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed, type ComputedRef } from 'vue'
@@ -187,7 +193,7 @@ const { server } = defineProps<{
 const { t } = useI18n()
 
 const { isReady: isPoolReady, get: getpool } = usePoolStore().subscribe()
-const { isReady: isHostready, getMasterHostByPoolId, hostsByPool } = useHostStore().subscribe()
+const { isReady: isHostready, get: getHostById, hostsByPool } = useHostStore().subscribe()
 const pool = computed(() => (server.poolId ? getpool(server.poolId) : undefined))
 
 const connectionStatus: ComputedRef<{ accent: InfoAccent; text: string }> = computed(() => {
@@ -207,10 +213,8 @@ const connectionStatus: ComputedRef<{ accent: InfoAccent; text: string }> = comp
   }
 })
 
-const primaryHost = computed(() => (server.poolId ? getMasterHostByPoolId(server.poolId) : undefined))
-const hosts = computed(() => {
-  return server.poolId ? hostsByPool.value.get(server.poolId) : undefined
-})
+const primaryHost = computed(() => (server.master ? getHostById(server.master) : undefined))
+const hosts = computed(() => (server.poolId ? hostsByPool.value.get(server.poolId) : undefined))
 </script>
 
 <style scoped lang="postcss">

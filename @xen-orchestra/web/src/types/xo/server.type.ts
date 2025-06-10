@@ -12,4 +12,8 @@ export type XoServer = {
   allowUnauthorized: boolean
   poolId?: XoPool['id']
   master?: XoHost['id']
+  poolNameLabel?: string
+  status: 'connected' | 'disconnected' | 'connecting'
+  error?: Record<string, unknown>
+  poolNameDescription?: string
 }

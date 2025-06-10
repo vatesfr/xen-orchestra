@@ -1,12 +1,9 @@
 <template>
-  <VtsNoDataHero v-if="!records.length" type="page" />
+  <VtsNoDataHero v-if="!servers.length" type="page" />
   <div v-else class="pools">
-    <UiCard v-if="isReady" class="pool-table">
-      <PoolsTable :servers="records" />
+    <UiCard v-if="isReady" class="pools-table">
+      <PoolsTable :servers />
     </UiCard>
-    <UiPanel v-else>
-      <VtsNoSelectionHero type="panel" />
-    </UiPanel>
     <PoolSidePanel v-if="selectedServer" :server="selectedServer" />
     <UiPanel v-else>
       <VtsNoSelectionHero type="panel" />
@@ -15,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import PoolSidePanel from '@/components/site/pools/poolSidePanel.vue'
+import PoolSidePanel from '@/components/site/pools/PoolSidePanel.vue'
 import PoolsTable from '@/components/site/pools/PoolsTable.vue'
 import { useServerStore } from '@/stores/xo-rest-api/server.store'
 import type { XoServer } from '@/types/xo/server.type'
@@ -25,11 +22,11 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 
-const { records, isReady, get } = useServerStore().subscribe()
+const { records: servers, isReady, get } = useServerStore().subscribe()
 
 const selectedServer = useRouteQuery<XoServer | undefined>('id', {
   toData: id => get(id as XoServer['id']),
-  toQuery: network => network?.id ?? '',
+  toQuery: server => server?.id ?? '',
 })
 </script>
 
@@ -37,7 +34,8 @@ const selectedServer = useRouteQuery<XoServer | undefined>('id', {
 .pools {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 40rem;
-  .pool-table {
+
+  .pools-table {
     height: fit-content;
     gap: 4rem;
     margin: 0.8rem;
