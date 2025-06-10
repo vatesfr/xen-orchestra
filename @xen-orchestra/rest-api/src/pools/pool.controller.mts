@@ -1,5 +1,5 @@
 import {
-  Body, Example,
+  Example,
   Get,
   Path,
   Query,
@@ -10,6 +10,7 @@ import {
   Tags,
   Post,
   Middlewares,
+  Body,
   SuccessResponse,
 } from 'tsoa'
 import { inject } from 'inversify'
@@ -18,7 +19,16 @@ import { json, type Request as ExRequest } from 'express'
 import type { Task } from '@vates/types/lib/vates/task'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { asynchronousActionResp, createdResp, featureUnauthorized, internalServerErrorResp, noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  asynchronousActionResp,
+  createdResp,
+  featureUnauthorized,
+  internalServerErrorResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import type { SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import type { Xapi, XoNetwork, XoPif, XoPool, XoSr, XoVgpuType, XoVmTemplate } from '@vates/types'
