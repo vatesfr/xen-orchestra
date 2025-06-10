@@ -1,41 +1,41 @@
 <template>
   <div class="site-pools-table">
     <UiTitle>
-      {{ $t('pools') }}
+      {{ t('pools') }}
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="$t('table-actions')">
+        <UiTableActions :title="t('table-actions')">
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
             :left-icon="faCaretSquareDown"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ $t('change-state') }}
+            {{ t('change-state') }}
           </UiButton>
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
             :left-icon="faEdit"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ $t('edit') }}
+            {{ t('edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
             :left-icon="faEraser"
             variant="tertiary"
             accent="danger"
             size="medium"
           >
-            {{ $t('forget') }}
+            {{ t('forget') }}
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
@@ -43,18 +43,18 @@
       <VtsDataTable
         :is-ready="isServerReady && isHostReady"
         :has-error
-        :no-data-message="servers.length === 0 ? $t('no-network-detected') : undefined"
+        :no-data-message="servers.length === 0 ? t('no-server-detected') : undefined"
       >
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="$t('coming-soon')">
+                <div v-tooltip="t('coming-soon')">
                   <UiCheckbox disabled :v-model="areAllSelected" accent="brand" @update:model-value="toggleSelect" />
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
@@ -78,30 +78,30 @@
               class="typo-body-regular-small"
               :class="{ checkbox: column.id === 'checkbox' }"
             >
-              <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
+              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
                 <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
-                v-tooltip="$t('coming-soon')"
+                v-tooltip="t('coming-soon')"
                 :icon="faEllipsis"
                 accent="brand"
                 disabled
                 size="small"
               />
-              <div v-else-if="column.id === 'label' || column.id === 'primary_host'">
+              <div v-else-if="column.id === 'label' || column.id === 'primary-host'">
                 <UiLink
+                  v-if="column.value !== undefined"
                   size="medium"
-                  :disabled="column.value.value?.to === undefined"
-                  :to="column.value.value?.to"
-                  :icon="column.value.value.icon"
+                  :to="column.value.to"
+                  :icon="column.value.icon"
                   @click.stop
                 >
-                  {{ column.value.value.label }}
+                  {{ column.value.label }}
                 </UiLink>
               </div>
-              <UiInfo v-else-if="column.id === 'status'" :accent="column.value.value.accent">
-                {{ column.value.value.text }}
+              <UiInfo v-else-if="column.id === 'status'" :accent="column.value.accent">
+                {{ column.value.text }}
               </UiInfo>
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
@@ -111,7 +111,7 @@
         </template>
       </VtsDataTable>
       <VtsStateHero v-if="searchQuery && filteredServers.length === 0" type="table" image="no-result">
-        <div>{{ $t('no-result') }}</div>
+        <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
     </div>
@@ -149,7 +149,7 @@ import {
   faServer,
 } from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
-import { computed, ref, type ComputedRef } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { servers } = defineProps<{
@@ -159,7 +159,7 @@ const { servers } = defineProps<{
 const { t } = useI18n()
 
 const { isReady: isServerReady, hasError } = useServerStore().subscribe()
-const { isReady: isHostReady, getMasterHostByPoolId } = useHostStore().subscribe()
+const { isReady: isHostReady, get: getHostById } = useHostStore().subscribe()
 
 const selectedServerId = useRouteQuery('id')
 
@@ -172,12 +172,12 @@ const filteredServers = computed(() => {
     return servers
   }
 
-  return servers.filter(network =>
-    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+  return servers.filter(server =>
+    Object.values(server).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const serverIds = computed(() => servers.map(network => network.id))
+const serverIds = computed(() => servers.map(server => server.id))
 
 const { selected, areAllSelected } = useMultiSelect(serverIds)
 
@@ -185,49 +185,43 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? serverIds.value : []
 }
 
-const getStatus = (server: XoServer): ComputedRef<{ accent: InfoAccent; text: string }> =>
-  computed(() => {
-    if (server.error) {
-      return { accent: 'danger', text: t('error') }
-    }
+const getStatus = (server: XoServer): { accent: InfoAccent; text: string } => {
+  if (server.error) {
+    return { accent: 'danger', text: t('error') }
+  }
 
-    switch (server.status) {
-      case 'disconnected':
-        return { accent: 'muted', text: t('disconnected') }
-      case 'connected':
-        return { accent: 'success', text: t('connected') }
-      case 'connecting':
-        return { accent: 'info', text: t('connecting') }
-      default:
-        return { accent: 'muted', text: t('unknown') }
-    }
-  })
+  switch (server.status) {
+    case 'disconnected':
+      return { accent: 'muted', text: t('disconnected') }
+    case 'connected':
+      return { accent: 'success', text: t('connected') }
+    case 'connecting':
+      return { accent: 'info', text: t('connecting') }
+    default:
+      return { accent: 'muted', text: t('unknown') }
+  }
+}
 
-const getPoolInfo = (server: XoServer) =>
-  computed(() => {
-    if (server.poolNameLabel) {
-      return {
-        label: server.poolNameLabel,
-        to: server.poolId ? `/pool/${server.poolId}/` : undefined,
-        icon: faCity,
-      }
-    }
-
+const getPoolInfo = (server: XoServer) => {
+  if (server.poolNameLabel) {
     return {
-      label: server.id,
+      label: server.poolNameLabel,
       to: server.poolId ? `/pool/${server.poolId}/` : undefined,
       icon: faCity,
     }
-  })
+  }
 
-// compute this
-const getPrimaryHost = (server: XoServer) =>
-  computed(() => {
-    const host = server.poolId ? getMasterHostByPoolId(server.poolId) : undefined
-    return host
-      ? { label: host.name_label, to: `/host/${host.id}/`, icon: faServer }
-      : { label: '', to: undefined, icon: faServer }
-  })
+  return {
+    label: server.id,
+    to: server.poolId ? `/pool/${server.poolId}/` : undefined,
+    icon: faCity,
+  }
+}
+
+const getPrimaryHost = (server: XoServer) => {
+  const masterHost = server.master ? getHostById(server.master) : undefined
+  return masterHost ? { label: masterHost.name_label, to: `/host/${masterHost.id}/`, icon: faServer } : undefined
+}
 
 const { visibleColumns, rows } = useTable('servers', filteredServers, {
   rowId: record => record.id,
@@ -236,18 +230,18 @@ const { visibleColumns, rows } = useTable('servers', filteredServers, {
     define('label', record => getPoolInfo(record), { label: t('pool') }),
     define('host', { label: t('ip-address') }),
     define('status', record => getStatus(record), { label: t('status') }),
-    define('primary_host', record => getPrimaryHost(record), { label: t('master') }),
+    define('primary-host', record => getPrimaryHost(record), { label: t('master') }),
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
-type ServerHeader = 'label' | 'host' | 'status' | 'primary_host'
+type ServerHeader = 'label' | 'host' | 'status' | 'primary-host'
 
 const headerIcon: Record<ServerHeader, IconDefinition> = {
   label: faCity,
   host: faHashtag,
   status: faCaretSquareDown,
-  primary_host: faServer,
+  'primary-host': faServer,
 }
 </script>
 

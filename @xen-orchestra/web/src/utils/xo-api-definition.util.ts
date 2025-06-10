@@ -92,12 +92,6 @@ export const xoApiDefinition = {
       'id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate',
     handler: (record: XoVmTemplate) => record,
   },
-  server: {
-    type: 'collection',
-    path: 'servers',
-    fields: 'id,host,httpProxy,username,readOnly,allowUnauthorized,label,poolId',
-    handler: (record: XoServer) => record,
-  },
   'vm-controller': {
     type: 'collection',
     path: 'vm-controllers',
@@ -107,7 +101,8 @@ export const xoApiDefinition = {
   server: {
     type: 'collection',
     path: 'servers',
-    fields: 'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId,poolNameLabel,id',
+    fields:
+      'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId,poolNameLabel,id,status,master,error,poolNameDescription',
     handler: (record: XoServer) => record,
   },
 } satisfies ApiDefinition
