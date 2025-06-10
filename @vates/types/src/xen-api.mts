@@ -129,10 +129,12 @@ export interface XenApiSession {
   uuid: string
   validation_time: string
 }
+export type XenApiSessionWrapped = WrapperXenApi<XenApiSession, 'session'>
 
 export interface XenApiAuth {
   $ref: Branded<'auth'>
 }
+export type XenApiAuthWrapped = WrapperXenApi<XenApiAuth, 'auth'>
 
 export interface XenApiSubject {
   $ref: Branded<'subject'>
@@ -141,6 +143,7 @@ export interface XenApiSubject {
   subject_identifier: string
   uuid: string
 }
+export type XenApiSubjectWrapped = WrapperXenApi<XenApiSubject, 'subject'>
 
 export interface XenApiRole {
   $ref: Branded<'role'>
@@ -150,6 +153,7 @@ export interface XenApiRole {
   subroles: XenApiRole['$ref'][]
   uuid: string
 }
+export type XenApiRoleWrapped = WrapperXenApi<XenApiRole, 'role'>
 
 export interface XenApiTask {
   $ref: Branded<'task'>
@@ -171,6 +175,7 @@ export interface XenApiTask {
   type: string
   uuid: string
 }
+export type XenApiTaskWrapped = WrapperXenApi<XenApiTask, 'task'>
 
 export interface XenApiEvent {
   $ref: Branded<'event'>
@@ -184,6 +189,7 @@ export interface XenApiEvent {
   /** @deprecated */
   timestamp?: string
 }
+export type XenApiEventWrapped = WrapperXenApi<XenApiEvent, 'event'>
 
 export interface XenApiPool {
   $ref: Branded<'pool'>
@@ -263,6 +269,8 @@ export interface XenApiPoolPatch {
   uuid: string
   version: string
 }
+/** @deprecated */
+export type XenApiPoolPatchWrapped = WrapperXenApi<XenApiPoolPatch, 'poolPatch'>
 
 export interface XenApiPoolUpdate {
   $ref: Branded<'pool_update'>
@@ -278,6 +286,7 @@ export interface XenApiPoolUpdate {
   vdi: XenApiVdi['$ref']
   version?: string
 }
+export type XenApiPoolUpdateWrapped = WrapperXenApi<XenApiPoolUpdate, 'poolUpdate'>
 
 type XenApiVmCallMethods = {
   (method: 'start', start_paused: boolean, force: boolean): Promise<void>
@@ -407,6 +416,7 @@ export interface XenApiVmMetrics {
   /** @deprecated */
   VCPUs_utilisation?: Record<number, number>
 }
+export type XenApiVmMetricsWrapped = WrapperXenApi<XenApiVmMetrics, 'VM-metrics'>
 
 export interface XenApiVmGuestMetrics {
   $ref: Branded<'VM_guest_metrics'>
@@ -428,6 +438,7 @@ export interface XenApiVmGuestMetrics {
   PV_drivers_version: Record<string, string>
   uuid: string
 }
+export type XenApiVmGuestMetricsWrapped = WrapperXenApi<XenApiVmGuestMetrics, 'VM-guestMetrics'>
 
 /** @deprecated */
 export interface XenApiVmpp {
@@ -471,6 +482,8 @@ export interface XenApiVmpp {
   /** @deprecated */
   VMs?: XenApiVm['$ref'][]
 }
+/** @deprecated */
+export type XenApiVmppWrapped = WrapperXenApi<XenApiVmpp, 'VMPP'>
 
 export interface XenApiVmss {
   $ref: Branded<'VMSS'>
@@ -485,6 +498,7 @@ export interface XenApiVmss {
   uuid: string
   VMs: XenApiVm['$ref'][]
 }
+export type XenApiVmssWrapped = WrapperXenApi<XenApiVmss, 'VMSS'>
 
 export interface XenApiVmAppliance {
   $ref: Branded<'VM_appliance'>
@@ -495,12 +509,14 @@ export interface XenApiVmAppliance {
   uuid: string
   VMs: XenApiVm['$ref'][]
 }
+export type XenApiVmApplianceWrapped = WrapperXenApi<XenApiVmAppliance, 'VM-appliance'>
 
 export interface XenApiDrTask {
   $ref: Branded<'DR_task'>
   introduced_SRs: XenApiSr['$ref'][]
   uuid: string
 }
+export type XenApiDrTaskWrapped = WrapperXenApi<XenApiDrTask, 'DR-task'>
 
 export interface XenApiHost {
   $ref: Branded<'host'>
@@ -588,6 +604,7 @@ export interface XenApiHostCrashdump {
   timestamp: string
   uuid: string
 }
+export type XenApiHostCrashdumpWrapped = WrapperXenApi<XenApiHostCrashdump, 'hostCrashdump'>
 
 /** @deprecated */
 export interface XenApiHostPatch {
@@ -603,6 +620,8 @@ export interface XenApiHostPatch {
   uuid: string
   version: string
 }
+/** @deprecated */
+export type XenApiHostPatchWrapped = WrapperXenApi<XenApiHostPatch, 'patch'>
 
 export interface XenApiHostMetrics {
   $ref: Branded<'host_metrics'>
@@ -614,6 +633,7 @@ export interface XenApiHostMetrics {
   other_config: Record<string, string>
   uuid: string
 }
+export type XenApiHostMetricsWrapped = WrapperXenApi<XenApiHostMetrics, 'hostMetrics'>
 
 /** @deprecated */
 export interface XenApiHostCpu {
@@ -632,6 +652,8 @@ export interface XenApiHostCpu {
   uuid: string
   vendor: string
 }
+/**@deprecated */
+export type XenApiHostCpuWrapped = WrapperXenApi<XenApiHostCpu, 'hostCpu'>
 
 export interface XenApiNetwork {
   $ref: Branded<'network'>
@@ -698,6 +720,8 @@ export interface XenApiVifMetrics {
   other_config: Record<string, string>
   uuid: string
 }
+/** @deprecated */
+export type XenApiVifMetricsWrapped = WrapperXenApi<XenApiVifMetrics, 'VIF-metrics'>
 
 export interface XenApiPif {
   $ref: Branded<'PIF'>
@@ -757,6 +781,7 @@ export interface XenApiPifMetrics {
   vendor_id: string
   vendor_name: string
 }
+export type XenApiPifMetricsWrapped = WrapperXenApi<XenApiPifMetrics, 'PIF-metrics'>
 
 export interface XenApiBond {
   $ref: Branded<'Bond'>
@@ -770,6 +795,7 @@ export interface XenApiBond {
   slaves: XenApiPif['$ref'][]
   uuid: string
 }
+export type XenApiBondWrapped = WrapperXenApi<XenApiBond, 'bond'>
 
 export interface XenApiVlan {
   $ref: Branded<'VLAN'>
@@ -779,6 +805,7 @@ export interface XenApiVlan {
   untagged_PIF: XenApiPif['$ref'] | OPAQUE_REF_NULL
   uuid: string
 }
+export type XenApiVlanWrapped = WrapperXenApi<XenApiVlan, 'VLAN'>
 
 export interface XenApiSm {
   $ref: Branded<'SM'>
@@ -798,6 +825,7 @@ export interface XenApiSm {
   vendor: string
   version: string
 }
+export type XenApiSmWrapped = WrapperXenApi<XenApiSm, 'SM'>
 
 export interface XenApiSr {
   $ref: Branded<'SR'>
@@ -835,6 +863,7 @@ export interface XenApiSrStat {
   total_space?: number
   uuid?: unknown
 }
+export type XenApiSrStatWrapped = WrapperXenApi<XenApiSrStat, 'SR-stat'>
 
 export interface XenApiProbeResult {
   $ref: Branded<'probe_result'>
@@ -843,11 +872,13 @@ export interface XenApiProbeResult {
   extra_info?: Record<string, string>
   sr?: unknown
 }
+export type XenApiProbeResultWrapped = WrapperXenApi<XenApiProbeResult, 'probeResult'>
 
 export interface XenApiLvhd {
   $ref: Branded<'LVHD'>
   uuid: string
 }
+export type XenApiLvhdWrapped = WrapperXenApi<XenApiLvhd, 'LVHD'>
 
 export interface XenApiVdi {
   $ref: Branded<'VDI'>
@@ -928,6 +959,8 @@ export interface XenApiVbdMetrics {
   other_config?: Record<string, string>
   uuid: string
 }
+/** @deprecated */
+export type XenApiVbdMetricsWrapped = WrapperXenApi<XenApiVbdMetrics, 'VBD-metrics'>
 
 export interface XenApiPbd {
   $ref: Branded<'PBD'>
@@ -938,6 +971,7 @@ export interface XenApiPbd {
   SR: XenApiSr['$ref']
   uuid: string
 }
+export type XenApiPbdWrapped = WrapperXenApi<XenApiPbd, 'PBD'>
 
 /** @deprecated */
 export interface XenApiCrashdump {
@@ -947,6 +981,8 @@ export interface XenApiCrashdump {
   VDI: XenApiVdi['$ref']
   VM: XenApiVm['$ref']
 }
+/**@deprecated */
+export type XenApiCrashdumpWrapped = WrapperXenApi<XenApiCrashdump, 'crashdump'>
 
 export interface XenApiVtpm {
   $ref: Branded<'VTPM'>
@@ -969,6 +1005,7 @@ export interface XenApiConsole {
   uuid: string
   VM: XenApiVm['$ref']
 }
+export type XenApiConsoleWrapped = WrapperXenApi<XenApiConsole, 'console'>
 
 /** @deprecated */
 export interface XenApiUser {
@@ -978,6 +1015,8 @@ export interface XenApiUser {
   short_name: string
   uuid: string
 }
+/** @deprecated */
+export type XenApiUserWrapped = WrapperXenApi<XenApiUser, 'user'>
 
 export interface XenApiDataSource {
   $ref: Branded<'data_source'>
@@ -990,6 +1029,7 @@ export interface XenApiDataSource {
   units: string
   value: number
 }
+export type XenApiDataSourceWrapped = WrapperXenApi<XenApiDataSource, 'dataSource'>
 
 export interface XenApiBlob {
   $ref: Branded<'blob'>
@@ -1001,6 +1041,7 @@ export interface XenApiBlob {
   size: number
   uuid: string
 }
+export type XenApiBlobWrapped = WrapperXenApi<XenApiBlob, 'blop'>
 
 export interface XenApiMessage {
   $ref: Branded<'message'>
@@ -1012,6 +1053,7 @@ export interface XenApiMessage {
   timestamp: string
   uuid: string
 }
+export type XenApiMessageWrapped = WrapperXenApi<XenApiMessage, 'message'>
 
 export interface XenApiSecret {
   $ref: Branded<'secret'>
@@ -1019,6 +1061,7 @@ export interface XenApiSecret {
   uuid: string
   value: string
 }
+export type XenApiSecretWrapped = WrapperXenApi<XenApiSecret, 'secret'>
 
 export interface XenApiTunnel {
   $ref: Branded<'tunnel'>
@@ -1029,6 +1072,7 @@ export interface XenApiTunnel {
   transport_PIF: XenApiPif['$ref'] | OPAQUE_REF_NULL
   uuid: string
 }
+export type XenApiTunnelWrapped = WrapperXenApi<XenApiTunnel, 'tunnel'>
 
 export interface XenApiNetworkSriov {
   $ref: Branded<'network_sriov'>
@@ -1038,6 +1082,7 @@ export interface XenApiNetworkSriov {
   requires_reboot?: boolean
   uuid: string
 }
+export type XenApiNetworkSriovWrapped = WrapperXenApi<XenApiNetworkSriov, 'networkSriov'>
 
 export interface XenApiPci {
   $ref: Branded<'PCI'>
@@ -1053,6 +1098,7 @@ export interface XenApiPci {
   uuid: string
   vendor_name: string
 }
+export type XenApiPciWrapped = WrapperXenApi<XenApiPci, 'PCI'>
 
 export interface XenApiPgpu {
   $ref: Branded<'PGPU'>
@@ -1069,6 +1115,7 @@ export interface XenApiPgpu {
   supported_VGPU_types: XenApiVgpuType['$ref'][]
   uuid: string
 }
+export type XenApiPgpuWrapped = WrapperXenApi<XenApiPgpu, 'PGPU'>
 
 export interface XenApiGpuGroup {
   $ref: Branded<'GPU_group'>
@@ -1083,6 +1130,7 @@ export interface XenApiGpuGroup {
   uuid: string
   VGPUs: XenApiVgpu['$ref'][]
 }
+export type XenApiGpuGroupWrapped = WrapperXenApi<XenApiGpuGroup, 'gpuGroup'>
 
 export interface XenApiVgpu {
   $ref: Branded<'VGPU'>
@@ -1099,7 +1147,7 @@ export interface XenApiVgpu {
   uuid: string
   VM: XenApiVm['$ref']
 }
-export type XenApiVgpuWrapped = WrapperXenApi<XenApiVgpu, 'VGPU'>
+export type XenApiVgpuWrapped = WrapperXenApi<XenApiVgpu, 'vgpu'>
 
 export interface XenApiVgpuType {
   $ref: Branded<'VGPU_type'>
@@ -1120,6 +1168,7 @@ export interface XenApiVgpuType {
   vendor_name: string
   VGPUs: XenApiVgpu['$ref'][]
 }
+export type XenApiVgpuTypeWrapped = WrapperXenApi<XenApiVgpuType, 'vgpuType'>
 
 export interface XenApiPvsSite {
   $ref: Branded<'PVS_site'>
@@ -1131,6 +1180,7 @@ export interface XenApiPvsSite {
   servers?: XenApiPvsServer['$ref'][]
   uuid?: string
 }
+export type XenApiPvsSiteWrapped = WrapperXenApi<XenApiPvsSite, 'pvsSite'>
 
 export interface XenApiPvsServer {
   $ref: Branded<'PVS_server'>
@@ -1140,6 +1190,7 @@ export interface XenApiPvsServer {
   site?: XenApiPvsSite['$ref'] | OPAQUE_REF_NULL
   uuid?: string
 }
+export type XenApiPvsServerWrapped = WrapperXenApi<XenApiPvsServer, 'pvsServer'>
 
 export interface XenApiPvsProxy {
   $ref: Branded<'PVS_proxy'>
@@ -1149,6 +1200,7 @@ export interface XenApiPvsProxy {
   uuid?: string
   VIF?: XenApiVif['$ref'] | OPAQUE_REF_NULL
 }
+export type XenApiPvsProxyWrapped = WrapperXenApi<XenApiPvsProxy, 'pvsProxy'>
 
 export interface XenApiPvsCacheStorage {
   $ref: Branded<'PVS_cache_storage'>
@@ -1159,6 +1211,7 @@ export interface XenApiPvsCacheStorage {
   uuid?: string
   VDI?: XenApiVdi['$ref'] | OPAQUE_REF_NULL
 }
+export type XenApiPvsCacheStorageWrapped = WrapperXenApi<XenApiPvsCacheStorage, 'pvsCacheStorage'>
 
 export interface XenApiFeature {
   $ref: Branded<'Feature'>
@@ -1170,6 +1223,7 @@ export interface XenApiFeature {
   uuid?: string
   version?: string
 }
+export type XenApiFeatureWrapped = WrapperXenApi<XenApiFeature, 'feature'>
 
 export interface XenApiSdnController {
   $ref: Branded<'SDN_controller'>
@@ -1178,6 +1232,7 @@ export interface XenApiSdnController {
   protocol?: SDN_CONTROLLER_PROTOCOL
   uuid?: string
 }
+export type XenApiSdnControllerWrapped = WrapperXenApi<XenApiSdnController, 'sdnController'>
 
 export interface XenApiVdiNbdServerInfo {
   $ref: Branded<'vdi_nbd_server_info'>
@@ -1187,6 +1242,7 @@ export interface XenApiVdiNbdServerInfo {
   port?: number
   subject?: string
 }
+export type XenApiVdiNbdServerInfoWrapped = WrapperXenApi<XenApiVdiNbdServerInfo, 'vdiNbdServerInfo'>
 
 export interface XenApiPusb {
   $ref: Branded<'PUSB'>
@@ -1205,6 +1261,7 @@ export interface XenApiPusb {
   vendor_id?: string
   version?: string
 }
+export type XenApiPusbWrapped = WrapperXenApi<XenApiPusb, 'PUSB'>
 
 export interface XenApiUsbGroup {
   $ref: Branded<'USB_group'>
@@ -1215,6 +1272,7 @@ export interface XenApiUsbGroup {
   uuid?: string
   VUSBs?: XenApiVusb['$ref'][]
 }
+export type XenApiUsbGroupWrapped = WrapperXenApi<XenApiUsbGroup, 'USB_group'>
 
 export interface XenApiVusb {
   $ref: Branded<'VUSB'>
@@ -1226,6 +1284,7 @@ export interface XenApiVusb {
   uuid?: string
   VM?: XenApiVm['$ref']
 }
+export type XenApiVusbWrapped = WrapperXenApi<XenApiVusb, 'VUSB'>
 
 export interface XenApiCluster {
   $ref: Branded<'Cluster'>
@@ -1245,6 +1304,7 @@ export interface XenApiCluster {
   token_timeout?: number
   uuid?: string
 }
+export type XenApiClusterWrapped = WrapperXenApi<XenApiCluster, 'cluster'>
 
 export interface XenApiClusterHost {
   $ref: Branded<'Cluster_host'>
@@ -1260,6 +1320,7 @@ export interface XenApiClusterHost {
   PIF?: XenApiPif['$ref'] | OPAQUE_REF_NULL
   uuid?: string
 }
+export type XenApiClusterHostWrapped = WrapperXenApi<XenApiClusterHost, 'clusterHost'>
 
 export interface XenApiCertificate {
   $ref: Branded<'Certificate'>
@@ -1271,6 +1332,7 @@ export interface XenApiCertificate {
   type?: CERTIFICATE_TYPE
   uuid?: string
 }
+export type XenApiCertificateWrapped = WrapperXenApi<XenApiCertificate, 'certificate'>
 
 export interface XenApiRepository {
   $ref: Branded<'Repository'>
@@ -1285,6 +1347,7 @@ export interface XenApiRepository {
   update?: boolean
   uuid?: string
 }
+export type XenApiRepositoryWrapped = WrapperXenApi<XenApiRepository, 'repository'>
 
 export interface XenApiObserver {
   $ref: Branded<'Observer'>
@@ -1297,6 +1360,7 @@ export interface XenApiObserver {
   name_label: string
   uuid?: string
 }
+export type XenApiObserverWrapped = WrapperXenApi<XenApiObserver, 'observer'>
 
 export type XenApiRecord =
   | XenApiSession
@@ -1379,3 +1443,59 @@ export type WrappedXenApiRecord =
   | XenApiVifWrapped
   | XenApiVmWrapped
   | XenApiVtpmWrapped
+  | XenApiSessionWrapped
+  | XenApiAuthWrapped
+  | XenApiSubjectWrapped
+  | XenApiRoleWrapped
+  | XenApiTaskWrapped
+  | XenApiEventWrapped
+  | XenApiPoolPatchWrapped
+  | XenApiPoolUpdateWrapped
+  | XenApiVmGuestMetricsWrapped
+  | XenApiVmppWrapped
+  | XenApiVmssWrapped
+  | XenApiVmApplianceWrapped
+  | XenApiDrTaskWrapped
+  | XenApiHostCrashdumpWrapped
+  | XenApiHostPatchWrapped
+  | XenApiHostMetricsWrapped
+  | XenApiHostCpuWrapped
+  | XenApiVifMetricsWrapped
+  | XenApiPifMetricsWrapped
+  | XenApiBondWrapped
+  | XenApiVlanWrapped
+  | XenApiSmWrapped
+  | XenApiSrStatWrapped
+  | XenApiProbeResultWrapped
+  | XenApiLvhdWrapped
+  | XenApiVbdMetricsWrapped
+  | XenApiPbdWrapped
+  | XenApiCrashdumpWrapped
+  | XenApiConsoleWrapped
+  | XenApiUserWrapped
+  | XenApiDataSourceWrapped
+  | XenApiBlobWrapped
+  | XenApiMessageWrapped
+  | XenApiSecretWrapped
+  | XenApiTunnelWrapped
+  | XenApiNetworkSriovWrapped
+  | XenApiPciWrapped
+  | XenApiPgpuWrapped
+  | XenApiGpuGroupWrapped
+  | XenApiVgpuWrapped
+  | XenApiVgpuTypeWrapped
+  | XenApiPvsSiteWrapped
+  | XenApiPvsServerWrapped
+  | XenApiPvsProxyWrapped
+  | XenApiPvsCacheStorageWrapped
+  | XenApiFeatureWrapped
+  | XenApiSdnControllerWrapped
+  | XenApiVdiNbdServerInfoWrapped
+  | XenApiPusbWrapped
+  | XenApiUsbGroupWrapped
+  | XenApiVusbWrapped
+  | XenApiClusterWrapped
+  | XenApiClusterHostWrapped
+  | XenApiCertificateWrapped
+  | XenApiRepositoryWrapped
+  | XenApiObserverWrapped
