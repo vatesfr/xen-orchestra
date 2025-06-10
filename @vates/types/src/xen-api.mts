@@ -1053,6 +1053,7 @@ export interface XenApiPci {
   uuid: string
   vendor_name: string
 }
+export type XenApiPciWrapped = WrapperXenApi<XenApiPci, 'PCI'>
 
 export interface XenApiPgpu {
   $ref: Branded<'PGPU'>
