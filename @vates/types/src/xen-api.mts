@@ -1380,3 +1380,4 @@ export type WrappedXenApiRecord =
   | XenApiVifWrapped
   | XenApiVmWrapped
   | XenApiVtpmWrapped
+  | XenApiPciWrapped
