@@ -15,7 +15,7 @@
             accent="brand"
             size="medium"
           >
-            {{ $t('change-status') }}
+            {{ $t('change-state') }}
           </UiButton>
           <UiButton
             v-tooltip="$t('coming-soon')"
