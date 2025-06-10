@@ -1,4 +1,5 @@
 import type {
+  ApiDefinition,
   TypeToCollectionRecord,
   TypeToSingleRecord,
   XoCollectionRecord,
@@ -12,7 +13,7 @@ import { xoApiDefinition } from '@/utils/xo-api-definition.util'
 import type { SubscribableStoreConfig } from '@core/types/subscribable-store.type'
 import type { VoidFunction } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'
-import { noop, useFetch, useIntervalFn } from '@vueuse/core'
+import { noop, useFetch, useIntervalFn, watchOnce } from '@vueuse/core'
 import { computed, readonly, ref, shallowReactive } from 'vue'
 
 type SingleOptions = {
@@ -47,12 +48,15 @@ export function createXoStoreConfig(
   const recordsById = shallowReactive(new Map())
 
   const urlParams = new URLSearchParams(`fields=${apiDefinition.fields}`)
+  if (apiDefinition.stream) {
+    urlParams.append('ndjson', 'true')
+  }
 
   const url = `/rest/v0/${apiDefinition.path}?${urlParams.toString()}`
 
   const isReady = ref(false)
 
-  const { isFetching, error, execute, canAbort, abort, data } = useFetch(url, {
+  const { isFetching, error, execute, canAbort, abort, data, response } = useFetch(url, {
     immediate: false,
     beforeFetch({ options }) {
       options.credentials = 'include'
@@ -66,24 +70,59 @@ export function createXoStoreConfig(
   const hasError = computed(() => !!error.value)
 
   const loadData = async () => {
-    await execute()
-
-    recordsById.clear()
-
-    if (!data.value) {
+    if (isFetching.value) {
+      console.warn(apiDefinition.path, 'is already fetching. Skipping request.')
       return
     }
-    toArray(data.value).forEach(item => {
-      const recordToAdd = apiDefinition.handler(item) as any
+    const promiseExecute = execute()
 
-      if (recordToAdd === undefined) {
+    if (apiDefinition.stream) {
+      watchOnce(response, async resp => {
+        if (resp?.body == null) {
+          return
+        }
+
+        const reader = resp.body.getReader()
+        const decoder = new TextDecoder('utf-8')
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) {
+            break
+          }
+          const text = decoder.decode(value, { stream: true })
+          const lines = text.split('\n')
+          for (const line of lines) {
+            if (line === '') {
+              continue
+            }
+
+            const item = JSON.parse(line)
+            const recordToAdd = apiDefinition.handler(item)
+
+            const previous = recordsById.get(singleRecordId)
+            recordsById.set(singleRecordId, { ...previous, ...recordToAdd })
+          }
+        }
+        reader.releaseLock()
+
+        await promiseExecute
+        isReady.value = true
+      })
+    } else {
+      await promiseExecute
+      recordsById.clear()
+
+      if (!data.value) {
         return
       }
+      toArray(data.value).forEach((item: ReturnType<ApiDefinition[string]['handler']>) => {
+        const recordToAdd = apiDefinition.handler(item)
 
-      recordsById.set(isCollection ? recordToAdd.id : singleRecordId, recordToAdd)
-    })
+        recordsById.set(isCollection ? recordToAdd.id : singleRecordId, recordToAdd)
+      })
 
-    isReady.value = true
+      isReady.value = true
+    }
   }
 
   let startSubscription: VoidFunction = () => loadData()

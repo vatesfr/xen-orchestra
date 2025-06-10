@@ -231,5 +231,4 @@ vmTag = 'XOA Proxy'
 xoaUpgradeTimeout = '5 min'
 
 [rest-api]
-dashboardCacheTimeout = '2 seconds'
 dashboardCacheExpiresIn = '1 min'
