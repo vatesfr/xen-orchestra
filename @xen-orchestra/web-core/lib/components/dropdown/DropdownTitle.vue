@@ -10,10 +10,10 @@
     </div>
     <div v-if="onToggleSelectAll" class="buttons">
       <span v-if="selected !== 'all'" @click="emit('toggleSelectAll', true)">
-        {{ $t('core.select.all') }}
+        {{ t('core.select.all') }}
       </span>
       <span v-if="selected !== 'none'" @click="emit('toggleSelectAll', false)">
-        {{ $t('core.select.none') }}
+        {{ t('core.select.none') }}
       </span>
     </div>
   </div>
@@ -22,6 +22,7 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import { useI18n } from 'vue-i18n'
 
 withDefaults(
   defineProps<{
@@ -35,6 +36,8 @@ withDefaults(
 const emit = defineEmits<{
   toggleSelectAll: [value: boolean]
 }>()
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

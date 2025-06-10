@@ -108,4 +108,4 @@ A wrapper around `UiButton` with an `outline` prop and with the `busy` prop set 
 
 This button will call `modal.decline()` on click.
 
-Default text is `$t("cancel")`.
+Default text is `t("cancel")`.

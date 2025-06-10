@@ -4,7 +4,7 @@
       {{ branch.data.name_label }}
       <template #addons>
         <UiCounter
-          v-tooltip="$t('running-vm', runningVmsCount)"
+          v-tooltip="t('running-vm', runningVmsCount)"
           :value="runningVmsCount"
           accent="brand"
           variant="secondary"
@@ -33,10 +33,13 @@ import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   branch: PoolBranch
 }>()
+
+const { t } = useI18n()
 
 const { runningVms } = useVmStore().subscribe()
 

@@ -1,9 +1,12 @@
-<template>{{ $t('loading-in-progress') }}</template>
+<template>{{ t('loading-in-progress') }}</template>
 
 <script lang="ts" setup>
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { whenever } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const router = useRouter()
 

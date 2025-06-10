@@ -7,11 +7,11 @@
 
       <template #buttons>
         <UiButton size="medium" accent="brand" variant="tertiary" @click="formatJson()">
-          {{ $t('reformat') }}
+          {{ t('reformat') }}
         </UiButton>
         <ModalDeclineButton />
         <ModalApproveButton :disabled="!isJsonValid">
-          {{ $t('save') }}
+          {{ t('save') }}
         </ModalApproveButton>
       </template>
     </FormModalLayout>
@@ -28,10 +28,13 @@ import { IK_MODAL } from '@/types/injection-keys'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { faCode } from '@fortawesome/free-solid-svg-icons'
 import { computed, inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   initialValue?: string
 }>()
+
+const { t } = useI18n()
 
 const editedJson = ref<string>(props.initialValue ?? '')
 const modal = inject(IK_MODAL)!

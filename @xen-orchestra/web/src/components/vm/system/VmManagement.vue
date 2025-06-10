@@ -1,39 +1,39 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('vm-management') }}
+      {{ t('vm-management') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('high-availability')">
+    <VtsQuickInfoRow :label="t('high-availability')">
       <template #value>
         <VtsEnabledState :enabled="vm.high_availability !== ''" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('affinity-host')">
+    <VtsQuickInfoRow :label="t('affinity-host')">
       <template #value>
         <UiLink v-if="vm.affinityHost" :icon="faServer" :to="`/host/${vm.affinityHost}`" size="small">
           {{ affinityHostName }}
         </UiLink>
         <template v-else>
-          {{ $t('none') }}
+          {{ t('none') }}
         </template>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('protect-from-accidental-deletion')">
+    <VtsQuickInfoRow :label="t('protect-from-accidental-deletion')">
       <template #value>
         <VtsEnabledState :enabled="vm.blockedOperations.destroy !== undefined" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('protect-from-accidental-shutdown')">
+    <VtsQuickInfoRow :label="t('protect-from-accidental-shutdown')">
       <template #value>
         <VtsEnabledState :enabled="isProtectedFromAccidentalShutdown" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('auto-power')">
+    <VtsQuickInfoRow :label="t('auto-power')">
       <template #value>
         <VtsEnabledState :enabled="vm.auto_poweron" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('start-delay')" :value="formattedStartDelay" />
+    <VtsQuickInfoRow :label="t('start-delay')" :value="formattedStartDelay" />
   </UiCard>
 </template>
 

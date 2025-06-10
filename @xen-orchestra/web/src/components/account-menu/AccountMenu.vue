@@ -2,7 +2,7 @@
   <MenuList :disabled placement="bottom-end">
     <template #trigger="{ isOpen, open }">
       <UiAccountMenuButton
-        v-tooltip="isOpen ? false : { content: $t('account-organization-more'), placement: 'bottom-end' }"
+        v-tooltip="isOpen ? false : { content: t('account-organization-more'), placement: 'bottom-end' }"
         :selected="isOpen"
         size="medium"
         @click="open($event)"
@@ -15,7 +15,7 @@
         rel="noopener noreferrer"
         target="_blank"
       >
-        {{ $t('documentation-name', { name: 'XCP-ng' }) }}
+        {{ t('documentation-name', { name: 'XCP-ng' }) }}
       </a>
     </MenuItem>
     <MenuItem :icon="faHeadset">
@@ -25,11 +25,11 @@
         rel="noopener noreferrer"
         target="_blank"
       >
-        {{ $t('professional-support') }}
+        {{ t('professional-support') }}
       </a>
     </MenuItem>
     <MenuItem :icon="faArrowRightFromBracket" class="logout" @click="logout()">
-      {{ $t('log-out') }}
+      {{ t('log-out') }}
     </MenuItem>
   </MenuList>
 </template>
@@ -40,10 +40,13 @@ import MenuList from '@core/components/menu/MenuList.vue'
 import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faArrowRightFromBracket, faBook, faHeadset } from '@fortawesome/free-solid-svg-icons'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   disabled?: boolean
 }>()
+
+const { t } = useI18n()
 
 // TODO: Fetch the XO 5 mount path from API when available
 const logout = () => window.location.assign('/signout')

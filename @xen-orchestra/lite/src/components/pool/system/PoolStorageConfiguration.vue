@@ -1,44 +1,44 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('storage-configuration') }}
+      {{ t('storage-configuration') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" :title="$t('storage-configuration')" />
+    <VtsLoadingHero v-if="!isReady" type="card" :title="t('storage-configuration')" />
     <template v-else>
-      <VtsQuickInfoRow :label="$t('default-storage-repository')">
+      <VtsQuickInfoRow :label="t('default-storage-repository')">
         <template #value>
           <template v-if="defaultSr">
             <VtsIcon :icon="faDatabase" accent="current" />
             {{ defaultSr.name_label }}
           </template>
           <template v-else>
-            {{ $t('none') }}
+            {{ t('none') }}
           </template>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('suspend-storage-repository')">
+      <VtsQuickInfoRow :label="t('suspend-storage-repository')">
         <template #value>
           <template v-if="suspendSr">
             <VtsIcon :icon="faDatabase" accent="current" />
             {{ suspendSr.name_label }}
           </template>
           <template v-else>
-            {{ $t('none') }}
+            {{ t('none') }}
           </template>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('crash-dump-storage-repository')">
+      <VtsQuickInfoRow :label="t('crash-dump-storage-repository')">
         <template #value>
           <template v-if="crashDumpSr">
             <VtsIcon :icon="faDatabase" accent="current" />
             {{ crashDumpSr.name_label }}
           </template>
           <template v-else>
-            {{ $t('none') }}
+            {{ t('none') }}
           </template>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('heartbeat-storage-repository')">
+      <VtsQuickInfoRow :label="t('heartbeat-storage-repository')">
         <template #value>
           <ul v-if="haSrs !== undefined && haSrs.length > 0">
             <li v-for="haSr in haSrs" :key="haSr.uuid">
@@ -47,7 +47,7 @@
             </li>
           </ul>
           <template v-else>
-            {{ $t('none') }}
+            {{ t('none') }}
           </template>
         </template>
       </VtsQuickInfoRow>
@@ -66,10 +66,13 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faDatabase } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
   pool: XenApiPool
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef, isReady } = useSrStore().subscribe()
 const { getByOpaqueRef: getVdiByOpaqueRef } = useVdiStore().subscribe()

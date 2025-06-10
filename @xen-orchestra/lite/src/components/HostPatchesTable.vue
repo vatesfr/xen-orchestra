@@ -13,7 +13,7 @@
           v-else
           v-tooltip="{
             placement: 'left',
-            content: $t('n-hosts-awaiting-patch', {
+            content: t('n-hosts-awaiting-patch', {
               n: patch.$hostRefs.size,
             }),
           }"
@@ -37,6 +37,7 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   patches: XenApiPatchWithHostRefs[]
@@ -44,6 +45,8 @@ const props = defineProps<{
   areAllLoaded: boolean
   areSomeLoaded: boolean
 }>()
+
+const { t } = useI18n()
 
 const sortedPatches = computed(() =>
   [...props.patches].sort((patch1, patch2) => {

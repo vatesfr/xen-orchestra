@@ -1,9 +1,9 @@
 <template>
   <UiCard>
     <UiCardTitle>
-      {{ $t('backup-issues') }}
+      {{ t('backup-issues') }}
       <UiCounter :value="backupIssues.length" accent="danger" size="medium" variant="primary" />
-      <template #description>{{ $t('in-last-three-jobs') }}</template>
+      <template #description>{{ t('in-last-three-jobs') }}</template>
     </UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <VtsNoDataHero v-else-if="!hasBackupIssues" type="card" />
@@ -23,6 +23,9 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { backupIssues, isReady } = useDashboardStore().subscribe()
 

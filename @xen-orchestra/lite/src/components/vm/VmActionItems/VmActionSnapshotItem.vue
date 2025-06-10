@@ -1,6 +1,6 @@
 <template>
   <MenuItem :busy="areSomeVmsSnapshoting" :disabled="isDisabled" :icon="faCamera" @click="handleSnapshot">
-    {{ $t('snapshot') }}
+    {{ t('snapshot') }}
   </MenuItem>
 </template>
 
@@ -13,10 +13,13 @@ import { useXenApiStore } from '@/stores/xen-api.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { faCamera } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef } = useVmStore().subscribe()
 

@@ -1,13 +1,13 @@
 <template>
   <div class="vts-clipboard-console">
-    <UiCardTitle>{{ $t('console-clipboard') }}</UiCardTitle>
-    <UiTextarea v-tooltip="$t('coming-soon')" accent="brand" disabled :model-value="modelValue" />
+    <UiCardTitle>{{ t('console-clipboard') }}</UiCardTitle>
+    <UiTextarea v-tooltip="t('coming-soon')" accent="brand" disabled :model-value="modelValue" />
     <div class="buttons-container">
-      <UiButton v-tooltip="$t('coming-soon')" accent="brand" variant="primary" size="medium" disabled>
-        {{ $t('send') }}
+      <UiButton v-tooltip="t('coming-soon')" accent="brand" variant="primary" size="medium" disabled>
+        {{ t('send') }}
       </UiButton>
-      <UiButton v-tooltip="$t('coming-soon')" accent="brand" variant="secondary" size="medium" disabled>
-        {{ $t('receive') }}
+      <UiButton v-tooltip="t('coming-soon')" accent="brand" variant="secondary" size="medium" disabled>
+        {{ t('receive') }}
       </UiButton>
     </div>
   </div>
@@ -19,8 +19,11 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const modelValue = ref('')
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

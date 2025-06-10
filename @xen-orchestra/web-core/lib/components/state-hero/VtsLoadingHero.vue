@@ -1,7 +1,7 @@
 <template>
   <div class="vts-loading-hero">
     <VtsStateHero :type busy>
-      {{ $t('loading-in-progress') }}
+      {{ t('loading-in-progress') }}
     </VtsStateHero>
     <div v-if="slots.title || slots.text" class="content">
       <div v-if="slots.title" class="title" :class="className">
@@ -17,6 +17,7 @@
 <script lang="ts" setup>
 import VtsStateHero, { type StateHeroType } from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { type } = defineProps<{
   type: StateHeroType
@@ -26,6 +27,8 @@ const slots = defineSlots<{
   title?(): any
   text?(): any
 }>()
+
+const { t } = useI18n()
 
 const className = computed(() => (type === 'page' ? 'typo-h1' : 'typo-h2'))
 </script>

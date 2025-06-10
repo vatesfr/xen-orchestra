@@ -1,5 +1,5 @@
 <template>
-  <UiCardTitle>{{ $t('console-actions') }}</UiCardTitle>
+  <UiCardTitle>{{ t('console-actions') }}</UiCardTitle>
   <UiButton
     class="button"
     accent="brand"
@@ -8,7 +8,7 @@
     :left-icon="isFullscreen ? faDownLeftAndUpRightToCenter : faUpRightAndDownLeftFromCenter"
     @click="toggleFullScreen"
   >
-    {{ $t(isFullscreen ? 'exit-fullscreen' : 'fullscreen') }}
+    {{ t(isFullscreen ? 'exit-fullscreen' : 'fullscreen') }}
   </UiButton>
   <UiButton
     class="button"
@@ -18,7 +18,7 @@
     :left-icon="faArrowUpRightFromSquare"
     @click="openInNewTab"
   >
-    {{ $t('open-console-in-new-tab') }}
+    {{ t('open-console-in-new-tab') }}
   </UiButton>
   <UiButton
     class="button"
@@ -28,7 +28,7 @@
     :left-icon="faKeyboard"
     @click="sendCtrlAltDel"
   >
-    {{ $t('send-ctrl-alt-del') }}
+    {{ t('send-ctrl-alt-del') }}
   </UiButton>
 </template>
 
@@ -45,11 +45,14 @@ import {
 import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 defineProps<{
   sendCtrlAltDel: () => void
 }>()
+
+const { t } = useI18n()
 
 const router = useRouter()
 const uiStore = useUiStore()

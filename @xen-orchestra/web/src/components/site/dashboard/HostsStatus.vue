@@ -1,6 +1,6 @@
 <template>
   <UiCard>
-    <UiCardTitle>{{ $t('hosts-status') }}</UiCardTitle>
+    <UiCardTitle>{{ t('hosts-status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :icon="faServer" :segments />

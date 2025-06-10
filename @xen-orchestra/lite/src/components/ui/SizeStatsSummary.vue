@@ -1,18 +1,18 @@
 <template>
   <div v-if="isDisplayed" class="summary typo-caption-small">
     <div class="summary-card">
-      <p>{{ $t('total-used:') }}</p>
+      <p>{{ t('total-used:') }}</p>
       <div class="summary-value">
-        <p>{{ $n(percentUsed / 100, 'percent') }}</p>
+        <p>{{ n(percentUsed / 100, 'percent') }}</p>
         <p>
           {{ formatSize(usage) }}
         </p>
       </div>
     </div>
     <div class="summary-card">
-      <p>{{ $t('total-free:') }}</p>
+      <p>{{ t('total-free:') }}</p>
       <div class="summary-value">
-        <p>{{ $n(percentFree / 100, 'percent') }}</p>
+        <p>{{ n(percentFree / 100, 'percent') }}</p>
         <p>
           {{ formatSize(free) }}
         </p>
@@ -24,11 +24,14 @@
 <script lang="ts" setup>
 import { formatSize, percent } from '@/libs/utils'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   size: number
   usage: number
 }>()
+
+const { t, n } = useI18n()
 
 const free = computed(() => props.size - props.usage)
 const percentFree = computed(() => percent(free.value, props.size))
