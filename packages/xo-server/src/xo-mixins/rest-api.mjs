@@ -278,6 +278,7 @@ export default class RestApi {
         'VM-snapshot',
         'VM-template',
         'VM',
+        'SM',
       ]
       function getObject(id, req) {
         const { type } = this
