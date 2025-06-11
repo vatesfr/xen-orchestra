@@ -38,8 +38,6 @@ const selectedVif = useRouteQuery<XoVif | undefined>('id', {
 
 <style scoped lang="postcss">
 .networks {
-  height: 100%;
-
   &:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;

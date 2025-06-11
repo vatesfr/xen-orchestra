@@ -49,8 +49,6 @@ const selectedVif = useRouteQuery<XenApiVif | undefined>('id', {
 
 <style lang="postcss" scoped>
 .vm-network-view {
-  height: calc(100dvh - 16.5rem);
-
   &:not(.mobile) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
