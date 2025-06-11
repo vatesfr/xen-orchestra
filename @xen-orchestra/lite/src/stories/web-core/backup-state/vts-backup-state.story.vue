@@ -2,7 +2,12 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('state').type(`BackupState`).required().enum('success', 'partial', 'failure').preset('success').widget(),
+      prop('state')
+        .type(`BackupState`)
+        .required()
+        .enum('success', 'skipped', 'interrupted', 'failure')
+        .preset('success')
+        .widget(),
     ]"
   >
     <VtsBackupState v-bind="properties" />
