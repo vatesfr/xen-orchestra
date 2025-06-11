@@ -9,7 +9,7 @@
           variant="tertiary"
           accent="brand"
           :icon="faArrowLeft"
-          @click="$emit('close')"
+          @click="emit('close')"
         />
         <div>
           <UiButton
@@ -197,7 +197,7 @@ import { useI18n } from 'vue-i18n'
 
 const { vif } = defineProps<{ vif: XoVif }>()
 
-defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 

@@ -9,7 +9,7 @@
           variant="tertiary"
           accent="brand"
           :icon="faArrowLeft"
-          @click="$emit('close')"
+          @click="emit('close')"
         />
         <div>
           <UiButton
@@ -324,7 +324,7 @@ const { pif } = defineProps<{
   pif: XoPif
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 
