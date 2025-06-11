@@ -649,6 +649,10 @@ export const OPAQUE_REF = { EMPTY: 'OpaqueRef:NULL' } as const
 
 export type OPAQUE_REF_NULL = (typeof OPAQUE_REF)['EMPTY']
 
+export const BACKUP_TYPE = { backup: 'backup', metadata: 'metadataBackup', mirror: 'mirrorBackup' } as const
+
+export type BACKUP_TYPE = (typeof BACKUP_TYPE)[keyof typeof BACKUP_TYPE]
+
 // ----- XAPI Stats
 
 type XapiStatsResponse<T> = {

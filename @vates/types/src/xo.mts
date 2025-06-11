@@ -1,6 +1,7 @@
 // Types based on xapi-object-to-xo
 
 import type {
+  BACKUP_TYPE,
   Branded,
   DOMAIN_TYPE,
   HOST_ALLOWED_OPERATIONS,
@@ -129,6 +130,17 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
     uuid: XapiXoRecord['uuid']
     href?: string
   }
+}
+
+export type XoBackupRepository = {
+  benchmarks?: { readRate: number; timestamp: number; writeRate: number }[]
+  enabled: boolean
+  error?: Record<string, unknown>
+  id: Branded<'backup-repository'>
+  name: string
+  options?: string
+  proxy?: XoProxy['id']
+  url: string
 }
 
 export type XoGroup = {
@@ -335,15 +347,65 @@ export type XoPool = BaseXapiXo & {
   zstdSupported: boolean
 }
 
-export type XoJob = {
+export type XoProxy = {
+  id: Branded<'proxy'>
+}
+
+type BaseXoJob = {
   id: Branded<'job'>
 }
+// @TODO: create type for complex matcher
+export type XoBackupJob = BaseXoJob & {
+  compression?: 'native' | 'zstd' | ''
+  proxy?: XoProxy['id']
+  mode: 'full' | 'delta'
+  name?: string
+  remotes?: {
+    id: XoBackupRepository['id'] | { __or: XoBackupRepository['id'][] }
+  }
+  vms?: {
+    id: XoVm['id'] | { __or: XoVm['id'][] } | Record<string, unknown>
+  }
+  srs: {
+    id: XoSr['id'] | { __or: XoSr['id'][] }
+  }
+  type: BACKUP_TYPE
+  settings: {
+    '': {
+      cbtDestroySnapshotData?: boolean
+      concurrency?: number
+      longTermRetention?: {
+        daily?: { retention: number; settings: Record<string, unknown> }
+        weekly?: { retention: number; settings: Record<string, unknown> }
+        monthly?: { retention: number; settings: Record<string, unknown> }
+        yearly?: { retention: number; settings: Record<string, unknown> }
+      }
+      maxExportRate?: number
+      nbdConcurrency?: number
+      nRetriesVmBackupFailures?: number
+      preferNbd?: boolean
+      timezone?: string
+      [key: string]: unknown
+    }
+    [key: XoSchedule['id']]: {
+      exportRetention?: number
+      healthCheckSr?: XoSr['id']
+      healthCheckVmsWithTags?: string[]
+      fullInterval?: number
+      copyRetention?: number
+      snapshotRetention?: number
+      cbtDestroySnapshotData?: boolean
+      [key: string]: unknown
+    }
+  }
+}
+export type XoJob = BaseXoJob & {}
 
 export type XoSchedule = {
   cron: string
-  enable: boolean
+  enabled: boolean
   id: Branded<'schedule'>
-  jobId: XoJob['id']
+  jobId: (XoJob | XoBackupJob)['id']
   name?: string
   timezone?: string
 }
@@ -370,7 +432,7 @@ export type XoSr = BaseXapiXo & {
 
   $container: XoPool['id'] | XoHost['id']
 
-  VDIs: XoVdi['id'][]
+  VDIs: AnyXoVdi['id'][]
 
   allocationStrategy: 'thin' | 'thick' | 'unknown'
   content_type: string
@@ -380,9 +442,9 @@ export type XoSr = BaseXapiXo & {
   name_description: string
   name_label: string
   other_config: Record<string, string>
-  physical_usage: number | null
+  physical_usage: number
   shared: boolean
-  size: number | null
+  size: number
   sm_config: Record<string, string>
   SR_type: string
   tags: string[]
@@ -410,8 +472,8 @@ export type XoVbd = BaseXapiXo & {
   position: string
   read_only: boolean
   type: 'VBD'
-  VDI: XoVdi['id']
-  VM: XoVm['id']
+  VDI: AnyXoVdi['id']
+  VM: AnyXoVm['id']
 }
 
 type BaseXoVdi = BaseXapiXo & {
@@ -540,6 +602,12 @@ export type XapiXoRecord =
   | XoVmTemplate
   | XoVtpm
 
-export type NonXapiXoRecord = XoGroup | XoJob | XoSchedule | XoServer | XoUser
+export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
+
+export type AnyXoVm = XoVm | XoVmSnapshot | XoVmTemplate | XoVmController
+
+export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
+
+export type AnyXoJob = XoJob | XoBackupJob
