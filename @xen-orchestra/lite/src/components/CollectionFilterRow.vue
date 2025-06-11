@@ -1,36 +1,26 @@
 <template>
   <div class="collection-filter-row">
     <span class="or">{{ t('or') }}</span>
-    <FormWidget v-if="newFilter.isAdvanced" class="form-widget-advanced">
-      <input v-model="newFilter.content" />
-    </FormWidget>
+    <UiInput v-if="newFilter.isAdvanced" v-model="newFilter.content" accent="brand" />
     <template v-else>
-      <FormWidget :before="currentFilterIcon">
-        <select v-model="newFilter.builder.property">
-          <option v-if="!newFilter.builder.property" value="">{{ `- ${t('property')} -` }}</option>
-          <option v-for="(filter, property) in availableFilters" :key="property" :value="property">
-            {{ filter.label ?? property }}
-          </option>
-        </select>
-      </FormWidget>
-      <FormWidget v-if="hasComparisonSelect">
-        <select v-model="newFilter.builder.comparison">
-          <option v-for="(label, type) in comparisons" :key="type" :value="type">
-            {{ label }}
-          </option>
-        </select>
-      </FormWidget>
-      <FormWidget v-if="currentFilter?.type === 'enum'">
-        <select v-model="newFilter.builder.value">
-          <option v-if="!newFilter.builder.value" value="" />
-          <option v-for="choice in enumChoices" :key="choice" :value="choice">
-            {{ choice }}
-          </option>
-        </select>
-      </FormWidget>
-      <FormWidget v-else-if="hasValueInput" :after="valueInputAfter" :before="valueInputBefore">
-        <input v-model="newFilter.builder.value" />
-      </FormWidget>
+      <FormSelect v-model="newFilter.builder.property" :before="currentFilterIcon">
+        <option v-if="!newFilter.builder.property" value="">{{ `- ${t('property')} -` }}</option>
+        <option v-for="(filter, property) in availableFilters" :key="property" :value="property">
+          {{ filter.label ?? property }}
+        </option>
+      </FormSelect>
+      <FormSelect v-if="hasComparisonSelect" v-model="newFilter.builder.comparison">
+        <option v-for="(label, type) in comparisons" :key="type" :value="type">
+          {{ label }}
+        </option>
+      </FormSelect>
+      <FormSelect v-if="currentFilter?.type === 'enum'" v-model="newFilter.builder.value">
+        <option v-if="!newFilter.builder.value" value="" />
+        <option v-for="choice in enumChoices" :key="choice" :value="choice">
+          {{ choice }}
+        </option>
+      </FormSelect>
+      <UiInput v-else-if="hasValueInput" v-model="newFilter.builder.value" accent="brand" />
     </template>
     <UiActionButton v-if="!newFilter.isAdvanced" :icon="faPencil" @click="enableAdvancedMode" />
     <UiActionButton :icon="faRemove" @click="emit('remove', newFilter.id)" />
@@ -38,11 +28,12 @@
 </template>
 
 <script lang="ts" setup>
-import FormWidget from '@/components/FormWidget.vue'
+import FormSelect from '@/components/form/FormSelect.vue'
 import UiActionButton from '@/components/ui/UiActionButton.vue'
 import { buildComplexMatcherNode } from '@/libs/complex-matcher.utils'
 import { getFilterIcon } from '@/libs/utils'
 import type { Filter, FilterComparisons, FilterComparisonType, Filters, FilterType, NewFilter } from '@/types/filter'
+import UiInput from '@core/components/ui/input/UiInput.vue'
 import { faPencil, faRemove } from '@fortawesome/free-solid-svg-icons'
 import { useVModel } from '@vueuse/core'
 import { computed, type Ref, watch } from 'vue'
@@ -171,10 +162,6 @@ const comparisons = computed<FilterComparisons>(() => {
 
   return comparisonsByType[currentFilter.value.type]
 })
-
-const valueInputBefore = computed(() => (newFilter.value.builder.comparison === 'stringMatchesRegex' ? '/' : undefined))
-
-const valueInputAfter = computed(() => (newFilter.value.builder.comparison === 'stringMatchesRegex' ? '/i' : undefined))
 </script>
 
 <style lang="postcss" scoped>
@@ -198,10 +185,6 @@ const valueInputAfter = computed(() => (newFilter.value.builder.comparison === '
   &:first-child .or {
     visibility: hidden;
   }
-}
-
-.form-widget-advanced {
-  flex: 1;
 }
 
 .ui-action-button:first-of-type {
