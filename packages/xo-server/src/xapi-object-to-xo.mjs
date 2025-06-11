@@ -642,6 +642,8 @@ const TRANSFORMS = {
 
   sr(obj) {
     const srType = obj.type
+    const smId = `${obj.$pool.$id}-${obj.type}`
+    const sm = obj.$xapi.getObject(smId, undefined)
     return {
       type: 'SR',
 
@@ -667,6 +669,28 @@ const TRANSFORMS = {
 
       $container: obj.shared || !obj.$PBDs[0] ? link(obj, 'pool') : link(obj.$PBDs[0], 'host'),
       $PBDs: link(obj, 'PBDs'),
+      SM: sm,
+      smId: smId,
+    }
+  },
+
+  sm(obj) {
+    const smType = obj.type
+    const id = `${obj.$pool.$id}-${smType}`
+    return {
+      type: 'SM',
+      id: id,
+      uuid: obj.uuid,
+      content_type: obj.content_type,
+      name_description: obj.name_description,
+      name_label: obj.name_label,
+
+      SM_type: smType,
+      tags: obj.tags,
+      other_config: obj.other_config,
+      sm_config: obj.sm_config,
+      vendor: obj.vendor,
+      features: obj.features,
     }
   },
 
