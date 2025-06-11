@@ -9,7 +9,10 @@
   >
     <UiQuoteCode v-bind="properties">
       <template #title>
-        <div>hello world</div>
+        <span class="title">
+          <div>hello world</div>
+          <VtsCopyButton :value="properties.code" />
+        </span>
       </template>
     </UiQuoteCode>
   </ComponentStory>
@@ -18,5 +21,13 @@
 <script setup lang="ts">
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, slot } from '@/libs/story/story-param'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
 </script>
+
+<style lang="postcss" scoped>
+.title {
+  display: flex;
+  justify-content: space-between;
+}
+</style>
