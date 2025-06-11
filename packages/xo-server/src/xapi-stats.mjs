@@ -179,9 +179,40 @@ const STATS = {
     memory: {
       test: metricType => metricType.endsWith('memory'),
     },
+    memoryTarget: {
+      test: 'memory_target',
+    },
     cpus: {
       test: /^cpu(\d+)$/,
       getPath: matches => ['cpus', matches[1]],
+      transformValue: value => value * 1e2,
+    },
+    cpuUsage: {
+      test: 'cpu_usage',
+      transformValue: value => value * 1e2,
+    },
+    runstateFullrun: {
+      test: 'runstate_fullrun',
+      transformValue: value => value * 1e2,
+    },
+    runstateFullContention: {
+      test: 'runstate_full_contention',
+      transformValue: value => value * 1e2,
+    },
+    runstatePartialRun: {
+      test: 'runstate_partial_run',
+      transformValue: value => value * 1e2,
+    },
+    runstatePartialContention: {
+      test: 'runstate_partial_contention',
+      transformValue: value => value * 1e2,
+    },
+    runstateConcurrencyHazard: {
+      test: 'runstate_concurrency_hazard',
+      transformValue: value => value * 1e2,
+    },
+    runstateBlocked: {
+      test: 'runstate_blocked',
       transformValue: value => value * 1e2,
     },
     vifs: {
@@ -192,6 +223,16 @@ const STATS = {
       tx: {
         test: /^vif_(\d+)_tx$/,
         getPath: matches => ['vifs', 'tx', matches[1]],
+      },
+    },
+    vifErrors: {
+      rx: {
+        test: /^vif_(\d+)_rx_errors$/,
+        getPath: matches => ['vifErrors', 'rx', matches[1]],
+      },
+      tx: {
+        test: /^vif_(\d+)_tx_errors$/,
+        getPath: matches => ['vifErrors', 'tx', matches[1]],
       },
     },
     xvds: {
@@ -213,6 +254,36 @@ const STATS = {
         test: /^vbd_xvd(.)_iops_write$/,
         getPath: matches => ['iops', 'w', matches[1]],
       },
+      total: {
+        test: /^vbd_xvd(.)_iops_total$/,
+        getPath: matches => ['iops', 'total', matches[1]],
+      },
+    },
+    // // value in ms converted to seconds to be consistent with other vbd values
+    vbdLatency: {
+      r: {
+        test: /^vbd_xvd(.)_read_latency$/,
+        getPath: matches => ['vbdLatency', 'r', matches[1]],
+        transformValue: value => value / 1000,
+      },
+      w: {
+        test: /^vbd_xvd(.)_write_latency$/,
+        getPath: matches => ['vbdLatency', 'w', matches[1]],
+        transformValue: value => value / 1000,
+      },
+    },
+    vbdIowait: {
+      test: /^vbd_xvd(.)_iowait$/,
+      getPath: matches => ['vbdIowait', matches[1]], // percent. Maybe need to * 1e2
+      transofrmValue: value => value * 1e2,
+    },
+    vbdInflight: {
+      test: /^vbd_xvd(.)_inflight$/,
+      getPath: matches => ['vbdInflight', matches[1]],
+    },
+    vbdAvgquSz: {
+      test: /^vbd_xvd(.)_avgqu_sz$/,
+      getPath: matches => ['vbdAvgquSz', matches[1]],
     },
   },
 }
