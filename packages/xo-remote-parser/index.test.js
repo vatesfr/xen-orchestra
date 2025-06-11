@@ -132,6 +132,44 @@ const data = deepFreeze({
       allowUnauthorized: false,
     },
   },
+  AZURE: {
+    string: 'azure://username:%2FpAssWord%3D%3D@username.blob.core.windows.net/xodev/newfolder/from/bob',
+    object: {
+      type: 'azure',
+      host: 'username.blob.core.windows.net',
+      protocol: 'https',
+      port: '',
+      path: '/xodev/newfolder/from/bob',
+      username: 'username',
+      password: '/pAssWord==',
+    },
+  },
+  'azurite https': {
+    string:
+      'azurite://devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq%2FK1SZFPTOtr%2FKBHBeksoGMGw%3D%3D@127.0.0.1:10000/xodevtest/folder/subfolder',
+    object: {
+      type: 'azurite',
+      host: '127.0.0.1:10000',
+      port: '10000',
+      protocol: 'https',
+      path: '/xodevtest/folder/subfolder',
+      username: 'devstoreaccount1',
+      password: 'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==',
+    },
+  },
+  'azurite http': {
+    string:
+      'azurite+http://devstoreaccount1:Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq%2FK1SZFPTOtr%2FKBHBeksoGMGw%3D%3D@127.0.0.1:10000/xodevtest/folder/subfolder',
+    object: {
+      type: 'azurite',
+      host: '127.0.0.1:10000',
+      port: '10000',
+      protocol: 'http',
+      path: '/xodevtest/folder/subfolder',
+      username: 'devstoreaccount1',
+      password: 'Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==',
+    },
+  },
 })
 
 const parseData = deepFreeze({
