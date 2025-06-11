@@ -1,9 +1,15 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Body, Example, Get, Path, Post, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoUser } from '@vates/types'
 
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  createdResp,
+  invalidParameters,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { partialUsers, user, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -62,5 +68,22 @@ export class UserController extends XoController<XoUser> {
   @Response(notFoundResp.status, notFoundResp.description)
   getUser(@Path() id: string): Promise<Unbrand<XoUser>> {
     return this.getObject(id as XoUser['id'])
+  }
+
+  /**
+   * @example body { "name": "new user", "password": "password", "permission": "none" }
+   */
+  @Example(user)
+  @Post('')
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(unauthorizedResp.status, unauthorizedResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  async createUser(
+    @Body() userData: { name: string; password: string; permission?: string }
+  ): Promise<{ id: XoUser['id'] }> {
+    const { name, password, permission } = userData
+    const user = await this.restApi.xoApp.createUser({ name, password, permission })
+
+    return user
   }
 }
