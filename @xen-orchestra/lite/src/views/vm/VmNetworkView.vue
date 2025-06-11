@@ -32,7 +32,8 @@ const uiStore = useUiStore()
 
 const route = useRoute()
 
-usePageTitleStore().setTitle(useI18n().t('network'))
+const { t } = useI18n()
+usePageTitleStore().setTitle(t('network'))
 
 const vifs = useArrayFilter(records, vif => {
   const vm = getByOpaqueRef(vif.VM)

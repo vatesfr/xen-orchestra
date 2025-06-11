@@ -25,7 +25,8 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 
-usePageTitleStore().setTitle(useI18n().t('network'))
+const { t } = useI18n()
+usePageTitleStore().setTitle(t('network'))
 
 const { getByUuid, networksWithPifs, networksWithoutPifs } = useNetworkStore().subscribe()
 const uiStore = useUiStore()
