@@ -35,7 +35,7 @@ const uiStore = useUiStore()
   background-color: var(--color-neutral-background-secondary);
 
   &:not(.mobile-drawer) {
-    max-height: calc(100dvh - 5.5rem);
+    height: calc(100dvh - 16rem);
   }
 
   .header {
@@ -49,11 +49,16 @@ const uiStore = useUiStore()
   }
 
   .content {
-    overflow: auto;
     display: flex;
     flex-direction: column;
     padding: 0.8rem;
     gap: 0.8rem;
+  }
+
+  &.mobile-drawer {
+    .content {
+      overflow: auto;
+    }
   }
 
   &.error {
