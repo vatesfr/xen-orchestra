@@ -33,7 +33,7 @@
                   </div>
                 </div>
               </div>
-              <div v-else>
+              <div v-else-if="column.value">
                 <VtsBackupState :state="column.value" />
               </div>
             </td>
