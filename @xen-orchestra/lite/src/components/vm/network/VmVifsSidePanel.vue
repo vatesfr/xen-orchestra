@@ -9,7 +9,7 @@
           variant="tertiary"
           accent="brand"
           :icon="faArrowLeft"
-          @click="$emit('close')"
+          @click="emit('close')"
         />
         <div>
           <UiButton
@@ -194,7 +194,7 @@ const { vif } = defineProps<{
   vif: XenApiVif
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 

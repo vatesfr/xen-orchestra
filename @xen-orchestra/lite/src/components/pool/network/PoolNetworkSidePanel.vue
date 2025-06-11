@@ -9,7 +9,7 @@
           variant="tertiary"
           accent="brand"
           :icon="faArrowLeft"
-          @click="$emit('close')"
+          @click="emit('close')"
         />
         <div class="buttons-action">
           <UiButton
@@ -146,7 +146,7 @@ const { network } = defineProps<{
   network: XenApiNetwork
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 

@@ -9,7 +9,7 @@
           variant="tertiary"
           accent="brand"
           :icon="faArrowLeft"
-          @click="$emit('close')"
+          @click="emit('close')"
         />
         <div class="buttons-action">
           <UiButton
@@ -150,7 +150,7 @@ const { network } = defineProps<{
   network: XoNetwork
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 
