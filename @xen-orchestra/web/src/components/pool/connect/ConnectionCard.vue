@@ -6,7 +6,7 @@
         <div class="input-content">
           <VtsInputWrapper :label="t('ip-address')">
             <!-- TODO validation -->
-            <UiInput v-model="form.host" accent="brand" required />
+            <UiInput v-model="form.host" accent="brand" required :placeholder="t('ip-port-place-holder')" />
             <UiInfo accent="info" wrap>
               {{ t('pool-connection-ip-info') }}
             </UiInfo>
@@ -24,7 +24,7 @@
           </VtsInputWrapper>
           <!-- TODO validation -->
           <VtsInputWrapper :label="t('password')">
-            <UiInput v-model="form.password" accent="brand" required />
+            <UiInput v-model="form.password" accent="brand" required type="password" />
           </VtsInputWrapper>
         </div>
       </div>
@@ -78,6 +78,10 @@ function submit() {
       router.push({
         name: '/pool/connect/success',
         params: response,
+      })
+    } else {
+      router.push({
+        name: '/pool/connect/',
       })
     }
   })
