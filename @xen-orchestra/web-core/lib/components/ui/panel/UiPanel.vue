@@ -49,6 +49,7 @@ const uiStore = useUiStore()
   }
 
   .content {
+    overflow: auto;
     display: flex;
     flex-direction: column;
     padding: 0.8rem;
