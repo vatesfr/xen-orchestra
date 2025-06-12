@@ -78,6 +78,7 @@ function submit() {
           path: '/pool/connect/success',
           state: {
             ip: form.host,
+            idServer: response,
           },
         })
       } else {
