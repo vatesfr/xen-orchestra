@@ -96,7 +96,8 @@ function submit() {
         path: '/pool/connect/error',
         state: {
           ip: form.host,
-          errorJson: reson,
+          ErrorCodes: reson.status.value,
+          errorJson: reson.message,
         },
       })
     })
