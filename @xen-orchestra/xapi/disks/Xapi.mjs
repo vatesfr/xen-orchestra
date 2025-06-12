@@ -13,7 +13,7 @@ import { XapiProgressHandler } from './XapiProgress.mjs'
 import { XapiQcow2StreamSource } from './XapiQcow2StreamSource.mjs'
 
 // @todo how to type this ?
-const { warn } = createLogger('@xen-orchestra/xapi/disks/Xapi')
+const { info, warn } = createLogger('@xen-orchestra/xapi/disks/Xapi')
 
 const VHD_MAX_SIZE = 2 * 1024 * 1024 * 1024 * 1024 /* 2TB */ - 8 * 1024 /* metadata */
 
@@ -104,7 +104,7 @@ export class XapiDiskSource extends RandomDiskPassthrough {
    * Create a disk source using stream export.
    * On failure, fall back to a full export.
    *
-   * @returns {Promise<XapiVhdStreamSource|ReadAhead>}
+   * @returns {Promise<XapiVhdStreamSource|XapiQcow2StreamSource | ReadAhead>}
    */
   async #openExportStream() {
     const xapi = this.#xapi
@@ -115,8 +115,10 @@ export class XapiDiskSource extends RandomDiskPassthrough {
     try {
       const size = await xapi.getField('VDI', vdiRef, 'virtual_size')
       if (size < VHD_MAX_SIZE) {
+        console.log('will export as vhd')
         source = new XapiVhdStreamSource({ vdiRef, baseRef, xapi })
       } else {
+        console.log('will export as qcow')
         source = new XapiQcow2StreamSource({ vdiRef, baseRef, xapi })
       }
       await source.init()
@@ -158,7 +160,7 @@ export class XapiDiskSource extends RandomDiskPassthrough {
       readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD+CBT`)
       return readAhead
     } catch (error) {
-      warn('openNbdCBT', error)
+      info('openNbdCBT', error)
       await source.close()
       // A lot of things can go wrong with CBT:
       // Not enabled on the baseRef,
@@ -189,6 +191,7 @@ export class XapiDiskSource extends RandomDiskPassthrough {
     } else {
       source = await this.#openExportStream()
     }
+    console.log("openSource", {source})
     return source
   }
 

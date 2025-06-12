@@ -1,12 +1,13 @@
-import assert from 'node:assert'
-import { DiskBlock, RandomAccessDisk } from './Disk.mjs'
-import { RandomDiskPassthrough } from './DiskPassthrough.mjs'
+import assert, { throws } from 'node:assert'
+import { RandomAccessDisk, type Disk, type DiskBlock } from './Disk.mjs'
+import { DiskPassthrough } from './DiskPassthrough.mjs'
 
-export class DiskSmallerBlock extends RandomDiskPassthrough {
+export class DiskSmallerBlock extends DiskPassthrough {
   #blockSize
-  #currentBlock?: DiskBlock
+  #generatedDiskBlocks = 0
+  #blockCache?:DiskBlock
 
-  constructor(source: RandomAccessDisk, blockSize: number) {
+  constructor(source: Disk, blockSize: number) {
     super(source)
     assert.ok(
       blockSize <= source.getBlockSize(),
@@ -21,32 +22,43 @@ export class DiskSmallerBlock extends RandomDiskPassthrough {
     this.#blockSize = blockSize
   }
 
-  openSource(): Promise<RandomAccessDisk> {
+  openSource(): Promise<Disk> {
     // not a issue since source MUST BE passed to the constructor
     throw new Error('Method not implemented.')
   }
-  async readBlock(index: number): Promise<DiskBlock> {
-    const blockRatio = this.source.getBlockSize() / this.#blockSize
-    const sourceIndex = Math.floor(index / blockRatio)
-    let sourceData: Buffer
-    if (this.#currentBlock?.index !== sourceIndex) {
-      const sourceBlock = await this.source.readBlock(sourceIndex)
-      this.#currentBlock = sourceBlock
-    }
-    sourceData = this.#currentBlock!.data
-    const indexInSourceBlock = index % blockRatio
-    const data = Buffer.alloc(this.getBlockSize(), 0)
-    sourceData.copy(data, 0, indexInSourceBlock * this.getBlockSize())
 
-    return { index, data }
+  getNbGeneratedBlock(): number {
+    return this.#generatedDiskBlocks
   }
+
+  async *diskBlocks(): AsyncGenerator<DiskBlock> {
+    console.log('GENERATOR')
+    try {
+      const blockRatio = this.source.getBlockSize() / this.#blockSize
+      const sourceGenerator = this.source.diskBlocks() 
+      for await (const {data:sourceData, index:sourceIndex} of sourceGenerator) {
+        for(let i=0 ; i < blockRatio; i ++){
+          this.#generatedDiskBlocks++
+          const data = sourceData.subarray(i*this.#blockSize , (i+1)*this.#blockSize)
+          yield {
+            index: sourceIndex*blockRatio + i,
+            data
+          }
+        }  
+      }
+    } finally {
+      await this.progressHandler?.done()
+      await this.close()
+    }
+  }
+
   getBlockSize(): number {
     return this.#blockSize
   }
   getBlockIndexes(): Array<number> {
     const blockRatio = this.source.getBlockSize() / this.getBlockSize()
     const sourceIndexes = this.source.getBlockIndexes()
-    const indexes = []
+    const indexes:Array<number> = []
     const maxIndex = Math.ceil(this.getVirtualSize() / this.getBlockSize())
     for (const sourceIndex of sourceIndexes) {
       for (let i = 0; i < blockRatio; i++) {
@@ -56,7 +68,6 @@ export class DiskSmallerBlock extends RandomDiskPassthrough {
         }
       }
     }
-
     return indexes
   }
 
@@ -64,5 +75,26 @@ export class DiskSmallerBlock extends RandomDiskPassthrough {
     const blockRatio = this.source.getBlockSize() / this.getBlockSize()
     const sourceIndex = Math.floor(index / blockRatio)
     return this.source.hasBlock(sourceIndex)
+  }
+
+  async readBlock(index:number):Promise<DiskBlock>{
+    if(this.source instanceof RandomAccessDisk){
+      const blockRatio = this.source.getBlockSize() / this.getBlockSize()
+      const sourceBlockIndex = Math.floor(index /blockRatio) 
+      const indexInblock = index %blockRatio
+      let block = this.#blockCache 
+      if(block?.index !== sourceBlockIndex){
+        this.#blockCache = block = await this.source.readBlock(sourceBlockIndex)
+      }
+      
+      const data = block.data.subarray(indexInblock*this.#blockSize , (indexInblock+1)*this.#blockSize)
+      
+      return {
+        index, 
+        data
+      }
+    } else {
+      throw new Error('not implemented')
+    }
   }
 }

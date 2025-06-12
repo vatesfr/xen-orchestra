@@ -31,6 +31,7 @@ export class DiskConsumerVhdStream extends BaseVhd {
     /** @type {VhdStream} */
     const stream = Readable.from(generator(), { objectMode: false, highWaterMark: 10 * 1024 * 1024 })
     stream.length = fileSize
+    console.log('TOSTREAM')
     return stream
   }
 }

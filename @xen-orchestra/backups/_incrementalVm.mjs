@@ -13,6 +13,8 @@ import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 import { XapiDiskSource } from '@xen-orchestra/xapi'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 
+import {toQcow2Stream} from '@xen-orchestra/qcow2'
+
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
 export async function exportIncrementalVm(
@@ -235,8 +237,14 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
           continue
         }
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
-        const stream = await toVhdStream({ disk })
-        await vdi.$importContent(stream, { cancelToken, format: 'vhd' })
+        console.log('QCOW')
+        let stream = await toQcow2Stream(disk)//toVhdStream({ disk })
+        console.log('got stream', stream)
+         
+        await vdi.$importContent(stream, { cancelToken, format: 'qcow2' })
+       
+         
+       console.log('imported')
         await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
       }
     }),

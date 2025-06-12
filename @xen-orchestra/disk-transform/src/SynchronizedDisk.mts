@@ -17,6 +17,7 @@ class ForkedDisk extends DiskPassthrough {
   }
   async *diskBlocks(): AsyncGenerator<DiskBlock> {
     try {
+      console.log('FORKED FROM', this.source)
       for await (const block of this.#generator) {
         this.#generatedDiskBlocks++
         yield block

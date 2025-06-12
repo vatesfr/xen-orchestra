@@ -1,4 +1,4 @@
-import { DiskLargerBlock, DiskSmallerBlock, RandomAccessDisk } from '@xen-orchestra/disk-transform'
+import { DiskLargerBlock, DiskSmallerBlock, Disk, RandomAccessDisk } from '@xen-orchestra/disk-transform'
 import assert from 'node:assert'
 import { Readable } from 'node:stream'
 
@@ -25,22 +25,25 @@ function getAlignedBuffer(length: number): Buffer {
 type WithLength<T> = T & { length?: number }
 
 /**
- * Generates a valid QCOW2 stream from a RandomAccessDisk.
+ * Generates a valid QCOW2 stream from a Disk.
  *
  * Implements QCOW2 version 2 format as described in:
  * https://github.com/qemu/qemu/blob/master/docs/interop/qcow2.txt
  */
 export class QcowStreamGenerator {
-  #disk: RandomAccessDisk
+  #disk: Disk
   #offset = 0
 
   /**
    * Creates a new QCOW2 stream generator
    * @param disk The disk to convert to QCOW2 format
    */
-  constructor(disk: RandomAccessDisk) {
+  constructor(disk: Disk) {
     if (disk.getBlockSize() < CLUSTER_SIZE) {
-      this.#disk = new DiskLargerBlock(disk, CLUSTER_SIZE)
+      if(disk.isDifferencing() && !(disk instanceof RandomAccessDisk)){
+        throw new Error(`Can't create differential disk with larger block without random access`)
+      }
+      this.#disk = new DiskLargerBlock(disk as RandomAccessDisk, CLUSTER_SIZE)
     } else if (disk.getBlockSize() > CLUSTER_SIZE) {
       this.#disk = new DiskSmallerBlock(disk, CLUSTER_SIZE)
     } else {
@@ -281,16 +284,18 @@ export class QcowStreamGenerator {
 
       // Yield data clusters
       let nbGeneratedBlock = 0
-
-      for (let i = 0; i < nbTotalBlock; i++) {
-        if (disk.hasBlock(i)) {
-          const { data } = await disk.readBlock(i)
-          yield* self.#trackAndYield(data)
-          nbGeneratedBlock++
+      let previous = -1
+      console.log('will generate blocks of ', {disk})
+      for await (const {index, data} of disk.diskBlocks()){ 
+        if(index < previous){
+          throw new Error('Qcow can only be generated from sorted disk')
         }
+        previous = index
+        yield* self.#trackAndYield(data)
+        nbGeneratedBlock++
       }
 
-      assert.strictEqual(nbGeneratedBlock, nbAllocatedBlocks, 'nb block ')
+      assert.strictEqual(nbGeneratedBlock, nbAllocatedBlocks, `expected ${nbAllocatedBlocks}, yield ${nbGeneratedBlock}`)
       // Verify we generated the expected amount of data
       assert.strictEqual(self.#offset, expectedStreamLength, 'stream length')
     }
@@ -308,7 +313,7 @@ export class QcowStreamGenerator {
  * @param disk The disk to convert
  * @returns Readable stream of QCOW2 data
  */
-export function toQcow2Stream(disk: RandomAccessDisk): Readable {
+export function toQcow2Stream(disk: Disk): Readable {
   const generator = new QcowStreamGenerator(disk)
   return generator.stream()
 }

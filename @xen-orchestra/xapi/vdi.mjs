@@ -253,7 +253,7 @@ class Vdi {
 
   async importContent(ref, stream, { cancelToken = CancelToken.none, format }) {
     assert.notEqual(format, undefined)
-
+    console.log('importcontent', {ref, format, stream})
     if (stream.length === undefined) {
       throw new Error('Trying to import a VDI without a length field. Please report this error to Xen Orchestra.')
     }

@@ -187,8 +187,11 @@ export class XapiVhdStreamSource extends Disk {
     assert.strictEqual(this.#initDone, true, 'init must be done to call buildDiskGenerator')
     const blockIndexes = this.#blocks
     const self = this
+    console.log(' CALLED buildDiskBlockGenerator', )
     async function* generator() {
+    console.log(' CALLED buildDiskBlockGenerator generator' )
       for (const { offset, index } of blockIndexes) {
+        console.log({index})
         await self.#skip(offset - self.#streamOffset) // this will skip the bitmap
         const data = await self.#read(DEFAULT_BLOCK_SIZE)
         yield {
@@ -197,7 +200,7 @@ export class XapiVhdStreamSource extends Disk {
         }
       }
     }
-
+    console.log('stream generator done ')
     return generator()
     // @todo read the end to check the end footer and ensure the stream is complete
   }
