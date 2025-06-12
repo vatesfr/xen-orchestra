@@ -5,6 +5,7 @@
         <h1>{{ t('unable-to-connect-to', { ip }) }}</h1>
         <UiAlert accent="danger">{{ t('pool-connection-error') }}</UiAlert>
         <UiButton variant="secondary" accent="brand" size="medium" @click="goBack"> {{ t('go-back') }}</UiButton>
+        {{ errorJson }}
       </div>
     </VtsStateHero>
   </div>
@@ -17,9 +18,9 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-defineProps<{
-  ip: string
-  errrorJson?: string
+const { ip = history.state?.ip, errorJson = history.state?.errorJson } = defineProps<{
+  ip?: string
+  errorJson?: string
 }>()
 
 const { t } = useI18n()
