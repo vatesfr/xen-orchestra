@@ -22,6 +22,7 @@
           {{ errorJson }}
         </template>
         <UiButton variant="secondary" accent="brand" size="medium" @click="goBack"> {{ t('go-back') }}</UiButton>
+        {{ errorJson }}
       </div>
     </VtsStateHero>
   </div>
