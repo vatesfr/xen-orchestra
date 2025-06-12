@@ -556,6 +556,7 @@
   "total-used:": "Total utilisé :",
   "unable-to-connect-to-the-pool": "Impossible de se connecter au Pool",
   "unable-to-connect-to": "impossible de se connecter a {ip}",
+  "connect-to-ip": "connecter à {ip}",
   "unknown": "Inconnu",
   "unlocked": "Débloqué",
   "unreachable-hosts": "Hôtes inaccessibles",
