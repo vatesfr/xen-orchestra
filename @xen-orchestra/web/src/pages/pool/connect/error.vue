@@ -3,8 +3,11 @@
     <VtsStateHero image="error" type="table" no-background>
       <div class="content">
         <h1>{{ t('unable-to-connect-to', { ip }) }}</h1>
-        <UiAlert accent="danger">{{ t('pool-connection-error') }}</UiAlert>
-        {{ errorJson }}
+        <UiAlert v-if="ErrorCodes == 409" accent="danger">{{ t('pool-connection-error-duplicate') }}</UiAlert>
+        <template v-else>
+          <UiAlert accent="danger">{{ t('pool-connection-error') }}</UiAlert>
+          {{ errorJson }}
+        </template>
         <UiButton variant="secondary" accent="brand" size="medium" @click="goBack"> {{ t('go-back') }}</UiButton>
       </div>
     </VtsStateHero>
@@ -18,7 +21,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { ip, errorJson } = history.state
+const { ip, errorJson, ErrorCodes } = history.state
 
 const { t } = useI18n()
 const router = useRouter()
