@@ -16,7 +16,7 @@ const { VhdAbstract } = require('./VhdAbstract')
 const assert = require('assert')
 const getFirstAndLastBlocks = require('../_getFirstAndLastBlocks')
 
-const { debug } = createLogger('vhd-lib:VhdFile')
+const { debug, info } = createLogger('vhd-lib:VhdFile')
 
 // ===================================================================
 //
@@ -57,6 +57,8 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
   #header
   footer
 
+  #closed = false
+  #closedBy
   get #blockTable() {
     assert.notStrictEqual(this.#uncheckedBlockTable, undefined, 'Block table must be initialized before access')
     return this.#uncheckedBlockTable
@@ -118,6 +120,19 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
     this._path = path
   }
 
+  async dispose() {
+    if (this.#closed) {
+      info('double close', {
+        path: this._path,
+        firstClosedBy: this.#closedBy,
+        closedAgainBy: new Error().stack,
+      })
+      return
+    }
+    this.#closed = true
+    this.#closedBy = new Error().stack
+    await this.handler.closeFile()
+  }
   // =================================================================
   // Read functions.
   // =================================================================

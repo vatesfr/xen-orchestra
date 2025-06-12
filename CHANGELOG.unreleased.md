@@ -36,7 +36,8 @@
 
 ### Bug fixes
 
-[REST API] Ability to use `ndjson` query parameter also on migrated collections (PR [#8628](https://github.com/vatesfr/xen-orchestra/pull/8628))
+- [REST API] Ability to use `ndjson` query parameter also on migrated collections (PR [#8628](https://github.com/vatesfr/xen-orchestra/pull/8628))
+- [Backup] Fix EBADF on mirror backup chaining
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
@@ -63,6 +64,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- vhd-lib minor
 - xen-api patch
 - xo-remote-parser minor
 - xo-server minor
