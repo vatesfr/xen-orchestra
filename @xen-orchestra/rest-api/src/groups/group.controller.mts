@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XoGroup } from '@vates/types'
 
 import { createdResp, invalidParameters, noContentResp, notFoundResp, resourceAlreadyExists, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
-import { group, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
+import { createGroup, group, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
@@ -53,7 +53,7 @@ export class GroupController extends XoController<XoGroup> {
   /**
    * @example body { "name": "new group" }
    */
-  @Example(groupIds)
+  @Example(createGroup)
   @Post()
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
