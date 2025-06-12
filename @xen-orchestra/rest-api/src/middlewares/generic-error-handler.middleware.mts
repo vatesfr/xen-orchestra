@@ -10,7 +10,6 @@ import {
   objectAlreadyExists,
   unauthorized,
 } from 'xo-common/api-errors.js'
-import type { HttpStatusCodeLiteral } from 'tsoa'
 import { NextFunction, Request, Response } from 'express'
 
 import type { XoError } from '../helpers/helper.type.mjs'
@@ -26,41 +25,36 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     return
   }
 
-  const responseError: { error: string; data?: Record<string, unknown>; info?: string } = { error: error.message }
-  let statusCode: HttpStatusCodeLiteral
+  const responseError: { error: string; data?: Record<string, unknown>; info?: string } = {
+    error: error.message,
+    data: 'data' in error ? (error.data as XoError['data']) : undefined,
+  }
 
   if (noSuchObject.is(error)) {
-    statusCode = 404
+    res.status(404)
   } else if (unauthorized.is(error) || forbiddenOperation.is(error)) {
-    statusCode = 403
+    res.status(403)
   } else if (featureUnauthorized.is(error)) {
-    statusCode = 403
-    responseError.data = (error as XoError).data
+    res.status(403)
   } else if (invalidCredentials.is(error)) {
-    statusCode = 401
+    res.status(401)
   } else if (objectAlreadyExists.is(error)) {
-    statusCode = 409
-    responseError.data = (error as XoError).data
+    res.status(409)
   } else if (invalidParameters.is(error)) {
-    statusCode = 422
+    res.status(422)
   } else if (notImplemented.is(error)) {
-    statusCode = 501
+    res.status(501)
   } else if (incorrectState.is(error)) {
-    statusCode = 409
-    responseError.data = (error as XoError).data
+    res.status(409)
   } else {
     if (error.name === 'XapiError') {
       responseError.info = 'This is a XenServer/XCP-ng error, not an XO error'
     }
-    statusCode = 500
+    res.status(500)
     log.error(error)
   }
 
-  log.info(`[${req.method}] ${req.path} (${statusCode})`)
+  log.info(`[${req.method}] ${req.path} (${res.statusCode})`)
 
-  if (res.headersSent) {
-    return
-  }
-
-  res.status(statusCode).json(responseError)
+   res.json(responseError)
 }

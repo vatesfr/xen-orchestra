@@ -1203,20 +1203,35 @@ export default class RestApi {
       })
     )
 
-    api.put(
-      '/:collection(groups)/:id/users/:userId',
+    api.delete(
+      '/:collection(users)/:id',
       wrap(async (req, res) => {
-        const { id, userId } = req.params
-        const group = await app.getGroup(id)
-
-        if (group.provider !== undefined) {
-          return res.status(403).json({ message: 'cannot add user to synchronized group' })
-        }
-
-        await app.addUserToGroup(userId, id)
-
+        const { id } = req.params
+        await app.deleteUser(id)
         res.sendStatus(204)
       }, true)
+    )
+
+    api.post(
+      '/:collection(users)',
+      json(),
+      wrap(async (req, res) => {
+        const { name, password, permission } = req.body
+        if (name == null || password == null) {
+          return res.status(400).json({ message: 'name and password are required.' })
+        }
+
+        if (
+          typeof name !== 'string' ||
+          typeof password !== 'string' ||
+          (permission !== undefined && typeof permission !== 'string')
+        ) {
+          return res.status(400).json({ message: 'name, password and permission (if provided) must be strings.' })
+        }
+
+        const user = await app.createUser({ name, password, permission })
+        res.status(201).end(user.id)
+      })
     )
 
     api.delete(
