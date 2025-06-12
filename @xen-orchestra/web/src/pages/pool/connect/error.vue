@@ -4,6 +4,10 @@
       <div class="content">
         <h1>{{ t('unable-to-connect-to', { ip }) }}</h1>
         <UiAlert v-if="ErrorCodes == 409" accent="danger">{{ t('pool-connection-error-duplicate') }}</UiAlert>
+        <!-- no error code for timeout with usefetch -->
+        <UiAlert v-else-if="errorJson == 'Fetch is aborted'" accent="danger">
+          {{ t('pool-connection-error-timeout') }}
+        </UiAlert>
         <template v-else>
           <UiAlert accent="danger">{{ t('pool-connection-error') }}</UiAlert>
           {{ errorJson }}
