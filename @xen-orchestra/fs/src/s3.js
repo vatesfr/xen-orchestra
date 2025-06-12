@@ -41,7 +41,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
   #s3
 
   constructor(remote, _opts) {
-    super(remote)
+    super(remote, _opts)
     const {
       allowUnauthorized,
       host,
