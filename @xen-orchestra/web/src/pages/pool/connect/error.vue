@@ -33,8 +33,6 @@ function goBack() {
 
 <style lang="postcss" scoped>
 .error-on-connection {
-  max-height: 80vh;
-
   .content {
     color: var(--color-neutral-txt-primary);
     display: flex;
