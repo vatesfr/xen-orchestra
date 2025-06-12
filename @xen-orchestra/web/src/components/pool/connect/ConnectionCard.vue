@@ -2,7 +2,7 @@
   <UiCard class="pool-connection-card">
     <form class="pool-connection-card" @submit.prevent="submit()">
       <div class="input-wrapper">
-        <UiTitle class="primary-host-title">{{ t('primary-host') }}</UiTitle>
+        <UiTitle class="primary-host-title">{{ t('master') }}</UiTitle>
         <div class="input-content">
           <VtsInputWrapper :label="t('ip-address')">
             <!-- TODO validation -->
@@ -71,20 +71,34 @@ const form: ConnectServerPayload = reactive({
 function submit() {
   // Clone the form to avoid reactivity issues
   const payload = { ...form }
-  createAndConnectServer(payload).then(response => {
-    if (response) {
-      // Response is the serverID
-      // console.log('response', response)
+  createAndConnectServer(payload)
+    .then(response => {
+      if (response) {
+        router.push({
+          path: '/pool/connect/success',
+          state: {
+            ip: form.host,
+          },
+        })
+      } else {
+        router.push({
+          path: '/pool/connect/error',
+          state: {
+            ip: form.host,
+            errorJson: response,
+          },
+        })
+      }
+    })
+    .catch(reson => {
       router.push({
-        name: '/pool/connect/success',
-        params: response,
+        path: '/pool/connect/error',
+        state: {
+          ip: form.host,
+          errorJson: reson,
+        },
       })
-    } else {
-      router.push({
-        name: '/pool/connect/',
-      })
-    }
-  })
+    })
 }
 
 function cancel() {
