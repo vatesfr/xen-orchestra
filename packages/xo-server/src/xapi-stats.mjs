@@ -259,7 +259,7 @@ const STATS = {
         getPath: matches => ['iops', 'total', matches[1]],
       },
     },
-    // // value in ms converted to seconds to be consistent with other vbd values
+    // value in ms converted to seconds to be consistent with other vbd values
     vbdLatency: {
       r: {
         test: /^vbd_xvd(.)_read_latency$/,
@@ -274,7 +274,7 @@ const STATS = {
     },
     vbdIowait: {
       test: /^vbd_xvd(.)_iowait$/,
-      getPath: matches => ['vbdIowait', matches[1]], // percent. Maybe need to * 1e2
+      getPath: matches => ['vbdIowait', matches[1]],
       transofrmValue: value => value * 1e2,
     },
     vbdInflight: {
