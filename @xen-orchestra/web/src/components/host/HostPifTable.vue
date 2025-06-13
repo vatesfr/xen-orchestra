@@ -190,11 +190,7 @@ const pifsIds = computed(() => pifs.map(pif => pif.id))
 
 const { selected, areAllSelected } = useMultiSelect(pifsIds)
 
-const getNetworkName = (pif: XoPif) => {
-  const network = get(pif.$network)!
-
-  return network.name_label ? network.name_label : ''
-}
+const getNetworkName = (pif: XoPif) => get(pif.$network)?.name_label ?? ''
 
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 
