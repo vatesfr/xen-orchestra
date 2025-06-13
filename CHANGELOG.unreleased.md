@@ -42,6 +42,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/Advanced] Fix CPU mask list in VM (PR [#8661](https://github.com/vatesfr/xen-orchestra/pull/8661))
+- [Server] Fix server deletion now fully disconnects and deletes (PR [#8710](https://github.com/vatesfr/xen-orchestra/pull/8710))
 
 ### Packages to release
 
