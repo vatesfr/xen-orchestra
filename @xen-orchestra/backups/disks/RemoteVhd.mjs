@@ -94,13 +94,7 @@ export class RemoteVhd extends RandomAccessDisk {
    * @returns {Promise<void>}
    */
   async close() {
-    try {
-      await this.#dispose()
-    } catch (err) {
-      if (err.code !== 'EBADF') {
-        throw err // handle double dispose
-      }
-    }
+    await this.#dispose()
   }
 
   /**
