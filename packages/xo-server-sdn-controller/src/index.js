@@ -1354,9 +1354,12 @@ class SDNController extends EventEmitter {
   async _getOrCreateOfChannel(host) {
     let channel = this.ofChannels[host.$ref]
     if (channel === undefined) {
+      // this ensure only one channel is create in parallel
       channel = this.ofChannels[host.$ref] = instantiateController(host)
     }
-    await channel
+    if (this.ofChannels[host.$ref].then) {
+      this.ofChannels[host.$ref] = await this.ofChannels[host.$ref]
+    }
     return channel
   }
 }
