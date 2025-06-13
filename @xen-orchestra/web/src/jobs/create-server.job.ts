@@ -43,7 +43,6 @@ export async function createServer(payload: ConnectServerPayload) {
     throw new Error('Server creation failed: No server ID returned')
   }
 
-  // return the server ID
   return data.value.id
 }
 
@@ -65,8 +64,6 @@ export async function connectServer(serverId: XoServer['id']): Promise<string> {
   return data.value
 }
 
-// connectServer returns a task url (`/rest/v0/tasks/<taskId>`)
-// add a function to monitor the task status and return the result
 export async function monitorTask(url: string) {
   // loops while task is not finish with 12 limits (2 minutes)
   let loop = 0
@@ -93,6 +90,8 @@ export async function monitorTask(url: string) {
     if (data.status !== 'success') {
       if (data.result.code === 'SESSION_AUTHENTICATION_FAILED') {
         throw new ServerError(`Task failed: ${data.result.message || 'Unknown error'}`, { status: 401 })
+      } else if (data.result.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
+        throw new ServerError(`Task failed: ${data.result.message || 'Unknown error'}`, { status: 495 })
       } else {
         throw new ServerError(`Task failed: ${data.result.code || 'Unknown error'}`, { status: data.result.errno })
       }
@@ -103,6 +102,9 @@ export async function monitorTask(url: string) {
 
   throw new ServerError(`Fetch is aborted`, { status: 408 })
 }
+
+// remove server if you have an error on connect
+// export async function removeServer(serverId: XoServer['id']) {}
 
 export type ConnectServerPayload = {
   host: string
