@@ -31,7 +31,7 @@ import type {
   XoSchedule,
   XoJob,
   XoGroup,
-  XoPool
+  XoPool,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -127,4 +127,6 @@ export type XoApp = {
   rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: Task }): Promise<void>
   runJob(job: XoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
+  /** Remove a server from the DB (XCP-ng/XenServer) */
+  unregisterXenServer(id: XoServer['id']): Promise<void>
 }
