@@ -30,6 +30,7 @@
 - [REST API] Ability to create a network `POST /rest/v0/pools/<pool-id/actions/createNetwork` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
 - [REST API] Ability to delete a network `DELETE /rest/v0/networks/<network-id>` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
 - [REST API] Expose `GET /rest/v0/pcis` and `GET /rest/v0/pcis/<pci-id>` (PR [#8686](https://github.com/vatesfr/xen-orchestra/pull/8686))
+- [REST API] expose `GET /rest/v0/pgpus` and `GET /rest/v0/pgpus/<pgpu-id>` (PR [#8684](https://github.com/vatesfr/xen-orchestra/pull/8684))
 
 - **Azure Blob Storage**:
   - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PR [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415))
