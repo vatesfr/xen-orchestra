@@ -21,7 +21,7 @@ export default class AzureHandler extends RemoteHandlerAbstract {
   #containerClient
 
   constructor(remote, _opts) {
-    super(remote)
+    super(remote, _opts)
     const { username, path, password, host, protocol } = parse(remote.url)
     const credential = new StorageSharedKeyCredential(username, password)
 
