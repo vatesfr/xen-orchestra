@@ -7,7 +7,7 @@
     <VtsLoadingHero v-if="loading" type="card" />
     <VtsErrorNoDataHero v-else-if="error" type="card" />
     <VtsNoDataHero v-else-if="cpuUsage.length === 0" type="card" />
-    <VtsLinearChart v-else :data="cpuUsage" :max-value :value-formatter class="chart" />
+    <VtsLinearChart v-else :data="cpuUsage" :max-value :value-formatter />
   </UiCard>
 </template>
 
