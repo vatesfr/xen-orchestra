@@ -40,8 +40,7 @@ const { ip, idServer } = history.state
 const poolId = computed(() => get(idServer)?.poolId)
 
 function connectAnotherPool() {
-  // do not allow the return to this page without argument.
-  router.replace({
+  router.push({
     path: '/pool/connect/',
   })
 }

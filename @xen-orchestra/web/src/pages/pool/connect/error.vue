@@ -3,10 +3,16 @@
     <VtsStateHero image="error" type="table" no-background>
       <div class="content">
         <h1>{{ t('unable-to-connect-to', { ip }) }}</h1>
-        <UiAlert v-if="ErrorCodes == 409" accent="danger">{{ t('pool-connection-error-duplicate') }}</UiAlert>
+        <UiAlert v-if="ErrorCode == 409" accent="danger">{{ t('pool-connection-error-duplicate') }}</UiAlert>
         <!-- no error code for timeout with usefetch -->
         <UiAlert v-else-if="errorJson == 'Fetch is aborted'" accent="danger">
           {{ t('pool-connection-error-timeout') }}
+        </UiAlert>
+        <UiAlert v-else-if="errorJson == 'self-signed certificate'" accent="danger">
+          {{ t('pool-connection-error-ssl') }}
+        </UiAlert>
+        <UiAlert v-else-if="ErrorCode == -69" accent="danger">
+          {{ t('pool-connection-error-host-not-found') }}
         </UiAlert>
         <template v-else>
           <UiAlert accent="danger">{{ t('pool-connection-error') }}</UiAlert>
@@ -25,14 +31,13 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { ip, errorJson, ErrorCodes } = history.state
-
+const { ip, errorJson, ErrorCodes: ErrorCode } = history.state
 const { t } = useI18n()
 const router = useRouter()
 
 function goBack() {
   // do not allow the return to this page without argument.
-  router.replace({
+  router.push({
     name: '/pool/connect/',
   })
 }
