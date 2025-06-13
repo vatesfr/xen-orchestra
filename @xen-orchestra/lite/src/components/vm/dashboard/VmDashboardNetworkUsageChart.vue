@@ -4,17 +4,19 @@
       {{ t('network-throughput') }}
       <template #description>{{ t('last-week') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="loading || data === null" type="card" />
+    <VtsLoadingHero v-if="loading" type="card" />
     <VtsErrorNoDataHero v-else-if="error" type="card" />
+    <VtsNoDataHero v-else-if="networkUsage.length === 0" type="card" />
     <VtsLinearChart v-else :data="networkUsage" :max-value :value-formatter="byteFormatter" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import type { XoHostStats } from '@/types/xo/host-stats.type.ts'
+import { RRD_STEP_FROM_STRING, type VmStats } from '@/libs/xapi-stats.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
@@ -22,7 +24,10 @@ import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
-  data: XoHostStats | null
+  data: {
+    stats: VmStats | undefined
+    timestampStart: number
+  }
   loading: boolean
   error?: string
 }>()
@@ -32,40 +37,50 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 const { t } = useI18n()
 
 const networkUsage = computed<LinearChartData>(() => {
-  if (!data?.stats?.pifs) {
+  const { stats, timestampStart } = data
+
+  const vifs = stats?.vifs
+
+  if (!vifs) {
     return []
   }
 
-  const timestamps = Array.from(
-    { length: data.stats.pifs.rx['0'].length },
-    (_, i) => data.endTimestamp * 1000 - (data.stats.pifs.rx['0'].length - 1 - i) * data.interval * 1000
-  )
+  const addNetworkData = (type: 'rx' | 'tx') => {
+    const vifArrays = Object.values(vifs[type])
 
-  const rxSeries = [
-    {
-      label: t('network-upload'),
-      data: timestamps.map((timestamp, index) => ({
+    if (vifArrays.length === 0) {
+      return { label: '', data: [] }
+    }
+
+    const data = Array.from({ length: vifArrays[0].length }, (_, idx) => {
+      const timestamp =
+        (timestampStart - RRD_STEP_FROM_STRING.hours * (vifArrays[0].length - 1) + idx * RRD_STEP_FROM_STRING.hours) *
+        1000
+
+      const value = vifArrays.reduce((sum, arr) => sum + (arr[idx] ?? 0), 0)
+
+      return {
         timestamp,
-        value: Object.values(data.stats.pifs.rx).reduce((sum, values) => sum + values[index], 0),
-      })),
-    },
-  ]
+        // Sometimes we got infinity values in the result, we need to replace it with null
+        value: Number.isFinite(value) ? value : null,
+      }
+    })
 
-  const txSeries = [
-    {
-      label: t('network-download'),
-      data: timestamps.map((timestamp, index) => ({
-        timestamp,
-        value: Object.values(data.stats.pifs.tx).reduce((sum, values) => sum + values[index], 0),
-      })),
-    },
-  ]
+    return {
+      label: type === 'rx' ? t('network-upload') : t('network-download'),
+      data,
+    }
+  }
 
-  return [...rxSeries, ...txSeries]
+  return [addNetworkData('rx'), addNetworkData('tx')]
 })
 
 const maxValue = computed(() => {
-  const values = networkUsage.value.flatMap(series => series.data.map(item => item.value ?? 0))
+  const values = networkUsage.value.reduce(
+    (acc, series) => [...acc, ...series.data.map(item => item.value ?? 0)],
+
+    [] as number[]
+  )
 
   if (values.length === 0) {
     return 100
@@ -73,7 +88,7 @@ const maxValue = computed(() => {
 
   const maxUsage = Math.max(...values) * 1.2
 
-  return Math.ceil(maxUsage / 50) * 50
+  return Math.ceil(maxUsage / 100) * 100
 })
 
 const byteFormatter = (value: number | null) => {

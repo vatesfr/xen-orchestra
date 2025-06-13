@@ -19,12 +19,12 @@ import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel
 import { useIntersectionObserver } from '@vueuse/core'
 import { computed, ref } from 'vue'
 
-const props = defineProps<{
+const { vmOpaqueRef } = defineProps<{
   vmOpaqueRef: XenApiVm['$ref']
 }>()
 
 const { getByOpaqueRef } = useVmStore().subscribe()
-const vm = computed(() => getByOpaqueRef(props.vmOpaqueRef))
+const vm = computed(() => getByOpaqueRef(vmOpaqueRef))
 const rootElement = ref()
 const isVisible = ref(false)
 

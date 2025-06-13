@@ -100,5 +100,11 @@ const isStatFetched = computed(() => {
 
 const isLoading = computed(() => (isFetching.value && !hasError.value) || !isStatFetched.value)
 
-const customValueFormatter = (value: number) => String(formatSize(value))
+const customValueFormatter = (value: number | null) => {
+  if (value === null) {
+    return ''
+  }
+
+  return formatSize(value)
+}
 </script>
