@@ -11,6 +11,9 @@
         <UiAlert v-else-if="errorJson == 'self-signed certificate'" accent="danger">
           {{ t('pool-connection-error-ssl') }}
         </UiAlert>
+        <UiAlert v-else-if="ErrorCode == 401" accent="danger">
+          {{ t('pool-connection-error-auth-failed') }}
+        </UiAlert>
         <UiAlert v-else-if="ErrorCode == -69" accent="danger">
           {{ t('pool-connection-error-host-not-found') }}
         </UiAlert>
@@ -31,7 +34,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { ip, errorJson, ErrorCodes: ErrorCode } = history.state
+const { ip, errorJson, ErrorCode } = history.state
 const { t } = useI18n()
 const router = useRouter()
 
@@ -39,6 +42,9 @@ function goBack() {
   // do not allow the return to this page without argument.
   router.push({
     name: '/pool/connect/',
+    state: {
+      ip,
+    },
   })
 }
 </script>
