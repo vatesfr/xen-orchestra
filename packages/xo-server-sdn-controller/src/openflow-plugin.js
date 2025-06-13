@@ -8,12 +8,12 @@ const log = createLogger('xo:sdn-controller:openflowplugin')
 export class OpenFlowPlugin {
   #getBridge(network) {
     return network.bridge // following discussion with David, it may not be the right bridge
-    // the plugin may need the bridge name on dom0 side
+    // the plugin may need the bridge name on dom0 sides
   }
 
   async #callPluginOnAllNetwork(network, method, parameters) {
     const bridge = this.#getBridge(network)
-    return asyncEach(network.PIFs, async PIF => {
+    return asyncEach(network.$PIFs, async PIF => {
       const host = PIF.$host
       return host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, method, { ...parameters, bridge })
     })
