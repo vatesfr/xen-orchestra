@@ -726,4 +726,6 @@ export interface XenApiError extends Error {
   data?: any
 }
 
+export type XenApiStats = Record<string, number[]>
+
 /* eslint-enable no-use-before-define */

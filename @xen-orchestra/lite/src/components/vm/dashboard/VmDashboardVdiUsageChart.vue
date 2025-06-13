@@ -70,7 +70,7 @@ const vdiUsage = computed((): LinearChartData => {
     })
 
     return {
-      label: type === 'r' ? t('vdi-read') : t('vdi-write'),
+      label: type === 'r' ? t('read') : t('write'),
       data,
     }
   }
