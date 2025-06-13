@@ -1,15 +1,5 @@
 <template>
-  <FormSelect
-    v-if="isSelectWidget(widget)"
-    v-model="model"
-    :wrapper-attrs="{ class: 'full-width' }"
-    class="typo-body-regular-small"
-  >
-    <option v-if="!required && model === undefined" :value="undefined" />
-    <option v-for="choice in widget.choices" :key="choice.label" :value="choice.value">
-      {{ choice.label }}
-    </option>
-  </FormSelect>
+  <VtsSelect v-if="isSelectWidget(widget)" :id="selectId" accent="brand" />
   <div v-else-if="isRadioWidget(widget)" class="radio">
     <FormInputWrapper v-for="choice in widget.choices" :key="choice.label">
       <FormRadio v-model="model" :value="choice.value" />
@@ -34,27 +24,34 @@ import {
   isTextWidget,
   type Widget,
 } from '@/libs/story/story-widget'
-import { useVModel } from '@vueuse/core'
-import { defineAsyncComponent } from 'vue'
+import { useFormSelect } from '@core/packages/form-select'
+import { computed, defineAsyncComponent } from 'vue'
 
-const props = defineProps<{
+const { widget } = defineProps<{
   widget: Widget
-  modelValue: any
   required?: boolean
 }>()
 
-const emit = defineEmits<{
-  'update:modelValue': [value: any]
-}>()
+const model = defineModel<any>({ default: undefined })
 
 const FormJson = defineAsyncComponent(() => import('@/components/form/FormJson.vue'))
-const FormSelect = defineAsyncComponent(() => import('@/components/form/FormSelect.vue'))
+const VtsSelect = defineAsyncComponent(() => import('@core/components/select/VtsSelect.vue'))
 const FormCheckbox = defineAsyncComponent(() => import('@/components/form/FormCheckbox.vue'))
 const FormInput = defineAsyncComponent(() => import('@/components/form/FormInput.vue'))
 const FormInputWrapper = defineAsyncComponent(() => import('@/components/form/FormInputWrapper.vue'))
 const FormRadio = defineAsyncComponent(() => import('@/components/form/FormRadio.vue'))
 
-const model = useVModel(props, 'modelValue', emit)
+const sources = computed(() => (isSelectWidget(widget) ? widget.choices : []))
+
+const { id: selectId } = useFormSelect(sources, {
+  model,
+  searchable: computed(() => sources.value.length > 10),
+  option: {
+    id: 'label',
+    label: 'label',
+    value: 'value',
+  },
+})
 </script>
 
 <style lang="postcss" scoped>
