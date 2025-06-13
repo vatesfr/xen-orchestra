@@ -410,6 +410,7 @@
   "pool-connection-error": "Une erreur s'est produite lors de la connexion au pool. Veuillez vérifier vos paramètres réseau, vos informations d'identification et la disponibilité de l'hôte, puis réessayez.",
   "pool-connection-error-host-not-found": "Une erreur s'est produite lors de la connexion au pool. L'adresse de ce pool semble inexistante. Modifiez l'adresse IP et réessayez.",
   "pool-connection-error-duplicate": "Une erreur s'est produite lors de la connexion au pool. Ce pool semble déjà être connecter.",
+  "pool-connection-error-auth-failed": "Une erreur s'est produite lors de la connexion au pool. Le nom d'utilisateur ou le mot de passe semble incorrect.",
   "pool-connection-error-timeout": "La tentative de connexion a expiré. Le pool n'a pas répondu à temps, probablement en raison de problèmes réseau ou d'un hôte qui ne répond pas. Veuillez vérifier votre connexion et réessayer.",
   "pool-connection-ip-info": "Fournissez l’adresse de l’hôte primaire du pool auquel vous souhaitez vous connecter.",
   "pool-cpu-usage": "Utilisation CPU du Pool",

@@ -60,7 +60,7 @@ const { t } = useI18n()
 const router = useRouter()
 
 const form: ConnectServerPayload = reactive({
-  host: '',
+  host: history?.state?.ip ?? '',
   httpProxy: '',
   username: '',
   password: '',
@@ -96,7 +96,7 @@ function submit() {
         path: '/pool/connect/error',
         state: {
           ip: form.host,
-          ErrorCode: reson.status.value,
+          ErrorCode: reson.status,
           errorJson: reson.message,
         },
       })
