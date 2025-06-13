@@ -88,11 +88,7 @@ const host = computed(() => getVmHost(vm))
 const powerState = useMapper(
   () => vm.power_state,
   {
-    [VM_POWER_STATE.RUNNING]: {
-      icon: faPlay,
-      accent: 'success',
-      text: t('vm-status.running'),
-    },
+    [VM_POWER_STATE.RUNNING]: { icon: faPlay, accent: 'success', text: t('vm-status.running') },
     [VM_POWER_STATE.HALTED]: { icon: faStop, accent: 'danger', text: t('vm-status.halted') },
     [VM_POWER_STATE.PAUSED]: { icon: faPause, accent: 'brand', text: t('vm-status.paused') },
     [VM_POWER_STATE.SUSPENDED]: { icon: faMoon, accent: 'info', text: t('vm-status.suspended') },
