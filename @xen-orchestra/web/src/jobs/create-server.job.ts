@@ -4,9 +4,9 @@ import { useFetch } from '@vueuse/core'
 import type { ShallowRef } from 'vue'
 
 class ServerError extends Error {
-  status: ShallowRef<number | null>
+  status: ShallowRef<number | null> | number
 
-  constructor(message: string, { status }: { status: ShallowRef<number | null> }) {
+  constructor(message: string, { status }: { status: ShallowRef<number | null> | number }) {
     super(message)
     this.status = status
   }
@@ -18,7 +18,6 @@ export default async function createAndConnectServer(payload: ConnectServerPaylo
   const taskUrl = await connectServer(serverId)
 
   await monitorTask(taskUrl)
-
   // Return the server ID after successful connection
   // To redirect to the server page
   return serverId
@@ -26,14 +25,18 @@ export default async function createAndConnectServer(payload: ConnectServerPaylo
 
 // First, create the server
 export async function createServer(payload: ConnectServerPayload) {
-  const { data, statusCode, error } = await useFetch(`/rest/v0/servers`, {
+  const {
+    data,
+    statusCode: status,
+    error,
+  } = await useFetch(`/rest/v0/servers`, {
     method: 'POST',
     body: JSON.stringify(payload),
     headers: { 'Content-Type': 'application/json' },
   }).json<{ id: XoServer['id'] }>()
 
   if (error.value) {
-    throw new ServerError(error.value, { status: statusCode })
+    throw new ServerError(error.value, { status })
   }
 
   if (!data.value) {
@@ -46,13 +49,17 @@ export async function createServer(payload: ConnectServerPayload) {
 
 // Then, connect to the server using the newly created server ID
 export async function connectServer(serverId: XoServer['id']): Promise<string> {
-  const { data, statusCode, error } = await useFetch(`/rest/v0/servers/${serverId}/actions/connect`, {
+  const {
+    data,
+    statusCode: status,
+    error,
+  } = await useFetch(`/rest/v0/servers/${serverId}/actions/connect`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   }).json()
 
   if (error.value) {
-    throw new ServerError(error.value, { status: statusCode })
+    throw new ServerError(error.value, { status })
   }
 
   return data.value
@@ -61,19 +68,37 @@ export async function connectServer(serverId: XoServer['id']): Promise<string> {
 // connectServer returns a task url (`/rest/v0/tasks/<taskId>`)
 // add a function to monitor the task status and return the result
 export async function monitorTask(url: string) {
-  const { data, statusCode, error } = await useFetch(`${url}?wait=result`, {
-    method: 'GET',
-  }).json<XoTask>()
+  // loops while task is not finish with 12 limits (2 minutes)
+  let loop = 0
+  while (loop < 12) {
+    const {
+      data: dataResponse,
+      statusCode: status,
+      error,
+    } = await useFetch(`${url}?wait=result`, {
+      method: 'GET',
+    }).json<XoTask>()
 
-  if (error.value) {
-    throw new ServerError(error.value, { status: statusCode })
+    if (error.value) {
+      throw new ServerError(error.value, { status })
+    }
+
+    const data: any = dataResponse
+    // if task is not finish after 10seconds, loop
+    if (data.code === 'UND_ERR_CONNECT_TIMEOUT') {
+      loop++
+      continue
+    }
+
+    // console.log(data)
+    if (!data.result || data.status !== 'success') {
+      throw new ServerError(`Task failed: ${data.result.code || 'Unknown error'}`, { status: data.result.errno })
+    }
+
+    return data.value
   }
 
-  if (!data.value || data.value.status !== 'success') {
-    throw new Error(`Task failed: ${data.value?.properties.name || 'Unknown error'}`)
-  }
-
-  return data.value
+  throw new ServerError(`Fetch is aborted`, { status: 408 })
 }
 
 export type ConnectServerPayload = {
