@@ -130,7 +130,7 @@ export default class XenServers {
   }
 
   async unregisterXenServer(id) {
-    this.disconnectXenServer(id)::ignoreErrors()
+    await this.disconnectXenServer(id)::ignoreErrors()
 
     if (!(await this._servers.remove(id))) {
       throw noSuchObject(id, 'xenServer')
