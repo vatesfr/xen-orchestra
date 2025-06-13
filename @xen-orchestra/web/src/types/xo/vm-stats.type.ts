@@ -1,29 +1,23 @@
 import type { XoStats } from '@/types/xo/xo-stats.type.ts'
 
-export type XoHostStats = {
+export type XoVmStats = {
   endTimestamp: number
   interval: number
   stats: {
     cpus: XoStats
-    ioThroughput: {
-      r: XoStats
-      w: XoStats
-    }
+    memory: number[]
     iops: {
       r: XoStats
       w: XoStats
     }
-    iowait: XoStats
-    latency: {
+    xvds: {
       r: XoStats
       w: XoStats
     }
-    load: number[]
-    memory: number[]
-    memoryFree: number[]
-    pifs: {
+    vifs: {
       rx: XoStats
       tx: XoStats
     }
+    memoryFree: number[]
   }
 }

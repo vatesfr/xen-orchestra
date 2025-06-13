@@ -1,3 +1,4 @@
+import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVm } from '@/types/xo/vm.type'
@@ -10,6 +11,12 @@ import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
 export const useVmStore = defineStore('vm', () => {
+  const deps = {
+    hostStore: useHostStore(),
+  }
+
+  const hostContext = deps.hostStore.getContext()
+
   const { context: baseContext, ...configRest } = createXoStoreConfig('vm', {
     sortBy: sortByNameLabel,
   })
@@ -26,10 +33,21 @@ export const useVmStore = defineStore('vm', () => {
     return castArray(operations).some(operation => currentOperations.includes(operation))
   }
 
+  const getVmHost = (vm: XoVm): XoHost | undefined => {
+    const vmHostId = extractVmHostId(vm)
+
+    if (vmHostId === undefined) {
+      return undefined
+    }
+
+    return hostContext.get(vmHostId)
+  }
+
   const context = {
     ...baseContext,
     runningVms,
     vmsByHost,
+    getVmHost,
     hostLessVmsByPool,
     isVmOperatingPending,
   }
@@ -57,4 +75,8 @@ function createVmsMap<THostLess extends boolean>(vms: XoVm[], hostLess: THostLes
   })
 
   return vmsMap
+}
+
+function extractVmHostId(vm: XoVm) {
+  return vm.$container === vm.$pool ? undefined : (vm.$container as XoHost['id'])
 }

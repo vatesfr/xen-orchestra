@@ -130,9 +130,9 @@
 
 <script setup lang="ts">
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import { useVifStore } from '@/stores/xo-rest-api/vif.store.ts'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
-import type { XoVif } from '@/types/xo/vif.type.ts'
+import { useVifStore } from '@/stores/xo-rest-api/vif.store'
+import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import type { XoVif } from '@/types/xo/vif.type'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'

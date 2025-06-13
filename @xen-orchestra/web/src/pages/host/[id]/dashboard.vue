@@ -29,7 +29,7 @@ const { host } = defineProps<{
   host: XoHost
 }>()
 
-const { data, isFetching, error } = useFetchStats(() => host.id, GRANULARITY.Hours)
+const { data, isFetching, error } = useFetchStats('host', () => host.id, GRANULARITY.Hours)
 
 const uiStore = useUiStore()
 </script>
