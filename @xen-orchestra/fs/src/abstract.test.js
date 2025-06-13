@@ -10,17 +10,19 @@ import AbstractHandler from './abstract'
 import fs from 'fs-extra'
 import tmp from 'tmp'
 
-const TIMEOUT = 10e3
+const TIMEOUT = 6e5
 
 class TestHandler extends AbstractHandler {
   constructor(impl) {
-    super({ url: 'test://' }, { timeout: TIMEOUT })
+    const options = { timeout: TIMEOUT }
+    super({ url: 'test://' }, options)
     Object.defineProperty(this, 'isEncrypted', {
       get: () => false, // encryption is tested separately
     })
     Object.keys(impl).forEach(method => {
       this[`_${method}`] = impl[method]
     })
+    this._applySafeGuards(options, { toRetry: [] }) // workaround to reapply safeGuards on mocks
   }
 }
 
