@@ -601,7 +601,14 @@ export default class XenServers {
     if (server.status === 'connected') {
       const xapi = xapis[server.id]
       server.poolId = xapi.pool.uuid
-      server.master = xapi.getObjectByRef(xapi.pool.master).uuid
+      try {
+        server.master = xapi.getObjectByRef(xapi.pool.master).uuid
+      } catch (error) {
+        // Hosts may not be loaded
+        if (!noSuchObject.is(error)) {
+          throw error
+        }
+      }
     }
     if (server.label === undefined) {
       server.label = server.poolNameLabel
