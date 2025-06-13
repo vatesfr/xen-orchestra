@@ -83,16 +83,19 @@ export async function monitorTask(url: string) {
       throw new ServerError(error.value, { status })
     }
 
-    const data: any = dataResponse
+    const data: any = dataResponse.value
     // if task is not finish after 10seconds, loop
     if (data.code === 'UND_ERR_CONNECT_TIMEOUT') {
       loop++
       continue
     }
 
-    // console.log(data)
-    if (!data.result || data.status !== 'success') {
-      throw new ServerError(`Task failed: ${data.result.code || 'Unknown error'}`, { status: data.result.errno })
+    if (data.status !== 'success') {
+      if (data.result.code === 'SESSION_AUTHENTICATION_FAILED') {
+        throw new ServerError(`Task failed: ${data.result.message || 'Unknown error'}`, { status: 401 })
+      } else {
+        throw new ServerError(`Task failed: ${data.result.code || 'Unknown error'}`, { status: data.result.errno })
+      }
     }
 
     return data.value
