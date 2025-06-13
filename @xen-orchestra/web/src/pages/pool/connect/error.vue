@@ -8,7 +8,7 @@
         <UiAlert v-else-if="errorJson == 'Fetch is aborted'" accent="danger">
           {{ t('pool-connection-error-timeout') }}
         </UiAlert>
-        <UiAlert v-else-if="errorJson == 'self-signed certificate'" accent="danger">
+        <UiAlert v-else-if="errorJson == 'self-signed certificate' || ErrorCode == 495" accent="danger">
           {{ t('pool-connection-error-ssl') }}
         </UiAlert>
         <UiAlert v-else-if="ErrorCode == 401" accent="danger">
