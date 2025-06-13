@@ -7,11 +7,11 @@ import type { MaybeRefOrGetter } from '@vueuse/shared'
 import { toValue } from 'vue'
 
 export function useFetchStats(
-  entityType: 'hosts' | 'vms' | 'pools',
+  objectType: 'host' | 'vm' | 'pool',
   id: MaybeRefOrGetter<XoVm['id'] | XoHost['id'] | XoPool['id']>,
   granularity: MaybeRefOrGetter<GRANULARITY>
 ) {
-  const result = useFetch(() => `/rest/v0/${entityType}/${toValue(id)}/stats?granularity=${toValue(granularity)}`, {
+  const result = useFetch(() => `/rest/v0/${objectType}s/${toValue(id)}/stats?granularity=${toValue(granularity)}`, {
     immediate: false,
     refetch: true,
     beforeFetch({ options }) {

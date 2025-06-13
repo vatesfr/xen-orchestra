@@ -7,7 +7,7 @@
     <VtsLoadingHero v-if="loading" type="card" />
     <VtsErrorNoDataHero v-else-if="error" type="card" />
     <VtsNoDataHero v-else-if="cpuUsage.length === 0" type="card" />
-    <VtsLinearChart v-else :data="cpuUsage" :max-value :value-formatter class="chart" />
+    <VtsLinearChart v-else :data="cpuUsage" :max-value :value-formatter />
   </UiCard>
 </template>
 
@@ -50,7 +50,6 @@ const cpuUsage = computed<LinearChartData>(() => {
 
     result.set(timestamp, {
       timestamp,
-
       value: Math.round(cpuUsageSum / cpus.length),
     })
   }
@@ -71,7 +70,7 @@ const maxValue = computed(() => {
 
   const maxCpuUsage = Math.max(...values)
 
-  return Math.ceil(maxCpuUsage / 10) * 10
+  return Math.ceil(maxCpuUsage / 100) * 100
 })
 
 const valueFormatter: ValueFormatter = value => n(value / 100, 'percent')

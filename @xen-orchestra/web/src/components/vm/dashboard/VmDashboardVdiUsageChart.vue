@@ -34,7 +34,7 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 const { t } = useI18n()
 
 const vdiUsage = computed<LinearChartData>(() => {
-  if (!data?.stats?.xvds) {
+  if (!data?.stats.xvds) {
     return []
   }
 
@@ -47,7 +47,7 @@ const vdiUsage = computed<LinearChartData>(() => {
 
   const readSeries = [
     {
-      label: t('vdi-read'),
+      label: t('read'),
       data: timestamps.map((timestamp, index) => ({
         timestamp,
         value: Object.values(data.stats.xvds.r).reduce((sum, values) => sum + values[index], 0),
@@ -57,7 +57,7 @@ const vdiUsage = computed<LinearChartData>(() => {
 
   const writeSeries = [
     {
-      label: t('vdi-write'),
+      label: t('write'),
       data: timestamps.map((timestamp, index) => ({
         timestamp,
         value: Object.values(data.stats.xvds.w).reduce((sum, values) => sum + values[index], 0),
@@ -71,7 +71,9 @@ const vdiUsage = computed<LinearChartData>(() => {
 const maxValue = computed(() => {
   const values = vdiUsage.value.flatMap(series => series.data.map(item => item.value))
 
-  if (values.length === 0) return 100
+  if (values.length === 0) {
+    return 100
+  }
 
   const maxUsage = Math.max(...values)
 

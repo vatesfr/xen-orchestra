@@ -34,7 +34,7 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 const { t } = useI18n()
 
 const networkUsage = computed<LinearChartData>(() => {
-  if (!data?.stats?.vifs) {
+  if (!data?.stats.vifs) {
     return []
   }
 
@@ -71,12 +71,15 @@ const networkUsage = computed<LinearChartData>(() => {
 const maxValue = computed(() => {
   const values = networkUsage.value.flatMap(series => series.data.map(item => item.value))
 
-  if (values.length === 0) return 100
+  if (values.length === 0) {
+    return 100
+  }
 
   const maxUsage = Math.max(...values)
 
   return Math.ceil(maxUsage / 50) * 50
 })
+
 const byteFormatter = (value: number) => {
   const result = formatSizeRaw(value, 1)
 

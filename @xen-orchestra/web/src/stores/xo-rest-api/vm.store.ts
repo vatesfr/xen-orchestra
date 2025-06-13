@@ -34,8 +34,13 @@ export const useVmStore = defineStore('vm', () => {
   }
 
   const getVmHost = (vm: XoVm): XoHost | undefined => {
-    const hostId = vm.$container
-    return hostContext.records.value.find(host => host.id === hostId)
+    const vmHostId = extractVmHostId(vm)
+
+    if (vmHostId === undefined) {
+      return undefined
+    }
+
+    return hostContext.get(vmHostId)
   }
 
   const context = {
@@ -70,4 +75,8 @@ function createVmsMap<THostLess extends boolean>(vms: XoVm[], hostLess: THostLes
   })
 
   return vmsMap
+}
+
+function extractVmHostId(vm: XoVm) {
+  return vm.$container === vm.$pool ? undefined : (vm.$container as XoHost['id'])
 }
