@@ -96,7 +96,7 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
       // can throw if handler is encrypted or remote is broken
       await vhd.readHeaderAndFooter(checkSecondFooter)
     } catch (err) {
-      await handler.closeFile(fd)
+      await vhd.dispose()
       throw err
     }
     return {
