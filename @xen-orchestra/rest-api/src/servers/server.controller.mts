@@ -1,5 +1,6 @@
 import {
   Body,
+  Delete,
   Example,
   Get,
   Middlewares,
@@ -74,6 +75,16 @@ export class ServerController extends XoController<XoServer> {
   @Response(notFoundResp.status, notFoundResp.description)
   getServer(@Path() id: string): Promise<Unbrand<XoServer>> {
     return this.getObject(id as XoServer['id'])
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteServer(@Path() id: string) {
+    await this.restApi.xoApp.unregisterXenServer(id as XoServer['id'])
   }
 
   /**
