@@ -29,7 +29,7 @@ import { toVariants } from '@core/utils/to-variants.util'
 import { faCheck, faMinus } from '@fortawesome/free-solid-svg-icons'
 import { computed, type LabelHTMLAttributes, useAttrs } from 'vue'
 
-type CheckboxAccent = 'brand' | 'warning' | 'danger'
+export type CheckboxAccent = 'brand' | 'warning' | 'danger'
 
 defineOptions({ inheritAttrs: false })
 

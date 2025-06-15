@@ -1,23 +1,26 @@
 <template>
-  <ComponentStory
-    v-slot="{ properties }"
-    :params="[
-      prop('state')
-        .enum(...Object.values(VM_POWER_STATE))
-        .required()
-        .preset(VM_POWER_STATE.RUNNING)
-        .widget(),
-    ]"
-  >
-    <PowerStateIcon class="icon" v-bind="properties" />
+  <ComponentStory :params>
+    <PowerStateIcon class="icon" v-bind="bindings" />
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import PowerStateIcon from '@/components/PowerStateIcon.vue'
-import { prop } from '@/libs/story/story-param'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
+import ComponentStory from '@core/packages/story/ComponentStory.vue'
+import { choice } from '@core/packages/story/story-widget.ts'
+import { useStory } from '@core/packages/story/use-story.ts'
+
+const { params, bindings } = useStory({
+  props: {
+    state: {
+      preset: VM_POWER_STATE.RUNNING,
+      type: 'VM_POWER_STATE',
+      required: true,
+      widget: choice(...Object.values(VM_POWER_STATE)),
+    },
+  },
+})
 </script>
 
 <style lang="postcss" scoped>

@@ -1,10 +1,16 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-const componentLoaders = import.meta.glob('@/stories/**/*.story.vue')
-const docLoaders = import.meta.glob('@/stories/**/*.story.md', { as: 'raw' })
+const componentLoaders = import.meta.glob(['@/stories/**/*.story.vue', '@core/stories/**/*.story.vue'])
+const docLoaders = import.meta.glob<string>(['@/stories/**/*.story.md', '@core/stories/**/*.story.md'], {
+  query: '?raw',
+  import: 'default',
+})
 
 const children: RouteRecordRaw[] = Object.entries(componentLoaders).map(([path, componentLoader]) => {
-  const basePath = path.replace(/^\/src\/stories\/(.*)\.story.vue$/, '$1')
+  const basePath = path
+    .replace(/^\/src\/stories\/(.*)\.story.vue$/, '$1')
+    .replace(/^\.\.\/web-core\/lib\/stories\/(.*)\.story.vue$/, 'web-core/$1')
+
   const docPath = path.replace(/\.vue$/, '.md')
   const routeName = `story-${basePath}`
 
@@ -17,7 +23,7 @@ const children: RouteRecordRaw[] = Object.entries(componentLoaders).map(([path, 
       storyTitle: basePathToStoryTitle(basePath),
       storyMdLoader: docLoaders[docPath],
     },
-  }
+  } satisfies RouteRecordRaw
 })
 
 if (import.meta.env.DEV) {

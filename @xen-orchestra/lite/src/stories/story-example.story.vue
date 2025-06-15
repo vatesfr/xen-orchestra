@@ -1,28 +1,9 @@
 <template>
-  <ComponentStory
-    v-slot="{ properties, settings }"
-    :presets
-    :params="[
-      prop('imString').str().required().preset('Example').widget().help('This is a required string prop'),
-      prop('imNumber').num().required().preset(42).widget().help('This is a required number prop'),
-      prop('imOptional').str().widget().help('This is an optional string prop'),
-      prop('imOptionalWithDefault').str().default('Hi World').widget().default('My default value'),
-      model().prop(p => p.str()),
-      model('customModel').prop(p => p.num()),
-      event('click').help('Emitted when the user click the first button'),
-      event('clickWithArg').args({ id: 'string' }).help('Emitted when the user click the second button'),
-      slot().help('This is the default slot'),
-      slot('named-slot').help('This is a named slot'),
-      slot('named-scoped-slot').prop('moon-distance', 'number').help('This is a named slot'),
-      setting('defaultSlotContent').widget(text()).preset('Content for default slot'),
-      setting('namedSlotContent').widget(text()).preset('Content for named slot'),
-      setting('namedScopedSlotContent').widget(text()).preset('Content for named scoped slot'),
-    ]"
-  >
-    <StoryExampleComponent v-bind="properties" v-model="defaultModel" v-model:custom-model="customModel">
+  <ComponentStory :params :presets>
+    <StoryExampleComponent v-bind="bindings">
       {{ settings.defaultSlotContent }}
-      <div>Default model value: {{ defaultModel }}</div>
-      <div>Custom model value: {{ customModel }}</div>
+      <div>Default model value: {{ bindings.modelValue }}</div>
+      <div>Custom model value: {{ bindings.customModel }}</div>
       <template #named-slot>
         {{ settings.namedSlotContent }}
       </template>
@@ -34,32 +15,72 @@
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import StoryExampleComponent from '@/components/component-story/StoryExampleComponent.vue'
-import { event, model, prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import ComponentStory from '@core/packages/story/ComponentStory.vue'
+import StoryExampleComponent from '@core/packages/story/StoryExampleComponent.vue'
+import { useStory } from '@core/packages/story/use-story.ts'
 import { ref } from 'vue'
 
-const defaultModel = ref('')
-const customModel = ref('')
+const { params, bindings, settings } = useStory({
+  props: {
+    imString: {
+      preset: 'Example',
+      required: true,
+      help: 'This is a required string prop',
+    },
+    imNumber: {
+      preset: 42,
+      required: true,
+      help: 'This is a required number prop',
+    },
+    imOptional: {
+      preset: ref<string>(),
+      type: 'string',
+      help: 'This is an optional string prop',
+    },
+    imOptionalWithDefault: {
+      preset: ref<string>(),
+      default: 'Hi World',
+    },
+  },
+  models: {
+    modelValue: {
+      preset: ref<string>(),
+      type: 'string',
+    },
+    customModel: {
+      preset: ref<string>(),
+      type: 'string',
+    },
+  },
+  events: {
+    click: { help: 'Emitted when the user click the first button' },
+    clickWithArg: {
+      args: { id: 'string' },
+      help: 'Emitted when the user click the second button',
+    },
+  },
+  slots: {
+    default: { help: 'This is the default slot' },
+    'named-slot': { help: 'This is a named slot' },
+    'named-scoped-slot': {
+      help: 'This is a named slot',
+      props: { moonDistance: 'number' },
+    },
+  },
+  settings: {
+    defaultSlotContent: { preset: 'Content for default slot' },
+    namedSlotContent: { preset: 'Content for named slot' },
+    namedScopedSlotContent: { preset: 'Content for named scoped slot' },
+  },
+})
 
-const presets: Record<
-  string,
-  {
-    props?: Record<string, any>
-    settings?: Record<string, any>
-  }
-> = {
-  'Demo preset': {
-    props: {
-      imString: 'Text from preset',
-      imNumber: 1000,
-    },
-    settings: {
-      defaultSlotContent: 'Preset content for default slot',
-      namedSlotContent: 'Preset content for named slot',
-      namedScopedSlotContent: 'Preset content for named scoped slot',
-    },
+const presets: Record<string, () => void> = {
+  'Demo preset': () => {
+    bindings.imString = 'Text from preset'
+    bindings.imNumber = 1000
+    settings.defaultSlotContent = 'Preset content for default slot'
+    settings.namedSlotContent = 'Preset content for named slot'
+    settings.namedScopedSlotContent = 'Preset content for named scoped slot'
   },
 }
 </script>

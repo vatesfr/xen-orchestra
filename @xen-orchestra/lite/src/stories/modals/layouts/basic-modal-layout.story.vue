@@ -1,17 +1,22 @@
 <template>
-  <ComponentStory
-    v-slot="{ settings }"
-    :params="[slot(), setting('defaultSlotContent').preset('Here is a basic modal...').widget(text())]"
-  >
-    <BasicModalLayout>
-      {{ settings.defaultSlotContent }}
+  <ComponentStory :params>
+    <BasicModalLayout v-bind="bindings">
+      {{ settings.slotContent }}
     </BasicModalLayout>
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import BasicModalLayout from '@/components/ui/modals/layouts/BasicModalLayout.vue'
-import { setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import ComponentStory from '@core/packages/story/ComponentStory.vue'
+import { useStory } from '@core/packages/story/use-story.ts'
+
+const { params, bindings, settings } = useStory({
+  slots: {
+    default: { help: 'Default slot content' },
+  },
+  settings: {
+    slotContent: { preset: 'Here is a basic modal...' },
+  },
+})
 </script>

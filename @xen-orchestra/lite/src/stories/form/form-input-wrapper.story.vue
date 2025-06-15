@@ -1,30 +1,55 @@
 <template>
-  <ComponentStory
-    v-slot="{ properties }"
-    :params="[
-      prop('label').type('string').widget().preset('My input'),
-      iconProp(),
-      prop('learnMoreUrl').type('string').widget().preset('https://google.com'),
-      prop('warning').type('string').widget(),
-      prop('error').type('string').widget(),
-      prop('help').type('string').widget().preset('256 by default'),
-      prop('disabled').type('boolean').widget().ctx(),
-      prop('light').bool().widget(),
-      slot().help('Contains the input'),
-    ]"
-  >
-    <FormInputWrapper v-bind="properties">
-      <FormInput v-model="modelValue" />
+  <ComponentStory :params>
+    <FormInputWrapper v-bind="bindings">
+      <FormInput />
     </FormInputWrapper>
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import FormInput from '@/components/form/FormInput.vue'
 import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
-import { iconProp, prop, slot } from '@/libs/story/story-param'
+import ComponentStory from '@core/packages/story/ComponentStory.vue'
+import { iconChoice } from '@core/packages/story/story-param.ts'
+import { useStory } from '@core/packages/story/use-story.ts'
+import { type IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import { ref } from 'vue'
 
-const modelValue = ref('')
+const { params, bindings } = useStory({
+  props: {
+    label: {
+      preset: 'My input',
+    },
+    icon: {
+      preset: ref<IconDefinition>(),
+      type: 'IconDefinition',
+      widget: iconChoice(),
+    },
+    learnMoreUrl: {
+      preset: 'https://google.com',
+    },
+    warning: {
+      preset: ref<string>(),
+      type: 'string',
+    },
+    error: {
+      preset: ref<string>(),
+      type: 'string',
+    },
+    help: {
+      preset: '256 by default',
+    },
+    disabled: {
+      preset: ref<boolean>(),
+      type: 'boolean',
+    },
+    light: {
+      preset: ref<boolean>(),
+      type: 'boolean',
+    },
+  },
+  slots: {
+    default: { help: 'Contains the input' },
+  },
+})
 </script>

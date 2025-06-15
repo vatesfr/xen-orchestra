@@ -3,59 +3,50 @@
 - [Component Stories](#component-stories)
   - [How to create a story](#how-to-create-a-story)
   - [How to write a story](#how-to-write-a-story)
-  _ [Example](#example)
-  _ [Props](#props)
-  _ [Required prop](#required-prop)
-  _ [Prop type](#prop-type)
-  _ [String](#string)
-  _ [Number](#number)
-  _ [Boolean](#boolean)
-  _ [Array](#array)
-  _ [Object](#object)
-  _ [Enum](#enum)
-  _ [Any](#any)
-  _ [Custom type](#custom-type)
-  _ [Prop widget](#prop-widget)
-  _ [Text](#text)
-  _ [Number](#number-1)
-  _ [Object](#object-1)
-  _ [Choice](#choice)
-  _ [Boolean](#boolean-1)
-  _ [Prop default](#prop-default)
-  _ [Prop preset](#prop-preset)
-  _ [Prop help](#prop-help)
-  _ [Events](#events)
-  _ [Event with no arguments](#event-with-no-arguments)
-  _ [Event with arguments](#event-with-arguments)
-  _ [Custom function](#custom-function)
-  _ [Event type](#event-type)
-  _ [Models](#models)
-  _ [Default model](#default-model)
-  _ [Custom model](#custom-model)
-  _ [Configure the underlying prop and event](#configure-the-underlying-prop-and-event)
-  _ [Model type](#model-type)
-  _ [Model help](#model-help)
-  _ [Slots](#slots)
-  _ [Default slot](#default-slot)
-  _ [Named slot](#named-slot)
-  _ [Scoped slot (slot with props)](#scoped-slot--slot-with-props-)
-  _ [Slot help](#slot-help)
-  _ [Settings](#settings)
+  - [Example](#example)
+  - [Props](#props)
+    - [Basic prop configuration](#basic-prop-configuration)
+    - [Required prop](#required-prop)
+    - [Prop type](#prop-type)
+    - [Prop widget](#prop-widget)
+    - [Prop default](#prop-default)
+    - [Prop preset](#prop-preset)
+    - [Prop help](#prop-help)
+  - [Events](#events)
+    - [Basic event configuration](#basic-event-configuration)
+    - [Event with no arguments](#event-with-no-arguments)
+    - [Event with arguments](#event-with-arguments)
+    - [Custom event handler](#custom-event-handler)
+    - [Event help](#event-help)
+  - [Models](#models)
+    - [Basic model configuration](#basic-model-configuration)
+    - [Model configuration](#model-configuration)
+  - [Slots](#slots)
+    - [Basic slot configuration](#basic-slot-configuration)
+    - [Named slot](#named-slot)
+    - [Scoped slot (slot with props)](#scoped-slot--slot-with-props-)
+    - [Slot help](#slot-help)
+  - [Settings](#settings)
+    - [Basic settings configuration](#basic-settings-configuration)
+    - [Settings with widgets](#settings-with-widgets)
+    - [Settings help](#settings-help)
+    - [Using settings in your template](#using-settings-in-your-template)
+  - [Presets](#presets) - [Basic presets configuration](#basic-presets-configuration) - [Example: Progress component presets](#example-progress-component-presets) - [Example: State-based presets](#example-state-based-presets) - [Example: Presets with settings](#example-presets-with-settings) - [Best practices for presets](#best-practices-for-presets) - [Preset naming conventions](#preset-naming-conventions)
   <!-- TOC -->
 
 # Component Stories
 
 The `ComponentStory` component allows you to document your components and their props, events and slots.
 
-It takes a `params` prop which is an array of configuration items.
+Use the `useStory` composable to define your story configuration. It returns `params`, `bindings`, and `settings` objects.
 
 You can configure props, events, models, slots and settings.
 
-Props, Events and Models will be added to the `properties` slot prop.
+Props, Events and Models will be available in the `bindings` object.
 
 Slots are only for documentation purpose.
 
-Settings will be added to the `settings` slot prop.
+Settings will be available in the `settings` object.
 
 ## How to create a story
 
@@ -64,21 +55,12 @@ Settings will be added to the `settings` slot prop.
 
 ## How to write a story
 
-In your `.story.vue` file, import and use the `ComponentStory` component.
+In your `.story.vue` file, import and use the `ComponentStory` component with the `useStory` composable.
 
 ```vue
 <template>
-  <ComponentStory
-    v-slot="{ properties, settings }"
-    :params="[
-      prop(...),
-      event(...),
-      model(...),
-      slot(...),
-      setting(...),
-    ]"
-  >
-    <MyComponent v-bind="properties">
+  <ComponentStory :params>
+    <MyComponent v-bind="bindings">
       {{ settings.label }}
     </MyComponent>
   </ComponentStory>
@@ -86,8 +68,27 @@ In your `.story.vue` file, import and use the `ComponentStory` component.
 
 <script lang="ts" setup>
 import MyComponent from '@/components/MyComponent.vue'
-import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop, event, model, slot, setting } from '@/libs/story/story-param'
+import ComponentStory from '@core/packages/story/ComponentStory.vue'
+import { useStory } from '@core/packages/story/use-story.ts'
+import { ref } from 'vue'
+
+const { params, bindings, settings } = useStory({
+  props: {
+    // prop configurations
+  },
+  models: {
+    // model configurations
+  },
+  events: {
+    // event configurations
+  },
+  slots: {
+    // slot configurations
+  },
+  settings: {
+    // setting configurations
+  },
+})
 </script>
 ```
 
@@ -147,24 +148,8 @@ Here is how to document it with a Component Story:
 
 ```vue
 <template>
-  <ComponentStory
-    v-slot="{ properties, settings }"
-    :params="[
-      prop('imString').str().required().preset('Example').widget().help('This is a required string prop'),
-      prop('imNumber').num().required().preset(42).widget().help('This is a required number prop'),
-      prop('imOptional').str().widget().help('This is an optional string prop'),
-      prop('imOptionalWithDefault').str().default('Hi World').widget().default('My default value'),
-      model().prop(p => p.str()),
-      model('customModel').prop(p => p.num()),
-      event('click').help('Emitted when the user clicks the first button'),
-      event('clickWithArg').args({ id: 'string' }).help('Emitted when the user clicks the second button'),
-      slot().help('This is the default slot'),
-      slot('namedSlot').help('This is a named slot'),
-      slot('namedScopedSlot').prop('moon-distance', 'number').help('This is a named slot'),
-      setting('contentExample').widget(text()).preset('Some content'),
-    ]"
-  >
-    <MyComponent v-bind="properties">
+  <ComponentStory :params :presets>
+    <MyComponent v-bind="bindings">
       {{ settings.contentExample }}
       <template #named-slot>Named slot content</template>
       <template #named-scoped-slot="{ moonDistance }"> Moon distance is {{ moonDistance }} meters. </template>
@@ -173,214 +158,521 @@ Here is how to document it with a Component Story:
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from '@/components/component-story/ComponentStory.vue'
+import ComponentStory from '@core/packages/story/ComponentStory.vue'
 import MyComponent from '@/components/MyComponent.vue'
-import { event, model, prop, setting, slot } from '@/libs/story/story-param'
-import { text } from '@/libs/story/story-widget'
+import { useStory } from '@core/packages/story/use-story.ts'
+import { ref } from 'vue'
+
+const { params, bindings, settings } = useStory({
+  props: {
+    imString: {
+      preset: 'Example',
+      required: true,
+      help: 'This is a required string prop',
+    },
+    imNumber: {
+      preset: 42,
+      required: true,
+      help: 'This is a required number prop',
+    },
+    imOptional: {
+      preset: ref<string>(),
+      type: 'string',
+      help: 'This is an optional string prop',
+    },
+    imOptionalWithDefault: {
+      preset: ref<string>(),
+      default: 'Hi World',
+    },
+  },
+  models: {
+    modelValue: {
+      preset: ref<string>(),
+      type: 'string',
+    },
+    customModel: {
+      preset: ref<number>(),
+      type: 'number',
+    },
+  },
+  events: {
+    click: { help: 'Emitted when the user clicks the first button' },
+    clickWithArg: {
+      args: { id: 'string' },
+      help: 'Emitted when the user clicks the second button',
+    },
+  },
+  slots: {
+    default: { help: 'This is the default slot' },
+    'named-slot': { help: 'This is a named slot' },
+    'named-scoped-slot': {
+      help: 'This is a named slot',
+      props: { moonDistance: 'number' },
+    },
+  },
+  settings: {
+    contentExample: { preset: 'Some content' },
+  },
+})
+
+const presets: Record<string, () => void> = {
+  'Demo preset': () => {
+    bindings.imString = 'Text from preset'
+    bindings.imNumber = 1000
+    settings.contentExample = 'Preset content for default slot'
+  },
+  'Another example': () => {
+    bindings.imString = 'Another example'
+    bindings.imNumber = 500
+    bindings.imOptional = 'Optional value set by preset'
+  },
+}
 </script>
 ```
 
 ### Props
 
-Use the `prop(name: string)` function to document a prop.
+Props are defined in the `props` object passed to `useStory()`. Each prop is configured with an object containing various options.
 
-It will appear on the **Props** tab.
+Props will appear on the **Props** tab and be available in the `bindings` object.
+
+#### Basic prop configuration
+
+```ts
+const { bindings } = useStory({
+  props: {
+    title: {
+      preset: 'My Title',
+      required: true,
+      help: 'The title of the component',
+    },
+  },
+})
+```
 
 #### Required prop
 
-If the prop is required, use the `required()` function.
+Set `required: true` to mark a prop as required.
 
-`prop('title').required()`
+```ts
+title: {
+  preset: 'My Title',
+  required: true,
+}
+```
 
 #### Prop type
 
-You can set the type of the prop with the `str()`, `num()`, `bool()`, `arr()`, `obj()`, `enum()` and `any()` functions.
+Set the `type` property to specify the prop type. The type can also be detected automatically from the preset value.
 
-The type can also be detected automatically if a [preset](#prop-preset) value is defined.
+```ts
+// Explicit type
+title: {
+  preset: ref<string>(),
+  type: 'string',
+}
 
-##### String
-
-`prop('title').str()`: `string`
-
-##### Number
-
-`prop('count').num()`: `number`
-
-##### Boolean
-
-`prop('disabled').bool()`: `boolean`
-
-##### Array
-
-`prop('items').arr()`: `any[]`
-
-`prop('items').arr('string')`: `string[]`
-
-##### Object
-
-`prop('user').obj()`: `object`
-
-`prop('user').obj('{ name: string, age: number }')`: `{ name: string; age: number; }`
-
-##### Enum
-
-`prop('color').enum('red', 'green', 'blue')`: `"red" | "green" | "blue"`
-
-##### Any
-
-`prop('color').any()`: `any`
-
-##### Custom type
-
-`prop('user').type('User')`: `User`
+// Auto-detected from preset
+count: {
+  preset: 42, // automatically detected as number
+}
+```
 
 #### Prop widget
 
-When the prop type is defined, the widget is automatically detected.
+Set `widget: true` to automatically detect the widget, or `widget: false` to disable it.
 
-`prop('title').str().widget()`
-
-But you can also define the widget manually.
-
-##### Text
-
-`prop('...').widget(text())`
-
-##### Number
-
-`prop('...').widget(number())`
-
-##### Object
-
-`prop('...').widget(object())`
-
-##### Choice
-
-`prop('...').widget(choice('red', 'green', 'blue'))`
-
-##### Boolean
-
-`prop('title').widget(boolean())`
+```ts
+title: {
+  preset: 'My Title',
+  widget: true,
+}
+```
 
 #### Prop default
 
-This documents the default value of the prop, which is applied when the prop is not defined.
+Set the `default` property to document the default value of the prop.
 
-`prop('color').default('blue')`
+```ts
+color: {
+  preset: ref<string>(),
+  default: 'blue',
+}
+```
 
 #### Prop preset
 
-This allows to preset a prop value for this story.
+The `preset` property sets the initial value for the prop in the story. Use `ref()` for reactive values.
 
-`prop('color').preset('red')`
+```ts
+// Static preset
+title: {
+  preset: 'Static Title',
+}
+
+// Reactive preset
+title: {
+  preset: ref<string>(),
+}
+```
 
 #### Prop help
 
-This allows to add a help text for this prop.
+Set the `help` property to add help text for the prop.
 
-`prop('color').help('This is the component text color')`
+```ts
+color: {
+  preset: 'red',
+  help: 'This is the component text color',
+}
+```
 
 ### Events
 
-Use the `event(name: string)` function to document an event.
+Events are defined in the `events` object passed to `useStory()`. Each event is configured with an object containing various options.
 
-It will appear in the **Events** tab.
+Events will appear in the **Events** tab and be automatically bound to your component in the `bindings` object.
 
-When triggered, this event will be logged to the `Logs` card.
+When triggered, events will be logged to the `Logs` card.
+
+#### Basic event configuration
+
+```ts
+const { bindings } = useStory({
+  events: {
+    click: { help: 'Emitted when the user clicks the button' },
+  },
+})
+```
 
 #### Event with no arguments
 
-`event('edit')`: `() => void`
+```ts
+events: {
+  edit: { help: 'Emitted when edit is triggered' },
+}
+```
 
 #### Event with arguments
 
-`event('delete').args({ id: 'string' })`: `(id: string) => void`
+```ts
+events: {
+  delete: {
+    args: { id: 'string' },
+    help: 'Emitted when delete is triggered',
+  },
+}
+```
 
-#### Custom function
+#### Custom event handler
 
-If needed, thanks to the `preset` method, you can attach a custom function to your event.
+You can provide a custom handler function for an event.
 
-`const debug = (id: string) => console.log(id);`
+```ts
+const debug = (id: string) => console.log(id)
 
-`event('my-event').args({ id: 'string' }).preset(debug)`
-
-#### Event type
-
-The event type is automatically generated from the arguments.
-
-You can override it with the `type()` method.
+events: {
+  myEvent: {
+    args: { id: 'string' },
+    handler: debug,
+    help: 'Custom event with handler',
+  },
+}
+```
 
 #### Event help
 
-This allows to add a help text for this event.
+Set the `help` property to add help text for the event.
 
-`event('close').help('Called when user clicks the close icon or on the background')`
+```ts
+events: {
+  close: {
+    help: 'Called when user clicks the close icon or on the background',
+  },
+}
+```
 
 ### Models
 
-Use the `model(name = "model-value")` function to document a model.
+Models are defined in the `models` object passed to `useStory()`. Each model creates both a prop and an event handler.
 
-Calling `model("foo")` is kind of equivalent to calling `prop("foo")` + `event("update:foo")`.
+Models will appear in the **Props** tab and be available in the `bindings` object with their corresponding update handlers.
 
-#### Default model
+#### Basic model configuration
 
-`model()` with no argument will create a `model-value` prop and a `update:model-value` event.
+```ts
+const { bindings } = useStory({
+  models: {
+    modelValue: {
+      preset: ref<string>(),
+      type: 'string',
+    },
+  },
+})
+```
 
-#### Custom model
+#### Model configuration
 
-`model('foo')` will create a `foo` prop and a `update:foo` event.
+Models accept the same configuration options as props:
 
-#### Configure the underlying prop and event
-
-You can use `.prop((p) => ...)` and `.event((e) => ...)` methods to access the underlying prop and event respectively
-then use any of the [prop](#props) and [event](#events) methods.
-
-`model().event((e) => e.help('Help for update:modelValue event'))`
-
-#### Model type
-
-`.type(type: string)` function is a shortcut for `.prop((p) => p.type(...))`
-
-#### Model help
-
-Using `.help(text: string)` function is a shortcut for `.prop((p) => p.help(...))`
+```ts
+models: {
+  value: {
+    preset: ref<string>(),
+    type: 'string',
+    required: true,
+    help: 'The current value of the component',
+  },
+}
+```
 
 ### Slots
 
-Use the `slot(name = "default")` function to document a slot.
+Slots are defined in the `slots` object passed to `useStory()`. Each slot is configured with an object containing various options.
 
-#### Default slot
+Slots are only for documentation purposes and will appear in the **Slots** tab.
 
-`slot()`
+#### Basic slot configuration
 
-=> `<slot />`
+```ts
+const {} = useStory({
+  slots: {
+    default: { help: 'This is the default slot' },
+  },
+})
+```
 
 #### Named slot
 
-`slot('header')`
-
-=> `<slot name="header" />`
+```ts
+slots: {
+  header: { help: 'This is the header slot' },
+}
+```
 
 #### Scoped slot (slot with props)
 
-`slot('footer').prop('color', 'string').prop('count', 'number')`
+```ts
+slots: {
+  footer: {
+    help: 'This is the footer slot',
+    props: { color: 'string', count: 'number' },
+  },
+}
+```
 
 #### Slot help
 
-`slot('footer').help('This is the footer slot')`
+Set the `help` property to add help text for the slot.
+
+```ts
+slots: {
+  footer: {
+    help: 'This is the footer slot',
+  },
+}
+```
 
 ### Settings
 
-Use the `setting(name: string)` to configure your Story with arbitrary settings.
+Settings are defined in the `settings` object passed to `useStory()`. Each setting is configured with an object containing various options.
 
-They will not be passed automatically to your component, but you can access them in your template with the `settings` variable.
+Settings are not passed automatically to your component, but you can access them in your template with the `settings` object.
 
-For example:
+#### Basic settings configuration
+
+```ts
+const { settings } = useStory({
+  settings: {
+    label: { preset: 'My Label' },
+  },
+})
+```
+
+#### Settings with widgets
+
+```ts
+import { text, choice, number, boolean, object } from '@core/packages/story/story-widget.ts'
+
+const { settings } = useStory({
+  settings: {
+    label: {
+      preset: 'My Label',
+      widget: text(),
+    },
+    count: {
+      preset: 5,
+      widget: number(),
+    },
+    enabled: {
+      preset: true,
+      widget: boolean(),
+    },
+    variant: {
+      preset: 'primary',
+      widget: choice('primary', 'secondary', 'tertiary'),
+    },
+  },
+})
+```
+
+#### Available widget types
+
+The story system provides several widget types:
+
+- `text()` - Text input
+- `number()` - Number input
+- `boolean()` - Checkbox
+- `choice(...options)` - Dropdown select
+- `choice(...options).radio()` - Radio buttons
+- `object()` - Object editor
+
+#### Special widgets
+
+For advanced use cases, you can use specialized widgets:
+
+```ts
+import { iconChoice } from '@core/packages/story/story-param.ts'
+import { choice } from '@core/packages/story/story-widget.ts'
+
+// Icon picker widget
+leftIcon: {
+  preset: ref<IconDefinition>(),
+  type: 'IconDefinition',
+  widget: iconChoice(),
+}
+
+// Choice widget as radio buttons
+variant: {
+  preset: 'primary',
+  widget: choice('primary', 'secondary', 'tertiary').radio(),
+}
+```
+
+#### Settings help
+
+Set the `help` property to add help text for the setting.
+
+```ts
+settings: {
+  label: {
+    preset: 'My Label',
+    help: 'The label text to display',
+  },
+}
+```
+
+#### Using settings in your template
 
 ```vue
 <template>
-  <ComponentStory v-slot="{ settings }" :params="[setting('label').widget()]">
+  <ComponentStory :params>
     <button>{{ settings.label }}</button>
   </ComponentStory>
 </template>
 ```
+
+### Presets
+
+Presets allow you to define predefined configurations that users can quickly switch between in the UI. They appear as a dropdown menu in the story interface.
+
+#### Basic presets configuration
+
+```ts
+const { params, bindings, settings } = useStory({
+  // ... your story configuration
+})
+
+const presets: Record<string, () => void> = {
+  'Preset Name': () => {
+    bindings.propName = 'preset value'
+    settings.settingName = 'preset setting value'
+  },
+}
+```
+
+Then pass the presets to the ComponentStory:
+
+```vue
+<template>
+  <ComponentStory :params :presets>
+    <MyComponent v-bind="bindings" />
+  </ComponentStory>
+</template>
+```
+
+#### Example: Progress component presets
+
+```ts
+const presets: Record<string, () => void> = {
+  'Half of 500': () => {
+    bindings.maxValue = 500
+    bindings.value = 250
+  },
+  '75% of 300': () => {
+    bindings.maxValue = 300
+    bindings.value = 225
+  },
+  'Warning >= 80%': () => {
+    bindings.maxValue = 100
+    bindings.value = 85
+    bindings.accent = 'warning'
+  },
+}
+```
+
+#### Example: State-based presets
+
+```ts
+const presets: Record<string, () => void> = {
+  'First page': () => {
+    bindings.from = 1
+    bindings.to = 50
+    bindings.isFirstPage = true
+    bindings.isLastPage = false
+  },
+  'Last page': () => {
+    bindings.from = 101
+    bindings.to = 137
+    bindings.isFirstPage = false
+    bindings.isLastPage = true
+  },
+  'Middle page': () => {
+    bindings.from = 51
+    bindings.to = 100
+    bindings.isFirstPage = false
+    bindings.isLastPage = false
+  },
+}
+```
+
+#### Example: Presets with settings
+
+```ts
+const presets: Record<string, () => void> = {
+  'Demo configuration': () => {
+    // Update component props
+    bindings.title = 'Demo Title'
+    bindings.variant = 'primary'
+
+    // Update story settings
+    settings.slotContent = 'Demo content'
+    settings.showAdvanced = true
+  },
+}
+```
+
+#### Best practices for presets
+
+1. **Use descriptive names** that clearly explain what the preset demonstrates
+2. **Show realistic scenarios** that users might encounter in production
+3. **Include edge cases** like error states, empty states, or boundary conditions
+4. **Group related properties** together to create coherent scenarios
+5. **Demonstrate different component states** (loading, error, success, etc.)
+
+#### Preset naming conventions
+
+- Use clear, descriptive names: `'Warning >= 80%'` instead of `'Preset 1'`
+- Include relevant values: `'Half of 500'` instead of `'Medium'`
+- Describe the scenario: `'First page'` instead of `'Page state'`
+- Use realistic examples: `'Running VM'` instead of `'Green state'`

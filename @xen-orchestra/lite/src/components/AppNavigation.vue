@@ -13,9 +13,9 @@
 </template>
 
 <script lang="ts" setup>
-import StoryMenu from '@/components/component-story/StoryMenu.vue'
 import InfraPoolList from '@/components/infra/InfraPoolList.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
+import StoryMenu from '@core/packages/story/StoryMenu.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { onClickOutside, whenever } from '@vueuse/core'
 import { storeToRefs } from 'pinia'

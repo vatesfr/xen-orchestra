@@ -233,6 +233,8 @@ module.exports = {
     {
       files: [
         '@xen-orchestra/lite/src/stories/**/*',
+        '@xen-orchestra/web/src/stories/**/*',
+        '@xen-orchestra/web-core/lib/stories/**/*',
         '@xen-orchestra/lite/src/components/component-story/**/*',
         '@xen-orchestra/web/src/pages/dev/**/*',
         '@xen-orchestra/lite/src/views/story/**/*',

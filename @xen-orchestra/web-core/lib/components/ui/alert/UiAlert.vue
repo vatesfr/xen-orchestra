@@ -31,7 +31,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faCheck, faCircle, faExclamation, faInfo, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
-type AlertAccent = 'info' | 'success' | 'warning' | 'danger'
+export type AlertAccent = 'info' | 'success' | 'warning' | 'danger'
 
 const { accent } = defineProps<{
   accent: AlertAccent

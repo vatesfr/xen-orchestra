@@ -14,8 +14,8 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
-type TagAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
-type TagVariant = 'primary' | 'secondary'
+export type TagAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
+export type TagVariant = 'primary' | 'secondary'
 
 defineProps<{
   accent: TagAccent

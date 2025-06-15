@@ -15,7 +15,7 @@ const { state: _state } = defineProps<{
 
 const { t } = useI18n()
 
-type BackupState = 'success' | 'failure' | 'skipped' | 'interrupted'
+export type BackupState = 'success' | 'failure' | 'skipped' | 'interrupted'
 
 const state = useMapper<BackupState, { text: string; accent: InfoAccent }>(
   () => _state,

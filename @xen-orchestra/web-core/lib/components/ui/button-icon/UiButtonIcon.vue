@@ -13,8 +13,8 @@ import { toVariants } from '@core/utils/to-variants.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { computed } from 'vue'
 
-type ButtonIconAccent = 'brand' | 'warning' | 'danger'
-type ButtonSize = 'small' | 'medium' | 'large'
+export type ButtonIconAccent = 'brand' | 'warning' | 'danger'
+export type ButtonIconSize = 'small' | 'medium' | 'large'
 
 const {
   accent,
@@ -24,7 +24,7 @@ const {
   targetScale = 1,
 } = defineProps<{
   icon: IconDefinition
-  size: ButtonSize
+  size: ButtonIconSize
   accent: ButtonIconAccent
   disabled?: boolean
   selected?: boolean

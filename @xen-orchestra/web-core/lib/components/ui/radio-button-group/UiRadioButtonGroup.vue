@@ -22,8 +22,10 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import { computed } from 'vue'
 
+export type RadioButtonGroupAccent = 'brand' | 'warning' | 'danger'
+
 const { accent } = defineProps<{
-  accent: 'brand' | 'warning' | 'danger'
+  accent: RadioButtonGroupAccent
   label?: string
   info?: string
   vertical?: boolean

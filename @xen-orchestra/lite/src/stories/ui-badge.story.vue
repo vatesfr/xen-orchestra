@@ -1,14 +1,32 @@
 <template>
-  <ComponentStory
-    v-slot="{ properties, settings }"
-    :params="[iconProp(), setting('label').preset('65%').widget(), slot()]"
-  >
-    <UiBadge v-bind="properties">{{ settings.label }}</UiBadge>
+  <ComponentStory :params>
+    <UiBadge v-bind="bindings">{{ settings.label }}</UiBadge>
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import UiBadge from '@/components/ui/UiBadge.vue'
-import { iconProp, setting, slot } from '@/libs/story/story-param'
+import ComponentStory from '@core/packages/story/ComponentStory.vue'
+import { iconChoice } from '@core/packages/story/story-param.ts'
+import { useStory } from '@core/packages/story/use-story.ts'
+import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import { ref } from 'vue'
+
+const { params, bindings, settings } = useStory({
+  props: {
+    icon: {
+      preset: ref<IconDefinition>(),
+      type: 'IconDefinition',
+      widget: iconChoice(),
+    },
+  },
+  slots: {
+    default: { help: 'This is the default slot' },
+  },
+  settings: {
+    label: {
+      preset: '65%',
+    },
+  },
+})
 </script>

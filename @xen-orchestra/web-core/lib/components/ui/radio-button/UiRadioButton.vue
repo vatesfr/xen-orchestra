@@ -9,20 +9,22 @@
   </label>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup generic="T">
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { toVariants } from '@core/utils/to-variants.util'
 import { faCircle } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
+export type RadioButtonAccent = 'brand' | 'warning' | 'danger'
+
 const { accent, value, disabled } = defineProps<{
-  accent: 'brand' | 'warning' | 'danger'
-  value: any
+  accent: RadioButtonAccent
+  value: T
   disabled?: boolean
 }>()
 
-const model = defineModel<string>()
+const model = defineModel<T>()
 
 defineSlots<{
   default(): any

@@ -1,30 +1,34 @@
 <template>
-  <ComponentStory
-    v-slot="{ properties }"
-    :params="[prop('value').num().preset(25).required().widget(), prop('max-value').num().default(100).widget()]"
-    :presets
-  >
-    <ProgressCircle v-bind="properties" />
+  <ComponentStory :params :presets>
+    <ProgressCircle v-bind="bindings" />
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import ProgressCircle from '@/components/ProgressCircle.vue'
-import { prop } from '@/libs/story/story-param'
+import ComponentStory from '@core/packages/story/ComponentStory.vue'
+import { useStory } from '@core/packages/story/use-story.ts'
 
-const presets = {
-  'Half of 500': {
-    props: {
-      'max-value': 500,
-      value: 250,
+const { params, bindings } = useStory({
+  props: {
+    value: {
+      preset: 25,
+      required: true,
+    },
+    'max-value': {
+      default: 100,
     },
   },
-  '75% of 300': {
-    props: {
-      'max-value': 300,
-      value: 225,
-    },
+})
+
+const presets: Record<string, () => void> = {
+  'Half of 500': () => {
+    bindings['max-value'] = 500
+    bindings.value = 250
+  },
+  '75% of 300': () => {
+    bindings['max-value'] = 300
+    bindings.value = 225
   },
 }
 </script>

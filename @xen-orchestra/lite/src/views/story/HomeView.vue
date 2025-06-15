@@ -118,7 +118,7 @@ const template = computed(() => {
 </template>
 
 <script lang="ts" setup>
-import ComponentStory from "@/components/component-story/ComponentStory.vue";
+import ComponentStory from "@core/packages/story/ComponentStory.vue";
 import ${componentName} from "${path}";
 ${
   paramsToImport.value.size > 0

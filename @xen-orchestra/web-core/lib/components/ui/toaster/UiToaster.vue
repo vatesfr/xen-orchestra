@@ -27,7 +27,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faCheck, faCircle, faExclamation, faInfo, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
-type ToasterAccent = 'info' | 'success' | 'warning' | 'danger'
+export type ToasterAccent = 'info' | 'success' | 'warning' | 'danger'
 
 const props = defineProps<{
   accent: ToasterAccent

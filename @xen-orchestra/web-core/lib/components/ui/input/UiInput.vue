@@ -37,8 +37,8 @@ import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import { inject, ref, useAttrs, watchEffect } from 'vue'
 
-type InputAccent = 'brand' | 'warning' | 'danger'
-type InputType = 'text' | 'number' | 'password' | 'search'
+export type InputAccent = 'brand' | 'warning' | 'danger'
+export type InputType = 'text' | 'number' | 'password' | 'search'
 
 defineOptions({
   inheritAttrs: false,
@@ -74,11 +74,11 @@ const wrapperController = inject(IK_INPUT_WRAPPER_CONTROLLER, undefined)
 
 const accent = useMapper<LabelAccent, InputAccent>(
   () => wrapperController?.labelAccent,
-  {
+  () => ({
     neutral: _accent,
     warning: 'warning',
     danger: 'danger',
-  },
+  }),
   'neutral'
 )
 

@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import vue from '@vitejs/plugin-vue'
@@ -12,6 +13,46 @@ export default defineConfig(({ mode }) => {
     base: './',
     plugins: [
       vueRouter({
+        routesFolder: [
+          'src/pages',
+          {
+            src: 'src/stories',
+            path: 'story/',
+            extensions: ['.story.vue'],
+          },
+          {
+            src: '../web-core/lib/stories',
+            path: 'story/web-core/',
+            extensions: ['.story.vue'],
+          },
+        ],
+        extendRoute(route) {
+          const rootPath = '/story'
+
+          if (!route.fullPath.startsWith(rootPath)) {
+            return
+          }
+
+          let markdownPath = route.component?.replace(/\.vue$/, '.md')
+
+          if (markdownPath !== undefined && !existsSync(markdownPath)) {
+            markdownPath = undefined
+          }
+
+          const pathParts = route.fullPath.substring(rootPath.length + 1).split('/')
+
+          const label = pathParts[pathParts.length - 1].replace('-', ' ')
+
+          route.addToMeta({
+            story: {
+              isStory: route.path !== '',
+              rootPath,
+              pathParts,
+              label,
+              markdownPath,
+            },
+          })
+        },
         exclude: mode !== 'development' ? ['src/pages/dev/**'] : [],
       }),
       vue(),

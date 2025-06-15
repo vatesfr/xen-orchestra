@@ -1,0 +1,1 @@
+<template>Stories</template>
