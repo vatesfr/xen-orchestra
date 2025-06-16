@@ -131,7 +131,7 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
     }
     this.#closed = true
     this.#closedBy = new Error().stack
-    await this.handler.closeFile()
+    await this._handler.closeFile()
   }
   // =================================================================
   // Read functions.
