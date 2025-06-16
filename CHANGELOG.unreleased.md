@@ -67,6 +67,7 @@
 - xen-api patch
 - xo-remote-parser minor
 - xo-server minor
+- xo-server-auth-oidc patch
 - xo-server-perf-alert patch
 - xo-web patch
 
