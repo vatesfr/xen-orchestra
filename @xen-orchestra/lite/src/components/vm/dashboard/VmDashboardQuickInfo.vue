@@ -29,9 +29,7 @@
       <VtsQuickInfoRow :label="t('uuid')" :value="vm.uuid" />
       <VtsQuickInfoRow :label="t('description')" :value="vm.name_description" />
       <VtsQuickInfoRow :label="t('os-name')" :value="osVersion" />
-      <VtsQuickInfoRow :label="t('virtualization-type')">
-        <template #value>{{ virtualizationType }}</template>
-      </VtsQuickInfoRow>
+      <VtsQuickInfoRow :label="t('virtualization-type')" :value="virtualizationType" />
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('vcpus')" :value="String(vm.VCPUs_at_startup)" />

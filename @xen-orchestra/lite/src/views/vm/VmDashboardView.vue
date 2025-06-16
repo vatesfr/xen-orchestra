@@ -46,7 +46,7 @@ const vm = computed(() => getByUuid(id.value))
 
 const uiStore = useUiStore()
 
-const { stats, register, unregister, timestampStart } = useFetchStats<XenApiVm>(getVmStats, GRANULARITY.Hours)
+const { stats, register, unregister, timestampStart } = useFetchStats(getVmStats, GRANULARITY.Hours)
 
 const data = computed(() => ({ stats: stats.value.map(stat => stat.stats)[0], timestampStart: timestampStart.value }))
 

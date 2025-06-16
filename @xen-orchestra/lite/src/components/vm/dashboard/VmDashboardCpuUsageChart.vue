@@ -36,9 +36,7 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 const { t, n } = useI18n()
 
 const cpuUsage = computed<LinearChartData>(() => {
-  const stats = data.stats
-
-  const timestampStart = data.timestampStart
+  const { stats, timestampStart } = data
 
   if (stats === undefined) {
     return []

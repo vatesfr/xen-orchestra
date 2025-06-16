@@ -69,18 +69,25 @@ const networkUsage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = networkUsage.value.flatMap(series => series.data.map(item => item.value))
+  const values = networkUsage.value.reduce(
+    (acc, series) => [...acc, ...series.data.map(item => item.value ?? 0)],
+    [] as number[]
+  )
 
   if (values.length === 0) {
     return 100
   }
 
-  const maxUsage = Math.max(...values)
+  const maxUsage = Math.max(...values) * 1.2
 
-  return Math.ceil(maxUsage / 50) * 50
+  return Math.ceil(maxUsage / 100) * 100
 })
 
-const byteFormatter = (value: number) => {
+const byteFormatter = (value: number | null) => {
+  if (value === null) {
+    return ''
+  }
+
   const result = formatSizeRaw(value, 1)
 
   return `${result?.value}${result?.prefix}`

@@ -125,37 +125,20 @@ export const useVmStore = defineStore('xen-api-vm', () => {
   }) as GetStats<XenApiVm>
 
   const getVmHost = (vm: XenApiVm): XenApiHost | undefined => {
-    // VM is RUNNING
-    if (vm.resident_on !== 'OpaqueRef:NULL') {
+    // Try to find a host with local SR (same logic as in recordsByHostRef)
+    const hostWithLocalSr = findHostWithLocalSr(vm)
+
+    if (hostWithLocalSr !== undefined) {
+      return hostContext.getByOpaqueRef(hostWithLocalSr)
+    }
+
+    // If VM is running, use resident_on
+
+    if (vm.resident_on) {
       return hostContext.getByOpaqueRef(vm.resident_on)
     }
 
-    // VM is HALTED
-    const vmVbds = vbdContext.records.value.filter(vbd => vbd.VM === vm.$ref)
-
-    for (const vbd of vmVbds) {
-      const vdi = vdiContext.getByOpaqueRef(vbd.VDI)
-
-      if (vdi === undefined) {
-        continue
-      }
-
-      const sr = srContext.getByOpaqueRef(vdi.SR)
-
-      if (sr === undefined || sr.shared) {
-        continue
-      }
-
-      const pbd = pbdContext.getByOpaqueRef(sr.PBDs[0])
-
-      if (pbd?.host === undefined) {
-        continue
-      }
-
-      return hostContext.getByOpaqueRef(pbd.host)
-    }
-
-    return vm.resident_on ? hostContext.getByOpaqueRef(vm.resident_on) : undefined
+    return undefined
   }
 
   const context = {
