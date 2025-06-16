@@ -1,7 +1,6 @@
 <template>
-  <VtsNoDataHero v-if="!servers.length" type="page" />
-  <div v-else class="pools">
-    <UiCard v-if="isReady" class="pools-table">
+  <div class="pools">
+    <UiCard class="pools-table">
       <PoolsTable :servers />
     </UiCard>
     <PoolSidePanel v-if="selectedServer" :server="selectedServer" />
@@ -16,13 +15,12 @@ import PoolSidePanel from '@/components/site/pools/PoolSidePanel.vue'
 import PoolsTable from '@/components/site/pools/PoolsTable.vue'
 import { useServerStore } from '@/stores/xo-rest-api/server.store'
 import type { XoServer } from '@/types/xo/server.type'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 
-const { records: servers, isReady, get } = useServerStore().subscribe()
+const { records: servers, get } = useServerStore().subscribe()
 
 const selectedServer = useRouteQuery<XoServer | undefined>('id', {
   toData: id => get(id as XoServer['id']),

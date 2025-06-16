@@ -79,7 +79,7 @@
       </UiCard>
       <UiCard class="card-container">
         <UiCardTitle class="typo-body-bold text-ellipsis">
-          {{ t('connections') }}
+          {{ t('connection') }}
         </UiCardTitle>
         <!-- status -->
         <VtsCardRowKeyValue>
@@ -142,7 +142,7 @@
           </template>
         </VtsCardRowKeyValue>
       </UiCard>
-      <UiCard>
+      <UiCard v-if="hosts">
         <UiCardTitle>
           <span>
             {{ t('hosts') }}
@@ -194,7 +194,10 @@ const { t } = useI18n()
 
 const { isReady: isPoolReady, get: getpool } = usePoolStore().subscribe()
 const { isReady: isHostready, get: getHostById, hostsByPool } = useHostStore().subscribe()
+
 const pool = computed(() => (server.poolId ? getpool(server.poolId) : undefined))
+const primaryHost = computed(() => (server.master ? getHostById(server.master) : undefined))
+const hosts = computed(() => (server.poolId ? hostsByPool.value.get(server.poolId) : undefined))
 
 const connectionStatus: ComputedRef<{ accent: InfoAccent; text: string }> = computed(() => {
   if (server.error) {
@@ -212,9 +215,6 @@ const connectionStatus: ComputedRef<{ accent: InfoAccent; text: string }> = comp
       return { accent: 'muted', text: t('unknown') }
   }
 })
-
-const primaryHost = computed(() => (server.master ? getHostById(server.master) : undefined))
-const hosts = computed(() => (server.poolId ? hostsByPool.value.get(server.poolId) : undefined))
 </script>
 
 <style scoped lang="postcss">
