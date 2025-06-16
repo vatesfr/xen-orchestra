@@ -25,7 +25,7 @@
       <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
     </template>
     <template #default>
-      <UiCard class="card-container">
+      <UiCard v-if="server.error === undefined" class="card-container">
         <UiCardTitle>
           {{ t('general-information') }}
         </UiCardTitle>
@@ -77,6 +77,12 @@
           </VtsCardRowKeyValue>
         </div>
       </UiCard>
+      <UiAlert v-else accent="danger">
+        {{ t('connection-failed') }}
+        <template #description>
+          {{ t('unable-to-connect-to-the-pool') }}
+        </template>
+      </UiAlert>
       <UiCard class="card-container">
         <UiCardTitle class="typo-body-bold text-ellipsis">
           {{ t('connection') }}
@@ -171,6 +177,7 @@ import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
