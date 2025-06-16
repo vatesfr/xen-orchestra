@@ -6,7 +6,7 @@ import type { XoVdiSnapshot } from '@vates/types'
 
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { partialVdiSnapshots, vdiSnapshot, vdiSnapshotIds } from '../open-api/oa-examples/vdi-snapshot.oa-example.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
@@ -31,9 +31,10 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   getVdiSnapshots(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoVdiSnapshot>>>[] {
+  ): SendObjects<Partial<Unbrand<XoVdiSnapshot>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

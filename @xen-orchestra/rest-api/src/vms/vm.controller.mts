@@ -6,7 +6,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XapiStatsGranularity, XapiVmStats, XenApiVm, XoVm, XoVmSnapshot } from '@vates/types'
 
 import {
-  actionAsyncroneResp,
+  asynchronousActionResp,
   createdResp,
   internalServerErrorResp,
   noContentResp,
@@ -18,7 +18,7 @@ import { BASE_URL } from '../index.mjs'
 import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
@@ -47,9 +47,10 @@ export class VmController extends XapiXoController<XoVm> {
   getVms(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<Unbrand<XoVm>>>[] {
+  ): SendObjects<Partial<Unbrand<XoVm>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 
@@ -94,7 +95,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -118,7 +119,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/clean_shutdown')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -165,7 +166,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/hard_shutdown')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -190,7 +191,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/hard_reboot')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -216,7 +217,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/snapshot')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(createdResp.status, 'Snapshot created')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)

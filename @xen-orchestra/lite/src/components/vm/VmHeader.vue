@@ -12,7 +12,7 @@
             :left-icon="faPowerOff"
             @click="open"
           >
-            {{ $t('change-state') }}
+            {{ t('change-state') }}
             <UiIcon :icon="faAngleDown" />
           </UiButton>
         </template>
@@ -23,7 +23,7 @@
           <UiButtonIcon
             v-tooltip="{
               placement: 'left',
-              content: $t('more-actions'),
+              content: t('more-actions'),
             }"
             :selected="isOpen"
             :icon="faEllipsisVertical"
@@ -58,7 +58,10 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+
+const { t } = useI18n()
 
 const { getByUuid: getVmByUuid } = useVmStore().subscribe()
 const { currentRoute } = useRouter()

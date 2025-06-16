@@ -1,3 +1,7 @@
+import type { Readable } from 'node:stream'
+
+export type MaybePromise<T> = T | Promise<T>
+
 export type WithHref<T> = T & { href: string }
 
 /**
@@ -8,3 +12,7 @@ export interface XoError extends Error {
   code: number
   data?: Record<string, unknown>
 }
+
+export type NdjsonStream = Readable
+
+export type SendObjects<T> = string[] | WithHref<T>[] | NdjsonStream

@@ -42,7 +42,7 @@ const forceArg = defineJobArg<boolean>({
 ```typescript
 const myJob = defineJob('processItems', [userIdArg, itemsArg, optionsArg], () => ({
   validate(isRunning, userId, items) {
-    // You can use custom running check additionnal to internal one
+    // You can use custom running check additional to internal one
     if (isRunning || isProcessingItems(userId, items)) {
       throw new JobRunningError('Items are being processed')
     }
@@ -57,7 +57,7 @@ const myJob = defineJob('processItems', [userIdArg, itemsArg, optionsArg], () =>
   },
   run(userId, items, force) {
     // Job implementation
-    return procesItems(userId, items, force)
+    return processItems(userId, items, force)
   },
 }))
 ```

@@ -640,6 +640,8 @@ const messages = {
   remoteTypeNfs: 'NFS',
   remoteTypeSmb: 'SMB',
   remoteTypeS3: 'Amazon Web Services S3',
+  remoteTypeAzure: 'Azure',
+  remoteTypeAzurite: 'Azurite',
   remoteType: 'Type',
   remoteSmbWarningMessage:
     'SMB remotes are meant to work with Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.',
@@ -702,6 +704,17 @@ const messages = {
   remoteS3Region: 'Region, leave blank for default',
   remoteS3TooltipProtocol: 'Uncheck if you want HTTP instead of HTTPS',
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
+  remoteAzureLabelUseHttps: 'Use HTTPS',
+  remoteAzureLabelAllowInsecure: 'Allow unauthorized',
+  remoteAzurePlaceHolderEndpoint: 'Azure endpoint (ex: username.blob.core.windows.net)',
+  remoteAzurePlaceHolderContainer: 'Azure container name',
+  remoteAzurePlaceHolderDirectory: 'Directory',
+  remoteAzurePlaceHolderAccessKeyID: 'Access key ID',
+  remoteAzurePlaceHolderSecret: 'Paste secret here to change it',
+  remoteAzurePlaceHolderEncryptionKey: 'Enter your encryption key here (32 characters)',
+  remoteAzureRegion: 'Region, leave blank for default',
+  remoteAzureTooltipProtocol: 'Uncheck if you want HTTP instead of HTTPS',
+  remoteAzureTooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
   remoteUseVhdDirectory:
     'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up GB but allows faster merge)',
@@ -2436,6 +2449,7 @@ const messages = {
   removeOtpConfirm: 'Remove OTP authentication',
   removeOtpConfirmMessage: 'Are you sure you want to remove OTP authentication?',
   OtpAuthentication: 'OTP authentication',
+  OtpCode: 'OTP code',
 
   // ----- Usage -----
   others: '{nOthers, number} other{nOthers, plural, one {} other {s}}',

@@ -1,5 +1,5 @@
 <template>
-  <p v-if="!isHostConsoleRunning" class="typo-h5">{{ $t('power-on-host-for-console') }}</p>
+  <p v-if="!isHostConsoleRunning" class="typo-h5">{{ t('power-on-host-for-console') }}</p>
   <VtsLayoutConsole v-else>
     <VtsRemoteConsole ref="console-element" :url :is-console-available="isHostConsoleAvailable" />
     <template #actions>
@@ -19,10 +19,13 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { computed, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   host: XoHost
 }>()
+
+const { t } = useI18n()
 
 const { isHostOperationPending } = useHostStore().subscribe()
 

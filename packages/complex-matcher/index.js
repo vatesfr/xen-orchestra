@@ -194,7 +194,7 @@ const formatString = value =>
 
 class GlobPattern extends Node {
   constructor(value) {
-    // fallback to string node if no wildcard
+    // fall back to string node if no wildcard
     if (value.indexOf('*') === -1) {
       return new StringNode(value)
     }

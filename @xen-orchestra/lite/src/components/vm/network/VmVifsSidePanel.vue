@@ -2,35 +2,35 @@
   <UiPanel>
     <template #header>
       <UiButton
-        v-tooltip="$t('coming-soon')"
+        v-tooltip="t('coming-soon')"
         disabled
         size="medium"
         variant="tertiary"
         accent="brand"
         :left-icon="faEdit"
       >
-        {{ $t('edit') }}
+        {{ t('edit') }}
       </UiButton>
       <UiButton
-        v-tooltip="$t('coming-soon')"
+        v-tooltip="t('coming-soon')"
         disabled
         size="medium"
         variant="tertiary"
         accent="danger"
         :left-icon="faTrash"
       >
-        {{ $t('delete') }}
+        {{ t('delete') }}
       </UiButton>
     </template>
     <template #default>
       <!-- VIF -->
       <UiCard class="card">
-        <UiCardTitle>{{ $t('vif') }}</UiCardTitle>
+        <UiCardTitle>{{ t('vif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('uuid') }}
+              {{ t('uuid') }}
             </template>
             <template #value>
               {{ vif.uuid }}
@@ -42,7 +42,7 @@
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('network') }}
+              {{ t('network') }}
             </template>
             <template #value>
               <div class="network">
@@ -64,10 +64,10 @@
           <!-- DEVICE -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('device') }}
+              {{ t('device') }}
             </template>
             <template #value>
-              {{ $t('vif-device', { device: vif.device }) }}
+              {{ t('vif-device', { device: vif.device }) }}
             </template>
             <template #addons>
               <VtsCopyButton :value="vif.device" />
@@ -76,7 +76,7 @@
           <!-- VIF STATUS -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('vif-status') }}
+              {{ t('vif-status') }}
             </template>
             <template #value>
               <VtsConnectionStatus :status />
@@ -85,7 +85,7 @@
           <!-- MTU -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('mtu') }}
+              {{ t('mtu') }}
             </template>
             <template #value>
               {{ vif.MTU }}
@@ -97,7 +97,7 @@
           <!-- LOCKING MODE -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('locking-mode') }}
+              {{ t('locking-mode') }}
             </template>
             <template #value>
               {{ vif.locking_mode }}
@@ -108,13 +108,13 @@
       </UiCard>
       <!-- VIF NETWORK INFORMATION -->
       <UiCard class="card">
-        <UiCardTitle>{{ $t('network-information') }}</UiCardTitle>
+        <UiCardTitle>{{ t('network-information') }}</UiCardTitle>
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
             <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
               <template #key>
-                <div v-if="index === 0">{{ $t('ip-addresses') }}</div>
+                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
               </template>
               <template #value>
                 <span v-tooltip class="text-ellipsis">{{ ip }}</span>
@@ -123,7 +123,7 @@
                 <VtsCopyButton :value="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
-                  v-tooltip="$t('coming-soon')"
+                  v-tooltip="t('coming-soon')"
                   disabled
                   :icon="faEllipsis"
                   size="medium"
@@ -134,7 +134,7 @@
           </div>
           <VtsCardRowKeyValue v-else>
             <template #key>
-              {{ $t('ip-addresses') }}
+              {{ t('ip-addresses') }}
             </template>
             <template #value>
               <span class="value" />
@@ -143,7 +143,7 @@
           <!-- MAC ADDRESSES -->
           <VtsCardRowKeyValue>
             <template #key>
-              {{ $t('mac-address') }}
+              {{ t('mac-address') }}
             </template>
             <template #value>
               {{ vif.MAC }}
@@ -174,10 +174,13 @@ import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { vif } = defineProps<{
   vif: XenApiVif
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()

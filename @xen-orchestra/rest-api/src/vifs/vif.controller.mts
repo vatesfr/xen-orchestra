@@ -6,7 +6,7 @@ import type { XoVif } from '@vates/types'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVifs, vif, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
 
@@ -33,9 +33,10 @@ export class VifController extends XapiXoController<XoVif> {
   getVifs(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): string[] | WithHref<Partial<UnbrandedXoVif>>[] {
+  ): SendObjects<Partial<UnbrandedXoVif>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
   }
 

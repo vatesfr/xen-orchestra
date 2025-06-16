@@ -281,7 +281,7 @@ class Merger {
         await VhdAbstract.unlink(handler, oldTarget).catch(warn)
       }
     } catch (error) {
-      // maybe the renaming was already successfull during merge
+      // maybe the renaming was already successful during merge
       if (error.code === 'ENOENT' && this.#isResuming) {
         Disposable.use(openVhd(handler, mergeTargetChild), vhd => {
           // we are sure that mergeTargetChild is the right one

@@ -3,7 +3,7 @@
     <ConfirmModalLayout>
       <template #default>
         <div class="form-widgets">
-          <FormWidget :label="$t('sort-by')">
+          <FormWidget :label="t('sort-by')">
             <select v-model="newSortProperty">
               <option v-if="!newSortProperty" />
               <option v-for="(sort, property) in availableSorts" :key="property" :value="property">
@@ -13,8 +13,8 @@
           </FormWidget>
           <FormWidget>
             <select v-model="newSortIsAscending">
-              <option :value="true">{{ $t('ascending') }}</option>
-              <option :value="false">{{ $t('descending') }}</option>
+              <option :value="true">{{ t('ascending') }}</option>
+              <option :value="false">{{ t('descending') }}</option>
             </select>
           </FormWidget>
         </div>
@@ -22,7 +22,7 @@
 
       <template #buttons>
         <ModalDeclineButton />
-        <ModalApproveButton>{{ $t('add') }}</ModalApproveButton>
+        <ModalApproveButton>{{ t('add') }}</ModalApproveButton>
       </template>
     </ConfirmModalLayout>
   </UiModal>
@@ -37,10 +37,13 @@ import UiModal from '@/components/ui/modals/UiModal.vue'
 import { IK_MODAL } from '@/types/injection-keys'
 import type { NewSort, Sorts } from '@/types/sort'
 import { inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   availableSorts: Sorts
 }>()
+
+const { t } = useI18n()
 
 const newSortProperty = ref()
 const newSortIsAscending = ref<boolean>(true)

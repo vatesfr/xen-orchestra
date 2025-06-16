@@ -1,8 +1,8 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined" class="linear-chart">
-    <UiCardTitle>{{ $t('pool-cpu-usage') }}</UiCardTitle>
+    <UiCardTitle>{{ t('pool-cpu-usage') }}</UiCardTitle>
     <UiCardTitle :level="UiCardTitleLevel.Subtitle">
-      {{ $t('last-week') }}
+      {{ t('last-week') }}
     </UiCardTitle>
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="isLoading" />

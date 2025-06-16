@@ -45,7 +45,7 @@ The `remoteUrl` can be found using the following command from the XOA CLI, and t
 
 `xo-server-db ls remote`
 
-The `vhdPathInRemote` follows a file structure described [here](https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/backups/docs/VM%20backups/README.md).
+The `vhdPathInRemote` follows a file structure described in [VM backups](https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/backups/docs/VM%20backups/README.md).
 
 ## Restore a file from a VHD using `fuse-vhd` CLI
 
@@ -58,7 +58,7 @@ The `vhdPathInRemote` follows a file structure described [here](https://github.c
 
 `partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs <mountedVhdPath>`
 
-4.  Mount the disk. Depending on the partition type, you may need to add some additionnal options. The `norecovery` option is used for ext3/ext4/xfs file systems, otherwise remove this option.
+4.  Mount the disk. Depending on the partition type, you may need to add some additional options. The `norecovery` option is used for ext3/ext4/xfs file systems; otherwise, remove this option.
 
 `mount --options=loop,ro,norecovery,sizelimit=<SIZE>,offset=<START*512>  --source=<mountedVhdPath> --target=<diskMountPoint>`
 

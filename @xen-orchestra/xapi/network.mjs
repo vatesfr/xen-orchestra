@@ -68,7 +68,7 @@ export default class Network {
           stopOnError: false,
         })
       } catch (error) {
-        // report an error occured, but continue the re-plugging process
+        // report an error occurred, but continue the re-plugging process
         errorOccurred = true
         warn(error)
       }

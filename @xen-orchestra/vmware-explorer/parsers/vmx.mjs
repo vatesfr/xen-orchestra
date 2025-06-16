@@ -39,7 +39,7 @@ function set(obj, keyPath, val) {
       }
       // with descendant
       if (typeof obj[key] !== 'object') {
-        // sometimes there is additionnal properties on a string ( like guestOS="ubuntut " and then guestOS.detailed =)
+        // sometimes there is additional properties on a string ( like guestOS="ubuntu " and then guestOS.detailed =)
         // we ignore these data for now
         return
       }

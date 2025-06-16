@@ -7,7 +7,7 @@
  * @param {Array|Buffer|string} data1 - The first data array or buffer to compare.
  * @param {T} data2 - The second data array or buffer to compare.
  * @param {(index: number, diff: T) => void} [cb] - The callback function to invoke for each difference. If not provided, an array of differences will be returned.
- * @returns {Array<number|T>|undefined} - An array of differences if no callback is provided, otherwise undefined.
+ * @returns {Array<number|T>|undefined} - An array of differences if no callback is provided; otherwise, undefined.
  */
 module.exports = function diff(data1, data2, cb) {
   let result

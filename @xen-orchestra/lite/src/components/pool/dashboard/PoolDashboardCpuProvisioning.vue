@@ -1,12 +1,12 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle>
-      {{ $t('cpu-provisioning') }}
+      {{ t('cpu-provisioning') }}
       <template v-if="!hasError" #right>
         <UiStatusIcon
           v-if="state !== 'success'"
           v-tooltip="{
-            content: $t('cpu-provisioning-warning'),
+            content: t('cpu-provisioning-warning'),
             placement: 'left',
           }"
           :state
@@ -17,14 +17,14 @@
     <div v-else-if="isReady" :class="state" class="progress-item">
       <UiProgressBar :max-value="maxValue" :value color="custom" />
       <UiProgressScale :max-value="maxValue" :steps="1" unit="%" />
-      <UiProgressLegend :label="$t('vcpus')" :value="$n(value / 100, 'percent')" />
+      <UiProgressLegend :label="t('vcpus')" :value="n(value / 100, 'percent')" />
       <UiCardFooter class="ui-card-footer">
         <template #left>
-          <p>{{ $t('vcpus-used') }}</p>
+          <p>{{ t('vcpus-used') }}</p>
           <p class="footer-value">{{ nVCpuInUse }}</p>
         </template>
         <template #right>
-          <p>{{ $t('total-cpus') }}</p>
+          <p>{{ t('total-cpus') }}</p>
           <p class="footer-value">{{ nPCpu }}</p>
         </template>
       </UiCardFooter>
@@ -51,6 +51,9 @@ import { useVmStore } from '@/stores/xen-api/vm.store'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t, n } = useI18n()
 
 const ACTIVE_STATES = new Set([VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED])
 

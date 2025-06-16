@@ -1,8 +1,8 @@
 <template>
   <div class="storage-repository">
     <UiCardTitle>
-      {{ $t('storage-repository') }}
-      <template #description>{{ $t('for-replication') }}</template>
+      {{ t('storage-repository') }}
+      <template #description>{{ t('for-replication') }}</template>
     </UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
@@ -11,19 +11,19 @@
         <UiCardNumbers
           :value="storageRepositories.used?.value"
           :unit="storageRepositories.used?.prefix"
-          :label="$t('used')"
+          :label="t('used')"
           size="medium"
         />
         <UiCardNumbers
           :value="storageRepositories.available?.value"
           :unit="storageRepositories.available?.prefix"
-          :label="$t('available')"
+          :label="t('available')"
           size="medium"
         />
         <UiCardNumbers
           :value="storageRepositories.total?.value"
           :unit="storageRepositories.total?.prefix"
-          :label="$t('total')"
+          :label="t('total')"
           size="medium"
         />
       </div>

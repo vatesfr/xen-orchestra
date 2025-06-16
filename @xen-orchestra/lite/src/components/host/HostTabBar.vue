@@ -1,22 +1,22 @@
 <template>
   <TabList>
     <RouterTab :to="{ name: 'host.dashboard', params: { uuid } }">
-      {{ $t('dashboard') }}
+      {{ t('dashboard') }}
     </RouterTab>
     <RouterTab :to="{ name: 'host.console', params: { uuid } }">
-      {{ $t('console') }}
+      {{ t('console') }}
     </RouterTab>
     <RouterTab :to="{ name: 'host.system', params: { uuid } }">
-      {{ $t('system') }}
+      {{ t('system') }}
     </RouterTab>
     <RouterTab :to="{ name: 'host.network', params: { uuid } }">
-      {{ $t('network') }}
+      {{ t('network') }}
     </RouterTab>
     <RouterTab :to="{ name: 'host.tasks', params: { uuid } }" disabled>
-      {{ $t('tasks') }}
+      {{ t('tasks') }}
     </RouterTab>
     <RouterTab :to="{ name: 'host.vms', params: { uuid } }" disabled>
-      {{ $t('vms') }}
+      {{ t('vms') }}
     </RouterTab>
   </TabList>
 </template>
@@ -24,8 +24,11 @@
 <script lang="ts" setup>
 import RouterTab from '@/components/RouterTab.vue'
 import TabList from '@core/components/tab/TabList.vue'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   uuid: string
 }>()
+
+const { t } = useI18n()
 </script>

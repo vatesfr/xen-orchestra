@@ -19,6 +19,8 @@ export class Synchronized<T, TReturn, TNext> {
 
   fork(uid: string): AsyncGenerator<T, TReturn, TNext> {
     assert.strictEqual(this.#started, false, `can't create a fork after consuming the data`)
+    assert.strictEqual(this.#forks.has(uid), false, `a fork with id ${uid} already exists`)
+
     const fork = new Forked<T, TReturn, TNext>(this, uid)
     this.#forks.set(uid, fork)
     return fork

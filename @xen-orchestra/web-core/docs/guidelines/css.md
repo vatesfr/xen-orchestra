@@ -75,6 +75,50 @@ If no style is applied to the root element, the class name will be omitted
 </template>
 ```
 
+## Dynamic class names on the root element MUST be named as `className`
+
+❌ Bad
+
+```
+<!-- UiSquare.vue -->
+<template>
+  <div class="ui-square" :class="classes" />
+</template>
+
+<script setup lang="ts">
+const classes = computed(() => {
+  return [
+    isMobile.value ? 'typo-caption-small' : 'typo-caption',
+    toVariants({
+      accent,
+      size,
+    }),
+  ]
+})
+</script>
+```
+
+✅ Good
+
+```
+<!-- UiSquare.vue -->
+<template>
+  <div class="ui-square" :class="className" />
+</template>
+
+<script setup lang="ts">
+const className = computed(() => {
+  return [
+    isMobile.value ? 'typo-caption-small' : 'typo-caption',
+    toVariants({
+      accent,
+      size,
+    }),
+  ]
+})
+</script>
+```
+
 ## Component MUST use `<style lang="postcss" scoped>`
 
 ## Component CSS MUST be contained under the root CSS classname
@@ -135,6 +179,14 @@ We try to keep up to date with new CSS features and use them when they address a
 As a rule of thumb, we use features that are _newly available_ in [Baseline](https://developer.mozilla.org/en-US/docs/Glossary/Baseline/Compatibility) for a year or more.
 
 So be sure to check the [MDN documentation](https://developer.mozilla.org) and [Can I Use](https://caniuse.com) for the compatibility of the feature you want to use.
+
+## CSS logical properties CAN be used to future-proof layouts
+
+CSS logical properties ensure that direction-based properties (such as `margin`, `padding`, etc.) are handled correctly when the writing mode changes (e.g., from LTR to RTL).
+
+So instead of using `margin-left: auto;` you can use `margin-inline-start: auto;`. This will ensure that the margin is applied to the correct side when the writing mode is switched.
+
+See [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_logical_properties_and_values) for more information.
 
 ## `:focus-visible` utility
 

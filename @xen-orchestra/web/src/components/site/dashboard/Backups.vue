@@ -1,6 +1,6 @@
 <template>
   <UiCard>
-    <UiCardTitle>{{ $t('backups') }}</UiCardTitle>
+    <UiCardTitle>{{ t('backups') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <VtsNoDataHero v-else-if="record?.backups === undefined" type="card" />
     <template v-else>

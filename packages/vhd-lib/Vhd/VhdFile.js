@@ -85,7 +85,7 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
   static async open(handler, path, { flags, checkSecondFooter = true } = {}) {
     const fd = await handler.openFile(path, flags ?? 'r+')
     const vhd = new VhdFile(handler, fd)
-    // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
+    // opening a file for reading does not trigger EISDIR as long as we don't really read from it :
     // https://man7.org/linux/man-pages/man2/open.2.html
     // EISDIR pathname refers to a directory and the access requested
     // involved writing (that is, O_WRONLY or O_RDWR is set).
@@ -448,7 +448,7 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
       } else {
         const firstAndLastBlocks = getFirstAndLastBlocks(this.#blockTable)
         if (firstAndLastBlocks === undefined) {
-          // no block in data : put the parent locatorn entry at the end
+          // no block in data : put the parent locator entry at the end
           position = this._getEndOfData()
         } else {
           // need more size

@@ -1,10 +1,10 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('resource-management') }}
+      {{ t('resource-management') }}
     </UiTitle>
     <VtsQuickInfoRow
-      :label="$t('control-domain-memory')"
+      :label="t('control-domain-memory')"
       :value="`${controllerMemory?.value} ${controllerMemory?.prefix}`"
     />
   </UiCard>
@@ -18,10 +18,13 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: XenApiHost
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef } = useControlDomainStore().subscribe()
 

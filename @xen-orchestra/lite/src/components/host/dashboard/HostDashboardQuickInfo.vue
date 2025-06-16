@@ -1,19 +1,19 @@
 <template>
   <VtsQuickInfoCard class="host-dashboard-quick-info" :loading="!isReady">
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('state')">
+      <VtsQuickInfoRow :label="t('state')">
         <template #value>
           <VtsIcon :accent="powerState.accent" :icon="powerState.icon" />
           {{ powerState.text }}
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('ip-address')" :value="host.address" />
-      <VtsQuickInfoRow :label="$t('started')" :value="isRunning ? relativeStartTime : undefined" />
-      <VtsQuickInfoRow :label="$t('master')">
+      <VtsQuickInfoRow :label="t('ip-address')" :value="host.address" />
+      <VtsQuickInfoRow :label="t('started')" :value="isRunning ? relativeStartTime : undefined" />
+      <VtsQuickInfoRow :label="t('master')">
         <template #value>
           <template v-if="isMaster">
-            <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
-            {{ $t('this-host') }}
+            <VtsIcon v-tooltip="t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+            {{ t('this-host') }}
           </template>
           <UiLink v-else-if="masterHost !== undefined" :to="`/host/${masterHost.uuid}/`" size="medium" :icon="faServer">
             {{ masterHost.name_label }}
@@ -22,21 +22,21 @@
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('uuid')" :value="host.uuid" />
-      <VtsQuickInfoRow :label="$t('description')" :value="host.name_description" />
-      <VtsQuickInfoRow :label="$t('version')" :value="host.software_version.product_version" />
+      <VtsQuickInfoRow :label="t('uuid')" :value="host.uuid" />
+      <VtsQuickInfoRow :label="t('description')" :value="host.name_description" />
+      <VtsQuickInfoRow :label="t('version')" :value="host.software_version.product_version" />
       <VtsQuickInfoRow
-        :label="$t('hardware')"
+        :label="t('hardware')"
         :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
       />
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow
-        :label="$t('cores-with-sockets')"
+        :label="t('cores-with-sockets')"
         :value="`${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`"
       />
-      <VtsQuickInfoRow :label="$t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
-      <VtsQuickInfoRow :label="$t('tags')">
+      <VtsQuickInfoRow :label="t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
+      <VtsQuickInfoRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="host.tags.length">
             <UiTag v-for="tag in host.tags" :key="tag" accent="neutral" variant="secondary">{{ tag }}</UiTag>
@@ -66,6 +66,7 @@ import { parseDateTime } from '@core/utils/time.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faCircle, faPlay, faServer, faStar, faStop } from '@fortawesome/free-solid-svg-icons'
 import { useNow } from '@vueuse/core'
+import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -75,9 +76,11 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isMasterHost, masterHost } = usePoolStore().subscribe()
-const { isReady } = useHostStore().subscribe()
-const { isHostRunning, getHostMemory } = useHostMetricsStore().subscribe()
+const { isMasterHost, masterHost, isReady: isPoolReady } = usePoolStore().subscribe()
+const { isReady: isHostReady } = useHostStore().subscribe()
+const { isHostRunning, getHostMemory, isReady: isHostMetricsReady } = useHostMetricsStore().subscribe()
+
+const isReady = logicAnd(isPoolReady, isHostReady, isHostMetricsReady)
 
 const powerStateConfig: Record<
   string,

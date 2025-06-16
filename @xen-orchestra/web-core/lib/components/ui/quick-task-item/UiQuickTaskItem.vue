@@ -13,14 +13,14 @@
           <UiTag v-if="task.tag" accent="neutral" variant="primary">{{ task.tag }}</UiTag>
           <div v-if="hasSubTasks" class="subtasks">
             <VtsIcon :icon="faCircleNotch" accent="current" />
-            <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
+            <span class="typo-body-regular-small">{{ t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
           </div>
         </div>
         <div v-if="task.start" class="line-2 typo-body-regular-small">
-          {{ $d(task.start, 'datetime_short') }}
+          {{ d(task.start, 'datetime_short') }}
           <template v-if="task.end">
             <VtsIcon :icon="faArrowRight" accent="current" />
-            {{ $d(new Date(task.end), 'datetime_short') }}
+            {{ d(new Date(task.end), 'datetime_short') }}
           </template>
         </div>
       </div>
@@ -37,6 +37,7 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import { faAngleDown, faAngleRight, faArrowRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type TaskStatus = 'pending' | 'success' | 'failure'
 
@@ -53,6 +54,8 @@ export type Task = {
 const props = defineProps<{
   task: Task
 }>()
+
+const { t, d } = useI18n()
 
 const [isExpanded, toggleExpand] = useToggle()
 

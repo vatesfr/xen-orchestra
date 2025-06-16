@@ -325,7 +325,7 @@ class SortedTable extends Component {
           })
 
     const state = (this.state = {
-      all: false, // whether all items are selected (accross pages)
+      all: false, // whether all items are selected (across pages)
       itemsPerPage: +defined(cookies.get(`${props.location.pathname}-${props.stateUrlParam}`), DEFAULT_ITEMS_PER_PAGE),
     })
 

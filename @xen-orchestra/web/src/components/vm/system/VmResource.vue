@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('resource-management') }}
+      {{ t('resource-management') }}
     </UiTitle>
     <VtsQuickInfoRow v-for="{ label, value } of resources" :key="label" :label :value />
   </UiCard>

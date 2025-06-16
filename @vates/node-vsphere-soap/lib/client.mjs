@@ -7,7 +7,7 @@
   This file creates the Client class
 
   - when the class is instantiated, a connection will be made to the ESXi/vCenter server to verify that the creds are good
-  - upon a bad login, the connnection will be terminated
+  - upon a bad login, the connection will be terminated
 
 */
 

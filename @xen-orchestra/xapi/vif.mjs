@@ -17,7 +17,7 @@ export default class Vif {
     },
     {
       // duplicated MAC addresses can lead to issues,
-      // therefore it should be passed explicitely
+      // therefore it should be passed explicitly
       MAC = '',
     } = {}
   ) {

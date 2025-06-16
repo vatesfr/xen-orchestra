@@ -5,12 +5,15 @@ import RemoteHandlerLocal from './local'
 import RemoteHandlerNfs from './nfs'
 import RemoteHandlerS3 from './s3'
 import RemoteHandlerSmb from './smb'
+import RemoteHandlerAzure from './azure'
 export { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, isLegacyEncryptionAlgorithm } from './_encryptor'
 
 const HANDLERS = {
   file: RemoteHandlerLocal,
   nfs: RemoteHandlerNfs,
   s3: RemoteHandlerS3,
+  azure: RemoteHandlerAzure,
+  azurite: RemoteHandlerAzure,
 }
 
 try {

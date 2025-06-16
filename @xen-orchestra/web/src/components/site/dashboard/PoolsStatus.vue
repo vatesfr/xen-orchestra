@@ -1,6 +1,6 @@
 <template>
   <UiCard>
-    <UiCardTitle>{{ $t('pools-status') }}</UiCardTitle>
+    <UiCardTitle>{{ t('pools-status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :icon="faCity" :segments />

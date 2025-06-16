@@ -15,13 +15,13 @@ exports.resolveVhdAlias = async function resolveVhdAlias(handler, filename) {
   if (!handler.isEncrypted) {
     const size = await handler.getSize(filename)
     if (size > ALIAS_MAX_PATH_LENGTH) {
-      // seems reasonnable for a relative path
+      // seems reasonable for a relative path
       throw new Error(`The alias file ${filename} is too big (${size} bytes)`)
     }
   }
 
   const aliasContent = (await handler.readFile(filename)).toString().trim()
-  // also handle circular references and unreasonnably long chains
+  // also handle circular references and unreasonably long chains
   if (isVhdAlias(aliasContent)) {
     throw new Error(`Chaining alias is forbidden ${filename} to ${aliasContent}`)
   }

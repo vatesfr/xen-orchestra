@@ -39,7 +39,7 @@ export class AddOtpModal extends PureComponent {
         <p>{_('addOtpConfirmMessage')}</p>
         <Row>
           <Col size={4}>
-            <strong>{_('password')}</strong>
+            <strong>{_('OtpCode')}</strong>
           </Col>
           <Col size={8}>
             <input className='form-control' inputMode='numeric' onChange={this._saveValue} />

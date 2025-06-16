@@ -17,11 +17,11 @@
     </td>
     <td>
       <RelativeTime v-if="isPending" :date="createdAt" />
-      <template v-else>{{ $d(createdAt, 'datetime_short') }}</template>
+      <template v-else>{{ d(createdAt, 'datetime_short') }}</template>
     </td>
     <td>
       <template v-if="finishedAt !== undefined">
-        {{ $d(finishedAt, 'datetime_short') }}
+        {{ d(finishedAt, 'datetime_short') }}
       </template>
       <RelativeTime v-else-if="isPending && estimatedEndAt !== Infinity" :date="estimatedEndAt" />
     </td>
@@ -35,11 +35,14 @@ import { parseDateTime } from '@/libs/utils'
 import type { XenApiTask } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   isPending?: boolean
   task: XenApiTask
 }>()
+
+const { d } = useI18n()
 
 const { getByOpaqueRef: getHost } = useHostStore().subscribe()
 

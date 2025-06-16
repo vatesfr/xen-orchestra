@@ -1,10 +1,10 @@
 <template>
   <UiCard class="host-dashboard-vms-status">
-    <UiCardTitle>{{ $t('vms-status') }}</UiCardTitle>
+    <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :segments />
-      <UiCardNumbers class="total" :label="$t('total')" :value="total" size="small" />
+      <UiCardNumbers class="total" :label="t('total')" :value="total" size="small" />
     </template>
   </UiCard>
 </template>
@@ -22,7 +22,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable'
-import { useSum } from '@vueuse/math'
+import { logicAnd, useSum } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -31,9 +31,9 @@ const { host } = defineProps<{
 }>()
 
 const { isReady: isHostReady } = useHostStore().subscribe()
-const { vmsByHost, isReady: areVmsReady } = useVmStore().subscribe()
+const { vmsByHost, isReady: isVmReady } = useVmStore().subscribe()
 
-const isReady = computed(() => isHostReady.value && areVmsReady.value)
+const isReady = logicAnd(isHostReady, isVmReady)
 
 const hostVms = computed(() => vmsByHost.value.get(host.id) ?? [])
 

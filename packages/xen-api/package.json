@@ -53,7 +53,8 @@
     "promise-toolbox": "^0.21.0",
     "pw": "0.0.4",
     "undici": "^6.2.1",
-    "xo-collection": "^0.5.0"
+    "xo-collection": "^0.5.0",
+    "xo-common": "^0.8.0"
   },
   "devDependencies": {
     "getopts": "^2.3.0",

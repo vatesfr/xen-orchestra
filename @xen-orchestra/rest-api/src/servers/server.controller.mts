@@ -20,7 +20,7 @@ import type { XoServer } from '@vates/types'
 import type { InsertableXoServer } from './server.type.mjs'
 
 import {
-  actionAsyncroneResp,
+  asynchronousActionResp,
   createdResp,
   invalidParameters,
   noContentResp,
@@ -31,7 +31,7 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { partialServers, server, serverId, serverIds } from '../open-api/oa-examples/server.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('servers')
@@ -59,9 +59,10 @@ export class ServerController extends XoController<XoServer> {
   async getServers(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<string[] | WithHref<Partial<Unbrand<XoServer>>>[]> {
+  ): Promise<SendObjects<Partial<Unbrand<XoServer>>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
   }
 
@@ -100,7 +101,7 @@ export class ServerController extends XoController<XoServer> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/connect')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already connected')
@@ -122,7 +123,7 @@ export class ServerController extends XoController<XoServer> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/disconnect')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already disconnected')

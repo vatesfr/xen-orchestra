@@ -42,7 +42,7 @@ class Host {
   async smartReboot($defer, ref, bypassBlockedSuspend = false, bypassCurrentVmCheck = false) {
     await this.callAsync('host.disable', ref)
 
-    // host may have been re-enabled already, this is not an problem
+    // host may have been re-enabled already, this is not a problem
     $defer.onFailure(() => this.callAsync('host.enable', ref))
 
     let currentVmRef

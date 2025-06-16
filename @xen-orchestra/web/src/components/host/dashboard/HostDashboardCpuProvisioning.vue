@@ -1,12 +1,12 @@
 <template>
   <UiCard class="host-dashboard-cpu-provisioning">
-    <UiCardTitle>{{ $t('cpu-provisioning') }}</UiCardTitle>
+    <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiProgressBar :value="cpuProvisioning.used" :max="cpuProvisioning.total" :legend="$t('vcpus')" />
+      <UiProgressBar :value="vCpusCount" :max="cpusCount" :legend="t('vcpus')" />
       <div class="total">
-        <UiCardNumbers :label="$t('vcpus-used')" :value="cpuProvisioning.used" size="medium" />
-        <UiCardNumbers :label="$t('total-cpus')" :value="cpuProvisioning.total" size="medium" />
+        <UiCardNumbers :label="t('vcpus-assigned')" :value="vCpusCount" size="medium" />
+        <UiCardNumbers :label="t('total-cpus')" :value="cpusCount" size="medium" />
       </div>
     </template>
   </UiCard>
@@ -16,33 +16,43 @@
 import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { XoHost } from '@/types/xo/host.type'
+import { VM_POWER_STATE } from '@/types/xo/vm.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
+import { logicAnd } from '@vueuse/math'
+import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: XoHost
 }>()
 
-const { isReady: isHostReady } = useHostStore().subscribe()
-const { vmsByHost, isReady: areVmsReady } = useVmStore().subscribe()
+const { t } = useI18n()
 
-const isReady = computed(() => isHostReady.value && areVmsReady.value)
+const { isReady: isHostReady } = useHostStore().subscribe()
+const { vmsByHost, isReady: isVmReady } = useVmStore().subscribe()
+
+const isReady = logicAnd(isHostReady, isVmReady)
 
 const hostVms = computed(() => vmsByHost.value.get(host.id) ?? [])
 
-const cpuProvisioning = computed(() => {
-  const totalHostCpus = host.cpus.cores
-  const totalVcpus = hostVms.value.reduce((acc, vm) => acc + (vm.CPUs?.number ?? 0), 0)
+const cpusCount = computed(() => host.cpus.cores)
 
-  return {
-    total: totalHostCpus,
-    used: totalVcpus,
-  }
-})
+const vCpusCount = useArrayReduce(
+  hostVms,
+  (total, vm) => {
+    if (vm.power_state !== VM_POWER_STATE.RUNNING && vm.power_state !== VM_POWER_STATE.PAUSED) {
+      return total
+    }
+
+    return total + vm.CPUs.number
+  },
+  0
+)
 </script>
 
 <style lang="postcss" scoped>

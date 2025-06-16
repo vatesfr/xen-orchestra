@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 
 import {
-  actionAsyncroneResp,
+  asynchronousActionResp,
   featureUnauthorized,
   internalServerErrorResp,
   noContentResp,
@@ -14,7 +14,7 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { partialSchedules, schedule, scheduleIds } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('schedules')
@@ -42,9 +42,10 @@ export class ScheduleController extends XoController<XoSchedule> {
   async getSchedules(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<string[] | WithHref<Partial<Unbrand<XoSchedule>>>[]> {
+  ): Promise<SendObjects<Partial<Unbrand<XoSchedule>>>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
   }
 
@@ -63,7 +64,7 @@ export class ScheduleController extends XoController<XoSchedule> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/run')
-  @SuccessResponse(actionAsyncroneResp.status, actionAsyncroneResp.description, actionAsyncroneResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)

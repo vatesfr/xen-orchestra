@@ -2,14 +2,14 @@
   <UiModal @submit.prevent="handleSubmit()">
     <FormModalLayout>
       <template #title>
-        {{ $t('migrate-n-vms', { n: vmRefs.length }) }}
+        {{ t('migrate-n-vms', { n: vmRefs.length }) }}
       </template>
 
       <div>
-        <FormInputWrapper :label="$t('select-destination-host')" light>
+        <FormInputWrapper :label="t('select-destination-host')" light>
           <FormSelect v-model="selectedHost">
             <option :value="undefined">
-              {{ $t('select-destination-host') }}
+              {{ t('select-destination-host') }}
             </option>
             <option v-for="host in availableHosts" :key="host.$ref" :value="host">
               {{ host.name_label }}
@@ -21,7 +21,7 @@
       <template #buttons>
         <ModalDeclineButton />
         <ModalApproveButton>
-          {{ $t('migrate-n-vms', { n: vmRefs.length }) }}
+          {{ t('migrate-n-vms', { n: vmRefs.length }) }}
         </ModalApproveButton>
       </template>
     </FormModalLayout>
@@ -39,10 +39,13 @@ import { useVmMigration } from '@/composables/vm-migration.composable'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { IK_MODAL } from '@/types/injection-keys'
 import { inject } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
+
+const { t } = useI18n()
 
 const modal = inject(IK_MODAL)!
 

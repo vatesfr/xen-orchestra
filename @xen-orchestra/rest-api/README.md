@@ -42,13 +42,14 @@ class Foo extends Controller {
 
 
  /**
-  * any jsdoc anotations
+  * any jsdoc annotations
   * @example id 1234
   */
  @Example(['foo', 'bar'])
  @Get('{id}')
  @Security('*')
  @Middlewares(json())
+ @Tags('foo')
  @SuccessResponse(202)
  @Response(404)
  getFoo(@Path() id: string) {

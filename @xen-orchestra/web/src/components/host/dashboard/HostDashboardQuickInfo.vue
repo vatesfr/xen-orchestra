@@ -1,7 +1,7 @@
 <template>
   <VtsQuickInfoCard class="host-dashboard-quick-info" :loading="!isReady">
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('state')">
+      <VtsQuickInfoRow :label="t('state')">
         <template #value>
           <span class="power-state">
             <VtsIcon :accent="powerState.accent" :icon="powerState.icon" />
@@ -9,16 +9,16 @@
           </span>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('ip-address')" :value="host.address" />
+      <VtsQuickInfoRow :label="t('ip-address')" :value="host.address" />
       <VtsQuickInfoRow
-        :label="$t('started')"
+        :label="t('started')"
         :value="host.power_state === HOST_POWER_STATE.RUNNING ? relativeStartTime : undefined"
       />
-      <VtsQuickInfoRow :label="$t('master')">
+      <VtsQuickInfoRow :label="t('master')">
         <template #value>
           <template v-if="isMaster">
-            <VtsIcon v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
-            {{ $t('this-host') }}
+            <VtsIcon v-tooltip="t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+            {{ t('this-host') }}
           </template>
           <UiLink v-else-if="masterHost !== undefined" :to="`/host/${masterHost.id}/`" size="medium" :icon="faServer">
             {{ masterHost.name_label }}
@@ -27,18 +27,18 @@
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('uuid')" :value="host.id" />
-      <VtsQuickInfoRow :label="$t('description')" :value="host.name_description" />
-      <VtsQuickInfoRow :label="$t('version')" :value="host.version" />
+      <VtsQuickInfoRow :label="t('uuid')" :value="host.id" />
+      <VtsQuickInfoRow :label="t('description')" :value="host.name_description" />
+      <VtsQuickInfoRow :label="t('version')" :value="host.version" />
       <VtsQuickInfoRow
-        :label="$t('hardware')"
+        :label="t('hardware')"
         :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
       />
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="$t('cores-with-sockets')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
-      <VtsQuickInfoRow :label="$t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
-      <VtsQuickInfoRow :label="$t('tags')">
+      <VtsQuickInfoRow :label="t('cores-with-sockets')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
+      <VtsQuickInfoRow :label="t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
+      <VtsQuickInfoRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="host.tags.length">
             <UiTag v-for="tag in host.tags" :key="tag" accent="neutral" variant="secondary">{{ tag }}</UiTag>

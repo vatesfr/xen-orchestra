@@ -5,7 +5,7 @@ import type { XoUser } from '@vates/types'
 
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialUsers, user, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('users')
@@ -46,9 +46,10 @@ export class UserController extends XoController<XoUser> {
   async getUsers(
     @Request() req: ExRequest,
     @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<string[] | WithHref<Partial<Unbrand<XoUser>>>[]> {
+  ): Promise<SendObjects<Partial<Unbrand<XoUser>>>> {
     const users = Object.values(await this.getObjects({ filter, limit }))
     return this.sendObjects(users, req)
   }

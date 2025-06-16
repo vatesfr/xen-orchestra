@@ -8,7 +8,7 @@
         </span>
       </div>
       <div v-else>
-        <span>{{ $t('host-unknown') }}</span>
+        <span>{{ t('host-unknown') }}</span>
       </div>
     </td>
     <td v-tooltip class="typo-body-regular-small text-ellipsis device">{{ pif.device }}</td>
@@ -32,11 +32,14 @@ import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { pif } = defineProps<{
   pif: XenApiPif
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef } = useHostStore().subscribe()
 const { isHostRunning } = useHostMetricsStore().subscribe()

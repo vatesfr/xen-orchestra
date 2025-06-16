@@ -1,15 +1,15 @@
 <template>
   <div class="new-vm-view">
     <UiHeadBar :icon="faPlus">
-      {{ $t('new-vm.add') }}
+      {{ t('new-vm.add') }}
     </UiHeadBar>
     <div class="card-container">
       <form @submit.prevent="createVm()">
         <UiCard>
           <!-- TEMPLATE SECTION -->
-          <UiTitle>{{ $t('template') }}</UiTitle>
+          <UiTitle>{{ t('template') }}</UiTitle>
           <div class="template-container">
-            <FormInputWrapper :label="$t('pick-template')" light>
+            <FormInputWrapper :label="t('pick-template')" light>
               <FormSelect v-model="vmState.new_vm_template" @change="onTemplateChange()">
                 <optgroup :label="poolName">
                   <option v-for="template in templates" :key="template.uuid" :value="template">
@@ -21,23 +21,23 @@
           </div>
           <div v-if="vmState.new_vm_template" class="form-container">
             <!-- INSTALL SETTINGS SECTION -->
-            <UiTitle>{{ $t('install-settings') }}</UiTitle>
+            <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div>
               <div v-if="isDiskTemplate" class="install-settings-container">
                 <div class="radio-container">
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="noConfigDrive">
-                    {{ $t('no-config') }}
+                    {{ t('no-config') }}
                   </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="ISO">
-                    {{ $t('iso-dvd') }}
+                    {{ t('iso-dvd') }}
                   </UiRadioButton>
                   <!-- TODO need to be add later after confirmation -->
                   <!--
                     <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
-                      {{ $t('ssh-key') }}
+                      {{ t('ssh-key') }}
                     </UiRadioButton>
                     <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
-                      {{ $t('custom-config') }}
+                      {{ t('custom-config') }}
                     </UiRadioButton>
                   -->
                 </div>
@@ -61,14 +61,14 @@
                     <div class="install-ssh-key">
                       <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
                       <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey()">
-                        {{ $t('add') }}
+                        {{ t('add') }}
                       </UiButton>
                     </div>
                   </div>
                   <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
                     <div>
                       <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
-                        {{ $t('user-config') }}
+                        {{ t('user-config') }}
                       </UiTextarea>
                       <span class="typo p3-regular-italic">
                         Available template variables <br />
@@ -79,7 +79,7 @@
                     </div>
                     <div>
                       <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="brand" href="''">
-                        {{ $t('network-config') }}
+                        {{ t('network-config') }}
                       </UiTextarea>
                       <span class="typo p3-regular-italic">
                         Network configuration is only compatible with the NoCloud datasource. <br />
@@ -93,10 +93,10 @@
               <div v-else class="install-settings-container">
                 <div class="radio-container">
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="ISO">
-                    {{ $t('iso-dvd') }}
+                    {{ t('iso-dvd') }}
                   </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="PXE">
-                    {{ $t('pxe') }}
+                    {{ t('pxe') }}
                   </UiRadioButton>
                 </div>
                 <FormSelect v-if="vmState.installMode === 'ISO'" v-model="vmState.selectedVdi">
@@ -111,14 +111,14 @@
               </div>
             </div>
             <!-- SYSTEM SECTION -->
-            <UiTitle>{{ $t('system') }}</UiTitle>
-            <!-- <UiToggle v-model="vmState.toggle">{{ $t('multi-creation') }}</UiToggle> -->
+            <UiTitle>{{ t('system') }}</UiTitle>
+            <!-- <UiToggle v-model="vmState.toggle">{{ t('multi-creation') }}</UiToggle> -->
             <div class="system-container">
               <div class="column">
-                <VtsInputWrapper :label="$t('new-vm.name')">
+                <VtsInputWrapper :label="t('new-vm.name')">
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
-                <VtsInputWrapper :label="$t('tags')" :icon="faTags">
+                <VtsInputWrapper :label="t('tags')" :icon="faTags">
                   <!-- TODO Change input text into select when Thierry's component is available -->
                   <UiInput v-model="vmState.tag" accent="brand" @keydown.enter.prevent="addTag" />
                 </VtsInputWrapper>
@@ -127,7 +127,7 @@
                     {{ tag }}
                   </UiChip>
                 </div>
-                <VtsInputWrapper :label="$t('boot-firmware')">
+                <VtsInputWrapper :label="t('boot-firmware')">
                   <FormSelect v-model="vmState.boot_firmware">
                     <option v-for="boot in bootFirmwares" :key="boot" :value="boot">
                       {{ boot === undefined ? t('bios-default') : boot }}
@@ -139,8 +139,7 @@
                     vmState.boot_firmware === 'uefi' || templateHasBiosStrings
                       ? {
                           placement: 'top-start',
-                          content:
-                            vmState.boot_firmware !== 'uefi' ? $t('boot-firmware-bios') : $t('boot-firmware-uefi'),
+                          content: vmState.boot_firmware !== 'uefi' ? t('boot-firmware-bios') : t('boot-firmware-uefi'),
                         }
                       : undefined
                   "
@@ -150,18 +149,18 @@
                     accent="brand"
                     :disabled="vmState.boot_firmware === 'uefi' || templateHasBiosStrings"
                   >
-                    {{ $t('copy-host') }}
+                    {{ t('copy-host') }}
                   </UiCheckbox>
                 </div>
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
-                  {{ $t('new-vm.description') }}
+                  {{ t('new-vm.description') }}
                 </UiTextarea>
-                <VtsInputWrapper :label="$t('affinity-host')">
+                <VtsInputWrapper :label="t('affinity-host')">
                   <div class="affinity-host">
                     <FormSelect v-model="vmState.affinity_host" class="select">
-                      <option :value="OPAQUE_REF.EMPTY">{{ $t('none') }}</option>
+                      <option :value="OPAQUE_REF.EMPTY">{{ t('none') }}</option>
                       <option v-for="host in hosts" :key="host?.$ref" :value="host?.$ref">
                         {{ host?.name_label }}
                       </option>
@@ -171,19 +170,19 @@
               </div>
             </div>
             <!-- MEMORY SECTION -->
-            <UiTitle>{{ $t('memory') }}</UiTitle>
+            <UiTitle>{{ t('memory') }}</UiTitle>
             <div class="memory-container">
-              <VtsInputWrapper :label="$t('vcpus', Number(vmState.vCPU))">
+              <VtsInputWrapper :label="t('vcpus', Number(vmState.vCPU))">
                 <UiInput v-model="vmState.vCPU" accent="brand" />
               </VtsInputWrapper>
               <!-- TODO remove (GB) when we can use new selector -->
-              <VtsInputWrapper :label="`${$t('ram')} (GB)`">
+              <VtsInputWrapper :label="`${t('ram')} (GB)`">
                 <UiInput v-model="ramFormatted" accent="brand" />
               </VtsInputWrapper>
-              <VtsInputWrapper :label="$t('topology')">
+              <VtsInputWrapper :label="t('topology')">
                 <div class="topology">
                   <FormSelect v-model="vmState.topology">
-                    <option :value="null">{{ $t('default-behavior') }}</option>
+                    <option :value="null">{{ t('default-behavior') }}</option>
                     <option v-for="core in coresPerSocket" :key="core.value" :value="core.value">
                       {{ core.label }}
                     </option>
@@ -192,18 +191,18 @@
               </VtsInputWrapper>
             </div>
             <!-- NETWORK SECTION -->
-            <UiTitle>{{ $t('network') }}</UiTitle>
+            <UiTitle>{{ t('network') }}</UiTitle>
             <div class="network-container">
               <VtsTable vertical-border>
                 <thead>
                   <tr>
                     <th>
                       <VtsIcon accent="current" :icon="faNetworkWired" />
-                      {{ $t('interfaces') }}
+                      {{ t('interfaces') }}
                     </th>
                     <th>
                       <VtsIcon accent="current" :icon="faAt" />
-                      {{ $t('mac-addresses') }}
+                      {{ t('mac-addresses') }}
                     </th>
                     <th />
                   </tr>
@@ -222,7 +221,7 @@
                     <td>
                       <UiInput
                         v-model="networkInterface.macAddress"
-                        :placeholder="$t('auto-generated')"
+                        :placeholder="t('auto-generated')"
                         accent="brand"
                       />
                     </td>
@@ -245,7 +244,7 @@
                         size="medium"
                         @click="addNetworkInterface()"
                       >
-                        {{ $t('new') }}
+                        {{ t('new') }}
                       </UiButton>
                     </td>
                   </tr>
@@ -253,26 +252,26 @@
               </VtsTable>
             </div>
             <!-- STORAGE SECTION -->
-            <UiTitle>{{ $t('storage') }}</UiTitle>
+            <UiTitle>{{ t('storage') }}</UiTitle>
             <VtsTable vertical-border>
               <thead>
                 <tr>
                   <th>
                     <VtsIcon accent="current" :icon="faDatabase" />
-                    {{ $t('storage-repositories') }}
+                    {{ t('storage-repositories') }}
                   </th>
                   <th>
                     <VtsIcon accent="current" :icon="faAlignLeft" />
-                    {{ $t('disk-name') }}
+                    {{ t('disk-name') }}
                   </th>
                   <th>
                     <VtsIcon accent="current" :icon="faMemory" />
                     <!-- TODO remove (GB) when we can use new selector -->
-                    {{ `${$t('size')} (GB)` }}
+                    {{ `${t('size')} (GB)` }}
                   </th>
                   <th>
                     <VtsIcon accent="current" :icon="faAlignLeft" />
-                    {{ $t('description') }}
+                    {{ t('description') }}
                   </th>
                   <th />
                 </tr>
@@ -285,7 +284,7 @@
                         <option v-for="sr in filteredSrs" :key="sr.$ref" :value="sr.$ref">
                           {{ `${sr.name_label} -` }}
                           {{
-                            $t('n-gb-left', {
+                            t('n-gb-left', {
                               n: bytesToGiB(sr.physical_size - sr.physical_utilisation),
                             })
                           }}
@@ -293,13 +292,13 @@
                       </FormSelect>
                     </td>
                     <td>
-                      <UiInput v-model="vdi.name_label" :placeholder="$t('disk-name')" accent="brand" />
+                      <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
                     </td>
                     <td>
-                      <UiInput v-model="vdi.size" :placeholder="$t('size')" accent="brand" disabled />
+                      <UiInput v-model="vdi.size" :placeholder="t('size')" accent="brand" disabled />
                     </td>
                     <td>
-                      <UiInput v-model="vdi.name_description" :placeholder="$t('description')" accent="brand" />
+                      <UiInput v-model="vdi.name_description" :placeholder="t('description')" accent="brand" />
                     </td>
                     <td />
                   </tr>
@@ -311,7 +310,7 @@
                         <option v-for="sr in filteredSrs" :key="sr.$ref" :value="sr.$ref">
                           {{ `${sr.name_label} -` }}
                           {{
-                            $t('n-gb-left', {
+                            t('n-gb-left', {
                               n: bytesToGiB(sr.physical_size - sr.physical_utilisation),
                             })
                           }}
@@ -319,13 +318,13 @@
                       </FormSelect>
                     </td>
                     <td>
-                      <UiInput v-model="vdi.name_label" :placeholder="$t('disk-name')" accent="brand" />
+                      <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
                     </td>
                     <td>
-                      <UiInput v-model="vdi.size" :placeholder="$t('size')" accent="brand" />
+                      <UiInput v-model="vdi.size" :placeholder="t('size')" accent="brand" />
                     </td>
                     <td>
-                      <UiInput v-model="vdi.name_description" :placeholder="$t('description')" accent="brand" />
+                      <UiInput v-model="vdi.name_description" :placeholder="t('description')" accent="brand" />
                     </td>
                     <td>
                       <UiButtonIcon
@@ -347,36 +346,36 @@
                       size="medium"
                       @click="addStorageEntry()"
                     >
-                      {{ $t('new') }}
+                      {{ t('new') }}
                     </UiButton>
                   </td>
                 </tr>
               </tbody>
             </VtsTable>
             <!-- SETTINGS SECTION -->
-            <UiTitle>{{ $t('settings') }}</UiTitle>
+            <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand">
-              <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ $t('boot-vm') }}</UiCheckbox>
-              <UiCheckbox v-model="vmState.auto_power" accent="brand">{{ $t('auto-power') }}</UiCheckbox>
+              <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('boot-vm') }}</UiCheckbox>
+              <UiCheckbox v-model="vmState.auto_power" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.fast_clone" accent="brand">
-                {{ $t('fast-clone') }}
+                {{ t('fast-clone') }}
               </UiCheckbox>
             </UiCheckboxGroup>
             <!-- SUMMARY SECTION -->
-            <UiTitle>{{ $t('summary') }}</UiTitle>
+            <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
-              <VtsResource :icon="faDisplay" count="1" :label="$t('vms')" />
-              <VtsResource :icon="faMicrochip" :count="vmState.vCPU" :label="$t('vcpus', Number(vmState.vCPU))" />
-              <VtsResource :icon="faMemory" :count="`${ramFormatted} GB`" :label="$t('ram')" />
+              <VtsResource :icon="faDisplay" count="1" :label="t('vms')" />
+              <VtsResource :icon="faMicrochip" :count="vmState.vCPU" :label="t('vcpus', Number(vmState.vCPU))" />
+              <VtsResource :icon="faMemory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
                 :icon="faDatabase"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
-                :label="$t('vdis', vmState.existingVdis.length + vmState.vdis.length)"
+                :label="t('vdis', vmState.existingVdis.length + vmState.vdis.length)"
               />
               <VtsResource
                 :icon="faNetworkWired"
                 :count="vmState.networkInterfaces.length"
-                :label="$t('interfaces', vmState.networkInterfaces.length)"
+                :label="t('interfaces', vmState.networkInterfaces.length)"
               />
             </VtsResources>
           </div>
@@ -386,7 +385,7 @@
           <!-- ACTIONS -->
           <div class="footer">
             <RouterLink :to="{ name: 'home' }">
-              <UiButton variant="secondary" accent="brand" size="medium">{{ $t('cancel') }}</UiButton>
+              <UiButton variant="secondary" accent="brand" size="medium">{{ t('cancel') }}</UiButton>
             </RouterLink>
             <UiButton
               type="submit"
@@ -396,7 +395,7 @@
               :busy="isBusy"
               :disabled="vmState.new_vm_template === undefined || !hasInstallSettings || hasInvalidSrVdi || isBusy"
             >
-              {{ $t('create') }}
+              {{ t('create') }}
             </UiButton>
           </div>
         </UiCard>
@@ -857,7 +856,7 @@ const _createVm = defer(async ($defer: Defer) => {
     // creates VDIs and VBDs and then executes any applicable post-install script.
     await xapi.vm.provision(vmRefs)
 
-    // We set VCPUs max before, otherwise we cannot assign new values to the CPUs
+    // We set VCPUs max before; otherwise, we cannot assign new values to the CPUs
     if (vmCreationParams.value.cpus > vmCreationParams.value.vcpusMax) {
       await xapi.vm.setVCPUsMax(vmRefs, vmCreationParams.value.cpus)
     }

@@ -127,7 +127,7 @@ const COLUMN_PROXY = {
 const COLUMN_ENCRYPTION = {
   itemRenderer: remote => {
     // remote.info?.encryption undefined means that remote is not enabled and synced
-    // we don't have the agorithm used at this step
+    // we don't have the algorithm used at this step
     if (remote.info?.encryption === undefined) {
       return remote.encryptionKey !== undefined ? <Icon size='lg' icon='lock' /> : null
     } else {
@@ -338,6 +338,58 @@ const COLUMNS_S3_REMOTE = [
   COLUMN_PROXY,
 ]
 
+const COLUMNS_AZURE_REMOTE = [
+  COLUMN_NAME,
+  {
+    itemRenderer: remote => remote.protocol === 'https' && <Icon icon='success' />,
+    name: <span>{_('remoteAzureLabelUseHttps')} </span>,
+  },
+  {
+    itemRenderer: (remote, { formatMessage }) => (
+      <Text
+        data-element='host'
+        data-remote={remote}
+        onChange={_changeUrlElement}
+        placeholder='Azure host'
+        value={remote.host}
+      />
+    ),
+    name: 'Azure Endpoint',
+  },
+  {
+    itemRenderer: (remote, { formatMessage }) => (
+      <Text
+        data-element='path'
+        data-remote={remote}
+        onChange={_changeUrlElement}
+        placeholder='Azure placeholder'
+        value={remote.path}
+      />
+    ),
+    name: 'Path',
+  },
+  COLUMN_STATE,
+  {
+    itemRenderer: (remote, { formatMessage }) => (
+      <span>
+        <Text data-element='username' data-remote={remote} onChange={_changeUrlElement} value={remote.username} />
+        :
+        <Password
+          data-element='password'
+          data-remote={remote}
+          onChange={_changeUrlElement}
+          placeholder='Click to change Secret Key'
+          value=''
+        />
+      </span>
+    ),
+    name: 'Account',
+  },
+  COLUMN_ENCRYPTION,
+  COLUMN_SPEED,
+  COLUMN_PROXY,
+]
+
 const GROUPED_ACTIONS = [
   {
     handler: deleteRemotes,
@@ -501,6 +553,39 @@ export default decorate([
             groupedActions={GROUPED_ACTIONS}
             individualActions={INDIVIDUAL_ACTIONS}
             stateUrlParam='s3'
+          />
+        </div>
+      )}
+      {!isEmpty(state.remoteWithInfo.azure) && (
+        <div>
+          <h2>{_('remoteTypeAzure')}</h2>
+          <p>{state.remoteWithInfo.azurite}</p>
+          <SortedTable
+            collection={state.remoteWithInfo.azurite}
+            columns={COLUMNS_AZURE_REMOTE}
+            data-editRemote={effects.editRemote}
+            data-formatMessage={formatMessage}
+            data-reset={effects.reset}
+            filters={FILTERS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='azure'
+          />
+        </div>
+      )}
+      {!isEmpty(state.remoteWithInfo.azurite) && (
+        <div>
+          <h2>{_('remoteTypeAzurite')}</h2>
+          <SortedTable
+            collection={state.remoteWithInfo.azurite}
+            columns={COLUMNS_AZURE_REMOTE}
+            data-editRemote={effects.editRemote}
+            data-formatMessage={formatMessage}
+            data-reset={effects.reset}
+            filters={FILTERS}
+            groupedActions={GROUPED_ACTIONS}
+            individualActions={INDIVIDUAL_ACTIONS}
+            stateUrlParam='azurite'
           />
         </div>
       )}

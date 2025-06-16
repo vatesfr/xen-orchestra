@@ -10,7 +10,7 @@
       class="progress-item"
     >
       <UiProgressBar :value="item.value" color="custom" />
-      <UiProgressLegend :label="item.label" :value="item.badgeLabel ?? $n(item.value / 100, 'percent')" />
+      <UiProgressLegend :label="item.label" :value="item.badgeLabel ?? n(item.value / 100, 'percent')" />
     </div>
     <slot :total-percent="computedData.totalPercentUsage" name="footer" />
   </div>
@@ -21,6 +21,7 @@ import UiProgressBar from '@/components/ui/progress/UiProgressBar.vue'
 import UiProgressLegend from '@/components/ui/progress/UiProgressLegend.vue'
 import type { StatData } from '@/types/stat'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   data: StatData[]
@@ -28,6 +29,8 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const { n } = useI18n()
 
 const MIN_WARNING_VALUE = 80
 const MIN_DANGEROUS_VALUE = 90

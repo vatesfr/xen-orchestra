@@ -144,7 +144,7 @@ describe('mergeVhdChain()', async () => {
     // really merge
     await mergeVhdChain(handler, ['parent.vhd', 'child1.vhd'])
 
-    // reload header footer and block allocation table , they should succed
+    // reload header footer and block allocation table , they should succeed
     await childVhd.readHeaderAndFooter()
     await childVhd.readBlockAllocationTable()
     let offset = 0
