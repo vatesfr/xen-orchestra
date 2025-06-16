@@ -39,6 +39,7 @@ declare module 'vue-router/auto-routes' {
     '/vm/[id]': RouteRecordInfo<'/vm/[id]', '/vm/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/:id': RouteRecordInfo<'/vm/:id', '/vm/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/console': RouteRecordInfo<'/vm/[id]/console', '/vm/:id/console', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/vm/[id]/dashboard': RouteRecordInfo<'/vm/[id]/dashboard', '/vm/:id/dashboard', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/networks': RouteRecordInfo<'/vm/[id]/networks', '/vm/:id/networks', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/system': RouteRecordInfo<'/vm/[id]/system', '/vm/:id/system', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/new': RouteRecordInfo<'/vm/new', '/vm/new', Record<never, never>, Record<never, never>>,
