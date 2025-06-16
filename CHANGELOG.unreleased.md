@@ -63,6 +63,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backups-cli minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor

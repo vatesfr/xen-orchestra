@@ -6,6 +6,7 @@
   "preferGlobal": true,
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "dependencies": {
+    "@vates/async-each": "^1.0.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/backups": "^0.61.1",
     "@xen-orchestra/fs": "^4.5.1",
