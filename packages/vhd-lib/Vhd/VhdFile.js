@@ -100,7 +100,7 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
       throw err
     }
     return {
-      dispose: () => handler.closeFile(fd),
+      dispose: () => vhd.dispose(),
       value: vhd,
     }
   }
