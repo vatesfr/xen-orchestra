@@ -1,3 +1,5 @@
+import type { Xapi, XoHost, XoVmTemplate } from '@vates/types'
+
 export interface CreateNetworkBody {
   name: string
   description?: string
@@ -12,15 +14,25 @@ export interface CreateNetworkBody {
    */
   vlan: number
 }
-import type { Xapi, XoVdi } from '@vates/types'
 
-type CreateVmParams = Parameters<Xapi['createVm']>
+export type CreateVmParams = Parameters<Xapi['createVm']>[1]
+/**
+ * Properties that is applied after the VM creation
+ */
+export type CreateVmAfterCreateParams = {
+  cloud_config?: string
+  network_config?: string
+  boot?: boolean
+  destroy_cloud_config_vdi?: boolean
+}
 export type CreateVmBody = Omit<
-  CreateVmParams[1],
+  CreateVmParams,
   'nameLabel' | 'existingVdis' | 'vdis' | 'affinityHost' | 'installRepository'
 > & {
-  templateUuid: CreateVmParams[0]
-  // Need to rewrite VDIs type because Unbrand cannot work with Union types
+  /** template UUID */
+  template: XoVmTemplate['uuid']
+  affinity?: XoHost['id']
+  // Need to rewrite theses type because Unbrand cannot work with Union types
   vdis?: (
     | {
         name_label: string
@@ -40,9 +52,9 @@ export type CreateVmBody = Omit<
         userdervice: string
       }
   )[]
-  affinity?: string
   install?: {
     method: 'cdrom' | 'network'
-    repository: XoVdi['id'] | ''
+    /** VDI ID for cdrom method. Empty string for network method */
+    repository: string | ''
   }
-}
+} & CreateVmAfterCreateParams

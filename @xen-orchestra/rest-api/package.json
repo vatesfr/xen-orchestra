@@ -34,10 +34,12 @@
   },
   "dependencies": {
     "@vates/async-each": "^1.0.0",
+    "@vates/task": "^0.6.1",
     "@vates/types": "^1.5.0",
     "@xen-orchestra/backups": "^0.61.2",
     "@xen-orchestra/log": "^0.7.1",
     "complex-matcher": "^0.7.1",
+    "golike-defer": "^0.5.1",
     "inversify": "^6.2.2",
     "inversify-binding-decorators": "^4.0.0",
     "lodash": "^4.17.21",

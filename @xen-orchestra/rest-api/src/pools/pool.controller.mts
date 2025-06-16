@@ -29,15 +29,16 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import type { SendObjects, WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 import type { Xapi, XenApiSr, XenApiVm, XoGpuGroup, XoHost, XoNetwork, XoPif, XoPool, XoSr, XoVm } from '@vates/types'
-import { importVm, partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
-import type { CreateNetworkBody, CreateVmBody } from './pool.type.mjs'
+import {createVm, importVm, partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
+import type { CreateNetworkBody, CreateVmAfterCreateParams,CreateVmBody,CreateVmParams } from './pool.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
+import { VmService } from '../vms/vm.service.mjs'
 
 @Route('pools')
 @Security('*')
@@ -45,8 +46,11 @@ import { BASE_URL } from '../index.mjs'
 @Tags('pools')
 @provide(PoolController)
 export class PoolController extends XapiXoController<XoPool> {
-  constructor(@inject(RestApi) restApi: RestApi) {
+  #vmService: VmService
+
+  constructor(@inject(RestApi) restApi: RestApi, @inject(VmService) vmService: VmService) {
     super('pool', restApi)
+    this.#vmService = vmService
   }
 
   /**
@@ -237,75 +241,42 @@ export class PoolController extends XapiXoController<XoPool> {
     return { id: vmId }
   }
 
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   * @example body {
+   * "name_label": "new VM from REST API",
+   * "templateUuid": "9bbcc5d1-ad4b-06f1-18f6-03125e809c38",
+   * "boot": true
+   * }
+   */
+  @Example(taskLocation)
+  @Example(createVm)
   @Post('{id}/actions/create_vm')
+  @Middlewares(json())
+  @Tags('vms')
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVm(
     @Path() id: string,
-    @Body() body: CreateVmBody,
+    @Body() body: Unbrand<CreateVmBody>,
     @Query() sync?: boolean
   ): Promise<string | { id: Unbrand<XoVm>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
-      const app = this.restApi.xoApp
-      const xapi = app.getXapi(poolId)
-      // @TODO: see if possible to enhance the type checking without this ugly workaround
-      const vdis = body.vdis as Parameters<Xapi['createVm']>[1]['vdis']
+      const { affinity, template, ...rest } = body
+      const params = { affinityHost: affinity, ...rest } as CreateVmParams & CreateVmAfterCreateParams
+      const vmId = await this.#vmService.create({ pool: poolId, template, ...params })
 
-      const xenApiVm = await xapi.createVm(
-        body.templateUuid,
-        {
-          name_label: body.name_label,
-          clone: body.clone,
-          installRepository: body.install?.repository,
-          vdis,
-          vifs: body.vifs,
-          vgpuType: body.vgpuType,
-          gpuGroup: body.gpuGroup as XoGpuGroup['_xapiRef'],
-          copyHostBiosStrings: body.copyHostBiosStrings,
-          affinityHost: body.affinity as XoHost['id'],
-        },
-        undefined,
-        app.apiContext.user.id
-      )
-      const vm = this.restApi.getObject<XoVm>(xenApiVm.uuid as XoVm['id'])
-
-      return { id: vm.id }
-
-      // $defer.onFailure.call($xapi, 'VM_destroy', vm.$ref);
-      let cloudConfigVdiUuid
-      // if (cloud_config !== undefined) {
-      //   cloudConfigVdiUuid = await xapi.VM_createCloudInitConfig(vm.$ref, cloud_config, {
-      //     networkConfig: network_config
-      //   });
-      // }
-      let timeLimit
-      // if (boot) {
-      //   timeLimit = Date.now() + 10 * 60 * 1000;
-      //   await xapi.callAsync('VM.start', vm.$ref, false, false);
-      // }
-      // if (destroy_cloud_config_vdi && cloudConfigVdiUuid !== undefined && boot) {
-      //   try {
-      //     await xapi.VDI_destroyCloudInitConfig(xapi.getObject(cloudConfigVdiUuid).$ref, {
-      //       timeLimit
-      //     });
-      //   } catch (error) {
-      //     console.error('destroy cloud init config VDI failed', {
-      //       error,
-      //       vdi: {
-      //         uuid: cloudConfigVdiUuid
-      //       },
-      //       vm: {
-      //         uuid: vm.uuid
-      //       }
-      //     });
-      //   }
-      // }
-      // return vm.uuid;
+      return { id: vmId }
     }
 
     return this.createAction<string | { id: XoVm['id'] }>(action, {
       sync,
       statusCode: createdResp.status,
       taskProperties: {
+        args: body,
         name: 'create VM',
         objectId: poolId,
       },

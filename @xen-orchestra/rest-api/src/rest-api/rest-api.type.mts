@@ -69,9 +69,9 @@ export type XoApp = {
   tasks: EventEmitter & {
     create: (params: { name: string; objectId?: string; type?: string }) => Task
   }
-  // TODO: enhance this type, and maybe expose 'getUser' in the restApi
   apiContext: {
-    user: XoUser
+    user?: XoUser
+    permission?: XoUser['permission'] | 'none' | null
   }
 
   // methods ------------
