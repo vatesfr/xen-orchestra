@@ -97,6 +97,6 @@ const byteFormatter = (value: number | null) => {
 
   const result = formatSizeRaw(value, 1)
 
-  return `${result?.value}${result?.prefix}`
+  return `${result?.value} ${result?.prefix}`
 }
 </script>
