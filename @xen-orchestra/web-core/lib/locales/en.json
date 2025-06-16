@@ -80,7 +80,7 @@
   "confirm-delete": "You're about to delete {0}",
   "connected": "Connected",
   "connecting": "Connecting",
-  "connections": "Connections",
+  "connection": "Connections",
   "console": "Console",
   "console-actions": "Console actions",
   "console-clipboard": "Console clipboard",

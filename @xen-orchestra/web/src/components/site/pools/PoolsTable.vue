@@ -1,5 +1,5 @@
 <template>
-  <div class="site-pools-table">
+  <div class="pools-table">
     <UiTitle>
       {{ t('pools') }}
     </UiTitle>
@@ -113,6 +113,7 @@
       <VtsStateHero v-if="searchQuery && filteredServers.length === 0" type="table" image="no-result">
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
+      <VtsStateHero v-if="!servers.length" image="no-data" type="page" />
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
     </div>
   </div>
@@ -212,7 +213,7 @@ const getPoolInfo = (server: XoServer) => {
   }
 
   return {
-    label: server.id,
+    label: server.poolId,
     to: server.poolId ? `/pool/${server.poolId}/` : undefined,
     icon: faCity,
   }
@@ -246,7 +247,7 @@ const headerIcon: Record<ServerHeader, IconDefinition> = {
 </script>
 
 <style scoped lang="postcss">
-.site-pools-table {
+.pools-table {
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
