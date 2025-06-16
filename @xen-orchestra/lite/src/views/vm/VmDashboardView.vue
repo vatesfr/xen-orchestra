@@ -1,6 +1,6 @@
 <template>
   <VtsObjectNotFoundHero v-if="vm === undefined" :id type="page" />
-  <div v-else class="vm-dashboard-view" :class="{ mobile: uiStore.isMobile }">
+  <div v-else class="vm-dashboard-view" :class="{ mobile: isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="data.stats === undefined" class="offline-hero-container">
       <VtsOfflineHero type="page" />
@@ -44,7 +44,7 @@ const { getByUuid, getStats: getVmStats, isFetching, lastError } = useVmStore().
 
 const vm = computed(() => getByUuid(id.value))
 
-const uiStore = useUiStore()
+const { isMobile } = useUiStore()
 
 const { stats, register, unregister, timestampStart } = useFetchStats(getVmStats, GRANULARITY.Hours)
 

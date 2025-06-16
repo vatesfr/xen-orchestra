@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
+  <div class="dashboard" :class="{ mobile: isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="!data" class="offline-hero-container">
       <VtsOfflineHero type="page" />
@@ -31,7 +31,7 @@ const { vm } = defineProps<{
 
 const { data, isFetching, error } = useFetchStats('vm', () => vm.id, GRANULARITY.Hours)
 
-const uiStore = useUiStore()
+const { isMobile } = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
