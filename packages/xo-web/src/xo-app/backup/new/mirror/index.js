@@ -154,6 +154,11 @@ const NewMirrorBackup = decorate([
         setAdvancedSettings({ nRetriesVmBackupFailures }),
       setBackupReportTpl: ({ setAdvancedSettings }, compactBackupTpl) =>
         setAdvancedSettings({ backupReportTpl: compactBackupTpl ? 'compactMjml' : 'mjml' }),
+      setHideSuccessfulItems({ setAdvancedSettings }, hideSuccessfulItems) {
+        setAdvancedSettings({
+          hideSuccessfulItems,
+        })
+      },
       setSourceRemote: (_, obj) => () => ({
         sourceRemote: obj === null ? {} : obj.value,
         vmsToMirror: undefined,
@@ -270,6 +275,7 @@ const NewMirrorBackup = decorate([
       inputMaxExportRateId: generateId,
       inputNRetriesVmBackupFailures: generateId,
       inputBackupReportTplId: generateId,
+      inputHideSuccessfulItemsId: generateId,
       inputMirrorAllId: generateId,
       isBackupInvalid: state =>
         state.isMissingName ||
@@ -309,6 +315,7 @@ const NewMirrorBackup = decorate([
       timeout,
       maxExportRate,
       backupReportTpl = 'mjml',
+      hideSuccessfulItems,
       nRetriesVmBackupFailures = 0,
     } = state.advancedSettings
     return (
@@ -438,6 +445,17 @@ const NewMirrorBackup = decorate([
                           id={state.inputBackupReportTplId}
                           value={backupReportTpl === 'compactMjml'}
                           onChange={effects.setBackupReportTpl}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputHideSuccessfulItemsId}>
+                          <strong>{_('hideSuccessfulItems')}</strong>
+                        </label>
+                        <Toggle
+                          className='pull-right'
+                          id={state.inputHideSuccessfulItemsId}
+                          value={hideSuccessfulItems}
+                          onChange={effects.setHideSuccessfulItems}
                         />
                       </FormGroup>
                     </div>

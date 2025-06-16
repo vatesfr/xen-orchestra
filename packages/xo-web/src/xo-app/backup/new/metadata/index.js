@@ -197,6 +197,9 @@ export default decorate([
       setBackupReportTpl({ setGlobalSettings }, compactBackupTpl) {
         setGlobalSettings('backupReportTpl', compactBackupTpl ? 'compactMjml' : 'mjml')
       },
+      setHideSuccessfulItems({ setGlobalSettings }, hideSuccessfulItems) {
+        setGlobalSettings('hideSuccessfulItems', hideSuccessfulItems)
+      },
       toggleMode:
         (_, { mode }) =>
         state => ({
@@ -218,6 +221,7 @@ export default decorate([
     computed: {
       idForm: generateId,
       inputBackupReportTplId: generateId,
+      inputHideSuccessfulItemsId: generateId,
 
       modePoolMetadata: ({ _modePoolMetadata }, { job }) =>
         defined(_modePoolMetadata, () => !isEmpty(destructPattern(job.pools))),
@@ -296,6 +300,7 @@ export default decorate([
       reportWhen = 'failure',
       reportRecipients = [],
       backupReportTpl = 'mjml',
+      hideSuccessfulItems,
     } = defined(() => state.settings[GLOBAL_SETTING_KEY], {})
 
     return (
@@ -396,6 +401,17 @@ export default decorate([
                       id={state.inputBackupReportTplId}
                       value={backupReportTpl === 'compactMjml'}
                       onChange={effects.setBackupReportTpl}
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <label htmlFor={state.inputHideSuccessfulItemsId}>
+                      <strong>{_('hideSuccessfulItems')}</strong>
+                    </label>
+                    <Toggle
+                      className='pull-right'
+                      id={state.inputHideSuccessfulItemsId}
+                      value={hideSuccessfulItems}
+                      onChange={effects.setHideSuccessfulItems}
                     />
                   </FormGroup>
                 </CardBlock>
