@@ -370,7 +370,7 @@
           <UiToaster v-if="isOpen" accent="danger" @close="isOpen = false">{{ errorMessage }}</UiToaster>
           <!-- ACTIONS -->
           <div class="footer">
-            <UiButton variant="secondary" accent="brand" size="medium" @click="redirectToHome()">
+            <UiButton variant="secondary" accent="brand" size="medium" @click="redirectToPool(vmState.pool.id)">
               {{ t('cancel') }}
             </UiButton>
             <UiButton
@@ -403,6 +403,7 @@ import { useVifStore } from '@/stores/xo-rest-api/vif.store'
 import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
 import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
+import type { XoPool } from '@/types/xo/pool.type.ts'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -758,8 +759,9 @@ const onTemplateChange = () => {
   })
 }
 
-const redirectToHome = () => {
-  router.push({ name: '/pool/:id' })
+// TODO: when refactoring the component, remove the param and sync with the pool id in the route
+const redirectToPool = (poolId: XoPool['id']) => {
+  router.push({ name: '/pool/:id', params: { id: poolId } })
 }
 
 function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
@@ -903,7 +905,7 @@ const createNewVM = async () => {
     }
 
     await createVM(vmData.value, vmState.pool.id)
-    redirectToHome()
+    redirectToPool(vmState.pool.id)
   } catch (error) {
     isOpen.value = true
 
