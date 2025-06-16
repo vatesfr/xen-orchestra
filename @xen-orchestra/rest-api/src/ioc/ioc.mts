@@ -3,6 +3,7 @@ import { Container, decorate, injectable } from 'inversify'
 import { Controller } from 'tsoa'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { VmService } from '../vms/vm.service.mjs'
 import type { XoApp } from '../rest-api/rest-api.type.mjs'
 import { XoaService } from '../xoa/xoa.service.mjs'
 
@@ -26,6 +27,14 @@ export function setupContainer(xoApp: XoApp) {
     .toDynamicValue(ctx => {
       const restApi = ctx.container.get(RestApi)
       return new XoaService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(VmService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new VmService(restApi)
     })
     .inSingletonScope()
 }
