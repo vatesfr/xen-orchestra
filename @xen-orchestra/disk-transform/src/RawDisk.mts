@@ -37,11 +37,11 @@ export class RawDisk extends RandomAccessDisk{
         return this.#blockSize
     }
     async init(): Promise<void> {
-        this.#descriptor = await  this.#accessor.open(this.#path)
+        this.#descriptor = await  this.#accessor.openFile(this.#path)
         this.#size = await this.#accessor.getSize(this.#path)
     }
     async close(): Promise<void> {
-        this.#descriptor && await  this.#accessor.close(this.#descriptor)
+        this.#descriptor && await  this.#accessor.closeFile(this.#descriptor)
         this.#descriptor = undefined
         this.#size = undefined
     }
