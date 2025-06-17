@@ -32,6 +32,7 @@
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/disk-transform": "^1.0.1",
     "@xen-orchestra/log": "^0.7.1",
+    "@xen-orchestra/qcow2": "^0.0.0",
     "d3-time-format": "^4.1.0",
     "golike-defer": "^0.5.1",
     "http-request-plus": "^1.0.0",

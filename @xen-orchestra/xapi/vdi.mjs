@@ -224,12 +224,11 @@ class Vdi {
       return body
     }
 
-    // now we'll handle the VHD
-    assert.equal(format, VDI_FORMAT_VHD)
+    // now we'll handle the VHD and qcow2 export
+
     if (baseRef !== undefined) {
       query.base = baseRef
     }
-
     const stream = (
       await this.getResource(cancelToken, '/export_raw_vdi/', {
         query,
