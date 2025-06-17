@@ -65,7 +65,7 @@ const networkUsage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = networkUsage.value.flatMap(series => series.data.map(item => item.value ?? 0))
+  const values = networkUsage.value.flatMap(series => series.data.map(item => Number(item.value) ?? 0))
 
   if (values.length === 0) {
     return 100

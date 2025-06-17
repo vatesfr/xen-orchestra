@@ -70,7 +70,7 @@ const vdiUsage = computed<LinearChartData>(() => {
 
 const maxValue = computed(() => {
   const values = vdiUsage.value.reduce(
-    (acc, series) => [...acc, ...series.data.map(item => item.value ?? 0)],
+    (acc, series) => [...acc, ...series.data.map(item => Number(item.value) ?? 0)],
     [] as number[]
   )
 

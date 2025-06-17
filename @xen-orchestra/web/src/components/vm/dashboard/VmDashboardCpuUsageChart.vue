@@ -62,7 +62,7 @@ const cpuUsage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = cpuUsage.value[0]?.data.map(item => item.value ?? 0) ?? []
+  const values = cpuUsage.value[0]?.data.map(item => Number(item.value) ?? 0) ?? []
 
   if (values.length === 0) {
     return 100

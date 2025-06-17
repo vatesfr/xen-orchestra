@@ -36,7 +36,7 @@ const loadAverage = computed<LinearChartData>(() => {
   }
 
   const loadValues = data.stats.load
-  const result = new Map<number, { timestamp: number; value: number }>()
+  const result = new Map<number, { timestamp: number; value: number | string }>()
   const timestampStart = data.endTimestamp - data.interval * (loadValues.length - 1)
 
   for (let hourIndex = 0; hourIndex < loadValues.length; hourIndex++) {
@@ -45,7 +45,7 @@ const loadAverage = computed<LinearChartData>(() => {
 
     result.set(timestamp, {
       timestamp,
-      value: Number(load.toFixed(2)),
+      value: load ? Number(load.toFixed(2)) : '',
     })
   }
 
@@ -58,7 +58,7 @@ const loadAverage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = loadAverage.value[0]?.data.map(item => item.value ?? 0) ?? []
+  const values = loadAverage.value[0]?.data.map(item => Number(item.value) || 0) ?? []
   if (values.length === 0) {
     return 10
   }

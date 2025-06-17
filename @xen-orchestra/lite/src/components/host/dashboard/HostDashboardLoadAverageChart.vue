@@ -43,7 +43,7 @@ const loadAverage = computed<LinearChartData>(() => {
 
   const result = load.map((value, index) => ({
     timestamp: (timestampStart + index * RRD_STEP_FROM_STRING.hours) * 1000,
-    value: Number(value.toFixed(2)),
+    value: value ? Number(value.toFixed(2)) : '',
   }))
 
   return [
@@ -55,7 +55,7 @@ const loadAverage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = loadAverage.value[0]?.data.map(item => item.value ?? 0) ?? []
+  const values = loadAverage.value[0]?.data.map(item => Number(item.value) ?? 0) ?? []
 
   if (values.length === 0) {
     return 10
