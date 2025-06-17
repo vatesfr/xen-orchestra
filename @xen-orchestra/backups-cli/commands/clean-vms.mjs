@@ -40,7 +40,6 @@ async function cleanRemote(url, { fix, merge, remove }) {
   let nbSucceed = 0
   let nbFailed = 0
   let nbStarted = 0
-  console.log({ url })
   await Disposable.use(getSyncedHandler({ url }), async handler => {
     const remoteAdapter = new RemoteAdapter(handler)
     const vmUuids = await remoteAdapter.listAllVms()
