@@ -597,6 +597,11 @@ export default class User extends Component {
                 <option value='he'>עברי</option>
                 <option value='zh'>简体中文</option>
                 <option value='ja'>日本語</option>
+                <option value='de'>Deutsch - XO6</option>
+                <option value='cs'>čeština - XO6</option>
+                <option value='uk'>Українська - XO6</option>
+                <option value='nl'>Nederlands - XO6</option>
+                <option value='sv'>Svenska - XO6</option>
               </select>
             </Col>
           </Row>
