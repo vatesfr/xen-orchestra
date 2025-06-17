@@ -63,7 +63,7 @@ const TASK_ITEM_STYLE = {
 
 const FILTERS = {
   filterOutShortTasks: '!name_label: |(SR.scan host.call_plugin "/rrd_updates")',
-  filterKeepFailed: 'status:fail',
+  filterKeepFailed: 'status:failure',
 }
 
 @connectStore(() => ({
