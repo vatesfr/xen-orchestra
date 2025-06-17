@@ -209,7 +209,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    * @example body {
    * "name_label": "new VM from REST API",
-   * "templateUuid": "9bbcc5d1-ad4b-06f1-18f6-03125e809c38",
+   * "template": "9bbcc5d1-ad4b-06f1-18f6-03125e809c38",
    * "boot": true
    * }
    */
