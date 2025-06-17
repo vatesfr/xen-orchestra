@@ -124,6 +124,23 @@ export const useVmStore = defineStore('xen-api-vm', () => {
     })
   }) as GetStats<XenApiVm>
 
+  const getVmHost = (vm: XenApiVm): XenApiHost | undefined => {
+    // Try to find a host with local SR (same logic as in recordsByHostRef)
+    const hostWithLocalSr = findHostWithLocalSr(vm)
+
+    if (hostWithLocalSr !== undefined) {
+      return hostContext.getByOpaqueRef(hostWithLocalSr)
+    }
+
+    // If VM is running, use resident_on
+
+    if (vm.resident_on) {
+      return hostContext.getByOpaqueRef(vm.resident_on)
+    }
+
+    return undefined
+  }
+
   const context = {
     ...vmRawContext,
     records,
@@ -131,6 +148,7 @@ export const useVmStore = defineStore('xen-api-vm', () => {
     runningVms,
     recordsByHostRef,
     getStats,
+    getVmHost,
   }
 
   return createSubscribableStoreContext({ context }, deps)
