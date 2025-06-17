@@ -19,7 +19,7 @@ export default async function createAndConnectServer(payload: ConnectServerPaylo
     const taskUrl = await connectServer(serverId)
     await monitorTask(taskUrl)
   } catch (error) {
-    // If an error occurred, we remove the server to avoid any duplication.
+    // If an error , we remove the server to avoid any duplication.
     removeServer(serverId)
     throw error
   }
