@@ -1,9 +1,9 @@
 <template>
   <div class="pools">
-    <UiCard class="pools-table">
+    <UiCard class="pools-table-card">
       <PoolsTable :servers />
     </UiCard>
-    <PoolSidePanel v-if="selectedServer" :server="selectedServer" />
+    <PoolsSidePanel v-if="selectedServer" :server="selectedServer" />
     <UiPanel v-else>
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import PoolSidePanel from '@/components/site/pools/PoolSidePanel.vue'
+import PoolsSidePanel from '@/components/site/pools/PoolsSidePanel.vue'
 import PoolsTable from '@/components/site/pools/PoolsTable.vue'
 import { useServerStore } from '@/stores/xo-rest-api/server.store'
 import type { XoServer } from '@/types/xo/server.type'

@@ -41,7 +41,7 @@
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
       </div>
       <VtsDataTable
-        :is-ready="isServerReady && isHostReady"
+        :is-ready="isServerReady"
         :has-error
         :no-data-message="servers.length === 0 ? t('no-server-detected') : undefined"
       >
@@ -129,7 +129,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
@@ -139,6 +139,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { createMapper } from '@core/packages/mapper'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faCaretSquareDown,
@@ -160,7 +161,7 @@ const { servers } = defineProps<{
 const { t } = useI18n()
 
 const { isReady: isServerReady, hasError } = useServerStore().subscribe()
-const { isReady: isHostReady, get: getHostById } = useHostStore().subscribe()
+const { get: getHostById } = useHostStore().subscribe()
 
 const selectedServerId = useRouteQuery('id')
 
@@ -186,22 +187,15 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? serverIds.value : []
 }
 
-const getStatus = (server: XoServer): { accent: InfoAccent; text: string } => {
-  if (server.error) {
-    return { accent: 'danger', text: t('error') }
-  }
-
-  switch (server.status) {
-    case 'disconnected':
-      return { accent: 'muted', text: t('disconnected') }
-    case 'connected':
-      return { accent: 'success', text: t('connected') }
-    case 'connecting':
-      return { accent: 'info', text: t('connecting') }
-    default:
-      return { accent: 'muted', text: t('unknown') }
-  }
-}
+const getStatusInfo = createMapper(
+  {
+    error: { accent: 'danger', text: t('unable-to-connect-to-the-pool') },
+    disconnected: { accent: 'muted', text: t('disconnected') },
+    connected: { accent: 'success', text: t('connected') },
+    connecting: { accent: 'info', text: t('connecting') },
+  },
+  'error'
+)
 
 const getPoolInfo = (server: XoServer) => {
   if (server.poolNameLabel) {
@@ -212,11 +206,14 @@ const getPoolInfo = (server: XoServer) => {
     }
   }
 
-  return {
-    label: server.poolId,
-    to: server.poolId ? `/pool/${server.poolId}/` : undefined,
-    icon: faCity,
+  if (server.poolId) {
+    return {
+      label: server.poolId,
+      to: `/pool/${server.poolId}/`,
+      icon: faCity,
+    }
   }
+  return undefined
 }
 
 const getPrimaryHost = (server: XoServer) => {
@@ -230,7 +227,7 @@ const { visibleColumns, rows } = useTable('servers', filteredServers, {
     define('checkbox', noop, { label: '', isHideable: false }),
     define('label', record => getPoolInfo(record), { label: t('pool') }),
     define('host', { label: t('ip-address') }),
-    define('status', record => getStatus(record), { label: t('status') }),
+    define('status', record => getStatusInfo(record.error ? 'error' : record.status), { label: t('status') }),
     define('primary-host', record => getPrimaryHost(record), { label: t('master') }),
     define('more', noop, { label: '', isHideable: false }),
   ],
