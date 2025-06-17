@@ -592,7 +592,7 @@ export default class User extends Component {
                 <option value='it'>Italiano</option>
                 <option value='pl'>Polski</option>
                 <option value='pt'>Português</option>
-                <option value='se'>Svenska</option>
+                <option value='sv'>Svenska</option>
                 <option value='tr'>Türkçe</option>
                 <option value='he'>עברי</option>
                 <option value='zh'>简体中文</option>
@@ -601,7 +601,6 @@ export default class User extends Component {
                 <option value='cs'>čeština - XO6</option>
                 <option value='uk'>Українська - XO6</option>
                 <option value='nl'>Nederlands - XO6</option>
-                <option value='sv'>Svenska - XO6</option>
               </select>
             </Col>
           </Row>
