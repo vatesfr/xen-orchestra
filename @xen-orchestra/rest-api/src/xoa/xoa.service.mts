@@ -483,7 +483,7 @@ export class XoaService {
       return undefined
     })
     const nHostsEol = await this.#getNumberOfEolHosts().catch(err => {
-      log.err('#getNumberOfEolHosts failed', err)
+      log.error('#getNumberOfEolHosts failed', err)
       return undefined
     })
     const backups = await this.#getbackupsInfo().catch(err => {
