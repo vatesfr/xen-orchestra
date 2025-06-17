@@ -1,7 +1,7 @@
 // See http://momentjs.com/docs/#/use-it/browserify/
-import 'moment/locale/se'
+import 'moment/locale/sv'
 
-import reactIntlData from 'react-intl/locale-data/se'
+import reactIntlData from 'react-intl/locale-data/sv'
 import { addLocaleData } from 'react-intl'
 addLocaleData(reactIntlData)
 
