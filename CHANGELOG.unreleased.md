@@ -36,7 +36,7 @@
 
 - @xen-orchestra/backups minor
 - @xen-orchestra/disk-transform minor
-- @xen-orchestra/qcow major
+- @xen-orchestra/qcow2 major
 - @xen-orchestra/xapi minor
 - vhd-lib minor
 - xo-acl-resolver patch
