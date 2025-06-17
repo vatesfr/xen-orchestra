@@ -37,7 +37,9 @@
       </div>
       <div class="button-warper">
         <UiButton accent="brand" size="medium" variant="secondary" @click="cancel()">{{ t('cancel') }}</UiButton>
-        <UiButton type="submit" accent="brand" size="medium" variant="primary">{{ t('connect') }}</UiButton>
+        <UiButton type="submit" accent="brand" size="medium" variant="primary" :busy="connecting">
+          {{ t('connect') }}
+        </UiButton>
       </div>
     </form>
   </UiCard>
@@ -52,12 +54,13 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const router = useRouter()
+const connecting = ref(false)
 
 const form: ConnectServerPayload = reactive({
   host: history?.state?.ip ?? '',
@@ -71,6 +74,7 @@ const form: ConnectServerPayload = reactive({
 function submit() {
   // Clone the form to avoid reactivity issues
   const payload = { ...form }
+  connecting.value = true
   createAndConnectServer(payload)
     .then(response => {
       if (response) {
@@ -101,6 +105,7 @@ function submit() {
         },
       })
     })
+    .finally(() => (connecting.value = false))
 }
 
 function cancel() {
