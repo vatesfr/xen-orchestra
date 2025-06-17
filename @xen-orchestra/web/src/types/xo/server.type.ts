@@ -1,4 +1,5 @@
 import type { Branded } from '@core/types/utility.type'
+import type { XoHost } from './host.type'
 import type { XoPool } from './pool.type'
 
 export type XoServer = {
@@ -10,4 +11,9 @@ export type XoServer = {
   readOnly: boolean
   allowUnauthorized: boolean
   poolId?: XoPool['id']
+  master?: XoHost['id']
+  poolNameLabel?: string
+  status: 'connected' | 'disconnected' | 'connecting'
+  error?: Record<string, unknown>
+  poolNameDescription?: string
 }

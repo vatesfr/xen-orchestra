@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ t('connections') }}
+      {{ t('connection') }}
     </UiTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
