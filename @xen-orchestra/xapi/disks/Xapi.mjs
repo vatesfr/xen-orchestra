@@ -15,7 +15,7 @@ import { XapiQcow2StreamSource } from './XapiQcow2StreamSource.mjs'
 // @todo how to type this ?
 const { info, warn } = createLogger('@xen-orchestra/xapi/disks/Xapi')
 
-const VHD_MAX_SIZE = 2 * 1024 * 1024 * 1024 * 1024 /* 2TB */ - 8 * 1024 /* metadata */
+export const VHD_MAX_SIZE = 2 * 1024 * 1024 * 1024 * 1024 /* 2TB */ - 8 * 1024 /* metadata */
 
 /**
  * Meta class that handles the fallback logic when trying to export a disk from xapi.

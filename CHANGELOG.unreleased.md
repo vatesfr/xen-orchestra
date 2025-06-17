@@ -74,6 +74,7 @@
 - @xen-orchestra/backups-cli minor
 - @xen-orchestra/disk-transform minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/qcow2 major
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
