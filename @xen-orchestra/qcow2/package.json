@@ -1,0 +1,37 @@
+{
+  "name": "@xen-orchestra/qcow2",
+  "version": "0.0.0",
+  "description": "parse and produce qcow2 files",
+  "main": "dist/index.mjs",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "postversion": "npm publish --access public",
+    "clean": "rimraf dist/",
+    "test-integration": "tsc && node --test dist/consumer/ConsumerQcowStream.integ.mjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "private": false,
+  "homepage": "https://github.com/vatesfr/xen-orchestra",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/qcow2",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "engines": {
+    "node": ">=20.17"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "execa": "^5.0.0",
+    "rimraf": "^5.0.1",
+    "@types/node": "^22.3.0",
+    "typescript": "~5.6",
+    "typescript-eslint": "^8.23.0"
+  },
+  "dependencies": {
+    "@xen-orchestra/disk-transform": "1.0.1"
+  }
+}
