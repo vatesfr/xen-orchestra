@@ -798,7 +798,7 @@ function getExistingVifsDiff(vif1: Vif, vif2: Vif) {
     return {
       network: vif2.network,
       // change this when API handles empty mac addresses
-      mac: vif2.mac?.trim() === '' ? ' ' : vif2.mac,
+      mac: vif2.mac,
     }
   }
 
@@ -849,8 +849,7 @@ const vifsToSend = computed(() => {
     if (!vif.id) {
       acc.push({
         network: vif.network,
-        // change this when API handles empty mac addresses
-        mac: vif.mac?.trim() === '' ? ' ' : vif.mac,
+        mac: vif.mac,
       })
     }
 
@@ -874,7 +873,7 @@ const vmData = computed(() => {
     vmState.installMode !== 'no-config' && {
       install: {
         method: vmState.installMode,
-        repository: vmState.installMode === 'network' ? ' ' : vmState.selectedVdi,
+        repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
       },
     }
     // TODO: uncomment when radio will be implemented

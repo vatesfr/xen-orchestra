@@ -31,10 +31,9 @@ import {
 } from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-
-import type { Xapi, XenApiSr, XenApiVm, XoGpuGroup, XoHost, XoNetwork, XoPif, XoPool, XoSr, XoVm } from '@vates/types'
-import {createVm, importVm, partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
-import type { CreateNetworkBody, CreateVmAfterCreateParams,CreateVmBody,CreateVmParams } from './pool.type.mjs'
+import type { XenApiSr, XenApiVm, XoNetwork, XoPif, XoPool, XoSr, XoVm } from '@vates/types'
+import { createVm, importVm, partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
+import type { CreateNetworkBody, CreateVmAfterCreateParams, CreateVmBody, CreateVmParams } from './pool.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
@@ -245,7 +244,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
    * @example body {
    * "name_label": "new VM from REST API",
-   * "templateUuid": "9bbcc5d1-ad4b-06f1-18f6-03125e809c38",
+   * "template": "9bbcc5d1-ad4b-06f1-18f6-03125e809c38",
    * "boot": true
    * }
    */
