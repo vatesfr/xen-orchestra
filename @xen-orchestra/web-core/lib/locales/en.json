@@ -78,7 +78,7 @@
   "confirm-delete": "You're about to delete {0}",
   "connected": "Connected",
   "connecting": "Connecting",
-  "connection": "Connections",
+  "connections": "Connections",
   "connection-failed": "Connection failed",
   "console": "Console",
   "console-actions": "Console actions",

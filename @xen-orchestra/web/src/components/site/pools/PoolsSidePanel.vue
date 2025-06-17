@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isPoolReady && !isHostready" type="panel" />
+  <VtsLoadingHero v-if="!isPoolReady" type="panel" />
   <UiPanel v-else>
     <template #header>
       <UiButton
@@ -84,8 +84,8 @@
         </template>
       </UiAlert>
       <UiCard class="card-container">
-        <UiCardTitle class="typo-body-bold text-ellipsis">
-          {{ t('connection') }}
+        <UiCardTitle class="text-ellipsis">
+          {{ t('connections') }}
         </UiCardTitle>
         <!-- status -->
         <VtsCardRowKeyValue>
@@ -100,7 +100,7 @@
         <VtsCardRowKeyValue>
           <template #key>{{ t('master') }}</template>
           <template #value>
-            <UiLink v-if="primaryHost" :icon="faServer" size="small" :to="`/host/${primaryHost.id}/`">
+            <UiLink v-if="primaryHost !== undefined" :icon="faServer" size="small" :to="`/host/${primaryHost.id}/`">
               {{ primaryHost.name_label }}
             </UiLink>
           </template>
@@ -148,14 +148,14 @@
           </template>
         </VtsCardRowKeyValue>
       </UiCard>
-      <UiCard v-if="hosts">
+      <UiCard v-if="hosts !== undefined">
         <UiCardTitle>
           <span>
             {{ t('hosts') }}
-            <UiCounter :value="hosts?.length ?? 0" accent="neutral" size="small" variant="primary" />
+            <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
           </span>
         </UiCardTitle>
-        <VtsNoDataHero v-if="hosts?.length === 0" type="panel" />
+        <VtsNoDataHero v-if="hosts.length === 0" type="panel" />
         <template v-else>
           <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" :icon="faServer" size="small">
             {{ host.name_label }}
@@ -183,14 +183,15 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { useMapper } from '@core/packages/mapper'
 import { faCircle, faCity, faEdit, faEllipsis, faServer, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
-import { computed, type ComputedRef } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { server } = defineProps<{
@@ -199,29 +200,23 @@ const { server } = defineProps<{
 
 const { t } = useI18n()
 
-const { isReady: isPoolReady, get: getpool } = usePoolStore().subscribe()
-const { isReady: isHostready, get: getHostById, hostsByPool } = useHostStore().subscribe()
+const { isReady: isPoolReady, get: getPoolById } = usePoolStore().subscribe()
+const { get: getHostById, hostsByPool } = useHostStore().subscribe()
 
-const pool = computed(() => (server.poolId ? getpool(server.poolId) : undefined))
+const pool = computed(() => (server.poolId ? getPoolById(server.poolId) : undefined))
 const primaryHost = computed(() => (server.master ? getHostById(server.master) : undefined))
 const hosts = computed(() => (server.poolId ? hostsByPool.value.get(server.poolId) : undefined))
 
-const connectionStatus: ComputedRef<{ accent: InfoAccent; text: string }> = computed(() => {
-  if (server.error) {
-    return { accent: 'danger', text: t('error') }
-  }
-
-  switch (server.status) {
-    case 'disconnected':
-      return { accent: 'muted', text: t('disconnected') }
-    case 'connected':
-      return { accent: 'success', text: t('connected') }
-    case 'connecting':
-      return { accent: 'info', text: t('connecting') }
-    default:
-      return { accent: 'muted', text: t('unknown') }
-  }
-})
+const connectionStatus = useMapper(
+  () => (server.error ? 'error' : server.status),
+  {
+    error: { accent: 'danger', text: t('unable-to-connect-to-the-pool') },
+    disconnected: { accent: 'muted', text: t('disconnected') },
+    connected: { accent: 'success', text: t('connected') },
+    connecting: { accent: 'info', text: t('connecting') },
+  },
+  'error'
+)
 </script>
 
 <style scoped lang="postcss">
@@ -234,10 +229,6 @@ const connectionStatus: ComputedRef<{ accent: InfoAccent; text: string }> = comp
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-
-    .tags {
-      display: flex;
-    }
   }
 }
 </style>
