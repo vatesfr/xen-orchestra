@@ -27,6 +27,7 @@
     "iterable-backoff": "^0.1.0",
     "lodash-es": "^4.17.21",
     "placement.js": "^1.0.0-beta.5",
+    "simple-icons": "^14.14.0",
     "vue-echarts": "^6.6.8"
   },
   "peerDependencies": {
