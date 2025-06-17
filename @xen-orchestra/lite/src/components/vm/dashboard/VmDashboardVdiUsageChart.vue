@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoVmStats } from '@/types/xo/vm-stats.type.ts'
+import { RRD_STEP_FROM_STRING, type VmStats } from '@/libs/xapi-stats.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -24,7 +24,10 @@ import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
-  data: XoVmStats | null
+  data: {
+    stats: VmStats | undefined
+    timestampStart: number
+  }
   loading: boolean
   error?: string
 }>()
@@ -33,39 +36,46 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
-const vdiUsage = computed<LinearChartData>(() => {
-  if (!data?.stats.xvds) {
+const vdiUsage = computed((): LinearChartData => {
+  const { stats, timestampStart } = data
+
+  const xvds = stats?.xvds
+
+  if (!xvds) {
     return []
   }
 
-  const readArrays = Object.values(data.stats.xvds.r)
+  const addVdiData = (type: 'r' | 'w') => {
+    const xvdsArrays = Object.values(xvds[type])
 
-  const timestamps = Array.from(
-    { length: readArrays[0].length },
-    (_, i) => data.endTimestamp * 1000 - (readArrays[0].length - 1 - i) * data.interval * 1000
-  )
+    if (xvdsArrays.length === 0) {
+      return {
+        label: '',
+        data: [],
+      }
+    }
 
-  const readSeries = [
-    {
-      label: t('read'),
-      data: timestamps.map((timestamp, index) => ({
+    const data = Array.from({ length: xvdsArrays[0].length }, (_, idx) => {
+      const timestamp =
+        (timestampStart - RRD_STEP_FROM_STRING.hours * (xvdsArrays[0].length - 1) + idx * RRD_STEP_FROM_STRING.hours) *
+        1000
+
+      const value = xvdsArrays.reduce((sum, arr) => sum + (arr[idx] ?? 0), 0)
+
+      return {
         timestamp,
-        value: Object.values(data.stats.xvds.r).reduce((sum, values) => sum + values[index], 0),
-      })),
-    },
-  ]
+        // Sometimes we got infinity values in the result, we need to replace it with null
+        value: Number.isFinite(value) ? value : null,
+      }
+    })
 
-  const writeSeries = [
-    {
-      label: t('write'),
-      data: timestamps.map((timestamp, index) => ({
-        timestamp,
-        value: Object.values(data.stats.xvds.w).reduce((sum, values) => sum + values[index], 0),
-      })),
-    },
-  ]
+    return {
+      label: type === 'r' ? t('read') : t('write'),
+      data,
+    }
+  }
 
-  return [...readSeries, ...writeSeries]
+  return [addVdiData('r'), addVdiData('w')]
 })
 
 const maxValue = computed(() => {

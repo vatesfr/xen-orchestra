@@ -4,17 +4,19 @@
       {{ t('ram-usage') }}
       <template #description>{{ t('last-week') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="loading || data.stats === undefined" type="card" />
+    <VtsLoadingHero v-if="loading" type="card" />
     <VtsErrorNoDataHero v-else-if="error" type="card" />
-    <VtsLinearChart v-else :data="memoryUsage" :max-value :value-formatter="byteFormatter" />
+    <VtsNoDataHero v-else-if="ramUsage.length === 0" type="card" />
+    <VtsLinearChart v-else :data="ramUsage" :max-value :value-formatter="byteFormatter" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { type HostStats, RRD_STEP_FROM_STRING } from '@/libs/xapi-stats.ts'
+import { RRD_STEP_FROM_STRING, type VmStats } from '@/libs/xapi-stats.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
@@ -23,7 +25,7 @@ import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
   data: {
-    stats: HostStats | undefined
+    stats: VmStats | undefined
     timestampStart: number
   }
   loading: boolean
@@ -34,24 +36,24 @@ const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linea
 
 const { t } = useI18n()
 
-const memoryUsage = computed<LinearChartData>(() => {
+const ramUsage = computed<LinearChartData>(() => {
   const { stats, timestampStart } = data
-  const { memory: memoryTotal, memoryFree } = stats ?? {}
 
-  if (memoryTotal === undefined || memoryFree === undefined) {
+  const { memory: ramTotal, memoryFree } = stats ?? {}
+
+  if (ramTotal === undefined || memoryFree === undefined) {
     return []
   }
 
-  const result = memoryTotal.map((total, index) => ({
+  const result = ramTotal.map((total, index) => ({
     timestamp:
-      (timestampStart - RRD_STEP_FROM_STRING.hours * (memoryTotal.length - 1) + index * RRD_STEP_FROM_STRING.hours) *
-      1000,
+      (timestampStart - RRD_STEP_FROM_STRING.hours * (ramTotal.length - 1) + index * RRD_STEP_FROM_STRING.hours) * 1000,
     value: total - memoryFree[index],
   }))
 
   return [
     {
-      label: t('ram-usage'),
+      label: t('stacked-ram-usage'),
       data: result,
     },
   ]
@@ -72,6 +74,6 @@ const byteFormatter = (value: number | null) => {
 
   const result = formatSizeRaw(value, 1)
 
-  return `${result?.value}${result?.prefix}`
+  return `${result?.value} ${result?.prefix}`
 }
 </script>

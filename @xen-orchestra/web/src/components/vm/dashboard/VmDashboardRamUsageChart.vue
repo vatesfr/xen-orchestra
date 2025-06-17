@@ -76,9 +76,13 @@ const maxValue = computed(() => {
   return Math.max(...data.stats.memory, 0)
 })
 
-const byteFormatter = (value: number) => {
+const byteFormatter = (value: number | null) => {
+  if (value === null) {
+    return ''
+  }
+
   const result = formatSizeRaw(value, 1)
 
-  return `${result?.value}${result?.prefix}`
+  return `${result?.value} ${result?.prefix}`
 }
 </script>

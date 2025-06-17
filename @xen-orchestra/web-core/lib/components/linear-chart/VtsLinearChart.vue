@@ -29,6 +29,10 @@ const valueFormatter = computed<ValueFormatter>(() => {
   const formatter = _valueFormatter
 
   return value => {
+    if (value === null) {
+      return ''
+    }
+
     if (formatter === undefined) {
       return value.toString()
     }
