@@ -373,7 +373,6 @@ export default class Tasks extends Component {
                 <SortedTable
                   className='mt-1'
                   collection={this._getFinishedTasks()}
-                  defaultFilter='filterKeepFailed'
                   columns={FINISHED_TASKS_COLUMNS}
                   filters={FILTERS}
                   stateUrlParam='s_previous'
@@ -392,6 +391,8 @@ export default class Tasks extends Component {
                 columns={XO_TASKS_COLUMNS}
                 individualActions={XO_TASKS_INDIVIDUAL_ACTIONS}
                 stateUrlParam='s_xo'
+                filters={FILTERS}
+                defaultFilter='filterKeepFailed'
               />
             </Col>
           </Row>
