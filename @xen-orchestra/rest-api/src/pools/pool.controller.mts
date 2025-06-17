@@ -229,9 +229,9 @@ export class PoolController extends XapiXoController<XoPool> {
   ): Promise<string | { id: Unbrand<XoVm>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
-      const { affinity, templateUuid, ...rest } = body
+      const { affinity, template, ...rest } = body
       const params = { affinityHost: affinity, ...rest } as CreateVmParams & CreateVmAfterCreateParams
-      const vmId = await this.#vmService.create({ pool: poolId, templateUuid, ...params })
+      const vmId = await this.#vmService.create({ pool: poolId, template, ...params })
 
       return { id: vmId }
     }

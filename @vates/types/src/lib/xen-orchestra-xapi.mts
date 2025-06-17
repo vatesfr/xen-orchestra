@@ -1,4 +1,4 @@
-import {
+import type {
   WrappedXenApiRecord,
   XenApiVm,
   XenApiNetworkWrapped,
@@ -40,6 +40,12 @@ type XsPatches = {
 export interface Xapi {
   call: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
   callAsync: <ReturnType>(...args: unknown[]) => Promise<ReturnType>
+
+  getField<T extends XenApiRecord, K extends keyof T>(
+    type: Extract<WrappedXenApiRecord, T>['$type'],
+    ref: T['$ref'],
+    field: K
+  ): Promise<T[K]>
   createNetwork(
     params:
       | {
@@ -68,33 +74,36 @@ export interface Xapi {
       clone?: boolean
       installRepository?: XoVdi['id'] | '' | null
       vdis?: (
-        | {
+        | /** Create VDI */ {
             name_label: string
             size: number
             sr?: XoSr['id']
             name_description?: string
           }
-        | {
+        | /** Update VDI*/ {
             userdevice: string
             name_label?: string
             size?: number
             sr?: XoSr['id']
             name_description?: string
           }
-        | { userdevice: string; destroy: true }
+        | /** Destroy VDI*/ { destroy: true; userdevice: string }
       )[]
-      // @TODO: improve VIFs types (like for VDIs)
-      vifs?: {
-        destroy?: boolean
-        device?: string
-        ipv4_allowed?: string[]
-        ipv6_allowed?: string[]
-        mac?: string
-        network?: string
-      }[]
+      vifs?: (
+        | /** Create/update VIF */ {
+            device?: string
+            ipv4_allowed?: string[]
+            ipv6_allowed?: string[]
+            mac?: string
+            mtu?: number
+            network: string
+          }
+        | /** Destroy VIF */ { destroy: true; device: string }
+      )[]
       existingVdis?: {
         $SR: XoSr['id']
         size: number
+        userdevice: string
       }[]
       vgpuType?: XoVgpuType['id']
       gpuGroup?: XoGpuGroup['id']
@@ -104,11 +113,6 @@ export interface Xapi {
     creatorId?: XoUser['id'],
     opts?: { destroyAllVifs: boolean }
   ): Promise<XenApiVmWrapped>
-  getField<T extends XenApiRecord, K extends keyof T>(
-    type: Extract<WrappedXenApiRecord, T>['$type'],
-    ref: T['$ref'],
-    field: K
-  ): Promise<T[K]>
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
   VM_createCloudInitConfig(
     vmRef: XenApiVm['$ref'],

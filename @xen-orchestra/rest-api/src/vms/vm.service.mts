@@ -19,15 +19,15 @@ export class VmService {
     params: CreateVmParams &
       CreateVmAfterCreateParams & {
         pool: XoPool['id']
-        templateUuid: XoVmTemplate['uuid']
+        template: XoVmTemplate['uuid']
       }
   ): Promise<XoVm['id']> {
-    const { pool, templateUuid, cloud_config, boot, destroy_cloud_config_vdi, network_config, ...rest } = params
+    const { pool, template, cloud_config, boot, destroy_cloud_config_vdi, network_config, ...rest } = params
     const xoApp = this.#restApi.xoApp
     const xapi = this.#restApi.xoApp.getXapi(pool)
     const currentUser = this.#restApi.getCurrentUser()
 
-      const xapiVm = await xapi.createVm(templateUuid, rest, undefined, currentUser.id)
+    const xapiVm = await xapi.createVm(template, rest, undefined, currentUser?.id)
     $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref))
     const xoVm = this.#restApi.getObject<XoVm>(xapiVm.uuid as XoVm['id'], 'VM')
 
@@ -38,15 +38,15 @@ export class VmService {
       })
       cloudConfigVdi = xoApp.getXapiObject<XoVdi>(cloudConfigVdiUuid as XoVdi['id'], 'VDI')
     }
-      
+
     let timeLimit: number | undefined
     if (boot) {
       timeLimit = Date.now() + 10 * 60 * 1000
       await xapiVm.$callAsync('start', false, false)
     }
-      
+
     if (destroy_cloud_config_vdi && cloudConfigVdi !== undefined && boot) {
-      Task.info('Destruction of the VDI cloud config is planned and will be done as soon as possible')
+      Task.info('Destruction of the cloud config VDI is planned and will be done as soon as possible')
       xapi.VDI_destroyCloudInitConfig(cloudConfigVdi.$ref, { timeLimit }).catch(error => {
         log.error('destroy cloud init config VDI failed', {
           error,

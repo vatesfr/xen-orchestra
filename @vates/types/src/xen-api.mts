@@ -1061,6 +1061,7 @@ export interface XenApiGpuGroup {
   uuid: string
   VGPUs: XenApiVgpu['$ref'][]
 }
+export type XenApiGpuGroupWrapped = WrapperXenApi<XenApiGpuGroup, 'gpuGroup'>
 
 export interface XenApiVgpu {
   $ref: Branded<'VGPU'>
@@ -1098,6 +1099,7 @@ export interface XenApiVgpuType {
   vendor_name: string
   VGPUs: XenApiVgpu['$ref'][]
 }
+export type XenApiVgpuTypeWrapped = WrapperXenApi<XenApiVgpuType, 'vgpuType'>
 
 export interface XenApiPvsSite {
   $ref: Branded<'PVS_site'>
