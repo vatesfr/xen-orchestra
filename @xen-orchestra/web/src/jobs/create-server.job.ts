@@ -15,9 +15,15 @@ class ServerError extends Error {
 export default async function createAndConnectServer(payload: ConnectServerPayload) {
   const serverId = await createServer(payload)
 
-  const taskUrl = await connectServer(serverId)
+  try {
+    const taskUrl = await connectServer(serverId)
+    await monitorTask(taskUrl)
+  } catch (error) {
+    // If an error occurred, we remove the server to avoid any duplication.
+    removeServer(serverId)
+    throw error
+  }
 
-  await monitorTask(taskUrl)
   // Return the server ID after successful connection
   // To redirect to the server page
   return serverId
@@ -104,7 +110,22 @@ export async function monitorTask(url: string) {
 }
 
 // remove server if you have an error on connect
-// export async function removeServer(serverId: XoServer['id']) {}
+export async function removeServer(serverId: XoServer['id']) {
+  const {
+    data,
+    statusCode: status,
+    error,
+  } = await useFetch(`/rest/v0/servers/${serverId}/`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+  }).json()
+
+  if (error.value) {
+    throw new ServerError(error.value, { status })
+  }
+
+  return data.value
+}
 
 export type ConnectServerPayload = {
   host: string
