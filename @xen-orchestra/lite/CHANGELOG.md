@@ -4,6 +4,7 @@
 
 - [Pool/system] Display pool information in pool/system tab (PR [#8660](https://github.com/vatesfr/xen-orchestra/pull/8660))
 - [VM/Dashboard] Display VM information in dashboard tab (PR [#8529](https://github.com/vatesfr/xen-orchestra/pull/8529))
+- [Host/Dashboard] Fix load average chart when a value is null (PR [#8720](https://github.com/vatesfr/xen-orchestra/pull/8720))
 
 ## **0.11.0** (2025-05-27)
 
