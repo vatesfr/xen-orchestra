@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "private": false,
-  "homepage": "https://github.com/vatesfr/xen-orchestra",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/qcow2",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
     "directory": "@xen-orchestra/qcow2",
