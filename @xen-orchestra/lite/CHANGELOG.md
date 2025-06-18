@@ -4,6 +4,7 @@
 
 - [Pool/system] Display pool information in pool/system tab (PR [#8660](https://github.com/vatesfr/xen-orchestra/pull/8660))
 - [VM/Dashboard] Display VM information in dashboard tab (PR [#8529](https://github.com/vatesfr/xen-orchestra/pull/8529))
+- [Stats] Fix graphs that were sometimes not displayed or displayed incorrectly (PR [#8722](https://github.com/vatesfr/xen-orchestra/pull/8722))
 
 ## **0.11.0** (2025-05-27)
 
