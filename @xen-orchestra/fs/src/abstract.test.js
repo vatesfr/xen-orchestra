@@ -13,16 +13,34 @@ import tmp from 'tmp'
 const TIMEOUT = 6e5
 
 class TestHandler extends AbstractHandler {
-  constructor(impl) {
-    const options = { timeout: TIMEOUT }
+  constructor() {
+    const options = { timeout: TIMEOUT, withRetry: [] }
     super({ url: 'test://' }, options)
     Object.defineProperty(this, 'isEncrypted', {
       get: () => false, // encryption is tested separately
     })
-    Object.keys(impl).forEach(method => {
-      this[`_${method}`] = impl[method]
-    })
-    this._applySafeGuards(options, { toRetry: [] }) // workaround to reapply safeGuards on mocks
+  }
+
+  async _closeFile() {
+    Promise(() => {})
+  }
+  async _getInfo() {
+    Promise(() => {})
+  }
+  async _getSize() {
+    Promise(() => {})
+  }
+  async _list() {
+    Promise(() => {})
+  }
+  async _openFile() {
+    Promise(() => {})
+  }
+  async _rename() {
+    Promise(() => {})
+  }
+  async _rmdir() {
+    Promise(() => {})
   }
 }
 
@@ -32,9 +50,7 @@ const clock = sinon.useFakeTimers()
 
 describe('closeFile()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      closeFile: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.closeFile({ fd: undefined, path: '' })
     clock.tick(TIMEOUT)
@@ -44,9 +60,7 @@ describe('closeFile()', () => {
 
 describe('getInfo()', () => {
   it('throws in case of timeout', async () => {
-    const testHandler = new TestHandler({
-      getInfo: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.getInfo()
     clock.tick(TIMEOUT)
@@ -56,9 +70,7 @@ describe('getInfo()', () => {
 
 describe('getSize()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      getSize: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.getSize('')
     clock.tick(TIMEOUT)
@@ -68,9 +80,7 @@ describe('getSize()', () => {
 
 describe('list()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      list: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.list('.')
     clock.tick(TIMEOUT)
@@ -80,9 +90,7 @@ describe('list()', () => {
 
 describe('openFile()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      openFile: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.openFile('path')
     clock.tick(TIMEOUT)
@@ -92,9 +100,7 @@ describe('openFile()', () => {
 
 describe('rename()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      rename: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.rename('oldPath', 'newPath')
     clock.tick(TIMEOUT)
@@ -104,9 +110,7 @@ describe('rename()', () => {
 
 describe('rmdir()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      rmdir: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.rmdir('dir')
     clock.tick(TIMEOUT)

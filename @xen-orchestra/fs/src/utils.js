@@ -1,12 +1,9 @@
 import { createLogger } from '@xen-orchestra/log'
 import { TimeoutError } from 'promise-toolbox'
+
 const { info, warn } = createLogger('xo:fs:abstract')
 
-export function withTimeout(fn, timeout, { onSuccess, onTimeout, onSuccessAfterTimeout, onFailureAfterTimeout } = {}) {
-  if (typeof fn.then !== 'undefined') {
-    throw new Error('Function needs to be asynchronous.')
-  }
-
+export function withTimeout(fn, timeout, { onTimeout, onSuccessAfterTimeout, onFailureAfterTimeout } = {}) {
   return function (...args) {
     let timeoutHandle
     let didTimeout = false
@@ -20,26 +17,30 @@ export function withTimeout(fn, timeout, { onSuccess, onTimeout, onSuccessAfterT
           reject(timeoutError)
         }
       }, timeout)
-      fn.apply(this, args)
-        .then(result => {
+      const promise = fn.apply(this, args)
+      if (promise === undefined) {
+        throw new Error('Function needs to be asynchronous.')
+      }
+      promise.then(
+        result => {
           clearTimeout(timeoutHandle)
           if (didTimeout) {
             info('Success after timeout:\n', result)
             onSuccessAfterTimeout?.(result)
             reject(timeoutError)
           } else {
-            onSuccess?.(result)
             resolve(result)
           }
-        })
-        .catch(error => {
+        },
+        error => {
           clearTimeout(timeoutHandle)
           if (didTimeout) {
             warn('Failure after timeout:\n', error)
             onFailureAfterTimeout?.(error)
           }
           reject(error)
-        })
+        }
+      )
     })
   }
 }

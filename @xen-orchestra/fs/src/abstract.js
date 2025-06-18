@@ -146,36 +146,47 @@ export default class RemoteHandlerAbstract {
         throw new Error('Incorrect remote type')
       }
     }
-    ;({ highWaterMark: this._highWaterMark, timeout: this._timeout = DEFAULT_TIMEOUT } = options)
+    ;({
+      highWaterMark: this._highWaterMark,
+      timeout: this._timeout = DEFAULT_TIMEOUT,
+      withLimit: this._withLimit = WITH_LIMIT,
+      withTimeout: this._withTimeout = WITH_TIMEOUT,
+      withRetry: this._withRetry = WITH_RETRY,
+    } = options)
+
+    this.#applySafeGuards(options)
+  }
+
+  #conditionRetry(error) {
+    return !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'SystemInUse'].includes(error?.code)
+  }
+
+  #applySafeGuards(options) {
+    const sharedLimit = limitConcurrency(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
 
     this._forget = coalesceCalls(this._forget)
     this._sync = coalesceCalls(this._sync)
 
-    this._applySafeGuards(options)
-  }
-
-  _applySafeGuards(options, { toLimit = WITH_LIMIT, toTimeout = WITH_TIMEOUT, toRetry = WITH_RETRY } = {}) {
-    const sharedLimit = limitConcurrency(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
-    toLimit.forEach(functionName => {
+    this._withLimit.forEach(functionName => {
       if (this[functionName] !== undefined) {
         this[functionName] = sharedLimit(this[functionName])
       }
     })
 
-    toTimeout.forEach(functionName => {
+    this._withTimeout.forEach(functionName => {
       if (this[functionName] !== undefined) {
         this[functionName] = withTimeout(this[functionName], DEFAULT_TIMEOUT)
       }
     })
 
-    toRetry.forEach(functionName => {
+    this._withRetry.forEach(functionName => {
       if (this[functionName] !== undefined) {
         // adding the retry on the top level method won't
         // cover when _functionName are called internally
         this[functionName] = pRetry.wrap(this[functionName], {
           delays: [100, 200, 500, 1000, 2000],
           // these errors should not change on retry
-          when: err => !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'SystemInUse'].includes(err?.code),
+          when: err => this.#conditionRetry(err),
           onRetry(error) {
             warn('retrying method on fs ', {
               method: functionName,
