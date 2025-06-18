@@ -66,7 +66,8 @@ export default function useFetchStats<
         }
 
         timestamp.value = [
-          newStats.endTimestamp - RRD_STEP_FROM_STRING[granularity] * ((newStats.stats.memory?.length ?? 0) - 1),
+          newStats.endTimestamp -
+            RRD_STEP_FROM_STRING[granularity] * ((Object.values(newStats.stats).find(Array.isArray)?.length ?? 0) - 1),
           newStats.endTimestamp,
         ]
 

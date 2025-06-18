@@ -330,8 +330,8 @@ export type VmStats = {
     r: XenApiStats
     w: XenApiStats
   }
-  memory?: number[]
-  memoryFree?: number[]
+  memory?: (number | null)[]
+  memoryFree?: (number | null)[]
   memoryTarget?: (number | null)[]
 
   vifs?: {

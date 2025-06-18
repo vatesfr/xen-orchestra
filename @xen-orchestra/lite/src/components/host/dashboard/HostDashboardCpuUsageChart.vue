@@ -45,7 +45,7 @@ const cpuUsage = computed<LinearChartData>(() => {
 
   const result = cpus[0].map((_, hourIndex) => {
     const timestamp = (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000
-    const value = Math.round(cpus.reduce((total, cpu) => total + (cpu[hourIndex] ?? 0), 0) / cpus.length)
+    const value = Math.round(cpus.reduce((total, cpu) => total + (cpu[hourIndex] ?? NaN), 0) / cpus.length)
 
     return { timestamp, value }
   })

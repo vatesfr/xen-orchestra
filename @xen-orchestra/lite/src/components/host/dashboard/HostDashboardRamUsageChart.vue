@@ -46,7 +46,7 @@ const memoryUsage = computed<LinearChartData>(() => {
     timestamp:
       (timestampStart - RRD_STEP_FROM_STRING.hours * (memoryTotal.length - 1) + index * RRD_STEP_FROM_STRING.hours) *
       1000,
-    value: (total ?? 0) - (memoryFree[index] ?? 0),
+    value: (total ?? NaN) - (memoryFree[index] ?? NaN),
   }))
 
   return [

@@ -51,11 +51,11 @@ const data = computed<LinearChartData>(() => {
     for (let hourIndex = 0; hourIndex < networkStats[0].length; hourIndex++) {
       const timestamp = (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000
 
-      const networkThroughput = networkStats.reduce((total, throughput) => total + (throughput[hourIndex] ?? 0), 0)
+      const networkThroughput = networkStats.reduce((total, throughput) => total + (throughput[hourIndex] ?? NaN), 0)
 
       results[type].set(timestamp, {
         timestamp,
-        value: (results[type].get(timestamp)?.value ?? 0) + networkThroughput,
+        value: (results[type].get(timestamp)?.value ?? NaN) + networkThroughput,
       })
     }
   }

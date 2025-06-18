@@ -46,7 +46,7 @@ const cpuUsage = computed<LinearChartData>(() => {
   for (let hourIndex = 0; hourIndex < cpus[0].length; hourIndex++) {
     const timestamp = (timestampStart + hourIndex * data.interval) * 1000
 
-    const cpuUsageSum = cpus.reduce((total, cpu) => total + Number(cpu[hourIndex]), 0)
+    const cpuUsageSum = cpus.reduce((total, cpu) => total + (cpu[hourIndex] ?? NaN), 0)
 
     result.set(timestamp, {
       timestamp,

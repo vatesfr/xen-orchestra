@@ -13,6 +13,9 @@
 
 ### Bug fixes
 
+- **XO 6:**
+  - [XO6/stats] Fix graphs that were sometimes not displayed or displayed incorrectly (PR [#8722](https://github.com/vatesfr/xen-orchestra/pull/8722))
+
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 ### Packages to release
