@@ -57,7 +57,7 @@ const networkUsage = computed<LinearChartData>(() => {
         (timestampStart - RRD_STEP_FROM_STRING.hours * (vifArrays[0].length - 1) + idx * RRD_STEP_FROM_STRING.hours) *
         1000
 
-      const value = vifArrays.reduce((sum, arr) => sum + (arr[idx] ?? 0), 0)
+      const value = vifArrays.reduce((sum, arr) => sum + (arr[idx] ?? NaN), 0)
 
       return {
         timestamp,

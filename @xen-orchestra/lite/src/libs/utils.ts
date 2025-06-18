@@ -96,8 +96,8 @@ export function parseRamUsage(
   memoryFree = memoryFree?.slice(memoryFree.length - _nSequence)
 
   memory?.forEach((ram, key) => {
-    total += ram ?? 0
-    used += (ram ?? 0) - (memoryFree?.[key] ?? 0)
+    total += ram ?? NaN
+    used += (ram ?? NaN) - (memoryFree?.[key] ?? NaN)
   })
 
   const percentUsed = percent(used, total)

@@ -50,7 +50,7 @@ const vdiUsage = computed<LinearChartData>(() => {
       label: t('read'),
       data: timestamps.map((timestamp, index) => ({
         timestamp,
-        value: Object.values(data.stats.xvds?.r ?? {}).reduce((sum, values) => sum + Number(values[index]), 0),
+        value: Object.values(data.stats.xvds?.r ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0),
       })),
     },
   ]
@@ -60,7 +60,7 @@ const vdiUsage = computed<LinearChartData>(() => {
       label: t('write'),
       data: timestamps.map((timestamp, index) => ({
         timestamp,
-        value: Object.values(data.stats.xvds?.w ?? {}).reduce((sum, values) => sum + Number(values[index]), 0),
+        value: Object.values(data.stats.xvds?.w ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0),
       })),
     },
   ]

@@ -53,7 +53,7 @@ const ramUsage = computed<LinearChartData>(() => {
 
     const ramFree = ramFreeValues[hourIndex]
 
-    const ramUsed = Number(ramTotal) - Number(ramFree)
+    const ramUsed = (ramTotal ?? NaN) - (ramFree ?? NaN)
 
     result.set(timestamp, {
       timestamp,
