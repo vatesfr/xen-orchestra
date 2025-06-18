@@ -53,7 +53,7 @@ const ramUsage = computed<LinearChartData>(() => {
 
     const ramFree = ramFreeValues[hourIndex]
 
-    const ramUsed = ramTotal - ramFree
+    const ramUsed = Number(ramTotal) - Number(ramFree)
 
     result.set(timestamp, {
       timestamp,
@@ -73,7 +73,7 @@ const maxValue = computed(() => {
     return 1024 * 1024 * 1024 // 1 GB as fallback
   }
 
-  return Math.max(...data.stats.memory, 0)
+  return Math.max(...data.stats.memory.map(v => v ?? 0), 0)
 })
 
 const byteFormatter = (value: number | null) => {

@@ -38,7 +38,7 @@ const networkUsage = computed<LinearChartData>(() => {
 
   const timestamps = Array.from(
     { length: data.stats.pifs.rx['0'].length },
-    (_, i) => data.endTimestamp * 1000 - (data.stats.pifs.rx['0'].length - 1 - i) * data.interval * 1000
+    (_, i) => data.endTimestamp * 1000 - ((data.stats.pifs?.rx?.['0'].length ?? 0) - 1 - i) * data.interval * 1000
   )
 
   const rxSeries = [
@@ -46,7 +46,7 @@ const networkUsage = computed<LinearChartData>(() => {
       label: t('network-upload'),
       data: timestamps.map((timestamp, index) => ({
         timestamp,
-        value: Object.values(data.stats.pifs.rx).reduce((sum, values) => sum + values[index], 0),
+        value: Object.values(data.stats.pifs?.rx ?? {}).reduce((sum, values) => sum + Number(values[index]), 0),
       })),
     },
   ]
@@ -56,7 +56,7 @@ const networkUsage = computed<LinearChartData>(() => {
       label: t('network-download'),
       data: timestamps.map((timestamp, index) => ({
         timestamp,
-        value: Object.values(data.stats.pifs.tx).reduce((sum, values) => sum + values[index], 0),
+        value: Object.values(data.stats.pifs?.tx ?? {}).reduce((sum, values) => sum + Number(values[index]), 0),
       })),
     },
   ]

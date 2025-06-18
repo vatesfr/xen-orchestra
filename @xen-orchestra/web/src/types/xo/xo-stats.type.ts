@@ -1,1 +1,1 @@
-export type XoStats = Record<string, number[]>
+export type XoStats = Record<string, (number | null)[]>

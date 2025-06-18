@@ -4,24 +4,24 @@ export type XoHostStats = {
   endTimestamp: number
   interval: number
   stats: {
-    cpus: XoStats
-    ioThroughput: {
+    cpus?: XoStats
+    ioThroughput?: {
       r: XoStats
       w: XoStats
     }
-    iops: {
+    iops?: {
       r: XoStats
       w: XoStats
     }
-    iowait: XoStats
-    latency: {
+    iowait?: XoStats
+    latency?: {
       r: XoStats
       w: XoStats
     }
-    load: number[]
-    memory: number[]
-    memoryFree: number[]
-    pifs: {
+    load?: (number | null)[]
+    memory?: (number | null)[]
+    memoryFree?: (number | null)[]
+    pifs?: {
       rx: XoStats
       tx: XoStats
     }
