@@ -43,7 +43,7 @@ const loadAverage = computed<LinearChartData>(() => {
 
   const result = load.map((value, index) => ({
     timestamp: (timestampStart + index * RRD_STEP_FROM_STRING.hours) * 1000,
-    value: Number(value.toFixed(2)),
+    value: Number(value?.toFixed(2) ?? 0),
   }))
 
   return [

@@ -46,7 +46,7 @@ const vdiUsage = computed((): LinearChartData => {
   }
 
   const addVdiData = (type: 'r' | 'w') => {
-    const xvdsArrays = Object.values(xvds[type])
+    const xvdsArrays = Object.values(xvds[type] ?? {})
 
     if (xvdsArrays.length === 0) {
       return {

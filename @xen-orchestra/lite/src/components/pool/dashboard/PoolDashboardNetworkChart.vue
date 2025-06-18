@@ -46,12 +46,12 @@ const data = computed<LinearChartData>(() => {
   }
 
   const addResult = (stats: HostStats, type: 'tx' | 'rx') => {
-    const networkStats = Object.values(stats.pifs[type])
+    const networkStats = Object.values(stats.pifs?.[type] ?? {})
 
     for (let hourIndex = 0; hourIndex < networkStats[0].length; hourIndex++) {
       const timestamp = (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000
 
-      const networkThroughput = networkStats.reduce((total, throughput) => total + throughput[hourIndex], 0)
+      const networkThroughput = networkStats.reduce((total, throughput) => total + (throughput[hourIndex] ?? 0), 0)
 
       results[type].set(timestamp, {
         timestamp,
@@ -91,7 +91,7 @@ const isStatFetched = computed(() => {
     const hostStats = host.stats
     return (
       hostStats != null &&
-      Object.values(hostStats.pifs.rx)[0].length + Object.values(hostStats.pifs.tx)[0].length ===
+      Object.values(hostStats.pifs?.rx ?? {})[0].length + Object.values(hostStats.pifs?.tx ?? {})[0].length ===
         data.value[0].data.length + data.value[1].data.length
     )
   })

@@ -318,42 +318,63 @@ const STATS: { [key: string]: object } = {
 // }
 
 export type VmStats = {
-  cpus: XenApiStats
-  iops: {
+  cpus?: XenApiStats
+  cpuUsage?: (number | null)[]
+  runstateFullrun?: (number | null)[]
+  runstateFullContention?: (number | null)[]
+  runstatePartialRun?: (number | null)[]
+  runstatePartialContention?: (number | null)[]
+  runstateConcurrencyHazard?: (number | null)[]
+  runstateBlocked?: (number | null)[]
+  iops?: {
     r: XenApiStats
     w: XenApiStats
   }
-  memory: number[]
+  memory?: number[]
   memoryFree?: number[]
-  vifs: {
+  memoryTarget?: (number | null)[]
+
+  vifs?: {
     rx: XenApiStats
     tx: XenApiStats
   }
-  xvds: {
+  vifErrors?: {
+    rx: Record<string, (number | null)[]>
+    tx: Record<string, (number | null)[]>
+  }
+  xvds?: {
+    w?: XenApiStats
+    r?: XenApiStats
+    total?: XenApiStats
+  }
+  vbdLatency?: {
     w: XenApiStats
     r: XenApiStats
   }
+  vbdIowait?: XenApiStats
+  vbdInflight?: XenApiStats
+  vbdAvgquSz?: XenApiStats
 }
 
 export type HostStats = {
-  cpus: XenApiStats
-  ioThroughput: {
+  cpus?: XenApiStats
+  ioThroughput?: {
     r: XenApiStats
     w: XenApiStats
   }
-  iops: {
+  iops?: {
     r: XenApiStats
     w: XenApiStats
   }
-  iowait: XenApiStats
-  latency: {
+  iowait?: XenApiStats
+  latency?: {
     r: XenApiStats
     w: XenApiStats
   }
-  load: number[]
-  memory: number[]
-  memoryFree: number[]
-  pifs: {
+  load?: (number | null)[]
+  memory?: (number | null)[]
+  memoryFree?: (number | null)[]
+  pifs?: {
     rx: XenApiStats
     tx: XenApiStats
   }
