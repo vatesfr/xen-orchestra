@@ -23,6 +23,8 @@ declare module 'vue-router/auto-routes' {
     '/[...path]': RouteRecordInfo<'/[...path]', '/:path(.*)', { path: ParamValue<true> }, { path: ParamValue<false> }>,
     '/dev/': RouteRecordInfo<'/dev/', '/dev', Record<never, never>, Record<never, never>>,
     '/dev/colors': RouteRecordInfo<'/dev/colors', '/dev/colors', Record<never, never>, Record<never, never>>,
+    '/dev/icons/': RouteRecordInfo<'/dev/icons/', '/dev/icons', Record<never, never>, Record<never, never>>,
+    '/dev/icons/[name]': RouteRecordInfo<'/dev/icons/[name]', '/dev/icons/:name', { name: ParamValue<true> }, { name: ParamValue<false> }>,
     '/dev/token': RouteRecordInfo<'/dev/token', '/dev/token', Record<never, never>, Record<never, never>>,
     '/host/[id]': RouteRecordInfo<'/host/[id]', '/host/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/host/:id': RouteRecordInfo<'/host/:id', '/host/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,

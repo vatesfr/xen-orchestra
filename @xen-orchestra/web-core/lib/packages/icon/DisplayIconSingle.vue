@@ -6,7 +6,7 @@
       :d="path"
       class="icon-path"
       :stroke="stroke ?? icon.config.borderColor"
-      :stroke-width="stroke ? 64 : 16"
+      :stroke-width="stroke ? 64 : 32"
     />
   </svg>
 </template>
