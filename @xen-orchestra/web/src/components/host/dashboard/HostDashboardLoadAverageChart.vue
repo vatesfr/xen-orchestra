@@ -45,7 +45,7 @@ const loadAverage = computed<LinearChartData>(() => {
 
     result.set(timestamp, {
       timestamp,
-      value: Number(load.toFixed(2)),
+      value: Number(load?.toFixed(2)),
     })
   }
 
