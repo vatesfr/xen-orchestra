@@ -105,17 +105,6 @@ async function handleSubmit() {
 </script>
 
 <style lang="postcss" scoped>
-.remember-me-label {
-  cursor: pointer;
-  display: flex;
-  margin: 1rem;
-  width: fit-content;
-
-  & .form-checkbox {
-    margin: auto 1rem auto auto;
-  }
-}
-
 .form-container {
   display: flex;
   align-items: center;

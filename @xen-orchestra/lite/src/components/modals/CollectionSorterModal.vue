@@ -2,7 +2,7 @@
   <UiModal @submit.prevent="handleSubmit">
     <ConfirmModalLayout>
       <template #default>
-        <div class="form-widgets">
+        <div class="form-selects">
           <FormSelect v-model="newSortProperty" :label="t('sort-by')">
             <option v-if="!newSortProperty" />
             <option v-for="(sort, property) in availableSorts" :key="property" :value="property">
@@ -55,7 +55,7 @@ const handleSubmit = () => {
 </script>
 
 <style lang="postcss" scoped>
-.form-widgets {
+.form-selects {
   display: flex;
   gap: 1rem;
 }
