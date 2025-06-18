@@ -31,7 +31,6 @@ export class DiskLargerBlock extends RandomAccessDisk {
     throw new Error('Method not implemented.')
   }
   async readBlock(index: number): Promise<DiskBlock> {
-    console.log('larger.readblock')
     // @todo handle partial block at the end
     const source = this.source
     const destinationBlock = Buffer.alloc(this.getBlockSize(), 0)
@@ -99,7 +98,6 @@ export class DiskLargerBlock extends RandomAccessDisk {
     return this.source.init()
   }
   close(): Promise<void> {
-    console.log('LARGER.CLOSE')
     return this.source.close()
   }
   isDifferencing(): boolean {

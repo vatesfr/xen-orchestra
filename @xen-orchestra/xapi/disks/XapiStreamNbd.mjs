@@ -27,18 +27,18 @@ export class XapiStreamNbdSource extends DiskPassthrough {
   #vdiRef
 
   /**
-   * @param {Disk} streamSource
+   * @param {Disk} streamSourceDisk
    * @param {Object} params
    * @param {string} params.vdiRef
    * @param {string|undefined} params.baseRef
    * @param {any} params.xapi
    * @param {number} params.nbdConcurrency
    */
-  constructor(streamSource, { vdiRef, xapi, nbdConcurrency = 4 }) {
-    if (streamSource === undefined) {
+  constructor(streamSourceDisk, { vdiRef, xapi, nbdConcurrency = 4 }) {
+    if (streamSourceDisk === undefined) {
       throw new Error(`A stream source must be given`)
     }
-    super(streamSource)
+    super(streamSourceDisk)
     this.#nbdConcurrency = nbdConcurrency
     this.#vdiRef = vdiRef
     this.#xapi = xapi

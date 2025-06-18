@@ -116,6 +116,29 @@ test('readBlock with simple block mapping', async () => {
   // Verify the data is correctly combined
   assert.strictEqual(block2.subarray(0, 256).equals(result.data), true)
 })
+test('readBlock interleaved', async () => {
+  // Create source disk with two 512-byte blocks
+  const block1 = createPatternBuffer(512, 'A')
+  const block2 = createPatternBuffer(512, 'B')
+  const source = new MockDisk(512, 1024, [
+    [0, block1],
+    [1, block2],
+  ])
+  await source.init()
+
+  const disk = new DiskSmallerBlock(source, 256)
+  await disk.init()
+
+  // Read the first block , half
+  await disk.readBlock(1)
+  // then second block
+  await disk.readBlock(2)
+  // then back to first
+  const result = await disk.readBlock(0)
+
+  // Verify the data is correctly combined
+  assert.strictEqual(block1.subarray(0, 256).equals(result.data), true)
+})
 
 test('hasBlock behavior', async () => {
   const source = new MockDisk(512, 2048, [

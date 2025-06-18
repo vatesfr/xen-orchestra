@@ -85,12 +85,10 @@ export abstract class Disk {
 
 export abstract class RandomAccessDisk extends Disk {
   get parent(): RandomAccessDisk | undefined {
-    if (super.parent instanceof RandomAccessDisk) {
-      return super.parent as RandomAccessDisk
-    }
-    if (super.parent !== undefined) {
+    if (super.parent !== undefined && !(super.parent instanceof RandomAccessDisk)) {
       throw new Error('The parent of a random access disk must be a random access disk')
     }
+    return super.parent
   }
   // optional method
   instantiateParent(): RandomAccessDisk {
