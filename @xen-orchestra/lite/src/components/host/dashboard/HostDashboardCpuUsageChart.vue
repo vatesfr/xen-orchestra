@@ -59,7 +59,7 @@ const cpuUsage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = cpuUsage.value[0]?.data.map(item => item.value) ?? []
+  const values = cpuUsage.value[0]?.data.map(item => item.value ?? 0) ?? []
   if (values.length === 0) {
     return 100
   }
@@ -69,5 +69,11 @@ const maxValue = computed(() => {
   return Math.ceil(maxCpuUsage / 100) * 100
 })
 
-const valueFormatter: ValueFormatter = value => n(value / 100, 'percent')
+const valueFormatter: ValueFormatter = value => {
+  if (value === null) {
+    return ''
+  }
+
+  return n(value / 100, 'percent')
+}
 </script>

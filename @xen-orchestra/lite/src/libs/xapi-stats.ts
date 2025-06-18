@@ -1,5 +1,5 @@
 import type XenApi from '@/libs/xen-api/xen-api'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost, XenApiStats } from '@/libs/xen-api/xen-api.types'
 import { synchronized } from 'decorator-synchronized'
 // eslint-disable-next-line import/default -- https://github.com/json5/json5/issues/287
 import JSON5 from 'json5'
@@ -318,44 +318,44 @@ const STATS: { [key: string]: object } = {
 // }
 
 export type VmStats = {
-  cpus: Record<string, number[]>
+  cpus: XenApiStats
   iops: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: XenApiStats
+    w: XenApiStats
   }
   memory: number[]
   memoryFree?: number[]
   vifs: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
+    rx: XenApiStats
+    tx: XenApiStats
   }
   xvds: {
-    w: Record<string, number[]>
-    r: Record<string, number[]>
+    w: XenApiStats
+    r: XenApiStats
   }
 }
 
 export type HostStats = {
-  cpus: Record<string, number[]>
+  cpus: XenApiStats
   ioThroughput: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: XenApiStats
+    w: XenApiStats
   }
   iops: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: XenApiStats
+    w: XenApiStats
   }
-  iowait: Record<string, number[]>
+  iowait: XenApiStats
   latency: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: XenApiStats
+    w: XenApiStats
   }
   load: number[]
   memory: number[]
   memoryFree: number[]
   pifs: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
+    rx: XenApiStats
+    tx: XenApiStats
   }
 }
 
@@ -376,6 +376,7 @@ export default class XapiStats {
   #xapi
   #statsByObject: StatsByObject = {}
   #cachedStatsByObject: StatsByObject = {}
+
   constructor(xapi: XenApi) {
     this.#xapi = xapi
   }

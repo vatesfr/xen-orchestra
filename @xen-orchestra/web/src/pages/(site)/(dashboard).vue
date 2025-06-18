@@ -1,5 +1,5 @@
 <template>
-  <div class="site-dashboard">
+  <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
     <PoolsStatus class="pools-status" />
     <HostsStatus class="hosts-status" />
     <VmsStatus class="vms-status" />
@@ -20,6 +20,9 @@ import PoolsStatus from '@/components/site/dashboard/PoolsStatus.vue'
 import Repositories from '@/components/site/dashboard/Repositories.vue'
 import ResourcesOverview from '@/components/site/dashboard/ResourcesOverview.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
+import { useUiStore } from '@core/stores/ui.store.ts'
+
+const uiStore = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
@@ -30,45 +33,11 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'pools-status pools-status hosts-status hosts-status vms-status vms-status resources-overview resources-overview'
-    'backups backups backups backups backup-issues backup-issues backup-issues backup-issues'
+    'backups backups backups backup-issues backup-issues backup-issues backup-issues backup-issues'
     'repositories repositories repositories repositories repositories repositories repositories repositories'
     'alarms alarms alarms alarms alarms alarms patches patches';
-}
 
-.pools-status {
-  grid-area: pools-status;
-}
-
-.hosts-status {
-  grid-area: hosts-status;
-}
-
-.vms-status {
-  grid-area: vms-status;
-}
-
-.resources-overview {
-  grid-area: resources-overview;
-}
-
-.backups {
-  grid-area: backups;
-}
-
-.backup-issues {
-  grid-area: backup-issues;
-}
-
-.repositories {
-  grid-area: repositories;
-}
-
-.patches {
-  grid-area: patches;
-}
-
-@media (--mobile) {
-  .site-dashboard {
+  &.mobile {
     grid-template-columns: 1fr;
     grid-template-areas:
       'pools-status'
@@ -79,6 +48,38 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
       'backup-issues'
       'repositories'
       'patches';
+  }
+
+  .pools-status {
+    grid-area: pools-status;
+  }
+
+  .hosts-status {
+    grid-area: hosts-status;
+  }
+
+  .vms-status {
+    grid-area: vms-status;
+  }
+
+  .resources-overview {
+    grid-area: resources-overview;
+  }
+
+  .backups {
+    grid-area: backups;
+  }
+
+  .backup-issues {
+    grid-area: backup-issues;
+  }
+
+  .repositories {
+    grid-area: repositories;
+  }
+
+  .patches {
+    grid-area: patches;
   }
 }
 </style>

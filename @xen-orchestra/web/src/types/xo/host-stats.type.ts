@@ -1,4 +1,4 @@
-type XoStats = Record<string, number[]>
+import type { XoStats } from '@/types/xo/xo-stats.type.ts'
 
 export type XoHostStats = {
   endTimestamp: number
