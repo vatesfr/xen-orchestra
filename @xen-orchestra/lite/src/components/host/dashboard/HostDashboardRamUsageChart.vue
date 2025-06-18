@@ -46,7 +46,7 @@ const memoryUsage = computed<LinearChartData>(() => {
     timestamp:
       (timestampStart - RRD_STEP_FROM_STRING.hours * (memoryTotal.length - 1) + index * RRD_STEP_FROM_STRING.hours) *
       1000,
-    value: total - memoryFree[index],
+    value: (total ?? 0) - (memoryFree[index] ?? 0),
   }))
 
   return [
@@ -62,7 +62,7 @@ const maxValue = computed(() => {
     return 1024 * 1024 * 1024 // 1 GB as fallback
   }
 
-  return Math.max(...data.stats.memory, 0)
+  return Math.max(...data.stats.memory.map(value => value ?? 0), 0)
 })
 
 const byteFormatter = (value: number | null) => {

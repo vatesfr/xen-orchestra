@@ -50,7 +50,7 @@ const networkUsage = computed<LinearChartData>(() => {
           RRD_STEP_FROM_STRING.hours * (Object.values(pifs[type])[0].length - 1) +
           index * RRD_STEP_FROM_STRING.hours) *
         1000,
-      value: Object.values(pifs[type]).reduce((sum, values) => sum + values[index], 0),
+      value: Object.values(pifs[type]).reduce((sum, values) => sum + (values[index] ?? 0), 0),
     })),
   })
 
