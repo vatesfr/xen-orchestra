@@ -664,63 +664,63 @@ type XapiStatsResponse<T> = {
 export type XapiStatsGranularity = 'seconds' | 'minutes' | 'hours' | 'days'
 
 export type XapiHostStats = XapiStatsResponse<{
-  cpus?: Record<string, number[]>
+  cpus?: Record<string, (number | null)[]>
   ioThroughput?: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: Record<string, (number | null)[]>
+    w: Record<string, (number | null)[]>
   }
   iops?: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: Record<string, (number | null)[]>
+    w: Record<string, (number | null)[]>
   }
-  iowait?: Record<string, number[]>
+  iowait?: Record<string, (number | null)[]>
   latency?: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: Record<string, (number | null)[]>
+    w: Record<string, (number | null)[]>
   }
-  load?: number[]
-  memory?: number[]
-  memoryFree?: number[]
+  load?: (number | null)[]
+  memory?: (number | null)[]
+  memoryFree?: (number | null)[]
   pifs?: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
+    rx: Record<string, (number | null)[]>
+    tx: Record<string, (number | null)[]>
   }
 }>
 
 export type XapiVmStats = XapiStatsResponse<{
-  cpus?: Record<string, number[]>
-  cpuUsage?: number[]
-  runstateFullrun?: number[]
-  runstateFullContention?: number[]
-  runstatePartialRun?: number[]
-  runstatePartialContention?: number[]
-  runstateConcurrencyHazard?: number[]
-  runstateBlocked?: number[]
+  cpus?: Record<string, (number | null)[]>
+  cpuUsage?: (number | null)[]
+  runstateFullrun?: (number | null)[]
+  runstateFullContention?: (number | null)[]
+  runstatePartialRun?: (number | null)[]
+  runstatePartialContention?: (number | null)[]
+  runstateConcurrencyHazard?: (number | null)[]
+  runstateBlocked?: (number | null)[]
   iops?: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: Record<string, (number | null)[]>
+    w: Record<string, (number | null)[]>
   }
-  memory?: number[]
-  memoryFree?: number[]
-  memoryTarget?: number[]
+  memory?: (number | null)[]
+  memoryFree?: (number | null)[]
+  memoryTarget?: (number | null)[]
   vifs?: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
+    rx: Record<string, (number | null)[]>
+    tx: Record<string, (number | null)[]>
   }
   vifErrors?: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
+    rx: Record<string, (number | null)[]>
+    tx: Record<string, (number | null)[]>
   }
   xvds?: {
-    w?: Record<string, number[]>
-    r?: Record<string, number[]>
-    total?: Record<string, number[]>
+    w?: Record<string, (number | null)[]>
+    r?: Record<string, (number | null)[]>
+    total?: Record<string, (number | null)[]>
   }
   vbdLatency?: {
-    w: Record<string, number[]>
-    r: Record<string, number[]>
+    w: Record<string, (number | null)[]>
+    r: Record<string, (number | null)[]>
   }
-  vbdIowait?: Record<string, number[]>
-  vbdInflight?: Record<string, number[]>
-  vbdAvgquSz?: Record<string, number[]>
+  vbdIowait?: Record<string, (number | null)[]>
+  vbdInflight?: Record<string, (number | null)[]>
+  vbdAvgquSz?: Record<string, (number | null)[]>
 }>
