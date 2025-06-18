@@ -322,6 +322,7 @@ class JobsTable extends React.Component {
             compression,
             concurrency,
             fullInterval,
+            hideSuccessfulItems,
             maxExportRate,
             nbdConcurrency,
             nRetriesVmBackupFailures,
@@ -349,6 +350,11 @@ class JobsTable extends React.Component {
                     _('shorterBackupReports'),
                     _(backupReportTpl === 'compactMjml' ? 'stateEnabled' : 'stateDisabled')
                   )}
+                </Li>
+              )}
+              {hideSuccessfulItems !== undefined && (
+                <Li>
+                  {_.keyValue(_('hideSuccessfulItems'), _(hideSuccessfulItems ? 'stateEnabled' : 'stateDisabled'))}
                 </Li>
               )}
               {concurrency !== undefined && <Li>{_.keyValue(_('concurrency'), concurrency)}</Li>}

@@ -1047,6 +1047,8 @@ export interface XenApiPgpu {
   supported_VGPU_types: XenApiVgpuType['$ref'][]
   uuid: string
 }
+export type XenApiPgpuWrapped = WrapperXenApi<XenApiPgpu, 'PGPU'>
+
 
 export interface XenApiGpuGroup {
   $ref: Branded<'GPU_group'>
@@ -1061,6 +1063,7 @@ export interface XenApiGpuGroup {
   uuid: string
   VGPUs: XenApiVgpu['$ref'][]
 }
+export type XenApiGpuGroupWrapped = WrapperXenApi<XenApiGpuGroup, 'gpuGroup'>
 
 export interface XenApiVgpu {
   $ref: Branded<'VGPU'>
@@ -1098,6 +1101,7 @@ export interface XenApiVgpuType {
   vendor_name: string
   VGPUs: XenApiVgpu['$ref'][]
 }
+export type XenApiVgpuTypeWrapped = WrapperXenApi<XenApiVgpuType, 'vgpuType'>
 
 export interface XenApiPvsSite {
   $ref: Branded<'PVS_site'>
@@ -1358,3 +1362,6 @@ export type WrappedXenApiRecord =
   | XenApiVmWrapped
   | XenApiVtpmWrapped
   | XenApiPciWrapped
+  | XenApiGpuGroupWrapped
+  | XenApiPgpuWrapped
+  | XenApiVgpuTypeWrapped

@@ -1,5 +1,5 @@
 <template>
-  <VtsTreeList class="pool-tree-list">
+  <VtsTreeList>
     <PoolTreeItem v-for="branch in branches" :key="branch.id" :branch />
   </VtsTreeList>
 </template>
@@ -13,11 +13,3 @@ defineProps<{
   branches: PoolBranch[]
 }>()
 </script>
-
-<style lang="postcss" scoped>
-.pool-tree-list {
-  background-color: var(--color-neutral-background-primary);
-  padding: 0.8rem;
-  min-height: 100%;
-}
-</style>

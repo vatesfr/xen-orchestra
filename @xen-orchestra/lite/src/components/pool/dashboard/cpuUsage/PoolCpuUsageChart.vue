@@ -88,5 +88,11 @@ const isStatFetched = computed(() => {
 
 const isLoading = computed(() => isFetching.value || !isStatFetched.value)
 
-const customValueFormatter: ValueFormatter = value => n(value / 100, 'percent')
+const customValueFormatter: ValueFormatter = value => {
+  if (value === null) {
+    return ''
+  }
+
+  return n(value / 100, 'percent')
+}
 </script>
