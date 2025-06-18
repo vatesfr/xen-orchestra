@@ -1,4 +1,19 @@
-import { Example, Get, Path, Post, Query, Request, Response, Route, Security, Tags, SuccessResponse, Body } from 'tsoa'
+import {
+  Example,
+  Get,
+  Path,
+  Post,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  Tags,
+  SuccessResponse,
+  Body,
+  Put,
+  Delete,
+} from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
@@ -88,6 +103,62 @@ export class VmController extends XapiXoController<XoVm> {
       }
       throw error
     }
+  }
+
+  /**
+   * The VM must be running
+   *
+   * List of possible data_source (Based on [Xenserver doc](https://docs.xenserver.com/en-us/xenserver/8/monitor-performance#available-vm-metrics))
+   * - **cpu#** : Utilization of vCPU cpu (fraction). Enabled by default. *Condition*: vCPU cpu exists.
+   * - **cpu_usage** : Domain CPU usage. *Condition*: None.
+   * - **memory** : Memory currently allocated to VM (Bytes). Enabled by default. *Condition*: None.
+   * - **memory_target** : Target of VM balloon driver (Bytes). Enabled by default. *Condition*: None.
+   * - **memory_internal_free** : Memory used as reported by the guest agent (KiB). Enabled by default. *Condition*: None.
+   * - **runstate_fullrun** : Fraction of time that all vCPUs are running. *Condition*: None.
+   * - **runstate_full_contention** : Fraction of time that all vCPUs are runnable (waiting for CPU). *Condition*: None.
+   * - **runstate_concurrency_hazard** : Fraction of time that some vCPUs are running and some are runnable. *Condition*: None.
+   * - **runstate_blocked** : Fraction of time that all vCPUs are blocked or offline. *Condition*: None.
+   * - **runstate_partial_run** : Fraction of time that some vCPUs are running, and some are blocked. *Condition*: None.
+   * - **runstate_partial_contention** : Fraction of time that some vCPUs are runnable and some are blocked. *Condition*: None.
+   * - **vbd_#_write** : Writes to device vbd in bytes per second. Enabled by default. *Condition*: VBD vbd exists.
+   * - **vbd_#_read** : Reads from device vbd in bytes per second. Enabled by default. *Condition*: VBD vbd exists.
+   * - **vbd_#_write_latency** : Writes to device vbd in microseconds. *Condition*: VBD vbd exists.
+   * - **vbd_#_read_latency** : Reads from device vbd in microseconds. *Condition*: VBD vbd exists.
+   * - **vbd_#_iops_read** : Read requests per second. *Condition*: At least one plugged VBD for non-ISO VDI on the host.
+   * - **vbd_#_iops_write** : Write requests per second. *Condition*: At least one plugged VBD for non-ISO VDI on the host.
+   * - **vbd_#_iops_total** : I/O requests per second. *Condition*: At least one plugged VBD for non-ISO VDI on the host.
+   * - **vbd_#_iowait** : Percentage of time waiting for I/O. *Condition*: At least one plugged VBD for non-ISO VDI on the host.
+   * - **vbd_#_inflight** : Number of I/O requests currently in flight. *Condition*: At least one plugged VBD for non-ISO VDI on the host.
+   * - **vbd_#_avgqu_sz** : Average I/O queue size. *Condition*: At least one plugged VBD for non-ISO VDI on the host.
+   * - **vif_#_rx** : Bytes per second received on virtual interface number vif. Enabled by default. *Condition*: VIF vif exists.
+   * - **vif_#_tx** : Bytes per second transmitted on virtual interface vif. Enabled by default. *Condition*: VIF vif exists.
+   * - **vif_#_rx_errors** : Receive errors per second on virtual interface vif. Enabled by default. *Condition*: VIF vif exists.
+   * - **vif_#_tx_errors** : Transmit errors per second on virtual interface vif. Enabled by default. *Condition*: VIF vif exists.
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example dataSource "cpu0"
+   */
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Put('{id}/stats/data_source/{data_source}')
+  async addDataSource(@Path() id: string, @Path('data_source') dataSource: string) {
+    await this.getXapiObject(id as XoVm['id']).$call('record_data_source', dataSource)
+  }
+
+  /**
+   * The VM must be running
+   *
+   * For a list of possible data sources, see the endpoint documentation: `GET {id}/stats/data_source/{data_source}`
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example dataSource "cpu0"
+   */
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Delete('{id}/stats/data_source/{data_source}')
+  async deleteDataSource(@Path() id: string, @Path('data_source') dataSource: string) {
+    await this.getXapiObject(id as XoVm['id']).$call('forget_data_source_archives', dataSource)
   }
 
   /**
