@@ -1,13 +1,15 @@
 import { parse, raw, Scale } from 'human-format'
 
-const scale = Scale.create(['B', 'KiB', 'MiB', 'GiB', 'TiB'], 1024)
+const scale = Scale.create(['', 'KiB', 'MiB', 'GiB', 'TiB'], 1024)
 
 export const formatSizeRaw = (bytes: number | undefined, decimals: number) => {
   if (bytes === undefined) {
     return undefined
   }
 
-  return raw(bytes, { maxDecimals: decimals, scale })
+  const result = raw(bytes, { maxDecimals: decimals, scale })
+
+  return { ...result, prefix: result.prefix === '' ? 'B' : result.prefix }
 }
 
 export const formatSizeParse = (size: number | undefined, unit?: string) => {
