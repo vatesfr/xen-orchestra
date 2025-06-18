@@ -238,14 +238,16 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         }
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
 
-        let stream
+        let stream, format
         if (vdi.virtual_size > VHD_MAX_SIZE) {
           stream = await toQcow2Stream(disk)
+          format = 'vhd'
         } else {
-          stream = await toVhdStream({ disk })
+          stream = await toVhdStream(disk)
+          format = 'qcow2'
         }
 
-        await vdi.$importContent(stream, { cancelToken, format: 'qcow2' })
+        await vdi.$importContent(stream, { cancelToken, format })
 
         await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
       }

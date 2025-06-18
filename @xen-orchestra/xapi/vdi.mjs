@@ -7,7 +7,7 @@ import { defer } from 'golike-defer'
 import { readChunk } from '@vates/read-chunk'
 import { strict as assert } from 'node:assert'
 
-import { VDI_FORMAT_RAW } from './index.mjs'
+import { SUPPORTED_VDI_FORMAT, VDI_FORMAT_RAW } from './index.mjs'
 
 const { warn, info } = createLogger('xo:xapi:vdi')
 
@@ -207,6 +207,10 @@ class Vdi {
       vdi: ref,
     }
 
+    // now we'll handle the VHD and qcow2 export
+    if (!SUPPORTED_VDI_FORMAT.includes(format)) {
+      throw new Error(`${format} is not in the allowed export format ${JSON.stringify(SUPPORTED_VDI_FORMAT)}`)
+    }
     $defer.onFailure(() => this.VDI_disconnectFromControlDomain(ref))
 
     const label = await this.getField('VDI', ref, 'name_label')
@@ -222,8 +226,6 @@ class Vdi {
 
       return body
     }
-
-    // now we'll handle the VHD and qcow2 export
 
     if (baseRef !== undefined) {
       query.base = baseRef
@@ -253,6 +255,10 @@ class Vdi {
 
   async importContent(ref, stream, { cancelToken = CancelToken.none, format }) {
     assert.notEqual(format, undefined)
+    // now we'll handle the VHD and qcow2 export
+    if (!SUPPORTED_VDI_FORMAT.includes(format)) {
+      throw new Error(`${format} is not in the allowed export format ${JSON.stringify(SUPPORTED_VDI_FORMAT)}`)
+    }
     if (stream.length === undefined) {
       throw new Error('Trying to import a VDI without a length field. Please report this error to Xen Orchestra.')
     }

@@ -708,7 +708,7 @@ export class RemoteAdapter {
         },
       })
     } else {
-      const stream = await toVhdStream({ disk })
+      const stream = await toVhdStream(disk)
       await this.outputStream(path, stream, { validator })
       await validator(path)
     }
