@@ -24,7 +24,6 @@ export function withTimeout(fn, timeout, { onSuccessAfterTimeout, onFailureAfter
           if (didTimeout) {
             info('Success after timeout:\n', result)
             onSuccessAfterTimeout?.(result)
-            reject(timeoutError)
           } else {
             resolve(result)
           }
@@ -34,8 +33,9 @@ export function withTimeout(fn, timeout, { onSuccessAfterTimeout, onFailureAfter
           if (didTimeout) {
             warn('Failure after timeout:\n', error)
             onFailureAfterTimeout?.(error)
+          } else {
+            reject(error)
           }
-          reject(error)
         }
       )
     })

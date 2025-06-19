@@ -63,7 +63,7 @@ describe('withTimeout()', () => {
     promiseFct = withTimeout(promiseFct, TIMEOUT / 2, { onFailureAfterTimeout: mockMethod })
     const promise = promiseFct()
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, testError)
+    await assert.rejects(promise, new TimeoutError())
 
     assert.strictEqual(mockMethod.mock.callCount(), 1)
     assert.strictEqual(mockMethod.mock.calls[0].arguments[0], testError)
