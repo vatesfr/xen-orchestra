@@ -191,7 +191,7 @@
   "hosts-status.running": "Gestartet",
   "hosts-status.unknown": "Unbekannt",
   "hosts-status.unknown.tooltip": "Host-Metriken sind nicht erreichbar",
-  "id": "Id",
+  "id": "ID",
   "in-last-three-jobs": "In ihren letzten drei Jobs",
   "invalid-field": "Ungültiges Feld",
   "ip-addresses": "IP-Adressen",

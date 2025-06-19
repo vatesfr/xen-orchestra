@@ -221,7 +221,7 @@
   "hosts-status.unknown": "Okänt",
   "hosts-status.unknown.tooltip": "Host-data är otillgängligt",
   "hyper-threading": "Multitrådning (SMT)",
-  "id": "Id",
+  "id": "ID",
   "in-last-three-jobs": "I de senaste tre jobben",
   "install-settings": "Installationsinställningar",
   "interfaces": "Gränssnitt | Gränssnitt | Gränssnitten",

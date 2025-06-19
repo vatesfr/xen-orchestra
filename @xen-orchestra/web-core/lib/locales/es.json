@@ -203,7 +203,7 @@
   "hosts-status.running": "En marcha",
   "hosts-status.unknown": "Desconocido",
   "hosts-status.unknown.tooltip": "Métricas de servidores no son disponibles",
-  "id": "Id",
+  "id": "ID",
   "in-last-three-jobs": "En las últimas tres tareas",
   "install-settings": "Parámetros de instalación",
   "interfaces": "Interfaz | Interfaz | Interfaces",

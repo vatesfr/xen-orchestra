@@ -213,7 +213,7 @@
   "hosts-status.running": "Draait",
   "hosts-status.unknown": "Onbekend",
   "hosts-status.unknown.tooltip": "Hosts statistieken zijn niet beschikbaar",
-  "id": "Id",
+  "id": "ID",
   "in-last-three-jobs": "Tijdens hun laatste drie opdrachten",
   "install-settings": "Installatie instellingen",
   "interfaces": "Interface | Interface | Interfaces",
