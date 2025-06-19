@@ -33,7 +33,7 @@ function deepCompareObjects(src, dest, path) {
 
 module.exports = async function compare(args) {
   if (args.length < 4 || args.some(_ => _ === '-h' || _ === '--help')) {
-    return `Usage: compare <sourceRemoteUrl> <source VHD> <destionationRemoteUrl> <destination> `
+    return `Usage: compare <sourceRemoteUrl> <source VHD> <destinationRemoteUrl> <destination> `
   }
   const [sourceRemoteUrl, sourcePath, destRemoteUrl, destPath] = args
 
