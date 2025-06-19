@@ -642,7 +642,7 @@ const TRANSFORMS = {
 
   sr(obj) {
     const srType = obj.type
-    const smId = `${obj.$pool.$id}-${obj.type}`
+    // const smId = `${obj.$pool.$id}-${obj.type}`
     return {
       type: 'SR',
 
@@ -668,22 +668,18 @@ const TRANSFORMS = {
 
       $container: obj.shared || !obj.$PBDs[0] ? link(obj, 'pool') : link(obj.$PBDs[0], 'host'),
       $PBDs: link(obj, 'PBDs'),
-      SM: smId,
     }
   },
 
   sm(obj) {
-    const smType = obj.type
-    const id = `${obj.$pool.$id}-${smType}`
     return {
       type: 'SM',
-      id: id,
       uuid: obj.uuid,
       content_type: obj.content_type,
       name_description: obj.name_description,
       name_label: obj.name_label,
 
-      SM_type: smType,
+      SM_type: obj.type,
       tags: obj.tags,
       configuration: obj.configuration,
       vendor: obj.vendor,
