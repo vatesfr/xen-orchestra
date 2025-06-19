@@ -17,17 +17,6 @@
         <UiIcon :fixed-width="false" :icon="faAngleDown" />
       </span>
     </template>
-    <textarea
-      v-else-if="inputType === 'textarea'"
-      :id
-      ref="textarea"
-      v-model="value"
-      :class="inputClass"
-      :disabled="isDisabled"
-      :required
-      class="textarea"
-      v-bind="attrs"
-    />
     <input
       v-else
       :id
@@ -59,8 +48,8 @@ import { IK_INPUT_ID, IK_INPUT_TYPE } from '@/types/injection-keys'
 import { useDisabled } from '@core/composables/disabled.composable'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
-import { useTextareaAutosize, useVModel } from '@vueuse/core'
-import { computed, type HTMLAttributes, inject, nextTick, ref, useAttrs, watch } from 'vue'
+import { useVModel } from '@vueuse/core'
+import { computed, type HTMLAttributes, inject, ref, useAttrs } from 'vue'
 
 defineOptions({ inheritAttrs: false })
 
@@ -115,12 +104,6 @@ const parentId = inject(IK_INPUT_ID, undefined)
 
 const id = computed(() => props.id ?? parentId?.value)
 
-const { textarea, triggerResize } = useTextareaAutosize()
-
-watch(value, () => nextTick(() => triggerResize()), {
-  immediate: true,
-})
-
 const focus = () => inputElement.value.focus()
 
 defineExpose({
@@ -134,8 +117,7 @@ defineExpose({
 }
 
 .form-input,
-.form-select,
-.form-textarea {
+.form-select {
   display: grid;
   align-items: stretch;
   max-width: 30em;
@@ -155,8 +137,7 @@ defineExpose({
   }
 }
 
-.form-input,
-.form-textarea {
+.form-input {
   grid-template-columns: var(--before-width) auto var(--after-width);
 }
 
@@ -169,7 +150,6 @@ defineExpose({
 }
 
 .input,
-.textarea,
 .select {
   font-size: 1em;
   width: 100%;
@@ -261,18 +241,11 @@ defineExpose({
   }
 }
 
-.textarea {
-  height: auto;
-  min-height: 2em;
-  overflow: hidden;
-}
-
 .input {
   padding: 0;
 }
 
-.input,
-.textarea {
+.input {
   padding-right: 0.625em;
   padding-left: 0.625em;
 
