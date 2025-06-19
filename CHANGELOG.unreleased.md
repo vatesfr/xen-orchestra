@@ -81,7 +81,9 @@
 - xo-server minor
 - xo-server-auth-oidc patch
 - xo-server-backup-reports minor
+- xo-server-load-balancer patch
 - xo-server-perf-alert patch
+- xo-server-transport-nagios patch
 - xo-web minor
 
 <!--packages-end-->

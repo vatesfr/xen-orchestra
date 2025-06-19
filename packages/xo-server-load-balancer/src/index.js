@@ -181,7 +181,7 @@ class LoadBalancerPlugin {
 
     // Check already used pools.
     if (intersection(pools, this._poolIds).length > 0) {
-      throw new Error(`Pool(s) already included in an other plan: ${pools}`)
+      throw new Error(`Pool(s) already included in another plan: ${pools}`)
     }
 
     this._poolIds = this._poolIds.concat(pools)

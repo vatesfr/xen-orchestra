@@ -117,12 +117,12 @@ export default class PerformancePlan extends Plan {
           }
         }
       }
-      // Step 4 : vCPU prepositionning (if option is enable. Incompatible with step 3 option)
-      if (this._performanceSubmode === 'vCpuPrepositionning') {
+      // Step 4 : vCPU prepositioning (if option is enable. Incompatible with step 3 option)
+      if (this._performanceSubmode === 'vCpuPrepositioning') {
         for (const poolId of this._poolIds) {
           const poolHosts = filter(hosts, host => host.$poolId === poolId)
           if (poolHosts.length > 1) {
-            await this._processVcpuPrepositionning(poolHosts)
+            await this._processVcpuPrepositioning(poolHosts)
           }
         }
       }
