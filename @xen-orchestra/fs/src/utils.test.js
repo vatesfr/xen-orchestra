@@ -19,7 +19,9 @@ describe('withTimeout()', () => {
   })
 
   it(`throws if function is synchronous`, async () => {
-    let promiseFct = () => {}
+    let promiseFct = () => {
+      return 'return value'
+    }
     promiseFct = withTimeout(promiseFct, TIMEOUT)
     const promise = promiseFct()
     assert.rejects(promise, new Error('Function needs to be asynchronous.'))

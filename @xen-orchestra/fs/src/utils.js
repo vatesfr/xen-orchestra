@@ -18,7 +18,7 @@ export function withTimeout(fn, timeout, { onTimeout, onSuccessAfterTimeout, onF
         }
       }, timeout)
       const promise = fn.apply(this, args)
-      if (promise === undefined) {
+      if (promise?.then === undefined) {
         throw new Error('Function needs to be asynchronous.')
       }
       promise.then(
