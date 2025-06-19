@@ -47,7 +47,7 @@ export function withTimeout(fn, timeout, { onSuccessAfterTimeout, onFailureAfter
         reject(timeoutError)
       }, timeout)
 
-      // if fn is synchronous and throw an error, it will throws it here
+      // if fn is synchronous and throws an error, it will throw it here
       const promise = fn.apply(this, args)
       if (promise?.then === undefined) {
         throw new Error('Function needs to be asynchronous.')
