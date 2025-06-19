@@ -231,7 +231,7 @@
   "hosts-status.unknown": "Inconnu",
   "hosts-status.unknown.tooltip": "Les métriques de l'hôte sont inaccessibles",
   "hyper-threading": "Hyper-threading (SMT)",
-  "id": "Id",
+  "id": "ID",
   "in-last-three-jobs": "Dans leurs trois derniers jobs",
   "install-settings": "Paramètres d'installation",
   "interfaces": "Interface | Interface | Interfaces",
