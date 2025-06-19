@@ -66,7 +66,7 @@ const maxValue = computed(() => {
     return 1024 * 1024 * 1024 // 1 GB as fallback
   }
 
-  return Math.max(...data.stats.memory.map(m => m || 0), 0)
+  return Math.max(...data.stats.memory.map(memoryValue => memoryValue || 0), 0)
 })
 
 const byteFormatter = (value: number | null) => {
