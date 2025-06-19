@@ -15,12 +15,12 @@ import NoDataError from '@/components/NoDataError.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import type { HostStats } from '@/libs/xapi-stats'
 import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
 import type { LinearChartData, ValueFormatter } from '@core/types/chart'
+import type { XapiHostStatsRaw } from '@vates/types/common'
 import { sumBy } from 'lodash-es'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -44,7 +44,7 @@ const data = computed<LinearChartData>(() => {
 
   const result = new Map<number, { timestamp: number; value: number }>()
 
-  const addResult = (stats: HostStats) => {
+  const addResult = (stats: XapiHostStatsRaw) => {
     const cpus = Object.values(stats.cpus ?? {})
 
     for (let hourIndex = 0; hourIndex < cpus[0].length; hourIndex++) {
