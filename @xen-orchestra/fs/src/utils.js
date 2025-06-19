@@ -3,7 +3,7 @@ import { TimeoutError } from 'promise-toolbox'
 
 const { info, warn } = createLogger('xo:fs:abstract')
 
-export function withTimeout(fn, timeout, { onTimeout, onSuccessAfterTimeout, onFailureAfterTimeout } = {}) {
+export function withTimeout(fn, timeout, { onSuccessAfterTimeout, onFailureAfterTimeout } = {}) {
   return function (...args) {
     let timeoutHandle
     let didTimeout = false
@@ -12,10 +12,7 @@ export function withTimeout(fn, timeout, { onTimeout, onSuccessAfterTimeout, onF
     return new Promise((resolve, reject) => {
       timeoutHandle = setTimeout(() => {
         didTimeout = true
-        onTimeout?.()
-        if (onSuccessAfterTimeout === undefined && onFailureAfterTimeout === undefined) {
-          reject(timeoutError)
-        }
+        reject(timeoutError)
       }, timeout)
       const promise = fn.apply(this, args)
       if (promise?.then === undefined) {
