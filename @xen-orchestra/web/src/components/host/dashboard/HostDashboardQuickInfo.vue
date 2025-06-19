@@ -41,7 +41,7 @@
       <VtsQuickInfoRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="host.tags.length">
-            <UiTag v-for="tag in host.tags" :key="tag" accent="neutral" variant="secondary">{{ tag }}</UiTag>
+            <UiTag v-for="tag in host.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
           </UiTagsList>
         </template>
       </VtsQuickInfoRow>
