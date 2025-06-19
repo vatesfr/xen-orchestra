@@ -668,7 +668,7 @@ const TRANSFORMS = {
 
       $container: obj.shared || !obj.$PBDs[0] ? link(obj, 'pool') : link(obj.$PBDs[0], 'host'),
       $PBDs: link(obj, 'PBDs'),
-      smId: smId,
+      SM: smId,
     }
   },
 
