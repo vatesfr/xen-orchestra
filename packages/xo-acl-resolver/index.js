@@ -12,7 +12,7 @@ let getObject
 // -------------------------------------------------------------------
 
 const authorized = () => true // eslint-disable-line no-unused-vars
-const forbiddden = () => false // eslint-disable-line no-unused-vars
+const forbidden = () => false // eslint-disable-line no-unused-vars
 
 // eslint-disable-next-line no-unused-vars
 const and =
