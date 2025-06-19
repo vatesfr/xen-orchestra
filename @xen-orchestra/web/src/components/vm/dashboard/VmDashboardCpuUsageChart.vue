@@ -12,18 +12,18 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoVmStats } from '@/types/xo/vm-stats.type.ts'
 import type { LinearChartData, ValueFormatter } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import type { XapiVmStats } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
-  data: XoVmStats | null
+  data: XapiVmStats | null
   loading: boolean
   error?: string
 }>()

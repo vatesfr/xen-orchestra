@@ -11,19 +11,20 @@
 </template>
 
 <script lang="ts" setup>
-import { type HostStats, RRD_STEP_FROM_STRING } from '@/libs/xapi-stats.ts'
+import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import type { XapiHostStatsRaw } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
   data: {
-    stats: HostStats | undefined
+    stats: XapiHostStatsRaw | undefined
     timestampStart: number
   }
   loading: boolean

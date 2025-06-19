@@ -1,5 +1,6 @@
 import type XenApi from '@/libs/xen-api/xen-api'
-import type { XenApiHost, XenApiStats } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types'
 import { synchronized } from 'decorator-synchronized'
 // eslint-disable-next-line import/default -- https://github.com/json5/json5/issues/287
 import JSON5 from 'json5'
@@ -317,69 +318,6 @@ const STATS: { [key: string]: object } = {
 //   }
 // }
 
-export type VmStats = {
-  cpus?: XenApiStats
-  cpuUsage?: (number | null)[]
-  runstateFullrun?: (number | null)[]
-  runstateFullContention?: (number | null)[]
-  runstatePartialRun?: (number | null)[]
-  runstatePartialContention?: (number | null)[]
-  runstateConcurrencyHazard?: (number | null)[]
-  runstateBlocked?: (number | null)[]
-  iops?: {
-    r: XenApiStats
-    w: XenApiStats
-  }
-  memory?: (number | null)[]
-  memoryFree?: (number | null)[]
-  memoryTarget?: (number | null)[]
-
-  vifs?: {
-    rx: XenApiStats
-    tx: XenApiStats
-  }
-  vifErrors?: {
-    rx: Record<string, (number | null)[]>
-    tx: Record<string, (number | null)[]>
-  }
-  xvds?: {
-    w?: XenApiStats
-    r?: XenApiStats
-    total?: XenApiStats
-  }
-  vbdLatency?: {
-    w: XenApiStats
-    r: XenApiStats
-  }
-  vbdIowait?: XenApiStats
-  vbdInflight?: XenApiStats
-  vbdAvgquSz?: XenApiStats
-}
-
-export type HostStats = {
-  cpus?: XenApiStats
-  ioThroughput?: {
-    r: XenApiStats
-    w: XenApiStats
-  }
-  iops?: {
-    r: XenApiStats
-    w: XenApiStats
-  }
-  iowait?: XenApiStats
-  latency?: {
-    r: XenApiStats
-    w: XenApiStats
-  }
-  load?: (number | null)[]
-  memory?: (number | null)[]
-  memoryFree?: (number | null)[]
-  pifs?: {
-    rx: XenApiStats
-    tx: XenApiStats
-  }
-}
-
 export type XapiStatsResponse<T> = {
   canBeExpired: boolean
   endTimestamp: number
@@ -389,7 +327,7 @@ export type XapiStatsResponse<T> = {
 
 type StatsByObject = {
   [uuid: string]: {
-    [step: string]: XapiStatsResponse<HostStats | VmStats>
+    [step: string]: XapiStatsResponse<XapiHostStatsRaw | XapiVmStatsRaw>
   }
 }
 
@@ -455,7 +393,7 @@ export default class XapiStats {
   }
 
   @synchronized.withKey(({ host }: { host: XenApiHost }) => host.uuid)
-  async _getAndUpdateStats<T extends VmStats | HostStats>({
+  async _getAndUpdateStats<T extends XapiVmStatsRaw | XapiHostStatsRaw>({
     abortSignal,
     host,
     ignoreExpired = false,
