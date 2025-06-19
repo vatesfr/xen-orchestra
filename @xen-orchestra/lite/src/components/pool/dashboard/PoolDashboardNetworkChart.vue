@@ -55,7 +55,7 @@ const data = computed<LinearChartData>(() => {
 
       results[type].set(timestamp, {
         timestamp,
-        value: (results[type].get(timestamp)?.value ?? NaN) + networkThroughput,
+        value: (results[type].get(timestamp)?.value ?? 0) + networkThroughput,
       })
     }
   }
@@ -101,7 +101,7 @@ const isLoading = computed(() => isFetching.value || !isStatFetched.value)
 
 const customMaxValue = computed(() => {
   const values = data.value.reduce(
-    (acc, series) => [...acc, ...series.data.map(item => item.value ?? 0)],
+    (acc, series) => [...acc, ...series.data.map(item => item.value || 0)],
 
     [] as number[]
   )

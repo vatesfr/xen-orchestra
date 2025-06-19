@@ -55,7 +55,7 @@ const loadAverage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = loadAverage.value[0]?.data.map(item => item.value ?? 0) ?? []
+  const values = loadAverage.value[0]?.data.map(item => item.value || 0) ?? []
 
   if (values.length === 0) {
     return 10
