@@ -284,9 +284,8 @@
                         <option v-for="sr in filteredSrs" :key="sr.$ref" :value="sr.$ref">
                           {{ `${sr.name_label} -` }}
                           {{
-                            t('n-gb-left', {
-                              n: bytesToGiB(sr.physical_size - sr.physical_utilisation),
-                            })
+                            //TODO remove ? when https://github.com/vatesfr/xen-orchestra/pull/8723 is merge
+                            t('size-left', { size: `${sr.sizeLeft?.value} ${sr.sizeLeft?.unit}` })
                           }}
                         </option>
                       </FormSelect>
@@ -310,9 +309,8 @@
                         <option v-for="sr in filteredSrs" :key="sr.$ref" :value="sr.$ref">
                           {{ `${sr.name_label} -` }}
                           {{
-                            t('n-gb-left', {
-                              n: bytesToGiB(sr.physical_size - sr.physical_utilisation),
-                            })
+                            //TODO remove ? when https://github.com/vatesfr/xen-orchestra/pull/8723 is merge
+                            t('size-left', { size: `${sr.sizeLeft?.value} ${sr.sizeLeft?.unit}` })
                           }}
                         </option>
                       </FormSelect>
@@ -444,6 +442,7 @@ import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 
 // Icon Imports
+import { formatSizeRaw } from '@core/utils/size.util'
 import {
   faAlignLeft,
   faAt,
@@ -626,7 +625,16 @@ const bootFirmwares = computed(() => [...new Set(templates.value.map(template =>
 
 const defaultSr = computed(() => pool.value!.default_SR)
 
-const filteredSrs = computed(() => srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0))
+const filteredSrs = computed(() =>
+  srs.value
+    .filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0)
+    .map(sr => {
+      return {
+        ...sr,
+        sizeLeft: formatSizeRaw(sr.physical_size - sr.physical_utilisation, 0),
+      }
+    })
+)
 
 const templateHasBiosStrings = computed(
   () => vmState.new_vm_template !== null && Object.keys(vmState.new_vm_template!.bios_strings).length > 0

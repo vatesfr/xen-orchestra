@@ -329,7 +329,7 @@
   "mtu": "MTU",
   "multi-creation": "Multi creation",
   "multi-pathing": "Multi-pathing",
-  "n-gb-left": "{n} GB left",
+  "size-left": "{size} left",
   "n-gb-required": "{n} GB required",
   "n-hosts": "1 host | {n} hosts",
   "n-hosts-awaiting-patch": "{n} host is awaiting this patch | {n} hosts are awaiting this patch",

@@ -265,7 +265,6 @@
   "missing-patches": "Fehlende Patches",
   "more-actions": "Weitere Aktionen",
   "mtu": "MTU",
-  "n-gb-left": "{n} GB frei",
   "n-gb-required": "{n} GB benötigt",
   "n-hosts": "1 Host | {n} Hosts",
   "n-hosts-awaiting-patch": "Der Host {n} benötigt dieses Patch | Die Hosts {n} benötigen dieses Patch",

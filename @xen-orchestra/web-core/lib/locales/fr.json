@@ -329,7 +329,7 @@
   "mtu": "MTU",
   "multi-creation": "Création multiple",
   "multi-pathing": "Multi-pathing",
-  "n-gb-left": "{n} Go libres",
+  "size-left": "{size} libres",
   "n-gb-required": "{n} Go requis",
   "n-hosts": "1 hôte | {n} hôtes",
   "n-hosts-awaiting-patch": "{n} hôte attend ce patch | {n} hôtes attendent ce patch",

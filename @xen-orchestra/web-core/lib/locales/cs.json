@@ -316,7 +316,6 @@
   "mtu": "MTU",
   "multi-creation": "Vícenásobné vytvoření",
   "multi-pathing": "Propojování vícero cestami",
-  "n-gb-left": "{n} GB zbývá",
   "n-gb-required": "{n} GB vyžadováno",
   "n-hosts": "1 hostitel | {n} hostitelů",
   "n-hosts-awaiting-patch": "{n} hostitel čeká na tuto záplatu | {n} hostitelů čeká na tuto záplatu",

@@ -283,7 +283,6 @@
   "more-actions": "Acciones adicionales",
   "mtu": "MTU",
   "multi-creation": "Creación múltiple",
-  "n-gb-left": "{n} Go libres",
   "n-gb-required": "{n} Go requeridos",
   "n-hosts": "1 servidor| {n} servidores",
   "n-hosts-awaiting-patch": "{n} servidor falta este parche | {n} servidores faltan este parche",

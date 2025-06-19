@@ -68,9 +68,8 @@
                 >
                   {{ `${sr.name_label} -` }}
                   {{
-                    t('n-gb-left', {
-                      n: Math.round((sr.physical_size - sr.physical_utilisation) / 1024 ** 3),
-                    })
+                    //TODO remove ? when https://github.com/vatesfr/xen-orchestra/pull/8723 is merge
+                    t('size-left', { size: `${sr.sizeLeft?.value} ${sr.sizeLeft?.unit}` })
                   }}
                   <template v-if="sr.physical_size - sr.physical_utilisation < REQUIRED_GB * 1024 ** 3">⚠️</template>
                 </option>
@@ -234,6 +233,7 @@ import { useXenApiStore } from '@/stores/xen-api.store'
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useUiStore } from '@core/stores/ui.store'
+import { formatSizeRaw } from '@core/utils/size.util'
 import {
   faArrowUpRightFromSquare,
   faCircleCheck,
@@ -264,6 +264,9 @@ const { records: srs } = useSrStore().subscribe()
 const filteredSrs = computed(() =>
   srs.value
     .filter(sr => sr.content_type !== 'iso' && sr.physical_size > 0)
+    .map(sr => {
+      return { ...sr, sizeLeft: formatSizeRaw(Math.round((sr.physical_size - sr.physical_utilisation) / 1024 ** 3), 0) }
+    })
     // Sort: shared first then largest free space first
     .sort((sr1, sr2) => {
       if (sr1.shared === sr2.shared) {

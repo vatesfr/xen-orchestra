@@ -261,7 +261,6 @@
   "memory-usage": "Utilizzo memoria",
   "migrate": "Migra",
   "migrate-n-vms": "Migra 1 VM | Migra {n} VM",
-  "n-gb-left": "{n} GB rimanenti",
   "n-gb-required": "{n} GB richiesti",
   "n-hosts": "1 host | {n} host",
   "n-vms": "1 VM | {n} VM",

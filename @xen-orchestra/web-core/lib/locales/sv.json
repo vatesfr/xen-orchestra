@@ -315,7 +315,6 @@
   "mtu": "MTU",
   "multi-creation": "Multi-skapande",
   "multi-pathing": "Multianslutning",
-  "n-gb-left": "{n} GB kvar",
   "n-gb-required": "{n} GB behövs",
   "n-hosts": "1 host | {n} hostar",
   "n-hosts-awaiting-patch": "{n} hosten väntar på denna uppdatering | {n} hostarna väntar på denna uppdatering",

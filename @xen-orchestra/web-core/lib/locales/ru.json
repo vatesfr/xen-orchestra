@@ -155,7 +155,6 @@
   "memory": "Память",
   "memory-usage": "Использование памяти",
   "mtu": "MTU",
-  "n-gb-left": "{n} Гб осталось",
   "n-gb-required": "{n} Гб требуется",
   "new-vif": "Новый VIF",
   "new-vm": "Новая ВМ",

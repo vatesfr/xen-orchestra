@@ -20,7 +20,7 @@
           <UiTitle>{{ t('template') }}</UiTitle>
           <div class="template-container">
             <p class="typo-body-regular">{{ t('pick-template') }}</p>
-            <!--        // Todo: Replace by the new select component -->
+            <!--        // TODO: Replace by the new select component -->
             <div class="custom-select">
               <select v-model="vmState.new_vm_template" @change="onTemplateChange()">
                 <option v-for="template in vmsTemplates" :key="template.id" :value="template" class="template-option">
@@ -170,11 +170,11 @@
             <UiTitle>{{ t('memory') }}</UiTitle>
             <div class="memory-container">
               <VtsInputWrapper :label="t('vcpus')">
-                <UiInput v-model="vmState.vCPU" accent="brand" />
+                <UiInput v-model="vmState.vCPU" type="number" accent="brand" />
               </VtsInputWrapper>
               <!-- TODO remove (GB) when we can use new selector -->
               <VtsInputWrapper :label="`${t('ram')} (GB)`">
-                <UiInput v-model="ramFormatted" accent="brand" />
+                <UiInput v-model="ramFormatted" accent="brand" type="number" />
               </VtsInputWrapper>
               <VtsInputWrapper :label="t('topology')">
                 <UiInput v-model="vmState.topology" accent="brand" disabled />
@@ -200,7 +200,7 @@
                 <tbody>
                   <tr v-for="(vif, index) in vmState.vifs" :key="index">
                     <td>
-                      <!--        // Todo: Replace by the new select component -->
+                      <!-- // TODO: Replace by the new select component -->
                       <div class="custom-select">
                         <select v-model="vif.network">
                           <option v-for="network in filteredNetworks" :key="network.id" :value="network.id">
@@ -262,15 +262,14 @@
                 <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
                   <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
                     <td>
-                      <!--        // Todo: Replace by the new select component -->
+                      <!-- // TODO: Replace by the new select component -->
                       <div class="custom-select">
                         <select v-model="vdi.sr">
                           <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
                             {{ `${sr.name_label} -` }}
                             {{
-                              t('n-gb-left', {
-                                n: bytesToGiB(sr.size - sr.physical_usage),
-                              })
+                              //TODO remove ? when https://github.com/vatesfr/xen-orchestra/pull/8723 is merge
+                              t('size-left', { size: `${sr.sizeLeft?.value} ${sr.sizeLeft?.unit}` })
                             }}
                           </option>
                         </select>
@@ -292,15 +291,14 @@
                 <template v-if="vmState.vdis && vmState.vdis.length > 0">
                   <tr v-for="(vdi, index) in vmState.vdis" :key="index">
                     <td>
-                      <!--        // Todo: Replace by the new select component -->
+                      <!-- // TODO: Replace by the new select component -->
                       <div class="custom-select">
                         <select v-model="vdi.sr">
                           <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
                             {{ `${sr.name_label} -` }}
                             {{
-                              t('n-gb-left', {
-                                n: bytesToGiB(sr.size - sr.physical_usage),
-                              })
+                              //TODO remove ? when https://github.com/vatesfr/xen-orchestra/pull/8723 is merge
+                              t('size-left', { size: `${sr.sizeLeft?.value} ${sr.sizeLeft?.unit}` })
                             }}
                           </option>
                         </select>
@@ -424,6 +422,7 @@ import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { formatSizeRaw } from '@core/utils/size.util'
 import {
   faAlignLeft,
   faAngleDown,
@@ -554,7 +553,7 @@ const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
 
-// Todo: implement when the API will support
+// TODO: implement when the API will support
 // const addSshKey = () => {
 //   if (vmState.ssh_key.trim()) {
 //     vmState.sshKeys.push(vmState.ssh_key.trim())
@@ -573,14 +572,14 @@ const isDiskTemplate = computed(() => {
     vmState.new_vm_template.name_label !== 'Other install media'
   )
 })
-// Todo: implement when the API will support
+// TODO: implement when the API will support
 // const getBootFirmwares = computed(() => {
 //   return [
 //     ...new Set(vmsTemplates.value.map(vmsTemplate => vmsTemplate.boot.firmware).filter(firmware => firmware != null)),
 //   ]
 // })
 
-// Todo: implement when the API will support
+// TODO: implement when the API will support
 // const getCopyHostBiosStrings = computed({
 //   get: () => vmState.boot_firmware !== 'uefi',
 //   set: value => {
@@ -589,7 +588,14 @@ const isDiskTemplate = computed(() => {
 // })
 
 const filteredSrs = computed(() => {
-  return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
+  return srs.value
+    .filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
+    .map(sr => {
+      return {
+        ...sr,
+        sizeLeft: formatSizeRaw(sr.size - sr.physical_usage, 0),
+      }
+    })
 })
 
 const getVmTemplateVdis = (template: XoVmTemplate) =>
@@ -1023,7 +1029,7 @@ watch(
     gap: 1.6rem;
   }
 
-  /*Todo: Remove when we implement the new select component*!*/
+  /*TODO: Remove when we implement the new select component*!*/
 
   .custom-select {
     position: relative;
