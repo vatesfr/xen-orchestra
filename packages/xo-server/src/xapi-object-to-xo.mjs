@@ -643,7 +643,6 @@ const TRANSFORMS = {
   sr(obj) {
     const srType = obj.type
     const smId = `${obj.$pool.$id}-${obj.type}`
-    const sm = obj.$xapi.getObject(smId, undefined)
     return {
       type: 'SR',
 
@@ -669,7 +668,6 @@ const TRANSFORMS = {
 
       $container: obj.shared || !obj.$PBDs[0] ? link(obj, 'pool') : link(obj.$PBDs[0], 'host'),
       $PBDs: link(obj, 'PBDs'),
-      SM: sm,
       smId: smId,
     }
   },
@@ -687,10 +685,12 @@ const TRANSFORMS = {
 
       SM_type: smType,
       tags: obj.tags,
-      other_config: obj.other_config,
-      sm_config: obj.sm_config,
+      configuration: obj.configuration,
       vendor: obj.vendor,
-      features: obj.features,
+      features: obj?.features,
+      driver_filename: obj.driver_filename,
+      required_cluster_stack: obj.required_cluster_stack,
+      supported_image_formats: obj.supported_image_formats || [],
     }
   },
 
