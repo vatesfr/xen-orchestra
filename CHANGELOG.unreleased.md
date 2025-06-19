@@ -77,6 +77,7 @@
 - @xen-orchestra/web-core minor
 - vhd-lib minor
 - xen-api patch
+- xo-acl-resolver patch
 - xo-remote-parser minor
 - xo-server minor
 - xo-server-auth-oidc patch
