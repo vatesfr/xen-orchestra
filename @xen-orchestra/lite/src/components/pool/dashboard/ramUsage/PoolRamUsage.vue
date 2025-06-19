@@ -73,7 +73,7 @@ const data = computed<LinearChartData>(() => {
 
       result.set(timestamp, {
         timestamp,
-        value: (result.get(timestamp)?.value ?? NaN) + memoryUsage[hourIndex],
+        value: (result.get(timestamp)?.value ?? 0) + memoryUsage[hourIndex],
       })
     })
   })
