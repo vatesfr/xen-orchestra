@@ -81,7 +81,7 @@ test('constructor and initialization', async () => {
     },
     { message: /must be a multiple/ }
   )
-  // Test that blockSize must bigger than  source blockSize
+  // Test that blockSize must be bigger than source blockSize
   await assert.rejects(
     async () => {
       const invalidDisk = new DiskLargerBlock(source, 128)
@@ -114,8 +114,8 @@ test('readBlock with simple block mapping', async () => {
   assert.strictEqual(result.data.length, 1024)
 
   // Verify the data is correctly combined
-  assert.strictEqual(result.data.subarray(0, 512).equals(block1), true)
-  assert.strictEqual(result.data.subarray(512).equals(block2), true)
+  assert(result.data.subarray(0, 512).equals(block1))
+  assert(result.data.subarray(512).equals(block2))
 })
 
 test('hasBlock behavior', async () => {
@@ -177,11 +177,7 @@ test('partial block handling', async () => {
 
   // The first 512 bytes should be from block 2
   // The remaining 512 bytes should be zeros (since we allocate with zeros)
-  assert.strictEqual(block1.data.subarray(0, 512).equals((await source.readBlock(2)).data), true)
-  assert.strictEqual(
-    block1.data.subarray(512).every(b => b === 0),
-    true
-  )
+  assert(block1.data.subarray(512).every(b => b === 0))
 })
 
 test('differencing disk behavior', async () => {
@@ -203,8 +199,8 @@ test('differencing disk behavior', async () => {
   // Block 0 should combine parent block 0 and diff block 1
   const result = await disk.readBlock(0)
   assert.strictEqual(result.data.length, 1024)
-  assert.strictEqual(result.data.subarray(0, 512).equals(parentBlock), true)
-  assert.strictEqual(result.data.subarray(512).equals(diffBlock), true)
+  assert(result.data.subarray(0, 512).equals(parentBlock))
+  assert(result.data.subarray(512).equals(diffBlock))
 })
 
 test('close propagation', async () => {

@@ -39,7 +39,7 @@
 - [i18n] Ability to switch language to ones newly present in XO6, but not available for XO5 (Thanks [p-bo](https://github.com/p-bo)!) (PR [#8711](https://github.com/vatesfr/xen-orchestra/pull/8711))
 - **Azure Blob Storage**:
   - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PR [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415))
-- [Xapi] Support qcow2 disk export and processing (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
+- [Xapi] Support qcow2 disk export and processing (PR [#8506](https://github.com/vatesfr/xen-orchestra/pull/8506))
 
 ### Bug fixes
 

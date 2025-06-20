@@ -257,10 +257,12 @@ class Vdi {
     assert.notEqual(format, undefined)
     // now we'll handle the VHD and qcow2 export
     if (!SUPPORTED_VDI_FORMAT.includes(format)) {
-      throw new Error(`${format} is not in the allowed export format ${JSON.stringify(SUPPORTED_VDI_FORMAT)}`)
+      throw new Error(`${format} is not in the allowed import format ${JSON.stringify(SUPPORTED_VDI_FORMAT)}`)
     }
     if (stream.length === undefined) {
-      throw new Error('Trying to import a VDI without a length field. Please report this error to Xen Orchestra.')
+      throw new Error(
+        'Trying to import a VDI without a length field. Please report this error to the Xen Orchestra team.'
+      )
     }
 
     const vdi = await this.getRecord('VDI', ref)

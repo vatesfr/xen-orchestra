@@ -16,18 +16,18 @@ export class DiskLargerBlock extends RandomAccessDisk {
     this.#source = source
     assert.ok(
       blockSize >= source.getBlockSize(),
-      `target block size ${blockSize} must be bigger the source block size ${source.getBlockSize()} `
+      `target block size ${blockSize} must be bigger than the source block size ${source.getBlockSize()} `
     )
 
     assert.strictEqual(
-      blockSize % this.source.getBlockSize(),
+      blockSize % source.getBlockSize(),
       0,
       `target block size ${blockSize} must be a multiple of the source block size ${source.getBlockSize()} `
     )
     this.#blockSize = blockSize
   }
   openSource(): Promise<RandomAccessDisk> {
-    // not a issue since source MUST BE passed to the constructor
+    // not an issue since source MUST BE passed to the constructor
     throw new Error('Method not implemented.')
   }
   async readBlock(index: number): Promise<DiskBlock> {
@@ -42,7 +42,7 @@ export class DiskLargerBlock extends RandomAccessDisk {
       } else {
         if (this.isDifferencing()) {
           if (this.#parent === undefined) {
-            const directParent = (await this.#source.openParent()) as RandomAccessDisk
+            const directParent = (await source.openParent()) as RandomAccessDisk
             const chain = await DiskChain.openFromChild(directParent)
             this.#parent = chain
           }
