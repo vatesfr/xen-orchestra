@@ -3,7 +3,6 @@ import { createLogger } from '@xen-orchestra/log'
 import { parse } from 'xo-remote-parser'
 import { join, split } from './path'
 import RemoteHandlerAbstract from './abstract'
-import { pRetry } from 'promise-toolbox'
 import copyStreamToBuffer from './_copyStreamToBuffer'
 import { PassThrough, Transform, pipeline } from 'stream'
 
@@ -37,24 +36,6 @@ export default class AzureHandler extends RemoteHandlerAbstract {
     this.#container = parts.shift() // in azurite, container = first component after host, only lowercase allowed
     this.#dir = join(...parts)
     this.#containerClient = this.#blobServiceClient.getContainerClient(this.#container)
-    const WITH_RETRY = ['_copy', '_getSize', '_list', '_outputFile', '_read', '_rename', '_unlink', '_writeFile']
-    WITH_RETRY.forEach(functionName => {
-      if (this[functionName] !== undefined) {
-        this[functionName] = pRetry.wrap(this[functionName], {
-          delays: [100, 200, 500, 1000, 2000],
-          when: err => !['SystemInUse'].includes(err?.code),
-          onRetry(error) {
-            warn('retrying method on fs ', {
-              method: functionName,
-              attemptNumber: this.attemptNumber,
-              delay: this.delay,
-              error,
-              file: this.arguments?.[0],
-            })
-          },
-        })
-      }
-    })
   }
 
   get type() {
