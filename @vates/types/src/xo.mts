@@ -474,6 +474,21 @@ export type XoSr = BaseXapiXo & {
   usage: number
 }
 
+export type XoSm = BaseXapiXo & {
+  content_type: string
+  current_operations: Record<string, STORAGE_OPERATIONS>
+  id: Branded<'SM'>
+
+  SM_type: string
+  tags: string[]
+  vendor: string
+  name_description: string
+  name_label: string
+  other_config: Record<string, string>
+  sm_config: Record<string, string>
+  type: 'SM'
+}
+
 export type XoUser = {
   authProviders?: Record<string, string>
   email: string
@@ -511,6 +526,7 @@ type BaseXoVdi = BaseXapiXo & {
   name_label: string
   other_config: Record<string, string>
   parent?: XoVdiUnmanaged['id']
+  image_format: string
   size: number
   snapshots: XoVdiSnapshot['id'][]
   tags: string[]
@@ -631,6 +647,7 @@ export type XapiXoRecord =
   | XoVmSnapshot
   | XoVmTemplate
   | XoVtpm
+  | XoSm
 
 export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
 
