@@ -128,17 +128,17 @@ const classNames = computed(() => {
   /* SIZE VARIANTS */
 
   &.size--small {
-    height: 1.5rem;
-    min-width: 1.5rem;
-    border-radius: calc(1.5rem / 2);
-    padding: 0 0.4rem;
+    height: 1.6rem;
+    min-width: 1.6rem;
+    border-radius: calc((1.6rem + 0.4rem) / 2);
+    padding: 0.4rem;
   }
 
   &.size--medium {
     height: 2.4rem;
     min-width: 2.4rem;
-    border-radius: calc(2.4rem / 2);
-    padding: 0 0.6rem;
+    border-radius: calc((2.4rem + 0.4rem) / 2);
+    padding: 0.4rem;
   }
 }
 </style>
