@@ -1408,6 +1408,7 @@ const messages = {
   warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
   removeSelectedVdisFromVm: 'Remove selected VDIs from this VM',
   removeVdiFromVm: 'Remove VDI from this VM',
+  qcow2: 'QCOW2',
   vhd: 'VHD',
   vmdk: 'VMDK',
   raw: 'RAW',
