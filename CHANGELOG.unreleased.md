@@ -37,6 +37,8 @@
 - [REST API] expose `DELETE /rest/v0/servers/<server-id>` (PR [#8710](https://github.com/vatesfr/xen-orchestra/pull/8710))
 - [Backup reports] Make content of backup reports independant of 'Report when' parameter (PR [#8670](https://github.com/vatesfr/xen-orchestra/pull/8670))
 - [i18n] Ability to switch language to ones newly present in XO6, but not available for XO5 (Thanks [p-bo](https://github.com/p-bo)!) (PR [#8711](https://github.com/vatesfr/xen-orchestra/pull/8711))
+- [Backups]: Enable CBT only when the "purge snapshot data is enabled" (PR [#8735](https://github.com/vatesfr/xen-orchestra/pull/8735))
+
 - **Azure Blob Storage**:
   - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PR [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415))
 
