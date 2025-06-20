@@ -642,7 +642,6 @@ const TRANSFORMS = {
 
   sr(obj) {
     const srType = obj.type
-    // const smId = `${obj.$pool.$id}-${obj.type}`
     return {
       type: 'SR',
 
@@ -675,18 +674,16 @@ const TRANSFORMS = {
     return {
       type: 'SM',
       uuid: obj.uuid,
-      content_type: obj.content_type,
       name_description: obj.name_description,
       name_label: obj.name_label,
 
       SM_type: obj.type,
-      tags: obj.tags,
       configuration: obj.configuration,
       vendor: obj.vendor,
       features: obj?.features,
       driver_filename: obj.driver_filename,
       required_cluster_stack: obj.required_cluster_stack,
-      supported_image_formats: obj.supported_image_formats || [],
+      supported_image_formats: obj.supported_image_formats ?? [],
     }
   },
 
