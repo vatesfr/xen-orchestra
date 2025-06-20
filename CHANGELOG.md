@@ -1,5 +1,11 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Host/Dashboard] Fix accent of tag list (PR [#8731](https://github.com/vatesfr/xen-orchestra/pull/8731))
+
 ## **5.107.2** (2025-06-05)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
@@ -22,7 +28,6 @@
 - xo-web 5.176.0
 
 ## **5.107.1** (2025-05-28)
-
 
 ### Bug fixes
 
