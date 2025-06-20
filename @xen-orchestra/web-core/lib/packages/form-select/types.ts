@@ -2,6 +2,8 @@ import type { CollectionItem, CollectionItemProperties } from '@core/packages/co
 import type { KeyOfByValue } from '@core/types/utility.type.ts'
 import type { ComputedRef, InjectionKey, Reactive, Ref, UnwrapRef } from 'vue'
 
+export const EMPTY_OPTION = Symbol('EMPTY_OPTION')
+
 export type FormSelectId<
   TCustomProperties extends CollectionItemProperties = CollectionItemProperties,
   TSource = unknown,
