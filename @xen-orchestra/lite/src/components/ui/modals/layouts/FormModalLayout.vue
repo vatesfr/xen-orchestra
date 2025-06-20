@@ -2,7 +2,7 @@
   <ModalContainer tag="form">
     <template #header>
       <div :class="borderClass" class="title-bar typo-h3">
-        <UiIcon :class="textClass" :icon />
+        <VtsIcon :class="textClass" :name="icon" size="medium" />
         <slot name="title" />
         <ModalCloseIcon class="close-icon" />
       </div>
@@ -21,16 +21,16 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import ModalCloseIcon from '@/components/ui/modals/ModalCloseIcon.vue'
 import ModalContainer from '@/components/ui/modals/ModalContainer.vue'
 import { useContext } from '@/composables/context.composable'
 import { ColorContext } from '@/context'
+import type { IconName } from '@core/icons'
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 
 defineProps<{
-  icon?: IconDefinition
+  icon?: IconName
 }>()
 
 defineSlots<{

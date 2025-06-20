@@ -4,11 +4,11 @@
 
 <script setup lang="ts">
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 
 defineProps<{
   disabled: boolean
-  icon: IconDefinition
+  icon: IconName
 }>()
 </script>
 

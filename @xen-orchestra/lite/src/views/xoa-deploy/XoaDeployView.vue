@@ -1,5 +1,5 @@
 <template>
-  <TitleBar :icon="faDownload">{{ t('deploy-xoa') }}</TitleBar>
+  <TitleBar icon="fa:download">{{ t('deploy-xoa') }}</TitleBar>
   <div v-if="deploying" class="status">
     <img src="@/assets/xo.svg" width="300" alt="Xen Orchestra" />
 
@@ -7,13 +7,13 @@
     <template v-if="error !== undefined">
       <div>
         <h2>{{ t('xoa-deploy-failed') }}</h2>
-        <UiIcon :icon="faExclamationCircle" class="danger" />
+        <VtsIcon name="legacy:status:danger" size="medium" />
       </div>
       <div class="error">
         <strong>{{ t('check-errors') }}</strong>
         <UiRaw>{{ error }}</UiRaw>
       </div>
-      <UiButton size="medium" accent="brand" variant="primary" :left-icon="faDownload" @click="resetValues()">
+      <UiButton size="medium" accent="brand" variant="primary" left-icon="fa:download" @click="resetValues()">
         {{ t('xoa-deploy-retry') }}
       </UiButton>
     </template>
@@ -22,9 +22,15 @@
     <template v-else-if="url !== undefined">
       <div>
         <h2>{{ t('xoa-deploy-successful') }}</h2>
-        <UiIcon :icon="faCircleCheck" class="success" />
+        <VtsIcon name="legacy:status:success" size="medium" />
       </div>
-      <UiButton size="medium" accent="brand" variant="primary" :left-icon="faArrowUpRightFromSquare" @click="openXoa">
+      <UiButton
+        size="medium"
+        accent="brand"
+        variant="primary"
+        left-icon="fa:arrow-up-right-from-square"
+        @click="openXoa"
+      >
         {{ t('access-xoa') }}
       </UiButton>
     </template>
@@ -37,7 +43,7 @@
         <p>{{ status }}</p>
       </div>
       <p class="warning">
-        <UiIcon :icon="faExclamationCircle" />
+        <VtsIcon name="legacy:status:warning" size="medium" />
         {{ t('keep-page-open') }}
       </p>
       <UiButton size="medium" :disabled="vmRef === undefined" accent="danger" variant="secondary" @click="cancel()">
@@ -185,7 +191,6 @@
 import FormInput from '@/components/form/FormInput.vue'
 import FormSection from '@/components/form/FormSection.vue'
 import TitleBar from '@/components/TitleBar.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiRaw from '@/components/ui/UiRaw.vue'
 import { useModal } from '@/composables/modal.composable'
@@ -194,6 +199,7 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -202,12 +208,6 @@ import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioBu
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { useUiStore } from '@core/stores/ui.store'
-import {
-  faArrowUpRightFromSquare,
-  faCircleCheck,
-  faDownload,
-  faExclamationCircle,
-} from '@fortawesome/free-solid-svg-icons'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

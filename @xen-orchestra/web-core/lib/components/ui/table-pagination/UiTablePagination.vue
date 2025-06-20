@@ -2,10 +2,10 @@
 <template>
   <div class="ui-table-pagination">
     <div class="buttons-container">
-      <PaginationButton :disabled="isFirstPage" :icon="faAngleDoubleLeft" @click="emit('first')" />
-      <PaginationButton :disabled="isFirstPage" :icon="faAngleLeft" @click="emit('previous')" />
-      <PaginationButton :disabled="isLastPage" :icon="faAngleRight" @click="emit('next')" />
-      <PaginationButton :disabled="isLastPage" :icon="faAngleDoubleRight" @click="emit('last')" />
+      <PaginationButton :disabled="isFirstPage" icon="fa:angle-double-left" @click="emit('first')" />
+      <PaginationButton :disabled="isFirstPage" icon="fa:angle-left" @click="emit('previous')" />
+      <PaginationButton :disabled="isLastPage" icon="fa:angle-right" @click="emit('next')" />
+      <PaginationButton :disabled="isLastPage" icon="fa:angle-double-right" @click="emit('last')" />
     </div>
     <span class="typo-body-regular-small label">
       {{ t('core.select.n-object-of', { from, to, total }) }}
@@ -19,7 +19,6 @@
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import PaginationButton from '@core/components/ui/table-pagination/PaginationButton.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { faAngleDoubleLeft, faAngleDoubleRight, faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

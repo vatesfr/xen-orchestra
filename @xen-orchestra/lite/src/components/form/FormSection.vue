@@ -3,7 +3,7 @@
     <fieldset class="fieldset">
       <legend class="legend typo-h4" @click="toggleCollapse">
         {{ label }}
-        <UiIcon :icon class="collapse-icon" />
+        <VtsIcon :name="icon" class="collapse-icon" size="medium" />
       </legend>
       <div v-if="!isCollapsed" class="content">
         <slot />
@@ -13,8 +13,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useVModel, whenever } from '@vueuse/core'
 import { computed } from 'vue'
 
@@ -41,7 +40,7 @@ const icon = computed(() => {
     return undefined
   }
 
-  return isCollapsed.value ? faChevronDown : faChevronUp
+  return isCollapsed.value ? 'fa:chevron-down' : 'fa:chevron-up'
 })
 
 whenever(

@@ -9,7 +9,7 @@
       <UiButton
         size="medium"
         accent="brand"
-        :right-icon="faArrowUpRightFromSquare"
+        right-icon="fa:arrow-up-right-from-square"
         variant="tertiary"
         @click="openUrl('/', true)"
       >
@@ -23,7 +23,7 @@
     </template>
     <template #sidebar-content>
       <VtsTreeList v-if="!isReady">
-        <VtsTreeLoadingItem v-for="i in 5" :key="i" :icon="faCity" />
+        <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="fa:city" />
       </VtsTreeList>
       <NoResults v-else-if="sites.length === 0" />
       <SiteTreeList v-else :branches="sites" />
@@ -48,7 +48,6 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { openUrl } from '@core/utils/open-url.utils'
-import { faArrowUpRightFromSquare, faCity } from '@fortawesome/free-solid-svg-icons'
 
 defineSlots<{
   default(): any

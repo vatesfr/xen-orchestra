@@ -3,7 +3,7 @@
 <template>
   <span :class="toVariants({ accent, variant })" class="ui-tag typo-body-regular-small">
     <slot name="icon">
-      <VtsIcon :icon accent="current" fixed-width />
+      <VtsIcon :name="icon" size="medium" />
     </slot>
     <span class="text-ellipsis"><slot /></span>
   </span>
@@ -11,8 +11,8 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 type TagAccent = 'info' | 'neutral' | 'success' | 'warning' | 'danger' | 'muted'
 type TagVariant = 'primary' | 'secondary'
@@ -20,7 +20,7 @@ type TagVariant = 'primary' | 'secondary'
 defineProps<{
   accent: TagAccent
   variant: TagVariant
-  icon?: IconDefinition
+  icon?: IconName
 }>()
 
 defineSlots<{

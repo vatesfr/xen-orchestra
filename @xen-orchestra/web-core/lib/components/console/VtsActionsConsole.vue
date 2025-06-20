@@ -5,7 +5,7 @@
     accent="brand"
     variant="tertiary"
     size="medium"
-    :left-icon="isFullscreen ? faDownLeftAndUpRightToCenter : faUpRightAndDownLeftFromCenter"
+    :left-icon="isFullscreen ? 'fa:down-left-and-up-right-to-center' : 'fa:up-right-and-down-left-from-center'"
     @click="toggleFullScreen"
   >
     {{ t(isFullscreen ? 'exit-fullscreen' : 'fullscreen') }}
@@ -15,7 +15,7 @@
     accent="brand"
     variant="tertiary"
     size="medium"
-    :left-icon="faArrowUpRightFromSquare"
+    left-icon="fa:arrow-up-right-from-square"
     @click="openInNewTab"
   >
     {{ t('open-console-in-new-tab') }}
@@ -25,7 +25,7 @@
     accent="brand"
     variant="tertiary"
     size="medium"
-    :left-icon="faKeyboard"
+    left-icon="fa:keyboard"
     @click="sendCtrlAltDel"
   >
     {{ t('send-ctrl-alt-del') }}
@@ -36,12 +36,6 @@
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import {
-  faArrowUpRightFromSquare,
-  faDownLeftAndUpRightToCenter,
-  faKeyboard,
-  faUpRightAndDownLeftFromCenter,
-} from '@fortawesome/free-solid-svg-icons'
 import { useActiveElement, useMagicKeys, whenever } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'

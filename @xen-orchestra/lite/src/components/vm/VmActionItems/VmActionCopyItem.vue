@@ -3,7 +3,7 @@
     v-tooltip="!areAllSelectedVmsHalted && t(isSingleAction ? 'vm-is-running' : 'selected-vms-in-execution')"
     :busy="areSomeSelectedVmsCloning"
     :disabled="isDisabled"
-    :icon="faCopy"
+    icon="fa:copy"
     @click="handleCopy"
   >
     {{ t('copy') }}
@@ -18,7 +18,6 @@ import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCopy } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
