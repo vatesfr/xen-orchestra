@@ -22,7 +22,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('pool')">
       <template v-if="pool !== undefined" #value>
-        <UiLink size="medium" :to="`/pool/${pool.id}/`" :icon="faCity">
+        <UiLink size="medium" :to="`/pool/${pool.id}/`" icon="fa:city">
           {{ pool.name_label }}
         </UiLink>
       </template>
@@ -30,10 +30,10 @@
     <VtsQuickInfoRow :label="t('master')">
       <template #value>
         <template v-if="isMaster">
-          <VtsIcon v-tooltip="t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+          <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
           {{ t('this-host') }}
         </template>
-        <UiLink v-else-if="masterHost !== undefined" size="medium" :to="`/host/${masterHost.id}/`" :icon="faServer">
+        <UiLink v-else-if="masterHost !== undefined" size="medium" :to="`/host/${masterHost.id}/`" icon="fa:server">
           {{ masterHost.name_label }}
         </UiLink>
       </template>
@@ -65,7 +65,6 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCircle, faCity, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

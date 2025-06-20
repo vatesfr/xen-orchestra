@@ -1,8 +1,8 @@
 <template>
-  <UiHeadBar :icon="faSatellite">
+  <UiHeadBar icon="fa:satellite">
     Xen Orchestra Appliance
     <template #actions>
-      <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium" @click="goToNewVm()">
+      <UiButton left-icon="fa:plus" variant="secondary" accent="brand" size="medium" @click="goToNewVm()">
         {{ $t('new-vm') }}
       </UiButton>
     </template>
@@ -26,7 +26,6 @@ import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import { faPlus, faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()

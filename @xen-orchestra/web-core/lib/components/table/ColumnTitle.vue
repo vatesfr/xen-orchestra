@@ -9,10 +9,10 @@
       >
         <div class="content">
           <span class="label">
-            <VtsIcon :icon accent="current" />
+            <VtsIcon :name="icon" size="medium" />
             <slot />
           </span>
-          <VtsIcon :icon="currentInteraction?.icon" accent="current" />
+          <VtsIcon :name="currentInteraction?.icon" size="medium" />
         </div>
       </th>
     </template>
@@ -23,7 +23,7 @@
       :disabled="interaction.disabled"
       :on-click="() => updateInteraction(interaction)"
     >
-      <VtsIcon :icon="interaction.icon" accent="current" />
+      <VtsIcon :name="interaction.icon" size="medium" />
       {{ interaction.label }}
       <i v-if="currentInteraction?.id === interaction.id" class="current-interaction typo-body-regular-small">
         {{ t('core.current').toLowerCase() }}
@@ -37,8 +37,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faArrowDown, faArrowUp, faEyeSlash, faFilter, faLayerGroup } from '@fortawesome/free-solid-svg-icons'
+import type { IconName } from '@core/icons'
 import { noop } from '@vueuse/core'
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -48,14 +47,14 @@ type InteractionId = 'sort-asc' | 'sort-desc' | 'group' | 'filter' | 'hide'
 type Interaction = {
   disabled?: boolean
   id: InteractionId
-  icon: IconDefinition
+  icon: IconName
   label: string
 }
 
 const props = withDefaults(
   defineProps<{
     id?: string
-    icon?: IconDefinition
+    icon?: IconName
     interactive?: boolean
     disabled?: boolean
   }>(),
@@ -68,11 +67,11 @@ const { t } = useI18n()
 const router = useRouter()
 
 const interactions = computed<Interaction[]>(() => [
-  { id: 'sort-asc', icon: faArrowDown, label: t('core.sort.ascending'), disabled: true },
-  { id: 'sort-desc', icon: faArrowUp, label: t('core.sort.descending'), disabled: true },
-  { id: 'group', icon: faLayerGroup, label: t('core.group'), disabled: true },
-  { id: 'filter', icon: faFilter, label: t('core.filter'), disabled: true },
-  { id: 'hide', icon: faEyeSlash, label: t('core.hide'), disabled: true },
+  { id: 'sort-asc', icon: 'fa:arrow-down', label: t('core.sort.ascending'), disabled: true },
+  { id: 'sort-desc', icon: 'fa:arrow-up', label: t('core.sort.descending'), disabled: true },
+  { id: 'group', icon: 'fa:layer-group', label: t('core.group'), disabled: true },
+  { id: 'filter', icon: 'fa:filter', label: t('core.filter'), disabled: true },
+  { id: 'hide', icon: 'fa:eye-slash', label: t('core.hide'), disabled: true },
 ])
 
 const tableName = inject<string>('tableName')

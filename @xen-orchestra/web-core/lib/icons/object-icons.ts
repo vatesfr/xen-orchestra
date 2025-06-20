@@ -156,7 +156,7 @@ export const objectIcons = defineIconPack({
     },
     { icon: getStatusIcon(state) },
   ]),
-  host: defineIcon([['running', 'halted', 'disabled', 'muted', 'unknown']], state => [
+  host: defineIcon([['running', 'halted', 'disabled', 'muted', 'unknown', 'maintenance']], state => [
     {
       icon: faServer,
       color: getMainColor(state),

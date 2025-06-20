@@ -10,7 +10,7 @@
       type="text"
       accent="brand"
       :aria-label="uiStore.isMobile ? t('core.query-search-bar.label') : undefined"
-      :icon="uiStore.isDesktop ? faMagnifyingGlass : undefined"
+      :icon="uiStore.isDesktop ? 'fa:magnifying-glass' : undefined"
       :placeholder="t('core.query-search-bar.placeholder')"
     />
     <template v-if="uiStore.isDesktop">
@@ -21,15 +21,15 @@
         size="medium"
         accent="brand"
         variant="secondary"
-        :left-icon="faFilter"
+        left-icon="fa:filter"
         disabled
       >
         {{ t('core.query-search-bar.use-query-builder') }}
       </UiButton>
     </template>
     <template v-else>
-      <UiButtonIcon accent="brand" size="medium" type="submit" :icon="faMagnifyingGlass" />
-      <UiButtonIcon accent="brand" size="medium" disabled :icon="faFilter" />
+      <UiButtonIcon accent="brand" size="medium" type="submit" icon="fa:magnifying-glass" />
+      <UiButtonIcon accent="brand" size="medium" disabled icon="fa:filter" />
     </template>
   </form>
 </template>
@@ -42,7 +42,6 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { uniqueId } from '@core/utils/unique-id.util'
-import { faFilter, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

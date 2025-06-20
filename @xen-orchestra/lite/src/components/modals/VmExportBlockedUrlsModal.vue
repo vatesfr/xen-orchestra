@@ -1,6 +1,6 @@
 <template>
   <UiModal>
-    <FormModalLayout :icon="faDisplay">
+    <FormModalLayout icon="fa:display">
       <template #title>
         {{ t('export-n-vms-manually', { n: labelWithUrl.length }) }}
       </template>
@@ -29,7 +29,6 @@ import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
 import UiModal from '@/components/ui/modals/UiModal.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import { faDisplay } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -6,8 +6,8 @@
     <VtsTable v-bind="properties">
       <thead>
         <tr>
-          <ColumnTitle id="vm" :icon="faDesktop">vm</ColumnTitle>
-          <ColumnTitle id="description" :icon="faAlignLeft">vm description</ColumnTitle>
+          <ColumnTitle id="vm" icon="fa:desktop">vm</ColumnTitle>
+          <ColumnTitle id="description" icon="fa:align-left">vm description</ColumnTitle>
         </tr>
       </thead>
       <tbody>
@@ -25,7 +25,6 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, slot } from '@/libs/story/story-param'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import { faAlignLeft, faDesktop } from '@fortawesome/free-solid-svg-icons'
 
 const vms = [
   { id: 1, name_label: 'VM #1', description: 'Lorem upso' },

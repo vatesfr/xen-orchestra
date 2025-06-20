@@ -17,7 +17,7 @@
     </div>
 
     <p v-for="warning in warnings" :key="warning" class="row warning">
-      <UiIcon :icon="faWarning" />
+      <VtsIcon name="fa:warning" size="medium" />
       {{ warning }}
     </p>
 
@@ -28,13 +28,12 @@
 <script lang="ts" setup>
 import CodeHighlight from '@/components/CodeHighlight.vue'
 import FormInput from '@/components/form/FormInput.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { faWarning } from '@fortawesome/free-solid-svg-icons'
 import { castArray } from 'lodash-es'
 import { type ComponentOptions, computed, ref, watch } from 'vue'
 

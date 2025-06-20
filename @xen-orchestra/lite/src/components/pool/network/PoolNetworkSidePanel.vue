@@ -7,7 +7,7 @@
         variant="tertiary"
         size="medium"
         accent="brand"
-        :left-icon="faEdit"
+        left-icon="fa:edit"
       >
         {{ t('edit') }}
       </UiButton>
@@ -17,11 +17,11 @@
         variant="tertiary"
         size="medium"
         accent="danger"
-        :left-icon="faTrash"
+        left-icon="fa:trash"
       >
         {{ t('delete') }}
       </UiButton>
-      <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
+      <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" icon="fa:ellipsis" />
     </template>
     <template #default>
       <UiCard class="card-container">
@@ -124,7 +124,6 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

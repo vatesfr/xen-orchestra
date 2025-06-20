@@ -10,7 +10,7 @@
       v-bind="attrs"
     />
     <span class="fake-checkbox">
-      <VtsIcon :icon accent="current" class="icon" />
+      <VtsIcon :name="icon" size="medium" class="icon" />
     </span>
     <span v-if="slots.default" class="typo-body-regular">
       <slot />
@@ -26,7 +26,6 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { toVariants } from '@core/utils/to-variants.util'
-import { faCheck, faMinus } from '@fortawesome/free-solid-svg-icons'
 import { computed, type LabelHTMLAttributes, useAttrs } from 'vue'
 
 type CheckboxAccent = 'brand' | 'warning' | 'danger'
@@ -57,13 +56,7 @@ const classNames = computed(() => [
 
 const isIndeterminate = computed(() => checkboxModel.value === undefined)
 
-const icon = computed(() => {
-  if (isIndeterminate.value) {
-    return faMinus
-  }
-
-  return faCheck
-})
+const icon = computed(() => (isIndeterminate.value ? 'fa:minus' : 'fa:check'))
 
 const attrs = useAttrs()
 </script>

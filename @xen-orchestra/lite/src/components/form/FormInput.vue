@@ -11,24 +11,22 @@
       v-bind="attrs"
     />
     <span v-if="before !== undefined" class="before">
-      <template v-if="typeof before === 'string'">{{ before }}</template>
-      <UiIcon v-else :icon="before" class="before" />
+      <VtsIcon :name="before" class="before" size="medium" />
     </span>
     <span v-if="after !== undefined" class="after">
-      <template v-if="typeof after === 'string'">{{ after }}</template>
-      <UiIcon v-else :icon="after" class="after" />
+      <VtsIcon :name="after" class="after" size="medium" />
     </span>
   </span>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useContext } from '@/composables/context.composable'
 import { ColorContext } from '@/context'
 import type { Color } from '@/types'
 import { IK_INPUT_ID, IK_INPUT_TYPE } from '@/types/injection-keys'
+import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { useVModel } from '@vueuse/core'
 import { computed, type HTMLAttributes, inject, ref, useAttrs } from 'vue'
 
@@ -38,8 +36,8 @@ const props = defineProps<{
   id?: string
   modelValue?: any
   color?: Color
-  before?: IconDefinition | string
-  after?: IconDefinition | string
+  before?: IconName
+  after?: IconName
   beforeWidth?: string
   afterWidth?: string
   disabled?: boolean

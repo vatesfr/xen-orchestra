@@ -8,23 +8,23 @@
         @click="open($event)"
       />
     </template>
-    <MenuItem :icon="faGear" @click="openSettings">{{ t('settings') }}</MenuItem>
-    <MenuItem :icon="faBook" @click="openUrl('https://docs.xcp-ng.org?utm_campaign=xolite&utm_term=xcpdoc')">
+    <MenuItem icon="fa:gear" @click="openSettings">{{ t('settings') }}</MenuItem>
+    <MenuItem icon="fa:book" @click="openUrl('https://docs.xcp-ng.org?utm_campaign=xolite&utm_term=xcpdoc')">
       {{ t('documentation-name', { name: 'XCP-ng' }) }}
     </MenuItem>
     <MenuItem
-      :icon="faHeadset"
+      icon="fa:headset"
       @click="openUrl('https://vates.tech/pricing-and-support?utm_campaign=xolite&utm_term=pricing')"
     >
       {{ t('professional-support') }}
     </MenuItem>
     <MenuItem
-      :icon="faComments"
+      icon="fa:comments"
       @click="openUrl('https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite?utm_campaign=xolite&utm_term=forum')"
     >
       {{ t('access-forum') }}
     </MenuItem>
-    <MenuItem :icon="faArrowRightFromBracket" class="menu-item-logout" @click="logout">
+    <MenuItem icon="fa:arrow-right-from-bracket" class="menu-item-logout" @click="logout">
       {{ t('log-out') }}
     </MenuItem>
   </MenuList>
@@ -36,7 +36,6 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faArrowRightFromBracket, faBook, faComments, faGear, faHeadset } from '@fortawesome/free-solid-svg-icons'
 import { nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

@@ -2,10 +2,10 @@
 
 ```vue-template
 <VtsResources>
-  <VtsResource :icon="faDisplay" count="1" label="VMs" />
-  <VtsResource :icon="faMicrochip" count="4" label="vCPUs" />
-  <VtsResource :icon="faMemory" count="2" label="RAM" />
-  <VtsResource :icon="faDatabase" count="1" label="SR" />
-  <VtsResource :icon="faNetworkWired" count="2" label="Interfaces" />
+  <VtsResource icon="fa:display" count="1" label="VMs" />
+  <VtsResource icon="fa:microchip" count="4" label="vCPUs" />
+  <VtsResource icon="fa:memory" count="2" label="RAM" />
+  <VtsResource icon="fa:database" count="1" label="SR" />
+  <VtsResource icon="fa:networkWired" count="2" label="Interfaces" />
 </VtsResources>
 ```

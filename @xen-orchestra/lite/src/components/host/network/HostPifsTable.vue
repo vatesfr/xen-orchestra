@@ -6,7 +6,7 @@
         <UiButton
           v-tooltip="t('coming-soon')"
           disabled
-          :left-icon="faPlus"
+          left-icon="fa:plus"
           variant="secondary"
           accent="brand"
           size="medium"
@@ -22,7 +22,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faEdit"
+            left-icon="fa:edit"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -32,7 +32,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faTrash"
+            left-icon="fa:trash"
             variant="tertiary"
             accent="danger"
             size="medium"
@@ -52,11 +52,11 @@
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
-                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
                 </div>
               </th>
@@ -82,7 +82,7 @@
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="t('coming-soon')"
-                :icon="faEllipsis"
+                icon="fa:ellipsis"
                 accent="brand"
                 disabled
                 size="small"
@@ -94,7 +94,7 @@
                 <!-- TODO Remove the span when the link works and the icon is fixed -->
                 <!--
                   <UiComplexIcon size="medium" class="icon">
-                    <VtsIcon :icon="faNetworkWired" accent="current" />
+                    <VtsIcon icon="fa:network-wired" accent="current" />
                     <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                   </UiComplexIcon>
                   <a v-tooltip href="" class="text-ellipsis">{{ column.value.name }}</a>
@@ -103,9 +103,8 @@
                 <VtsIcon
                   v-if="column.value.management"
                   v-tooltip="t('management')"
-                  accent="info"
-                  :icon="faCircle"
-                  :overlay-icon="faStar"
+                  name="legacy:primary"
+                  size="medium"
                 />
               </div>
               <div v-else-if="column.id === 'IP'" class="ip-addresses">
@@ -134,6 +133,7 @@ import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
+import type { IconName } from '@core/icons'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -148,19 +148,6 @@ import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTa
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import {
-  faAlignLeft,
-  faAt,
-  faCaretDown,
-  faCircle,
-  faEdit,
-  faEllipsis,
-  faPlus,
-  faPowerOff,
-  faStar,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -240,14 +227,14 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
 
 type PifHeader = 'network' | 'device' | 'status' | 'VLAN' | 'IP' | 'MAC' | 'ip_configuration_mode'
 
-const headerIcon: Record<PifHeader, IconDefinition> = {
-  network: faAlignLeft,
-  device: faAlignLeft,
-  status: faPowerOff,
-  VLAN: faAlignLeft,
-  IP: faAt,
-  MAC: faAt,
-  ip_configuration_mode: faCaretDown,
+const headerIcon: Record<PifHeader, IconName> = {
+  network: 'fa:align-left',
+  device: 'fa:align-left',
+  status: 'fa:power-off',
+  VLAN: 'fa:align-left',
+  IP: 'fa:at',
+  MAC: 'fa:at',
+  ip_configuration_mode: 'fa:caret-down',
 }
 </script>
 

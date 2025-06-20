@@ -4,7 +4,6 @@
 
 ```vue-script
 import VtsLegendGroup, { type LegendGroupProps } from '@core/components/legend/VtsLegendGroup.vue'
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 
 const items: LegendGroupProps['items'] = [
   {
@@ -24,7 +23,7 @@ const items: LegendGroupProps['items'] = [
 
 const title: LegendGroupProps['title'] = {
   label: 'Legend Title',
-  icon: faInfoCircle,
+  icon: 'fa:info-circle',
   iconTooltip: 'This is a tooltip'
 }
 ```

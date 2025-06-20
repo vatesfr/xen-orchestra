@@ -3,7 +3,7 @@
     <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VtsDonutChartWithLegend :icon="faDesktop" :segments />
+      <VtsDonutChartWithLegend icon="fa:desktop" :segments />
       <UiCardNumbers :label="t('total')" :value="vms.length" class="total" size="small" />
     </template>
   </UiCard>
@@ -20,7 +20,6 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable'
-import { faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

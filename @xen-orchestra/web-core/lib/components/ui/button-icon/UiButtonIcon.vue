@@ -2,15 +2,15 @@
 <!-- TODO: Add complex icon -->
 <template>
   <button :class="classNames" :disabled class="ui-button-icon" type="button">
-    <VtsIcon :icon accent="current" />
+    <VtsIcon :name="icon" size="medium" />
     <span v-if="dot" class="dot" />
   </button>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { computed } from 'vue'
 
 type ButtonIconAccent = 'brand' | 'warning' | 'danger'
@@ -23,7 +23,7 @@ const {
   selected,
   targetScale = 1,
 } = defineProps<{
-  icon: IconDefinition
+  icon: IconName
   size: ButtonSize
   accent: ButtonIconAccent
   disabled?: boolean

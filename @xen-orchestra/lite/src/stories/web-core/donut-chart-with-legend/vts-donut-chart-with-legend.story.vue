@@ -13,12 +13,11 @@ import { iconProp, prop } from '@/libs/story/story-param'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 
 const title: DonutChartWithLegendProps['title'] = {
   label: 'Chart Title',
   iconTooltip: 'Some tooltip',
-  icon: faInfoCircle,
+  icon: 'fa:info-circle',
 }
 
 const segments: DonutChartWithLegendProps['segments'] = [
