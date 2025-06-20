@@ -4,7 +4,7 @@
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
           <span class="power-state">
-            <VtsIcon :accent="powerState.accent" :icon="powerState.icon" />
+            <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
         </template>
@@ -15,7 +15,7 @@
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
           <span v-if="host" class="host-name">
-            <UiLink :icon="faServer" :to="`/host/${host.uuid}`" size="medium">
+            <UiLink icon="fa:server" :to="`/host/${host.uuid}`" size="medium">
               {{ host.name_label }}
             </UiLink>
           </span>
@@ -62,7 +62,6 @@ import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util.ts'
-import { faMoon, faPause, faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -96,10 +95,10 @@ const host = computed(() => getVmHost(vm))
 const powerState = useMapper(
   () => vm.power_state,
   {
-    [VM_POWER_STATE.RUNNING]: { icon: faPlay, accent: 'success', text: t('vm-status.running') },
-    [VM_POWER_STATE.HALTED]: { icon: faStop, accent: 'danger', text: t('vm-status.halted') },
-    [VM_POWER_STATE.PAUSED]: { icon: faPause, accent: 'brand', text: t('vm-status.paused') },
-    [VM_POWER_STATE.SUSPENDED]: { icon: faMoon, accent: 'info', text: t('vm-status.suspended') },
+    [VM_POWER_STATE.RUNNING]: { icon: 'fa:play', text: t('vm-status.running') },
+    [VM_POWER_STATE.HALTED]: { icon: 'fa:stop', text: t('vm-status.halted') },
+    [VM_POWER_STATE.PAUSED]: { icon: 'fa:pause', text: t('vm-status.paused') },
+    [VM_POWER_STATE.SUSPENDED]: { icon: 'fa:moon', text: t('vm-status.suspended') },
   },
   VM_POWER_STATE.RUNNING
 )

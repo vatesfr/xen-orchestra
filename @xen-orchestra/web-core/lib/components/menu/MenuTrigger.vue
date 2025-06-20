@@ -1,20 +1,20 @@
 <!-- v1.0 -->
 <template>
   <div :class="{ active, disabled }" class="menu-trigger">
-    <VtsIcon :busy :icon accent="current" />
+    <VtsIcon :name="icon" size="medium" :busy />
     <slot />
   </div>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 
 defineProps<{
   active?: boolean
   busy?: boolean
   disabled?: boolean
-  icon?: IconDefinition
+  icon?: IconName
 }>()
 </script>
 

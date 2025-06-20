@@ -4,7 +4,7 @@
       <UiButtonIcon
         v-if="!uiStore.isDesktopLarge"
         ref="navigationTrigger"
-        :icon="faBars"
+        icon="fa:bars"
         accent="brand"
         size="medium"
         :class="{ 'menu-to-right': !uiStore.isMobile }"
@@ -31,7 +31,6 @@ import XoaButton from '@/components/XoaButton.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
 
 const uiStore = useUiStore()

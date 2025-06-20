@@ -36,15 +36,15 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
+import type { IconName } from '@core/icons'
 import UiActionsTitle from '@core/components/ui/actions-title/UiActionsTitle.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
-import { faArrowsAlt, faCalendarDays, faCircleChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { ref } from 'vue'
 
-const buttonLabels = ref([
-  { title: 'Label', icon: faArrowsAlt },
-  { title: 'Label', icon: faCircleChevronRight },
-  { title: 'Label', icon: faCalendarDays },
+const buttonLabels = ref<{ title: string; icon: IconName }[]>([
+  { title: 'Label', icon: 'fa:arrow-down' },
+  { title: 'Label', icon: 'fa:chevron-up' },
+  { title: 'Label', icon: 'fa:camera' },
 ])
 </script>

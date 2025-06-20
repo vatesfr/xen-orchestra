@@ -1,6 +1,6 @@
 <template>
   <UiModal :color="isJsonValid ? 'success' : 'error'" @submit.prevent="handleSubmit()">
-    <FormModalLayout :icon="faCode" class="layout">
+    <FormModalLayout icon="fa:code" class="layout">
       <template #default>
         <UiTextarea v-model="editedJson" accent="brand" class="modal-textarea" />
       </template>
@@ -26,7 +26,6 @@ import UiModal from '@/components/ui/modals/UiModal.vue'
 import { IK_MODAL } from '@/types/injection-keys'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
-import { faCode } from '@fortawesome/free-solid-svg-icons'
 import { computed, inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -1,6 +1,6 @@
 ```vue-template
 <UiModal @submit.prevent="handleSubmit()">
-  <FormModalLayout :icon="faShip">
+  <FormModalLayout icon="fa:ship">
     <template #title>Migrate 3 VMs/template>
 
     <template #default>

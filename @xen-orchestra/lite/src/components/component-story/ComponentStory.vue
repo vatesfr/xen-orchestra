@@ -16,7 +16,7 @@
     <MenuList placement="bottom">
       <template #trigger="{ open, isOpen }">
         <TabItem :active="isOpen" :disabled="presets === undefined" class="preset-tab" @click="open">
-          <UiIcon :icon="faSliders" />
+          <VtsIcon name="fa:sliders" size="medium" />
           Presets
         </TabItem>
       </template>
@@ -79,7 +79,6 @@ import StoryEventParams from '@/components/component-story/StoryEventParams.vue'
 import StoryPropParams from '@/components/component-story/StoryPropParams.vue'
 import StorySettingParams from '@/components/component-story/StorySettingParams.vue'
 import StorySlotParams from '@/components/component-story/StorySlotParams.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import {
@@ -91,13 +90,13 @@ import {
   ModelParam,
   type Param,
 } from '@/libs/story/story-param'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { faSliders } from '@fortawesome/free-solid-svg-icons'
 import 'highlight.js/styles/github-dark.css'
 import { uniqueId, upperFirst } from 'lodash-es'
 import { computed, onBeforeMount, reactive, ref, watch, watchEffect } from 'vue'
