@@ -15,7 +15,7 @@ export class DiskSmallerBlock extends DiskPassthrough {
     )
 
     assert.strictEqual(
-      this.source.getBlockSize() % blockSize,
+      source.getBlockSize() % blockSize,
       0,
       `target block size ${blockSize} must be a multiple of the source block size ${source.getBlockSize()} `
     )
@@ -23,7 +23,7 @@ export class DiskSmallerBlock extends DiskPassthrough {
   }
 
   openSource(): Promise<Disk> {
-    // not a issue since source MUST BE passed to the constructor
+    // not an issue since source MUST BE passed to the constructor
     throw new Error('Method not implemented.')
   }
 
@@ -32,7 +32,6 @@ export class DiskSmallerBlock extends DiskPassthrough {
   }
 
   async *diskBlocks(): AsyncGenerator<DiskBlock> {
-    console.log('GENERATOR')
     try {
       const blockRatio = this.source.getBlockSize() / this.#blockSize
       const sourceGenerator = this.source.diskBlocks()

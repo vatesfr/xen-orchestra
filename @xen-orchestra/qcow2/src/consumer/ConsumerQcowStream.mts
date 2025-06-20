@@ -40,7 +40,7 @@ export class QcowStreamGenerator {
    */
   constructor(disk: Disk) {
     if (disk.getBlockSize() < CLUSTER_SIZE) {
-      if(disk.isDifferencing() && !(disk instanceof RandomAccessDisk)){
+      if (disk.isDifferencing() && !(disk instanceof RandomAccessDisk)) {
         throw new Error(`Can't create differential disk with larger block without random access`)
       }
       this.#disk = new DiskLargerBlock(disk as RandomAccessDisk, CLUSTER_SIZE)
@@ -285,9 +285,8 @@ export class QcowStreamGenerator {
       // Yield data clusters
       let nbGeneratedBlock = 0
       let previous = -1
-      console.log('will generate blocks of ', {disk})
-      for await (const {index, data} of disk.diskBlocks()){ 
-        if(index < previous){
+      for await (const { index, data } of disk.diskBlocks()) {
+        if (index < previous) {
           throw new Error('Qcow can only be generated from sorted disk')
         }
         previous = index
@@ -295,7 +294,11 @@ export class QcowStreamGenerator {
         nbGeneratedBlock++
       }
 
-      assert.strictEqual(nbGeneratedBlock, nbAllocatedBlocks, `expected ${nbAllocatedBlocks}, yield ${nbGeneratedBlock}`)
+      assert.strictEqual(
+        nbGeneratedBlock,
+        nbAllocatedBlocks,
+        `expected ${nbAllocatedBlocks}, yield ${nbGeneratedBlock}`
+      )
       // Verify we generated the expected amount of data
       assert.strictEqual(self.#offset, expectedStreamLength, 'stream length')
     }
