@@ -1,9 +1,9 @@
 <template>
-  <NewVtsIcon :name="iconName" :size />
+  <VtsIcon :name="iconName" :size />
 </template>
 
 <script generic="TType extends ObjectIconType" lang="ts" setup>
-import NewVtsIcon, { type IconSize } from '@core/components/icon/NewVtsIcon.vue'
+import VtsIcon, { type IconSize } from '@core/components/icon/VtsIcon.vue'
 import type { ObjectIconName } from '@core/icons'
 import { computed } from 'vue'
 

@@ -7,7 +7,7 @@
         size="medium"
         variant="tertiary"
         accent="brand"
-        :left-icon="faEdit"
+        left-icon="fa:edit"
       >
         {{ t('edit') }}
       </UiButton>
@@ -17,7 +17,7 @@
         size="medium"
         variant="tertiary"
         accent="danger"
-        :left-icon="faTrash"
+        left-icon="fa:trash"
       >
         {{ t('delete') }}
       </UiButton>
@@ -49,7 +49,7 @@
                 <!-- TODO Remove the span when the link works and the icon is fixed -->
                 <!--
                 <UiComplexIcon size="medium">
-                  <VtsIcon :icon="faNetworkWired" accent="current" />
+                  <VtsIcon icon="fa:network-wired" accent="current" />
                   <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                 </UiComplexIcon>
                 <a href="">{{ networkNameLabel }}</a>
@@ -125,7 +125,7 @@
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="t('coming-soon')"
                   disabled
-                  :icon="faEllipsis"
+                  icon="fa:ellipsis"
                   size="medium"
                   accent="brand"
                 />
@@ -172,7 +172,6 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

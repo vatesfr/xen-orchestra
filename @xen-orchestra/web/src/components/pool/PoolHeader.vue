@@ -1,8 +1,8 @@
 <template>
-  <UiHeadBar :icon="faCity">
+  <UiHeadBar icon="fa:city">
     {{ pool.name_label }}
     <template #actions>
-      <UiButton :left-icon="faPlus" variant="primary" accent="brand" size="medium" @click="goToNewVm()">
+      <UiButton left-icon="fa:plus" variant="primary" accent="brand" size="medium" @click="goToNewVm()">
         {{ t('new-vm') }}
       </UiButton>
     </template>
@@ -42,7 +42,6 @@ import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import { faCity, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 

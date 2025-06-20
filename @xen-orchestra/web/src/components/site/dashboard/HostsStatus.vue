@@ -3,7 +3,7 @@
     <UiCardTitle>{{ t('hosts-status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VtsDonutChartWithLegend :icon="faServer" :segments />
+      <VtsDonutChartWithLegend icon="fa:server" :segments />
       <UiCardNumbers :label="t('total')" :value="hosts.length" class="total" size="small" />
     </template>
   </UiCard>
@@ -19,7 +19,6 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -4,7 +4,7 @@
     size="medium"
     accent="brand"
     variant="primary"
-    :left-icon="faArrowUpRightFromSquare"
+    left-icon="fa:arrow-up-right-from-square"
     class="xoa-button"
     @click="openXoa()"
   >
@@ -15,7 +15,7 @@
     size="medium"
     accent="brand"
     variant="primary"
-    :left-icon="faDownload"
+    left-icon="fa:download"
     class="xoa-button"
     @click="openXoaDeploy()"
   >
@@ -27,7 +27,6 @@
 import type { PRIMARY_ADDRESS_TYPE } from '@/libs/xen-api/xen-api.enums'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import { faDownload, faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

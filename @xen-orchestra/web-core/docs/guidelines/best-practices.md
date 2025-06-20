@@ -183,18 +183,18 @@ const attrs = useAttrs()
 
 Using slots with fallback to props helps to maintain flexibility: simple data can be passed as props, while slots allow injecting complex content (HTML, conditional logic, etc.) when needed, making components more versatile and reusable.
 
-Take this example, where a component needs to display a child icon component:
+Take this example, where a component needs to display a child label component:
 
 ```vue
 <template>
   <div>
-    <slot name="icon" />
+    <slot name="label" />
     <!--  rest of the code  -->
   </div>
 </template>
 ```
 
-Most of the time you will want to specify which icon to use, rather than having to explicitly use the icon component in the parent component. But in some cases you may want to retain some flexibility and use a different icon component, a more complex one, or rely on a condition to use specific HTML, etc.
+Most of the time you will want to specify which label to display, rather than having to explicitly use a Label component in the parent component. But in some cases you may want to retain some flexibility and use a the Label component with custom props configuration for example.
 
 In this case, you can combine a slot and a prop as a fallback to handle all these cases.
 
@@ -203,27 +203,25 @@ The component would look like this:
 ```vue
 <template>
   <div>
-    <slot name="icon">
-      <VtsIcon :icon />
+    <slot name="label">
+      <UiLabel :label />
     </slot>
     <!--  rest of the code  -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineSlots } from '@vue/runtime-core'
-
 defineProps<{
-  icon?: IconType
+  label?: string
 }>()
 
 defineSlots<{
-  icon?(): any
+  label?(): any
 }>()
 </script>
 ```
 
-In this case, you can use the `icon` prop for simple uses, and keep the flexibility of using the slot when needed, as the `VtsIcon` component is overwritten when the slot is used.
+In this case, you can use the `label` prop for simple uses, and keep the flexibility of using the slot when needed, as the `UiLabel` component is overwritten when the slot is used.
 
 ## Component MUST use inline handler or inline function for event handling
 

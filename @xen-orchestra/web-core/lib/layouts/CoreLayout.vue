@@ -9,7 +9,7 @@
         }"
         accent="brand"
         size="medium"
-        :icon="faBars"
+        icon="fa:bars"
         class="sidebar-toggle"
         :target-scale="1.8"
         @click="sidebarStore.toggleExpand()"
@@ -48,7 +48,6 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useSidebarStore } from '@core/stores/sidebar.store'
 import { useUiStore } from '@core/stores/ui.store'
-import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

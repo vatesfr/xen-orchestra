@@ -7,7 +7,7 @@
         size="medium"
         variant="tertiary"
         accent="brand"
-        :left-icon="faEdit"
+        left-icon="fa:edit"
       >
         {{ t('edit') }}
       </UiButton>
@@ -17,7 +17,7 @@
         size="medium"
         variant="tertiary"
         accent="danger"
-        :left-icon="faTrash"
+        left-icon="fa:trash"
       >
         {{ t('delete') }}
       </UiButton>
@@ -36,13 +36,7 @@
               {{ pif.id }}
             </template>
             <template #addons>
-              <VtsIcon
-                v-if="pif.management"
-                v-tooltip="t('management')"
-                accent="info"
-                :icon="faCircle"
-                :overlay-icon="faStar"
-              />
+              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
               <VtsCopyButton :value="pif.id" />
             </template>
           </VtsCardRowKeyValue>
@@ -142,7 +136,7 @@
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="t('coming-soon')"
                   disabled
-                  :icon="faEllipsis"
+                  icon="fa:ellipsis"
                   size="medium"
                   accent="brand"
                 />
@@ -233,7 +227,7 @@
                   v-if="index === 0 && bondDevices.length > 1"
                   v-tooltip="t('coming-soon')"
                   disabled
-                  :icon="faEllipsis"
+                  icon="fa:ellipsis"
                   size="medium"
                   accent="brand"
                 />
@@ -301,7 +295,6 @@ import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCircle, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

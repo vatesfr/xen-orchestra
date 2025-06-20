@@ -1,7 +1,7 @@
 <!-- v1 -->
 <template>
   <div :class="toVariants({ accent })" class="ui-label">
-    <VtsIcon accent="current" :icon class="icon" />
+    <VtsIcon :name="icon" size="medium" class="icon" />
     <label :for="htmlFor" :class="{ required }" class="typo-caption label">
       <slot />
     </label>
@@ -12,8 +12,8 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { useI18n } from 'vue-i18n'
 
 export type LabelAccent = 'neutral' | 'warning' | 'danger'
@@ -21,7 +21,7 @@ export type LabelAccent = 'neutral' | 'warning' | 'danger'
 const { for: htmlFor } = defineProps<{
   accent: LabelAccent
   for?: string
-  icon?: IconDefinition
+  icon?: IconName
   required?: boolean
   href?: string
 }>()

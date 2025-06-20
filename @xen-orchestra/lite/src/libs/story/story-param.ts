@@ -1,15 +1,7 @@
 import mixin, { type MixinAbstractConstructor } from '@/libs/mixin'
 import type { Widget } from '@/libs/story/story-widget'
 import { boolean, choice, number, object, text } from '@/libs/story/story-widget'
-import {
-  faCity,
-  faDesktop,
-  faEllipsis,
-  faMessage,
-  faNetworkWired,
-  faServer,
-  faUser,
-} from '@fortawesome/free-solid-svg-icons'
+import { icons } from '@core/icons'
 
 function WithType(Base: MixinAbstractConstructor<BaseParam>) {
   abstract class WithType extends Base /* implements HasType */ {
@@ -422,15 +414,5 @@ export const colorProp = (name = 'color') =>
 
 export const iconProp = (name = 'icon') =>
   prop(name)
-    .type('IconDefinition')
-    .widget(
-      choice(
-        { label: 'Pool', value: faCity },
-        { label: 'Host', value: faServer },
-        { label: 'VM', value: faDesktop },
-        { label: 'Network', value: faNetworkWired },
-        { label: 'User', value: faUser },
-        { label: 'More actions', value: faEllipsis },
-        { label: 'Message', value: faMessage }
-      )
-    )
+    .type('IconName')
+    .widget(choice(...Object.keys(icons)))

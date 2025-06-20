@@ -6,11 +6,11 @@
         class="directory typo-body-bold"
         @click="emit('toggleDirectory', node.directory)"
       >
-        <UiIcon :icon="isOpen(node.directory) ? faFolderOpen : faFolderClosed" />
+        <VtsIcon :name="isOpen(node.directory) ? 'fa:folder-open' : 'fa:folder-closed'" size="medium" />
         {{ formatName(key) }}
       </span>
       <RouterLink v-else :to="node.path" class="link typo-body-regular">
-        <UiIcon :icon="faFile" />
+        <VtsIcon name="fa:file" size="medium" />
         {{ formatName(key) }}
       </RouterLink>
 
@@ -26,8 +26,7 @@
 
 <script lang="ts" setup>
 import type { StoryTree } from '@/components/component-story/StoryMenu.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { faFile, faFolderClosed, faFolderOpen } from '@fortawesome/free-regular-svg-icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 
 const props = defineProps<{
   tree: StoryTree

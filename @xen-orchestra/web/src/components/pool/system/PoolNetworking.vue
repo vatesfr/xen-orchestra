@@ -9,7 +9,7 @@
         <template #value>
           <UiLink
             v-if="backupNetwork !== undefined"
-            :icon="faNetworkWired"
+            icon="fa:network-wired"
             :to="`/pool/${pool.id}/networks?id=${backupNetwork.id}`"
             size="medium"
           >
@@ -33,7 +33,6 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { faNetworkWired } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

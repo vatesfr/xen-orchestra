@@ -8,10 +8,10 @@ type DropdownAccent = 'normal' | 'brand' | 'success' | 'warning' | 'danger'
 
 ```vue-template
 <UiDropdownList>
-  <UiDropdown accent="brand" :icon="faArrowDown" info="current">
+  <UiDropdown accent="brand" icon="fa:arrow-down" info="current">
     Sort ascending
   </UiDropdown>
-  <UiDropdown accent="brand" :icon="faArrowUp">
+  <UiDropdown accent="brand" icon="fa:arrow-up">
     Sort descending
   </UiDropdown>
 </UiDropdownList>
@@ -20,5 +20,4 @@ type DropdownAccent = 'normal' | 'brand' | 'success' | 'warning' | 'danger'
 ```vue-script
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
-import { faArrowDown, faArrowUp } from "@fortawesome/free-solid-svg-icons";
 ```

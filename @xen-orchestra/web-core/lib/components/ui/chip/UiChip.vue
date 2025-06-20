@@ -12,15 +12,15 @@
 <script lang="ts" setup>
 import ChipIcon from '@core/components/ui/chip/ChipIcon.vue'
 import ChipRemoveIcon from '@core/components/ui/chip/ChipRemoveIcon.vue'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { computed } from 'vue'
 
 export type ChipAccent = 'info' | 'success' | 'warning' | 'danger'
 
 const props = defineProps<{
   accent: ChipAccent
-  icon?: IconDefinition
+  icon?: IconName
   disabled?: boolean
 }>()
 
