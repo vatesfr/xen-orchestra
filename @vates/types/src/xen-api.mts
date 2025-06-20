@@ -777,6 +777,7 @@ export interface XenApiSm {
   vendor: string
   version: string
 }
+export type XenApiSmWrapped = WrapperXenApi<XenApiSm, 'SM'>
 
 export interface XenApiSr {
   $ref: Branded<'SR'>
