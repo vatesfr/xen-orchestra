@@ -1,10 +1,10 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoGroup } from '@vates/types'
 
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
-import { group, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
+import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { group, groupId, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
@@ -48,5 +48,17 @@ export class GroupController extends XoController<XoGroup> {
   @Response(notFoundResp.status, notFoundResp.description)
   getGroup(@Path() id: string): Promise<Unbrand<XoGroup>> {
     return this.getObject(id as XoGroup['id'])
+  }
+
+  /**
+   * @example id "7d98fee4-3357-41a7-ac3f-9124212badb7"
+   */
+  @Example(groupId)
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteGroup(@Path() id: string): Promise<void> {
+    const groupId = id as XoGroup['id']
+    await this.restApi.xoApp.deleteGroup(groupId)
   }
 }
