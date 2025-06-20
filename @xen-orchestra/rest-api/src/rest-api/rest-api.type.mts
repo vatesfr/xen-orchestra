@@ -9,6 +9,7 @@ import type {
   XenApiPciWrapped,
   XenApiPifWrapped,
   XenApiPoolWrapped,
+  XenApiSmWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
   XenApiVdiWrapped,
@@ -28,7 +29,7 @@ import type {
   XoSchedule,
   XoJob,
   XoGroup,
-  XoPool
+  XoPool,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -41,6 +42,7 @@ type XapiRecordByXapiXoRecord = {
   PIF: XenApiPifWrapped
   pool: XenApiPoolWrapped
   SR: XenApiSrWrapped
+  SM: XenApiSmWrapped
   VBD: XenApiVbdWrapped
   VDI: XenApiVdiWrapped
   'VDI-snapshot': XenApiVdiWrapped
