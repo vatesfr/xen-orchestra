@@ -1,5 +1,6 @@
 import type XenApi from '@/libs/xen-api/xen-api'
-import type { XenApiHost, XenApiStats } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types'
 import { synchronized } from 'decorator-synchronized'
 // eslint-disable-next-line import/default -- https://github.com/json5/json5/issues/287
 import JSON5 from 'json5'
@@ -317,48 +318,6 @@ const STATS: { [key: string]: object } = {
 //   }
 // }
 
-export type VmStats = {
-  cpus: XenApiStats
-  iops: {
-    r: XenApiStats
-    w: XenApiStats
-  }
-  memory: number[]
-  memoryFree?: number[]
-  vifs: {
-    rx: XenApiStats
-    tx: XenApiStats
-  }
-  xvds: {
-    w: XenApiStats
-    r: XenApiStats
-  }
-}
-
-export type HostStats = {
-  cpus: XenApiStats
-  ioThroughput: {
-    r: XenApiStats
-    w: XenApiStats
-  }
-  iops: {
-    r: XenApiStats
-    w: XenApiStats
-  }
-  iowait: XenApiStats
-  latency: {
-    r: XenApiStats
-    w: XenApiStats
-  }
-  load: number[]
-  memory: number[]
-  memoryFree: number[]
-  pifs: {
-    rx: XenApiStats
-    tx: XenApiStats
-  }
-}
-
 export type XapiStatsResponse<T> = {
   canBeExpired: boolean
   endTimestamp: number
@@ -368,7 +327,7 @@ export type XapiStatsResponse<T> = {
 
 type StatsByObject = {
   [uuid: string]: {
-    [step: string]: XapiStatsResponse<HostStats | VmStats>
+    [step: string]: XapiStatsResponse<XapiHostStatsRaw | XapiVmStatsRaw>
   }
 }
 
@@ -434,7 +393,7 @@ export default class XapiStats {
   }
 
   @synchronized.withKey(({ host }: { host: XenApiHost }) => host.uuid)
-  async _getAndUpdateStats<T extends VmStats | HostStats>({
+  async _getAndUpdateStats<T extends XapiVmStatsRaw | XapiHostStatsRaw>({
     abortSignal,
     host,
     ignoreExpired = false,

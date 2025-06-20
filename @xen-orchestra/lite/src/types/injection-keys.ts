@@ -1,7 +1,7 @@
 import type { FetchedStats, Stat } from '@/composables/fetch-stats.composable'
-import type { HostStats, VmStats } from '@/libs/xapi-stats'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import type { ModalController } from '@/types/index'
+import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types/common'
 import type { ComputedRef, InjectionKey } from 'vue'
 
 export const IK_INPUT_TYPE = Symbol('IK_INPUT_TYPE') as InjectionKey<'select' | 'textarea'>
@@ -10,12 +10,12 @@ export const IK_CHECKBOX_TYPE = Symbol('IK_CHECKBOX_TYPE') as InjectionKey<'chec
 
 export const IK_FORM_HAS_LABEL = Symbol('IK_FORM_HAS_LABEL') as InjectionKey<ComputedRef<boolean>>
 
-export const IK_HOST_STATS = Symbol('IK_HOST_STATS') as InjectionKey<ComputedRef<Stat<HostStats>[]>>
+export const IK_HOST_STATS = Symbol('IK_HOST_STATS') as InjectionKey<ComputedRef<Stat<XapiHostStatsRaw>[]>>
 
-export const IK_VM_STATS = Symbol('IK_VM_STATS') as InjectionKey<ComputedRef<Stat<VmStats>[]>>
+export const IK_VM_STATS = Symbol('IK_VM_STATS') as InjectionKey<ComputedRef<Stat<XapiVmStatsRaw>[]>>
 
 export const IK_HOST_LAST_WEEK_STATS = Symbol('IK_HOST_LAST_WEEK_STATS') as InjectionKey<
-  FetchedStats<XenApiHost, HostStats>
+  FetchedStats<XenApiHost, XapiHostStatsRaw>
 >
 
 export const IK_BUTTON_GROUP_OUTLINED = Symbol('IK_BUTTON_GROUP_OUTLINED') as InjectionKey<ComputedRef<boolean>>

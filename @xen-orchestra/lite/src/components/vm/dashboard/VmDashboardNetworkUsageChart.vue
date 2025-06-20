@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import { RRD_STEP_FROM_STRING, type VmStats } from '@/libs/xapi-stats.ts'
+import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -20,12 +20,13 @@ import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import type { XapiVmStatsRaw } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
   data: {
-    stats: VmStats | undefined
+    stats: XapiVmStatsRaw | undefined
     timestampStart: number
   }
   loading: boolean
@@ -57,7 +58,7 @@ const networkUsage = computed<LinearChartData>(() => {
         (timestampStart - RRD_STEP_FROM_STRING.hours * (vifArrays[0].length - 1) + idx * RRD_STEP_FROM_STRING.hours) *
         1000
 
-      const value = vifArrays.reduce((sum, arr) => sum + (arr[idx] ?? 0), 0)
+      const value = vifArrays.reduce((sum, arr) => sum + (arr[idx] ?? NaN), 0)
 
       return {
         timestamp,
@@ -77,7 +78,7 @@ const networkUsage = computed<LinearChartData>(() => {
 
 const maxValue = computed(() => {
   const values = networkUsage.value.reduce(
-    (acc, series) => [...acc, ...series.data.map(item => item.value ?? 0)],
+    (acc, series) => [...acc, ...series.data.map(item => item.value || 0)],
     [] as number[]
   )
 

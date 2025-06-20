@@ -1,11 +1,6 @@
-import {
-  type GRANULARITY,
-  type HostStats,
-  RRD_STEP_FROM_STRING,
-  type VmStats,
-  type XapiStatsResponse,
-} from '@/libs/xapi-stats'
+import { type GRANULARITY, RRD_STEP_FROM_STRING, type XapiStatsResponse } from '@/libs/xapi-stats'
 import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types/common'
 import { type Pausable, promiseTimeout, useTimeoutPoll } from '@vueuse/core'
 import { computed, type ComputedRef, onUnmounted, ref, type Ref } from 'vue'
 
@@ -19,7 +14,7 @@ export type Stat<T> = {
 
 export type GetStats<
   T extends XenApiHost | XenApiVm,
-  S extends HostStats | VmStats = T extends XenApiHost ? HostStats : VmStats,
+  S extends XapiHostStatsRaw | XapiVmStatsRaw = T extends XenApiHost ? XapiHostStatsRaw : XapiVmStatsRaw,
 > = (
   uuid: T['uuid'],
   granularity: GRANULARITY,
@@ -29,7 +24,7 @@ export type GetStats<
 
 export type FetchedStats<
   T extends XenApiHost | XenApiVm,
-  S extends HostStats | VmStats = T extends XenApiHost ? HostStats : VmStats,
+  S extends XapiHostStatsRaw | XapiVmStatsRaw = T extends XenApiHost ? XapiHostStatsRaw : XapiVmStatsRaw,
 > = {
   register: (object: T) => void
   unregister: (object: T) => void
@@ -40,7 +35,7 @@ export type FetchedStats<
 
 export default function useFetchStats<
   T extends XenApiHost | XenApiVm,
-  S extends HostStats | VmStats = T extends XenApiHost ? HostStats : VmStats,
+  S extends XapiHostStatsRaw | XapiVmStatsRaw = T extends XenApiHost ? XapiHostStatsRaw : XapiVmStatsRaw,
 >(getStats: GetStats<T, S>, granularity: GRANULARITY): FetchedStats<T, S> {
   const stats = ref(new Map()) as Ref<Map<string, Stat<S>>>
   const timestamp = ref<number[]>([0, 0])
@@ -66,7 +61,8 @@ export default function useFetchStats<
         }
 
         timestamp.value = [
-          newStats.endTimestamp - RRD_STEP_FROM_STRING[granularity] * (newStats.stats.memory.length - 1),
+          newStats.endTimestamp -
+            RRD_STEP_FROM_STRING[granularity] * ((Object.values(newStats.stats).find(Array.isArray)?.length ?? 0) - 1),
           newStats.endTimestamp,
         ]
 

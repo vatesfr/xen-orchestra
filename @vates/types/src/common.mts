@@ -660,67 +660,71 @@ type XapiStatsResponse<T> = {
   interval: number
   stats: T
 }
+type StatValues = (number | null)[]
+type RecordStatValues = Record<string, StatValues>
 
 export type XapiStatsGranularity = 'seconds' | 'minutes' | 'hours' | 'days'
 
-export type XapiHostStats = XapiStatsResponse<{
-  cpus?: Record<string, number[]>
+export type XapiHostStatsRaw = {
+  cpus?: RecordStatValues
   ioThroughput?: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: RecordStatValues
+    w: RecordStatValues
   }
   iops?: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: RecordStatValues
+    w: RecordStatValues
   }
-  iowait?: Record<string, number[]>
+  iowait?: RecordStatValues
   latency?: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: RecordStatValues
+    w: RecordStatValues
   }
-  load?: number[]
-  memory?: number[]
-  memoryFree?: number[]
+  load?: StatValues
+  memory?: StatValues
+  memoryFree?: StatValues
   pifs?: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
+    rx: RecordStatValues
+    tx: RecordStatValues
   }
-}>
+}
+export type XapiHostStats = XapiStatsResponse<XapiHostStatsRaw>
 
-export type XapiVmStats = XapiStatsResponse<{
-  cpus?: Record<string, number[]>
-  cpuUsage?: number[]
-  runstateFullrun?: number[]
-  runstateFullContention?: number[]
-  runstatePartialRun?: number[]
-  runstatePartialContention?: number[]
-  runstateConcurrencyHazard?: number[]
-  runstateBlocked?: number[]
+export type XapiVmStatsRaw = {
+  cpus?: RecordStatValues
+  cpuUsage?: StatValues
+  runstateFullrun?: StatValues
+  runstateFullContention?: StatValues
+  runstatePartialRun?: StatValues
+  runstatePartialContention?: StatValues
+  runstateConcurrencyHazard?: StatValues
+  runstateBlocked?: StatValues
   iops?: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+    r: RecordStatValues
+    w: RecordStatValues
   }
-  memory?: number[]
-  memoryFree?: number[]
-  memoryTarget?: number[]
+  memory?: StatValues
+  memoryFree?: StatValues
+  memoryTarget?: StatValues
   vifs?: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
+    rx: RecordStatValues
+    tx: RecordStatValues
   }
   vifErrors?: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
+    rx: RecordStatValues
+    tx: RecordStatValues
   }
   xvds?: {
-    w?: Record<string, number[]>
-    r?: Record<string, number[]>
-    total?: Record<string, number[]>
+    w?: RecordStatValues
+    r?: RecordStatValues
+    total?: RecordStatValues
   }
   vbdLatency?: {
-    w: Record<string, number[]>
-    r: Record<string, number[]>
+    w: RecordStatValues
+    r: RecordStatValues
   }
-  vbdIowait?: Record<string, number[]>
-  vbdInflight?: Record<string, number[]>
-  vbdAvgquSz?: Record<string, number[]>
-}>
+  vbdIowait?: RecordStatValues
+  vbdInflight?: RecordStatValues
+  vbdAvgquSz?: RecordStatValues
+}
+export type XapiVmStats = XapiStatsResponse<XapiVmStatsRaw>
