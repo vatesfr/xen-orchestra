@@ -159,7 +159,7 @@ const pifs = computed(() => getPifsByNetworkRef(network.$ref))
 
 const networkVlan = computed(() => {
   if (pifs.value.length === 0) {
-    return ''
+    return
   }
 
   return pifs.value[0].VLAN !== -1 ? pifs.value[0].VLAN.toString() : t('none')

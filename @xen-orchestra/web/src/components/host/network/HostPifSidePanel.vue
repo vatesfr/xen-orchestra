@@ -299,9 +299,9 @@
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store'
-import type { XoPif } from '@/types/xo/pif.type'
+import { useNetworkStore } from '@/stores/xo-rest-api/network.store.ts'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store.ts'
+import type { XoPif } from '@/types/xo/pif.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -313,8 +313,8 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
-import { useUiStore } from '@core/stores/ui.store'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { faArrowLeft, faCircle, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import humanFormat from 'human-format'
 import { computed } from 'vue'

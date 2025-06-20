@@ -12,9 +12,9 @@
 </template>
 
 <script setup lang="ts">
-import PoolHostInternalNetworksTable from '@/components/pool/PoolHostInternalNetworksTable.vue'
-import PoolNetworkSidePanel from '@/components/pool/PoolNetworkSidePanel.vue'
-import PoolNetworksTable from '@/components/pool/PoolNetworksTable.vue'
+import PoolHostInternalNetworksTable from '@/components/pool/network/PoolHostInternalNetworksTable.vue'
+import PoolNetworkSidePanel from '@/components/pool/network/PoolNetworkSidePanel.vue'
+import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
 import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPool } from '@/types/xo/pool.type'

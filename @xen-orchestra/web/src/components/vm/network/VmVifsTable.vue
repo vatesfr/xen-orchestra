@@ -174,11 +174,7 @@ const { t } = useI18n()
 
 const selectedVifId = useRouteQuery('id')
 
-const getNetworkName = (vif: XoVif) => {
-  const network = getNetwork(vif.$network)
-
-  return network?.name_label ? network.name_label : ''
-}
+const getNetworkName = (vif: XoVif) => getNetwork(vif.$network)?.name_label ?? ''
 
 const searchQuery = ref('')
 
