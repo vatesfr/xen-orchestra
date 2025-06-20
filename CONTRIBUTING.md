@@ -18,6 +18,11 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 - [I Want To Contribute](#i-want-to-contribute)
 - [Reporting Bugs](#reporting-bugs)
 - [Suggesting Enhancements](#suggesting-enhancements)
+- [Your First Code Contribution](#your-first-code-contribution)
+- [Improving The Documentation](#improving-the-documentation)
+- [Styleguides](#styleguides)
+- [Commit Messages](#commit-messages)
+- [Join The Project Team](#join-the-project-team)
 
 ## Code of Conduct
 
@@ -94,6 +99,28 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/vatesf
 - **Describe the current behavior** and **explain which behavior you expected to see instead** and why. At this point you can also tell which alternatives do not work for you.
 - You may want to **include screenshots and animated GIFs** which help you demonstrate the steps or point out the part which the suggestion is related to. You can use [this tool](https://www.cockos.com/licecap/) to record GIFs on macOS and Windows, and [this tool](https://github.com/colinkeenan/silentcast) or [this tool](https://github.com/GNOME/byzanz) on Linux.
 - **Explain why this enhancement would be useful** to most Xen Orchestra users. You may also want to point out the other projects that solved it better and which could serve as inspiration.
+
+### Your First Code Contribution
+
+<!-- TODO
+include Setup of env, IDE and typical getting started instructions?
+
+-->
+
+### Improving The Documentation
+
+<!-- TODO
+Updating, improving and correcting the documentation
+
+-->
+
+## Styleguides
+
+### Commit Messages
+
+<!-- TODO
+
+-->
 
 ## Attribution
 
