@@ -75,6 +75,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- vhd-cli patch
 - vhd-lib minor
 - xen-api patch
 - xo-acl-resolver patch
