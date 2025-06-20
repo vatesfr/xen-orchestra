@@ -1,17 +1,17 @@
 <template>
-  <div class="vm-vifs-table">
+  <div class="host-pif-table">
     <UiTitle>
-      {{ t('vifs') }}
+      {{ t('pifs') }}
       <template #actions>
         <UiButton
           v-tooltip="t('coming-soon')"
           disabled
-          size="medium"
+          :left-icon="faPlus"
           variant="secondary"
           accent="brand"
-          :left-icon="faPlus"
+          size="medium"
         >
-          {{ t('new-vif') }}
+          {{ t('scan-pifs') }}
         </UiButton>
       </template>
     </UiTitle>
@@ -19,16 +19,6 @@
       <div class="table-actions">
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
         <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            :left-icon="faPowerOff"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('change-state') }}
-          </UiButton>
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
@@ -50,15 +40,16 @@
             {{ t('delete') }}
           </UiButton>
         </UiTableActions>
-
         <UiTopBottomTable :selected-items="0" :total-items="0" />
       </div>
-      <VtsDataTable :is-ready :has-error :no-data-message="vifs.length === 0 ? t('no-vif-detected') : undefined">
+      <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? t('no-pif-detected') : undefined">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')" class="checkbox">
-                <UiCheckbox :v-model="areAllSelected" accent="brand" disabled />
+              <th v-if="column.id === 'checkbox'" class="checkbox">
+                <div v-tooltip="t('coming-soon')">
+                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" />
+                </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
                 <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
@@ -76,8 +67,8 @@
           <tr
             v-for="row of rows"
             :key="row.id"
-            :class="{ selected: selectedVifId === row.id }"
-            @click="selectedVifId = row.id"
+            :class="{ selected: selectedPifId === row.id }"
+            @click="selectedPifId = row.id"
           >
             <td
               v-for="column of row.visibleColumns"
@@ -86,7 +77,7 @@
               :class="{ checkbox: column.id === 'checkbox' }"
             >
               <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox v-model="selected" accent="brand" :value="row.id" disabled />
+                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
@@ -108,7 +99,14 @@
                   </UiComplexIcon>
                   <a v-tooltip href="" class="text-ellipsis">{{ column.value.name }}</a>
                  -->
-                <span v-tooltip class="text-ellipsis">{{ column.value }}</span>
+                <span v-tooltip class="text-ellipsis">{{ column.value.name }}</span>
+                <VtsIcon
+                  v-if="column.value.management"
+                  v-tooltip="t('management')"
+                  accent="info"
+                  :icon="faCircle"
+                  :overlay-icon="faStar"
+                />
               </div>
               <div v-else-if="column.id === 'ip'" class="ip-addresses">
                 <span class="text-ellipsis">{{ column.value[0] }}</span>
@@ -123,19 +121,22 @@
           </tr>
         </template>
       </VtsDataTable>
+      <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" type="table" image="no-result">
+        <div>{{ t('no-result') }}</div>
+      </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import { useVifStore } from '@/stores/xo-rest-api/vif.store.ts'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
-import type { XoVif } from '@/types/xo/vif.type.ts'
+import { useNetworkStore } from '@/stores/xo-rest-api/network.store.ts'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store.ts'
+import type { XoPif } from '@/types/xo/pif.type.ts'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -143,106 +144,120 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import useMultiSelect from '@core/composables/table/multi-select.composable'
-import { useTable } from '@core/composables/table.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
+import { useTable } from '@core/composables/table.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
   faAt,
   faCaretDown,
+  faCircle,
   faEdit,
   faEllipsis,
-  faHashtag,
   faPlus,
   faPowerOff,
+  faStar,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vifs } = defineProps<{
-  vifs: XoVif[]
+const { pifs } = defineProps<{
+  pifs: XoPif[]
 }>()
 
-const { get: getNetwork } = useNetworkStore().subscribe()
-const { get: getVm } = useVmStore().subscribe()
-const { isReady, hasError } = useVifStore().subscribe()
+const { isReady, hasError, getPifStatus } = usePifStore().subscribe()
+const { get } = useNetworkStore().subscribe()
+
 const { t } = useI18n()
-
-const selectedVifId = useRouteQuery('id')
-
-const getNetworkName = (vif: XoVif) => {
-  const network = getNetwork(vif.$network)
-
-  return network?.name_label ? network.name_label : ''
-}
-
+const selectedPifId = useRouteQuery('id')
 const searchQuery = ref('')
 
-const filteredVifs = computed(() => {
+const filteredPifs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return vifs
+    return pifs
   }
 
-  return vifs.filter(vif =>
-    [...Object.values(vif), getNetworkName(vif)].some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
+  return pifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
-const getIpAddresses = (vif: XoVif) => {
-  const addresses = getVm(vif.$VM)?.addresses
+const pifsIds = computed(() => pifs.map(pif => pif.id))
 
-  return addresses ? [...new Set(Object.values(addresses).sort())] : []
+const { selected, areAllSelected } = useMultiSelect(pifsIds)
+
+const getNetworkName = (pif: XoPif) => get(pif.$network)?.name_label ?? ''
+
+const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
+
+const getIpAddresses = (pif: XoPif) => [pif.ip, ...pif.ipv6].filter(ip => ip)
+
+const getIpConfigurationMode = (ipMode: string) => {
+  switch (ipMode) {
+    case 'Static':
+      return t('static')
+    case 'DHCP':
+      return t('dhcp')
+    default:
+      return t('none')
+  }
 }
 
-const vifsIds = computed(() => vifs.map(vif => vif.id))
-
-const { selected, areAllSelected } = useMultiSelect(vifsIds)
-
-const { visibleColumns, rows } = useTable('vifs', filteredVifs, {
+const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
-    define('network', record => getNetworkName(record), { label: t('network') }),
-    define('device', record => t('vif-device', { device: record.device }), { label: t('device') }),
-    define('status', record => (record.attached ? 'connected' : 'disconnected'), { label: t('status') }),
+    define(
+      'network',
+      record => ({
+        name: getNetworkName(record),
+        management: record.management,
+      }),
+      { label: t('network') }
+    ),
+    define('device', { label: t('device') }),
+    define('status', record => getPifStatus(record), { label: t('status') }),
+    define('vlan', record => getVlanData(record.vlan), { label: t('vlan') }),
     define('ip', record => getIpAddresses(record), { label: t('ip-addresses') }),
-    define('MAC', record => record.MAC, { label: t('mac-addresses') }),
-    define('MTU', { label: t('mtu') }),
-    define('lockingMode', { label: t('locking-mode') }),
+    define('mac', { label: t('mac-addresses') }),
+    define('mode', record => getIpConfigurationMode(record.mode), {
+      label: t('ip-mode'),
+    }),
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
-type VifHeader = 'network' | 'device' | 'status' | 'ip' | 'MAC' | 'MTU' | 'lockingMode' | 'more'
+type pifHeader = 'network' | 'device' | 'status' | 'vlan' | 'ip' | 'mac' | 'mode' | 'more'
 
-const headerIcon: Record<VifHeader, IconDefinition> = {
+const headerIcon: Record<pifHeader, IconDefinition> = {
   network: faAlignLeft,
   device: faAlignLeft,
   status: faPowerOff,
+  vlan: faAlignLeft,
   ip: faAt,
-  MAC: faAt,
-  MTU: faHashtag,
-  lockingMode: faCaretDown,
+  mac: faAt,
+  mode: faCaretDown,
   more: faEllipsis,
 }
 </script>
 
 <style scoped lang="postcss">
-.vm-vifs-table {
+.host-pif-table,
+.table-actions,
+.container {
   display: flex;
   flex-direction: column;
+}
+
+.host-pif-table {
   gap: 2.4rem;
 
-  .table-actions,
-  .container {
-    display: flex;
-    flex-direction: column;
+  .container,
+  .table-actions {
     gap: 0.8rem;
   }
 

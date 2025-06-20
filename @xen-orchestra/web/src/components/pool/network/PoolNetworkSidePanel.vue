@@ -130,8 +130,8 @@
 
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store'
-import type { XoNetwork } from '@/types/xo/network.type'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store.ts'
+import type { XoNetwork } from '@/types/xo/network.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -140,7 +140,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { faArrowLeft, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -163,7 +163,7 @@ const pifs = computed(() => getPifsByNetworkId(network.id))
 
 const networkVlan = computed(() => {
   if (pifs.value.length === 0) {
-    return ''
+    return
   }
 
   return pifs.value[0].vlan !== -1 ? pifs.value[0].vlan.toString() : t('none')

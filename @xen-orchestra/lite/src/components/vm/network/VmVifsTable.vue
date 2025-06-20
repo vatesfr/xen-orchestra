@@ -186,7 +186,7 @@ const vifsUuids = computed(() => vifs.map(vif => vif.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(vifsUuids)
 
-const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getNetworkByOpaqueRef(networkRef)?.name_label
+const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getNetworkByOpaqueRef(networkRef)?.name_label ?? ''
 
 const getIpAddresses = (vif: XenApiVif) => {
   const vm = getVmByOpaqueRef(vif.VM)

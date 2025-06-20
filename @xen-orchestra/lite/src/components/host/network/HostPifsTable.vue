@@ -181,7 +181,7 @@ const pifsUuids = computed(() => pifs.map(pif => pif.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(pifsUuids)
 
-const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getByOpaqueRef(networkRef)?.name_label
+const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getByOpaqueRef(networkRef)?.name_label ?? ''
 
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 

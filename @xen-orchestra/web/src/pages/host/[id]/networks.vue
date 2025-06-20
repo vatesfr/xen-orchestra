@@ -11,8 +11,8 @@
 </template>
 
 <script setup lang="ts">
-import HostPifSidePanel from '@/components/host/HostPifSidePanel.vue'
-import HostPifTable from '@/components/host/HostPifTable.vue'
+import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
+import HostPifTable from '@/components/host/network/HostPifTable.vue'
 import { usePifStore } from '@/stores/xo-rest-api/pif.store'
 import type { XoPif } from '@/types/xo/pif.type'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'

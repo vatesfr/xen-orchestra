@@ -11,8 +11,8 @@
 </template>
 
 <script setup lang="ts">
-import VmVifSidePanel from '@/components/vm/VmVifSidePanel.vue'
-import VmVifsTable from '@/components/vm/VmVifsTable.vue'
+import VmVifSidePanel from '@/components/vm/network/VmVifSidePanel.vue'
+import VmVifsTable from '@/components/vm/network/VmVifsTable.vue'
 import { useVifStore } from '@/stores/xo-rest-api/vif.store.ts'
 import type { XoVif } from '@/types/xo/vif.type.ts'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
