@@ -16,6 +16,7 @@
   - [Pool/system] Display pool information in pool/system tab (PR [#8581](https://github.com/vatesfr/xen-orchestra/pull/8581))
   - [Host/Dashboard] Update RAM usage components wordings and update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
   - [Site/Dashboard] Update BackupIssues and VtsBackupState components to display data in table (PR [#8674](https://github.com/vatesfr/xen-orchestra/pull/8674)
+  - [Tab/Network] Updated side panel in tab network behavior for mobile view (PR [#8688](https://github.com/vatesfr/xen-orchestra/pull/8688)
 
 - **Migrated REST API endpoints**
 

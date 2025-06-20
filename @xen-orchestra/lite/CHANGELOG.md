@@ -3,6 +3,7 @@
 ## **next**
 
 - [Pool/system] Display pool information in pool/system tab (PR [#8660](https://github.com/vatesfr/xen-orchestra/pull/8660))
+- [Tab/Network] Updated side panel in tab network behavior for mobile view (PR [#8688](https://github.com/vatesfr/xen-orchestra/pull/8688)
 
 ## **0.11.0** (2025-05-27)
 
