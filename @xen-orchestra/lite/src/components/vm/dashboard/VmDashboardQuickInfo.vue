@@ -33,7 +33,7 @@
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('vcpus')" :value="String(vm.VCPUs_at_startup)" />
-      <VtsQuickInfoRow :label="t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
+      <VtsQuickInfoRow :label="t('ram')" :value="`${ram.value} ${ram.prefix}`" />
       <VtsQuickInfoRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="vm.tags.length > 0">
