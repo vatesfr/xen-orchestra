@@ -668,24 +668,24 @@ export type XapiStatsGranularity = 'seconds' | 'minutes' | 'hours' | 'days'
 export type XapiHostStatsRaw = {
   cpus?: RecordStatValues
   ioThroughput?: {
-    r: Record<string, StatValues>
-    w: Record<string, StatValues>
+    r: RecordStatValues
+    w: RecordStatValues
   }
   iops?: {
-    r: Record<string, StatValues>
-    w: Record<string, StatValues>
+    r: RecordStatValues
+    w: RecordStatValues
   }
-  iowait?: Record<string, StatValues>
+  iowait?: RecordStatValues
   latency?: {
-    r: Record<string, StatValues>
-    w: Record<string, StatValues>
+    r: RecordStatValues
+    w: RecordStatValues
   }
   load?: StatValues
   memory?: StatValues
   memoryFree?: StatValues
   pifs?: {
-    rx: Record<string, StatValues>
-    tx: Record<string, StatValues>
+    rx: RecordStatValues
+    tx: RecordStatValues
   }
 }
 export type XapiHostStats = XapiStatsResponse<XapiHostStatsRaw>
@@ -711,20 +711,20 @@ export type XapiVmStatsRaw = {
     tx: RecordStatValues
   }
   vifErrors?: {
-    rx: Record<string, StatValues>
-    tx: Record<string, StatValues>
+    rx: RecordStatValues
+    tx: RecordStatValues
   }
   xvds?: {
-    w?: Record<string, StatValues>
-    r?: Record<string, StatValues>
-    total?: Record<string, StatValues>
+    w?: RecordStatValues
+    r?: RecordStatValues
+    total?: RecordStatValues
   }
   vbdLatency?: {
-    w: Record<string, StatValues>
-    r: Record<string, StatValues>
+    w: RecordStatValues
+    r: RecordStatValues
   }
-  vbdIowait?: Record<string, StatValues>
-  vbdInflight?: Record<string, StatValues>
-  vbdAvgquSz?: Record<string, StatValues>
+  vbdIowait?: RecordStatValues
+  vbdInflight?: RecordStatValues
+  vbdAvgquSz?: RecordStatValues
 }
 export type XapiVmStats = XapiStatsResponse<XapiVmStatsRaw>
