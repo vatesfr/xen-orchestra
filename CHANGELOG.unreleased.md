@@ -46,6 +46,7 @@
 - [Backup] Fix EBADF on mirror backup chaining (PR [#8706](https://github.com/vatesfr/xen-orchestra/pull/8706))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+- [Task/Schedule] Set sequences as completly done on success (PR [#8527](https://github.com/vatesfr/xen-orchestra/pull/8527))
 
 - [VM/Advanced] Fix CPU mask list in VM (PR [#8661](https://github.com/vatesfr/xen-orchestra/pull/8661))
 - [Backups]: All remotes timeout are now configurable (PR [#8707](https://github.com/vatesfr/xen-orchestra/pull/8707))
