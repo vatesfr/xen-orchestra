@@ -10,20 +10,20 @@
     class="ui-action-button"
     type="button"
   >
-    <UiIcon :busy :icon />
+    <VtsIcon :busy :name="icon" size="medium" />
     <slot />
   </button>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
+import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 
 const props = defineProps<{
   busy?: boolean
   disabled?: boolean
-  icon?: IconDefinition
+  icon?: IconName
   active?: boolean
 }>()
 

@@ -11,7 +11,6 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop } from '@/libs/story/story-param'
 import VtsLegendGroup, { type LegendGroupProps } from '@core/components/legend-group/VtsLegendGroup.vue'
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 
 const items: LegendGroupProps['items'] = [
   {
@@ -31,7 +30,7 @@ const items: LegendGroupProps['items'] = [
 
 const title: LegendGroupProps['title'] = {
   label: 'Legend Title',
-  icon: faInfoCircle,
+  icon: 'fa:info-circle',
   iconTooltip: 'This is a tooltip',
 }
 </script>

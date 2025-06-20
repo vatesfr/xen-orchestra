@@ -15,7 +15,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faEdit"
+            left-icon="fa:edit"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -25,7 +25,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faCopy"
+            left-icon="fa:copy"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -35,7 +35,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faTrash"
+            left-icon="fa:trash"
             variant="tertiary"
             accent="danger"
             size="medium"
@@ -61,11 +61,11 @@
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
-                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
                 </div>
               </th>
@@ -91,7 +91,7 @@
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="t('coming-soon')"
-                :icon="faEllipsis"
+                icon="fa:ellipsis"
                 accent="brand"
                 disabled
                 size="small"
@@ -118,6 +118,7 @@
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
+import type { IconName } from '@core/icons'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -136,17 +137,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import {
-  faAlignLeft,
-  faCaretDown,
-  faCopy,
-  faEdit,
-  faEllipsis,
-  faHashtag,
-  faPowerOff,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -235,13 +225,13 @@ const { pageRecords: networksRecords, paginationBindings } = usePagination('netw
 
 type NetworkHeader = 'name_label' | 'name_description' | 'status' | 'vlan' | 'MTU' | 'default_locking_mode'
 
-const headerIcon: Record<NetworkHeader, IconDefinition> = {
-  name_label: faAlignLeft,
-  name_description: faAlignLeft,
-  status: faPowerOff,
-  vlan: faAlignLeft,
-  MTU: faHashtag,
-  default_locking_mode: faCaretDown,
+const headerIcon: Record<NetworkHeader, IconName> = {
+  name_label: 'fa:align-left',
+  name_description: 'fa:align-left',
+  status: 'fa:power-off',
+  vlan: 'fa:align-left',
+  MTU: 'fa:hashtag',
+  default_locking_mode: 'fa:caret-down',
 }
 </script>
 

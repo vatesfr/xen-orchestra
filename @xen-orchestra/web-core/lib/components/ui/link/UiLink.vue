@@ -1,23 +1,22 @@
 <!-- v3 -->
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
-    <VtsIcon :icon accent="current" />
+    <VtsIcon :name="icon" size="medium" />
     <slot />
-    <VtsIcon v-if="attributes.target === '_blank'" :icon="faUpRightFromSquare" accent="current" class="external-icon" />
+    <VtsIcon v-if="attributes.target === '_blank'" name="fa:up-right-from-square" size="medium" class="external-icon" />
   </component>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { type LinkOptions, useLinkComponent } from '@core/composables/link-component.composable'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
+import type { IconName } from '@core/icons'
 import { computed } from 'vue'
 
 const props = defineProps<
   LinkOptions & {
     size: 'small' | 'medium'
-    icon?: IconDefinition
+    icon?: IconName
   }
 >()
 

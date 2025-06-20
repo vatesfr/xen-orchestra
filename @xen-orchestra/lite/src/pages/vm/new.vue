@@ -1,6 +1,6 @@
 <template>
   <div class="new-vm-view">
-    <UiHeadBar :icon="faPlus">
+    <UiHeadBar icon="fa:plus">
       {{ t('new-vm.add') }}
     </UiHeadBar>
     <div class="card-container">
@@ -96,7 +96,7 @@
                 <VtsInputWrapper :label="t('new-vm.name')">
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
-                <VtsInputWrapper :label="t('tags')" :icon="faTags">
+                <VtsInputWrapper :label="t('tags')" icon="fa:tags">
                   <!-- TODO Change input text into select when Thierry's component is available -->
                   <UiInput v-model="vmState.tag" accent="brand" @keydown.enter.prevent="addTag" />
                 </VtsInputWrapper>
@@ -159,11 +159,11 @@
                 <thead>
                   <tr>
                     <th>
-                      <VtsIcon accent="current" :icon="faNetworkWired" />
+                      <VtsIcon name="fa:network-wired" size="medium" />
                       {{ t('interfaces') }}
                     </th>
                     <th>
-                      <VtsIcon accent="current" :icon="faAt" />
+                      <VtsIcon name="fa:at" size="medium" />
                       {{ t('mac-addresses') }}
                     </th>
                     <th />
@@ -183,7 +183,7 @@
                     </td>
                     <td>
                       <UiButtonIcon
-                        :icon="faTrash"
+                        icon="fa:trash"
                         size="medium"
                         accent="brand"
                         variant="secondary"
@@ -194,7 +194,7 @@
                   <tr>
                     <td colspan="3">
                       <UiButton
-                        :left-icon="faPlus"
+                        left-icon="fa:plus"
                         variant="tertiary"
                         accent="brand"
                         size="medium"
@@ -213,20 +213,20 @@
               <thead>
                 <tr>
                   <th>
-                    <VtsIcon accent="current" :icon="faDatabase" />
+                    <VtsIcon name="fa:database" size="medium" />
                     {{ t('storage-repositories') }}
                   </th>
                   <th>
-                    <VtsIcon accent="current" :icon="faAlignLeft" />
+                    <VtsIcon name="fa:align-left" size="medium" />
                     {{ t('disk-name') }}
                   </th>
                   <th>
-                    <VtsIcon accent="current" :icon="faMemory" />
+                    <VtsIcon name="fa:memory" size="medium" />
                     <!-- TODO remove (GB) when we can use new selector -->
                     {{ `${t('size')} (GB)` }}
                   </th>
                   <th>
-                    <VtsIcon accent="current" :icon="faAlignLeft" />
+                    <VtsIcon name="fa:align-left" size="medium" />
                     {{ t('description') }}
                   </th>
                   <th />
@@ -266,7 +266,7 @@
                     </td>
                     <td>
                       <UiButtonIcon
-                        :icon="faTrash"
+                        icon="fa:trash"
                         size="medium"
                         accent="brand"
                         variant="secondary"
@@ -278,7 +278,7 @@
                 <tr>
                   <td colspan="5">
                     <UiButton
-                      :left-icon="faPlus"
+                      left-icon="fa:plus"
                       variant="tertiary"
                       accent="brand"
                       size="medium"
@@ -303,16 +303,16 @@
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
               <!-- TODO change label to manage pluralization when we can have multiple vm -->
-              <VtsResource :icon="faDisplay" count="1" :label="t('vms', 1)" />
-              <VtsResource :icon="faMicrochip" :count="vmState.vCPU" :label="t('vcpus', Number(vmState.vCPU))" />
-              <VtsResource :icon="faMemory" :count="`${ramFormatted} GB`" :label="t('ram')" />
+              <VtsResource icon="fa:display" count="1" :label="t('vms', 1)" />
+              <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus', Number(vmState.vCPU))" />
+              <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
-                :icon="faDatabase"
+                icon="fa:database"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
                 :label="t('vdis', vmState.existingVdis.length + vmState.vdis.length)"
               />
               <VtsResource
-                :icon="faNetworkWired"
+                icon="fa:network-wired"
                 :count="vmState.networkInterfaces.length"
                 :label="t('interfaces', vmState.networkInterfaces.length)"
               />
@@ -382,20 +382,6 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useFormSelect } from '@core/packages/form-select'
-
-// Icon Imports
-import {
-  faAlignLeft,
-  faAt,
-  faDatabase,
-  faDisplay,
-  faMemory,
-  faMicrochip,
-  faNetworkWired,
-  faPlus,
-  faTags,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 
 // Vue imports
 import { type DOMAIN_TYPE, OPAQUE_REF, VBD_TYPE } from '@vates/types'

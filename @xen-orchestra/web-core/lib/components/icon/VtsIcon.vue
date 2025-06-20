@@ -1,100 +1,56 @@
-<!-- WIP -->
 <template>
-  <UiLoader v-if="busy" class="vts-icon" />
-  <div v-else-if="overlayIcon !== undefined && icon !== undefined" class="vts-icon stacked" :class="accent">
-    <FontAwesomeIcon :fixed-width="fixedWidth" :icon />
-    <FontAwesomeIcon class="overlay-icon" :fixed-width="fixedWidth" :icon="overlayIcon" />
-  </div>
-  <FontAwesomeIcon v-else-if="icon !== undefined" :class="accent" :fixed-width="fixedWidth" :icon class="vts-icon" />
+  <UiLoader v-if="busy" />
+  <DisplayIcon v-else-if="icon" class="vts-icon" :class="className" :icon />
 </template>
 
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { type IconName, icons } from '@core/icons'
+import { DisplayIcon } from '@core/packages/icon'
+import { toVariants } from '@core/utils/to-variants.util.ts'
+import { computed } from 'vue'
 
-export type IconAccent = 'current' | 'brand' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
+export type IconSize = 'small' | 'medium' | 'large' | 'current'
 
-defineProps<{
-  accent: IconAccent
-  icon?: IconDefinition
-  overlayIcon?: IconDefinition
+const { size, name } = defineProps<{
+  size: IconSize
+  name: IconName | undefined
   busy?: boolean
-  fixedWidth?: boolean
 }>()
+
+const className = computed(() =>
+  toVariants({
+    size: size === 'current' ? undefined : size,
+  })
+)
+
+const icon = computed(() => {
+  if (!name) {
+    return undefined
+  }
+
+  const icon = icons[name]
+
+  if (icon === undefined) {
+    console.warn(`Icon "${name}" not found.`)
+  }
+
+  return icon
+})
 </script>
 
 <style lang="postcss" scoped>
 .vts-icon {
-  &.stacked {
-    display: inline-grid;
-    place-items: center;
-
-    svg {
-      grid-area: 1 / -1;
-
-      &:last-child {
-        font-size: 50%;
-      }
-    }
+  &.size--small {
+    font-size: 1.2rem;
   }
 
-  /* COLOR VARIANTS */
-
-  &.current {
-    color: currentColor;
-
-    .overlay-icon {
-      color: var(--color-neutral-background-primary);
-    }
+  &.size--medium {
+    font-size: 1.6rem;
   }
 
-  &.brand {
-    color: var(--color-brand-item-base);
-
-    .overlay-icon {
-      color: var(--color-brand-txt-item);
-    }
-  }
-
-  &.info {
-    color: var(--color-info-item-base);
-
-    .overlay-icon {
-      color: var(--color-info-txt-item);
-    }
-  }
-
-  &.success {
-    color: var(--color-success-item-base);
-
-    .overlay-icon {
-      color: var(--color-success-txt-item);
-    }
-  }
-
-  &.warning {
-    color: var(--color-warning-item-base);
-
-    .overlay-icon {
-      color: var(--color-warning-txt-item);
-    }
-  }
-
-  &.danger {
-    color: var(--color-danger-item-base);
-
-    .overlay-icon {
-      color: var(--color-danger-txt-item);
-    }
-  }
-
-  &.muted {
-    color: var(--color-neutral-background-disabled);
-
-    .overlay-icon {
-      color: var(--color-neutral-txt-secondary);
-    }
+  &.size--large {
+    font-size: 2rem;
   }
 }
 </style>

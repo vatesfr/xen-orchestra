@@ -3,7 +3,7 @@
     <UiCardTitle>{{ t('pools-status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!arePoolsStatusReady" type="card" />
     <template v-else>
-      <VtsDonutChartWithLegend :icon="faCity" :segments />
+      <VtsDonutChartWithLegend icon="fa:city" :segments />
       <UiCardNumbers :value="total" class="total" label="Total" size="small" />
     </template>
   </UiCard>
@@ -18,7 +18,6 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { useSum } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

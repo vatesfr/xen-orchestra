@@ -1,5 +1,5 @@
 <template>
-  <TitleBar :icon="faGear">{{ t('settings') }}</TitleBar>
+  <TitleBar icon="fa:gear">{{ t('settings') }}</TitleBar>
   <div class="card-view">
     <UiCard class="group about">
       <UiCardTitle>{{ t('about') }}</UiCardTitle>
@@ -93,7 +93,7 @@
           />
           <img v-else src="../assets/color-mode-auto.svg" :alt="t('dark-mode.auto')" />
           <span>
-            <UiIcon v-if="uiStore.colorMode === colorModeOption" :icon="faCheck" />
+            <VtsIcon v-if="uiStore.colorMode === colorModeOption" name="fa:check" size="medium" />
             {{ t(`theme-${colorModeOption}`) }}
           </span>
         </div>
@@ -103,7 +103,7 @@
       <UiCardTitle>{{ t('language') }}</UiCardTitle>
       <VtsColumns class="i18n-columns">
         <VtsColumn>
-          <VtsSelect :id="localeSelectId" :icon="faEarthAmericas" accent="brand" />
+          <VtsSelect :id="localeSelectId" icon="fa:earth-americas" accent="brand" />
         </VtsColumn>
         <VtsColumn class="i18n-link-column" :size="2">
           <UiLink size="small" href="https://translate.vates.tech/engage/xen-orchestra/">
@@ -117,7 +117,6 @@
 
 <script lang="ts" setup>
 import TitleBar from '@/components/TitleBar.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiKeyValueList from '@/components/ui/UiKeyValueList.vue'
@@ -127,12 +126,12 @@ import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { locales } from '@core/i18n.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { faEarthAmericas, faGear, faCheck } from '@fortawesome/free-solid-svg-icons'
 import type { BasicColorSchema } from '@vueuse/core'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

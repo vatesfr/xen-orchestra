@@ -4,7 +4,7 @@
  -->
 <template>
   <div class="dropdown-title">
-    <VtsIcon :icon accent="current" />
+    <VtsIcon :name="icon" size="medium" />
     <div class="label c3 semi-bold">
       <slot />
     </div>
@@ -21,12 +21,12 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 import { useI18n } from 'vue-i18n'
 
 withDefaults(
   defineProps<{
-    icon?: IconDefinition
+    icon?: IconName
     selected?: 'all' | 'some' | 'none'
     onToggleSelectAll?: (value: boolean) => void
   }>(),

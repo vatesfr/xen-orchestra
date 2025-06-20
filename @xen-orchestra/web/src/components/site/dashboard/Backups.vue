@@ -23,7 +23,6 @@ import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -38,7 +37,7 @@ const { t } = useI18n()
 const jobsTitle = computed<DonutChartWithLegendProps['title']>(() => ({
   label: t('backups.jobs'),
   iconTooltip: t('backups.jobs.based-on-last-three'),
-  icon: faCircleInfo,
+  icon: 'fa:info-circle',
 }))
 
 const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
@@ -67,7 +66,7 @@ const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
 const vmsProtectionTitle = computed<DonutChartWithLegendProps['title']>(() => ({
   label: t('backups.vms-protection'),
   iconTooltip: t('backups.vms-protection.tooltip'),
-  icon: faCircleInfo,
+  icon: 'fa:info-circle',
 }))
 
 const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [

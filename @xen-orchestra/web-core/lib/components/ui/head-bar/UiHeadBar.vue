@@ -4,7 +4,7 @@
     <div class="label-wrapper">
       <span v-if="slots.icon || icon" class="icon">
         <slot name="icon">
-          <VtsIcon :icon accent="current" />
+          <VtsIcon :name="icon" size="medium" />
         </slot>
       </span>
       <h4 v-tooltip class="typo-h4 label text-ellipsis">
@@ -23,10 +23,10 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 
 defineProps<{
-  icon?: IconDefinition
+  icon?: IconName
 }>()
 
 const slots = defineSlots<{

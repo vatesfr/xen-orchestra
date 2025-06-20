@@ -1,7 +1,7 @@
 <!-- v4 -->
 <template>
   <div class="ui-info">
-    <VtsIcon :accent class="icon" :icon="faCircle" :overlay-icon="icon" />
+    <VtsIcon class="icon" :name="icon" size="medium" />
     <p v-tooltip="!wrap" class="typo-body-regular-small" :class="{ 'text-ellipsis': !wrap }">
       <slot />
     </p>
@@ -11,16 +11,8 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import {
-  faCheck,
-  faCircle,
-  faExclamation,
-  faInfo,
-  faMinus,
-  faXmark,
-  type IconDefinition,
-} from '@fortawesome/free-solid-svg-icons'
-import { computed } from 'vue'
+import type { IconName } from '@core/icons'
+import { useMapper } from '@core/packages/mapper'
 
 export type InfoAccent = 'info' | 'success' | 'warning' | 'danger' | 'muted'
 
@@ -33,15 +25,17 @@ defineSlots<{
   default(): any
 }>()
 
-const iconByAccent: Record<InfoAccent, IconDefinition> = {
-  info: faInfo,
-  success: faCheck,
-  warning: faExclamation,
-  danger: faXmark,
-  muted: faMinus,
-}
-
-const icon = computed(() => iconByAccent[accent])
+const icon = useMapper<InfoAccent, IconName>(
+  () => accent,
+  {
+    info: 'legacy:status:info',
+    success: 'legacy:status:success',
+    warning: 'legacy:status:warning',
+    danger: 'legacy:status:danger',
+    muted: 'legacy:status:muted',
+  },
+  'muted'
+)
 </script>
 
 <style lang="postcss" scoped>

@@ -5,8 +5,8 @@
         v-if="!uiStore.isDesktopLarge"
         ref="navigationTrigger"
         :class="{ 'menu-to-right': !uiStore.isMobile }"
-        :icon="faBars"
         accent="brand"
+        icon="fa:bars"
         size="medium"
       />
       <RouterLink :to="logoRoute" class="logo-container">
@@ -32,7 +32,6 @@ import { useNavigationStore } from '@/stores/navigation.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'

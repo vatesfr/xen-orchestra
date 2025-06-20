@@ -1,6 +1,6 @@
 <template>
   <li class="vts-resource">
-    <VtsIcon accent="brand" :icon class="icon" />
+    <VtsIcon :name="icon" size="medium" class="icon" />
     <div class="separator" />
     <div class="label typo-h6">{{ label }}</div>
     <div class="count typo-body-regular-small">{{ count }}</div>
@@ -9,10 +9,10 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 
 defineProps<{
-  icon: IconDefinition
+  icon: IconName
   label: string
   count: string | number
 }>()

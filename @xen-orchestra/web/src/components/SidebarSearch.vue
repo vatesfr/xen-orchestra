@@ -3,7 +3,7 @@
     <UiInput
       v-model="search"
       :aria-label="t('sidebar.search-tree-view')"
-      :icon="faMagnifyingGlass"
+      icon="fa:magnifying-glass"
       :placeholder="t('sidebar.search-tree-view')"
       accent="brand"
     />
@@ -12,7 +12,6 @@
 
 <script lang="ts" setup>
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 const search = defineModel<string>({ default: '' })

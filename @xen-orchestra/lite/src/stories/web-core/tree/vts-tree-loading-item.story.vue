@@ -1,5 +1,5 @@
 <template>
-  <ComponentStory v-slot="{ properties }" :params="[iconProp().preset(faServer).required()]">
+  <ComponentStory v-slot="{ properties }" :params="[iconProp().preset('fa:serve').required()]">
     <VtsTreeList>
       <VtsTreeLoadingItem v-bind="properties" />
     </VtsTreeList>
@@ -11,5 +11,4 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { iconProp } from '@/libs/story/story-param'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
 </script>

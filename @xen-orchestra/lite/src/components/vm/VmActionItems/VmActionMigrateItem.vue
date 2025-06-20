@@ -7,7 +7,7 @@
     "
     :busy="isMigrating"
     :disabled="isDisabled"
-    :icon="faRoute"
+    icon="fa:route"
     @click="openModal()"
   >
     {{ t('migrate') }}
@@ -23,7 +23,6 @@ import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faRoute } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

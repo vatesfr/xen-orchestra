@@ -1,6 +1,6 @@
 <template>
   <ComponentStory v-slot="{ properties }" :params="[iconProp(), slot('title'), slot('default'), slot('buttons')]">
-    <FormModalLayout :icon="faRoute" v-bind="properties">
+    <FormModalLayout icon="fa:route" v-bind="properties">
       <template #title>Migrate 3 VMs</template>
 
       <div class="inputs">
@@ -36,7 +36,6 @@ import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
 import { iconProp, slot } from '@/libs/story/story-param'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import { faRoute } from '@fortawesome/free-solid-svg-icons'
 </script>
 
 <style lang="postcss" scoped>

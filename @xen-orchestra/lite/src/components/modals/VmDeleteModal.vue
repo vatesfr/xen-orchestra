@@ -1,6 +1,6 @@
 <template>
   <UiModal @submit.prevent="handleSubmit()">
-    <ConfirmModalLayout :icon="faSatellite">
+    <ConfirmModalLayout icon="fa:satellite">
       <template #title>
         <I18nT keypath="confirm-delete" scope="global" tag="div">
           <span :class="textClass">
@@ -35,7 +35,6 @@ import { ColorContext } from '@/context'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { IK_MODAL } from '@/types/injection-keys'
-import { faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 

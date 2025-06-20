@@ -1,6 +1,6 @@
 <template>
   <VtsTreeItem :expanded="branch.isExpanded">
-    <UiTreeItemLabel :icon="faCity" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleExpand()">
+    <UiTreeItemLabel icon="fa:city" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleExpand()">
       {{ branch.data.name_label }}
       <template #addons>
         <UiCounter
@@ -31,7 +31,6 @@ import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

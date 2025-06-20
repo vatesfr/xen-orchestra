@@ -7,7 +7,7 @@
   >
     <VtsTreeList>
       <VtsTreeItem>
-        <UiTreeItemLabel :icon="faServer" route="dashboard">Host</UiTreeItemLabel>
+        <UiTreeItemLabel icon="fa:server" route="dashboard">Host</UiTreeItemLabel>
         <template #sublist>
           <VtsTreeList>
             <VtsTreeItem>
@@ -26,5 +26,4 @@ import { slot } from '@/libs/story/story-param'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div class="title-bar">
-    <UiIcon :icon class="icon" />
+    <VtsIcon :name="icon" class="icon" size="medium" />
     <div class="title typo-h4">
       <slot />
     </div>
@@ -11,11 +11,11 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 
 defineProps<{
-  icon: IconDefinition
+  icon: IconName
 }>()
 </script>
 

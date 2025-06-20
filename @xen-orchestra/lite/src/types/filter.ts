@@ -1,4 +1,4 @@
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 
 export type FilterType = 'string' | 'boolean' | 'number' | 'enum'
 
@@ -29,7 +29,7 @@ export type FilterComparisons = {
 
 interface FilterCommon {
   label?: string
-  icon?: IconDefinition
+  icon?: IconName
 }
 
 export interface FilterEnum extends FilterCommon {

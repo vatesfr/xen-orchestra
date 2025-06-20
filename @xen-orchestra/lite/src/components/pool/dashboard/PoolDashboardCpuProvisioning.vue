@@ -3,13 +3,14 @@
     <UiCardTitle>
       {{ t('cpu-provisioning') }}
       <template v-if="!hasError" #right>
-        <UiStatusIcon
-          v-if="state !== 'success'"
+        <VtsIcon
+          v-if="state === 'warning'"
           v-tooltip="{
             content: t('cpu-provisioning-warning'),
             placement: 'left',
           }"
-          :state
+          name="legacy:status:warning"
+          size="medium"
         />
       </template>
     </UiCardTitle>
@@ -35,7 +36,6 @@
 
 <script lang="ts" setup>
 import NoDataError from '@/components/NoDataError.vue'
-import UiStatusIcon from '@/components/ui/icon/UiStatusIcon.vue'
 import UiProgressBar from '@/components/ui/progress/UiProgressBar.vue'
 import UiProgressLegend from '@/components/ui/progress/UiProgressLegend.vue'
 import UiProgressScale from '@/components/ui/progress/UiProgressScale.vue'
@@ -47,6 +47,7 @@ import { ACTIVE_STATES, percent } from '@/libs/utils'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
