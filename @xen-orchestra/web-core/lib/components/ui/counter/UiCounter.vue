@@ -130,15 +130,15 @@ const classNames = computed(() => {
   &.size--small {
     height: 1.6rem;
     min-width: 1.6rem;
-    border-radius: calc((1.6rem + 0.4rem) / 2);
-    padding: 0.4rem;
+    border-radius: 0.8rem;
+    padding: 0 0.4rem;
   }
 
   &.size--medium {
     height: 2.4rem;
     min-width: 2.4rem;
-    border-radius: calc((2.4rem + 0.4rem) / 2);
-    padding: 0.4rem;
+    border-radius: 1.2rem;
+    padding: 0 0.4rem;
   }
 }
 </style>
