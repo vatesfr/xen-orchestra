@@ -2,6 +2,7 @@
   <VtsLoadingHero v-if="!isReady" type="page" />
   <UiCard v-else class="vms">
     <div class="metaTable">
+      <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
       <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
     </div>
@@ -13,7 +14,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="vm in pageRecords" :key="vm.id">
+        <tr v-for="vm in vmsRecords" :key="vm.id">
           <VtsCellObject :id="vm.data.id">
             <UiObjectLink :route="`/vm/${vm.data.id}/`">
               <template #icon>
@@ -29,6 +30,7 @@
       </tbody>
     </VtsTable>
     <div class="metaTable">
+      <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
       <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
     </div>
@@ -72,7 +74,7 @@ const definitions = computed(() =>
 )
 
 const { nodes: vms } = useTree(definitions)
-const { pageRecords, paginationBindings } = usePagination('vms', vms)
+const { pageRecords: vmsRecords, paginationBindings } = usePagination('vms', vms)
 </script>
 
 <style lang="postcss" scoped>
