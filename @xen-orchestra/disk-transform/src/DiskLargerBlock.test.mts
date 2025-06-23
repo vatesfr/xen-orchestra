@@ -178,6 +178,7 @@ test('partial block handling', async () => {
   // The first 512 bytes should be from block 2
   // The remaining 512 bytes should be zeros (since we allocate with zeros)
   assert(block1.data.subarray(512).every(b => b === 0))
+  assert(block1.data.subarray(0, 512).equals((await source.readBlock(2)).data))
 })
 
 test('differencing disk behavior', async () => {

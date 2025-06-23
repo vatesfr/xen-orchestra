@@ -3,7 +3,7 @@ import assert from 'node:assert'
 import { Readable } from 'node:stream'
 
 // QCOW2 constants based on specification:
-// https://github.com/qemu/qemu/blob/master/docs/interop/qcow2.txt
+// in ./docs/qcow2.rst
 
 const REFCOUNT_BYTES = 2 // Size of a reference count entry (spec: refcount_bits=16 default)
 const CLUSTER_SIZE = 64 * 1024 // Standard cluster size (must be power of 2 between 512 and 2M)
@@ -27,8 +27,6 @@ type WithLength<T> = T & { length?: number }
 /**
  * Generates a valid QCOW2 stream from a Disk.
  *
- * Implements QCOW2 version 2 format as described in:
- * https://github.com/qemu/qemu/blob/master/docs/interop/qcow2.txt
  */
 export class QcowStreamGenerator {
   #disk: Disk

@@ -7,7 +7,7 @@ import fs from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DiskBlock, RandomAccessDisk } from '@xen-orchestra/disk-transform'
-import { toQcow2Stream } from './ConsumerQcowStream.mjs' // Adjust import path as needed
+import { toQcow2Stream } from './ConsumerQcowStream.mjs'
 
 class MockDisk extends RandomAccessDisk {
   private readonly size: number

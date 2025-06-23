@@ -80,7 +80,7 @@ export class XapiStreamNbdSource extends DiskPassthrough {
     try {
       await super.close()
     } catch (err) {
-      warn('error whilee closing stream source', { vdiRef: this.#vdiRef, err })
+      warn('error while closing stream source', { vdiRef: this.#vdiRef, err })
     }
     await this.#nbdClient?.disconnect()
   }

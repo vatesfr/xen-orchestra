@@ -76,7 +76,7 @@ export class XapiDiskSource extends RandomDiskPassthrough {
     try {
       streamSource = await this.#openExportStream()
       if (streamSource === undefined) {
-        throw new Error(`Can't open open stream source`)
+        throw new Error(`Can't open stream source`)
       }
       source = new XapiStreamNbdSource(streamSource, { vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
       await source.init()
@@ -85,7 +85,7 @@ export class XapiDiskSource extends RandomDiskPassthrough {
       if (err.code === 'NO_NBD_AVAILABLE') {
         warn(`can't connect through NBD, fallback to stream export`)
         if (streamSource === undefined) {
-          throw new Error(`Can't open open stream source`)
+          throw new Error(`Can't open stream source`)
         }
         return streamSource
       } else {

@@ -10,7 +10,10 @@
     "clean": "rimraf dist/",
     "test-integration": "tsc && node --test dist/consumer/ConsumerQcowStream.integ.mjs"
   },
-  "author": "",
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
   "license": "ISC",
   "private": false,
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/qcow2",
