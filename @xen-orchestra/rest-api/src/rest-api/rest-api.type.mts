@@ -79,6 +79,7 @@ export type XoApp = {
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */
+  createGroup(params: { name: string }): Promise<{ id: string }>
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
   getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
