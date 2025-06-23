@@ -19,7 +19,7 @@
   },
   "main": "./index.mjs",
   "dependencies": {
-    "@xen-orchestra/fs": "^4.5.1",
+    "@xen-orchestra/fs": "^4.6.0",
     "@xen-orchestra/log": "^0.7.1",
     "fuse-native": "^2.2.6",
     "lru-cache": "^7.14.0",
