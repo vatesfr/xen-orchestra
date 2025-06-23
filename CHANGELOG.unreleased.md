@@ -17,10 +17,13 @@
 
 - [Backup] Support qcow2 disks > 2TB for backup and replication (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
 - [Export] Support qcow2 disks exports (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
+- [REST API] Expose `GET /rest/v0/sms\` and `GET /rest/v0/sms/<sm-id>` (PR [#8696](https://github.com/vatesfr/xen-orchestra/pull/8696))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [VM/Advanced] Fix CPU mask list in VM (PR [#8661](https://github.com/vatesfr/xen-orchestra/pull/8661))
 
 ### Packages to release
 

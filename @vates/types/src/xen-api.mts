@@ -772,6 +772,7 @@ export interface XenApiSm {
   other_config: Record<string, string>
   required_api_version: string
   required_cluster_stack: string[]
+  supported_image_formats: string[]
   type: string
   uuid: string
   vendor: string

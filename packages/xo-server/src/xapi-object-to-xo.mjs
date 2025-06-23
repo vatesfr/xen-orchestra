@@ -680,7 +680,7 @@ const TRANSFORMS = {
       SM_type: obj.type,
       configuration: obj.configuration,
       vendor: obj.vendor,
-      features: obj?.features,
+      features: obj.features,
       driver_filename: obj.driver_filename,
       required_cluster_stack: obj.required_cluster_stack,
       supported_image_formats: obj.supported_image_formats ?? [],

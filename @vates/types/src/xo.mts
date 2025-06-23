@@ -475,8 +475,6 @@ export type XoSr = BaseXapiXo & {
 }
 
 export type XoSm = BaseXapiXo & {
-  content_type: string
-  current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SM'>
 
   SM_type: string
@@ -484,7 +482,7 @@ export type XoSm = BaseXapiXo & {
   name_label: string
   name_description: string
   configuration: Record<string, string>
-  features: Record<string, string>
+  features: Record<string, number>
   driver_filename: string
   required_cluster_stack: string[]
   supported_image_formats: string[]

@@ -1,7 +1,7 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import { Request as ExRequest } from 'express'
+import type { Request as ExRequest } from 'express'
 import type { XoSm } from '@vates/types'
 
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
