@@ -17,7 +17,6 @@
       <VtsQuickInfoRow :label="t('core-socket')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
       <VtsQuickInfoRow :label="t('gpus')">
         <template #value>
-          <!-- TODO: display PGPUs name when available -->
           <template v-if="host.PGPUs.length > 0 && pGpusName">
             {{ pGpusName }}
           </template>
