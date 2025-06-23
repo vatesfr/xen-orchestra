@@ -35,7 +35,7 @@
   "dependencies": {
     "@vates/async-each": "^1.0.0",
     "@vates/types": "^1.5.0",
-    "@xen-orchestra/backups": "^0.59.0",
+    "@xen-orchestra/backups": "^0.61.2",
     "@xen-orchestra/log": "^0.7.1",
     "complex-matcher": "^0.7.1",
     "inversify": "^6.2.2",
