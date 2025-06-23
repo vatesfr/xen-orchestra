@@ -46,7 +46,7 @@
     "tsoa": "^6.6.0",
     "value-matcher": "^0.2.0",
     "xo-common": "^0.8.0",
-    "xo-remote-parser": "^0.9.3"
+    "xo-remote-parser": "^0.10.0"
   },
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
