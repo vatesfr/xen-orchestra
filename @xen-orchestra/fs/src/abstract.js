@@ -668,7 +668,7 @@ export default class RemoteHandlerAbstract {
 
   async _outputStream(path, input, { dirMode, validator }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
-    const output = this._createOutputStream(tmpPath, {
+    const output = await this._createOutputStream(tmpPath, {
       dirMode,
       flags: 'wx',
     })
