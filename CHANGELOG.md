@@ -1,5 +1,80 @@
 # ChangeLog
 
+## **next**
+
+### Security
+
+> Security fixes and new features should go in this section
+
+### Enhancements
+
+> Users must be able to say: “Nice enhancement, I'm eager to test it”
+
+- **XO 6:**
+
+  - [Pool/system] Display pool information in pool/system tab (PR [#8581](https://github.com/vatesfr/xen-orchestra/pull/8581))
+  - [Host/Dashboard] Update RAM usage components wordings and update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
+  - [Site/Dashboard] Update BackupIssues and VtsBackupState components to display data in table (PR [#8674](https://github.com/vatesfr/xen-orchestra/pull/8674)
+  - [VM/Dashboard] Display VM information in dashboard tab (PR [#8585](https://github.com/vatesfr/xen-orchestra/pull/8585)
+  - [Site] Add "Site" level in treeview and add "Site" header and tabs (PR [#8694](https://github.com/vatesfr/xen-orchestra/pull/8694))
+
+- **Migrated REST API endpoints**
+
+  - `/rest/v0/pools/<pool-id>/actions/emergency_shutdown` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
+  - `/rest/v0/pools/<pool-id>/actions/rolling_reboot` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
+  - `/rest/v0/pools/<pool-id>/actions/rolling_update` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
+  - `/rest/v0/dashboard` (PR [#8580](https://github.com/vatesfr/xen-orchestra/pull/8580))
+
+- [VM] Ability to hide XSA-468 warnings for specific VMs by adding `HIDE_XSA468` tag (PR [#8665](https://github.com/vatesfr/xen-orchestra/pull/8665))
+- [OTP] Change wording from "Password" to "OTP code" when enabling OTP (PR [#8666](https://github.com/vatesfr/xen-orchestra/pull/8666))
+- [Backups] Fix `HANDLE_INVALID(SR)` when replicated to multiples tagret (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
+- [REST API] Ability to create a network `POST /rest/v0/pools/<pool-id/actions/createNetwork` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
+- [REST API] Ability to delete a network `DELETE /rest/v0/networks/<network-id>` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
+- [REST API] Expose `GET /rest/v0/pcis` and `GET /rest/v0/pcis/<pci-id>` (PR [#8686](https://github.com/vatesfr/xen-orchestra/pull/8686))
+- [REST API] Ability to add/remove a data_source in VMs `(PUT|DELETE) /rest/v0/vms/<vm-id>/stats/data_source/<data_source>` (PR [#8699](https://github.com/vatesfr/xen-orchestra/pull/8699))
+- [REST API] expose `GET /rest/v0/pgpus` and `GET /rest/v0/pgpus/<pgpu-id>` (PR [#8684](https://github.com/vatesfr/xen-orchestra/pull/8684))
+- [REST API] expose `DELETE /rest/v0/servers/<server-id>` (PR [#8710](https://github.com/vatesfr/xen-orchestra/pull/8710))
+- [Backup reports] Make content of backup reports independant of 'Report when' parameter (PR [#8670](https://github.com/vatesfr/xen-orchestra/pull/8670))
+- [i18n] Ability to switch language to ones newly present in XO6, but not available for XO5 (Thanks [p-bo](https://github.com/p-bo)!) (PR [#8711](https://github.com/vatesfr/xen-orchestra/pull/8711))
+- [Backups]: Enable CBT only when the "purge snapshot data is enabled" (PR [#8735](https://github.com/vatesfr/xen-orchestra/pull/8735))
+
+- **Azure Blob Storage**:
+  - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PR [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415))
+
+### Bug fixes
+
+- [REST API] Ability to use `ndjson` query parameter also on migrated collections (PR [#8628](https://github.com/vatesfr/xen-orchestra/pull/8628))
+- [Backup] Fix EBADF on mirror backup chaining (PR [#8706](https://github.com/vatesfr/xen-orchestra/pull/8706))
+
+> Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [VM/Advanced] Fix CPU mask list in VM (PR [#8661](https://github.com/vatesfr/xen-orchestra/pull/8661))
+- [Backups]: All remotes timeout are now configurable (PR [#8707](https://github.com/vatesfr/xen-orchestra/pull/8707))
+- [Server] Fix server deletion now fully disconnects and deletes (PR [#8710](https://github.com/vatesfr/xen-orchestra/pull/8710))
+
+### Released packages
+
+- xo-remote-parser 0.10.0
+- @xen-orchestra/fs 4.6.0
+- vhd-lib 4.13.0
+- xen-api 4.7.2
+- @vates/task 0.6.2
+- @vates/types 1.5.0
+- @xen-orchestra/backups 0.61.2
+- @xen-orchestra/backups-cli 1.1.0
+- @xen-orchestra/web-core 0.21.0
+- @xen-orchestra/proxy 0.29.22
+- @xen-orchestra/rest-api 0.9.0
+- @xen-orchestra/web 0.19.0
+- vhd-cli 0.9.4
+- xo-server 5.179.0
+- xo-server-auth-oidc 0.3.3
+- xo-server-backup-reports 1.6.0
+- xo-server-load-balancer 0.10.2
+- xo-server-perf-alert 0.6.3
+- xo-server-transport-nagios 1.0.3
+- xo-web 5.177.0
+
 ## **5.107.2** (2025-06-05)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
@@ -23,7 +98,6 @@
 
 ## **5.107.1** (2025-05-28)
 
-
 ### Bug fixes
 
 - [Templates] Fix Windows templates not being shown (PR [#8652](https://github.com/vatesfr/xen-orchestra/pull/8652))
@@ -40,17 +114,17 @@
 - [REST] Ability to add a new server `POST rest/v0/servers` (PR [#8564](https://github.com/vatesfr/xen-orchestra/pull/8564))
 - [REST] Ability to connect/disconnect a server `POST rest/v0/servers/<server-id>/actions/(connect|disconnect)` (PR [#8565](https://github.com/vatesfr/xen-orchestra/pull/8565))
 - **Migrated REST API endpoints**
-   - `/rest/v0/vms/<vm-id>/actions/clean_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
-   - `/rest/v0/vms/<vm-id>/actions/hard_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
-   - `/rest/v0/vms/<vm-id>/actions/clean_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
-   - `/rest/v0/vms/<vm-id>/actions/hard_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
-   - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
-   - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
-   - `/rest/v0/vms/<vm-id>/actions/snapshot` (PR [#8622](https://github.com/vatesfr/xen-orchestra/pull/8622))
+  - `/rest/v0/vms/<vm-id>/actions/clean_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
+  - `/rest/v0/vms/<vm-id>/actions/hard_shutdown` (PR [#8612](https://github.com/vatesfr/xen-orchestra/pull/8612))
+  - `/rest/v0/vms/<vm-id>/actions/clean_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
+  - `/rest/v0/vms/<vm-id>/actions/hard_reboot` (PR [#8611](https://github.com/vatesfr/xen-orchestra/pull/8611))
+  - `/rest/v0/pifs` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+  - `/rest/v0/pifs/<pif-id>` (PR [#8569](https://github.com/vatesfr/xen-orchestra/pull/8569))
+  - `/rest/v0/vms/<vm-id>/actions/snapshot` (PR [#8622](https://github.com/vatesfr/xen-orchestra/pull/8622))
 - **XO 6:**
-   - [VM/system] Display system information in vm/system tab (PR [#8522](https://github.com/vatesfr/xen-orchestra/pull/8522))
-   - [Host/System] Display system information in host/system tab (PR [#8521](https://github.com/vatesfr/xen-orchestra/pull/8521))
-   - [i18n] Update Czech, German, Spanish, Dutch, Russian and Swedish translations (PR [#8534](https://github.com/vatesfr/xen-orchestra/pull/8534))
+  - [VM/system] Display system information in vm/system tab (PR [#8522](https://github.com/vatesfr/xen-orchestra/pull/8522))
+  - [Host/System] Display system information in host/system tab (PR [#8521](https://github.com/vatesfr/xen-orchestra/pull/8521))
+  - [i18n] Update Czech, German, Spanish, Dutch, Russian and Swedish translations (PR [#8534](https://github.com/vatesfr/xen-orchestra/pull/8534))
 
 ### Security
 
@@ -60,8 +134,8 @@
 ### Enhancements
 
 - **XO 6:**
-   - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
-   - [Host/Dashboard] Update Quick Info section to display a link to the primary host (PR [#8606](https://github.com/vatesfr/xen-orchestra/pull/8606))
+  - [Host/Header] Add master host icon on host header (PR [#8512](https://github.com/vatesfr/xen-orchestra/pull/8512))
+  - [Host/Dashboard] Update Quick Info section to display a link to the primary host (PR [#8606](https://github.com/vatesfr/xen-orchestra/pull/8606))
 - [Netbox] Support version 4.3.x (PR [#8588](https://github.com/vatesfr/xen-orchestra/pull/8588))
 
 ### Bug fixes
@@ -75,7 +149,7 @@
 - [Hosts] Prevent a HOST_OFFLINE error from being logged when displaying offline hosts (PR [#8597](https://github.com/vatesfr/xen-orchestra/pull/8597))
 - [XOA] Fix "an error has occurred" when XOA is not registered (PR [#8646](https://github.com/vatesfr/xen-orchestra/pull/8646))
 - **XO 6**:
-   - [VM] Add auto redirection from /vm/[id] to /vm/[id]/console (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
+  - [VM] Add auto redirection from /vm/[id] to /vm/[id]/console (PR [#8553](https://github.com/vatesfr/xen-orchestra/pull/8553))
 - [Hosts] Avoid getting XO tasks logs flooded with errors on `host.isPubKeyTooShort` (PR [#8605](https://github.com/vatesfr/xen-orchestra/pull/8605))
 - [VM] Fix "an error has occurred" in Advanced tab when VTPM is `null` (PR [#8601](https://github.com/vatesfr/xen-orchestra/pull/8601))
 
