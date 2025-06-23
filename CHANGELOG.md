@@ -2,13 +2,7 @@
 
 ## **next**
 
-### Security
-
-> Security fixes and new features should go in this section
-
 ### Enhancements
-
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **XO 6:**
 
