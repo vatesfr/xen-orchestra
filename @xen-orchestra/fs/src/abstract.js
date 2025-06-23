@@ -713,9 +713,10 @@ export default class RemoteHandlerAbstract {
     }
 
     const files = await this._list(dir)
-    await asyncEach(files, file =>
-      this._unlink(`${dir}/${file}`).catch(
-        error => {
+    await asyncEach(
+      files,
+      file =>
+        this._unlink(`${dir}/${file}`).catch(error => {
           // Unlink dir behavior is not consistent across platforms
           // https://github.com/nodejs/node-v0.x-archive/issues/5791
           if (error.code === 'EISDIR' || error.code === 'EPERM') {
@@ -728,10 +729,9 @@ export default class RemoteHandlerAbstract {
             })
           }
           throw error
-        },
-        // real unlink concurrency will be 2**max directory depth
-        { concurrency: 2 }
-      )
+        }),
+      // real unlink concurrency will be 2**max directory depth
+      { concurrency: 2 }
     )
     return this._rmtree(dir)
   }
