@@ -40,7 +40,7 @@
     "human-format": "^1.0.0",
     "lodash": "^4.17.4",
     "pw": "^0.0.4",
-    "xen-api": "^4.7.1"
+    "xen-api": "^4.7.2"
   },
   "scripts": {
     "postversion": "npm publish"
