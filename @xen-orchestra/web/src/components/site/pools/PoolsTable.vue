@@ -38,7 +38,9 @@
             {{ t('forget') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+          <UiTablePagination v-if="isServerReady" v-bind="paginationBindings" />
+        </UiTopBottomTable>
       </div>
       <VtsDataTable
         :is-ready="isServerReady"
@@ -67,7 +69,7 @@
         </template>
         <template #tbody>
           <tr
-            v-for="row of rows"
+            v-for="row of vifRowRecords"
             :key="row.id"
             :class="{ selected: selectedServerId === row.id }"
             @click="selectedServerId = row.id"
@@ -114,7 +116,9 @@
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <VtsStateHero v-if="!servers.length" image="no-data" type="page" />
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+        <UiTablePagination v-if="isServerReady" v-bind="paginationBindings" />
+      </UiTopBottomTable>
     </div>
   </div>
 </template>
@@ -133,8 +137,10 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
@@ -162,7 +168,6 @@ const { t } = useI18n()
 
 const { isReady: isServerReady, hasError } = useServerStore().subscribe()
 const { get: getHostById } = useHostStore().subscribe()
-
 const selectedServerId = useRouteQuery('id')
 
 const searchQuery = ref('')
@@ -232,6 +237,8 @@ const { visibleColumns, rows } = useTable('servers', filteredServers, {
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
+
+const { pageRecords: vifRowRecords, paginationBindings } = usePagination('pifRow', rows)
 
 type ServerHeader = 'label' | 'host' | 'status' | 'primary-host'
 

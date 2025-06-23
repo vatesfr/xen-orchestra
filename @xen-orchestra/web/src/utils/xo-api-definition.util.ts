@@ -117,5 +117,6 @@ export const xoApiDefinition = {
     fields:
       'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId,poolNameLabel,id,status,master,error,poolNameDescription',
     handler: (record: XoServer) => record,
+    stream: false,
   },
 } satisfies ApiDefinition
