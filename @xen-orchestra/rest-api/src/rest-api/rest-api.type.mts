@@ -78,6 +78,7 @@ export type XoApp = {
   checkFeatureAuthorization(featureCode: string): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
+  deleteGroup(id: XoGroup['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
