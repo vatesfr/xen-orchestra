@@ -78,6 +78,28 @@ Content-Type: application/json
 ]
 ```
 
+With custom fields:
+
+```
+GET /rest/v0/vms?fields=name_label,power_state HTTP/1.1
+Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+[
+  {
+    "name_label": "Debian 10 Cloudinit",
+    "power_state": "Running",
+    "url": "/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac"
+  },
+  {
+    "name_label": "Debian 10 Cloudinit self-service",
+    "power_state": "Halted",
+    "url": "/rest/v0/vms/5019156b-f40d-bc57-835b-4a259b177be1"
+  }
+]
+
 Here is an example with `curl`:
 
 ```console
@@ -381,15 +403,9 @@ $ curl \
 "2b0266aa-c753-6fbc-e4dd-c79be7782052"
 ```
 
-## Future Improvements
+## OpenAPI/Swagger
 
-We are actively working on enhancing and expanding the REST API with new features and capabilities. If you have specific use cases, ideas, or feedback that you would like to share, feel free to participate in the discussion on our [Xen Orchestra forum](https://xcp-ng.org/forum/category/12/xen-orchestra).
-
-We encourage feedback and suggestions to help us make this documentation as useful and complete as possible.
-
-### OpenAPI/Swagger
-
-#### What is Swagger?
+### What is Swagger?
 
 [Swagger](https://swagger.io/specification/) allows you to describe the structure of an API so that machines can understand. By parsing the structure of the API, Swagger can automatically generate clear, user-friendly, and interactive API documentation. It also makes integration with tools and automatic client library generation possible.
 
@@ -403,7 +419,7 @@ The Swagger API documentation is still a work in progress. Not all endpoints are
 
 :::
 
-#### Accessing the Xen Orchestra API documentation in Swagger
+### Accessing the Xen Orchestra API documentation in Swagger
 
 Both versions of the API are now available at `/rest/v0`. However, only the endpoints that have been migrated to the new Swagger setup will show up in the documentation at `/rest/v0/docs`.
 
@@ -411,4 +427,6 @@ The Swagger UI doesn't just provide documentation of available endpoints. It als
 
 As we continue the migration process, the documentation will expand and improve. Our goal is that once everything is fully transitioned, `/rest/v0` will automatically redirect to the docs.
 
+## Ongoing Improvements
 
+We are actively working on enhancing and expanding the REST API with new features and capabilities. If you have specific use cases, ideas, or feedback that you would like to share, feel free to participate in the discussion on our [Xen Orchestra forum](https://xcp-ng.org/forum/category/12/xen-orchestra).
