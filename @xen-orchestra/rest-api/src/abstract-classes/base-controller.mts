@@ -2,7 +2,8 @@ import { Controller, HttpStatusCodeLiteral } from 'tsoa'
 import { Readable } from 'node:stream'
 import { Request } from 'express'
 import type { Task } from '@vates/types/lib/vates/task'
-import { XoRecord } from '@vates/types/xo'
+import type { XapiXoRecord, XoRecord } from '@vates/types/xo'
+import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 import { BASE_URL } from '../index.mjs'
 import { makeNdJsonStream } from '../helpers/stream.helper.mjs'
@@ -75,5 +76,9 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
 
       return location
     }
+  }
+
+  getXapi(maybeId: XapiXoRecord | XapiXoRecord['id']): Xapi {
+    return this.restApi.xoApp.getXapi(maybeId)
   }
 }
