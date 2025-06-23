@@ -283,6 +283,33 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * The VM must be running
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/pause')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async pauseVm(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+    const vmId = id as XoVm['id']
+    const action = async () => {
+      await this.getXapiObject(vmId).$callAsync('pause')
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'pause VM',
+        objectId: vmId,
+      },
+    })
+  }
+
+  /**
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example body { "name_label": "my_awesome_snapshot" }
    */

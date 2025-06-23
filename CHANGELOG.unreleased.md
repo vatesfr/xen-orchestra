@@ -22,6 +22,7 @@
 - [Export] Support qcow2 disks exports (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
 - [REST API] Expose `GET /rest/v0/sms` and `GET /rest/v0/sms/<sm-id>` (PR [#8696](https://github.com/vatesfr/xen-orchestra/pull/8696))
 - [XO5/Tasks] hide pending/successful xo tasks (PR [#8676](https://github.com/vatesfr/xen-orchestra/pull/8676))
+- [REST API] Expose `POST /rest/v0/vms/<vm-id>/actions/pause` (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
 
 ### Bug fixes
 
