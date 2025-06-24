@@ -11,6 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+**XO 6**:
+  - [Dashboard] Cards are displayed as soon as they are ready (PR [#8695](https://github.com/vatesfr/xen-orchestra/pull/8695))
+
 - [Backup] Support qcow2 disks > 2TB for backup and replication (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
 - [Export] Support qcow2 disks exports (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
 
@@ -37,9 +40,12 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/disk-transform minor
 - @xen-orchestra/qcow2 major
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
 - @xen-orchestra/xapi minor
 - vhd-lib minor
 - xo-acl-resolver patch
 - xo-server minor
 - xo-web minor
+
 <!--packages-end-->

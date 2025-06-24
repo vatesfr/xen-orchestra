@@ -10,9 +10,9 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
+import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
-const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
 
 export abstract class BaseController<T extends XoRecord, IsSync extends boolean> extends Controller {
   abstract getObjects(): IsSync extends false ? Promise<Record<T['id'], T>> : Record<T['id'], T>
