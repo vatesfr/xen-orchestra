@@ -25,6 +25,7 @@
 - [REST API] Expose `POST /rest/v0/vms/<vm-id>/actions/pause` (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
 - [REST API] Expose `POST /rest/v0/vms/<vm-id>/actions/suspend` (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
 - [REST API] Expose `POST /rest/v0/vms/<vm-id>/actions/resume` (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
+- [REST API] Expose `POST /rest/v0/vms/<vm-id>/actions/unpause` (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
 - [REST API] Add `hostId` in body of `POST /rest/v0/vms/<vm-id>/actions/start` to start a VM on a specific host (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
 
 ### Bug fixes

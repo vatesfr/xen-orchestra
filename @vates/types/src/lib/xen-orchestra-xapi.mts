@@ -60,6 +60,7 @@ export interface Xapi {
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
+  unpauseVm(id: XoVm['id']): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {
