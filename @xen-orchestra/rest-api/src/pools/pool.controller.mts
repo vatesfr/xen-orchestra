@@ -31,11 +31,12 @@ import {
 } from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import type { XoNetwork, XoPif, XoPool } from '@vates/types'
-import { partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
+import type { XenApiSr, XenApiVm, XoNetwork, XoPif, XoPool, XoSr, XoVm } from '@vates/types'
+import { importVm, partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
 import type { CreateNetworkBody } from './pool.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
+import { BASE_URL } from '../index.mjs'
 
 @Route('pools')
 @Security('*')
@@ -198,5 +199,40 @@ export class PoolController extends XapiXoController<XoPool> {
         progress: 0,
       },
     })
+  }
+
+  // For this endpoint, the requestBody type is written directly to `tsoa.json` because TSOA does not provide a decorator for "octet-stream" file uploads
+  /**
+   *  Import an XVA VM into a pool
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   * @example sr "c787b75c-3e0d-70fa-d0c3-cbfd382d7e33"
+   *
+   */
+  @Example(importVm)
+  @Post('{id}/vms')
+  @Tags('vms')
+  @SuccessResponse(createdResp.status, 'VM imported')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async importVm(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() sr?: string
+  ): Promise<{ id: Unbrand<XoVm>['id'] }> {
+    const pool = this.getXapiObject(id as XoPool['id'])
+    const xapi = pool.$xapi
+
+    let srRef: XenApiSr['$ref'] | undefined
+    if (sr !== undefined) {
+      srRef = this.restApi.getXapiObject<XoSr>(sr as XoSr['id'], 'SR').$ref
+    }
+
+    const vmRef = await xapi.VM_import(req, srRef)
+    const vmId = await xapi.getField<XenApiVm, 'uuid'>('VM', vmRef, 'uuid')
+
+    this.setHeader('Location', `${BASE_URL}/vms/${vmId}`)
+
+    return { id: vmId }
   }
 }
