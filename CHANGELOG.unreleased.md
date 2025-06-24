@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Host/Advanced] Ability to clear remote syslog
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,5 +34,7 @@
 <!--packages-start-->
 
 - xo-acl-resolver patch
+- xo-server minor
+- xo-web minor
 
 <!--packages-end-->
