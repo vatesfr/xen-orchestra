@@ -11,6 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+**XO 6**:
+  - [Dashboard] Cards are displayed as soon as they are ready (PR [#8695](https://github.com/vatesfr/xen-orchestra/pull/8695))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,6 +34,9 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
 - xo-acl-resolver patch
+- xo-server patch
 
 <!--packages-end-->
