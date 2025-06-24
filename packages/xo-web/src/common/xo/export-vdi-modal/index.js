@@ -7,6 +7,10 @@ import { Select } from '../../form'
 
 const OPTIONS = [
   {
+    label: _('qcow2'),
+    value: 'qcow2',
+  },
+  {
     label: _('vhd'),
     value: 'vhd',
   },

@@ -2,34 +2,58 @@
 /**
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
+ * @typedef {import('@xen-orchestra/disk-transform').RandomAccessDisk} RandomAccessDisk
  * @typedef {import('@vates/nbd-client/multi.mjs')} MultiNbdClient
  */
 
+import { DiskPassthrough } from '@xen-orchestra/disk-transform'
 import { connectNbdClientIfPossible } from './utils.mjs'
-import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
+import { createLogger } from '@xen-orchestra/log'
 
-export class XapiVhdStreamNbdSource extends XapiVhdStreamSource {
+const { warn } = createLogger('@xen-orchestra/xapi/disks/XapiStreamNbd')
+export class XapiStreamNbdSource extends DiskPassthrough {
   /** @type {MultiNbdClient|undefined} */
   #nbdClient
   /** @type {number } */
   #nbdConcurrency
 
   /**
+   * @type {any}
+   */
+  #xapi
+  /**
+   * @type {string}
+   */
+  #vdiRef
+
+  /**
+   * @param {Disk} streamSourceDisk
    * @param {Object} params
    * @param {string} params.vdiRef
    * @param {string|undefined} params.baseRef
    * @param {any} params.xapi
    * @param {number} params.nbdConcurrency
    */
-  constructor({ vdiRef, baseRef, xapi, nbdConcurrency = 4 }) {
-    super({ vdiRef, baseRef, xapi })
+  constructor(streamSourceDisk, { vdiRef, xapi, nbdConcurrency = 4 }) {
+    if (streamSourceDisk === undefined) {
+      throw new Error(`A stream source must be given`)
+    }
+    super(streamSourceDisk)
     this.#nbdConcurrency = nbdConcurrency
+    this.#vdiRef = vdiRef
+    this.#xapi = xapi
   }
-
+  /**
+   * @returns {Promise<RandomAccessDisk>}
+   */
+  openSource() {
+    //
+    throw new Error('Method not implemented.')
+  }
   /** @returns {Promise<void>} */
   async init() {
     await super.init()
-    const client = await connectNbdClientIfPossible(this.xapi, this.ref, this.#nbdConcurrency)
+    const client = await connectNbdClientIfPossible(this.#xapi, this.#vdiRef, this.#nbdConcurrency)
     this.#nbdClient = client
     // we won't use the stream anymore
     await super.close()
@@ -53,7 +77,11 @@ export class XapiVhdStreamNbdSource extends XapiVhdStreamSource {
   }
   /** @returns {Promise<void>} */
   async close() {
-    await super.close()
+    try {
+      await super.close()
+    } catch (err) {
+      warn('error while closing stream source', { vdiRef: this.#vdiRef, err })
+    }
     await this.#nbdClient?.disconnect()
   }
 }
