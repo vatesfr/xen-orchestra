@@ -59,6 +59,7 @@ export interface Xapi {
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
+  resumeVm(id: XoVm['id']): Promise<void>
   startVm(
     id: XoVm['id'],
     opts?: {
