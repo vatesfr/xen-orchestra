@@ -8,7 +8,7 @@
           size="medium"
           variant="tertiary"
           accent="brand"
-          :icon="faArrowLeft"
+          :icon="faAngleLeft"
           @click="emit('close')"
         />
         <div class="buttons-action">
@@ -138,7 +138,7 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { faArrowLeft, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faAngleLeft, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

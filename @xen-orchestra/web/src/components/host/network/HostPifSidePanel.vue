@@ -8,7 +8,7 @@
           size="medium"
           variant="tertiary"
           accent="brand"
-          :icon="faArrowLeft"
+          :icon="faAngleLeft"
           @click="emit('close')"
         />
         <div>
@@ -315,7 +315,7 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { faArrowLeft, faCircle, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faAngleLeft, faCircle, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
