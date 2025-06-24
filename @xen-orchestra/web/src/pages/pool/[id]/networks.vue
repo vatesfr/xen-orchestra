@@ -48,11 +48,11 @@ const selectedNetwork = useRouteQuery<XoNetwork | undefined>('id', {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40rem;
   }
-}
 
-.container {
-  height: fit-content;
-  margin: 0.8rem;
-  gap: 4rem;
+  .container {
+    height: fit-content;
+    margin: 0.8rem;
+    gap: 4rem;
+  }
 }
 </style>

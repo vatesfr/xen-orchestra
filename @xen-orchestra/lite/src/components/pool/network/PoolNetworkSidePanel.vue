@@ -1,7 +1,7 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
-      <div :class="{ 'container-buttons-action': uiStore.isMobile }">
+      <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
           v-if="uiStore.isMobile"
           v-tooltip="t('close')"
@@ -11,7 +11,7 @@
           :icon="faAngleLeft"
           @click="emit('close')"
         />
-        <div class="buttons-action">
+        <div class="action-buttons">
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
@@ -208,16 +208,16 @@ const pifsCount = computed(() => pifs.value.length)
   position: fixed;
   inset: 0;
 
-  .container-buttons-action {
+  .action-buttons-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
   }
-}
 
-.buttons-action {
-  display: flex;
-  align-items: center;
+  .action-buttons {
+    display: flex;
+    align-items: center;
+  }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
-      <div :class="{ 'buttons-action': uiStore.isMobile }">
+      <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
           v-if="uiStore.isMobile"
           v-tooltip="t('close')"
@@ -11,7 +11,7 @@
           :icon="faAngleLeft"
           @click="emit('close')"
         />
-        <div>
+        <div class="action-buttons">
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
@@ -388,11 +388,16 @@ const speed = computed(() => {
   position: fixed;
   inset: 0;
 
-  .buttons-action {
+  .action-buttons-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
+  }
+
+  .action-buttons {
+    display: flex;
+    align-items: center;
   }
 }
 </style>
