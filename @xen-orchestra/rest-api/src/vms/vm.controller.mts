@@ -18,7 +18,7 @@ import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
-import type { XapiStatsGranularity, XapiVmStats, XenApiVm, XoVm, XoVmSnapshot } from '@vates/types'
+import type { XapiStatsGranularity, XapiVmStats, XenApiVm, XoHost, XoVm, XoVmSnapshot } from '@vates/types'
 
 import {
   asynchronousActionResp,
@@ -162,7 +162,10 @@ export class VmController extends XapiXoController<XoVm> {
   }
 
   /**
+   * The VM must be halted
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body { "hostId": "b61a5c92-700e-4966-a13b-00633f03eea8" }
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
@@ -170,14 +173,17 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async startVm(@Path() id: string, @Query() sync?: boolean) {
+  async startVm(@Path() id: string, @Body() body?: { hostId?: string }, @Query() sync?: boolean) {
     const vmId = id as XoVm['id']
-    const action = () => this.getXapiObject(vmId).$callAsync('start', false, false)
+    const action = async () => {
+      await this.getXapi(vmId).startVm(vmId, { startOnly: true, hostId: body?.hostId as XoHost['id'] })
+    }
 
     return this.createAction(action, {
       sync,
       statusCode: noContentResp.status,
       taskProperties: {
+        args: body,
         name: 'start VM',
         objectId: vmId,
       },
