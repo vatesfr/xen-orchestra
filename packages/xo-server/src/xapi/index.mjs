@@ -959,15 +959,27 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async startVm(vmId, options) {
+  /**
+   *
+   * @param {string} vmId
+   * @param {object} options
+   * @param {boolean} [options.startOnly] - If true, don't try to unpause/resume the VM if VM_BAD_POWER_STATE is thrown
+   *
+   */
+  async startVm(vmId, { startOnly = false, ...options } = {}) {
     try {
       await this._startVm(this.getObject(vmId), options)
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])
       }
-      if (e.code === 'VM_BAD_POWER_STATE') {
-        return e.params[2] === 'paused' ? this.unpauseVm(vmId) : this.resumeVm(vmId)
+      if (e.code === 'VM_BAD_POWER_STATE' && !startOnly) {
+        const status = e.params[2]
+        if (status === 'running') {
+          throw e
+        }
+
+        return status === 'paused' ? this.unpauseVm(vmId) : this.resumeVm(vmId)
       }
       throw e
     }
