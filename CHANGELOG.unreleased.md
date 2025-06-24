@@ -11,6 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] Support qcow2 disks > 2TB for backup and replication (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
+- [Export] Support qcow2 disks exports (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,6 +34,12 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform minor
+- @xen-orchestra/qcow2 major
+- @xen-orchestra/xapi minor
+- vhd-lib minor
 - xo-acl-resolver patch
-
+- xo-server minor
+- xo-web minor
 <!--packages-end-->
