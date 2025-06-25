@@ -20,6 +20,38 @@ You also have a filter to search anything related to these logs.
 Logs are not "live" tasks. If you restart XOA during a backup, the log associated with the job will stay in orange (in progress), because it wasn't finished. It will stay forever unfinished because the job was cut in the middle.
 :::
 
+#### Send XO logs to an external syslog server
+
+##### About syslog
+
+Syslog is a standard protocol used for logging system messages in a network. It allows devices such as servers, routers, firewalls and applications to send log or event messages to a centralized log server, called a **syslog server** or syslog daemon. 
+
+This protocol simplifies log analysis and eliminates the need to connect to each machine individually. It's particularly useful for identifying common patterns and correlations among events, greatly aiding in debugging issues. Additionally, since logs are sent to a remote location, they remain intact on the destination machine even if deleted locally, which is beneficial in the event of intrusions.
+
+##### Log format
+
+A typical syslog message is a structured line of text that includes several components (typically in this order): **priority**, **timestamp**, **hostname**, **process name**, **PID**, and the **actual message**.
+
+Here's an example:
+
+`<34>Jun 24 14:32:01 server1 CRON[1234]: (root) CMD (/usr/bin/backup.sh)`
+
+##### Using Syslog with Xen Orchestra
+
+You can send all your XO logs to an external syslog server.
+
+To enable syslog, add this to your configuration file: 
+
+```
+[logs.transport.syslog]
+target = 'tcp://syslog.example.org:514'
+```
+All logs viewable from `journalctl -u xo-server` will now be sent to your central syslog server. 
+
+##### Compatibility
+
+This setup is compatible with any syslog server, such as [Rsyslog](https://www.rsyslog.com/windows-agent/about-rsyslog-windows-agent/), [Splunk](https://www.splunk.com/en_us/blog/learn/log-management.html), [Logstash](https://www.elastic.co/logstash), [Graylog](https://graylog.org/about/), and more.
+
 ### Backups execution
 
 Each backups' job execution is identified by a `runId`. You can find this `runId` in its detailed log.
