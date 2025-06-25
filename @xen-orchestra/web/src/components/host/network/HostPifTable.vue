@@ -130,9 +130,9 @@
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store'
-import type { XoPif } from '@/types/xo/pif.type'
+import { useNetworkStore } from '@/stores/xo-rest-api/network.store.ts'
+import { usePifStore } from '@/stores/xo-rest-api/pif.store.ts'
+import type { XoPif } from '@/types/xo/pif.type.ts'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -144,10 +144,10 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import useMultiSelect from '@core/composables/table/multi-select.composable'
-import { useTable } from '@core/composables/table.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
+import { useTable } from '@core/composables/table.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
@@ -190,11 +190,7 @@ const pifsIds = computed(() => pifs.map(pif => pif.id))
 
 const { selected, areAllSelected } = useMultiSelect(pifsIds)
 
-const getNetworkName = (pif: XoPif) => {
-  const network = get(pif.$network)!
-
-  return network.name_label ? network.name_label : ''
-}
+const getNetworkName = (pif: XoPif) => get(pif.$network)?.name_label ?? ''
 
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 

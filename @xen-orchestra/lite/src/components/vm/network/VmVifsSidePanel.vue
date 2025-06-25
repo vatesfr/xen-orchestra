@@ -1,26 +1,39 @@
 <template>
-  <UiPanel>
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
-      <UiButton
-        v-tooltip="t('coming-soon')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="brand"
-        :left-icon="faEdit"
-      >
-        {{ t('edit') }}
-      </UiButton>
-      <UiButton
-        v-tooltip="t('coming-soon')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="danger"
-        :left-icon="faTrash"
-      >
-        {{ t('delete') }}
-      </UiButton>
+      <div :class="{ 'action-buttons-container': uiStore.isMobile }">
+        <UiButtonIcon
+          v-if="uiStore.isMobile"
+          v-tooltip="t('close')"
+          size="medium"
+          variant="tertiary"
+          accent="brand"
+          :icon="faAngleLeft"
+          @click="emit('close')"
+        />
+        <div class="action-buttons">
+          <UiButton
+            v-tooltip="t('coming-soon')"
+            disabled
+            size="medium"
+            variant="tertiary"
+            accent="brand"
+            :left-icon="faEdit"
+          >
+            {{ t('edit') }}
+          </UiButton>
+          <UiButton
+            v-tooltip="t('coming-soon')"
+            disabled
+            size="medium"
+            variant="tertiary"
+            accent="danger"
+            :left-icon="faTrash"
+          >
+            {{ t('delete') }}
+          </UiButton>
+        </div>
+      </div>
     </template>
     <template #default>
       <!-- VIF -->
@@ -172,7 +185,8 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import { faAngleLeft, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -180,11 +194,16 @@ const { vif } = defineProps<{
   vif: XenApiVif
 }>()
 
+const emit = defineEmits<{
+  close: []
+}>()
+
 const { t } = useI18n()
 
 const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 const { getByOpaqueRef: getVmByOpaqueRef } = useVmStore().subscribe()
+const uiStore = useUiStore()
 
 const ipAddresses = computed(() => {
   const vm = getVmByOpaqueRef(vif.VM)
@@ -220,6 +239,23 @@ const status = computed(() => (vif.currently_attached ? 'connected' : 'disconnec
 
   .value:empty::before {
     content: '-';
+  }
+}
+
+.mobile-drawer {
+  position: fixed;
+  inset: 0;
+
+  .action-buttons-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .action-buttons {
+    display: flex;
+    align-items: center;
   }
 }
 </style>
