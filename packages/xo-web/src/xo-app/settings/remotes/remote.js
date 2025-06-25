@@ -98,6 +98,7 @@ export default decorate([
               pathInContainer = parsedPath.indexOf('/') === -1 ? '/' : parsedPath.slice(parsedPath.indexOf('/')),
             } = state
             path = container + '/' + pathInContainer
+            useVhdDirectory = true // always on for Azure
           }
 
           return editRemote(remote, {
@@ -168,6 +169,7 @@ export default decorate([
             urlParams.path = container + '/' + pathInContainer
             urlParams.allowUnauthorized = allowUnauthorized
             urlParams.protocol = protocol
+            urlParams.useVhdDirectory = true // always on for Azure
           }
           username && (urlParams.username = username)
           password && (urlParams.password = password)
@@ -600,7 +602,7 @@ export default decorate([
               value={encryptionKey}
             />
           </div>
-          {type !== 's3' && (
+          {type !== 's3' && type !== 'azure' && type !== 'azurite' && (
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>
                 <span className='align-middle'>
