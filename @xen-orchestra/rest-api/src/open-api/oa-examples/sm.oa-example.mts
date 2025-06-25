@@ -5,34 +5,16 @@ export const smIds = [
 
 export const partialSms = [
   {
-    type: 'SM',
     uuid: '5bfb2f8a-70f3-8cff-1748-3cd4de2153da',
-    name_description:
-      'SR plugin which represents disks as VHD and QCOW2 files stored on a local EXT4 filesystem, created inside an LVM volume',
     name_label: 'Local EXT4 VHD and QCOW2',
     SM_type: 'ext',
+    href: '/rest/v0/sms/5bfb2f8a-70f3-8cff-1748-3cd4de2153da',
   },
   {
-    uuid: 'd3df5d0f-bac8-ed31-22e9-b7d89fb39e0e',
-    name_label: 'LVM over iSCSI',
-    SM_type: 'lvmoiscsi',
-    name_description:
-      'SR plugin which represents disks as Logical Volumes within a Volume Group created on an iSCSI LUN',
-    href: '/rest/v0/sms/d3df5d0f-bac8-ed31-22e9-b7d89fb39e0e',
-  },
-  {
-    uuid: '59f03885-4a01-84f5-e6bc-b4357596f40e',
-    name_label: 'dummy',
-    SM_type: 'dummy',
-    name_description: 'SR plugin which manages fake data',
-    href: '/rest/v0/sms/59f03885-4a01-84f5-e6bc-b4357596f40e',
-  },
-  {
-    uuid: '3797ca0a-fcdb-07ed-235f-277d1c77f329',
-    name_label: 'GlusterFS VHD and QCOW2',
-    SM_type: 'glusterfs',
-    name_description: 'SR plugin which stores disks as VHD and QCOW2 files on a GlusterFS storage',
-    href: '/rest/v0/sms/3797ca0a-fcdb-07ed-235f-277d1c77f329',
+    uuid: '0d48516d-f7ad-1c36-39ea-17cfb16e04ab',
+    name_label: 'Local EXT4 VHD and QCOW2',
+    SM_type: 'ext',
+    href: '/rest/v0/sms/0d48516d-f7ad-1c36-39ea-17cfb16e04ab',
   },
 ]
 
