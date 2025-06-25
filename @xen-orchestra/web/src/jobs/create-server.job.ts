@@ -19,6 +19,14 @@ export default async function createAndConnectServer(payload: ConnectServerPaylo
     const taskUrl = await connectServer(serverId)
     await monitorTask(taskUrl)
   } catch (error) {
+    removeServer(serverId)
+    throw error
+  }
+
+  try {
+    const taskUrl = await connectServer(serverId)
+    await monitorTask(taskUrl)
+  } catch (error) {
     // If an error , we remove the server to avoid any duplication.
     removeServer(serverId)
     throw error
@@ -115,7 +123,7 @@ export async function removeServer(serverId: XoServer['id']) {
     data,
     statusCode: status,
     error,
-  } = await useFetch(`/rest/v0/servers/${serverId}/`, {
+  } = await useFetch(`/rest/v0/servers/${serverId}`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
   }).json()
