@@ -49,10 +49,16 @@ export class BlockLink extends Component {
   _addAuxClickListener = ref => {
     // FIXME: when https://github.com/facebook/react/issues/8529 is fixed,
     // remove and use onAuxClickCapture.
-    // In Chrome ^55, middle-clicking triggers auxclick event instead of click
+    // In Chrome ^55 and Firefox ^53, middle-clicking triggers auxclick event
+    // instead of click
     // Other browsers may trigger both events.
-    if (!!window.chrome && ref !== null) {
+    if (ref !== null) {
       ref.addEventListener('auxclick', this._onClickCapture)
+      ref.addEventListener('mousedown', event => {
+        if (event.button === 1) {
+          event.preventDefault() // Prevent enabling auto-scroll
+        }
+      })
     }
   }
 
