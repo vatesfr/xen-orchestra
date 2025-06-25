@@ -524,7 +524,7 @@ export default decorate([
                   className='form-control'
                   name='host'
                   onChange={effects.linkState}
-                  placeholder={`Host (e.g. ${state.type === 'azurite' ? '<username>.blob.core.windows.net' : '127.0.0.1:10000'})`}
+                  placeholder={`Host (e.g. ${state.type === 'azure' ? '<username>.blob.core.windows.net' : '127.0.0.1:10000'})`}
                   required
                   type='text'
                   value={host}
