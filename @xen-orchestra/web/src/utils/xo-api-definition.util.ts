@@ -128,7 +128,7 @@ export const xoApiDefinition = {
     handler: (record: XoPci) => record,
     stream: false,
   },
-  pGpu: {
+  pgpu: {
     type: 'collection',
     path: 'pgpus',
     fields: 'id,pci',

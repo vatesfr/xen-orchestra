@@ -14,9 +14,9 @@
     <VtsQuickInfoRow :label="t('cpu-model')" :value="host.cpu_info.modelname" />
     <VtsQuickInfoRow :label="t('core-socket')" :value="`${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`" />
     <VtsQuickInfoRow :label="t('gpus')">
-      <template v-if="isPgpuReady && isPciReady" #value>
-        <template v-if="pciDevicesNames">
-          {{ pciDevicesNames }}
+      <template v-if="isReady" #value>
+        <template v-if="devicesNames">
+          {{ devicesNames }}
         </template>
         <template v-else>
           {{ t('none') }}
@@ -33,6 +33,7 @@ import { usePgpuStore } from '@/stores/xen-api/pgpu.store.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { logicAnd } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
 import { useI18n } from 'vue-i18n'
 
@@ -45,7 +46,9 @@ const { t } = useI18n()
 const { pGpusByHost, isReady: isPgpuReady } = usePgpuStore().subscribe()
 const { getByOpaqueRef: getPciByOpaqueRef, isReady: isPciReady } = usePciStore().subscribe()
 
-const pciDevicesNames = useArrayReduce(
+const isReady = logicAnd(isPgpuReady, isPciReady)
+
+const devicesNames = useArrayReduce(
   () => pGpusByHost.value.get(host.$ref) ?? [],
   (acc, pGpu) => {
     const deviceName = getPciByOpaqueRef(pGpu.PCI)?.device_name
