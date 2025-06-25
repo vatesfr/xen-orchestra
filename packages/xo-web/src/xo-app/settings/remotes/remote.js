@@ -503,7 +503,7 @@ export default decorate([
           )}
           {(type === 'azure' || type === 'azurite') && (
             <fieldset className='form-group form-group'>
-              {state.type === 'azurite' && (
+              {type === 'azurite' && (
                 <div className='input-group form-group'>
                   <span className='align-middle'>
                     {_('remoteAzureLabelUseHttps')}{' '}
@@ -523,7 +523,7 @@ export default decorate([
                   className='form-control'
                   name='host'
                   onChange={effects.linkState}
-                  placeholder={`Host (e.g. ${state.type === 'azure' ? '<username>.blob.core.windows.net' : '127.0.0.1:10000'})`}
+                  placeholder={`Host (e.g. ${type === 'azure' ? '<username>.blob.core.windows.net' : '127.0.0.1:10000'})`}
                   required
                   type='text'
                   value={host}
