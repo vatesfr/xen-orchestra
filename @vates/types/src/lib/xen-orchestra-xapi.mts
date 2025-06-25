@@ -1,5 +1,6 @@
-import { WrappedXenApiRecord, XenApiNetworkWrapped, XenApiRecord } from '../xen-api.mjs'
+import { WrappedXenApiRecord, XenApiNetworkWrapped, XenApiRecord, XenApiSr, XenApiVm } from '../xen-api.mjs'
 import type { XoHost, XoNetwork, XoPif } from '../xo.mjs'
+import type { Readable } from 'node:stream'
 
 type XcpPatches = {
   changelog?: {
@@ -58,4 +59,9 @@ export interface Xapi {
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
+  VM_import(
+    stream: Readable,
+    srRef?: XenApiSr['$ref'],
+    onVmCreation?: null | ((vm: XenApiVm) => unknown)
+  ): Promise<XenApiVm['$ref']>
 }
