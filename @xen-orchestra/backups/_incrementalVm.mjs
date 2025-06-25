@@ -241,10 +241,10 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
         let stream, format
         if (vdi.virtual_size > VHD_MAX_SIZE) {
           stream = await toQcow2Stream(disk)
-          format = 'vhd'
+          format = 'qcow2'
         } else {
           stream = await toVhdStream(disk)
-          format = 'qcow2'
+          format = 'vhd'
         }
 
         await vdi.$importContent(stream, { cancelToken, format })
