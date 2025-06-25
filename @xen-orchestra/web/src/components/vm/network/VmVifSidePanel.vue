@@ -243,10 +243,10 @@ const status = computed(() => (vif.attached ? 'connected' : 'disconnected'))
     align-items: center;
     width: 100%;
   }
+}
 
-  .action-buttons {
-    display: flex;
-    align-items: center;
-  }
+.action-buttons {
+  display: flex;
+  align-items: center;
 }
 </style>

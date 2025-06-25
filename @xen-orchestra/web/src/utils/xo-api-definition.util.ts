@@ -104,18 +104,19 @@ export const xoApiDefinition = {
     handler: (record: XoVmTemplate) => record,
     stream: false,
   },
-  server: {
-    type: 'collection',
-    path: 'servers',
-    fields: 'id,host,httpProxy,username,readOnly,allowUnauthorized,label,poolId',
-    handler: (record: XoServer) => record,
-    stream: false,
-  },
   'vm-controller': {
     type: 'collection',
     path: 'vm-controllers',
     fields: 'id,memory',
     handler: (record: XoVmController) => record,
+    stream: false,
+  },
+  server: {
+    type: 'collection',
+    path: 'servers',
+    fields:
+      'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId,poolNameLabel,id,status,master,error,poolNameDescription',
+    handler: (record: XoServer) => record,
     stream: false,
   },
 } satisfies ApiDefinition
