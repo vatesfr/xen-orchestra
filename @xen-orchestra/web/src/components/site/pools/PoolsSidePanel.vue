@@ -33,8 +33,8 @@
           >
             {{ t('forget') }}
           </UiButton>
+          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
         </div>
-        <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
       </div>
     </template>
     <template #default>
@@ -279,10 +279,10 @@ const connectionStatus = useMapper(
     align-items: center;
     width: 100%;
   }
+}
 
-  .action-buttons {
-    display: flex;
-    align-items: center;
-  }
+.action-buttons {
+  display: flex;
+  align-items: center;
 }
 </style>

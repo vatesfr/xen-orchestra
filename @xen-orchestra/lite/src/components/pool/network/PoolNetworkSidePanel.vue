@@ -214,10 +214,10 @@ const pifsCount = computed(() => pifs.value.length)
     align-items: center;
     width: 100%;
   }
+}
 
-  .action-buttons {
-    display: flex;
-    align-items: center;
-  }
+.action-buttons {
+  display: flex;
+  align-items: center;
 }
 </style>

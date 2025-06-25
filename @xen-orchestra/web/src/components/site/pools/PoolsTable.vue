@@ -258,7 +258,7 @@ const headerIcon: Record<ServerHeader, IconDefinition> = {
   flex-direction: column;
 }
 
-.pool-table {
+.pools-table {
   gap: 2.4rem;
 
   .container,
