@@ -1,28 +1,41 @@
 <template>
   <VtsLoadingHero v-if="!isPoolReady" type="panel" />
-  <UiPanel v-else>
+  <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
-      <UiButton
-        v-tooltip="t('coming-soon')"
-        disabled
-        variant="tertiary"
-        size="medium"
-        accent="brand"
-        :left-icon="faEdit"
-      >
-        {{ t('change-state') }}
-      </UiButton>
-      <UiButton
-        v-tooltip="t('coming-soon')"
-        disabled
-        variant="tertiary"
-        size="medium"
-        accent="danger"
-        :left-icon="faTrash"
-      >
-        {{ t('forget') }}
-      </UiButton>
-      <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
+      <div :class="{ 'action-buttons-container': uiStore.isMobile }">
+        <UiButtonIcon
+          v-if="uiStore.isMobile"
+          v-tooltip="t('close')"
+          size="medium"
+          variant="tertiary"
+          accent="brand"
+          :icon="faAngleLeft"
+          @click="emit('close')"
+        />
+        <div class="action-buttons">
+          <UiButton
+            v-tooltip="t('coming-soon')"
+            disabled
+            variant="tertiary"
+            size="medium"
+            accent="brand"
+            :left-icon="faEdit"
+          >
+            {{ t('change-state') }}
+          </UiButton>
+          <UiButton
+            v-tooltip="t('coming-soon')"
+            disabled
+            variant="tertiary"
+            size="medium"
+            accent="danger"
+            :left-icon="faTrash"
+          >
+            {{ t('forget') }}
+          </UiButton>
+        </div>
+        <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
+      </div>
     </template>
     <template #default>
       <UiCard v-if="server.error === undefined" class="card-container">
@@ -85,7 +98,7 @@
       </UiAlert>
       <UiCard class="card-container">
         <UiCardTitle class="text-ellipsis">
-          {{ t('connections') }}
+          {{ t('connection') }}
         </UiCardTitle>
         <!-- status -->
         <VtsCardRowKeyValue>
@@ -163,6 +176,15 @@
           </UiLink>
         </template>
       </UiCard>
+      <UiCard v-if="server.error">
+        <UiCardTitle>
+          {{ t('error') }}
+          <UiCounter :value="1" accent="danger" size="small" variant="primary" />
+        </UiCardTitle>
+        <UiQuoteCode accent="danger" :label="t('api-error-details')" size="small" copy>
+          {{ server.error }}
+        </UiQuoteCode>
+      </UiCard>
     </template>
   </UiPanel>
 </template>
@@ -186,11 +208,22 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
-import { faCircle, faCity, faEdit, faEllipsis, faServer, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { useUiStore } from '@core/stores/ui.store'
+import {
+  faAngleLeft,
+  faCircle,
+  faCity,
+  faEdit,
+  faEllipsis,
+  faServer,
+  faStar,
+  faTrash,
+} from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -198,8 +231,12 @@ const { server } = defineProps<{
   server: XoServer
 }>()
 
-const { t } = useI18n()
+const emit = defineEmits<{
+  close: []
+}>()
 
+const { t } = useI18n()
+const uiStore = useUiStore()
 const { isReady: isPoolReady, get: getPoolById } = usePoolStore().subscribe()
 const { get: getHostById, hostsByPool } = useHostStore().subscribe()
 
@@ -229,6 +266,23 @@ const connectionStatus = useMapper(
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+  }
+}
+
+.mobile-drawer {
+  position: fixed;
+  inset: 0;
+
+  .action-buttons-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .action-buttons {
+    display: flex;
+    align-items: center;
   }
 }
 </style>

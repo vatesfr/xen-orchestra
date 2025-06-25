@@ -69,7 +69,7 @@
         </template>
         <template #tbody>
           <tr
-            v-for="row of vifRowRecords"
+            v-for="row of poolsRecords"
             :key="row.id"
             :class="{ selected: selectedServerId === row.id }"
             @click="selectedServerId = row.id"
@@ -238,7 +238,7 @@ const { visibleColumns, rows } = useTable('servers', filteredServers, {
   ],
 })
 
-const { pageRecords: vifRowRecords, paginationBindings } = usePagination('pifRow', rows)
+const { pageRecords: poolsRecords, paginationBindings } = usePagination('pools', rows)
 
 type ServerHeader = 'label' | 'host' | 'status' | 'primary-host'
 
@@ -251,15 +251,18 @@ const headerIcon: Record<ServerHeader, IconDefinition> = {
 </script>
 
 <style scoped lang="postcss">
-.pools-table {
+.pools-table,
+.table-actions,
+.container {
   display: flex;
   flex-direction: column;
+}
+
+.pool-table {
   gap: 2.4rem;
 
   .container,
   .table-actions {
-    display: flex;
-    flex-direction: column;
     gap: 0.8rem;
   }
 

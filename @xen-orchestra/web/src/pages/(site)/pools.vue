@@ -1,10 +1,10 @@
 <template>
-  <div class="pools">
-    <UiCard class="pools-table-card">
+  <div class="pools" :class="{ mobile: uiStore.isMobile }">
+    <UiCard class="container">
       <PoolsTable :servers />
     </UiCard>
-    <PoolsSidePanel v-if="selectedServer" :server="selectedServer" />
-    <UiPanel v-else>
+    <PoolsSidePanel v-if="selectedServer" :server="selectedServer" @close="selectedServer = undefined" />
+    <UiPanel v-else-if="!uiStore.isMobile">
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
   </div>
@@ -19,8 +19,10 @@ import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.v
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useUiStore } from '@core/stores/ui.store'
 
 const { records: servers, get } = useServerStore().subscribe()
+const uiStore = useUiStore()
 
 const selectedServer = useRouteQuery<XoServer | undefined>('id', {
   toData: id => get(id as XoServer['id']),
@@ -30,10 +32,12 @@ const selectedServer = useRouteQuery<XoServer | undefined>('id', {
 
 <style scoped lang="postcss">
 .pools {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 40rem;
+  &:not(.mobile) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40rem;
+  }
 
-  .pools-table {
+  .container {
     height: fit-content;
     gap: 4rem;
     margin: 0.8rem;
