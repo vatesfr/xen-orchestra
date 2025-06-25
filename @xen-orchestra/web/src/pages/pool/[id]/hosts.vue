@@ -1,7 +1,7 @@
 <template>
   <VtsLoadingHero v-if="!isReady" type="page" />
   <UiCard v-else class="hosts">
-    <div class="metaTable">
+    <div class="topBottomTable">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: hosts.length }) }}</p>
       <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
@@ -31,7 +31,7 @@
         </tr>
       </tbody>
     </VtsTable>
-    <div class="metaTable">
+    <div class="topBottomTable">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: hosts.length }) }}</p>
       <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
@@ -86,5 +86,14 @@ const { pageRecords: hostsRecords, paginationBindings } = usePagination('hosts',
 .count {
   color: var(--color-neutral-txt-secondary);
   text-transform: lowercase;
+}
+
+.topBottomTable {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  .count {
+    color: var(--color-neutral-txt-secondary);
+  }
 }
 </style>

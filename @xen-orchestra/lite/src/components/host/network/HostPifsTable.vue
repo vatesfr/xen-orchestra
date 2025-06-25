@@ -67,7 +67,7 @@
         </template>
         <template #tbody>
           <tr
-            v-for="row of vifRowRecords"
+            v-for="row of pifsRecords"
             :key="row.id"
             :class="{ selected: selectedPifId === row.id }"
             @click="selectedPifId = row.id"
@@ -244,7 +244,7 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   ],
 })
 
-const { pageRecords: vifRowRecords, paginationBindings } = usePagination('pifRow', rows)
+const { pageRecords: pifsRecords, paginationBindings } = usePagination('pifs', rows)
 
 type PifHeader = 'network' | 'device' | 'status' | 'VLAN' | 'IP' | 'MAC' | 'ip_configuration_mode'
 

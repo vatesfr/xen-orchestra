@@ -74,7 +74,7 @@
         </template>
         <template #tbody>
           <tr
-            v-for="row of networkRowRecords"
+            v-for="row of networksRecords"
             :key="row.id"
             :class="{ selected: selectedNetworkId === row.id }"
             @click="selectedNetworkId = row.id"
@@ -231,7 +231,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   ],
 })
 
-const { pageRecords: networkRowRecords, paginationBindings } = usePagination('pifRow', rows)
+const { pageRecords: networksRecords, paginationBindings } = usePagination('networks', rows)
 
 type NetworkHeader = 'name_label' | 'name_description' | 'status' | 'vlan' | 'MTU' | 'default_locking_mode'
 

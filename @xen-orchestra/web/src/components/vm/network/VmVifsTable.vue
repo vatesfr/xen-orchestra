@@ -76,7 +76,7 @@
         </template>
         <template #tbody>
           <tr
-            v-for="row of vifRowRecords"
+            v-for="row of vifsRecords"
             :key="row.id"
             :class="{ selected: selectedVifId === row.id }"
             @click="selectedVifId = row.id"
@@ -221,7 +221,7 @@ const { visibleColumns, rows } = useTable('vifs', filteredVifs, {
   ],
 })
 
-const { pageRecords: vifRowRecords, paginationBindings } = usePagination('vifRow', rows)
+const { pageRecords: vifsRecords, paginationBindings } = usePagination('vifs', rows)
 
 type VifHeader = 'network' | 'device' | 'status' | 'ip' | 'MAC' | 'MTU' | 'lockingMode' | 'more'
 
