@@ -1234,7 +1234,7 @@ export default class TabAdvanced extends Component {
                     </Tooltip>
                     <a
                       className='text-muted'
-                      href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
+                      href='https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/'
                       rel='noreferrer'
                       style={{ display: 'block' }}
                       target='_blank'
