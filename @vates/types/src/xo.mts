@@ -526,7 +526,7 @@ type BaseXoVdi = BaseXapiXo & {
   name_label: string
   other_config: Record<string, string>
   parent?: XoVdiUnmanaged['id']
-  image_format: string
+  image_format?: string
   size: number
   snapshots: XoVdiSnapshot['id'][]
   tags: string[]
