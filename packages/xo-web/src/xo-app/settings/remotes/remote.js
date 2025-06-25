@@ -505,17 +505,16 @@ export default decorate([
             <fieldset className='form-group form-group'>
               {state.type === 'azurite' && (
                 <div className='input-group form-group'>
-                  <span className='align-middle '>
-                    {_('remoteS3LabelAllowInsecure')}{' '}
-                    <Tooltip content={_('remoteS3TooltipAcceptInsecure')}>
+                  <span className='align-middle'>
+                    {_('remoteAzureLabelUseHttps')}{' '}
+                    <Tooltip content={_('remoteAzureTooltipProtocol')}>
                       <Icon icon='info' size='lg' />
                     </Tooltip>
                   </span>
                   <Toggle
                     className='align-middle pull-right'
-                    disabled={protocol !== 'https'}
-                    onChange={effects.setAllowUnauthorized}
-                    value={allowUnauthorized}
+                    onChange={effects.setInsecure}
+                    value={protocol === 'https'}
                   />
                 </div>
               )}
