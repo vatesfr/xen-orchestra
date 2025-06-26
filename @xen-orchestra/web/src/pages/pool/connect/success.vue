@@ -3,7 +3,7 @@
     <VtsLoadingHero v-if="!isReady" type="page" />
     <VtsStateHero v-else image="all-good" type="table" no-background>
       <div class="content">
-        <h1>{{ t('unable-to-connect-to', { ip }) }}</h1>
+        <h1>{{ t('connected-to-ip', { ip }) }}</h1>
         <UiAlert accent="success">
           {{ t('pool-connection-success') }}
         </UiAlert>
