@@ -24,7 +24,7 @@ export class VmService {
   ): Promise<XoVm['id']> {
     const { pool, template, cloud_config, boot, destroy_cloud_config_vdi, network_config, ...rest } = params
     const xoApp = this.#restApi.xoApp
-    const xapi = this.#restApi.xoApp.getXapi(pool)
+    const xapi = xoApp.getXapi(pool)
     const currentUser = this.#restApi.getCurrentUser()
 
     const xapiVm = await xapi.createVm(template, rest, undefined, currentUser?.id)
