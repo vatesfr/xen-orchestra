@@ -13,6 +13,10 @@
 
 - [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
 
+- **Migrated REST API endpoints**
+
+  - `GET /rest/v0/hosts/<host-id>/audit.txt` (PR [#8757](https://github.com/vatesfr/xen-orchestra/pull/8757))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
