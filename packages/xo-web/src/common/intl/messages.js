@@ -656,6 +656,8 @@ const messages = {
   remoteTestNameFailure: 'Remote name already exists!',
   remoteTestSuccessMessage: 'The remote appears to work correctly',
   remoteConnectionFailed: 'Connection failed',
+  remoteContainer: 'Container',
+  remoteAccountName: 'Account name',
 
   // ------ Backup job -----
 
