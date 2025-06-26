@@ -2,8 +2,8 @@
   <UiHeadBar :icon="faSatellite">
     Xen Orchestra Appliance
     <template #actions>
-      <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium" @click="goToNewVm()">
-        {{ t('new-vm') }}
+      <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium" @click="goToNewPool()">
+        {{ t('connect-pool') }}
       </UiButton>
     </template>
   </UiHeadBar>
@@ -35,5 +35,5 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const { t } = useI18n()
 
-const goToNewVm = () => router.push({ name: '/vm/new' })
+const goToNewPool = () => router.push({ name: '/pool/connect/' })
 </script>
