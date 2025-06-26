@@ -86,3 +86,7 @@ export const pool = {
 }
 
 export const importVm = { id: '9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f' }
+
+export const createVm = {
+  id: '8279e670-cb58-c048-7007-230f075becfb',
+}

@@ -69,6 +69,10 @@ export type XoApp = {
   tasks: EventEmitter & {
     create: (params: { name: string; objectId?: string; type?: string }) => Task
   }
+  apiContext: {
+    user?: XoUser
+    permission?: XoUser['permission'] | 'none' | null
+  }
 
   // methods ------------
   authenticateUser: (

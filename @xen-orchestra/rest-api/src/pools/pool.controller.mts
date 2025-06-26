@@ -32,11 +32,12 @@ import {
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import type { XenApiSr, XenApiVm, XoNetwork, XoPif, XoPool, XoSr, XoVm } from '@vates/types'
-import { importVm, partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
-import type { CreateNetworkBody } from './pool.type.mjs'
+import { createVm, importVm, partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
+import type { CreateNetworkBody, CreateVmAfterCreateParams, CreateVmBody, CreateVmParams } from './pool.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
+import { VmService } from '../vms/vm.service.mjs'
 
 @Route('pools')
 @Security('*')
@@ -44,8 +45,11 @@ import { BASE_URL } from '../index.mjs'
 @Tags('pools')
 @provide(PoolController)
 export class PoolController extends XapiXoController<XoPool> {
-  constructor(@inject(RestApi) restApi: RestApi) {
+  #vmService: VmService
+
+  constructor(@inject(RestApi) restApi: RestApi, @inject(VmService) vmService: VmService) {
     super('pool', restApi)
+    this.#vmService = vmService
   }
 
   /**
@@ -234,5 +238,47 @@ export class PoolController extends XapiXoController<XoPool> {
     this.setHeader('Location', `${BASE_URL}/vms/${vmId}`)
 
     return { id: vmId }
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   * @example body {
+   * "name_label": "new VM from REST API",
+   * "template": "9bbcc5d1-ad4b-06f1-18f6-03125e809c38",
+   * "boot": true
+   * }
+   */
+  @Example(taskLocation)
+  @Example(createVm)
+  @Post('{id}/actions/create_vm')
+  @Middlewares(json())
+  @Tags('vms')
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async createVm(
+    @Path() id: string,
+    @Body() body: Unbrand<CreateVmBody>,
+    @Query() sync?: boolean
+  ): Promise<string | { id: Unbrand<XoVm>['id'] }> {
+    const poolId = id as XoPool['id']
+    const action = async () => {
+      const { affinity, template, ...rest } = body
+      const params = { affinityHost: affinity, ...rest } as CreateVmParams & CreateVmAfterCreateParams
+      const vmId = await this.#vmService.create({ pool: poolId, template, ...params })
+
+      return { id: vmId }
+    }
+
+    return this.createAction<string | { id: XoVm['id'] }>(action, {
+      sync,
+      statusCode: createdResp.status,
+      taskProperties: {
+        args: body,
+        name: 'create VM',
+        objectId: poolId,
+      },
+    })
   }
 }
