@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/self-signed",
-  "description": "Minimalist wrapper around openssl to generate a self signed certificate",
+  "description": "Minimalist wrapper around openssl to generate a self-signed certificate",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/self-signed",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
