@@ -322,9 +322,13 @@ export default class Xapi extends XapiBase {
 
   async setRemoteSyslogHost(hostId, syslogDestination) {
     const host = this.getObject(hostId)
-    await host.set_logging({
-      syslog_destination: syslogDestination,
-    })
+    await host.set_logging(
+      syslogDestination === null
+        ? {}
+        : {
+            syslog_destination: syslogDestination,
+          }
+    )
     await this.call('host.syslog_reconfigure', host.$ref)
   }
 
