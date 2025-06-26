@@ -108,6 +108,7 @@
   "core.group": "Grouper",
   "core.hide": "Masquer",
   "core.open": "Ouvrir",
+  "core.open-in-new-tab": "Ouvrir dans un nouvel onglet",
   "core.pagination.all": "Tous",
   "core.pagination.show-by": "Afficher par",
   "core.query-search-bar.label": "Moteur de recherche",
