@@ -21,6 +21,15 @@
           <UiAlert accent="danger">{{ t('pool-connection-error') }}</UiAlert>
           <UiQuoteCode :label="t('api-error-details')" accent="danger" size="small" copy>
             {{ errorJson }}
+            <template #actions>
+              <UiButtonIcon
+                v-tooltip="t('core.open-in-new-tab')"
+                size="medium"
+                accent="brand"
+                :icon="faArrowUpRightFromSquare"
+                @click="opennewtab"
+              />
+            </template>
           </UiQuoteCode>
         </template>
         <UiButton variant="secondary" accent="brand" size="medium" @click="goBack"> {{ t('go-back') }}</UiButton>
@@ -33,7 +42,9 @@
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -49,6 +60,13 @@ function goBack() {
       ip,
     },
   })
+}
+
+function opennewtab() {
+  if (errorJson) {
+    const url = `data:text/json;charset=utf-8,${encodeURIComponent(errorJson)}`
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 }
 </script>
 
