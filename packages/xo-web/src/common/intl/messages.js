@@ -619,13 +619,12 @@ const messages = {
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
   customTag: 'Custom tag',
   editJobNotFound: "The job you're trying to edit wasn't found",
-  preferNbd: 'Use NBD + CBT to transfer disk if available',
+  preferNbd: 'Use NBD to transfer disk if available',
   preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled.',
   nbdConcurrency: 'Number of NBD connection per disk',
-  cbtDestroySnapshotData:
-    'Purge snapshot data when using CBT. This will automatically enable Change Block Tracking (CBT) on the disks',
+  cbtDestroySnapshotData: 'Purge snapshot data when using CBT.',
   cbtDestroySnapshotDataInformation:
-    "The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback nor differential restores",
+    "This will automatically enable Change Block Tracking (CBT) on the disks. The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback nor differential restores",
   cbtDestroySnapshotDataDisabledInformation:
     'Snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
   shorterBackupReports: 'Shorter backup reports',
