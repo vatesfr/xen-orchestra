@@ -84,3 +84,5 @@ export const pool = {
   $poolId: '355ee47d-ff4c-4924-3db2-fd86ae629676',
   _xapiRef: 'OpaqueRef:1c3f19c8-f80a-464d-9c48-a2c19d4e4fc3',
 }
+
+export const importVm = { id: '9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f' }

@@ -1,5 +1,6 @@
-import { WrappedXenApiRecord, XenApiNetworkWrapped, XenApiRecord } from '../xen-api.mjs'
-import type { XoHost, XoNetwork, XoPif } from '../xo.mjs'
+import { WrappedXenApiRecord, XenApiNetworkWrapped, XenApiRecord, XenApiSr, XenApiVm } from '../xen-api.mjs'
+import type { Readable } from 'node:stream'
+import type { XoHost, XoNetwork, XoPif, XoVm } from '../xo.mjs'
 
 type XcpPatches = {
   changelog?: {
@@ -58,4 +59,26 @@ export interface Xapi {
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
+  resumeVm(id: XoVm['id']): Promise<void>
+  unpauseVm(id: XoVm['id']): Promise<void>
+  startVm(
+    id: XoVm['id'],
+    opts?: {
+      bypassMacAddressesCheck?: boolean
+      force?: boolean
+      hostId?: XoHost['id']
+      /**
+       * if startOnly is true and the VM is not halted, throw VM_BAD_POWER_STATE
+       * otherwise, unpause/resume the VM
+      *
+      * @default false
+      */
+     startOnly?: boolean
+    }
+  ): Promise<void>
+  VM_import(
+    stream: Readable,
+    srRef?: XenApiSr['$ref'],
+    onVmCreation?: null | ((vm: XenApiVm) => unknown)
+  ): Promise<XenApiVm['$ref']>
 }

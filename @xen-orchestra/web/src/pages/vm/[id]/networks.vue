@@ -1,10 +1,10 @@
 <template>
-  <div class="networks">
+  <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
       <VmVifsTable :vifs />
     </UiCard>
-    <VmVifSidePanel v-if="selectedVif" :vif="selectedVif" />
-    <UiPanel v-else>
+    <VmVifSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
+    <UiPanel v-else-if="!uiStore.isMobile">
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
   </div>
@@ -19,10 +19,12 @@ import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.v
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { useArrayFilter } from '@vueuse/shared'
 import { useRoute } from 'vue-router/auto'
 
 const { records } = useVifStore().subscribe()
+const uiStore = useUiStore()
 
 const route = useRoute<'/vm/[id]'>()
 
@@ -36,9 +38,10 @@ const selectedVif = useRouteQuery<XoVif | undefined>('id', {
 
 <style scoped lang="postcss">
 .networks {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 40rem;
-  height: 100%;
+  &:not(.mobile) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40rem;
+  }
 
   .container {
     height: fit-content;

@@ -19,11 +19,10 @@ import { DiskConsumerVhdDirectory } from './DiskConsumerVhdDirectory.mjs'
 
 /**
  *
- * @param {object} param
- * @param {Disk} param.disk
+ * @param {Disk} disk
  * @returns {Promise<Readable>}
  */
-export async function toVhdStream({ disk }) {
+export async function toVhdStream(disk) {
   const consumer = new DiskConsumerVhdStream(disk)
   return consumer.toStream()
 }

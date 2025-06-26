@@ -2,10 +2,10 @@
   <UiCard>
     <UiCardTitle>
       {{ t('backup-issues') }}
-      <UiCounter :value="backupIssues.length" accent="danger" size="medium" variant="primary" />
+      <UiCounter :value="nBackupIssues" accent="danger" size="medium" variant="primary" />
       <template #description>{{ t('in-last-three-jobs') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!areBackupIssuesReady" type="card" />
     <VtsNoDataHero v-else-if="!hasBackupIssues" type="card" />
     <div v-else class="backup-items">
       <VtsDataTable is-ready>
@@ -26,7 +26,7 @@
             <td v-for="column of row.visibleColumns" :key="column.id">
               <div v-if="column.id === 'name'" class="name">
                 <VtsIcon accent="current" :icon="faFloppyDisk" />
-                <div v-tooltip class="text-ellipsis">
+                <div v-if="column.value !== undefined" v-tooltip class="text-ellipsis">
                   <!-- TODO add RouterLink and Icon when backup page is available -->
                   <div class="typo-body-bold">
                     {{ column.value }}
@@ -63,9 +63,11 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const { backupIssues, isReady } = useDashboardStore().subscribe()
+const { record } = useDashboardStore().subscribe()
 
-const hasBackupIssues = computed(() => backupIssues.value.length !== 0)
+const areBackupIssuesReady = computed(() => record.value?.backups?.issues !== undefined)
+
+const backupIssues = computed(() => record.value?.backups?.issues ?? [])
 
 const logLabels = [t('last'), t('2nd-last'), t('3rd-last')]
 
@@ -83,6 +85,9 @@ const headerIcon: Record<string, IconDefinition> = {
   'logs-1': faSquareCaretDown,
   'logs-2': faSquareCaretDown,
 }
+const nBackupIssues = computed(() => backupIssues.value.length)
+
+const hasBackupIssues = computed(() => nBackupIssues.value > 0)
 </script>
 
 <style lang="postcss" scoped>

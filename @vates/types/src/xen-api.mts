@@ -262,6 +262,8 @@ type XenApiVmCallMethods = {
   (method: 'hard_shutdown'): Promise<void>
   (method: 'clean_reboot'): Promise<void>
   (method: 'hard_reboot'): Promise<void>
+  (method: 'pause'): Promise<void>
+  (method: 'suspend'): Promise<void>
   (method: 'record_data_source', dataSource: string): Promise<void>
   (method: 'forget_data_source_archives', dataSource: string): Promise<void>
 }
@@ -772,11 +774,13 @@ export interface XenApiSm {
   other_config: Record<string, string>
   required_api_version: string
   required_cluster_stack: string[]
+  supported_image_formats?: string[]
   type: string
   uuid: string
   vendor: string
   version: string
 }
+export type XenApiSmWrapped = WrapperXenApi<XenApiSm, 'SM'>
 
 export interface XenApiSr {
   $ref: Branded<'SR'>
@@ -1050,7 +1054,6 @@ export interface XenApiPgpu {
   uuid: string
 }
 export type XenApiPgpuWrapped = WrapperXenApi<XenApiPgpu, 'PGPU'>
-
 
 export interface XenApiGpuGroup {
   $ref: Branded<'GPU_group'>

@@ -27,7 +27,7 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough, pipeline } from 'stream'
 import { forbiddenOperation, operationFailed } from 'xo-common/api-errors.js'
-import { parseDateTime, Xapi as XapiBase } from '@xen-orchestra/xapi'
+import { parseDateTime, Xapi as XapiBase, XapiDiskSource } from '@xen-orchestra/xapi'
 import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
 
@@ -38,6 +38,7 @@ import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 import mixins from './mixins/index.mjs'
 import OTHER_CONFIG_TEMPLATE from './other-config-template.mjs'
 import { asInteger, canSrHaveNewVdiOfSize, isVmHvm, isVmRunning, prepareXapiParam } from './utils.mjs'
+import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
 const log = createLogger('xo:xapi')
 
@@ -962,15 +963,27 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async startVm(vmId, options) {
+  /**
+   *
+   * @param {string} vmId
+   * @param {object} options
+   * @param {boolean} [options.startOnly] - If true, don't try to unpause/resume the VM if VM_BAD_POWER_STATE is thrown
+   *
+   */
+  async startVm(vmId, { startOnly = false, ...options } = {}) {
     try {
       await this._startVm(this.getObject(vmId), options)
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])
       }
-      if (e.code === 'VM_BAD_POWER_STATE') {
-        return e.params[2] === 'paused' ? this.unpauseVm(vmId) : this.resumeVm(vmId)
+      if (e.code === 'VM_BAD_POWER_STATE' && !startOnly) {
+        const status = e.params[2]
+        if (status === 'running') {
+          throw e
+        }
+
+        return status === 'paused' ? this.unpauseVm(vmId) : this.resumeVm(vmId)
       }
       throw e
     }
@@ -1196,6 +1209,20 @@ export default class Xapi extends XapiBase {
       return vhdResult
     })
     return vmdkStream
+  }
+
+  async exportVdiAsQcow2(vdi, filename, { cancelToken = CancelToken.none, base, nbdConcurrency, preferNbd } = {}) {
+    vdi = this.getObject(vdi)
+
+    const disk = new XapiDiskSource({
+      vdiRef: vdi.$ref,
+      xapi: vdi.$xapi,
+      nbdConcurrency,
+      preferNbd,
+    })
+    await disk.init()
+    const stream = toQcow2Stream(disk)
+    return stream
   }
 
   // =================================================================

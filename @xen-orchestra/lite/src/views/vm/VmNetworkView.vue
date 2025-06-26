@@ -1,10 +1,10 @@
 <template>
-  <div class="vm-network-view">
+  <div class="vm-network-view" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
       <VmVifsTable :vifs />
     </UiCard>
-    <VmVifsSidePanel v-if="selectedVif" :vif="selectedVif" />
-    <UiPanel v-else>
+    <VmVifsSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
+    <UiPanel v-else-if="!uiStore.isMobile">
       <VtsNoSelectionHero type="panel" />
     </UiPanel>
   </div>
@@ -21,16 +21,19 @@ import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.v
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { useArrayFilter } from '@vueuse/shared'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const { records } = useVifStore().subscribe()
 const { getByOpaqueRef } = useVmStore().subscribe()
+const uiStore = useUiStore()
 
 const route = useRoute()
 
-usePageTitleStore().setTitle(useI18n().t('network'))
+const { t } = useI18n()
+usePageTitleStore().setTitle(t('network'))
 
 const vifs = useArrayFilter(records, vif => {
   const vm = getByOpaqueRef(vif.VM)
@@ -46,13 +49,15 @@ const selectedVif = useRouteQuery<XenApiVif | undefined>('id', {
 
 <style lang="postcss" scoped>
 .vm-network-view {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 40rem;
+  &:not(.mobile) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40rem;
+  }
 
   .container {
     height: fit-content;
-    gap: 4rem;
     margin: 0.8rem;
+    gap: 4rem;
   }
 }
 </style>

@@ -40,6 +40,10 @@ const slots = defineSlots<{
     color: var(--color-neutral-txt-primary);
   }
 
+  .value:empty::before {
+    content: '-';
+  }
+
   .addons {
     display: flex;
     gap: 0.8rem;
