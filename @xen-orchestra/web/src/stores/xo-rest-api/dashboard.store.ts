@@ -1,13 +1,23 @@
 import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { formatSizeRaw } from '@core/utils/size.util'
+import type { Info, Scale } from 'human-format'
 import { defineStore } from 'pinia'
-import { computed } from 'vue'
+import { computed, type ComputedRef } from 'vue'
 
 export const useDashboardStore = defineStore('dashboard', () => {
   const { context: baseContext, ...configRest } = createXoStoreConfig('dashboard', { pollInterval: 5000 })
 
-  const backupRepositories = computed(() => {
+  const backupRepositories: ComputedRef<
+    | undefined
+    | {
+        available: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+        backups: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+        other: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+        total: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+        used: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+      }
+  > = computed(() => {
     if (baseContext.record.value?.backupRepositories === undefined) {
       return
     }
@@ -21,7 +31,16 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
   })
 
-  const storageRepositories = computed(() => {
+  const storageRepositories: ComputedRef<
+    | undefined
+    | {
+        total: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+        used: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+        available: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+        replicated: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+        other: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+      }
+  > = computed(() => {
     if (baseContext.record.value?.storageRepositories === undefined) {
       return
     }

@@ -37,7 +37,7 @@
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('cores-with-sockets')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
-      <VtsQuickInfoRow :label="t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
+      <VtsQuickInfoRow :label="t('ram')" :value="`${ram.value} ${ram.prefix}`" />
       <VtsQuickInfoRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="host.tags.length">
