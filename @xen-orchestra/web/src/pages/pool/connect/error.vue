@@ -19,10 +19,10 @@
         </UiAlert>
         <template v-else>
           <UiAlert accent="danger">{{ t('pool-connection-error') }}</UiAlert>
-          {{ errorJson }}
+          <UiQuoteCode :label="t('api-error-details')" accent="danger" size="small" copy>
+            {{ errorJson }}
+          </UiQuoteCode>
         </template>
-        <UiButton variant="secondary" accent="brand" size="medium" @click="goBack"> {{ t('go-back') }}</UiButton>
-        {{ errorJson }}
         <UiButton variant="secondary" accent="brand" size="medium" @click="goBack"> {{ t('go-back') }}</UiButton>
       </div>
     </VtsStateHero>
@@ -33,6 +33,7 @@
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
