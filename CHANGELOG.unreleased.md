@@ -26,6 +26,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Home] Fix middle-click not opening VM, host, etc. in a new tab in Firefox (PR [#8756](https://github.com/vatesfr/xen-orchestra/pull/8756))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
