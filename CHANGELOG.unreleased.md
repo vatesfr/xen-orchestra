@@ -14,6 +14,7 @@
 
 - **Migrated REST API endpoints**
   - `POST /rest/v0/pools/<pool-id>/vms` (PR [#8748](https://github.com/vatesfr/xen-orchestra/pull/8748))
+  - `GET /rest/v0/hosts/<host-id>/audit.txt` (PR [#8757](https://github.com/vatesfr/xen-orchestra/pull/8757))
 
 **XO 6**:
   - [Dashboard] Cards are displayed as soon as they are ready (PR [#8695](https://github.com/vatesfr/xen-orchestra/pull/8695))

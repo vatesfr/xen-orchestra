@@ -1,4 +1,12 @@
-import { WrappedXenApiRecord, XenApiNetworkWrapped, XenApiRecord, XenApiSr, XenApiVm } from '../xen-api.mjs'
+import type {
+  WrappedXenApiRecord,
+  XenApiHost,
+  XenApiNetworkWrapped,
+  XenApiRecord,
+  XenApiSr,
+  XenApiTask,
+  XenApiVm,
+} from '../xen-api.mjs'
 import type { XoHost, XoNetwork, XoPif } from '../xo.mjs'
 import type { Readable } from 'node:stream'
 
@@ -64,4 +72,8 @@ export interface Xapi {
     srRef?: XenApiSr['$ref'],
     onVmCreation?: null | ((vm: XenApiVm) => unknown)
   ): Promise<XenApiVm['$ref']>
+  getResource(
+    pathname: string,
+    params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
+  ): Promise<{ body: Readable }>
 }
