@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Host/Advanced] Ability to clear remote syslog
+- [Host/Advanced] Ability to clear remote syslog (PR [#8746](https://github.com/vatesfr/xen-orchestra/pull/8746))
 
 ### Packages to release
 
