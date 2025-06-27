@@ -1,10 +1,19 @@
 <template>
   <header class="app-header">
-    <UiIcon v-if="uiStore.isMobile" ref="navigationTrigger" :icon="faBars" class="toggle-navigation" />
-    <RouterLink :to="{ name: 'home' }">
-      <img v-if="uiStore.isMobile" alt="XO Lite" src="../assets/logo.svg" />
-      <TextLogo v-else />
-    </RouterLink>
+    <div class="left">
+      <UiButtonIcon
+        v-if="!uiStore.isDesktopL"
+        ref="navigationTrigger"
+        :icon="faBars"
+        accent="brand"
+        size="medium"
+        :class="{ 'menu-to-right': !uiStore.isMobile }"
+      />
+      <RouterLink :to="{ name: 'home' }" class="logo-container">
+        <img v-if="uiStore.isMobile" alt="XO Lite" src="../assets/logo.svg" />
+        <TextLogo v-else />
+      </RouterLink>
+    </div>
     <slot />
     <div class="right">
       <PoolOverrideWarning as-tooltip />
@@ -18,9 +27,9 @@
 import AccountMenu from '@/components/account-menu/AccountMenu.vue'
 import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
 import TextLogo from '@/components/TextLogo.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import XoaButton from '@/components/XoaButton.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
@@ -52,6 +61,27 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore)
 
   .warning-not-current-pool {
     font-size: 2.4rem;
+  }
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+
+  @media (max-width: 1023px) {
+    flex: 1;
+  }
+}
+
+.menu-to-right {
+  order: 1;
+}
+
+.logo-container {
+  @media (max-width: 1023px) {
+    flex: 1;
+    text-align: center;
   }
 }
 

@@ -364,7 +364,8 @@
             <!-- SUMMARY SECTION -->
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
-              <VtsResource :icon="faDisplay" count="1" :label="t('vms')" />
+              <!-- TODO change label to manage pluralization when we can have multiple vm -->
+              <VtsResource :icon="faDisplay" count="1" :label="t('vm')" />
               <VtsResource :icon="faMicrochip" :count="vmState.vCPU" :label="t('vcpus', Number(vmState.vCPU))" />
               <VtsResource :icon="faMemory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
@@ -457,7 +458,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 // Vue imports
-import { OPAQUE_REF, VBD_TYPE, type DOMAIN_TYPE } from '@vates/types'
+import { type DOMAIN_TYPE, OPAQUE_REF, VBD_TYPE } from '@vates/types'
 import defer, { type Defer } from 'golike-defer'
 import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

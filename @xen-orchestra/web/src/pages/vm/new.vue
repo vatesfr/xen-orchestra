@@ -354,7 +354,8 @@
             <!-- SUMMARY SECTION -->
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
-              <VtsResource :icon="faDisplay" count="1" :label="t('vms')" />
+              <!-- TODO change label to manage pluralization when we can have multiple vm -->
+              <VtsResource :icon="faDisplay" count="1" :label="t('vm')" />
               <VtsResource :icon="faMicrochip" :count="vmState.vCPU" :label="t('vcpus')" />
               <VtsResource :icon="faMemory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
