@@ -14,6 +14,7 @@
 - **XO 6:**
   - [i18n] Update Czech, German, Spanish, Dutch, Russian translations (PR [#8643](https://github.com/vatesfr/xen-orchestra/pull/8643))
   - [Host/system] Display pGpu name in hardware specifications card in host/system tab (PR [#8740](https://github.com/vatesfr/xen-orchestra/pull/8740))
+  - [Table] add pagination on table (PR [#8573](https://github.com/vatesfr/xen-orchestra/pull/8573))
 
 ### Bug fixes
 
@@ -39,6 +40,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/web minor
-- @xen-orchestra/web-core patch
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->

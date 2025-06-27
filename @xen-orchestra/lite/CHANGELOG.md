@@ -2,6 +2,7 @@
 
 ## **next**
 
+- [Table] add pagination on table (PR [#8573](https://github.com/vatesfr/xen-orchestra/pull/8573))
 - [Pool/system] Display pool information in pool/system tab (PR [#8660](https://github.com/vatesfr/xen-orchestra/pull/8660))
 - [VM/Dashboard] Display VM information in dashboard tab (PR [#8529](https://github.com/vatesfr/xen-orchestra/pull/8529))
 - [Tab/Network] Updated side panel in tab network behavior for mobile view (PR [#8688](https://github.com/vatesfr/xen-orchestra/pull/8688))
