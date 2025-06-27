@@ -636,6 +636,10 @@ export default class XenServers {
     return this._stats.getSrStats(this.getXapi(srId), srId, granularity)
   }
 
+  getXapiPoolStats(poolId, granularity) {
+    return this._stats.getPoolStats(this.getXapi(poolId), granularity)
+  }
+
   async getXenServer(id) {
     const server = await this.getXenServerWithCredentials(id)
     this._decorateXenServer(server)
