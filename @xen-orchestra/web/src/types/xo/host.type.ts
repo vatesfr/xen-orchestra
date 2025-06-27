@@ -1,4 +1,4 @@
-import type { XoPgpu } from '@/types/xo/pgpu.type.ts'
+import type { XoPgpu } from '@/types/xo/pgpu.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVmController } from '@/types/xo/vm-controller.type.ts'
 import { type XoVm } from '@/types/xo/vm.type'
