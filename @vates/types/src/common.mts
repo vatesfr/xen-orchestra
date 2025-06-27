@@ -729,5 +729,6 @@ export type XapiVmStatsRaw = {
   vbdInflight?: RecordStatValues
   vbdAvgquSz?: RecordStatValues
 }
+export type XapiVmStats = XapiStatsResponse<XapiVmStatsRaw>
 
 export type XapiPoolStats = Record<XoHost['id'], XapiHostStats | { error: Record<string, unknown> }>
