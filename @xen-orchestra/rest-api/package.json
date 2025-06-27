@@ -6,7 +6,7 @@
   "main": "./dist/index.mjs",
   "name": "@xen-orchestra/rest-api",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/rest-api",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "REST API to manage your XOA",
   "license": "AGPL-3.0-or-later",
   "private": false,
