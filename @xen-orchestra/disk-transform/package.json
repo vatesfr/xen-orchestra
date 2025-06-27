@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/disk-transform",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "main": "./dist/index.mjs",
   "license": "MIT",
   "private": false,
