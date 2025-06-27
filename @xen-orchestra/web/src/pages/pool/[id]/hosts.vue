@@ -1,9 +1,9 @@
 <template>
   <VtsLoadingHero v-if="!isReady" type="page" />
   <UiCard v-else class="hosts">
-    <div class="topBottomTable">
+    <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
-      <p class="typo-body-regular-small count">{{ t('n-vms', { n: hosts.length }) }}</p>
+      <p class="typo-body-regular-small count">{{ t('n-hosts', { n: hosts.length }) }}</p>
       <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
     </div>
     <VtsTable vertical-border>
@@ -31,9 +31,9 @@
         </tr>
       </tbody>
     </VtsTable>
-    <div class="topBottomTable">
+    <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
-      <p class="typo-body-regular-small count">{{ t('n-vms', { n: hosts.length }) }}</p>
+      <p class="typo-body-regular-small count">{{ t('n-hosts', { n: hosts.length }) }}</p>
       <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
     </div>
   </UiCard>
@@ -88,10 +88,11 @@ const { pageRecords: hostsRecords, paginationBindings } = usePagination('hosts',
   text-transform: lowercase;
 }
 
-.topBottomTable {
+.pagination-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   .count {
     color: var(--color-neutral-txt-secondary);
   }

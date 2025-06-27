@@ -189,7 +189,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   ],
 })
 
-const { pageRecords: networksRecords, paginationBindings } = usePagination('networks', rows)
+const { pageRecords: networksRecords, paginationBindings } = usePagination('internal-networks', rows)
 
 type NetworkHeader = 'name_label' | 'name_description' | 'MTU' | 'default_locking_mode'
 

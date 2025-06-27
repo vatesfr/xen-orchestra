@@ -1,7 +1,7 @@
 <template>
   <VtsLoadingHero v-if="!isReady" type="page" />
   <UiCard v-else class="vms">
-    <div class="metaTable">
+    <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
       <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
@@ -29,7 +29,7 @@
         </tr>
       </tbody>
     </VtsTable>
-    <div class="metaTable">
+    <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
       <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
@@ -83,10 +83,11 @@ const { pageRecords: vmsRecords, paginationBindings } = usePagination('vms', vms
   gap: 0.8rem;
 }
 
-.metaTable {
+.pagination-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   .count {
     color: var(--color-neutral-txt-secondary);
   }
