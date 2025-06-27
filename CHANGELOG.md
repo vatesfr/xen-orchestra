@@ -82,7 +82,7 @@
 - @xen-orchestra/web-core 0.22.0
 - @xen-orchestra/proxy 0.29.23
 - @xen-orchestra/rest-api 0.10.0
-- @xen-orchestra/web 0.20.0
+- @xen-orchestra/web 0.20.1
 - xo-acl-resolver 0.5.1
 - xo-server 5.180.0
 - xo-web 5.178.0
