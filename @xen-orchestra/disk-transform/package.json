@@ -34,7 +34,7 @@
     "node": ">=20.17"
   },
   "dependencies": {
-    "vhd-lib": "^4.13.0",
+    "vhd-lib": "^4.14.0",
     "@vates/generator-toolbox": "^1.0.3"
   }
 }
