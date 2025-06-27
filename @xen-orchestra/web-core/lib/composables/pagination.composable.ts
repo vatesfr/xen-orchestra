@@ -5,7 +5,7 @@ import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>) {
   const records = computed(() => toValue(_records))
 
-  const showBy = useLocalStorage(`${id}.per-page`, 50)
+  const showBy = useLocalStorage(`${id}.per-page`, 24)
 
   const pageSize = computed({
     get: () => (showBy.value === -1 ? Number.MAX_SAFE_INTEGER : showBy.value),

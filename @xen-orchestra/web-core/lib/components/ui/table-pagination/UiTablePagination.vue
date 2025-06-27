@@ -13,7 +13,7 @@
     <span class="typo-body-regular-small label show">{{ t('core.pagination.show-by') }}</span>
     <div class="dropdown-wrapper">
       <select v-model="showBy" class="dropdown typo-body-regular-small">
-        <option v-for="option in [50, 100, 150, 200, -1]" :key="option" :value="option" class="typo-body-bold-small">
+        <option v-for="option in [12, 24, 48, -1]" :key="option" :value="option" class="typo-body-bold-small">
           {{ option === -1 ? t('core.pagination.all') : option }}
         </option>
       </select>
@@ -49,7 +49,7 @@ const emit = defineEmits<{
   last: []
 }>()
 
-const showBy = defineModel<number>('showBy', { default: 50 })
+const showBy = defineModel<number>('showBy', { default: 24 })
 
 const { t } = useI18n()
 </script>
