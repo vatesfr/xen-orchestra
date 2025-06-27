@@ -11,17 +11,17 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoHostStats } from '@/types/xo/host-stats.type.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import type { XapiHostStats } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
-  data: XoHostStats | null
+  data: XapiHostStats | null
   loading: boolean
   error?: string
 }>()
@@ -45,7 +45,7 @@ const loadAverage = computed<LinearChartData>(() => {
 
     result.set(timestamp, {
       timestamp,
-      value: Number(load.toFixed(2)),
+      value: Number(load?.toFixed(2)),
     })
   }
 
@@ -58,7 +58,7 @@ const loadAverage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = loadAverage.value[0]?.data.map(item => item.value ?? 0) ?? []
+  const values = loadAverage.value[0]?.data.map(item => item.value || 0) ?? []
   if (values.length === 0) {
     return 10
   }

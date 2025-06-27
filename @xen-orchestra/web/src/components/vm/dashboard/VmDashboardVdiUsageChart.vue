@@ -12,7 +12,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoVmStats } from '@/types/xo/vm-stats.type.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -20,11 +19,12 @@ import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import type { XapiVmStats } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
-  data: XoVmStats | null
+  data: XapiVmStats | null
   loading: boolean
   error?: string
 }>()
@@ -38,7 +38,7 @@ const vdiUsage = computed<LinearChartData>(() => {
     return []
   }
 
-  const readArrays = Object.values(data.stats.xvds.r)
+  const readArrays = Object.values(data.stats.xvds.r ?? {})
 
   const timestamps = Array.from(
     { length: readArrays[0].length },
@@ -50,7 +50,7 @@ const vdiUsage = computed<LinearChartData>(() => {
       label: t('read'),
       data: timestamps.map((timestamp, index) => ({
         timestamp,
-        value: Object.values(data.stats.xvds.r).reduce((sum, values) => sum + values[index], 0),
+        value: Object.values(data.stats.xvds?.r ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0),
       })),
     },
   ]
@@ -60,7 +60,7 @@ const vdiUsage = computed<LinearChartData>(() => {
       label: t('write'),
       data: timestamps.map((timestamp, index) => ({
         timestamp,
-        value: Object.values(data.stats.xvds.w).reduce((sum, values) => sum + values[index], 0),
+        value: Object.values(data.stats.xvds?.w ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0),
       })),
     },
   ]
@@ -70,7 +70,7 @@ const vdiUsage = computed<LinearChartData>(() => {
 
 const maxValue = computed(() => {
   const values = vdiUsage.value.reduce(
-    (acc, series) => [...acc, ...series.data.map(item => item.value ?? 0)],
+    (acc, series) => [...acc, ...series.data.map(item => item.value || 0)],
     [] as number[]
   )
 

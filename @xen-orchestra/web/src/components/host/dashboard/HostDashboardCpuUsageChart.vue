@@ -11,17 +11,17 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoHostStats } from '@/types/xo/host-stats.type.ts'
 import type { LinearChartData, ValueFormatter } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import type { XapiHostStats } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
-  data: XoHostStats | null
+  data: XapiHostStats | null
   loading: boolean
   error?: string
 }>()
@@ -41,7 +41,7 @@ const cpuUsage = computed<LinearChartData>(() => {
 
   for (let hourIndex = 0; hourIndex < cpus[0].length; hourIndex++) {
     const timestamp = (timestampStart + hourIndex * data.interval) * 1000
-    const cpuUsageSum = cpus.reduce((total, cpu) => total + cpu[hourIndex], 0)
+    const cpuUsageSum = cpus.reduce((total, cpu) => total + (cpu[hourIndex] ?? NaN), 0)
 
     result.set(timestamp, {
       timestamp,
@@ -58,7 +58,7 @@ const cpuUsage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = cpuUsage.value[0]?.data.map(item => item.value ?? 0) ?? []
+  const values = cpuUsage.value[0]?.data.map(item => item.value || 0) ?? []
 
   if (values.length === 0) {
     return 100
