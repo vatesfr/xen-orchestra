@@ -14,7 +14,7 @@
     <VtsQuickInfoRow :label="t('cpu-model')" :value="host.CPUs.modelname" />
     <VtsQuickInfoRow :label="t('core-socket')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
     <VtsQuickInfoRow :label="t('gpus')">
-      <template #value>
+      <template v-if="isReady" #value>
         <template v-if="devicesNames">
           {{ devicesNames }}
         </template>
@@ -33,6 +33,7 @@ import type { XoHost } from '@/types/xo/host.type.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { logicAnd } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
 import { useI18n } from 'vue-i18n'
 
@@ -42,8 +43,10 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { get: getPci } = usePciStore().subscribe()
-const { get: getGpu } = usePgpuStore().subscribe()
+const { get: getPci, isReady: isPciReady } = usePciStore().subscribe()
+const { get: getGpu, isReady: isPgpuReady } = usePgpuStore().subscribe()
+
+const isReady = logicAnd(isPgpuReady, isPciReady)
 
 const devicesNames = useArrayReduce(
   () => host.PGPUs ?? [],
