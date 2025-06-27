@@ -4,12 +4,7 @@
 
     <div class="row">
       Choose a component
-      <FormSelect v-model="componentPath">
-        <option value="" />
-        <option v-for="path in componentPaths" :key="path" :value="path">
-          {{ pathToOptionLabel(path) }}
-        </option>
-      </FormSelect>
+      <VtsSelect :id="componentSelectId" accent="brand" />
     </div>
 
     <div class="row">
@@ -33,11 +28,12 @@
 <script lang="ts" setup>
 import CodeHighlight from '@/components/CodeHighlight.vue'
 import FormInput from '@/components/form/FormInput.vue'
-import FormSelect from '@/components/form/FormSelect.vue'
 import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import { useFormSelect } from '@core/packages/form-select'
 import { faWarning } from '@fortawesome/free-solid-svg-icons'
 import { castArray } from 'lodash-es'
 import { type ComponentOptions, computed, ref, watch } from 'vue'
@@ -148,6 +144,14 @@ const extractTypeFromConstructor = (ctor: null | (new () => unknown), propName: 
 
   return ctor.name.toLocaleLowerCase()
 }
+
+const { id: componentSelectId } = useFormSelect(componentPaths, {
+  model: componentPath,
+  searchable: true,
+  option: {
+    label: path => pathToOptionLabel(path),
+  },
+})
 
 watch(
   componentPath,
