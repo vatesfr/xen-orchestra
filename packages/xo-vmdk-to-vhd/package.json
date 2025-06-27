@@ -25,7 +25,7 @@
     "pako": "^2.0.4",
     "promise-toolbox": "^0.21.0",
     "tar-stream": "^3.1.6",
-    "vhd-lib": "^4.13.0",
+    "vhd-lib": "^4.14.0",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {

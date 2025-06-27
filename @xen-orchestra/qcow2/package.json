@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/qcow2",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "parse and produce qcow2 files",
   "main": "dist/index.mjs",
   "scripts": {
@@ -35,6 +35,6 @@
     "typescript-eslint": "^8.23.0"
   },
   "dependencies": {
-    "@xen-orchestra/disk-transform": "1.0.1"
+    "@xen-orchestra/disk-transform": "^1.1.0"
   }
 }
