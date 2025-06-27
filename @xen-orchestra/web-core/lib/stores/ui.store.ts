@@ -8,8 +8,9 @@ export const useUiStore = defineStore('ui', () => {
 
   const { store: colorMode } = useColorMode({ initialValue: 'auto' })
 
-  const { desktop: isDesktop } = useBreakpoints({
+  const { desktop: isDesktop, desktopL: isDesktopL } = useBreakpoints({
     desktop: 1024,
+    desktopL: 1440,
   })
 
   const isMobile = computed(() => !isDesktop.value)
@@ -28,6 +29,7 @@ export const useUiStore = defineStore('ui', () => {
     colorMode,
     currentHostOpaqueRef,
     isDesktop,
+    isDesktopL,
     isMobile,
     hasUi,
   }
