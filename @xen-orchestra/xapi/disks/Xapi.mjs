@@ -2,9 +2,10 @@
 /**
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
  * @typedef {import('@xen-orchestra/disk-transform').RandomAccessDisk} RandomAccessDisk
+ * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
  */
 
-import { DiskLargerBlock, RandomDiskPassthrough, ReadAhead } from '@xen-orchestra/disk-transform'
+import { DiskLargerBlock, DiskPassthrough, ReadAhead } from '@xen-orchestra/disk-transform'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiStreamNbdSource } from './XapiStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
@@ -21,7 +22,7 @@ export const VHD_MAX_SIZE = 2 * 1024 * 1024 * 1024 * 1024 /* 2TB */ - 8 * 1024 /
  * Meta class that handles the fallback logic when trying to export a disk from xapi.
  * Uses NBD, change block tracking, and stream export depending on capabilities.
  */
-export class XapiDiskSource extends RandomDiskPassthrough {
+export class XapiDiskSource extends DiskPassthrough {
   /** @type {string} */
   #vdiRef
 
