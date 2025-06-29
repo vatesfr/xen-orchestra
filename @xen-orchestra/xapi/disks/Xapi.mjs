@@ -66,12 +66,15 @@ export class XapiDiskSource extends DiskPassthrough {
    * Create a disk source using stream export + NBD.
    * On failure, fall back to a full export.
    *
-   * @returns {Promise<ReadAhead|XapiVhdStreamSource>}
+   * @returns {Promise<Disk|RandomAccessDisk>}
    */
   async #openNbdStream() {
     const xapi = this.#xapi
     const baseRef = this.#baseRef
     const vdiRef = this.#vdiRef
+    /**
+     * @type {Disk}
+     */
     let source
     let streamSource
     try {
@@ -182,7 +185,7 @@ export class XapiDiskSource extends DiskPassthrough {
 
   /**
    *
-   * @returns {Promise<XapiVhdStreamSource>}
+   * @returns {Promise<Disk>}
    */
   async openSource() {
     let source
