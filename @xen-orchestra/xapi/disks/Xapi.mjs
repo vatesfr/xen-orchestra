@@ -81,6 +81,10 @@ export class XapiDiskSource extends DiskPassthrough {
       }
       source = new XapiStreamNbdSource(streamSource, { vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
       await source.init()
+
+      if (source.getBlockSize() < this.#blockSize) {
+        source = new DiskLargerBlock(source, this.#blockSize)
+      }
     } catch (err) {
       await source?.close()
       if (err.code === 'NO_NBD_AVAILABLE') {
@@ -121,10 +125,6 @@ export class XapiDiskSource extends DiskPassthrough {
         source = new XapiQcow2StreamSource({ vdiRef, baseRef, xapi })
       }
       await source.init()
-
-      if (source.getBlockSize() < this.#blockSize) {
-        source = new DiskLargerBlock(source, this.#blockSize)
-      }
     } catch (err) {
       await source?.close()
       if (err.code === 'VDI_CANT_DO_DELTA') {
@@ -143,18 +143,25 @@ export class XapiDiskSource extends DiskPassthrough {
    * Create a disk source using NBD and CBT.
    * On failure, fall back to stream + NBD.
    *
-   * @returns {Promise<ReadAhead|XapiVhdStreamSource>}
+   * @returns {Promise<Disk>}
    */
   async #openNbdCbt() {
     const xapi = this.#xapi
     const baseRef = this.#baseRef
     const vdiRef = this.#vdiRef
-    const source = new XapiVhdCbtSource({ vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
+    /**
+     * @type {RandomAccessDisk}
+     */
+    let source = new XapiVhdCbtSource({ vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
     try {
       await source.init()
       this.#useNbd = true
       this.#useCbt = true
       const readAhead = new ReadAhead(source)
+
+      if (source.getBlockSize() < this.#blockSize) {
+        source = new DiskLargerBlock(source, this.#blockSize)
+      }
       const label = await xapi.getField('VDI', vdiRef, 'name_label')
       readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD+CBT`)
       return readAhead
