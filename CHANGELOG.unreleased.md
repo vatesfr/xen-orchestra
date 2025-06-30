@@ -29,6 +29,7 @@
 - [ACL] Confirmation message when deleting an ACL rule (PR [#8774](https://github.com/vatesfr/xen-orchestra/pull/8774))
 - [REST API] Ability to create a VM with `name_description`, `memory` and `autoPoweron` (PR [#8798](https://github.com/vatesfr/xen-orchestra/pull/8798))
 - [xo-server] Display build commit at start-up and with `xo-server --help`
+- [xo-server] Warn if build is out of sync with local git repository
 
 ### Bug fixes
 
