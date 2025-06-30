@@ -2,16 +2,19 @@ import { type XoPool } from '@vates/types'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
 
 export class PoolService {
   #restApi: RestApi
   #hostService: HostService
   #vmService: VmService
+  #alarmService: AlarmService
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
     this.#hostService = this.#restApi.ioc.get(HostService)
     this.#vmService = this.#restApi.ioc.get(VmService)
+    this.#alarmService = this.#restApi.ioc.get(AlarmService)
   }
 
   #getHostsStatus(poolId: XoPool['id']) {
@@ -36,13 +39,20 @@ export class PoolService {
     }
   }
 
+  #getAlarms(poolId: XoPool['id']) {
+    const alarms = this.#alarmService.getAlarms({ filter: alarm => alarm.$pool === poolId })
+    return Object.values(alarms)
+  }
+
   async getDashboard(id: XoPool['id']) {
     const hostStatus = this.#getHostsStatus(id)
     const vmsStatus = this.#getVmsStatus(id)
+    const alarms = this.#getAlarms(id)
 
     return {
       hostStatus,
       vmsStatus,
+      alarms,
     }
   }
 }
