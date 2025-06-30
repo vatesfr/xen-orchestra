@@ -4,7 +4,6 @@ import {
   AnyXoVdi,
   AnyXoVm,
   BACKUP_TYPE,
-  HOST_POWER_STATE,
   VM_POWER_STATE,
   XoBackupJob,
   XoHost,
@@ -28,6 +27,7 @@ import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard
 import { isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 import type { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { HostService } from '../hosts/host.service.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -38,6 +38,7 @@ type DashboardAsyncCache = {
 
 export class XoaService {
   #restApi: RestApi
+  #hostService: HostService
   #dashboardAsyncCache = new Map<
     keyof DashboardAsyncCache,
     AsyncCacheEntry<DashboardAsyncCache[keyof DashboardAsyncCache]>
@@ -46,6 +47,7 @@ export class XoaService {
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
+    this.#hostService = restApi.ioc.get(HostService)
     this.#dashboardCacheOpts = {
       timeout: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheTimeout') ?? 60000,
       expiresIn: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
@@ -474,31 +476,12 @@ export class XoaService {
   }
 
   #getHostsStatus(): XoaDashboard['hostsStatus'] {
-    const hosts = this.#restApi.getObjectsByType<XoHost>('host')
-    let nRunning = 0
-    let nHalted = 0
-    let nUnknown = 0
-    let total = 0
-    for (const id in hosts) {
-      total++
-      const host = hosts[id as XoHost['id']]
-      switch (host.power_state) {
-        case HOST_POWER_STATE.RUNNING:
-          nRunning++
-          break
-        case HOST_POWER_STATE.HALTED:
-          nHalted++
-          break
-        default:
-          nUnknown++
-          break
-      }
-    }
+    const { running, halted, total, unknown } = this.#hostService.getHostsStatus()
 
     return {
-      running: nRunning,
-      halted: nHalted,
-      unknown: nUnknown,
+      running,
+      halted,
+      unknown,
       total,
     }
   }

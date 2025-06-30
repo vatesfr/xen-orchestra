@@ -48,6 +48,7 @@ import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
 import { VmService } from '../vms/vm.service.mjs'
+import { PoolService } from './pool.service.mjs'
 
 @Route('pools')
 @Security('*')
@@ -56,10 +57,16 @@ import { VmService } from '../vms/vm.service.mjs'
 @provide(PoolController)
 export class PoolController extends XapiXoController<XoPool> {
   #vmService: VmService
+  #poolService: PoolService
 
-  constructor(@inject(RestApi) restApi: RestApi, @inject(VmService) vmService: VmService) {
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(VmService) vmService: VmService,
+    @inject(PoolService) poolService: PoolService
+  ) {
     super('pool', restApi)
     this.#vmService = vmService
+    this.#poolService = poolService
   }
 
   /**
@@ -301,5 +308,16 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(422, 'Invalid granularity')
   getStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiPoolStats> {
     return this.restApi.xoApp.getXapiPoolStats(id as XoPool['id'], granularity)
+  }
+
+  @Get('{id}/dashboard')
+  async getPoolDashboard(@Path() id: string) {
+    const poolId = id as XoPool['id']
+    // throw if pool not found
+    this.getObject(poolId)
+
+    const dashboard = await this.#poolService.getDashboard(poolId)
+
+    return dashboard
   }
 }
