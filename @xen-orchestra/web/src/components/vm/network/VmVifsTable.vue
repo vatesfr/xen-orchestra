@@ -51,7 +51,9 @@
           </UiButton>
         </UiTableActions>
 
-        <UiTopBottomTable :selected-items="0" :total-items="0" />
+        <UiTopBottomTable :selected-items="0" :total-items="0">
+          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+        </UiTopBottomTable>
       </div>
       <VtsDataTable :is-ready :has-error :no-data-message="vifs.length === 0 ? t('no-vif-detected') : undefined">
         <template #thead>
@@ -74,7 +76,7 @@
         </template>
         <template #tbody>
           <tr
-            v-for="row of rows"
+            v-for="row of vifsRecords"
             :key="row.id"
             :class="{ selected: selectedVifId === row.id }"
             @click="selectedVifId = row.id"
@@ -123,7 +125,9 @@
           </tr>
         </template>
       </VtsDataTable>
-      <UiTopBottomTable :selected-items="0" :total-items="0" />
+      <UiTopBottomTable :selected-items="0" :total-items="0">
+        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      </UiTopBottomTable>
     </div>
   </div>
 </template>
@@ -141,8 +145,10 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
@@ -214,6 +220,8 @@ const { visibleColumns, rows } = useTable('vifs', filteredVifs, {
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
+
+const { pageRecords: vifsRecords, paginationBindings } = usePagination('vifs', rows)
 
 type VifHeader = 'network' | 'device' | 'status' | 'ip' | 'MAC' | 'MTU' | 'lockingMode' | 'more'
 

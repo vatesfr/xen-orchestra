@@ -11,7 +11,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **XO 6:**
+  - [i18n] Update Czech, German, Spanish, Dutch, Russian translations (PR [#8643](https://github.com/vatesfr/xen-orchestra/pull/8643))
+  - [Host/system] Display pGpu name in hardware specifications card in host/system tab (PR [#8740](https://github.com/vatesfr/xen-orchestra/pull/8740))
+  - [Table] add pagination on table (PR [#8573](https://github.com/vatesfr/xen-orchestra/pull/8573))
+
 ### Bug fixes
+
+- **XO 6:**
+  - [XO6/stats] Fix graphs that were sometimes not displayed or displayed incorrectly (PR [#8722](https://github.com/vatesfr/xen-orchestra/pull/8722))
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
@@ -33,5 +41,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->

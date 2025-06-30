@@ -69,7 +69,7 @@ const option = computed<EChartsOption>(() => ({
     type: 'line',
     name: series.label,
     zlevel: index + 1,
-    data: series.data.map(item => [item.timestamp, item.value]),
+    data: series.data.map(item => [item.timestamp, isNaN(item.value ?? NaN) ? null : item.value]),
   })),
 }))
 </script>

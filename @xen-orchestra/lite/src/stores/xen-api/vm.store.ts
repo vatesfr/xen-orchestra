@@ -1,5 +1,4 @@
 import type { GetStats } from '@/composables/fetch-stats.composable'
-import type { VmStats } from '@/libs/xapi-stats'
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
@@ -10,6 +9,7 @@ import { useVdiStore } from '@/stores/xen-api/vdi.store.ts'
 import { useVmRawStore } from '@/stores/xen-api/vm-raw.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import type { XapiVmStatsRaw } from '@vates/types/common'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
@@ -115,7 +115,7 @@ export const useVmStore = defineStore('xen-api-vm', () => {
       throw new Error(`VM ${id} is halted or host could not be found.`)
     }
 
-    return xenApiStore.getXapiStats()._getAndUpdateStats<VmStats>({
+    return xenApiStore.getXapiStats()._getAndUpdateStats<XapiVmStatsRaw>({
       abortSignal,
       host,
       ignoreExpired,

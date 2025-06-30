@@ -1,8 +1,11 @@
 <template>
   <VtsLoadingHero v-if="!isReady" type="page" />
   <UiCard v-else class="vms">
-    <!-- TODO: update with item selection button and TopBottomTable component when available -->
-    <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
+    <div class="pagination-container">
+      <!-- TODO: update with item selection button when available -->
+      <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
+      <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+    </div>
     <VtsTable vertical-border>
       <thead>
         <tr>
@@ -11,7 +14,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="vm in vms" :key="vm.id">
+        <tr v-for="vm in vmsRecords" :key="vm.id">
           <VtsCellObject :id="vm.data.id">
             <UiObjectLink :route="`/vm/${vm.data.id}/`">
               <template #icon>
@@ -24,6 +27,11 @@
         </tr>
       </tbody>
     </VtsTable>
+    <div class="pagination-container">
+      <!-- TODO: update with item selection button when available -->
+      <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
+      <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+    </div>
   </UiCard>
 </template>
 
@@ -39,6 +47,8 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
+import { usePagination } from '@core/composables/pagination.composable'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTree } from '@core/composables/tree.composable'
 import { faAlignLeft, faDesktop } from '@fortawesome/free-solid-svg-icons'
@@ -60,6 +70,7 @@ const definitions = computed(() =>
 )
 
 const { nodes: vms } = useTree(definitions)
+const { pageRecords: vmsRecords, paginationBindings } = usePagination('vms', vms)
 </script>
 
 <style lang="postcss" scoped>
@@ -68,7 +79,13 @@ const { nodes: vms } = useTree(definitions)
   gap: 0.8rem;
 }
 
-.count {
-  color: var(--color-neutral-txt-secondary);
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .count {
+    color: var(--color-neutral-txt-secondary);
+  }
 }
 </style>

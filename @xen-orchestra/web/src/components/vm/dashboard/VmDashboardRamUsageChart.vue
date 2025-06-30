@@ -12,7 +12,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoVmStats } from '@/types/xo/vm-stats.type.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -20,11 +19,12 @@ import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import type { XapiVmStats } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
-  data: XoVmStats | null
+  data: XapiVmStats | null
   loading: boolean
   error?: string
 }>()
@@ -53,7 +53,7 @@ const ramUsage = computed<LinearChartData>(() => {
 
     const ramFree = ramFreeValues[hourIndex]
 
-    const ramUsed = ramTotal - ramFree
+    const ramUsed = (ramTotal ?? NaN) - (ramFree ?? NaN)
 
     result.set(timestamp, {
       timestamp,
@@ -73,7 +73,7 @@ const maxValue = computed(() => {
     return 1024 * 1024 * 1024 // 1 GB as fallback
   }
 
-  return Math.max(...data.stats.memory, 0)
+  return Math.max(...data.stats.memory.map(memoryValue => memoryValue || 0), 0)
 })
 
 const byteFormatter = (value: number | null) => {

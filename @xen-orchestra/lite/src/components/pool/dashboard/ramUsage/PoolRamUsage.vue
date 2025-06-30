@@ -66,7 +66,7 @@ const data = computed<LinearChartData>(() => {
     }
 
     const memoryFree = stats.memoryFree
-    const memoryUsage = stats.memory.map((memory, index) => memory - memoryFree[index])
+    const memoryUsage = stats.memory.map((memory, index) => (memory ?? NaN) - (memoryFree?.[index] ?? NaN))
 
     memoryUsage.forEach((value, hourIndex) => {
       const timestamp = (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000
@@ -94,7 +94,7 @@ const isStatFetched = computed(() => {
 
   return stats.every(host => {
     const hostStats = host.stats
-    return hostStats != null && hostStats.memory.length === data.value[0].data.length
+    return hostStats != null && hostStats.memory?.length === data.value[0].data.length
   })
 })
 

@@ -16,12 +16,12 @@ import UiCard from '@/components/ui/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { formatSize } from '@/libs/utils'
-import type { HostStats } from '@/libs/xapi-stats'
 import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
 import type { LinearChartData } from '@core/types/chart'
+import type { XapiHostStatsRaw } from '@vates/types'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -45,13 +45,13 @@ const data = computed<LinearChartData>(() => {
     rx: new Map<number, { timestamp: number; value: number }>(),
   }
 
-  const addResult = (stats: HostStats, type: 'tx' | 'rx') => {
-    const networkStats = Object.values(stats.pifs[type])
+  const addResult = (stats: XapiHostStatsRaw, type: 'tx' | 'rx') => {
+    const networkStats = Object.values(stats.pifs?.[type] ?? {})
 
     for (let hourIndex = 0; hourIndex < networkStats[0].length; hourIndex++) {
       const timestamp = (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000
 
-      const networkThroughput = networkStats.reduce((total, throughput) => total + throughput[hourIndex], 0)
+      const networkThroughput = networkStats.reduce((total, throughput) => total + (throughput[hourIndex] ?? NaN), 0)
 
       results[type].set(timestamp, {
         timestamp,
@@ -91,7 +91,7 @@ const isStatFetched = computed(() => {
     const hostStats = host.stats
     return (
       hostStats != null &&
-      Object.values(hostStats.pifs.rx)[0].length + Object.values(hostStats.pifs.tx)[0].length ===
+      Object.values(hostStats.pifs?.rx ?? {})[0].length + Object.values(hostStats.pifs?.tx ?? {})[0].length ===
         data.value[0].data.length + data.value[1].data.length
     )
   })
@@ -101,7 +101,7 @@ const isLoading = computed(() => isFetching.value || !isStatFetched.value)
 
 const customMaxValue = computed(() => {
   const values = data.value.reduce(
-    (acc, series) => [...acc, ...series.data.map(item => item.value ?? 0)],
+    (acc, series) => [...acc, ...series.data.map(item => item.value || 0)],
 
     [] as number[]
   )
