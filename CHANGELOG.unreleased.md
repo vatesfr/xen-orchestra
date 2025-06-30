@@ -13,7 +13,7 @@
 
 - **Migrated REST API endpoints**
 
-  - `rest/v0/users` Migrate create user (PR [8697](https://github.com/vatesfr/xen-orchestra/pull/8697))
+    - `POST /rest/v0/users` (PR [8697](https://github.com/vatesfr/xen-orchestra/pull/8697))
 
 ### Bug fixes
 
@@ -36,6 +36,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api minor
-- @xen-orchestra/rest-api minor
+- xo-server minor
 
 <!--packages-end-->
