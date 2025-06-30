@@ -82,17 +82,17 @@
 - @vates/types 1.6.0
 - @xen-orchestra/disk-transform 1.1.0
 - @xen-orchestra/qcow2 1.0.0
-- @xen-orchestra/xapi 8.3.0
 - @xen-orchestra/backups 0.62.0
 - @xen-orchestra/backups-cli 1.1.1
 - @xen-orchestra/immutable-backups 1.0.22
-- @xen-orchestra/web-core 0.22.0
-- @xen-orchestra/proxy 0.29.23
 - @xen-orchestra/rest-api 0.10.0
-- @xen-orchestra/web 0.20.1
 - xo-acl-resolver 0.5.1
-- xo-server 5.180.0
 - xo-web 5.178.0
+- @xen-orchestra/xapi 8.3.1
+- @xen-orchestra/web-core 0.23.0
+- @xen-orchestra/proxy 0.29.24
+- @xen-orchestra/web 0.21.0
+- xo-server 5.180.1
 
 ## **5.107.2** (2025-06-05)
 
