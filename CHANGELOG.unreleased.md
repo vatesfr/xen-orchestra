@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [xo-server] Display build commit at start-up and with `xo-server --help`
+- [xo-server] Warn if build is out of sync with local git repository
 
 ### Bug fixes
 
