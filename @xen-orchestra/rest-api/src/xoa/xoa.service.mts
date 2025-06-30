@@ -13,7 +13,6 @@ import {
   XoVbd,
   XoVm,
 } from '@vates/types'
-import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
@@ -214,38 +213,19 @@ export class XoaService {
   }
 
   async #getMissingPatchesInfo(): Promise<XoaDashboard['missingPatches']> {
-    if (!(await this.#restApi.xoApp.hasFeatureAuthorization('LIST_MISSING_PATCHES'))) {
-      return {
-        hasAuthorization: false,
-      }
+    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo()
+
+    if (!missingPatchesInfo.hasAuthorization) {
+      return { hasAuthorization: false }
     }
 
-    const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host'))
-    const poolsWithMissingPatches = new Set()
-    let nHostsWithMissingPatches = 0
-    let nHostsFailed = 0
-
-    await asyncEach(hosts, async (host: XoHost) => {
-      const xapi = this.#restApi.xoApp.getXapi(host)
-
-      try {
-        const patches = await xapi.listMissingPatches(host.id)
-
-        if (patches.length > 0) {
-          nHostsWithMissingPatches++
-          poolsWithMissingPatches.add(host.$pool)
-        }
-      } catch (err) {
-        log.error('listMissingPatches failed', err)
-        nHostsFailed++
-      }
-    })
+    const { hasAuthorization, nHostsFailed, nHostsWithMissingPatches, nPoolsWithMissingPatches } = missingPatchesInfo
 
     return {
-      hasAuthorization: true,
+      hasAuthorization,
       nHostsFailed,
       nHostsWithMissingPatches,
-      nPoolsWithMissingPatches: poolsWithMissingPatches.size,
+      nPoolsWithMissingPatches,
     }
   }
 

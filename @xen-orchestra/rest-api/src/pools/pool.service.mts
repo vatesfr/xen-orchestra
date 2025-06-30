@@ -44,15 +44,32 @@ export class PoolService {
     return Object.values(alarms)
   }
 
+  async #getMissingPatches(poolId: XoPool['id']) {
+    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo({ filter: host => host.$pool === poolId })
+    if (!missingPatchesInfo.hasAuthorization) {
+      return {
+        hasAuthorization: false,
+      }
+    }
+
+    const { hasAuthorization, missingPatches } = missingPatchesInfo
+    return {
+      hasAuthorization,
+      missingPatches,
+    }
+  }
+
   async getDashboard(id: XoPool['id']) {
     const hostStatus = this.#getHostsStatus(id)
     const vmsStatus = this.#getVmsStatus(id)
     const alarms = this.#getAlarms(id)
+    const missingPatches = await this.#getMissingPatches(id)
 
     return {
       hostStatus,
       vmsStatus,
       alarms,
+      missingPatches,
     }
   }
 }
