@@ -1,5 +1,5 @@
-import { Body, Delete, Example, Get, Path, Post, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
-import type { Request as ExRequest } from 'express'
+import { Body, Delete, Example, Get, Middlewares, Path, Post, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoGroup } from '@vates/types'
 
@@ -51,16 +51,22 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
-   * @example body { "name": "new group" }
+   * @example body {
+   * "name": "new group",
+   * "provider": "64a7a0b4-e728-47e2-a082-93a218890a81",
+   * "providerGroupId": "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * }
    */
   @Example(createGroup)
-  @Post()
+  @Post('')
+  @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
   @Response(invalidParameters.status, invalidParameters.description)
-  async createGroup(@Body() groupData: { name: string }): Promise<{ id: string }> {
-    const { name } = groupData
-    const group = await this.restApi.xoApp.createGroup({ name })
+  async createGroup(
+    @Body() groupData: { name: string; provider?: string; providerGroupId?: string }
+  ): Promise<{ id: string }> {
+    const group = await this.restApi.xoApp.createGroup(groupData)
 
     return { id: group.id }
   }
