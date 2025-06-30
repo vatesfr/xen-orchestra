@@ -5,6 +5,10 @@ module.exports = {
     {
       files: ['src/**/*'],
 
+      globals: {
+        __GIT_COMMIT__: 'readonly',
+      },
+
       parser: '@babel/eslint-parser',
 
       parserOptions: {
