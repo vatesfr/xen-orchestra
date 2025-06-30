@@ -53,7 +53,6 @@ export class GroupController extends XoController<XoGroup> {
   /**
    * @example id "7d98fee4-3357-41a7-ac3f-9124212badb7"
    */
-  @Example(groupId)
   @Delete('{id}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
