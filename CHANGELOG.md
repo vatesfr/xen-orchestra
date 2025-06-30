@@ -1,17 +1,35 @@
 # ChangeLog
 
-## **next**
+## **5.108** (2025-06-30)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- **Azure Blob Storage**:
+
+  - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PRs [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415) [#8753](https://github.com/vatesfr/xen-orchestra/pull/8753))
+
+- **XO 6:**
+
+  - [Dashboard] Cards are displayed as soon as they are ready (PR [#8695](https://github.com/vatesfr/xen-orchestra/pull/8695))
+  - [VM/Dashboard] Display VM information in dashboard tab (PR [#8585](https://github.com/vatesfr/xen-orchestra/pull/8585))
+  - [Pool/system] Display pool information in pool/system tab (PR [#8581](https://github.com/vatesfr/xen-orchestra/pull/8581))
+  - New Select/Multi-Select component (PR [#8438](https://github.com/vatesfr/xen-orchestra/pull/8438))
+
+- [REST API] Ability to add/remove a data_source in VMs `(PUT|DELETE) /rest/v0/vms/<vm-id>/stats/data_source/<data_source>` (PR [#8699](https://github.com/vatesfr/xen-orchestra/pull/8699))
+- [Backup] Support qcow2 disks > 2TB for backup and replication (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
+- [Export] Support qcow2 disks exports (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
+- [VM] Ability to hide XSA-468 warnings for specific VMs by adding `HIDE_XSA468` tag (PR [#8665](https://github.com/vatesfr/xen-orchestra/pull/8665))
+- Migrate `/rest/v0/dashboard` (PR [#8580](https://github.com/vatesfr/xen-orchestra/pull/8580))
 
 ### Enhancements
 
 - **XO 6:**
 
-  - [Pool/system] Display pool information in pool/system tab (PR [#8581](https://github.com/vatesfr/xen-orchestra/pull/8581))
   - [Host/Dashboard] Update RAM usage components wordings and update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
-  - [Site/Dashboard] Update BackupIssues and VtsBackupState components to display data in table (PR [#8674](https://github.com/vatesfr/xen-orchestra/pull/8674)
-  - [VM/Dashboard] Display VM information in dashboard tab (PR [#8585](https://github.com/vatesfr/xen-orchestra/pull/8585)
+  - [Site/Dashboard] Update BackupIssues and VtsBackupState components to display data in table (PR [#8674](https://github.com/vatesfr/xen-orchestra/pull/8674))
   - [Site] Add "Site" level in treeview and add "Site" header and tabs (PR [#8694](https://github.com/vatesfr/xen-orchestra/pull/8694))
-  - [Dashboard] Cards are displayed as soon as they are ready (PR [#8695](https://github.com/vatesfr/xen-orchestra/pull/8695))
   - [Tab/Network] Updated side panel in tab network behavior for mobile view (PR [#8688](https://github.com/vatesfr/xen-orchestra/pull/8688))
   - [Site/Pool] Display pools table and side panel information in site/pools tab (PR [#8664](https://github.com/vatesfr/xen-orchestra/pull/8664))
   - [i18n] Update Czech, German, Spanish, Dutch, Russian translations (PR [#8643](https://github.com/vatesfr/xen-orchestra/pull/8643))
@@ -23,24 +41,19 @@
   - `/rest/v0/pools/<pool-id>/actions/emergency_shutdown` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
   - `/rest/v0/pools/<pool-id>/actions/rolling_reboot` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
   - `/rest/v0/pools/<pool-id>/actions/rolling_update` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
-  - `/rest/v0/dashboard` (PR [#8580](https://github.com/vatesfr/xen-orchestra/pull/8580))
   - `POST /rest/v0/pools/<pool-id>/vms` (PR [#8748](https://github.com/vatesfr/xen-orchestra/pull/8748))
   - `POST /rest/v0/pools/<pool-id>/actions/create_vm` (PR [#8658](https://github.com/vatesfr/xen-orchestra/pull/8658))
 
-- [VM] Ability to hide XSA-468 warnings for specific VMs by adding `HIDE_XSA468` tag (PR [#8665](https://github.com/vatesfr/xen-orchestra/pull/8665))
 - [OTP] Change wording from "Password" to "OTP code" when enabling OTP (PR [#8666](https://github.com/vatesfr/xen-orchestra/pull/8666))
 - [Backups] Fix `HANDLE_INVALID(SR)` when replicated to multiples tagret (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
 - [REST API] Ability to create a network `POST /rest/v0/pools/<pool-id/actions/createNetwork` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
 - [REST API] Ability to delete a network `DELETE /rest/v0/networks/<network-id>` (PR [#8671](https://github.com/vatesfr/xen-orchestra/pull/8671))
 - [REST API] Expose `GET /rest/v0/pcis` and `GET /rest/v0/pcis/<pci-id>` (PR [#8686](https://github.com/vatesfr/xen-orchestra/pull/8686))
-- [REST API] Ability to add/remove a data_source in VMs `(PUT|DELETE) /rest/v0/vms/<vm-id>/stats/data_source/<data_source>` (PR [#8699](https://github.com/vatesfr/xen-orchestra/pull/8699))
 - [REST API] expose `GET /rest/v0/pgpus` and `GET /rest/v0/pgpus/<pgpu-id>` (PR [#8684](https://github.com/vatesfr/xen-orchestra/pull/8684))
 - [REST API] expose `DELETE /rest/v0/servers/<server-id>` (PR [#8710](https://github.com/vatesfr/xen-orchestra/pull/8710))
 - [Backup reports] Make content of backup reports independant of 'Report when' parameter (PR [#8670](https://github.com/vatesfr/xen-orchestra/pull/8670))
 - [i18n] Ability to switch language to ones newly present in XO6, but not available for XO5 (Thanks [p-bo](https://github.com/p-bo)!) (PR [#8711](https://github.com/vatesfr/xen-orchestra/pull/8711))
 - [Backups]: Enable CBT only when the "purge snapshot data is enabled" (PR [#8735](https://github.com/vatesfr/xen-orchestra/pull/8735))
-- [Backup] Support qcow2 disks > 2TB for backup and replication (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
-- [Export] Support qcow2 disks exports (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
 - [REST API] Expose `GET /rest/v0/sms` and `GET /rest/v0/sms/<sm-id>` (PR [#8696](https://github.com/vatesfr/xen-orchestra/pull/8696))
 - [XO5/Tasks] hide pending/successful xo tasks (PR [#8676](https://github.com/vatesfr/xen-orchestra/pull/8676))
 - [REST API] Expose `POST /rest/v0/vms/<vm-id>/actions/pause` (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
@@ -49,14 +62,10 @@
 - [REST API] Expose `POST /rest/v0/vms/<vm-id>/actions/unpause` (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
 - [REST API] Add `hostId` in body of `POST /rest/v0/vms/<vm-id>/actions/start` to start a VM on a specific host (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
 
-- **Azure Blob Storage**:
-  - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PRs [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415) [#8753](https://github.com/vatesfr/xen-orchestra/pull/8753))
-
 ### Bug fixes
 
 - [REST API] Ability to use `ndjson` query parameter also on migrated collections (PR [#8628](https://github.com/vatesfr/xen-orchestra/pull/8628))
 - [Backup] Fix EBADF on mirror backup chaining (PR [#8706](https://github.com/vatesfr/xen-orchestra/pull/8706))
-- [VM/Advanced] Fix CPU mask list in VM (PR [#8661](https://github.com/vatesfr/xen-orchestra/pull/8661))
 - [Backups]: All remotes timeout are now configurable (PR [#8707](https://github.com/vatesfr/xen-orchestra/pull/8707))
 - [Server] Fix server deletion now fully disconnects and deletes (PR [#8710](https://github.com/vatesfr/xen-orchestra/pull/8710))
 - [Home] Fix middle-click not opening VM, host, etc. in a new tab in Firefox (PR [#8756](https://github.com/vatesfr/xen-orchestra/pull/8756))
@@ -95,8 +104,6 @@
 - xo-server 5.180.1
 
 ## **5.107.2** (2025-06-05)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
