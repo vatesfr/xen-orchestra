@@ -58,3 +58,8 @@ export const invalidParameters = {
   status: 422,
   description: 'Invalid parameters',
 } as const
+
+export const forbiddenOperation = {
+  status: 403,
+  description: "Can't change synchronized group",
+} as const

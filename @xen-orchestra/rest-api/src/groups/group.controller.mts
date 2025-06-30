@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XoGroup, XoUser } from '@vates/types'
 
 import {
-  invalidParameters,
+  forbiddenOperation,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -63,10 +63,8 @@ export class GroupController extends XoController<XoGroup> {
   @Put('{id}/users/{userId}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(invalidParameters.status, invalidParameters.description)
+  @Response(forbiddenOperation.status, forbiddenOperation.description)
   async addUserToGroup(@Path() id: string, @Path() userId: string): Promise<void> {
-    const group = await this.restApi.xoApp.getGroup(id as XoGroup['id'])
-
     await this.restApi.xoApp.addUserToGroup(userId as XoUser['id'], id as XoGroup['id'])
   }
 }
