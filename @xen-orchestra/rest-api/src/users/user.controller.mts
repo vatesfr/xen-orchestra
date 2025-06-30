@@ -10,7 +10,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { partialUsers, user, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
@@ -73,7 +73,7 @@ export class UserController extends XoController<XoUser> {
   /**
    * @example body { "name": "new user", "password": "password", "permission": "none" }
    */
-  @Example(user)
+  @Example(userId)
   @Post('')
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(unauthorizedResp.status, unauthorizedResp.description)
