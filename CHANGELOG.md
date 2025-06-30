@@ -14,6 +14,9 @@
   - [Dashboard] Cards are displayed as soon as they are ready (PR [#8695](https://github.com/vatesfr/xen-orchestra/pull/8695))
   - [Tab/Network] Updated side panel in tab network behavior for mobile view (PR [#8688](https://github.com/vatesfr/xen-orchestra/pull/8688))
   - [Site/Pool] Display pools table and side panel information in site/pools tab (PR [#8664](https://github.com/vatesfr/xen-orchestra/pull/8664))
+  - [i18n] Update Czech, German, Spanish, Dutch, Russian translations (PR [#8643](https://github.com/vatesfr/xen-orchestra/pull/8643))
+  - [Host/system] Display pGpu name in hardware specifications card in host/system tab (PR [#8740](https://github.com/vatesfr/xen-orchestra/pull/8740))
+  - [Table] add pagination on table (PR [#8573](https://github.com/vatesfr/xen-orchestra/pull/8573))
 
 - **Migrated REST API endpoints**
 
@@ -59,6 +62,10 @@
 - [Home] Fix middle-click not opening VM, host, etc. in a new tab in Firefox (PR [#8756](https://github.com/vatesfr/xen-orchestra/pull/8756))
 - [Host/Advanced] Ability to clear remote syslog (PR [#8746](https://github.com/vatesfr/xen-orchestra/pull/8746))
 
+- **XO 6:**
+  - [XO6/stats] Fix graphs that were sometimes not displayed or displayed incorrectly (PR [#8722](https://github.com/vatesfr/xen-orchestra/pull/8722))
+  - [Host/Dashboard] Fix accent of tag list (PR [#8731](https://github.com/vatesfr/xen-orchestra/pull/8731))
+
 ### Released packages
 
 - xo-remote-parser 0.10.0
@@ -72,20 +79,20 @@
 - xo-server-perf-alert 0.6.3
 - xo-server-transport-nagios 1.0.3
 - vhd-lib 4.14.0
-- @vates/types 1.6.0
 - @xen-orchestra/disk-transform 1.1.0
 - @xen-orchestra/qcow2 1.0.0
-- @xen-orchestra/xapi 8.3.0
 - @xen-orchestra/backups 0.62.0
 - @xen-orchestra/backups-cli 1.1.1
 - @xen-orchestra/immutable-backups 1.0.22
-- @xen-orchestra/web-core 0.22.0
-- @xen-orchestra/proxy 0.29.23
 - @xen-orchestra/rest-api 0.10.0
-- @xen-orchestra/web 0.20.1
 - xo-acl-resolver 0.5.1
-- xo-server 5.180.0
 - xo-web 5.178.0
+- @vates/types 1.7.0
+- @xen-orchestra/xapi 8.3.1
+- @xen-orchestra/web-core 0.23.0
+- @xen-orchestra/proxy 0.29.24
+- @xen-orchestra/web 0.21.0
+- xo-server 5.180.1
 
 ## **5.107.2** (2025-06-05)
 
