@@ -1,8 +1,9 @@
-import { type XoPool } from '@vates/types'
+import { XoSr, type XoPool } from '@vates/types'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { isSrWritable } from '../helpers/utils.helper.mjs'
 
 export class PoolService {
   #restApi: RestApi
@@ -59,17 +60,57 @@ export class PoolService {
     }
   }
 
+  #getTopFiveSrsUsage(poolId: XoPool['id']) {
+    const srs = this.#restApi.getObjectsByType<XoSr>('SR', {
+      filter: sr => sr.$pool === poolId && isSrWritable(sr),
+    })
+
+    const writableSrs = Object.values(srs)
+
+    const sortedSrs = writableSrs
+      .map(sr => ({ ...sr, percent: (sr.physical_usage / sr.size) * 100 }))
+      .sort(({ percent: prevPercent }, { percent: nextPercent }) => {
+        if (isNaN(prevPercent) && isNaN(nextPercent)) {
+          return 0
+        }
+
+        if (isNaN(prevPercent)) {
+          return 1
+        }
+
+        if (isNaN(nextPercent)) {
+          return -1
+        }
+
+        return nextPercent - prevPercent
+      })
+
+    if (sortedSrs.length > 5) {
+      sortedSrs.length = 5
+    }
+
+    return sortedSrs.map(({ name_label, id, physical_usage, size, percent }) => ({
+      name_label,
+      id,
+      percent,
+      physical_usage,
+      size,
+    }))
+  }
+
   async getDashboard(id: XoPool['id']) {
     const hostStatus = this.#getHostsStatus(id)
     const vmsStatus = this.#getVmsStatus(id)
     const alarms = this.#getAlarms(id)
     const missingPatches = await this.#getMissingPatches(id)
+    const storageUsage = this.#getTopFiveSrsUsage(id)
 
     return {
       hostStatus,
       vmsStatus,
       alarms,
       missingPatches,
+      storageUsage,
     }
   }
 }
