@@ -79,7 +79,6 @@
 - xo-server-perf-alert 0.6.3
 - xo-server-transport-nagios 1.0.3
 - vhd-lib 4.14.0
-- @vates/types 1.6.0
 - @xen-orchestra/disk-transform 1.1.0
 - @xen-orchestra/qcow2 1.0.0
 - @xen-orchestra/backups 0.62.0
@@ -88,6 +87,7 @@
 - @xen-orchestra/rest-api 0.10.0
 - xo-acl-resolver 0.5.1
 - xo-web 5.178.0
+- @vates/types 1.7.0
 - @xen-orchestra/xapi 8.3.1
 - @xen-orchestra/web-core 0.23.0
 - @xen-orchestra/proxy 0.29.24
