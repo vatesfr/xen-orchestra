@@ -23,6 +23,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- **XO 6:**
+  - [Host/Dashboard] Fix accent of tag list (PR [#8731](https://github.com/vatesfr/xen-orchestra/pull/8731))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
