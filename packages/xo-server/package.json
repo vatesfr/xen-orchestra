@@ -156,6 +156,7 @@
     "@babel/plugin-proposal-pipeline-operator": "^7.0.0",
     "@babel/plugin-proposal-throw-expressions": "^7.0.0",
     "@babel/preset-env": "^7.11.0",
+    "babel-plugin-transform-define": "^2.1.4",
     "babel-plugin-transform-dev": "^2.0.1",
     "cross-env": "^7.0.2",
     "index-modules": "^0.4.3"

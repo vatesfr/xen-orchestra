@@ -781,7 +781,7 @@ const setUpConsoleProxy = (webServer, xo, useForwardedHeaders) => {
 
 const USAGE = `Usage: ${APP_NAME} [--safe-mode]
 
-${APP_NAME} v${APP_VERSION}`
+${APP_NAME} v${APP_VERSION} (https://github.com/vatesfr/xen-orchestra/commit/${__GIT_COMMIT__})`
 
 // ===================================================================
 
@@ -792,6 +792,8 @@ export default async function main(args) {
   if (includes(args, '--help') || includes(args, '-h')) {
     return USAGE
   }
+
+  log.info(`Starting ${APP_NAME} v${APP_VERSION} (https://github.com/vatesfr/xen-orchestra/commit/${__GIT_COMMIT__})`)
 
   const config = await loadConfiguration()
 
