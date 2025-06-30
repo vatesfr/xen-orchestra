@@ -14,6 +14,9 @@
   - [Dashboard] Cards are displayed as soon as they are ready (PR [#8695](https://github.com/vatesfr/xen-orchestra/pull/8695))
   - [Tab/Network] Updated side panel in tab network behavior for mobile view (PR [#8688](https://github.com/vatesfr/xen-orchestra/pull/8688))
   - [Site/Pool] Display pools table and side panel information in site/pools tab (PR [#8664](https://github.com/vatesfr/xen-orchestra/pull/8664))
+  - [i18n] Update Czech, German, Spanish, Dutch, Russian translations (PR [#8643](https://github.com/vatesfr/xen-orchestra/pull/8643))
+  - [Host/system] Display pGpu name in hardware specifications card in host/system tab (PR [#8740](https://github.com/vatesfr/xen-orchestra/pull/8740))
+  - [Table] add pagination on table (PR [#8573](https://github.com/vatesfr/xen-orchestra/pull/8573))
 
 - **Migrated REST API endpoints**
 
@@ -58,6 +61,10 @@
 - [Server] Fix server deletion now fully disconnects and deletes (PR [#8710](https://github.com/vatesfr/xen-orchestra/pull/8710))
 - [Home] Fix middle-click not opening VM, host, etc. in a new tab in Firefox (PR [#8756](https://github.com/vatesfr/xen-orchestra/pull/8756))
 - [Host/Advanced] Ability to clear remote syslog (PR [#8746](https://github.com/vatesfr/xen-orchestra/pull/8746))
+
+- **XO 6:**
+  - [XO6/stats] Fix graphs that were sometimes not displayed or displayed incorrectly (PR [#8722](https://github.com/vatesfr/xen-orchestra/pull/8722))
+  - [Host/Dashboard] Fix accent of tag list (PR [#8731](https://github.com/vatesfr/xen-orchestra/pull/8731))
 
 ### Released packages
 
