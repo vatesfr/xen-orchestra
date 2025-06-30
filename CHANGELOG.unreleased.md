@@ -11,9 +11,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- **XO 6:**
-
-
 - **Migrated REST API endpoints**
 
   - `DELETE /rest/v0/users` (PR [#8698](https://github.com/vatesfr/xen-orchestra/pull/8698))
