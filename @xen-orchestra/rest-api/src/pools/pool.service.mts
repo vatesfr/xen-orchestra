@@ -1,9 +1,9 @@
-import { XoSr, type XoPool } from '@vates/types'
+import { XoHost, XoSr, type XoPool } from '@vates/types'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { isSrWritable } from '../helpers/utils.helper.mjs'
+import { getTopPerProperty, isSrWritable } from '../helpers/utils.helper.mjs'
 
 export class PoolService {
   #restApi: RestApi
@@ -61,41 +61,45 @@ export class PoolService {
   }
 
   #getTopFiveSrsUsage(poolId: XoPool['id']) {
-    const srs = this.#restApi.getObjectsByType<XoSr>('SR', {
-      filter: sr => sr.$pool === poolId && isSrWritable(sr),
-    })
-
-    const writableSrs = Object.values(srs)
-
-    const sortedSrs = writableSrs
-      .map(sr => ({ ...sr, percent: (sr.physical_usage / sr.size) * 100 }))
-      .sort(({ percent: prevPercent }, { percent: nextPercent }) => {
-        if (isNaN(prevPercent) && isNaN(nextPercent)) {
-          return 0
-        }
-
-        if (isNaN(prevPercent)) {
-          return 1
-        }
-
-        if (isNaN(nextPercent)) {
-          return -1
-        }
-
-        return nextPercent - prevPercent
+    const srs = Object.values(
+      this.#restApi.getObjectsByType<XoSr>('SR', {
+        filter: sr => sr.$pool === poolId && isSrWritable(sr),
       })
+    )
 
-    if (sortedSrs.length > 5) {
-      sortedSrs.length = 5
-    }
+    const topFive = getTopPerProperty(
+      srs.map(({ name_label, id, physical_usage, size }) => ({
+        name_label,
+        id,
+        percent: (physical_usage / size) * 100,
+        physical_usage,
+        size,
+      })),
+      { prop: 'percent', length: 5 }
+    )
 
-    return sortedSrs.map(({ name_label, id, physical_usage, size, percent }) => ({
-      name_label,
-      id,
-      percent,
-      physical_usage,
-      size,
-    }))
+    return topFive
+  }
+
+  #getTopFiveHostsRamUsage(poolId: XoPool['id']) {
+    const hosts = Object.values(
+      this.#restApi.getObjectsByType<XoHost>('host', {
+        filter: host => host.$pool === poolId && host.power_state === HOST_POWER_STATE.RUNNING,
+      })
+    )
+
+    const topFive = getTopPerProperty(
+      hosts.map(({ name_label, id, memory: { size, usage } }) => ({
+        name_label,
+        id,
+        size,
+        usage,
+        percent: (usage / size) * 100,
+      })),
+      { length: 5, prop: 'percent' }
+    )
+
+    return topFive
   }
 
   async getDashboard(id: XoPool['id']) {
@@ -104,6 +108,7 @@ export class PoolService {
     const alarms = this.#getAlarms(id)
     const missingPatches = await this.#getMissingPatches(id)
     const storageUsage = this.#getTopFiveSrsUsage(id)
+    const hostsRamUsage = this.#getTopFiveHostsRamUsage(id)
 
     return {
       hostStatus,
@@ -111,6 +116,9 @@ export class PoolService {
       alarms,
       missingPatches,
       storageUsage,
+      ramUsage: {
+        hosts: hostsRamUsage,
+      },
     }
   }
 }
