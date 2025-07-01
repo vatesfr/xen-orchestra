@@ -12,6 +12,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **Migrated REST API endpoints**:
+
+  - [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
   - `/rest/v0/tasks` (PR [#8501](https://github.com/vatesfr/xen-orchestra/pull/8501))
   - `/rest/v0/tasks/<task-id>` (PR [#8501](https://github.com/vatesfr/xen-orchestra/pull/8501))
 
