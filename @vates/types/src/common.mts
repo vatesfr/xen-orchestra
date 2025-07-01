@@ -1,3 +1,5 @@
+import type { XoHost } from './xo.mjs'
+
 declare const __brand: unique symbol
 
 export type Branded<TBrand extends string, TType = string> = TType & { [__brand]: TBrand }
@@ -728,3 +730,5 @@ export type XapiVmStatsRaw = {
   vbdAvgquSz?: RecordStatValues
 }
 export type XapiVmStats = XapiStatsResponse<XapiVmStatsRaw>
+
+export type XapiPoolStats = Record<XoHost['id'], XapiHostStats | { error: Record<string, unknown> }>
