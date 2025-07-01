@@ -3,10 +3,10 @@
     <form class="pool-connection-card" @submit.prevent="submit()">
       <div class="input-wrapper">
         <UiTitle class="primary-host-title">{{ t('master') }}</UiTitle>
-        <div class="input-content">
+        <div class="input-content" :class="{ mobile: uiStore.isMobile }">
           <VtsInputWrapper :label="t('ip-address')">
             <!-- TODO validation -->
-            <UiInput v-model="form.host" accent="brand" required :placeholder="t('ip-port-place-holder')" />
+            <UiInput v-model="form.host" accent="brand" required :placeholder="t('ip-port-placeholder')" />
             <UiInfo accent="info" wrap>
               {{ t('pool-connection-ip-info') }}
             </UiInfo>
@@ -29,14 +29,16 @@
         </div>
       </div>
       <UiTitle>{{ t('option') }}</UiTitle>
-      <div class="checkbox-wrapper">
+      <div class="checkbox-wrapper" :class="{ mobile: uiStore.isMobile }">
         <UiCheckbox v-model="form.readOnly" accent="brand">{{ t('read-only') }}</UiCheckbox>
         <UiCheckbox v-model="form.allowUnauthorized" accent="brand">
           {{ t('accept-self-signed-certificates') }}
         </UiCheckbox>
       </div>
       <div class="button-warper">
-        <UiButton accent="brand" size="medium" variant="secondary" @click="cancel()">{{ t('cancel') }}</UiButton>
+        <RouterLink to="/">
+          <UiButton accent="brand" size="medium" variant="secondary">{{ t('cancel') }}</UiButton>
+        </RouterLink>
         <UiButton type="submit" accent="brand" size="medium" variant="primary" :busy="connecting">
           {{ t('connect') }}
         </UiButton>
@@ -54,15 +56,17 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useUiStore } from '@core/stores/ui.store'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const router = useRouter()
+const uiStore = useUiStore()
 const connecting = ref(false)
 
-const form: ConnectServerPayload = reactive({
+const form = reactive<ConnectServerPayload>({
   host: history?.state?.ip ?? '',
   httpProxy: '',
   username: '',
@@ -71,45 +75,26 @@ const form: ConnectServerPayload = reactive({
   allowUnauthorized: false,
 })
 
-function submit() {
-  // Clone the form to avoid reactivity issues
-  const payload = { ...form }
+async function submit() {
   connecting.value = true
-  createAndConnectServer(payload)
-    .then(response => {
-      if (response) {
-        router.push({
-          path: '/pool/connect/success',
-          state: {
-            ip: form.host,
-            idServer: response,
-          },
-        })
-      } else {
-        router.push({
-          path: '/pool/connect/error',
-          state: {
-            ip: form.host,
-            errorJson: response,
-          },
-        })
-      }
+  try {
+    const serverId = await createAndConnectServer(form)
+    await router.push({
+      path: '/pool/connect/success',
+      state: { ip: form.host, idServer: serverId },
     })
-    .catch(reson => {
-      router.push({
-        path: '/pool/connect/error',
-        state: {
-          ip: form.host,
-          ErrorCode: reson.status,
-          errorJson: reson.message,
-        },
-      })
+  } catch (error: any) {
+    await router.push({
+      path: '/pool/connect/error',
+      state: {
+        ip: form.host,
+        ErrorCode: error.status,
+        errorJson: error.message,
+      },
     })
-    .finally(() => (connecting.value = false))
-}
-
-function cancel() {
-  router.push('/')
+  } finally {
+    connecting.value = false
+  }
 }
 </script>
 
@@ -123,10 +108,14 @@ function cancel() {
     gap: 4rem;
   }
 
-  .input-content {
+  .input-content:not(.mobile) {
     display: grid;
-    grid-template-columns: 40rem 40rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.6rem 8rem;
+
+    @media (min-width: 80rem) {
+      grid-template-columns: repeat(2, minmax(0, 40rem));
+    }
 
     .primary-host-title {
       grid-column: 1 / 3;
@@ -141,6 +130,12 @@ function cancel() {
 
   .checkbox-wrapper {
     display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+  }
+
+  .checkbox-wrapper:not(.mobile) {
+    flex-direction: row;
     gap: 8rem;
   }
 

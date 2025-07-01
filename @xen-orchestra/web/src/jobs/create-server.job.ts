@@ -21,8 +21,8 @@ export default async function createAndConnectServer(payload: ConnectServerPaylo
   } catch (error) {
     // If an error , we remove the server to avoid any duplication.
     const err = error as any
-    if (err.result && err.result.code === 'UND_ERR_CONNECT_TIMEOUT') {
-      removeServer(serverId)
+    if (!(err.result && err.result.code === 'UND_ERR_CONNECT_TIMEOUT')) {
+      await removeServer(serverId)
     }
     throw error
   }
@@ -50,8 +50,8 @@ export async function createServer(payload: ConnectServerPayload) {
       onFetchError: context => {
         return context
       },
-      afterFetch(ctx) {
-        return ctx
+      afterFetch(context) {
+        return context
       },
     }
   ).json<{ id: XoServer['id'] }>()
@@ -84,8 +84,8 @@ export async function connectServer(serverId: XoServer['id']): Promise<string> {
       onFetchError: context => {
         return context
       },
-      afterFetch(ctx) {
-        return ctx
+      afterFetch(context) {
+        return context
       },
     }
   ).json()
@@ -98,7 +98,7 @@ export async function connectServer(serverId: XoServer['id']): Promise<string> {
 }
 
 export async function monitorTask(url: string) {
-  // FIXME loop dont work corectly.
+  // FIXME loop dont work correctly.
   // loops while task is not finish with 12 limits (20 minutes)
   let loop = 0
   while (loop < 120) {
@@ -116,8 +116,8 @@ export async function monitorTask(url: string) {
         onFetchError: context => {
           return context
         },
-        afterFetch(ctx) {
-          return ctx
+        afterFetch(context) {
+          return context
         },
       }
     ).json<XoTask>()
@@ -166,8 +166,8 @@ export async function removeServer(serverId: XoServer['id']) {
       onFetchError: context => {
         return context
       },
-      afterFetch(ctx) {
-        return ctx
+      afterFetch(context) {
+        return context
       },
     }
   ).json()

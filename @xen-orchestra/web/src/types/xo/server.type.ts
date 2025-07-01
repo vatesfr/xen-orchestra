@@ -1,5 +1,6 @@
 import type { XoPool } from '@/types/xo/pool.type.ts'
 import type { Branded } from '@core/types/utility.type.ts'
+import type { XoHost } from './host.type'
 
 export type XoServer = {
   allowUnauthorized: boolean
@@ -10,6 +11,7 @@ export type XoServer = {
   id: Branded<'server'>
   label?: string
   poolId?: XoPool['id']
+  master?: XoHost['id']
   poolNameDescription?: string
   poolNameLabel?: string
   readOnly: boolean
