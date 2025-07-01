@@ -5,7 +5,7 @@ import type { XoTask } from '@vates/types'
 
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialTasks, task, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
-import type { WithHref } from '../helpers/helper.type.mjs'
+import type { SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('tasks')
@@ -37,7 +37,7 @@ export class TaskController extends XoController<XoTask> {
     @Query() fields?: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<string[] | WithHref<Partial<Unbrand<XoTask>>>[]> {
+  ): Promise<SendObjects<XoTask>> {
     return this.sendObjects(Object.values(await this.getObjects({ filter, limit })), req)
   }
 

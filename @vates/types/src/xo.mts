@@ -19,7 +19,7 @@ import type {
   VM_OPERATIONS,
   VM_POWER_STATE,
 } from './common.mjs'
-import { Task } from './lib/vates-task.mjs'
+import type { TaskData } from './lib/vates-task.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -490,7 +490,7 @@ export type XoSm = BaseXapiXo & {
   type: 'SM'
 }
 
-export type XoTask = Omit<Task, 'run'>
+export type XoTask = TaskData
 
 export type XoUser = {
   authProviders?: Record<string, string>
@@ -652,7 +652,7 @@ export type XapiXoRecord =
   | XoVtpm
   | XoSm
 
-export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
+export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser | XoTask
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
