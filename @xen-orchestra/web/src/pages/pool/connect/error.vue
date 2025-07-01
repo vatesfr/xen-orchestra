@@ -1,5 +1,5 @@
 <template>
-  <div class="error-on-connection">
+  <div class="pool-connection-error">
     <VtsStateHero image="error" type="table" no-background>
       <div class="content">
         <h1>{{ t('unable-to-connect-to', { ip }) }}</h1>
@@ -22,17 +22,23 @@
           <UiQuoteCode :label="t('api-error-details')" accent="danger" size="small" copy>
             {{ errorJson }}
             <template #actions>
-              <UiButtonIcon
+              <a
+                v-if="errorJson"
                 v-tooltip="t('core.open-in-new-tab')"
-                size="medium"
-                accent="brand"
-                :icon="faArrowUpRightFromSquare"
-                @click="opennewtab"
-              />
+                :href="dataUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <UiButtonIcon size="medium" accent="brand" :icon="faArrowUpRightFromSquare" />
+              </a>
             </template>
           </UiQuoteCode>
         </template>
-        <UiButton variant="secondary" accent="brand" size="medium" @click="goBack"> {{ t('go-back') }}</UiButton>
+        <RouterLink :to="{ name: '/pool/connect/', state: { ip } }">
+          <UiButton variant="secondary" accent="brand" size="medium">
+            {{ t('go-back') }}
+          </UiButton>
+        </RouterLink>
       </div>
     </VtsStateHero>
   </div>
@@ -45,29 +51,13 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 
 const { ip, errorJson, ErrorCode } = history.state
 const { t } = useI18n()
-const router = useRouter()
 
-function goBack() {
-  // do not allow the return to this page without argument.
-  router.push({
-    name: '/pool/connect/',
-    state: {
-      ip,
-    },
-  })
-}
-
-function opennewtab() {
-  if (errorJson) {
-    const url = `data:text/json;charset=utf-8,${encodeURIComponent(errorJson)}`
-    window.open(url, '_blank', 'noopener,noreferrer')
-  }
-}
+const dataUrl = computed(() => (errorJson ? `data:text/json;charset=utf-8,${encodeURIComponent(errorJson)}` : ''))
 </script>
 
 <style lang="postcss" scoped>

@@ -6,7 +6,7 @@
         <div class="input-content">
           <VtsInputWrapper :label="t('ip-address')">
             <!-- TODO validation -->
-            <UiInput v-model="form.host" accent="brand" required :placeholder="t('ip-port-place-holder')" />
+            <UiInput v-model="form.host" accent="brand" required :placeholder="t('ip-port-placeholder')" />
             <UiInfo accent="info" wrap>
               {{ t('pool-connection-ip-info') }}
             </UiInfo>
@@ -36,7 +36,9 @@
         </UiCheckbox>
       </div>
       <div class="button-warper">
-        <UiButton accent="brand" size="medium" variant="secondary" @click="cancel()">{{ t('cancel') }}</UiButton>
+        <RouterLink to="/">
+          <UiButton accent="brand" size="medium" variant="secondary">{{ t('cancel') }}</UiButton>
+        </RouterLink>
         <UiButton type="submit" accent="brand" size="medium" variant="primary" :busy="connecting">
           {{ t('connect') }}
         </UiButton>
@@ -106,10 +108,6 @@ function submit() {
       })
     })
     .finally(() => (connecting.value = false))
-}
-
-function cancel() {
-  router.push('/')
 }
 </script>
 
