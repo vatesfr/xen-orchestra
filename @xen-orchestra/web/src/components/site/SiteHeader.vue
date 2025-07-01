@@ -2,9 +2,11 @@
   <UiHeadBar :icon="faSatellite">
     Xen Orchestra Appliance
     <template #actions>
-      <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium" @click="goToNewPool()">
-        {{ t('connect-pool') }}
-      </UiButton>
+      <RouterLink to="/pool/connect">
+        <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium">
+          {{ t('connect-pool') }}
+        </UiButton>
+      </RouterLink>
     </template>
   </UiHeadBar>
   <TabList>
@@ -30,10 +32,6 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { faPlus, faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
 const { t } = useI18n()
-
-const goToNewPool = () => router.push({ name: '/pool/connect/' })
 </script>
