@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
+- [ACL] Confirmation message when deleting an ACL rule
 
 - **Migrated REST API endpoints**
 
@@ -40,5 +41,6 @@
 - @vates/types minor
 - @xen-orchestra/rest-api minor
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->
