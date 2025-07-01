@@ -13,13 +13,13 @@ import type {
   POOL_ALLOWED_OPERATIONS,
   PRIMARY_ADDRESS_TYPE,
   STORAGE_OPERATIONS,
-  TASK_STATUS_TYPE,
   VDI_OPERATIONS,
   VDI_TYPE,
   VIF_LOCKING_MODE,
   VM_OPERATIONS,
   VM_POWER_STATE,
 } from './common.mjs'
+import { Task } from './lib/vates-task.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -490,17 +490,7 @@ export type XoSm = BaseXapiXo & {
   type: 'SM'
 }
 
-export type XoTask = {
-  id: Branded<'task'>
-
-  start: number
-  end: number
-  pending: number
-  updatedAt: number
-  properties: Record<string, unknown>
-  status: TASK_STATUS_TYPE
-  tasks?: XoTask[]
-}
+export type XoTask = Omit<Task, 'run'>
 
 export type XoUser = {
   authProviders?: Record<string, string>
