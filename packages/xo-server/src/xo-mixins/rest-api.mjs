@@ -1213,19 +1213,35 @@ export default class RestApi {
     )
 
     api.delete(
-      '/:collection(groups)/:id/users/:userId',
+      '/:collection(groups)/:id',
       wrap(async (req, res) => {
-        const { id, userId } = req.params
-        const group = await app.getGroup(id)
-
-        if (group.provider !== undefined) {
-          return res.status(403).json({ message: 'cannot remove user from synchronized group' })
-        }
-
-        await app.removeUserFromGroup(userId, id)
-
+        await app.deleteGroup(req.params.id)
         res.sendStatus(204)
       }, true)
+    )
+
+    api.post(
+      '/:collection(groups)',
+      json(),
+      wrap(async (req, res) => {
+        const { name } = req.body
+        if (name == null) {
+          return res.status(400).json({ error: 'name is required' })
+        }
+        if (typeof name !== 'string') {
+          return res.status(400).json({ message: 'name must be a string' })
+        }
+
+        try {
+          const group = await app.createGroup({ name })
+          res.status(201).end(group.id)
+        } catch (error) {
+          if (error.message === `the group ${name} already exists`) {
+            return res.status(400).json({ error: error.message })
+          }
+          throw error
+        }
+      })
     )
 
     setupRestApi(express, app)

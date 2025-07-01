@@ -1,10 +1,11 @@
 import { Body, Delete, Example, Get, Middlewares, Path, Post, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoGroup } from '@vates/types'
+import type { XoGroup, XoUser } from '@vates/types'
 
 import {
   createdResp,
+  forbiddenOperation,
   invalidParameters,
   noContentResp,
   notFoundResp,
@@ -84,5 +85,17 @@ export class GroupController extends XoController<XoGroup> {
   async deleteGroup(@Path() id: string): Promise<void> {
     const groupId = id as XoGroup['id']
     await this.restApi.xoApp.deleteGroup(groupId)
+  }
+
+  /**
+   * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
+   * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
+   */
+  @Delete('{id}/users/{userId}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperation.status, forbiddenOperation.description)
+  async removeUserFromGroup(@Path() id: string, @Path() userId: string): Promise<void> {
+    await this.restApi.xoApp.removeUserFromGroup(userId as XoUser['id'], id as XoGroup['id'])
   }
 }
