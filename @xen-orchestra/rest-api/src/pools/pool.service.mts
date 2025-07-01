@@ -1,4 +1,4 @@
-import { XoHost, XoSr, type XoPool } from '@vates/types'
+import { VM_POWER_STATE, XoHost, XoSr, XoVm, type XoPool } from '@vates/types'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
@@ -102,6 +102,33 @@ export class PoolService {
     return topFive
   }
 
+  async #getTopFiveVmsRamUsage(poolId: XoPool['id']) {
+    const vms = this.#restApi.getObjectsByType<XoVm>('VM', {
+      filter: vm =>
+        vm.$pool === poolId &&
+        vm.managementAgentDetected === true &&
+        (vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED),
+    })
+
+    const vmsWithPercent: (Pick<XoVm, 'id' | 'name_label'> & {
+      percent: number
+      memory: number
+      memoryFree: number
+    })[] = []
+    for (const id in vms) {
+      const vm = vms[id as XoVm['id']]
+      const stats = await this.#restApi.xoApp.getXapiVmStats(vm.id, 'seconds')
+      const memory = stats.stats.memory?.pop() ?? 0
+      const memoryFree = stats.stats.memoryFree?.pop() ?? 0
+      const usage = memory - memoryFree
+
+      vmsWithPercent.push({ id: vm.id, name_label: vm.name_label, memory, memoryFree, percent: (usage / memory) * 100 })
+    }
+
+    const topFive = getTopPerProperty(vmsWithPercent, { prop: 'percent', length: 5 })
+    return topFive
+  }
+
   async getDashboard(id: XoPool['id']) {
     const hostStatus = this.#getHostsStatus(id)
     const vmsStatus = this.#getVmsStatus(id)
@@ -109,6 +136,7 @@ export class PoolService {
     const missingPatches = await this.#getMissingPatches(id)
     const storageUsage = this.#getTopFiveSrsUsage(id)
     const hostsRamUsage = this.#getTopFiveHostsRamUsage(id)
+    const vmsRamUsage = await this.#getTopFiveVmsRamUsage(id)
 
     return {
       hostStatus,
@@ -118,6 +146,7 @@ export class PoolService {
       storageUsage,
       ramUsage: {
         hosts: hostsRamUsage,
+        vms: vmsRamUsage,
       },
     }
   }
