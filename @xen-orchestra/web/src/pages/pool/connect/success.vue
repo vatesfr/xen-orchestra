@@ -9,11 +9,13 @@
         </UiAlert>
         <div>
           <UiLink v-if="poolId" :to="{ name: '/pool/[id]', params: { id: poolId } }" size="medium">
-            {{ t('Visit-pool-dashboard') }}
+            {{ t('visit-pool-dashboard') }}
           </UiLink>
-          <UiButton variant="secondary" accent="brand" size="medium" :left-icon="faPlus" @click="connectAnotherPool()">
-            {{ t('Connect-another-pool') }}
-          </UiButton>
+          <RouterLink to="/pool/connect/">
+            <UiButton variant="secondary" accent="brand" size="medium" :left-icon="faPlus">
+              {{ t('connect-another-pool') }}
+            </UiButton>
+          </RouterLink>
         </div>
       </div>
     </VtsStateHero>
@@ -30,20 +32,12 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
-const router = useRouter()
 const { get, isReady } = useServerStore().subscribe()
 
 const { ip, idServer } = history.state
 const poolId = computed(() => get(idServer)?.poolId)
-
-function connectAnotherPool() {
-  router.push({
-    path: '/pool/connect/',
-  })
-}
 </script>
 
 <style lang="postcss" scoped>
