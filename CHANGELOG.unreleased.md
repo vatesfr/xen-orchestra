@@ -17,6 +17,7 @@
   - `GET /rest/v0/vifs/<vif-id>/alarms` (PR [#8825](http://github.com/vatesfr/xen-orchestra/pull/8825))
   - `GET /rest/v0/vbds/<vbd-id>/alarms` (PR [#8822](http://github.com/vatesfr/xen-orchestra/pull/8822))
   - `POST /rest/v0/groups` (PR [#8703](https://github.com/vatesfr/xen-orchestra/pull/8703))
+  - `DELETE /rest/v0/groups/<group-id>/users/<user-id>` (PR [#8773](https://github.com/vatesfr/xen-orchestra/pull/8773))
 
 - **XO 6:**
 
