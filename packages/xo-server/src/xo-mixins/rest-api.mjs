@@ -249,7 +249,11 @@ export default class RestApi {
       'vm-controllers': {},
       'vm-snapshots': {},
       'vm-templates': {},
-      hosts: {},
+      hosts: {
+        routes: {
+          'audit.txt': true,
+        },
+      },
       srs: {},
       vbds: {},
       vdis: {},
@@ -1110,11 +1114,13 @@ export default class RestApi {
     api.get(
       '/:collection/:object/:route',
       wrap((req, res, next) => {
-        const handler = req.collection.routes?.[req.params.route]
-        if (handler !== undefined) {
-          return handler(req, res, next)
+        const { collection } = req
+        const { route } = req.params
+        const handler = collection.routes?.[route]
+        if (handler === undefined || swaggerEndpoints[collection.id]?.routes?.[route]) {
+          return next()
         }
-        return next()
+        return handler(req, res, next)
       })
     )
 
