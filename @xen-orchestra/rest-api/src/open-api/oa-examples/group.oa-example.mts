@@ -24,6 +24,6 @@ export const group = {
   id: '7d98fee4-3357-41a7-ac3f-9124212badb7',
 }
 
-export const createGroup = {
+export const groupId = {
   id: '67bfee1d-a021-4307-a53a-9fec2b2bd67d',
 }
