@@ -271,9 +271,10 @@ export default class RemoteHandlerAbstract {
    * @param {object} [options]
    * @param {boolean} [options.checksum]
    * @param {number} [options.dirMode]
+   * @param {string} [options.flags] file system fags used to create the output stream
    * @param {(this: RemoteHandlerAbstract, path: string) => Promise<undefined>} [options.validator] Function that will be called before the data is commited to the remote, if it fails, file should not exist
    */
-  async outputStream(path, input, { checksum = true, dirMode, maxStreamLength, streamLength, validator } = {}) {
+  async outputStream(path, input, { checksum = true, dirMode, flags, maxStreamLength, streamLength, validator } = {}) {
     path = normalizePath(path)
     let checksumStream
 
@@ -285,6 +286,7 @@ export default class RemoteHandlerAbstract {
     }
     await this._outputStream(path, input, {
       dirMode,
+      flags,
       maxStreamLength,
       streamLength,
       validator,
@@ -666,11 +668,11 @@ export default class RemoteHandlerAbstract {
     return this._outputFile(file, data, { flags })
   }
 
-  async _outputStream(path, input, { dirMode, validator }) {
+  async _outputStream(path, input, { dirMode, flags = 'wx', validator }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await this._createOutputStream(tmpPath, {
       dirMode,
-      flags: 'wx',
+      flags,
     })
     try {
       await fromCallback(pipeline, input, output)
