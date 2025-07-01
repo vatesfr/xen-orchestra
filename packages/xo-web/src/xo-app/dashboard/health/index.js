@@ -23,8 +23,8 @@ import {
   deleteVbd,
   deleteVbds,
   deleteVdi,
-  deleteVm,
-  deleteVms,
+  deleteSnapshot,
+  deleteSnapshots,
   isSrWritable,
   subscribeSchedules,
 } from 'xo'
@@ -346,7 +346,7 @@ const AttachedVdisTable = decorate([
   },
 ])
 
-const VM_COLUMNS = [
+const SNAPSHOT_COLUMNS = [
   {
     name: _('snapshotDate'),
     itemRenderer: vm => (
@@ -362,32 +362,32 @@ const VM_COLUMNS = [
         (<FormattedRelative value={vm.snapshot_time * 1000} />)
       </span>
     ),
-    sortCriteria: vm => vm.snapshot_time,
+    sortCriteria: snapshot => snapshot.snapshot_time,
     sortOrder: 'desc',
   },
   {
     name: _('vmNameLabel'),
-    itemRenderer: vm => vm.name_label,
-    sortCriteria: vm => vm.name_label,
+    itemRenderer: snapshot => snapshot.name_label,
+    sortCriteria: snapshot => snapshot.name_label,
   },
   {
     name: _('vmNameDescription'),
-    itemRenderer: vm => vm.name_description,
-    sortCriteria: vm => vm.name_description,
+    itemRenderer: snapshot => snapshot.name_description,
+    sortCriteria: snapshot => snapshot.name_description,
   },
   {
     name: _('vmContainer'),
-    itemRenderer: vm => <VmColContainer id={vm.$container} />,
+    itemRenderer: snapshot => <VmColContainer id={snapshot.$container} />,
   },
 ]
 
-const VM_ACTIONS = [
+const SNAPSHOT_ACTIONS = [
   {
-    handler: deleteVms,
-    individualHandler: deleteVm,
-    individualLabel: _('deleteVmLabel'),
+    handler: deleteSnapshots,
+    individualHandler: deleteSnapshot,
+    individualLabel: _('deleteSnapshot'),
     icon: 'delete',
-    label: _('deleteSelectedVmsLabel'),
+    label: _('deleteSnapshots'),
     level: 'danger',
   },
 ]
@@ -878,9 +878,9 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  actions={VM_ACTIONS}
+                  actions={SNAPSHOT_ACTIONS}
                   collection={props.areObjectsFetched ? this._getOldSnapshots() : null}
-                  columns={VM_COLUMNS}
+                  columns={SNAPSHOT_COLUMNS}
                   component={SortedTable}
                   emptyMessage={_('noOldSnapshots')}
                 />
@@ -896,9 +896,9 @@ export default class Health extends Component {
               </CardHeader>
               <CardBlock>
                 <NoObjects
-                  actions={VM_ACTIONS}
+                  actions={SNAPSHOT_ACTIONS}
                   collection={props.areObjectsFetched ? this._getOrphanVmSnapshots() : null}
-                  columns={VM_COLUMNS}
+                  columns={SNAPSHOT_COLUMNS}
                   component={SortedTable}
                   emptyMessage={_('noOrphanedObject')}
                   shortcutsTarget='.orphaned-vms'
