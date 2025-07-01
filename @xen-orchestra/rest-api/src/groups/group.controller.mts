@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XoGroup } from '@vates/types'
 
 import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
-import { group, groupId, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
+import { group, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
