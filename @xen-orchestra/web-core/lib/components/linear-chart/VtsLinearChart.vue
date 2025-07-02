@@ -48,7 +48,10 @@ const option = computed<EChartsOption>(() => ({
     data: data.map(series => series.label),
   },
   tooltip: {
-    valueFormatter: v => valueFormatter.value(v as number),
+    valueFormatter: value => valueFormatter.value(value as number),
+    // This is to calculate the position so that the tooltip is always inside the container.
+    // see : https://echarts.apache.org/en/option.html#tooltip.confine
+    confine: true,
   },
   xAxis: {
     type: 'time',
@@ -78,5 +81,6 @@ const option = computed<EChartsOption>(() => ({
 .vts-linear-chart {
   width: 100%;
   height: 30rem;
+  overflow: visible !important;
 }
 </style>
