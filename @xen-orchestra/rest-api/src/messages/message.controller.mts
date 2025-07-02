@@ -48,7 +48,7 @@ export class MessageController extends XapiXoController<XoMessage> {
     const message = super.getObject(id)
 
     if (alarmPredicate(message)) {
-      /* throw */ noSuchObject(id, 'message')
+      throw noSuchObject(id, 'message')
     }
 
     return message
