@@ -21,7 +21,7 @@ export default async function createAndConnectServer(payload: ConnectServerPaylo
   } catch (error) {
     // If an error , we remove the server to avoid any duplication.
     const err = error as any
-    if (err.result && err.result.code === 'UND_ERR_CONNECT_TIMEOUT') {
+    if (!(err.result && err.result.code === 'UND_ERR_CONNECT_TIMEOUT')) {
       removeServer(serverId)
     }
     throw error

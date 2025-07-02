@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="pool-connection-card">
+  <UiCard class="pool-connection-card" :class="{ mobile: isMobile }">
     <form class="pool-connection-card" @submit.prevent="submit()">
       <div class="input-wrapper">
         <UiTitle class="primary-host-title">{{ t('master') }}</UiTitle>
@@ -56,12 +56,14 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useUiStore } from '@core/stores/ui.store'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const router = useRouter()
+const { isMobile } = useUiStore()
 const connecting = ref(false)
 
 const form: ConnectServerPayload = reactive({
@@ -121,10 +123,14 @@ function submit() {
     gap: 4rem;
   }
 
-  .input-content {
+  .input-content:not(.mobile) {
     display: grid;
-    grid-template-columns: 40rem 40rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.6rem 8rem;
+
+    @media (min-width: 80rem) {
+      grid-template-columns: repeat(2, minmax(0, 40rem));
+    }
 
     .primary-host-title {
       grid-column: 1 / 3;
