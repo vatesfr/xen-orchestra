@@ -2,7 +2,7 @@
 
 ## **next**
 
-- [Host/VM/Dashboard] Fix timestamp on some charts (PR [#8778](https://github.com/vatesfr/xen-orchestra/pull/8778))
+- [Host/VM/Dashboard] Fix timestamp on some charts [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9) (PR [#8778](https://github.com/vatesfr/xen-orchestra/pull/8778))
 
 ## **0.12.0** (2025-06-30)
 
