@@ -81,7 +81,7 @@ export default {
         'proxy',
         'rolling_snapshots',
         'full_backups',
-        'delta_backups',
+        'incremental_backups',
         'disaster_recovery',
         'incremental_replication',
         'mirror_backup',

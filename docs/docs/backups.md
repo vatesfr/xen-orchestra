@@ -340,7 +340,7 @@ More parameters appear, including a drop-down list for your destination Storage 
 You can also restore specific files and directories inside a VM. It works with all your existing delta backups.
 
 :::warning
-- File level restore **is only possible on delta backups**. Also, due of some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](./delta_backups.md#key-backup-interval) to set this correctly.
+- File level restore **is only possible on incremental backups**. Also, due of some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](/incremental_backups/#key-backup-interval) to set this correctly.
 - File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups that span multiple VDIs.
 - The following Microsoft solutions are **not supported**:
    - [Data Deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview)
