@@ -11,7 +11,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
+- **Migrated REST API endpoints**
+
+  - [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
+  - `DELETE /rest/v0/groups/<group-id>/users/<user-id>` (PR [#8773](https://github.com/vatesfr/xen-orchestra/pull/8773))
 
 - **Migrated REST API endpoints**
 
