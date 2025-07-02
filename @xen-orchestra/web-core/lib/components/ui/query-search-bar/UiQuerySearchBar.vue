@@ -1,7 +1,7 @@
 <!-- v3 -->
 <template>
   <form class="ui-query-search-bar" @submit.prevent="emit('search', value)">
-    <label v-if="uiStore.isDesktopL" :for="id" class="typo-body-regular-small label">
+    <label v-if="uiStore.isDesktopLarge" :for="id" class="typo-body-regular-small label">
       {{ t('core.query-search-bar.label') }}
     </label>
     <UiInput
