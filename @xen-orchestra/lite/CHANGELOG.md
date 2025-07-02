@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Host/VM/Dashboard] Fix timestamp on some charts (PR [#8778](https://github.com/vatesfr/xen-orchestra/pull/8778))
+
 ## **0.12.0** (2025-06-30)
 
 - [Host/Dashboard] Fix color of tag list (PR [#8731](https://github.com/vatesfr/xen-orchestra/pull/8731))
