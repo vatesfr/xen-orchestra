@@ -89,17 +89,15 @@ export class XapiDiskSource extends DiskPassthrough {
         source = new DiskLargerBlock(source, this.#blockSize)
       }
     } catch (err) {
-      await source?.close()
       if (err.code === 'NO_NBD_AVAILABLE') {
         warn(`can't connect through NBD, fallback to stream export`)
         if (streamSource === undefined) {
           throw new Error(`Can't open stream source`)
         }
         return streamSource
-      } else {
-        await streamSource?.close()
-        throw err
       }
+      await source?.close() // this will close source and stream source
+      throw err
     }
     this.#useNbd = true
     const readAhead = new ReadAhead(source)
