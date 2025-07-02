@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Charts] Fix tooltip overflow when too close to the edge (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
+
 ## **0.12.0** (2025-06-30)
 
 - [Host/Dashboard] Fix color of tag list (PR [#8731](https://github.com/vatesfr/xen-orchestra/pull/8731))
