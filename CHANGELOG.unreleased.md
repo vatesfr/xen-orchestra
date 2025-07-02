@@ -11,6 +11,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **XO 6:**
+
+  - [Sidebar] Updated sidebar to auto close when the screen is small (PR [#8760](https://github.com/vatesfr/xen-orchestra/pull/8760))
+
 - [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
 
 - **Migrated REST API endpoints**

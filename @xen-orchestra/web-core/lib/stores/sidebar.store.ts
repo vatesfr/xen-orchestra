@@ -64,9 +64,9 @@ export const useSidebarStore = defineStore('layout', () => {
   )
 
   watch(
-    () => uiStore.isDesktopL,
-    isDesktopL => {
-      isExpanded.value = isDesktopL
+    () => uiStore.isDesktopLarge,
+    isDesktopLarge => {
+      isExpanded.value = isDesktopLarge
     },
     { immediate: true }
   )

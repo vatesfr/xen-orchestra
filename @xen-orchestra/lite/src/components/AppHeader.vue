@@ -2,7 +2,7 @@
   <header class="app-header">
     <div class="left">
       <UiButtonIcon
-        v-if="!uiStore.isDesktopL"
+        v-if="!uiStore.isDesktopLarge"
         ref="navigationTrigger"
         :icon="faBars"
         accent="brand"
