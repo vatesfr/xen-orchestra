@@ -35,7 +35,7 @@
     <TabItem disabled>{{ t('tasks') }}</TabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/vms`" custom>
       <TabItem :active="isActive" :href tag="a">
-        {{ t('vms', 0) }}
+        {{ t('vms', 2) }}
       </TabItem>
     </RouterLink>
   </TabList>

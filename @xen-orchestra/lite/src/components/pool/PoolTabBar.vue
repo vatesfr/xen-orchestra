@@ -25,7 +25,7 @@
       {{ t('hosts') }}
     </RouterTab>
     <RouterTab :to="{ name: 'pool.vms', params: { uuid: pool?.uuid } }">
-      {{ t('vms', 0) }}
+      {{ t('vms', 2) }}
     </RouterTab>
   </TabList>
 </template>

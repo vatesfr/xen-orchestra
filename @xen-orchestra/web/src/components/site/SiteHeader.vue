@@ -19,7 +19,7 @@
       <TabItem :active="isExactActive" :href tag="a">{{ t('pools') }}</TabItem>
     </RouterLink>
     <TabItem disabled>{{ t('hosts') }}</TabItem>
-    <TabItem disabled>{{ t('vms', 0) }}</TabItem>
+    <TabItem disabled>{{ t('vms', 2) }}</TabItem>
   </TabList>
 </template>
 
