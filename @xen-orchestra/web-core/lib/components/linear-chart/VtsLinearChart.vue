@@ -81,6 +81,5 @@ const option = computed<EChartsOption>(() => ({
 .vts-linear-chart {
   width: 100%;
   height: 30rem;
-  overflow: visible !important;
 }
 </style>
