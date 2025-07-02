@@ -52,7 +52,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * @param {number} [params.nbdConcurrency=2]
    * @param {number} [params.blockSize=2*1024*1024]
    */
-  constructor({ xapi, vdiRef, baseRef, preferNbd = true, nbdConcurrency = 2, blockSize = 2 * 1024 * 1024 }) {
+  constructor({ xapi, vdiRef, baseRef, preferNbd = xapi._preferNbd, nbdConcurrency = 2, blockSize = 2 * 1024 * 1024 }) {
     super(undefined)
     this.#baseRef = baseRef
     this.#blockSize = blockSize
