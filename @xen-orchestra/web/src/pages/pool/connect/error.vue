@@ -1,5 +1,6 @@
 <template>
-  <div class="pool-connection-error">
+  <ConnectPoolHeader />
+  <UiCard class="pool-connection-error">
     <VtsStateHero image="error" type="table" no-background>
       <div class="content">
         <h1>{{ t('unable-to-connect-to', { ip }) }}</h1>
@@ -41,14 +42,16 @@
         </RouterLink>
       </div>
     </VtsStateHero>
-  </div>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
+import ConnectPoolHeader from '@/components/pool/connect/ConnectPoolHeader.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
@@ -61,18 +64,16 @@ const dataUrl = computed(() => (errorJson ? `data:text/json;charset=utf-8,${enco
 </script>
 
 <style lang="postcss" scoped>
-.error-on-connection {
+.pool-connection-error {
+  margin: 0.8rem;
+
   .content {
     color: var(--color-neutral-txt-primary);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4rem;
-    width: min-content;
-
-    h1 {
-      text-wrap: nowrap;
-    }
+    width: fit-content;
   }
 }
 </style>

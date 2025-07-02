@@ -1,5 +1,6 @@
 <template>
-  <div class="pool-connection-success">
+  <ConnectPoolHeader />
+  <UiCard class="pool-connection-success">
     <VtsLoadingHero v-if="!isReady" type="page" />
     <VtsStateHero v-else image="all-good" type="table" no-background>
       <div class="content">
@@ -7,7 +8,7 @@
         <UiAlert accent="success">
           {{ t('pool-connection-success') }}
         </UiAlert>
-        <div>
+        <div :class="{ mobile: uiStore.isMobile }">
           <UiLink v-if="poolId" :to="{ name: '/pool/[id]', params: { id: poolId } }" size="medium">
             {{ t('visit-pool-dashboard') }}
           </UiLink>
@@ -19,22 +20,26 @@
         </div>
       </div>
     </VtsStateHero>
-  </div>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
+import ConnectPoolHeader from '@/components/pool/connect/ConnectPoolHeader.vue'
 import { useServerStore } from '@/stores/xo-rest-api/server.store'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { useUiStore } from '@core/stores/ui.store'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const { get, isReady } = useServerStore().subscribe()
+const uiStore = useUiStore()
 
 const { ip, idServer } = history.state
 const poolId = computed(() => get(idServer)?.poolId)
@@ -42,6 +47,8 @@ const poolId = computed(() => get(idServer)?.poolId)
 
 <style lang="postcss" scoped>
 .pool-connection-success {
+  margin: 0.8rem;
+
   .content {
     color: var(--color-neutral-txt-primary);
     display: flex;
@@ -56,6 +63,13 @@ const poolId = computed(() => get(idServer)?.poolId)
 
     div {
       display: flex;
+      gap: 2.4rem;
+    }
+
+    div.mobile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       gap: 2.4rem;
     }
   }
