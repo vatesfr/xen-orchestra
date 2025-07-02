@@ -22,7 +22,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - **XO 6:**
-  - [Charts] Fix tooltip overflow when too close to the edge (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
+  - [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
 
 ### Packages to release
 
