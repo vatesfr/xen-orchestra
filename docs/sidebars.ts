@@ -82,7 +82,7 @@ export default {
         'rolling_snapshots',
         'full_backups',
         'incremental_backups',
-        'disaster_recovery',
+        'full_replication',
         'incremental_replication',
         'mirror_backup',
         'metadata_backup',
