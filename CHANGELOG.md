@@ -43,6 +43,7 @@
   - `/rest/v0/pools/<pool-id>/actions/rolling_update` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
   - `POST /rest/v0/pools/<pool-id>/vms` (PR [#8748](https://github.com/vatesfr/xen-orchestra/pull/8748))
   - `POST /rest/v0/pools/<pool-id>/actions/create_vm` (PR [#8658](https://github.com/vatesfr/xen-orchestra/pull/8658))
+  - `GET /rest/v0/hosts/<host-id>/audit.txt` (PR [#8757](https://github.com/vatesfr/xen-orchestra/pull/8757))
 
 - [OTP] Change wording from "Password" to "OTP code" when enabling OTP (PR [#8666](https://github.com/vatesfr/xen-orchestra/pull/8666))
 - [Backups] Fix `HANDLE_INVALID(SR)` when replicated to multiples tagret (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
@@ -61,6 +62,7 @@
 - [REST API] Expose `POST /rest/v0/vms/<vm-id>/actions/resume` (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
 - [REST API] Expose `POST /rest/v0/vms/<vm-id>/actions/unpause` (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
 - [REST API] Add `hostId` in body of `POST /rest/v0/vms/<vm-id>/actions/start` to start a VM on a specific host (PR [#8744](https://github.com/vatesfr/xen-orchestra/pull/8744))
+- [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
 
 ### Bug fixes
 
@@ -70,16 +72,19 @@
 - [Server] Fix server deletion now fully disconnects and deletes (PR [#8710](https://github.com/vatesfr/xen-orchestra/pull/8710))
 - [Home] Fix middle-click not opening VM, host, etc. in a new tab in Firefox (PR [#8756](https://github.com/vatesfr/xen-orchestra/pull/8756))
 - [Host/Advanced] Ability to clear remote syslog (PR [#8746](https://github.com/vatesfr/xen-orchestra/pull/8746))
+- [VM/New] Fix `Cannot read properties of undefined (reading '$ref')` when creating VM configured to PXE boot (PR [#8782](https://github.com/vatesfr/xen-orchestra/pull/8782))
+- [Backups] fix backup job getting stuck without NBD (PR [#8780](https://github.com/vatesfr/xen-orchestra/pull/8780))
 
 - **XO 6:**
   - [XO6/stats] Fix graphs that were sometimes not displayed or displayed incorrectly (PR [#8722](https://github.com/vatesfr/xen-orchestra/pull/8722))
   - [Host/Dashboard] Fix accent of tag list (PR [#8731](https://github.com/vatesfr/xen-orchestra/pull/8731))
+  - [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
 
 ### Released packages
 
 - xo-remote-parser 0.10.0
 - @xen-orchestra/fs 4.6.0
-- xen-api 4.7.2
+- xen-api 4.7.3
 - @vates/task 0.6.2
 - vhd-cli 0.9.4
 - xo-server-auth-oidc 0.3.3
@@ -93,15 +98,16 @@
 - @xen-orchestra/backups 0.62.0
 - @xen-orchestra/backups-cli 1.1.1
 - @xen-orchestra/immutable-backups 1.0.22
-- @xen-orchestra/rest-api 0.10.0
+- @xen-orchestra/rest-api 0.11.0
 - xo-acl-resolver 0.5.1
 - xo-web 5.178.0
-- @vates/types 1.7.0
-- @xen-orchestra/xapi 8.3.1
-- @xen-orchestra/web-core 0.23.0
-- @xen-orchestra/proxy 0.29.24
-- @xen-orchestra/web 0.21.0
-- xo-server 5.180.1
+- @vates/types 1.8.0
+- @xen-orchestra/xapi 8.3.2
+- @xen-orchestra/web-core 0.24.0
+- @xen-orchestra/proxy 0.29.25
+- @xen-orchestra/web 0.21.1
+- xo-server 5.181.0
+- @vates/nbd-client 3.1.4
 
 ## **5.107.2** (2025-06-05)
 
