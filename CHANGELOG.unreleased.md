@@ -11,6 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **XO6**
+  - [Web-core/Alarm] create component for list alarm and show information (PR [#8516](https://github.com/vatesfr/xen-orchestra/pull/8516))
+
 - **Migrated REST API endpoints**:
 
   - `POST /rest/v0/users` (PR [#8697](https://github.com/vatesfr/xen-orchestra/pull/8697))
