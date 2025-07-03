@@ -1,9 +1,9 @@
 <template>
-  <UiCard class="pool-connection-card" :class="{ mobile: isMobile }">
+  <UiCard class="pool-connection-card">
     <form class="pool-connection-card" @submit.prevent="submit()">
       <div class="input-wrapper">
         <UiTitle class="primary-host-title">{{ t('master') }}</UiTitle>
-        <div class="input-content">
+        <div class="input-content" :class="{ mobile: uiStore.isMobile }">
           <VtsInputWrapper :label="t('ip-address')">
             <!-- TODO validation -->
             <UiInput v-model="form.host" accent="brand" required :placeholder="t('ip-port-placeholder')" />
@@ -29,7 +29,7 @@
         </div>
       </div>
       <UiTitle>{{ t('option') }}</UiTitle>
-      <div class="checkbox-wrapper">
+      <div class="checkbox-wrapper" :class="{ mobile: uiStore.isMobile }">
         <UiCheckbox v-model="form.readOnly" accent="brand">{{ t('read-only') }}</UiCheckbox>
         <UiCheckbox v-model="form.allowUnauthorized" accent="brand">
           {{ t('accept-self-signed-certificates') }}
@@ -63,7 +63,7 @@ import { useRouter } from 'vue-router'
 
 const { t } = useI18n()
 const router = useRouter()
-const { isMobile } = useUiStore()
+const uiStore = useUiStore()
 const connecting = ref(false)
 
 const form: ConnectServerPayload = reactive({
@@ -145,6 +145,12 @@ function submit() {
 
   .checkbox-wrapper {
     display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+  }
+
+  .checkbox-wrapper:not(.mobile) {
+    flex-direction: row;
     gap: 8rem;
   }
 
