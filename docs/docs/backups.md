@@ -121,9 +121,61 @@ The disks marked with `[NOBAK]` will be now ignored in all following backups.
 
 ## Schedule
 
+### Introduction
+
+Automating your backups is key to ensuring the safety and recoverability of your virtual machines.
+
+By scheduling regular backups, you protect your infrastructure from accidental deletions, system failures, or data corruption. Xen Orchestra lets you easily set up flexible schedules for your backup jobs, making sure they run automatically at times and frequencies that work best for you.
+
+### Viewing schedules for a backup job
+
+To see the schedules associated with a specific backup job:
+
+1. Navigate to the **Backup** menu.\
+A list of backup jobs will be displayed.
+2. For the backup job you're interested in, click the **pencil** ✏️ icon in the **Notes** column.\
+This will open the backup job details screen.
+3. In the **Schedules** section of the details screen, you'll find the list of schedules for that backup job:
+
+    ![](./assets/backup-schedule-list.png)
+
+### Creating a schedule
+
+To set up a schedule for a backup job:
+
+1. Navigate to the details page of your backup job (refer to the previous section, "Viewing Schedules for a Backup Job").
+2. In the **Schedules** section of your backup job, click the **Add a schedule** button, represented by a ➕ icon.\
+    A form for creating a schedule will appear:
+    ![](./assets/create-backup-schedule.png)
+
+
+3. Use the form to configure your schedule.\
+    Here's a list of the parameters you can adjust:
+
+| Parameter             | Description |
+|-----------------------|-------------|
+| **Name**              | A label to identify your schedule. Useful when managing multiple jobs. |
+| **Pool retention** | Number of snapshots to keep for pool metadata. Older snapshots beyond this count will be automatically removed. |
+| **XO retention** | Number of snapshots to keep for XO metadata. Older snapshots beyond this count will be automatically removed. | |
+| **Replication retention** | Number of replicated snapshots to keep. Older snapshots beyond this count will be automatically removed. |
+| **Health check**      | If enabled, a VM [health check](#backup-health-check) is performed after the backup to detect issues early (e.g., boot errors). |
+| **Force full backup** | Forces a full backup at every run, even if incremental backups are enabled. |
+| **Month(s)**          | Select specific months during which the schedule should run. |
+| **Day(s)**            | Select days of the month for the job to execute. You can choose specific dates or all days. |
+| **Hour**              | Choose the hour of the day the backup job should start. |
+| **Minute**            | Choose the exact minute the job should start. |
+| **Timezone**          | Determines the timezone in which the schedule should apply. You can also use your browser's local timezone. |
+| **Cron Pattern**      | Automatically generated from your selections to define when the job will run. |
+| **Preview**           | A list of upcoming executions based on your current configuration. Useful to verify the setup. |
+
 :::tip
-:construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+
+Depending on your backup type, not all settings may be visible, particularly those related to retention.
+
 :::
+
+4. Click the **OK** button.\
+    Your schedule will be created and applied to the backup job.
 
 ## Smart Backup
 
