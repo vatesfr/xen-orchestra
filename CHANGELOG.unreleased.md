@@ -11,6 +11,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **XO 6:**
+
+  - [SearchBar] Updated query search bar to work in responsive (PR [#8761](https://github.com/vatesfr/xen-orchestra/pull/8761))
+
 - [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
 
 - **Migrated REST API endpoints**

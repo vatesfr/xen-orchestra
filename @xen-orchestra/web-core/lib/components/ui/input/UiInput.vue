@@ -112,6 +112,7 @@ defineExpose({ focus })
   color: var(--color-neutral-txt-primary);
   height: 4rem;
   width: 100%;
+  min-width: 15rem;
   padding-inline: 1.6rem;
 
   .left-icon,
