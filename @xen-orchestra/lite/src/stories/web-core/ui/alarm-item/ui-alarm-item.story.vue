@@ -4,7 +4,7 @@
     :params="[
       prop('alarm').type('Alarm').required().preset(alarm),
       prop('size').type('string').enum('small', 'large').required().widget().preset('large'),
-      slot('link').help('an object for represent emiter of alarms'),
+      slot('link').help('an object for represent emitter of alarms'),
     ]"
   >
     <UiAlarmList>
