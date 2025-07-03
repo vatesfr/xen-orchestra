@@ -152,6 +152,31 @@ export class PoolService {
     return topFive
   }
 
+  async #getTopFiveVmsCpuUsage(poolId: XoPool['id']) {
+    const vms = this.#restApi.getObjectsByType<XoVm>('VM', {
+      filter: vm =>
+        vm.$pool === poolId && (vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED),
+    })
+
+    const vmsWithPercent: (Pick<XoVm, 'id' | 'name_label'> & {
+      percent: number
+    })[] = []
+    for (const id in vms) {
+      const vm = vms[id as XoVm['id']]
+      const stats = await this.#restApi.xoApp.getXapiVmStats(vm.id, 'seconds')
+      const cpus = Object.values(stats.stats.cpus ?? {})
+      const percent = cpus.reduce((total, cpus) => {
+        total += cpus.pop() ?? 0
+        return total
+      }, 0)
+
+      vmsWithPercent.push({ id: vm.id, name_label: vm.name_label, percent })
+    }
+
+    const topFive = getTopPerProperty(vmsWithPercent, { prop: 'percent', length: 5 })
+    return topFive
+  }
+
   async getDashboard(id: XoPool['id']) {
     const hostStatus = this.#getHostsStatus(id)
     const vmsStatus = this.#getVmsStatus(id)
@@ -161,6 +186,7 @@ export class PoolService {
     const hostsRamUsage = this.#getTopFiveHostsRamUsage(id)
     const vmsRamUsage = await this.#getTopFiveVmsRamUsage(id)
     const hostsCpuUsage = await this.#getTopFiveHostsCpuUsage(id)
+    const vmsCpuUsage = await this.#getTopFiveVmsCpuUsage(id)
 
     return {
       hostStatus,
@@ -174,6 +200,7 @@ export class PoolService {
       },
       cpuUsage: {
         hosts: hostsCpuUsage,
+        vms: vmsCpuUsage,
       },
     }
   }
