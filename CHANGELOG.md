@@ -19,6 +19,16 @@
 
   - [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
 
+### Released packages
+
+- @vates/nbd-client patch
+- @vates/types minor
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
+- xen-api patch
+- xo-server minor
+
 ## **5.108** (2025-06-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
@@ -98,7 +108,7 @@
 
 - xo-remote-parser 0.10.0
 - @xen-orchestra/fs 4.6.0
-- xen-api 4.7.3
+- xen-api 4.7.2
 - @vates/task 0.6.2
 - vhd-cli 0.9.4
 - xo-server-auth-oidc 0.3.3
@@ -112,16 +122,15 @@
 - @xen-orchestra/backups 0.62.0
 - @xen-orchestra/backups-cli 1.1.1
 - @xen-orchestra/immutable-backups 1.0.22
-- @xen-orchestra/rest-api 0.11.0
+- @xen-orchestra/rest-api 0.10.0
 - xo-acl-resolver 0.5.1
 - xo-web 5.178.0
-- @vates/types 1.8.0
-- @xen-orchestra/xapi 8.3.2
-- @xen-orchestra/web-core 0.24.0
-- @xen-orchestra/proxy 0.29.25
-- @xen-orchestra/web 0.21.1
-- xo-server 5.181.0
-- @vates/nbd-client 3.1.4
+- @vates/types 1.7.0
+- @xen-orchestra/xapi 8.3.1
+- @xen-orchestra/web-core 0.23.0
+- @xen-orchestra/proxy 0.29.24
+- @xen-orchestra/web 0.21.0
+- xo-server 5.180.1
 
 ## **5.107.2** (2025-06-05)
 
