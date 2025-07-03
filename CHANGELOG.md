@@ -1,6 +1,8 @@
 # ChangeLog
 
-## next
+## **5.108.1** (2025-07-03)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -30,8 +32,6 @@
 - xo-server minor
 
 ## **5.108** (2025-06-30)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
