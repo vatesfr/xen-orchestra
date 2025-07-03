@@ -255,6 +255,7 @@ export default class RestApi {
         },
       },
       srs: {},
+      tasks: {},
       vbds: {},
       vdis: {},
       'vdi-snapshots': {},
