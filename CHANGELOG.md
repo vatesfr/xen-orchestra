@@ -62,7 +62,6 @@
   - `/rest/v0/pools/<pool-id>/actions/rolling_update` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
   - `POST /rest/v0/pools/<pool-id>/vms` (PR [#8748](https://github.com/vatesfr/xen-orchestra/pull/8748))
   - `POST /rest/v0/pools/<pool-id>/actions/create_vm` (PR [#8658](https://github.com/vatesfr/xen-orchestra/pull/8658))
-  - `GET /rest/v0/hosts/<host-id>/audit.txt` (PR [#8757](https://github.com/vatesfr/xen-orchestra/pull/8757))
 
 - [OTP] Change wording from "Password" to "OTP code" when enabling OTP (PR [#8666](https://github.com/vatesfr/xen-orchestra/pull/8666))
 - [Backups] Fix `HANDLE_INVALID(SR)` when replicated to multiples tagret (PR [#8668](https://github.com/vatesfr/xen-orchestra/pull/8668))
