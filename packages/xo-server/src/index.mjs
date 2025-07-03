@@ -24,6 +24,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { xdgConfig } from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { createRequire } from 'module'
+import { execFile } from 'node:child_process'
 import { parseDuration } from '@vates/parse-duration'
 import { readCert } from '@xen-orchestra/self-signed/readCert'
 import { URL } from 'url'
@@ -781,7 +782,7 @@ const setUpConsoleProxy = (webServer, xo, useForwardedHeaders) => {
 
 const USAGE = `Usage: ${APP_NAME} [--safe-mode]
 
-${APP_NAME} v${APP_VERSION}`
+${APP_NAME} v${APP_VERSION} (https://github.com/vatesfr/xen-orchestra/commit/${__GIT_COMMIT__})`
 
 // ===================================================================
 
@@ -792,6 +793,24 @@ export default async function main(args) {
   if (includes(args, '--help') || includes(args, '-h')) {
     return USAGE
   }
+
+  try {
+    const actual = (
+      await fromCallback(execFile, 'git', ['rev-parse', '--short', 'HEAD'], {
+        cwd: new URL('.', import.meta.url),
+      })
+    )
+      .toString()
+      .trim()
+    const expected = __GIT_COMMIT__
+    if (actual !== expected) {
+      log.warn('build is outdated, source has changed since last build, please rebuild', { actual, expected })
+    }
+  } catch (error) {
+    log.warn('could not detect current commit', { error })
+  }
+
+  log.info(`Starting ${APP_NAME} v${APP_VERSION} (https://github.com/vatesfr/xen-orchestra/commit/${__GIT_COMMIT__})`)
 
   const config = await loadConfiguration()
 
