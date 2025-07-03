@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.12.1**
 
 - [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
 - [Host/VM/Dashboard] Fix timestamp on some charts [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9) (PR [#8778](https://github.com/vatesfr/xen-orchestra/pull/8778))
