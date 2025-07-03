@@ -58,7 +58,6 @@ export class GroupController extends XoController<XoGroup> {
   @Put('{id}/users/{userId}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(forbiddenOperation.status, forbiddenOperation.description)
   async addUserToGroup(@Path() id: string, @Path() userId: string): Promise<void> {
     const group = await this.restApi.xoApp.getGroup(id as XoGroup['id'])
     if (group.provider !== undefined) {
