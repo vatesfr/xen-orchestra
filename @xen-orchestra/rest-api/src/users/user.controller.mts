@@ -31,7 +31,7 @@ interface updateUserRequest {
   name?: string
   password?: string
   permission?: string
-  preferences?: Record<string, any>
+  preferences?: Record<string, string>
 }
 
 @Route('users')
