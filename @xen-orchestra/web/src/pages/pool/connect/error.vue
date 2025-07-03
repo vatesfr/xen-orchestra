@@ -2,7 +2,7 @@
   <ConnectPoolHeader />
   <UiCard class="pool-connection-error">
     <VtsStateHero image="error" type="table" no-background>
-      <div class="content">
+      <div class="content" :class="{ mobile: uiStore.isMobile }">
         <h1>{{ t('unable-to-connect-to', { ip }) }}</h1>
         <UiAlert v-if="ErrorCode == 409" accent="danger">{{ t('pool-connection-error-duplicate') }}</UiAlert>
         <!-- no error code for timeout with usefetch -->
@@ -53,12 +53,15 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
+import { useUiStore } from '@core/stores/ui.store'
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { ip, errorJson, ErrorCode } = history.state
 const { t } = useI18n()
+const uiStore = useUiStore()
 
 const dataUrl = computed(() => (errorJson ? `data:text/json;charset=utf-8,${encodeURIComponent(errorJson)}` : ''))
 </script>
@@ -73,7 +76,14 @@ const dataUrl = computed(() => (errorJson ? `data:text/json;charset=utf-8,${enco
     flex-direction: column;
     align-items: center;
     gap: 4rem;
-    width: fit-content;
+
+    &:not(.mobile) {
+      width: min-content;
+
+      h1 {
+        text-wrap: nowrap;
+      }
+    }
   }
 }
 </style>

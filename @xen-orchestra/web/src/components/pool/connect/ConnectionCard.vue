@@ -66,7 +66,7 @@ const router = useRouter()
 const uiStore = useUiStore()
 const connecting = ref(false)
 
-const form: ConnectServerPayload = reactive({
+const form = reactive<ConnectServerPayload>({
   host: history?.state?.ip ?? '',
   httpProxy: '',
   username: '',
@@ -75,41 +75,26 @@ const form: ConnectServerPayload = reactive({
   allowUnauthorized: false,
 })
 
-function submit() {
-  // Clone the form to avoid reactivity issues
-  const payload = { ...form }
+async function submit() {
   connecting.value = true
-  createAndConnectServer(payload)
-    .then(response => {
-      if (response) {
-        router.push({
-          path: '/pool/connect/success',
-          state: {
-            ip: form.host,
-            idServer: response,
-          },
-        })
-      } else {
-        router.push({
-          path: '/pool/connect/error',
-          state: {
-            ip: form.host,
-            errorJson: response,
-          },
-        })
-      }
+  try {
+    const serverId = await createAndConnectServer(form)
+    await router.push({
+      path: '/pool/connect/success',
+      state: { ip: form.host, idServer: serverId },
     })
-    .catch(reson => {
-      router.push({
-        path: '/pool/connect/error',
-        state: {
-          ip: form.host,
-          ErrorCode: reson.status,
-          errorJson: reson.message,
-        },
-      })
+  } catch (error: any) {
+    await router.push({
+      path: '/pool/connect/error',
+      state: {
+        ip: form.host,
+        ErrorCode: error.status,
+        errorJson: error.message,
+      },
     })
-    .finally(() => (connecting.value = false))
+  } finally {
+    connecting.value = false
+  }
 }
 </script>
 
