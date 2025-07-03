@@ -723,6 +723,7 @@ export class RemoteAdapter {
     await this._handler.outputStream(path, input, {
       checksum,
       dirMode: this._dirMode,
+      flags: 'w', // the file may already exists when retrying a failed upload
       maxStreamLength,
       streamLength,
       async validator() {
