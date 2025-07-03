@@ -20,7 +20,7 @@
       </div>
       <div class="typo-body-regular-small info">
         <div v-if="slots.link" class="object-link">
-          {{ $t('on-object') }}
+          {{ t('on-object') }}
           <span class="descriptor">
             <slot name="link" />
           </span>
@@ -43,6 +43,7 @@ import { toVariants } from '@core/utils/to-variants.util'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { useTimeAgo, useToggle } from '@vueuse/core'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 
 type Alarm = {
@@ -62,6 +63,7 @@ const slots = defineSlots<{
 }>()
 
 const timeAgo = useTimeAgo(alarm.date)
+const { t } = useI18n()
 
 const className = computed(() =>
   toVariants({

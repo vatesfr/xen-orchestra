@@ -1,5 +1,5 @@
 <template>
-  <ComponentStory v-slot="{ properties }" :params="[slot('default').help('an list of ui-alarm-item element')]">
+  <ComponentStory v-slot="{ properties }" :params="[slot('default').help('a list of ui-alarm-item element')]">
     <div class="main-wrapper">
       <UiAlarmList v-bind="properties">
         <UiAlarmItem :alarm size="large">
