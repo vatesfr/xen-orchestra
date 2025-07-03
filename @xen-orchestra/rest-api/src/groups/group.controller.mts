@@ -5,7 +5,6 @@ import type { XoGroup, XoUser } from '@vates/types'
 
 import {
   createdResp,
-  forbiddenOperation,
   invalidParameters,
   noContentResp,
   notFoundResp,
@@ -13,6 +12,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import { forbiddenOperation } from 'xo-common/api-errors.js'
 import { group, groupId, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -94,8 +94,12 @@ export class GroupController extends XoController<XoGroup> {
   @Delete('{id}/users/{userId}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(forbiddenOperation.status, forbiddenOperation.description)
   async removeUserFromGroup(@Path() id: string, @Path() userId: string): Promise<void> {
+    const group = await this.restApi.xoApp.getGroup(id as XoGroup['id'])
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('Cannot remove user from synchronized group.')
+    }
+
     await this.restApi.xoApp.removeUserFromGroup(userId as XoUser['id'], id as XoGroup['id'])
   }
 }
