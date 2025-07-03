@@ -1,8 +1,9 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Body, Example, Get, Patch, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoGroup } from '@vates/types'
+import type { XoGroup, XoUser } from '@vates/types'
 
+import { forbiddenOperation } from 'xo-common/api-errors.js'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { group, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -48,5 +49,20 @@ export class GroupController extends XoController<XoGroup> {
   @Response(notFoundResp.status, notFoundResp.description)
   getGroup(@Path() id: string): Promise<Unbrand<XoGroup>> {
     return this.getObject(id as XoGroup['id'])
+  }
+
+  /**
+   * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
+   */
+  @Patch('{id}')
+  async updateGroup(@Path() id: string, @Body() body: Omit<XoGroup, 'id'>): Promise<void> {
+    const { name, provider, providerGroupId, users } = body
+    const group = await this.restApi.xoApp.getGroup(id as XoGroup['id'])
+
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('Cannot edit synchronized group.')
+    }
+
+    await this.restApi.xoApp.updateGroup(id as XoGroup['id'], { name, provider, providerGroupId, users })
   }
 }
