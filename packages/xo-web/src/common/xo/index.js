@@ -3463,11 +3463,6 @@ export const addAcl = ({ subject, object, action }) =>
     error('Add ACL', err.message || String(err))
   )
 
-export const removeAcl = ({ subject, object, action }) =>
-  _call('acl.remove', resolveIds({ subject, object, action }))::tap(subscribeAcls.forceRefresh, err =>
-    error('Remove ACL', err.message || String(err))
-  )
-
 export const removeAcls = acls =>
   confirm({
     title: _('deleteAclsModalTitle', { nAcls: acls.length }),

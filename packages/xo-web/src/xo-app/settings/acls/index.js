@@ -23,16 +23,7 @@ import { SelectHighLevelObject, SelectRole, SelectSubject, GenericSelectTag } fr
 
 import { createGetObjectsOfType, createSelector } from 'selectors'
 
-import {
-  addAcl,
-  editAcl,
-  removeAcl,
-  removeAcls,
-  subscribeAcls,
-  subscribeGroups,
-  subscribeRoles,
-  subscribeUsers,
-} from 'xo'
+import { addAcl, editAcl, removeAcls, subscribeAcls, subscribeGroups, subscribeRoles, subscribeUsers } from 'xo'
 
 const TYPES = ['VM', 'host', 'pool', 'SR', 'network']
 
@@ -60,7 +51,7 @@ const ACL_ACTIONS = [
   {
     handler: removeAcls,
     icon: 'delete',
-    individualHandler: removeAcl,
+    individualHandler: acl => removeAcls([acl]),
     individualLabel: _('deleteAcl'),
     label: _('deleteSelectedAcls'),
     level: 'danger',
