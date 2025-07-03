@@ -9,7 +9,8 @@
           {{ t('pool-connection-success') }}
         </UiAlert>
         <div :class="{ mobile: uiStore.isMobile }">
-          <UiLink v-if="poolId" :to="{ name: '/pool/[id]', params: { id: poolId } }" size="medium">
+          <!-- TODO change link to /dashboard -->
+          <UiLink v-if="poolId" :to="{ name: '/pool/[id]/system', params: { id: poolId } }" size="medium">
             {{ t('visit-pool-dashboard') }}
           </UiLink>
           <RouterLink to="/pool/connect/">

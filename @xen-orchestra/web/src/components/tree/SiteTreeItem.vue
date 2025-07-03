@@ -25,6 +25,7 @@ import type { SiteBranch } from '@/types/tree.type'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -34,6 +35,8 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
+
 const { runningVms } = useVmStore().subscribe()
+
 const runningVmsCount = computed(() => runningVms.value.length)
 </script>
