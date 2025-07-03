@@ -11,6 +11,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **XO6**
+  - [Ui/alarm-item] create component for show information on alarm (PR [#8516](https://github.com/vatesfr/xen-orchestra/pull/8516))
+  - [Ui/alarm-list] create component for list alarm (PR [#8516](https://github.com/vatesfr/xen-orchestra/pull/8516))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
