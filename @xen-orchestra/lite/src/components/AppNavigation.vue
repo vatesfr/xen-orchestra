@@ -1,9 +1,9 @@
 <template>
   <Transition name="slide">
     <nav
-      v-if="uiStore.isDesktop || isOpen"
+      v-if="uiStore.isDesktopLarge || isOpen"
       ref="navElement"
-      :class="{ collapsible: uiStore.isMobile }"
+      :class="{ collapsible: !uiStore.isDesktopLarge }"
       class="app-navigation"
     >
       <StoryMenu v-if="route.meta.hasStoryNav" />

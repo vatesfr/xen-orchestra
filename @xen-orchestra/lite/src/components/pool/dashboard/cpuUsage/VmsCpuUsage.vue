@@ -1,5 +1,9 @@
 <template>
-  <UiCardTitle :left="t('vms')" :level="UiCardTitleLevel.SubtitleWithUnderline" :right="t('top-#', { n: N_ITEMS })" />
+  <UiCardTitle
+    :left="t('vms', 2)"
+    :level="UiCardTitleLevel.SubtitleWithUnderline"
+    :right="t('top-#', { n: N_ITEMS })"
+  />
   <NoDataError v-if="hasError" />
   <UiCardSpinner v-else-if="isLoading" />
   <NoResult v-else-if="isStatEmpty" />
