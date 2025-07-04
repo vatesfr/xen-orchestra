@@ -44,7 +44,13 @@ import type {
   XoVm,
 } from '@vates/types'
 import { createVm, importVm, partialPools, pool, poolIds, poolStats } from '../open-api/oa-examples/pool.oa-example.mjs'
-import type { CreateNetworkBody, CreateVmAfterCreateParams, CreateVmBody, CreateVmParams } from './pool.type.mjs'
+import type {
+  CreateNetworkBody,
+  CreateVmAfterCreateParams,
+  CreateVmBody,
+  CreateVmParams,
+  PoolDashboard,
+} from './pool.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
@@ -313,7 +319,11 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   @Get('{id}/dashboard')
-  async getPoolDashboard(@Request() req: ExRequest, @Path() id: string, @Query() ndjson?: boolean) {
+  async getPoolDashboard(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() ndjson?: boolean
+  ): Promise<PoolDashboard | void> {
     const poolId = id as XoPool['id']
     // throw if pool not found
     this.getObject(poolId)

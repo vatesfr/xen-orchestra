@@ -1,18 +1,33 @@
-import { HOST_POWER_STATE, VM_POWER_STATE, XapiVmStats, XoHost, XoSr, XoVm, type XoPool } from '@vates/types'
+import {
+  HOST_POWER_STATE,
+  VM_POWER_STATE,
+  type XapiVmStats,
+  type XoHost,
+  type XoSr,
+  type XoVm,
+  type XoPool,
+} from '@vates/types'
 import type { Writable } from 'node:stream'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { getTopPerProperty, isSrWritable, promiseWriteInStream } from '../helpers/utils.helper.mjs'
-import { AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
+import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
+import type { PoolDashboard } from './pool.type.mjs'
 
+type DashboardAsyncCache = {
+  vmsTopFiveUsage: PoolDashboard['vms']['topFiveUsage']
+}
 export class PoolService {
   #restApi: RestApi
   #hostService: HostService
   #vmService: VmService
   #alarmService: AlarmService
-  #dashboardAsyncCache = new Map<string, AsyncCacheEntry<unknown>>()
+  #dashboardAsyncCache = new Map<
+    keyof DashboardAsyncCache,
+    AsyncCacheEntry<DashboardAsyncCache[keyof DashboardAsyncCache]>
+  >()
   #dashboardCacheOpts: { timeout?: number; expiresIn?: number }
 
   constructor(restApi: RestApi) {
@@ -26,7 +41,7 @@ export class PoolService {
     }
   }
 
-  #getHostsStatus(poolId: XoPool['id']) {
+  #getHostsStatus(poolId: XoPool['id']): PoolDashboard['hosts']['status'] {
     const { running, disabled, halted, total } = this.#hostService.getHostsStatus({
       filter: host => host.$pool === poolId,
     })
@@ -34,7 +49,7 @@ export class PoolService {
     return { running, disabled, halted, total }
   }
 
-  #getVmsStatus(poolId: XoPool['id']) {
+  #getVmsStatus(poolId: XoPool['id']): PoolDashboard['vms']['status'] {
     const { running, halted, paused, total, suspended } = this.#vmService.getVmsStatus({
       filter: vm => vm.$pool === poolId,
     })
@@ -48,12 +63,12 @@ export class PoolService {
     }
   }
 
-  #getAlarms(poolId: XoPool['id']) {
+  #getAlarms(poolId: XoPool['id']): PoolDashboard['alarms'] {
     const alarms = this.#alarmService.getAlarms({ filter: alarm => alarm.$pool === poolId })
     return Object.values(alarms)
   }
 
-  async #getMissingPatches(poolId: XoPool['id']) {
+  async #getMissingPatches(poolId: XoPool['id']): Promise<PoolDashboard['hosts']['missingPatches']> {
     const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo({ filter: host => host.$pool === poolId })
     if (!missingPatchesInfo.hasAuthorization) {
       return {
@@ -68,7 +83,7 @@ export class PoolService {
     }
   }
 
-  #getTopFiveSrsUsage(poolId: XoPool['id']) {
+  #getTopFiveSrsUsage(poolId: XoPool['id']): PoolDashboard['srs']['topFiveUsage'] {
     const srs = Object.values(
       this.#restApi.getObjectsByType<XoSr>('SR', {
         filter: sr => sr.$pool === poolId && isSrWritable(sr),
@@ -89,7 +104,7 @@ export class PoolService {
     return topFive
   }
 
-  #getTopFiveHostsRamUsage(poolId: XoPool['id']) {
+  #getTopFiveHostsRamUsage(poolId: XoPool['id']): PoolDashboard['hosts']['topFiveUsage']['ram'] {
     const hosts = Object.values(
       this.#restApi.getObjectsByType<XoHost>('host', {
         filter: host => host.$pool === poolId && host.power_state === HOST_POWER_STATE.RUNNING,
@@ -110,15 +125,18 @@ export class PoolService {
     return topFive
   }
 
-  #getVmWithLastRamInfo(vm: XoVm, stats: XapiVmStats) {
+  #getVmWithLastRamInfo(
+    vm: XoVm,
+    stats: XapiVmStats
+  ): XoVm & { memoryStats: { memory: number; memoryFree: number; usage: number } } {
     const memory = stats.stats.memory?.pop() ?? 0
     const memoryFree = stats.stats.memoryFree?.pop() ?? 0
     const usage = memory - memoryFree
 
-    return { ...vm, memory, memoryFree, usage }
+    return { ...vm, memoryStats: { memory, memoryFree, usage } }
   }
 
-  #getVmWithLastCpuInfo(vm: XoVm, stats: XapiVmStats) {
+  #getVmWithLastCpuInfo(vm: XoVm, stats: XapiVmStats): XoVm & { usage: number } {
     const cpus = Object.values(stats.stats.cpus ?? {})
     const usage = cpus.reduce((total, cpus) => {
       total += cpus.pop() ?? 0
@@ -128,8 +146,8 @@ export class PoolService {
     return { ...vm, usage }
   }
 
-  async #getTopFiveVmsRamCpuUsage(poolId: XoPool['id']) {
-    const vmsUsageResult = await getFromAsyncCache(
+  async #getTopFiveVmsRamCpuUsage(poolId: XoPool['id']): Promise<DashboardAsyncCache['vmsTopFiveUsage']> {
+    const vmsUsageResult = await getFromAsyncCache<DashboardAsyncCache['vmsTopFiveUsage']>(
       this.#dashboardAsyncCache,
       'vmsRamCpuUsage',
       async () => {
@@ -151,7 +169,9 @@ export class PoolService {
           const vm = vms[id as XoVm['id']]
           const stats = await this.#restApi.xoApp.getXapiVmStats(vm.id)
           if (vm.managementAgentDetected) {
-            const { memory, memoryFree, usage } = this.#getVmWithLastRamInfo(vm, stats)
+            const {
+              memoryStats: { memory, memoryFree, usage },
+            } = this.#getVmWithLastRamInfo(vm, stats)
             vmsWithRamInfo.push({
               id: vm.id,
               name_label: vm.name_label,
@@ -181,7 +201,7 @@ export class PoolService {
     }
   }
 
-  async #getTopFiveHostsCpuUsage(poolId: XoPool['id']) {
+  async #getTopFiveHostsCpuUsage(poolId: XoPool['id']): Promise<PoolDashboard['hosts']['topFiveUsage']['cpu']> {
     const hosts = this.#restApi.getObjectsByType<XoHost>('host', {
       filter: host => host.$pool === poolId && host.power_state === HOST_POWER_STATE.RUNNING,
     })
@@ -204,7 +224,7 @@ export class PoolService {
     return topFive
   }
 
-  #getCpuProvisioning(poolId: XoPool['id']) {
+  #getCpuProvisioning(poolId: XoPool['id']): PoolDashboard['cpuProvisioning'] {
     const pool = this.#restApi.getObject<XoPool>(poolId, 'pool')
 
     const vms = this.#restApi.getObjectsByType<XoVm>('VM', {
@@ -221,13 +241,13 @@ export class PoolService {
     const total = pool.cpus.cores ?? 0
 
     return {
-      total: pool.cpus.cores,
+      total,
       assigned: assignedVcpu,
       percent: (assignedVcpu * 100) / total,
     }
   }
 
-  async getDashboard(id: XoPool['id'], { stream }: { stream?: Writable } = {}) {
+  async getDashboard(id: XoPool['id'], { stream }: { stream?: Writable } = {}): Promise<PoolDashboard> {
     const [
       hostStatus,
       vmsStatus,
