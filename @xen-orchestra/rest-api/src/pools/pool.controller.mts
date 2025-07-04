@@ -43,7 +43,15 @@ import type {
   XoSr,
   XoVm,
 } from '@vates/types'
-import { createVm, importVm, partialPools, pool, poolIds, poolStats } from '../open-api/oa-examples/pool.oa-example.mjs'
+import {
+  createVm,
+  importVm,
+  partialPools,
+  pool,
+  poolDashboard,
+  poolIds,
+  poolStats,
+} from '../open-api/oa-examples/pool.oa-example.mjs'
 import type {
   CreateNetworkBody,
   CreateVmAfterCreateParams,
@@ -318,7 +326,12 @@ export class PoolController extends XapiXoController<XoPool> {
     return this.restApi.xoApp.getXapiPoolStats(id as XoPool['id'], granularity)
   }
 
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   */
+  @Example(poolDashboard)
   @Get('{id}/dashboard')
+  @Response(notFoundResp.status, notFoundResp.description)
   async getPoolDashboard(
     @Request() req: ExRequest,
     @Path() id: string,
