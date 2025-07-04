@@ -1,9 +1,10 @@
 import { HOST_POWER_STATE, VM_POWER_STATE, XapiVmStats, XoHost, XoSr, XoVm, type XoPool } from '@vates/types'
+import type { Writable } from 'node:stream'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { getTopPerProperty, isSrWritable } from '../helpers/utils.helper.mjs'
+import { getTopPerProperty, isSrWritable, promiseWriteInStream } from '../helpers/utils.helper.mjs'
 
 export class PoolService {
   #restApi: RestApi
@@ -207,31 +208,46 @@ export class PoolService {
     }
   }
 
-  async getDashboard(id: XoPool['id']) {
-    const hostStatus = this.#getHostsStatus(id)
-    const vmsStatus = this.#getVmsStatus(id)
-    const alarms = this.#getAlarms(id)
-    const missingPatches = await this.#getMissingPatches(id)
-    const storageUsage = this.#getTopFiveSrsUsage(id)
-    const hostsRamUsage = this.#getTopFiveHostsRamUsage(id)
-    const hostsCpuUsage = await this.#getTopFiveHostsCpuUsage(id)
-    const cpuProvisioning = this.#getCpuProvisioning(id)
-    const { cpu: vmsCpuUsage, ram: vmsRamUsage } = await this.#getTopFiveVmsRamCpuUsage(id)
-
-    return {
+  async getDashboard(id: XoPool['id'], { stream }: { stream?: Writable } = {}) {
+    const [
       hostStatus,
       vmsStatus,
       alarms,
       missingPatches,
       storageUsage,
-      ramUsage: {
-        hosts: hostsRamUsage,
-        vms: vmsRamUsage,
+      hostsRamUsage,
+      hostsCpuUsage,
+      cpuProvisioning,
+      vmsUsage,
+    ] = await Promise.all([
+      promiseWriteInStream({ maybePromise: this.#getHostsStatus(id), path: 'hosts.status', stream }),
+      promiseWriteInStream({ maybePromise: this.#getVmsStatus(id), path: 'vms.status', stream }),
+      promiseWriteInStream({ maybePromise: this.#getAlarms(id), path: 'alarms', stream }),
+      promiseWriteInStream({ maybePromise: this.#getMissingPatches(id), path: 'hosts.missingPatches', stream }),
+      promiseWriteInStream({ maybePromise: this.#getTopFiveSrsUsage(id), path: 'srs.topFiveUsage', stream }),
+      promiseWriteInStream({ maybePromise: this.#getTopFiveHostsRamUsage(id), path: 'hosts.topFiveUsage.ram', stream }),
+      promiseWriteInStream({ maybePromise: this.#getTopFiveHostsCpuUsage(id), path: 'hosts.topFiveUsage.cpu', stream }),
+      promiseWriteInStream({ maybePromise: this.#getCpuProvisioning(id), path: 'cpuProvisioning', stream }),
+      promiseWriteInStream({ maybePromise: this.#getTopFiveVmsRamCpuUsage(id), path: 'vms.topFiveUsage', stream }),
+    ])
+
+    return {
+      hosts: {
+        status: hostStatus,
+        topFiveUsage: {
+          ram: hostsRamUsage,
+          cpu: hostsCpuUsage,
+        },
+        missingPatches,
       },
-      cpuUsage: {
-        hosts: hostsCpuUsage,
-        vms: vmsCpuUsage,
+      vms: {
+        status: vmsStatus,
+        topFiveUsage: vmsUsage,
       },
+      srs: {
+        topFiveUsage: storageUsage,
+      },
+      alarms,
       cpuProvisioning,
     }
   }

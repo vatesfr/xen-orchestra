@@ -14,8 +14,9 @@ import {
   SuccessResponse,
 } from 'tsoa'
 import { inject } from 'inversify'
+import { PassThrough } from 'node:stream'
 import { provide } from 'inversify-binding-decorators'
-import { json, type Request as ExRequest } from 'express'
+import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import type { Task } from '@vates/types/lib/vates/task'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -49,6 +50,7 @@ import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { PoolService } from './pool.service.mjs'
+import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 
 @Route('pools')
 @Security('*')
@@ -311,13 +313,25 @@ export class PoolController extends XapiXoController<XoPool> {
   }
 
   @Get('{id}/dashboard')
-  async getPoolDashboard(@Path() id: string) {
+  async getPoolDashboard(@Request() req: ExRequest, @Path() id: string, @Query() ndjson?: boolean) {
     const poolId = id as XoPool['id']
     // throw if pool not found
     this.getObject(poolId)
 
-    const dashboard = await this.#poolService.getDashboard(poolId)
+    const stream = ndjson ? new PassThrough() : undefined
+    const isStream = ndjson && stream !== undefined
+    if (isStream) {
+      const res = req.res as ExResponse
+      res.setHeader('Content-Type', NDJSON_CONTENT_TYPE)
+      stream.pipe(res)
+    }
 
-    return dashboard
+    const dashboard = await this.#poolService.getDashboard(poolId, { stream })
+
+    if (isStream) {
+      stream.end()
+    } else {
+      return dashboard
+    }
   }
 }
