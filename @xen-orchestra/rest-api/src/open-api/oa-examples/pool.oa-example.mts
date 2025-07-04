@@ -291,3 +291,205 @@ export const poolStats = {
     },
   },
 }
+
+export const poolDashboard = {
+  hosts: {
+    status: {
+      running: 3,
+      disabled: 0,
+      halted: 0,
+      total: 3,
+    },
+    topFiveUsage: {
+      ram: [
+        {
+          name_label: 'XCP XO 8.3.0 master',
+          id: 'b61a5c92-700e-4966-a13b-00633f03eea8',
+          size: 34359738368,
+          usage: 6254059520,
+          percent: 18.201708793640137,
+        },
+        {
+          name_label: 'XCP XO 8.3.0 slave',
+          id: '84e555d8-267a-4720-aa5f-fd19035aadae',
+          size: 34359738368,
+          usage: 3544117248,
+          percent: 10.314738750457764,
+        },
+        {
+          name_label: 'XCP XO 8.3.0 slave 2',
+          id: '669df518-4e5d-4d84-b93a-9be2cdcdfca1',
+          size: 34359738368,
+          usage: 3544117248,
+          percent: 10.314738750457764,
+        },
+      ],
+      cpu: [
+        {
+          percent: 6.471593483001921,
+          id: 'b61a5c92-700e-4966-a13b-00633f03eea8',
+          name_label: 'XCP XO 8.3.0 master',
+        },
+        {
+          percent: 2.340522127838084,
+          id: '84e555d8-267a-4720-aa5f-fd19035aadae',
+          name_label: 'XCP XO 8.3.0 slave',
+        },
+        {
+          percent: 1.5935676943627188,
+          id: '669df518-4e5d-4d84-b93a-9be2cdcdfca1',
+          name_label: 'XCP XO 8.3.0 slave 2',
+        },
+      ],
+    },
+    missingPatches: {
+      hasAuthorization: true,
+      missingPatches: [
+        {
+          url: 'http://www.xen.org',
+          version: '25.6.0',
+          name: 'xenopsd-xc',
+          license: 'LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception',
+          changelog: {
+            date: 1750852800,
+            description: '- Fix remote syslog configuration being broken on updates',
+            author: 'Andrii Sultanov <andriy.sultanov@vates.tech> - 25.6.0-1.9',
+          },
+          release: '1.9.xcpng8.3',
+          size: 5421696,
+          description: 'Xenopsd using xc',
+        },
+        {
+          url: 'http://www.xen.org',
+          version: '25.6.0',
+          name: 'forkexecd',
+          license: 'LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception',
+          changelog: {
+            date: 1750852800,
+            description: '- Fix remote syslog configuration being broken on updates',
+            author: 'Andrii Sultanov <andriy.sultanov@vates.tech> - 25.6.0-1.9',
+          },
+          release: '1.9.xcpng8.3',
+          size: 2498124,
+          description: 'A subprocess management service',
+        },
+      ],
+    },
+  },
+  vms: {
+    status: {
+      running: 2,
+      halted: 38,
+      paused: 0,
+      total: 40,
+      suspended: 0,
+    },
+    topFiveUsage: {
+      ram: [
+        {
+          id: 'db822c15-6f7d-8920-10bd-68d40fb12ac6',
+          name_label: 'MRA alpine',
+          memory: 536858624,
+          memoryFree: 423256064,
+          percent: 21.160610060349892,
+        },
+        {
+          id: 'fe10b378-db7b-d2a4-eef6-0f1cde75d409',
+          name_label: 'pbt_test',
+          memory: 2147471360,
+          memoryFree: 1813676032,
+          percent: 15.54364515482991,
+        },
+      ],
+      cpu: [
+        {
+          id: 'db822c15-6f7d-8920-10bd-68d40fb12ac6',
+          name_label: 'MRA alpine',
+          percent: 1.04830558411777,
+        },
+        {
+          id: 'fe10b378-db7b-d2a4-eef6-0f1cde75d409',
+          name_label: 'pbt_test',
+          percent: 0.3743608540389682,
+        },
+      ],
+    },
+  },
+  srs: {
+    topFiveUsage: [
+      {
+        name_label: 'Local storage',
+        id: '4cb0d74e-a7c1-0b7d-46e3-09382c012abb',
+        percent: 45.51916716586373,
+        physical_usage: 33539653632,
+        size: 73682485248,
+      },
+      {
+        name_label: 'Local storage',
+        id: 'c4284e12-37c9-7967-b9e8-83ef229c3e03',
+        percent: 23.527768920458005,
+        physical_usage: 17335844864,
+        size: 73682485248,
+      },
+      {
+        name_label: 'XOSTOR NVME',
+        id: 'c787b75c-3e0d-70fa-d0c3-cbfd382d7e33',
+        percent: 18.56945625131877,
+        physical_usage: 95048891392,
+        size: 511856082944,
+      },
+      {
+        name_label: 'Local storage',
+        id: '8aa2fb4a-143e-c2bc-05d4-c68bbb101d41',
+        percent: 16.016159531372924,
+        physical_usage: 11801104384,
+        size: 73682485248,
+      },
+    ],
+  },
+  alarms: [
+    {
+      name: 'ALARM',
+      time: 1749572297,
+      id: '71ef8836-56e4-97ca-02d1-e118ee1aad98',
+      type: 'message',
+      uuid: '71ef8836-56e4-97ca-02d1-e118ee1aad98',
+      $pool: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
+      $poolId: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
+      _xapiRef: 'OpaqueRef:fed2a9e5-6c72-dada-6f27-7475583ff3e7',
+      body: {
+        value: '1.054742',
+        name: 'mem_usage',
+      },
+      object: {
+        type: 'VM-controller',
+        uuid: '9b4775bd-9493-490a-9afa-f786a44caa4f',
+        href: '/rest/v0/vm-controllers/9b4775bd-9493-490a-9afa-f786a44caa4f',
+      },
+    },
+    {
+      name: 'ALARM',
+      time: 1748688413,
+      id: 'ef9008da-e244-9875-4b83-12de733c8aa9',
+      type: 'message',
+      uuid: 'ef9008da-e244-9875-4b83-12de733c8aa9',
+      $pool: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
+      $poolId: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
+      _xapiRef: 'OpaqueRef:d03c24dc-037d-ac8b-80ea-c5a1106cd678',
+      body: {
+        value: '0.962104',
+        name: 'mem_usage',
+      },
+      object: {
+        type: 'VM-controller',
+        uuid: '9b4775bd-9493-490a-9afa-f786a44caa4f',
+        href: '/rest/v0/vm-controllers/9b4775bd-9493-490a-9afa-f786a44caa4f',
+      },
+    },
+  ],
+  cpuProvisioning: {
+    total: 48,
+    assigned: 4,
+    percent: 8.333333333333334,
+  },
+}

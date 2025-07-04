@@ -1,12 +1,15 @@
 import type { XapiXoRecord } from '@vates/types'
 
 import type { XoApp } from './rest-api.type.mjs'
+import type { Container } from 'inversify'
 
 export class RestApi {
+  #ioc: Container
   #xoApp: XoApp
 
-  constructor(xoApp: XoApp) {
+  constructor(xoApp: XoApp, iocContainer: Container) {
     this.#xoApp = xoApp
+    this.#ioc = iocContainer
   }
 
   get tasks() {
@@ -15,6 +18,10 @@ export class RestApi {
 
   get xoApp() {
     return this.#xoApp
+  }
+
+  get ioc() {
+    return this.#ioc
   }
 
   authenticateUser(...args: Parameters<XoApp['authenticateUser']>) {

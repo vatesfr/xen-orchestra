@@ -6,6 +6,9 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import type { XoApp } from '../rest-api/rest-api.type.mjs'
 import { XoaService } from '../xoa/xoa.service.mjs'
+import { HostService } from '../hosts/host.service.mjs'
+import { PoolService } from '../pools/pool.service.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
 
 const iocContainer = new Container()
 
@@ -19,7 +22,7 @@ export function setupContainer(xoApp: XoApp) {
 
   iocContainer
     .bind(RestApi)
-    .toDynamicValue(() => new RestApi(xoApp))
+    .toDynamicValue(() => new RestApi(xoApp, iocContainer))
     .inSingletonScope()
 
   iocContainer
@@ -35,6 +38,30 @@ export function setupContainer(xoApp: XoApp) {
     .toDynamicValue(ctx => {
       const restApi = ctx.container.get(RestApi)
       return new VmService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(PoolService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new PoolService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(HostService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new HostService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(AlarmService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new AlarmService(restApi)
     })
     .inSingletonScope()
 }
