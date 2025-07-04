@@ -2,46 +2,46 @@
   <ConnectPoolHeader />
   <UiCard class="pool-connection-error">
     <VtsStateHero image="error" type="table" no-background>
-      <div class="content" :class="{ mobile: uiStore.isMobile }">
-        <h1>{{ t('unable-to-connect-to', { ip }) }}</h1>
-        <UiAlert v-if="ErrorCode == 409" accent="danger">{{ t('pool-connection-error-duplicate') }}</UiAlert>
-        <!-- no error code for timeout with usefetch -->
-        <UiAlert v-else-if="errorJson == 'Fetch is aborted'" accent="danger">
-          {{ t('pool-connection-error-timeout') }}
-        </UiAlert>
-        <UiAlert v-else-if="errorJson == 'self-signed certificate' || ErrorCode == 495" accent="danger">
-          {{ t('pool-connection-error-ssl') }}
-        </UiAlert>
-        <UiAlert v-else-if="ErrorCode == 401" accent="danger">
-          {{ t('pool-connection-error-auth-failed') }}
-        </UiAlert>
-        <UiAlert v-else-if="ErrorCode == -69" accent="danger">
-          {{ t('pool-connection-error-host-not-found') }}
-        </UiAlert>
-        <template v-else>
-          <UiAlert accent="danger">{{ t('pool-connection-error') }}</UiAlert>
-          <UiQuoteCode :label="t('api-error-details')" accent="danger" size="small" copy>
-            {{ errorJson }}
-            <template #actions>
-              <a
-                v-if="errorJson"
-                v-tooltip="t('core.open-in-new-tab')"
-                :href="dataUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <UiButtonIcon size="medium" accent="brand" :icon="faArrowUpRightFromSquare" />
-              </a>
-            </template>
-          </UiQuoteCode>
-        </template>
-        <RouterLink :to="{ name: '/pool/connect/', state: { ip } }">
-          <UiButton variant="secondary" accent="brand" size="medium">
-            {{ t('go-back') }}
-          </UiButton>
-        </RouterLink>
-      </div>
+      <p class="typo-h1 title">{{ t('unable-to-connect-to', { ip }) }}</p>
     </VtsStateHero>
+    <div class="content" :class="{ mobile: uiStore.isMobile }">
+      <UiAlert v-if="ErrorCode == 409" accent="danger">{{ t('pool-connection-error-duplicate') }}</UiAlert>
+      <!-- no error code for timeout with usefetch -->
+      <UiAlert v-else-if="errorJson == 'Fetch is aborted'" accent="danger">
+        {{ t('pool-connection-error-timeout') }}
+      </UiAlert>
+      <UiAlert v-else-if="errorJson == 'self-signed certificate' || ErrorCode == 495" accent="danger">
+        {{ t('pool-connection-error-ssl') }}
+      </UiAlert>
+      <UiAlert v-else-if="ErrorCode == 401" accent="danger">
+        {{ t('pool-connection-error-auth-failed') }}
+      </UiAlert>
+      <UiAlert v-else-if="ErrorCode == -69" accent="danger">
+        {{ t('pool-connection-error-host-not-found') }}
+      </UiAlert>
+      <template v-else>
+        <UiAlert accent="danger">{{ t('pool-connection-error') }}</UiAlert>
+        <UiQuoteCode :label="t('api-error-details')" accent="danger" size="small" copy>
+          {{ errorJson }}
+          <template #actions>
+            <a
+              v-if="errorJson"
+              v-tooltip="t('core.open-in-new-tab')"
+              :href="dataUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <UiButtonIcon size="medium" accent="brand" :icon="faArrowUpRightFromSquare" />
+            </a>
+          </template>
+        </UiQuoteCode>
+      </template>
+      <RouterLink :to="{ name: '/pool/connect/', state: { ip } }">
+        <UiButton variant="secondary" accent="brand" size="medium">
+          {{ t('go-back') }}
+        </UiButton>
+      </RouterLink>
+    </div>
   </UiCard>
 </template>
 
@@ -70,19 +70,20 @@ const dataUrl = computed(() => (errorJson ? `data:text/json;charset=utf-8,${enco
 .pool-connection-error {
   margin: 0.8rem;
 
+  .title {
+    text-align: center;
+  }
+
   .content {
     color: var(--color-neutral-txt-primary);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 4rem;
+    margin: 0 auto;
 
     &:not(.mobile) {
-      width: min-content;
-
-      h1 {
-        text-wrap: nowrap;
-      }
+      width: 65%;
     }
   }
 }
