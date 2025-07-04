@@ -1,10 +1,10 @@
 <template>
   <ConnectPoolHeader />
   <UiCard class="pool-connection-error">
-    <VtsStateHero image="error" type="table" no-background>
+    <VtsStateHero image="error" type="card" no-background>
       <p class="typo-h1 title">{{ t('unable-to-connect-to', { ip }) }}</p>
     </VtsStateHero>
-    <div class="content" :class="{ mobile: uiStore.isMobile }">
+    <div class="content" :class="{ mobile: uiStore.isMobile, desktop: !uiStore.isDesktopLarge }">
       <UiAlert v-if="ErrorCode == 409" accent="danger">{{ t('pool-connection-error-duplicate') }}</UiAlert>
       <!-- no error code for timeout with usefetch -->
       <UiAlert v-else-if="errorJson == 'Fetch is aborted'" accent="danger">
@@ -68,6 +68,7 @@ const dataUrl = computed(() => (errorJson ? `data:text/json;charset=utf-8,${enco
 
 <style lang="postcss" scoped>
 .pool-connection-error {
+  height: 100%;
   margin: 0.8rem;
 
   .title {
@@ -80,10 +81,14 @@ const dataUrl = computed(() => (errorJson ? `data:text/json;charset=utf-8,${enco
     flex-direction: column;
     align-items: center;
     gap: 4rem;
-    margin: 0 auto;
+    width: 50%;
 
-    &:not(.mobile) {
-      width: 65%;
+    &.desktop {
+      width: 75%;
+    }
+
+    &.mobile {
+      width: 100%;
     }
   }
 }
