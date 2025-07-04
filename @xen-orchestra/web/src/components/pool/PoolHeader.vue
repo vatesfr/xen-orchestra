@@ -2,9 +2,11 @@
   <UiHeadBar :icon="faCity">
     {{ pool.name_label }}
     <template #actions>
-      <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium" @click="goToNewVm()">
-        {{ t('new-vm') }}
-      </UiButton>
+      <RouterLink :to="{ name: '/vm/new', query: { poolid: pool.id } }">
+        <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium">
+          {{ t('new-vm') }}
+        </UiButton>
+      </RouterLink>
     </template>
   </UiHeadBar>
   <TabList>
@@ -44,15 +46,10 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import { faCity, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 
 const { pool } = defineProps<{
   pool: XoPool
 }>()
 
 const { t } = useI18n()
-
-const router = useRouter()
-
-const goToNewVm = () => router.push({ name: '/vm/new', query: { poolid: pool.id } })
 </script>
