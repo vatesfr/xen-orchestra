@@ -5,18 +5,25 @@ import { HostService } from '../hosts/host.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { getTopPerProperty, isSrWritable, promiseWriteInStream } from '../helpers/utils.helper.mjs'
+import { AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 
 export class PoolService {
   #restApi: RestApi
   #hostService: HostService
   #vmService: VmService
   #alarmService: AlarmService
+  #dashboardAsyncCache = new Map<string, AsyncCacheEntry<unknown>>()
+  #dashboardCacheOpts: { timeout?: number; expiresIn?: number }
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
     this.#hostService = this.#restApi.ioc.get(HostService)
     this.#vmService = this.#restApi.ioc.get(VmService)
     this.#alarmService = this.#restApi.ioc.get(AlarmService)
+    this.#dashboardCacheOpts = {
+      timeout: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheTimeout') ?? 60000,
+      expiresIn: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
+    }
   }
 
   #getHostsStatus(poolId: XoPool['id']) {
@@ -122,43 +129,55 @@ export class PoolService {
   }
 
   async #getTopFiveVmsRamCpuUsage(poolId: XoPool['id']) {
-    const vms = this.#restApi.getObjectsByType<XoVm>('VM', {
-      filter: vm =>
-        vm.$pool === poolId && (vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED),
-    })
-
-    const vmsWithRamInfo: (Pick<XoVm, 'id' | 'name_label'> & {
-      percent: number
-      memory: number
-      memoryFree: number
-    })[] = []
-    const vmsWithCpuInfo: (Pick<XoVm, 'id' | 'name_label'> & {
-      percent: number
-    })[] = []
-    for (const id in vms) {
-      const vm = vms[id as XoVm['id']]
-      const stats = await this.#restApi.xoApp.getXapiVmStats(vm.id)
-      if (vm.managementAgentDetected) {
-        const { memory, memoryFree, usage } = this.#getVmWithLastRamInfo(vm, stats)
-        vmsWithRamInfo.push({
-          id: vm.id,
-          name_label: vm.name_label,
-          memory,
-          memoryFree,
-          percent: (usage / memory) * 100,
+    const vmsUsageResult = await getFromAsyncCache(
+      this.#dashboardAsyncCache,
+      'vmsRamCpuUsage',
+      async () => {
+        const vms = this.#restApi.getObjectsByType<XoVm>('VM', {
+          filter: vm =>
+            vm.$pool === poolId &&
+            (vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED),
         })
-      }
 
-      const { usage: cpuUsage } = this.#getVmWithLastCpuInfo(vm, stats)
-      vmsWithCpuInfo.push({ id: vm.id, name_label: vm.name_label, percent: cpuUsage })
-    }
+        const vmsWithRamInfo: (Pick<XoVm, 'id' | 'name_label'> & {
+          percent: number
+          memory: number
+          memoryFree: number
+        })[] = []
+        const vmsWithCpuInfo: (Pick<XoVm, 'id' | 'name_label'> & {
+          percent: number
+        })[] = []
+        for (const id in vms) {
+          const vm = vms[id as XoVm['id']]
+          const stats = await this.#restApi.xoApp.getXapiVmStats(vm.id)
+          if (vm.managementAgentDetected) {
+            const { memory, memoryFree, usage } = this.#getVmWithLastRamInfo(vm, stats)
+            vmsWithRamInfo.push({
+              id: vm.id,
+              name_label: vm.name_label,
+              memory,
+              memoryFree,
+              percent: (usage / memory) * 100,
+            })
+          }
 
-    const topFiveRamUsage = getTopPerProperty(vmsWithRamInfo, { prop: 'percent', length: 5 })
-    const topFiveCpuUsage = getTopPerProperty(vmsWithCpuInfo, { prop: 'percent', length: 5 })
+          const { usage: cpuUsage } = this.#getVmWithLastCpuInfo(vm, stats)
+          vmsWithCpuInfo.push({ id: vm.id, name_label: vm.name_label, percent: cpuUsage })
+        }
 
-    return {
-      ram: topFiveRamUsage,
-      cpu: topFiveCpuUsage,
+        const topFiveRamUsage = getTopPerProperty(vmsWithRamInfo, { prop: 'percent', length: 5 })
+        const topFiveCpuUsage = getTopPerProperty(vmsWithCpuInfo, { prop: 'percent', length: 5 })
+
+        return {
+          ram: topFiveRamUsage,
+          cpu: topFiveCpuUsage,
+        }
+      },
+      this.#dashboardCacheOpts
+    )
+
+    if (vmsUsageResult?.value !== undefined) {
+      return { ...vmsUsageResult.value, isExpired: vmsUsageResult.isExpired }
     }
   }
 
