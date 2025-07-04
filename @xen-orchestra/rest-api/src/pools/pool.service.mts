@@ -177,6 +177,29 @@ export class PoolService {
     return topFive
   }
 
+  #getCpuProvisioning(poolId: XoPool['id']) {
+    const pool = this.#restApi.getObject<XoPool>(poolId, 'pool')
+
+    const vms = this.#restApi.getObjectsByType<XoVm>('VM', {
+      filter: vm =>
+        vm.$pool === poolId && (vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED),
+    })
+
+    let assignedVcpu = 0
+    for (const id in vms) {
+      const vm = vms[id as XoVm['id']]
+      assignedVcpu += vm.CPUs.number
+    }
+
+    const total = pool.cpus.cores ?? 0
+
+    return {
+      total: pool.cpus.cores,
+      assigned: assignedVcpu,
+      percent: (assignedVcpu * 100) / total,
+    }
+  }
+
   async getDashboard(id: XoPool['id']) {
     const hostStatus = this.#getHostsStatus(id)
     const vmsStatus = this.#getVmsStatus(id)
@@ -187,6 +210,7 @@ export class PoolService {
     const vmsRamUsage = await this.#getTopFiveVmsRamUsage(id)
     const hostsCpuUsage = await this.#getTopFiveHostsCpuUsage(id)
     const vmsCpuUsage = await this.#getTopFiveVmsCpuUsage(id)
+    const cpuProvisioning = this.#getCpuProvisioning(id)
 
     return {
       hostStatus,
@@ -202,6 +226,7 @@ export class PoolService {
         hosts: hostsCpuUsage,
         vms: vmsCpuUsage,
       },
+      cpuProvisioning,
     }
   }
 }
