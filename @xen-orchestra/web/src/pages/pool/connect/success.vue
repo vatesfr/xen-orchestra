@@ -2,14 +2,14 @@
   <ConnectPoolHeader />
   <UiCard class="pool-connection-success">
     <VtsLoadingHero v-if="!isReady" type="page" />
-    <VtsStateHero v-else image="all-good" type="table" no-background>
+    <VtsStateHero v-else image="all-good" type="card" no-background>
       <p class="typo-h1 title">{{ t('unable-to-connect-to', { ip }) }}</p>
     </VtsStateHero>
-    <div class="content">
+    <div class="content" :class="{ mobile: uiStore.isMobile, desktop: !uiStore.isDesktopLarge }">
       <UiAlert accent="success">
         {{ t('pool-connection-success') }}
       </UiAlert>
-      <div :class="{ mobile: uiStore.isMobile }">
+      <div class="action-buttons">
         <!-- TODO change link to /dashboard -->
         <UiLink v-if="poolId" :to="{ name: '/pool/[id]/system', params: { id: poolId } }" size="medium">
           {{ t('visit-pool-dashboard') }}
@@ -48,6 +48,7 @@ const poolId = computed(() => get(idServer)?.poolId)
 
 <style lang="postcss" scoped>
 .pool-connection-success {
+  height: 100%;
   margin: 0.8rem;
 
   .title {
@@ -61,20 +62,18 @@ const poolId = computed(() => get(idServer)?.poolId)
     align-items: center;
     gap: 4rem;
     margin: 0 auto;
+    width: 50%;
 
-    h1 {
-      text-wrap: nowrap;
+    &.desktop {
+      width: 75%;
     }
 
-    div {
-      display: flex;
-      gap: 2.4rem;
+    &.mobile {
+      width: 100%;
     }
 
-    div.mobile {
+    .action-buttons {
       display: flex;
-      flex-direction: column;
-      align-items: center;
       gap: 2.4rem;
     }
   }
