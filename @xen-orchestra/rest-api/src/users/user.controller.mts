@@ -1,5 +1,6 @@
 import {
   Body,
+  Delete,
   Example,
   Get,
   Middlewares,
@@ -20,6 +21,7 @@ import type { XoUser } from '@vates/types'
 import {
   createdResp,
   invalidParameters,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -99,5 +101,15 @@ export class UserController extends XoController<XoUser> {
     const user = await this.restApi.xoApp.createUser(body)
 
     return { id: user.id }
+  }
+
+  /**
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteUser(@Path() id: string): Promise<void> {
+    await this.restApi.xoApp.deleteUser(id as XoUser['id'])
   }
 }
