@@ -1,25 +1,23 @@
 <template>
-  <div class="vm-ram-usage">
-    <VtsLoadingHero v-if="!isReady" type="card" />
-    <template v-else>
-      <UiProgressBar
-        v-for="ramUsage in ramUsages.vm.splice(0, 5)"
-        :key="ramUsage.id"
-        class="progressBar"
-        :value="ramUsage.used?.value ?? 0"
-        :max="ramUsage.total?.value"
-        :legend="ramUsage.name"
-      />
-    </template>
-  </div>
+  <VtsLoadingHero v-if="!isReady" type="card" />
+  <template v-else>
+    <UiProgressBar
+      v-for="ramUsage in ramUsages.vm.splice(0, 5)"
+      :key="ramUsage.id"
+      class="progressBar"
+      :value="ramUsage.used?.value ?? 0"
+      :max="ramUsage.total?.value"
+      :legend="ramUsage.name"
+    />
+  </template>
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import type { XoVm } from '@/types/xo/vm.type'
+import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
+import type { XoVm } from '@/types/xo/vm.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
-import { formatSizeRaw } from '@core/utils/size.util'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 
 const { vms } = defineProps<{

@@ -1,65 +1,116 @@
 <template>
-  <div class="pool-dashboard">
-    <div class="dashboard-row">
-      <div><PoolDashboardstatus :pool /></div>
-      <div class="alarms-box"><Alarms /></div>
-      <div><Patch /></div>
+  <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
+    <div class="row row-top">
+      <PoolDashboardStatus class="status" :pool />
+      <PoolDashboardAlarms class="alarms" />
+      <PoolDashboardHostsPatches class="patch" />
     </div>
-    <div class="dashboard-column">
-      <div class="storage"><PoolDashboardStorageUsage :pool-id="pool.id" /></div>
-      <div class="ram"><PoolDashboardRamUsage :pool /></div>
-      <div class="cpu">
-        <PoolDashboardCpuProvisioning :pool />
-        <PoolDashboardCpuUsage :pool />
+
+    <div class="row row-mid">
+      <div class="first-column">
+        <PoolDashboardStorageUsage class="storage-usage" :pool-id="pool.id" />
+        <PoolDashboardNetworkChart class="network-chart" />
+      </div>
+      <div class="second-column">
+        <PoolDashboardRamUsage class="ram-usage" :pool />
+        <PoolDashboardRamChart class="ram-chart" />
+      </div>
+      <div class="third-column">
+        <PoolDashboardCpuProvisioning class="cpu-provisioning" :pool />
+        <PoolDashboardCpuUsage class="cpu-usage" :pool />
+        <PoolDashboardCpuChart class="cpu-chart" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import Alarms from '@/components/pool/dashboard/PoolDashboardalarms.vue'
+import PoolDashboardCpuChart from '@/components/pool/dashboard/chartUsage/PoolDashboardCpuChart.vue'
+import PoolDashboardNetworkChart from '@/components/pool/dashboard/chartUsage/PoolDashboardNetworkChart.vue'
+import PoolDashboardRamChart from '@/components/pool/dashboard/chartUsage/PoolDashboardRamChart.vue'
+import PoolDashboardAlarms from '@/components/pool/dashboard/PoolDashboardAlarms.vue'
 import PoolDashboardCpuProvisioning from '@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue'
 import PoolDashboardCpuUsage from '@/components/pool/dashboard/PoolDashboardCpuUsage.vue'
-import Patch from '@/components/pool/dashboard/PoolDashboardpatch.vue'
+import PoolDashboardHostsPatches from '@/components/pool/dashboard/PoolDashboardHostsPatches.vue'
 import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamUsage.vue'
-import PoolDashboardstatus from '@/components/pool/dashboard/PoolDashboardstatus.vue'
+import PoolDashboardStatus from '@/components/pool/dashboard/PoolDashboardStatus.vue'
 import PoolDashboardStorageUsage from '@/components/pool/dashboard/PoolDashboardStorageUsage.vue'
 import type { XoPool } from '@/types/xo/pool.type'
+import { useUiStore } from '@core/stores/ui.store.ts'
 
-const { pool } = defineProps<{
-  pool: XoPool
-}>()
+const { pool } = defineProps<{ pool: XoPool }>()
+
+// const { data, isFetching, error } = useFetchStats('pool', () => pool.id, GRANULARITY.Hours)
+
+const uiStore = useUiStore()
 </script>
 
 <style scoped lang="postcss">
-.pool-dashboard {
-  .dashboard-row {
-    padding: 0.8rem;
-    display: flex;
-    flex-direction: row;
-    gap: 0.8rem;
+.dashboard {
+  margin: 0.8rem;
 
-    .alarms-box {
-      width: calc(200% / 3);
-    }
+  /* === DESKTOP === */
+  .row {
+    display: grid;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
   }
 
-  .dashboard-column {
+  .row-top {
+    grid-template-columns: 2fr 4fr 2fr;
+    grid-template-areas: 'status alarms patch';
+  }
+
+  .status {
+    grid-area: status;
+  }
+
+  .alarms {
+    grid-area: alarms;
+  }
+
+  .patch {
+    grid-area: patch;
+  }
+
+  .row-mid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: 'first-column second-column third-column';
+  }
+
+  .first-column {
+    grid-area: first-column;
     display: flex;
+    flex-direction: column;
     gap: 0.8rem;
-    padding: 0 0.8rem;
+  }
 
-    div {
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
+  .second-column {
+    grid-area: second-column;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
 
-    .storage,
-    .ram,
-    .cpu {
-      width: calc(100% / 3);
-    }
+  .third-column {
+    grid-area: third-column;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  /* === MOBILE === */
+  &.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  &.mobile .row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 0;
   }
 }
 </style>
