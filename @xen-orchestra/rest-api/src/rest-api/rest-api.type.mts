@@ -139,10 +139,9 @@ export type XoApp = {
   updateGroup(
     id: XoGroup['id'],
     updates: {
-      name: string
+      name?: string
       provider?: string
       providerGroupId?: string
-      users: XoUser['id'][]
     }
   )
 }
