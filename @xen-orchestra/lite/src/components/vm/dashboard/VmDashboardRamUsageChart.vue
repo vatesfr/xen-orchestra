@@ -46,10 +46,9 @@ const ramUsage = computed<LinearChartData>(() => {
     return []
   }
 
-  const result = ramTotal.map((total, index) => ({
-    timestamp:
-      (timestampStart - RRD_STEP_FROM_STRING.hours * (ramTotal.length - 1) + index * RRD_STEP_FROM_STRING.hours) * 1000,
-    value: (total ?? NaN) - (memoryFree[index] ?? NaN),
+  const result = ramTotal.map((total, hourIndex) => ({
+    timestamp: (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000,
+    value: (total ?? NaN) - (memoryFree[hourIndex] ?? NaN),
   }))
 
   return [

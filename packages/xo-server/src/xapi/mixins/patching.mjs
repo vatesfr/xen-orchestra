@@ -508,9 +508,7 @@ const methods = {
   async _poolWideInstall($defer, patches, xsCredentials) {
     // New XS patching system: https://support.citrix.com/article/CTX473972/upcoming-changes-in-xencenter
     if (xsCredentials?.username === undefined || xsCredentials?.apikey === undefined) {
-      throw new Error(
-        'XenServer credentials not found. See https://docs.xen-orchestra.com/updater#xenserver-updates'
-      )
+      throw new Error('XenServer credentials not found. See https://docs.xen-orchestra.com/updater#xenserver-updates')
     }
 
     // Legacy XS patches
@@ -646,7 +644,7 @@ const methods = {
     const pendingGuidances = await this._getPendingGuidances(object, level)
 
     if (pendingGuidances.length > 0) {
-      /* throw */ incorrectState({
+      throw incorrectState({
         actual: pendingGuidances,
         expected: [],
         object: object.uuid,
@@ -675,7 +673,7 @@ const methods = {
     }
 
     log.error(`Pending guidances not implemented: ${pendingGuidances.join(',')}`)
-    /* throw */ notImplemented()
+    throw notImplemented()
   },
 
   async _updateLinstorPackages() {
@@ -724,7 +722,7 @@ const methods = {
           const { full, mandatory, recommended } = host.guidance
           const guidances = [...full, ...mandatory, ...recommended]
           if (['RestartVM', 'RestartDeviceModel'].some(guidance => guidances.includes(guidance))) {
-            /* throw */ incorrectState({
+            throw incorrectState({
               actual: guidances,
               expected: [],
               object: host.uuid,

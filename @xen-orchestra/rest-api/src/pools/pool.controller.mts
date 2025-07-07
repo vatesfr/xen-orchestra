@@ -31,8 +31,18 @@ import {
 } from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import type { XenApiSr, XenApiVm, XoNetwork, XoPif, XoPool, XoSr, XoVm } from '@vates/types'
-import { createVm, importVm, partialPools, pool, poolIds } from '../open-api/oa-examples/pool.oa-example.mjs'
+import type {
+  XapiPoolStats,
+  XapiStatsGranularity,
+  XenApiSr,
+  XenApiVm,
+  XoNetwork,
+  XoPif,
+  XoPool,
+  XoSr,
+  XoVm,
+} from '@vates/types'
+import { createVm, importVm, partialPools, pool, poolIds, poolStats } from '../open-api/oa-examples/pool.oa-example.mjs'
 import type { CreateNetworkBody, CreateVmAfterCreateParams, CreateVmBody, CreateVmParams } from './pool.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
@@ -280,5 +290,16 @@ export class PoolController extends XapiXoController<XoPool> {
         objectId: poolId,
       },
     })
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   */
+  @Example(poolStats)
+  @Get('{id}/stats')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid granularity')
+  getStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiPoolStats> {
+    return this.restApi.xoApp.getXapiPoolStats(id as XoPool['id'], granularity)
   }
 }

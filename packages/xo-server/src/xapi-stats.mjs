@@ -8,6 +8,7 @@ import mean from 'lodash/mean.js'
 import sum from 'lodash/sum.js'
 import uniq from 'lodash/uniq.js'
 import zipWith from 'lodash/zipWith.js'
+import { asyncEach } from '@vates/async-each'
 import { BaseError } from 'make-error'
 import { incorrectState } from 'xo-common/api-errors.js'
 import { parseDateTime } from '@xen-orchestra/xapi'
@@ -456,11 +457,27 @@ export default class XapiStats {
     })
   }
 
+  async getPoolStats(xapi, granularity) {
+    const hosts = xapi.objects.indexes.type.host ?? {}
+    const hostsStats = {}
+
+    await asyncEach(Object.keys(hosts), async hostId => {
+      try {
+        const stats = await this.getHostStats(xapi, hostId, granularity)
+        hostsStats[hostId] = stats
+      } catch (error) {
+        hostsStats[hostId] = { error }
+      }
+    })
+
+    return hostsStats
+  }
+
   async getVmStats(xapi, vmId, granularity) {
     const vm = xapi.getObject(vmId)
     const host = vm.$resident_on
     if (!host) {
-      /* throw */ incorrectState({
+      throw incorrectState({
         actual: host,
         expected: '<host-uuid>',
         object: vm,

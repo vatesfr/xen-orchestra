@@ -19,6 +19,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Health] Fix labels and modals mentioning VMs instead of snapshots when deleting snapshots (PR [#8775](https://github.com/vatesfr/xen-orchestra/pull/8775))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -37,5 +39,6 @@
 
 - @xen-orchestra/rest-api minor
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->

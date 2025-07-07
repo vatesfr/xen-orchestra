@@ -1,14 +1,27 @@
 import {
   WrappedXenApiRecord,
+  XenApiHost,
   XenApiNetworkWrapped,
   XenApiRecord,
   XenApiSr,
+  XenApiTask,
   XenApiVdi,
   XenApiVm,
   XenApiVmWrapped,
 } from '../xen-api.mjs'
 import type { Readable } from 'node:stream'
-import type { XoGpuGroup, XoVgpuType, XoHost, XoNetwork, XoPif, XoSr, XoUser, XoVdi, XoVm, XoVmTemplate } from '../xo.mjs'
+import type {
+  XoGpuGroup,
+  XoVgpuType,
+  XoHost,
+  XoNetwork,
+  XoPif,
+  XoSr,
+  XoUser,
+  XoVdi,
+  XoVm,
+  XoVmTemplate,
+} from '../xo.mjs'
 
 type XcpPatches = {
   changelog?: {
@@ -78,10 +91,10 @@ export interface Xapi {
       /**
        * if startOnly is true and the VM is not halted, throw VM_BAD_POWER_STATE
        * otherwise, unpause/resume the VM
-      *
-      * @default false
-      */
-     startOnly?: boolean
+       *
+       * @default false
+       */
+      startOnly?: boolean
     }
   ): Promise<void>
   VM_import(
@@ -152,4 +165,8 @@ export interface Xapi {
       forceDeleteDefaultTemplate?: boolean
     }
   ): Promise<void>
+  getResource(
+    pathname: string,
+    params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
+  ): Promise<{ body: Readable }>
 }
