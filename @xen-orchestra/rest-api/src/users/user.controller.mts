@@ -1,5 +1,19 @@
-import { Body, Example, Get, Path, Post, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
-import type { Request as ExRequest } from 'express'
+import {
+  Body,
+  Example,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
+import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoUser } from '@vates/types'
 
@@ -75,12 +89,13 @@ export class UserController extends XoController<XoUser> {
    */
   @Example(userId)
   @Post('')
+  @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(unauthorizedResp.status, unauthorizedResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
   async createUser(
     @Body() body: { name: string; password: string; permission?: string }
-  ): Promise<{id: Unbrand<XoUser>['id']}> {
+  ): Promise<{ id: Unbrand<XoUser>['id'] }> {
     const user = await this.restApi.xoApp.createUser(body)
 
     return { id: user.id }
