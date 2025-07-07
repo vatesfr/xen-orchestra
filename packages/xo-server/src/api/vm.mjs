@@ -1867,3 +1867,29 @@ coalesceLeaf.params = {
 coalesceLeaf.resolve = {
   vm: ['id', 'VM', 'administrate'],
 }
+
+export async function addDataSource({ vm, dataSource }) {
+  await this.getXapi(vm).call('VM.record_data_source', vm._xapiRef, dataSource)
+}
+
+addDataSource.params = {
+  id: { type: 'string' },
+  dataSource: { type: 'string' },
+}
+
+addDataSource.resolve = {
+  vm: ['id', 'VM', 'administrate'],
+}
+
+export async function removeDataSource({ vm, dataSource }) {
+  await this.getXapi(vm).call('VM.forget_data_source_archives', vm._xapiRef, dataSource)
+}
+
+removeDataSource.params = {
+  id: { type: 'string' },
+  dataSource: { type: 'string' },
+}
+
+removeDataSource.resolve = {
+  vm: ['id', 'VM', 'administrate'],
+}

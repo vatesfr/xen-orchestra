@@ -9,6 +9,7 @@ import type {
   IP_CONFIGURATION_MODE,
   IPV6_CONFIGURATION_MODE,
   NETWORK_OPERATIONS,
+  PGPU_DOM0_ACCESS,
   POOL_ALLOWED_OPERATIONS,
   PRIMARY_ADDRESS_TYPE,
   STORAGE_OPERATIONS,
@@ -74,7 +75,7 @@ type BaseXoVm = BaseXapiXo & {
   isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
   high_availability: string
-  installTime?: number
+  installTime?: number | null
   isFirmwareSupported: boolean
   memory: {
     dynamic: number[]
@@ -100,7 +101,7 @@ type BaseXoVm = BaseXapiXo & {
   secureBoot: boolean
   snapshots: XoVmSnapshot['id'][]
   startDelay: number
-  startTime?: number
+  startTime?: number | null
   suspendSr?: XoSr['id']
   tags: string[]
   vga?: string
@@ -141,6 +142,11 @@ export type XoBackupRepository = {
   options?: string
   proxy?: XoProxy['id']
   url: string
+}
+
+export type XoGpuGroup = BaseXapiXo & {
+  id: Branded<'gpu-group'>
+  type: 'gpuGroup'
 }
 
 export type XoGroup = {
@@ -286,8 +292,24 @@ export type XoPci = BaseXapiXo & {
 }
 
 export type XoPgpu = BaseXapiXo & {
+  $host: XoHost['id']
+  $vgpus: XoVgpu['id'][]
+
+  dom0Access: PGPU_DOM0_ACCESS
+  enabledVgpuTypes: XoVgpuType['id'][]
+  gpuGroup?: XoGpuGroup['id']
+  host: XoHost['id']
   id: Branded<'PGPU'>
+  isSystemDisplayDevice: boolean
+  pci?: XoPci['id']
+  // it seems that supportedVgpuMaxCapcities always return undefined (See: xapi-objet-to-xo)
+  /**
+   * @deprecated
+   */
+  supportedVgpuMaxCapcities?: never
+  supportedVgpuTypes: XoVgpuType['id'][]
   type: 'PGPU'
+  vgpus: XoVgpu['id'][]
 }
 
 export type XoPif = BaseXapiXo & {
@@ -452,6 +474,21 @@ export type XoSr = BaseXapiXo & {
   usage: number
 }
 
+export type XoSm = BaseXapiXo & {
+  id: Branded<'SM'>
+
+  SM_type: string
+  vendor: string
+  name_label: string
+  name_description: string
+  configuration: Record<string, string>
+  features: Record<string, number>
+  driver_filename: string
+  required_cluster_stack: string[]
+  supported_image_formats: string[]
+  type: 'SM'
+}
+
 export type XoUser = {
   authProviders?: Record<string, string>
   email: string
@@ -489,6 +526,7 @@ type BaseXoVdi = BaseXapiXo & {
   name_label: string
   other_config: Record<string, string>
   parent?: XoVdiUnmanaged['id']
+  image_format?: string
   size: number
   snapshots: XoVdiSnapshot['id'][]
   tags: string[]
@@ -514,7 +552,12 @@ export type XoVdiUnmanaged = BaseXoVdi & {
 
 export type XoVgpu = BaseXapiXo & {
   id: Branded<'VGPU'>
-  type: 'VGPU'
+  type: 'vgpu'
+}
+
+export type XoVgpuType = BaseXapiXo & {
+  id: Branded<'vgpu-type'>
+  type: 'vgpuType'
 }
 
 export type XoVif = BaseXapiXo & {
@@ -583,10 +626,12 @@ export type XoVtpm = BaseXapiXo & {
 
 export type XapiXoRecord =
   | XoAlarm
+  | XoGpuGroup
   | XoHost
   | XoMessage
   | XoNetwork
   | XoPci
+  | XoPgpu
   | XoPif
   | XoPool
   | XoSr
@@ -595,12 +640,14 @@ export type XapiXoRecord =
   | XoVdiSnapshot
   | XoVdiUnmanaged
   | XoVgpu
+  | XoVgpuType
   | XoVif
   | XoVm
   | XoVmController
   | XoVmSnapshot
   | XoVmTemplate
   | XoVtpm
+  | XoSm
 
 export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
 

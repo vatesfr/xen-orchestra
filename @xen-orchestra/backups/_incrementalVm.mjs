@@ -12,6 +12,8 @@ import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
 import { XapiDiskSource } from '@xen-orchestra/xapi'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
+import { toQcow2Stream } from '@xen-orchestra/qcow2'
+import { VHD_MAX_SIZE } from '@xen-orchestra/xapi/disks/Xapi.mjs'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
@@ -235,8 +237,18 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
           continue
         }
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
-        const stream = await toVhdStream({ disk })
-        await vdi.$importContent(stream, { cancelToken, format: 'vhd' })
+
+        let stream, format
+        if (vdi.virtual_size > VHD_MAX_SIZE) {
+          stream = await toQcow2Stream(disk)
+          format = 'qcow2'
+        } else {
+          stream = await toVhdStream(disk)
+          format = 'vhd'
+        }
+
+        await vdi.$importContent(stream, { cancelToken, format })
+
         await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
       }
     }),

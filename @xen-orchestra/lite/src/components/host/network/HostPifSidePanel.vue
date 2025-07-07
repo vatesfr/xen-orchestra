@@ -1,26 +1,39 @@
 <template>
-  <UiPanel>
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
-      <UiButton
-        v-tooltip="t('coming-soon')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="brand"
-        :left-icon="faEdit"
-      >
-        {{ t('edit') }}
-      </UiButton>
-      <UiButton
-        v-tooltip="t('coming-soon')"
-        disabled
-        size="medium"
-        variant="tertiary"
-        accent="danger"
-        :left-icon="faTrash"
-      >
-        {{ t('delete') }}
-      </UiButton>
+      <div :class="{ 'action-buttons-container': uiStore.isMobile }">
+        <UiButtonIcon
+          v-if="uiStore.isMobile"
+          v-tooltip="t('close')"
+          size="medium"
+          variant="tertiary"
+          accent="brand"
+          :icon="faAngleLeft"
+          @click="emit('close')"
+        />
+        <div class="action-buttons">
+          <UiButton
+            v-tooltip="t('coming-soon')"
+            disabled
+            size="medium"
+            variant="tertiary"
+            accent="brand"
+            :left-icon="faEdit"
+          >
+            {{ t('edit') }}
+          </UiButton>
+          <UiButton
+            v-tooltip="t('coming-soon')"
+            disabled
+            size="medium"
+            variant="tertiary"
+            accent="danger"
+            :left-icon="faTrash"
+          >
+            {{ t('delete') }}
+          </UiButton>
+        </div>
+      </div>
     </template>
     <template #default>
       <!-- PIF -->
@@ -304,7 +317,8 @@ import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCircle, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import { faAngleLeft, faCircle, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -313,9 +327,14 @@ const { pif } = defineProps<{
   pif: XenApiPif
 }>()
 
+const emit = defineEmits<{
+  close: []
+}>()
+
 const { getByOpaqueRef: getPifMetricsByOpaqueRef, getPifCarrier } = usePifMetricsStore().subscribe()
 const { getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getBondsDevices, isBondMaster } = usePifStore().subscribe()
+const uiStore = useUiStore()
 
 const { t } = useI18n()
 
@@ -380,5 +399,22 @@ const speed = computed(() => {
   .value:empty::before {
     content: '-';
   }
+}
+
+.mobile-drawer {
+  position: fixed;
+  inset: 0;
+
+  .action-buttons-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
 }
 </style>

@@ -130,7 +130,7 @@ export default class XenServers {
   }
 
   async unregisterXenServer(id) {
-    this.disconnectXenServer(id)::ignoreErrors()
+    await this.disconnectXenServer(id)
 
     if (!(await this._servers.remove(id))) {
       throw noSuchObject(id, 'xenServer')
@@ -318,7 +318,7 @@ export default class XenServers {
     const server = await this.getXenServerWithCredentials(id)
     const serverStatus = this._getXenServerStatus(id)
     if (serverStatus !== 'disconnected') {
-      /* throw */ incorrectState({
+      throw incorrectState({
         actual: serverStatus,
         expected: 'disconnected',
         object: server.id,
@@ -538,7 +538,7 @@ export default class XenServers {
     const server = await this.getXenServer(id)
     const status = this._getXenServerStatus(id)
     if (status === 'disconnected' && !server.enabled) {
-      /* throw */ incorrectState({
+      throw incorrectState({
         actual: status,
         expected: ['connected', 'connecting'],
         object: id,
@@ -601,7 +601,14 @@ export default class XenServers {
     if (server.status === 'connected') {
       const xapi = xapis[server.id]
       server.poolId = xapi.pool.uuid
-      server.master = xapi.getObjectByRef(xapi.pool.master).uuid
+      try {
+        server.master = xapi.getObjectByRef(xapi.pool.master).uuid
+      } catch (error) {
+        // Hosts may not be loaded
+        if (!noSuchObject.is(error)) {
+          throw error
+        }
+      }
     }
     if (server.label === undefined) {
       server.label = server.poolNameLabel
@@ -627,6 +634,10 @@ export default class XenServers {
 
   getXapiSrStats(srId, granularity) {
     return this._stats.getSrStats(this.getXapi(srId), srId, granularity)
+  }
+
+  getXapiPoolStats(poolId, granularity) {
+    return this._stats.getPoolStats(this.getXapi(poolId), granularity)
   }
 
   async getXenServer(id) {

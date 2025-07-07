@@ -2,7 +2,7 @@
   <UiHeadBar :icon="faCity">
     {{ pool.name_label }}
     <template #actions>
-      <UiButton :left-icon="faPlus" variant="primary" accent="brand" size="medium" @click="goToNewVm()">
+      <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium" @click="goToNewVm()">
         {{ t('new-vm') }}
       </UiButton>
     </template>

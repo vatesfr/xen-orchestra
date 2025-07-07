@@ -67,7 +67,7 @@ const UNHEALTHY_VDI_CHAIN_ERROR = 'unhealthy VDI chain'
 const UNHEALTHY_VDI_CHAIN_MESSAGE =
   '(unhealthy VDI chain) Job canceled to protect the VDI chain. See https://docs.xen-orchestra.com/backup_troubleshooting#vdi-chain-protection'
 
-const getAdditionnalData = async (task, props) => {
+const getAdditionalData = async (task, props) => {
   if (task.data?.type === 'remote') {
     const name = await props.xo.getRemote(task.data.id).then(
       ({ name }) => name,
@@ -136,7 +136,9 @@ class BackupReportsXoPlugin {
         // Handle improper value introduced by:
         // https://github.com/vatesfr/xen-orchestra/commit/753ee994f2948bbaca9d3161eaab82329a682773#diff-9c044ab8a42ed6576ea927a64c1ec3ebR105
         reportWhen === 'Never' ||
+        // 'failure' refers to 'Skipped and failure'
         (reportWhen === 'failure' && log.status === 'success') ||
+        // 'error' refers to 'Failure'
         (reportWhen === 'error' && (log.status === 'success' || log.status === 'skipped')))
     ) {
       return
@@ -150,15 +152,15 @@ class BackupReportsXoPlugin {
     ])
 
     if (job.type === 'backup' || job.type === 'mirrorBackup') {
-      return this._vmHandler(log, job, schedule, force)
+      return this._vmHandler(log, job, schedule)
     } else if (job.type === 'metadataBackup') {
-      return this._metadataHandler(log, job, schedule, force)
+      return this._metadataHandler(log, job, schedule)
     }
 
     throw new Error(`Unknown backup job type: ${job.type}`)
   }
 
-  async _metadataHandler(log, { name: jobName, settings }, schedule, force) {
+  async _metadataHandler(log, { name: jobName, settings }, schedule) {
     const xo = this._xo
 
     const formatDate = createDateFormatter(schedule?.timezone)
@@ -167,18 +169,18 @@ class BackupReportsXoPlugin {
 
     const tasksByStatus = groupBy(log.tasks, 'status')
 
-    if (!force && log.data.reportWhen === 'failure') {
+    if (log.status === 'failure' && log.data?.hideSuccessfulItems) {
       delete tasksByStatus.success
     }
 
     for (const taskBatch of Object.values(tasksByStatus)) {
       for (const task of taskBatch) {
-        task.additionnalData = await getAdditionnalData(task, { xo })
+        task.additionalData = await getAdditionalData(task, { xo })
 
         const subTasks = task.tasks
         if (subTasks !== undefined) {
           for (const subTask of subTasks) {
-            subTask.additionnalData = await getAdditionnalData(subTask, { xo })
+            subTask.additionalData = await getAdditionalData(subTask, { xo })
           }
         }
       }
@@ -203,11 +205,10 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _vmHandler(log, { name: jobName, settings }, schedule, force) {
+  async _vmHandler(log, { name: jobName, settings }, schedule) {
     const xo = this._xo
 
     const mailReceivers = get(() => settings[''].reportRecipients)
-    const { reportWhen } = log.data || {}
 
     const formatDate = createDateFormatter(schedule?.timezone)
 
@@ -248,7 +249,7 @@ class BackupReportsXoPlugin {
         continue
       }
 
-      if (!force && taskLog.status === 'success' && reportWhen === 'failure') {
+      if (taskLog.status === 'success' && log.status === 'failure' && log.data?.hideSuccessfulItems) {
         ++nSuccesses
         continue
       }
@@ -365,7 +366,10 @@ class BackupReportsXoPlugin {
         failure: { tasks: failedTasks, count: nFailures },
         skipped: { tasks: skippedVms, count: nSkipped },
         interrupted: { tasks: interruptedVms, count: nInterrupted },
-        success: { tasks: force || reportWhen !== 'failure' ? successfulVms : [], count: nSuccesses },
+        success: {
+          tasks: log.status === 'failure' && log.data?.hideSuccessfulItems ? [] : successfulVms,
+          count: nSuccesses,
+        },
         vmTasks: { count: nVmTasks },
       },
       formatDate,

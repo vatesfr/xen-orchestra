@@ -15,8 +15,8 @@
     <VtsQuickInfoRow :label="t('core-socket')" :value="`${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`" />
     <VtsQuickInfoRow :label="t('gpus')">
       <template v-if="isReady" #value>
-        <template v-if="pciDevicesNames">
-          {{ pciDevicesNames }}
+        <template v-if="devicesNames">
+          {{ devicesNames }}
         </template>
         <template v-else>
           {{ t('none') }}
@@ -48,12 +48,16 @@ const { getByOpaqueRef: getPciByOpaqueRef, isReady: isPciReady } = usePciStore()
 
 const isReady = logicAnd(isPgpuReady, isPciReady)
 
-const pciDevicesNames = useArrayReduce(
+const devicesNames = useArrayReduce(
   () => pGpusByHost.value.get(host.$ref) ?? [],
   (acc, pGpu) => {
     const deviceName = getPciByOpaqueRef(pGpu.PCI)?.device_name
 
-    return deviceName ? (acc ? `${acc}, ${deviceName}` : deviceName) : acc
+    if (!deviceName) {
+      return acc
+    }
+
+    return acc ? `${acc}, ${deviceName}` : deviceName
   },
   ''
 )

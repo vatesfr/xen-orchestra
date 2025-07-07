@@ -5,7 +5,8 @@
 <script setup lang="ts">
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCheckCircle, faCopy } from '@fortawesome/free-solid-svg-icons'
+import { faCopy } from '@fortawesome/free-regular-svg-icons'
+import { faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

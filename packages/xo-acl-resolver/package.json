@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-acl-resolver",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "license": "AGPL-3.0-or-later",
   "description": "Xen-Orchestra internal: do ACLs resolution",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-acl-resolver",

@@ -1,3 +1,5 @@
+import type { XoHost } from './xo.mjs'
+
 declare const __brand: unique symbol
 
 export type Branded<TBrand extends string, TType = string> = TType & { [__brand]: TBrand }
@@ -660,47 +662,73 @@ type XapiStatsResponse<T> = {
   interval: number
   stats: T
 }
+type StatValues = (number | null)[]
+type RecordStatValues = Record<string, StatValues>
 
 export type XapiStatsGranularity = 'seconds' | 'minutes' | 'hours' | 'days'
 
-export type XapiHostStats = XapiStatsResponse<{
-  cpus: Record<string, number[]>
-  ioThroughput: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+export type XapiHostStatsRaw = {
+  cpus?: RecordStatValues
+  ioThroughput?: {
+    r: RecordStatValues
+    w: RecordStatValues
   }
-  iops: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+  iops?: {
+    r: RecordStatValues
+    w: RecordStatValues
   }
-  iowait: Record<string, number[]>
-  latency: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+  iowait?: RecordStatValues
+  latency?: {
+    r: RecordStatValues
+    w: RecordStatValues
   }
-  load: number[]
-  memory: number[]
-  memoryFree: number[]
-  pifs: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
+  load?: StatValues
+  memory?: StatValues
+  memoryFree?: StatValues
+  pifs?: {
+    rx: RecordStatValues
+    tx: RecordStatValues
   }
-}>
+}
+export type XapiHostStats = XapiStatsResponse<XapiHostStatsRaw>
 
-export type XapiVmStats = XapiStatsResponse<{
-  cpus: Record<string, number[]>
-  iops: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
+export type XapiVmStatsRaw = {
+  cpus?: RecordStatValues
+  cpuUsage?: StatValues
+  runstateFullrun?: StatValues
+  runstateFullContention?: StatValues
+  runstatePartialRun?: StatValues
+  runstatePartialContention?: StatValues
+  runstateConcurrencyHazard?: StatValues
+  runstateBlocked?: StatValues
+  iops?: {
+    r: RecordStatValues
+    w: RecordStatValues
   }
-  memory: number[]
-  memoryFree?: number[]
-  vifs: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
+  memory?: StatValues
+  memoryFree?: StatValues
+  memoryTarget?: StatValues
+  vifs?: {
+    rx: RecordStatValues
+    tx: RecordStatValues
   }
-  xvds: {
-    w: Record<string, number[]>
-    r: Record<string, number[]>
+  vifErrors?: {
+    rx: RecordStatValues
+    tx: RecordStatValues
   }
-}>
+  xvds?: {
+    w?: RecordStatValues
+    r?: RecordStatValues
+    total?: RecordStatValues
+  }
+  vbdLatency?: {
+    w: RecordStatValues
+    r: RecordStatValues
+  }
+  vbdIowait?: RecordStatValues
+  vbdInflight?: RecordStatValues
+  vbdAvgquSz?: RecordStatValues
+}
+export type XapiVmStats = XapiStatsResponse<XapiVmStatsRaw>
+
+export type XapiPoolStats = Record<XoHost['id'], XapiHostStats | { error: Record<string, unknown> }>

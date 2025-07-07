@@ -6,7 +6,11 @@
     </template>
   </UiHeadBar>
   <TabList>
-    <TabItem disabled>{{ t('dashboard') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/dashboard`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('dashboard') }}
+      </TabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/console`" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('console') }}

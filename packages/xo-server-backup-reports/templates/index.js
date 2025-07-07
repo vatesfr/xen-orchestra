@@ -47,7 +47,7 @@ for (const name of readdirSync(__dirname)) {
         const { name } = parts
         const path = join(dir, base)
         if (partials.has(name)) {
-          const error = new Error('confliciting partial: ' + name)
+          const error = new Error('conflicting partial: ' + name)
           error.previous = partials.get(name)
           error.current = path
           throw error

@@ -289,7 +289,7 @@ export function setRemoteSyslogHost({ host, syslogDestination }) {
 
 setRemoteSyslogHost.params = {
   id: { type: 'string' },
-  syslogDestination: { type: 'string' },
+  syslogDestination: { type: ['null', 'string'] },
 }
 
 setRemoteSyslogHost.resolve = {

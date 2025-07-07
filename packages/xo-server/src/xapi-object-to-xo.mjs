@@ -670,6 +670,23 @@ const TRANSFORMS = {
     }
   },
 
+  sm(obj) {
+    return {
+      type: 'SM',
+      uuid: obj.uuid,
+      name_description: obj.name_description,
+      name_label: obj.name_label,
+
+      SM_type: obj.type,
+      configuration: obj.configuration,
+      vendor: obj.vendor,
+      features: obj.features,
+      driver_filename: obj.driver_filename,
+      required_cluster_stack: obj.required_cluster_stack,
+      supported_image_formats: obj.supported_image_formats ?? [],
+    }
+  },
+
   // -----------------------------------------------------------------
 
   pbd(obj) {
@@ -739,6 +756,7 @@ const TRANSFORMS = {
       name_description: obj.name_description,
       name_label: obj.name_label,
       parent: obj.sm_config['vhd-parent'],
+      image_format: obj.sm_config['image-format'],
       size: +obj.virtual_size,
       snapshots: link(obj, 'snapshots'),
       tags: obj.tags,

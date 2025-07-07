@@ -1,4 +1,4 @@
-import { XapiXoRecord } from '@vates/types'
+import type { XapiXoRecord } from '@vates/types'
 
 import type { XoApp } from './rest-api.type.mjs'
 
@@ -19,6 +19,10 @@ export class RestApi {
 
   authenticateUser(...args: Parameters<XoApp['authenticateUser']>) {
     return this.#xoApp.authenticateUser(...args)
+  }
+
+  getCurrentUser() {
+    return this.#xoApp.apiContext.user
   }
 
   getObject<T extends XapiXoRecord>(id: T['id'], type?: T['type']) {

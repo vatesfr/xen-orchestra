@@ -8,7 +8,7 @@
 
 XO Server plugin that allows the creation of pool-wide and cross-pool private networks, a bit similar to [XenServer's DVCS](https://www.knowcitrix.com/posts/distributed-virtual-switch-controller-dvsc/).
 
-Please see the plugin's [official documentation](https://docs.xen-orchestra.com/sdn_controller).
+Please see the plugin's [official documentation](https://xen-orchestra.com/docs/sdn_controller.html).
 
 # Features
 

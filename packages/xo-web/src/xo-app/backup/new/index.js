@@ -699,6 +699,11 @@ const New = decorate([
           backupReportTpl: compactBackupTpl ? 'compactMjml' : 'mjml',
         })
       },
+      setHideSuccessfulItems({ setGlobalSettings }, hideSuccessfulItems) {
+        setGlobalSettings({
+          hideSuccessfulItems,
+        })
+      },
       setMergeBackupsSynchronously({ setGlobalSettings }, mergeBackupsSynchronously) {
         setGlobalSettings({
           mergeBackupsSynchronously,
@@ -716,6 +721,7 @@ const New = decorate([
       inputNbdConcurrency: generateId,
       inputNRetriesVmBackupFailures: generateId,
       inputBackupReportTplId: generateId,
+      inputHideSuccessfulItemsId: generateId,
       inputMergeBackupsSynchronously: generateId,
       inputTimeoutId: generateId,
       inputLongTermRetentionDaily: generateId,
@@ -842,6 +848,7 @@ const New = decorate([
       reportRecipients,
       reportWhen = 'failure',
       backupReportTpl = 'mjml',
+      hideSuccessfulItems,
       mergeBackupsSynchronously,
       timeout,
     } = settings.get('') || {}
@@ -1235,6 +1242,17 @@ const New = decorate([
                           id={state.inputBackupReportTplId}
                           value={backupReportTpl === 'compactMjml'}
                           onChange={effects.setBackupReportTpl}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputHideSuccessfulItemsId}>
+                          <strong>{_('hideSuccessfulItems')}</strong>
+                        </label>
+                        <Toggle
+                          className='pull-right'
+                          id={state.inputHideSuccessfulItemsId}
+                          value={hideSuccessfulItems}
+                          onChange={effects.setHideSuccessfulItems}
                         />
                       </FormGroup>
                       <FormGroup>

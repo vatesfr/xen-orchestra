@@ -1,6 +1,6 @@
 <template>
   <VtsTreeItem expanded>
-    <UiTreeItemLabel :route="`/vm/${leaf.data.id}/`" no-indent>
+    <UiTreeItemLabel :route="`/vm/${leaf.data.id}`" no-indent>
       {{ leaf.data.name_label }}
       <template #icon>
         <UiObjectIcon

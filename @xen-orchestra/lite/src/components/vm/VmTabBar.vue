@@ -1,6 +1,6 @@
 <template>
   <TabList>
-    <RouterTab :to="{ name: 'vm.dashboard', params: { uuid } }" disabled>
+    <RouterTab :to="{ name: 'vm.dashboard', params: { uuid } }">
       {{ t('dashboard') }}
     </RouterTab>
     <RouterTab :to="{ name: 'vm.console', params: { uuid } }">

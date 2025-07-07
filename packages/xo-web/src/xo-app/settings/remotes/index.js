@@ -559,9 +559,8 @@ export default decorate([
       {!isEmpty(state.remoteWithInfo.azure) && (
         <div>
           <h2>{_('remoteTypeAzure')}</h2>
-          <p>{state.remoteWithInfo.azurite}</p>
           <SortedTable
-            collection={state.remoteWithInfo.azurite}
+            collection={state.remoteWithInfo.azure}
             columns={COLUMNS_AZURE_REMOTE}
             data-editRemote={effects.editRemote}
             data-formatMessage={formatMessage}

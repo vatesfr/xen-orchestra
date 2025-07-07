@@ -29,6 +29,10 @@ const valueFormatter = computed<ValueFormatter>(() => {
   const formatter = _valueFormatter
 
   return value => {
+    if (value === null) {
+      return ''
+    }
+
     if (formatter === undefined) {
       return value.toString()
     }
@@ -44,7 +48,10 @@ const option = computed<EChartsOption>(() => ({
     data: data.map(series => series.label),
   },
   tooltip: {
-    valueFormatter: v => valueFormatter.value(v as number),
+    valueFormatter: value => valueFormatter.value(value as number),
+    // This is to calculate the position so that the tooltip is always inside the container.
+    // see : https://echarts.apache.org/en/option.html#tooltip.confine
+    confine: true,
   },
   xAxis: {
     type: 'time',
@@ -65,7 +72,7 @@ const option = computed<EChartsOption>(() => ({
     type: 'line',
     name: series.label,
     zlevel: index + 1,
-    data: series.data.map(item => [item.timestamp, item.value]),
+    data: series.data.map(item => [item.timestamp, isNaN(item.value ?? NaN) ? null : item.value]),
   })),
 }))
 </script>

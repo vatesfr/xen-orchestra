@@ -197,7 +197,7 @@
   "hosts-status.running": "Acceso",
   "hosts-status.unknown": "Sconosciuto",
   "hosts-status.unknown.tooltip": "Misurazioni dall'host non disponibili",
-  "id": "Id",
+  "id": "ID",
   "in-last-three-jobs": "Nei loro ultimi tre lavori",
   "install-settings": "Impostazioni di installazione",
   "interfaces": "Interfaccia | Interfaccia | Interfacce",

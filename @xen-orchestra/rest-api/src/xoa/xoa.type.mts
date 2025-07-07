@@ -34,6 +34,18 @@ export type XoaDashboard = {
   nPools: number
   nHosts: number
   nHostsEol?: number
+  hostsStatus: {
+    running: number
+    halted: number
+    unknown: number
+    total: number
+  }
+  vmsStatus: {
+    active: number
+    inactive: number
+    unknown: number
+    total: number
+  }
   missingPatches:
     | { hasAuthorization: false }
     | {

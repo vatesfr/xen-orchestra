@@ -12,6 +12,26 @@
         "name": "authenticationToken",
         "in": "cookie"
       }
+    },
+    "specMerging": "recursive",
+    "spec": {
+      "paths": {
+        "/pools/{id}/vms": {
+          "post": {
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/octet-stream": {
+                  "schema": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "routes": {

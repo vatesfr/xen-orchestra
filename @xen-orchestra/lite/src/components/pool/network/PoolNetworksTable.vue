@@ -43,7 +43,9 @@
             {{ t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+        </UiTopBottomTable>
       </div>
       <VtsDataTable
         :is-ready
@@ -72,7 +74,7 @@
         </template>
         <template #tbody>
           <tr
-            v-for="row of rows"
+            v-for="row of networksRecords"
             :key="row.id"
             :class="{ selected: selectedNetworkId === row.id }"
             @click="selectedNetworkId = row.id"
@@ -105,7 +107,9 @@
       <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      </UiTopBottomTable>
     </div>
   </div>
 </template>
@@ -126,8 +130,10 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
@@ -224,6 +230,8 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
+
+const { pageRecords: networksRecords, paginationBindings } = usePagination('networks', rows)
 
 type NetworkHeader = 'name_label' | 'name_description' | 'status' | 'vlan' | 'MTU' | 'default_locking_mode'
 

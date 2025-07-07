@@ -1,5 +1,5 @@
 <template>
-  <MenuItem :busy="areSomeVmsSnapshoting" :disabled="isDisabled" :icon="faCamera" @click="handleSnapshot">
+  <MenuItem :busy="areSomeVmsSnapshotting" :disabled="isDisabled" :icon="faCamera" @click="handleSnapshot">
     {{ t('snapshot') }}
   </MenuItem>
 </template>
@@ -27,9 +27,9 @@ const vms = computed(() =>
   props.vmRefs.map(vmRef => getByOpaqueRef(vmRef)).filter((vm): vm is XenApiVm => vm !== undefined)
 )
 
-const areSomeVmsSnapshoting = computed(() => vms.value.some(vm => isVmOperationPending(vm, VM_OPERATION.SNAPSHOT)))
+const areSomeVmsSnapshotting = computed(() => vms.value.some(vm => isVmOperationPending(vm, VM_OPERATION.SNAPSHOT)))
 
-const isDisabled = computed(() => vms.value.length === 0 || areSomeVmsSnapshoting.value)
+const isDisabled = computed(() => vms.value.length === 0 || areSomeVmsSnapshotting.value)
 
 const handleSnapshot = () => {
   const vmRefsToSnapshot = Object.fromEntries(

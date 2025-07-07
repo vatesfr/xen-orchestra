@@ -146,9 +146,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }
-        if (settings.preferNbd) {
+        if (settings.cbtDestroySnapshotData) {
           try {
-            // enable CBT on all disks if possible
+            // enable CBT on all disks if we want to be able to purge snapshot data
             const diskRefs = await xapi.VM_getDisks(vm.$ref)
             await Promise.all(diskRefs.map(diskRef => xapi.callAsync('VDI.enable_cbt', diskRef)))
           } catch (error) {

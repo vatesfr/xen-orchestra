@@ -63,6 +63,7 @@ const TASK_ITEM_STYLE = {
 
 const FILTERS = {
   filterOutShortTasks: '!name_label: |(SR.scan host.call_plugin "/rrd_updates")',
+  filterKeepFailed: 'status:failure',
 }
 
 @connectStore(() => ({
@@ -390,6 +391,8 @@ export default class Tasks extends Component {
                 columns={XO_TASKS_COLUMNS}
                 individualActions={XO_TASKS_INDIVIDUAL_ACTIONS}
                 stateUrlParam='s_xo'
+                filters={FILTERS}
+                defaultFilter='filterKeepFailed'
               />
             </Col>
           </Row>

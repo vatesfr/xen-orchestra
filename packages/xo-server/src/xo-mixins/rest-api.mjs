@@ -227,6 +227,7 @@ export default class RestApi {
       pifs: {},
       pools: {
         actions: {
+          create_vm: true,
           emergency_shutdown: true,
           rolling_reboot: true,
           rolling_update: true,
@@ -248,7 +249,11 @@ export default class RestApi {
       'vm-controllers': {},
       'vm-snapshots': {},
       'vm-templates': {},
-      hosts: {},
+      hosts: {
+        routes: {
+          'audit.txt': true,
+        },
+      },
       srs: {},
       vbds: {},
       vdis: {},
@@ -1109,27 +1114,13 @@ export default class RestApi {
     api.get(
       '/:collection/:object/:route',
       wrap((req, res, next) => {
-        const handler = req.collection.routes?.[req.params.route]
-        if (handler !== undefined) {
-          return handler(req, res, next)
+        const { collection } = req
+        const { route } = req.params
+        const handler = collection.routes?.[route]
+        if (handler === undefined || swaggerEndpoints[collection.id]?.routes?.[route]) {
+          return next()
         }
-        return next()
-      })
-    )
-
-    api.post(
-      '/:collection(pools)/:object/vms',
-      wrap(async (req, res) => {
-        let srRef
-        const { sr } = req.query
-        if (sr !== undefined) {
-          srRef = app.getXapiObject(sr, 'SR').$ref
-        }
-
-        const { $xapi } = req.xapiObject
-        const ref = await $xapi.VM_import(req, srRef)
-
-        res.end(await $xapi.getField('VM', ref, 'uuid'))
+        return handler(req, res, next)
       })
     )
 
@@ -1158,36 +1149,6 @@ export default class RestApi {
       })
     )
 
-    api.delete(
-      '/:collection(users)/:id',
-      wrap(async (req, res) => {
-        const { id } = req.params
-        await app.deleteUser(id)
-        res.sendStatus(204)
-      }, true)
-    )
-
-    api.post(
-      '/:collection(users)',
-      json(),
-      wrap(async (req, res) => {
-        const { name, password, permission } = req.body
-        if (name == null || password == null) {
-          return res.status(400).json({ message: 'name and password are required.' })
-        }
-
-        if (
-          typeof name !== 'string' ||
-          typeof password !== 'string' ||
-          (permission !== undefined && typeof permission !== 'string')
-        ) {
-          return res.status(400).json({ message: 'name, password and permission (if provided) must be strings.' })
-        }
-
-        const user = await app.createUser({ name, password, permission })
-        res.status(201).end(user.id)
-      })
-    )
     api.put(
       '/:collection(groups)/:id/users/:userId',
       wrap(async (req, res) => {

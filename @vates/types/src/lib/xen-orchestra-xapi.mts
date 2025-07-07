@@ -1,5 +1,27 @@
-import { WrappedXenApiRecord, XenApiNetworkWrapped, XenApiRecord } from '../xen-api.mjs'
-import type { XoHost, XoNetwork, XoPif } from '../xo.mjs'
+import {
+  WrappedXenApiRecord,
+  XenApiHost,
+  XenApiNetworkWrapped,
+  XenApiRecord,
+  XenApiSr,
+  XenApiTask,
+  XenApiVdi,
+  XenApiVm,
+  XenApiVmWrapped,
+} from '../xen-api.mjs'
+import type { Readable } from 'node:stream'
+import type {
+  XoGpuGroup,
+  XoVgpuType,
+  XoHost,
+  XoNetwork,
+  XoPif,
+  XoSr,
+  XoUser,
+  XoVdi,
+  XoVm,
+  XoVmTemplate,
+} from '../xo.mjs'
 
 type XcpPatches = {
   changelog?: {
@@ -58,4 +80,93 @@ export interface Xapi {
   deleteNetwork(id: XoNetwork['id']): Promise<void>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
+  resumeVm(id: XoVm['id']): Promise<void>
+  unpauseVm(id: XoVm['id']): Promise<void>
+  startVm(
+    id: XoVm['id'],
+    opts?: {
+      bypassMacAddressesCheck?: boolean
+      force?: boolean
+      hostId?: XoHost['id']
+      /**
+       * if startOnly is true and the VM is not halted, throw VM_BAD_POWER_STATE
+       * otherwise, unpause/resume the VM
+       *
+       * @default false
+       */
+      startOnly?: boolean
+    }
+  ): Promise<void>
+  VM_import(
+    stream: Readable,
+    srRef?: XenApiSr['$ref'],
+    onVmCreation?: null | ((vm: XenApiVm) => unknown)
+  ): Promise<XenApiVm['$ref']>
+  createVm(
+    templateUuid: XoVmTemplate['uuid'],
+    metadataVm: {
+      affinityHost?: XoHost['id']
+      name_label: string
+      nameLabel?: string
+      clone?: boolean
+      installRepository?: XoVdi['id'] | '' | null
+      vdis?: (
+        | /** Create VDI */ {
+            name_label: string
+            size: number
+            sr?: XoSr['id']
+            name_description?: string
+          }
+        | /** Update VDI*/ {
+            userdevice: string
+            name_label?: string
+            size?: number
+            sr?: XoSr['id']
+            name_description?: string
+          }
+        | /** Destroy VDI*/ { destroy: true; userdevice: string }
+      )[]
+      vifs?: (
+        | /** Create/update VIF */ {
+            device?: string
+            ipv4_allowed?: string[]
+            ipv6_allowed?: string[]
+            mac?: string
+            mtu?: number
+            network: string
+          }
+        | /** Destroy VIF */ { destroy: true; device: string }
+      )[]
+      existingVdis?: {
+        $SR: XoSr['id']
+        size: number
+        userdevice: string
+      }[]
+      vgpuType?: XoVgpuType['id']
+      gpuGroup?: XoGpuGroup['id']
+      copyHostBiosStrings?: boolean
+    },
+    checkLimits?: boolean,
+    creatorId?: XoUser['id'],
+    opts?: { destroyAllVifs: boolean }
+  ): Promise<XenApiVmWrapped>
+  VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
+  VM_createCloudInitConfig(
+    vmRef: XenApiVm['$ref'],
+    cloudConfig: string,
+    opts?: { networkConfig?: string }
+  ): Promise<XoVdi['uuid']>
+  VM_destroy(
+    vmRef: XenApiVm['$ref'],
+    opts?: {
+      deleteDisks?: boolean
+      force?: boolean
+      bypassBlockedOperation?: boolean
+      forceDeleteDefaultTemplate?: boolean
+    }
+  ): Promise<void>
+  getResource(
+    pathname: string,
+    params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
+  ): Promise<{ body: Readable }>
 }

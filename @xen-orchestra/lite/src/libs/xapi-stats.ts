@@ -1,5 +1,6 @@
 import type XenApi from '@/libs/xen-api/xen-api'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
+import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types'
 import { synchronized } from 'decorator-synchronized'
 // eslint-disable-next-line import/default -- https://github.com/json5/json5/issues/287
 import JSON5 from 'json5'
@@ -182,9 +183,40 @@ const STATS: { [key: string]: object } = {
     memory: {
       test: (metricType: string) => metricType.endsWith('memory'),
     },
+    memoryTarget: {
+      test: 'memory_target',
+    },
     cpus: {
       test: /^cpu(\d+)$/,
       getPath: (matches: unknown[]) => ['cpus', matches[1]],
+      transformValue: (value: number) => value * 1e2,
+    },
+    cpuUsage: {
+      test: 'cpu_usage',
+      transformValue: (value: number) => value * 1e2,
+    },
+    runstateFullrun: {
+      test: 'runstate_fullrun',
+      transformValue: (value: number) => value * 1e2,
+    },
+    runstateFullContention: {
+      test: 'runstate_full_contention',
+      transformValue: (value: number) => value * 1e2,
+    },
+    runstatePartialRun: {
+      test: 'runstate_partial_run',
+      transformValue: (value: number) => value * 1e2,
+    },
+    runstatePartialContention: {
+      test: 'runstate_partial_contention',
+      transformValue: (value: number) => value * 1e2,
+    },
+    runstateConcurrencyHazard: {
+      test: 'runstate_concurrency_hazard',
+      transformValue: (value: number) => value * 1e2,
+    },
+    runstateBlocked: {
+      test: 'runstate_blocked',
       transformValue: (value: number) => value * 1e2,
     },
     vifs: {
@@ -195,6 +227,16 @@ const STATS: { [key: string]: object } = {
       tx: {
         test: /^vif_(\d+)_tx$/,
         getPath: (matches: unknown[]) => ['vifs', 'tx', matches[1]],
+      },
+    },
+    vifErrors: {
+      rx: {
+        test: /^vif_(\d+)_rx_errors$/,
+        getPath: (matches: unknown[]) => ['vifErrors', 'rx', matches[1]],
+      },
+      tx: {
+        test: /^vif_(\d+)_tx_errors$/,
+        getPath: (matches: unknown[]) => ['vifErrors', 'tx', matches[1]],
       },
     },
     xvds: {
@@ -216,6 +258,36 @@ const STATS: { [key: string]: object } = {
         test: /^vbd_xvd(.)_iops_write$/,
         getPath: (matches: unknown[]) => ['iops', 'w', matches[1]],
       },
+      total: {
+        test: /^vbd_xvd(.)_iops_total$/,
+        getPath: (matches: unknown[]) => ['iops', 'total', matches[1]],
+      },
+    },
+    // value in ms converted to seconds to be consistent with other vbd values
+    vbdLatency: {
+      r: {
+        test: /^vbd_xvd(.)_read_latency$/,
+        getPath: (matches: unknown[]) => ['vbdLatency', 'r', matches[1]],
+        transformValue: (value: number) => value / 1000,
+      },
+      w: {
+        test: /^vbd_xvd(.)_write_latency$/,
+        getPath: (matches: unknown[]) => ['vbdLatency', 'w', matches[1]],
+        transformValue: (value: number) => value / 1000,
+      },
+    },
+    vbdIowait: {
+      test: /^vbd_xvd(.)_iowait$/,
+      getPath: (matches: unknown[]) => ['vbdIowait', matches[1]],
+      transofrmValue: (value: number) => value * 1e2,
+    },
+    vbdInflight: {
+      test: /^vbd_xvd(.)_inflight$/,
+      getPath: (matches: unknown[]) => ['vbdInflight', matches[1]],
+    },
+    vbdAvgquSz: {
+      test: /^vbd_xvd(.)_avgqu_sz$/,
+      getPath: (matches: unknown[]) => ['vbdAvgquSz', matches[1]],
     },
   },
 }
@@ -246,48 +318,6 @@ const STATS: { [key: string]: object } = {
 //   }
 // }
 
-export type VmStats = {
-  cpus: Record<string, number[]>
-  iops: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
-  }
-  memory: number[]
-  memoryFree?: number[]
-  vifs: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
-  }
-  xvds: {
-    w: Record<string, number[]>
-    r: Record<string, number[]>
-  }
-}
-
-export type HostStats = {
-  cpus: Record<string, number[]>
-  ioThroughput: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
-  }
-  iops: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
-  }
-  iowait: Record<string, number[]>
-  latency: {
-    r: Record<string, number[]>
-    w: Record<string, number[]>
-  }
-  load: number[]
-  memory: number[]
-  memoryFree: number[]
-  pifs: {
-    rx: Record<string, number[]>
-    tx: Record<string, number[]>
-  }
-}
-
 export type XapiStatsResponse<T> = {
   canBeExpired: boolean
   endTimestamp: number
@@ -297,7 +327,7 @@ export type XapiStatsResponse<T> = {
 
 type StatsByObject = {
   [uuid: string]: {
-    [step: string]: XapiStatsResponse<HostStats | VmStats>
+    [step: string]: XapiStatsResponse<XapiHostStatsRaw | XapiVmStatsRaw>
   }
 }
 
@@ -305,6 +335,7 @@ export default class XapiStats {
   #xapi
   #statsByObject: StatsByObject = {}
   #cachedStatsByObject: StatsByObject = {}
+
   constructor(xapi: XenApi) {
     this.#xapi = xapi
   }
@@ -362,7 +393,7 @@ export default class XapiStats {
   }
 
   @synchronized.withKey(({ host }: { host: XenApiHost }) => host.uuid)
-  async _getAndUpdateStats<T extends VmStats | HostStats>({
+  async _getAndUpdateStats<T extends XapiVmStatsRaw | XapiHostStatsRaw>({
     abortSignal,
     host,
     ignoreExpired = false,

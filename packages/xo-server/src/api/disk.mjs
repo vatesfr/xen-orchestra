@@ -86,12 +86,24 @@ create.resolve = {
 
 const VHD = 'vhd'
 const VMDK = 'vmdk'
+const QCOW2 = 'qcow2'
 
 async function handleExportContent(req, res, { filename, format, nbdConcurrency, preferNbd, vdi }) {
-  const stream =
-    format === VMDK
-      ? await vdi.$xapi.exportVdiAsVmdk(vdi.$id, filename, { nbdConcurrency, preferNbd })
-      : await vdi.$exportContent({ format: VDI_FORMAT_VHD, nbdConcurrency, preferNbd })
+  let stream
+  switch (format) {
+    case VMDK:
+      stream = await vdi.$xapi.exportVdiAsVmdk(vdi.$id, filename, { nbdConcurrency, preferNbd })
+      break
+    case VHD:
+      stream = await vdi.$exportContent({ format, nbdConcurrency, preferNbd })
+      break
+    case QCOW2:
+      stream = await vdi.$xapi.exportVdiAsQcow2(vdi.$id, filename, { nbdConcurrency, preferNbd })
+      break
+    default:
+      throw new Error(`format ${format} unsupported`)
+  }
+
   req.on('close', () => stream.destroy())
 
   // stream can be an HTTP response, in this case, extract interesting data
@@ -114,7 +126,7 @@ async function handleExportContent(req, res, { filename, format, nbdConcurrency,
 }
 
 export async function exportContent({ vdi, format = VHD, nbdConcurrency, preferNbd }) {
-  const filename = (vdi.name_label || 'unknown') + '.' + (format === VHD ? 'vhd' : 'vmdk')
+  const filename = (vdi.name_label || 'unknown') + '.' + format.toLocaleLowerCase()
   return {
     $getFrom: await this.registerHttpRequest(
       handleExportContent,
@@ -135,7 +147,7 @@ export async function exportContent({ vdi, format = VHD, nbdConcurrency, preferN
 exportContent.description = 'export the content of a VDI'
 exportContent.params = {
   id: { type: 'string' },
-  format: { enum: [VMDK, VHD], optional: true },
+  format: { enum: [VMDK, VHD, QCOW2], optional: true },
   preferNbd: { type: 'boolean', optional: true },
   nbdConcurrency: { type: 'number', optional: true },
 }

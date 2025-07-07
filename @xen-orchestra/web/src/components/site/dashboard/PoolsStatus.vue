@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ t('pools-status') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!arePoolsStatusReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :icon="faCity" :segments />
       <UiCardNumbers :value="total" class="total" label="Total" size="small" />
@@ -25,34 +25,29 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const { record, isReady } = useDashboardStore().subscribe()
+const { record } = useDashboardStore().subscribe()
 
-const poolStatus = computed(
-  () =>
-    record.value?.poolsStatus ?? {
-      connected: 0,
-      unreachable: 0,
-      unknown: 0,
-    }
-)
+const arePoolsStatusReady = computed(() => record.value?.poolsStatus !== undefined)
 
-const total = useSum(() => Object.values(poolStatus.value))
+const poolStatus = computed(() => record.value?.poolsStatus)
+
+const total = useSum(() => Object.values(poolStatus.value ?? {}))
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('pools-status.connected'),
-    value: poolStatus.value.connected,
+    value: poolStatus.value?.connected ?? 0,
     accent: 'success',
   },
   {
     label: t('pools-status.unreachable'),
-    value: poolStatus.value.unreachable,
+    value: poolStatus.value?.unreachable ?? 0,
     accent: 'warning',
     tooltip: t('pools-status.unreachable.tooltip'),
   },
   {
     label: t('pools-status.unknown'),
-    value: poolStatus.value.unknown,
+    value: poolStatus.value?.unknown ?? 0,
     accent: 'muted',
     tooltip: t('pools-status.unknown.tooltip'),
   },

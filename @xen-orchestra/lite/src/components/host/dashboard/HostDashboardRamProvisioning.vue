@@ -7,14 +7,14 @@
       <div class="total">
         <UiCardNumbers
           :label="t('total-assigned')"
-          :unit="ramUsage.used?.prefix"
-          :value="ramUsage.used?.value"
+          :unit="ramUsage.used.prefix"
+          :value="ramUsage.used.value"
           size="medium"
         />
         <UiCardNumbers
           :label="t('total-free')"
-          :unit="ramUsage.free?.prefix"
-          :value="ramUsage.free?.value"
+          :unit="ramUsage.free.prefix"
+          :value="ramUsage.free.value"
           size="medium"
         />
       </div>

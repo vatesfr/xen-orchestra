@@ -20,6 +20,38 @@ You also have a filter to search anything related to these logs.
 Logs are not "live" tasks. If you restart XOA during a backup, the log associated with the job will stay in orange (in progress), because it wasn't finished. It will stay forever unfinished because the job was cut in the middle.
 :::
 
+#### Send XO logs to an external syslog server
+
+##### About syslog
+
+Syslog is a standard protocol used for logging system messages in a network. It allows devices such as servers, routers, firewalls and applications to send log or event messages to a centralized log server, called a **syslog server** or syslog daemon. 
+
+This protocol simplifies log analysis and eliminates the need to connect to each machine individually. It's particularly useful for identifying common patterns and correlations among events, greatly aiding in debugging issues. Additionally, since logs are sent to a remote location, they remain intact on the destination machine even if deleted locally, which is beneficial in the event of intrusions.
+
+##### Log format
+
+A typical syslog message is a structured line of text that includes several components (typically in this order): **priority**, **timestamp**, **hostname**, **process name**, **PID**, and the **actual message**.
+
+Here's an example:
+
+`<34>Jun 24 14:32:01 server1 CRON[1234]: (root) CMD (/usr/bin/backup.sh)`
+
+##### Using Syslog with Xen Orchestra
+
+You can send all your XO logs to an external syslog server.
+
+To enable syslog, add this to your configuration file: 
+
+```
+[logs.transport.syslog]
+target = 'tcp://syslog.example.org:514'
+```
+All logs viewable from `journalctl -u xo-server` will now be sent to your central syslog server. 
+
+##### Compatibility
+
+This setup is compatible with any syslog server, such as [Rsyslog](https://www.rsyslog.com/windows-agent/about-rsyslog-windows-agent/), [Splunk](https://www.splunk.com/en_us/blog/learn/log-management.html), [Logstash](https://www.elastic.co/logstash), [Graylog](https://graylog.org/about/), and more.
+
 ### Backups execution
 
 Each backups' job execution is identified by a `runId`. You can find this `runId` in its detailed log.
@@ -89,9 +121,61 @@ The disks marked with `[NOBAK]` will be now ignored in all following backups.
 
 ## Schedule
 
+### Introduction
+
+Automating your backups is key to ensuring the safety and recoverability of your virtual machines.
+
+By scheduling regular backups, you protect your infrastructure from accidental deletions, system failures, or data corruption. Xen Orchestra lets you easily set up flexible schedules for your backup jobs, making sure they run automatically at times and frequencies that work best for you.
+
+### Viewing schedules for a backup job
+
+To see the schedules associated with a specific backup job:
+
+1. Navigate to the **Backup** menu.\
+A list of backup jobs will be displayed.
+2. For the backup job you're interested in, click the **pencil** ✏️ icon in the **Notes** column.\
+This will open the backup job details screen.
+3. In the **Schedules** section of the details screen, you'll find the list of schedules for that backup job:
+
+    ![](./assets/backup-schedule-list.png)
+
+### Creating a schedule
+
+To set up a schedule for a backup job:
+
+1. Navigate to the details page of your backup job (refer to the previous section, "Viewing Schedules for a Backup Job").
+2. In the **Schedules** section of your backup job, click the **Add a schedule** button, represented by a ➕ icon.\
+    A form for creating a schedule will appear:
+    ![](./assets/create-backup-schedule.png)
+
+
+3. Use the form to configure your schedule.\
+    Here's a list of the parameters you can adjust:
+
+| Parameter             | Description |
+|-----------------------|-------------|
+| **Name**              | A label to identify your schedule. Useful when managing multiple jobs. |
+| **Pool retention** | Number of snapshots to keep for pool metadata. Older snapshots beyond this count will be automatically removed. |
+| **XO retention** | Number of snapshots to keep for XO metadata. Older snapshots beyond this count will be automatically removed. | |
+| **Replication retention** | Number of replicated snapshots to keep. Older snapshots beyond this count will be automatically removed. |
+| **Health check**      | If enabled, a VM [health check](#backup-health-check) is performed after the backup to detect issues early (e.g., boot errors). |
+| **Force full backup** | Forces a full backup at every run, even if incremental backups are enabled. |
+| **Month(s)**          | Select specific months during which the schedule should run. |
+| **Day(s)**            | Select days of the month for the job to execute. You can choose specific dates or all days. |
+| **Hour**              | Choose the hour of the day the backup job should start. |
+| **Minute**            | Choose the exact minute the job should start. |
+| **Timezone**          | Determines the timezone in which the schedule should apply. You can also use your browser's local timezone. |
+| **Cron Pattern**      | Automatically generated from your selections to define when the job will run. |
+| **Preview**           | A list of upcoming executions based on your current configuration. Useful to verify the setup. |
+
 :::tip
-:construction_worker: This section needs to be completed: screenshots and how-to :construction_worker:
+
+Depending on your backup type, not all settings may be visible, particularly those related to retention.
+
 :::
+
+4. Click the **OK** button.\
+    Your schedule will be created and applied to the backup job.
 
 ## Smart Backup
 
@@ -308,7 +392,7 @@ More parameters appear, including a drop-down list for your destination Storage 
 You can also restore specific files and directories inside a VM. It works with all your existing delta backups.
 
 :::warning
-- File level restore **is only possible on delta backups**. Also, due of some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](./delta_backups.md#key-backup-interval) to set this correctly.
+- File level restore **is only possible on incremental backups**. Also, due of some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](/incremental_backups/#key-backup-interval) to set this correctly.
 - File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups that span multiple VDIs.
 - The following Microsoft solutions are **not supported**:
    - [Data Deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview)

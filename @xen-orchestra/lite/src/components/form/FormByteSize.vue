@@ -1,18 +1,18 @@
 <template>
-  <FormInputGroup>
-    <FormNumber v-model="sizeInput" :max-decimals="3" />
+  <VtsInputGroup>
+    <UiInput v-model="sizeInput" accent="brand" type="number" :max-decimals="3" />
     <FormSelect v-model="prefixInput">
       <option value="Ki">{{ t('bytes.ki') }}</option>
       <option value="Mi">{{ t('bytes.mi') }}</option>
       <option value="Gi">{{ t('bytes.gi') }}</option>
     </FormSelect>
-  </FormInputGroup>
+  </VtsInputGroup>
 </template>
 
 <script lang="ts" setup>
-import FormInputGroup from '@/components/form/FormInputGroup.vue'
-import FormNumber from '@/components/form/FormNumber.vue'
 import FormSelect from '@/components/form/FormSelect.vue'
+import VtsInputGroup from '@core/components/input-group/VtsInputGroup.vue'
+import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useVModel } from '@vueuse/core'
 import format, { type Prefix } from 'human-format'
 import { ref, watch } from 'vue'

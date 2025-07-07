@@ -53,7 +53,7 @@ exports.configurationSchema = {
 
 Scopes should be listed separated by a single whitespace.
 
-Note: The \`openid\` scope is implicitely included.
+Note: The \`openid\` scope is implicitly included.
 `,
           default: 'profile',
           title: 'Scopes',
@@ -63,7 +63,10 @@ Note: The \`openid\` scope is implicitely included.
     },
   },
   required: ['clientID', 'clientSecret'],
-  anyOf: [{ required: ['discoveryURL'] }, { properties: { advanced: { required: DISCOVERABLE_SETTINGS } } }],
+  anyOf: [
+    { required: ['discoveryURL'] },
+    { required: ['advanced'], properties: { advanced: { type: 'object', required: DISCOVERABLE_SETTINGS } } },
+  ],
 }
 
 // ===================================================================

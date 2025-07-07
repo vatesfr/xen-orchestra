@@ -11,8 +11,8 @@ export type FileDescriptor = number
  * and we are generally reading the vhd sequentially
  */
 export interface FileAccessor {
-  close(filehandle: number): Promise<void>
-  open(path: string, opts?: unknown): Promise<number>
+  closeFile(filehandle: number): Promise<void>
+  openFile(path: string, opts?: unknown): Promise<number>
   read(
     file: string | number,
     buffer: Buffer | DataView,

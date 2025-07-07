@@ -1,8 +1,18 @@
 # ChangeLog
 
-## **next**
+## **0.12.1**
 
+- [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
+- [Host/VM/Dashboard] Fix timestamp on some charts [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9) (PR [#8778](https://github.com/vatesfr/xen-orchestra/pull/8778))
+
+## **0.12.0** (2025-06-30)
+
+- [Host/Dashboard] Fix color of tag list (PR [#8731](https://github.com/vatesfr/xen-orchestra/pull/8731))
+- [Table] add pagination on table (PR [#8573](https://github.com/vatesfr/xen-orchestra/pull/8573))
 - [Pool/system] Display pool information in pool/system tab (PR [#8660](https://github.com/vatesfr/xen-orchestra/pull/8660))
+- [VM/Dashboard] Display VM information in dashboard tab (PR [#8529](https://github.com/vatesfr/xen-orchestra/pull/8529))
+- [Tab/Network] Updated side panel in tab network behavior for mobile view (PR [#8688](https://github.com/vatesfr/xen-orchestra/pull/8688))
+- [Stats] Fix graphs that were sometimes not displayed or displayed incorrectly (PR [#8722](https://github.com/vatesfr/xen-orchestra/pull/8722))
 
 ## **0.11.0** (2025-05-27)
 

@@ -1,6 +1,7 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
-import type { Request as ExRequest } from 'express'
+import { Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
+import { pipeline } from 'node:stream/promises'
 import { provide } from 'inversify-binding-decorators'
 import type { XapiHostStats, XapiStatsGranularity, XoHost } from '@vates/types'
 
@@ -64,5 +65,33 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   getHostStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiHostStats> {
     return this.restApi.xoApp.getXapiHostStats(id as XoHost['id'], granularity)
+  }
+
+  /**
+   * Host must be running
+   *
+   * Download the audit log of a host.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   *
+   */
+  @Get('{id}/audit.txt')
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async getAuditLog(@Request() req: ExRequest, @Path() id: string) {
+    const xapiHost = this.getXapiObject(id as XoHost['id'])
+    const res = req.res as ExResponse
+
+    const response = await xapiHost.$xapi.getResource('/audit_log', { host: xapiHost })
+
+    const date = new Date().toISOString()
+    const headers = new Headers({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': `attachment; filename="${host.name_label}-${date}-audit.txt"`,
+    })
+    res.setHeaders(headers)
+
+    await pipeline(response.body, this.maybeCompressResponse(req, res))
   }
 }

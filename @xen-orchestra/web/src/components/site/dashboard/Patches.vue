@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ t('patches') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!arePatchesReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" />
       <VtsDivider type="stretch" />
@@ -24,14 +24,19 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const { record, isReady } = useDashboardStore().subscribe()
+const { record } = useDashboardStore().subscribe()
+
+const arePatchesReady = computed(() => record.value?.missingPatches !== undefined)
 
 const poolsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() => ({
   label: t('pools'),
 }))
 
 const poolsSegments: ComputedRef<DonutChartWithLegendProps['segments']> = computed(() => {
-  const nPoolsWithMissingPatches = record.value?.missingPatches?.nPoolsWithMissingPatches ?? 0
+  // @TODO: See with Clémence if `hasAuthorization === false`
+  const nPoolsWithMissingPatches = record.value?.missingPatches?.hasAuthorization
+    ? record.value.missingPatches.nPoolsWithMissingPatches
+    : 0
   const nPools = record.value?.nPools ?? 0
 
   const nUpToDatePools = nPools - nPoolsWithMissingPatches
@@ -47,7 +52,10 @@ const hostsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() 
 }))
 
 const hostsSegments = computed(() => {
-  const nHostsWithMissingPatches = record.value?.missingPatches?.nHostsWithMissingPatches ?? 0
+  // @TODO: See with Clémence if `hasAuthorization === false`
+  const nHostsWithMissingPatches = record.value?.missingPatches?.hasAuthorization
+    ? record.value.missingPatches.nHostsWithMissingPatches
+    : 0
   const nHostsEol = record.value?.nHostsEol
   const nHosts = record.value?.nHosts
 

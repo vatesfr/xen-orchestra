@@ -262,6 +262,10 @@ type XenApiVmCallMethods = {
   (method: 'hard_shutdown'): Promise<void>
   (method: 'clean_reboot'): Promise<void>
   (method: 'hard_reboot'): Promise<void>
+  (method: 'pause'): Promise<void>
+  (method: 'suspend'): Promise<void>
+  (method: 'record_data_source', dataSource: string): Promise<void>
+  (method: 'forget_data_source_archives', dataSource: string): Promise<void>
 }
 export interface XenApiVm {
   $ref: Branded<'VM'>
@@ -770,11 +774,13 @@ export interface XenApiSm {
   other_config: Record<string, string>
   required_api_version: string
   required_cluster_stack: string[]
+  supported_image_formats?: string[]
   type: string
   uuid: string
   vendor: string
   version: string
 }
+export type XenApiSmWrapped = WrapperXenApi<XenApiSm, 'SM'>
 
 export interface XenApiSr {
   $ref: Branded<'SR'>
@@ -1047,6 +1053,7 @@ export interface XenApiPgpu {
   supported_VGPU_types: XenApiVgpuType['$ref'][]
   uuid: string
 }
+export type XenApiPgpuWrapped = WrapperXenApi<XenApiPgpu, 'PGPU'>
 
 export interface XenApiGpuGroup {
   $ref: Branded<'GPU_group'>
@@ -1061,6 +1068,7 @@ export interface XenApiGpuGroup {
   uuid: string
   VGPUs: XenApiVgpu['$ref'][]
 }
+export type XenApiGpuGroupWrapped = WrapperXenApi<XenApiGpuGroup, 'gpuGroup'>
 
 export interface XenApiVgpu {
   $ref: Branded<'VGPU'>
@@ -1098,6 +1106,7 @@ export interface XenApiVgpuType {
   vendor_name: string
   VGPUs: XenApiVgpu['$ref'][]
 }
+export type XenApiVgpuTypeWrapped = WrapperXenApi<XenApiVgpuType, 'vgpuType'>
 
 export interface XenApiPvsSite {
   $ref: Branded<'PVS_site'>
@@ -1358,3 +1367,6 @@ export type WrappedXenApiRecord =
   | XenApiVmWrapped
   | XenApiVtpmWrapped
   | XenApiPciWrapped
+  | XenApiGpuGroupWrapped
+  | XenApiPgpuWrapped
+  | XenApiVgpuTypeWrapped

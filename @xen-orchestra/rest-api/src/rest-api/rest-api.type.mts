@@ -1,17 +1,21 @@
 import type { EventEmitter } from 'node:events'
 import type { Task } from '@vates/types/lib/vates/task'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
-import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, BACKUP_TYPE } from '@vates/types/common'
+import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, BACKUP_TYPE, XapiPoolStats } from '@vates/types/common'
 import type {
+  XenApiGpuGroupWrapped,
   XenApiHostWrapped,
   XenApiMessage,
   XenApiNetworkWrapped,
   XenApiPciWrapped,
+  XenApiPgpuWrapped,
   XenApiPifWrapped,
   XenApiPoolWrapped,
+  XenApiSmWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
   XenApiVdiWrapped,
+  XenApiVgpuTypeWrapped,
   XenApiVgpuWrapped,
   XenApiVifWrapped,
   XenApiVmWrapped,
@@ -34,18 +38,22 @@ import type {
 import type { InsertableXoServer } from '../servers/server.type.mjs'
 
 type XapiRecordByXapiXoRecord = {
+  gpuGroup: XenApiGpuGroupWrapped
   host: XenApiHostWrapped
   message: XenApiMessage
   network: XenApiNetworkWrapped
   PCI: XenApiPciWrapped
+  PGPU: XenApiPgpuWrapped
   PIF: XenApiPifWrapped
   pool: XenApiPoolWrapped
   SR: XenApiSrWrapped
+  SM: XenApiSmWrapped
   VBD: XenApiVbdWrapped
   VDI: XenApiVdiWrapped
   'VDI-snapshot': XenApiVdiWrapped
   'VDI-unmanaged': XenApiVdiWrapped
-  VGPU: XenApiVgpuWrapped
+  vgpu: XenApiVgpuWrapped
+  vgpuType: XenApiVgpuTypeWrapped
   VIF: XenApiVifWrapped
   VM: XenApiVmWrapped
   'VM-controller': XenApiVmWrapped
@@ -61,6 +69,10 @@ export type XoApp = {
   tasks: EventEmitter & {
     create: (params: { name: string; objectId?: string; type?: string }) => Task
   }
+  apiContext: {
+    user?: XoUser
+    permission?: XoUser['permission'] | 'none' | null
+  }
 
   // methods ------------
   authenticateUser: (
@@ -72,7 +84,9 @@ export type XoApp = {
   checkFeatureAuthorization(featureCode: string): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
+  createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
   deleteGroup(id: XoGroup['id']): Promise<void>
+  deleteUser(id: XoUser['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
@@ -112,6 +126,7 @@ export type XoApp = {
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
   getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
+  getXapiPoolStats(poolId: XoPool['id'], granularity?: XapiStatsGranularity): Promise<XapiPoolStats>
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
@@ -122,4 +137,6 @@ export type XoApp = {
   rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: Task }): Promise<void>
   runJob(job: XoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
+  /** Remove a server from the DB (XCP-ng/XenServer) */
+  unregisterXenServer(id: XoServer['id']): Promise<void>
 }
