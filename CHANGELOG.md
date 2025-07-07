@@ -1,8 +1,37 @@
 # ChangeLog
 
-## **5.108** (2025-06-30)
+## **5.108.1** (2025-07-03)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- **Migrated REST API endpoints**
+
+  - `GET /rest/v0/hosts/<host-id>/audit.txt` (PR [#8757](https://github.com/vatesfr/xen-orchestra/pull/8757))
+
+- [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
+
+### Bug fixes
+
+- [VM/New] Fix `Cannot read properties of undefined (reading '$ref')` when creating VM configured to PXE boot (PR [#8782](https://github.com/vatesfr/xen-orchestra/pull/8782))
+- [Backups] fix backup job getting stuck without NBD (PR [#8780](https://github.com/vatesfr/xen-orchestra/pull/8780))
+
+- **XO 6:**
+
+  - [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
+
+### Released packages
+
+- @vates/nbd-client patch
+- @vates/types minor
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
+- xen-api patch
+- xo-server minor
+
+## **5.108** (2025-06-30)
 
 ### Highlights
 

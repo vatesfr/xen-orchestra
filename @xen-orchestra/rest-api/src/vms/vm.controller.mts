@@ -99,7 +99,7 @@ export class VmController extends XapiXoController<XoVm> {
           property: 'resident_on',
         })
       ) {
-        /* throw */ invalidParameters(`VM ${id} is halted or host could not be found.`, error)
+        throw invalidParameters(`VM ${id} is halted or host could not be found.`, error)
       }
       throw error
     }

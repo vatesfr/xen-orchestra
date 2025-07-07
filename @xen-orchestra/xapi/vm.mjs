@@ -584,7 +584,7 @@ class Vm {
       query.sr_id = srRef
     } else if (this.pool.default_SR === Ref.EMPTY) {
       error('Unable to import VM if no SR is specified and no default_SR is set on the pool')
-      /* throw */ incorrectState({
+      throw incorrectState({
         actual: this.pool.default_SR,
         expected: 'Not empty',
         object: this.pool.uuid,

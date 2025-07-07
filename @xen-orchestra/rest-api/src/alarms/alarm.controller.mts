@@ -95,7 +95,7 @@ export class AlarmController extends XapiXoController<XoAlarm> {
     const maybeAlarm = this.restApi.getObject<XoMessage>(id, 'message')
 
     if (!alarmPredicate(maybeAlarm)) {
-      /* throw */ noSuchObject(id, 'alarm')
+      throw noSuchObject(id, 'alarm')
     }
 
     return this.#parseAlarm(maybeAlarm)

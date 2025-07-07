@@ -723,7 +723,7 @@ export class Xapi extends EventEmitter {
 
     if (arguments.length > 1) return defaultValue
 
-    /* throw */ noSuchObject(idOrUuidOrRef)
+    throw noSuchObject(idOrUuidOrRef)
   }
 
   // Returns the object for a given opaque reference (internal to
@@ -735,7 +735,7 @@ export class Xapi extends EventEmitter {
 
     if (arguments.length > 1) return defaultValue
 
-    /* throw */ noSuchObject(ref)
+    throw noSuchObject(ref)
   }
 
   // Returns the object for a given UUID (unique identifier that some
@@ -748,7 +748,7 @@ export class Xapi extends EventEmitter {
 
     if (arguments.length > 1) return defaultValue
 
-    /* throw */ noSuchObject(uuid)
+    throw noSuchObject(uuid)
   }
 
   // manually run events watching if set to `false` in constructor
