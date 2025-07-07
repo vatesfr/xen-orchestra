@@ -1,13 +1,22 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Body, Example, Get, Patch, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoGroup } from '@vates/types'
+import type { XoGroup, XoUser } from '@vates/types'
 
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { forbiddenOperation, operationBlocked } from 'xo-common/api-errors.js'
+import {
+  notFoundResp,
+  resourceAlreadyExists,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { group, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
+interface updateGroupRequest {
+  name: string
+}
 @Route('groups')
 @Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
@@ -48,5 +57,26 @@ export class GroupController extends XoController<XoGroup> {
   @Response(notFoundResp.status, notFoundResp.description)
   getGroup(@Path() id: string): Promise<Unbrand<XoGroup>> {
     return this.getObject(id as XoGroup['id'])
+  }
+
+  /**
+   * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
+   */
+  @Patch('{id}')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
+  async updateGroup(@Path() id: string, @Body() body: updateGroupRequest): Promise<void> {
+    const { name } = body
+    const group = await this.restApi.xoApp.getGroup(id as XoGroup['id'])
+
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('Cannot edit synchronized group.')
+    }
+
+    if ('name' in body && body.name?.trim() === '') {
+      throw operationBlocked('Group name cannot be empty')
+    }
+
+    await this.restApi.xoApp.updateGroup(id as XoGroup['id'], { name })
   }
 }
