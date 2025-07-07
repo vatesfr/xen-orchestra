@@ -1,12 +1,12 @@
 <template>
   <UiCard class="pool-dashboard-cpu-usage">
     <UiCardTitle>
-      {{ $t('cpu-usage') }}
+      {{ t('cpu-usage') }}
     </UiCardTitle>
     <UiCardSubtitle>
-      {{ $t('host') }}
+      {{ t('host') }}
       <template #info>
-        {{ $t('top-#', 5) }}
+        {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
@@ -14,9 +14,9 @@
       <HostsCpuUsage :hosts :vms />
     </template>
     <UiCardSubtitle>
-      {{ $t('vms', vms.length) }}
+      {{ t('vms', vms.length) }}
       <template #info>
-        {{ $t('top-#', 5) }}
+        {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
@@ -36,12 +36,15 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed } from 'vue'
-import HostsCpuUsage from './hostsCpuUsage.vue'
-import VmsCpuUsage from './vmsCpuUsage.vue'
+import { useI18n } from 'vue-i18n'
+import HostsCpuUsage from './cpuUsage/HostsCpuUsage.vue'
+import VmsCpuUsage from './cpuUsage/VmsCpuUsage.vue'
 
 const { pool } = defineProps<{
   pool: XoPool
 }>()
+
+const { t } = useI18n()
 
 const { isReady: isPoolReady } = usePoolStore().subscribe()
 const { isReady: isHostReady } = useHostStore().subscribe()
