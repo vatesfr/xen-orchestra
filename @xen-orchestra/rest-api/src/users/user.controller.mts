@@ -80,7 +80,7 @@ export class UserController extends XoController<XoUser> {
   @Response(invalidParameters.status, invalidParameters.description)
   async createUser(
     @Body() body: { name: string; password: string; permission?: string }
-  ): Promise<Partial<Unbrand<XoUser>>> {
+  ): Promise<{id: Unbrand<XoUser>['id']}> {
     const user = await this.restApi.xoApp.createUser(body)
 
     return { id: user.id }

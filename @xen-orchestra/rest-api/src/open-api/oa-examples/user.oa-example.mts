@@ -27,4 +27,4 @@ export const user = {
   id: '722d17b9-699b-49d2-8193-be1ac573d3de',
 }
 
-export const userId = ['722d17b9-699b-49d2-8193-be1ac573d3de']
+export const userId = { id: '722d17b9-699b-49d2-8193-be1ac573d3de' }
