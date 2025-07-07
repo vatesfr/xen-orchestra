@@ -1,6 +1,7 @@
 import {
   Body,
-  Delete, Example,
+  Delete,
+  Example,
   Get,
   Middlewares,
   Path,
@@ -10,13 +11,21 @@ import {
   Response,
   Route,
   Security,
-  SuccessResponse, Tags,
+  SuccessResponse,
+  Tags,
 } from 'tsoa'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoUser } from '@vates/types'
 
-import { createdResp, invalidParameters, noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  createdResp,
+  invalidParameters,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
