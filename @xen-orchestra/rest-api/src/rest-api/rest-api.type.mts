@@ -85,6 +85,7 @@ export type XoApp = {
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
   createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
+  deleteGroup(id: XoGroup['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */
   disconnectXenServer(id: XoServer['id']): Promise<void>
