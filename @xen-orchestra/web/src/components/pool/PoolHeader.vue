@@ -10,7 +10,7 @@
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/dashboard`" custom>
       <TabItem :active="isActive" :href tag="a">
-        {{ $t('dashboard') }}
+        {{ t('dashboard') }}
       </TabItem>
     </RouterLink>
     <TabItem disabled>{{ t('alarms') }}</TabItem>

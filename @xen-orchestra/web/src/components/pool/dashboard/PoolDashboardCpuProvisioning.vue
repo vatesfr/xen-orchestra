@@ -1,12 +1,12 @@
 <template>
   <UiCard class="host-dashboard-cpu-provisioning">
-    <UiCardTitle>{{ $t('cpu-provisioning') }}</UiCardTitle>
+    <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiProgressBar :max="pool.cpus.cores" :legend="$t('vcpus')" :value="cpuProvisioning.used" />
+      <UiProgressBar :max="pool.cpus.cores" :legend="t('vcpus')" :value="cpuProvisioning.used" />
       <div class="total">
-        <UiCardNumbers :label="$t('vcpus-used')" :value="cpuProvisioning.used" size="medium" />
-        <UiCardNumbers :label="$t('total-cpus')" :value="cpuProvisioning.total" size="medium" />
+        <UiCardNumbers :label="t('vcpus-used')" :value="cpuProvisioning.used" size="medium" />
+        <UiCardNumbers :label="t('total-cpus')" :value="cpuProvisioning.total" size="medium" />
       </div>
     </template>
   </UiCard>
@@ -23,10 +23,13 @@ import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
   pool: XoPool
 }>()
+
+const { t } = useI18n()
 
 const { isReady: isPoolReady } = usePoolStore().subscribe()
 const { isReady: isHostReady } = useHostStore().subscribe()

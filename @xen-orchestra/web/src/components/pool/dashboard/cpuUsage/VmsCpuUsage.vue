@@ -1,22 +1,20 @@
 <template>
-  <div class="vm-cpu-usage">
-    <VtsLoadingHero v-if="!isReady" type="card" />
-    <template v-else>
-      <UiProgressBar
-        v-for="cpuUsage in cpuUsages.vm.splice(0, 5)"
-        :key="cpuUsage.id"
-        class="progressBar"
-        :value="cpuUsage.used ?? 0"
-        :max="cpuUsage.total"
-        :legend="cpuUsage.name"
-      />
-    </template>
-  </div>
+  <VtsLoadingHero v-if="!isReady" type="card" />
+  <template v-else>
+    <UiProgressBar
+      v-for="cpuUsage in cpuUsages.vm.splice(0, 5)"
+      :key="cpuUsage.id"
+      class="progressBar"
+      :value="cpuUsage.used ?? 0"
+      :max="cpuUsage.total"
+      :legend="cpuUsage.name"
+    />
+  </template>
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import type { XoVm } from '@/types/xo/vm.type'
+import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
+import type { XoVm } from '@/types/xo/vm.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { computed } from 'vue'
@@ -47,13 +45,3 @@ const cpuUsages = computed(() => {
   }
 })
 </script>
-
-<style scoped lang="postcss">
-.vm-cpu-usage {
-  .total {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    margin-block-start: auto;
-  }
-}
-</style>

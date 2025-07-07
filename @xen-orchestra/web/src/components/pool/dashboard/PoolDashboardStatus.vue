@@ -1,13 +1,13 @@
 <template>
   <UiCard class="pool-dashboard-vms-status">
-    <UiCardTitle>{{ $t('status') }}</UiCardTitle>
+    <UiCardTitle>{{ t('status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <VtsDonutChartWithLegend :segments="segmentsHost" :title="{ label: $t('hosts') }" :icon="faServer" />
-      <UiCardNumbers class="total" :label="$t('total')" :value="totalHost" size="small" />
+      <VtsDonutChartWithLegend :segments="segmentsHost" :title="{ label: t('hosts') }" :icon="faServer" />
+      <UiCardNumbers class="total" :label="t('total')" :value="totalHost" size="small" />
       <VtsDivider type="stretch" />
-      <VtsDonutChartWithLegend :segments="segmentsVm" :title="{ label: $t('vms', totalVm) }" :icon="faDisplay" />
-      <UiCardNumbers class="total" :label="$t('total')" :value="totalVm" size="small" />
+      <VtsDonutChartWithLegend :segments="segmentsVm" :title="{ label: t('vms', totalVm) }" :icon="faDisplay" />
+      <UiCardNumbers class="total" :label="t('total')" :value="totalVm" size="small" />
     </template>
   </UiCard>
 </template>

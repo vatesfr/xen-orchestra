@@ -1,25 +1,21 @@
 <template>
-  <UiCard class="pool-dashboard-alarms">
-    <UiCardTitle>{{ $t('alarms') }}</UiCardTitle>
+  <UiCard class="pool-dashboard-patch">
+    <UiCardTitle>{{ t('patches') }}</UiCardTitle>
     <VtsComingSoonHero type="card" />
   </UiCard>
 </template>
 
 <script setup lang="ts">
-// import type { XoPool } from '@/types/xo/pool.type'
 import VtsComingSoonHero from '@core/components/state-hero/VtsComingSoonHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { useI18n } from 'vue-i18n'
 
-// const { pool } = defineProps<{
-//   pool: XoPool
-// }>()
-
-// useAlarmStore().subscribe()
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.pool-dashboard-alarms {
+.pool-dashboard-patch {
   height: 100%;
 }
 </style>

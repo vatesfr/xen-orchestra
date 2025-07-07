@@ -1,12 +1,12 @@
 <template>
   <UiCard class="pool-dashboard-ram-usage">
     <UiCardTitle>
-      {{ $t('ram-usage') }}
+      {{ t('ram-usage') }}
     </UiCardTitle>
     <UiCardSubtitle>
-      {{ $t('host') }}
+      {{ t('host') }}
       <template #info>
-        {{ $t('top-#', 5) }}
+        {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
@@ -14,9 +14,9 @@
       <HostsRamUsage :hosts />
     </template>
     <UiCardSubtitle>
-      {{ $t('vms', vms.length) }}
+      {{ t('vms', vms.length) }}
       <template #info>
-        {{ $t('top-#', 5) }}
+        {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
@@ -36,12 +36,15 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed } from 'vue'
-import HostsRamUsage from './hostsRamUsage.vue'
-import VmsRamUsage from './vmsRamUsage.vue'
+import { useI18n } from 'vue-i18n'
+import HostsRamUsage from './ramUsage/HostsRamUsage.vue'
+import VmsRamUsage from './ramUsage/VmsRamUsage.vue'
 
 const { pool } = defineProps<{
   pool: XoPool
 }>()
+
+const { t } = useI18n()
 
 const { isReady: isPoolReady } = usePoolStore().subscribe()
 const { isReady: isHostReady } = useHostStore().subscribe()

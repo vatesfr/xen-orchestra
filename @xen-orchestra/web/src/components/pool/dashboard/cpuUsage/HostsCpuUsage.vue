@@ -1,24 +1,22 @@
 <template>
-  <div class="hosts-cpu-usage">
-    <VtsLoadingHero v-if="!areHostReady && !areVmsReady" type="card" />
-    <template v-else>
-      <UiProgressBar
-        v-for="cpuUsage in cpuUsages.hosts.splice(0, 5)"
-        :key="cpuUsage.id"
-        class="progressBar"
-        :value="cpuUsage.used ?? 0"
-        :max="cpuUsage.total"
-        :legend="cpuUsage.name"
-      />
-    </template>
-  </div>
+  <VtsLoadingHero v-if="!areHostReady && !areVmsReady" type="card" />
+  <template v-else>
+    <UiProgressBar
+      v-for="cpuUsage in cpuUsages.hosts.splice(0, 5)"
+      :key="cpuUsage.id"
+      class="progressBar"
+      :value="cpuUsage.used ?? 0"
+      :max="cpuUsage.total"
+      :legend="cpuUsage.name"
+    />
+  </template>
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
-import type { XoHost } from '@/types/xo/host.type'
-import type { XoVm } from '@/types/xo/vm.type'
+import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
+import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
+import type { XoHost } from '@/types/xo/host.type.ts'
+import type { XoVm } from '@/types/xo/vm.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { computed } from 'vue'
