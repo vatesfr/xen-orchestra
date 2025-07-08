@@ -16,12 +16,14 @@
 - **Migrated REST API endpoints**
 
   - `GET /rest/v0/hosts/<host-id>/audit.txt` (PR [#8757](https://github.com/vatesfr/xen-orchestra/pull/8757))
+  - `PATCH /rest/v0/group/<group-id>` (PR [#8790](https://github.com/vatesfr/xen-orchestra/pull/8790))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - **XO 6:**
+
   - [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
 
 - [VM/New] Fix `Cannot read properties of undefined (reading '$ref')` when creating VM configured to PXE boot (PR [#8782](https://github.com/vatesfr/xen-orchestra/pull/8782))

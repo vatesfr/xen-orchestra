@@ -1,9 +1,9 @@
 import { Body, Example, Get, Patch, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoGroup, XoUser } from '@vates/types'
+import type { XoGroup } from '@vates/types'
 
-import { forbiddenOperation, operationBlocked } from 'xo-common/api-errors.js'
+import { forbiddenOperation } from 'xo-common/api-errors.js'
 import {
   notFoundResp,
   resourceAlreadyExists,
@@ -71,10 +71,6 @@ export class GroupController extends XoController<XoGroup> {
 
     if (group.provider !== undefined) {
       throw forbiddenOperation('Cannot edit synchronized group.')
-    }
-
-    if ('name' in body && body.name?.trim() === '') {
-      throw operationBlocked('Group name cannot be empty')
     }
 
     await this.restApi.xoApp.updateGroup(id as XoGroup['id'], { name })
