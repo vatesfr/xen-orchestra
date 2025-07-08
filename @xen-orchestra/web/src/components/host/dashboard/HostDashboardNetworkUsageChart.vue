@@ -41,19 +41,9 @@ const networkUsage = computed<LinearChartData>(() => {
     (_, i) => data.endTimestamp * 1000 - ((data.stats.pifs?.rx?.['0'].length ?? 0) - 1 - i) * data.interval * 1000
   )
 
-  const rxSeries = [
-    {
-      label: t('network-upload'),
-      data: timestamps.map((timestamp, index) => ({
-        timestamp,
-        value: Object.values(data.stats.pifs?.rx ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0),
-      })),
-    },
-  ]
-
   const txSeries = [
     {
-      label: t('network-download'),
+      label: t('network-upload'),
       data: timestamps.map((timestamp, index) => ({
         timestamp,
         value: Object.values(data.stats.pifs?.tx ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0),
@@ -61,7 +51,17 @@ const networkUsage = computed<LinearChartData>(() => {
     },
   ]
 
-  return [...rxSeries, ...txSeries]
+  const rxSeries = [
+    {
+      label: t('network-download'),
+      data: timestamps.map((timestamp, index) => ({
+        timestamp,
+        value: Object.values(data.stats.pifs?.rx ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0),
+      })),
+    },
+  ]
+
+  return [...txSeries, ...rxSeries]
 })
 
 const maxValue = computed(() => {

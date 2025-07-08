@@ -44,14 +44,14 @@ const networkUsage = computed<LinearChartData>(() => {
   }
 
   const addNetworkData = (type: 'rx' | 'tx') => ({
-    label: type === 'rx' ? t('network-upload') : t('network-download'),
+    label: type === 'rx' ? t('network-download') : t('network-upload'),
     data: Object.values(pifs[type])[0].map((_, hourIndex) => ({
       timestamp: (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000,
       value: Object.values(pifs[type]).reduce((sum, values) => sum + (values[hourIndex] ?? NaN), 0),
     })),
   })
 
-  return [addNetworkData('rx'), addNetworkData('tx')]
+  return [addNetworkData('tx'), addNetworkData('rx')]
 })
 
 const maxValue = computed(() => {
