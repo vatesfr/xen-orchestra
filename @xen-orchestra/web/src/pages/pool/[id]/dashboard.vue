@@ -9,7 +9,7 @@
     <div class="row row-mid">
       <div class="first-column">
         <PoolDashboardStorageUsage class="storage-usage" :pool-id="pool.id" />
-        <PoolDashboardNetworkChart class="network-chart" />
+        <PoolDashboardNetworkChart class="network-chart" :data :loading="isFetching" :error />
       </div>
       <div class="second-column">
         <PoolDashboardRamUsage class="ram-usage" :pool />
@@ -35,12 +35,14 @@ import PoolDashboardHostsPatches from '@/components/pool/dashboard/PoolDashboard
 import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamUsage.vue'
 import PoolDashboardStatus from '@/components/pool/dashboard/PoolDashboardStatus.vue'
 import PoolDashboardStorageUsage from '@/components/pool/dashboard/PoolDashboardStorageUsage.vue'
+import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
 import type { XoPool } from '@/types/xo/pool.type'
+import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 
 const { pool } = defineProps<{ pool: XoPool }>()
 
-// const { data, isFetching, error } = useFetchStats('pool', () => pool.id, GRANULARITY.Hours)
+const { data, isFetching, error } = useFetchStats('pool', () => pool.id, GRANULARITY.Hours)
 
 const uiStore = useUiStore()
 </script>
