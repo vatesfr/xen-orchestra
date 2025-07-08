@@ -13,7 +13,7 @@
       </div>
       <div class="second-column">
         <PoolDashboardRamUsage class="ram-usage" :pool />
-        <PoolDashboardRamChart class="ram-chart" />
+        <PoolDashboardRamChart class="ram-chart" :data :loading="isFetching" :error />
       </div>
       <div class="third-column">
         <PoolDashboardCpuProvisioning class="cpu-provisioning" :pool />
