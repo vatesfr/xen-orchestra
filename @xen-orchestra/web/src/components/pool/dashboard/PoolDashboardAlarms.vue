@@ -1,27 +1,28 @@
 <template>
   <UiCard class="pool-dashboard-alarms">
     <UiCardTitle>{{ t('alarms') }}</UiCardTitle>
-    <VtsComingSoonHero type="card" />
+    <!--    TODO Remove when endpoint and component are available -->
+    <ul v-if="records.length > 0">
+      <li v-for="(alarm, index) in records" :key="index">
+        {{ alarm.body.name }}
+      </li>
+    </ul>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-// import type { XoPool } from '@/types/xo/pool.type'
-import VtsComingSoonHero from '@core/components/state-hero/VtsComingSoonHero.vue'
+import { useAlarmStore } from '@/stores/xo-rest-api/alarm.store.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-// const { pool } = defineProps<{
-//   pool: XoPool
-// }>()
-
-// useAlarmStore().subscribe()
+const { records } = useAlarmStore().subscribe()
 </script>
 
 <style lang="postcss" scoped>
 .pool-dashboard-alarms {
-  height: 100%;
+  height: 40rem;
+  overflow: auto;
 }
 </style>
