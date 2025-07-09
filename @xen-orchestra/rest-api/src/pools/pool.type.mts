@@ -101,7 +101,7 @@ export type PoolDashboard = {
       size: number
     }[]
   }
-  alarms: Unbrand<XoAlarm>[]
+  alarms: Unbrand<XoAlarm>['id'][]
   cpuProvisioning: {
     total: number
     assigned: number

@@ -65,7 +65,7 @@ export class PoolService {
 
   #getAlarms(poolId: XoPool['id']): PoolDashboard['alarms'] {
     const alarms = this.#alarmService.getAlarms({ filter: alarm => alarm.$pool === poolId })
-    return Object.values(alarms)
+    return Object.keys(alarms)
   }
 
   async #getMissingPatches(poolId: XoPool['id']): Promise<PoolDashboard['hosts']['missingPatches']> {
