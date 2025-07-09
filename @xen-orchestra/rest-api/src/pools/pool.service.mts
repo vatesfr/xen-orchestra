@@ -251,11 +251,12 @@ export class PoolService {
     }
 
     const total = pool.cpus.cores ?? 0
+    const percent = total === 0 ? 0 : (assignedVcpu * 100) / total
 
     return {
       total,
       assigned: assignedVcpu,
-      percent: (assignedVcpu * 100) / total,
+      percent,
     }
   }
 

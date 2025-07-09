@@ -13,7 +13,7 @@ export const getTopPerProperty = <T,>(
   { length = Infinity, prop }: { length?: number; prop: keyof T & string }
 ): T[] => {
   // avoid mutate original array
-  const arr = [...array]
+  let arr = [...array]
 
   arr.sort((prev, next) => {
     const prevProp = +prev[prop]
@@ -38,7 +38,7 @@ export const getTopPerProperty = <T,>(
   })
 
   if (arr.length > length) {
-    arr.length = length
+    arr = arr.slice(0, length)
   }
 
   return arr
