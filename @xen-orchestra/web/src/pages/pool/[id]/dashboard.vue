@@ -18,7 +18,7 @@
       <div class="third-column">
         <PoolDashboardCpuProvisioning class="cpu-provisioning" :pool />
         <PoolDashboardCpuUsage class="cpu-usage" :pool />
-        <PoolDashboardCpuChart class="cpu-chart" />
+        <PoolDashboardCpuChart class="cpu-chart" :data :loading="isFetching" :error />
       </div>
     </div>
   </div>
