@@ -1,3 +1,4 @@
+import { createLogger } from '@xen-orchestra/log'
 import {
   HOST_POWER_STATE,
   VM_POWER_STATE,
@@ -15,6 +16,8 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import { getTopPerProperty, isSrWritable, promiseWriteInStream } from '../helpers/utils.helper.mjs'
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import type { PoolDashboard } from './pool.type.mjs'
+
+const log = createLogger('xo:rest-api:pool-service')
 
 type DashboardAsyncCache = {
   vmsTopFiveUsage: PoolDashboard['vms']['topFiveUsage']
@@ -138,10 +141,15 @@ export class PoolService {
 
   #getVmWithLastCpuInfo(vm: XoVm, stats: XapiVmStats): XoVm & { usage: number } {
     const cpus = Object.values(stats.stats.cpus ?? {})
-    const usage = cpus.reduce((total, cpus) => {
-      total += cpus.pop() ?? 0
-      return total
-    }, 0)
+    const usage =
+      cpus.reduce((total, cpus, index) => {
+        const cpu = cpus.pop()
+        if (cpu == null) {
+          log.warn(`cpu#${index} is null. vm:`, vm.id)
+        }
+        total += cpu ?? 0
+        return total
+      }, 0) / cpus.length
 
     return { ...vm, usage }
   }
@@ -212,8 +220,12 @@ export class PoolService {
       const stats = await this.#restApi.xoApp.getXapiHostStats(host.id, 'seconds')
       const cpus = Object.values(stats.stats.cpus ?? {})
       const percent =
-        cpus.reduce((total, cpus) => {
-          total += cpus.pop() ?? 0
+        cpus.reduce((total, cpus, index) => {
+          const cpu = cpus.pop()
+          if (cpu == null) {
+            log.warn(`cpu#${index} is null. host:`, host.id)
+          }
+          total += cpu ?? 0
           return total
         }, 0) / cpus.length
 
