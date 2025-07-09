@@ -1,18 +1,15 @@
 <template>
   <VtsInputGroup>
     <UiInput v-model="sizeInput" accent="brand" type="number" :max-decimals="3" />
-    <FormSelect v-model="prefixInput">
-      <option value="Ki">{{ t('bytes.ki') }}</option>
-      <option value="Mi">{{ t('bytes.mi') }}</option>
-      <option value="Gi">{{ t('bytes.gi') }}</option>
-    </FormSelect>
+    <VtsSelect :id="prefixSelectId" accent="brand" />
   </VtsInputGroup>
 </template>
 
 <script lang="ts" setup>
-import FormSelect from '@/components/form/FormSelect.vue'
 import VtsInputGroup from '@core/components/input-group/VtsInputGroup.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import { useFormSelect } from '@core/packages/form-select'
 import { useVModel } from '@vueuse/core'
 import format, { type Prefix } from 'human-format'
 import { ref, watch } from 'vue'
@@ -38,6 +35,22 @@ const sizeInput = ref()
 const prefixInput = ref()
 
 const scale = format.Scale.create(availablePrefixes, 1024, 1)
+
+const { id: prefixSelectId } = useFormSelect(
+  [
+    { value: 'Ki', label: t('bytes.ki') },
+    { value: 'Mi', label: t('bytes.mi') },
+    { value: 'Gi', label: t('bytes.gi') },
+  ],
+  {
+    model: prefixInput,
+    option: {
+      id: 'value',
+      value: 'value',
+      label: 'label',
+    },
+  }
+)
 
 watch([sizeInput, prefixInput], ([newSize, newPrefix]) => {
   if (newSize === '' || newSize === undefined) {
