@@ -1883,6 +1883,8 @@ export const editVmNotes = async vm => {
 
 export const createKubernetesCluster = params => _call('xoa.recipe.createKubernetesCluster', params)
 
+export const createEasyVirtVM = params => _call('xoa.recipe.createEasyVirtVM', params)
+
 export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
