@@ -12,7 +12,7 @@ class ServerError extends Error {
   }
 }
 
-export default async function createAndConnectServer(payload: ConnectServerPayload) {
+export default async function createAndConnectServer(payload: NewServer) {
   const serverId = await createServer(payload)
 
   try {
@@ -33,28 +33,16 @@ export default async function createAndConnectServer(payload: ConnectServerPaylo
 }
 
 // First, create the server
-export async function createServer(payload: ConnectServerPayload) {
+export async function createServer(payload: NewServer) {
   const {
     data,
     statusCode: status,
     error,
-  } = await useFetch(
-    `/rest/v0/servers`,
-    {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: { 'Content-Type': 'application/json' },
-    },
-    {
-      // return row response
-      onFetchError: context => {
-        return context
-      },
-      afterFetch(context) {
-        return context
-      },
-    }
-  ).json<{ id: XoServer['id'] }>()
+  } = await useFetch(`/rest/v0/servers`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' },
+  }).json<{ id: XoServer['id'] }>()
 
   if (error.value) {
     throw new ServerError(error.value, { status: status.value ?? 0 })
@@ -73,22 +61,10 @@ export async function connectServer(serverId: XoServer['id']): Promise<string> {
     data,
     statusCode: status,
     error,
-  } = await useFetch(
-    `/rest/v0/servers/${serverId}/actions/connect`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    },
-    {
-      // return row response
-      onFetchError: context => {
-        return context
-      },
-      afterFetch(context) {
-        return context
-      },
-    }
-  ).json()
+  } = await useFetch(`/rest/v0/servers/${serverId}/actions/connect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  }).json()
 
   if (error.value) {
     throw new ServerError(error.value, { status: status.value ?? 0 })
@@ -106,21 +82,9 @@ export async function monitorTask(url: string) {
       data: dataResponse,
       statusCode: status,
       error,
-    } = await useFetch(
-      `${url}?wait=result`,
-      {
-        method: 'GET',
-      },
-      {
-        // return row response
-        onFetchError: context => {
-          return context
-        },
-        afterFetch(context) {
-          return context
-        },
-      }
-    ).json<XoTask>()
+    } = await useFetch(`${url}?wait=result`, {
+      method: 'GET',
+    }).json<XoTask>()
 
     if (error.value) {
       throw new ServerError(error.value, { status: status.value ?? 0 })
@@ -155,22 +119,10 @@ export async function removeServer(serverId: XoServer['id']) {
     data,
     statusCode: status,
     error,
-  } = await useFetch(
-    `/rest/v0/servers/${serverId}`,
-    {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-    },
-    {
-      // return row response
-      onFetchError: context => {
-        return context
-      },
-      afterFetch(context) {
-        return context
-      },
-    }
-  ).json()
+  } = await useFetch(`/rest/v0/servers/${serverId}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+  }).json()
 
   if (error.value) {
     throw new ServerError(error.value, { status: status.value ?? 0 })
@@ -179,7 +131,7 @@ export async function removeServer(serverId: XoServer['id']) {
   return data.value
 }
 
-export type ConnectServerPayload = {
+export type NewServer = {
   host: string
   httpProxy: string
   username: string

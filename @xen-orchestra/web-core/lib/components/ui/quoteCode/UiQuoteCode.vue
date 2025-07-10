@@ -68,6 +68,7 @@ const className = computed(() =>
   .label-container {
     display: flex;
     justify-content: space-between;
+    align-items: center;
 
     .label {
       color: var(--color-neutral-txt-secondary);
