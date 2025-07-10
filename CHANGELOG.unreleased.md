@@ -18,6 +18,7 @@
   - `DELETE /rest/v0/groups/<group-id>` (PR [#8704](https://github.com/vatesfr/xen-orchestra/pull/8704))
 
 - [REST API] Expose `/rest/v0/pools/<pool-id>/dashboard` (PR [#8768](https://github.com/vatesfr/xen-orchestra/pull/8768))
+- [ACL] Confirmation message when deleting an ACL rule (PR [#8774](https://github.com/vatesfr/xen-orchestra/pull/8774))
 
 ### Bug fixes
 
@@ -48,6 +49,6 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - xo-server patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
