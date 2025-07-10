@@ -16,7 +16,7 @@ import { injectState, provideState } from 'reaclette'
 import { success } from 'notification'
 import { withRouter } from 'react-router'
 
-import RecipeForm from './recipe-form'
+import RecipeForm from './recipe-form-kub'
 
 const RECIPE_INFO = {
   id: '05abc8a8-ebf4-41a6-b1ed-efcb2dbf893d',
