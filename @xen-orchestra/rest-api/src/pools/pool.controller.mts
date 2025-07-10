@@ -14,8 +14,9 @@ import {
   SuccessResponse,
 } from 'tsoa'
 import { inject } from 'inversify'
+import { PassThrough } from 'node:stream'
 import { provide } from 'inversify-binding-decorators'
-import { json, type Request as ExRequest } from 'express'
+import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import type { Task } from '@vates/types/lib/vates/task'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -42,12 +43,28 @@ import type {
   XoSr,
   XoVm,
 } from '@vates/types'
-import { createVm, importVm, partialPools, pool, poolIds, poolStats } from '../open-api/oa-examples/pool.oa-example.mjs'
-import type { CreateNetworkBody, CreateVmAfterCreateParams, CreateVmBody, CreateVmParams } from './pool.type.mjs'
+import {
+  createVm,
+  importVm,
+  partialPools,
+  pool,
+  poolDashboard,
+  poolIds,
+  poolStats,
+} from '../open-api/oa-examples/pool.oa-example.mjs'
+import type {
+  CreateNetworkBody,
+  CreateVmAfterCreateParams,
+  CreateVmBody,
+  CreateVmParams,
+  PoolDashboard,
+} from './pool.type.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
 import { VmService } from '../vms/vm.service.mjs'
+import { PoolService } from './pool.service.mjs'
+import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 
 @Route('pools')
 @Security('*')
@@ -56,10 +73,16 @@ import { VmService } from '../vms/vm.service.mjs'
 @provide(PoolController)
 export class PoolController extends XapiXoController<XoPool> {
   #vmService: VmService
+  #poolService: PoolService
 
-  constructor(@inject(RestApi) restApi: RestApi, @inject(VmService) vmService: VmService) {
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(VmService) vmService: VmService,
+    @inject(PoolService) poolService: PoolService
+  ) {
     super('pool', restApi)
     this.#vmService = vmService
+    this.#poolService = poolService
   }
 
   /**
@@ -301,5 +324,37 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(422, 'Invalid granularity')
   getStats(@Path() id: string, @Query() granularity?: XapiStatsGranularity): Promise<XapiPoolStats> {
     return this.restApi.xoApp.getXapiPoolStats(id as XoPool['id'], granularity)
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629677"
+   */
+  @Example(poolDashboard)
+  @Get('{id}/dashboard')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getPoolDashboard(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() ndjson?: boolean
+  ): Promise<PoolDashboard | void> {
+    const poolId = id as XoPool['id']
+    // throw if pool not found
+    this.getObject(poolId)
+
+    const stream = ndjson ? new PassThrough() : undefined
+    const isStream = ndjson && stream !== undefined
+    if (isStream) {
+      const res = req.res as ExResponse
+      res.setHeader('Content-Type', NDJSON_CONTENT_TYPE)
+      stream.pipe(res)
+    }
+
+    const dashboard = await this.#poolService.getDashboard(poolId, { stream })
+
+    if (isStream) {
+      stream.end()
+    } else {
+      return dashboard
+    }
   }
 }

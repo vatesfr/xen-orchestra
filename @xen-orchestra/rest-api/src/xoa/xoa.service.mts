@@ -4,7 +4,6 @@ import {
   AnyXoVdi,
   AnyXoVm,
   BACKUP_TYPE,
-  HOST_POWER_STATE,
   VM_POWER_STATE,
   XoBackupJob,
   XoHost,
@@ -14,20 +13,19 @@ import {
   XoVbd,
   XoVm,
 } from '@vates/types'
-import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
-import { isPromise } from 'node:util/types'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { parse } from 'xo-remote-parser'
 import { Writable } from 'node:stream'
 
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
-import { isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
+import { isReplicaVm, isSrWritable, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 import type { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { HostService } from '../hosts/host.service.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -38,6 +36,7 @@ type DashboardAsyncCache = {
 
 export class XoaService {
   #restApi: RestApi
+  #hostService: HostService
   #dashboardAsyncCache = new Map<
     keyof DashboardAsyncCache,
     AsyncCacheEntry<DashboardAsyncCache[keyof DashboardAsyncCache]>
@@ -46,6 +45,7 @@ export class XoaService {
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
+    this.#hostService = restApi.ioc.get(HostService)
     this.#dashboardCacheOpts = {
       timeout: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheTimeout') ?? 60000,
       expiresIn: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
@@ -212,38 +212,19 @@ export class XoaService {
   }
 
   async #getMissingPatchesInfo(): Promise<XoaDashboard['missingPatches']> {
-    if (!(await this.#restApi.xoApp.hasFeatureAuthorization('LIST_MISSING_PATCHES'))) {
-      return {
-        hasAuthorization: false,
-      }
+    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo()
+
+    if (!missingPatchesInfo.hasAuthorization) {
+      return { hasAuthorization: false }
     }
 
-    const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host'))
-    const poolsWithMissingPatches = new Set()
-    let nHostsWithMissingPatches = 0
-    let nHostsFailed = 0
-
-    await asyncEach(hosts, async (host: XoHost) => {
-      const xapi = this.#restApi.xoApp.getXapi(host)
-
-      try {
-        const patches = await xapi.listMissingPatches(host.id)
-
-        if (patches.length > 0) {
-          nHostsWithMissingPatches++
-          poolsWithMissingPatches.add(host.$pool)
-        }
-      } catch (err) {
-        log.error('listMissingPatches failed', err)
-        nHostsFailed++
-      }
-    })
+    const { hasAuthorization, nHostsFailed, nHostsWithMissingPatches, nPoolsWithMissingPatches } = missingPatchesInfo
 
     return {
-      hasAuthorization: true,
+      hasAuthorization,
       nHostsFailed,
       nHostsWithMissingPatches,
-      nPoolsWithMissingPatches: poolsWithMissingPatches.size,
+      nPoolsWithMissingPatches,
     }
   }
 
@@ -474,31 +455,12 @@ export class XoaService {
   }
 
   #getHostsStatus(): XoaDashboard['hostsStatus'] {
-    const hosts = this.#restApi.getObjectsByType<XoHost>('host')
-    let nRunning = 0
-    let nHalted = 0
-    let nUnknown = 0
-    let total = 0
-    for (const id in hosts) {
-      total++
-      const host = hosts[id as XoHost['id']]
-      switch (host.power_state) {
-        case HOST_POWER_STATE.RUNNING:
-          nRunning++
-          break
-        case HOST_POWER_STATE.HALTED:
-          nHalted++
-          break
-        default:
-          nUnknown++
-          break
-      }
-    }
+    const { running, halted, total, unknown } = this.#hostService.getHostsStatus()
 
     return {
-      running: nRunning,
-      halted: nHalted,
-      unknown: nUnknown,
+      running,
+      halted,
+      unknown,
       total,
     }
   }
@@ -536,25 +498,6 @@ export class XoaService {
   }
 
   async getDashboard({ stream }: { stream?: Writable } = {}): Promise<XoaDashboard> {
-    async function promiseWriteInStream<T>(maybePromise: Promise<T> | T, key: string): Promise<T> {
-      let data: T
-      if (isPromise(maybePromise)) {
-        data = await maybePromise
-      } else {
-        data = maybePromise
-      }
-
-      if (stream !== undefined) {
-        if (stream.writableNeedDrain) {
-          await new Promise(resolve => stream.once('drain', resolve))
-        }
-
-        stream.write(JSON.stringify({ [key]: data }) + '\n')
-      }
-
-      return data
-    }
-
     const [
       nPools,
       nHosts,
@@ -568,36 +511,43 @@ export class XoaService {
       nHostsEol,
       backups,
     ] = await Promise.all([
-      promiseWriteInStream(this.#getNumberOfPools(), 'nPools'),
-      promiseWriteInStream(this.#getNumberOfHosts(), 'nHosts'),
-      promiseWriteInStream(this.#getHostsStatus(), 'hostsStatus'),
-      promiseWriteInStream(this.#getResourcesOverview(), 'resourcesOverview'),
-      promiseWriteInStream(this.#getVmsStatus(), 'vmsStatus'),
-      promiseWriteInStream(this.#getStorageRepositoriesSizeInfo(), 'storageRepositories'),
-      promiseWriteInStream(this.#getPoolsStatus(), 'poolsStatus'),
-      promiseWriteInStream(this.#getMissingPatchesInfo(), 'missingPatches'),
-      promiseWriteInStream(
-        this.#getBackupRepositoriesSizeInfo().catch(err => {
+      promiseWriteInStream({ maybePromise: this.#getNumberOfPools(), path: 'nPools', stream }),
+      promiseWriteInStream({ maybePromise: this.#getNumberOfHosts(), path: 'nHosts', stream }),
+      promiseWriteInStream({ maybePromise: this.#getHostsStatus(), path: 'hostsStatus', stream }),
+      promiseWriteInStream({ maybePromise: this.#getResourcesOverview(), path: 'resourcesOverview', stream }),
+      promiseWriteInStream({ maybePromise: this.#getVmsStatus(), path: 'vmsStatus', stream }),
+      promiseWriteInStream({
+        maybePromise: this.#getStorageRepositoriesSizeInfo(),
+        path: 'storageRepositories',
+        stream,
+      }),
+      promiseWriteInStream({ maybePromise: this.#getPoolsStatus(), path: 'poolsStatus', stream }),
+      promiseWriteInStream({ maybePromise: this.#getMissingPatchesInfo(), path: 'missingPatches', stream }),
+      promiseWriteInStream({
+        maybePromise: this.#getBackupRepositoriesSizeInfo().catch(err => {
           log.error('#getBackupRepositoriesSizeInfo failed', err)
           // explicitly return undefined because typescript understand it as void instead of undefined
           return undefined
         }),
-        'backupRepositories'
-      ),
-      promiseWriteInStream(
-        this.#getNumberOfEolHosts().catch(err => {
+        path: 'backupRepositories',
+        stream,
+      }),
+      promiseWriteInStream({
+        maybePromise: this.#getNumberOfEolHosts().catch(err => {
           log.error('#getNumberOfEolHosts failed', err)
           return undefined
         }),
-        'nHostsEol'
-      ),
-      promiseWriteInStream(
-        this.#getbackupsInfo().catch(err => {
+        path: 'nHostsEol',
+        stream,
+      }),
+      promiseWriteInStream({
+        maybePromise: this.#getbackupsInfo().catch(err => {
           log.error('#getbackupsInfo failed', err)
           return undefined
         }),
-        'backups'
-      ),
+        path: 'backups',
+        stream,
+      }),
     ])
 
     return {
