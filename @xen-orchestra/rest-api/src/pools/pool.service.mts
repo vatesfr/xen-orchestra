@@ -140,16 +140,16 @@ export class PoolService {
   }
 
   #getVmWithLastCpuInfo(vm: XoVm, stats: XapiVmStats): XoVm & { usage: number } {
-    const cpus = Object.values(stats.stats.cpus ?? {})
+    const cpusStats = Object.values(stats.stats.cpus ?? {})
     const usage =
-      cpus.reduce((total, cpus, index) => {
-        const cpu = cpus.pop()
-        if (cpu == null) {
+      cpusStats.reduce((total, cpuStats, index) => {
+        const lastCpuStat = cpuStats.pop()
+        if (lastCpuStat == null) {
           log.warn(`cpu#${index} is null. vm:`, vm.id)
         }
-        total += cpu ?? 0
+        total += lastCpuStat ?? 0
         return total
-      }, 0) / cpus.length
+      }, 0) / cpusStats.length
 
     return { ...vm, usage }
   }
@@ -218,16 +218,16 @@ export class PoolService {
     for (const id in hosts) {
       const host = hosts[id as XoHost['id']]
       const stats = await this.#restApi.xoApp.getXapiHostStats(host.id, 'seconds')
-      const cpus = Object.values(stats.stats.cpus ?? {})
+      const cpusStats = Object.values(stats.stats.cpus ?? {})
       const percent =
-        cpus.reduce((total, cpus, index) => {
-          const cpu = cpus.pop()
-          if (cpu == null) {
+        cpusStats.reduce((total, cpuStats, index) => {
+          const lastCpuStat = cpuStats.pop()
+          if (lastCpuStat == null) {
             log.warn(`cpu#${index} is null. host:`, host.id)
           }
-          total += cpu ?? 0
+          total += lastCpuStat ?? 0
           return total
-        }, 0) / cpus.length
+        }, 0) / cpusStats.length
 
       hostsWithPercent.push({ percent, id: host.id, name_label: host.name_label })
     }

@@ -16,11 +16,7 @@ export class AlarmService {
   }
 
   isAlarm(maybeAlarm: XoMessage) {
-    if (!alarmPredicate(maybeAlarm)) {
-      return false
-    }
-
-    return true
+    return alarmPredicate(maybeAlarm)
   }
 
   parseAlarm({ $object, body, ...alarm }: XoMessage): XoAlarm {
