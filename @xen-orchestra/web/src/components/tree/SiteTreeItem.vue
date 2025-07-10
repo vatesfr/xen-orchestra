@@ -20,7 +20,7 @@
 
 <script lang="ts" setup>
 import PoolTreeList from '@/components/tree/PoolTreeList.vue'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
+import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { SiteBranch } from '@/types/tree.type'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
