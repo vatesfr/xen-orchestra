@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import createAndConnectServer, { type ConnectServerPayload } from '@/jobs/create-server.job'
+import createAndConnectServer, { type NewServer } from '@/jobs/create-server.job'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -66,7 +66,7 @@ const router = useRouter()
 const uiStore = useUiStore()
 const connecting = ref(false)
 
-const form = reactive<ConnectServerPayload>({
+const form = reactive<NewServer>({
   host: history?.state?.ip ?? '',
   httpProxy: '',
   username: '',
@@ -88,7 +88,7 @@ async function submit() {
       path: '/pool/connect/error',
       state: {
         ip: form.host,
-        ErrorCode: error.status,
+        errorCode: error.status,
         errorJson: error.message,
       },
     })

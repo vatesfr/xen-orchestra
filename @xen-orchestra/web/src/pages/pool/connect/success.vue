@@ -3,24 +3,26 @@
   <UiCard class="pool-connection-success">
     <VtsLoadingHero v-if="!isReady" type="page" />
     <VtsStateHero v-else image="all-good" type="card" no-background>
-      <p class="typo-h1 title">{{ t('unable-to-connect-to', { ip }) }}</p>
-    </VtsStateHero>
-    <div class="content" :class="{ mobile: uiStore.isMobile, desktop: !uiStore.isDesktopLarge }">
-      <UiAlert accent="success">
-        {{ t('pool-connection-success') }}
-      </UiAlert>
-      <div class="action-buttons">
-        <!-- TODO change link to /dashboard -->
-        <UiLink v-if="poolId" :to="{ name: '/pool/[id]/system', params: { id: poolId } }" size="medium">
-          {{ t('visit-pool-dashboard') }}
-        </UiLink>
-        <RouterLink to="/pool/connect/">
-          <UiButton variant="secondary" accent="brand" size="medium" :left-icon="faPlus">
-            {{ t('connect-another-pool') }}
-          </UiButton>
-        </RouterLink>
+      <div class="container">
+        <div class="typo-h1 title">{{ t('connected-to-ip', { ip }) }}</div>
+        <div class="content" :class="{ mobile: uiStore.isMobile, desktop: !uiStore.isDesktopLarge }">
+          <UiAlert accent="success">
+            {{ t('pool-connection-success') }}
+          </UiAlert>
+          <div class="action-buttons" :class="{ mobile: uiStore.isMobile }">
+            <!-- TODO change link to /dashboard -->
+            <UiLink v-if="poolId" :to="{ name: '/pool/[id]/system', params: { id: poolId } }" size="medium">
+              {{ t('visit-pool-dashboard') }}
+            </UiLink>
+            <RouterLink to="/pool/connect/">
+              <UiButton variant="secondary" accent="brand" size="medium" :left-icon="faPlus">
+                {{ t('connect-another-pool') }}
+              </UiButton>
+            </RouterLink>
+          </div>
+        </div>
       </div>
-    </div>
+    </VtsStateHero>
   </UiCard>
 </template>
 
@@ -51,6 +53,12 @@ const poolId = computed(() => get(idServer)?.poolId)
   height: 100%;
   margin: 0.8rem;
 
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+  }
+
   .title {
     text-align: center;
   }
@@ -62,10 +70,10 @@ const poolId = computed(() => get(idServer)?.poolId)
     align-items: center;
     gap: 4rem;
     margin: 0 auto;
-    width: 50%;
+    width: 65%;
 
     &.desktop {
-      width: 75%;
+      width: 80%;
     }
 
     &.mobile {
@@ -75,6 +83,11 @@ const poolId = computed(() => get(idServer)?.poolId)
     .action-buttons {
       display: flex;
       gap: 2.4rem;
+
+      &.mobile {
+        flex-direction: column;
+        align-items: center;
+      }
     }
   }
 }
