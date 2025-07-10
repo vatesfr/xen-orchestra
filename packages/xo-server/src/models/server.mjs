@@ -36,7 +36,7 @@ export class Servers extends Collection {
 
     if (await this.exists({ host })) {
       const _host = await this.get({ host })
-      /* throw */ objectAlreadyExists({
+      throw objectAlreadyExists({
         objectId: _host.id,
         objectType: 'server',
       })

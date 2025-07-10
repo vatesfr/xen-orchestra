@@ -477,7 +477,7 @@ export default class XapiStats {
     const vm = xapi.getObject(vmId)
     const host = vm.$resident_on
     if (!host) {
-      /* throw */ incorrectState({
+      throw incorrectState({
         actual: host,
         expected: '<host-uuid>',
         object: vm,
