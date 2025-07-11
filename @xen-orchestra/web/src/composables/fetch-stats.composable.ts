@@ -1,16 +1,16 @@
 import type { XoHost } from '@/types/xo/host.type.ts'
+import type { XoPool } from '@/types/xo/pool.type.ts'
 import type { XoVm } from '@/types/xo/vm.type.ts'
 import { type GRANULARITY, RRD_STEP_FROM_STRING } from '@/utils/rest-api-stats.ts'
-import type { XapiHostStats, XapiVmStats } from '@vates/types/common'
+import type { XapiHostStats, XapiPoolStats, XapiVmStats } from '@vates/types/common'
 import { useFetch, useIntervalFn } from '@vueuse/core'
 import type { MaybeRefOrGetter } from '@vueuse/shared'
-import { toValue, type ShallowRef } from 'vue'
+import { type ShallowRef, toValue } from 'vue'
 
 type StatsByObjectType = {
   host: { stats: XapiHostStats; id: XoHost['id'] }
   vm: { stats: XapiVmStats; id: XoVm['id'] }
-  // @TODO: Add pool when implemented in the API
-  // pool: { stats: XapiPoolStats; id: XoPool['id'] }
+  pool: { stats: XapiPoolStats; id: XoPool['id'] }
 }
 
 export function useFetchStats<T extends keyof StatsByObjectType>(
