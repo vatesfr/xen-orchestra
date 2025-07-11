@@ -42,5 +42,12 @@ const slots = defineSlots<{
     align-items: center;
     gap: 2.4rem;
   }
+
+  /* TODO remove this when we have a better solution for the mobile view (waiting for the dropdown component) */
+  @media (max-width: 1440px) {
+    .actions {
+      display: block;
+    }
+  }
 }
 </style>
