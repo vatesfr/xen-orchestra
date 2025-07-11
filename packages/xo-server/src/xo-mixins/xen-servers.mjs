@@ -318,7 +318,7 @@ export default class XenServers {
     const server = await this.getXenServerWithCredentials(id)
     const serverStatus = this._getXenServerStatus(id)
     if (serverStatus !== 'disconnected') {
-      /* throw */ incorrectState({
+      throw incorrectState({
         actual: serverStatus,
         expected: 'disconnected',
         object: server.id,
@@ -538,7 +538,7 @@ export default class XenServers {
     const server = await this.getXenServer(id)
     const status = this._getXenServerStatus(id)
     if (status === 'disconnected' && !server.enabled) {
-      /* throw */ incorrectState({
+      throw incorrectState({
         actual: status,
         expected: ['connected', 'connecting'],
         object: id,

@@ -70,7 +70,9 @@ export default class MultiNbdClient {
       await _connect()
     }
     if (this.#clients.length === 0) {
-      throw new Error(`Fail to connect to any Nbd client`)
+      const error = new Error(`Fail to connect to any Nbd client`, { nbdInfos: this.#settings })
+      error.code = 'NO_NBD_AVAILABLE'
+      throw error
     }
     if (this.#clients.length < this.#nbdConcurrency) {
       warn(
