@@ -334,7 +334,7 @@ export function useFormSelect<
 
   const { items: options } = useSubset(option => option.properties.matching)
 
-  const { items: selectedOptions } = useFlag('selected')
+  const { items: selectedOptions, toggleAll: toggleSelectAll } = useFlag('selected')
 
   const selectedOption = computed(() => selectedOptions.value[0])
 
@@ -356,9 +356,13 @@ export function useFormSelect<
     watch(
       model,
       modelValue => {
+        toggleSelectAll(false)
+
         if (isMultiple.value) {
           allOptions.value.forEach(option => {
-            option.toggleFlag('selected', (modelValue as $TValue[]).includes(option.properties.value as $TValue))
+            if ((modelValue as $TValue[]).includes(toRaw(option.properties.value) as $TValue)) {
+              option.toggleFlag('selected', true)
+            }
           })
         } else {
           allOptions.value
