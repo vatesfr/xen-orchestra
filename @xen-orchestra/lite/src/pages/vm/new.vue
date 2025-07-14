@@ -236,7 +236,7 @@
                 <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
                   <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
                     <td>
-                      <SrSelect v-model="vdi.SR" disabled />
+                      <SrSelect v-model="vdi.SR" />
                     </td>
                     <td>
                       <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
@@ -965,7 +965,7 @@ const createVm = async () => {
 
 // TEMPLATE SELECTOR
 
-const { id: templateSelectId, selectedValue: selectedVmTemplate } = useFormSelect(templates, {
+const { id: templateSelectId } = useFormSelect(templates, {
   model: toRef(vmState, 'new_vm_template'),
   loading: logicNot(areTemplatesReady),
   searchable: true,
@@ -975,80 +975,93 @@ const { id: templateSelectId, selectedValue: selectedVmTemplate } = useFormSelec
   },
 })
 
-watch(selectedVmTemplate, template => {
-  if (!template) {
-    return
+watch(
+  () => vmState.new_vm_template?.$ref,
+  () => {
+    const template = vmState.new_vm_template
+
+    if (!template) {
+      return
+    }
+
+    const {
+      name_label,
+      name_description,
+      HVM_boot_params,
+      VCPUs_at_startup,
+      memory_dynamic_max,
+      other_config,
+      platform,
+      tags,
+      affinity,
+    } = template
+
+    Object.assign(vmState, {
+      name: name_label,
+      description: other_config.default_template === 'true' ? '' : name_description,
+      boot_firmware: HVM_boot_params.firmware,
+      vCPU: VCPUs_at_startup,
+      ram: memory_dynamic_max,
+      vdis: getVdis(template),
+      tags,
+      topology: platform['cores-per-socket'] ?? null,
+      affinity_host: affinity,
+      existingVdis: getExistingVdis(template),
+      networkInterfaces: getExistingInterface(template),
+    })
+  }
+)
+
+const vdis = computed(() => {
+  const vdis = new Map<XenApiVdi['$ref'], { vdi: XenApiVdi; srName: string }>()
+
+  for (const [srName, srVdis] of Object.entries(vdiIsosBySrName.value)) {
+    srVdis.forEach(vdi => {
+      vdis.set(vdi.$ref, {
+        vdi,
+        srName,
+      })
+    })
   }
 
-  const {
-    name_label,
-    name_description,
-    HVM_boot_params,
-    VCPUs_at_startup,
-    memory_dynamic_max,
-    other_config,
-    platform,
-    tags,
-    affinity,
-  } = template
-
-  Object.assign(vmState, {
-    name: name_label,
-    description: other_config.default_template === 'true' ? '' : name_description,
-    boot_firmware: HVM_boot_params.firmware ?? '',
-    vCPU: VCPUs_at_startup,
-    ram: memory_dynamic_max,
-    vdis: getVdis(template),
-    tags,
-    topology: platform['cores-per-socket'] ?? null,
-    affinity_host: affinity,
-    existingVdis: getExistingVdis(template),
-    networkInterfaces: getExistingInterface(template),
-  })
+  return vdis
 })
 
 // VDI ISOS SELECTOR
 
-const selectedVdi = toRef(vmState, 'selectedVdi')
-
-const vdiIsos = computed(() =>
-  Object.entries(vdiIsosBySrName.value).flatMap(([srName, vdis]) =>
-    vdis.map((vdi: XenApiVdi) => ({
-      vdi,
-      label: `[${srName}] ${vdi.name_label}`,
-    }))
-  )
+const { id: vdiIsoSelectId } = useFormSelect(
+  computed(() => Array.from(vdis.value.values()).map(v => v.vdi)),
+  {
+    model: toRef(vmState, 'selectedVdi'),
+    searchable: true,
+    option: {
+      id: '$ref',
+      value: '$ref',
+      label: vdi => `[${vdis.value.get(vdi.$ref)!.srName}] ${vdi.name_label}`,
+    },
+  }
 )
-
-const { id: vdiIsoSelectId } = useFormSelect(vdiIsos, {
-  model: selectedVdi,
-  searchable: true,
-  option: {
-    id: source => source.vdi.$ref,
-    value: source => source.vdi.$ref,
-  },
-})
 
 // BOOT FIRMWARE SELECTOR
 
 const { id: bootFirmwareSelectId } = useFormSelect(bootFirmwares, {
   model: toRef(vmState, 'boot_firmware'),
   option: {
-    id: boot => boot ?? '-',
-    label: boot => boot || t('bios-default'),
+    id: firmware => firmware ?? '',
+    label: firmware => firmware ?? t('bios-default'),
   },
 })
 
 // TOPOLOGY SELECTOR
-// t('default-behavior')
+
 const { id: topologySelectId } = useFormSelect(coresPerSocket, {
   model: toRef(vmState, 'topology'),
   emptyOption: {
     label: t('default-behavior'),
-    value: undefined,
+    value: null,
   },
   option: {
-    id: 'value',
+    id: 'label',
     value: 'value',
   },
 })
