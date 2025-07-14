@@ -1012,6 +1012,8 @@ watch(
   }
 )
 
+// VDI ISOS SELECTOR
+
 const vdis = computed(() => {
   const vdis = new Map<XenApiVdi['$ref'], { vdi: XenApiVdi; srName: string }>()
 
@@ -1026,8 +1028,6 @@ const vdis = computed(() => {
 
   return vdis
 })
-
-// VDI ISOS SELECTOR
 
 const { id: vdiIsoSelectId } = useFormSelect(
   computed(() => Array.from(vdis.value.values()).map(v => v.vdi)),
