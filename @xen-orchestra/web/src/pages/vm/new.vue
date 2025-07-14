@@ -830,76 +830,82 @@ const { id: poolSelectId } = useFormSelect(pools, {
 
 // TEMPLATE SELECTOR
 
-const { id: templateSelectId, selectedValue: selectedTemplate } = useFormSelect(vmsTemplates, {
+const { id: templateSelectId } = useFormSelect(vmsTemplates, {
   searchable: true,
   required: true,
   model: toRef(vmState, 'new_vm_template'),
   option: {
+    id: 'uuid',
     label: 'name_label',
   },
 })
 
-watch(selectedTemplate, template => {
-  if (!template) {
-    return
-  }
+watch(
+  () => vmState.new_vm_template?.uuid,
+  () => {
+    const template = vmState.new_vm_template
 
-  const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
-
-  Object.assign(vmState, {
-    isDiskTemplateSelected: isDiskTemplate,
-    vm_name: name_label,
-    vm_description: isDefaultTemplate ? '' : name_description,
-    ram: memory.dynamic[1],
-    tags,
-    vCPU: CPUs.number,
-    vdis: getVmTemplateVdis(template),
-    existingVdis: getExistingVdis(template),
-    vifs: getExistingVifs(template),
-    selectedVdi: undefined,
-    installMode: undefined,
-  })
-})
-
-// VDI SELECTOR
-
-const filteredVDIs = computed(() => {
-  const result: Record<string, XoVdi[]> = {}
-
-  for (const [key, vdis] of Object.entries(vdiIsosBySrName.value)) {
-    const filteredList = vdis.filter(vdi => vdi.$pool === vmState.pool?.id)
-    if (filteredList.length > 0) {
-      result[key] = filteredList
+    if (!template) {
+      return
     }
+
+    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
+
+    Object.assign(vmState, {
+      isDiskTemplateSelected: isDiskTemplate,
+      vm_name: name_label,
+      vm_description: isDefaultTemplate ? '' : name_description,
+      ram: memory.dynamic[1],
+      tags,
+      vCPU: CPUs.number,
+      vdis: getVmTemplateVdis(template),
+      existingVdis: getExistingVdis(template),
+      vifs: getExistingVifs(template),
+      selectedVdi: undefined,
+      installMode: undefined,
+    })
   }
-
-  return result
-})
-
-const filteredVdisArray = computed(() =>
-  Object.entries(filteredVDIs.value).flatMap(([srName, vdis]) => {
-    return vdis.map(vdi => ({
-      id: vdi.id,
-      label: `[${srName}] ${vdi.name_label}`,
-    }))
-  })
 )
 
-const { id: vdiSelectId } = useFormSelect(filteredVdisArray, {
-  searchable: true,
-  model: toRef(vmState, 'selectedVdi'),
-  option: {
-    value: 'id',
-  },
+// VDI ISOS SELECTOR
+
+const vdis = computed(() => {
+  const vdis = new Map<XoVdi['id'], { vdi: XoVdi; srName: string }>()
+
+  for (const [srName, srVdis] of Object.entries(vdiIsosBySrName.value)) {
+    srVdis
+      .filter(vdi => vdi.$pool === vmState.pool?.id)
+      .forEach(vdi => {
+        vdis.set(vdi.id, {
+          vdi,
+          srName,
+        })
+      })
+  }
+
+  return vdis
 })
+
+const { id: vdiSelectId } = useFormSelect(
+  computed(() => Array.from(vdis.value.values()).map(v => v.vdi)),
+  {
+    model: toRef(vmState, 'selectedVdi'),
+    searchable: true,
+    option: {
+      value: 'id',
+      label: vdi => `[${vdis.value.get(vdi.id)!.srName}] ${vdi.name_label}`,
+    },
+  }
+)
 
 // AFFINITY HOST SELECTOR
 
 const { id: affinityHostSelectId } = useFormSelect(hosts, {
   model: toRef(vmState, 'affinity_host'),
+  searchable: true,
   emptyOption: {
-    value: undefined,
     label: t('select-host'),
+    value: undefined,
   },
   option: {
     label: 'name_label',
@@ -908,18 +914,18 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
 })
 
 watch(
-  () => vmState.pool,
-  (newPool, oldPool) => {
-    if (newPool !== oldPool) {
-      vmState.new_vm_template = undefined
-    }
+  () => vmState.pool?.id,
+  () => {
+    vmState.new_vm_template = undefined
   }
 )
+
 watch(
   pools,
   newPools => {
     const targetPool = newPools.find(pool => pool.id === poolId.value)
-    if (targetPool) {
+
+    if (targetPool?.id !== vmState.pool?.id) {
       vmState.pool = targetPool
     }
   },
