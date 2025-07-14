@@ -50,6 +50,7 @@ export type FormSelectController = Reactive<{
   isDisabled: ComputedRef<boolean>
   isMultiple: ComputedRef<boolean>
   isNavigatingWithKeyboard: Ref<boolean>
+  isOpen: Ref<boolean>
   closeDropdown(keepFocus: boolean): void
   focusSearchOrTrigger(): void
 }>
