@@ -1010,7 +1010,8 @@ watch(
   }
 )
 
-// VDI ISOS SELECTOR
+const vdis = computed(() => {
+  const vdis = new Map<XenApiVdi['$ref'], { vdi: XenApiVdi; srName: string }>()
 
 const vdis = computed(() => {
   const vdis = new Map<XenApiVdi['$ref'], { vdi: XenApiVdi; srName: string }>()
