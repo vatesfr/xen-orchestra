@@ -7,7 +7,7 @@ import {
 } from '@core/packages/collection'
 import type { EmptyObject, MaybeArray } from '@core/types/utility.type.ts'
 import { toArray } from '@core/utils/to-array.utils.ts'
-import { computed, type ComputedRef, type MaybeRefOrGetter, provide, ref, type Ref, toValue, watch } from 'vue'
+import { computed, type ComputedRef, type MaybeRefOrGetter, provide, ref, type Ref, toRaw, toValue, watch } from 'vue'
 import { guessLabel } from './guess-label.ts'
 import { guessValue } from './guess-value.ts'
 import { normalizeSearchTerm } from './normalize-search-term.ts'
@@ -361,7 +361,9 @@ export function useFormSelect<
             option.toggleFlag('selected', (modelValue as $TValue[]).includes(option.properties.value as $TValue))
           })
         } else {
-          allOptions.value.find(option => option.properties.value === modelValue)?.toggleFlag('selected', true)
+          allOptions.value
+            .find(option => toRaw(option.properties.value) === toRaw(modelValue))
+            ?.toggleFlag('selected', true)
         }
       },
       { immediate: true }
