@@ -852,9 +852,9 @@ watch(
     const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
 
     Object.assign(vmState, {
-      isDiskTemplateSelected: isDiskTemplate,
-      vm_name: name_label,
-      vm_description: isDefaultTemplate ? '' : name_description,
+      isDiskTemplateSelected: isDiskTemplate.value ?? false,
+      name: name_label,
+      description: isDefaultTemplate ? '' : name_description,
       ram: memory.dynamic[1],
       tags,
       vCPU: CPUs.number,
@@ -863,7 +863,7 @@ watch(
       vifs: getExistingVifs(template),
       selectedVdi: undefined,
       installMode: undefined,
-    })
+    } satisfies Partial<VmState>)
   }
 )
 
