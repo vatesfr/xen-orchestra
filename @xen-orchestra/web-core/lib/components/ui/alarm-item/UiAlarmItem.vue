@@ -4,7 +4,7 @@
     <div class="content">
       <div class="title-progress text-ellipsis">
         <UiButtonIcon
-          v-if="alarm.description"
+          v-if="description"
           :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
           size="small"
           accent="brand"
@@ -12,10 +12,10 @@
           @click="toggleDescription()"
         />
         <span v-tooltip class="typo-body-regular text-ellipsis">
-          {{ alarm.label }}
+          {{ label }}
         </span>
         <span class="typo-body-regular value">
-          {{ alarm.value }}
+          {{ value }}
         </span>
       </div>
       <div class="typo-body-regular-small info">
@@ -32,7 +32,7 @@
       </div>
     </div>
     <div v-if="isDescriptionVisible" class="description">
-      {{ alarm.description }}
+      {{ description }}
     </div>
   </li>
 </template>
@@ -46,30 +46,23 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 
-type Alarm = {
-  label: string
-  value: string
+const { date, size } = defineProps<{
   date: Date | number | string
-  description?: string
-}
-
-const { alarm, size } = defineProps<{
-  alarm: Alarm
+  label: string
   size: 'small' | 'large'
+  value: string
+  description?: string
 }>()
 
 const slots = defineSlots<{
   link?(): any
 }>()
 
-const timeAgo = useTimeAgo(alarm.date)
+const timeAgo = useTimeAgo(() => date)
+
 const { t } = useI18n()
 
-const className = computed(() =>
-  toVariants({
-    size,
-  })
-)
+const className = computed(() => toVariants({ size }))
 
 const [isDescriptionVisible, toggleDescription] = useToggle(false)
 </script>
