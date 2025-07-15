@@ -9,7 +9,8 @@
       <span v-for="step in steps" :key="step">{{ n(step, 'percent') }}</span>
     </div>
     <VtsLegendList class="legend">
-      <UiLegend :accent :value="Math.round(percentage)" unit="%">{{ legend }}</UiLegend>
+      <UiLegend v-if="percent" :accent :value="Math.round(percent)" unit="%">{{ legend }}</UiLegend>
+      <UiLegend v-else :accent :value="Math.round(percentage)" unit="%">{{ legend }}</UiLegend>
     </VtsLegendList>
   </div>
 </template>
@@ -30,6 +31,7 @@ const {
   legend: string
   value: number
   max?: number
+  percent?: number
   showSteps?: boolean
 }>()
 
