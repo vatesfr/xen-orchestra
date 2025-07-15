@@ -45,7 +45,7 @@ import {
   coalesceLeafVm,
   pauseVm,
   recoveryStartVm,
-  removeAcl,
+  removeAcls,
   restartVm,
   shareVm,
   startVm,
@@ -460,11 +460,13 @@ const Acls = decorate([
       removeAcl:
         (_, { currentTarget: { dataset } }) =>
         (_, { vm: object }) =>
-          removeAcl({
-            action: dataset.action,
-            object,
-            subject: dataset.subject,
-          }),
+          removeAcls([
+            {
+              action: dataset.action,
+              object,
+              subject: dataset.subject,
+            },
+          ]),
     },
     computed: {
       rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),

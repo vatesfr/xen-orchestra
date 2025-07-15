@@ -65,12 +65,12 @@ const networkUsage = computed<LinearChartData>(() => {
     })
 
     return {
-      label: type === 'rx' ? t('network-upload') : t('network-download'),
+      label: type === 'rx' ? t('network-download') : t('network-upload'),
       data,
     }
   }
 
-  return [addNetworkData('rx'), addNetworkData('tx')]
+  return [addNetworkData('tx'), addNetworkData('rx')]
 })
 
 const maxValue = computed(() => {
