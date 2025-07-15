@@ -42,6 +42,15 @@ export default decorate([
           [name]: value,
         })
       },
+      onChangeNameserver(__, ev) {
+        const { value } = ev.target
+        const { onChange, value: prevValue } = this.props
+        const nameservers = value.split(',').map(nameserver => nameserver.trim())
+        onChange({
+          ...prevValue,
+          nameservers,
+        })
+      },
       toggleStaticIpAddress(__, ev) {
         const { name } = ev.target
         const { onChange, value: prevValue } = this.props
@@ -96,6 +105,30 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
+        <label>{_('recipeVMxoUser')}</label>
+        <input
+          className='form-control'
+          name='xoUsername'
+          onChange={effects.onChangeValue}
+          placeholder={formatMessage(messages.recipeVMxoUser)}
+          required
+          type='text'
+          value={value.xoUsername}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('recipeVMxoPassword')}</label>
+        <input
+          className='form-control'
+          name='xoPassword'
+          onChange={effects.onChangeValue}
+          placeholder={formatMessage(messages.recipeVMxoPassword)}
+          required
+          type='password'
+          value={value.xoPassword}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
         <label>
           <input
             className='mt-1'
@@ -108,6 +141,44 @@ export default decorate([
           {_('recipeStaticIpAddresses')}
         </label>
       </FormGrid.Row>
+      {value.staticIpAddress && [
+        <FormGrid.Row key='vmIpAddrRow'>
+          <label>{_('recipeVMIpAddress')}</label>
+          <input
+            className='form-control'
+            name='vmIpAddress'
+            onChange={effects.onChangeValue}
+            placeholder={formatMessage(messages.recipeVMIpAddress)}
+            required
+            type='text'
+            value={value.vmIpAddress}
+          />
+        </FormGrid.Row>,
+        <FormGrid.Row key='gatewayRow'>
+          <label>{_('recipeGatewayIpAddress')}</label>
+          <input
+            className='form-control'
+            name='gatewayIpAddress'
+            onChange={effects.onChangeValue}
+            placeholder={formatMessage(messages.recipeGatewayIpAddress)}
+            required
+            type='text'
+            value={value.gatewayIpAddress}
+          />
+        </FormGrid.Row>,
+        <FormGrid.Row key='nameserverRow'>
+          <label>{_('recipeNameserverAddresses')}</label>
+          <input
+            className='form-control'
+            name='nameservers'
+            onChange={effects.onChangeNameserver}
+            placeholder={formatMessage(messages.recipeNameserverAddressesExample)}
+            required
+            type='text'
+            value={value.nameservers}
+          />
+        </FormGrid.Row>,
+      ]}
       <FormGrid.Row>
         <label>{_('recipeSshKeyLabel')}</label>
         <input
