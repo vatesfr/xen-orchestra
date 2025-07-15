@@ -2,7 +2,7 @@
 <template>
   <li class="ui-alarm-item" :class="className">
     <div class="content">
-      <div class="title-progress text-ellipsis">
+      <div class="label-value typo-body-regular text-ellipsis">
         <UiButtonIcon
           v-if="description"
           :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
@@ -11,24 +11,22 @@
           :target-scale="2"
           @click="toggleDescription()"
         />
-        <span v-tooltip class="typo-body-regular text-ellipsis">
+        <span v-tooltip class="text-ellipsis">
           {{ label }}
         </span>
-        <span class="typo-body-regular value">
+        <span class="value">
           {{ value }}
         </span>
       </div>
       <div class="typo-body-regular-small info">
-        <div v-if="slots.link" class="object-link">
+        <div v-if="slots.link" class="link-container">
           {{ t('on-object') }}
-          <span class="descriptor">
+          <span class="object-link">
             <slot name="link" />
           </span>
           <span class="interpunct" />
         </div>
-        <span class="typo-body-regular-small">
-          {{ timeAgo }}
-        </span>
+        <span>{{ timeAgo }}</span>
       </div>
     </div>
     <div v-if="isDescriptionVisible" class="description">
@@ -38,13 +36,14 @@
 </template>
 
 <script lang="ts" setup>
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { toVariants } from '@core/utils/to-variants.util'
 import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
-import { useTimeAgo, useToggle } from '@vueuse/core'
+import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 
 const { date, size } = defineProps<{
   date: Date | number | string
@@ -85,13 +84,13 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
     gap: 0.6rem;
   }
 
-  .title-progress {
+  .label-value {
     gap: 1.6rem;
   }
 
   .info,
-  .object-link,
-  .title-progress {
+  .link-container,
+  .label-value {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -102,7 +101,7 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
   }
 
   .info,
-  .object-link {
+  .link-container {
     gap: 0.8rem;
     white-space: nowrap;
   }
@@ -111,7 +110,7 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
     content: '•';
   }
 
-  .info > :not(.descriptor),
+  .info > :not(.object-link),
   .description {
     color: var(--color-neutral-txt-secondary);
   }
