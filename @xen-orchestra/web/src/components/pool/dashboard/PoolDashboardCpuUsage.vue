@@ -9,28 +9,28 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    {{ areHostsCpuUsageReady }}
+    <VtsLoadingHero v-if="!areHostsCpuUsageReady" type="card" />
     <template v-else>
-      <HostsCpuUsage :hosts :vms />
+      <HostsCpuUsage :hosts="pool?.hosts" />
     </template>
     <UiCardSubtitle>
-      {{ t('vms', vms.length) }}
+      {{ t('vms', 2) }}
       <template #info>
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    {{ areVmsCpuUsageReady }}
+    <VtsLoadingHero v-if="!areVmsCpuUsageReady" type="card" />
     <template v-else>
-      <VmsCpuUsage :vms />
+      <VmsCpuUsage :vms="pool?.vms" />
     </template>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
-import type { XoPool } from '@/types/xo/pool.type'
+import { usePoolDashboardStore } from '@/stores/xo-rest-api/pool-dashboard.store.ts'
+import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
@@ -40,21 +40,14 @@ import { useI18n } from 'vue-i18n'
 import HostsCpuUsage from './cpuUsage/HostsCpuUsage.vue'
 import VmsCpuUsage from './cpuUsage/VmsCpuUsage.vue'
 
-const { pool } = defineProps<{
-  pool: XoPool
+defineProps<{
+  pool: XoPoolDashboard | undefined
 }>()
 
+const { record } = usePoolDashboardStore().subscribe()
+
+const areHostsCpuUsageReady = computed(() => record.value?.hosts?.topFiveUsage?.cpu !== undefined)
+const areVmsCpuUsageReady = computed(() => record.value?.vms?.topFiveUsage?.cpu !== undefined)
+
 const { t } = useI18n()
-
-const { isReady: isPoolReady } = usePoolStore().subscribe()
-const { isReady: isHostReady } = useHostStore().subscribe()
-const { vmsByHost, isReady: areVmsReady, hostLessVmsByPool } = useVmStore().subscribe()
-const { hostsByPool, isReady: areHostReady } = useHostStore().subscribe()
-
-const isReady = computed(() => isPoolReady.value && areHostReady.value && isHostReady.value && areVmsReady.value)
-const hosts = computed(() => hostsByPool.value.get(pool.id) ?? [])
-const vms = computed(() => [
-  ...hosts.value.flatMap(host => vmsByHost.value.get(host.id) ?? []),
-  ...(hostLessVmsByPool.value.get(pool.id) ?? []),
-])
 </script>

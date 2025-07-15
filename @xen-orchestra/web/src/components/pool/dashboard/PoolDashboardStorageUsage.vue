@@ -6,27 +6,28 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!areStorageUsageReady" type="card" />
     <template v-else>
       <UiProgressBar
-        v-for="storageUsage in storageUsages.srs.splice(0, 5)"
-        :key="storageUsage.id"
+        v-for="sr in pool?.srs.topFiveUsage"
+        :key="sr.id"
         class="progressBar"
-        :value="storageUsage.used?.value ?? 0"
-        :max="storageUsage.total?.value"
-        :legend="storageUsage.name"
+        :value="sr.physical_usage"
+        :max="sr.size"
+        :legend="sr.name_label"
+        :accent="sr.physical_usage > sr.size ? 'danger' : 'success'"
       />
       <div class="total">
         <UiCardNumbers
           :label="t('total-used')"
-          :unit="storageUsages.storageUsageTotal?.prefix"
-          :value="storageUsages.storageUsageTotal?.value"
+          :value="formattedTotalUsage.value"
+          :unit="formattedTotalUsage.prefix"
           size="medium"
         />
         <UiCardNumbers
           :label="t('total-free')"
-          :unit="storageUsages.storageFreeTotal?.prefix"
-          :value="storageUsages.storageFreeTotal?.value"
+          :value="formattedTotalSize.value"
+          :unit="formattedTotalSize.prefix"
           size="medium"
         />
       </div>
@@ -35,57 +36,35 @@
 </template>
 
 <script lang="ts" setup>
-import { useSrStore } from '@/stores/xo-rest-api/sr.store'
+import { usePoolDashboardStore } from '@/stores/xo-rest-api/pool-dashboard.store.ts'
+import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
-import { formatSizeRaw } from '@core/utils/size.util'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
+import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { poolId } = defineProps<{
-  poolId: string
+const { pool } = defineProps<{
+  pool: XoPoolDashboard | undefined
 }>()
 
 const { t } = useI18n()
 
-const { records: srs, isReady } = useSrStore().subscribe()
+const { record } = usePoolDashboardStore().subscribe()
 
-const filteredSrs = computed(() => {
-  return srs.value.filter(sr => sr.$pool === poolId)
-})
+const areStorageUsageReady = computed(() => record.value?.srs.topFiveUsage !== undefined)
 
-const storageUsages = computed(() => {
-  let storageUsageTotal = 0
-  let storageFreeTotal = 0
-  return {
-    srs: filteredSrs.value
-      .map(sr => {
-        const storageFree = sr.size - sr.physical_usage
+const topFiveUsage = computed(() => pool?.srs.topFiveUsage ?? [])
 
-        storageUsageTotal += sr.physical_usage
-        storageFreeTotal += storageFree
+const totalUsage = useArrayReduce(topFiveUsage, (sum, sr) => sum + sr.physical_usage, 0)
+const totalSize = useArrayReduce(topFiveUsage, (sum, sr) => sum + sr.size, 0)
 
-        return {
-          total: formatSizeRaw(sr.size, 0),
-          used: formatSizeRaw(sr.physical_usage, 0),
-          free: formatSizeRaw(storageFree, 0),
-          id: sr.id,
-          name: sr.name_label,
-        }
-      })
-      .sort(
-        (a, b) =>
-          // reproduce calcul in progress bar.
-          (b.used?.value ?? 0) / ((b.total?.value ?? 0) > 1 ? b.total.value : 1) -
-          (a.used?.value ?? 0) / ((a.total?.value ?? 0) > 1 ? a.total.value : 1)
-      ),
-    storageUsageTotal: formatSizeRaw(storageUsageTotal, 0),
-    storageFreeTotal: formatSizeRaw(storageFreeTotal, 0),
-  }
-})
+const formattedTotalUsage = computed(() => formatSizeRaw(totalUsage.value, 0))
+const formattedTotalSize = computed(() => formatSizeRaw(totalSize.value, 0))
 </script>
 
 <style scoped lang="postcss">

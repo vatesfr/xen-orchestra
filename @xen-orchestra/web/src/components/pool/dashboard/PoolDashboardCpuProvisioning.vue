@@ -1,22 +1,24 @@
 <template>
   <UiCard class="host-dashboard-cpu-provisioning">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!areCpuProvisioningReady" type="card" />
     <template v-else>
-      <UiProgressBar :max="pool.cpus.cores" :legend="t('vcpus')" :value="cpuProvisioning.used" />
+      <UiProgressBar
+        :max="pool?.cpuProvisioning.total"
+        :legend="t('vcpus')"
+        :value="pool?.cpuProvisioning.assigned ?? 0"
+      />
       <div class="total">
-        <UiCardNumbers :label="t('vcpus-used')" :value="cpuProvisioning.used" size="medium" />
-        <UiCardNumbers :label="t('total-cpus')" :value="cpuProvisioning.total" size="medium" />
+        <UiCardNumbers :label="t('vcpus-used')" :value="pool?.cpuProvisioning.assigned" size="medium" />
+        <UiCardNumbers :label="t('total-cpus')" :value="pool?.cpuProvisioning.total" size="medium" />
       </div>
     </template>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
-import type { XoPool } from '@/types/xo/pool.type'
+import { usePoolDashboardStore } from '@/stores/xo-rest-api/pool-dashboard.store.ts'
+import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
@@ -26,34 +28,14 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
-  pool: XoPool
+  pool: XoPoolDashboard | undefined
 }>()
 
+const { record } = usePoolDashboardStore().subscribe()
+
+const areCpuProvisioningReady = computed(() => record.value?.cpuProvisioning !== undefined)
+
 const { t } = useI18n()
-
-const { isReady: isPoolReady } = usePoolStore().subscribe()
-const { isReady: isHostReady } = useHostStore().subscribe()
-const { vmsByHost, isReady: areVmsReady, hostLessVmsByPool } = useVmStore().subscribe()
-const { hostsByPool, isReady: areHostReady } = useHostStore().subscribe()
-
-const isReady = computed(() => isPoolReady.value && areHostReady.value && isHostReady.value && areVmsReady.value)
-
-const hosts = computed(() => hostsByPool.value.get(pool.id) ?? [])
-
-const vms = computed(() => [
-  ...hosts.value.flatMap(host => vmsByHost.value.get(host.id) ?? []),
-  ...(hostLessVmsByPool.value.get(pool.id) ?? []),
-])
-
-const cpuProvisioning = computed(() => {
-  const totalHostCpus = pool.cpus.cores
-  const totalVcpus = vms.value.reduce((acc, vm) => acc + (vm.CPUs?.number ?? 0), 0)
-
-  return {
-    total: totalHostCpus,
-    used: totalVcpus,
-  }
-})
 </script>
 
 <style lang="postcss" scoped>
