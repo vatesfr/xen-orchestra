@@ -6,6 +6,7 @@ import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPci } from '@/types/xo/pci.type'
 import type { XoPgpu } from '@/types/xo/pgpu.type'
 import type { XoPif } from '@/types/xo/pif.type'
+import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoServer } from '@/types/xo/server.type'
 import type { XoSr } from '@/types/xo/sr.type'
@@ -26,10 +27,18 @@ export const xoApiDefinition = {
     stream: false,
   },
   dashboard: {
-    type: 'single',
-    path: 'dashboard',
     fields: '*',
     handler: (record: XoDashboard) => record,
+    path: 'dashboard',
+    stream: true,
+    type: 'single',
+  },
+  'pool-dashboard': {
+    type: 'single',
+    // todo: remove the hardcoded pool ID
+    path: 'pools/b7569d99-30f8-178a-7d94-801de3e29b5b/dashboard',
+    fields: '*',
+    handler: (record: XoPoolDashboard) => record,
     stream: true,
   },
   host: {
@@ -135,7 +144,7 @@ export const xoApiDefinition = {
     handler: (record: XoVmController) => record,
     stream: false,
   },
-  vm_template: {
+  'vm-template': {
     type: 'collection',
     path: 'vm-templates',
     fields:

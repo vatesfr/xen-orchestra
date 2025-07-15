@@ -1,47 +1,19 @@
 <template>
-  <VtsLoadingHero v-if="!isReady" type="card" />
-  <template v-else>
-    <UiProgressBar
-      v-for="cpuUsage in cpuUsages.vm.splice(0, 5)"
-      :key="cpuUsage.id"
-      class="progressBar"
-      :value="cpuUsage.used ?? 0"
-      :max="cpuUsage.total"
-      :legend="cpuUsage.name"
-    />
-  </template>
+  <UiProgressBar
+    v-for="cpu in vms?.topFiveUsage?.cpu"
+    :key="cpu.id"
+    class="progressBar"
+    :value="cpu.percent"
+    :percent="cpu.percent"
+    :legend="cpu.name_label"
+  />
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
-import type { XoVm } from '@/types/xo/vm.type.ts'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
-import { computed } from 'vue'
 
-const { vms } = defineProps<{
-  vms: XoVm[]
+defineProps<{
+  vms: XoPoolDashboard['vms'] | undefined
 }>()
-
-const { isReady } = useHostStore().subscribe()
-
-const cpuUsages = computed(() => {
-  return {
-    vm: vms
-      .map(vm => {
-        return {
-          total: vm.CPUs.max,
-          used: vm.CPUs.number,
-          free: vm.CPUs.max - vm.CPUs.number,
-          id: vm.id,
-          name: vm.name_label,
-        }
-      })
-      .sort(
-        (a, b) =>
-          // reproduce calcul in progress bar.
-          b.used / (b.total > 1 ? b.total : 1) - a.used / (a.total > 1 ? a.total : 1)
-      ),
-  }
-})
 </script>
