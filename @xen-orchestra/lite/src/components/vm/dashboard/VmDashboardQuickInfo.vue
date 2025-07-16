@@ -58,7 +58,7 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import { useTimeAgo } from '@core/composables/local-time-ago.composable.ts'
+import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util.ts'
