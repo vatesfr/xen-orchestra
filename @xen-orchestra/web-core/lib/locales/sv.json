@@ -320,7 +320,7 @@
   "n-hosts": "1 host | {n} hostar",
   "n-hosts-awaiting-patch": "{n} hosten väntar på denna uppdatering | {n} hostarna väntar på denna uppdatering",
   "n-missing": "{n} saknas",
-  "n-percent": "{n} %",
+  "n-percent": "{n}%",
   "n-vms": "1 VM | {n} VM:ar",
   "name": "Namn",
   "nested-virtualization": "Nästlad virtualisering",

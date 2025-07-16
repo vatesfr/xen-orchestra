@@ -264,7 +264,7 @@
   "n-gb-left": "{n} GB rimanenti",
   "n-gb-required": "{n} GB richiesti",
   "n-hosts": "1 host | {n} host",
-  "n-percent": "{n} %",
+  "n-percent": "{n}%",
   "n-vms": "1 VM | {n} VM",
   "name": "Nome",
   "netmask": "Netmask",

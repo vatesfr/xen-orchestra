@@ -14,7 +14,7 @@
         <span v-tooltip class="text-ellipsis">
           {{ label }}
         </span>
-        <span class="percent"> {{ t('n-percent', percent) }} </span>
+        <span class="percent">{{ t('n-percent', percent) }}</span>
       </div>
       <div class="typo-body-regular-small info">
         <div v-if="slots.link" class="link-container">

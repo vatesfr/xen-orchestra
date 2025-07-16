@@ -293,7 +293,7 @@
   "n-hosts": "1 Host | {n} Hosts",
   "n-hosts-awaiting-patch": "Der Host {n} benötigt dieses Patch | Die Hosts {n} benötigen dieses Patch",
   "n-missing": "{n} fehlen",
-  "n-percent": "{n} %",
+  "n-percent": "{n}%",
   "n-vms": "1 VM | {n} VMs",
   "name": "Name",
   "netmask": "Netzmaske",
