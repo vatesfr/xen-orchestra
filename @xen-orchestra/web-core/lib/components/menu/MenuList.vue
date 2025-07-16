@@ -86,7 +86,6 @@ const open = (event: MouseEvent) => {
 
 <style lang="postcss" scoped>
 .menu-list {
-  z-index: 1;
   display: inline-flex;
   flex-direction: column;
   padding: 0.4rem;

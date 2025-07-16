@@ -6,7 +6,7 @@
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
       </template>
     </UiCardTitle>
-    <VmsActionsBar v-if="uiStore.isDesktop" :selected-refs="selectedVmsRefs" />
+    <VmsActionsBar v-if="!uiStore.isMobile" :selected-refs="selectedVmsRefs" />
     <CollectionTable
       v-model="selectedVmsRefs"
       :available-filters="filters"

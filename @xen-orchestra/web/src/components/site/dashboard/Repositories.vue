@@ -1,5 +1,5 @@
 <template>
-  <UiCard :horizontal="uiStore.isDesktop">
+  <UiCard :horizontal="!uiStore.isMobile">
     <BackupRepository />
     <VtsDivider type="stretch" />
     <StorageRepository />

@@ -17,7 +17,7 @@
     <slot />
     <div class="right">
       <PoolOverrideWarning as-tooltip />
-      <XoaButton v-if="uiStore.isDesktop" />
+      <XoaButton v-if="!uiStore.isMobile" />
       <AccountMenu />
     </div>
   </header>

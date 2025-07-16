@@ -1,8 +1,8 @@
 <template>
   <MenuList
     :disabled="selectedRefs.length === 0"
-    :horizontal="uiStore.isDesktop"
-    :no-border="uiStore.isDesktop"
+    :horizontal="!uiStore.isMobile"
+    :no-border="!uiStore.isMobile"
     class="vms-actions-bar"
     placement="bottom-end"
   >
