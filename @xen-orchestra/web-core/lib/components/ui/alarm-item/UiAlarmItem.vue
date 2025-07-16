@@ -2,7 +2,7 @@
 <template>
   <li class="ui-alarm-item" :class="className">
     <div class="content">
-      <div class="label-progress typo-body-regular text-ellipsis">
+      <div class="label-percent typo-body-regular text-ellipsis">
         <UiButtonIcon
           v-if="description"
           :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
@@ -14,9 +14,7 @@
         <span v-tooltip class="text-ellipsis">
           {{ label }}
         </span>
-        <span class="progress">
-          {{ progress }}
-        </span>
+        <span class="percent"> {{ percent }} </span>
       </div>
       <div class="typo-body-regular-small info">
         <div v-if="slots.link" class="link-container">
@@ -49,7 +47,7 @@ const { date, size } = defineProps<{
   date: Date | number | string
   label: string
   size: 'small' | 'large'
-  progress: string
+  percent: number
   description?: string
 }>()
 
@@ -84,20 +82,25 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
     gap: 0.6rem;
   }
 
-  .label-progress {
+  .label-percent {
     gap: 1.6rem;
   }
 
   .info,
   .link-container,
-  .label-progress {
+  .label-percent {
     display: flex;
     flex-direction: row;
     align-items: center;
   }
 
-  .progress {
+  .percent {
     color: var(--color-danger-txt-base);
+
+    &::after {
+      content: '%';
+      margin-inline-start: 0.2rem;
+    }
   }
 
   .info,

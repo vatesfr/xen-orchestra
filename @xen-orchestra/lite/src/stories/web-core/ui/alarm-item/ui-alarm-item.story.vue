@@ -4,7 +4,7 @@
     :params="[
       prop('date').type(`Date | number | string`).required().preset(Date.now()),
       prop('label').type('string').required().widget().preset('Label'),
-      prop('progress').type('string').required().preset('92,3%'),
+      prop('percent').type('number').required().preset('92,3'),
       prop('description')
         .type('string')
         .preset(
