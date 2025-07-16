@@ -783,24 +783,3 @@ export const hostStats = {
     },
   },
 }
-
-export const hostAlarms = [
-  {
-    id: '7e87b95e-8ebb-31c5-30ad-ff2eb079604b',
-    name: 'BOND_STATUS_CHANGED',
-    body: {
-      name: 'The status of the eth0+eth1 bond is: 0/2 up',
-    },
-    time: 1747053794,
-    href: '/rest/v0/alarms/7e87b95e-8ebb-31c5-30ad-ff2eb079604b',
-  },
-  {
-    id: '7e87b95e-8ebb-31c5-30ad-ff2eb079604c',
-    name: 'BOND_STATUS_CHANGED',
-    body: {
-      name: 'The status of the eth0+eth1 bond is: 0/2 down',
-    },
-    time: 1747053795,
-    href: '/rest/v0/alarms/7e87b95e-8ebb-31c5-30ad-ff2eb079604c',
-  },
-]
