@@ -541,7 +541,7 @@
   "vm-management": "VM-beheer",
   "vm.active": "Actief",
   "vm.inactive": "Inactief",
-  "vms": "VM | VM's",
+  "vms": "VM | VM | VM's",
   "vms-status": "VM's status",
   "vms-status.halted": "Gestopt",
   "vms-status.inactive": "Inactief",

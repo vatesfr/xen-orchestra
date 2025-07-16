@@ -513,7 +513,7 @@
   "vm-is-running": "La máquina virtual está en marcha",
   "vm.active": "Activo | Activo | Activos",
   "vm.inactive": "No activo | No activo | No activos",
-  "vms": "VM | VMs",
+  "vms": "VM | VM | VMs",
   "vms-status": "Estatus máquinas virtuales",
   "vms-status.halted": "Detenido",
   "vms-status.inactive": "Inactivas",
