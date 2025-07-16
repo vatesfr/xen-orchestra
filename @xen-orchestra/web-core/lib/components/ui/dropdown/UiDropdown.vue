@@ -3,7 +3,7 @@
   <div v-tooltip="{ selector: '.text-ellipsis' }" :class="className" class="ui-dropdown">
     <UiCheckbox v-if="checkbox" :disabled :model-value="selected" accent="brand" />
     <slot name="icon">
-      <VtsIcon :icon accent="current" />
+      <VtsIcon :name="icon" size="medium" />
     </slot>
     <div class="text-ellipsis typo-body-bold-small">
       <slot />
@@ -11,10 +11,9 @@
     <div v-if="info" class="info typo-body-regular-small">{{ info }}</div>
     <VtsIcon
       v-if="subMenuIcon || locked"
-      :accent="disabled ? 'current' : 'brand'"
-      :icon="locked ? faLock : faAngleRight"
+      :name="locked ? 'fa:lock' : 'fa:angle-right'"
+      size="medium"
       class="right-icon"
-      fixed-width
     />
   </div>
 </template>
@@ -23,9 +22,8 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faAngleRight, faLock } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 export type DropdownAccent = 'normal' | 'brand' | 'success' | 'warning' | 'danger'
@@ -44,7 +42,7 @@ const {
   hover?: boolean
   checkbox?: boolean
   subMenuIcon?: boolean
-  icon?: IconDefinition
+  icon?: IconName
   info?: string
 }>()
 

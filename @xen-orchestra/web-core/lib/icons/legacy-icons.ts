@@ -8,6 +8,8 @@ import {
   faExclamation,
   faInfo,
   faMinus,
+  faMoon,
+  faPause,
   faPlay,
   faStar,
   faStop,
@@ -51,6 +53,10 @@ export const legacyIcons = defineIconPack({
     color: 'var(--color-info-item-base)',
   },
   'legend-circle': { icon: faCircle, size: 8 },
+  paused: {
+    icon: faPause,
+    color: 'var(--color-brand-item-base)',
+  },
   primary: [
     {
       icon: faCircle,
@@ -77,4 +83,8 @@ export const legacyIcons = defineIconPack({
       size: 8,
     },
   ]),
+  suspended: {
+    icon: faMoon,
+    color: 'var(--color-info-item-base)',
+  },
 })

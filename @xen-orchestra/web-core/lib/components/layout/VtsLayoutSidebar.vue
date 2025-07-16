@@ -11,7 +11,7 @@
         }"
         accent="brand"
         size="medium"
-        :icon="sidebar.isLocked ? faThumbTackSlash : faThumbTack"
+        :icon="sidebar.isLocked ? 'fa:thumb-tack-slash' : 'fa:thumb-tack'"
         @click="sidebar.toggleLock()"
       />
     </div>
@@ -38,7 +38,6 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useSidebarStore } from '@core/stores/sidebar.store'
 import { useUiStore } from '@core/stores/ui.store'
-import { faThumbTack, faThumbTackSlash } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 const slots = defineSlots<{

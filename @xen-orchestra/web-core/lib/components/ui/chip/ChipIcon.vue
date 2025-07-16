@@ -1,13 +1,13 @@
 <template>
-  <VtsIcon :class="{ muted: disabled }" accent="current" :icon class="chip-icon" fixed-width />
+  <VtsIcon :class="{ muted: disabled }" :name="icon" size="medium" class="chip-icon" />
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 
 defineProps<{
-  icon?: IconDefinition
+  icon?: IconName
   disabled?: boolean
 }>()
 </script>

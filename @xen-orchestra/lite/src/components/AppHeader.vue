@@ -1,6 +1,6 @@
 <template>
   <header class="app-header">
-    <UiIcon v-if="uiStore.isMobile" ref="navigationTrigger" :icon="faBars" class="toggle-navigation" />
+    <VtsIcon v-if="uiStore.isMobile" ref="navigationTrigger" name="fa:bars" size="medium" class="toggle-navigation" />
     <RouterLink :to="{ name: 'home' }">
       <img v-if="uiStore.isMobile" alt="XO Lite" src="../assets/logo.svg" />
       <TextLogo v-else />
@@ -18,11 +18,10 @@
 import AccountMenu from '@/components/account-menu/AccountMenu.vue'
 import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
 import TextLogo from '@/components/TextLogo.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import XoaButton from '@/components/XoaButton.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
 
 const uiStore = useUiStore()

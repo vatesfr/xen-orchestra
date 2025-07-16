@@ -2,7 +2,7 @@
 <template>
   <div :class="toVariants({ accent })" class="ui-alert">
     <div class="content">
-      <VtsIcon class="information-icon" :accent :icon="faCircle" :overlay-icon="icon" />
+      <VtsIcon class="information-icon" :name="icon" size="current" />
       <div class="alert typo-body-regular-small">
         <div>
           <slot />
@@ -14,7 +14,7 @@
       <UiButtonIcon
         v-if="close"
         class="close-button"
-        :icon="faXmark"
+        icon="fa:xmark"
         accent="brand"
         size="medium"
         @click="emit('close')"
@@ -26,10 +26,9 @@
 <script setup lang="ts">
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import type { IconName } from '@core/icons'
+import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faCheck, faCircle, faExclamation, faInfo, faXmark } from '@fortawesome/free-solid-svg-icons'
-import { computed } from 'vue'
 
 type AlertAccent = 'info' | 'success' | 'warning' | 'danger'
 
@@ -47,14 +46,16 @@ const slots = defineSlots<{
   description?(): any
 }>()
 
-const iconByAccent: Record<AlertAccent, IconDefinition> = {
-  info: faInfo,
-  success: faCheck,
-  warning: faExclamation,
-  danger: faXmark,
-}
-
-const icon = computed(() => iconByAccent[accent])
+const icon = useMapper<AlertAccent, IconName>(
+  () => accent,
+  {
+    info: 'legacy:status:info',
+    success: 'legacy:status:success',
+    warning: 'legacy:status:warning',
+    danger: 'legacy:status:danger',
+  },
+  'info'
+)
 </script>
 
 <style scoped lang="postcss">

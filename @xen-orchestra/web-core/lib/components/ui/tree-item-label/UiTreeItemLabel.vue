@@ -19,7 +19,7 @@
         v-tooltip="isExpanded ? t('core.close') : t('core.open')"
         class="toggle"
         accent="brand"
-        :icon="isExpanded ? faAngleDown : faAngleRight"
+        :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"
         size="small"
         :target-scale="{ x: 1.5, y: 2 }"
         @click="emit('toggle')"
@@ -27,7 +27,7 @@
       <div v-else class="h-line" />
       <a v-tooltip="{ selector: '.text' }" :href class="link typo-body-bold-small" @click="navigate">
         <slot name="icon">
-          <VtsIcon :icon accent="current" class="icon" />
+          <VtsIcon :name="icon" size="medium" class="icon" />
         </slot>
         <div class="text text-ellipsis">
           <slot />
@@ -43,9 +43,8 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsTreeLine from '@core/components/tree/VtsTreeLine.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { IconName } from '@core/icons'
 import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN, IK_TREE_LIST_DEPTH } from '@core/utils/injection-keys.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { inject, ref, useAttrs } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -56,7 +55,7 @@ defineOptions({
 
 defineProps<{
   route: RouteLocationRaw
-  icon?: IconDefinition
+  icon?: IconName
   active?: boolean
 }>()
 
