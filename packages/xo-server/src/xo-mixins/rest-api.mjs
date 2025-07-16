@@ -252,6 +252,7 @@ export default class RestApi {
       hosts: {
         routes: {
           'audit.txt': true,
+          alarms: true,
         },
       },
       srs: {},

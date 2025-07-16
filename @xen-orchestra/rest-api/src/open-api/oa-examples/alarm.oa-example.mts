@@ -49,3 +49,16 @@ export const alarm = {
     uuid: '3f607494-26f1-b328-b626-d81cf007de37',
   },
 }
+
+export const genericAlarmsExample = [
+  {
+    id: '7e87b95e-8ebb-31c5-30ad-ff2eb079604b',
+    time: 1747053794,
+    href: '/rest/v0/alarms/7e87b95e-8ebb-31c5-30ad-ff2eb079604b',
+  },
+  {
+    id: '7e87b95e-8ebb-31c5-30ad-ff2eb079604c',
+    time: 1747053795,
+    href: '/rest/v0/alarms/7e87b95e-8ebb-31c5-30ad-ff2eb079604c',
+  },
+]
