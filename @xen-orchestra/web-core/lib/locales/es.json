@@ -322,6 +322,7 @@
   "n-hosts": "1 servidor| {n} servidores",
   "n-hosts-awaiting-patch": "{n} servidor falta este parche | {n} servidores faltan este parche",
   "n-missing": "Falta {n}",
+  "n-percent": "{n} %",
   "n-vms": "1 MV | {n} MVs",
   "name": "Nombre",
   "netmask": "Máscara de red",

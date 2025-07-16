@@ -340,6 +340,7 @@
   "n-hosts": "1 hôte | {n} hôtes",
   "n-hosts-awaiting-patch": "{n} hôte attend ce patch | {n} hôtes attendent ce patch",
   "n-missing": "{n} manquant | {n} manquants",
+  "n-percent": "{n} %",
   "n-vms": "1 VM | {n} VMs",
   "name": "Nom",
   "nested-virtualization": "Virtualisation imbriquée",

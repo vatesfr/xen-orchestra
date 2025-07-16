@@ -14,7 +14,7 @@
         <span v-tooltip class="text-ellipsis">
           {{ label }}
         </span>
-        <span class="percent"> {{ percent }} </span>
+        <span class="percent"> {{ t('n-percent', percent) }} </span>
       </div>
       <div class="typo-body-regular-small info">
         <div v-if="slots.link" class="link-container">
@@ -96,11 +96,6 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
 
   .percent {
     color: var(--color-danger-txt-base);
-
-    &::after {
-      content: '%';
-      margin-inline-start: 0.2rem;
-    }
   }
 
   .info,
