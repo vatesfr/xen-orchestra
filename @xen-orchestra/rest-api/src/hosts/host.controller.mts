@@ -6,7 +6,8 @@ import { provide } from 'inversify-binding-decorators'
 import type { XapiHostStats, XapiStatsGranularity, XoAlarm, XoHost } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { host, hostAlarms, hostIds, hostStats, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
+import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
+import { host, hostIds, hostStats, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
@@ -100,11 +101,11 @@ export class HostController extends XapiXoController<XoHost> {
 
   /**
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
-   * @example fields "id,name,body,time"
+   * @example fields "id,time"
    * @example filter "time:>1747053793"
    * @example limit 42
    */
-  @Example(hostAlarms)
+  @Example(genericAlarmsExample)
   @Get('{id}/alarms')
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
