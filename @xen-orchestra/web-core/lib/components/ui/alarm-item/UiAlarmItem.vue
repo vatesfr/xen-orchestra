@@ -2,7 +2,7 @@
 <template>
   <li class="ui-alarm-item" :class="className">
     <div class="content">
-      <div class="label-value typo-body-regular text-ellipsis">
+      <div class="label-progress typo-body-regular text-ellipsis">
         <UiButtonIcon
           v-if="description"
           :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
@@ -14,8 +14,8 @@
         <span v-tooltip class="text-ellipsis">
           {{ label }}
         </span>
-        <span class="value">
-          {{ value }}
+        <span class="progress">
+          {{ progress }}
         </span>
       </div>
       <div class="typo-body-regular-small info">
@@ -49,7 +49,7 @@ const { date, size } = defineProps<{
   date: Date | number | string
   label: string
   size: 'small' | 'large'
-  value: string
+  progress: string
   description?: string
 }>()
 
@@ -84,19 +84,19 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
     gap: 0.6rem;
   }
 
-  .label-value {
+  .label-progress {
     gap: 1.6rem;
   }
 
   .info,
   .link-container,
-  .label-value {
+  .label-progress {
     display: flex;
     flex-direction: row;
     align-items: center;
   }
 
-  .value {
+  .progress {
     color: var(--color-danger-txt-base);
   }
 

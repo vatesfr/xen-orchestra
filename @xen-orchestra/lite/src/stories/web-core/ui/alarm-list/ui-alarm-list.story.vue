@@ -2,7 +2,7 @@
   <ComponentStory :params="[slot('default').help('a list of ui-alarm-item element')]">
     <div class="main-wrapper">
       <UiAlarmList>
-        <UiAlarmItem label="Label" value="93.2%" size="large" :description :date="Date.now()">
+        <UiAlarmItem label="Label" progress="93.2%" size="large" :description :date="Date.now()">
           <template #link>
             <UiObjectLink route="#">
               <template #icon>
@@ -12,7 +12,7 @@
             </UiObjectLink>
           </template>
         </UiAlarmItem>
-        <UiAlarmItem label="Label" value="93.2%" size="large" :description :date="Date.now()">
+        <UiAlarmItem label="Label" progress="93.2%" size="large" :description :date="Date.now()">
           <template #link>
             <UiObjectLink route="#">
               <template #icon>
@@ -22,7 +22,7 @@
             </UiObjectLink>
           </template>
         </UiAlarmItem>
-        <UiAlarmItem label="Label" value="93.2%" size="large" :description :date="Date.now()">
+        <UiAlarmItem label="Label" progress="93.2%" size="large" :description :date="Date.now()">
           <template #link>
             <UiObjectLink route="#">
               <template #icon>
