@@ -10,7 +10,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faCaretSquareDown"
+            left-icon="fa:square-caret-down"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -20,7 +20,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faEdit"
+            left-icon="fa:edit"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -30,7 +30,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faEraser"
+            left-icon="fa:eraser"
             variant="tertiary"
             accent="danger"
             size="medium"
@@ -56,11 +56,11 @@
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
-                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  <VtsIcon accent="brand" size="medium" :name="headerIcon[column.id]" />
                   {{ column.label }}
                 </div>
               </th>
@@ -86,7 +86,7 @@
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="t('coming-soon')"
-                :icon="faEllipsis"
+                icon="fa:ellipsis"
                 accent="brand"
                 disabled
                 size="small"
@@ -145,17 +145,8 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { icon, type IconName } from '@core/icons'
 import { createMapper } from '@core/packages/mapper'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import {
-  faCaretSquareDown,
-  faCity,
-  faEdit,
-  faEllipsis,
-  faEraser,
-  faHashtag,
-  faServer,
-} from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -207,7 +198,7 @@ const getPoolInfo = (server: XoServer) => {
     return {
       label: server.poolNameLabel,
       to: server.poolId ? `/pool/${server.poolId}/` : undefined,
-      icon: faCity,
+      icon: icon('fa:city'),
     }
   }
 
@@ -215,15 +206,19 @@ const getPoolInfo = (server: XoServer) => {
     return {
       label: server.poolId,
       to: `/pool/${server.poolId}/`,
-      icon: faCity,
+      icon: icon('fa:city'),
     }
   }
+
   return undefined
 }
 
 const getPrimaryHost = (server: XoServer) => {
   const masterHost = getHostById(server.master)
-  return masterHost ? { label: masterHost.name_label, to: `/host/${masterHost.id}/`, icon: faServer } : undefined
+
+  return masterHost
+    ? { label: masterHost.name_label, to: `/host/${masterHost.id}/`, icon: icon('fa:server') }
+    : undefined
 }
 
 const { visibleColumns, rows } = useTable('servers', filteredServers, {
@@ -242,11 +237,11 @@ const { pageRecords: poolsRecords, paginationBindings } = usePagination('pools',
 
 type ServerHeader = 'label' | 'host' | 'status' | 'primary-host'
 
-const headerIcon: Record<ServerHeader, IconDefinition> = {
-  label: faCity,
-  host: faHashtag,
-  status: faCaretSquareDown,
-  'primary-host': faServer,
+const headerIcon: Record<ServerHeader, IconName> = {
+  label: 'fa:city',
+  host: 'fa:hashtag',
+  status: 'fa:square-caret-down',
+  'primary-host': 'fa:server',
 }
 </script>
 
