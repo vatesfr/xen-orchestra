@@ -59,11 +59,7 @@ export const useSidebarStore = defineStore('layout', () => {
       if (isMobile) {
         desktopState = isExpanded.value
       } else {
-        isExpanded.value = desktopState
-      }
-
-      if (isDesktopLarge) {
-        isExpanded.value = isDesktopLarge
+        isExpanded.value = isDesktopLarge ? true : desktopState
       }
     },
     { immediate: true }

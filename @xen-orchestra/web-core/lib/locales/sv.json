@@ -539,7 +539,7 @@
   "vm-management": "VM-hantering",
   "vm.active": "Aktiv",
   "vm.inactive": "Inaktiv",
-  "vms": "VM | VM | VMar",
+  "vms": "VMar",
   "vms-status": "VM-status",
   "vms-status.halted": "Stannad",
   "vms-status.inactive": "Inaktiv",

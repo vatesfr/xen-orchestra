@@ -303,7 +303,6 @@
   "vm-is-running": "La VM è operativa",
   "vm.active": "Attivo",
   "vm.inactive": "Inattivo",
-  "vms": "VM | VM | VMs",
   "vms-status.paused": "In pausa",
   "vms-status.running": "Operativo",
   "vms-status.suspended": "Sospeso",
