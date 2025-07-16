@@ -199,6 +199,7 @@ export function useFormSelectController(select: FormSelect) {
       isDisabled: select.isDisabled,
       isMultiple: select.isMultiple,
       isNavigatingWithKeyboard,
+      isOpen,
       focusSearchOrTrigger,
       closeDropdown,
     })

@@ -9,15 +9,7 @@
         learn-more-url="https://xcp-ng.org/blog/2018/12/19/zstd-compression-for-xcp-ng/"
         :label="t('select-compression')"
       >
-        <FormSelect v-model="compressionType">
-          <option
-            v-for="key in Object.keys(VM_COMPRESSION_TYPE)"
-            :key
-            :value="VM_COMPRESSION_TYPE[key as keyof typeof VM_COMPRESSION_TYPE]"
-          >
-            {{ t(key.toLowerCase()) }}
-          </option>
-        </FormSelect>
+        <VtsSelect :id="compressionSelectId" accent="brand" />
       </VtsInputWrapper>
 
       <template #buttons>
@@ -31,7 +23,6 @@
 </template>
 
 <script lang="ts" setup>
-import FormSelect from '@/components/form/FormSelect.vue'
 import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
 import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
 import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
@@ -42,6 +33,8 @@ import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { IK_MODAL } from '@/types/injection-keys'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { useFormSelect } from '@core/packages/form-select'
 import { faDisplay } from '@fortawesome/free-solid-svg-icons'
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -61,4 +54,12 @@ const handleSubmit = () => {
   xenApi.vm.export(props.vmRefs, compressionType.value)
   modal.approve()
 }
+
+const { id: compressionSelectId } = useFormSelect(Object.keys(VM_COMPRESSION_TYPE), {
+  model: compressionType,
+  option: {
+    label: key => t(key.toLocaleLowerCase()),
+    value: key => VM_COMPRESSION_TYPE[key as keyof typeof VM_COMPRESSION_TYPE],
+  },
+})
 </script>
