@@ -577,7 +577,7 @@
   "vm-status.suspended": "Suspended",
   "vm.active": "Active",
   "vm.inactive": "Inactive",
-  "vms": "VM | VMs",
+  "vms": "VM | VM | VMs",
   "vms-status": "VMs status",
   "vms-status.halted": "Halted",
   "vms-status.inactive": "Inactive",

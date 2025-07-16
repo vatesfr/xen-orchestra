@@ -1,7 +1,7 @@
 <template>
   <div class="vts-stacked-bar-with-legend">
     <UiStackedBar :segments :max-value="maxValue" />
-    <VtsLegendList class="list" :horizontal="uiStore.isDesktop">
+    <VtsLegendList class="list" :horizontal="!uiStore.isMobile">
       <UiLegend
         v-for="segment in segments"
         :key="segment.label"

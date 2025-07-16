@@ -20,7 +20,7 @@ export const useNavigationStore = defineStore('navigation', () => {
   useEventListener(trigger, 'click', toggle)
 
   whenever(
-    () => uiStore.isDesktop,
+    () => !uiStore.isMobile,
     () => (isOpen.value = false)
   )
 

@@ -51,15 +51,18 @@ export const useSidebarStore = defineStore('layout', () => {
   ifElse(isResizing, [load, resume], [pause, unload])
 
   watch(
-    () => uiStore.isMobile,
-    isMobile => {
-      // keep the state of desktop expansion
+    () => ({
+      isMobile: uiStore.isMobile,
+      isDesktopLarge: uiStore.isDesktopLarge,
+    }),
+    ({ isMobile, isDesktopLarge }) => {
       if (isMobile) {
         desktopState = isExpanded.value
+      } else {
+        isExpanded.value = isDesktopLarge ? true : desktopState
       }
-
-      isExpanded.value = desktopState && !isMobile
-    }
+    },
+    { immediate: true }
   )
 
   return {
