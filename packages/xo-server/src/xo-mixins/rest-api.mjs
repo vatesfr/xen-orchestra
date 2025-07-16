@@ -223,7 +223,11 @@ export default class RestApi {
       dashboard: {},
       docs: {},
       messages: {},
-      networks: {},
+      networks: {
+        routes: {
+          alarms: true,
+        },
+      },
       pifs: {},
       pools: {
         actions: {
