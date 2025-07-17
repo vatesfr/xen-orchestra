@@ -19,7 +19,7 @@ export class AlarmService {
     return alarmPredicate(maybeAlarm)
   }
 
-  parseAlarm({ $object, body, ...alarm }: XoMessage): XoAlarm {
+  parseAlarm({ $object, body, time, ...alarm }: XoMessage): XoAlarm {
     let object: XapiXoRecord | { type: 'unknown'; uuid: XapiXoRecord['uuid'] }
     try {
       object = this.#restApi.getObject<XapiXoRecord>($object)
@@ -40,7 +40,7 @@ export class AlarmService {
     return {
       ...alarm,
       body: {
-        value, // Keep the value as a string because NaN, Infinity, -Infinity is not valid JSON
+        value: Number.isFinite(+value) ? String(+value * 100) : value, // Keep the value as a string because NaN, Infinity, -Infinity is not valid JSON
         name: name ?? body, // for 'BOND_STATUS_CHANGED' and 'MULTIPATH_PERIODIC_ALERT', body is a non-xml string. ("body": "The status of the eth0+eth1 bond is: 1/2 up")
       },
       object: {
@@ -48,6 +48,7 @@ export class AlarmService {
         uuid: object.uuid,
         href,
       },
+      time: time * 1000,
     }
   }
 
