@@ -106,6 +106,9 @@ export interface Xapi {
     templateUuid: XoVmTemplate['uuid'],
     metadataVm: {
       affinityHost?: XoHost['id']
+      autoPoweron?: boolean
+      memory?: number
+      name_description?: string
       name_label: string
       nameLabel?: string
       clone?: boolean
