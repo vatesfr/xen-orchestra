@@ -232,6 +232,9 @@ export default class RestApi {
           rolling_reboot: true,
           rolling_update: true,
         },
+        routes: {
+          alarms: true,
+        },
       },
       groups: {},
       users: {},
