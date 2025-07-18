@@ -230,8 +230,8 @@ export default class RestApi {
       },
       pifs: {
         routes: {
-          alarms: true
-        }
+          alarms: true,
+        },
       },
       pools: {
         actions: {

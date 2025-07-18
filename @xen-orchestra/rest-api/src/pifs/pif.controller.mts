@@ -64,7 +64,7 @@ export class PifController extends XapiXoController<XoPif> {
   @Get('{id}/alarms')
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
-  getHostAlarms(
+  getPifAlarms(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
