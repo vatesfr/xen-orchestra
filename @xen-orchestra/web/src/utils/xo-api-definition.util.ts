@@ -140,7 +140,7 @@ export const xoApiDefinition = {
   'vm-controller': {
     type: 'collection',
     path: 'vm-controllers',
-    fields: 'id,memory',
+    fields: 'id,name_label,power_state,memory,$container',
     handler: (record: XoVmController) => record,
     stream: false,
   },
