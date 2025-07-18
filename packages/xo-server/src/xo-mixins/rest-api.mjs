@@ -224,7 +224,11 @@ export default class RestApi {
       docs: {},
       messages: {},
       networks: {},
-      pifs: {},
+      pifs: {
+        routes: {
+          alarms: true,
+        },
+      },
       pools: {
         actions: {
           create_vm: true,
