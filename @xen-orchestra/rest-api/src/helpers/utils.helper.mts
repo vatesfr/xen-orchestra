@@ -1,9 +1,12 @@
 import { AnyXoVm, XoSr } from '@vates/types'
+import { createLogger } from '@xen-orchestra/log'
 import { isPromise } from 'node:util/types'
 
-import { MaybePromise } from './helper.type.mjs'
+import { MaybePromise, PromiseWriteInStreamError } from './helper.type.mjs'
 import { Writable } from 'node:stream'
 export const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
+
+const log = createLogger('xo:rest-api:utils-helper')
 
 export const isSrWritable = (sr: XoSr) => isSrWritableOrIso(sr) && sr.content_type !== 'iso'
 export const isSrWritableOrIso = (sr: XoSr) => sr.size > 0
@@ -44,18 +47,42 @@ export const getTopPerProperty = <T,>(
 
   return arr
 }
-export const promiseWriteInStream = async <T,>({
+
+export async function promiseWriteInStream<T>(args: {
+  maybePromise: MaybePromise<T>
+  path: string
+  stream?: Writable
+  handleError: true
+}): Promise<T | PromiseWriteInStreamError>
+export async function promiseWriteInStream<T>(args: {
+  maybePromise: MaybePromise<T>
+  path: string
+  stream?: Writable
+  handleError?: false
+}): Promise<T>
+export async function promiseWriteInStream<T>({
   maybePromise,
   path,
   stream,
+  handleError = false,
 }: {
   maybePromise: MaybePromise<T>
   path: string
   stream?: Writable
-}): Promise<T> => {
-  let data: T
+  handleError?: boolean
+}): Promise<T | PromiseWriteInStreamError> {
+  let data: T | { error: true }
   if (isPromise(maybePromise)) {
-    data = await maybePromise
+    try {
+      data = await maybePromise
+    } catch (err) {
+      if (!handleError) {
+        throw err
+      }
+
+      log.error(`promiseWriteInStream for ${path} failed`, err)
+      data = { error: true }
+    }
   } else {
     data = maybePromise
   }
