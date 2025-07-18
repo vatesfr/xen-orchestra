@@ -2,11 +2,9 @@
   <UiHeadBar :icon="faSatellite">
     Xen Orchestra Appliance
     <template #actions>
-      <RouterLink to="/pool/connect">
-        <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium">
-          {{ t('connect-pool') }}
-        </UiButton>
-      </RouterLink>
+      <UiLink to="/pool/connect" size="medium" :icon="faPlus">
+        {{ t('connect-pool') }}
+      </UiLink>
     </template>
   </UiHeadBar>
   <TabList>
@@ -28,8 +26,8 @@
 <script lang="ts" setup>
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { faPlus, faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 

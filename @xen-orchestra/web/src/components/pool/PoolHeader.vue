@@ -2,11 +2,9 @@
   <UiHeadBar :icon="faCity">
     {{ pool.name_label }}
     <template #actions>
-      <RouterLink :to="{ name: '/vm/new', query: { poolid: pool.id } }">
-        <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium">
-          {{ t('new-vm') }}
-        </UiButton>
-      </RouterLink>
+      <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: pool.id } }" :icon="faPlus">
+        {{ t('new-vm') }}
+      </UiLink>
     </template>
   </UiHeadBar>
   <TabList>
@@ -42,8 +40,8 @@
 import type { XoPool } from '@/types/xo/pool.type'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { faCity, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
