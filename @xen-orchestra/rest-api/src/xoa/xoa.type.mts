@@ -1,12 +1,13 @@
 import { BACKUP_TYPE } from '@vates/types'
+import type { PromiseWriteInStreamError } from '../helpers/helper.type.mjs'
 
 export type DashboardBackupRepositoriesSizeInfo = {
-  s3: {
+  s3?: {
     size: {
       backups: number
     }
   }
-  other: { size: { available: number; backups: number; other: number; total: number; used: number } }
+  other?: { size: { available?: number; backups: number; other?: number; total?: number; used?: number } }
 }
 
 export type DashboardBackupsInfo = {
@@ -33,7 +34,7 @@ export type DashboardBackupsInfo = {
 export type XoaDashboard = {
   nPools: number
   nHosts: number
-  nHostsEol?: number
+  nHostsEol?: number | PromiseWriteInStreamError
   hostsStatus: {
     running: number
     halted: number
@@ -54,17 +55,20 @@ export type XoaDashboard = {
         nPoolsWithMissingPatches: number
         nHostsFailed: number
       }
-  backupRepositories?: DashboardBackupRepositoriesSizeInfo
-  storageRepositories: {
-    size: {
-      available: number
-      other: number
-      replicated: number
-      total: number
-      used: number
-    }
-  }
-  backups?: DashboardBackupsInfo
+  backupRepositories?: DashboardBackupRepositoriesSizeInfo | PromiseWriteInStreamError
+  storageRepositories:
+    | {
+        size: {
+          available: number
+          other: number
+          replicated: number
+          total: number
+          used: number
+        }
+      }
+    | PromiseWriteInStreamError
+  backups?: DashboardBackupsInfo | PromiseWriteInStreamError
+
   resourcesOverview: {
     nCpus: number
     memorySize: number
