@@ -5,7 +5,8 @@ import { MaybePromise } from './helper.type.mjs'
 import { Writable } from 'node:stream'
 export const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
 
-export const isSrWritable = (sr: XoSr) => sr.content_type !== 'iso' && sr.size > 0
+export const isSrWritable = (sr: XoSr) => isSrWritableOrIso(sr) && sr.content_type !== 'iso'
+export const isSrWritableOrIso = (sr: XoSr) => sr.size > 0
 export const isReplicaVm = (vm: AnyXoVm) => 'start' in vm.blockedOperations && vm.other['xo:backup:job'] !== undefined
 export const vmContainsNoBakTag = (vm: AnyXoVm) => vm.tags.some(t => t.split('=', 1)[0] === 'xo:no-bak')
 export const getTopPerProperty = <T,>(

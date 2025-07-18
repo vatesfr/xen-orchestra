@@ -22,7 +22,7 @@ import { Writable } from 'node:stream'
 
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
-import { isReplicaVm, isSrWritable, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
+import { isReplicaVm, isSrWritableOrIso, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 import type { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
@@ -123,19 +123,19 @@ export class XoaService {
   #getResourcesOverview(): XoaDashboard['resourcesOverview'] {
     const pools = Object.values(this.#restApi.getObjectsByType<XoPool>('pool'))
     const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host'))
-    const writableSrs = Object.values(
+    const srs = Object.values(
       this.#restApi.getObjectsByType<XoSr>('SR', {
-        filter: isSrWritable,
+        filter: isSrWritableOrIso,
       })
     )
 
-    const maxLenght = Math.max(hosts.length, writableSrs.length)
+    const maxLenght = Math.max(hosts.length, srs.length)
 
     const resourcesOverview = { nCpus: 0, memorySize: 0, srSize: 0 }
     for (let index = 0; index < maxLenght; index++) {
       const pool = pools[index]
       const host = hosts[index]
-      const sr = writableSrs[index]
+      const sr = srs[index]
 
       if (pool !== undefined) {
         resourcesOverview.nCpus += pool.cpus.cores ?? 0
@@ -269,7 +269,7 @@ export class XoaService {
 
   #getStorageRepositoriesSizeInfo() {
     const writableSrs = this.#restApi.getObjectsByType<XoSr>('SR', {
-      filter: isSrWritable,
+      filter: isSrWritableOrIso,
     })
 
     let replicated = 0
