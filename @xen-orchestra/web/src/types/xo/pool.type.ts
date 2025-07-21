@@ -20,7 +20,7 @@ export type XoPool = {
   crashDumpSr?: XoSr['id']
   haSrs?: Array<XoSr['id']>
   cpus: {
-    cores: number
-    sockets: number
+    cores?: number
+    sockets?: number
   }
 }

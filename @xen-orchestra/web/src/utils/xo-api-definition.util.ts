@@ -26,12 +26,13 @@ export const xoApiDefinition = {
     handler: (record: XoAlarm) => record,
     stream: false,
   },
-  dashboard: {
-    fields: '*',
-    handler: (record: XoDashboard) => record,
-    path: 'dashboard',
-    stream: true,
-    type: 'single',
+  pool: {
+    type: 'collection',
+    path: 'pools',
+    fields:
+      'id,name_label,master,default_SR,tags,otherConfig,auto_poweron,HA_enabled,migrationCompression,suspendSr,crashDumpSr,haSrs',
+    handler: (record: XoPool) => record,
+    stream: false,
   },
   'pool-dashboard': {
     type: 'single',
@@ -49,49 +50,12 @@ export const xoApiDefinition = {
     handler: (record: XoHost) => record,
     stream: false,
   },
-  network: {
+  vm: {
     type: 'collection',
-    path: 'networks',
-    fields: 'id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs,other_config',
-    handler: (record: XoNetwork) => record,
-    stream: false,
-  },
-  pci: {
-    type: 'collection',
-    path: 'pcis',
-    fields: 'id,device_name',
-    handler: (record: XoPci) => record,
-    stream: false,
-  },
-  pgpu: {
-    type: 'collection',
-    path: 'pgpus',
-    fields: 'id,pci',
-    handler: (record: XoPgpu) => record,
-    stream: false,
-  },
-  pif: {
-    type: 'collection',
-    path: 'pifs',
+    path: 'vms',
     fields:
-      '$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,management,mode,mtu,netmask,speed,vlan,isBondMaster,bondSlaves',
-    handler: (record: XoPif) => record,
-    stream: false,
-  },
-  pool: {
-    type: 'collection',
-    path: 'pools',
-    fields:
-      'id,name_label,master,default_SR,tags,otherConfig,auto_poweron,HA_enabled,migrationCompression,suspendSr,crashDumpSr,haSrs,cpus',
-    handler: (record: XoPool) => record,
-    stream: false,
-  },
-  server: {
-    type: 'collection',
-    path: 'servers',
-    fields:
-      'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId,poolNameLabel,id,status,master,error,poolNameDescription',
-    handler: (record: XoServer) => record,
+      'id,name_label,name_description,power_state,$container,$pool,other,current_operations,CPUs,addresses,tags,os_version,virtualizationMode,secureBoot,VTPMs,viridian,isNestedVirtEnabled,memory,VGPUs,high_availability,auto_poweron,startDelay,vga,videoram,pvDriversVersion,cpuWeight,cpuCap,cpuMask,coresPerSocket,mainIpAddress,nicType,affinityHost,suspendSr,blockedOperations,hasVendorDevice,startTime,installTime,pvDriversDetected',
+    handler: (record: XoVm) => record,
     stream: false,
   },
   sr: {
@@ -106,6 +70,21 @@ export const xoApiDefinition = {
     path: 'tasks',
     fields: 'id,start,end,properties,status,progress,tasks',
     handler: (record: XoTask) => record,
+    stream: false,
+  },
+  dashboard: {
+    type: 'single',
+    path: 'dashboard',
+    fields: '*',
+    handler: (record: XoDashboard) => record,
+    stream: true,
+  },
+  pif: {
+    type: 'collection',
+    path: 'pifs',
+    fields:
+      '$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,management,mode,mtu,netmask,speed,vlan,isBondMaster,bondSlaves',
+    handler: (record: XoPif) => record,
     stream: false,
   },
   vbd: {
@@ -129,12 +108,19 @@ export const xoApiDefinition = {
     handler: (record: XoVif) => record,
     stream: false,
   },
-  vm: {
+  network: {
     type: 'collection',
-    path: 'vms',
+    path: 'networks',
+    fields: 'id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs,other_config',
+    handler: (record: XoNetwork) => record,
+    stream: false,
+  },
+  'vm-template': {
+    type: 'collection',
+    path: 'vm-templates',
     fields:
-      'id,name_label,name_description,power_state,$container,$pool,other,current_operations,CPUs,addresses,tags,os_version,virtualizationMode,secureBoot,VTPMs,viridian,isNestedVirtEnabled,memory,VGPUs,high_availability,auto_poweron,startDelay,vga,videoram,pvDriversVersion,cpuWeight,cpuCap,cpuMask,coresPerSocket,mainIpAddress,nicType,affinityHost,suspendSr,blockedOperations,hasVendorDevice,startTime,installTime,pvDriversDetected',
-    handler: (record: XoVm) => record,
+      'id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate',
+    handler: (record: XoVmTemplate) => record,
     stream: false,
   },
   'vm-controller': {
@@ -144,12 +130,26 @@ export const xoApiDefinition = {
     handler: (record: XoVmController) => record,
     stream: false,
   },
-  'vm-template': {
+  server: {
     type: 'collection',
-    path: 'vm-templates',
+    path: 'servers',
     fields:
-      'id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate',
-    handler: (record: XoVmTemplate) => record,
+      'host,httpProxy,username,readOnly,allowUnauthorized,label,poolId,poolNameLabel,id,status,master,error,poolNameDescription',
+    handler: (record: XoServer) => record,
+    stream: false,
+  },
+  pci: {
+    type: 'collection',
+    path: 'pcis',
+    fields: 'id,device_name',
+    handler: (record: XoPci) => record,
+    stream: false,
+  },
+  pgpu: {
+    type: 'collection',
+    path: 'pgpus',
+    fields: 'id,pci',
+    handler: (record: XoPgpu) => record,
     stream: false,
   },
 } satisfies ApiDefinition
