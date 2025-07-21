@@ -1,15 +1,5 @@
-import type { Branded, XapiXoRecord } from '@vates/types'
+import type { Branded, XoAlarm as VatesXoAlarm } from '@vates/types'
 
-export type XoAlarm = {
+export type XoAlarm = Pick<VatesXoAlarm, 'time' | 'body' | 'object'> & {
   id: Branded<'ALARM'>
-  time: number
-  body: {
-    value: string
-    name: string
-  }
-  object: {
-    type: XapiXoRecord['type'] | 'unknown'
-    uuid: XapiXoRecord['uuid']
-    href?: string
-  }
 }
