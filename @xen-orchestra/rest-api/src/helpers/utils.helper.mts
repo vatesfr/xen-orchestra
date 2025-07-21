@@ -71,7 +71,7 @@ export async function promiseWriteInStream<T>({
   stream?: Writable
   handleError?: boolean
 }): Promise<T | PromiseWriteInStreamError> {
-  let data: T | { error: true }
+  let data: T | PromiseWriteInStreamError
   if (isPromise(maybePromise)) {
     try {
       data = await maybePromise

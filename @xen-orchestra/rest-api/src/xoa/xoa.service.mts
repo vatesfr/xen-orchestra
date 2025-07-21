@@ -136,7 +136,7 @@ export class XoaService {
 
         return result
       },
-      { ...this.#dashboardCacheOpts, expiresIn: 1 }
+      this.#dashboardCacheOpts
     )
 
     if (brResult?.value !== undefined) {
@@ -548,11 +548,7 @@ export class XoaService {
       promiseWriteInStream({ maybePromise: this.#getNumberOfPools(), path: 'nPools', stream }),
       promiseWriteInStream({ maybePromise: this.#getNumberOfHosts(), path: 'nHosts', stream }),
       promiseWriteInStream({ maybePromise: this.#getHostsStatus(), path: 'hostsStatus', stream }),
-      promiseWriteInStream({
-        maybePromise: this.#getResourcesOverview(),
-        path: 'resourcesOverview',
-        stream,
-      }),
+      promiseWriteInStream({ maybePromise: this.#getResourcesOverview(), path: 'resourcesOverview', stream }),
       promiseWriteInStream({ maybePromise: this.#getVmsStatus(), path: 'vmsStatus', stream }),
       promiseWriteInStream({
         maybePromise: this.#getStorageRepositoriesSizeInfo(),
@@ -561,11 +557,7 @@ export class XoaService {
         handleError: true,
       }),
       promiseWriteInStream({ maybePromise: this.#getPoolsStatus(), path: 'poolsStatus', stream }),
-      promiseWriteInStream({
-        maybePromise: this.#getMissingPatchesInfo(),
-        path: 'missingPatches',
-        stream,
-      }),
+      promiseWriteInStream({ maybePromise: this.#getMissingPatchesInfo(), path: 'missingPatches', stream }),
       promiseWriteInStream({
         maybePromise: this.#getBackupRepositoriesSizeInfo(),
         path: 'backupRepositories',
