@@ -1,21 +1,21 @@
 <template>
   <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
-    <div class="row row-top">
-      <PoolDashboardStatus class="status" />
+    <div class="row first-row">
+      <PoolDashboardStatus class="status" :pool="poolDashboard" />
       <PoolDashboardAlarms class="alarms" />
       <PoolDashboardHostsPatches class="patch" />
     </div>
 
-    <div class="row row-mid">
-      <div class="first-column">
+    <div class="row second-row">
+      <div class="column first-column">
         <PoolDashboardStorageUsage class="storage-usage" :pool="poolDashboard" />
         <PoolDashboardNetworkChart class="network-chart" :data :loading="isFetching" :error />
       </div>
-      <div class="second-column">
+      <div class="column second-column">
         <PoolDashboardRamUsage class="ram-usage" :pool="poolDashboard" />
         <PoolDashboardRamChart class="ram-chart" :data :loading="isFetching" :error />
       </div>
-      <div class="third-column">
+      <div class="column third-column">
         <PoolDashboardCpuProvisioning
           class="cpu-provisioning"
           :pool="poolDashboard"
@@ -29,10 +29,10 @@
 </template>
 
 <script setup lang="ts">
+import PoolDashboardAlarms from '@/components/pool/dashboard/alarms/PoolDashboardAlarms.vue'
 import PoolDashboardCpuChart from '@/components/pool/dashboard/chartUsage/PoolDashboardCpuChart.vue'
 import PoolDashboardNetworkChart from '@/components/pool/dashboard/chartUsage/PoolDashboardNetworkChart.vue'
 import PoolDashboardRamChart from '@/components/pool/dashboard/chartUsage/PoolDashboardRamChart.vue'
-import PoolDashboardAlarms from '@/components/pool/dashboard/PoolDashboardAlarms.vue'
 import PoolDashboardCpuProvisioning from '@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue'
 import PoolDashboardCpuUsage from '@/components/pool/dashboard/PoolDashboardCpuUsage.vue'
 import PoolDashboardHostsPatches from '@/components/pool/dashboard/PoolDashboardHostsPatches.vue'
@@ -68,7 +68,7 @@ const uiStore = useUiStore()
     margin-bottom: 0.8rem;
   }
 
-  .row-top {
+  .first-row {
     grid-template-columns: 2fr 4fr 2fr;
     grid-template-areas: 'status alarms patch';
   }
@@ -85,30 +85,27 @@ const uiStore = useUiStore()
     grid-area: patch;
   }
 
-  .row-mid {
+  .second-row {
     grid-template-columns: repeat(3, 1fr);
     grid-template-areas: 'first-column second-column third-column';
   }
 
-  .first-column {
-    grid-area: first-column;
+  .column {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
+  }
+
+  .first-column {
+    grid-area: first-column;
   }
 
   .second-column {
     grid-area: second-column;
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
   }
 
   .third-column {
     grid-area: third-column;
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
   }
 
   /* === MOBILE === */

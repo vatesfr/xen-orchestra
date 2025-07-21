@@ -6,6 +6,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardTitle>
+    <!--    TODO add data ruler component -->
     <VtsLoadingHero v-if="!areStorageUsageReady" type="card" />
     <template v-else>
       <UiProgressBar
@@ -36,7 +37,6 @@
 </template>
 
 <script lang="ts" setup>
-import { usePoolDashboardStore } from '@/stores/xo-rest-api/pool-dashboard.store.ts'
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -54,9 +54,7 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { record } = usePoolDashboardStore().subscribe()
-
-const areStorageUsageReady = computed(() => record.value?.srs.topFiveUsage !== undefined)
+const areStorageUsageReady = computed(() => pool?.srs.topFiveUsage !== undefined)
 
 const topFiveUsage = computed(() => pool?.srs.topFiveUsage ?? [])
 

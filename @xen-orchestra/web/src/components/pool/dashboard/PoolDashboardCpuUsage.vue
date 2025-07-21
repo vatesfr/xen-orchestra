@@ -9,7 +9,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    {{ areHostsCpuUsageReady }}
+    <!--    TODO add data ruler component -->
     <VtsLoadingHero v-if="!areHostsCpuUsageReady" type="card" />
     <template v-else>
       <HostsCpuUsage :hosts="pool?.hosts" />
@@ -20,7 +20,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    {{ areVmsCpuUsageReady }}
+    <!--    TODO add data ruler component -->
     <VtsLoadingHero v-if="!areVmsCpuUsageReady" type="card" />
     <template v-else>
       <VmsCpuUsage :vms="pool?.vms" />
@@ -29,7 +29,6 @@
 </template>
 
 <script lang="ts" setup>
-import { usePoolDashboardStore } from '@/stores/xo-rest-api/pool-dashboard.store.ts'
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -40,14 +39,12 @@ import { useI18n } from 'vue-i18n'
 import HostsCpuUsage from './cpuUsage/HostsCpuUsage.vue'
 import VmsCpuUsage from './cpuUsage/VmsCpuUsage.vue'
 
-defineProps<{
+const { pool } = defineProps<{
   pool: XoPoolDashboard | undefined
 }>()
 
-const { record } = usePoolDashboardStore().subscribe()
-
-const areHostsCpuUsageReady = computed(() => record.value?.hosts?.topFiveUsage?.cpu !== undefined)
-const areVmsCpuUsageReady = computed(() => record.value?.vms?.topFiveUsage?.cpu !== undefined)
+const areHostsCpuUsageReady = computed(() => pool?.hosts?.topFiveUsage?.cpu !== undefined)
+const areVmsCpuUsageReady = computed(() => pool?.vms?.topFiveUsage?.cpu !== undefined)
 
 const { t } = useI18n()
 </script>

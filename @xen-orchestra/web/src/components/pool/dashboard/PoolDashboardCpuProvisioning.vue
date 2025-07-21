@@ -1,6 +1,7 @@
 <template>
   <UiCard class="host-dashboard-cpu-provisioning">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
+    <!--    TODO add data ruler component -->
     <VtsLoadingHero v-if="!areCpuProvisioningReady" type="card" />
     <template v-else>
       <UiProgressBar
@@ -17,7 +18,6 @@
 </template>
 
 <script setup lang="ts">
-import { usePoolDashboardStore } from '@/stores/xo-rest-api/pool-dashboard.store.ts'
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -31,9 +31,7 @@ const { pool } = defineProps<{
   pool: XoPoolDashboard | undefined
 }>()
 
-const { record } = usePoolDashboardStore().subscribe()
-
-const areCpuProvisioningReady = computed(() => record.value?.cpuProvisioning !== undefined)
+const areCpuProvisioningReady = computed(() => pool?.cpuProvisioning !== undefined)
 
 const { t } = useI18n()
 </script>
