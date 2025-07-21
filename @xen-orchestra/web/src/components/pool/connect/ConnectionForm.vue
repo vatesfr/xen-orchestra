@@ -46,7 +46,8 @@
 </template>
 
 <script setup lang="ts">
-import createAndConnectServer, { type NewServer } from '@/jobs/create-server.job'
+import createAndConnectServer, { type NewServer, ApiError } from '@/jobs/create-server.job'
+import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -56,15 +57,19 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+
+const emit = defineEmits<{
+  success: [serverId: XoServer['id'], ip?: string]
+  error: [error: ApiError, ip?: string]
+}>()
 
 const { t } = useI18n()
-const router = useRouter()
 const uiStore = useUiStore()
 const connecting = ref(false)
+const serverId = ref<XoServer['id']>()
 
 const form = reactive<NewServer>({
-  host: history?.state?.ip ?? '',
+  host: '',
   httpProxy: '',
   username: '',
   password: '',
@@ -75,20 +80,14 @@ const form = reactive<NewServer>({
 async function submit() {
   connecting.value = true
   try {
-    const serverId = await createAndConnectServer(form)
-    await router.push({
-      path: '/pool/connect/success',
-      state: { ip: form.host, idServer: serverId },
-    })
-  } catch (error: any) {
-    await router.push({
-      path: '/pool/connect/error',
-      state: {
-        ip: form.host,
-        errorCode: error.status,
-        errorJson: error.message,
-      },
-    })
+    serverId.value = await createAndConnectServer(form)
+    emit('success', serverId.value, form.host)
+  } catch (error: ApiError | any) {
+    if (error instanceof ApiError) {
+      emit('error', error, form.host)
+    } else {
+      console.error('Unknown error:', error)
+    }
   } finally {
     connecting.value = false
   }

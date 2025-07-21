@@ -1,14 +1,16 @@
 import type { XoServer } from '@/types/xo/server.type.ts'
-import type { XoTask } from '@/types/xo/task.type.ts'
 import { useFetch } from '@vueuse/core'
-import type { ShallowRef } from 'vue'
+import { type ShallowRef, toValue } from 'vue'
 
-class ServerError extends Error {
-  status: ShallowRef<number | null> | number
+export class ApiError extends Error {
+  status: number | null
+  cause?: string
 
-  constructor(message: string, { status }: { status: ShallowRef<number | null> | number }) {
-    super(JSON.stringify(message, null, 2))
-    this.status = status
+  constructor(message: string, options: { cause?: string; status?: ShallowRef<number | null> | number | null } = {}) {
+    super(message)
+    this.status = toValue(options.status) ?? null
+    this.cause = options.cause
+    Object.setPrototypeOf(this, ApiError.prototype)
   }
 }
 
@@ -16,14 +18,11 @@ export default async function createAndConnectServer(payload: NewServer) {
   const serverId = await createServer(payload)
 
   try {
-    const taskUrl = await connectServer(serverId)
-    await monitorTask(taskUrl)
-  } catch (error) {
-    // If an error , we remove the server to avoid any duplication.
-    const err = error as any
-    if (!(err.result && err.result.code === 'UND_ERR_CONNECT_TIMEOUT')) {
-      await removeServer(serverId)
-    }
+    await connectServer(serverId)
+  } catch (error: any) {
+    // If error, we remove the server to avoid any duplication.
+    await removeServer(serverId)
+
     throw error
   }
 
@@ -33,102 +32,68 @@ export default async function createAndConnectServer(payload: NewServer) {
 }
 
 // First, create the server
-export async function createServer(payload: NewServer) {
+export async function createServer(payload: NewServer): Promise<XoServer['id']> {
   const {
     data,
     statusCode: status,
     error,
-  } = await useFetch(`/rest/v0/servers`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-    headers: { 'Content-Type': 'application/json' },
-  }).json<{ id: XoServer['id'] }>()
+  } = await useFetch(
+    `/rest/v0/servers?sync=true`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json' },
+    },
+    {
+      updateDataOnError: true,
+    }
+  ).json()
 
   if (error.value) {
-    throw new ServerError(error.value, { status: status.value ?? 0 })
-  }
-
-  if (!data.value) {
-    throw new Error('Server creation failed: No server ID returned')
+    throw new ApiError(error.value, {
+      cause: data.value,
+      status: status.value,
+    })
   }
 
   return data.value.id
 }
 
 // Then, connect to the server using the newly created server ID
-export async function connectServer(serverId: XoServer['id']): Promise<string> {
+export async function connectServer(serverId: XoServer['id']) {
   const {
     data,
     statusCode: status,
     error,
-  } = await useFetch(`/rest/v0/servers/${serverId}/actions/connect`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-  }).json()
+  } = await useFetch(
+    `/rest/v0/servers/${serverId}/actions/connect?sync=true`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    },
+    {
+      updateDataOnError: true,
+    }
+  )
 
   if (error.value) {
-    throw new ServerError(error.value, { status: status.value ?? 0 })
+    throw new ApiError(error.value, {
+      cause: String(data.value),
+      status: status.value,
+    })
   }
-
-  return data.value
 }
 
-export async function monitorTask(url: string) {
-  // FIXME loop dont work correctly.
-  // loops while task is not finish with 12 limits (20 minutes)
-  let loop = 0
-  while (loop < 120) {
-    const {
-      data: dataResponse,
-      statusCode: status,
-      error,
-    } = await useFetch(`${url}?wait=result`, {
-      method: 'GET',
-    }).json<XoTask>()
-
-    if (error.value) {
-      throw new ServerError(error.value, { status: status.value ?? 0 })
-    }
-
-    const data: any = dataResponse.value
-    // if task is not finish after 10seconds, loop
-    if (data.result && data.result.code === 'UND_ERR_CONNECT_TIMEOUT') {
-      loop++
-      continue
-    }
-
-    if (data.status !== 'success') {
-      if (data.result.code === 'SESSION_AUTHENTICATION_FAILED') {
-        throw new ServerError(data.result, { status: 401 })
-      } else if (data.result.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
-        throw new ServerError(data.result, { status: 495 })
-      } else {
-        throw new ServerError(data.result, { status: data.result.errno })
-      }
-    }
-
-    return data
-  }
-
-  throw new ServerError('ConnectTimeoutError', { status: 408 })
-}
-
-// remove server if you have an error on connect
+// remove server if you have an error on connection
 export async function removeServer(serverId: XoServer['id']) {
-  const {
-    data,
-    statusCode: status,
-    error,
-  } = await useFetch(`/rest/v0/servers/${serverId}`, {
+  const { statusCode: status, error } = await useFetch(`/rest/v0/servers/${serverId}`, {
     method: 'DELETE',
     headers: { 'Content-Type': 'application/json' },
-  }).json()
+  })
 
   if (error.value) {
-    throw new ServerError(error.value, { status: status.value ?? 0 })
+    throw new ApiError(error.value, { status: status.value })
   }
-
-  return data.value
 }
 
 export type NewServer = {
@@ -136,6 +101,7 @@ export type NewServer = {
   httpProxy: string
   username: string
   password: string
-  readOnly: boolean
-  allowUnauthorized: boolean
+  readOnly?: boolean
+  allowUnauthorized?: boolean
+  label?: string
 }
