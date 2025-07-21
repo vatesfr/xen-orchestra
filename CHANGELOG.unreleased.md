@@ -43,7 +43,6 @@
 - [Backup] Fix full backup retry failing with EEXIST error (PR [#8776](https://github.com/vatesfr/xen-orchestra/pull/8776))
 
 - **XO 6:**
-
   - [Host/VM/Dashboard] Fix display error due to inversion of upload and download (PR [#8793](https://github.com/vatesfr/xen-orchestra/pull/8793))
 
 - [Health] Fix labels and modals mentioning VMs instead of snapshots when deleting snapshots (PR [#8775](https://github.com/vatesfr/xen-orchestra/pull/8775))
