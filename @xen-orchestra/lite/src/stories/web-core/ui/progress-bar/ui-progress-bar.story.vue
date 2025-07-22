@@ -5,6 +5,7 @@
       prop('legend').preset('Legend').required().widget(),
       prop('value').preset(25).required().widget(),
       prop('max').num().widget(),
+      prop('displayMode').preset('value').widget().default('percent'),
       prop('showSteps').bool().help('Meant to display steps values under the progress bar. See Presets.').widget(),
     ]"
     :presets

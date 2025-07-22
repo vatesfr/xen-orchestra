@@ -9,7 +9,12 @@
       <span v-for="step in steps" :key="step">{{ n(step, 'percent') }}</span>
     </div>
     <VtsLegendList class="legend">
-      <UiLegend :accent :value="Math.round(percentage)" unit="%">{{ legend }}</UiLegend>
+      <UiLegend v-if="displayMode === 'percent'" :accent :value="Math.round(percent ? percent : percentage)" unit="%">
+        {{ legend }}
+      </UiLegend>
+      <UiLegend v-else :accent :value="legendValue">
+        {{ legend }}
+      </UiLegend>
     </VtsLegendList>
   </div>
 </template>
@@ -17,6 +22,7 @@
 <script lang="ts" setup>
 import VtsLegendList from '@core/components/legend-list/VtsLegendList.vue'
 import UiLegend from '@core/components/ui/legend/UiLegend.vue'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { toVariants } from '@core/utils/to-variants.util'
 import { useClamp, useMax } from '@vueuse/math'
 import { computed } from 'vue'
@@ -26,11 +32,14 @@ const {
   value: _value,
   max = 100,
   showSteps,
+  displayMode = 'percent',
 } = defineProps<{
   legend: string
   value: number
   max?: number
+  percent?: number
   showSteps?: boolean
+  displayMode?: 'percent' | 'value'
 }>()
 
 const { n } = useI18n()
@@ -56,6 +65,14 @@ const accent = computed(() => {
 })
 
 const className = computed(() => toVariants({ accent: accent.value }))
+
+const formattedValue = computed(() => formatSizeRaw(value.value, 1))
+
+const formattedMax = computed(() => formatSizeRaw(max, 0))
+
+const legendValue = computed(() => {
+  return `${formattedValue.value.value} ${formattedValue.value.prefix} / ${formattedMax.value.value} ${formattedMax.value.prefix}`
+})
 </script>
 
 <style lang="postcss" scoped>
