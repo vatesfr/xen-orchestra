@@ -170,7 +170,7 @@ class Vm {
       const tag = tags[--i]
       if (tag === 'xo:notify-on-snapshot') {
         const { networks } = await this.getRecord('VM_guest_metrics', guest_metrics)
-        url = Object.assign(new URL('https://locahost'), {
+        url = Object.assign(new URL('https://localhost'), {
           hostname: getVmAddress(networks),
           port: 1727,
         })

@@ -90,7 +90,7 @@ export class XapiDiskSource extends DiskPassthrough {
       }
     } catch (err) {
       if (err.code === 'NO_NBD_AVAILABLE') {
-        warn(`can't connect through NBD, fallback to stream export`)
+        warn(`can't connect through NBD, fall back to stream export`)
         if (streamSource === undefined) {
           throw new Error(`Can't open stream source`)
         }
