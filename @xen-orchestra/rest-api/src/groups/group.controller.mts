@@ -21,7 +21,6 @@ import {
   createdResp,
   invalidParameters,
   notFoundResp,
-  resourceAlreadyExists,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
@@ -73,20 +72,15 @@ export class GroupController extends XoController<XoGroup> {
 
   /**
    * @example body {
-   * "name": "new group",
-   * "provider": "64a7a0b4-e728-47e2-a082-93a218890a81",
-   * "providerGroupId": "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * "name": "new group"
    * }
    */
   @Example(groupId)
   @Post('')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
-  @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
   @Response(invalidParameters.status, invalidParameters.description)
-  async createGroup(
-    @Body() body: { name: string; provider?: string; providerGroupId?: string }
-  ): Promise<{ id: Unbrand<XoGroup['id']> }> {
+  async createGroup(@Body() body: { name: string }): Promise<{ id: Unbrand<XoGroup>['id'] }> {
     const group = await this.restApi.xoApp.createGroup(body)
 
     return { id: group.id }
