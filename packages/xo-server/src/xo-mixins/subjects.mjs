@@ -3,7 +3,7 @@ import filter from 'lodash/filter.js'
 import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
-import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
+import { forbiddenOperation, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 
 import * as XenStore from '../_XenStore.mjs'
 import { Groups } from '../models/group.mjs'
@@ -383,6 +383,10 @@ export default class {
 
   async addUserToGroup(userId, groupId) {
     const [user, group] = await Promise.all([this.getUser(userId), this.getGroup(groupId)])
+
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('Cannot add user to synchronized group.')
+    }
 
     user.groups = addToArraySet(user.groups, groupId)
     group.users = addToArraySet(group.users, userId)

@@ -59,11 +59,6 @@ export class GroupController extends XoController<XoGroup> {
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async addUserToGroup(@Path() id: string, @Path() userId: string): Promise<void> {
-    const group = await this.restApi.xoApp.getGroup(id as XoGroup['id'])
-    if (group.provider !== undefined) {
-      throw forbiddenOperation('Cannot add user to synchronized group.')
-    }
-
     await this.restApi.xoApp.addUserToGroup(userId as XoUser['id'], id as XoGroup['id'])
   }
 }
