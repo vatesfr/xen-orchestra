@@ -23,7 +23,7 @@
   - `GET /rest/v0/vdi-snapshots/<vdi-snapshot-id>/alarms` (PR [#8823](http://github.com/vatesfr/xen-orchestra/pull/8823))
   - `GET /rest/v0/vm-templates/<vm-template-id>/alarms` (PR [#8828](http://github.com/vatesfr/xen-orchestra/pull/8828))
   - `GET /rest/v0/hosts/<host-id>/logs.tgz` (PR [#8830](https://github.com/vatesfr/xen-orchestra/pull/8830))
-  - `GET /rest/v0/srs/<sr-id>/alarms` (PR [#8807](http://github.com/vatesfr/xen-orchestra/pull/8807))
+  - `GET /rest/v0/srs/<sr-id>/alarms` (PR [#8810](http://github.com/vatesfr/xen-orchestra/pull/8810))
 
 - **XO 6:**
 
