@@ -3,7 +3,7 @@ import filter from 'lodash/filter.js'
 import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
-import { invalidCredentials, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
+import { forbiddenOperation, invalidCredentials, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import * as XenStore from '../_XenStore.mjs'
 import { Groups } from '../models/group.mjs'
@@ -413,6 +413,10 @@ export default class {
 
   async removeUserFromGroup(userId, groupId) {
     const [user, group] = await Promise.all([this.getUser(userId), this.getGroup(groupId)])
+
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('Cannot remove user from synchronized group')
+    }
 
     await Promise.all([this._removeUserFromGroup(userId, group), this._removeGroupFromUser(groupId, user)])
   }
