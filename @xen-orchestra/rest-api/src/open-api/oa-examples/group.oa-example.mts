@@ -23,3 +23,7 @@ export const group = {
   users: ['722d17b9-699b-49d2-8193-be1ac573d3de'],
   id: '7d98fee4-3357-41a7-ac3f-9124212badb7',
 }
+
+export const updateGroupRequestBody = {
+  name: 'updated group name',
+}
