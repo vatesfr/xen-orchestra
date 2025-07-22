@@ -30,7 +30,7 @@ import { HostService } from '../hosts/host.service.mjs'
 const log = createLogger('xo:rest-api:xoa-service')
 
 type DashboardAsyncCache = {
-  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo>
+  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo | undefined>
   backups: MaybePromise<DashboardBackupsInfo>
 }
 
@@ -64,16 +64,18 @@ export class XoaService {
       async () => {
         const xoApp = this.#restApi.xoApp
 
-        const s3Brsize: DashboardBackupRepositoriesSizeInfo['s3']['size'] = { backups: 0 }
-        const otherBrSize: DashboardBackupRepositoriesSizeInfo['other']['size'] = {
-          available: 0,
-          backups: 0,
-          other: 0,
-          total: 0,
-          used: 0,
-        }
+        let s3Brsize: { size: { backups: number } } | undefined
+        let otherBrSize:
+          | {
+              size: { available?: number; backups: number; other?: number; total?: number; used?: number }
+            }
+          | undefined
 
         const backupRepositories = await xoApp.getAllRemotes()
+        if (backupRepositories.length === 0) {
+          return undefined
+        }
+
         const backupRepositoriesInfo = await xoApp.getAllRemotesInfo()
         for (const backupRepository of backupRepositories) {
           const { type } = parse(backupRepository.url)
@@ -88,19 +90,51 @@ export class XoaService {
           const { available, size, used } = backupRepositoryInfo
 
           const isS3 = type === 's3'
-          const target = isS3 ? s3Brsize : otherBrSize
 
-          target.backups += totalBackupSize.onDisk
-          if (!isS3) {
-            const _target = target as DashboardBackupRepositoriesSizeInfo['other']['size']
-            _target.available += available ?? 0
-            _target.other += used - totalBackupSize.onDisk
-            _target.total += size ?? 0
-            _target.used += used
+          if (isS3) {
+            if (s3Brsize === undefined) {
+              s3Brsize = { size: { backups: 0 } }
+            }
+            s3Brsize.size.backups += totalBackupSize.onDisk
+          } else {
+            if (otherBrSize === undefined) {
+              otherBrSize = {
+                size: {
+                  backups: 0,
+                  available: undefined,
+                  other: undefined,
+                  total: undefined,
+                  used: undefined,
+                },
+              }
+            }
+            if (available === undefined || size === undefined || used === undefined) {
+              log.info('#getBackupRepositoriesSizeInfo missing info for BR:', backupRepository.id)
+            }
+
+            otherBrSize.size.backups += totalBackupSize.onDisk
+            if (available !== undefined) {
+              otherBrSize.size.available = (otherBrSize.size.available ?? 0) + available
+            }
+            if (used !== undefined) {
+              otherBrSize.size.used = (otherBrSize.size.used ?? 0) + used
+              otherBrSize.size.other = (otherBrSize.size.other ?? 0) + (used - totalBackupSize.onDisk)
+            }
+            if (size !== undefined) {
+              otherBrSize.size.total = (otherBrSize.size.total ?? 0) + size
+            }
           }
         }
 
-        return { s3: { size: s3Brsize }, other: { size: otherBrSize } }
+        const result: DashboardBackupRepositoriesSizeInfo = {}
+        if (s3Brsize !== undefined) {
+          result.s3 = s3Brsize
+        }
+        if (otherBrSize !== undefined) {
+          result.other = otherBrSize
+        }
+
+        return result
       },
       this.#dashboardCacheOpts
     )
@@ -520,33 +554,27 @@ export class XoaService {
         maybePromise: this.#getStorageRepositoriesSizeInfo(),
         path: 'storageRepositories',
         stream,
+        handleError: true,
       }),
       promiseWriteInStream({ maybePromise: this.#getPoolsStatus(), path: 'poolsStatus', stream }),
       promiseWriteInStream({ maybePromise: this.#getMissingPatchesInfo(), path: 'missingPatches', stream }),
       promiseWriteInStream({
-        maybePromise: this.#getBackupRepositoriesSizeInfo().catch(err => {
-          log.error('#getBackupRepositoriesSizeInfo failed', err)
-          // explicitly return undefined because typescript understand it as void instead of undefined
-          return undefined
-        }),
+        maybePromise: this.#getBackupRepositoriesSizeInfo(),
         path: 'backupRepositories',
         stream,
+        handleError: true,
       }),
       promiseWriteInStream({
-        maybePromise: this.#getNumberOfEolHosts().catch(err => {
-          log.error('#getNumberOfEolHosts failed', err)
-          return undefined
-        }),
+        maybePromise: this.#getNumberOfEolHosts(),
         path: 'nHostsEol',
         stream,
+        handleError: true,
       }),
       promiseWriteInStream({
-        maybePromise: this.#getbackupsInfo().catch(err => {
-          log.error('#getbackupsInfo failed', err)
-          return undefined
-        }),
+        maybePromise: this.#getbackupsInfo(),
         path: 'backups',
         stream,
+        handleError: true,
       }),
     ])
 

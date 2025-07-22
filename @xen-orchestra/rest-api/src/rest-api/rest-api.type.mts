@@ -97,9 +97,9 @@ export type XoApp = {
       XoBackupRepository['id'],
       {
         size?: number
-        used: number
+        used?: number
         available?: number
-        encryption: {
+        encryption?: {
           algorithm: string
           isLegacy: boolean
           recommanded: string

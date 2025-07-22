@@ -16,3 +16,5 @@ export interface XoError extends Error {
 export type NdjsonStream = Readable
 
 export type SendObjects<T> = string[] | WithHref<T>[] | NdjsonStream
+
+export type PromiseWriteInStreamError = { error: true }
