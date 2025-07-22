@@ -228,7 +228,11 @@ export default class RestApi {
           alarms: true,
         },
       },
-      pifs: {},
+      pifs: {
+        routes: {
+          alarms: true,
+        },
+      },
       pools: {
         actions: {
           create_vm: true,
