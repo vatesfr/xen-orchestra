@@ -28,9 +28,9 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     this.restApi = restApi
   }
 
-  sendObjects(objects: T[], req: Request): SendObjects<T> {
-    const mapper = makeObjectMapper(req)
-    const mappedObjects = objects.map(mapper) as string[] | WithHref<T>[]
+  sendObjects<Objects extends XoRecord = T>(objects: Objects[], req: Request, path?: string): SendObjects<Objects> {
+    const mapper = makeObjectMapper(req, path)
+    const mappedObjects = objects.map(mapper) as string[] | WithHref<Objects>[]
 
     if (req.query.ndjson === 'true') {
       const res = req.res as ExResponse
