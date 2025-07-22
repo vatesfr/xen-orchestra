@@ -1117,7 +1117,7 @@ const New = decorate([
                           <Tooltip content={_('clickForMoreInformation')}>
                             <a
                               className='text-info'
-                              href='https://xen-orchestra.com/docs/incremental_backups.html#key-backup-interval'
+                              href='https://docs.xen-orchestra.com/incremental_backups#key-backup-interval'
                               rel='noopener noreferrer'
                               target='_blank'
                             >

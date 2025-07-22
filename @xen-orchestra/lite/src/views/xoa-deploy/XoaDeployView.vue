@@ -116,7 +116,7 @@
             </VtsInputWrapper>
             <VtsInputWrapper
               :label="t('netmask')"
-              learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
             >
               <FormInput v-model="netmask" :disabled="!requireIpConf" placeholder="255.255.255.0" />
             </VtsInputWrapper>
@@ -124,13 +124,13 @@
           <div class="row">
             <VtsInputWrapper
               :label="t('dns')"
-              learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
             >
               <FormInput v-model="dns" :disabled="!requireIpConf" placeholder="8.8.8.8" />
             </VtsInputWrapper>
             <VtsInputWrapper
               :label="t('gateway')"
-              learn-more-url="https://xen-orchestra.com/docs/xoa.html#network-configuration"
+              learn-more-url="https://docs.xen-orchestra.com/xoa#network-configuration"
             >
               <FormInput v-model="gateway" :disabled="!requireIpConf" placeholder="xxx.xxx.xxx.xxx" />
             </VtsInputWrapper>
@@ -141,7 +141,7 @@
           <div class="row">
             <VtsInputWrapper
               :label="t('admin-login')"
-              learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
+              learn-more-url="https://docs.xen-orchestra.com/xoa#default-xo-account"
             >
               <FormInput v-model="xoaUser" required placeholder="email@example.com" />
             </VtsInputWrapper>
@@ -149,13 +149,13 @@
           <div class="row">
             <VtsInputWrapper
               :label="t('admin-password')"
-              learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
+              learn-more-url="https://docs.xen-orchestra.com/xoa#default-xo-account"
             >
               <FormInput v-model="xoaPwd" type="password" required :placeholder="t('password')" />
             </VtsInputWrapper>
             <VtsInputWrapper
               :label="t('admin-password-confirm')"
-              learn-more-url="https://xen-orchestra.com/docs/xoa.html#default-xo-account"
+              learn-more-url="https://docs.xen-orchestra.com/xoa#default-xo-account"
             >
               <FormInput v-model="xoaPwdConfirm" type="password" required :placeholder="t('password')" />
             </VtsInputWrapper>
