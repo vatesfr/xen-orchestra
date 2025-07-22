@@ -39,6 +39,7 @@
 - [Health] Fix labels and modals mentioning VMs instead of snapshots when deleting snapshots (PR [#8775](https://github.com/vatesfr/xen-orchestra/pull/8775))
 - [REST API] Alarm time is now in milliseconds and body value is now in percentage (PR [#8802](https://github.com/vatesfr/xen-orchestra/pull/8802))
 - [REST API/XOA/Dashboard] Fix some type issues. Some object may return `{error: true}` instead of `undefined` on error.`s3` and `other` object may be undefined (if no S3 or other backup repositories detected) (PR [#8806](https://github.com/vatesfr/xen-orchestra/pull/8806))
+- [Backup] Better handling of filesystem error while reading file (PR [#8818](https://github.com/vatesfr/xen-orchestra/pull/8818))
 
 ### Packages to release
 
@@ -58,6 +59,7 @@
 
 - @vates/generator-toolbox patch
 - @vates/types minor
+- @xen-orchestra/fs patch
 - @xen-orchestra/mixins patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
