@@ -3,7 +3,7 @@ import filter from 'lodash/filter.js'
 import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
-import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
+import { forbiddenOperation, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 
 import * as XenStore from '../_XenStore.mjs'
 import { Groups } from '../models/group.mjs'
@@ -141,6 +141,21 @@ export default class {
     }
   ) {
     const user = await this.getUser(id)
+
+    const isAdmin = this._app.apiContext?.permission === 'admin'
+    const currentUserId = this._app.apiContext?.user?.id
+
+    if (isAdmin) {
+      if (permission != null && id === currentUserId) {
+        throw forbiddenOperation("A user cannot change it's own permission.")
+      }
+    } else if (name != null || password != null || permission != null) {
+      throw forbiddenOperation('These properties can only be changed by an administrator.')
+    }
+
+    if (user.authProviders && Object.keys(user.authProviders).length > 0 && (name != null || password != null)) {
+      throw forbiddenOperation('Cannot change the name or password of synchronized user')
+    }
 
     if (name) {
       user.name = name
