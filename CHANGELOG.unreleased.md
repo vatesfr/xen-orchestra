@@ -32,6 +32,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup] Fix full backup retry failing with EEXIST error (PR [#8776](https://github.com/vatesfr/xen-orchestra/pull/8776))
+
 - **XO 6:**
 
   - [Host/VM/Dashboard] Fix display error due to inversion of upload and download (PR [#8793](https://github.com/vatesfr/xen-orchestra/pull/8793))
@@ -58,6 +60,7 @@
 
 - @vates/generator-toolbox patch
 - @vates/types minor
+- @xen-orchestra/fs patch
 - @xen-orchestra/mixins patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
