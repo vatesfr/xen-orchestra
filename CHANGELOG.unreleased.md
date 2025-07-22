@@ -59,6 +59,7 @@
 - @vates/generator-toolbox patch
 - @vates/types minor
 - @xen-orchestra/mixins patch
+- @xen-orchestra/openflow patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
