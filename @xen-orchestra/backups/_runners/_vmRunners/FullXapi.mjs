@@ -13,14 +13,16 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
     return [FullRemoteWriter, FullXapiWriter]
   }
 
-  _mustDoSnapshot() {
+  async _mustDoSnapshot() {
     const vm = this._vm
-
+    const vdis = await this._xapi.getRecords('VDI', await vm.$getDisks())
+    const hasNOBAKtag = vdis.some(idx => idx.name_label.includes('[NOBAK]'))
     const settings = this._settings
     return (
       settings.unconditionalSnapshot ||
       (!settings.offlineBackup && vm.power_state === 'Running') ||
-      settings.snapshotRetention !== 0
+      settings.snapshotRetention !== 0 ||
+      !hasNOBAKtag
     )
   }
   _selectBaseVm() {}
