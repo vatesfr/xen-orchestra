@@ -64,7 +64,7 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Get('{id}/alarms')
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
-  getHostAlarms(
+  getVbdAlarms(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
