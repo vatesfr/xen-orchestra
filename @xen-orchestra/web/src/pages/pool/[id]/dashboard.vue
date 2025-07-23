@@ -3,7 +3,7 @@
     <div class="row first-row">
       <PoolDashboardStatus class="status" :pool="poolDashboard" />
       <PoolDashboardAlarms class="alarms" />
-      <PoolDashboardHostsPatches class="patch" />
+      <PoolDashboardHostsPatches class="patch" :pool="poolDashboard" />
     </div>
 
     <div class="row second-row">
