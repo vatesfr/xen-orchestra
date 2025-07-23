@@ -70,9 +70,9 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
-    const host = this.getObject(id as XoVdiSnapshot['id'])
+    const vdiSnapshot = this.getObject(id as XoVdiSnapshot['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${host.uuid}`,
+      filter: `${filter ?? ''} object:uuid:${vdiSnapshot.uuid}`,
       limit,
     })
 
