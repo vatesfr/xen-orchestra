@@ -260,7 +260,11 @@ export default class RestApi {
           snapshot: true,
         },
       },
-      'vm-controllers': {},
+      'vm-controllers': {
+        routes: {
+          alarms: true,
+        },
+      },
       'vm-snapshots': {},
       'vm-templates': {
         routes: {
