@@ -62,7 +62,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   @Get('{id}/alarms')
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
-  getHostAlarms(
+  getVdiSnapshotAlarms(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
