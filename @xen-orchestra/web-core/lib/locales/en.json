@@ -418,6 +418,7 @@
   "pool-connection-error-auth-failed": "An error occurred while connecting to the pool. The username or password appears to be incorrect.",
   "pool-connection-error-duplicate": "An error occurred while connecting to the pool. This pool seems to be already connected.",
   "pool-connection-error-host-not-found": "An error occurred while connecting to the pool. The address of this pool does not seem to exist. Please change the IP and try again.",
+  "pool-connection-error-invalid-parameters": "An error occurred while connecting to the pool. The parameters provided do not seem valid. Please check the IP address and credentials, then try again.",
   "pool-connection-error-ssl": "The certificate provided is invalid. This may be due to an expiration, mismatch, or untrusted authority. Please verify the certificate details and try again.",
   "pool-connection-error-timeout": "The connection attempt timed out. The pool did not respond in time, possibly due to network issues or an unresponsive host. Please check your connection and try again.",
   "pool-connection-ip-info": "Provide the primary host’s address of the pool you want to connect to.",
