@@ -202,14 +202,27 @@ export default class Restore extends Component {
       }, noop)
       .then(() => this._refreshBackupList())
 
-  _delete = data =>
-    confirm({
+  _delete = async data => {
+    const backups = await confirm({
       title: _('deleteVmBackupsTitle', { vm: data.last.vm.name_label }),
       body: <DeleteBackupsModalBody backups={data.backups} />,
       icon: 'delete',
     })
-      .then(deleteBackups, noop)
-      .then(() => this._refreshBackupList())
+
+    await confirm({
+      title: _('deleteVmBackupsBulkTitle', { nBackups: backups.length }),
+      body: _('deleteBackupsMessage', { nBackups: backups.length }),
+      strongConfirm: {
+        messageId: 'deleteVmBackupsBulkConfirmText',
+        values: { nBackups: backups.length },
+      },
+      icon: 'delete',
+    })
+
+    await deleteBackups(backups)
+
+    await this._refreshBackupList()
+  }
 
   _bulkRestore = datas =>
     confirm({
