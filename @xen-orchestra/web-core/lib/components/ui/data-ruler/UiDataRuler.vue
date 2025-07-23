@@ -19,5 +19,6 @@ const { t } = useI18n()
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  color: var(--color-neutral-txt-secondary);
 }
 </style>
