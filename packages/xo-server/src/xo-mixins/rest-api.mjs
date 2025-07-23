@@ -266,7 +266,11 @@ export default class RestApi {
       srs: {},
       vbds: {},
       vdis: {},
-      'vdi-snapshots': {},
+      'vdi-snapshots': {
+        routes: {
+          alarms: true,
+        },
+      },
       servers: {},
     }
 
