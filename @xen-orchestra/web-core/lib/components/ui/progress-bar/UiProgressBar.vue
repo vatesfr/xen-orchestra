@@ -9,7 +9,7 @@
       <span v-for="step in steps" :key="step">{{ n(step, 'percent') }}</span>
     </div>
     <VtsLegendList class="legend">
-      <UiLegend v-if="displayMode === 'percent'" :accent :value="Math.round(percent ? percent : percentage)" unit="%">
+      <UiLegend v-if="displayMode === 'percent'" :accent :value="Math.round(percentage)" unit="%">
         {{ legend }}
       </UiLegend>
       <UiLegend v-else :accent :value="legendValue">
@@ -28,25 +28,29 @@ import { useClamp, useMax } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const {
-  value: _value,
-  max = 100,
-  showSteps,
-  displayMode = 'percent',
-} = defineProps<{
+interface Props {
   legend: string
   value: number
-  max?: number
-  percent?: number
   showSteps?: boolean
-  displayMode?: 'percent' | 'value'
-}>()
+}
+interface PercentageProps {
+  max?: number
+  displayMode: 'percent'
+}
+interface ValueProps {
+  max: number
+  displayMode: 'value'
+}
+
+const { value: _value, max: _max, showSteps, displayMode } = defineProps<Props & (PercentageProps | ValueProps)>()
 
 const { n } = useI18n()
 
 const value = useMax(0, () => _value)
 
-const percentage = computed(() => (max <= 0 ? 0 : (value.value / max) * 100))
+const max = computed(() => _max ?? 100)
+
+const percentage = computed(() => (max.value <= 0 ? 0 : (value.value / max.value) * 100))
 const maxPercentage = computed(() => Math.ceil(percentage.value / 100) * 100)
 const fillWidth = useClamp(() => (percentage.value / maxPercentage.value) * 100 || 0, 0, 100)
 const shouldShowSteps = computed(() => showSteps || percentage.value > 100)
@@ -68,7 +72,7 @@ const className = computed(() => toVariants({ accent: accent.value }))
 
 const formattedValue = computed(() => formatSizeRaw(value.value, 1))
 
-const formattedMax = computed(() => formatSizeRaw(max, 0))
+const formattedMax = computed(() => formatSizeRaw(max.value, 0))
 
 const legendValue = computed(() => {
   return `${formattedValue.value.value} ${formattedValue.value.prefix} / ${formattedMax.value.value} ${formattedMax.value.prefix}`

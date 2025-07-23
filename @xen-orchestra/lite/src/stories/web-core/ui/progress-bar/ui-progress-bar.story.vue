@@ -4,8 +4,8 @@
     :params="[
       prop('legend').preset('Legend').required().widget(),
       prop('value').preset(25).required().widget(),
-      prop('max').num().widget(),
-      prop('displayMode').preset('value').widget().default('percent'),
+      prop('max').num().widget().help(`Max will be required when displayMode is set to 'value'.`),
+      prop('displayMode').enum('value', 'percent').required().preset('percent').widget(),
       prop('showSteps').bool().help('Meant to display steps values under the progress bar. See Presets.').widget(),
     ]"
     :presets
@@ -24,12 +24,14 @@ const presets = {
     props: {
       legend: 'Ram usage',
       value: 80,
+      displayMode: 'percent',
     },
   },
   'Danger >= 90%': {
     props: {
       legend: 'Ram usage',
       value: 95,
+      displayMode: 'percent',
     },
   },
   'With steps': {
@@ -37,6 +39,7 @@ const presets = {
       legend: 'Ram usage',
       value: 250,
       max: 200,
+      displayMode: 'value',
     },
   },
 }
