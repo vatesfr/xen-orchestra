@@ -46,7 +46,8 @@
 </template>
 
 <script setup lang="ts">
-import createAndConnectServer, { type NewServer, ApiError } from '@/jobs/create-server.job'
+import createAndConnectServer, { type NewServer } from '@/api/connect-server.api.ts'
+import { ApiError } from '@/error/api.error.ts'
 import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'

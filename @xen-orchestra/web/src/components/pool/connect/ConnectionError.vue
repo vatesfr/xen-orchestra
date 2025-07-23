@@ -1,34 +1,22 @@
 <template>
   <VtsStateHero class="connection-error" image="error" type="card" no-background>
     <div class="container">
-      <div v-if="ip !== undefined" class="typo-h1 title">
-        {{ t('unable-to-connect-to', { ip }) }}
+      <div class="typo-h1 title">
+        {{ ip !== undefined ? t('unable-to-connect-to', { ip }) : t('unable-to-connect-to-the-pool') }}
       </div>
       <div class="content" :class="{ mobile: uiStore.isMobile, desktop: !uiStore.isDesktopLarge }">
-        <!--        &lt;!&ndash; no error code for timeout with usefetch &ndash;&gt; -->
-        <!--        <UiAlert v-else-if="errorJson == 'Fetch is aborted'" accent="danger"> -->
-        <!--          {{ t('pool-connection-error-timeout') }} -->
-        <!--        </UiAlert> -->
-        <!--        <UiAlert v-else-if="errorCode == -69" accent="danger"> -->
-        <!--          {{ t('pool-connection-error-host-not-found') }} -->
-        <!--        </UiAlert> -->
-        <template v-if="error instanceof ApiError">
-          <UiAlert v-if="error.status === HttpCodes.Unauthorized" accent="danger">
-            {{ t('pool-connection-error-auth-failed') }}
-          </UiAlert>
-          <UiAlert v-else-if="error.status === HttpCodes.Conflict" accent="danger">
-            {{ t('pool-connection-error-duplicate') }}
-          </UiAlert>
-          <UiAlert v-else-if="error.status === HttpCodes.UnprocessableEntity" accent="danger">
-            {{ t('pool-connection-error-duplicate') }}
-          </UiAlert>
-          <template v-else>
-            <UiAlert accent="danger">{{ error.message }}</UiAlert>
-            <UiQuoteCode :label="t('api-error-details')" accent="danger" size="small" copy>
-              {{ error.cause }}
-            </UiQuoteCode>
-          </template>
-        </template>
+        <UiAlert accent="danger">
+          {{ errorDetails.text }}
+        </UiAlert>
+        <UiQuoteCode
+          v-if="error instanceof ApiError && errorDetails.showCause"
+          :label="t('api-error-details')"
+          accent="danger"
+          size="small"
+          copy
+        >
+          {{ error.cause }}
+        </UiQuoteCode>
         <RouterLink :to="{ name: '/pool/connect' }">
           <UiButton variant="secondary" accent="brand" size="medium" @click="emit('goBack')">
             {{ t('go-back') }}
@@ -40,13 +28,15 @@
 </template>
 
 <script setup lang="ts">
-import { ApiError } from '@/jobs/create-server.job.ts'
+import { ApiError } from '@/error/api.error.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
+import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { HttpCodes } from '@core/types/http-codes.type.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { error, ip } = defineProps<{
@@ -60,6 +50,48 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
+
+const errorStatus = computed(() => (error instanceof ApiError ? error.status : HttpCodes.InternalServerError))
+
+const mapping = new Map([
+  [
+    HttpCodes.Unauthorized,
+    {
+      text: t('pool-connection-error-auth-failed'),
+      showCause: false,
+    },
+  ],
+  [
+    HttpCodes.NotFound,
+    {
+      text: t('pool-connection-error-host-not-found'),
+      showCause: false,
+    },
+  ],
+  [
+    HttpCodes.Conflict,
+    {
+      text: t('pool-connection-error-duplicate'),
+      showCause: false,
+    },
+  ],
+  [
+    HttpCodes.UnprocessableEntity,
+    {
+      text: t('pool-connection-error-invalid-parameters'),
+      showCause: true,
+    },
+  ],
+  [
+    HttpCodes.InternalServerError,
+    {
+      text: error.message,
+      showCause: true,
+    },
+  ],
+])
+
+const errorDetails = useMapper(() => errorStatus.value, mapping, HttpCodes.InternalServerError)
 </script>
 
 <style lang="postcss" scoped>
