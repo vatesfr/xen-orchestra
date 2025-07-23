@@ -178,7 +178,7 @@ process.on('message', async message => {
       const result = message.runWithLogs
         ? await Task.run(
             {
-              properties: { name: 'backup run' },
+              properties: { name: 'backup run', ...message.data.jobData },
               onProgress: data =>
                 emitMessage({
                   data,
