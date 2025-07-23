@@ -66,7 +66,7 @@ const { t } = useI18n()
 const areMissingPatchesReady = computed(() => pool?.hosts.missingPatches !== undefined)
 
 const missingPatches = computed(() => {
-  if (pool?.hosts?.missingPatches.hasAuthorization) {
+  if (pool?.hosts?.missingPatches?.hasAuthorization) {
     return pool?.hosts.missingPatches?.missingPatches ?? []
   }
 
