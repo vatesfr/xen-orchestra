@@ -19,6 +19,7 @@
   - `GET /rest/v0/hosts/<host-id>/alarms` (PR [#8800](http://github.com/vatesfr/xen-orchestra/pull/8800))
   - `GET /rest/v0/networks/<network-id>/alarms` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8801))
   - `GET /rest/v0/pifs/<pif-id>/alarms` (PR [#8802](http://github.com/vatesfr/xen-orchestra/pull/8802))
+  - `GET /rest/v0/vdis/<vdi-id>/alarms` (PR [#8823](http://github.com/vatesfr/xen-orchestra/pull/8823))
 
 - **XO 6:**
 
