@@ -44,8 +44,8 @@ const { pool } = defineProps<{
   pool: XoPoolDashboard | undefined
 }>()
 
-const areHostsRamUsageReady = computed(() => pool?.hosts.topFiveUsage.ram !== undefined)
-const areVmsRamUsageReady = computed(() => pool?.vms.topFiveUsage?.ram !== undefined)
+const areHostsRamUsageReady = computed(() => pool?.hosts?.topFiveUsage?.ram !== undefined)
+const areVmsRamUsageReady = computed(() => pool?.vms?.topFiveUsage?.ram !== undefined)
 
 const { t } = useI18n()
 </script>

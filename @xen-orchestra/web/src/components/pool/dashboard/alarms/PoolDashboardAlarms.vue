@@ -6,20 +6,22 @@
     </UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <VtsAllGoodHero v-else-if="alarms.length === 0" type="card" />
-    <UiAlarmList v-else>
-      <UiAlarmItem
-        v-for="alarm in alarms"
-        :key="alarm.id"
-        :label="alarm.body.name"
-        :percent="Number(alarm.body.value)"
-        :size="uiStore.isDesktopLarge ? 'large' : 'small'"
-        :date="alarm.time"
-      >
-        <template #link>
-          <AlarmLink :type="alarm.object.type" :uuid="alarm.object.uuid" />
-        </template>
-      </UiAlarmItem>
-    </UiAlarmList>
+    <div v-else class="alarm-items">
+      <UiAlarmList>
+        <UiAlarmItem
+          v-for="alarm in alarms"
+          :key="alarm.id"
+          :label="alarm.body.name"
+          :percent="Number(alarm.body.value)"
+          :size="uiStore.isDesktopLarge ? 'large' : 'small'"
+          :date="alarm.time"
+        >
+          <template #link>
+            <AlarmLink :type="alarm.object.type" :uuid="alarm.object.uuid" />
+          </template>
+        </UiAlarmItem>
+      </UiAlarmList>
+    </div>
   </UiCard>
 </template>
 
@@ -46,6 +48,10 @@ const uiStore = useUiStore()
 <style lang="postcss" scoped>
 .pool-dashboard-alarms {
   max-height: 46.2rem;
-  overflow: auto;
+
+  .alarm-items {
+    margin-inline: -2.4rem;
+    overflow: auto;
+  }
 }
 </style>
