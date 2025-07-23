@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import createAndConnectServer, { type NewServer } from '@/api/connect-server.api.ts'
+import createAndConnectServer from '@/api/connect-server.api.ts'
 import { ApiError } from '@/error/api.error.ts'
 import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -69,7 +69,16 @@ const uiStore = useUiStore()
 const connecting = ref(false)
 const serverId = ref<XoServer['id']>()
 
-const form = reactive<NewServer>({
+interface NewServerForm {
+  host: string
+  httpProxy: string
+  username: string
+  password: string
+  readOnly: boolean
+  allowUnauthorized: boolean
+}
+
+const form = reactive<NewServerForm>({
   host: '',
   httpProxy: '',
   username: '',
@@ -80,8 +89,23 @@ const form = reactive<NewServer>({
 
 async function submit() {
   connecting.value = true
+
+  const optionalFields = Object.assign(
+    {},
+    form.httpProxy && { httpProxy: form.httpProxy },
+    form.readOnly && { readOnly: form.readOnly },
+    form.allowUnauthorized && { allowUnauthorized: form.allowUnauthorized }
+  )
+
+  const payload = {
+    host: form.host,
+    username: form.username,
+    password: form.password,
+    ...optionalFields,
+  }
+
   try {
-    serverId.value = await createAndConnectServer(form)
+    serverId.value = await createAndConnectServer(payload)
     emit('success', serverId.value, form.host)
   } catch (error: ApiError | any) {
     if (error instanceof ApiError) {

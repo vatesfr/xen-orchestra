@@ -1,7 +1,7 @@
 import type { XoServer } from '@/types/xo/server.type.ts'
 import { fetchDelete, fetchPost } from '@/utils/fetch.util.ts'
 
-export default async function createAndConnectServer(payload: NewServer) {
+export default async function createAndConnectServer(payload: NewServerPayload) {
   const { id } = await createServer(payload)
 
   try {
@@ -19,7 +19,7 @@ export default async function createAndConnectServer(payload: NewServer) {
 }
 
 // First, create the server
-export async function createServer(payload: NewServer) {
+export async function createServer(payload: NewServerPayload) {
   return await fetchPost<XoServer>('/rest/v0/servers', payload)
 }
 
@@ -32,11 +32,11 @@ export async function removeServer(serverId: XoServer['id']) {
   await fetchDelete(`/rest/v0/servers/${serverId}`)
 }
 
-export type NewServer = {
+export type NewServerPayload = {
   host: string
-  httpProxy?: string
   username: string
   password: string
+  httpProxy?: string
   readOnly?: boolean
   allowUnauthorized?: boolean
   label?: string
