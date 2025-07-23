@@ -4,7 +4,6 @@
     :key="cpu.id"
     class="progressBar"
     :value="cpu.percent"
-    :percent="cpu.percent"
     :legend="cpu.name_label"
   />
 </template>

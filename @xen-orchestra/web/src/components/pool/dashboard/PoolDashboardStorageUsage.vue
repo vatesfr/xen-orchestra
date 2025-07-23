@@ -13,8 +13,7 @@
         v-for="sr in pool?.srs.topFiveUsage"
         :key="sr.id"
         class="progressBar"
-        :value="sr.physical_usage"
-        :max="sr.size"
+        :value="sr.percent"
         :legend="sr.name_label"
         :accent="sr.physical_usage > sr.size ? 'danger' : 'success'"
       />

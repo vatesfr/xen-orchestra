@@ -3,8 +3,7 @@
     v-for="ram in vms?.topFiveUsage?.ram"
     :key="ram.id"
     class="progressBar"
-    :value="ram.memory - ram.memoryFree"
-    :max="ram.memory"
+    :value="ram.percent"
     :legend="ram.name_label"
   />
 </template>

@@ -3,8 +3,7 @@
     v-for="ram in hosts?.topFiveUsage?.ram"
     :key="ram.id"
     class="progressBar"
-    :value="ram.usage"
-    :max="ram.size"
+    :value="ram.percent"
     :legend="ram.name_label"
   />
 </template>
