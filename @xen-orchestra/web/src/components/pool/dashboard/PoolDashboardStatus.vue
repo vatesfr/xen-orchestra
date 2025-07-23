@@ -30,8 +30,8 @@ const { pool } = defineProps<{
   pool: XoPoolDashboard | undefined
 }>()
 
-const areHostsStatusReady = computed(() => pool?.hosts.status !== undefined)
-const areVmsStatusReady = computed(() => pool?.vms.status !== undefined)
+const areHostsStatusReady = computed(() => pool?.hosts?.status !== undefined)
+const areVmsStatusReady = computed(() => pool?.vms?.status !== undefined)
 
 const { t } = useI18n()
 

@@ -55,9 +55,9 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const areStorageUsageReady = computed(() => pool?.srs.topFiveUsage !== undefined)
+const areStorageUsageReady = computed(() => pool?.srs?.topFiveUsage !== undefined)
 
-const topFiveUsage = computed(() => pool?.srs.topFiveUsage ?? [])
+const topFiveUsage = computed(() => pool?.srs?.topFiveUsage ?? [])
 
 const totalUsage = useArrayReduce(topFiveUsage, (sum, sr) => sum + sr.physical_usage, 0)
 const totalSize = useArrayReduce(topFiveUsage, (sum, sr) => sum + sr.size, 0)
