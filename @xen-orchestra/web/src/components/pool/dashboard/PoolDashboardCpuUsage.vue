@@ -9,7 +9,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <!--    TODO add data ruler component -->
+    <UiDataRuler />
     <VtsLoadingHero v-if="!areHostsCpuUsageReady" type="card" />
     <template v-else>
       <HostsCpuUsage :hosts="pool?.hosts" />
@@ -20,7 +20,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <!--    TODO add data ruler component -->
+    <UiDataRuler />
     <VtsLoadingHero v-if="!areVmsCpuUsageReady" type="card" />
     <template v-else>
       <VmsCpuUsage :vms="pool?.vms" />
@@ -34,6 +34,7 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiDataRuler from '@core/components/ui/data-ruler/UiDataRuler.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import HostsCpuUsage from './cpuUsage/HostsCpuUsage.vue'
