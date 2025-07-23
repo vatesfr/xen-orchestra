@@ -249,7 +249,11 @@ export default class RestApi {
       },
       groups: {},
       users: {},
-      vifs: {},
+      vifs: {
+        routes: {
+          alarms: true,
+        },
+      },
       vms: {
         actions: {
           start: true,

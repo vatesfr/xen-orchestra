@@ -1,7 +1,7 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import type { Request as ExRequest } from 'express'
-import type { XoVif } from '@vates/types'
+import type { XoAlarm, XoVif } from '@vates/types'
 
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -9,6 +9,8 @@ import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVifs, vif, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
+import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
 
 type UnbrandedXoVif = Unbrand<XoVif>
 
@@ -18,8 +20,10 @@ type UnbrandedXoVif = Unbrand<XoVif>
 @Tags('vifs')
 @provide(VifController)
 export class VifController extends XapiXoController<XoVif> {
-  constructor(@inject(RestApi) restApi: RestApi) {
+  #alarmService: AlarmService
+  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
     super('VIF', restApi)
+    this.#alarmService = alarmService
   }
 
   /**
@@ -48,5 +52,32 @@ export class VifController extends XapiXoController<XoVif> {
   @Response(notFoundResp.status, notFoundResp.description)
   getVif(@Path() id: string): UnbrandedXoVif {
     return this.getObject(id as XoVif['id'])
+  }
+
+  /**
+   * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
+   * @example fields "id,time"
+   * @example filter "time:>1747053793"
+   * @example limit 42
+   */
+  @Example(genericAlarmsExample)
+  @Get('{id}/alarms')
+  @Tags('alarms')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVifAlarms(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoAlarm>>> {
+    const vif = this.getObject(id as XoVif['id'])
+    const alarms = this.#alarmService.getAlarms({
+      filter: `${filter ?? ''} object:uuid:${vif.uuid}`,
+      limit,
+    })
+
+    return this.sendObjects(Object.values(alarms), req, 'alarms')
   }
 }
