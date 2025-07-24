@@ -261,12 +261,20 @@ export default class RestApi {
         },
       },
       'vm-controllers': {},
+<<<<<<< HEAD
       'vm-snapshots': {},
       'vm-templates': {
+=======
+      'vm-snapshots': {
+>>>>>>> 14954178a (feat(@xen-orchestra/rest-api): expose VM snapshot alarms)
         routes: {
           alarms: true,
         },
       },
+<<<<<<< HEAD
+=======
+      'vm-templates': {},
+>>>>>>> 14954178a (feat(@xen-orchestra/rest-api): expose VM snapshot alarms)
       hosts: {
         routes: {
           'audit.txt': true,
