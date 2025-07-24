@@ -2,8 +2,10 @@ import { Example, Get, Security, Query, Request, Response, Route, Tags, Path } f
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import type { XoVmTemplate } from '@vates/types'
+import type { XoAlarm, XoVmTemplate } from '@vates/types'
 
+import { AlarmService } from '../alarms/alarm.service.mjs'
+import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -17,8 +19,10 @@ import { partialVmTemplates, vmTemplate, vmTemplateIds } from '../open-api/oa-ex
 @Tags('vms')
 @provide(VmTemplateController)
 export class VmTemplateController extends XapiXoController<XoVmTemplate> {
-  constructor(@inject(RestApi) restApi: RestApi) {
+  #alarmService: AlarmService
+  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
     super('VM-template', restApi)
+    this.#alarmService = alarmService
   }
 
   /**
@@ -47,5 +51,32 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   @Response(notFoundResp.status, notFoundResp.description)
   getVmTemplate(@Path() id: string): Unbrand<XoVmTemplate> {
     return this.getObject(id as XoVmTemplate['id'])
+  }
+
+  /**
+   * @example id "b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d"
+   * @example fields "id,time"
+   * @example filter "time:>1747053793"
+   * @example limit 42
+   */
+  @Example(genericAlarmsExample)
+  @Get('{id}/alarms')
+  @Tags('alarms')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getvmTemplateAlarms(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoAlarm>>> {
+    const vmTemplate = this.getObject(id as XoVmTemplate['id'])
+    const alarms = this.#alarmService.getAlarms({
+      filter: `${filter ?? ''} object:uuid:${vmTemplate.uuid}`,
+      limit,
+    })
+
+    return this.sendObjects(Object.values(alarms), req, 'alarms')
   }
 }
