@@ -266,6 +266,7 @@ export default class RestApi {
       hosts: {
         routes: {
           'audit.txt': true,
+          'logs.tgz': true,
           alarms: true,
         },
       },
