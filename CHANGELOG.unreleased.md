@@ -64,6 +64,7 @@
 
 - @vates/generator-toolbox patch
 - @vates/types minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/fs patch
 - @xen-orchestra/mixins patch
 - @xen-orchestra/openflow patch
