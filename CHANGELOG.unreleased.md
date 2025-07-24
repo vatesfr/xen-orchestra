@@ -21,6 +21,7 @@
   - `GET /rest/v0/pifs/<pif-id>/alarms` (PR [#8802](http://github.com/vatesfr/xen-orchestra/pull/8802))
   - `GET /rest/v0/vdis/<vdi-id>/alarms` (PR [#8824](http://github.com/vatesfr/xen-orchestra/pull/8824))
   - `GET /rest/v0/vdi-snapshots/<vdi-snapshot-id>/alarms` (PR [#8823](http://github.com/vatesfr/xen-orchestra/pull/8823))
+  - `GET /rest/v0/vm-templates/<vm-template-id>/alarms` (PR [#8828](http://github.com/vatesfr/xen-orchestra/pull/8828))
 
 - **XO 6:**
 

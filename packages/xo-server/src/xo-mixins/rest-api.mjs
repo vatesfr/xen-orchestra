@@ -262,7 +262,11 @@ export default class RestApi {
       },
       'vm-controllers': {},
       'vm-snapshots': {},
-      'vm-templates': {},
+      'vm-templates': {
+        routes: {
+          alarms: true,
+        },
+      },
       hosts: {
         routes: {
           'audit.txt': true,
