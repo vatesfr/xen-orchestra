@@ -18,12 +18,29 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
     const vdis = await this._xapi.getRecords('VDI', await vm.$getDisks())
     const hasNOBAKtag = vdis.some(idx => idx.name_label.includes('[NOBAK]'))
     const settings = this._settings
-    return (
-      settings.unconditionalSnapshot ||
-      (!settings.offlineBackup && vm.power_state === 'Running') ||
-      settings.snapshotRetention !== 0 ||
-      !hasNOBAKtag
-    )
+
+    // General setting forcing snapshot at all times
+    if (settings.unconditionalSnapshot) {
+      return true
+    }
+
+    // If offline backup option is not checked
+    // and vm is running, we make a snapshot
+    if (!settings.offlineBackup && vm.power_state === 'Running') {
+      return true
+    }
+
+    // General setting used for snapshot retention
+    // see schedule in backupJob edition
+    if (settings.snapshotRetention !== 0) {
+      return true
+    }
+
+    // if there is a disk with NOBAK tag
+    // we need to make a snapshot
+    if (hasNOBAKtag) {
+      return true
+    }
   }
   _selectBaseVm() {}
 
