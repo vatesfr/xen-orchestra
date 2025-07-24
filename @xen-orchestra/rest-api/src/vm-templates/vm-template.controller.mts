@@ -63,7 +63,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   @Get('{id}/alarms')
   @Tags('alarms')
   @Response(notFoundResp.status, notFoundResp.description)
-  getvmTemplateAlarms(
+  getVmTemplateAlarms(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
