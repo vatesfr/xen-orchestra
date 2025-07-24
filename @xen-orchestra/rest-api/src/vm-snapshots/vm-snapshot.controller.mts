@@ -3,6 +3,7 @@ import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -73,7 +74,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vmSnapshot = this.getObject(id as XoVmSnapshot['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${vmSnapshot.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vmSnapshot.uuid}`,
       limit,
     })
 
