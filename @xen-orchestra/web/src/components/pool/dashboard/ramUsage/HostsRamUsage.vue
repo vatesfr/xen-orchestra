@@ -2,8 +2,10 @@
   <UiProgressBar
     v-for="ram in hosts?.topFiveUsage?.ram"
     :key="ram.id"
+    display-mode="value"
     class="progressBar"
-    :value="ram.percent"
+    :value="ram.usage"
+    :max="ram.size"
     :legend="ram.name_label"
   />
 </template>

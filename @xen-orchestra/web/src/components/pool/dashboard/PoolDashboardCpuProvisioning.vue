@@ -5,6 +5,7 @@
     <VtsLoadingHero v-if="!areCpuProvisioningReady" type="card" />
     <template v-else>
       <UiProgressBar
+        display-mode="percent"
         :max="pool?.cpuProvisioning.total"
         :legend="t('vcpus')"
         :value="pool?.cpuProvisioning.assigned ?? 0"

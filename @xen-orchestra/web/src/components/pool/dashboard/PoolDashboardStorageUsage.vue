@@ -12,6 +12,7 @@
       <UiProgressBar
         v-for="sr in pool?.srs.topFiveUsage"
         :key="sr.id"
+        display-mode="percent"
         class="progressBar"
         :value="sr.percent"
         :legend="sr.name_label"
