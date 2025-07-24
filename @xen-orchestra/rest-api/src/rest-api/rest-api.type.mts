@@ -11,6 +11,7 @@ import type {
   XenApiPgpuWrapped,
   XenApiPifWrapped,
   XenApiPoolWrapped,
+  XenApiRepositoryWrapped,
   XenApiSmWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
@@ -59,6 +60,7 @@ type XapiRecordByXapiXoRecord = {
   'VM-controller': XenApiVmWrapped
   'VM-snapshot': XenApiVmWrapped
   'VM-template': XenApiVmWrapped
+  repository: XenApiRepositoryWrapped
   VTPM: XenApiVtpmWrapped
 }
 
@@ -91,6 +93,7 @@ export type XoApp = {
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
   getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
+  getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
   getAllRemotesInfo(): Promise<
     Record<
