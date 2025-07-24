@@ -5,6 +5,7 @@ import type { Request as ExRequest } from 'express'
 import type { XoAlarm, XoPif } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { escapeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialPifs, pif, pifIds } from '../open-api/oa-examples/pif.oa-example.mjs'
@@ -74,7 +75,7 @@ export class PifController extends XapiXoController<XoPif> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const pif = this.getObject(id as XoPif['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${pif.uuid}`,
+      filter: `${escapeComplexMatcher(filter) ?? ''} object:uuid:${pif.uuid}`,
       limit,
     })
 

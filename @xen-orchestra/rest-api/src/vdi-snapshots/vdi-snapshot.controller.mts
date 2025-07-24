@@ -4,6 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
 import type { XoAlarm, XoVdiSnapshot } from '@vates/types'
 
+import { escapeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -72,7 +73,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vdiSnapshot = this.getObject(id as XoVdiSnapshot['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${vdiSnapshot.uuid}`,
+      filter: `${escapeComplexMatcher(filter) ?? ''} object:uuid:${vdiSnapshot.uuid}`,
       limit,
     })
 
