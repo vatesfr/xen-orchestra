@@ -15,8 +15,6 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
 
   async _mustDoSnapshot() {
     const vm = this._vm
-    const vdis = await this._xapi.getRecords('VDI', await vm.$getDisks())
-    const hasNOBAKtag = vdis.some(idx => idx.name_label.includes('[NOBAK]'))
     const settings = this._settings
 
     // General setting forcing snapshot at all times
@@ -35,6 +33,9 @@ export const FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
     if (settings.snapshotRetention !== 0) {
       return true
     }
+
+    const vdis = await this._xapi.getRecords('VDI', await vm.$getDisks())
+    const hasNOBAKtag = vdis.some(idx => idx.name_label.includes('[NOBAK]'))
 
     // if there is a disk with NOBAK tag
     // we need to make a snapshot
