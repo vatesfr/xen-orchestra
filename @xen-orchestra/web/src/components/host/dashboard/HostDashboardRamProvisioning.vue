@@ -3,7 +3,12 @@
     <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiProgressBar :value="host.memory.usage" :max="host.memory.size" :legend="host.name_label" />
+      <UiProgressBar
+        display-mode="percent"
+        :value="host.memory.usage"
+        :max="host.memory.size"
+        :legend="host.name_label"
+      />
       <div class="total">
         <UiCardNumbers
           :label="t('total-assigned')"
