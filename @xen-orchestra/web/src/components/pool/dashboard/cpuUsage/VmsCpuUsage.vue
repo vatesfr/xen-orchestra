@@ -2,6 +2,7 @@
   <UiProgressBar
     v-for="cpu in vms?.topFiveUsage?.cpu"
     :key="cpu.id"
+    display-mode="percent"
     class="progressBar"
     :value="cpu.percent"
     :legend="cpu.name_label"
