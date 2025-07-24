@@ -259,6 +259,9 @@ export default class RestApi {
           hard_reboot: true,
           snapshot: true,
         },
+        routes: {
+          alarms: true,
+        },
       },
       'vm-controllers': {},
       'vm-snapshots': {},
