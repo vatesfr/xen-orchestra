@@ -111,10 +111,10 @@ export async function promiseWriteInStream<T>({
   return data
 }
 
-export function escapeComplexMatcher(string: undefined): undefined
-export function escapeComplexMatcher(string: string): string
-export function escapeComplexMatcher(string: string | undefined): string | undefined
-export function escapeComplexMatcher(maybeString: string | undefined): string | undefined {
+export function escapeUnsafeComplexMatcher(string: undefined): undefined
+export function escapeUnsafeComplexMatcher(string: string): string
+export function escapeUnsafeComplexMatcher(string: string | undefined): string | undefined
+export function escapeUnsafeComplexMatcher(maybeString: string | undefined): string | undefined {
   if (maybeString === undefined) {
     return maybeString
   }

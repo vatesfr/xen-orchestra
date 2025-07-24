@@ -5,7 +5,7 @@ import { Request as ExRequest } from 'express'
 import type { XoAlarm, XoVdi } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { escapeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -73,7 +73,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vdi = this.getObject(id as XoVdi['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${escapeComplexMatcher(filter) ?? ''} object:uuid:${vdi.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vdi.uuid}`,
       limit,
     })
 

@@ -5,7 +5,7 @@ import { Request as ExRequest } from 'express'
 import type { XoAlarm, XoNetwork } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { escapeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { network, networkIds, partialNetworks } from '../open-api/oa-examples/network.oa-example.mjs'
 import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
@@ -84,7 +84,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const network = this.getObject(id as XoNetwork['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${escapeComplexMatcher(filter) ?? ''} object:uuid:${network.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${network.uuid}`,
       limit,
     })
 
