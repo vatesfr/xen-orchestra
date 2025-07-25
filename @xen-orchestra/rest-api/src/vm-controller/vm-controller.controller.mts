@@ -6,6 +6,7 @@ import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } f
 import { Request as ExRequest } from 'express'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
@@ -77,7 +78,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vmController = this.getObject(id as XoVmController['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${vmController.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vmController.uuid}`,
       limit,
     })
 
