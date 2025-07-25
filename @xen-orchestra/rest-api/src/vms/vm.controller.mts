@@ -31,6 +31,7 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { BASE_URL } from '../index.mjs'
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -458,7 +459,7 @@ export class VmController extends XapiXoController<XoVm> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vm = this.getObject(id as XoVm['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${vm.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vm.uuid}`,
       limit,
     })
 
