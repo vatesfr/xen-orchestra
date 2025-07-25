@@ -104,6 +104,17 @@ const methods = {
     }
   },
 
+  getSmFromSr(sr) {
+    const sms = filter(this.objects.all, object => {
+      return object.$type === 'SM' && object.type === sr.SR_type
+    })
+    if (sms.length === 1) {
+      return sms[0]
+    } else {
+      return undefined
+    }
+  },
+
   // This function helps to reattach a forgotten NFS/iSCSI/HBA SR
   async reattachSr($defer, { uuid, nameLabel, nameDescription, type, deviceConfig }) {
     const srRef = await this.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'user', true, {})
