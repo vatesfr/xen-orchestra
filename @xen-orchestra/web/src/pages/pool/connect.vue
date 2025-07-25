@@ -1,6 +1,6 @@
 <template>
   <ConnectPoolHeader />
-  <UiCard class="pool-connect-card">
+  <UiCard class="pool-connect-card" :class="{ 'full-height': success || hasError }">
     <ConnectionSuccess v-if="success && serverId" :ip :server-id @connect-another-pool="reset()" />
     <ConnectionError v-else-if="hasError && error" :ip :error @go-back="reset()" />
     <ConnectionForm v-else @success="handleSuccess" @error="handleError" />
@@ -46,5 +46,9 @@ function reset() {
 <style lang="postcss" scoped>
 .pool-connect-card {
   margin: 0.8rem;
+
+  &.full-height {
+    height: 100%;
+  }
 }
 </style>
