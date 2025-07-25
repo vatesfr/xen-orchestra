@@ -5,6 +5,7 @@ import { Request as ExRequest } from 'express'
 import type { XoAlarm, XoSr } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialSrs, sr, srIds } from '../open-api/oa-examples/sr.oa-example.mjs'
@@ -72,7 +73,7 @@ export class SrController extends XapiXoController<XoSr> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const sr = this.getObject(id as XoSr['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${sr.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${sr.uuid}`,
       limit,
     })
 
