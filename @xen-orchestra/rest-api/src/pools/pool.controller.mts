@@ -37,12 +37,15 @@ import type {
   XapiStatsGranularity,
   XenApiSr,
   XenApiVm,
+  XoAlarm,
   XoNetwork,
   XoPif,
   XoPool,
   XoSr,
   XoVm,
 } from '@vates/types'
+import { AlarmService } from '../alarms/alarm.service.mjs'
+import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   createVm,
   importVm,
@@ -64,7 +67,7 @@ import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { PoolService } from './pool.service.mjs'
-import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
+import { escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 
 @Route('pools')
 @Security('*')
@@ -74,15 +77,18 @@ import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 export class PoolController extends XapiXoController<XoPool> {
   #vmService: VmService
   #poolService: PoolService
+  #alarmService: AlarmService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(VmService) vmService: VmService,
-    @inject(PoolService) poolService: PoolService
+    @inject(PoolService) poolService: PoolService,
+    @inject(AlarmService) alarmService: AlarmService
   ) {
     super('pool', restApi)
     this.#vmService = vmService
     this.#poolService = poolService
+    this.#alarmService = alarmService
   }
 
   /**
@@ -356,5 +362,32 @@ export class PoolController extends XapiXoController<XoPool> {
     } else {
       return dashboard
     }
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example fields "id,time"
+   * @example filter "time:>1747053793"
+   * @example limit 42
+   */
+  @Example(genericAlarmsExample)
+  @Get('{id}/alarms')
+  @Tags('alarms')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getPoolAlarms(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoAlarm>>> {
+    const pool = this.getObject(id as XoPool['id'])
+    const alarms = this.#alarmService.getAlarms({
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${pool.uuid}`,
+      limit,
+    })
+
+    return this.sendObjects(Object.values(alarms), req, 'alarms')
   }
 }
