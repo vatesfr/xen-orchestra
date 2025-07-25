@@ -100,6 +100,29 @@ export class HostController extends XapiXoController<XoHost> {
   }
 
   /**
+   * Host must be running
+   *
+   * Download all logs of a host.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   *
+   */
+  @Get('{id}/logs.tgz')
+  @SuccessResponse(200, 'Download started', 'application/gzip')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async getHostLogs(@Request() req: ExRequest, @Path() id: string) {
+    const xapiHost = this.getXapiObject(id as XoHost['id'])
+    const res = req.res as ExResponse
+
+    const response = await xapiHost.$xapi.getResource('/host_logs_download', { host: xapiHost })
+
+    res.setHeader('Content-Type', 'application/gzip')
+
+    await pipeline(response.body, res)
+  }
+
+  /**
    * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
    * @example fields "id,time"
    * @example filter "time:>1747053793"
