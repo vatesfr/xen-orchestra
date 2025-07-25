@@ -5,6 +5,7 @@ import type { Request as ExRequest } from 'express'
 import type { XoAlarm, XoVbd } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialVbds, vbd, vbdIds } from '../open-api/oa-examples/vbd.oa-example.mjs'
@@ -74,7 +75,7 @@ export class VbdController extends XapiXoController<XoVbd> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vbd = this.getObject(id as XoVbd['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${vbd.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vbd.uuid}`,
       limit,
     })
 
