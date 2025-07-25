@@ -25,21 +25,23 @@ export class HostService {
     for (const id in hosts) {
       total++
       const host = hosts[id as XoHost['id']]
+
+      if (host.power_state === HOST_POWER_STATE.HALTED) {
+        nHalted++
+        continue
+      }
+
       if (!host.enabled) {
         nDisabled++
         continue
       }
-      switch (host.power_state) {
-        case HOST_POWER_STATE.RUNNING:
-          nRunning++
-          break
-        case HOST_POWER_STATE.HALTED:
-          nHalted++
-          break
-        default:
-          nUnknown++
-          break
+
+      if (host.power_state === HOST_POWER_STATE.RUNNING) {
+        nRunning++
+        continue
       }
+
+      nUnknown++
     }
 
     return {
