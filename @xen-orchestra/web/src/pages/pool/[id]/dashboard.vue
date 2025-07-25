@@ -2,7 +2,7 @@
   <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
     <div class="row first-row">
       <PoolDashboardStatus class="status" :pool="poolDashboard" />
-      <PoolDashboardAlarms class="alarms" />
+      <PoolDashboardAlarms class="alarms" :pool="poolDashboard" />
       <PoolDashboardHostsPatches class="patch" :pool="poolDashboard" />
     </div>
 

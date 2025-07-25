@@ -109,6 +109,8 @@ const headerIcon: Record<'name' | 'version', IconDefinition> = {
   .table-items {
     overflow-y: auto;
     margin-inline: -2.4rem;
+    margin-block-end: -1.2rem;
+    border-block: 0.1rem solid var(--color-neutral-border);
   }
 
   .version {

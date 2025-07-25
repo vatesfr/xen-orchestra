@@ -69,11 +69,11 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
   display: flex;
   flex-direction: column;
   padding: 0.8rem 1.2rem;
-  border-block: 0.1rem solid var(--color-neutral-border);
+  border-bottom: 0.1rem solid var(--color-neutral-border);
   color: var(--color-neutral-txt-primary);
 
-  &:not(:first-child) {
-    border-block-start: none;
+  &:last-child {
+    border-bottom: none;
   }
 
   .content {
@@ -102,7 +102,6 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
   .link-container {
     gap: 0.8rem;
     white-space: nowrap;
-
     min-width: 10rem;
   }
 
