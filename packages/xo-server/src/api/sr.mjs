@@ -1028,3 +1028,17 @@ reclaimSpace.params = {
 reclaimSpace.resolve = {
   sr: ['id', 'SR', 'operate'],
 }
+
+export async function getSM({ sr }) {
+  return this.getXapi(sr).getSmFromSr(sr)
+}
+
+getSM.description = 'Get SM from SR'
+
+getSM.params = {
+  id: { type: 'string' },
+}
+
+getSM.resolve = {
+  sr: ['id', 'SR', 'view'],
+}
