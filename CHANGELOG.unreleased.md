@@ -38,6 +38,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+- [Task/Schedule] Set sequences as completly done on success (PR [#8527](https://github.com/vatesfr/xen-orchestra/pull/8527))
 
 - [Backup] Fix full backup retry failing with EEXIST error (PR [#8776](https://github.com/vatesfr/xen-orchestra/pull/8776))
 
