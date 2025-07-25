@@ -27,7 +27,7 @@ export class BackupRepositoryController extends XoController<XoBackupRepository>
   }
 
   /**
-   * @example fields "id,name"
+   * @example fields "id,name,enabled"
    * @example filter "enabled?"
    * @example limit 42
    */
