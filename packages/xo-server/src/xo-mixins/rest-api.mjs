@@ -274,7 +274,11 @@ export default class RestApi {
           alarms: true,
         },
       },
-      srs: {},
+      srs: {
+        routes: {
+          alarms: true,
+        },
+      },
       vbds: {},
       vdis: {
         routes: {
