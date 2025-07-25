@@ -184,7 +184,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
       )
       // sometimes it won't fail if it can't read the data
       // and will return a partial buffer
-      // let's read the missing data to force it to really succeed or completly fail
+      // let's read the missing data to force it to really succeed or completely fail
       if (bytesRead < buffer.length) {
         // additionalBuffer is a view on the end of buffer
         const additionalBuffer = buffer.slice(bytesRead)
