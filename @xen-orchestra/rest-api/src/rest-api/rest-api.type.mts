@@ -11,6 +11,7 @@ import type {
   XenApiPgpuWrapped,
   XenApiPifWrapped,
   XenApiPoolWrapped,
+  XenApiRepositoryWrapped,
   XenApiSmWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
@@ -91,6 +92,7 @@ export type XoApp = {
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
   getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
+  getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
   getAllRemotesInfo(): Promise<
     Record<
