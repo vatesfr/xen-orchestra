@@ -67,7 +67,7 @@ import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { PoolService } from './pool.service.mjs'
-import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
+import { escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 
 @Route('pools')
 @Security('*')
@@ -384,7 +384,7 @@ export class PoolController extends XapiXoController<XoPool> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const pool = this.getObject(id as XoPool['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${pool.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${pool.uuid}`,
       limit,
     })
 
