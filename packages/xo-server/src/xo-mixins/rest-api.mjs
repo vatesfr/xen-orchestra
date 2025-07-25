@@ -262,7 +262,11 @@ export default class RestApi {
       },
       'vm-controllers': {},
       'vm-snapshots': {},
-      'vm-templates': {},
+      'vm-templates': {
+        routes: {
+          alarms: true,
+        },
+      },
       hosts: {
         routes: {
           'audit.txt': true,
@@ -272,7 +276,11 @@ export default class RestApi {
       },
       srs: {},
       vbds: {},
-      vdis: {},
+      vdis: {
+        routes: {
+          alarms: true,
+        },
+      },
       'vdi-snapshots': {
         routes: {
           alarms: true,
