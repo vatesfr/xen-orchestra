@@ -4,10 +4,10 @@
     <VtsLoadingHero v-if="!areHostsStatusReady && !areVmsStatusReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :segments="segmentsHost" :title="{ label: t('hosts') }" :icon="faServer" />
-      <UiCardNumbers class="total" :label="t('total')" :value="pool?.hosts.status?.total" size="small" />
+      <UiCardNumbers class="total" :label="t('total')" :value="poolDashboard?.hosts.status?.total" size="small" />
       <VtsDivider type="stretch" />
       <VtsDonutChartWithLegend :segments="segmentsVm" :title="{ label: t('vms', 2) }" :icon="faDisplay" />
-      <UiCardNumbers class="total" :label="t('total')" :value="pool?.vms.status?.total" size="small" />
+      <UiCardNumbers class="total" :label="t('total')" :value="poolDashboard?.vms.status?.total" size="small" />
     </template>
   </UiCard>
 </template>
@@ -26,29 +26,29 @@ import { faDisplay, faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pool } = defineProps<{
-  pool: XoPoolDashboard | undefined
+const { poolDashboard } = defineProps<{
+  poolDashboard: XoPoolDashboard | undefined
 }>()
 
-const areHostsStatusReady = computed(() => pool?.hosts?.status !== undefined)
-const areVmsStatusReady = computed(() => pool?.vms?.status !== undefined)
+const areHostsStatusReady = computed(() => poolDashboard?.hosts?.status !== undefined)
+const areVmsStatusReady = computed(() => poolDashboard?.vms?.status !== undefined)
 
 const { t } = useI18n()
 
 const segmentsHost = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vms-status.running'),
-    value: pool?.hosts.status.running ?? 0,
+    value: poolDashboard?.hosts.status.running ?? 0,
     accent: 'success',
   },
   {
     label: t('vms-status.suspended'),
-    value: pool?.hosts.status.disabled ?? 0,
+    value: poolDashboard?.hosts.status.disabled ?? 0,
     accent: 'neutral',
   },
   {
     label: t('vms-status.halted'),
-    value: pool?.hosts.status.halted ?? 0,
+    value: poolDashboard?.hosts.status.halted ?? 0,
     accent: 'danger',
   },
 ])
@@ -56,22 +56,22 @@ const segmentsHost = computed<DonutChartWithLegendProps['segments']>(() => [
 const segmentsVm = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vms-status.running'),
-    value: pool?.vms.status.running ?? 0,
+    value: poolDashboard?.vms.status.running ?? 0,
     accent: 'success',
   },
   {
     label: t('vms-status.paused'),
-    value: pool?.vms.status.paused ?? 0,
+    value: poolDashboard?.vms.status.paused ?? 0,
     accent: 'info',
   },
   {
     label: t('vms-status.suspended'),
-    value: pool?.vms.status.suspended ?? 0,
+    value: poolDashboard?.vms.status.suspended ?? 0,
     accent: 'neutral',
   },
   {
     label: t('vms-status.halted'),
-    value: pool?.vms.status.halted ?? 0,
+    value: poolDashboard?.vms.status.halted ?? 0,
     accent: 'danger',
   },
 ])

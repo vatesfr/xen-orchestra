@@ -37,15 +37,15 @@ const record = computed(() => {
   }
 
   if (type === 'host') {
-    return hostRecords.value.find(vm => vm.id === uuid)
+    return hostRecords.value.find(host => host.id === uuid)
   }
 
   if (type === 'VM-controller') {
-    return vmControllerRecords.value.find(vm => vm.id === uuid)
+    return vmControllerRecords.value.find(vmController => vmController.id === uuid)
   }
 
   if (type === 'SR') {
-    return srRecords.value.find(vm => vm.id === uuid)
+    return srRecords.value.find(sr => sr.id === uuid)
   }
 
   return undefined

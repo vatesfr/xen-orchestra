@@ -2,9 +2,15 @@
   <UiCard class="pool-dashboard-alarms">
     <UiCardTitle>
       {{ t('alarms') }}
-      <UiCounter v-if="alarms.length !== 0" accent="danger" size="small" variant="primary" :value="alarms.length" />
+      <UiCounter
+        v-if="alarms.length !== 0 && areAlarmsReady"
+        accent="danger"
+        size="small"
+        variant="primary"
+        :value="alarms.length"
+      />
     </UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!areAlarmsReady" type="card" />
     <VtsAllGoodHero v-else-if="alarms.length === 0" type="card" />
     <div v-else class="alarm-items">
       <UiAlarmList>
@@ -29,6 +35,10 @@
 <script setup lang="ts">
 import AlarmLink from '@/components/pool/dashboard/alarms/AlarmLink.vue'
 import { useAlarmStore } from '@/stores/xo-rest-api/alarm.store.ts'
+import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
+import { useSrStore } from '@/stores/xo-rest-api/sr.store.ts'
+import { useVmControllerStore } from '@/stores/xo-rest-api/vm-controller.store.ts'
+import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsAllGoodHero from '@core/components/state-hero/VtsAllGoodHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -41,22 +51,36 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pool } = defineProps<{
-  pool: XoPoolDashboard | undefined
+const { poolDashboard } = defineProps<{
+  poolDashboard: XoPoolDashboard | undefined
 }>()
 
 const { t } = useI18n()
 
-const { get, isReady } = useAlarmStore().subscribe()
+const { get } = useAlarmStore().subscribe()
+const { isReady: areHostsReady } = useHostStore().subscribe()
+const { isReady: areVmsReady } = useVmStore().subscribe()
+const { isReady: areVmControllersReady } = useVmControllerStore().subscribe()
+const { isReady: areSrsReady } = useSrStore().subscribe()
+
+const areAlarmsReady = computed(() => {
+  return (
+    poolDashboard?.alarms !== undefined &&
+    areHostsReady.value &&
+    areVmsReady.value &&
+    areVmControllersReady.value &&
+    areSrsReady.value
+  )
+})
 
 const uiStore = useUiStore()
 
 const alarms = computed(() => {
-  if (!pool?.alarms) {
+  if (!poolDashboard?.alarms) {
     return []
   }
 
-  return pool.alarms.map(alarmId => get(alarmId))
+  return poolDashboard.alarms.map(alarmId => get(alarmId))
 })
 </script>
 

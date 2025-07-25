@@ -4,6 +4,7 @@ import type { Branded } from '@core/types/utility.type'
 
 export type XoSr = {
   $pool: XoPool['id']
+  type: 'SR'
   id: Branded<'sr'>
   name_label: string
   name_description: string
