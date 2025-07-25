@@ -3,6 +3,7 @@ import { inject } from 'inversify'
 import type { Request as ExRequest } from 'express'
 import type { XoAlarm, XoVif } from '@vates/types'
 
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
@@ -74,7 +75,7 @@ export class VifController extends XapiXoController<XoVif> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vif = this.getObject(id as XoVif['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${vif.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vif.uuid}`,
       limit,
     })
 
