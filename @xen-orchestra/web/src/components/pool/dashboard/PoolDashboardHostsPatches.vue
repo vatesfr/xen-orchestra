@@ -10,8 +10,8 @@
     </div>
     <VtsLoadingHero v-if="!areMissingPatchesReady" type="card" />
     <VtsAllDoneHero v-else-if="noMissingPatches" type="card" />
-    <div v-else class="table-items">
-      <VtsDataTable is-ready>
+    <div v-else class="table-wrapper">
+      <VtsDataTable is-ready class="table">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -57,17 +57,17 @@ import { faAlignLeft, faHashtag } from '@fortawesome/free-solid-svg-icons'
 import { computed, type ComputedRef, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pool } = defineProps<{
-  pool: XoPoolDashboard | undefined
+const { poolDashboard } = defineProps<{
+  poolDashboard: XoPoolDashboard | undefined
 }>()
 
 const { t } = useI18n()
 
-const areMissingPatchesReady = computed(() => pool?.hosts?.missingPatches !== undefined)
+const areMissingPatchesReady = computed(() => poolDashboard?.hosts?.missingPatches !== undefined)
 
 const missingPatches = computed(() => {
-  if (pool?.hosts?.missingPatches?.hasAuthorization) {
-    return pool?.hosts?.missingPatches?.missingPatches ?? []
+  if (poolDashboard?.hosts?.missingPatches?.hasAuthorization) {
+    return poolDashboard?.hosts?.missingPatches?.missingPatches ?? []
   }
 
   return []
@@ -106,11 +106,15 @@ const headerIcon: Record<'name' | 'version', IconDefinition> = {
     color: var(--color-danger-txt-base);
   }
 
-  .table-items {
+  .table-wrapper {
     overflow-y: auto;
     margin-inline: -2.4rem;
     margin-block-end: -1.2rem;
     border-block: 0.1rem solid var(--color-neutral-border);
+
+    .table {
+      margin-top: -0.1rem;
+    }
   }
 
   .version {

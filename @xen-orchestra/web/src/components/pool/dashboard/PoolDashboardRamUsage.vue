@@ -12,7 +12,7 @@
     <UiDataRuler />
     <VtsLoadingHero v-if="!areHostsRamUsageReady" type="card" />
     <template v-else>
-      <HostsRamUsage :hosts="pool?.hosts" />
+      <HostsRamUsage :hosts="poolDashboard?.hosts" />
     </template>
     <UiCardSubtitle>
       {{ t('vms', 2) }}
@@ -23,7 +23,7 @@
     <UiDataRuler />
     <VtsLoadingHero v-if="!areVmsRamUsageReady" type="card" />
     <template v-else>
-      <VmsRamUsage :vms="pool?.vms" />
+      <VmsRamUsage :vms="poolDashboard?.vms" />
     </template>
   </UiCard>
 </template>
@@ -40,12 +40,12 @@ import { useI18n } from 'vue-i18n'
 import HostsRamUsage from './ramUsage/HostsRamUsage.vue'
 import VmsRamUsage from './ramUsage/VmsRamUsage.vue'
 
-const { pool } = defineProps<{
-  pool: XoPoolDashboard | undefined
+const { poolDashboard } = defineProps<{
+  poolDashboard: XoPoolDashboard | undefined
 }>()
 
-const areHostsRamUsageReady = computed(() => pool?.hosts?.topFiveUsage?.ram !== undefined)
-const areVmsRamUsageReady = computed(() => pool?.vms?.topFiveUsage?.ram !== undefined)
+const areHostsRamUsageReady = computed(() => poolDashboard?.hosts?.topFiveUsage?.ram !== undefined)
+const areVmsRamUsageReady = computed(() => poolDashboard?.vms?.topFiveUsage?.ram !== undefined)
 
 const { t } = useI18n()
 </script>

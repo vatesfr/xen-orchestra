@@ -6,13 +6,13 @@
     <template v-else>
       <UiProgressBar
         display-mode="percent"
-        :max="pool?.cpuProvisioning.total"
+        :max="poolDashboard?.cpuProvisioning.total"
         :legend="t('vcpus')"
-        :value="pool?.cpuProvisioning.assigned ?? 0"
+        :value="poolDashboard?.cpuProvisioning.assigned ?? 0"
       />
       <div class="total">
-        <UiCardNumbers :label="t('vcpus-used')" :value="pool?.cpuProvisioning.assigned" size="medium" />
-        <UiCardNumbers :label="t('total-cpus')" :value="pool?.cpuProvisioning.total" size="medium" />
+        <UiCardNumbers :label="t('vcpus-used')" :value="poolDashboard?.cpuProvisioning.assigned" size="medium" />
+        <UiCardNumbers :label="t('total-cpus')" :value="poolDashboard?.cpuProvisioning.total" size="medium" />
       </div>
     </template>
   </UiCard>
@@ -29,11 +29,11 @@ import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pool } = defineProps<{
-  pool: XoPoolDashboard | undefined
+const { poolDashboard } = defineProps<{
+  poolDashboard: XoPoolDashboard | undefined
 }>()
 
-const areCpuProvisioningReady = computed(() => pool?.cpuProvisioning !== undefined)
+const areCpuProvisioningReady = computed(() => poolDashboard?.cpuProvisioning !== undefined)
 
 const { t } = useI18n()
 </script>

@@ -10,7 +10,7 @@
     <VtsLoadingHero v-if="!areStorageUsageReady" type="card" />
     <template v-else>
       <UiProgressBar
-        v-for="sr in pool?.srs.topFiveUsage"
+        v-for="sr in poolDashboard?.srs.topFiveUsage"
         :key="sr.id"
         display-mode="percent"
         class="progressBar"
@@ -49,15 +49,15 @@ import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pool } = defineProps<{
-  pool: XoPoolDashboard | undefined
+const { poolDashboard } = defineProps<{
+  poolDashboard: XoPoolDashboard | undefined
 }>()
 
 const { t } = useI18n()
 
-const areStorageUsageReady = computed(() => pool?.srs?.topFiveUsage !== undefined)
+const areStorageUsageReady = computed(() => poolDashboard?.srs?.topFiveUsage !== undefined)
 
-const topFiveUsage = computed(() => pool?.srs?.topFiveUsage ?? [])
+const topFiveUsage = computed(() => poolDashboard?.srs?.topFiveUsage ?? [])
 
 const totalUsage = useArrayReduce(topFiveUsage, (sum, sr) => sum + sr.physical_usage, 0)
 const totalSize = useArrayReduce(topFiveUsage, (sum, sr) => sum + sr.size, 0)

@@ -37,7 +37,7 @@ export const xoApiDefinition = {
   'pool-dashboard': {
     type: 'single',
     // todo: remove the hardcoded pool ID
-    path: 'pools/b7569d99-30f8-178a-7d94-801de3e29b5b/dashboard',
+    path: 'pools/355ee47d-ff4c-4924-3db2-fd86ae629676/dashboard',
     fields: '*',
     handler: (record: XoPoolDashboard) => record,
     stream: true,

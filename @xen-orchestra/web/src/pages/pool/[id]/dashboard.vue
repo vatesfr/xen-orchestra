@@ -1,27 +1,23 @@
 <template>
   <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
     <div class="row first-row">
-      <PoolDashboardStatus class="status" :pool="poolDashboard" />
-      <PoolDashboardAlarms class="alarms" :pool="poolDashboard" />
-      <PoolDashboardHostsPatches class="patch" :pool="poolDashboard" />
+      <PoolDashboardStatus class="status" :pool-dashboard />
+      <PoolDashboardAlarms class="alarms" :pool-dashboard />
+      <PoolDashboardHostsPatches class="patch" :pool-dashboard />
     </div>
 
     <div class="row second-row">
       <div class="column first-column">
-        <PoolDashboardStorageUsage class="storage-usage" :pool="poolDashboard" />
+        <PoolDashboardStorageUsage class="storage-usage" :pool-dashboard />
         <PoolDashboardNetworkChart class="network-chart" :data :loading="isFetching" :error />
       </div>
       <div class="column second-column">
-        <PoolDashboardRamUsage class="ram-usage" :pool="poolDashboard" />
+        <PoolDashboardRamUsage class="ram-usage" :pool-dashboard />
         <PoolDashboardRamChart class="ram-chart" :data :loading="isFetching" :error />
       </div>
       <div class="column third-column">
-        <PoolDashboardCpuProvisioning
-          class="cpu-provisioning"
-          :pool="poolDashboard"
-          :is-ready="areCpuProvisioningReady"
-        />
-        <PoolDashboardCpuUsage class="cpu-usage" :pool="poolDashboard" />
+        <PoolDashboardCpuProvisioning class="cpu-provisioning" :pool-dashboard />
+        <PoolDashboardCpuUsage class="cpu-usage" :pool-dashboard />
         <PoolDashboardCpuChart class="cpu-chart" :data :loading="isFetching" :error />
       </div>
     </div>
@@ -44,13 +40,10 @@ import { usePoolDashboardStore } from '@/stores/xo-rest-api/pool-dashboard.store
 import type { XoPool } from '@/types/xo/pool.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { computed } from 'vue'
 
 const { pool } = defineProps<{ pool: XoPool }>()
 
 const { record: poolDashboard } = usePoolDashboardStore().subscribe()
-
-const areCpuProvisioningReady = computed(() => poolDashboard.value?.cpuProvisioning !== undefined)
 
 const { data, isFetching, error } = useFetchStats('pool', () => pool.id, GRANULARITY.Hours)
 
