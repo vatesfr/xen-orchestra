@@ -19,7 +19,7 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 @provide(BackupRepositoryController)
 export class BackupRepositoryController extends XoController<XoBackupRepository> {
   // --- abstract methods
-  async getAllCollectionObjects(): Promise<XoBackupRepository[]> {
+  getAllCollectionObjects(): Promise<XoBackupRepository[]> {
     return this.restApi.xoApp.getAllRemotes()
   }
   getCollectionObject(id: XoBackupRepository['id']): Promise<XoBackupRepository> {
