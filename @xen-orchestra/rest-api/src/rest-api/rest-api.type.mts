@@ -60,7 +60,6 @@ type XapiRecordByXapiXoRecord = {
   'VM-controller': XenApiVmWrapped
   'VM-snapshot': XenApiVmWrapped
   'VM-template': XenApiVmWrapped
-  repository: XenApiRepositoryWrapped
   VTPM: XenApiVtpmWrapped
 }
 
