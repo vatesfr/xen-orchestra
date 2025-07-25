@@ -110,3 +110,14 @@ export async function promiseWriteInStream<T>({
 
   return data
 }
+
+export function escapeUnsafeComplexMatcher(string: undefined): undefined
+export function escapeUnsafeComplexMatcher(string: string): string
+export function escapeUnsafeComplexMatcher(string: string | undefined): string | undefined
+export function escapeUnsafeComplexMatcher(maybeString: string | undefined): string | undefined {
+  if (maybeString === undefined || maybeString === '') {
+    return maybeString
+  }
+
+  return `(${maybeString})`
+}
