@@ -117,7 +117,7 @@ export default class SrDisks extends Component {
                 </tr>
                 <tr>
                   <th>{_('supportedImageFormats')}</th>
-                  <td>{this.state.sm?.supported_image_formats.toString()}</td>
+                  <td>{defined(this.state.sm?.supported_image_formats?.toString(), _('unknown'))}</td>
                 </tr>
                 <tr>
                   <th>{_('customFields')}</th>
