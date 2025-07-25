@@ -16,5 +16,7 @@ defineSlots<{
   overflow-y: auto;
   overflow-x: hidden;
   height: 100%;
+  border-top: 0.1rem solid var(--color-neutral-border);
+  border-bottom: 0.1rem solid var(--color-neutral-border);
 }
 </style>
