@@ -141,7 +141,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     const settings = this._settings
 
-    if (this._mustDoSnapshot()) {
+    if (await this._mustDoSnapshot()) {
       await Task.run({ name: 'snapshot' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
@@ -324,7 +324,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     throw new Error('Not implemented')
   }
 
-  _mustDoSnapshot() {
+  async _mustDoSnapshot() {
     throw new Error('Not implemented')
   }
 

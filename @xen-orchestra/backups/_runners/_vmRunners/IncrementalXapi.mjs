@@ -23,7 +23,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     return [IncrementalRemoteWriter, IncrementalXapiWriter]
   }
 
-  _mustDoSnapshot() {
+  async _mustDoSnapshot() {
     return true
   }
 
