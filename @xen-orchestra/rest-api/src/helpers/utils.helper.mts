@@ -115,10 +115,6 @@ export function escapeUnsafeComplexMatcher(string: undefined): undefined
 export function escapeUnsafeComplexMatcher(string: string): string
 export function escapeUnsafeComplexMatcher(string: string | undefined): string | undefined
 export function escapeUnsafeComplexMatcher(maybeString: string | undefined): string | undefined {
-  if (maybeString === undefined) {
-    return maybeString
-  }
-
   if (maybeString === undefined || maybeString === '') {
     return maybeString
   }
