@@ -39,7 +39,7 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
   } else if (invalidCredentials.is(error)) {
     statusCode = 401
   } else if (objectAlreadyExists.is(error)) {
-    res.status(409)
+    statusCode = 409
     responseError.data = (error as XoError).data
   } else if (invalidParameters.is(error)) {
     statusCode = 422
