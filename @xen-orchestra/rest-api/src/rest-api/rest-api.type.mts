@@ -88,7 +88,7 @@ export type XoApp = {
   deleteGroup(id: XoGroup['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */
-  createGroup(params: { name: string }): Promise<XoGroup>
+  createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
   getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>

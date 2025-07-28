@@ -3,7 +3,15 @@ import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoGroup } from '@vates/types'
 
-import { createdResp, invalidParameters, noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  createdResp,
+  invalidParameters,
+  noContentResp,
+  notFoundResp,
+  resourceAlreadyExists,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { group, groupId, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -52,14 +60,15 @@ export class GroupController extends XoController<XoGroup> {
 
   /**
    * @example body {
-   * "name": "new group"
-   * }
+   *    "name": "new group"
+   *  }
    */
   @Example(groupId)
   @Post('')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(invalidParameters.status, invalidParameters.description)
+  @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
   async createGroup(@Body() body: { name: string }): Promise<{ id: Unbrand<XoGroup>['id'] }> {
     const group = await this.restApi.xoApp.createGroup(body)
 

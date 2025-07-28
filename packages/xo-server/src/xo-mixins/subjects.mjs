@@ -341,8 +341,9 @@ export default class {
       return await this._groups.add({ name, provider, providerGroupId })
     } catch (error) {
       if (error.message === `the group ${name} already exists`) {
+        const existingGroup = await this._groups.first({ name })
         throw objectAlreadyExists({
-          objectId: name,
+          objectId: existingGroup.id,
           objectType: 'group',
         })
       }
