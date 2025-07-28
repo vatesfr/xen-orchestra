@@ -35,8 +35,6 @@
 
 ### Bug fixes
 
-> Users must be able to say: “I had this issue, happy to know it's fixed”
-
 - [Backup] Fix full backup retry failing with EEXIST error (PR [#8776](https://github.com/vatesfr/xen-orchestra/pull/8776))
 - [Backup] Force snapshot if one of its VDIs has a NOBAK tag (PR [#8820](https://github.com/vatesfr/xen-orchestra/pull/8820))
 
