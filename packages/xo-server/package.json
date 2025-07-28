@@ -53,7 +53,7 @@
     "@xen-orchestra/fs": "^4.6.1",
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/mixin": "^0.2.0",
-    "@xen-orchestra/mixins": "^0.16.2",
+    "@xen-orchestra/mixins": "^0.16.4",
     "@xen-orchestra/qcow2": "^1.0.0",
     "@xen-orchestra/rest-api": "^0.11.0",
     "@xen-orchestra/self-signed": "^0.2.1",
