@@ -1272,7 +1272,6 @@ export interface XenApiRepository {
   update?: boolean
   uuid?: string
 }
-export type XenApiRepositoryWrapped = WrapperXenApi<XenApiRepository, 'Repository'>
 
 export interface XenApiObserver {
   $ref: Branded<'Observer'>

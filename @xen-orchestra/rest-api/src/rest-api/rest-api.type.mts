@@ -11,7 +11,6 @@ import type {
   XenApiPgpuWrapped,
   XenApiPifWrapped,
   XenApiPoolWrapped,
-  XenApiRepositoryWrapped,
   XenApiSmWrapped,
   XenApiSrWrapped,
   XenApiVbdWrapped,
