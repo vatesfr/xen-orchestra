@@ -36,6 +36,7 @@
 - [xo-server] Display build commit at start-up and with `xo-server --help`
 - [xo-server] Warn if build is out of sync with local git repository
 - [Storage/Disks & VM/Disks] Add image format in disks tabs. Display "Unknown" if unsupported. (PR [#8835](https://github.com/vatesfr/xen-orchestra/pull/8835))
+- [REST API] Expose `/rest/v0/backup-repositories` and `/rest/v0/backup-repositories/<repository-id>` (PR [#8831](https://github.com/vatesfr/xen-orchestra/pull/8831))
 
 ### Bug fixes
 
