@@ -1209,14 +1209,6 @@ export default class RestApi {
       }, true)
     )
 
-    api.delete(
-      '/:collection(groups)/:id',
-      wrap(async (req, res) => {
-        await app.deleteGroup(req.params.id)
-        res.sendStatus(204)
-      }, true)
-    )
-
     setupRestApi(express, app)
   }
 
