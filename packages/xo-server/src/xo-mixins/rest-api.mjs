@@ -246,6 +246,9 @@ export default class RestApi {
           rolling_reboot: true,
           rolling_update: true,
         },
+        routes: {
+          alarms: true,
+        },
       },
       groups: {},
       users: {},
@@ -278,7 +281,11 @@ export default class RestApi {
           alarms: true,
         },
       },
-      srs: {},
+      srs: {
+        routes: {
+          alarms: true,
+        },
+      },
       vbds: {},
       vdis: {
         routes: {
