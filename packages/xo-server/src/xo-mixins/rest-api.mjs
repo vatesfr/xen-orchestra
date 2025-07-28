@@ -290,7 +290,11 @@ export default class RestApi {
           alarms: true,
         },
       },
-      vbds: {},
+      vbds: {
+        routes: {
+          alarms: true,
+        },
+      },
       vdis: {
         routes: {
           alarms: true,
