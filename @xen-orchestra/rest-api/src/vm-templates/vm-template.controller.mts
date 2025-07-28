@@ -5,6 +5,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XoAlarm, XoVmTemplate } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -73,7 +74,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const vmTemplate = this.getObject(id as XoVmTemplate['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${vmTemplate.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vmTemplate.uuid}`,
       limit,
     })
 

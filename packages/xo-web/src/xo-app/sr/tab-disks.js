@@ -17,6 +17,7 @@ import renderXoItem, { Vdi, Vm } from 'render-xo-item'
 import { confirm } from 'modal'
 import { injectIntl } from 'react-intl'
 import { Text } from 'editable'
+import defined from '@xen-orchestra/defined'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
@@ -105,6 +106,11 @@ const COLUMNS = [
     name: _('vdiSize'),
     itemRenderer: vdi => formatSize(vdi.size),
     sortCriteria: vdi => vdi.size,
+  },
+  {
+    name: _('vdiImageFormat'),
+    itemRenderer: vdi => defined(vdi.image_format, _("unknown")),
+    sortCriteria: vdi => vdi.image_format,
   },
   {
     name: _('vbdCbt'),
