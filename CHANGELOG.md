@@ -1,5 +1,72 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- **Migrated REST API endpoints**:
+
+  - `POST /rest/v0/users` (PR [#8697](https://github.com/vatesfr/xen-orchestra/pull/8697))
+  - `DELETE /rest/v0/users/<user-id>` (PR [#8698](https://github.com/vatesfr/xen-orchestra/pull/8698))
+  - `DELETE /rest/v0/groups/<group-id>` (PR [#8704](https://github.com/vatesfr/xen-orchestra/pull/8704))
+  - `GET /rest/v0/hosts/<host-id>/alarms` (PR [#8800](http://github.com/vatesfr/xen-orchestra/pull/8800))
+  - `GET /rest/v0/networks/<network-id>/alarms` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8801))
+  - `GET /rest/v0/pifs/<pif-id>/alarms` (PR [#8802](http://github.com/vatesfr/xen-orchestra/pull/8802))
+  - `GET /rest/v0/vdis/<vdi-id>/alarms` (PR [#8824](http://github.com/vatesfr/xen-orchestra/pull/8824))
+  - `GET /rest/v0/vdi-snapshots/<vdi-snapshot-id>/alarms` (PR [#8823](http://github.com/vatesfr/xen-orchestra/pull/8823))
+  - `GET /rest/v0/vm-templates/<vm-template-id>/alarms` (PR [#8828](http://github.com/vatesfr/xen-orchestra/pull/8828))
+  - `GET /rest/v0/hosts/<host-id>/logs.tgz` (PR [#8830](https://github.com/vatesfr/xen-orchestra/pull/8830))
+  - `GET /rest/v0/srs/<sr-id>/alarms` (PR [#8810](http://github.com/vatesfr/xen-orchestra/pull/8810))
+  - `GET /rest/v0/pools/<pool-id>/alarms` (PR [#8805](http://github.com/vatesfr/xen-orchestra/pull/8805))
+
+- **XO 6:**
+
+  - [SearchBar] Updated query search bar to work in responsive (PR [#8761](https://github.com/vatesfr/xen-orchestra/pull/8761))
+  - [Sidebar] Updated sidebar to auto close when the screen is small (PR [#8760](https://github.com/vatesfr/xen-orchestra/pull/8760))
+  - [i18n] Update Czech, German, Spanish, Italian, Dutch and Russian translations (PR [#8765](https://github.com/vatesfr/xen-orchestra/pull/8765))
+
+- [REST API] Expose `/rest/v0/pools/<pool-id>/dashboard` (PR [#8768](https://github.com/vatesfr/xen-orchestra/pull/8768))
+- [REST API] Expose `/rest/v0/backup-repositories` and `/rest/v0/backup-repositories/<repository-id>` (PR [#8831](https://github.com/vatesfr/xen-orchestra/pull/8831))
+- [REST API] Ability to create a VM with `name_description`, `memory` and `autoPoweron` (PR [#8798](https://github.com/vatesfr/xen-orchestra/pull/8798))
+- [ACL] Confirmation message when deleting an ACL rule (PR [#8774](https://github.com/vatesfr/xen-orchestra/pull/8774))
+- [xo-server] Display build commit at start-up and with `xo-server --help`
+- [xo-server] Warn if build is out of sync with local git repository
+- [Storage/Disks & VM/Disks] Add image format in disks tabs. Display "Unknown" if unsupported. (PR [#8835](https://github.com/vatesfr/xen-orchestra/pull/8835))
+
+### Bug fixes
+
+> Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Backup] Fix full backup retry failing with EEXIST error (PR [#8776](https://github.com/vatesfr/xen-orchestra/pull/8776))
+- [Backup] Force snapshot if one of its VDIs has a NOBAK tag (PR [#8820](https://github.com/vatesfr/xen-orchestra/pull/8820))
+
+- **XO 6:**
+
+  - [Host/VM/Dashboard] Fix display error due to inversion of upload and download (PR [#8793](https://github.com/vatesfr/xen-orchestra/pull/8793))
+
+- [Health] Fix labels and modals mentioning VMs instead of snapshots when deleting snapshots (PR [#8775](https://github.com/vatesfr/xen-orchestra/pull/8775))
+- [REST API] Alarm time is now in milliseconds and body value is now in percentage (PR [#8802](https://github.com/vatesfr/xen-orchestra/pull/8802))
+- [REST API/XOA/Dashboard] Fix some type issues. Some object may return `{error: true}` instead of `undefined` on error.`s3` and `other` object may be undefined (if no S3 or other backup repositories detected) (PR [#8806](https://github.com/vatesfr/xen-orchestra/pull/8806))
+- [REST API] An unauthenticated request no longer creates a failed XO task `XO user authentication` ([#8821](https://github.com/vatesfr/xen-orchestra/pull/8821))
+
+### Released packages
+
+- @xen-orchestra/fs 4.6.1
+- @vates/generator-toolbox 1.0.4
+- @vates/types 1.9.0
+- @xen-orchestra/xapi 8.3.3
+- @xen-orchestra/backups 0.63.0
+- @xen-orchestra/backups-cli 1.1.2
+- @xen-orchestra/immutable-backups 1.0.23
+- @xen-orchestra/web-core 0.25.0
+- @xen-orchestra/mixins 0.16.4
+- @xen-orchestra/openflow 0.1.3
+- @xen-orchestra/proxy 0.29.26
+- @xen-orchestra/rest-api 0.12.0
+- @xen-orchestra/web 0.22.0
+- xo-server 5.182.0
+- xo-web 5.179.0
+
 ## **5.108.1** (2025-07-03)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
