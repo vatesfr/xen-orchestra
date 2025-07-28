@@ -12,6 +12,7 @@
       :storage-repositories
       :s3-size="dashboard.backupRepositories?.s3?.size"
     />
+    <Alarms class="alarms" />
     <Patches
       class="patches"
       :missing-patches="dashboard.missingPatches"
@@ -23,6 +24,7 @@
 </template>
 
 <script lang="ts" setup>
+import Alarms from '@/components/site/dashboard/Alarms.vue'
 import BackupIssues from '@/components/site/dashboard/BackupIssues.vue'
 import Backups from '@/components/site/dashboard/Backups.vue'
 import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
@@ -47,9 +49,9 @@ const { dashboard, backupRepositories, storageRepositories } = useSiteDashboard(
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'pools-status pools-status hosts-status hosts-status vms-status vms-status resources-overview resources-overview'
+    'alarms alarms alarms alarms alarms alarms patches patches'
     'backups backups backups backup-issues backup-issues backup-issues backup-issues backup-issues'
-    'repositories repositories repositories repositories repositories repositories repositories repositories'
-    'alarms alarms alarms alarms alarms alarms patches patches';
+    'repositories repositories repositories repositories repositories repositories repositories repositories';
 
   &.mobile {
     grid-template-columns: 1fr;
@@ -57,11 +59,12 @@ const { dashboard, backupRepositories, storageRepositories } = useSiteDashboard(
       'pools-status'
       'hosts-status'
       'vms-status'
+      'alarms'
+      'patches'
       'resources-overview'
       'backups'
       'backup-issues'
-      'repositories'
-      'patches';
+      'repositories';
   }
 
   .pools-status {
@@ -74,6 +77,14 @@ const { dashboard, backupRepositories, storageRepositories } = useSiteDashboard(
 
   .vms-status {
     grid-area: vms-status;
+  }
+
+  .alarms {
+    grid-area: alarms;
+  }
+
+  .patches {
+    grid-area: patches;
   }
 
   .resources-overview {
@@ -90,10 +101,6 @@ const { dashboard, backupRepositories, storageRepositories } = useSiteDashboard(
 
   .repositories {
     grid-area: repositories;
-  }
-
-  .patches {
-    grid-area: patches;
   }
 }
 </style>
