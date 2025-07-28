@@ -1169,6 +1169,14 @@ export default class RestApi {
       })
     )
 
+    api.delete(
+      '/:collection(vdis|vdi-snapshots|vms|vm-snapshots|vm-templates)/:object',
+      wrap(async (req, res) => {
+        await req.xapiObject.$destroy()
+        res.sendStatus(200)
+      })
+    )
+
     api.put(
       '/:collection(groups)/:id/users/:userId',
       wrap(async (req, res) => {
@@ -1197,6 +1205,14 @@ export default class RestApi {
 
         await app.removeUserFromGroup(userId, id)
 
+        res.sendStatus(204)
+      }, true)
+    )
+
+    api.delete(
+      '/:collection(groups)/:id',
+      wrap(async (req, res) => {
+        await app.deleteGroup(req.params.id)
         res.sendStatus(204)
       }, true)
     )
