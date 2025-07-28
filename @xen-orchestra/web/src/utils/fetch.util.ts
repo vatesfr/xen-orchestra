@@ -1,6 +1,8 @@
 import { ApiError } from '@/error/api.error.ts'
 import { HttpCodes } from '@core/types/http-codes.type.ts'
 
+export const BASE_URL = '/rest/v0'
+
 const DEFAULT_OPTIONS: RequestInit = {
   headers: {
     'Content-Type': 'application/json',
@@ -8,7 +10,7 @@ const DEFAULT_OPTIONS: RequestInit = {
   credentials: 'same-origin',
 }
 
-export async function fetchRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+export async function fetchRequest<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const requestOptions: RequestInit = {
     ...DEFAULT_OPTIONS,
     ...options,
@@ -21,7 +23,7 @@ export async function fetchRequest<T>(endpoint: string, options: RequestInit = {
   try {
     const response = await fetch(endpoint, requestOptions)
 
-    let data
+    let data: T | Record<string, unknown> | undefined
     if (response.status !== HttpCodes.NoContent) {
       data = await response.json()
     } else {
@@ -30,12 +32,12 @@ export async function fetchRequest<T>(endpoint: string, options: RequestInit = {
 
     if (!response.ok) {
       throw new ApiError(response.statusText, {
-        cause: data,
+        cause: data as Record<string, unknown>,
         status: response.status,
       })
     }
 
-    return data
+    return data as T
   } catch (error) {
     if (error instanceof ApiError) {
       throw error

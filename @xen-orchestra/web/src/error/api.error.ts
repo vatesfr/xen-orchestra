@@ -1,8 +1,8 @@
 export class ApiError extends Error {
   status: number
-  cause?: string
+  cause?: Record<string, unknown>
 
-  constructor(message: string, options: { cause?: string; status: number } = { status: 500 }) {
+  constructor(message: string, options: { cause?: Record<string, unknown>; status: number } = { status: 500 }) {
     super(message)
     this.status = options.status
     this.cause = options.cause
