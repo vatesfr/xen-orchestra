@@ -246,10 +246,17 @@ export default class RestApi {
           rolling_reboot: true,
           rolling_update: true,
         },
+        routes: {
+          alarms: true,
+        },
       },
       groups: {},
       users: {},
-      vifs: {},
+      vifs: {
+        routes: {
+          alarms: true,
+        },
+      },
       vms: {
         actions: {
           start: true,
@@ -260,7 +267,11 @@ export default class RestApi {
           snapshot: true,
         },
       },
-      'vm-controllers': {},
+      'vm-controllers': {
+        routes: {
+          alarms: true,
+        },
+      },
       'vm-snapshots': {},
       'vm-templates': {
         routes: {
@@ -274,7 +285,11 @@ export default class RestApi {
           alarms: true,
         },
       },
-      srs: {},
+      srs: {
+        routes: {
+          alarms: true,
+        },
+      },
       vbds: {
         routes: {
           alarms: true,
