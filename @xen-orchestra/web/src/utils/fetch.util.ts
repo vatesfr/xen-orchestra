@@ -21,7 +21,7 @@ export async function fetchRequest<T = unknown>(endpoint: string, options: Reque
   }
 
   try {
-    const response = await fetch(endpoint, requestOptions)
+    const response = await fetch(`${BASE_URL}/${endpoint}`, requestOptions)
 
     let data: T | Record<string, unknown> | undefined
     if (response.status !== HttpCodes.NoContent) {
