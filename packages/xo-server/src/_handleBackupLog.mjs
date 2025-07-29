@@ -1,7 +1,6 @@
 import humanFormat from 'human-format'
 import ms from 'ms'
 import { createLogger } from '@xen-orchestra/log'
-import { strict as assert } from 'node:assert'
 
 const { warn } = createLogger('xo:server:handleBackupLog')
 
@@ -32,7 +31,7 @@ async function sendToNagios(app, jobName, vmBackupInfo) {
   }
 }
 
-function forwardResult(log) {
+export function forwardResult(log) {
   if (log.status === 'failure') {
     throw log.result
   }
@@ -117,86 +116,35 @@ export const handleBackupLog = (
 }
 
 // temporary name - will replace handleBackupLog
-export const handleBackupTaskLog = (
-  { app, handleRootTaskId, jobName, localTaskIds, store },
-) => {
-  const taskLogs = new Map()
-  return function onProgress(event) {
-    const { id, type } = event
-    let taskLog
-    if (type === 'start') {
-      taskLog = {
-        id,
-        properties: { __proto__: null, ...event.properties },
-        start: event.timestamp,
-        status: 'pending',
+export const handleBackupTaskLog = (taskLog, event, { app, handleRootTaskId, jobName, localTaskIds = {}, store }) => {
+  // sending data to Nagios
+  if (app !== undefined && jobName !== undefined) {
+    if (event.type === 'end' && taskLog.properties?.type === 'VM') {
+      // we arbitrary pick one transfer to get the size
+      const exportTask = taskLog.tasks.find(task => task.properties?.name === 'export')
+      const transferTask =
+        exportTask === undefined ? undefined : exportTask.tasks.find(task => task.properties?.name === 'transfer')
+      const vmBackupInfo = {
+        start: taskLog.start,
+        id: taskLog.properties?.id,
+        result: taskLog.status,
+        end: taskLog.end,
+        size: transferTask?.result?.size,
       }
-      taskLogs.set(id, taskLog)
-
-      const { parentId } = event
-      if (parentId === undefined) {
-        // start of a root task
-        Object.defineProperty(taskLog, '$root', { value: taskLog })
-      } else {
-        // start of a subtask
-        const parent = taskLogs.get(parentId)
-        assert.notEqual(parent, undefined)
-
-        // inject a (non-enumerable) reference to the parent and the root task
-        Object.defineProperties(taskLog, { $parent: { value: parent }, $root: { value: parent.$root } })
-        ;(parent.tasks ?? (parent.tasks = [])).push(taskLog)
-      }
-    } else {
-      taskLog = taskLogs.get(id)
-      assert.notEqual(taskLog, undefined)
-
-      if (type === 'info' || type === 'warning') {
-        const key = type + 's'
-        const { data, message } = event
-        ;(taskLog[key] ?? (taskLog[key] = [])).push({ data, message })
-      } else if (type === 'property') {
-        ;(taskLog.properties ?? (taskLog.properties = { __proto__: null }))[event.name] = event.value
-      } else if (type === 'end') {
-        taskLogs.delete(id)
-
-        taskLog.end = event.timestamp
-        taskLog.result = event.result
-        taskLog.status = event.status
-      } else if (type === 'abortionRequested') {
-        taskLog.abortionRequestedAt = event.timestamp
-      }
-
+      sendToNagios(app, jobName, vmBackupInfo)
     }
+  }
 
+  // localTaskIds may not be relevant anymore
+  localTaskIds[event.id] = taskLog.id
+  if (event.type === 'start' && taskLog.$parent?.id === undefined && handleRootTaskId !== undefined) {
+    handleRootTaskId(localTaskIds[event.id])
+  }
 
-    // sending data to Nagios
-    if (app !== undefined && jobName !== undefined) {
-      if (type === 'end' && taskLog.properties?.type === 'VM') {
-        // we arbitrary pick one transfer to get the size
-        const exportTask = taskLog.tasks.find((task) => task.properties?.name === 'export')
-        const transferTask = exportTask === undefined ? undefined : exportTask.tasks.find((task) => task.properties?.name === 'transfer')
-        const vmBackupInfo = {
-          start: taskLog.start,
-          id: taskLog.properties?.id,
-          result: taskLog.status,
-          end: taskLog.end,
-          size: transferTask?.result?.size
-        }
-        sendToNagios(app, jobName, vmBackupInfo)
-      }
-    }
+  store.put(taskLog.$root.id, taskLog.$root)
 
-    // localTaskIds may not be relevant anymore
-    localTaskIds[id] = taskLog.id
-    if (type === 'start' && taskLog.$parent?.id === undefined && handleRootTaskId !== undefined) {
-      handleRootTaskId(localTaskIds[id])
-    }
-
-    store.put(taskLog.$root.id, taskLog.$root)
-
-    // end of the root task: return/throw the result
-    if (type === 'end' && taskLog.$root === taskLog) {
-      return forwardResult(taskLog)
-    }
+  // end of the root task: return/throw the result
+  if (event.type === 'end' && taskLog.$root === taskLog) {
+    return forwardResult(taskLog)
   }
 }
