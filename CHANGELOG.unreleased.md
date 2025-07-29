@@ -16,6 +16,7 @@
   - `GET /rest/v0/vm-controllers/<vm-controller-id>/alarms` (PR [#8826](http://github.com/vatesfr/xen-orchestra/pull/8826))
   - `GET /rest/v0/vifs/<vif-id>/alarms` (PR [#8825](http://github.com/vatesfr/xen-orchestra/pull/8825))
   - `GET /rest/v0/vbds/<vbd-id>/alarms` (PR [#8822](http://github.com/vatesfr/xen-orchestra/pull/8822))
+  - `POST /rest/v0/groups` (PR [#8703](https://github.com/vatesfr/xen-orchestra/pull/8703))
 
 - **XO 6:**
 
@@ -44,6 +45,6 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
-- xo-server patch
+- xo-server minor
 
 <!--packages-end-->
