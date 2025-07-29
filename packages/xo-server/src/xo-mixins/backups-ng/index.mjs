@@ -3,6 +3,7 @@ import Disposable from 'promise-toolbox/Disposable'
 import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
+import { makeOnProgress } from '@vates/task/combineEvents'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
@@ -15,7 +16,7 @@ import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
-import { handleBackupLog, handleBackupTaskLog } from '../../_handleBackupLog.mjs'
+import { forwardResult, handleBackupLog, handleBackupTaskLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
@@ -153,14 +154,16 @@ export default class BackupNg {
         const targetRemoteIds = unboxIdsFromPattern(job.remotes)
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
-            console.log("backup with disabled workers")
-            const localTaskIds = { __proto__: null }
             const store = await app.getStore('tasks')
-            const onLogFct = handleBackupTaskLog({ app: this._app, jobName: job.name, localTaskIds, store })
+            const onLogFct = makeOnProgress({
+              onTaskUpdate: (log, event) => {
+                handleBackupTaskLog(log, event, { app: this._app, jobName: job.name, store })
+              },
+            })
             return await Task.run(
               {
                 properties: { name: 'backup run', ...jobData },
-                onProgress: onLogFct
+                onProgress: onLogFct,
               },
               () =>
                 createRunner({
@@ -294,14 +297,19 @@ export default class BackupNg {
                 }
               )
 
-              console.log("backup with proxy")
-              const localTaskIds = { __proto__: null }
-              const store = await app.getStore('tasks')
-              const onLogFct = handleBackupTaskLog({ app: this._app, jobName: job.name, localTaskIds, store })
-
               let result
+              const store = await app.getStore('tasks')
+              const onLogFct = makeOnProgress({
+                onRootTaskEnd: log => {
+                  result = forwardResult(log)
+                },
+                onTaskUpdate: (log, event) => {
+                  handleBackupTaskLog(log, event, { app: this._app, jobName: job.name, store })
+                },
+              })
+
               for await (const log of logsStream) {
-                result = onLogFct(log)
+                onLogFct(log)
               }
               return result
             } catch (error) {
@@ -312,12 +320,18 @@ export default class BackupNg {
               throw error
             }
           } else {
-            const localTaskIds = { __proto__: null }
+            let result
             const store = await app.getStore('tasks')
-            const onLogFct = handleBackupTaskLog({ app: this._app, jobName: job.name, localTaskIds, store })
-            console.log("regular backup")
+            const onLogFct = makeOnProgress({
+              onRootTaskEnd: log => {
+                result = forwardResult(log)
+              },
+              onTaskUpdate: (log, event) => {
+                handleBackupTaskLog(log, event, { app: this._app, jobName: job.name, store })
+              },
+            })
 
-            return await runBackupWorker(
+            await runBackupWorker(
               {
                 config: backupsConfig,
                 jobData,
@@ -328,6 +342,7 @@ export default class BackupNg {
               },
               onLogFct
             )
+            return result
           }
         } finally {
           targetRemoteIds.forEach(id => this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id))
