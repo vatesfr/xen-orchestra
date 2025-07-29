@@ -40,8 +40,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        - Don't forget to [read this first](https://xen-orchestra.com/docs/community.html)
-        - As well as follow [this guide](https://xen-orchestra.com/docs/community.html#report-a-bug)
+        - Don't forget to [read this first](https://docs.xen-orchestra.com/community)
+        - As well as follow [this guide](https://docs.xen-orchestra.com/community#report-a-bug)
   - type: input
     id: xo-sources-commit-number
     attributes:

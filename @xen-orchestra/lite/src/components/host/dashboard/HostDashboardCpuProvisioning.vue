@@ -3,7 +3,7 @@
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiProgressBar :value="vCpusCount" :max="cpusCount" :legend="t('vcpus')" />
+      <UiProgressBar display-mode="percent" :value="vCpusCount" :max="cpusCount" :legend="t('vcpus')" />
       <div class="total">
         <UiCardNumbers :label="t('vcpus-assigned')" :value="vCpusCount" size="medium" />
         <UiCardNumbers :label="t('total-cpus')" :value="cpusCount" size="medium" />

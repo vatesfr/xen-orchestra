@@ -198,7 +198,13 @@ export default class RestApi {
 
     api.use((req, res, next) => {
       const { cookies, ip } = req
-      app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }, { ip }).then(
+      const token = cookies.authenticationToken ?? cookies.token
+      if (token === undefined) {
+        res.sendStatus(401)
+        return
+      }
+
+      app.authenticateUser({ token }, { ip }).then(
         ({ user }) => {
           if (user.permission === 'admin') {
             return app.runWithApiContext(user, next)
@@ -228,7 +234,11 @@ export default class RestApi {
           alarms: true,
         },
       },
-      pifs: {},
+      pifs: {
+        routes: {
+          alarms: true,
+        },
+      },
       pools: {
         actions: {
           create_vm: true,
@@ -236,10 +246,17 @@ export default class RestApi {
           rolling_reboot: true,
           rolling_update: true,
         },
+        routes: {
+          alarms: true,
+        },
       },
       groups: {},
       users: {},
-      vifs: {},
+      vifs: {
+        routes: {
+          alarms: true,
+        },
+      },
       vms: {
         actions: {
           start: true,
@@ -250,19 +267,44 @@ export default class RestApi {
           snapshot: true,
         },
       },
-      'vm-controllers': {},
-      'vm-snapshots': {},
-      'vm-templates': {},
-      hosts: {
+      'vm-controllers': {
         routes: {
-          'audit.txt': true,
           alarms: true,
         },
       },
-      srs: {},
-      vbds: {},
-      vdis: {},
-      'vdi-snapshots': {},
+      'vm-snapshots': {},
+      'vm-templates': {
+        routes: {
+          alarms: true,
+        },
+      },
+      hosts: {
+        routes: {
+          'audit.txt': true,
+          'logs.tgz': true,
+          alarms: true,
+        },
+      },
+      srs: {
+        routes: {
+          alarms: true,
+        },
+      },
+      vbds: {
+        routes: {
+          alarms: true,
+        },
+      },
+      vdis: {
+        routes: {
+          alarms: true,
+        },
+      },
+      'vdi-snapshots': {
+        routes: {
+          alarms: true,
+        },
+      },
       servers: {},
     }
 
@@ -1184,30 +1226,6 @@ export default class RestApi {
 
         res.sendStatus(204)
       }, true)
-    )
-
-    api.post(
-      '/:collection(groups)',
-      json(),
-      wrap(async (req, res) => {
-        const { name } = req.body
-        if (name == null) {
-          return res.status(400).json({ error: 'name is required' })
-        }
-        if (typeof name !== 'string') {
-          return res.status(400).json({ message: 'name must be a string' })
-        }
-
-        try {
-          const group = await app.createGroup({ name })
-          res.status(201).end(group.id)
-        } catch (error) {
-          if (error.message === `the group ${name} already exists`) {
-            return res.status(400).json({ error: error.message })
-          }
-          throw error
-        }
-      })
     )
 
     setupRestApi(express, app)

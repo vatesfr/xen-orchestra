@@ -190,7 +190,7 @@ export default class About extends Component {
                   <p className='text-muted'>{_('issuesText')}</p>
                 </Col>
                 <Col mediumSize={6}>
-                  <a href='https://xen-orchestra.com/docs' target='_blank' rel='noreferrer'>
+                  <a href='https://docs.xen-orchestra.com/' target='_blank' rel='noreferrer'>
                     <Icon icon='user' size={4} />
                     <h4>{_('documentation')}</h4>
                   </a>
@@ -217,7 +217,7 @@ export default class About extends Component {
                   <p className='text-muted'>{_('openTicketText')}</p>
                 </Col>
                 <Col mediumSize={6}>
-                  <a href='https://xen-orchestra.com/docs' target='_blank' rel='noreferrer'>
+                  <a href='https://docs.xen-orchestra.com/' target='_blank' rel='noreferrer'>
                     <Icon icon='user' size={4} />
                     <h4>{_('documentation')}</h4>
                   </a>

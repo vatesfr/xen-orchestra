@@ -138,7 +138,7 @@ export class XoConnection extends Xo.default {
           // it must be enabled because the XAPI might be not able to coalesce VDIs
           // as fast as the tests run
           //
-          // see https://xen-orchestra.com/docs/backup_troubleshooting.html#vdi-chain-protection
+          // see https://docs.xen-orchestra.com/backup_troubleshooting#vdi-chain-protection
           bypassVdiChainsCheck: true,
 
           // it must be 'never' to avoid race conditions with the plugin `backup-reports`
