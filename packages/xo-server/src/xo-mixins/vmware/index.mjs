@@ -156,6 +156,7 @@ export default class MigrateVm {
       chainsByNodes: coldChainsByNodes,
       sr,
       vmId,
+        sourceVmId:vmId
     })
     if (isRunning && stopSource) {
       await esxi.powerOff(vmId)
@@ -167,6 +168,7 @@ export default class MigrateVm {
         sr,
         vmId,
         vhds,
+        sourceVmId:vmId
       })
     }
   }

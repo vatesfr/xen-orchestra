@@ -30,8 +30,5 @@
   },
   "engines": {
     "node": ">=20.17"
-  },
-  "dependencies": {
-    "vhd-lib": "^4.11.2"
   }
 }
