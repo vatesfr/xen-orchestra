@@ -1,22 +1,22 @@
 <template>
-  <UiCard class="pool-storage-usage">
+  <UiCard class="pool-storages-usage">
     <UiCardTitle>
       {{ t('storage-usage') }}
       <template #info>
         {{ t('top-#', 5) }}
       </template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!areStorageUsageReady" type="card" />
+    <VtsLoadingHero v-if="!areStoragesUsageReady" type="card" />
     <template v-else>
       <UiProgressBar
-        v-for="sr in poolDashboard?.srs.topFiveUsage"
+        v-for="sr in topFiveUsage"
         :key="sr.id"
         display-mode="percent"
         :value="sr.percent"
         :legend="sr.name_label"
-        :accent="sr.physical_usage > sr.size ? 'danger' : 'success'"
       />
       <div class="total">
+        <!--  TODO Add max to display percent -->
         <UiCardNumbers
           :label="t('total-used')"
           :value="formattedTotalUsage.value"
@@ -25,8 +25,8 @@
         />
         <UiCardNumbers
           :label="t('total-free')"
-          :value="formattedTotalSize.value"
-          :unit="formattedTotalSize.prefix"
+          :value="formattedTotalSizeFree.value"
+          :unit="formattedTotalSizeFree.prefix"
           size="medium"
         />
       </div>
@@ -52,7 +52,7 @@ const { poolDashboard } = defineProps<{
 
 const { t } = useI18n()
 
-const areStorageUsageReady = computed(() => poolDashboard?.srs?.topFiveUsage !== undefined)
+const areStoragesUsageReady = computed(() => poolDashboard?.srs?.topFiveUsage !== undefined)
 
 const topFiveUsage = computed(() => poolDashboard?.srs?.topFiveUsage ?? [])
 
@@ -60,11 +60,11 @@ const totalUsage = useArrayReduce(topFiveUsage, (sum, sr) => sum + sr.physical_u
 const totalSize = useArrayReduce(topFiveUsage, (sum, sr) => sum + sr.size, 0)
 
 const formattedTotalUsage = computed(() => formatSizeRaw(totalUsage.value, 0))
-const formattedTotalSize = computed(() => formatSizeRaw(totalSize.value, 0))
+const formattedTotalSizeFree = computed(() => formatSizeRaw(totalSize.value - totalUsage.value, 0))
 </script>
 
 <style scoped lang="postcss">
-.pool-storage-usage {
+.pool-storages-usage {
   .total {
     display: grid;
     grid-template-columns: 1fr 1fr;

@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="pool-dashboard-cpu-usage">
+  <UiCard>
     <UiCardTitle>
       {{ t('cpu-usage') }}
     </UiCardTitle>
@@ -11,7 +11,7 @@
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!areHostsCpuUsageReady" type="card" />
     <template v-else>
-      <HostsCpuUsage :hosts="poolDashboard?.hosts" />
+      <HostsCpuUsage :top-five-cpu="poolDashboard?.hosts?.topFiveUsage?.cpu" />
     </template>
     <UiCardSubtitle>
       {{ t('vms', 2) }}
@@ -21,7 +21,7 @@
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!areVmsCpuUsageReady" type="card" />
     <template v-else>
-      <VmsCpuUsage :vms="poolDashboard?.vms" />
+      <VmsCpuUsage :top-five-cpu="poolDashboard?.vms?.topFiveUsage?.cpu" />
     </template>
   </UiCard>
 </template>

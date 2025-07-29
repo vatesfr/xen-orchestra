@@ -8,7 +8,7 @@
 
     <div class="row second-row">
       <div class="column first-column">
-        <PoolDashboardStorageUsage class="storage-usage" :pool-dashboard />
+        <PoolDashboardStoragesUsage class="storage-usage" :pool-dashboard />
         <PoolDashboardNetworkChart class="network-chart" :data :loading="isFetching" :error />
       </div>
       <div class="column second-column">
@@ -34,7 +34,7 @@ import PoolDashboardCpuUsage from '@/components/pool/dashboard/PoolDashboardCpuU
 import PoolDashboardHostsPatches from '@/components/pool/dashboard/PoolDashboardHostsPatches.vue'
 import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamUsage.vue'
 import PoolDashboardStatus from '@/components/pool/dashboard/PoolDashboardStatus.vue'
-import PoolDashboardStorageUsage from '@/components/pool/dashboard/PoolDashboardStorageUsage.vue'
+import PoolDashboardStoragesUsage from '@/components/pool/dashboard/PoolDashboardStoragesUsage.vue'
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
 import { usePoolDashboardStore } from '@/stores/xo-rest-api/pool-dashboard.store.ts'
 import type { XoPool } from '@/types/xo/pool.type'

@@ -1,17 +1,17 @@
 <template>
-  <UiCard class="host-dashboard-cpu-provisioning">
+  <UiCard class="pool-dashboard-cpu-provisioning">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!areCpuProvisioningReady" type="card" />
+    <VtsLoadingHero v-if="!isCpuProvisioningReady" type="card" />
     <template v-else>
       <UiProgressBar
         display-mode="percent"
-        :max="poolDashboard?.cpuProvisioning.total"
+        :max="poolDashboard?.cpuProvisioning?.total"
         :legend="t('vcpus')"
-        :value="poolDashboard?.cpuProvisioning.assigned ?? 0"
+        :value="poolDashboard?.cpuProvisioning?.assigned ?? 0"
       />
       <div class="total">
-        <UiCardNumbers :label="t('vcpus-used')" :value="poolDashboard?.cpuProvisioning.assigned" size="medium" />
-        <UiCardNumbers :label="t('total-cpus')" :value="poolDashboard?.cpuProvisioning.total" size="medium" />
+        <UiCardNumbers :label="t('vcpus-used')" :value="poolDashboard?.cpuProvisioning?.assigned" size="medium" />
+        <UiCardNumbers :label="t('total-cpus')" :value="poolDashboard?.cpuProvisioning?.total" size="medium" />
       </div>
     </template>
   </UiCard>
@@ -31,13 +31,13 @@ const { poolDashboard } = defineProps<{
   poolDashboard: XoPoolDashboard | undefined
 }>()
 
-const areCpuProvisioningReady = computed(() => poolDashboard?.cpuProvisioning !== undefined)
+const isCpuProvisioningReady = computed(() => poolDashboard?.cpuProvisioning !== undefined)
 
 const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.host-dashboard-cpu-provisioning {
+.pool-dashboard-cpu-provisioning {
   .total {
     display: grid;
     grid-template-columns: 1fr 1fr;

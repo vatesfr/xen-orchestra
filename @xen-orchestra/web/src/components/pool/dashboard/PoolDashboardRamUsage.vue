@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="pool-dashboard-ram-usage">
+  <UiCard>
     <UiCardTitle>
       {{ t('ram-usage') }}
     </UiCardTitle>
@@ -11,7 +11,7 @@
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!areHostsRamUsageReady" type="card" />
     <template v-else>
-      <HostsRamUsage :hosts="poolDashboard?.hosts" />
+      <HostsRamUsage :top-five-ram="poolDashboard?.hosts?.topFiveUsage?.ram" />
     </template>
     <UiCardSubtitle>
       {{ t('vms', 2) }}
@@ -21,7 +21,7 @@
     </UiCardSubtitle>
     <VtsLoadingHero v-if="!areVmsRamUsageReady" type="card" />
     <template v-else>
-      <VmsRamUsage :vms="poolDashboard?.vms" />
+      <VmsRamUsage :top-five-ram="poolDashboard?.vms?.topFiveUsage?.ram" />
     </template>
   </UiCard>
 </template>
