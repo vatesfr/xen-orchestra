@@ -18,8 +18,8 @@ import RecipeForm from './recipe-form-ev'
 
 const RECIPE_INFO = {
   id: 'test',
-  name: 'EasyVirt VM',
-  description: 'Creates an EasyVirt VM with parameters and application inside',
+  name: 'DCScope VM',
+  description: 'Creates an DCScope VM with parameters and application inside',
 }
 
 export default decorate([
