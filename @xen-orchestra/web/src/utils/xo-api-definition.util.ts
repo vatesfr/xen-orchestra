@@ -1,12 +1,10 @@
 import type { ApiDefinition } from '@/types/xo'
 import type { XoAlarm } from '@/types/xo/alarm.type.ts'
-import type { XoDashboard } from '@/types/xo/dashboard.type'
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPci } from '@/types/xo/pci.type'
 import type { XoPgpu } from '@/types/xo/pgpu.type'
 import type { XoPif } from '@/types/xo/pif.type'
-import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoServer } from '@/types/xo/server.type'
 import type { XoSr } from '@/types/xo/sr.type'
@@ -33,14 +31,6 @@ export const xoApiDefinition = {
       'id,name_label,master,default_SR,tags,otherConfig,auto_poweron,HA_enabled,migrationCompression,suspendSr,crashDumpSr,haSrs',
     handler: (record: XoPool) => record,
     stream: false,
-  },
-  'pool-dashboard': {
-    type: 'single',
-    // todo: remove the hardcoded pool ID
-    path: 'pools/355ee47d-ff4c-4924-3db2-fd86ae629676/dashboard',
-    fields: '*',
-    handler: (record: XoPoolDashboard) => record,
-    stream: true,
   },
   host: {
     type: 'collection',
@@ -71,13 +61,6 @@ export const xoApiDefinition = {
     fields: 'id,start,end,properties,status,progress,tasks',
     handler: (record: XoTask) => record,
     stream: false,
-  },
-  dashboard: {
-    type: 'single',
-    path: 'dashboard',
-    fields: '*',
-    handler: (record: XoDashboard) => record,
-    stream: true,
   },
   pif: {
     type: 'collection',
