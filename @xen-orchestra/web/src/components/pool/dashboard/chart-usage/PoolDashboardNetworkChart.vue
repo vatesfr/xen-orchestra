@@ -45,7 +45,9 @@ const networkUsage = computed<LinearChartData>(() => {
 
   const timestamps = Array.from(
     { length: Object.values(hostsStats[0]?.stats?.pifs?.rx ?? {})[0].length },
-    (_, i) => hostsStats[0].endTimestamp * 1000 - (length - 1 - i) * hostsStats[0].interval * 1000
+    (_, i) =>
+      hostsStats[0].endTimestamp * 1000 -
+      (Object.values(hostsStats[0]?.stats?.pifs?.rx ?? {})[0].length - 1 - i) * hostsStats[0].interval * 1000
   )
 
   const txSeries = [

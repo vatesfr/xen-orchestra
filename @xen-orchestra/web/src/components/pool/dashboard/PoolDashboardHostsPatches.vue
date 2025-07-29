@@ -3,10 +3,10 @@
     <div class="title">
       <UiCardTitle>
         {{ t('patches') }}
+        <template v-if="!noMissingPatches" #info>
+          <span class="missing-patches-info"> {{ t('n-missing', missingPatches.length) }}</span>
+        </template>
       </UiCardTitle>
-      <div v-if="!noMissingPatches" class="typo-body-regular-small count">
-        {{ t('n-missing', missingPatches.length) }}
-      </div>
     </div>
     <VtsLoadingHero v-if="!areMissingPatchesReady" type="card" />
     <VtsAllDoneHero v-else-if="noMissingPatches" type="card" />
@@ -27,12 +27,8 @@
         <template #tbody>
           <tr v-for="row of rows" :key="row.id">
             <td v-for="column of row.visibleColumns" :key="column.id">
-              <div>
-                <div v-tooltip class="typo-body-bold text-ellipsis">
-                  <div :class="{ version: column.id === 'version' }">
-                    {{ column.value }}
-                  </div>
-                </div>
+              <div v-tooltip class="text-ellipsis" :class="{ version: column.id === 'version' }">
+                {{ column.value }}
               </div>
             </td>
           </tr>
@@ -96,13 +92,7 @@ const headerIcon: Record<'name' | 'version', IconDefinition> = {
 .pool-dashboard-patches {
   max-height: 46.2rem;
 
-  .title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .count {
+  .missing-patches-info {
     color: var(--color-danger-txt-base);
   }
 

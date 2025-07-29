@@ -3,11 +3,7 @@ import { createSubscribableStoreContext } from '@core/utils/create-subscribable-
 import { defineStore } from 'pinia'
 
 export const usePoolDashboardStore = defineStore('pool-dashboard', () => {
-  const { context: baseContext, ...configRest } = createXoStoreConfig('pool-dashboard')
+  const config = createXoStoreConfig('pool-dashboard')
 
-  const context = {
-    ...baseContext,
-  }
-
-  return createSubscribableStoreContext({ context, ...configRest }, {})
+  return createSubscribableStoreContext(config, {})
 })

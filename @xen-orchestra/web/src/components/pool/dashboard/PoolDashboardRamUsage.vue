@@ -9,7 +9,6 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <UiDataRuler />
     <VtsLoadingHero v-if="!areHostsRamUsageReady" type="card" />
     <template v-else>
       <HostsRamUsage :hosts="poolDashboard?.hosts" />
@@ -20,7 +19,6 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <UiDataRuler />
     <VtsLoadingHero v-if="!areVmsRamUsageReady" type="card" />
     <template v-else>
       <VmsRamUsage :vms="poolDashboard?.vms" />
@@ -29,16 +27,15 @@
 </template>
 
 <script lang="ts" setup>
+import HostsRamUsage from '@/components/pool/dashboard/ram-usage/HostsRamUsage.vue'
+import VmsRamUsage from '@/components/pool/dashboard/ram-usage/VmsRamUsage.vue'
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiDataRuler from '@core/components/ui/data-ruler/UiDataRuler.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import HostsRamUsage from './ramUsage/HostsRamUsage.vue'
-import VmsRamUsage from './ramUsage/VmsRamUsage.vue'
 
 const { poolDashboard } = defineProps<{
   poolDashboard: XoPoolDashboard | undefined

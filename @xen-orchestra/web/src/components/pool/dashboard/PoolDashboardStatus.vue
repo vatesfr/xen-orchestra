@@ -1,13 +1,13 @@
 <template>
-  <UiCard class="record-dashboard-vms-status">
+  <UiCard>
     <UiCardTitle>{{ t('status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!areHostsStatusReady && !areVmsStatusReady" type="card" />
     <template v-else>
-      <VtsDonutChartWithLegend :segments="segmentsHost" :title="{ label: t('hosts') }" :icon="faServer" />
-      <UiCardNumbers class="total" :label="t('total')" :value="poolDashboard?.hosts.status?.total" size="small" />
+      <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" :icon="faServer" />
+      <UiCardNumbers :label="t('total')" :value="poolDashboard?.hosts.status?.total" size="small" />
       <VtsDivider type="stretch" />
-      <VtsDonutChartWithLegend :segments="segmentsVm" :title="{ label: t('vms', 2) }" :icon="faDisplay" />
-      <UiCardNumbers class="total" :label="t('total')" :value="poolDashboard?.vms.status?.total" size="small" />
+      <VtsDonutChartWithLegend :segments="vmsSegments" :title="{ label: t('vms', 2) }" :icon="faDisplay" />
+      <UiCardNumbers :label="t('total')" :value="poolDashboard?.vms.status?.total" size="small" />
     </template>
   </UiCard>
 </template>
@@ -35,25 +35,25 @@ const areVmsStatusReady = computed(() => poolDashboard?.vms?.status !== undefine
 
 const { t } = useI18n()
 
-const segmentsHost = computed<DonutChartWithLegendProps['segments']>(() => [
+const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('vms-status.running'),
+    label: t('hosts-status.running'),
     value: poolDashboard?.hosts.status.running ?? 0,
     accent: 'success',
   },
   {
-    label: t('vms-status.suspended'),
+    label: t('disabled'),
     value: poolDashboard?.hosts.status.disabled ?? 0,
     accent: 'neutral',
   },
   {
-    label: t('vms-status.halted'),
+    label: t('hosts-status.halted'),
     value: poolDashboard?.hosts.status.halted ?? 0,
     accent: 'danger',
   },
 ])
 
-const segmentsVm = computed<DonutChartWithLegendProps['segments']>(() => [
+const vmsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vms-status.running'),
     value: poolDashboard?.vms.status.running ?? 0,

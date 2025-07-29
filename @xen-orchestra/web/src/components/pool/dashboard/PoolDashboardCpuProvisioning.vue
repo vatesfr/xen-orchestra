@@ -1,7 +1,6 @@
 <template>
   <UiCard class="host-dashboard-cpu-provisioning">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
-    <UiDataRuler />
     <VtsLoadingHero v-if="!areCpuProvisioningReady" type="card" />
     <template v-else>
       <UiProgressBar
@@ -24,7 +23,6 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiDataRuler from '@core/components/ui/data-ruler/UiDataRuler.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

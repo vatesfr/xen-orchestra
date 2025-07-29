@@ -3,7 +3,7 @@
     <div class="row first-row">
       <PoolDashboardStatus class="status" :pool-dashboard />
       <PoolDashboardAlarms class="alarms" :pool-dashboard />
-      <PoolDashboardHostsPatches class="patch" :pool-dashboard />
+      <PoolDashboardHostsPatches class="patches" :pool-dashboard />
     </div>
 
     <div class="row second-row">
@@ -26,9 +26,9 @@
 
 <script setup lang="ts">
 import PoolDashboardAlarms from '@/components/pool/dashboard/alarms/PoolDashboardAlarms.vue'
-import PoolDashboardCpuChart from '@/components/pool/dashboard/chartUsage/PoolDashboardCpuChart.vue'
-import PoolDashboardNetworkChart from '@/components/pool/dashboard/chartUsage/PoolDashboardNetworkChart.vue'
-import PoolDashboardRamChart from '@/components/pool/dashboard/chartUsage/PoolDashboardRamChart.vue'
+import PoolDashboardCpuChart from '@/components/pool/dashboard/chart-usage/PoolDashboardCpuChart.vue'
+import PoolDashboardNetworkChart from '@/components/pool/dashboard/chart-usage/PoolDashboardNetworkChart.vue'
+import PoolDashboardRamChart from '@/components/pool/dashboard/chart-usage/PoolDashboardRamChart.vue'
 import PoolDashboardCpuProvisioning from '@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue'
 import PoolDashboardCpuUsage from '@/components/pool/dashboard/PoolDashboardCpuUsage.vue'
 import PoolDashboardHostsPatches from '@/components/pool/dashboard/PoolDashboardHostsPatches.vue'
@@ -58,12 +58,15 @@ const uiStore = useUiStore()
   .row {
     display: grid;
     gap: 0.8rem;
-    margin-bottom: 0.8rem;
+  }
+
+  .row + .row {
+    margin-top: 0.8rem;
   }
 
   .first-row {
-    grid-template-columns: 2fr 4fr 2fr;
-    grid-template-areas: 'status alarms patch';
+    grid-template-columns: minmax(10rem, 1fr) minmax(20rem, 2fr) minmax(10rem, 1fr);
+    grid-template-areas: 'status alarms patches';
   }
 
   .status {
@@ -74,12 +77,12 @@ const uiStore = useUiStore()
     grid-area: alarms;
   }
 
-  .patch {
-    grid-area: patch;
+  .patches {
+    grid-area: patches;
   }
 
   .second-row {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(20rem, 1fr));
     grid-template-areas: 'first-column second-column third-column';
   }
 
@@ -112,7 +115,7 @@ const uiStore = useUiStore()
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-    margin-bottom: 0;
+    margin-top: 0;
   }
 }
 </style>

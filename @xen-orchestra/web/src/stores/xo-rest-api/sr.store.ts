@@ -1,5 +1,4 @@
 import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
-import type { XoPool } from '@/types/xo/pool.type'
 import type { XoSr } from '@/types/xo/sr.type'
 import type { XoVdi } from '@/types/xo/vdi.type'
 import { createXoStoreConfig } from '@/utils/create-xo-store-config.util'
@@ -44,26 +43,9 @@ export const useSrStore = defineStore('sr', () => {
     return groupedVDIs
   })
 
-  const srByPool = computed(() => {
-    const srByPoolMap = new Map<XoPool['id'], XoSr[]>()
-
-    baseContext.records.value.forEach(host => {
-      const poolId = host.$pool
-
-      if (!srByPoolMap.has(poolId)) {
-        srByPoolMap.set(poolId, [])
-      }
-
-      srByPoolMap.get(poolId)!.push(host)
-    })
-
-    return srByPoolMap
-  })
-
   const context = {
     ...baseContext,
     vdiIsosBySrName,
-    srByPool,
   }
 
   return createSubscribableStoreContext({ context, ...configRest }, deps)

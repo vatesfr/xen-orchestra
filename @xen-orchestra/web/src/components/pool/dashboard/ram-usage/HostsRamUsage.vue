@@ -1,11 +1,11 @@
 <template>
   <UiProgressBar
-    v-for="cpu in vms?.topFiveUsage?.cpu"
-    :key="cpu.id"
-    display-mode="percent"
-    class="progressBar"
-    :value="cpu.percent"
-    :legend="cpu.name_label"
+    v-for="ram in hosts?.topFiveUsage?.ram"
+    :key="ram.id"
+    display-mode="value"
+    :value="ram.usage"
+    :max="ram.size"
+    :legend="ram.name_label"
   />
 </template>
 
@@ -14,6 +14,6 @@ import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 
 defineProps<{
-  vms: XoPoolDashboard['vms'] | undefined
+  hosts: XoPoolDashboard['hosts'] | undefined
 }>()
 </script>

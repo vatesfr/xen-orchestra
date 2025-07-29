@@ -14,9 +14,8 @@
     <VtsAllGoodHero v-else-if="alarms.length === 0" type="card" />
     <div v-else class="alarm-items">
       <UiAlarmList>
-        <template v-for="alarm in alarms" :key="alarm?.id">
+        <template v-for="alarm in alarms" :key="alarm.id">
           <UiAlarmItem
-            v-if="alarm"
             :label="alarm.body.name"
             :percent="Number(alarm.body.value)"
             :size="uiStore.isDesktopLarge ? 'large' : 'small'"
@@ -39,6 +38,7 @@ import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
 import { useSrStore } from '@/stores/xo-rest-api/sr.store.ts'
 import { useVmControllerStore } from '@/stores/xo-rest-api/vm-controller.store.ts'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
+import type { XoAlarm } from '@/types/xo/alarm.type.ts'
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsAllGoodHero from '@core/components/state-hero/VtsAllGoodHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -80,7 +80,16 @@ const alarms = computed(() => {
     return []
   }
 
-  return poolDashboard.alarms.map(alarmId => get(alarmId))
+  return poolDashboard.alarms
+    .reduce((acc, alarmId) => {
+      const alarm = get(alarmId)
+      if (alarm !== undefined) {
+        acc.push(alarm)
+      }
+
+      return acc
+    }, [] as XoAlarm[])
+    .sort((alarm1, alarm2) => new Date(alarm2.time).getTime() - new Date(alarm1.time).getTime())
 })
 </script>
 
