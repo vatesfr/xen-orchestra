@@ -58,3 +58,8 @@ export const invalidParameters = {
   status: 422,
   description: 'Invalid parameters',
 } as const
+
+export const forbiddenOperationResponse = {
+  status: 403,
+  description: 'Forbidden',
+} as const

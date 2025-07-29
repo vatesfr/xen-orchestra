@@ -19,6 +19,7 @@ import type { XoGroup } from '@vates/types'
 
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 import {
+  forbiddenOperationResponse,
   noContentResp,
   notFoundResp,
   resourceAlreadyExists,
@@ -81,15 +82,14 @@ export class GroupController extends XoController<XoGroup> {
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
-  @Response(forbiddenOperation.status, forbiddenOperation.description)
+  @Response(forbiddenOperationResponse.status, forbiddenOperationResponse.description)
   async updateGroup(@Path() id: string, @Body() body: UpdateGroupRequestBody): Promise<void> {
-    const { name } = body
-    const group = await this.restApi.xoApp.getGroup(id as XoGroup['id'])
+    const group = await this.getObject(id as XoGroup['id'])
 
     if (group.provider !== undefined) {
       throw forbiddenOperation('Cannot edit synchronized group')
     }
 
-    await this.restApi.xoApp.updateGroup(id as XoGroup['id'], { name })
+    await this.restApi.xoApp.updateGroup(id as XoGroup['id'], body)
   }
 }
