@@ -71,8 +71,7 @@ function createPatternBuffer(size: number, pattern: string): Buffer {
 // Test suite
 test('constructor and initialization', async () => {
   const source = new MockDisk(512, 1024 * 1024)
-  const disk = new DiskSmallerBlock(source, 256
-  )
+  const disk = new DiskSmallerBlock(source, 256)
 
   // Test that blockSize must be a multiple of source blockSize
   await assert.rejects(
@@ -82,10 +81,10 @@ test('constructor and initialization', async () => {
     },
     { message: /must be a multiple/ }
   )
-  // Test that blockSize must bigger than  source blockSize
+  // Test that blockSize must be smaller than source blockSize
   await assert.rejects(
     async () => {
-      const invalidDisk = new DiskSmallerBlock(source, 1024*2)
+      const invalidDisk = new DiskSmallerBlock(source, 1024 * 2)
       await invalidDisk.init()
     },
     { message: /smaller/ }
@@ -109,13 +108,36 @@ test('readBlock with simple block mapping', async () => {
   const disk = new DiskSmallerBlock(source, 256)
   await disk.init()
 
-  // Read the first block , half 
+  // Read the first block , half
   const result = await disk.readBlock(2)
   assert.strictEqual(result.index, 2)
   assert.strictEqual(result.data.length, 256)
 
   // Verify the data is correctly combined
-  assert.strictEqual(block2.subarray(0,256).equals(result.data), true)
+  assert(block2.subarray(0, 256).equals(result.data))
+})
+test('readBlock interleaved', async () => {
+  // Create source disk with two 512-byte blocks
+  const block1 = createPatternBuffer(512, 'A')
+  const block2 = createPatternBuffer(512, 'B')
+  const source = new MockDisk(512, 1024, [
+    [0, block1],
+    [1, block2],
+  ])
+  await source.init()
+
+  const disk = new DiskSmallerBlock(source, 256)
+  await disk.init()
+
+  // Read the first block , half
+  await disk.readBlock(1)
+  // then second block
+  await disk.readBlock(2)
+  // then back to first
+  const result = await disk.readBlock(0)
+
+  // Verify the data is correctly combined
+  assert(block1.subarray(0, 256).equals(result.data))
 })
 
 test('hasBlock behavior', async () => {
@@ -128,13 +150,12 @@ test('hasBlock behavior', async () => {
   const disk = new DiskSmallerBlock(source, 256)
   await disk.init()
 
-  assert.strictEqual(disk.hasBlock(0), true)
-  assert.strictEqual(disk.hasBlock(1), true)
-  assert.strictEqual(disk.hasBlock(2), false)
-  assert.strictEqual(disk.hasBlock(3), false)
-  assert.strictEqual(disk.hasBlock(4), true)
-  assert.strictEqual(disk.hasBlock(5), true)
-
+  assert(disk.hasBlock(0))
+  assert(disk.hasBlock(1))
+  assert(!disk.hasBlock(2))
+  assert(!disk.hasBlock(3))
+  assert(disk.hasBlock(4))
+  assert(disk.hasBlock(5))
 })
 
 test('getBlockIndexes', async () => {
@@ -151,7 +172,6 @@ test('getBlockIndexes', async () => {
   assert.deepStrictEqual(indexes, [0, 1, 4, 5])
 })
 
-
 test('close propagation', async () => {
   const source = new MockDisk(512, 1024)
   await source.init()
@@ -160,5 +180,5 @@ test('close propagation', async () => {
   await disk.init()
 
   await disk.close()
-  assert.strictEqual(source.closed, true)
+  assert(source.closed)
 })

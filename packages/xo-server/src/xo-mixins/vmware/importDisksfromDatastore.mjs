@@ -2,7 +2,7 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import { importVdi as importVdiThroughXva } from '@xen-orchestra/xva/importVdi.mjs'
 import { Disposable } from 'promise-toolbox'
-import { DiskChain, toRawStream } from '@xen-orchestra/disk-transform'
+import { ReadAhead } from '@xen-orchestra/disk-transform'
 import { VmdkDisk } from '@xen-orchestra/vmdk'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { EsxiDatastore } from '../../../../../@xen-orchestra/vmware-explorer/VmfsFileAccessor.mjs'
@@ -23,10 +23,11 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
   try{
     const {nbdInfos } = await esxi.spanwNbdKitProcess(sourceVmId, `[${datastoreName}] ${diskPath}`)
     console.log('nbdinfos', {nbdInfos})
-    const vmdk = new NbdDisk(nbdInfos, 2*1024*1024)
+
+    let vmdk = new NbdDisk(nbdInfos, 2*1024*1024)
 
     await vmdk.init()
-
+    vmdk = new ReadAhead(vmdk)
     const vdiMetadata = {
         name_description: 'fromESXI' + descriptionLabel,
         name_label: '[ESXI]' + nameLabel,

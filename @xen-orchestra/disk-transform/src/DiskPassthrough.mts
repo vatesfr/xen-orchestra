@@ -8,6 +8,9 @@ export class DiskPassthrough extends Disk {
     }
     return this.#source
   }
+  get parent(): Disk | undefined {
+    return this.#source?.parent
+  }
   constructor(source: Disk | undefined = undefined) {
     super()
     this.#source = source
@@ -28,7 +31,6 @@ export class DiskPassthrough extends Disk {
   }
 
   instantiateParent(): Disk {
-    console.log('instantiated')
     return this.source.instantiateParent()
   }
   async close(): Promise<void> {
@@ -45,12 +47,6 @@ export class DiskPassthrough extends Disk {
   }
   async buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> {
     return this.source.buildDiskBlockGenerator()
-  }
-  getNbGeneratedBlock(): number {
-    return this.source.getNbGeneratedBlock()
-  }
-  diskBlocks(): AsyncGenerator<DiskBlock> {
-    return this.source.diskBlocks()
   }
 }
 
@@ -108,11 +104,5 @@ export abstract class RandomDiskPassthrough extends RandomAccessDisk {
   }
   hasBlock(index: number): boolean {
     return this.source.hasBlock(index)
-  }
-  getNbGeneratedBlock(): number {
-    return this.source.getNbGeneratedBlock()
-  }
-  diskBlocks(): AsyncGenerator<DiskBlock> {
-    return this.source.diskBlocks()
   }
 }

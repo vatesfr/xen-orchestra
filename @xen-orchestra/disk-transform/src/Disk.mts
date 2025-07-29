@@ -1,3 +1,5 @@
+import { ProgressHandler } from './ProgressHandler.mjs'
+
 export type DiskBlockData = Buffer
 export type DiskBlock = {
   index: number // the index of the block. Offset in raw disk is index * blockSize
@@ -9,6 +11,7 @@ export type BytesLength = number
 export abstract class Disk {
   #generatedDiskBlocks = 0
   #parent?: Disk
+  progressHandler?: ProgressHandler
   get parent(): Disk | undefined {
     return this.#parent
   }
@@ -45,10 +48,17 @@ export abstract class Disk {
   abstract buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> | AsyncGenerator<DiskBlock>
   async *diskBlocks(uid?: string): AsyncGenerator<DiskBlock> {
     try {
+      // compute next block while the destination is consuming the current block
       const blockGenerator = await this.buildDiskBlockGenerator()
-      for await (const block of blockGenerator) {
+      let next = blockGenerator.next()
+      while (true) {
+        const res = await next
+        next = blockGenerator.next()
+        if (res.done) {
+          break
+        }
         this.#generatedDiskBlocks++
-        yield block
+        yield res.value
       }
     } finally {
       await this.close()
@@ -74,9 +84,11 @@ export abstract class Disk {
  */
 
 export abstract class RandomAccessDisk extends Disk {
-  #parent?: RandomAccessDisk
   get parent(): RandomAccessDisk | undefined {
-    return this.#parent
+    if (super.parent !== undefined && !(super.parent instanceof RandomAccessDisk)) {
+      throw new Error('The parent of a random access disk must be a random access disk')
+    }
+    return super.parent
   }
   // optional method
   instantiateParent(): RandomAccessDisk {
@@ -86,9 +98,15 @@ export abstract class RandomAccessDisk extends Disk {
   // but only if this disk has data on this block
   abstract readBlock(index: number): Promise<DiskBlock>
   async *buildDiskBlockGenerator(): AsyncGenerator<DiskBlock> {
-    const indexes = this.getBlockIndexes()
-    for (const index of indexes) {
-      yield this.readBlock(index)
+    try {
+      const indexes = this.getBlockIndexes()
+      for (let i = 0; i < indexes.length; i++) {
+        yield this.readBlock(indexes[i])
+        await this.progressHandler?.setProgress(i / indexes.length)
+      }
+      await this.progressHandler?.setProgress(1)
+    } finally {
+      await this.progressHandler?.done()
     }
   }
 }

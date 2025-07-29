@@ -1,12 +1,13 @@
 {
   "name": "@xen-orchestra/disk-transform",
-  "version": "0.0.0",
+  "version": "1.1.0",
   "main": "./dist/index.mjs",
   "license": "MIT",
   "private": false,
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^9.19.0",
+    "rimraf": "^5.0.1",
     "@types/node": "^22.3.0",
     "typescript": "~5.6",
     "typescript-eslint": "^8.23.0"
@@ -15,7 +16,8 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "postversion": "npm publish --access public",
-    "test": "tsc && node --test **/*.test.mjs"
+    "test": "tsc && node --test **/*.test.mjs",
+    "clean": "rimraf dist/"
   },
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/disk-transform",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
@@ -30,5 +32,9 @@
   },
   "engines": {
     "node": ">=20.17"
+  },
+  "dependencies": {
+    "vhd-lib": "^4.14.0",
+    "@vates/generator-toolbox": "^1.0.4"
   }
 }
