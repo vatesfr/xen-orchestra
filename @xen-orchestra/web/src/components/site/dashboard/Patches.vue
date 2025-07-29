@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
@@ -22,11 +22,21 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const {
+  missingPatches,
+  nPools = 0,
+  nHosts = 0,
+  nHostsEol = 0,
+} = defineProps<{
+  missingPatches: XoDashboard['missingPatches'] | undefined
+  nPools: XoDashboard['nPools'] | undefined
+  nHosts: XoDashboard['nHosts'] | undefined
+  nHostsEol: XoDashboard['nHostsEol'] | undefined
+}>()
+
 const { t } = useI18n()
 
-const { record } = useDashboardStore().subscribe()
-
-const arePatchesReady = computed(() => record.value?.missingPatches !== undefined)
+const arePatchesReady = computed(() => missingPatches !== undefined)
 
 const poolsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() => ({
   label: t('pools'),
@@ -34,10 +44,7 @@ const poolsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() 
 
 const poolsSegments: ComputedRef<DonutChartWithLegendProps['segments']> = computed(() => {
   // @TODO: See with Clémence if `hasAuthorization === false`
-  const nPoolsWithMissingPatches = record.value?.missingPatches?.hasAuthorization
-    ? record.value.missingPatches.nPoolsWithMissingPatches
-    : 0
-  const nPools = record.value?.nPools ?? 0
+  const nPoolsWithMissingPatches = missingPatches?.hasAuthorization ? missingPatches.nPoolsWithMissingPatches : 0
 
   const nUpToDatePools = nPools - nPoolsWithMissingPatches
 
@@ -53,13 +60,8 @@ const hostsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() 
 
 const hostsSegments = computed(() => {
   // @TODO: See with Clémence if `hasAuthorization === false`
-  const nHostsWithMissingPatches = record.value?.missingPatches?.hasAuthorization
-    ? record.value.missingPatches.nHostsWithMissingPatches
-    : 0
-  const nHostsEol = record.value?.nHostsEol
-  const nHosts = record.value?.nHosts
-
-  const nUpToDateHosts = (nHosts ?? 0) - (nHostsWithMissingPatches + (nHostsEol ?? 0))
+  const nHostsWithMissingPatches = missingPatches?.hasAuthorization ? missingPatches.nHostsWithMissingPatches : 0
+  const nUpToDateHosts = nHosts - (nHostsWithMissingPatches + nHostsEol)
 
   const segments: DonutChartWithLegendProps['segments'] = [
     { value: nUpToDateHosts, accent: 'success', label: t('up-to-date') },
