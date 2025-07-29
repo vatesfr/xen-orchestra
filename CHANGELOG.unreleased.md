@@ -21,6 +21,7 @@
 - **XO 6:**
 
   - [Pool/connect] add page to connect new pool (PR [#8763](https://github.com/vatesfr/xen-orchestra/pull/8763))
+  - [Pool/dashboard] add pool dashboard information (PR [#8791](https://github.com/vatesfr/xen-orchestra/pull/8791))
 
 - [Backups] Extra confirmation step when deleting specific VM backups (PR [#8813](https://github.com/vatesfr/xen-orchestra/pull/8813))
 
