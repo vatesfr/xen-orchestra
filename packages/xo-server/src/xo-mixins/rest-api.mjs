@@ -1212,38 +1212,6 @@ export default class RestApi {
       }, true)
     )
 
-    api.delete(
-      '/:collection(groups)/:id',
-      wrap(async (req, res) => {
-        await app.deleteGroup(req.params.id)
-        res.sendStatus(204)
-      }, true)
-    )
-
-    api.post(
-      '/:collection(groups)',
-      json(),
-      wrap(async (req, res) => {
-        const { name } = req.body
-        if (name == null) {
-          return res.status(400).json({ error: 'name is required' })
-        }
-        if (typeof name !== 'string') {
-          return res.status(400).json({ message: 'name must be a string' })
-        }
-
-        try {
-          const group = await app.createGroup({ name })
-          res.status(201).end(group.id)
-        } catch (error) {
-          if (error.message === `the group ${name} already exists`) {
-            return res.status(400).json({ error: error.message })
-          }
-          throw error
-        }
-      })
-    )
-
     setupRestApi(express, app)
   }
 
