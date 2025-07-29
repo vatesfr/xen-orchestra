@@ -9,6 +9,7 @@ import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
 import xml2js from 'xml2js'
+import { exec, spawn } from 'node:child_process'
 
 const { warn } = createLogger('xo:vmware-explorer:esxi')
 
@@ -21,6 +22,8 @@ export default class Esxi extends EventEmitter {
   #user
   #password
   #ready = false
+  #nbdServers = new Map()
+  #nbdPort = 11000
 
   constructor(host, user, password, sslVerify) {
     super()
@@ -255,6 +258,7 @@ export default class Esxi extends EventEmitter {
       ...parsed,
       datastore: diskDataStore,
       path: dirname(diskPath),
+      diskPath,
       descriptionLabel: ' from esxi',
     }
   }
@@ -453,40 +457,73 @@ export default class Esxi extends EventEmitter {
     })
   }
 
-  async export(vmId) {
-    const exported = await this.#exec('ExportVm', { _this: vmId })
-    const exportTaskId = exported.returnval.$value
-    let isReady = false
-    for (let i = 0; i < 10 && !isReady; i++) {
-      const state = await this.fetchProperty('HttpNfcLease', exportTaskId, 'state')
-      isReady = state._ === 'ready'
-      if (!isReady) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-    }
-    if (!isReady) {
-      throw new Error('not ready')
-    }
-
-    const { deviceUrl: deviceUrls } = await this.fetchProperty('HttpNfcLease', exportTaskId, 'info')
-    const streams = {}
-    for (let { url, disk, targetId } of deviceUrls) {
-      url = url[0]
-      disk = disk[0]
-      // filter ram/cdrom/..
-      if (disk === 'true') {
-        const fullUrl = new URL(url)
-        if (url.indexOf('/*/') > 0) {
-          // the url returned can be in the form of https://*/ followed by a short-lived link, default 5mn
-          // in this case, use the vsphere ip/name
-          fullUrl.host = this.#host
+  async #getServerThumbprint() {
+    return new Promise((resolve, reject) => {
+      exec(`openssl s_client -connect ${this.#host}:443 </dev/null | openssl x509 -in /dev/stdin -fingerprint -sha1 -noout`, (err, stdout, stderr) => {
+        if (err) {
+          return reject(err)
         }
-        const vmdkres = await this.#fetch(fullUrl)
-        const stream = vmdkres.body
-        streams[targetId] = stream
-      }
-    }
+        if (stdout) {
+          const [_, sha1] = stdout.match(/sha1 Fingerprint=([0-9A-F:]+)/)
+          return resolve(sha1)
+        }
+      })
+    })
+  }
 
-    return streams
+  async spanwNbdKitProcess(vmId, diskPath, { openChain = true , threads = 1, compression='none'} = {}) {
+    const key = `${vmId}/${diskPath}/${openChain}`
+    if (!this.#nbdServers.has(key)) {
+      const thumbprint = await this.#getServerThumbprint()
+      const libPath = '/usr/local/lib/vddk/vmware-vix-disklib-distrib'
+      this.#nbdPort  ++// todo handle used ports or use file socket
+      console.lo
+      const nbdKitProcess = spawn('nbdkit', [
+        '-f',
+        '-r',
+      //  '-v',
+        '--exit-with-parent',
+        `--threads=${threads}`,
+        `--port=${this.#nbdPort}`,
+        'vddk',
+        `compression=${compression}`,
+        `thumbprint=${thumbprint}`,
+        `server=${this.#host}`,
+        `user=${this.#user}`,
+        `password=${this.#password}`,
+       // `cookie=${this.#cookies}`, //reuse the esxi cookie, doesn't expose login/pass on command line
+        `libdir=${libPath}`,
+        `vm=moref=${vmId}`,
+        !openChain ? 'single-link=true' : '',
+        diskPath
+      ], {
+        cwd: '/tmp/'
+      })
+      this.#nbdServers.set(key, {
+        process: nbdKitProcess,
+        nbdInfos: { address: '127.0.0.1', port: this.#nbdPort, exportname: diskPath }
+      })
+
+      nbdKitProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+      });
+
+      nbdKitProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+      });
+
+      nbdKitProcess.on('close', (code) => {
+        console.log(`child process exited with code ${code}`);
+      });
+      // @todo find a better to wait for server ready 
+      await new Promise(resolve=>setTimeout(resolve,2000))
+    }
+    console.log(this.#nbdServers.get(key))
+    return this.#nbdServers.get(key)
+
+  }
+  async killNbdServer(vmId, diskPath, { openChain = true } = {}) {
+    const key = `${vmId}/${diskPath}/${openChain}`
+    this.#nbdServers.get(key)?.process.kill()
   }
 }
