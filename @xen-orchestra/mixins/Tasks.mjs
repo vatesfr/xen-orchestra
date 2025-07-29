@@ -225,7 +225,14 @@ export default class Tasks extends EventEmitter {
     }
   }
 
-  async *list({ filter, limit = Infinity } = {}) {
+  async *list(opts) {
+    if (opts == null || typeof opts !== 'object') {
+      throw new TypeError('Expected a parameter object for list(opts)')
+    }
+
+    const { filter } = opts
+    let limit = opts.limit ?? Infinity
+
     const predicate = filter === undefined ? stubTrue : typeof filter === 'function' ? filter : iteratee(filter)
 
     for await (const [, taskLog] of this.#store.iterator()) {

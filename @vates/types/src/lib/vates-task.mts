@@ -5,7 +5,7 @@ export type TaskData = {
   id: Branded<'task'>
   start: number
   pending: number
-  end: number
+  end?: number
   updatedAt: number
   properties: Record<string, unknown>
   status: TASK_STATUS_TYPE
