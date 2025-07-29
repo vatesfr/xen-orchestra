@@ -305,6 +305,13 @@ export default class RestApi {
           alarms: true,
         },
       },
+      'vm-templates': {},
+      hosts: {},
+      srs: {},
+      tasks: {},
+      vbds: {},
+      vdis: {},
+      'vdi-snapshots': {},
       servers: {},
     }
 
