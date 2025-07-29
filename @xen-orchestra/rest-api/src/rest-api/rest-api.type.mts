@@ -139,10 +139,11 @@ export type XoApp = {
   updateUser(
     id: XoUser['id'],
     updates: {
+      email?: string
       name?: string
       password?: string
       permission?: string
-      preferences?: object
+      preferences?: Record<string, string>
     }
   ): Promise<void>
 }

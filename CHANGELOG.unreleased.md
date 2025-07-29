@@ -16,7 +16,7 @@
 - **Migrated REST API endpoints**
 
   - `GET /rest/v0/hosts/<host-id>/audit.txt` (PR [#8757](https://github.com/vatesfr/xen-orchestra/pull/8757))
-  - `PATCH /rest/v0/user/<user-id>` (PR [#8784](https://github.com/vatesfr/xen-orchestra/pull/8784))
+  - `PATCH /rest/v0/users/<user-id>` (PR [#8784](https://github.com/vatesfr/xen-orchestra/pull/8784))
 
 ### Bug fixes
 

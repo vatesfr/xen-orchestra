@@ -26,9 +26,3 @@ export const user = {
   preferences: {},
   id: '722d17b9-699b-49d2-8193-be1ac573d3de',
 }
-
-export const updateUserRequestBody = {
-  name: 'updated user name',
-  password: 'updatedPassword',
-  permission: 'none',
-}
