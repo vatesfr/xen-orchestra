@@ -8,6 +8,7 @@ import https from 'https'
 
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
+import { exec, spawn } from 'node:child_process'
 import xml2js from 'xml2js'
 
 const { warn } = createLogger('xo:vmware-explorer:esxi')
@@ -22,7 +23,11 @@ export default class Esxi extends EventEmitter {
   #password
   #ready = false
 
+  #nbdServers = new Map()
+  #nbdPort = 11000
+
   constructor(host, user, password, sslVerify) {
+    console.log({ host, user, password })
     super()
     this.#host = host.trim()
     this.#user = user
@@ -112,7 +117,7 @@ export default class Esxi extends EventEmitter {
     if (res.headers.raw()['set-cookie']) {
       this.#cookies = res.headers
         .raw()
-        ['set-cookie'].map(cookie => cookie.split(';')[0])
+      ['set-cookie'].map(cookie => cookie.split(';')[0])
         .join('; ')
     }
     return res
@@ -167,6 +172,7 @@ export default class Esxi extends EventEmitter {
       type: [type],
       recursive: true,
     })
+    console.log(result)
 
     // build all the data structures needed to query all the vm names
     const containerView = result.returnval
@@ -486,4 +492,76 @@ export default class Esxi extends EventEmitter {
 
     return streams
   }
+
+  async #getServerThumbprint() {
+    return new Promise((resolve, reject) => {
+      exec(`openssl s_client -connect ${this.#host}:443 </dev/null | openssl x509 -in /dev/stdin -fingerprint -sha1 -noout`, (err, stdout, stderr) => {
+        if (err) {
+          return reject(err)
+        }
+        if (stdout) {
+          const [_, sha1] = stdout.match(/sha1 Fingerprint=([0-9A-F:]+)/)
+          return resolve(sha1)
+        }
+      })
+    })
+  }
+
+  async spanwNbdKitProcess(vmId, diskPath, { openChain = true , threads = 1, compression='none'} = {}) {
+    const key = `${vmId}/${diskPath}/${openChain}`
+    if (!this.#nbdServers.has(key)) {
+      const thumbprint = await this.#getServerThumbprint()
+      const libPath = '/home/florent/VMware-vix-disklib-8.0.0-20521017.x86_64/vmware-vix-disklib-distrib'
+      this.#nbdPort  ++// todo handle used ports or use file socket
+      console.lo
+      const nbdKitProcess = spawn('nbdkit', [
+        '-f',
+        '-r',
+        '-v',
+        '--exit-with-parent',
+        `--threads=${threads}`,
+        `--port=${this.#nbdPort}`,
+        'vddk',
+        `compression=${compression}`,
+        `thumbprint=${thumbprint}`,
+        `server=${this.#host}`,
+        `user=${this.#user}`,
+        `password=${this.#password}`,
+       // `cookie=${this.#cookies}`, //reuse the esxi cookie, doesn't expose login/pass on command line
+        `libdir=${libPath}`,
+        `vm=moref=${vmId}`,
+        !openChain ? 'single-link=true' : '',
+        diskPath
+      ], {
+        cwd: '/tmp/'
+      })
+      this.#nbdServers.set(key, {
+        process: nbdKitProcess,
+        nbdInfos: { address: '127.0.0.1', port: this.#nbdPort, exportname: diskPath }
+      })
+
+      nbdKitProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+      });
+
+      nbdKitProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+      });
+
+      nbdKitProcess.on('close', (code) => {
+        console.log(`child process exited with code ${code}`);
+      });
+
+      await new Promise(resolve=>setTimeout(resolve,2000))
+    }
+    console.log(this.#nbdServers.get(key))
+    return this.#nbdServers.get(key)
+
+  }
+  async killNbdServer(vmId, diskPath, { openChain = true } = {}) {
+    const key = `${vmId}/${diskPath}/${openChain}`
+    this.#nbdServers.get(key)?.process.kill()
+  }
 }
+
+ 
