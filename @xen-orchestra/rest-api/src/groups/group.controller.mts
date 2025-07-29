@@ -25,7 +25,7 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { group, groupIds, partialGroups, updateGroupRequestBody } from '../open-api/oa-examples/group.oa-example.mjs'
+import { group, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import type { UpdateGroupRequestBody } from './group.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -74,8 +74,8 @@ export class GroupController extends XoController<XoGroup> {
 
   /**
    * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
+   * @example body { "name": "new group name" }
    */
-  @Example(updateGroupRequestBody)
   @Patch('{id}')
   @Middlewares(json())
   @SuccessResponse(noContentResp.status, noContentResp.description)
@@ -84,6 +84,12 @@ export class GroupController extends XoController<XoGroup> {
   @Response(forbiddenOperation.status, forbiddenOperation.description)
   async updateGroup(@Path() id: string, @Body() body: UpdateGroupRequestBody): Promise<void> {
     const { name } = body
+    const group = await this.restApi.xoApp.getGroup(id as XoGroup['id'])
+
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('Cannot edit synchronized group')
+    }
+
     await this.restApi.xoApp.updateGroup(id as XoGroup['id'], { name })
   }
 }
