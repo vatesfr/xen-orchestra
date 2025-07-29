@@ -19,7 +19,7 @@
   - `POST /rest/v0/groups` (PR [#8703](https://github.com/vatesfr/xen-orchestra/pull/8703))
   - `/rest/v0/tasks` (PR [#8501](https://github.com/vatesfr/xen-orchestra/pull/8501))
   - `/rest/v0/tasks/<task-id>` (PR [#8501](https://github.com/vatesfr/xen-orchestra/pull/8501))
-  
+
 - **XO 6:**
 
   - [Pool/connect] add page to connect new pool (PR [#8763](https://github.com/vatesfr/xen-orchestra/pull/8763))
@@ -46,6 +46,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/mixins minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
