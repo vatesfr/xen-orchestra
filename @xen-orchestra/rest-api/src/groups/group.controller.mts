@@ -96,6 +96,12 @@ export class GroupController extends XoController<XoGroup> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperation.status, forbiddenOperation.description)
   async removeUserFromGroup(@Path() id: string, @Path() userId: string): Promise<void> {
+  const group = await this.restApi.xoApp.getGroup(id as XoGroup['id'])
+
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('Cannot remove user from synchronized group')
+    }
+
     await this.restApi.xoApp.removeUserFromGroup(userId as XoUser['id'], id as XoGroup['id'])
   }
 }
