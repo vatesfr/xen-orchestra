@@ -2812,8 +2812,13 @@ const messages = {
   recipeSearches: 'Search domains',
   recipeSearchesExample: 'domain.com,search.org',
 
-  // Recipe EasyVirt
+  // Recipe DCScope
   recipeVMNameLabel: 'VM Name',
+  recipeVMIpAddress: 'VM IP address',
+  recipeVMxoPassword: 'XO Password for DCScope',
+  recipeVMxoUser: 'XO Username for DCScope',
+  recipeXoUrl: 'XO url for DCScope',
+  recipeDcScopeTemplateId: 'DCScope template UUID',
 
   // Audit
   auditActionEvent: 'Action/Event',

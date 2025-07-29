@@ -129,6 +129,30 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
+        <label>{_('recipeXoUrl')}</label>
+        <input
+          className='form-control'
+          name='xoUrl'
+          onChange={effects.onChangeValue}
+          placeholder={formatMessage(messages.recipeXoUrl)}
+          required
+          type='text'
+          value={value.xoUrl}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('recipeDcScopeTemplateId')}</label>
+        <input
+          className='form-control'
+          name='dcScopeTemplateId'
+          onChange={effects.onChangeValue}
+          placeholder={formatMessage(messages.recipeDcScopeTemplateId)}
+          required
+          type='text'
+          value={value.dcScopeTemplateId}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
         <label>
           <input
             className='mt-1'

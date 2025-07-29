@@ -48,7 +48,18 @@ export default decorate([
           size: 'medium',
         })
 
-        const { vmName, vmIpAddress, gatewayIpAddress, network, sr, sshKey, xoUsername, xoPassword } = recipeParams
+        const {
+          vmName,
+          vmIpAddress,
+          gatewayIpAddress,
+          network,
+          sr,
+          sshKey,
+          xoUsername,
+          xoPassword,
+          xoUrl,
+          dcScopeTemplateId,
+        } = recipeParams
 
         markRecipeAsCreating(RECIPE_INFO.id)
 
@@ -61,6 +72,8 @@ export default decorate([
           sshKey,
           xoUsername,
           xoPassword,
+          xoUrl,
+          dcScopeTemplateId,
         })
         markRecipeAsDone(RECIPE_INFO.id)
 
