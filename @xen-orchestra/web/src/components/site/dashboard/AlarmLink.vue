@@ -1,11 +1,8 @@
 <template>
   <div class="alarm-link">
-    <UiObjectLink :route>
-      <template #icon>
-        <UiObjectIcon :type="iconType" size="medium" :state="powerState" />
-      </template>
+    <UiLink size="small" :to="route" :icon>
       {{ nameLabel }}
-    </UiObjectLink>
+    </UiLink>
   </div>
 </template>
 
@@ -15,9 +12,8 @@ import { useSrStore } from '@/stores/xo-rest-api/sr.store.ts'
 import { useVmControllerStore } from '@/stores/xo-rest-api/vm-controller.store.ts'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
 import type { XoVmController } from '@/types/xo/vm-controller.type.ts'
-import type { SupportedState } from '@core/types/object-icon.type.ts'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import { faDatabase, faDesktop, faServer } from '@fortawesome/free-solid-svg-icons'
 import type { XapiXoRecord } from '@vates/types'
 import { computed } from 'vue'
 
@@ -50,28 +46,20 @@ const record = computed(() => {
 
 const nameLabel = computed(() => record.value?.name_label ?? uuid)
 
-const iconType = computed(() => {
+const icon = computed(() => {
   if (type === 'VM' || type === 'VM-controller') {
-    return 'vm'
+    return faDesktop
   }
 
   if (type === 'host') {
-    return 'host'
+    return faServer
   }
 
   if (type === 'SR') {
-    return 'sr'
+    return faDatabase
   }
 
-  return 'vm'
-})
-
-const powerState = computed<SupportedState<'vm' | 'host'> | 'disabled'>(() => {
-  if (!record.value || !('power_state' in record.value)) {
-    return 'disabled'
-  }
-
-  return record.value.power_state.toLowerCase() as SupportedState<'vm' | 'host'>
+  return undefined
 })
 
 const route = computed(() => {
@@ -86,3 +74,10 @@ const route = computed(() => {
   return `/${type}/${uuid}`
 })
 </script>
+
+<style lang="postcss" scoped>
+.alarm-link {
+  align-items: center;
+  line-height: 1;
+}
+</style>

@@ -3,6 +3,14 @@
     <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" />
     <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" />
     <VmsStatus class="vms-status" :status="dashboard.vmsStatus" />
+    <Alarms class="alarms" :alarms />
+    <Patches
+      class="patches"
+      :missing-patches="dashboard.missingPatches"
+      :n-hosts="dashboard.nHosts"
+      :n-hosts-eol="dashboard.nHostsEol"
+      :n-pools="dashboard.nPools"
+    />
     <ResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" />
     <Backups class="backups" :backups="dashboard.backups" />
     <BackupIssues class="backup-issues" :issues="dashboard.backups?.issues" />
@@ -11,14 +19,6 @@
       :backup-repositories
       :storage-repositories
       :s3-size="dashboard.backupRepositories?.s3?.size"
-    />
-    <Alarms class="alarms" />
-    <Patches
-      class="patches"
-      :missing-patches="dashboard.missingPatches"
-      :n-hosts="dashboard.nHosts"
-      :n-hosts-eol="dashboard.nHostsEol"
-      :n-pools="dashboard.nPools"
     />
   </div>
 </template>
@@ -34,11 +34,13 @@ import Repositories from '@/components/site/dashboard/Repositories.vue'
 import ResourcesOverview from '@/components/site/dashboard/ResourcesOverview.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 import { useSiteDashboard } from '@/requests/use-site-dashboard.request.ts'
+import { useAlarmStore } from '@/stores/xo-rest-api/alarm.store.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 
 const uiStore = useUiStore()
 
 const { dashboard, backupRepositories, storageRepositories } = useSiteDashboard()
+const { records: alarms } = useAlarmStore().subscribe()
 </script>
 
 <style lang="postcss" scoped>
