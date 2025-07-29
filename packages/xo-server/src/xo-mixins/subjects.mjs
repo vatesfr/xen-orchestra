@@ -413,7 +413,7 @@ export default class {
 
   async removeUserFromGroup(userId, groupId) {
     const [user, group] = await Promise.all([this.getUser(userId), this.getGroup(groupId)])
-    
+
     await Promise.all([this._removeUserFromGroup(userId, group), this._removeGroupFromUser(groupId, user)])
   }
 
