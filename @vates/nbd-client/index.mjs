@@ -20,6 +20,7 @@ import {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } from './constants.mjs'
+import { exec } from 'node:child_process'
 
 const { warn } = createLogger('vates:nbd-client')
 
@@ -356,6 +357,27 @@ export default class NbdClient {
         warn('will retry reading block ', index, err)
         await this.reconnect()
       },
+    })
+  }
+
+  /**
+   *  return the map of the file with hole,zero and data , usefull to handle efficiently sparse source
+   * to implement this internally : use structure response if the server support it, and then ask for BLOCK_STATUS
+   *
+   * @returns {JSON}
+   */
+  /* async */ getMap() {
+    return new Promise((resolve, reject) => {
+      exec(
+        `nbdinfo --json --map nbd://${this.#serverAddress}:${this.#serverPort}/${encodeURIComponent(this.#exportName)}`,
+        (err, map) => {
+          if (err) {
+            reject(err)
+          } else {
+            return resolve(JSON.parse(map))
+          }
+        }
+      )
     })
   }
 }

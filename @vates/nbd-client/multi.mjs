@@ -127,4 +127,8 @@ export default class MultiNbdClient {
       yield readAhead.shift()
     }
   }
+
+  async getMap() {
+    return this.#clients[Math.floor(this.#clients.length * Math.random())].getMap()
+  }
 }
