@@ -1,4 +1,20 @@
-import { Body, Delete, Example, Get, Middlewares, Path, Post, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Body,
+  Delete,
+  Example,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoGroup, XoUser } from '@vates/types'
@@ -14,7 +30,6 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
-import { forbiddenOperation } from 'xo-common/api-errors.js'
 import { group, groupId, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -96,17 +111,17 @@ export class GroupController extends XoController<XoGroup> {
   @Delete('{id}/users/{userId}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(forbiddenOperation.status, forbiddenOperation.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   async removeUserFromGroup(@Path() id: string, @Path() userId: string): Promise<void> {
-  const group = await this.getObject(id as XoGroup['id'])
+    const group = await this.getObject(id as XoGroup['id'])
 
     if (group.provider !== undefined) {
-      throw forbiddenOperation('Cannot remove user from synchronized group')
+      throw forbiddenOperation('remove user from group', 'synchronized group')
     }
 
     await this.restApi.xoApp.removeUserFromGroup(userId as XoUser['id'], id as XoGroup['id'])
   }
-  
+
   /**
    * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
    * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
