@@ -26,7 +26,10 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     return
   }
 
-  const responseError: { error: string; data?: Record<string, unknown>; info?: string } = { error: error.message }
+  const responseError: { error: string; data?: Record<string, unknown>; info?: string } = {
+    error: error.message,
+    data: 'data' in error ? (error.data as XoError['data']) : undefined,
+  }
   let statusCode: HttpStatusCodeLiteral
 
   if (noSuchObject.is(error)) {
@@ -35,19 +38,16 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     statusCode = 403
   } else if (featureUnauthorized.is(error)) {
     statusCode = 403
-    responseError.data = (error as XoError).data
   } else if (invalidCredentials.is(error)) {
     statusCode = 401
   } else if (objectAlreadyExists.is(error)) {
     statusCode = 409
-    responseError.data = (error as XoError).data
   } else if (invalidParameters.is(error)) {
     statusCode = 422
   } else if (notImplemented.is(error)) {
     statusCode = 501
   } else if (incorrectState.is(error)) {
     statusCode = 409
-    responseError.data = (error as XoError).data
   } else {
     if (error.name === 'XapiError') {
       responseError.info = 'This is a XenServer/XCP-ng error, not an XO error'

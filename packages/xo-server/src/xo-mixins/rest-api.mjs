@@ -266,13 +266,20 @@ export default class RestApi {
           hard_reboot: true,
           snapshot: true,
         },
+        routes: {
+          alarms: true,
+        },
       },
       'vm-controllers': {
         routes: {
           alarms: true,
         },
       },
-      'vm-snapshots': {},
+      'vm-snapshots': {
+        routes: {
+          alarms: true,
+        },
+      },
       'vm-templates': {
         routes: {
           alarms: true,
@@ -1194,22 +1201,6 @@ export default class RestApi {
         await req.xapiObject.$destroy()
         res.sendStatus(200)
       })
-    )
-
-    api.put(
-      '/:collection(groups)/:id/users/:userId',
-      wrap(async (req, res) => {
-        const { id, userId } = req.params
-        const group = await app.getGroup(id)
-
-        if (group.provider !== undefined) {
-          return res.status(403).json({ message: 'cannot add user to synchronized group' })
-        }
-
-        await app.addUserToGroup(userId, id)
-
-        res.sendStatus(204)
-      }, true)
     )
 
     setupRestApi(express, app)

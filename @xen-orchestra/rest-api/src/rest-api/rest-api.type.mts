@@ -75,6 +75,7 @@ export type XoApp = {
   }
 
   // methods ------------
+  addUserToGroup: (userId: XoUser['id'], groupId: XoGroup['id']) => Promise<void>
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },

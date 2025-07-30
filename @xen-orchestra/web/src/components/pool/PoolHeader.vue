@@ -8,7 +8,11 @@
     </template>
   </UiHeadBar>
   <TabList>
-    <TabItem disabled>{{ t('dashboard') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/dashboard`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('dashboard') }}
+      </TabItem>
+    </RouterLink>
     <TabItem disabled>{{ t('alarms') }}</TabItem>
     <TabItem disabled>{{ t('stats') }}</TabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/system`" custom>

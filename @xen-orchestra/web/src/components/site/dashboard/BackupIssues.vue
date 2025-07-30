@@ -45,7 +45,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsBackupState from '@core/components/backup-state/VtsBackupState.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -61,13 +61,15 @@ import { faFloppyDisk, faSquareCaretDown } from '@fortawesome/free-solid-svg-ico
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const { issues } = defineProps<{
+  issues: NonNullable<XoDashboard['backups']>['issues'] | undefined
+}>()
+
 const { t } = useI18n()
 
-const { record } = useDashboardStore().subscribe()
+const areBackupIssuesReady = computed(() => issues !== undefined)
 
-const areBackupIssuesReady = computed(() => record.value?.backups?.issues !== undefined)
-
-const backupIssues = computed(() => record.value?.backups?.issues ?? [])
+const backupIssues = computed(() => issues ?? [])
 
 const logLabels = [t('last'), t('2nd-last'), t('3rd-last')]
 

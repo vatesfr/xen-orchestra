@@ -15,7 +15,7 @@ import type { VoidFunction } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'
 import { noop, useFetch, useIntervalFn, watchOnce } from '@vueuse/core'
 import merge from 'lodash/merge'
-import { computed, readonly, ref, shallowReactive } from 'vue'
+import { computed, reactive, readonly, ref } from 'vue'
 
 type SingleOptions = {
   pollInterval?: number
@@ -46,7 +46,7 @@ export function createXoStoreConfig(
 
   const isCollection = apiDefinition.type === 'collection'
 
-  const recordsById = shallowReactive(new Map())
+  const recordsById = reactive(new Map())
 
   const urlParams = new URLSearchParams(`fields=${apiDefinition.fields}`)
   if (apiDefinition.stream) {
