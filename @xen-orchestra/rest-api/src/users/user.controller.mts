@@ -25,6 +25,7 @@ import {
   invalidParameters,
   noContentResp,
   notFoundResp,
+  resourceAlreadyExists,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
@@ -103,6 +104,7 @@ export class UserController extends XoController<XoUser> {
   @Middlewares(json())
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   async updateUser(@Path() id: string, @Body() body: UpdateUserRequestBody): Promise<void> {
     const currentUser = this.restApi.getCurrentUser()

@@ -194,7 +194,18 @@ export default class {
     user.email = user.name
     delete user.name
 
-    await this._users.update(user)
+    try {
+      await this._users.update(user)
+    } catch (error) {
+      if (error.message === `the user ${user.email} already exists`) {
+        const existingUser = await this._users.first({ email: user.email })
+        throw objectAlreadyExists({
+          objectId: existingUser.id,
+          objectType: 'user',
+        })
+      }
+      throw error
+    }
   }
 
   // Merge this method in getUser() when plain objects.
