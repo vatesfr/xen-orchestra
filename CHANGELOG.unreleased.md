@@ -22,7 +22,6 @@
   - `PUT /rest/v0/groups/<group-id>/users/<user-id>` (PR [#8705](https://github.com/vatesfr/xen-orchestra/pull/8705))
   - `DELETE /rest/v0/groups/<group-id>/users/<user-id>` (PR [#8773](https://github.com/vatesfr/xen-orchestra/pull/8773))
 
-
 - **XO 6:**
 
   - [Pool/connect] add page to connect new pool (PR [#8763](https://github.com/vatesfr/xen-orchestra/pull/8763))
