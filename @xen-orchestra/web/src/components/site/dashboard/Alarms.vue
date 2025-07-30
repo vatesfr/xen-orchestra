@@ -3,30 +3,29 @@
     <UiCardTitle>
       {{ t('alarms') }}
       <UiCounter
-        v-if="alarms?.length !== 0 && areAlarmsReady"
+        v-if="alarms.length !== 0 && areAlarmsReady"
         accent="danger"
         size="small"
         variant="primary"
-        :value="alarms?.length"
+        :value="alarms.length"
       />
     </UiCardTitle>
     <VtsLoadingHero v-if="!areAlarmsReady" type="card" />
     <VtsAllGoodHero v-else-if="alarms.length === 0" type="card" />
     <div v-else class="alarm-items">
       <UiAlarmList>
-        <template v-for="alarm in alarms" :key="alarm.id">
-          <UiAlarmItem
-            v-if="alarm"
-            :label="alarm.body.name"
-            :percent="Number(alarm.body.value)"
-            :size="uiStore.isDesktopLarge ? 'large' : 'small'"
-            :date="alarm.time"
-          >
-            <template #link>
-              <AlarmLink :type="alarm.object.type" :uuid="alarm.object.uuid" />
-            </template>
-          </UiAlarmItem>
-        </template>
+        <UiAlarmItem
+          v-for="alarm in alarms"
+          :key="alarm.id"
+          :label="alarm.body.name"
+          :percent="Number(alarm.body.value)"
+          :size="uiStore.isDesktopLarge ? 'large' : 'small'"
+          :date="alarm.time"
+        >
+          <template #link>
+            <AlarmLink :type="alarm.object.type" :uuid="alarm.object.uuid" />
+          </template>
+        </UiAlarmItem>
       </UiAlarmList>
     </div>
   </UiCard>
@@ -61,18 +60,16 @@ const { isReady: areVmsReady } = useVmStore().subscribe()
 const { isReady: areVmControllersReady } = useVmControllerStore().subscribe()
 const { isReady: areSrsReady } = useSrStore().subscribe()
 
-const areAlarmsReady = computed(() => {
-  return (
-    alarms !== undefined && areHostsReady.value && areVmsReady.value && areVmControllersReady.value && areSrsReady.value
-  )
-})
+const areAlarmsReady = computed(
+  () => areHostsReady.value && areVmsReady.value && areVmControllersReady.value && areSrsReady.value
+)
 
 const uiStore = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
 .site-dashboard-alarms {
-  max-height: 36.4rem;
+  max-height: 40.6rem;
 
   .alarm-items {
     overflow: auto;

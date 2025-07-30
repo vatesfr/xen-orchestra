@@ -56,7 +56,7 @@ const { records: alarms } = useAlarmStore().subscribe()
     'repositories repositories repositories repositories repositories repositories repositories repositories';
 
   &.mobile {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(20rem, 1fr);
     grid-template-areas:
       'pools-status'
       'hosts-status'
