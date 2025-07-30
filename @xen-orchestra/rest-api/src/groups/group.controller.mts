@@ -92,10 +92,10 @@ export class GroupController extends XoController<XoGroup> {
     const group = await this.getObject(id as XoGroup['id'])
 
     if (group.provider !== undefined) {
-      throw forbiddenOperation('update group', 'edit synchronized group')
+      throw forbiddenOperation('update group', 'synchronized group')
     }
 
-    await this.restApi.xoApp.updateGroup(id as XoGroup['id'], body)
+    await this.restApi.xoApp.updateGroup(group.id, body)
   }
 
   /**
