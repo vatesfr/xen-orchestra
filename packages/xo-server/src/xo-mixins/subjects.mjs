@@ -382,7 +382,7 @@ export default class {
       if (error.message === `the group ${name} already exists`) {
         const existingGroup = await this._groups.get({ name })
         throw objectAlreadyExists({
-          objectId: existingGroup?.id,
+          objectId: existingGroup.id,
           objectType: 'group',
         })
       }

@@ -1,4 +1,21 @@
-import { Body, Delete, Example, Get, Middlewares, Patch, Path, Post, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Body,
+  Delete,
+  Example,
+  Get,
+  Middlewares,
+  Patch,
+  Path,
+  Post,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoGroup, XoUser } from '@vates/types'
@@ -70,18 +87,18 @@ export class GroupController extends XoController<XoGroup> {
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
-  @Response(forbiddenOperationResponse.status, forbiddenOperationResponse.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   async updateGroup(@Path() id: string, @Body() body: UpdateGroupRequestBody): Promise<void> {
     const group = await this.getObject(id as XoGroup['id'])
 
     if (group.provider !== undefined) {
-      throw forbiddenOperation('Cannot edit synchronized group')
+      throw forbiddenOperation('update group', 'edit synchronized group')
     }
 
     await this.restApi.xoApp.updateGroup(id as XoGroup['id'], body)
   }
 
-  /**  
+  /**
    *  @example body {
    *    "name": "new group"
    *  }
