@@ -149,6 +149,7 @@ export type XoApp = {
        * @deprecated
        */
       email?: string
+      authProviders?: Record<string, string>
       name?: string
       password?: string
       permission?: string

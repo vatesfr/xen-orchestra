@@ -105,21 +105,25 @@ export class UserController extends XoController<XoUser> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   async updateUser(@Path() id: string, @Body() body: UpdateUserRequestBody): Promise<void> {
-    const isAdmin = this.restApi.xoApp.apiContext.permission === 'admin'
-    const currentUserId = this.restApi.getCurrentUser()?.id
+    const currentUser = this.restApi.getCurrentUser()
+    const isAdmin = currentUser?.permission === 'admin'
 
-    if (isAdmin && body.permission !== undefined && id === currentUserId) {
-      throw forbiddenOperation('update user', 'change user permission')
+    if (isAdmin) {
+      if (body.permission !== undefined && currentUser?.id === id) {
+        throw forbiddenOperation('update user', 'cannot change own permission')
+      }
+    } else if (body.name !== undefined || body.password !== undefined || body.permission !== undefined) {
+      throw forbiddenOperation('update user', 'cannot change these fields without admin rights')
     }
 
     const user = await this.getObject(id as XoUser['id'])
 
     if (
-      user.authProviders &&
+      user.authProviders !== undefined &&
       Object.keys(user.authProviders).length > 0 &&
       (body.name !== undefined || body.password !== undefined)
     ) {
-      throw forbiddenOperation('update user', 'change name or password of synchronized user')
+      throw forbiddenOperation('update user', 'cannot change name or password of synchronized user')
     }
 
     await this.restApi.xoApp.updateUser(user.id, body)
