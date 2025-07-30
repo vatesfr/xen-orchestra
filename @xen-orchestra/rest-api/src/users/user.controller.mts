@@ -4,6 +4,7 @@ import {
   Example,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Query,
@@ -20,14 +21,18 @@ import type { XoUser } from '@vates/types'
 
 import {
   createdResp,
+  forbiddenOperationResp,
   invalidParameters,
   noContentResp,
   notFoundResp,
+  resourceAlreadyExists,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import { forbiddenOperation } from 'xo-common/api-errors.js'
 import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import type { UpdateUserRequestBody } from './user.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('users')
@@ -84,6 +89,51 @@ export class UserController extends XoController<XoUser> {
   @Response(notFoundResp.status, notFoundResp.description)
   getUser(@Path() id: string): Promise<Unbrand<XoUser>> {
     return this.getObject(id as XoUser['id'])
+  }
+
+  /**
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * @example body {
+   *   "name": "updated user name",
+   *   "password": "newP4ssword",
+   *   "permission": "admin",
+   *   "preferences": {}
+   *  }
+   */
+  @Patch('{id}')
+  @Middlewares(json())
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  async updateUser(@Path() id: string, @Body() body: UpdateUserRequestBody): Promise<void> {
+    const currentUser = this.restApi.getCurrentUser()
+
+    if (currentUser === undefined) {
+      throw new Error('current user is not defined')
+    }
+
+    const isAdmin = currentUser.permission === 'admin'
+
+    if (isAdmin) {
+      if (body.permission !== undefined && currentUser.id === id) {
+        throw forbiddenOperation('update user', 'cannot change own permission')
+      }
+    } else if (body.name !== undefined || body.password !== undefined || body.permission !== undefined) {
+      throw forbiddenOperation('update user', 'cannot change these fields without admin rights')
+    }
+
+    const user = await this.getObject(id as XoUser['id'])
+
+    if (
+      user.authProviders !== undefined &&
+      Object.keys(user.authProviders).length > 0 &&
+      (body.name !== undefined || body.password !== undefined)
+    ) {
+      throw forbiddenOperation('update user', 'cannot change name or password of synchronized user')
+    }
+
+    await this.restApi.xoApp.updateUser(user.id, body)
   }
 
   /**
