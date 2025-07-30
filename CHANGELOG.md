@@ -6,9 +6,6 @@
 
 - **Migrated REST API endpoints**:
 
-  - `POST /rest/v0/users` (PR [#8697](https://github.com/vatesfr/xen-orchestra/pull/8697))
-  - `DELETE /rest/v0/users/<user-id>` (PR [#8698](https://github.com/vatesfr/xen-orchestra/pull/8698))
-  - `DELETE /rest/v0/groups/<group-id>` (PR [#8704](https://github.com/vatesfr/xen-orchestra/pull/8704))
   - `GET /rest/v0/hosts/<host-id>/alarms` (PR [#8800](http://github.com/vatesfr/xen-orchestra/pull/8800))
   - `GET /rest/v0/networks/<network-id>/alarms` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8801))
   - `GET /rest/v0/pifs/<pif-id>/alarms` (PR [#8802](http://github.com/vatesfr/xen-orchestra/pull/8802))
@@ -18,12 +15,27 @@
   - `GET /rest/v0/hosts/<host-id>/logs.tgz` (PR [#8830](https://github.com/vatesfr/xen-orchestra/pull/8830))
   - `GET /rest/v0/srs/<sr-id>/alarms` (PR [#8810](http://github.com/vatesfr/xen-orchestra/pull/8810))
   - `GET /rest/v0/pools/<pool-id>/alarms` (PR [#8805](http://github.com/vatesfr/xen-orchestra/pull/8805))
+  - `GET /rest/v0/vm-controllers/<vm-controller-id>/alarms` (PR [#8826](http://github.com/vatesfr/xen-orchestra/pull/8826))
+  - `GET /rest/v0/vifs/<vif-id>/alarms` (PR [#8825](http://github.com/vatesfr/xen-orchestra/pull/8825))
+  - `GET /rest/v0/vbds/<vbd-id>/alarms` (PR [#8822](http://github.com/vatesfr/xen-orchestra/pull/8822))
+  - `GET /rest/v0/vms/<vm-id>/alarms` (PR [#8829](http://github.com/vatesfr/xen-orchestra/pull/8829))
+  - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>/alarms` (PR [#8827](http://github.com/vatesfr/xen-orchestra/pull/8827))
+  - `PUT /rest/v0/groups/<group-id>/users/<user-id>` (PR [#8705](https://github.com/vatesfr/xen-orchestra/pull/8705))
+  - `POST /rest/v0/users` (PR [#8697](https://github.com/vatesfr/xen-orchestra/pull/8697))
+  - `POST /rest/v0/groups` (PR [#8703](https://github.com/vatesfr/xen-orchestra/pull/8703))
+  - `PATCH /rest/v0/groups/<group-id>` (PR [#8790](https://github.com/vatesfr/xen-orchestra/pull/8790))
+  - `PATCH /rest/v0/users/<user-id>` (PR [#8784](https://github.com/vatesfr/xen-orchestra/pull/8784))
+  - `DELETE /rest/v0/users/<user-id>` (PR [#8698](https://github.com/vatesfr/xen-orchestra/pull/8698))
+  - `DELETE /rest/v0/groups/<group-id>` (PR [#8704](https://github.com/vatesfr/xen-orchestra/pull/8704))
+  - `DELETE /rest/v0/groups/<group-id>/users/<user-id>` (PR [#8773](https://github.com/vatesfr/xen-orchestra/pull/8773))
 
 - **XO 6:**
 
   - [SearchBar] Updated query search bar to work in responsive (PR [#8761](https://github.com/vatesfr/xen-orchestra/pull/8761))
   - [Sidebar] Updated sidebar to auto close when the screen is small (PR [#8760](https://github.com/vatesfr/xen-orchestra/pull/8760))
   - [i18n] Update Czech, German, Spanish, Italian, Dutch and Russian translations (PR [#8765](https://github.com/vatesfr/xen-orchestra/pull/8765))
+  - [Pool/connect] add page to connect new pool (PR [#8763](https://github.com/vatesfr/xen-orchestra/pull/8763))
+  - [Pool/dashboard] add pool dashboard information (PR [#8791](https://github.com/vatesfr/xen-orchestra/pull/8791))
 
 - [REST API] Expose `/rest/v0/pools/<pool-id>/dashboard` (PR [#8768](https://github.com/vatesfr/xen-orchestra/pull/8768))
 - [REST API] Expose `/rest/v0/backup-repositories` and `/rest/v0/backup-repositories/<repository-id>` (PR [#8831](https://github.com/vatesfr/xen-orchestra/pull/8831))
@@ -32,6 +44,7 @@
 - [xo-server] Display build commit at start-up and with `xo-server --help`
 - [xo-server] Warn if build is out of sync with local git repository
 - [Storage/Disks & VM/Disks] Add image format in disks tabs. Display "Unknown" if unsupported. (PR [#8835](https://github.com/vatesfr/xen-orchestra/pull/8835))
+- [Backups] Extra confirmation step when deleting specific VM backups (PR [#8813](https://github.com/vatesfr/xen-orchestra/pull/8813))
 
 ### Bug fixes
 
@@ -46,6 +59,7 @@
 - [REST API] Alarm time is now in milliseconds and body value is now in percentage (PR [#8802](https://github.com/vatesfr/xen-orchestra/pull/8802))
 - [REST API/XOA/Dashboard] Fix some type issues. Some object may return `{error: true}` instead of `undefined` on error.`s3` and `other` object may be undefined (if no S3 or other backup repositories detected) (PR [#8806](https://github.com/vatesfr/xen-orchestra/pull/8806))
 - [REST API] An unauthenticated request no longer creates a failed XO task `XO user authentication` ([#8821](https://github.com/vatesfr/xen-orchestra/pull/8821))
+- [REST API/Dashboard] Consider a host disabled only if it is running ([#8833](https://github.com/vatesfr/xen-orchestra/pull/8833))
 
 ### Released packages
 
@@ -56,14 +70,14 @@
 - @xen-orchestra/backups 0.63.0
 - @xen-orchestra/backups-cli 1.1.2
 - @xen-orchestra/immutable-backups 1.0.23
-- @xen-orchestra/web-core 0.25.0
 - @xen-orchestra/mixins 0.16.4
 - @xen-orchestra/openflow 0.1.3
 - @xen-orchestra/proxy 0.29.26
-- @xen-orchestra/rest-api 0.12.0
-- @xen-orchestra/web 0.22.0
-- xo-server 5.182.0
-- xo-web 5.179.0
+- @xen-orchestra/web-core 0.26.0
+- @xen-orchestra/rest-api 0.13.0
+- @xen-orchestra/web 0.23.0
+- xo-server 5.183.0
+- xo-web 5.180.0
 
 ## **5.108.1** (2025-07-03)
 
