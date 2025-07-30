@@ -138,6 +138,7 @@ export type XoApp = {
   registerXenServer(body: InsertableXoServer): Promise<XoServer>
   rollingPoolReboot(pool: XoPool, opts?: { parentTask?: Task }): Promise<void>
   rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: Task }): Promise<void>
+  removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: XoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
   /** Remove a server from the DB (XCP-ng/XenServer) */

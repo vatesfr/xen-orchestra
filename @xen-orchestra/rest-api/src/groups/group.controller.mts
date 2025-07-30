@@ -127,6 +127,24 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
+   * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
+   * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
+   */
+  @Delete('{id}/users/{userId}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  async removeUserFromGroup(@Path() id: string, @Path() userId: string): Promise<void> {
+    const group = await this.getObject(id as XoGroup['id'])
+
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('remove user from group', 'synchronized group')
+    }
+
+    await this.restApi.xoApp.removeUserFromGroup(userId as XoUser['id'], group.id)
+  }
+
+  /**
    * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
    * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
    */
