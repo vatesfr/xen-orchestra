@@ -89,7 +89,6 @@ export class UserController extends XoController<XoUser> {
   /**
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
    * @example body {
-   *   "email": "user@email.com",
    *   "name": "updated user name",
    *   "password": "newP4ssword",
    *   "permission": "admin",
@@ -107,7 +106,7 @@ export class UserController extends XoController<XoUser> {
     const currentUserId = this.restApi.xoApp.apiContext.user?.id
 
     if (isAdmin) {
-      if (permission != null && id === currentUserId) {
+      if (permission !== undefined && id === currentUserId) {
         throw forbiddenOperation("A user cannot change it's own permission.")
       }
     } else if (name != null || password != null || permission != null) {
@@ -120,6 +119,6 @@ export class UserController extends XoController<XoUser> {
       throw forbiddenOperation('Cannot change the name or password of synchronized user')
     }
 
-    await this.restApi.xoApp.updateUser(id as XoUser['id'], { email, name, password, permission, preferences })
+    await this.restApi.xoApp.updateUser(user.id, { email, name, password, permission, preferences })
   }
 }

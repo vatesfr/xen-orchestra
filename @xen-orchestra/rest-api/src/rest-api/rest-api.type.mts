@@ -139,6 +139,9 @@ export type XoApp = {
   updateUser(
     id: XoUser['id'],
     updates: {
+      /**
+       * @deprecated
+       */
       email?: string
       name?: string
       password?: string
