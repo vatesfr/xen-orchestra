@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
@@ -27,14 +27,16 @@ import { formatSizeRaw } from '@core/utils/size.util'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { record } = useDashboardStore().subscribe()
+const { resources } = defineProps<{
+  resources: XoDashboard['resourcesOverview'] | undefined
+}>()
 
 const { t } = useI18n()
 
-const areResourcesOverviewReady = computed(() => record.value?.resourcesOverview !== undefined)
-const nCpus = computed(() => record.value?.resourcesOverview?.nCpus)
-const memorySize = computed(() => formatSizeRaw(record.value?.resourcesOverview?.memorySize, 1))
-const srSize = computed(() => formatSizeRaw(record.value?.resourcesOverview?.srSize, 1))
+const areResourcesOverviewReady = computed(() => resources !== undefined)
+const nCpus = computed(() => resources?.nCpus)
+const memorySize = computed(() => formatSizeRaw(resources?.memorySize, 1))
+const srSize = computed(() => formatSizeRaw(resources?.srSize, 1))
 </script>
 
 <style lang="postcss" scoped>

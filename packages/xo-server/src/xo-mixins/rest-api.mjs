@@ -246,10 +246,17 @@ export default class RestApi {
           rolling_reboot: true,
           rolling_update: true,
         },
+        routes: {
+          alarms: true,
+        },
       },
       groups: {},
       users: {},
-      vifs: {},
+      vifs: {
+        routes: {
+          alarms: true,
+        },
+      },
       vms: {
         actions: {
           start: true,
@@ -263,7 +270,11 @@ export default class RestApi {
           alarms: true,
         },
       },
-      'vm-controllers': {},
+      'vm-controllers': {
+        routes: {
+          alarms: true,
+        },
+      },
       'vm-snapshots': {},
       'vm-templates': {
         routes: {
@@ -277,8 +288,16 @@ export default class RestApi {
           alarms: true,
         },
       },
-      srs: {},
-      vbds: {},
+      srs: {
+        routes: {
+          alarms: true,
+        },
+      },
+      vbds: {
+        routes: {
+          alarms: true,
+        },
+      },
       vdis: {
         routes: {
           alarms: true,
@@ -1210,30 +1229,6 @@ export default class RestApi {
 
         res.sendStatus(204)
       }, true)
-    )
-
-    api.post(
-      '/:collection(groups)',
-      json(),
-      wrap(async (req, res) => {
-        const { name } = req.body
-        if (name == null) {
-          return res.status(400).json({ error: 'name is required' })
-        }
-        if (typeof name !== 'string') {
-          return res.status(400).json({ message: 'name must be a string' })
-        }
-
-        try {
-          const group = await app.createGroup({ name })
-          res.status(201).end(group.id)
-        } catch (error) {
-          if (error.message === `the group ${name} already exists`) {
-            return res.status(400).json({ error: error.message })
-          }
-          throw error
-        }
-      })
     )
 
     setupRestApi(express, app)
