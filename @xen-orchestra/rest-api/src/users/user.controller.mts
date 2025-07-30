@@ -108,6 +108,10 @@ export class UserController extends XoController<XoUser> {
     const currentUser = this.restApi.getCurrentUser()
     const isAdmin = currentUser?.permission === 'admin'
 
+    if (currentUser === undefined) {
+      throw new Error('Current user is not defined')
+    }
+
     if (isAdmin) {
       if (body.permission !== undefined && currentUser?.id === id) {
         throw forbiddenOperation('update user', 'cannot change own permission')
