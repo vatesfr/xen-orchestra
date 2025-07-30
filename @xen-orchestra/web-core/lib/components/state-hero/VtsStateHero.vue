@@ -2,9 +2,9 @@
   <div :class="[type, { error }]" class="vts-state-hero">
     <UiLoader v-if="busy" class="loader" />
     <img v-else-if="imageSrc" :src="imageSrc" alt="" class="image" />
-    <p v-if="slots.default" :class="typoClass" class="text">
+    <div v-if="slots.default" :class="typoClass" class="content">
       <slot />
-    </p>
+    </div>
   </div>
 </template>
 
@@ -14,7 +14,7 @@ import { computed } from 'vue'
 
 export type StateHeroType = 'page' | 'card' | 'panel' | 'table'
 
-const props = defineProps<{
+const { type, busy, image, noBackground } = defineProps<{
   type: StateHeroType
   busy?: boolean
   image?:
@@ -27,21 +27,22 @@ const props = defineProps<{
     | 'offline'
     | 'all-good'
     | 'all-done'
+  noBackground?: boolean
 }>()
 
 const slots = defineSlots<{
   default?(): any
 }>()
 
-const typoClass = computed(() => (props.type === 'page' ? 'typo-h2' : 'typo-h4'))
-const error = computed(() => !props.busy && props.image === 'error')
+const typoClass = computed(() => (type === 'page' ? 'typo-h2' : 'typo-h4'))
+const error = computed(() => !noBackground && !busy && image === 'error')
 
 const imageSrc = computed(() => {
-  if (!props.image) {
+  if (!image) {
     return undefined
   }
 
-  return new URL(`../../assets/${props.image}.svg`, import.meta.url).href
+  return new URL(`../../assets/${image}.svg`, import.meta.url).href
 })
 </script>
 
@@ -56,13 +57,13 @@ const imageSrc = computed(() => {
   &.error {
     background-color: var(--color-danger-background-selected);
 
-    .text {
+    .content {
       color: var(--color-danger-txt-base);
     }
   }
 
   .loader,
-  .text {
+  .content {
     color: var(--color-brand-txt-base);
   }
 
@@ -70,14 +71,14 @@ const imageSrc = computed(() => {
     order: 2;
   }
 
-  .text {
+  .content {
     order: 3;
   }
 
   &.page {
     gap: 2.4rem;
 
-    .text {
+    .content {
       order: 3;
     }
 
@@ -96,7 +97,7 @@ const imageSrc = computed(() => {
   &.card {
     gap: 2rem;
 
-    .text {
+    .content {
       order: 3;
     }
 
@@ -117,7 +118,7 @@ const imageSrc = computed(() => {
     justify-content: unset;
     padding-top: 8rem;
 
-    .text {
+    .content {
       order: 1;
     }
 
@@ -136,7 +137,7 @@ const imageSrc = computed(() => {
     padding: 4rem;
     gap: 2.4rem;
 
-    .text {
+    .content {
       order: 3;
     }
 

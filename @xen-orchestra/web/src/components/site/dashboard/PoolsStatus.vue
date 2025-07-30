@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
@@ -23,31 +23,31 @@ import { useSum } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const { status } = defineProps<{
+  status: XoDashboard['poolsStatus'] | undefined
+}>()
+
 const { t } = useI18n()
 
-const { record } = useDashboardStore().subscribe()
+const arePoolsStatusReady = computed(() => status !== undefined)
 
-const arePoolsStatusReady = computed(() => record.value?.poolsStatus !== undefined)
-
-const poolStatus = computed(() => record.value?.poolsStatus)
-
-const total = useSum(() => Object.values(poolStatus.value ?? {}))
+const total = useSum(() => Object.values(status ?? {}))
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('pools-status.connected'),
-    value: poolStatus.value?.connected ?? 0,
+    value: status?.connected ?? 0,
     accent: 'success',
   },
   {
     label: t('pools-status.unreachable'),
-    value: poolStatus.value?.unreachable ?? 0,
+    value: status?.unreachable ?? 0,
     accent: 'warning',
     tooltip: t('pools-status.unreachable.tooltip'),
   },
   {
     label: t('pools-status.unknown'),
-    value: poolStatus.value?.unknown ?? 0,
+    value: status?.unknown ?? 0,
     accent: 'muted',
     tooltip: t('pools-status.unknown.tooltip'),
   },

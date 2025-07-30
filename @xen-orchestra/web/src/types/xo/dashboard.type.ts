@@ -27,9 +27,9 @@ export type XoDashboard = {
       size: {
         available: number
         backups: number
-        other: number
+        other?: number
         total: number
-        used: number
+        used?: number
       }
     }
   }

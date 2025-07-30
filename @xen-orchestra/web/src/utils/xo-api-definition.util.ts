@@ -1,5 +1,5 @@
 import type { ApiDefinition } from '@/types/xo'
-import type { XoDashboard } from '@/types/xo/dashboard.type'
+import type { XoAlarm } from '@/types/xo/alarm.type.ts'
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPci } from '@/types/xo/pci.type'
@@ -17,6 +17,13 @@ import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import type { XoVm } from '@/types/xo/vm.type'
 
 export const xoApiDefinition = {
+  alarm: {
+    type: 'collection',
+    path: 'alarms',
+    fields: 'id,time,body,object',
+    handler: (record: XoAlarm) => record,
+    stream: false,
+  },
   pool: {
     type: 'collection',
     path: 'pools',
@@ -55,13 +62,6 @@ export const xoApiDefinition = {
     handler: (record: XoTask) => record,
     stream: false,
   },
-  dashboard: {
-    type: 'single',
-    path: 'dashboard',
-    fields: '*',
-    handler: (record: XoDashboard) => record,
-    stream: true,
-  },
   pif: {
     type: 'collection',
     path: 'pifs',
@@ -98,7 +98,7 @@ export const xoApiDefinition = {
     handler: (record: XoNetwork) => record,
     stream: false,
   },
-  vm_template: {
+  'vm-template': {
     type: 'collection',
     path: 'vm-templates',
     fields:
@@ -109,7 +109,7 @@ export const xoApiDefinition = {
   'vm-controller': {
     type: 'collection',
     path: 'vm-controllers',
-    fields: 'id,memory',
+    fields: 'id,name_label,power_state,memory,$container',
     handler: (record: XoVmController) => record,
     stream: false,
   },

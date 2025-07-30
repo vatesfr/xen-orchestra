@@ -40,6 +40,7 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     statusCode = 401
   } else if (objectAlreadyExists.is(error)) {
     statusCode = 409
+    responseError.data = (error as XoError).data
   } else if (invalidParameters.is(error)) {
     statusCode = 422
   } else if (notImplemented.is(error)) {

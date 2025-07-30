@@ -171,7 +171,6 @@ module.exports = {
         'vue/no-empty-component-block': 'error',
         'vue/no-multiple-objects-in-class': 'error',
         'vue/no-ref-object-reactivity-loss': 'error',
-        'vue/no-required-prop-with-default': 'error',
         'vue/no-static-inline-styles': 'error',
         'vue/no-template-target-blank': 'error',
         'vue/no-undef-components': ['error', { ignorePatterns: ['RouterLink', 'RouterView', 'I18nT'] }],
