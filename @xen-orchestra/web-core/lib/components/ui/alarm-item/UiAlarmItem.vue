@@ -11,15 +11,15 @@
           :target-scale="2"
           @click="toggleDescription()"
         />
-        <span v-tooltip class="text-ellipsis">
+        <span v-tooltip class="label text-ellipsis">
           {{ label }}
         </span>
-        <span class="percent">{{ t('n-percent', percent) }}</span>
+        <span class="percent">{{ percent ? t('n-percent', percent) : '' }}</span>
       </div>
-      <div class="typo-body-regular-small info">
+      <div class="info typo-body-regular-small text-ellipsis">
         <div v-if="slots.link" class="link-container">
           {{ t('on-object') }}
-          <span class="object-link">
+          <span v-tooltip class="object-link text-ellipsis">
             <slot name="link" />
           </span>
           <span class="interpunct" />
@@ -69,17 +69,17 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
   display: flex;
   flex-direction: column;
   padding: 0.8rem 1.2rem;
-  border-block: 0.1rem solid var(--color-neutral-border);
+  border-bottom: 0.1rem solid var(--color-neutral-border);
   color: var(--color-neutral-txt-primary);
 
-  &:not(:first-child) {
-    border-block-start: none;
+  &:last-child {
+    border-bottom: none;
   }
 
   .content {
     display: flex;
     justify-content: space-between;
-    gap: 0.6rem;
+    gap: 0.8rem;
   }
 
   .label-percent {
@@ -102,6 +102,7 @@ const [isDescriptionVisible, toggleDescription] = useToggle(false)
   .link-container {
     gap: 0.8rem;
     white-space: nowrap;
+    min-width: 10rem;
   }
 
   .interpunct::before {

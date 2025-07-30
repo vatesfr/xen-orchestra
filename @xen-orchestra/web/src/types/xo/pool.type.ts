@@ -19,4 +19,8 @@ export type XoPool = {
   suspendSr?: XoSr['id']
   crashDumpSr?: XoSr['id']
   haSrs?: Array<XoSr['id']>
+  cpus: {
+    cores?: number
+    sockets?: number
+  }
 }
