@@ -1,4 +1,4 @@
-import { Body, Delete, Example, Get, Middlewares, Path, Post, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import { Body, Delete, Example, Get, Middlewares, Path, Post, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoGroup, XoUser } from '@vates/types'
@@ -92,7 +92,10 @@ export class GroupController extends XoController<XoGroup> {
    * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
    * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
    */
-   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Put('{id}/users/{userId}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   async addUserToGroup(@Path() id: string, @Path() userId: string): Promise<void> {
     const group = await this.getObject(id as XoGroup['id'])
     if (group.provider !== undefined) {
