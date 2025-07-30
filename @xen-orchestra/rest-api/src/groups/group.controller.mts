@@ -102,6 +102,6 @@ export class GroupController extends XoController<XoGroup> {
       throw forbiddenOperation('add user to group', 'synchronized group')
     }
 
-    await this.restApi.xoApp.addUserToGroup(userId as XoUser['id'], id as XoGroup['id'])
+    await this.restApi.xoApp.addUserToGroup(userId as XoUser['id'], group.id)
   }
 }
