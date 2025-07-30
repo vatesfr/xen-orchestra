@@ -28,6 +28,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [REST API/Dashboard] Consider a host disabled only if it is running ([#8833](https://github.com/vatesfr/xen-orchestra/pull/8833))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
