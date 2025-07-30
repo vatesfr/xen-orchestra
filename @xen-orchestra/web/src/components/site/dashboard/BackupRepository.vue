@@ -4,7 +4,8 @@
       {{ t('backup-repository') }}
       <template #description>{{ t('for-backup') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!areBackupRepositoriesReady" type="card" />
+    <!--    TODO change and add loading when we have isReady available -->
+    <VtsNoDataHero v-if="!areBackupRepositoriesReady" type="card" />
     <template v-else>
       <VtsStackedBarWithLegend :max-value="maxValue" :segments />
       <div class="numbers">
@@ -36,7 +37,7 @@ import type { BackupRepositories } from '@/requests/use-site-dashboard.request.t
 import VtsStackedBarWithLegend, {
   type StackedBarWithLegendProps,
 } from '@core/components/stacked-bar-with-legend/VtsStackedBarWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'

@@ -20,6 +20,8 @@
   - `GET /rest/v0/vms/<vm-id>/alarms` (PR [#8829](http://github.com/vatesfr/xen-orchestra/pull/8829))
   - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>/alarms` (PR [#8827](http://github.com/vatesfr/xen-orchestra/pull/8827))
   - `PUT /rest/v0/groups/<group-id>/users/<user-id>` (PR [#8705](https://github.com/vatesfr/xen-orchestra/pull/8705))
+  - `DELETE /rest/v0/groups/<group-id>/users/<user-id>` (PR [#8773](https://github.com/vatesfr/xen-orchestra/pull/8773))
+  - `PATCH /rest/v0/groups/<group-id>` (PR [#8790](https://github.com/vatesfr/xen-orchestra/pull/8790))
   - `PATCH /rest/v0/users/<user-id>` (PR [#8784](https://github.com/vatesfr/xen-orchestra/pull/8784))
 
 - **XO 6:**

@@ -387,7 +387,18 @@ export default class {
 
     if (name) group.name = name
 
-    await this._groups.update(group)
+    try {
+      await this._groups.update(group)
+    } catch (error) {
+      if (error.message === `the group ${name} already exists`) {
+        const existingGroup = await this._groups.get({ name })
+        throw objectAlreadyExists({
+          objectId: existingGroup.id,
+          objectType: 'group',
+        })
+      }
+      throw error
+    }
   }
 
   async getGroup(id) {

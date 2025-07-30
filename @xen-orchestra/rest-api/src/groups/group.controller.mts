@@ -1,4 +1,21 @@
-import { Body, Delete, Example, Get, Middlewares, Path, Post, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Body,
+  Delete,
+  Example,
+  Get,
+  Middlewares,
+  Patch,
+  Path,
+  Post,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoGroup, XoUser } from '@vates/types'
@@ -16,6 +33,7 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { group, groupId, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import type { UpdateGroupRequestBody } from './group.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('groups')
@@ -61,7 +79,27 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
-   * @example body {
+   * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
+   * @example body { "name": "new group name" }
+   */
+  @Patch('{id}')
+  @Middlewares(json())
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  async updateGroup(@Path() id: string, @Body() body: UpdateGroupRequestBody): Promise<void> {
+    const group = await this.getObject(id as XoGroup['id'])
+
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('update group', 'synchronized group')
+    }
+
+    await this.restApi.xoApp.updateGroup(group.id, body)
+  }
+
+  /**
+   *  @example body {
    *    "name": "new group"
    *  }
    */
@@ -86,6 +124,24 @@ export class GroupController extends XoController<XoGroup> {
   async deleteGroup(@Path() id: string): Promise<void> {
     const groupId = id as XoGroup['id']
     await this.restApi.xoApp.deleteGroup(groupId)
+  }
+
+  /**
+   * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
+   * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
+   */
+  @Delete('{id}/users/{userId}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  async removeUserFromGroup(@Path() id: string, @Path() userId: string): Promise<void> {
+    const group = await this.getObject(id as XoGroup['id'])
+
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('remove user from group', 'synchronized group')
+    }
+
+    await this.restApi.xoApp.removeUserFromGroup(userId as XoUser['id'], group.id)
   }
 
   /**
