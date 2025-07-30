@@ -143,4 +143,10 @@ export type XoApp = {
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
+  updateGroup(
+    id: XoGroup['id'],
+    updates: {
+      name?: string
+    }
+  )
 }

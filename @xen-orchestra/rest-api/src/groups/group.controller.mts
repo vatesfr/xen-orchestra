@@ -4,6 +4,7 @@ import {
   Example,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Put,
@@ -32,6 +33,7 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { group, groupId, groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import type { UpdateGroupRequestBody } from './group.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('groups')
@@ -77,7 +79,27 @@ export class GroupController extends XoController<XoGroup> {
   }
 
   /**
-   * @example body {
+   * @example id "c98395a7-26d8-4e09-b055-d5f0f4a98312"
+   * @example body { "name": "new group name" }
+   */
+  @Patch('{id}')
+  @Middlewares(json())
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(resourceAlreadyExists.status, resourceAlreadyExists.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  async updateGroup(@Path() id: string, @Body() body: UpdateGroupRequestBody): Promise<void> {
+    const group = await this.getObject(id as XoGroup['id'])
+
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('update group', 'synchronized group')
+    }
+
+    await this.restApi.xoApp.updateGroup(group.id, body)
+  }
+
+  /**
+   *  @example body {
    *    "name": "new group"
    *  }
    */
