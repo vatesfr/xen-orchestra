@@ -1203,22 +1203,6 @@ export default class RestApi {
       })
     )
 
-    api.put(
-      '/:collection(groups)/:id/users/:userId',
-      wrap(async (req, res) => {
-        const { id, userId } = req.params
-        const group = await app.getGroup(id)
-
-        if (group.provider !== undefined) {
-          return res.status(403).json({ message: 'cannot add user to synchronized group' })
-        }
-
-        await app.addUserToGroup(userId, id)
-
-        res.sendStatus(204)
-      }, true)
-    )
-
     api.delete(
       '/:collection(groups)/:id/users/:userId',
       wrap(async (req, res) => {

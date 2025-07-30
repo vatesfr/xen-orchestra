@@ -1,10 +1,12 @@
-import { Body, Delete, Example, Get, Middlewares, Path, Post, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import { Body, Delete, Example, Get, Middlewares, Path, Post, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoGroup } from '@vates/types'
+import type { XoGroup, XoUser } from '@vates/types'
 
+import { forbiddenOperation } from 'xo-common/api-errors.js'
 import {
   createdResp,
+  forbiddenOperationResp,
   invalidParameters,
   noContentResp,
   notFoundResp,
@@ -84,5 +86,22 @@ export class GroupController extends XoController<XoGroup> {
   async deleteGroup(@Path() id: string): Promise<void> {
     const groupId = id as XoGroup['id']
     await this.restApi.xoApp.deleteGroup(groupId)
+  }
+
+  /**
+   * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
+   * @example userId "722d17b9-699b-49d2-8193-be1ac573d3de"
+   */
+  @Put('{id}/users/{userId}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  async addUserToGroup(@Path() id: string, @Path() userId: string): Promise<void> {
+    const group = await this.getObject(id as XoGroup['id'])
+    if (group.provider !== undefined) {
+      throw forbiddenOperation('add user to group', 'synchronized group')
+    }
+
+    await this.restApi.xoApp.addUserToGroup(userId as XoUser['id'], group.id)
   }
 }
