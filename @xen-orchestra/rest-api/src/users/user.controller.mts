@@ -113,10 +113,10 @@ export class UserController extends XoController<XoUser> {
       throw new Error('current user is not defined')
     }
 
-    const isAdmin = currentUser?.permission === 'admin'
+    const isAdmin = currentUser.permission === 'admin'
 
     if (isAdmin) {
-      if (body.permission !== undefined && currentUser?.id === id) {
+      if (body.permission !== undefined && currentUser.id === id) {
         throw forbiddenOperation('update user', 'cannot change own permission')
       }
     } else if (body.name !== undefined || body.password !== undefined || body.permission !== undefined) {
