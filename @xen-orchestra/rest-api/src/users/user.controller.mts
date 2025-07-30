@@ -106,11 +106,12 @@ export class UserController extends XoController<XoUser> {
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   async updateUser(@Path() id: string, @Body() body: UpdateUserRequestBody): Promise<void> {
     const currentUser = this.restApi.getCurrentUser()
-    const isAdmin = currentUser?.permission === 'admin'
 
     if (currentUser === undefined) {
-      throw new Error('Current user is not defined')
+      throw new Error('current user is not defined')
     }
+
+    const isAdmin = currentUser?.permission === 'admin'
 
     if (isAdmin) {
       if (body.permission !== undefined && currentUser?.id === id) {
