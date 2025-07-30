@@ -1,18 +1,12 @@
 import {
   Body,
+  Delete,
   Example,
   Get,
   Middlewares,
   Patch,
   Path,
-  Put,
-  Delete,
-  Example,
-  Get,
-  Middlewares,
-  Path,
   Post,
-  Put,
   Query,
   Request,
   Response,
@@ -27,6 +21,7 @@ import type { XoUser } from '@vates/types'
 
 import {
   createdResp,
+  forbiddenOperationResp,
   invalidParameters,
   noContentResp,
   notFoundResp,
@@ -108,27 +103,29 @@ export class UserController extends XoController<XoUser> {
   @Middlewares(json())
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   async updateUser(@Path() id: string, @Body() body: UpdateUserRequestBody): Promise<void> {
-    const { email, name, password, permission, preferences } = body
     const isAdmin = this.restApi.xoApp.apiContext.permission === 'admin'
-    const currentUserId = this.restApi.getCurrentUser(id)
+    const currentUserId = this.restApi.getCurrentUser()?.id
 
-    if (isAdmin) {
-      if (permission !== undefined && id === currentUserId) {
-        throw forbiddenOperation('update user', 'change user permission')
-      }
+    if (isAdmin && body.permission !== undefined && id === currentUserId) {
+      throw forbiddenOperation('update user', 'change user permission')
     }
 
-    const user = await this.restApi.xoApp.getUser(id as XoUser['id'])
+    const user = await this.getObject(id as XoUser['id'])
 
-    if (user.authProviders && Object.keys(user.authProviders).length > 0 && (name != null || password != null)) {
-      throw forbiddenOperation('update user', 'change name password of synchronized user')
+    if (
+      user.authProviders &&
+      Object.keys(user.authProviders).length > 0 &&
+      (body.name !== undefined || body.password !== undefined)
+    ) {
+      throw forbiddenOperation('update user', 'change name or password of synchronized user')
     }
 
-    await this.restApi.xoApp.updateUser(user.id, { email, name, password, permission, preferences })
+    await this.restApi.xoApp.updateUser(user.id, body)
   }
 
-  /**  
+  /**
    * @example body { "name": "new user", "password": "password", "permission": "none" }
    */
   @Example(userId)
