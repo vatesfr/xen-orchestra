@@ -65,16 +65,12 @@ const UnhealthyVdiChains = flowRight(
 export default decorate([
   provideState({
     computed: {
-      sm: (_, { sr }) => {
-        return getSmFromSr(sr)
-      },
-      test: () => 'test',
+      sm: (_, { sr }) => getSmFromSr(sr),
     },
   }),
   injectState,
-  ({ sr, state: { sm }, test }) => (
+  ({ sr, state: { sm } }) => (
     <Container>
-      {test}
       <Row>
         <Col className='text-xs-right'>
           <TabButton
