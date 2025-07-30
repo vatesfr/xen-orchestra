@@ -31,7 +31,7 @@
     "@vates/async-each": "^1.0.0",
     "@vates/coalesce-calls": "^0.1.0",
     "@xen-orchestra/log": "^0.7.1",
-    "@xen-orchestra/openflow": "^0.1.2",
+    "@xen-orchestra/openflow": "^0.1.3",
     "ipaddr.js": "^2.0.1",
     "lodash": "^4.17.11",
     "node-openssl-cert": "^0.1.34",

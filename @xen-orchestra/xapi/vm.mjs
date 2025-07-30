@@ -170,7 +170,7 @@ class Vm {
       const tag = tags[--i]
       if (tag === 'xo:notify-on-snapshot') {
         const { networks } = await this.getRecord('VM_guest_metrics', guest_metrics)
-        url = Object.assign(new URL('https://locahost'), {
+        url = Object.assign(new URL('https://localhost'), {
           hostname: getVmAddress(networks),
           port: 1727,
         })
@@ -584,7 +584,7 @@ class Vm {
       query.sr_id = srRef
     } else if (this.pool.default_SR === Ref.EMPTY) {
       error('Unable to import VM if no SR is specified and no default_SR is set on the pool')
-      /* throw */ incorrectState({
+      throw incorrectState({
         actual: this.pool.default_SR,
         expected: 'Not empty',
         object: this.pool.uuid,

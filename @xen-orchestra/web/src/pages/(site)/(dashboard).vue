@@ -1,13 +1,24 @@
 <template>
   <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
-    <PoolsStatus class="pools-status" />
-    <HostsStatus class="hosts-status" />
-    <VmsStatus class="vms-status" />
-    <ResourcesOverview class="resources-overview" />
-    <Backups class="backups" />
-    <BackupIssues class="backup-issues" />
-    <Repositories class="repositories" />
-    <Patches class="patches" />
+    <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" />
+    <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" />
+    <VmsStatus class="vms-status" :status="dashboard.vmsStatus" />
+    <ResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" />
+    <Backups class="backups" :backups="dashboard.backups" />
+    <BackupIssues class="backup-issues" :issues="dashboard.backups?.issues" />
+    <Repositories
+      class="repositories"
+      :backup-repositories
+      :storage-repositories
+      :s3-size="dashboard.backupRepositories?.s3?.size"
+    />
+    <Patches
+      class="patches"
+      :missing-patches="dashboard.missingPatches"
+      :n-hosts="dashboard.nHosts"
+      :n-hosts-eol="dashboard.nHostsEol"
+      :n-pools="dashboard.nPools"
+    />
   </div>
 </template>
 
@@ -20,9 +31,12 @@ import PoolsStatus from '@/components/site/dashboard/PoolsStatus.vue'
 import Repositories from '@/components/site/dashboard/Repositories.vue'
 import ResourcesOverview from '@/components/site/dashboard/ResourcesOverview.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
+import { useSiteDashboard } from '@/requests/use-site-dashboard.request.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 
 const uiStore = useUiStore()
+
+const { dashboard, backupRepositories, storageRepositories } = useSiteDashboard()
 </script>
 
 <style lang="postcss" scoped>

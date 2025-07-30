@@ -11,16 +11,30 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
+- **Migrated REST API endpoints**:
 
-- **Migrated REST API endpoints**
-
+  - `GET /rest/v0/vm-controllers/<vm-controller-id>/alarms` (PR [#8826](http://github.com/vatesfr/xen-orchestra/pull/8826))
+  - `GET /rest/v0/vifs/<vif-id>/alarms` (PR [#8825](http://github.com/vatesfr/xen-orchestra/pull/8825))
+  - `GET /rest/v0/vbds/<vbd-id>/alarms` (PR [#8822](http://github.com/vatesfr/xen-orchestra/pull/8822))
+  - `POST /rest/v0/groups` (PR [#8703](https://github.com/vatesfr/xen-orchestra/pull/8703))
+  - `GET /rest/v0/vms/<vm-id>/alarms` (PR [#8829](http://github.com/vatesfr/xen-orchestra/pull/8829))
+  - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>/alarms` (PR [#8827](http://github.com/vatesfr/xen-orchestra/pull/8827))
+  - `PUT /rest/v0/groups/<group-id>/users/<user-id>` (PR [#8705](https://github.com/vatesfr/xen-orchestra/pull/8705))
   - `GET /rest/v0/hosts/<host-id>/audit.txt` (PR [#8757](https://github.com/vatesfr/xen-orchestra/pull/8757))
   - `PATCH /rest/v0/users/<user-id>` (PR [#8784](https://github.com/vatesfr/xen-orchestra/pull/8784))
+
+- **XO 6:**
+
+  - [Pool/connect] add page to connect new pool (PR [#8763](https://github.com/vatesfr/xen-orchestra/pull/8763))
+  - [Pool/dashboard] add pool dashboard information (PR [#8791](https://github.com/vatesfr/xen-orchestra/pull/8791))
+
+- [Backups] Extra confirmation step when deleting specific VM backups (PR [#8813](https://github.com/vatesfr/xen-orchestra/pull/8813))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [REST API/Dashboard] Consider a host disabled only if it is running ([#8833](https://github.com/vatesfr/xen-orchestra/pull/8833))
 
 ### Packages to release
 
@@ -38,8 +52,10 @@
 
 <!--packages-start-->
 
-- @vates/types minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->

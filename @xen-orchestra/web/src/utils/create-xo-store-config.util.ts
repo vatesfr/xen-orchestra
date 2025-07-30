@@ -14,7 +14,8 @@ import type { SubscribableStoreConfig } from '@core/types/subscribable-store.typ
 import type { VoidFunction } from '@core/types/utility.type'
 import { toArray } from '@core/utils/to-array.utils'
 import { noop, useFetch, useIntervalFn, watchOnce } from '@vueuse/core'
-import { computed, readonly, ref, shallowReactive } from 'vue'
+import merge from 'lodash/merge'
+import { computed, reactive, readonly, ref } from 'vue'
 
 type SingleOptions = {
   pollInterval?: number
@@ -45,7 +46,7 @@ export function createXoStoreConfig(
 
   const isCollection = apiDefinition.type === 'collection'
 
-  const recordsById = shallowReactive(new Map())
+  const recordsById = reactive(new Map())
 
   const urlParams = new URLSearchParams(`fields=${apiDefinition.fields}`)
   if (apiDefinition.stream) {
@@ -100,7 +101,8 @@ export function createXoStoreConfig(
             const recordToAdd = apiDefinition.handler(item)
 
             const previous = recordsById.get(singleRecordId)
-            recordsById.set(singleRecordId, { ...previous, ...recordToAdd })
+            const record = merge(previous, recordToAdd)
+            recordsById.set(singleRecordId, record)
           }
         }
         reader.releaseLock()

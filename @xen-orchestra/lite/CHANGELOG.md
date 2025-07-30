@@ -1,5 +1,16 @@
 # ChangeLog
 
+## **next**
+
+- [Host/VM/Dashboard] Fix display error due to inversion of upload and download (PR [#8793](https://github.com/vatesfr/xen-orchestra/pull/8793))
+- [Sidebar] Updated sidebar to auto close when the screen is small (PR [#8760](https://github.com/vatesfr/xen-orchestra/pull/8760))
+- [SearchBar] Updated query search bar to work in responsive (PR [#8761](https://github.com/vatesfr/xen-orchestra/pull/8761))
+
+## **0.12.1**
+
+- [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
+- [Host/VM/Dashboard] Fix timestamp on some charts [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9) (PR [#8778](https://github.com/vatesfr/xen-orchestra/pull/8778))
+
 ## **0.12.0** (2025-06-30)
 
 - [Host/Dashboard] Fix color of tag list (PR [#8731](https://github.com/vatesfr/xen-orchestra/pull/8731))

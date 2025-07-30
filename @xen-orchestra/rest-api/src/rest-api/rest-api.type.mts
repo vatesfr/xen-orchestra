@@ -75,6 +75,7 @@ export type XoApp = {
   }
 
   // methods ------------
+  addUserToGroup: (userId: XoUser['id'], groupId: XoGroup['id']) => Promise<void>
   authenticateUser: (
     credentials: { token?: string; username?: string; password?: string },
     userData?: { ip?: string },
@@ -84,19 +85,24 @@ export type XoApp = {
   checkFeatureAuthorization(featureCode: string): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
+  createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
+  deleteGroup(id: XoGroup['id']): Promise<void>
+  deleteUser(id: XoUser['id']): Promise<void>
   /* disconnect a server (XCP-ng/XenServer) */
+  createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
   getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
+  getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
   getAllRemotesInfo(): Promise<
     Record<
       XoBackupRepository['id'],
       {
         size?: number
-        used: number
+        used?: number
         available?: number
-        encryption: {
+        encryption?: {
           algorithm: string
           isLegacy: boolean
           recommanded: string

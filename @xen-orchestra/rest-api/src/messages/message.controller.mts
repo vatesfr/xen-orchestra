@@ -6,7 +6,7 @@ import { noSuchObject } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
 import type { XoMessage } from '@vates/types'
 
-import { alarmPredicate } from '../alarms/alarm.controller.mjs'
+import { alarmPredicate } from '../alarms/alarm.service.mjs'
 import { message, messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
@@ -48,7 +48,7 @@ export class MessageController extends XapiXoController<XoMessage> {
     const message = super.getObject(id)
 
     if (alarmPredicate(message)) {
-      /* throw */ noSuchObject(id, 'message')
+      throw noSuchObject(id, 'message')
     }
 
     return message

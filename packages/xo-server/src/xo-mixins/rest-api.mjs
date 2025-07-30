@@ -197,7 +197,13 @@ export default class RestApi {
 
     api.use((req, res, next) => {
       const { cookies, ip } = req
-      app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }, { ip }).then(
+      const token = cookies.authenticationToken ?? cookies.token
+      if (token === undefined) {
+        res.sendStatus(401)
+        return
+      }
+
+      app.authenticateUser({ token }, { ip }).then(
         ({ user }) => {
           if (user.permission === 'admin') {
             return app.runWithApiContext(user, next)
@@ -222,8 +228,16 @@ export default class RestApi {
       dashboard: {},
       docs: {},
       messages: {},
-      networks: {},
-      pifs: {},
+      networks: {
+        routes: {
+          alarms: true,
+        },
+      },
+      pifs: {
+        routes: {
+          alarms: true,
+        },
+      },
       pools: {
         actions: {
           create_vm: true,
@@ -231,10 +245,17 @@ export default class RestApi {
           rolling_reboot: true,
           rolling_update: true,
         },
+        routes: {
+          alarms: true,
+        },
       },
       groups: {},
       users: {},
-      vifs: {},
+      vifs: {
+        routes: {
+          alarms: true,
+        },
+      },
       vms: {
         actions: {
           start: true,
@@ -244,19 +265,52 @@ export default class RestApi {
           hard_reboot: true,
           snapshot: true,
         },
+        routes: {
+          alarms: true,
+        },
       },
-      'vm-controllers': {},
-      'vm-snapshots': {},
-      'vm-templates': {},
+      'vm-controllers': {
+        routes: {
+          alarms: true,
+        },
+      },
+      'vm-snapshots': {
+        routes: {
+          alarms: true,
+        },
+      },
+      'vm-templates': {
+        routes: {
+          alarms: true,
+        },
+      },
       hosts: {
         routes: {
           'audit.txt': true,
+          'logs.tgz': true,
+          alarms: true,
         },
       },
-      srs: {},
-      vbds: {},
-      vdis: {},
-      'vdi-snapshots': {},
+      srs: {
+        routes: {
+          alarms: true,
+        },
+      },
+      vbds: {
+        routes: {
+          alarms: true,
+        },
+      },
+      vdis: {
+        routes: {
+          alarms: true,
+        },
+      },
+      'vdi-snapshots': {
+        routes: {
+          alarms: true,
+        },
+      },
       servers: {},
     }
 
@@ -1108,52 +1162,6 @@ export default class RestApi {
     )
 
     api.delete(
-      '/:collection(users)/:id',
-      wrap(async (req, res) => {
-        const { id } = req.params
-        await app.deleteUser(id)
-        res.sendStatus(204)
-      }, true)
-    )
-
-    api.post(
-      '/:collection(users)',
-      json(),
-      wrap(async (req, res) => {
-        const { name, password, permission } = req.body
-        if (name == null || password == null) {
-          return res.status(400).json({ message: 'name and password are required.' })
-        }
-
-        if (
-          typeof name !== 'string' ||
-          typeof password !== 'string' ||
-          (permission !== undefined && typeof permission !== 'string')
-        ) {
-          return res.status(400).json({ message: 'name, password and permission (if provided) must be strings.' })
-        }
-
-        const user = await app.createUser({ name, password, permission })
-        res.status(201).end(user.id)
-      })
-    )
-    api.put(
-      '/:collection(groups)/:id/users/:userId',
-      wrap(async (req, res) => {
-        const { id, userId } = req.params
-        const group = await app.getGroup(id)
-
-        if (group.provider !== undefined) {
-          return res.status(403).json({ message: 'cannot add user to synchronized group' })
-        }
-
-        await app.addUserToGroup(userId, id)
-
-        res.sendStatus(204)
-      }, true)
-    )
-
-    api.delete(
       '/:collection(groups)/:id/users/:userId',
       wrap(async (req, res) => {
         const { id, userId } = req.params
@@ -1167,38 +1175,6 @@ export default class RestApi {
 
         res.sendStatus(204)
       }, true)
-    )
-
-    api.delete(
-      '/:collection(groups)/:id',
-      wrap(async (req, res) => {
-        await app.deleteGroup(req.params.id)
-        res.sendStatus(204)
-      }, true)
-    )
-
-    api.post(
-      '/:collection(groups)',
-      json(),
-      wrap(async (req, res) => {
-        const { name } = req.body
-        if (name == null) {
-          return res.status(400).json({ error: 'name is required' })
-        }
-        if (typeof name !== 'string') {
-          return res.status(400).json({ message: 'name must be a string' })
-        }
-
-        try {
-          const group = await app.createGroup({ name })
-          res.status(201).end(group.id)
-        } catch (error) {
-          if (error.message === `the group ${name} already exists`) {
-            return res.status(400).json({ error: error.message })
-          }
-          throw error
-        }
-      })
     )
 
     setupRestApi(express, app)

@@ -19,20 +19,20 @@ export type LegendItemAccent = 'neutral' | 'info' | 'success' | 'warning' | 'dan
 
 export type LegendItemProps = {
   accent: LegendItemAccent
-  value?: number
+  value?: number | string
   unit?: string
   tooltip?: string
 }
 
-const props = defineProps<LegendItemProps>()
+const { value, unit, accent } = defineProps<LegendItemProps>()
 
 defineSlots<{
-  default(): void
+  default(): any
 }>()
 
-const valueLabel = computed(() => [props.value, props.unit].join(' ').trim())
+const valueLabel = computed(() => [value, unit].join(' ').trim())
 
-const classNames = computed(() => toVariants({ accent: props.accent }))
+const classNames = computed(() => toVariants({ accent }))
 </script>
 
 <style lang="postcss" scoped>

@@ -1,7 +1,7 @@
 <!-- v3 -->
 <template>
   <form class="ui-query-search-bar" @submit.prevent="emit('search', value)">
-    <label v-if="uiStore.isDesktop" :for="id" class="typo-body-regular-small label">
+    <label v-if="uiStore.isDesktopLarge" :for="id" class="typo-body-regular-small label">
       {{ t('core.query-search-bar.label') }}
     </label>
     <UiInput
@@ -10,26 +10,30 @@
       type="text"
       accent="brand"
       :aria-label="uiStore.isMobile ? t('core.query-search-bar.label') : undefined"
-      :icon="uiStore.isDesktop ? faMagnifyingGlass : undefined"
+      :icon="!uiStore.isMobile ? faMagnifyingGlass : undefined"
       :placeholder="t('core.query-search-bar.placeholder')"
     />
-    <template v-if="uiStore.isDesktop">
-      <UiButton size="medium" accent="brand" variant="primary" type="submit">{{ t('core.search') }}</UiButton>
+    <template v-if="!uiStore.isMobile">
+      <UiButton size="medium" accent="brand" variant="primary" type="submit" class="action-button">
+        {{ t('core.search') }}
+      </UiButton>
       <VtsDivider type="stretch" />
       <UiButton
         v-tooltip="t('coming-soon')"
         size="medium"
         accent="brand"
         variant="secondary"
-        :left-icon="faFilter"
         disabled
+        class="action-button"
       >
         {{ t('core.query-search-bar.use-query-builder') }}
       </UiButton>
     </template>
+
+    <!-- Mobile icons: search + filter -->
     <template v-else>
-      <UiButtonIcon accent="brand" size="medium" type="submit" :icon="faMagnifyingGlass" />
-      <UiButtonIcon accent="brand" size="medium" disabled :icon="faFilter" />
+      <UiButtonIcon accent="brand" size="medium" type="submit" :icon="faMagnifyingGlass" class="action-button" />
+      <UiButtonIcon accent="brand" size="medium" disabled :icon="faFilter" class="action-button" />
     </template>
   </form>
 </template>
@@ -62,11 +66,21 @@ const value = ref<string>('')
 <style lang="postcss" scoped>
 .ui-query-search-bar {
   display: flex;
-  gap: 1.6rem;
+  flex-wrap: nowrap;
   align-items: center;
+  gap: 1.6rem;
+  overflow-x: auto;
+  width: 100%;
+}
 
-  .label {
-    color: var(--color-neutral-txt-secondary);
-  }
+.label {
+  color: var(--color-neutral-txt-secondary);
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.action-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 </style>

@@ -18,8 +18,9 @@ import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
-import type { XapiStatsGranularity, XapiVmStats, XenApiVm, XoHost, XoVm, XoVmSnapshot } from '@vates/types'
+import type { XapiStatsGranularity, XapiVmStats, XenApiVm, XoAlarm, XoHost, XoVm, XoVmSnapshot } from '@vates/types'
 
+import { AlarmService } from '../alarms/alarm.service.mjs'
 import {
   asynchronousActionResp,
   createdResp,
@@ -30,6 +31,8 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { BASE_URL } from '../index.mjs'
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
@@ -46,8 +49,10 @@ const IGNORED_VDIS_TAG = '[NOSNAP]'
 // It automatically bind the class to the IOC container that handles dependency injection
 @provide(VmController)
 export class VmController extends XapiXoController<XoVm> {
-  constructor(@inject(RestApi) restApi: RestApi) {
+  #alarmService: AlarmService
+  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
     super('VM', restApi)
+    this.#alarmService = alarmService
   }
 
   /**
@@ -99,7 +104,7 @@ export class VmController extends XapiXoController<XoVm> {
           property: 'resident_on',
         })
       ) {
-        /* throw */ invalidParameters(`VM ${id} is halted or host could not be found.`, error)
+        throw invalidParameters(`VM ${id} is halted or host could not be found.`, error)
       }
       throw error
     }
@@ -432,5 +437,32 @@ export class VmController extends XapiXoController<XoVm> {
         objectId: vmId,
       },
     })
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example fields "id,time"
+   * @example filter "time:>1747053793"
+   * @example limit 42
+   */
+  @Example(genericAlarmsExample)
+  @Get('{id}/alarms')
+  @Tags('alarms')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVmAlarms(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoAlarm>>> {
+    const vm = this.getObject(id as XoVm['id'])
+    const alarms = this.#alarmService.getAlarms({
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vm.uuid}`,
+      limit,
+    })
+
+    return this.sendObjects(Object.values(alarms), req, 'alarms')
   }
 }

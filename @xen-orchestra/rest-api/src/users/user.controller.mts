@@ -6,6 +6,13 @@ import {
   Patch,
   Path,
   Put,
+  Delete,
+  Example,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Put,
   Query,
   Request,
   Response,
@@ -17,15 +24,17 @@ import {
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoUser } from '@vates/types'
+
 import {
-  featureUnauthorized,
+  createdResp,
+  invalidParameters,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
-import { partialUsers, user, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -99,26 +108,50 @@ export class UserController extends XoController<XoUser> {
   @Middlewares(json())
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(featureUnauthorized.status, featureUnauthorized.description)
   async updateUser(@Path() id: string, @Body() body: UpdateUserRequestBody): Promise<void> {
     const { email, name, password, permission, preferences } = body
     const isAdmin = this.restApi.xoApp.apiContext.permission === 'admin'
-    const currentUserId = this.restApi.xoApp.apiContext.user?.id
+    const currentUserId = this.restApi.getCurrentUser(id)
 
     if (isAdmin) {
       if (permission !== undefined && id === currentUserId) {
-        throw forbiddenOperation("A user cannot change it's own permission.")
+        throw forbiddenOperation('update user', 'change user permission')
       }
-    } else if (name != null || password != null || permission != null) {
-      throw forbiddenOperation('These properties can only be changed by an administrator.')
     }
 
     const user = await this.restApi.xoApp.getUser(id as XoUser['id'])
 
     if (user.authProviders && Object.keys(user.authProviders).length > 0 && (name != null || password != null)) {
-      throw forbiddenOperation('Cannot change the name or password of synchronized user')
+      throw forbiddenOperation('update user', 'change name password of synchronized user')
     }
 
     await this.restApi.xoApp.updateUser(user.id, { email, name, password, permission, preferences })
+  }
+
+  /**  
+   * @example body { "name": "new user", "password": "password", "permission": "none" }
+   */
+  @Example(userId)
+  @Post('')
+  @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(unauthorizedResp.status, unauthorizedResp.description)
+  @Response(invalidParameters.status, invalidParameters.description)
+  async createUser(
+    @Body() body: { name: string; password: string; permission?: string }
+  ): Promise<{ id: Unbrand<XoUser>['id'] }> {
+    const user = await this.restApi.xoApp.createUser(body)
+
+    return { id: user.id }
+  }
+
+  /**
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteUser(@Path() id: string): Promise<void> {
+    await this.restApi.xoApp.deleteUser(id as XoUser['id'])
   }
 }

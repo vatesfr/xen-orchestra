@@ -4,7 +4,6 @@ import {
   AnyXoVdi,
   AnyXoVm,
   BACKUP_TYPE,
-  HOST_POWER_STATE,
   VM_POWER_STATE,
   XoBackupJob,
   XoHost,
@@ -14,30 +13,30 @@ import {
   XoVbd,
   XoVm,
 } from '@vates/types'
-import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
-import { isPromise } from 'node:util/types'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { parse } from 'xo-remote-parser'
 import { Writable } from 'node:stream'
 
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
-import { isReplicaVm, isSrWritable, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
+import { isReplicaVm, isSrWritableOrIso, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 import type { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { HostService } from '../hosts/host.service.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
 type DashboardAsyncCache = {
-  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo>
+  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo | undefined>
   backups: MaybePromise<DashboardBackupsInfo>
 }
 
 export class XoaService {
   #restApi: RestApi
+  #hostService: HostService
   #dashboardAsyncCache = new Map<
     keyof DashboardAsyncCache,
     AsyncCacheEntry<DashboardAsyncCache[keyof DashboardAsyncCache]>
@@ -46,6 +45,7 @@ export class XoaService {
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
+    this.#hostService = restApi.ioc.get(HostService)
     this.#dashboardCacheOpts = {
       timeout: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheTimeout') ?? 60000,
       expiresIn: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
@@ -64,16 +64,18 @@ export class XoaService {
       async () => {
         const xoApp = this.#restApi.xoApp
 
-        const s3Brsize: DashboardBackupRepositoriesSizeInfo['s3']['size'] = { backups: 0 }
-        const otherBrSize: DashboardBackupRepositoriesSizeInfo['other']['size'] = {
-          available: 0,
-          backups: 0,
-          other: 0,
-          total: 0,
-          used: 0,
-        }
+        let s3Brsize: { size: { backups: number } } | undefined
+        let otherBrSize:
+          | {
+              size: { available?: number; backups: number; other?: number; total?: number; used?: number }
+            }
+          | undefined
 
         const backupRepositories = await xoApp.getAllRemotes()
+        if (backupRepositories.length === 0) {
+          return undefined
+        }
+
         const backupRepositoriesInfo = await xoApp.getAllRemotesInfo()
         for (const backupRepository of backupRepositories) {
           const { type } = parse(backupRepository.url)
@@ -88,19 +90,51 @@ export class XoaService {
           const { available, size, used } = backupRepositoryInfo
 
           const isS3 = type === 's3'
-          const target = isS3 ? s3Brsize : otherBrSize
 
-          target.backups += totalBackupSize.onDisk
-          if (!isS3) {
-            const _target = target as DashboardBackupRepositoriesSizeInfo['other']['size']
-            _target.available += available ?? 0
-            _target.other += used - totalBackupSize.onDisk
-            _target.total += size ?? 0
-            _target.used += used
+          if (isS3) {
+            if (s3Brsize === undefined) {
+              s3Brsize = { size: { backups: 0 } }
+            }
+            s3Brsize.size.backups += totalBackupSize.onDisk
+          } else {
+            if (otherBrSize === undefined) {
+              otherBrSize = {
+                size: {
+                  backups: 0,
+                  available: undefined,
+                  other: undefined,
+                  total: undefined,
+                  used: undefined,
+                },
+              }
+            }
+            if (available === undefined || size === undefined || used === undefined) {
+              log.info('#getBackupRepositoriesSizeInfo missing info for BR:', backupRepository.id)
+            }
+
+            otherBrSize.size.backups += totalBackupSize.onDisk
+            if (available !== undefined) {
+              otherBrSize.size.available = (otherBrSize.size.available ?? 0) + available
+            }
+            if (used !== undefined) {
+              otherBrSize.size.used = (otherBrSize.size.used ?? 0) + used
+              otherBrSize.size.other = (otherBrSize.size.other ?? 0) + (used - totalBackupSize.onDisk)
+            }
+            if (size !== undefined) {
+              otherBrSize.size.total = (otherBrSize.size.total ?? 0) + size
+            }
           }
         }
 
-        return { s3: { size: s3Brsize }, other: { size: otherBrSize } }
+        const result: DashboardBackupRepositoriesSizeInfo = {}
+        if (s3Brsize !== undefined) {
+          result.s3 = s3Brsize
+        }
+        if (otherBrSize !== undefined) {
+          result.other = otherBrSize
+        }
+
+        return result
       },
       this.#dashboardCacheOpts
     )
@@ -123,19 +157,19 @@ export class XoaService {
   #getResourcesOverview(): XoaDashboard['resourcesOverview'] {
     const pools = Object.values(this.#restApi.getObjectsByType<XoPool>('pool'))
     const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host'))
-    const writableSrs = Object.values(
+    const srs = Object.values(
       this.#restApi.getObjectsByType<XoSr>('SR', {
-        filter: isSrWritable,
+        filter: isSrWritableOrIso,
       })
     )
 
-    const maxLenght = Math.max(hosts.length, writableSrs.length)
+    const maxLenght = Math.max(hosts.length, srs.length)
 
     const resourcesOverview = { nCpus: 0, memorySize: 0, srSize: 0 }
     for (let index = 0; index < maxLenght; index++) {
       const pool = pools[index]
       const host = hosts[index]
-      const sr = writableSrs[index]
+      const sr = srs[index]
 
       if (pool !== undefined) {
         resourcesOverview.nCpus += pool.cpus.cores ?? 0
@@ -212,38 +246,19 @@ export class XoaService {
   }
 
   async #getMissingPatchesInfo(): Promise<XoaDashboard['missingPatches']> {
-    if (!(await this.#restApi.xoApp.hasFeatureAuthorization('LIST_MISSING_PATCHES'))) {
-      return {
-        hasAuthorization: false,
-      }
+    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo()
+
+    if (!missingPatchesInfo.hasAuthorization) {
+      return { hasAuthorization: false }
     }
 
-    const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host'))
-    const poolsWithMissingPatches = new Set()
-    let nHostsWithMissingPatches = 0
-    let nHostsFailed = 0
-
-    await asyncEach(hosts, async (host: XoHost) => {
-      const xapi = this.#restApi.xoApp.getXapi(host)
-
-      try {
-        const patches = await xapi.listMissingPatches(host.id)
-
-        if (patches.length > 0) {
-          nHostsWithMissingPatches++
-          poolsWithMissingPatches.add(host.$pool)
-        }
-      } catch (err) {
-        log.error('listMissingPatches failed', err)
-        nHostsFailed++
-      }
-    })
+    const { hasAuthorization, nHostsFailed, nHostsWithMissingPatches, nPoolsWithMissingPatches } = missingPatchesInfo
 
     return {
-      hasAuthorization: true,
+      hasAuthorization,
       nHostsFailed,
       nHostsWithMissingPatches,
-      nPoolsWithMissingPatches: poolsWithMissingPatches.size,
+      nPoolsWithMissingPatches,
     }
   }
 
@@ -288,7 +303,7 @@ export class XoaService {
 
   #getStorageRepositoriesSizeInfo() {
     const writableSrs = this.#restApi.getObjectsByType<XoSr>('SR', {
-      filter: isSrWritable,
+      filter: isSrWritableOrIso,
     })
 
     let replicated = 0
@@ -474,31 +489,12 @@ export class XoaService {
   }
 
   #getHostsStatus(): XoaDashboard['hostsStatus'] {
-    const hosts = this.#restApi.getObjectsByType<XoHost>('host')
-    let nRunning = 0
-    let nHalted = 0
-    let nUnknown = 0
-    let total = 0
-    for (const id in hosts) {
-      total++
-      const host = hosts[id as XoHost['id']]
-      switch (host.power_state) {
-        case HOST_POWER_STATE.RUNNING:
-          nRunning++
-          break
-        case HOST_POWER_STATE.HALTED:
-          nHalted++
-          break
-        default:
-          nUnknown++
-          break
-      }
-    }
+    const { running, halted, total, unknown } = this.#hostService.getHostsStatus()
 
     return {
-      running: nRunning,
-      halted: nHalted,
-      unknown: nUnknown,
+      running,
+      halted,
+      unknown,
       total,
     }
   }
@@ -536,25 +532,6 @@ export class XoaService {
   }
 
   async getDashboard({ stream }: { stream?: Writable } = {}): Promise<XoaDashboard> {
-    async function promiseWriteInStream<T>(maybePromise: Promise<T> | T, key: string): Promise<T> {
-      let data: T
-      if (isPromise(maybePromise)) {
-        data = await maybePromise
-      } else {
-        data = maybePromise
-      }
-
-      if (stream !== undefined) {
-        if (stream.writableNeedDrain) {
-          await new Promise(resolve => stream.once('drain', resolve))
-        }
-
-        stream.write(JSON.stringify({ [key]: data }) + '\n')
-      }
-
-      return data
-    }
-
     const [
       nPools,
       nHosts,
@@ -568,36 +545,37 @@ export class XoaService {
       nHostsEol,
       backups,
     ] = await Promise.all([
-      promiseWriteInStream(this.#getNumberOfPools(), 'nPools'),
-      promiseWriteInStream(this.#getNumberOfHosts(), 'nHosts'),
-      promiseWriteInStream(this.#getHostsStatus(), 'hostsStatus'),
-      promiseWriteInStream(this.#getResourcesOverview(), 'resourcesOverview'),
-      promiseWriteInStream(this.#getVmsStatus(), 'vmsStatus'),
-      promiseWriteInStream(this.#getStorageRepositoriesSizeInfo(), 'storageRepositories'),
-      promiseWriteInStream(this.#getPoolsStatus(), 'poolsStatus'),
-      promiseWriteInStream(this.#getMissingPatchesInfo(), 'missingPatches'),
-      promiseWriteInStream(
-        this.#getBackupRepositoriesSizeInfo().catch(err => {
-          log.error('#getBackupRepositoriesSizeInfo failed', err)
-          // explicitly return undefined because typescript understand it as void instead of undefined
-          return undefined
-        }),
-        'backupRepositories'
-      ),
-      promiseWriteInStream(
-        this.#getNumberOfEolHosts().catch(err => {
-          log.error('#getNumberOfEolHosts failed', err)
-          return undefined
-        }),
-        'nHostsEol'
-      ),
-      promiseWriteInStream(
-        this.#getbackupsInfo().catch(err => {
-          log.error('#getbackupsInfo failed', err)
-          return undefined
-        }),
-        'backups'
-      ),
+      promiseWriteInStream({ maybePromise: this.#getNumberOfPools(), path: 'nPools', stream }),
+      promiseWriteInStream({ maybePromise: this.#getNumberOfHosts(), path: 'nHosts', stream }),
+      promiseWriteInStream({ maybePromise: this.#getHostsStatus(), path: 'hostsStatus', stream }),
+      promiseWriteInStream({ maybePromise: this.#getResourcesOverview(), path: 'resourcesOverview', stream }),
+      promiseWriteInStream({ maybePromise: this.#getVmsStatus(), path: 'vmsStatus', stream }),
+      promiseWriteInStream({
+        maybePromise: this.#getStorageRepositoriesSizeInfo(),
+        path: 'storageRepositories',
+        stream,
+        handleError: true,
+      }),
+      promiseWriteInStream({ maybePromise: this.#getPoolsStatus(), path: 'poolsStatus', stream }),
+      promiseWriteInStream({ maybePromise: this.#getMissingPatchesInfo(), path: 'missingPatches', stream }),
+      promiseWriteInStream({
+        maybePromise: this.#getBackupRepositoriesSizeInfo(),
+        path: 'backupRepositories',
+        stream,
+        handleError: true,
+      }),
+      promiseWriteInStream({
+        maybePromise: this.#getNumberOfEolHosts(),
+        path: 'nHostsEol',
+        stream,
+        handleError: true,
+      }),
+      promiseWriteInStream({
+        maybePromise: this.#getbackupsInfo(),
+        path: 'backups',
+        stream,
+        handleError: true,
+      }),
     ])
 
     return {

@@ -43,16 +43,14 @@ const memoryUsage = computed<LinearChartData>(() => {
     return []
   }
 
-  const result = memoryTotal.map((total, index) => ({
-    timestamp:
-      (timestampStart - RRD_STEP_FROM_STRING.hours * (memoryTotal.length - 1) + index * RRD_STEP_FROM_STRING.hours) *
-      1000,
-    value: (total ?? NaN) - (memoryFree[index] ?? NaN),
+  const result = memoryTotal.map((total, hourIndex) => ({
+    timestamp: (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000,
+    value: (total ?? NaN) - (memoryFree[hourIndex] ?? NaN),
   }))
 
   return [
     {
-      label: t('ram-usage'),
+      label: t('stacked-ram-usage'),
       data: result,
     },
   ]
@@ -73,6 +71,6 @@ const byteFormatter = (value: number | null) => {
 
   const size = formatSizeRaw(value, 1)
 
-  return `${size.value}${size.prefix}`
+  return `${size.value} ${size.prefix}`
 }
 </script>

@@ -7,7 +7,7 @@ import { defineStore } from 'pinia'
 import { computed } from 'vue'
 
 export const useVmTemplateStore = defineStore('vm-template', () => {
-  const { context: baseContext, ...configRest } = createXoStoreConfig('vm_template', {
+  const { context: baseContext, ...configRest } = createXoStoreConfig('vm-template', {
     sortBy: sortByNameLabel,
   })
 

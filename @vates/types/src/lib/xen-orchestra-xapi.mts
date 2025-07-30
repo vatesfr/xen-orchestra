@@ -23,7 +23,7 @@ import type {
   XoVmTemplate,
 } from '../xo.mjs'
 
-type XcpPatches = {
+export type XcpPatches = {
   changelog?: {
     author: string
     date: number
@@ -37,7 +37,7 @@ type XcpPatches = {
   url: string
   version: string
 }
-type XsPatches = {
+export type XsPatches = {
   conflicts?: string[]
   date: string
   description: string
@@ -106,6 +106,9 @@ export interface Xapi {
     templateUuid: XoVmTemplate['uuid'],
     metadataVm: {
       affinityHost?: XoHost['id']
+      autoPoweron?: boolean
+      memory?: number
+      name_description?: string
       name_label: string
       nameLabel?: string
       clone?: boolean
