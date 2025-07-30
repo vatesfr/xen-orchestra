@@ -119,7 +119,7 @@ export class GroupController extends XoController<XoGroup> {
       throw forbiddenOperation('remove user from group', 'synchronized group')
     }
 
-    await this.restApi.xoApp.removeUserFromGroup(userId as XoUser['id'], id as XoGroup['id'])
+    await this.restApi.xoApp.removeUserFromGroup(userId as XoUser['id'], group.id)
   }
 
   /**
