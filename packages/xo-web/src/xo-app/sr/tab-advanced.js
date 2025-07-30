@@ -1,9 +1,10 @@
 import _ from 'intl'
+import decorate from 'apply-decorators'
 import Copiable from 'copiable'
 import defined from '@xen-orchestra/defined'
 import React from 'react'
+import { injectState, provideState } from 'reaclette'
 import SortedTable from 'sorted-table'
-import Component from 'base-component'
 import TabButton from 'tab-button'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
@@ -61,80 +62,75 @@ const UnhealthyVdiChains = flowRight(
   )
 )
 
-// const SM = props.sm
-
-export default class SrDisks extends Component {
-  render() {
-    const sr = this.props.sr
-    getSmFromSr(sr).then(data => {
-      this.setState({ sm: data })
-    })
-
-    return (
-      <Container>
-        <Row>
-          <Col className='text-xs-right'>
+export default decorate([
+  provideState({
+    computed: {
+      sm: (_, { sr }) => {
+        return getSmFromSr(sr)
+      },
+      test: () => 'test',
+    },
+  }),
+  injectState,
+  ({ sr, state: { sm }, test }) => (
+    <Container>
+      {test}
+      <Row>
+        <Col className='text-xs-right'>
+          <TabButton
+            btnStyle='primary'
+            handler={reclaimSrSpace}
+            handlerParam={sr}
+            icon='sr-reclaim-space'
+            labelId='srReclaimSpace'
+          />
+          {sr.inMaintenanceMode ? (
             <TabButton
-              btnStyle='primary'
-              handler={reclaimSrSpace}
+              btnStyle='warning'
+              handler={toggleSrMaintenanceMode}
               handlerParam={sr}
-              icon='sr-reclaim-space'
-              labelId='srReclaimSpace'
+              icon='sr-disable'
+              labelId='disableMaintenanceMode'
             />
-            {sr.inMaintenanceMode ? (
-              <TabButton
-                btnStyle='warning'
-                handler={toggleSrMaintenanceMode}
-                handlerParam={sr}
-                icon='sr-disable'
-                labelId='disableMaintenanceMode'
-              />
-            ) : (
-              <TabButton
-                btnStyle='warning'
-                handler={toggleSrMaintenanceMode}
-                handlerParam={sr}
-                icon='sr-enable'
-                labelId='enableMaintenanceMode'
-              />
-            )}
+          ) : (
             <TabButton
-              btnStyle='danger'
-              handler={deleteSr}
+              btnStyle='warning'
+              handler={toggleSrMaintenanceMode}
               handlerParam={sr}
-              icon='sr-remove'
-              labelId='srRemoveButton'
+              icon='sr-enable'
+              labelId='enableMaintenanceMode'
             />
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <table className='table'>
-              <tbody>
-                <tr>
-                  <th>{_('provisioning')}</th>
-                  <td>{defined(sr.allocationStrategy, _('unknown'))}</td>
-                </tr>
-                <tr>
-                  <th>{_('supportedImageFormats')}</th>
-                  <td>{defined(this.state.sm?.supported_image_formats?.toString(), _('unknown'))}</td>
-                </tr>
-                <tr>
-                  <th>{_('customFields')}</th>
-                  <td>
-                    <CustomFields object={sr.id} />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <UnhealthyVdiChains sr={sr} />
-          </Col>
-        </Row>
-      </Container>
-    )
-  }
-}
+          )}
+          <TabButton btnStyle='danger' handler={deleteSr} handlerParam={sr} icon='sr-remove' labelId='srRemoveButton' />
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <table className='table'>
+            <tbody>
+              <tr>
+                <th>{_('provisioning')}</th>
+                <td>{defined(sr.allocationStrategy, _('unknown'))}</td>
+              </tr>
+              <tr>
+                <th>{_('supportedImageFormats')}</th>
+                <td>{defined(sm?.supported_image_formats?.toString(), _('unknown'))}</td>
+              </tr>
+              <tr>
+                <th>{_('customFields')}</th>
+                <td>
+                  <CustomFields object={sr.id} />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <UnhealthyVdiChains sr={sr} />
+        </Col>
+      </Row>
+    </Container>
+  ),
+])

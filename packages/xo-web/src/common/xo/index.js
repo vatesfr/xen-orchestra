@@ -2786,7 +2786,7 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
     name_label: nameLabel,
   })
 
-export const getSmFromSr = sr => _call('sr.getSM', { id: resolveId(sr) })
+export const getSmFromSr = sr => _call('sm.get', { id: resolveId(sr), type: sr.SR_type })
 
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
 export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))

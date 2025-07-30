@@ -104,15 +104,11 @@ const methods = {
     }
   },
 
-  getSmFromSr(sr) {
-    const sms = filter(this.objects.all, object => {
-      return object.$type === 'SM' && object.type === sr.SR_type
+  getSmFromSrType(smType) {
+    const sms = filter(this.objects.indexes.type.SM, object => {
+      return object.type === smType
     })
-    if (sms.length === 1) {
-      return sms[0]
-    } else {
-      return undefined
-    }
+    return sms.shift()
   },
 
   // This function helps to reattach a forgotten NFS/iSCSI/HBA SR

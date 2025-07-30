@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Storage/Advanced] Add supported_image_format in storage advanced tab. Display "Unknown" if unsupported. (PR [#8834](https://github.com/vatesfr/xen-orchestra/pull/8834))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
