@@ -4,13 +4,13 @@
     <VtsLoadingHero v-if="!areVmsStatusReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :icon="faDesktop" :segments />
-      <UiCardNumbers :label="t('total')" :value="record?.vmsStatus?.total" class="total" size="small" />
+      <UiCardNumbers :label="t('total')" :value="status?.total" class="total" size="small" />
     </template>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
@@ -22,26 +22,29 @@ import { faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
-const { record } = useDashboardStore().subscribe()
+const { status } = defineProps<{
+  status: XoDashboard['vmsStatus'] | undefined
+}>()
 
-const areVmsStatusReady = computed(() => record.value?.vmsStatus !== undefined)
+const { t } = useI18n()
+
+const areVmsStatusReady = computed(() => status !== undefined)
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vms-status.running'),
-    value: record.value?.vmsStatus?.active ?? 0,
+    value: status?.active ?? 0,
     accent: 'success',
   },
   {
     label: t('vms-status.inactive'),
-    value: record.value?.vmsStatus?.inactive ?? 0,
+    value: status?.inactive ?? 0,
     accent: 'neutral',
     tooltip: t('vms-status.inactive.tooltip'),
   },
   {
     label: t('vms-status.unknown'),
-    value: record.value?.vmsStatus?.unknown ?? 0,
+    value: status?.unknown ?? 0,
     accent: 'muted',
     tooltip: t('vms-status.unknown.tooltip'),
   },

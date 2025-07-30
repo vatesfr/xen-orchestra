@@ -4,27 +4,30 @@
       {{ t('s3-backup-repository') }}
       <template #description>{{ t('for-backup') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!areS3BackupRepositoriesReady" type="card" />
+    <!--    TODO change and add loading when we have isReady available -->
+    <VtsNoDataHero v-if="!areS3BackupRepositoriesReady" type="card" />
     <UiCardNumbers v-else :value="usedSize?.value" :unit="usedSize?.prefix" :label="t('used')" size="medium" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { record } = useDashboardStore().subscribe()
+const { size } = defineProps<{
+  size: NonNullable<XoDashboard['backupRepositories']>['s3']['size'] | undefined
+}>()
 
 const { t } = useI18n()
 
-const areS3BackupRepositoriesReady = computed(() => record.value?.backupRepositories?.s3 !== undefined)
+const areS3BackupRepositoriesReady = computed(() => size !== undefined)
 
-const usedSize = computed(() => formatSizeRaw(record.value?.backupRepositories?.s3.size.backups, 1))
+const usedSize = computed(() => formatSizeRaw(size?.backups, 1))
 </script>
 
 <style scoped lang="postcss">

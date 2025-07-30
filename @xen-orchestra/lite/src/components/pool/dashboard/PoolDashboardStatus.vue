@@ -14,7 +14,7 @@
       <UiSeparator />
       <PoolDashboardStatusItem
         :active="activeVmsCount"
-        :label="t('vms')"
+        :label="t('vms', 2)"
         :active-label="t('vm.active', activeVmsCount)"
         :inactive-label="t('vm.inactive', totalVmsCount - activeVmsCount)"
         :total="totalVmsCount"

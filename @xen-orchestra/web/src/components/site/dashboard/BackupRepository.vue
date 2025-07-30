@@ -4,25 +4,26 @@
       {{ t('backup-repository') }}
       <template #description>{{ t('for-backup') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!areBackupRepositoriesReady" type="card" />
+    <!--    TODO change and add loading when we have isReady available -->
+    <VtsNoDataHero v-if="!areBackupRepositoriesReady" type="card" />
     <template v-else>
       <VtsStackedBarWithLegend :max-value="maxValue" :segments />
       <div class="numbers">
         <UiCardNumbers
-          :value="backupRepositories?.used?.value"
-          :unit="backupRepositories?.used?.prefix"
+          :value="repositories?.used?.value"
+          :unit="repositories?.used?.prefix"
           :label="t('used')"
           size="medium"
         />
         <UiCardNumbers
-          :value="backupRepositories?.available?.value"
-          :unit="backupRepositories?.available?.prefix"
+          :value="repositories?.available?.value"
+          :unit="repositories?.available?.prefix"
           :label="t('available')"
           size="medium"
         />
         <UiCardNumbers
-          :value="backupRepositories?.total?.value"
-          :unit="backupRepositories?.total?.prefix"
+          :value="repositories?.total?.value"
+          :unit="repositories?.total?.prefix"
           :label="t('total')"
           size="medium"
         />
@@ -32,40 +33,42 @@
 </template>
 
 <script setup lang="ts">
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import type { BackupRepositories } from '@/requests/use-site-dashboard.request.ts'
 import VtsStackedBarWithLegend, {
   type StackedBarWithLegendProps,
 } from '@core/components/stacked-bar-with-legend/VtsStackedBarWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const { repositories } = defineProps<{
+  repositories: BackupRepositories | undefined
+}>()
+
 const { t } = useI18n()
 
-const { backupRepositories } = useDashboardStore().subscribe()
-
-const areBackupRepositoriesReady = computed(() => backupRepositories.value !== undefined)
+const areBackupRepositoriesReady = computed(() => repositories !== undefined)
 
 const segments: ComputedRef<StackedBarWithLegendProps['segments']> = computed(() => [
   {
     label: t('xo-backups'),
-    value: backupRepositories.value?.backups?.value ?? 0,
+    value: repositories?.backups.value ?? 0,
     accent: 'info',
-    unit: backupRepositories.value?.backups?.prefix,
+    unit: repositories?.backups.prefix,
   },
   {
     label: t('other'),
-    value: backupRepositories.value?.other?.value ?? 0,
+    value: repositories?.other?.value ?? 0,
     accent: 'warning',
-    unit: backupRepositories.value?.other?.prefix,
+    unit: repositories?.other?.prefix,
   },
 ])
 
 const maxValue = computed(() => ({
-  value: backupRepositories.value?.total?.value,
-  unit: backupRepositories.value?.total?.prefix,
+  value: repositories?.total?.value,
+  unit: repositories?.total?.prefix,
 }))
 </script>
 

@@ -59,7 +59,7 @@ export const invalidParameters = {
   description: 'Invalid parameters',
 } as const
 
-export const forbiddenOperationResponse = {
+export const forbiddenOperationResp = {
   status: 403,
   description: 'Forbidden',
 } as const

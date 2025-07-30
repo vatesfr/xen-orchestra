@@ -123,7 +123,7 @@ type BaseXoVm = BaseXapiXo & {
 
 export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
   body: {
-    value: string
+    value?: string
     name: string
   }
   object: {

@@ -336,8 +336,19 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  createGroup({ name, provider, providerGroupId }) {
-    return this._groups.add({ name, provider, providerGroupId })
+  async createGroup({ name, provider, providerGroupId }) {
+    try {
+      return await this._groups.add({ name, provider, providerGroupId })
+    } catch (error) {
+      if (error.message === `the group ${name} already exists`) {
+        const existingGroup = await this._groups.first({ name })
+        throw objectAlreadyExists({
+          objectId: existingGroup.id,
+          objectType: 'group',
+        })
+      }
+      throw error
+    }
   }
 
   async deleteGroup(id) {

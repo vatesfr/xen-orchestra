@@ -52,7 +52,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * @param {number} [params.nbdConcurrency=2]
    * @param {number} [params.blockSize=2*1024*1024]
    */
-  constructor({ xapi, vdiRef, baseRef, preferNbd = true, nbdConcurrency = 2, blockSize = 2 * 1024 * 1024 }) {
+  constructor({ xapi, vdiRef, baseRef, preferNbd = xapi._preferNbd, nbdConcurrency = 2, blockSize = 2 * 1024 * 1024 }) {
     super(undefined)
     this.#baseRef = baseRef
     this.#blockSize = blockSize
@@ -89,17 +89,15 @@ export class XapiDiskSource extends DiskPassthrough {
         source = new DiskLargerBlock(source, this.#blockSize)
       }
     } catch (err) {
-      await source?.close()
       if (err.code === 'NO_NBD_AVAILABLE') {
-        warn(`can't connect through NBD, fallback to stream export`)
+        warn(`can't connect through NBD, fall back to stream export`)
         if (streamSource === undefined) {
           throw new Error(`Can't open stream source`)
         }
         return streamSource
-      } else {
-        await streamSource?.close()
-        throw err
       }
+      await source?.close() // this will close source and stream source
+      throw err
     }
     this.#useNbd = true
     const readAhead = new ReadAhead(source)
@@ -128,15 +126,14 @@ export class XapiDiskSource extends DiskPassthrough {
         source = new XapiQcow2StreamSource({ vdiRef, baseRef, xapi })
       }
       await source.init()
-    } catch (err) {
+    } catch (error) {
       await source?.close()
-      if (err.code === 'VDI_CANT_DO_DELTA') {
-        warn(`can't compute delta of XapiVhdStreamSource ${vdiRef} from ${baseRef}, fallBack to a full`)
-        // @todo : should clear CBT status since it probably a little broken
-        source = new XapiVhdStreamSource({ vdiRef, baseRef: undefined, xapi })
-        await source.init()
+      if (baseRef !== undefined) {
+        warn(`can't compute delta ${vdiRef} from ${baseRef}, fallBack to a full`, { error })
+        this.#baseRef = undefined
+        return this.#openExportStream()
       } else {
-        throw err
+        throw error
       }
     }
     return source

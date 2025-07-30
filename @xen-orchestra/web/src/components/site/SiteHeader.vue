@@ -2,9 +2,9 @@
   <UiHeadBar :icon="faSatellite">
     Xen Orchestra Appliance
     <template #actions>
-      <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium" @click="goToNewVm()">
-        {{ t('new-vm') }}
-      </UiButton>
+      <UiLink to="/pool/connect" size="medium" :icon="faPlus">
+        {{ t('connect-pool') }}
+      </UiLink>
     </template>
   </UiHeadBar>
   <TabList>
@@ -19,21 +19,17 @@
       <TabItem :active="isExactActive" :href tag="a">{{ t('pools') }}</TabItem>
     </RouterLink>
     <TabItem disabled>{{ t('hosts') }}</TabItem>
-    <TabItem disabled>{{ t('vms') }}</TabItem>
+    <TabItem disabled>{{ t('vms', 2) }}</TabItem>
   </TabList>
 </template>
 
 <script lang="ts" setup>
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { faPlus, faSatellite } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 
-const router = useRouter()
 const { t } = useI18n()
-
-const goToNewVm = () => router.push({ name: '/vm/new' })
 </script>

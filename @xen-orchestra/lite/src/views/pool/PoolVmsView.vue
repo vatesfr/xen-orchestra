@@ -1,12 +1,12 @@
 <template>
   <UiCard class="pool-vms-view">
     <UiCardTitle subtitle>
-      {{ t('vms') }}
+      {{ t('vms', 2) }}
       <template v-if="uiStore.isMobile" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
       </template>
     </UiCardTitle>
-    <VmsActionsBar v-if="uiStore.isDesktop" :selected-refs="selectedVmsRefs" />
+    <VmsActionsBar v-if="!uiStore.isMobile" :selected-refs="selectedVmsRefs" />
     <CollectionTable
       v-model="selectedVmsRefs"
       :available-filters="filters"
@@ -57,7 +57,7 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
 const titleStore = usePageTitleStore()
-titleStore.setTitle(t('vms'))
+titleStore.setTitle(t('vms', 2))
 
 const { records: vms } = useVmStore().subscribe()
 const uiStore = useUiStore()
