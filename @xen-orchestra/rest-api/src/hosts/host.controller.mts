@@ -6,6 +6,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XapiHostStats, XapiStatsGranularity, XoAlarm, XoHost } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { host, hostIds, hostStats, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -142,7 +143,7 @@ export class HostController extends XapiXoController<XoHost> {
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
     const host = this.getObject(id as XoHost['id'])
     const alarms = this.#alarmService.getAlarms({
-      filter: `${filter ?? ''} object:uuid:${host.uuid}`,
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${host.uuid}`,
       limit,
     })
 

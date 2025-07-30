@@ -113,6 +113,7 @@
   "cpu-usage": "Prozessorauslastung",
   "cpus": "Prozessoren",
   "create": "Erstellen",
+  "created-on": "Erstellt am",
   "custom-config": "Benutzerdefinierte Konfiguration",
   "dark-mode.auto": "Automatischer Dunkelmodus",
   "dark-mode.disable": "Deaktiviere den Dunkelmodus",
