@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup] Better handling of filesystem error while reading file (PR [#8818](https://github.com/vatesfr/xen-orchestra/pull/8818))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -31,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
 - xo-web patch
 
 <!--packages-end-->

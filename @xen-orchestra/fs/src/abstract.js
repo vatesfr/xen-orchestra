@@ -158,7 +158,7 @@ export default class RemoteHandlerAbstract {
   }
 
   #conditionRetry(error) {
-    return !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'SystemInUse'].includes(error?.code)
+    return !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'SystemInUse', 'ERR_ASSERTION'].includes(error?.code)
   }
 
   #applySafeGuards(options) {
