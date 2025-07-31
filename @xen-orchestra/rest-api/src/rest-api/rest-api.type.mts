@@ -1,5 +1,5 @@
 import type { EventEmitter } from 'node:events'
-import type { Task } from '@vates/types/lib/vates/task'
+import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, BACKUP_TYPE, XapiPoolStats } from '@vates/types/common'
 import type {
@@ -67,7 +67,7 @@ export type XoApp = {
     getOptionalDuration(path: string): number | undefined
   }
   tasks: EventEmitter & {
-    create: (params: { name: string; objectId?: string; type?: string }) => Task
+    create: (params: { name: string; objectId?: string; type?: string }) => VatesTask
   }
   apiContext: {
     user?: XoUser
@@ -136,8 +136,8 @@ export type XoApp = {
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(body: InsertableXoServer): Promise<XoServer>
-  rollingPoolReboot(pool: XoPool, opts?: { parentTask?: Task }): Promise<void>
-  rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: Task }): Promise<void>
+  rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask }): Promise<void>
+  rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: VatesTask }): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: XoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>

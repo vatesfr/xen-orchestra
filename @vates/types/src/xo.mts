@@ -624,6 +624,8 @@ export type XoVtpm = BaseXapiXo & {
   type: 'VTPM'
 }
 
+export type XoTask = {}
+
 export type XapiXoRecord =
   | XoAlarm
   | XoGpuGroup
