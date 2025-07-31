@@ -136,7 +136,7 @@ const COLUMNS_VM_PV = [
   },
   {
     name: _('vdiImageFormat'),
-    itemRenderer: vdi => defined(vdi.image_format, _("unknown")),
+    itemRenderer: vdi => defined(vdi.image_format, 'VHD'),
     sortCriteria: vdi => vdi.image_format,
   },
   {
