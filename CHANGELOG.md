@@ -44,14 +44,15 @@
 - [ACL] Confirmation message when deleting an ACL rule (PR [#8774](https://github.com/vatesfr/xen-orchestra/pull/8774))
 - [xo-server] Display build commit at start-up and with `xo-server --help`
 - [xo-server] Warn if build is out of sync with local git repository
-- [Storage/Disks & VM/Disks] Add image format in disks tabs. Display "Unknown" if unsupported. (PR [#8835](https://github.com/vatesfr/xen-orchestra/pull/8835))
+- [Storage/Disks & VM/Disks] Add image format in disks tabs (PR [#8835](https://github.com/vatesfr/xen-orchestra/pull/8835))
 - [Backups] Extra confirmation step when deleting specific VM backups (PR [#8813](https://github.com/vatesfr/xen-orchestra/pull/8813))
-- [Storage/Advanced] Add supported_image_format in storage advanced tab. Display "Unknown" if unsupported. (PR [#8834](https://github.com/vatesfr/xen-orchestra/pull/8834))
+- [Storage/Advanced] Add supported_image_format in storage advanced tab (PR [#8834](https://github.com/vatesfr/xen-orchestra/pull/8834))
 
 ### Bug fixes
 
 - [Backup] Fix full backup retry failing with EEXIST error (PR [#8776](https://github.com/vatesfr/xen-orchestra/pull/8776))
 - [Backup] Force snapshot if one of its VDIs has a NOBAK tag (PR [#8820](https://github.com/vatesfr/xen-orchestra/pull/8820))
+- [Backup] Better handling of filesystem error while reading file (PR [#8818](https://github.com/vatesfr/xen-orchestra/pull/8818))
 
 - **XO 6:**
 
@@ -65,7 +66,6 @@
 
 ### Released packages
 
-- @xen-orchestra/fs 4.6.1
 - @vates/generator-toolbox 1.0.4
 - @vates/types 1.9.0
 - @xen-orchestra/xapi 8.3.3
@@ -74,12 +74,13 @@
 - @xen-orchestra/immutable-backups 1.0.23
 - @xen-orchestra/mixins 0.16.4
 - @xen-orchestra/openflow 0.1.3
-- @xen-orchestra/proxy 0.29.26
 - @xen-orchestra/web-core 0.26.0
 - @xen-orchestra/rest-api 0.13.0
 - @xen-orchestra/web 0.24.0
-- xo-server 5.184.0
-- xo-web 5.181.0
+- @xen-orchestra/fs 4.6.2
+- @xen-orchestra/proxy 0.29.27
+- xo-server 5.184.1
+- xo-web 5.181.1
 
 ## **5.108.1** (2025-07-03)
 
