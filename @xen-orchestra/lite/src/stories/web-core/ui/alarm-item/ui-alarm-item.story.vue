@@ -19,7 +19,7 @@
         <template #link>
           <UiObjectLink route="#">
             <template #icon>
-              <UiObjectIcon size="medium" state="running" type="vm" />
+              <VtsIcon size="medium" name="object:vm:running" />
             </template>
             VM1
           </UiObjectLink>
@@ -32,8 +32,8 @@
 <script setup lang="ts">
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, slot } from '@/libs/story/story-param'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiAlarmItem from '@core/components/ui/alarm-item/UiAlarmItem.vue'
 import UiAlarmList from '@core/components/ui/alarm-list/UiAlarmList.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 </script>

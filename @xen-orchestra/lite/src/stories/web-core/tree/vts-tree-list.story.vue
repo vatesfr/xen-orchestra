@@ -6,7 +6,7 @@
         <template #sublist>
           <VtsTreeList>
             <VtsTreeItem v-for="i of 3" :key="i">
-              <UiTreeItemLabel icon="fa:cerver" route="dashboard">
+              <UiTreeItemLabel icon="fa:server" route="dashboard">
                 Host - {{ i }}
                 <template #addons>
                   <VtsIcon v-if="i === 2" name="legacy:primary" size="medium" />

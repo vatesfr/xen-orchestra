@@ -66,7 +66,7 @@ const filters: Filters = {
   name_description: { label: t('description'), type: 'string' },
   power_state: {
     label: t('power-state'),
-    icon: "fa:power-off",
+    icon: 'fa:power-off',
     type: 'enum',
     choices: Object.values(VM_POWER_STATE),
   },

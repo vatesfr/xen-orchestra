@@ -1,6 +1,9 @@
 <template>
-  <ComponentStory v-slot="{ properties }" :params="[iconProp(), slot('title'), slot('default'), slot('buttons')]">
-    <FormModalLayout icon="fa:route" v-bind="properties">
+  <ComponentStory
+    v-slot="{ properties }"
+    :params="[iconProp().preset('fa:route'), slot('title'), slot('default'), slot('buttons')]"
+  >
+    <FormModalLayout v-bind="properties">
       <template #title>Migrate 3 VMs</template>
 
       <div class="inputs">
