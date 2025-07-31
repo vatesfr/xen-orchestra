@@ -18,14 +18,20 @@ export class DiskConsumerVhdStream extends BaseVhd {
     const { bat, fileSize } = this.computeVhdBatAndFileSize() // the bat contains the calculated position of the futures blocks
     const uid = 'to stream ' + Math.random()
     const blockGenerator = this.source.diskBlocks(uid)
+    let sent = 0
+    function * track(buffer){
+      yield buffer
+      sent += buffer.length
+      console.log({sent, fileSize})
+    }
     async function* generator() {
-      yield footer
-      yield header
-      yield bat
+      yield *track(footer)
+      yield *track(header)
+      yield *track(bat)
       for await (const { data } of blockGenerator) {
-        yield Buffer.concat([FULL_BLOCK_BITMAP, data])
+        yield *track(Buffer.concat([FULL_BLOCK_BITMAP, data]))
       }
-      yield footer
+      yield *track(footer)
     }
 
     /** @type {VhdStream} */

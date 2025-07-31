@@ -73,13 +73,15 @@ export class NbdDisk extends RandomAccessDisk {
         .filter(({ type }) => type === 0)
         .map(({ offset, length }) => ({ offset, length }))
         .sort(({offset:offset1}, {offset: offset2})=>offset1- offset2)
+    console.log('init done ', this.#dataMap)
   }
 
   /**
    * @returns {Promise<void>}
    */
   async close() {
-    this.#nbdClient?.disconnect()
+    console.log('CLOSE')
+    await this.#nbdClient?.disconnect()
   }
 
   /**
@@ -100,6 +102,7 @@ export class NbdDisk extends RandomAccessDisk {
         indexes.add(blockIndex)
       }
     })
+    console.log('computed index',  indexes.size)
     return [...indexes].sort()
   }
 

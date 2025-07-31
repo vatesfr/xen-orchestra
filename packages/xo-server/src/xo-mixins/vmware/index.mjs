@@ -45,7 +45,11 @@ export default class MigrateVm {
           VCPUs_max: nCpus,
         })
       )
-      $defer.onFailure(() => xapi.call('VM.destroy', vm.$ref))
+      console.log('VMREF', vm.$ref)
+      $defer.onFailure(async () => {
+        console.log('defer failure')
+        await xapi.call('VM.destroy', vm.$ref)
+    })
       await Promise.all([
         vm.update_HVM_boot_params('firmware', firmware),
         vm.update_platform('device-model', 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')),
@@ -99,7 +103,7 @@ export default class MigrateVm {
       }
       coldChainsByNodes[key] = chainCopy
     })
-    // ensure the session stays alive
+    // ensure the vmware session stays alive
     const interval = setInterval(
       async () => {
         try {
@@ -117,7 +121,9 @@ export default class MigrateVm {
       vmId,
         sourceVmId:vmId
     })
+    console.log('cold disk imported')
     if (isRunning && stopSource) {
+      console.log(' NOT LET S HANDLE RUNNING')
       await esxi.powerOff(vmId)
       await importDisksFromDatastore($defer, {
         esxi,
@@ -157,10 +163,9 @@ export default class MigrateVm {
     })
 
     const vm = await this.#createVmAndNetworks($defer, { metadata, networkId, template, xapi })
-
-    $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
+    await xapi.barrier()
     await this.#importDisks($defer, { esxi, metadata, stopSource, vm, sr, vmId, workDirRemote })
-
+console.log('DISK imported')
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
       await vm.set_name_label(metadata.name_label)
@@ -168,6 +173,7 @@ export default class MigrateVm {
       // remove lock on start
       await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
     })
+console.log('cleanup done')
 
     return vm.uuid
   }

@@ -13,41 +13,50 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
   if (chainByNode.length === 0) {
     return { vhd, vdi }
   }
-
-  console.log({chainByNode})  
+  const openChain = chainByNode.length > 1  
   const activeDisk = chainByNode[chainByNode.length - 1]
   const { datastore: datastoreName, diskPath, descriptionLabel, nameLabel  } = activeDisk
+  let vmdk
   try{
-    const {nbdInfos } = await esxi.spanwNbdKitProcess(sourceVmId, `[${datastoreName}] ${diskPath}`)
+    const {nbdInfos } = await esxi.spanwNbdKitProcess(sourceVmId, `[${datastoreName}] ${diskPath}`, {openChain})
     console.log('nbdinfos', {nbdInfos})
 
-    let vmdk = new NbdDisk(nbdInfos, 2*1024*1024)
+    vmdk = new NbdDisk(nbdInfos, 2*1024*1024)
 
     await vmdk.init()
     vmdk = new ReadAhead(vmdk)
-    const vdiMetadata = {
-        name_description: 'fromESXI' + descriptionLabel,
-        name_label: '[ESXI]' + nameLabel,
-        SR: sr.$ref,
-        virtual_size: vmdk.getVirtualSize(),
-      } 
-    const vdiRef = await sr.$xapi.VDI_create(vdiMetadata)
+    if(!vdi){
+      const vdiMetadata = {
+          name_description: 'fromESXI' + descriptionLabel,
+          name_label: '[ESXI]' + nameLabel,
+          SR: sr.$ref,
+          virtual_size: vmdk.getVirtualSize(),
+        } 
+      const vdiRef = await sr.$xapi.VDI_create(vdiMetadata)
+      vdi =  sr.$xapi.getObject(vdiRef, undefined) ?? (await sr.$xapi.waitObject(vdiRef))
 
-    console.log('GOT VDIREF ')
-    vdi = sr.$xapi.getObject(vdiRef, undefined) ?? (await sr.$xapi.waitObject(vdiRef))
-    console.log('loaded') 
-    await sr.$xapi.VBD_create({
-      VDI: vdiRef,
-      VM: vm.$ref,
-      device: `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`,
-      userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
-    })
-  
+      await sr.$xapi.VBD_create({
+        VDI: vdiRef,
+        VM: vm.$ref,
+        device: `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`,
+        userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
+      })
+      console.log('VBD created ')
+    }
 
     const stream = await toVhdStream(vmdk)
+    console.log('stream ready  ')
     await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
-  }finally{
-    esxi.killNbdServer(sourceVmId, `[${datastoreName}] ${diskPath}`)
+    console.log('import done ')
+    
+  
+  }
+  finally{
+    console.log(' WILL KILL SERVER ')
+    await vmdk?.close().catch(err=>console.error('vmdk.close.error', err))
+    console.log('vmdk closed')
+    await esxi.killNbdServer(sourceVmId, `[${datastoreName}] ${diskPath}`).catch(err=>console.error('esxi.killNbdServer.error', err))
+    console.log('nbd server killed')
   }
 
   return { vdi }

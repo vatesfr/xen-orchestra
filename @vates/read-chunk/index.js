@@ -77,7 +77,7 @@ exports.readChunk = readChunk
 exports.readChunkStrict = async function readChunkStrict(stream, size) {
   const chunk = await readChunk(stream, size)
   if (chunk === null) {
-    throw new Error('stream has ended without data')
+    throw new Error(`stream has ended without data, was looking for ${size} bytes` )
   }
 
   if (size !== undefined && chunk.length !== size) {

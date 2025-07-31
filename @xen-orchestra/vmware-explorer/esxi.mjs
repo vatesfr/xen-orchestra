@@ -1,6 +1,6 @@
 import { Client } from '@vates/node-vsphere-soap'
 import { createLogger } from '@xen-orchestra/log'
-import { dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { strictEqual, notStrictEqual } from 'node:assert'
 import { Agent } from 'undici'
@@ -10,6 +10,9 @@ import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
 import xml2js from 'xml2js'
 import { exec, spawn } from 'node:child_process'
+
+import { tmpdir } from 'node:os';
+import fs from 'node:fs/promises'
 
 const { warn } = createLogger('xo:vmware-explorer:esxi')
 
@@ -477,27 +480,28 @@ export default class Esxi extends EventEmitter {
       const thumbprint = await this.#getServerThumbprint()
       const libPath = '/usr/local/lib/vddk/vmware-vix-disklib-distrib'
       this.#nbdPort  ++// todo handle used ports or use file socket
-      console.lo
-      const nbdKitProcess = spawn('nbdkit', [
+      const tmpDir = await fs.mkdtemp(join(tmpdir(), 'xo-server'));
+      const passFile = join(tmpDir,'params')
+      await fs.writeFile(passFile, this.#password)
+      const nbdKitProcess = spawn('nbdkit', [ 
+        '-r', // readonly
+        '-v', 
         '-f',
-        '-r',
-      //  '-v',
-        '--exit-with-parent',
+        '--exit-with-parent', // implies -f , ensure we don't leave orphans
         `--threads=${threads}`,
         `--port=${this.#nbdPort}`,
-        'vddk',
+        'vddk', // the vddk plugin
         `compression=${compression}`,
-        `thumbprint=${thumbprint}`,
+        `thumbprint=${thumbprint}`, 
         `server=${this.#host}`,
         `user=${this.#user}`,
-        `password=${this.#password}`,
-       // `cookie=${this.#cookies}`, //reuse the esxi cookie, doesn't expose login/pass on command line
+        `password=+${passFile}`,
         `libdir=${libPath}`,
         `vm=moref=${vmId}`,
         !openChain ? 'single-link=true' : '',
         diskPath
       ], {
-        cwd: '/tmp/'
+        cwd: tmpDir
       })
       this.#nbdServers.set(key, {
         process: nbdKitProcess,
@@ -505,20 +509,35 @@ export default class Esxi extends EventEmitter {
       })
 
       nbdKitProcess.stdout.on('data', (data) => {
-        console.log(`stdout: ${data}`);
+        console.log(`@stdout: ${data}`);
       });
-
+      let resolve, reject
+      const promise = new Promise((_resolve, _reject)=> {
+        resolve = _resolve,
+        reject = _reject
+      }) 
+      let connected = false 
       nbdKitProcess.stderr.on('data', (data) => {
+        const str = data.toString('utf8')
+
+        if(str.match(/debug: transport mode: /)){
+          console.log('CONNECTED', str)
+          connected = true
+        }
+
+        if(connected){
+         //return 
+        }
         console.error(`stderr: ${data}`);
       });
 
       nbdKitProcess.on('close', (code) => {
         console.log(`child process exited with code ${code}`);
+        fs.unlink(passFile).catch(()=>{})
       });
       // @todo find a better to wait for server ready 
       await new Promise(resolve=>setTimeout(resolve,2000))
     }
-    console.log(this.#nbdServers.get(key))
     return this.#nbdServers.get(key)
 
   }
