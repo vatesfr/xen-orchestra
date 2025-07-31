@@ -17,7 +17,7 @@
             <template v-for="column of visibleColumns" :key="column.id">
               <th>
                 <div v-tooltip class="text-ellipsis">
-                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  <VtsIcon size="medium" :name="headerIcon[column.id]" />
                   {{ column.label }}
                 </div>
               </th>
@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
+import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsAllDoneHero from '@core/components/state-hero/VtsAllDoneHero.vue'
@@ -48,8 +49,6 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faAlignLeft, faHashtag } from '@fortawesome/free-solid-svg-icons'
 import { computed, type ComputedRef, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -82,9 +81,9 @@ const { visibleColumns, rows } = useTable(
   }
 )
 
-const headerIcon: Record<'name' | 'version', IconDefinition> = {
-  name: faAlignLeft,
-  version: faHashtag,
+const headerIcon: Record<'name' | 'version', IconName> = {
+  name: 'fa:align-left',
+  version: 'fa:hashtag',
 }
 </script>
 

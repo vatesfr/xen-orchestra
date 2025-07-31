@@ -20,8 +20,8 @@
           </span>
         </template>
         <template #addons>
-          <VtsIcon accent="info" :icon="faCircle" :overlay-icon="faStar" />
-          <UiButtonIcon :icon="faCopy" size="medium" accent="brand" />
+          <VtsIcon name="legacy:primary" size="medium" />
+          <UiButtonIcon icon="fa:copy" size="medium" accent="brand" />
         </template>
       </VtsCardRowKeyValue>
 
@@ -31,18 +31,12 @@
         </template>
 
         <template #value>
-          <UiObjectLink route="`/vm/test/console`">
-            <template #icon>
-              <UiComplexIcon size="medium">
-                <VtsIcon :icon="faNetworkWired" accent="current" />
-                <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-              </UiComplexIcon>
-            </template>
+          <UiObjectLink route="`/vm/test/console`" icon="object:network:connected">
             <span>Network Name</span>
           </UiObjectLink>
         </template>
         <template #addons>
-          <UiButtonIcon :icon="faCopy" size="medium" accent="brand" />
+          <UiButtonIcon icon="fa:copy" size="medium" accent="brand" />
         </template>
       </VtsCardRowKeyValue>
 
@@ -54,8 +48,8 @@
           <UiInfo accent="success">Connected</UiInfo>
         </template>
         <template #addons>
-          <UiButtonIcon :icon="faCopy" size="medium" accent="brand" />
-          <UiButtonIcon :icon="faEllipsis" size="medium" accent="brand" />
+          <UiButtonIcon icon="fa:copy" size="medium" accent="brand" />
+          <UiButtonIcon icon="fa:ellipsis" size="medium" accent="brand" />
         </template>
       </VtsCardRowKeyValue>
     </UiCard>
@@ -70,10 +64,8 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiComplexIcon from '@core/components/ui/complex-icon/UiComplexIcon.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
-import { faCheck, faCircle, faCopy, faEllipsis, faNetworkWired, faStar } from '@fortawesome/free-solid-svg-icons'
 </script>
 
 <style lang="postcss" scoped>

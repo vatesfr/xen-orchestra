@@ -10,7 +10,7 @@
       type="text"
       accent="brand"
       :aria-label="uiStore.isMobile ? t('core.query-search-bar.label') : undefined"
-      :icon="!uiStore.isMobile ? faMagnifyingGlass : undefined"
+      :icon="!uiStore.isMobile ? 'fa:magnifying-glass' : undefined"
       :placeholder="t('core.query-search-bar.placeholder')"
     />
     <template v-if="!uiStore.isMobile">
@@ -32,8 +32,8 @@
 
     <!-- Mobile icons: search + filter -->
     <template v-else>
-      <UiButtonIcon accent="brand" size="medium" type="submit" :icon="faMagnifyingGlass" class="action-button" />
-      <UiButtonIcon accent="brand" size="medium" disabled :icon="faFilter" class="action-button" />
+      <UiButtonIcon accent="brand" size="medium" type="submit" icon="fa:magnifying-glass" class="action-button" />
+      <UiButtonIcon accent="brand" size="medium" disabled icon="fa:filter" class="action-button" />
     </template>
   </form>
 </template>
@@ -46,7 +46,6 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { uniqueId } from '@core/utils/unique-id.util'
-import { faFilter, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

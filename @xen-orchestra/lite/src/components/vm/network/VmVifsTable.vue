@@ -6,7 +6,7 @@
         <UiButton
           v-tooltip="t('coming-soon')"
           disabled
-          :left-icon="faPlus"
+          left-icon="fa:plus"
           variant="secondary"
           accent="brand"
           size="medium"
@@ -22,7 +22,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faPowerOff"
+            left-icon="fa:power-off"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -32,7 +32,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faEdit"
+            left-icon="fa:edit"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -42,7 +42,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faTrash"
+            left-icon="fa:trash"
             variant="tertiary"
             accent="danger"
             size="medium"
@@ -64,11 +64,11 @@
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
-                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
                 </div>
               </th>
@@ -94,7 +94,7 @@
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="t('coming-soon')"
-                :icon="faEllipsis"
+                icon="fa:ellipsis"
                 accent="brand"
                 disabled
                 size="small"
@@ -106,7 +106,7 @@
                 <!-- TODO Remove the span when the link works and the icon is fixed -->
                 <!--
                   <UiComplexIcon size="medium" class="icon">
-                    <VtsIcon :icon="faNetworkWired" accent="current" />
+                    <VtsIcon icon="fa:network-wired" accent="current" />
                     <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                   </UiComplexIcon>
                   <a v-tooltip href="" class="text-ellipsis">{{ column.value.name }}</a>
@@ -143,6 +143,7 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import type { IconName } from '@core/icons'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -159,18 +160,6 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import {
-  faAlignLeft,
-  faAt,
-  faCaretDown,
-  faEdit,
-  faEllipsis,
-  faHashtag,
-  faPlus,
-  faPowerOff,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -241,14 +230,14 @@ const { pageRecords: vifsRecords, paginationBindings } = usePagination('vifs', r
 
 type VifHeader = 'network' | 'device' | 'status' | 'IP' | 'MAC' | 'MTU' | 'locking_mode'
 
-const headerIcon: Record<VifHeader, IconDefinition> = {
-  network: faAlignLeft,
-  device: faAlignLeft,
-  status: faPowerOff,
-  IP: faAt,
-  MAC: faAt,
-  MTU: faHashtag,
-  locking_mode: faCaretDown,
+const headerIcon: Record<VifHeader, IconName> = {
+  network: 'fa:align-left',
+  device: 'fa:align-left',
+  status: 'fa:power-off',
+  IP: 'fa:at',
+  MAC: 'fa:at',
+  MTU: 'fa:hashtag',
+  locking_mode: 'fa:caret-down',
 }
 </script>
 

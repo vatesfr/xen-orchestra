@@ -7,7 +7,7 @@
     </template>
 
     <template #default>
-      <UiIcon :class="textClass" :icon="icon" class="main-icon" />
+      <VtsIcon :class="textClass" :name="icon" class="main-icon" size="medium" />
       <div v-if="slots.title || slots.subtitle" class="titles">
         <UiTitle v-if="slots.title" type="h4">
           <slot name="title" />
@@ -30,17 +30,17 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import ModalCloseIcon from '@/components/ui/modals/ModalCloseIcon.vue'
 import ModalContainer from '@/components/ui/modals/ModalContainer.vue'
 import UiTitle from '@/components/ui/UiTitle.vue'
 import { useContext } from '@/composables/context.composable'
 import { ColorContext } from '@/context'
+import type { IconName } from '@core/icons'
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 
 defineProps<{
-  icon?: IconDefinition
+  icon?: IconName
 }>()
 
 const slots = defineSlots<{

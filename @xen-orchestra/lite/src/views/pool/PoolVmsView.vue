@@ -14,7 +14,7 @@
       :collection="vms"
     >
       <template #head-row>
-        <ColumnHeader :icon="faPowerOff" />
+        <ColumnHeader icon="fa:power-off" />
         <ColumnHeader>{{ t('name') }}</ColumnHeader>
         <ColumnHeader>{{ t('description') }}</ColumnHeader>
       </template>
@@ -50,7 +50,6 @@ import { useVmStore } from '@/stores/xen-api/vm.store'
 import type { Filters } from '@/types/filter'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
-import { faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -67,7 +66,7 @@ const filters: Filters = {
   name_description: { label: t('description'), type: 'string' },
   power_state: {
     label: t('power-state'),
-    icon: faPowerOff,
+    icon: 'fa:power-off',
     type: 'enum',
     choices: Object.values(VM_POWER_STATE),
   },

@@ -1,5 +1,5 @@
 <template>
-  <TitleBar :icon="faGear">{{ t('settings') }}</TitleBar>
+  <TitleBar icon="fa:gear">{{ t('settings') }}</TitleBar>
   <div class="card-view">
     <UiCard class="group about">
       <UiCardTitle>{{ t('about') }}</UiCardTitle>
@@ -89,7 +89,7 @@
           <img v-else-if="colorModeOption === 'dark'" src="@/assets/color-mode-dark.svg" :alt="t('dark-mode.enable')" />
           <img v-else src="@/assets/color-mode-auto.svg" :alt="t('dark-mode.auto')" />
           <span>
-            <UiIcon v-if="uiStore.colorMode === colorModeOption" :icon="faCheck" />
+            <VtsIcon v-if="uiStore.colorMode === colorModeOption" name="fa:check" size="medium" />
             {{ t(`theme-${colorModeOption}`) }}
           </span>
         </div>
@@ -97,14 +97,13 @@
     </UiCard>
     <UiCard class="group">
       <UiCardTitle>{{ t('language') }}</UiCardTitle>
-      <VtsSelect :id="localeSelectId" :icon="faEarthAmericas" accent="brand" />
+      <VtsSelect :id="localeSelectId" icon="fa:earth-americas" accent="brand" />
     </UiCard>
   </div>
 </template>
 
 <script lang="ts" setup>
 import TitleBar from '@/components/TitleBar.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiKeyValueList from '@/components/ui/UiKeyValueList.vue'
@@ -112,11 +111,11 @@ import UiKeyValueRow from '@/components/ui/UiKeyValueRow.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { locales } from '@core/i18n'
 import { useFormSelect } from '@core/packages/form-select'
 import { useUiStore } from '@core/stores/ui.store'
-import { faEarthAmericas, faGear, faCheck } from '@fortawesome/free-solid-svg-icons'
 import type { BasicColorSchema } from '@vueuse/core'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

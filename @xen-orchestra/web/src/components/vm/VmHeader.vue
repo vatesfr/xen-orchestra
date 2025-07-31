@@ -2,7 +2,7 @@
   <UiHeadBar>
     {{ vm.name_label }}
     <template #icon>
-      <UiObjectIcon size="medium" :state="vm.power_state.toLocaleLowerCase() as VmState" type="vm" />
+      <VtsObjectIcon size="medium" :state="vm.power_state.toLocaleLowerCase() as VmState" type="vm" />
     </template>
   </UiHeadBar>
   <TabList>
@@ -36,10 +36,10 @@
 <script lang="ts" setup>
 import type { XoVm } from '@/types/xo/vm.type'
 import type { VmState } from '@core/types/object-icon.type'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{ vm: XoVm }>()

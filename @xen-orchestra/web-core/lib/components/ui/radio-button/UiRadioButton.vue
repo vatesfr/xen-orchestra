@@ -3,7 +3,7 @@
   <label :class="variant" class="ui-radio-button typo-body-regular">
     <span class="radio-container">
       <input v-model="model" :disabled="isDisabled" :value class="input" type="radio" />
-      <VtsIcon :icon="faCircle" accent="current" class="radio-icon" />
+      <VtsIcon name="fa:circle" size="medium" class="radio-icon" />
     </span>
     <slot />
   </label>
@@ -13,7 +13,6 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { toVariants } from '@core/utils/to-variants.util'
-import { faCircle } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 const { accent, value, disabled } = defineProps<{

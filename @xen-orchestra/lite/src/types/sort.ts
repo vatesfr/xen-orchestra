@@ -1,8 +1,8 @@
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 
 interface Sort {
   label?: string
-  icon?: IconDefinition
+  icon?: IconName
 }
 
 export interface Sorts {

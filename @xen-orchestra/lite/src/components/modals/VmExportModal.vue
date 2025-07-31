@@ -1,6 +1,6 @@
 <template>
   <UiModal @submit.prevent="handleSubmit">
-    <FormModalLayout :icon="faDisplay">
+    <FormModalLayout icon="fa:display">
       <template #title>
         {{ t('export-n-vms', { n: vmRefs.length }) }}
       </template>
@@ -35,7 +35,6 @@ import { IK_MODAL } from '@/types/injection-keys'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { faDisplay } from '@fortawesome/free-solid-svg-icons'
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
