@@ -31,6 +31,6 @@
 
 <!--packages-start-->
 
-- xo-web minor
+- xo-web patch
 
 <!--packages-end-->
