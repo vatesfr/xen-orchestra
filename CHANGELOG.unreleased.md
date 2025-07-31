@@ -31,4 +31,6 @@
 
 <!--packages-start-->
 
+- xo-web minor
+
 <!--packages-end-->
