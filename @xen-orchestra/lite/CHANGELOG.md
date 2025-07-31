@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.13.0** (2025-07-31)
 
 - [Host/VM/Dashboard] Fix display error due to inversion of upload and download (PR [#8793](https://github.com/vatesfr/xen-orchestra/pull/8793))
 - [Sidebar] Updated sidebar to auto close when the screen is small (PR [#8760](https://github.com/vatesfr/xen-orchestra/pull/8760))
