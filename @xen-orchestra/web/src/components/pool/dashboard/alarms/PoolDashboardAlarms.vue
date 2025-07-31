@@ -12,7 +12,7 @@
     </UiCardTitle>
     <VtsLoadingHero v-if="!areAlarmsReady" type="card" />
     <VtsAllGoodHero v-else-if="alarms.length === 0" type="card" />
-    <div v-else class="alarm-items">
+    <div v-else class="alarm-list-container">
       <UiAlarmList>
         <template v-for="alarm in alarms" :key="alarm.id">
           <UiAlarmItem
@@ -97,7 +97,7 @@ const alarms = computed(() => {
 .pool-dashboard-alarms {
   max-height: 46.2rem;
 
-  .alarm-items {
+  .alarm-list-container {
     overflow: auto;
     margin-inline: -2.4rem;
     margin-block-end: -1.2rem;
