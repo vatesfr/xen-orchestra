@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="pool-dashboard-alarms">
+  <UiCard class="site-dashboard-alarms">
     <UiCardTitle>
       {{ t('alarms') }}
       <UiCounter
@@ -14,32 +14,30 @@
     <VtsAllGoodHero v-else-if="alarms.length === 0" type="card" />
     <div v-else class="alarm-list-container">
       <UiAlarmList>
-        <template v-for="alarm in alarms" :key="alarm.id">
-          <UiAlarmItem
-            :label="alarm.body.name"
-            :percent="Number(alarm.body.value)"
-            :size="uiStore.isDesktopLarge ? 'large' : 'small'"
-            :date="alarm.time"
-          >
-            <template #link>
-              <AlarmLink :type="alarm.object.type" :uuid="alarm.object.uuid" />
-            </template>
-          </UiAlarmItem>
-        </template>
+        <UiAlarmItem
+          v-for="alarm in alarms"
+          :key="alarm.id"
+          :label="alarm.body.name"
+          :percent="Number(alarm.body.value)"
+          :size="uiStore.isDesktopLarge ? 'large' : 'small'"
+          :date="alarm.time"
+        >
+          <template #link>
+            <AlarmLink :type="alarm.object.type" :uuid="alarm.object.uuid" />
+          </template>
+        </UiAlarmItem>
       </UiAlarmList>
     </div>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import AlarmLink from '@/components/pool/dashboard/alarms/AlarmLink.vue'
-import { useAlarmStore } from '@/stores/xo-rest-api/alarm.store.ts'
+import AlarmLink from '@/components/site/dashboard/AlarmLink.vue'
 import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
 import { useSrStore } from '@/stores/xo-rest-api/sr.store.ts'
 import { useVmControllerStore } from '@/stores/xo-rest-api/vm-controller.store.ts'
 import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
 import type { XoAlarm } from '@/types/xo/alarm.type.ts'
-import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsAllGoodHero from '@core/components/state-hero/VtsAllGoodHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiAlarmItem from '@core/components/ui/alarm-item/UiAlarmItem.vue'
@@ -51,51 +49,27 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { poolDashboard } = defineProps<{
-  poolDashboard: XoPoolDashboard | undefined
+const { alarms } = defineProps<{
+  alarms: XoAlarm[]
 }>()
 
 const { t } = useI18n()
 
-const { get } = useAlarmStore().subscribe()
 const { isReady: areHostsReady } = useHostStore().subscribe()
 const { isReady: areVmsReady } = useVmStore().subscribe()
 const { isReady: areVmControllersReady } = useVmControllerStore().subscribe()
 const { isReady: areSrsReady } = useSrStore().subscribe()
 
-const areAlarmsReady = computed(() => {
-  return (
-    poolDashboard?.alarms !== undefined &&
-    areHostsReady.value &&
-    areVmsReady.value &&
-    areVmControllersReady.value &&
-    areSrsReady.value
-  )
-})
+const areAlarmsReady = computed(
+  () => areHostsReady.value && areVmsReady.value && areVmControllersReady.value && areSrsReady.value
+)
 
 const uiStore = useUiStore()
-
-const alarms = computed(() => {
-  if (!poolDashboard?.alarms) {
-    return []
-  }
-
-  return poolDashboard.alarms
-    .reduce((acc, alarmId) => {
-      const alarm = get(alarmId)
-      if (alarm !== undefined) {
-        acc.push(alarm)
-      }
-
-      return acc
-    }, [] as XoAlarm[])
-    .sort((alarm1, alarm2) => new Date(alarm2.time).getTime() - new Date(alarm1.time).getTime())
-})
 </script>
 
 <style lang="postcss" scoped>
-.pool-dashboard-alarms {
-  max-height: 46.2rem;
+.site-dashboard-alarms {
+  max-height: 40.6rem;
 
   .alarm-list-container {
     overflow: auto;
