@@ -11,6 +11,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **XO 6:**
+
+  - [Site/dashboard] add alarms component in dashboard (PR [#8838](https://github.com/vatesfr/xen-orchestra/pull/8838))
+
 - [Storage/Advanced] Add supported_image_format in storage advanced tab. Display "Unknown" if unsupported. (PR [#8834](https://github.com/vatesfr/xen-orchestra/pull/8834))
 
 ### Bug fixes
@@ -32,5 +36,9 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web minor
+- xo-server minor
+- xo-web minor
 
 <!--packages-end-->
