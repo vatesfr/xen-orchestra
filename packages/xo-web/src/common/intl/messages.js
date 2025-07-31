@@ -908,6 +908,7 @@ const messages = {
   // ----- SR advanced tab -----
 
   provisioning: 'Provisioning',
+  supportedImageFormats: 'Supported image formats',
   srUnhealthyVdiDepth: 'Depth',
   srUnhealthyVdiNameLabel: 'Name',
   srUnhealthyVdiSize: 'Size',
