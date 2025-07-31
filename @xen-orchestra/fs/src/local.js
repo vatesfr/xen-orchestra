@@ -172,19 +172,38 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _read(file, buffer, position) {
     const needsClose = typeof file === 'string'
-    file = needsClose ? await this.#addSyncStackTrace(fs.open, this.getFilePath(file), 'r') : file.fd
+    const fd = needsClose ? await this.#addSyncStackTrace(fs.open, this.getFilePath(file), 'r') : file.fd
     try {
-      return await this.#addSyncStackTrace(
+      const { bytesRead } = await this.#addSyncStackTrace(
         fs.read,
-        file,
+        fd,
         buffer,
         0,
         buffer.length,
         position === undefined ? null : position
       )
+
+      // sometimes it won't fail if it can't read the data
+      // and will return a partial buffer
+      // let's read the missing data to force it to really succeed or completely fail
+      if (bytesRead < buffer.length) {
+        warn(`read was incomplete at first, expecting ${buffer.length} from ${position} got ${bytesRead}`)
+        // additionalBuffer is a view on the end of buffer
+        const additionalBuffer = buffer.slice(bytesRead)
+        // ensure we don't fall into an infinite loop
+        assert(
+          bytesRead > 0,
+          `couldn't read any data from file ${JSON.stringify(file)} (asked for ${buffer.length} bytes}`
+        )
+        await this._read(file, additionalBuffer, position + bytesRead)
+        // this code should not be used, since the real error should pop from the read, either a read after the end or a EIO
+        // but if the error was transient, let's accept the result
+        warn(`read was incomplete at first, need to read the last ${additionalBuffer.length} bytes from ${position}`)
+      }
+      return { buffer, bytesRead: buffer.length }
     } finally {
       if (needsClose) {
-        await this.#addSyncStackTrace(fs.close, file)
+        await this.#addSyncStackTrace(fs.close, fd)
       }
     }
   }
