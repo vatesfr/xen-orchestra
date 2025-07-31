@@ -104,9 +104,9 @@ const methods = {
     }
   },
 
-  getSmFromSrType(smType) {
+  getSmFromSrType(srType) {
     const sms = filter(this.objects.indexes.type.SM, object => {
-      return object.type === smType
+      return object.type === srType
     })
     return sms.shift()
   },

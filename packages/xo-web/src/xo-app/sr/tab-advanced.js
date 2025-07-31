@@ -110,7 +110,7 @@ export default decorate([
               </tr>
               <tr>
                 <th>{_('supportedImageFormats')}</th>
-                <td>{defined(sm?.supported_image_formats?.toString(), _('unknown'))}</td>
+                <td>{defined(sm?.supported_image_formats?.toString().toUpperCase(), 'VHD')}</td>
               </tr>
               <tr>
                 <th>{_('customFields')}</th>

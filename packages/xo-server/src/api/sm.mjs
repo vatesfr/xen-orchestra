@@ -1,14 +1,13 @@
-export async function get({ id, type }) {
-  return this.getXapi(id).getSmFromSrType(type)
+export async function getFromSr({ sr }) {
+  return this.getXapi(sr).getSmFromSrType(sr.SR_type)
 }
 
-get.description = 'Get SM from SR Type'
+getFromSr.description = 'Get SM from SR Type'
 
-get.params = {
-  id: { type: 'string' },
-  type: { type: 'string' },
+getFromSr.params = {
+  sr: { type: 'string' },
 }
 
-get.resolve = {
+getFromSr.resolve = {
   sr: ['sr', 'SR', 'view'],
 }
