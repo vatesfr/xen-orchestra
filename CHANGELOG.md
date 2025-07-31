@@ -36,6 +36,7 @@
   - [i18n] Update Czech, German, Spanish, Italian, Dutch and Russian translations (PR [#8765](https://github.com/vatesfr/xen-orchestra/pull/8765))
   - [Pool/connect] add page to connect new pool (PR [#8763](https://github.com/vatesfr/xen-orchestra/pull/8763))
   - [Pool/dashboard] add pool dashboard information (PR [#8791](https://github.com/vatesfr/xen-orchestra/pull/8791))
+  - [Site/dashboard] add alarms component in dashboard (PR [#8838](https://github.com/vatesfr/xen-orchestra/pull/8838))
 
 - [REST API] Expose `/rest/v0/pools/<pool-id>/dashboard` (PR [#8768](https://github.com/vatesfr/xen-orchestra/pull/8768))
 - [REST API] Expose `/rest/v0/backup-repositories` and `/rest/v0/backup-repositories/<repository-id>` (PR [#8831](https://github.com/vatesfr/xen-orchestra/pull/8831))
@@ -45,6 +46,7 @@
 - [xo-server] Warn if build is out of sync with local git repository
 - [Storage/Disks & VM/Disks] Add image format in disks tabs. Display "Unknown" if unsupported. (PR [#8835](https://github.com/vatesfr/xen-orchestra/pull/8835))
 - [Backups] Extra confirmation step when deleting specific VM backups (PR [#8813](https://github.com/vatesfr/xen-orchestra/pull/8813))
+- [Storage/Advanced] Add supported_image_format in storage advanced tab. Display "Unknown" if unsupported. (PR [#8834](https://github.com/vatesfr/xen-orchestra/pull/8834))
 
 ### Bug fixes
 
@@ -75,9 +77,9 @@
 - @xen-orchestra/proxy 0.29.26
 - @xen-orchestra/web-core 0.26.0
 - @xen-orchestra/rest-api 0.13.0
-- @xen-orchestra/web 0.23.0
-- xo-server 5.183.0
-- xo-web 5.180.0
+- @xen-orchestra/web 0.24.0
+- xo-server 5.184.0
+- xo-web 5.181.0
 
 ## **5.108.1** (2025-07-03)
 
