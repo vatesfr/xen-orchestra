@@ -21,7 +21,6 @@
         props: {
           accent: 'brand',
           leftIcon: 'fa:floppy-disk',
-          rightIcon: undefined,
         },
         settings: {
           label: 'Save',
@@ -29,8 +28,7 @@
       },
       'Delete Button': {
         props: {
-          leftIcon: undefined,
-          rightIcon: 'fa:trash',
+          leftIcon: 'fa:trash',
           accent: 'danger',
         },
         settings: {

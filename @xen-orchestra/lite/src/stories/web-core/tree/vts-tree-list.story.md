@@ -10,7 +10,7 @@
           <UiTreeItemLabel icon="fa:server" route="#">
             Host - {{ i }}
             <template #addons>
-              <VtsIcon v-if="i === 2" icon="legacy:primary" />
+              <VtsIcon v-if="i === 2" name="legacy:primary" size="medium" />
               <UiCounter accent="brand" value="3" variant="secondary" size="small" />
             </template>
           </UiTreeItemLabel>
@@ -19,11 +19,11 @@
               <VtsTreeItem v-for="j of 3" :key="j">
                 <UiTreeItemLabel no-indent route="#">
                   <template #icon>
-                    <UiObjectIcon size="medium" :state="j === 3 ? 'halted' : 'running'" type="vm" />
+                    <VtsObjectIcon size="medium" :state="j === 3 ? 'halted' : 'running'" type="vm" />
                   </template>
                   VM {{ i }}.{{ j }}
                   <template #addons>
-                    <VtsIcon v-if="j === 2" busy accent="current" />
+                    <VtsIcon v-if="j === 2" busy :name="undefined" size="medium" />
                     <UiButtonIcon accent="brand" size="medium" icon="fa:ellipsis" />
                   </template>
                 </UiTreeItemLabel>
@@ -35,14 +35,4 @@
     </template>
   </VtsTreeItem>
 </VtsTreeList>
-```
-
-```vue-script
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
-import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
-import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 ```
