@@ -195,8 +195,8 @@ handlers.forEach(url => {
     describe('#read()', () => {
       beforeEach(() => handler.outputFile('file', TEST_DATA))
 
-      const start = random(TEST_DATA_LEN)
-      const size = random(TEST_DATA_LEN)
+      const start = random(TEST_DATA_LEN - 1)
+      const size = random(TEST_DATA_LEN - start)
 
       testWithFileDescriptor('file', 'r', async ({ file }) => {
         const buffer = Buffer.alloc(size)
