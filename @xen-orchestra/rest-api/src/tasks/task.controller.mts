@@ -6,6 +6,7 @@ import { SendObjects } from '../helpers/helper.type.mjs'
 import { notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { partialTasks, task, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import pDefer from 'promise-toolbox/defer'
 
 @Route('tasks')
 @Security('*')
@@ -46,7 +47,20 @@ export class TaskController extends XoController<XoTask> {
   @Example(task)
   @Get('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
-  async getTask(@Path() id: string): Promise<Unbrand<XoTask>> {
-    return this.getObject(id as XoTask['id'])
+  async getTask(@Request() req: ExRequest, @Path() id: string, @Query() wait?: boolean): Promise<Unbrand<XoTask>> {
+    const taskId = id as XoTask['id']
+    if (wait) {
+      const { promise, resolve } = pDefer()
+      const stopWatch = await this.restApi.tasks.watch(taskId, task => {
+        if (task.status !== 'pending') {
+          stopWatch()
+          resolve(task)
+        }
+      })
+      req.on('close', stopWatch)
+      return promise as Promise<XoTask>
+    }
+
+    return this.getObject(taskId)
   }
 }
