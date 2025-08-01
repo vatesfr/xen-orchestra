@@ -57,7 +57,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     }: {
       statusCode?: HttpStatusCodeLiteral
       sync?: boolean
-      taskProperties: { name: string; objectId: T['id']; args?: unknown; [key: string]: unknown }
+      taskProperties: { name: string; objectId: T['id']; params?: unknown; [key: string]: unknown }
     }
   ): Promise<string | CbType> {
     taskProperties.name = 'REST API: ' + taskProperties.name

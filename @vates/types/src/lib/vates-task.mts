@@ -4,7 +4,7 @@ export interface VatesTask {
   _abortController: AbortController
   _onProgress(data?: unknown): void
 
-  id: Branded<'task'>
+  id: Branded<'vates-task'>
   status: 'failure' | 'pending' | 'success'
 
   abort(reason?: unknown): void

@@ -33,6 +33,7 @@ import type {
   XoJob,
   XoGroup,
   XoPool,
+  XoTask,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -68,6 +69,8 @@ export type XoApp = {
   }
   tasks: EventEmitter & {
     create: (params: { name: string; objectId?: string; type?: string }) => VatesTask
+    get(id: XoTask['id']): XoTask
+    list(): AsyncGenerator<XoTask>
   }
   apiContext: {
     user?: XoUser

@@ -489,6 +489,28 @@ export type XoSm = BaseXapiXo & {
   type: 'SM'
 }
 
+export type XoTask = {
+  abortionRequestedAt?: number
+  end: number
+  id: Branded<'task'>
+  infos?: { data: unknown; message: string }[]
+  properties: {
+    method?: string
+    name?: string
+    objectId?: string
+    params?: Record<string, unknown>
+    type?: string
+    userId?: string
+    [key: string]: unknown | undefined
+  }
+  result: Record<string, unknown>
+  start: number
+  status: 'failure' | 'interrupted' | 'pending' | 'success'
+  tasks?: XoTask[]
+  updatedAt?: number
+  warning?: { data: unknown; message: string }[]
+}
+
 export type XoUser = {
   authProviders?: Record<string, string>
   email: string
@@ -624,8 +646,6 @@ export type XoVtpm = BaseXapiXo & {
   type: 'VTPM'
 }
 
-export type XoTask = {}
-
 export type XapiXoRecord =
   | XoAlarm
   | XoGpuGroup
@@ -651,7 +671,7 @@ export type XapiXoRecord =
   | XoVtpm
   | XoSm
 
-export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
+export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoTask | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
