@@ -3,16 +3,8 @@
     <ConfirmModalLayout>
       <template #default>
         <div class="form-selects">
-          <FormSelect v-model="newSortProperty" :label="t('sort-by')">
-            <option v-if="!newSortProperty" />
-            <option v-for="(sort, property) in availableSorts" :key="property" :value="property">
-              {{ sort.label ?? property }}
-            </option>
-          </FormSelect>
-          <FormSelect v-model="newSortIsAscending">
-            <option :value="true">{{ t('ascending') }}</option>
-            <option :value="false">{{ t('descending') }}</option>
-          </FormSelect>
+          <VtsSelect :id="sortPropertySelectId" accent="brand" />
+          <VtsSelect :id="isAscendingSelectId" accent="brand" />
         </div>
       </template>
 
@@ -25,17 +17,18 @@
 </template>
 
 <script lang="ts" setup>
-import FormSelect from '@/components/form/FormSelect.vue'
 import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayout.vue'
 import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
 import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
 import UiModal from '@/components/ui/modals/UiModal.vue'
 import { IK_MODAL } from '@/types/injection-keys'
 import type { NewSort, Sorts } from '@/types/sort'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
+import { useFormSelect } from '@core/packages/form-select'
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const { availableSorts } = defineProps<{
   availableSorts: Sorts
 }>()
 
@@ -52,6 +45,23 @@ const handleSubmit = () => {
     isAscending: newSortIsAscending.value,
   })
 }
+
+const { id: sortPropertySelectId } = useFormSelect(Object.entries(availableSorts), {
+  model: newSortProperty,
+  option: {
+    id: ([property]) => property,
+    label: ([, sort]) => sort.label ?? '',
+    value: ([property]) => property,
+  },
+})
+
+const { id: isAscendingSelectId } = useFormSelect([true, false], {
+  model: newSortIsAscending,
+  option: {
+    id: value => value.toString(),
+    label: value => (value ? t('ascending') : t('descending')),
+  },
+})
 </script>
 
 <style lang="postcss" scoped>

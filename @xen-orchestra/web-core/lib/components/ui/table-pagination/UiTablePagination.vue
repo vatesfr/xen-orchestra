@@ -11,27 +11,15 @@
       {{ t('core.select.n-object-of', { from, to, total }) }}
     </span>
     <span class="typo-body-regular-small label show">{{ t('core.pagination.show-by') }}</span>
-    <div class="dropdown-wrapper">
-      <select v-model="showBy" class="dropdown typo-body-regular-small">
-        <option v-for="option in [12, 24, 48, -1]" :key="option" :value="option" class="typo-body-bold-small">
-          {{ option === -1 ? t('core.pagination.all') : option }}
-        </option>
-      </select>
-      <VtsIcon :icon="faAngleDown" accent="current" class="icon" />
-    </div>
+    <VtsSelect :id="showBySelectId" accent="brand" class="typo-body-regular-small show-by-select" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
 import PaginationButton from '@core/components/ui/table-pagination/PaginationButton.vue'
-import {
-  faAngleDoubleLeft,
-  faAngleDoubleRight,
-  faAngleDown,
-  faAngleLeft,
-  faAngleRight,
-} from '@fortawesome/free-solid-svg-icons'
+import { useFormSelect } from '@core/packages/form-select'
+import { faAngleDoubleLeft, faAngleDoubleRight, faAngleLeft, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -52,6 +40,13 @@ const emit = defineEmits<{
 const showBy = defineModel<number>('showBy', { default: 24 })
 
 const { t } = useI18n()
+
+const { id: showBySelectId } = useFormSelect([12, 24, 48, -1], {
+  model: showBy,
+  option: {
+    label: option => (option === -1 ? t('core.pagination.all') : option.toString()),
+  },
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -74,73 +69,18 @@ const { t } = useI18n()
     margin-right: 0.8rem;
   }
 
-  .dropdown-wrapper {
-    position: relative;
+  /* Workaround: we don't have "small" select yet */
+  .show-by-select {
+    width: 7rem;
 
-    .dropdown {
-      cursor: pointer;
-      padding: 0.2rem 0.6rem;
+    &:deep(.ui-input) {
       height: 3rem;
-      width: 5rem;
-      appearance: none;
-      border-radius: 0.4rem;
-      color: var(--color-brand-txt-base);
-      border: 0.1rem solid var(--color-neutral-border);
-      background-color: var(--color-neutral-background-primary);
-
-      &:hover {
-        border-color: var(--color-brand-item-hover);
-        background-color: var(--color-brand-background-hover);
-        color: var(--color-brand-txt-hover);
-
-        + .icon {
-          color: var(--color-brand-txt-hover);
-        }
-      }
-
-      &:disabled {
-        cursor: not-allowed;
-        background-color: var(--color-neutral-background-disabled);
-        color: var(--color-neutral-txt-secondary);
-        border-color: transparent;
-
-        + .icon {
-          color: var(--color-neutral-txt-secondary);
-        }
-      }
-
-      &:active {
-        background-color: var(--color-brand-background-active);
-        border-color: var(--color-brand-item-active);
-      }
-
-      &:focus-visible {
-        outline: 0.1rem solid var(--color-brand-item-base);
-        border: 0.1rem solid var(--color-brand-item-base);
-        color: var(--color-brand-txt-base);
-        background-color: var(--color-brand-background-selected);
-
-        + .icon {
-          color: var(--color-brand-txt-base);
-        }
-      }
-
-      option {
-        background-color: var(--color-neutral-background-primary);
-        border: 0.1rem solid var(--color-neutral-border);
-        border-radius: 0.4rem;
-        color: var(--color-neutral-txt-primary);
-      }
+      padding-inline: 0.8rem;
+      gap: 0.8rem;
     }
 
-    .icon {
-      position: absolute;
-      top: 50%;
-      right: 0.8rem;
-      transform: translateY(-50%);
-      pointer-events: none;
-      font-size: 1rem;
-      color: var(--color-brand-txt-base);
+    &:deep(.input) {
+      font-size: 1.4rem;
     }
   }
 }
