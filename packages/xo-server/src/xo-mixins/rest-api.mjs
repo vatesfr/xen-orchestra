@@ -312,6 +312,7 @@ export default class RestApi {
         },
       },
       servers: {},
+      tasks: {},
     }
 
     const withParams = (fn, paramsSchema) => {
