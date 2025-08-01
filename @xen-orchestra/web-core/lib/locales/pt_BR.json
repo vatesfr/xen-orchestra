@@ -7,5 +7,9 @@
   "account-organization-more": "Conta, organisação e mais…",
   "add": "Adicionar",
   "add-filter": "Adicionar filtro",
-  "add-or": "+OU"
+  "add-or": "+OU",
+  "add-sort": "Adicionar ordenação",
+  "admin-login": "Login do administrador",
+  "admin-password": "Senha do administrador",
+  "admin-password-confirm": "Confirmar senha do administrador"
 }
