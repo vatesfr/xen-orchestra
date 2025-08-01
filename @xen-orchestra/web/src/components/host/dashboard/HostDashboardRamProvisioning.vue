@@ -3,6 +3,7 @@
     <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
+      <UiDataRuler />
       <UiProgressBar
         display-mode="percent"
         :value="host.memory.usage"
@@ -34,6 +35,7 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiDataRuler from '@core/components/ui/data-ruler/UiDataRuler.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { computed } from 'vue'

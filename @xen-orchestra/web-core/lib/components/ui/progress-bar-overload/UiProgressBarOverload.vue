@@ -1,14 +1,14 @@
 <!-- v2 -->
 <template>
   <div class="ui-progress-bar" :class="className">
-    <div class="progress-bar">
-      <div class="fill" :style="{ width: `${fillWidth}%` }" />
+    <div class="progress-bar-n-data-ruler">
+      <UiDataRuler :steps :accent />
+      <div class="progress-bar">
+        <div class="fill" :style="{ width: `${fillWidth}%` }" />
+      </div>
     </div>
     <VtsLegendList class="legend">
-      <UiLegend v-if="displayMode === 'percent'" :accent :value="Math.round(percentage)" unit="%">
-        {{ legend }}
-      </UiLegend>
-      <UiLegend v-else :accent :value="legendValue">
+      <UiLegend :accent :value="Math.round(percentage)" unit="%">
         {{ legend }}
       </UiLegend>
     </VtsLegendList>
@@ -17,34 +17,19 @@
 
 <script lang="ts" setup>
 import VtsLegendList from '@core/components/legend-list/VtsLegendList.vue'
+import UiDataRuler from '@core/components/ui/data-ruler/UiDataRuler.vue'
 import UiLegend from '@core/components/ui/legend/UiLegend.vue'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { toVariants } from '@core/utils/to-variants.util'
 import { useClamp, useMax } from '@vueuse/math'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 
-interface Props {
+const { value: _value, max: _max } = defineProps<{
   legend: string
   value: number
-  showSteps?: boolean
-}
-interface PercentageProps {
   max?: number
-  displayMode: 'percent'
-}
-interface ValueProps {
-  max: number
-  displayMode: 'value'
-}
-
-const { value: _value, max: _max, displayMode } = defineProps<Props & (PercentageProps | ValueProps)>()
-
-const emit = defineEmits<{
-  stepsChange: [steps: number[]]
 }>()
 
 const value = useMax(0, () => _value)
-
 const max = computed(() => _max ?? 100)
 
 const percentage = computed(() => (max.value <= 0 ? 0 : (value.value / max.value) * 100))
@@ -61,16 +46,12 @@ const steps = computed(() => {
   return [max / 2, max]
 })
 
-watch(steps, steps => emit('stepsChange', steps), {
-  immediate: true,
-})
-
 const accent = computed(() => {
-  if (percentage.value >= 90) {
+  if (percentage.value >= 300) {
     return 'danger'
   }
 
-  if (percentage.value >= 80) {
+  if (percentage.value >= 100) {
     return 'warning'
   }
 
@@ -78,14 +59,6 @@ const accent = computed(() => {
 })
 
 const className = computed(() => toVariants({ accent: accent.value }))
-
-const formattedValue = computed(() => formatSizeRaw(value.value, 1))
-
-const formattedMax = computed(() => formatSizeRaw(max.value, 0))
-
-const legendValue = computed(() => {
-  return `${formattedValue.value.value} ${formattedValue.value.prefix} / ${formattedMax.value.value} ${formattedMax.value.prefix}`
-})
 </script>
 
 <style lang="postcss" scoped>
@@ -93,6 +66,12 @@ const legendValue = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+
+  .progress-bar-n-data-ruler {
+    display: flex;
+    flex-direction: column;
+    gap: 2.4rem;
+  }
 
   .progress-bar {
     width: 100%;

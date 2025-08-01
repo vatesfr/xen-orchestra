@@ -3,9 +3,9 @@
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isCpuProvisioningReady" type="card" />
     <template v-else>
-      <UiProgressBar
+      <UiProgressBarOverload
         display-mode="percent"
-        :max="poolDashboard?.cpuProvisioning?.total"
+        :max="poolDashboard?.cpuProvisioning?.total ?? 100"
         :legend="t('vcpus')"
         :value="poolDashboard?.cpuProvisioning?.assigned ?? 0"
       />
@@ -23,7 +23,7 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
+import UiProgressBarOverload from '@core/components/ui/progress-bar-overload/UiProgressBarOverload.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

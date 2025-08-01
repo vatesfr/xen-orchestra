@@ -3,7 +3,7 @@
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiProgressBar display-mode="percent" :value="vCpusCount" :max="cpusCount" :legend="t('vcpus')" />
+      <UiProgressBarOverload :value="vCpusCount" :max="cpusCount" :legend="t('vcpus')" />
       <div class="total">
         <UiCardNumbers :label="t('vcpus-assigned')" :value="vCpusCount" size="medium" />
         <UiCardNumbers :label="t('total-cpus')" :value="cpusCount" size="medium" />
@@ -20,7 +20,7 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
+import UiProgressBarOverload from '@core/components/ui/progress-bar-overload/UiProgressBarOverload.vue'
 import { logicAnd } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'

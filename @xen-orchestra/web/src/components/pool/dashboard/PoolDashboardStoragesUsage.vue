@@ -8,6 +8,7 @@
     </UiCardTitle>
     <VtsLoadingHero v-if="!areStoragesUsageReady" type="card" />
     <template v-else>
+      <UiDataRuler />
       <UiProgressBar
         v-for="sr in topFiveUsage"
         :key="sr.id"
@@ -40,6 +41,7 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiDataRuler from '@core/components/ui/data-ruler/UiDataRuler.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { useArrayReduce } from '@vueuse/shared'
