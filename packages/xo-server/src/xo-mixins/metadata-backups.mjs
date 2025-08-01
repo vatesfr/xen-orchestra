@@ -3,12 +3,13 @@ import cloneDeep from 'lodash/cloneDeep.js'
 import Disposable from 'promise-toolbox/Disposable'
 import { createLogger } from '@xen-orchestra/log'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
+import { makeOnProgress } from '@vates/task/combineEvents'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.mjs'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
-import { handleBackupLog } from '../_handleBackupLog.mjs'
+import { forwardResult, handleBackupLog, handleBackupTaskLog } from '../_handleBackupLog.mjs'
 import { waitAll } from '../_waitAll.mjs'
 import { serializeError, unboxIdsFromPattern } from '../utils.mjs'
 
@@ -37,7 +38,7 @@ export default class metadataBackup {
     })
   }
 
-  async _executor({ cancelToken, job: job_, logger, runJobId, schedule }) {
+  async _executor({ cancelToken, job: job_, jobData, logger, runJobId, schedule }) {
     const job = cloneDeep(job_)
     const scheduleSettings = job.settings[schedule.id]
 
@@ -107,30 +108,34 @@ export default class metadataBackup {
           assertType: 'iterator',
         })
 
-        const localTaskIds = { __proto__: null }
-
         let result
+        const store = await app.getStore('tasks')
+        const onLogFct = makeOnProgress({
+          onRootTaskEnd: log => {
+            result = forwardResult(log)
+          },
+          onTaskUpdate: (log, event) => {
+            handleBackupTaskLog(log, event, { store })
+          },
+        })
+
         for await (const log of logsStream) {
-          result = handleBackupLog(log, {
-            localTaskIds,
-            logger,
-            runJobId,
-          })
+          onLogFct(log)
         }
         return result
       } else {
         cancelToken.throwIfRequested()
 
-        const localTaskIds = { __proto__: null }
+        const store = await app.getStore('tasks')
+        const onLogFct = makeOnProgress({
+          onTaskUpdate: (log, event) => {
+            handleBackupTaskLog(log, event, { store })
+          },
+        })
         return Task.run(
           {
-            properties: { name: 'backup run' },
-            onProgress: log =>
-              handleBackupLog(log, {
-                localTaskIds,
-                logger,
-                runJobId,
-              }),
+            properties: { name: 'backup run', ...jobData },
+            onProgress: onLogFct,
           },
           () =>
             createRunner({
