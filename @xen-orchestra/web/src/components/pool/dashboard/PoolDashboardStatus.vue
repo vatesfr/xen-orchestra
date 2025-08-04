@@ -1,11 +1,15 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ t('status') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!areHostsStatusReady && !areVmsStatusReady" type="card" />
+    <VtsLoadingHero v-if="!areHostsStatusReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" icon="fa:server" />
       <UiCardNumbers :label="t('total')" :value="poolDashboard?.hosts?.status?.total" size="small" />
-      <VtsDivider type="stretch" />
+    </template>
+    <VtsDivider type="stretch" />
+    <VtsLoadingHero v-if="!areVmsStatusReady" type="card" />
+    <VtsNoDataHero v-else-if="poolDashboard?.vms?.status?.total === 0" type="card" />
+    <template v-else>
       <VtsDonutChartWithLegend :segments="vmsSegments" :title="{ label: t('vms', 2) }" icon="fa:display" />
       <UiCardNumbers :label="t('total')" :value="poolDashboard?.vms?.status?.total" size="small" />
     </template>
@@ -19,6 +23,7 @@ import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

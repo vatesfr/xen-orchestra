@@ -2,6 +2,7 @@
   <UiCard>
     <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!areVmsStatusReady" type="card" />
+    <VtsNoDataHero v-else-if="status?.total === 0" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend icon="fa:desktop" :segments />
       <UiCardNumbers :label="t('total')" :value="status?.total" class="total" size="small" />
@@ -15,6 +16,7 @@ import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
