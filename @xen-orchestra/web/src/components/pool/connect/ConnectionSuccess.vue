@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { useServerStore } from '@/stores/xo-rest-api/server.store.ts'
+import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
 import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
@@ -38,7 +38,6 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { faPlus } from '@fortawesome/free-solid-svg-icons'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { serverId } = defineProps<{
@@ -50,10 +49,10 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const { get: getServer } = useServerStore().subscribe()
+const { useGetServerById } = useXoServerCollection()
 const uiStore = useUiStore()
 
-const server = computed(() => getServer(serverId))
+const server = useGetServerById(() => serverId)
 </script>
 
 <style lang="postcss" scoped>

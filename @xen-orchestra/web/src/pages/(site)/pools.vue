@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import PoolsSidePanel from '@/components/site/pools/PoolsSidePanel.vue'
 import PoolsTable from '@/components/site/pools/PoolsTable.vue'
-import { useServerStore } from '@/stores/xo-rest-api/server.store'
+import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
 import type { XoServer } from '@/types/xo/server.type'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -21,11 +21,11 @@ import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
 
-const { records: servers, get } = useServerStore().subscribe()
+const { servers, getServerById } = useXoServerCollection()
 const uiStore = useUiStore()
 
 const selectedServer = useRouteQuery<XoServer | undefined>('id', {
-  toData: id => get(id as XoServer['id']),
+  toData: id => getServerById(id as XoServer['id']),
   toQuery: server => server?.id ?? '',
 })
 </script>

@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import VmVifSidePanel from '@/components/vm/network/VmVifSidePanel.vue'
 import VmVifsTable from '@/components/vm/network/VmVifsTable.vue'
-import { useVifStore } from '@/stores/xo-rest-api/vif.store.ts'
+import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import type { XoVif } from '@/types/xo/vif.type.ts'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -23,15 +23,15 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { useArrayFilter } from '@vueuse/shared'
 import { useRoute } from 'vue-router/auto'
 
-const { records } = useVifStore().subscribe()
+const { vifs: rawVifs, getVifById } = useXoVifCollection()
 const uiStore = useUiStore()
 
 const route = useRoute<'/vm/[id]'>()
 
-const vifs = useArrayFilter(records, vif => vif.$VM === route.params.id)
+const vifs = useArrayFilter(rawVifs, vif => vif.$VM === route.params.id)
 
 const selectedVif = useRouteQuery<XoVif | undefined>('id', {
-  toData: id => vifs.value.find(vif => vif.id === id),
+  toData: id => getVifById(id as XoVif['id']),
   toQuery: vif => vif?.id ?? '',
 })
 </script>

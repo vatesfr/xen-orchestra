@@ -44,12 +44,12 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="isNetworkCollectionReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable
-        :is-ready
-        :has-error
+        :is-ready="isNetworkCollectionReady"
+        :has-error="hasNetworkCollectionError"
         :no-data-message="networks.length === 0 ? t('no-network-detected') : undefined"
       >
         <template #thead>
@@ -108,15 +108,15 @@
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="isNetworkCollectionReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store.ts'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store.ts'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -157,9 +157,9 @@ const { networks } = defineProps<{
 
 const { t } = useI18n()
 
-const { isReady, hasError } = useNetworkStore().subscribe()
+const { isNetworkCollectionReady, hasNetworkCollectionError } = useXoNetworkCollection()
 
-const { records: pifs } = usePifStore().subscribe()
+const { pifs } = useXoPifCollection()
 
 const selectedNetworkId = useRouteQuery('id')
 

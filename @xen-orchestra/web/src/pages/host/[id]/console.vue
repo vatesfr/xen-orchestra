@@ -11,8 +11,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
 import { HOST_OPERATION, type XoHost } from '@/types/xo/host.type'
+import { isHostOperationPending } from '@/utils/xo-records/host.util.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
@@ -26,8 +26,6 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const { isHostOperationPending } = useHostStore().subscribe()
 
 const STOP_OPERATIONS = [HOST_OPERATION.SHUTDOWN, HOST_OPERATION.REBOOT]
 

@@ -1,10 +1,10 @@
 <template>
-  <VtsLoadingHero v-if="!isReady" type="page" />
+  <VtsLoadingHero v-if="!isVmCollectionReady" type="page" />
   <UiCard v-else class="vms">
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="isVmCollectionReady" v-bind="paginationBindings" />
     </div>
     <VtsTable vertical-border>
       <thead>
@@ -30,13 +30,13 @@
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="isVmCollectionReady" v-bind="paginationBindings" />
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
 import type { VmState } from '@core/types/object-icon.type'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
@@ -61,7 +61,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const { isReady, vmsByHost } = useVmStore().subscribe()
+const { isVmCollectionReady, vmsByHost } = useXoVmCollection()
 
 const definitions = computed(() =>
   defineTree(vmsByHost.value.get(props.host.id) ?? [], {

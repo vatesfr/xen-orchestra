@@ -22,10 +22,10 @@
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { HOST_POWER_STATE } from '@/types/xo/host.type'
 import type { XoPif } from '@/types/xo/pif.type'
+import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
@@ -41,15 +41,14 @@ const { pif } = defineProps<{
 
 const { t } = useI18n()
 
-const { get } = useHostStore().subscribe()
-const { getPifStatus } = usePifStore().subscribe()
+const { getHostById } = useXoHostCollection()
 
 const router = useRouter()
 
 const status = computed(() => getPifStatus(pif))
 
 const pifHost = computed(() => {
-  const host = get(pif.$host)
+  const host = getHostById(pif.$host)
 
   if (!host) {
     return

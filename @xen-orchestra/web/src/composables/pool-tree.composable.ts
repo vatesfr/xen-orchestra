@@ -1,6 +1,6 @@
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoSite } from '@/types/xo/site.type.ts'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
@@ -9,9 +9,9 @@ import { logicAnd } from '@vueuse/math'
 import { computed, useId } from 'vue'
 
 export function useSiteTree() {
-  const { records: pools, isReady: isPoolReady } = usePoolStore().subscribe()
-  const { hostsByPool, isReady: isHostReady } = useHostStore().subscribe()
-  const { vmsByHost, hostLessVmsByPool, isReady: isVmReady } = useVmStore().subscribe()
+  const { pools, isPoolCollectionReady } = useXoPoolCollection()
+  const { hostsByPool, isHostCollectionReady } = useXoHostCollection()
+  const { vmsByHost, hostLessVmsByPool, isVmCollectionReady } = useXoVmCollection()
   const { filter, predicate } = useTreeFilter()
 
   const site: XoSite = {
@@ -22,7 +22,7 @@ export function useSiteTree() {
 
   const sites = computed(() => [site])
 
-  const isReady = logicAnd(isPoolReady, isHostReady, isVmReady)
+  const isReady = logicAnd(isPoolCollectionReady, isHostCollectionReady, isVmCollectionReady)
 
   const definitions = computed(() =>
     defineTree(

@@ -33,12 +33,11 @@
 
 <script setup lang="ts">
 import AlarmLink from '@/components/pool/dashboard/alarms/AlarmLink.vue'
-import { useAlarmStore } from '@/stores/xo-rest-api/alarm.store.ts'
-import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
-import { useSrStore } from '@/stores/xo-rest-api/sr.store.ts'
-import { useVmControllerStore } from '@/stores/xo-rest-api/vm-controller.store.ts'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
-import type { XoAlarm } from '@/types/xo/alarm.type.ts'
+import { useXoAlarmCollection } from '@/remote-resources/use-xo-alarm-collection.ts'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection.ts'
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsAllGoodHero from '@core/components/state-hero/VtsAllGoodHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -48,7 +47,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { computed } from 'vue'
+import { logicAnd } from '@vueuse/math'
 import { useI18n } from 'vue-i18n'
 
 const { poolDashboard } = defineProps<{
@@ -57,40 +56,23 @@ const { poolDashboard } = defineProps<{
 
 const { t } = useI18n()
 
-const { get } = useAlarmStore().subscribe()
-const { isReady: areHostsReady } = useHostStore().subscribe()
-const { isReady: areVmsReady } = useVmStore().subscribe()
-const { isReady: areVmControllersReady } = useVmControllerStore().subscribe()
-const { isReady: areSrsReady } = useSrStore().subscribe()
+const { useGetAlarmsByIds, isAlarmCollectionReady } = useXoAlarmCollection()
+const { isHostCollectionReady } = useXoHostCollection()
+const { isVmCollectionReady } = useXoVmCollection()
+const { isVmControllerCollectionReady } = useXoVmControllerCollection()
+const { isSrCollectionReady } = useXoSrCollection()
 
-const areAlarmsReady = computed(() => {
-  return (
-    poolDashboard?.alarms !== undefined &&
-    areHostsReady.value &&
-    areVmsReady.value &&
-    areVmControllersReady.value &&
-    areSrsReady.value
-  )
-})
+const areAlarmsReady = logicAnd(
+  isAlarmCollectionReady,
+  isHostCollectionReady,
+  isVmCollectionReady,
+  isVmControllerCollectionReady,
+  isSrCollectionReady
+)
 
 const uiStore = useUiStore()
 
-const alarms = computed(() => {
-  if (!poolDashboard?.alarms) {
-    return []
-  }
-
-  return poolDashboard.alarms
-    .reduce((acc, alarmId) => {
-      const alarm = get(alarmId)
-      if (alarm !== undefined) {
-        acc.push(alarm)
-      }
-
-      return acc
-    }, [] as XoAlarm[])
-    .sort((alarm1, alarm2) => new Date(alarm2.time).getTime() - new Date(alarm1.time).getTime())
-})
+const alarms = useGetAlarmsByIds(() => poolDashboard?.alarms ?? [])
 </script>
 
 <style lang="postcss" scoped>
