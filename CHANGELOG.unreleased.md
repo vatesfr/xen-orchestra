@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- Fix `incorrect state` error when trying to delete a disabled server [#11128](https://xcp-ng.org/forum/topic/11128/can-t-delete-disconnected-server-in-settings)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server patch
 
 <!--packages-end-->
