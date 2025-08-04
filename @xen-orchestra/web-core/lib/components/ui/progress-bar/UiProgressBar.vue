@@ -18,9 +18,9 @@
 <script lang="ts" setup>
 import VtsLegendList from '@core/components/legend-list/VtsLegendList.vue'
 import UiLegend from '@core/components/ui/legend/UiLegend.vue'
+import { useProgress } from '@core/composables/progress-bar.composable.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { toVariants } from '@core/utils/to-variants.util'
-import { useClamp, useMax } from '@vueuse/math'
 import { computed, watch } from 'vue'
 
 interface Props {
@@ -28,10 +28,12 @@ interface Props {
   value: number
   showSteps?: boolean
 }
+
 interface PercentageProps {
   max?: number
   displayMode: 'percent'
 }
+
 interface ValueProps {
   max: number
   displayMode: 'value'
@@ -43,23 +45,10 @@ const emit = defineEmits<{
   stepsChange: [steps: number[]]
 }>()
 
-const value = useMax(0, () => _value)
-
-const max = computed(() => _max ?? 100)
-
-const percentage = computed(() => (max.value <= 0 ? 0 : (value.value / max.value) * 100))
-const maxPercentage = computed(() => Math.ceil(percentage.value / 100) * 100)
-const fillWidth = useClamp(() => (percentage.value / maxPercentage.value) * 100 || 0, 0, 100)
-
-const steps = computed(() => {
-  const max = maxPercentage.value / 100
-
-  if (max === 0) {
-    return [0.5, 1]
-  }
-
-  return [max / 2, max]
-})
+const { percentage, fillWidth, steps, value, max } = useProgress(
+  () => _value,
+  () => _max
+)
 
 watch(steps, steps => emit('stepsChange', steps), {
   immediate: true,

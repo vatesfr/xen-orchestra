@@ -19,39 +19,27 @@
 import VtsLegendList from '@core/components/legend-list/VtsLegendList.vue'
 import UiDataRuler from '@core/components/ui/data-ruler/UiDataRuler.vue'
 import UiLegend from '@core/components/ui/legend/UiLegend.vue'
+import { useProgress } from '@core/composables/progress-bar.composable.ts'
 import { toVariants } from '@core/utils/to-variants.util'
-import { useClamp, useMax } from '@vueuse/math'
 import { computed } from 'vue'
 
-const { value: _value, max: _max } = defineProps<{
+const { value, max } = defineProps<{
   legend: string
   value: number
   max?: number
 }>()
 
-const value = useMax(0, () => _value)
-const max = computed(() => _max ?? 100)
-
-const percentage = computed(() => (max.value <= 0 ? 0 : (value.value / max.value) * 100))
-const maxPercentage = computed(() => Math.ceil(percentage.value / 100) * 100)
-const fillWidth = useClamp(() => (percentage.value / maxPercentage.value) * 100 || 0, 0, 100)
-
-const steps = computed(() => {
-  const max = maxPercentage.value / 100
-
-  if (max === 0) {
-    return [0.5, 1]
-  }
-
-  return [max / 2, max]
-})
+const { percentage, fillWidth, steps } = useProgress(
+  () => value,
+  () => max
+)
 
 const accent = computed(() => {
-  if (percentage.value >= 300) {
+  if (percentage.value > 300) {
     return 'danger'
   }
 
-  if (percentage.value >= 100) {
+  if (percentage.value > 100) {
     return 'warning'
   }
 
