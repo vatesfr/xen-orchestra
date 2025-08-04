@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import type { Request as ExRequest } from 'express'
 import type { XoTask } from '@vates/types'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -7,6 +8,9 @@ import { notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/resp
 import { provide } from 'inversify-binding-decorators'
 import { partialTasks, task, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import pDefer from 'promise-toolbox/defer'
+import { ApiError } from '../helpers/error.helper.mjs'
+import { Readable } from 'node:stream'
+import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 
 @Route('tasks')
 @Security('*')
@@ -23,6 +27,9 @@ export class TaskController extends XoController<XoTask> {
   }
 
   /**
+   *
+   * If watch is true, ndjson must also be true
+   *
    * @example fields "status,id,properties"
    * @example filter "status:failure"
    * @example limit 42
@@ -34,9 +41,40 @@ export class TaskController extends XoController<XoTask> {
     @Request() req: ExRequest,
     @Query() fields?: string,
     @Query() ndjson?: boolean,
+    @Query() watch?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    if (watch) {
+      if (!ndjson) {
+        throw new ApiError('watch=true requires ndjson=true', 400)
+      }
+
+      const userFilter = filter === undefined ? undefined : CM.parse(filter).createPredicate()
+      const stream = new Readable({ objectMode: true, read() {} })
+
+      function update(task: XoTask) {
+        if (userFilter === undefined || userFilter(task)) {
+          const mapper = makeObjectMapper(req)
+          stream.push(JSON.stringify(['update', mapper(task)]) + '\n')
+        }
+      }
+      function remove(taskId: XoTask['id']) {
+        stream.push(JSON.stringify(['remove', taskId]) + '\n')
+      }
+
+      this.restApi.tasks.on('update', update).on('remove', remove)
+      stream.on('close', () => {
+        this.restApi.tasks.off('update', update).off('remove', remove)
+      })
+
+      req.on('close', () => {
+        stream.emit('close')
+      })
+
+      return stream
+    }
+
     const tasks = Object.values(await this.getObjects({ filter, limit }))
     return this.sendObjects(tasks, req)
   }
