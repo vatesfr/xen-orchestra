@@ -43,7 +43,7 @@ import { error } from 'notification'
 
 // ===================================================================
 
-const COLUMNS = [
+const COLUMNS = sr => [
   {
     name: _('vdiNameLabel'),
     itemRenderer: (vdi, { vdisByBaseCopy }) => {
@@ -107,11 +107,13 @@ const COLUMNS = [
     itemRenderer: vdi => formatSize(vdi.size),
     sortCriteria: vdi => vdi.size,
   },
-  {
-    name: _('vdiImageFormat'),
-    itemRenderer: vdi => defined(vdi.image_format, 'VHD'),
-    sortCriteria: vdi => vdi.image_format,
-  },
+  ...(!isSrIso(sr)
+  ? [{
+      name: _('vdiImageFormat'),
+      itemRenderer: (vdi, { sr }) => isSrIso(sr) ? null : defined(vdi.image_format, 'VHD'),
+      sortCriteria: vdi => vdi.image_format,
+    }]
+    : []),
   {
     name: _('vbdCbt'),
     itemRenderer: vdi => <Toggle value={vdi.cbt_enabled} onChange={cbt => setCbt(vdi, cbt)} />,
@@ -466,8 +468,9 @@ export default class SrDisks extends Component {
               <SortedTable
                 actions={this._actions}
                 collection={vdis}
-                columns={COLUMNS}
+                columns={COLUMNS(this.props.sr)}
                 data-isVdiAttached={this._getIsVdiAttached()}
+                data-sr={this.props.sr}
                 data-vdisByBaseCopy={this._getVdisByBaseCopy()}
                 data-vmSnapshotsBySuspendVdi={this.props.vmSnapshotsBySuspendVdi}
                 defaultFilter='filterOnlyManaged'
