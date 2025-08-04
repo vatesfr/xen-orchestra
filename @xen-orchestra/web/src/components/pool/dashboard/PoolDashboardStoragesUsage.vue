@@ -7,6 +7,7 @@
       </template>
     </UiCardTitle>
     <VtsLoadingHero v-if="!areStoragesUsageReady" type="card" />
+    <VtsNoDataHero v-else-if="topFiveUsage.length === 0" type="card" />
     <template v-else>
       <UiProgressBar
         v-for="sr in topFiveUsage"
@@ -37,6 +38,7 @@
 <script lang="ts" setup>
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

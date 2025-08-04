@@ -6,6 +6,7 @@
     </UiCardTitle>
     <VtsLoadingHero v-if="loading || data === null" type="card" />
     <VtsErrorNoDataHero v-else-if="error" type="card" />
+    <VtsNoDataHero v-else-if="networkUsage.length === 0" type="card" />
     <VtsLinearChart v-else :data="networkUsage" :max-value :value-formatter="byteFormatter" />
   </UiCard>
 </template>
@@ -14,6 +15,7 @@
 import type { LinearChartData } from '@core/types/chart.ts'
 import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
