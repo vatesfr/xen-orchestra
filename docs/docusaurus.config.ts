@@ -35,6 +35,10 @@ const config: Config = {
       {
         redirects: [
           {
+            to: '/users#acls',
+            from: '/acls',
+          },
+          {
             to: '/incremental_replication',
             from: '/continuous_replication',
           },
