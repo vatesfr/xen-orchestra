@@ -24,7 +24,7 @@ Now go back to the Home view (or click on the "Xen Orchestra" title on the top l
 
 ### VMs
 
-By default, this view groups all **running VMs** on your connected server:
+By default, this view groups all **running VMs** on your connected server and everyday administration tasks:
 
 ![](./assets/xo5homevms.png)
 
