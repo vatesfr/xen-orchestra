@@ -7,6 +7,7 @@
       </template>
     </UiCardTitle>
     <VtsLoadingHero v-if="!areStoragesUsageReady" type="card" />
+    <VtsNoDataHero v-else-if="topFiveUsage.length === 0" type="card" />
     <template v-else>
       <VtsProgressBarGroup :items="progressBarItems" legend-type="percent" />
       <div class="total">
@@ -34,6 +35,7 @@ import VtsProgressBarGroup, {
   type ProgressBarGroupItem,
 } from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
