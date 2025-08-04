@@ -302,7 +302,7 @@ ACLs are permissions that apply to preexisting objects, like users and groups.
 
 ### Who can manage ACLs?
 
-Only a super admin (XO administrator) can create objects.
+Only a super admin (XO administrator) can manage ACLs.
 
 ### How can I view and edit ACLs?
 
