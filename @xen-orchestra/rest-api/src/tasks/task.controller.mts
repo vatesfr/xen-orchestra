@@ -4,7 +4,7 @@ import type { XoTask } from '@vates/types'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { Get, Path, Query, Request, Route, Security, Tags, Response, Example } from 'tsoa'
 import { SendObjects } from '../helpers/helper.type.mjs'
-import { notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { partialTasks, task, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import pDefer from 'promise-toolbox/defer'
@@ -37,6 +37,7 @@ export class TaskController extends XoController<XoTask> {
   @Example(taskIds)
   @Example(partialTasks)
   @Get('')
+  @Response(badRequestResp.status, badRequestResp.description)
   async getTasks(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -51,7 +52,16 @@ export class TaskController extends XoController<XoTask> {
       }
 
       const userFilter = filter === undefined ? undefined : CM.parse(filter).createPredicate()
-      const stream = new Readable({ objectMode: true, read() {} })
+      const stream = new Readable({ read() {} })
+      stream.on('close', () => {
+        this.restApi.tasks.off('update', update).off('remove', remove)
+      })
+      req.on('close', () => {
+        stream.destroy()
+      })
+      process.on('SIGTERM', () => {
+        req.destroy()
+      })
 
       function update(task: XoTask) {
         if (userFilter === undefined || userFilter(task)) {
@@ -64,13 +74,6 @@ export class TaskController extends XoController<XoTask> {
       }
 
       this.restApi.tasks.on('update', update).on('remove', remove)
-      stream.on('close', () => {
-        this.restApi.tasks.off('update', update).off('remove', remove)
-      })
-
-      req.on('close', () => {
-        stream.emit('close')
-      })
 
       return stream
     }
