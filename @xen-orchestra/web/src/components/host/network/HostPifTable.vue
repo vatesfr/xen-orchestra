@@ -41,10 +41,14 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0">
-          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="isPifCollectionReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
-      <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? t('no-pif-detected') : undefined">
+      <VtsDataTable
+        :is-ready="isPifCollectionReady"
+        :has-error="hasPifCollectionError"
+        :no-data-message="pifs.length === 0 ? t('no-pif-detected') : undefined"
+      >
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -127,16 +131,17 @@
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="isPifCollectionReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store.ts'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store.ts'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoPif } from '@/types/xo/pif.type.ts'
+import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -175,8 +180,8 @@ const { pifs } = defineProps<{
   pifs: XoPif[]
 }>()
 
-const { isReady, hasError, getPifStatus } = usePifStore().subscribe()
-const { get } = useNetworkStore().subscribe()
+const { isPifCollectionReady, hasPifCollectionError } = useXoPifCollection()
+const { getNetworkById } = useXoNetworkCollection()
 
 const { t } = useI18n()
 const selectedPifId = useRouteQuery('id')
@@ -196,7 +201,7 @@ const pifsIds = computed(() => pifs.map(pif => pif.id))
 
 const { selected, areAllSelected } = useMultiSelect(pifsIds)
 
-const getNetworkName = (pif: XoPif) => get(pif.$network)?.name_label ?? ''
+const getNetworkName = (pif: XoPif) => getNetworkById(pif.$network)?.name_label ?? ''
 
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 

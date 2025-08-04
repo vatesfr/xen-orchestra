@@ -52,8 +52,8 @@
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store.ts'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { HOST_POWER_STATE, type XoHost } from '@/types/xo/host.type.ts'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -75,10 +75,11 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { get: getPoolById } = usePoolStore().subscribe()
-const { getMasterHostByPoolId, isMasterHost } = useHostStore().subscribe()
+const { useGetPoolById } = useXoPoolCollection()
 
-const pool = computed(() => getPoolById(host.$pool))
+const { getMasterHostByPoolId, isMasterHost } = useXoHostCollection()
+
+const pool = useGetPoolById(() => host.$pool)
 
 const isMaster = computed(() => isMasterHost(host.id))
 

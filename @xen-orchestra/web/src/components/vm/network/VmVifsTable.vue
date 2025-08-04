@@ -52,10 +52,14 @@
         </UiTableActions>
 
         <UiTopBottomTable :selected-items="0" :total-items="0">
-          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="isVifCollectionReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
-      <VtsDataTable :is-ready :has-error :no-data-message="vifs.length === 0 ? t('no-vif-detected') : undefined">
+      <VtsDataTable
+        :is-ready="isVifCollectionReady"
+        :has-error="hasVifCollectionError"
+        :no-data-message="vifs.length === 0 ? t('no-vif-detected') : undefined"
+      >
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -126,16 +130,16 @@
         </template>
       </VtsDataTable>
       <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="isVifCollectionReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import { useVifStore } from '@/stores/xo-rest-api/vif.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoVif } from '@/types/xo/vif.type'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -173,14 +177,14 @@ const { vifs } = defineProps<{
   vifs: XoVif[]
 }>()
 
-const { get: getNetwork } = useNetworkStore().subscribe()
-const { get: getVm } = useVmStore().subscribe()
-const { isReady, hasError } = useVifStore().subscribe()
+const { getNetworkById } = useXoNetworkCollection()
+const { getVmById } = useXoVmCollection()
+const { isVifCollectionReady, hasVifCollectionError } = useXoVifCollection()
 const { t } = useI18n()
 
 const selectedVifId = useRouteQuery('id')
 
-const getNetworkName = (vif: XoVif) => getNetwork(vif.$network)?.name_label ?? ''
+const getNetworkName = (vif: XoVif) => getNetworkById(vif.$network)?.name_label ?? ''
 
 const searchQuery = ref('')
 
@@ -197,7 +201,7 @@ const filteredVifs = computed(() => {
 })
 
 const getIpAddresses = (vif: XoVif) => {
-  const addresses = getVm(vif.$VM)?.addresses
+  const addresses = getVmById(vif.$VM)?.addresses
 
   return addresses ? [...new Set(Object.values(addresses).sort())] : []
 }

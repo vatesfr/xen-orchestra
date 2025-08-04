@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isReady" type="page" />
+  <VtsLoadingHero v-if="!isPoolCollectionReady" type="page" />
   <VtsObjectNotFoundHero v-else-if="!pool" :id="route.params.id" type="page" />
   <RouterView v-else v-slot="{ Component }">
     <PoolHeader :pool />
@@ -9,19 +9,18 @@
 
 <script lang="ts" setup>
 import PoolHeader from '@/components/pool/PoolHeader.vue'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
-import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 useDefaultTab('/pool/[id]', 'dashboard')
 
 const route = useRoute<'/pool/[id]'>()
 
-const { isReady, get } = usePoolStore().subscribe()
+const { isPoolCollectionReady, useGetPoolById } = useXoPoolCollection()
 
-const pool = computed(() => get(route.params.id as XoPool['id']))
+const pool = useGetPoolById(() => route.params.id as XoPool['id'])
 </script>

@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { VM_OPERATION, type XoVm } from '@/types/xo/vm.type'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
@@ -53,7 +53,7 @@ import { useI18n } from 'vue-i18n'
 const { vm } = defineProps<{ vm: XoVm }>()
 const { t } = useI18n()
 
-const { get: getHostById } = useHostStore().subscribe()
+const { getHostById } = useXoHostCollection()
 
 const affinityHostName = computed(() => (vm.affinityHost ? getHostById(vm.affinityHost)?.name_label : ''))
 const protectedOperations = [

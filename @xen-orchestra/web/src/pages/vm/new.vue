@@ -327,15 +327,15 @@
 import NetworkSelect from '@/components/select/NetworkSelect.vue'
 import SrSelect from '@/components/select/SrSelect.vue'
 import { createVM } from '@/jobs/vm-create.job.ts'
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
-import { useSrStore } from '@/stores/xo-rest-api/sr.store'
-import { useVbdStore } from '@/stores/xo-rest-api/vbd.store'
-import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
-import { useVifStore } from '@/stores/xo-rest-api/vif.store'
-import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
+import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
+import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
 import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
 import type { XoPool } from '@/types/xo/pool.type.ts'
@@ -387,15 +387,15 @@ const isOpen = ref(false)
 
 const isBusy = ref(false)
 
-const { records: networks, get: getNetwork } = useNetworkStore().subscribe()
-const { getPifsByNetworkId } = usePifStore().subscribe()
-const { records: pools } = usePoolStore().subscribe()
-const { vmsTemplatesByPool } = useVmTemplateStore().subscribe()
-const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
-const { get: getVbd } = useVbdStore().subscribe()
-const { get: getVdi } = useVdiStore().subscribe()
-const { get: getVif } = useVifStore().subscribe()
-const { hostsByPool } = useHostStore().subscribe()
+const { networks, getNetworkById } = useXoNetworkCollection()
+const { getPifsByNetworkId } = useXoPifCollection()
+const { pools } = useXoPoolCollection()
+const { srs, vdiIsosBySrName } = useXoSrCollection()
+const { getVbdById } = useXoVbdCollection()
+const { getVdiById } = useXoVdiCollection()
+const { getVifById } = useXoVifCollection()
+const { hostsByPool } = useXoHostCollection()
+const { vmsTemplatesByPool } = useXoVmTemplateCollection()
 
 const vmState = reactive<VmState>({
   name: '',
@@ -529,13 +529,13 @@ const getVmTemplateVdis = (template: XoVmTemplate) =>
 
 const getExistingVdis = (template: XoVmTemplate) => {
   return template.$VBDs.reduce<Vdi[]>((acc, vbdId) => {
-    const vbd = getVbd(vbdId)
+    const vbd = getVbdById(vbdId)
 
     if (vbd === undefined || vbd.is_cd_drive) {
       return acc
     }
 
-    const vdi = getVdi(vbd.VDI)
+    const vdi = getVdiById(vbd.VDI)
 
     if (vdi === undefined) {
       console.error('VDI not found')
@@ -584,14 +584,14 @@ const getExistingVifs = (template: XoVmTemplate): Vif[] => {
     return []
   }
   return template.VIFs.reduce<Vif[]>((acc, vifId) => {
-    const vif = getVif(vifId)
+    const vif = getVifById(vifId)
 
     if (vif === undefined) {
       console.error('VIF not found')
       return acc
     }
 
-    const network = getNetwork(vif.$network)
+    const network = getNetworkById(vif.$network)
 
     if (network === undefined) {
       console.error('Network not found')

@@ -13,8 +13,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -32,10 +32,11 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isReady: isHostReady } = useHostStore().subscribe()
-const { vmsByHost, isReady: isVmReady } = useVmStore().subscribe()
+const { isHostCollectionReady } = useXoHostCollection()
 
-const isReady = logicAnd(isHostReady, isVmReady)
+const { vmsByHost, isVmCollectionReady } = useXoVmCollection()
+
+const isReady = logicAnd(isHostCollectionReady, isVmCollectionReady)
 
 const hostVms = computed(() => vmsByHost.value.get(host.id) ?? [])
 
