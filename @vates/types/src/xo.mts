@@ -491,7 +491,7 @@ export type XoSm = BaseXapiXo & {
 
 export type XoTask = {
   abortionRequestedAt?: number
-  end: number
+  end?: number
   id: Branded<'task'>
   infos?: { data: unknown; message: string }[]
   properties: {
