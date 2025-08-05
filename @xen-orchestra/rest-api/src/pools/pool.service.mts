@@ -240,8 +240,7 @@ export class PoolService {
     const pool = this.#restApi.getObject<XoPool>(poolId, 'pool')
 
     const vms = this.#restApi.getObjectsByType<XoVm>('VM', {
-      filter: vm =>
-        vm.$pool === poolId && (vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED),
+      filter: vm => vm.$pool === poolId,
     })
 
     let assignedVcpu = 0
