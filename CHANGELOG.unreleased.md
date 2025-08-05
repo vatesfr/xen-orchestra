@@ -15,6 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- Fix `incorrect state` error when trying to delete a disabled server [#11128](https://xcp-ng.org/forum/topic/11128/can-t-delete-disconnected-server-in-settings) (PR [#8854](https://github.com/vatesfr/xen-orchestra/pull/8854))
 **XO 6**:
 
     - [Pool,Host/Dashboard] CPU provisioning considers all VMs instead of just running VMs (PR [#8858](https://github.com/vatesfr/xen-orchestra/pull/8858))
@@ -38,5 +39,6 @@
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
+- xo-server patch
 
 <!--packages-end-->
