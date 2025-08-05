@@ -6,6 +6,7 @@ export type ResourceContext<TArgs extends any[]> = {
   scope: EffectScope
   args: { [K in keyof TArgs]: MaybeRefOrGetter<TArgs[K]> }
   isReady: ComputedRef<boolean>
+  isFetching: ComputedRef<boolean>
   hasError: ComputedRef<boolean>
   lastError: ComputedRef<Error | undefined>
   isEnabled: Ref<boolean>

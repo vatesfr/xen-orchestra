@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isPoolCollectionReady" type="page" />
+  <VtsLoadingHero v-if="!arePoolsReady" type="page" />
   <RouterView v-slot="{ Component }">
     <SiteHeader />
     <component :is="Component" />
@@ -14,5 +14,5 @@ import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 
 useDefaultTab('/(site)', 'dashboard')
 
-const { isPoolCollectionReady } = useXoPoolCollection()
+const { arePoolsReady } = useXoPoolCollection()
 </script>

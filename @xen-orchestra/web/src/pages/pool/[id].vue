@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isPoolCollectionReady" type="page" />
+  <VtsLoadingHero v-if="!arePoolsReady" type="page" />
   <VtsObjectNotFoundHero v-else-if="!pool" :id="route.params.id" type="page" />
   <RouterView v-else v-slot="{ Component }">
     <PoolHeader :pool />
@@ -20,7 +20,7 @@ useDefaultTab('/pool/[id]', 'dashboard')
 
 const route = useRoute<'/pool/[id]'>()
 
-const { isPoolCollectionReady, useGetPoolById } = useXoPoolCollection()
+const { arePoolsReady, useGetPoolById } = useXoPoolCollection()
 
 const pool = useGetPoolById(() => route.params.id as XoPool['id'])
 </script>

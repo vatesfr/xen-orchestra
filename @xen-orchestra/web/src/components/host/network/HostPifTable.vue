@@ -41,12 +41,12 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0">
-          <UiTablePagination v-if="isPifCollectionReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="arePifsReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable
-        :is-ready="isPifCollectionReady"
-        :has-error="hasPifCollectionError"
+        :is-ready="arePifsReady"
+        :has-error="hasPifFetchError"
         :no-data-message="pifs.length === 0 ? t('no-pif-detected') : undefined"
       >
         <template #thead>
@@ -131,7 +131,7 @@
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-if="isPifCollectionReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="arePifsReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
@@ -180,7 +180,7 @@ const { pifs } = defineProps<{
   pifs: XoPif[]
 }>()
 
-const { isPifCollectionReady, hasPifCollectionError } = useXoPifCollection()
+const { arePifsReady, hasPifFetchError } = useXoPifCollection()
 const { getNetworkById } = useXoNetworkCollection()
 
 const { t } = useI18n()

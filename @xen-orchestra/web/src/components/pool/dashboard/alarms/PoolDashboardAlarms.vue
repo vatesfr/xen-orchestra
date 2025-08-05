@@ -3,14 +3,14 @@
     <UiCardTitle>
       {{ t('alarms') }}
       <UiCounter
-        v-if="alarms.length !== 0 && areAlarmsReady"
+        v-if="alarms.length !== 0 && isReady"
         accent="danger"
         size="small"
         variant="primary"
         :value="alarms.length"
       />
     </UiCardTitle>
-    <VtsLoadingHero v-if="!areAlarmsReady" type="card" />
+    <VtsLoadingHero v-if="!isReady" type="card" />
     <VtsAllGoodHero v-else-if="alarms.length === 0" type="card" />
     <div v-else class="alarm-list-container">
       <UiAlarmList>
@@ -56,19 +56,13 @@ const { poolDashboard } = defineProps<{
 
 const { t } = useI18n()
 
-const { useGetAlarmsByIds, isAlarmCollectionReady } = useXoAlarmCollection()
-const { isHostCollectionReady } = useXoHostCollection()
-const { isVmCollectionReady } = useXoVmCollection()
-const { isVmControllerCollectionReady } = useXoVmControllerCollection()
-const { isSrCollectionReady } = useXoSrCollection()
+const { useGetAlarmsByIds, areAlarmsReady } = useXoAlarmCollection()
+const { areHostsReady } = useXoHostCollection()
+const { areVmsReady } = useXoVmCollection()
+const { areVmControllersReady } = useXoVmControllerCollection()
+const { areSrsReady } = useXoSrCollection()
 
-const areAlarmsReady = logicAnd(
-  isAlarmCollectionReady,
-  isHostCollectionReady,
-  isVmCollectionReady,
-  isVmControllerCollectionReady,
-  isSrCollectionReady
-)
+const isReady = logicAnd(areAlarmsReady, areHostsReady, areVmsReady, areVmControllersReady, areSrsReady)
 
 const uiStore = useUiStore()
 

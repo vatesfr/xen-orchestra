@@ -1,10 +1,10 @@
 <template>
-  <VtsLoadingHero v-if="!isVmCollectionReady" type="page" />
+  <VtsLoadingHero v-if="!areVmsReady" type="page" />
   <UiCard v-else class="vms">
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="isVmCollectionReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
     </div>
     <VtsTable vertical-border>
       <thead>
@@ -30,7 +30,7 @@
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="isVmCollectionReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
     </div>
   </UiCard>
 </template>
@@ -61,7 +61,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const { isVmCollectionReady, vmsByHost } = useXoVmCollection()
+const { areVmsReady, vmsByHost } = useXoVmCollection()
 
 const definitions = computed(() =>
   defineTree(vmsByHost.value.get(props.host.id) ?? [], {

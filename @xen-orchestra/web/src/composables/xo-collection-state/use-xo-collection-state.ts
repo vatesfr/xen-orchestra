@@ -21,9 +21,10 @@ export function useXoCollectionState<TRecord extends XoRecord, const TBaseName e
     useGetByIds: `useGet${Capitalize<TBaseName>}sByIds`
     hasById: `has${Capitalize<TBaseName>}ById`
     useHasById: `useHas${Capitalize<TBaseName>}ById`
-    isReady: `is${Capitalize<TBaseName>}CollectionReady`
-    hasError: `has${Capitalize<TBaseName>}CollectionError`
-    lastError: `last${Capitalize<TBaseName>}CollectionError`
+    isReady: `are${Capitalize<TBaseName>}sReady`
+    isFetching: `are${Capitalize<TBaseName>}sFetching`
+    hasError: `has${Capitalize<TBaseName>}FetchError`
+    lastError: `last${Capitalize<TBaseName>}FetchError`
   }
 >
 
@@ -43,9 +44,10 @@ export function useXoCollectionState<TRecord extends XoRecord, const TBaseName e
     useGetByIds: `useGet${Capitalize<TBaseName[1]>}ByIds`
     hasById: `has${Capitalize<TBaseName[0]>}ById`
     useHasById: `useHas${Capitalize<TBaseName[0]>}ById`
-    isReady: `is${Capitalize<TBaseName[0]>}CollectionReady`
-    hasError: `has${Capitalize<TBaseName[0]>}CollectionError`
-    lastError: `last${Capitalize<TBaseName[0]>}CollectionError`
+    isReady: `are${Capitalize<TBaseName[1]>}Ready`
+    isFetching: `are${Capitalize<TBaseName[1]>}Fetching`
+    hasError: `has${Capitalize<TBaseName[0]>}FetchError`
+    lastError: `last${Capitalize<TBaseName[0]>}FetchError`
   }
 >
 

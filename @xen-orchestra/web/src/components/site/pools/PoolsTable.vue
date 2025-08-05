@@ -39,12 +39,12 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-          <UiTablePagination v-if="isServerCollectionReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable
-        :is-ready="isServerCollectionReady"
-        :has-error="hasServerCollectionError"
+        :is-ready="areServersReady"
+        :has-error="hasServerFetchError"
         :no-data-message="servers.length === 0 ? t('no-server-detected') : undefined"
       >
         <template #thead>
@@ -117,7 +117,7 @@
       </VtsStateHero>
       <VtsStateHero v-if="!servers.length" image="no-data" type="page" />
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-        <UiTablePagination v-if="isServerCollectionReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
@@ -166,7 +166,7 @@ const { servers } = defineProps<{
 
 const { t } = useI18n()
 
-const { isServerCollectionReady, hasServerCollectionError } = useXoServerCollection()
+const { areServersReady, hasServerFetchError } = useXoServerCollection()
 const { getHostById } = useXoHostCollection()
 const selectedServerId = useRouteQuery('id')
 

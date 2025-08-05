@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isPoolCollectionReady" type="panel" />
+  <VtsLoadingHero v-if="!arePoolsReady" type="panel" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
@@ -237,7 +237,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-const { isPoolCollectionReady, useGetPoolById } = useXoPoolCollection()
+const { arePoolsReady, useGetPoolById } = useXoPoolCollection()
 const { useGetHostById, hostsByPool } = useXoHostCollection()
 
 const pool = useGetPoolById(() => server.poolId)

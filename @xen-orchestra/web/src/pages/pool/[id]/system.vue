@@ -31,10 +31,10 @@ import { logicAnd } from '@vueuse/math'
 
 defineProps<{ pool: XoPool }>()
 
-const { isServerCollectionReady } = useXoServerCollection()
-const { isHostCollectionReady } = useXoHostCollection()
-const { isNetworkCollectionReady } = useXoNetworkCollection()
-const { isSrCollectionReady } = useXoSrCollection()
+const { areServersReady } = useXoServerCollection()
+const { areHostsReady } = useXoHostCollection()
+const { areNetworksReady } = useXoNetworkCollection()
+const { areSrsReady } = useXoSrCollection()
 
-const isReady = logicAnd(isServerCollectionReady, isHostCollectionReady, isNetworkCollectionReady, isSrCollectionReady)
+const isReady = logicAnd(areServersReady, areHostsReady, areNetworksReady, areSrsReady)
 </script>

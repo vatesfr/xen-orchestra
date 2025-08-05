@@ -52,12 +52,12 @@
         </UiTableActions>
 
         <UiTopBottomTable :selected-items="0" :total-items="0">
-          <UiTablePagination v-if="isVifCollectionReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="areVifsReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable
-        :is-ready="isVifCollectionReady"
-        :has-error="hasVifCollectionError"
+        :is-ready="areVifsReady"
+        :has-error="hasVifFetchError"
         :no-data-message="vifs.length === 0 ? t('no-vif-detected') : undefined"
       >
         <template #thead>
@@ -130,7 +130,7 @@
         </template>
       </VtsDataTable>
       <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-if="isVifCollectionReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="areVifsReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
@@ -179,7 +179,7 @@ const { vifs } = defineProps<{
 
 const { getNetworkById } = useXoNetworkCollection()
 const { getVmById } = useXoVmCollection()
-const { isVifCollectionReady, hasVifCollectionError } = useXoVifCollection()
+const { areVifsReady, hasVifFetchError } = useXoVifCollection()
 const { t } = useI18n()
 
 const selectedVifId = useRouteQuery('id')

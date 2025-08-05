@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-ram-provisioning">
     <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isHostCollectionReady" type="card" />
+    <VtsLoadingHero v-if="!areHostsReady" type="card" />
     <template v-else>
       <UiProgressBar
         display-mode="percent"
@@ -45,7 +45,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isHostCollectionReady } = useXoHostCollection()
+const { areHostsReady } = useXoHostCollection()
 
 const ramUsage = computed(() => {
   const total = host.memory.size

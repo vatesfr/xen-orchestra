@@ -55,17 +55,12 @@ const { alarms } = defineProps<{
 
 const { t } = useI18n()
 
-const { isHostCollectionReady } = useXoHostCollection()
-const { isVmCollectionReady } = useXoVmCollection()
-const { isVmControllerCollectionReady } = useXoVmControllerCollection()
-const { isSrCollectionReady } = useXoSrCollection()
+const { areHostsReady } = useXoHostCollection()
+const { areVmsReady } = useXoVmCollection()
+const { areVmControllersReady } = useXoVmControllerCollection()
+const { areSrsReady } = useXoSrCollection()
 
-const areAlarmsReady = logicAnd(
-  isHostCollectionReady,
-  isVmCollectionReady,
-  isVmControllerCollectionReady,
-  isSrCollectionReady
-)
+const areAlarmsReady = logicAnd(areHostsReady, areVmsReady, areVmControllersReady, areSrsReady)
 
 const uiStore = useUiStore()
 </script>

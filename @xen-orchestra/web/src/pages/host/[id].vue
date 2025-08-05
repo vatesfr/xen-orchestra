@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isHostCollectionReady" type="page" />
+  <VtsLoadingHero v-if="!areHostsReady" type="page" />
   <VtsObjectNotFoundHero v-else-if="!host" :id="route.params.id" type="page" />
   <RouterView v-else v-slot="{ Component }">
     <HostHeader v-if="uiStore.hasUi" :host />
@@ -21,7 +21,7 @@ useDefaultTab('/host/[id]', 'dashboard')
 
 const route = useRoute<'/host/[id]'>()
 
-const { isHostCollectionReady, useGetHostById } = useXoHostCollection()
+const { areHostsReady, useGetHostById } = useXoHostCollection()
 const uiStore = useUiStore()
 
 const host = useGetHostById(() => route.params.id as XoHost['id'])
