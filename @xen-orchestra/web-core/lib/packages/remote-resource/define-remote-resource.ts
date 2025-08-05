@@ -67,6 +67,7 @@ export function defineRemoteResource<
       resume: VoidFunction
       state: object
       isReady: Ref<boolean>
+      isFetching: Ref<boolean>
       lastError: Ref<Error | undefined>
       hasError: ComputedRef<boolean>
     }
@@ -139,6 +140,8 @@ export function defineRemoteResource<
 
     const isReady = ref(false)
 
+    const isFetching = ref(false)
+
     const lastError = ref<Error>()
 
     const hasError = computed(() => lastError.value !== undefined)
@@ -147,6 +150,8 @@ export function defineRemoteResource<
 
     async function execute() {
       try {
+        isFetching.value = true
+
         const response = await fetch(url)
 
         if (!response.ok) {
@@ -169,6 +174,8 @@ export function defineRemoteResource<
         isReady.value = true
       } catch (error) {
         lastError.value = error instanceof Error ? error : new Error(String(error))
+      } finally {
+        isFetching.value = false
       }
     }
 
@@ -193,6 +200,7 @@ export function defineRemoteResource<
       resume,
       state,
       isReady,
+      isFetching,
       lastError,
       hasError,
     })
@@ -239,6 +247,7 @@ export function defineRemoteResource<
         scope,
         args,
         isReady: computed(() => cache.get(url.value)?.isReady.value ?? false),
+        isFetching: computed(() => cache.get(url.value)?.isFetching?.value ?? false),
         lastError: computed(() => cache.get(url.value)?.lastError.value),
         hasError: computed(() => cache.get(url.value)?.hasError.value ?? false),
         isEnabled,

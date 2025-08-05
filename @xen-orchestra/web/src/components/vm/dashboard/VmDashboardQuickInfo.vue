@@ -1,5 +1,5 @@
 <template>
-  <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!isVmCollectionReady">
+  <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!areVmsReady">
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
@@ -71,7 +71,7 @@ const { vm } = defineProps<{
 
 const { t, locale } = useI18n()
 
-const { isVmCollectionReady, getVmHost } = useXoVmCollection()
+const { areVmsReady, getVmHost } = useXoVmCollection()
 
 const host = computed(() => getVmHost(vm))
 

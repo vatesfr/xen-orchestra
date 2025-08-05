@@ -1,5 +1,5 @@
 <template>
-  <VtsQuickInfoCard class="host-dashboard-quick-info" :loading="!isHostCollectionReady">
+  <VtsQuickInfoCard class="host-dashboard-quick-info" :loading="!areHostsReady">
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
@@ -75,7 +75,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getMasterHostByPoolId, isMasterHost, isHostCollectionReady } = useXoHostCollection()
+const { getMasterHostByPoolId, isMasterHost, areHostsReady } = useXoHostCollection()
 
 const powerStateConfig: Record<
   string,

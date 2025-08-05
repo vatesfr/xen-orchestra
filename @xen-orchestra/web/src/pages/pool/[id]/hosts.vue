@@ -1,10 +1,10 @@
 <template>
-  <VtsLoadingHero v-if="!isHostCollectionReady" type="page" />
+  <VtsLoadingHero v-if="!areHostsReady" type="page" />
   <UiCard v-else class="hosts">
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-hosts', { n: hosts.length }) }}</p>
-      <UiTablePagination v-if="isHostCollectionReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areHostsReady" v-bind="paginationBindings" />
     </div>
     <VtsTable vertical-border>
       <thead>
@@ -34,7 +34,7 @@
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-hosts', { n: hosts.length }) }}</p>
-      <UiTablePagination v-if="isHostCollectionReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areHostsReady" v-bind="paginationBindings" />
     </div>
   </UiCard>
 </template>
@@ -65,7 +65,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const { isHostCollectionReady, hostsByPool } = useXoHostCollection()
+const { areHostsReady, hostsByPool } = useXoHostCollection()
 
 const definitions = computed(() =>
   defineTree(hostsByPool.value.get(props.pool.id) ?? [], {

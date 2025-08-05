@@ -30,10 +30,10 @@ const { host } = defineProps<{
   host: XoHost
 }>()
 
-const { isHostCollectionReady } = useXoHostCollection()
-const { vmsByHost, isVmCollectionReady } = useXoVmCollection()
+const { areHostsReady } = useXoHostCollection()
+const { vmsByHost, areVmsReady } = useXoVmCollection()
 
-const isReady = logicAnd(isHostCollectionReady, isVmCollectionReady)
+const isReady = logicAnd(areHostsReady, areVmsReady)
 
 const hostVms = computed(() => vmsByHost.value.get(host.id) ?? [])
 

@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('pool-management') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!isHostCollectionReady" type="card" />
+    <VtsLoadingHero v-if="!areHostsReady" type="card" />
     <template v-else>
       <VtsQuickInfoRow :label="t('master')">
         <template #value>
@@ -52,7 +52,7 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { useGetHostById, isHostCollectionReady } = useXoHostCollection()
+const { useGetHostById, areHostsReady } = useXoHostCollection()
 
 const primaryHost = useGetHostById(() => pool.master)
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isPoolCollectionReady" type="page" />
+  <VtsLoadingHero v-if="!arePoolsReady" type="page" />
   <RouterView v-slot="{ Component }">
     <SiteHeader />
     <component :is="Component" />
@@ -11,5 +11,5 @@ import SiteHeader from '@/components/site/SiteHeader.vue'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 
-const { isPoolCollectionReady } = useXoPoolCollection()
+const { arePoolsReady } = useXoPoolCollection()
 </script>

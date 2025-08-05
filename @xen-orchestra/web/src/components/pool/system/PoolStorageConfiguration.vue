@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('storage-configuration') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!isSrCollectionReady" type="card" />
+    <VtsLoadingHero v-if="!areSrsReady" type="card" />
     <template v-else>
       <VtsQuickInfoRow :label="t('default-storage-repository')">
         <template #value>
@@ -72,7 +72,7 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { useGetSrById, useGetSrsByIds, isSrCollectionReady } = useXoSrCollection()
+const { useGetSrById, useGetSrsByIds, areSrsReady } = useXoSrCollection()
 
 const defaultSr = useGetSrById(() => pool.default_SR)
 const suspendSr = useGetSrById(() => pool.suspendSr)

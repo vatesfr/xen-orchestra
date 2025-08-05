@@ -9,9 +9,9 @@ import { logicAnd } from '@vueuse/math'
 import { computed, useId } from 'vue'
 
 export function useSiteTree() {
-  const { pools, isPoolCollectionReady } = useXoPoolCollection()
-  const { hostsByPool, isHostCollectionReady } = useXoHostCollection()
-  const { vmsByHost, hostLessVmsByPool, isVmCollectionReady } = useXoVmCollection()
+  const { pools, arePoolsReady } = useXoPoolCollection()
+  const { hostsByPool, areHostsReady } = useXoHostCollection()
+  const { vmsByHost, hostLessVmsByPool, areVmsReady } = useXoVmCollection()
   const { filter, predicate } = useTreeFilter()
 
   const site: XoSite = {
@@ -22,7 +22,7 @@ export function useSiteTree() {
 
   const sites = computed(() => [site])
 
-  const isReady = logicAnd(isPoolCollectionReady, isHostCollectionReady, isVmCollectionReady)
+  const isReady = logicAnd(arePoolsReady, areHostsReady, areVmsReady)
 
   const definitions = computed(() =>
     defineTree(

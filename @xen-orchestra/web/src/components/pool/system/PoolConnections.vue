@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('connections') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!isServerCollectionReady" type="card" />
+    <VtsLoadingHero v-if="!areServersReady" type="card" />
     <template v-else>
       <VtsQuickInfoRow :label="t('ip-address')" :value="server?.host" />
       <VtsQuickInfoRow :label="t('proxy-url')" :value="server?.httpProxy" />
@@ -37,7 +37,7 @@ const { pool } = defineProps<{ pool: XoPool }>()
 
 const { t } = useI18n()
 
-const { serverByPool, isServerCollectionReady } = useXoServerCollection()
+const { serverByPool, areServersReady } = useXoServerCollection()
 
 const server = computed(() => serverByPool.value.get(pool.id)?.[0])
 </script>

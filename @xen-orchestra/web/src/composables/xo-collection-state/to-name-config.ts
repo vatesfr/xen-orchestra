@@ -18,8 +18,9 @@ export function toNameConfig(baseName: string | [string, string] | NameConfig): 
     useGetByIds: `useGet${capitalizedPluralName}ByIds`,
     hasById: `has${capitalizedSingularName}ById`,
     useHasById: `useHas${capitalizedSingularName}ById`,
-    isReady: `is${capitalizedSingularName}CollectionReady`,
-    hasError: `has${capitalizedSingularName}CollectionError`,
-    lastError: `last${capitalizedSingularName}CollectionError`,
+    isReady: `are${capitalizedPluralName}Ready`,
+    isFetching: `are${capitalizedPluralName}Fetching`,
+    hasError: `has${capitalizedSingularName}FetchError`,
+    lastError: `last${capitalizedSingularName}FetchError`,
   }
 }

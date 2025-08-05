@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isVmCollectionReady" type="page" />
+  <VtsLoadingHero v-if="!areVmsReady" type="page" />
   <VtsObjectNotFoundHero v-else-if="!vm" :id="route.params.id" type="page" />
   <RouterView v-else v-slot="{ Component }">
     <VmHeader v-if="uiStore.hasUi" :vm />
@@ -18,7 +18,7 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute<'/vm/[id]'>()
 
-const { isVmCollectionReady, useGetVmById } = useXoVmCollection()
+const { areVmsReady, useGetVmById } = useXoVmCollection()
 const uiStore = useUiStore()
 
 const vm = useGetVmById(() => route.params.id as XoVm['id'])

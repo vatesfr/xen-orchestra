@@ -1,10 +1,10 @@
 <template>
-  <VtsLoadingHero v-if="!isVmCollectionReady" type="page" />
+  <VtsLoadingHero v-if="!areVmsReady" type="page" />
   <UiCard v-else class="vms">
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="isVmCollectionReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
     </div>
     <VtsTable vertical-border>
       <thead>
@@ -32,7 +32,7 @@
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="isVmCollectionReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
     </div>
   </UiCard>
 </template>
@@ -63,7 +63,7 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { isVmCollectionReady, vmsByPool } = useXoVmCollection()
+const { areVmsReady, vmsByPool } = useXoVmCollection()
 
 const poolVms = computed(() => vmsByPool.value.get(pool.id) ?? [])
 

@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('networking') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!isNetworkCollectionReady" type="card" />
+    <VtsLoadingHero v-if="!areNetworksReady" type="card" />
     <template v-else>
       <VtsQuickInfoRow :label="t('backup-network')">
         <template #value>
@@ -43,7 +43,7 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { getNetworkById, isNetworkCollectionReady } = useXoNetworkCollection()
+const { getNetworkById, areNetworksReady } = useXoNetworkCollection()
 
 const backupNetwork = computed(() =>
   pool.otherConfig['xo:backupNetwork']

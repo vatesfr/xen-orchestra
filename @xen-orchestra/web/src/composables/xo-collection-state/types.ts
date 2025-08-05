@@ -11,6 +11,7 @@ export type NameConfig = {
   hasById: string
   useHasById: string
   isReady: string
+  isFetching: string
   hasError: string
   lastError: string
 }
@@ -26,6 +27,7 @@ export type DefaultState<TRecord extends XoRecord> = {
   hasById: (id: TRecord['id'] | undefined) => boolean
   useHasById: (id: MaybeRefOrGetter<TRecord['id'] | undefined>) => ComputedRef<boolean>
   isReady: ComputedRef<boolean>
+  isFetching: ComputedRef<boolean>
   hasError: ComputedRef<boolean>
   lastError: ComputedRef<Error | undefined>
 }

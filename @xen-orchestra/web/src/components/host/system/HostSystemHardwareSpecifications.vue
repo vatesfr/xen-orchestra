@@ -43,10 +43,10 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getPciById, isPciCollectionReady } = useXoPciCollection()
-const { getPgpuById, isPgpuCollectionReady } = useXoPgpuCollection()
+const { getPciById, arePcisReady } = useXoPciCollection()
+const { getPgpuById, arePgpusReady } = useXoPgpuCollection()
 
-const isReady = logicAnd(isPgpuCollectionReady, isPciCollectionReady)
+const isReady = logicAnd(arePgpusReady, arePcisReady)
 
 const devicesNames = useArrayReduce(
   () => host.PGPUs ?? [],
