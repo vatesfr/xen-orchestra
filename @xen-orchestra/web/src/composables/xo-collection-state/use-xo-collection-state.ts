@@ -1,5 +1,5 @@
 import { toNameConfig } from '@/composables/xo-collection-state/to-name-config.ts'
-import type { CollectionState, NameConfig } from '@/composables/xo-collection-state/types.ts'
+import type { BaseName, CollectionState, NameConfig } from '@/composables/xo-collection-state/types.ts'
 import type { XoRecord } from '@/types/xo'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
 import { reactify } from '@vueuse/shared'
@@ -27,6 +27,28 @@ export function useXoCollectionState<TRecord extends XoRecord, const TBaseName e
   }
 >
 
+export function useXoCollectionState<TRecord extends XoRecord, const TBaseName extends [string, string]>(
+  collection: Ref<TRecord[]>,
+  config: {
+    context: ResourceContext<any[]>
+    baseName: TBaseName
+  }
+): CollectionState<
+  TRecord,
+  {
+    records: `${TBaseName[1]}`
+    getById: `get${Capitalize<TBaseName[0]>}ById`
+    getByIds: `get${Capitalize<TBaseName[1]>}ByIds`
+    useGetById: `useGet${Capitalize<TBaseName[0]>}ById`
+    useGetByIds: `useGet${Capitalize<TBaseName[1]>}ByIds`
+    hasById: `has${Capitalize<TBaseName[0]>}ById`
+    useHasById: `useHas${Capitalize<TBaseName[0]>}ById`
+    isReady: `is${Capitalize<TBaseName[0]>}CollectionReady`
+    hasError: `has${Capitalize<TBaseName[0]>}CollectionError`
+    lastError: `last${Capitalize<TBaseName[0]>}CollectionError`
+  }
+>
+
 export function useXoCollectionState<TRecord extends XoRecord, TNameConfig extends NameConfig>(
   collection: Ref<TRecord[]>,
   config: {
@@ -35,13 +57,13 @@ export function useXoCollectionState<TRecord extends XoRecord, TNameConfig exten
   }
 ): CollectionState<TRecord, TNameConfig>
 
-export function useXoCollectionState<TRecord extends XoRecord, TNameConfig extends NameConfig>(
+export function useXoCollectionState<TRecord extends XoRecord, TNameConfig extends BaseName>(
   collection: Ref<TRecord[]>,
   config: {
     context: ResourceContext<any[]>
     baseName: TNameConfig
   }
-): CollectionState<TRecord, TNameConfig> {
+) {
   function getById(id: TRecord['id'] | undefined) {
     if (id === undefined) {
       return undefined
@@ -68,13 +90,13 @@ export function useXoCollectionState<TRecord extends XoRecord, TNameConfig exten
   return {
     [names.records]: collection,
     [names.getById]: getById,
-    [names.getByIds]: getByIds,
     [names.useGetById]: reactify(getById),
+    [names.getByIds]: getByIds,
     [names.useGetByIds]: reactify(getByIds),
     [names.hasById]: hasById,
     [names.useHasById]: reactify(hasById),
     [names.isReady]: config.context.isReady,
     [names.hasError]: config.context.hasError,
     [names.lastError]: config.context.lastError,
-  } as CollectionState<TRecord, TNameConfig>
+  } satisfies CollectionState<TRecord, NameConfig>
 }

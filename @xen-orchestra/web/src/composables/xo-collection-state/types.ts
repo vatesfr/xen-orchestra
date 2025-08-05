@@ -15,6 +15,8 @@ export type NameConfig = {
   lastError: string
 }
 
+export type BaseName = string | [string, string] | NameConfig
+
 export type DefaultState<TRecord extends XoRecord> = {
   records: Ref<TRecord[]>
   getById: (id: TRecord['id'] | undefined) => TRecord | undefined

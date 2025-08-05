@@ -1,22 +1,25 @@
 import type { NameConfig } from '@/composables/xo-collection-state/types.ts'
 
-export function toNameConfig(baseName: string | NameConfig): NameConfig {
-  if (typeof baseName === 'object') {
+export function toNameConfig(baseName: string | [string, string] | NameConfig): NameConfig {
+  if (typeof baseName === 'object' && !Array.isArray(baseName)) {
     return baseName
   }
 
-  const capitalizedBaseName = baseName.charAt(0).toUpperCase() + baseName.slice(1)
+  const [singularName, pluralName] = Array.isArray(baseName) ? baseName : [baseName, `${baseName}s`]
+
+  const capitalizedSingularName = singularName.charAt(0).toUpperCase() + singularName.slice(1)
+  const capitalizedPluralName = pluralName.charAt(0).toUpperCase() + pluralName.slice(1)
 
   return {
-    records: `${baseName}s`,
-    getById: `get${capitalizedBaseName}ById`,
-    getByIds: `get${capitalizedBaseName}sByIds`,
-    useGetById: `useGet${capitalizedBaseName}ById`,
-    useGetByIds: `useGet${capitalizedBaseName}sByIds`,
-    hasById: `has${capitalizedBaseName}ById`,
-    useHasById: `useHas${capitalizedBaseName}ById`,
-    isReady: `is${capitalizedBaseName}CollectionReady`,
-    hasError: `has${capitalizedBaseName}CollectionError`,
-    lastError: `last${capitalizedBaseName}CollectionError`,
+    records: `${pluralName}`,
+    getById: `get${capitalizedSingularName}ById`,
+    getByIds: `get${capitalizedPluralName}ByIds`,
+    useGetById: `useGet${capitalizedSingularName}ById`,
+    useGetByIds: `useGet${capitalizedPluralName}ByIds`,
+    hasById: `has${capitalizedSingularName}ById`,
+    useHasById: `useHas${capitalizedSingularName}ById`,
+    isReady: `is${capitalizedSingularName}CollectionReady`,
+    hasError: `has${capitalizedSingularName}CollectionError`,
+    lastError: `last${capitalizedSingularName}CollectionError`,
   }
 }
