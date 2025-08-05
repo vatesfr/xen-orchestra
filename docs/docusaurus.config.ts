@@ -35,6 +35,14 @@ const config: Config = {
       {
         redirects: [
           {
+            to: '/manage_infrastructure#vms',
+            from: '/administration',
+          },
+          {
+            to: '/users#acls',
+            from: '/acls',
+          },
+          {
             to: '/incremental_replication',
             from: '/continuous_replication',
           },
