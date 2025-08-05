@@ -1,3 +1,4 @@
+import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { Filter } from '@/types/filter'
 import { faSquareCheck } from '@fortawesome/free-regular-svg-icons'
 import { faFont, faHashtag, faList } from '@fortawesome/free-solid-svg-icons'
@@ -119,3 +120,5 @@ export function isIpv6(ip: string) {
 export function ipToHostname(ip: string) {
   return isIpv6(ip) ? `[${ip}]` : ip
 }
+
+export const ACTIVE_STATES = new Set([VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED])

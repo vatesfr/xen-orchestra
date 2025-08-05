@@ -567,7 +567,6 @@
   "uuid": "UUID",
   "vcpus": "vCPU | vCPU | vCPUs",
   "vcpus-assigned": "vCPUs assigned",
-  "vcpus-used": "vCPUs used",
   "vdi-throughput": "VDI throughput",
   "vdis": "VDI | VDI | VDIs",
   "version": "Version",

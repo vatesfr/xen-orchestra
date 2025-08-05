@@ -551,7 +551,6 @@
   "uuid": "UUID",
   "vcpus": "vCPU | vCPU | vCPU's",
   "vcpus-assigned": "Toegewezen vCPU's",
-  "vcpus-used": "Gebruikte vCPU's",
   "vdi-throughput": "VDI-doorvoer",
   "vdis": "VDI | VDI | VDI's",
   "version": "Versie",
