@@ -294,6 +294,7 @@ export default class RestApi {
           'logs.tgz': true,
           alarms: true,
           smt: true,
+          missing_patches: true,
         },
       },
       srs: {
