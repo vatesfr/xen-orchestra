@@ -15,6 +15,10 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+**XO 6**:
+
+    - [Pool,Host/Dashboard] CPU provisioning considers all VMs instead of just running VMs (PR [#8858](https://github.com/vatesfr/xen-orchestra/pull/8858))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +34,9 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/rest-api patch
+- @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
 
 <!--packages-end-->
