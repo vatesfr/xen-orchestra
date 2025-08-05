@@ -89,3 +89,34 @@ After the job is completed, you can verify whether NBD was used for the transfer
 ![](./assets/nbd-backup-log.png)
 
 To learn more about the evolution of this feature across various XO releases, check out our blog posts for versions [5.76](https://xen-orchestra.com/blog/xen-orchestra-5-76/), [5.81](https://xen-orchestra.com/blog/xen-orchestra-5-81/), [5.82](https://xen-orchestra.com/blog/xen-orchestra-5-82/), and [5.86](https://xen-orchestra.com/blog/xen-orchestra-5-86/).
+
+## Understanding large deltas
+
+Sometimes, you might notice that incremental backups are surprisingly large, almost as big as a full backup. This usually happens because of how block-level backups work: even small changes at the block level are included, even if the files themselves haven't changed much.
+
+### Common causes
+
+- **Log rotation**: Small but frequent writes happening in different places.
+- **System daemons or temp files**: Background processes that write data regularly.
+- **Random disk writes**: Applications or databases writing data across the disk.
+- **Filesystem maintenance**: Some filesystems move blocks internally, for instance during defragmentation.
+- **Memory pressure and paging**: When a VM is low on RAM, it may write heavily to disk —a process known as [memory paging](https://en.wikipedia.org/wiki/Memory_paging)—, which increases block-level changes.
+
+### Tips to keep deltas small
+
+- Use tools like `iotop` or `dstat` to monitor disk write activity inside the VM.
+- Look out for cron jobs, log rotations, or background tasks that might be active during backup times.
+- Ensure your VM has enough memory to prevent excessive paging.
+- Create a separated disk with `[NOBAK]` in its name to handle temporary files. This disk won't be transferred.
+    To know more on excluding disks from backup jobs, check out the [Exclude disks](https://docs.xen-orchestra.com/backups#exclude-disks) section.
+
+### Known issues
+
+:::warning
+When using the **purge snapshot data** function, an issue leads to transferring full backups on each run.
+
+To prevent this:
+
+1. Migrate the disk to another storage. This will reset the disk state.
+2. Disable **purge snapshot data** on the backup.
+:::
