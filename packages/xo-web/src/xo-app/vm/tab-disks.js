@@ -50,7 +50,6 @@ import {
   editVdi,
   exportVdi,
   importVdi,
-  isSrIso,
   isSrShared,
   isSrWritable,
   isVmRunning,
@@ -118,70 +117,68 @@ class VdiSr extends Component {
   }
 }
 
-const COLUMNS_VM_PV = (srs, vbds, hasIsoSr) => {
-  return [
-    {
-      itemRenderer: ({ vdi }) => <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />,
-      name: _('vdiNameLabel'),
-      sortCriteria: 'vdi.name_label',
-    },
-    {
-      itemRenderer: ({ vdi }) => (
-        <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
-      ),
-      name: _('vdiNameDescription'),
-      sortCriteria: 'vdi.name_description',
-    },
-    {
-      itemRenderer: ({ vdi }) => <Size value={defined(vdi.size, null)} onChange={size => editVdi(vdi, { size })} />,
-      name: _('vdiSize'),
-    },
-    ...(!hasIsoSr ? [{
-      name: _('vdiImageFormat'),
-      itemRenderer: vdi => defined(vdi.image_format, 'VHD'),
-      sortCriteria: vdi => vdi.image_format,
-    }] : []),
-    {
-      itemRenderer: ({ vdi }) => <Toggle value={vdi.cbt_enabled} onChange={cbt => setCbt(vdi, cbt)} />,
-      name: _('vbdCbt'),
-      sortCriteria: 'vdi.cbt_enabled',
-    },
-    {
-      component: VdiSr,
-      name: _('vdiSr'),
-      sortCriteria: ({ vdiSr }) => vdiSr !== undefined && vdiSr.name_label,
-    },
-    {
-      default: true,
-      itemRenderer: vbd => <span>{vbd.device}</span>,
-      name: _('vbdDevice'),
-      sortCriteria: vbd => +vbd.position,
-    },
-    {
-      itemRenderer: vbd => <Toggle onChange={bootable => setBootableVbd(vbd, bootable)} value={vbd.bootable} />,
-      name: _('vbdBootableStatus'),
-      id: 'vbdBootableStatus',
-    },
-    {
-      itemRenderer: (vbd, { vm }) => (
-        <StateButton
-          disabledLabel={_('vbdStatusDisconnected')}
-          disabledHandler={connectVbd}
-          disabledTooltip={_('vbdConnect')}
-          enabledLabel={_('vbdStatusConnected')}
-          enabledHandler={disconnectVbd}
-          enabledTooltip={_('vbdDisconnect')}
-          disabled={!(vbd.attached || isVmRunning(vm))}
-          handlerParam={vbd}
-          state={vbd.attached}
-        />
-      ),
-      name: _('vbdStatus'),
-    },
-  ]
-}
+const COLUMNS_VM_PV = [
+  {
+    itemRenderer: ({ vdi }) => <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />,
+    name: _('vdiNameLabel'),
+    sortCriteria: 'vdi.name_label',
+  },
+  {
+    itemRenderer: ({ vdi }) => (
+      <Text value={vdi.name_description} onChange={value => editVdi(vdi, { name_description: value })} />
+    ),
+    name: _('vdiNameDescription'),
+    sortCriteria: 'vdi.name_description',
+  },
+  {
+    itemRenderer: ({ vdi }) => <Size value={defined(vdi.size, null)} onChange={size => editVdi(vdi, { size })} />,
+    name: _('vdiSize'),
+  },
+  {
+    name: _('vdiImageFormat'),
+    itemRenderer: vdi => defined(vdi.image_format, 'VHD'),
+    sortCriteria: vdi => vdi.image_format,
+  },
+  {
+    itemRenderer: ({ vdi }) => <Toggle value={vdi.cbt_enabled} onChange={cbt => setCbt(vdi, cbt)} />,
+    name: _('vbdCbt'),
+    sortCriteria: 'vdi.cbt_enabled',
+  },
+  {
+    component: VdiSr,
+    name: _('vdiSr'),
+    sortCriteria: ({ vdiSr }) => vdiSr !== undefined && vdiSr.name_label,
+  },
+  {
+    default: true,
+    itemRenderer: vbd => <span>{vbd.device}</span>,
+    name: _('vbdDevice'),
+    sortCriteria: vbd => +vbd.position,
+  },
+  {
+    itemRenderer: vbd => <Toggle onChange={bootable => setBootableVbd(vbd, bootable)} value={vbd.bootable} />,
+    name: _('vbdBootableStatus'),
+    id: 'vbdBootableStatus',
+  },
+  {
+    itemRenderer: (vbd, { vm }) => (
+      <StateButton
+        disabledLabel={_('vbdStatusDisconnected')}
+        disabledHandler={connectVbd}
+        disabledTooltip={_('vbdConnect')}
+        enabledLabel={_('vbdStatusConnected')}
+        enabledHandler={disconnectVbd}
+        enabledTooltip={_('vbdDisconnect')}
+        disabled={!(vbd.attached || isVmRunning(vm))}
+        handlerParam={vbd}
+        state={vbd.attached}
+      />
+    ),
+    name: _('vbdStatus'),
+  },
+]
 
-const COLUMNS = (srs, vbds) => filter(COLUMNS_VM_PV(srs, vbds), col => col.id !== 'vbdBootableStatus')
+const COLUMNS = filter(COLUMNS_VM_PV, col => col.id !== 'vbdBootableStatus')
 
 const PROGRESS_STYLES = { margin: 0 }
 
@@ -562,12 +559,6 @@ export default class TabDisks extends Component {
       attachDisk: false,
       newDisk: false,
     }
-
-    this._hasIsoSr = createSelector(
-      () => this.props.srs,
-      this._getVbds,
-      (srs, vbds) => some(vbds, vbd => isSrIso(srs[vbd.vdi?.$SR]))
-    )
   }
 
   _getVdiSrs = createSelector(
@@ -781,10 +772,8 @@ export default class TabDisks extends Component {
               actions={this.actions}
               collection={this._getVbds()}
               columns={
-                  vm.virtualizationMode === 'pv' || vm.virtualizationMode === 'pv_in_pvh'
-                    ? COLUMNS_VM_PV(this.props.srs, this._getVbds(), this._hasIsoSr())
-                    : COLUMNS(this.props.srs, this._getVbds())
-                }
+                vm.virtualizationMode === 'pv' || vm.virtualizationMode === 'pv_in_pvh' ? COLUMNS_VM_PV : COLUMNS
+              }
               data-resourceSet={resolvedResourceSet}
               data-vm={vm}
               individualActions={INDIVIDUAL_ACTIONS}

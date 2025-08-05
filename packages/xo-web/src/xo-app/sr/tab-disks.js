@@ -110,7 +110,7 @@ const COLUMNS = sr => [
   ...(!isSrIso(sr)
   ? [{
       name: _('vdiImageFormat'),
-      itemRenderer: (vdi, { sr }) => isSrIso(sr) ? null : defined(vdi.image_format, 'VHD'),
+      itemRenderer: (vdi) => defined(vdi.image_format, 'VHD'),
       sortCriteria: vdi => vdi.image_format,
     }]
     : []),
