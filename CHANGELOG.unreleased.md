@@ -13,7 +13,7 @@
 
 - **Migrated REST API endpoints**:
 
-  - `GET /rest/v0/hosts/<host-id>/missing_patches`
+  - `GET /rest/v0/hosts/<host-id>/missing_patches` (PR [#8862](https://github.com/vatesfr/xen-orchestra/pull/8862))
 
 ### Bug fixes
 
