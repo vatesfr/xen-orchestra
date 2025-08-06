@@ -63,3 +63,8 @@ export const forbiddenOperationResp = {
   status: 403,
   description: 'Forbidden',
 } as const
+
+export const badRequestResp = {
+  status: 400,
+  description: 'Bad request',
+} as const

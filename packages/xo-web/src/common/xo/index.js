@@ -629,7 +629,7 @@ export const subscribeXoTasks = (() => {
     while (true) {
       try {
         // starts watching collection
-        const resWatch = await fetch(basePath + '&ndjson&watch', { signal: abortController.signal })
+        const resWatch = await fetch(basePath + '&ndjson=true&watch=true', { signal: abortController.signal })
 
         // fetches existing objects
         const response = await fetch(basePath, { signal: abortController.signal })

@@ -5,6 +5,7 @@
 
     "strict": true,
     "module": "ESNext",
+    "lib": ["ESNext"],
     "moduleResolution": "bundler",
     "target": "ES2023",
     "skipLibCheck": true,
