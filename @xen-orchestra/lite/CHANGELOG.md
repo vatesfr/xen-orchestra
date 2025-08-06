@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [Pool,Host/Dashboard] CPU provisioning considers all VMs instead of just running VMs (PR [#8858](https://github.com/vatesfr/xen-orchestra/pull/8858))
+
 ## **0.13.0** (2025-07-31)
 
 - [Host/VM/Dashboard] Fix display error due to inversion of upload and download (PR [#8793](https://github.com/vatesfr/xen-orchestra/pull/8793))

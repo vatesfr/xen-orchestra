@@ -550,7 +550,6 @@
   "uuid": "UUID",
   "vcpus": "virt. procesor | virt. procesor | virt. procesory",
   "vcpus-assigned": "Přiděleno virt. procesorů",
-  "vcpus-used": "využito virt. procesorů",
   "vdi-throughput": "propustnost VDI",
   "vdis": "Virt. disk | Virt. disky | Virt. disků",
   "version": "Verze",

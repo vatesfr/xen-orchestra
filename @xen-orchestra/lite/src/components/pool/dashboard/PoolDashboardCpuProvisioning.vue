@@ -20,8 +20,8 @@
       <UiProgressLegend :label="t('vcpus')" :value="n(value / 100, 'percent')" />
       <UiCardFooter class="ui-card-footer">
         <template #left>
-          <p>{{ t('vcpus-used') }}</p>
-          <p class="footer-value">{{ nVCpuInUse }}</p>
+          <p>{{ t('vcpus-assigned') }}</p>
+          <p class="footer-value">{{ nVcpuAssigned }}</p>
         </template>
         <template #right>
           <p>{{ t('total-cpus') }}</p>
@@ -43,8 +43,7 @@ import UiCard from '@/components/ui/UiCard.vue'
 import UiCardFooter from '@/components/ui/UiCardFooter.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import { percent } from '@/libs/utils'
-import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
+import { ACTIVE_STATES, percent } from '@/libs/utils'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
@@ -54,8 +53,6 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t, n } = useI18n()
-
-const ACTIVE_STATES = new Set([VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED])
 
 const { hasError: hostStoreHasError, isReady: isHostStoreReady, runningHosts } = useHostStore().subscribe()
 
@@ -67,17 +64,20 @@ const isReady = logicAnd(isVmStoreReady, isHostStoreReady, isVmMetricsStoreReady
 
 const nPCpu = computed(() => runningHosts.value.reduce((total, host) => total + Number(host.cpu_info.cpu_count), 0))
 
-const nVCpuInUse = computed(() => {
+const nVcpuAssigned = computed(() => {
   if (!isReady.value) {
     return 0
   }
 
-  return vms.value.reduce(
-    (total, vm) => (ACTIVE_STATES.has(vm.power_state) ? total + getVmMetrics(vm.metrics)!.VCPUs_number : total),
-    0
-  )
+  return vms.value.reduce((total, vm) => {
+    if (ACTIVE_STATES.has(vm.power_state)) {
+      return total + (getVmMetrics(vm.metrics)?.VCPUs_number ?? vm.VCPUs_at_startup)
+    }
+
+    return total + vm.VCPUs_at_startup
+  }, 0)
 })
-const value = computed(() => Math.round(percent(nVCpuInUse.value, nPCpu.value)))
+const value = computed(() => Math.round(percent(nVcpuAssigned.value, nPCpu.value)))
 const maxValue = computed(() => Math.ceil(value.value / 100) * 100)
 const state = computed(() => (value.value > 100 ? 'warning' : 'success'))
 
