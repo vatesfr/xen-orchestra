@@ -11,6 +11,11 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **Migrated REST API endpoints**:
+
+  - `GET /rest/v0/hosts/<host-id>/smt` (PR [#8863](http://github.com/vatesfr/xen-orchestra/pull/8863))
+
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -36,9 +41,10 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/rest-api patch
+- @vates/types minor
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
-- xo-server patch
+- xo-server minor
 
 <!--packages-end-->
