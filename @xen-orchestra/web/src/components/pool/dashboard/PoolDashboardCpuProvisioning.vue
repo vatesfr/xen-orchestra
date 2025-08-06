@@ -35,6 +35,8 @@ const { poolDashboard } = defineProps<{
   poolDashboard: XoPoolDashboard | undefined
 }>()
 
+const { t } = useI18n()
+
 const isCpuProvisioningReady = computed(() => poolDashboard?.cpuProvisioning !== undefined)
 
 const { steps, value, max, percentage } = useProgress(
@@ -43,8 +45,6 @@ const { steps, value, max, percentage } = useProgress(
 )
 
 const accent = computed(() => (percentage.value > 300 ? 'danger' : 'warning'))
-
-const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
