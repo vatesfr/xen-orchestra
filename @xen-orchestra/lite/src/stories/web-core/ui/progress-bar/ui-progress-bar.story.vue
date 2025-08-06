@@ -6,6 +6,7 @@
       prop('value').preset(25).required().widget(),
       prop('max').num().widget().help(`Max will be required when displayMode is set to 'value'.`),
       prop('displayMode').enum('value', 'percent').required().preset('percent').widget(),
+      prop('thresholds').obj('{ warning: number , danger: number }').preset({ warning: 100, danger: 300 }).widget(),
     ]"
   >
     <UiProgressBar v-bind="properties" />
