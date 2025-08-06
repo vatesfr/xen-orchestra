@@ -6,6 +6,7 @@
     </UiCardTitle>
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="isLoading" />
+    <VtsNoDataHero v-else-if="data.length === 0" type="card" />
     <VtsLinearChart v-else :data :max-value="customMaxValue" :value-formatter="customValueFormatter" />
   </UiCard>
 </template>
@@ -21,6 +22,7 @@ import { useHostStore } from '@/stores/xen-api/host.store'
 import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
 import type { LinearChartData } from '@core/types/chart'
+import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
 import type { XapiHostStatsRaw } from '@vates/types'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
