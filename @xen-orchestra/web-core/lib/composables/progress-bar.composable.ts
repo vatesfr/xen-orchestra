@@ -2,10 +2,10 @@ import { useClamp, useMax } from '@vueuse/math'
 import type { MaybeRefOrGetter } from '@vueuse/shared'
 import { computed, toValue } from 'vue'
 
-export function useProgress(valueProp: MaybeRefOrGetter<number>, maxProp?: MaybeRefOrGetter<number | undefined>) {
-  const value = useMax(0, () => toValue(valueProp))
+export function useProgress(_value: MaybeRefOrGetter<number>, _max?: MaybeRefOrGetter<number | undefined>) {
+  const value = useMax(0, () => toValue(_value))
 
-  const max = computed(() => toValue(maxProp) ?? 100)
+  const max = computed(() => toValue(_max) ?? 100)
 
   const percentage = computed(() => (max.value <= 0 ? 0 : (value.value / max.value) * 100))
 
@@ -13,7 +13,7 @@ export function useProgress(valueProp: MaybeRefOrGetter<number>, maxProp?: Maybe
 
   const fillWidth = useClamp(() => (percentage.value / maxPercentage.value) * 100 || 0, 0, 100)
 
-  const steps = computed(() => {
+  const steps = computed((): [number, number] => {
     const max = maxPercentage.value / 100
 
     return max === 0 ? [0.5, 1] : [max / 2, max]

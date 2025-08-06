@@ -17,16 +17,19 @@
 
 <script lang="ts" setup>
 import VtsLegendList from '@core/components/legend-list/VtsLegendList.vue'
-import UiLegend from '@core/components/ui/legend/UiLegend.vue'
+import UiLegend, { type LegendItemAccent } from '@core/components/ui/legend/UiLegend.vue'
 import { useProgress } from '@core/composables/progress-bar.composable.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { toVariants } from '@core/utils/to-variants.util'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 
 interface Props {
   legend: string
   value: number
-  showSteps?: boolean
+  thresholds?: {
+    danger?: number
+    warning?: number
+  }
 }
 
 interface PercentageProps {
@@ -39,22 +42,26 @@ interface ValueProps {
   displayMode: 'value'
 }
 
-const { value: _value, max: _max, displayMode } = defineProps<Props & (PercentageProps | ValueProps)>()
+const { value: _value, max: _max, displayMode, thresholds } = defineProps<Props & (PercentageProps | ValueProps)>()
 
-const emit = defineEmits<{
-  stepsChange: [steps: number[]]
-}>()
-
-const { percentage, fillWidth, steps, value, max } = useProgress(
+const { percentage, fillWidth, value, max } = useProgress(
   () => _value,
   () => _max
 )
 
-watch(steps, steps => emit('stepsChange', steps), {
-  immediate: true,
-})
+const accent = computed((): LegendItemAccent => {
+  if (thresholds !== undefined) {
+    if (thresholds.danger !== undefined && percentage.value > thresholds.danger) {
+      return 'danger'
+    }
 
-const accent = computed(() => {
+    if (thresholds.warning !== undefined && percentage.value > thresholds.warning) {
+      return 'warning'
+    }
+
+    return 'info'
+  }
+
   if (percentage.value >= 90) {
     return 'danger'
   }

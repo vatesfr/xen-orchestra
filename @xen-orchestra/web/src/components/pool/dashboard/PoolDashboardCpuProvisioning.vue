@@ -3,11 +3,13 @@
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isCpuProvisioningReady" type="card" />
     <template v-else>
-      <UiProgressBarOverload
+      <UiDataRuler :steps :accent :message="t('cpu-provisioning-warning')" />
+      <UiProgressBar
+        :thresholds="{ danger: 300, warning: 100 }"
         display-mode="percent"
-        :max="poolDashboard?.cpuProvisioning?.total ?? 100"
         :legend="t('vcpus')"
-        :value="poolDashboard?.cpuProvisioning?.assigned ?? 0"
+        :value
+        :max
       />
       <div class="total">
         <UiCardNumbers :label="t('vcpus-assigned')" :value="poolDashboard?.cpuProvisioning?.assigned" size="medium" />
@@ -23,7 +25,9 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiProgressBarOverload from '@core/components/ui/progress-bar-overload/UiProgressBarOverload.vue'
+import UiDataRuler from '@core/components/ui/data-ruler/UiDataRuler.vue'
+import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
+import { useProgress } from '@core/composables/progress-bar.composable.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -32,6 +36,13 @@ const { poolDashboard } = defineProps<{
 }>()
 
 const isCpuProvisioningReady = computed(() => poolDashboard?.cpuProvisioning !== undefined)
+
+const { steps, value, max, percentage } = useProgress(
+  () => poolDashboard?.cpuProvisioning?.assigned ?? 0,
+  () => poolDashboard?.cpuProvisioning?.total
+)
+
+const accent = computed(() => (percentage.value > 300 ? 'danger' : 'warning'))
 
 const { t } = useI18n()
 </script>
