@@ -18,7 +18,7 @@ import { prop } from '@/libs/story/story-param.ts'
 import UiDataRuler from '@core/components/ui/data-ruler/UiDataRuler.vue'
 
 const presets = {
-  'Steps classic': {
+  Default: {
     props: {
       steps: [0.5, 1],
     },
