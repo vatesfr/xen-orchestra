@@ -37,6 +37,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
