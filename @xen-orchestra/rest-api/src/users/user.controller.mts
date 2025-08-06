@@ -17,7 +17,7 @@ import {
 } from 'tsoa'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoUser } from '@vates/types'
+import type { XoAuthenticationToken, XoUser } from '@vates/types'
 
 import {
   createdResp,
@@ -161,5 +161,22 @@ export class UserController extends XoController<XoUser> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteUser(@Path() id: string): Promise<void> {
     await this.restApi.xoApp.deleteUser(id as XoUser['id'])
+  }
+
+  /**
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   */
+  @Get('{id}/authentication_tokens')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  async getAuthenticationTokens(@Path() id: string): Promise<XoAuthenticationToken[]> {
+    const user = await this.restApi.xoApp.getUser(id as XoUser['id'])
+    const me = this.restApi.getCurrentUser()
+
+    if (me?.id !== user.id) {
+      throw forbiddenOperation('get authentication tokens', 'can only see own authentication tokens')
+    }
+
+    return await this.restApi.xoApp.getAuthenticationTokensForUser(id as XoUser['id'])
   }
 }
