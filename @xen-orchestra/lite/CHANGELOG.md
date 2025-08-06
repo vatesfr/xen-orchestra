@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.13.1** (2025-08-06)
 
 - [Pool,Host/Dashboard] CPU provisioning considers all VMs instead of just running VMs (PR [#8858](https://github.com/vatesfr/xen-orchestra/pull/8858))
 
