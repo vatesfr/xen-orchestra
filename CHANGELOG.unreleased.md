@@ -39,7 +39,7 @@
 
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web patch
-- @xen-orchestra/web-core patch
+- @xen-orchestra/web-core minor
 - xo-server patch
 - xo-web minor
 
