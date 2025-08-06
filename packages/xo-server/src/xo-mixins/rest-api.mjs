@@ -289,6 +289,7 @@ export default class RestApi {
           'audit.txt': true,
           'logs.tgz': true,
           alarms: true,
+          smt: true,
         },
       },
       srs: {

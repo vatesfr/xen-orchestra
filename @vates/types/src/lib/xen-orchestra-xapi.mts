@@ -172,4 +172,5 @@ export interface Xapi {
     pathname: string,
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
+  isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
 }
