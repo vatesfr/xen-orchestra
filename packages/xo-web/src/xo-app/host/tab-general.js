@@ -67,12 +67,7 @@ export default decorate([
         return fan
       },
       fansKo: (_, { ipmiSensors }) => ipmiSensors?.fanStatus?.filter(fanStatus => fanStatus.event !== 'ok'),
-      psusKo: (_, { ipmiSensors }) =>
-        ipmiSensors?.psuStatus?.filter(psuStatus => {
-          const psuName = getSensorName(psuStatus)
-          const _psuPower = ipmiSensors.psuPower.find(sensor => getSensorName(sensor) === psuName)
-          return psuStatus.event !== 'ok' || _psuPower === undefined || Number(_psuPower.value.split(' ')[0]) === 0
-        }),
+      psusKo: (_, { ipmiSensors }) => ipmiSensors?.psuStatus?.filter(psuStatus => psuStatus.event !== 'ok'),
       nFansOk: ({ fansKo }, { ipmiSensors }) => (ipmiSensors?.fanStatus?.length ?? 0) - (fansKo?.length ?? 0),
       nPsusOk: ({ psusKo }, { ipmiSensors }) => (ipmiSensors?.psuStatus?.length ?? 0) - (psusKo?.length ?? 0),
       biosData: async (_, { host }) => {
