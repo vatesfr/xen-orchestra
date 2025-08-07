@@ -762,7 +762,7 @@ const onTemplateChange = () => {
 
 // TODO: when refactoring the component, remove the param and sync with the pool id in the route
 const redirectToPool = (poolId: XoPool['id']) => {
-  router.push({ name: '/pool/:id', params: { id: poolId } })
+  router.push({ name: '/pool/[id]/dashboard', params: { id: poolId } })
 }
 
 function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {

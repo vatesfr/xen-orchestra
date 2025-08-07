@@ -9,7 +9,7 @@
         <div class="action-buttons" :class="{ mobile: uiStore.isMobile }">
           <UiLink
             v-if="server && server.poolId"
-            :to="{ name: '/pool/:id', params: { id: server.poolId } }"
+            :to="{ name: '/pool/[id]/dashboard', params: { id: server.poolId } }"
             size="medium"
           >
             {{ t('visit-pool-dashboard') }}

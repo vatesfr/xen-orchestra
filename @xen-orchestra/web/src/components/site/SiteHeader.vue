@@ -8,7 +8,7 @@
     </template>
   </UiHeadBar>
   <TabList>
-    <RouterLink v-slot="{ isExactActive, href }" to="/" custom>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/dashboard' }" custom>
       <TabItem :active="isExactActive" :href tag="a">
         {{ t('dashboard') }}
       </TabItem>
