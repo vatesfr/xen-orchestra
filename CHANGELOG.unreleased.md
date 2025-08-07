@@ -11,6 +11,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **Migrated REST API endpoints**:
+
+  - `GET /rest/v0/backup/jobs/vm/` (PR [#8869](http://github.com/vatesfr/xen-orchestra/pull/8869))
+  - `GET /rest/v0/backup/jobs/vm/<job-id>` (PR [#8869](http://github.com/vatesfr/xen-orchestra/pull/8869))
+  - `GET /rest/v0/backup/jobs/metadata/` (PR [#8869](http://github.com/vatesfr/xen-orchestra/pull/8869))
+  - `GET /rest/v0/backup/jobs/metadata/<job-id>` (PR [#8869](http://github.com/vatesfr/xen-orchestra/pull/8869))
+  - `GET /rest/v0/backup/jobs/mirror/` (PR [#8869](http://github.com/vatesfr/xen-orchestra/pull/8869))
+  - `GET /rest/v0/backup/jobs/mirror/<job-id>` (PR [#8869](http://github.com/vatesfr/xen-orchestra/pull/8869))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,5 +39,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @vates/types minor
+- @xen-orchestra/rest-api minor
 
 <!--packages-end-->

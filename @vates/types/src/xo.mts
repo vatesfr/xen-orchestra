@@ -375,23 +375,23 @@ export type XoProxy = {
 
 type BaseXoJob = {
   id: Branded<'job'>
+  name?: string
+  proxy?: XoProxy['id']
+  type: BACKUP_TYPE
+  remotes?: {
+    id: XoBackupRepository['id'] | { __or: XoBackupRepository['id'][] }
+  }
 }
 // @TODO: create type for complex matcher
 export type XoBackupJob = BaseXoJob & {
   compression?: 'native' | 'zstd' | ''
-  proxy?: XoProxy['id']
   mode: 'full' | 'delta'
-  name?: string
-  remotes?: {
-    id: XoBackupRepository['id'] | { __or: XoBackupRepository['id'][] }
-  }
   vms?: {
     id: XoVm['id'] | { __or: XoVm['id'][] } | Record<string, unknown>
   }
   srs: {
     id: XoSr['id'] | { __or: XoSr['id'][] }
   }
-  type: BACKUP_TYPE
   settings: {
     '': {
       cbtDestroySnapshotData?: boolean
@@ -407,6 +407,55 @@ export type XoBackupJob = BaseXoJob & {
       nRetriesVmBackupFailures?: number
       preferNbd?: boolean
       timezone?: string
+      [key: string]: unknown
+    }
+    [key: XoSchedule['id']]: {
+      exportRetention?: number
+      healthCheckSr?: XoSr['id']
+      healthCheckVmsWithTags?: string[]
+      fullInterval?: number
+      copyRetention?: number
+      snapshotRetention?: number
+      cbtDestroySnapshotData?: boolean
+      [key: string]: unknown
+    }
+  }
+}
+
+export type XoMetadataJob = BaseXoJob & {
+  pools?: {
+    id:
+      | XoPool['id']
+      | {
+          __or: XoPool['id'][]
+        }
+  }
+  xoMetadata: boolean
+  settings: {
+    '': {
+      [key: string]: unknown
+    }
+    [key: XoSchedule['id']]: {
+      exportRetention?: number
+      healthCheckSr?: XoSr['id']
+      healthCheckVmsWithTags?: string[]
+      fullInterval?: number
+      copyRetention?: number
+      snapshotRetention?: number
+      cbtDestroySnapshotData?: boolean
+      [key: string]: unknown
+    }
+  }
+}
+export type XoMirrorJob = BaseXoJob & {
+  mirrorAllVmBackups: boolean
+  mode: 'full' | 'delta'
+  vmsToMirror?: {
+    id: XoVm['id'] | { __or: XoVm['id'][] } | Record<string, unknown>
+  }
+  sourceRemote?: XoBackupRepository['id']
+  settings: {
+    '': {
       [key: string]: unknown
     }
     [key: XoSchedule['id']]: {
