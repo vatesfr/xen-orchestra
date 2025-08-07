@@ -76,7 +76,9 @@ export class HostService {
     })
 
     if (featureAuthorization !== undefined) {
-      return featureAuthorization
+      return {
+        hasAuthorization: false,
+      }
     }
 
     const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host', { filter }))
