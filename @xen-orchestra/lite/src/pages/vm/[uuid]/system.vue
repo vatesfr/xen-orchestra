@@ -33,7 +33,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
-const route = useRoute()
+const route = useRoute<'/vm/[uuid]/system'>()
 const { getByUuid } = useVmStore().subscribe()
 
 usePageTitleStore().setTitle(useI18n().t('system'))

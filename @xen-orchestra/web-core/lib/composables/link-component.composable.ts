@@ -1,9 +1,10 @@
 import type { MaybeRefOrGetter } from 'vue'
 import { computed, toValue } from 'vue'
-import type { RouteLocationRaw } from 'vue-router'
+import type { RouteLocationAsPathGeneric, RouteLocationAsRelativeGeneric, RouteLocationAsString } from 'vue-router'
 
 export type LinkOptions = {
-  to?: RouteLocationRaw
+  // Using RouteLocationRaw makes the build fail ("Expression produces a union type that is too complex to represent")
+  to?: RouteLocationAsString | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric
   href?: string
   target?: '_blank' | '_self'
   disabled?: boolean

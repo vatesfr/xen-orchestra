@@ -1,5 +1,5 @@
 <template>
-  <RouterLink :to="{ name: 'story' }">
+  <RouterLink :to="{ name: '/story/' }">
     <UiTitle type="h4">Stories</UiTitle>
   </RouterLink>
   <StoryMenuTree :tree :opened-directories="openedDirectories" @toggle-directory="toggleDirectory" />

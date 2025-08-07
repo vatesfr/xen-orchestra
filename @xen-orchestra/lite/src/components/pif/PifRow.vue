@@ -61,7 +61,7 @@ const pifHost = computed(() => {
     powerState: isHostRunning(host) ? 'running' : 'halted',
     redirect() {
       router.push({
-        name: 'host.network',
+        name: '/host/[uuid]/network',
         params: { uuid: host.uuid },
         query: { id: pif.uuid },
       })

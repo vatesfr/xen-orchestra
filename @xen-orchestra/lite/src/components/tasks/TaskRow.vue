@@ -5,7 +5,7 @@
       <RouterLink
         v-if="host !== undefined"
         :to="{
-          name: 'host.dashboard',
+          name: '/host/[uuid]/dashboard',
           params: { uuid: host.uuid },
         }"
       >

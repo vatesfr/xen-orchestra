@@ -1,21 +1,21 @@
 <template>
   <TabList>
-    <RouterTab :to="{ name: 'host.dashboard', params: { uuid } }">
+    <RouterTab :to="{ name: '/host/[uuid]/dashboard', params: { uuid } }">
       {{ t('dashboard') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'host.console', params: { uuid } }">
+    <RouterTab :to="{ name: '/host/[uuid]/console', params: { uuid } }">
       {{ t('console') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'host.system', params: { uuid } }">
+    <RouterTab :to="{ name: '/host/[uuid]/system', params: { uuid } }">
       {{ t('system') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'host.network', params: { uuid } }">
+    <RouterTab :to="{ name: '/host/[uuid]/network', params: { uuid } }">
       {{ t('network') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'host.tasks', params: { uuid } }" disabled>
+    <RouterTab :to="{ name: '/host/[uuid]/tasks', params: { uuid } }" disabled>
       {{ t('tasks') }}
     </RouterTab>
-    <RouterTab :to="{ name: 'host.vms', params: { uuid } }" disabled>
+    <RouterTab :to="{ name: '/host/[uuid]/vms', params: { uuid } }" disabled>
       {{ t('vms', 2) }}
     </RouterTab>
   </TabList>

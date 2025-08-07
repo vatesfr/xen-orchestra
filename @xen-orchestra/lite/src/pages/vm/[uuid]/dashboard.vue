@@ -36,7 +36,7 @@ const { t } = useI18n()
 
 usePageTitleStore().setTitle(t('dashboard'))
 
-const route = useRoute()
+const route = useRoute<'/vm/[uuid]/dashboard'>()
 
 const id = computed(() => route.params.uuid as XenApiVm['uuid'])
 

@@ -59,14 +59,14 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const { t } = useI18n()
 
 const { getByUuid: getVmByUuid } = useVmStore().subscribe()
-const { currentRoute } = useRouter()
+const route = useRoute<'/vm/[uuid]'>()
 
-const vm = computed(() => getVmByUuid(currentRoute.value.params.uuid as XenApiVm['uuid']))
+const vm = computed(() => getVmByUuid(route.params.uuid as XenApiVm['uuid']))
 
 const name = computed(() => vm.value?.name_label)
 </script>

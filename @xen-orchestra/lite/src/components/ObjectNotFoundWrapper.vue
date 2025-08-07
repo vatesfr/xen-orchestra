@@ -9,9 +9,9 @@
 <script generic="T extends XenApiRecord<ObjectType>, I extends T['uuid']" lang="ts" setup>
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import type { ObjectType, XenApiRecord } from '@/libs/xen-api/xen-api.types'
-import ObjectNotFoundView from '@/views/ObjectNotFoundView.vue'
+import ObjectNotFoundView from '@/pages/object-not-found.vue'
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const props = defineProps<{
   isReady: boolean
@@ -19,9 +19,9 @@ const props = defineProps<{
   id?: I
 }>()
 
-const { currentRoute } = useRouter()
+const route = useRoute<'/pool/[uuid]' | '/host/[uuid]' | '/vm/[uuid]'>()
 
-const id = computed(() => props.id ?? (currentRoute.value.params.uuid as I))
+const id = computed(() => props.id ?? (route.params.uuid as I))
 
 const isRecordNotFound = computed(() => props.isReady && !props.uuidChecker(id.value))
 </script>

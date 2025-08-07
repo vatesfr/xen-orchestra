@@ -30,7 +30,7 @@ import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFound
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
-const route = useRoute()
+const route = useRoute<'/host/[uuid]/system'>()
 
 const id = computed(() => route.params.uuid as XenApiHost['uuid'])
 

@@ -98,6 +98,6 @@ const xoaAddress = computed(() => {
 
 const xoaFound = computed(() => xoaAddress.value !== undefined)
 
-const openXoaDeploy = () => router.push({ name: 'xoa.deploy' })
+const openXoaDeploy = () => router.push({ name: '/xoa-deploy' })
 const openXoa = () => window.open(xoaAddress.value, '_blank', 'noopener')
 </script>

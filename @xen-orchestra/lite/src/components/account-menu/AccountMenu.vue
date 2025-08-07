@@ -48,13 +48,13 @@ const router = useRouter()
 const logout = () => {
   const xenApiStore = useXenApiStore()
   xenApiStore.disconnect()
-  nextTick(() => router.push({ name: 'home' }))
+  nextTick(() => router.push({ name: '/' }))
 }
 
 const openUrl = (url: string) => {
   window.open(url, '_blank', 'noopener noreferrer')
 }
-const openSettings = () => router.push({ name: 'settings' })
+const openSettings = () => router.push({ name: '/settings' })
 </script>
 
 <style lang="postcss" scoped>

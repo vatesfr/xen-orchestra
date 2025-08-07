@@ -30,7 +30,7 @@ const { records } = useVifStore().subscribe()
 const { getByOpaqueRef } = useVmStore().subscribe()
 const uiStore = useUiStore()
 
-const route = useRoute()
+const route = useRoute<'/vm/[uuid]/network'>()
 
 const { t } = useI18n()
 usePageTitleStore().setTitle(t('network'))

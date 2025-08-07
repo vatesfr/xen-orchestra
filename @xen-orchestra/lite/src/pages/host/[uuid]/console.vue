@@ -44,7 +44,7 @@ const STOP_OPERATIONS = [HOST_OPERATION.SHUTDOWN]
 
 usePageTitleStore().setTitle(useI18n().t('console'))
 
-const route = useRoute()
+const route = useRoute<'/host/[uuid]/console'>()
 const uiStore = useUiStore()
 const xenApiStore = useXenApiStore()
 

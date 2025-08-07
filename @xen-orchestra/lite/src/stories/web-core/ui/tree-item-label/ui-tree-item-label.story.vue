@@ -6,7 +6,7 @@
       prop('route')
         .required()
         .type('RouteLocationRaw')
-        .preset({ name: 'pool.dashboard', params: { uuid: '355ee47d-ff4c-4924-3db2-fd86ae629676' } })
+        .preset({ name: '/pool/[uuid]', params: { uuid: '355ee47d-ff4c-4924-3db2-fd86ae629676' } })
         .widget(),
       prop('active').bool().widget(),
       prop('no-indent').bool().help('Remove indentation based on component depth in the tree'),

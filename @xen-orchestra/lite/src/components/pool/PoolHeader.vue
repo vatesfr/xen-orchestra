@@ -2,7 +2,7 @@
   <UiHeadBar :icon="faCity">
     {{ name }}
     <template #actions>
-      <RouterLink :to="{ name: 'new-vm' }">
+      <RouterLink :to="{ name: '/vm/new' }">
         <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium">{{ t('new-vm') }}</UiButton>
       </RouterLink>
     </template>
