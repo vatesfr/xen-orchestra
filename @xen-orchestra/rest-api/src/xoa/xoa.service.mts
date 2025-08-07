@@ -246,7 +246,7 @@ export class XoaService {
   }
 
   async #getMissingPatchesInfo(): Promise<XoaDashboard['missingPatches']> {
-    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo()
+    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo({ throwAuthorization: false })
 
     if (!missingPatchesInfo.hasAuthorization) {
       return { hasAuthorization: false }

@@ -493,3 +493,34 @@ export const poolDashboard = {
     percent: 8.333333333333334,
   },
 }
+
+export const poolMissingPatches = [
+  {
+    url: 'http://www.samba.org/',
+    version: '4.10.16',
+    name: 'libsmbclient',
+    license: 'GPLv3+ and LGPLv3+',
+    changelog: {
+      date: 1690286400,
+      description: '- resolves: #2222250 - Fix netlogon capabilities level 2',
+      author: 'Andreas Schneider <asn@redhat.com> - 4.10.16-25',
+    },
+    release: '25.el7_9',
+    size: 149400,
+    description: 'The SMB client library',
+  },
+  {
+    url: 'http://www.openssh.com/portable.html',
+    version: '7.4p1',
+    name: 'openssh',
+    license: 'BSD',
+    changelog: {
+      date: 1742212800,
+      description: '- Fix CVE-2025-26465 - Fix cases where error codes were not correctly set',
+      author: 'Lucas Ravagnier <lucas.ravagnier@vates.tech> - 7.4p1-23.3.2 + 0.10.3-2.23.3.2',
+    },
+    release: '23.3.2.xcpng8.2',
+    size: 429044,
+    description: 'An open source implementation of SSH protocol versions 1 and 2',
+  },
+]

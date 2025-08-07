@@ -164,3 +164,7 @@ export type XoApp = {
     }
   )
 }
+
+export type HasNoAuthorization = {
+  hasAuthorization: false
+}

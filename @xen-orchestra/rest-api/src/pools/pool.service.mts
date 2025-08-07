@@ -16,6 +16,8 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import { getTopPerProperty, isSrWritableOrIso, promiseWriteInStream } from '../helpers/utils.helper.mjs'
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import type { PoolDashboard } from './pool.type.mjs'
+import { MissingPatchesInfo } from '../hosts/host.type.mjs'
+import { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
 
 const log = createLogger('xo:rest-api:pool-service')
 
@@ -71,8 +73,27 @@ export class PoolService {
     return Object.keys(alarms)
   }
 
-  async #getMissingPatches(poolId: XoPool['id']): Promise<PoolDashboard['hosts']['missingPatches']> {
-    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo({ filter: host => host.$pool === poolId })
+  async getMissingPatches(
+    poolId: XoPool['id'],
+    opts?: { throwAuthorization?: true }
+  ): Promise<Pick<MissingPatchesInfo, 'hasAuthorization' | 'missingPatches'>>
+  async getMissingPatches(
+    poolId: XoPool['id'],
+    opts: { throwAuthorization: false }
+  ): Promise<HasNoAuthorization | Pick<MissingPatchesInfo, 'hasAuthorization' | 'missingPatches'>>
+  async getMissingPatches(
+    poolId: XoPool['id'],
+    opts?: { throwAuthorization?: boolean }
+  ): Promise<HasNoAuthorization | Pick<MissingPatchesInfo, 'hasAuthorization' | 'missingPatches'>>
+  async getMissingPatches(
+    poolId: XoPool['id'],
+    { throwAuthorization }: { throwAuthorization?: boolean } = {}
+  ): Promise<HasNoAuthorization | Pick<MissingPatchesInfo, 'hasAuthorization' | 'missingPatches'>> {
+    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo({
+      filter: host => host.$pool === poolId,
+      throwAuthorization,
+    })
+
     if (!missingPatchesInfo.hasAuthorization) {
       return {
         hasAuthorization: false,
@@ -274,7 +295,11 @@ export class PoolService {
       promiseWriteInStream({ maybePromise: this.#getHostsStatus(id), path: 'hosts.status', stream }),
       promiseWriteInStream({ maybePromise: this.#getVmsStatus(id), path: 'vms.status', stream }),
       promiseWriteInStream({ maybePromise: this.#getAlarms(id), path: 'alarms', stream }),
-      promiseWriteInStream({ maybePromise: this.#getMissingPatches(id), path: 'hosts.missingPatches', stream }),
+      promiseWriteInStream({
+        maybePromise: this.getMissingPatches(id, { throwAuthorization: false }),
+        path: 'hosts.missingPatches',
+        stream,
+      }),
       promiseWriteInStream({ maybePromise: this.#getTopFiveSrsUsage(id), path: 'srs.topFiveUsage', stream }),
       promiseWriteInStream({ maybePromise: this.#getTopFiveHostsRamUsage(id), path: 'hosts.topFiveUsage.ram', stream }),
       promiseWriteInStream({ maybePromise: this.#getTopFiveHostsCpuUsage(id), path: 'hosts.topFiveUsage.cpu', stream }),
