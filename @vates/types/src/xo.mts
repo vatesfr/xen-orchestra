@@ -409,7 +409,7 @@ export type XoBackupJob = BaseXoJob & {
       timezone?: string
       [key: string]: unknown
     }
-    [key: string]: {
+    [key: XoSchedule['id']]: {
       exportRetention?: number
       healthCheckSr?: XoSr['id']
       healthCheckVmsWithTags?: string[]
@@ -435,7 +435,7 @@ export type XoMetadataJob = BaseXoJob & {
     '': {
       [key: string]: unknown
     }
-    [key: string]: {
+    [key: XoSchedule['id']]: {
       exportRetention?: number
       healthCheckSr?: XoSr['id']
       healthCheckVmsWithTags?: string[]
@@ -458,7 +458,7 @@ export type XoMirrorJob = BaseXoJob & {
     '': {
       [key: string]: unknown
     }
-    [key: string]: {
+    [key: XoSchedule['id']]: {
       exportRetention?: number
       healthCheckSr?: XoSr['id']
       healthCheckVmsWithTags?: string[]

@@ -1,7 +1,7 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import type { BACKUP_TYPE, Branded, XoBackupJob, XoJob, XoMetadataJob, XoMirrorJob } from '@vates/types'
+import type { Branded, XoBackupJob, XoJob, XoMetadataJob, XoMirrorJob } from '@vates/types'
 
 import { notFoundResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -11,9 +11,9 @@ import { inject } from 'inversify'
 import { JobService } from './jobs.service.mjs'
 import { job, jobIds, partialJobs } from '../open-api/oa-examples/jobs.oa-example.mjs'
 
-type UnbrandedXoBackupJob = Unbrand<XoBackupJob>
-type UnbrandedXoMirrorJob = Unbrand<XoMirrorJob>
-type UnbrandedXoMetadataJob = Unbrand<XoMetadataJob>
+type UnbrandedXoBackupJob = Unbrand<Omit<XoBackupJob, 'settings'>>
+type UnbrandedXoMirrorJob = Unbrand<Omit<XoMirrorJob, 'settings'>>
+type UnbrandedXoMetadataJob = Unbrand<Omit<XoMetadataJob, 'settings'>>
 
 @Security('*')
 @Route('backup/jobs')
