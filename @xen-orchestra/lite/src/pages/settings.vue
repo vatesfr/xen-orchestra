@@ -85,9 +85,13 @@
           :class="{ selected: uiStore.colorMode === colorModeOption }"
           @click="uiStore.colorMode = colorModeOption"
         >
-          <img v-if="colorModeOption === 'light'" src="@/assets/color-mode-light.svg" :alt="t('dark-mode.disable')" />
-          <img v-else-if="colorModeOption === 'dark'" src="@/assets/color-mode-dark.svg" :alt="t('dark-mode.enable')" />
-          <img v-else src="@/assets/color-mode-auto.svg" :alt="t('dark-mode.auto')" />
+          <img v-if="colorModeOption === 'light'" src="../assets/color-mode-light.svg" :alt="t('dark-mode.disable')" />
+          <img
+            v-else-if="colorModeOption === 'dark'"
+            src="../assets/color-mode-dark.svg"
+            :alt="t('dark-mode.enable')"
+          />
+          <img v-else src="../assets/color-mode-auto.svg" :alt="t('dark-mode.auto')" />
           <span>
             <UiIcon v-if="uiStore.colorMode === colorModeOption" :icon="faCheck" />
             {{ t(`theme-${colorModeOption}`) }}
@@ -114,11 +118,11 @@ import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiKeyValueList from '@/components/ui/UiKeyValueList.vue'
 import UiKeyValueRow from '@/components/ui/UiKeyValueRow.vue'
-import { usePageTitleStore } from '@/stores/page-title.store'
-import { useHostStore } from '@/stores/xen-api/host.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
-import { locales } from '@core/i18n'
-import { useUiStore } from '@core/stores/ui.store'
+import { usePageTitleStore } from '@/stores/page-title.store.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import { locales } from '@core/i18n.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { faEarthAmericas, faGear, faCheck } from '@fortawesome/free-solid-svg-icons'
 import type { BasicColorSchema } from '@vueuse/core'
 import { computed, watch } from 'vue'

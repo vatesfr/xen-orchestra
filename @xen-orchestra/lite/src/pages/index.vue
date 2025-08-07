@@ -14,11 +14,12 @@ const { pool } = usePoolStore().subscribe()
 
 whenever(
   () => pool.value?.uuid,
-  poolUuid =>
-    router.push({
-      name: 'pool.dashboard',
+  poolUuid => {
+    return router.push({
+      name: '/pool/[uuid]',
       params: { uuid: poolUuid },
-    }),
+    })
+  },
   { immediate: true }
 )
 </script>

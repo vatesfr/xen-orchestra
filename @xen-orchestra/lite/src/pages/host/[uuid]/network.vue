@@ -30,7 +30,7 @@ const { records } = usePifStore().subscribe()
 const { getByOpaqueRef: getHostOpaqueRef } = useHostStore().subscribe()
 const uiStore = useUiStore()
 
-const route = useRoute()
+const route = useRoute<'/host/[uuid]/network'>()
 
 const { t } = useI18n()
 usePageTitleStore().setTitle(t('network'))
