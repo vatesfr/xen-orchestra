@@ -783,3 +783,5 @@ export const hostStats = {
     },
   },
 }
+
+export const hostSmt = { enabled: true }
