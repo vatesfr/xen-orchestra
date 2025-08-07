@@ -37,8 +37,6 @@ export class MenuToggleTarget {
 
   get props(): MenuToggleTargetProps {
     return reactive({
-      as: 'button',
-      type: 'button',
       ref: (element: HTMLElement | null | undefined) => {
         const newElement = unrefElement(element)
 
