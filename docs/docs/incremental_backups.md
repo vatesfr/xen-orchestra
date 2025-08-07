@@ -113,7 +113,7 @@ Sometimes, you might notice that incremental backups are surprisingly large, alm
 ### Known issues
 
 :::warning
-When using the **purge snapshot data** function, an issue leads to transferring full backups on each run.
+When using the **purge snapshot data** function, you might occasionally run into an issue where full backups are transferred on each run.
 
 To prevent this:
 
