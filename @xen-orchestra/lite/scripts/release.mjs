@@ -269,8 +269,26 @@ if (build) {
     cd('../..')
     await $`yarn`
   })
-  await $`GIT_HEAD=${headSha} vite build --base=${base}`
+  await $`vite build --base=${base} --outDir ${dist}`
   $.verbose = false
+}
+
+const buildInfo = await fs.readJson(path.join(dist, 'build.json'))
+
+// Check that built version matches requested version
+if (
+  buildInfo.version !== version &&
+  (await no(`Build version (${buildInfo.version}) does not match requested version (${version}). Continue anyway?`))
+) {
+  stop()
+}
+
+// Check that built commit matches current commit
+if (
+  buildInfo.gitHead !== headSha &&
+  (await no(`Build commit (${buildInfo.gitHead}) does not match current commit (${headSha}). Continue anyway?`))
+) {
+  stop()
 }
 
 // License and index.js --------------------------------------------------------
