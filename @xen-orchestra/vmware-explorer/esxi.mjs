@@ -262,7 +262,7 @@ export default class Esxi extends EventEmitter {
       datastore: diskDataStore,
       path: dirname(diskPath),
       diskPath,
-      descriptionLabel: ' from esxi',
+      descriptionLabel: '',
     }
   }
 
@@ -480,8 +480,8 @@ export default class Esxi extends EventEmitter {
     })
   }
 
-  async spanwNbdKitProcess(vmId, diskPath, { openChain = true, threads = 1, compression = 'none' } = {}) {
-    const key = `${vmId}/${diskPath}/${openChain}`
+  async spanwNbdKitProcess(vmId, diskPath, { singleLink = false, threads = 1, compression = 'none' } = {}) {
+    const key = `${vmId}/${diskPath}/${singleLink}`
     if (!this.#nbdServers.has(key)) {
       const thumbprint = await this.#getServerThumbprint()
       const libPath = '/usr/local/lib/vddk/vmware-vix-disklib-distrib'
@@ -493,30 +493,27 @@ export default class Esxi extends EventEmitter {
       const errFd = await fs.open(join(tmpDir, 'stderr'), 'a')
       const errFile = errFd.createWriteStream()
       await fs.writeFile(passFile, this.#password)
-      const nbdKitProcess = spawn(
-        'nbdkit',
-        [
-          '-r', // readonly
-          '-v',
-          '-f',
-          '--exit-with-parent', // implies -f , ensure we don't leave orphans
-          `--threads=${threads}`,
-          `--port=${this.#nbdPort}`,
-          'vddk', // the vddk plugin
-          `compression=${compression}`,
-          `thumbprint=${thumbprint}`,
-          `server=${this.#host}`,
-          `user=${this.#user}`,
-          `password=+${passFile}`,
-          `libdir=${libPath}`,
-          `vm=moref=${vmId}`,
-          !openChain ? 'single-link=true' : '',
-          diskPath,
-        ],
-        {
-          cwd: tmpDir,
-        }
-      )
+      const args = [
+        '-r', // readonly
+        '-v',
+        '-f',
+        '--exit-with-parent', // implies -f , ensure we don't leave orphans
+        `--threads=${threads}`,
+        `--port=${this.#nbdPort}`,
+        'vddk', // the vddk plugin
+        `compression=${compression}`,
+        `thumbprint=${thumbprint}`,
+        `server=${this.#host}`,
+        `user=${this.#user}`,
+        `password=+${passFile}`,
+        `libdir=${libPath}`,
+        `vm=moref=${vmId}`,
+        singleLink ? 'single-link=true' : '',
+        diskPath,
+      ]
+      const nbdKitProcess = spawn('nbdkit', args, {
+        cwd: tmpDir,
+      })
       nbdKitProcess.stdout.pipe(outFile)
       nbdKitProcess.stderr.pipe(errFile)
       this.#nbdServers.set(key, {
@@ -537,8 +534,8 @@ export default class Esxi extends EventEmitter {
     }
     return this.#nbdServers.get(key)
   }
-  async killNbdServer(vmId, diskPath, { openChain = true } = {}) {
-    const key = `${vmId}/${diskPath}/${openChain}`
+  async killNbdServer(vmId, diskPath, { singleLink = false } = {}) {
+    const key = `${vmId}/${diskPath}/${singleLink}`
     this.#nbdServers.get(key)?.process.kill()
   }
 }

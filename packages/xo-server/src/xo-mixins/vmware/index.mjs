@@ -124,7 +124,8 @@ export default class MigrateVm {
       await importDisksFromDatastore($defer, {
         esxi,
         vm,
-        chainsByNodes: runningChainByNodes,
+        chainsByNodes,
+        readMapFromSingleDisk: true,
         sr,
         vmId,
         vhds,

@@ -19,17 +19,19 @@ export class NbdDisk extends RandomAccessDisk {
   /** @type {number} */
   #blockSize
 
-  /**
-   * @param {string} vmRef
-   * @param {string} diskPath
-   * @param {number} blockSize
-   */
-  constructor(nbdInfos, blockSize) {
+  constructor(nbdInfos, blockSize, { dataMap } = {}) {
     super()
     this.#blockSize = blockSize
     this.#nbdInfos = nbdInfos
+    this.#dataMap = dataMap && this.#processDatamap(dataMap)
   }
 
+  #processDatamap(rawDataMap) {
+    return rawDataMap
+      .filter(({ type }) => type === 0)
+      .map(({ offset, length }) => ({ offset, length }))
+      .sort(({ offset: offset1 }, { offset: offset2 }) => offset1 - offset2)
+  }
   /**
    * @param {number} index
    * @returns {Promise<DiskBlock>}
@@ -68,19 +70,15 @@ export class NbdDisk extends RandomAccessDisk {
   async init() {
     this.#nbdClient = new NbdClient(this.#nbdInfos)
     await this.#nbdClient.connect()
-    const diskMap = await this.#nbdClient.getMap()
-    this.#dataMap = diskMap
-      .filter(({ type }) => type === 0)
-      .map(({ offset, length }) => ({ offset, length }))
-      .sort(({ offset: offset1 }, { offset: offset2 }) => offset1 - offset2)
-    console.log('init done ', this.#dataMap)
+    if (this.#dataMap === undefined) {
+      this.#dataMap = this.#processDatamap(await this.#nbdClient.getMap())
+    }
   }
 
   /**
    * @returns {Promise<void>}
    */
   async close() {
-    console.log('CLOSE')
     await this.#nbdClient?.disconnect()
   }
 

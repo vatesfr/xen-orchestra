@@ -5,37 +5,49 @@ import { ReadAhead } from '@xen-orchestra/disk-transform'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
 import { createLogger } from '@xen-orchestra/log'
+import NbdClient from '@vates/nbd-client'
 
 const { info, warn } = createLogger('xo:importdiskfromdatastore')
 
 const importDiskChain = Disposable.factory(async function* importDiskChain(
   $defer,
-  { esxi, sr, vm, chainByNode, vdi, userdevice, sourceVmId }
+  { esxi, sr, vm, chainByNode, readMapFromSingleDisk = false, vdi, userdevice, sourceVmId }
 ) {
   let vhd
   if (chainByNode.length === 0) {
     return { vhd, vdi }
   }
-
-  // @todo ; check if disk already exists in XCP
-  // if yes create a disk chain of nbd disk
-  // if no open the full chain
-  const openChain = chainByNode.length > 1
+  const start = Date.now()
   const activeDisk = chainByNode[chainByNode.length - 1]
   const { datastore: datastoreName, diskPath, descriptionLabel, nameLabel } = activeDisk
   let vmdk
   try {
-    const { nbdInfos } = await esxi.spanwNbdKitProcess(sourceVmId, `[${datastoreName}] ${diskPath}`, {
-      openChain,
-    })
+    let dataMap
+    if (readMapFromSingleDisk) {
+      try {
+        const nbdInfoSpawn = await esxi.spanwNbdKitProcess(sourceVmId, `[${datastoreName}] ${diskPath}`, {
+          singleLink: true,
+        })
+        const nbdClient = new NbdClient(nbdInfoSpawn.nbdInfos)
+        await nbdClient.connect()
+        dataMap = await nbdClient.getMap()
+      } catch (error) {
+        warn('while getting the map of a snapshot', error)
+      } finally {
+        await esxi
+          .killNbdServer(sourceVmId, `[${datastoreName}] ${diskPath}`, { openChain: false })
+          .catch(err => warn('error whilestopping nbdkit server for the snapshot', err))
+      }
+    }
 
-    vmdk = new NbdDisk(nbdInfos, 2 * 1024 * 1024)
+    const { nbdInfos } = await esxi.spanwNbdKitProcess(sourceVmId, `[${datastoreName}] ${diskPath}`)
+    vmdk = new NbdDisk(nbdInfos, 2 * 1024 * 1024, { dataMap })
 
     await vmdk.init()
     vmdk = new ReadAhead(vmdk)
     if (!vdi) {
       const vdiMetadata = {
-        name_description: 'fromESXI' + descriptionLabel,
+        name_description: descriptionLabel,
         name_label: '[ESXI]' + nameLabel,
         SR: sr.$ref,
         virtual_size: vmdk.getVirtualSize(),
@@ -50,10 +62,20 @@ const importDiskChain = Disposable.factory(async function* importDiskChain(
         userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
       })
     }
-
     const stream = await toVhdStream(vmdk)
     await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
     info(`import of ${diskPath} content done`, { datastoreName, diskPath, sourceVmId })
+    const transfered = Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
+    const duration = Math.round((Date.now() - start) / 1000)
+    const speed = Math.round(transfered / duration)
+
+    await sr.$xapi.setField(
+      'VDI',
+      vdi.$ref,
+      'name_description',
+      `${await sr.$xapi.getField('VDI', vdi.$ref, 'name_description')} 
+     ${transfered} MB in ${duration} s (${speed}MB/s) from  ${readMapFromSingleDisk ? 'snapshot' : 'base'}`
+    )
     // @todo ; add data for import resuming
     //   await sr.$xapi.setFieldEntries('VDI', vdi.$ref, 'other_config', { esxi_uuid: vmdk.contentId })
   } finally {
@@ -73,14 +95,24 @@ function diskIsAlreadyImported(sr, disk) {
 
 export const importDisksFromDatastore = async function importDisksFromDatastore(
   $defer,
-  { esxi, vm, chainsByNodes, sr, vhds = [], sourceVmId }
+  { esxi, vm, chainsByNodes, readMapFromSingleDisk, sr, vhds = [], sourceVmId }
 ) {
   return await Promise.all(
     Object.keys(chainsByNodes).map(async (node, userdevice) =>
       Task.run({ properties: { name: `Cold import of disks ${node}` } }, async () => {
         const chainByNode = chainsByNodes[node]
         return Disposable.use(vhds[userdevice] ?? {}, ({ vdi, vhd: parentVhd }) =>
-          importDiskChain($defer, { esxi, vm, chainByNode, userdevice, sr, parentVhd, vdi, sourceVmId })
+          importDiskChain($defer, {
+            esxi,
+            vm,
+            chainByNode,
+            readMapFromSingleDisk,
+            userdevice,
+            sr,
+            parentVhd,
+            vdi,
+            sourceVmId,
+          })
         )
       })
     )
