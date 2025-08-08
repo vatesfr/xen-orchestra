@@ -500,6 +500,16 @@ export type XoUser = {
   preferences: Record<string, string>
 }
 
+export type XoAuthenticationToken = {
+  client: string
+  created_at: number
+  description?: string
+  user_id: XoUser['id']
+  expiration?: number
+  last_uses: Record<string, { timestamp: number }>
+  id: string
+}
+
 export type XoVbd = BaseXapiXo & {
   attached: boolean
   bootable: boolean
@@ -649,7 +659,15 @@ export type XapiXoRecord =
   | XoVtpm
   | XoSm
 
-export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
+export type NonXapiXoRecord =
+  | XoGroup
+  | XoProxy
+  | XoJob
+  | XoBackupRepository
+  | XoSchedule
+  | XoServer
+  | XoUser
+  | XoAuthenticationToken
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
