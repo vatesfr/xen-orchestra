@@ -279,6 +279,7 @@ export default class RestApi {
       'vm-snapshots': {
         routes: {
           alarms: true,
+          vdis: true,
         },
       },
       'vm-templates': {
