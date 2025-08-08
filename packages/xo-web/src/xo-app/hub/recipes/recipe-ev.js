@@ -1,4 +1,3 @@
-import * as ComplexMatcher from 'complex-matcher'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import ButtonLink from 'button-link'
@@ -7,21 +6,20 @@ import Icon from 'icon'
 import marked from 'marked'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
-import escapeRegExp from 'lodash/escapeRegExp.js'
 import { form } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { createKubernetesCluster } from 'xo'
+import { createEasyVirtVM } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { success } from 'notification'
 import { withRouter } from 'react-router'
 
-import RecipeForm from './recipe-form'
+import RecipeForm from './recipe-form-ev'
 
 const RECIPE_INFO = {
-  id: '05abc8a8-ebf4-41a6-b1ed-efcb2dbf893d',
-  name: 'Kubernetes cluster',
-  description: 'Creates a Kubernetes cluster composed of a configurable number of control planes and worker nodes.',
+  id: 'test',
+  name: 'DCScope VM',
+  description: 'Creates an DCScope VM with parameters and application inside',
 }
 
 export default decorate([
@@ -51,46 +49,37 @@ export default decorate([
         })
 
         const {
-          clusterName,
-          controlPlaneIpAddress,
-          controlPlaneIpAddresses,
-          controlPlanePoolSize,
+          vmName,
+          vmIpAddress,
           gatewayIpAddress,
-          k8sVersion,
-          nameservers,
-          nbNodes,
           network,
-          searches,
           sr,
           sshKey,
-          vipAddress,
-          workerNodeIpAddresses,
+          xoUsername,
+          xoPassword,
+          xoUrl,
+          dcScopeTemplateId,
         } = recipeParams
 
         markRecipeAsCreating(RECIPE_INFO.id)
-        const tag = await createKubernetesCluster({
-          clusterName,
-          controlPlaneIpAddress,
-          controlPlaneIpAddresses,
-          controlPlanePoolSize,
+
+        const vmId = await createEasyVirtVM({
+          vmName,
+          vmIpAddress,
           gatewayIpAddress,
-          k8sVersion,
-          nameservers,
-          nbNodes: +nbNodes,
           network: network.id,
-          searches,
           sr: sr.id,
           sshKey,
-          vipAddress,
-          workerNodeIpAddresses,
+          xoUsername,
+          xoPassword,
+          xoUrl,
+          dcScopeTemplateId,
         })
         markRecipeAsDone(RECIPE_INFO.id)
 
-        const filter = new ComplexMatcher.Property('tags', new ComplexMatcher.RegExp(`^${escapeRegExp(tag)}$`))
-
         success(
           _('recipeCreatedSuccessfully'),
-          <ButtonLink btnStyle='success' size='small' to={`/home?s=${encodeURIComponent(filter)}`}>
+          <ButtonLink btnStyle='success' size='small' to={`/home?s=id:${vmId}&t=VM`}>
             {_('recipeViewCreatedVms')}
           </ButtonLink>,
           8e3
