@@ -2,17 +2,23 @@ import { Example, Get, Security, Query, Request, Response, Route, Tags, Path } f
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import type { XoAlarm, XoVmTemplate } from '@vates/types'
+import type { XoAlarm, XoVdi, XoVmTemplate } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
-import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { partialVmTemplates, vmTemplate, vmTemplateIds } from '../open-api/oa-examples/vm-template.oa-example.mjs'
+import {
+  partialVmTemplates,
+  vmTemplate,
+  vmTemplateIds,
+  vmTemplateVdis,
+} from '../open-api/oa-examples/vm-template.oa-example.mjs'
+import { VmService } from '../vms/vm.service.mjs'
 
 @Route('vm-templates')
 @Security('*')
@@ -21,9 +27,16 @@ import { partialVmTemplates, vmTemplate, vmTemplateIds } from '../open-api/oa-ex
 @provide(VmTemplateController)
 export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   #alarmService: AlarmService
-  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
+  #vmService: VmService
+
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(VmService) vmService: VmService
+  ) {
     super('VM-template', restApi)
     this.#alarmService = alarmService
+    this.#vmService = vmService
   }
 
   /**
@@ -79,5 +92,27 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     })
 
     return this.sendObjects(Object.values(alarms), req, 'alarms')
+  }
+
+  /**
+   * @example id "6d50ba76-0f11-1ff1-4f6a-b502afc31b8e"
+   * @example fields "VDI_type,id,name_label"
+   * @example filter "VDI_type:user"
+   * @example limit 42
+   */
+  @Example(vmTemplateVdis)
+  @Get('{id}/vdis')
+  @Tags('vdis')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVmTemplateVdis(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoVdi>>> {
+    const vdis = this.#vmService.getVmVdis(id as XoVmTemplate['id'], 'VM-template')
+    return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
   }
 }

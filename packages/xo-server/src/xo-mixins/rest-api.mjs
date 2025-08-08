@@ -285,6 +285,7 @@ export default class RestApi {
       'vm-templates': {
         routes: {
           alarms: true,
+          vdis: true,
         },
       },
       hosts: {

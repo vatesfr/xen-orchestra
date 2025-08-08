@@ -92,3 +92,18 @@ export const vmTemplate = {
   $poolId: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
   _xapiRef: 'OpaqueRef:3a9b74fe-57d5-52f7-31ec-fbb0de9e8a1e',
 }
+
+export const vmTemplateVdis = [
+  {
+    VDI_type: 'user',
+    id: 'cbfeabfc-20c8-46eb-a094-84076eb29f04',
+    name_label: 'Hard disk 1',
+    href: '/rest/v0/vdis/cbfeabfc-20c8-46eb-a094-84076eb29f04',
+  },
+  {
+    VDI_type: 'user',
+    id: 'bee66a2e-68a4-4ff8-9ed4-2f429587524f',
+    name_label: 'Hard disk 2',
+    href: '/rest/v0/vdis/bee66a2e-68a4-4ff8-9ed4-2f429587524f',
+  },
+]
