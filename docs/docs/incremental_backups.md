@@ -109,6 +109,8 @@ Sometimes, you might notice that incremental backups are surprisingly large, alm
 - Ensure your VM has enough memory to prevent excessive paging.
 - Create a separated disk with `[NOBAK]` in its name to handle temporary files. This disk won't be transferred.
     To know more on excluding disks from backup jobs, check out the [Exclude disks](https://docs.xen-orchestra.com/backups#exclude-disks) section.
+- For disks larger than **2 TB**, store backups on a remote in **block mode**.
+- For **qcow2** disks, use **NBD** mode for backups.
 
 ### Known issues
 
