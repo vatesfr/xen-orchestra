@@ -273,7 +273,7 @@ if (build) {
   $.verbose = false
 }
 
-const buildInfo = JSON.parse(await fs.readFile(path.join(dist, 'build.json'), 'utf-8'))
+const buildInfo = await fs.readJson(path.join(dist, 'build.json'))
 
 // Check that built version matches requested version
 if (
