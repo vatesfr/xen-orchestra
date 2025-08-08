@@ -72,3 +72,18 @@ export const vmController = {
   $poolId: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
   _xapiRef: 'OpaqueRef:ca27fcfc-5083-d039-e752-2e6c3364bde9',
 }
+
+export const vmControllerVdis = [
+  {
+    VDI_type: 'user',
+    id: '6b67c24d-5f09-4845-b753-0b73abf658f0',
+    name_label: 'debian 12 hub disk',
+    href: '/rest/v0/vdi-snapshots/6b67c24d-5f09-4845-b753-0b73abf658f0',
+  },
+  {
+    VDI_type: 'user',
+    id: '11d85da8-7caf-4a47-b030-15e78adb3f72',
+    name_label: 'xoa root',
+    href: '/rest/v0/vdi-snapshots/11d85da8-7caf-4a47-b030-15e78adb3f72',
+  },
+]
