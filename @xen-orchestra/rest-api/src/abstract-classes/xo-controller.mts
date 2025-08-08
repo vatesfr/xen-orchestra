@@ -1,10 +1,10 @@
-import * as CM from 'complex-matcher'
 import { inject } from 'inversify'
 import type { NonXapiXoRecord } from '@vates/types/xo'
 
 import { BaseController } from './base-controller.mjs'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 
 export abstract class XoController<T extends NonXapiXoRecord> extends BaseController<T, false> {
   abstract getAllCollectionObjects(): Promise<T[]>
@@ -14,19 +14,10 @@ export abstract class XoController<T extends NonXapiXoRecord> extends BaseContro
     super(restApi)
   }
 
-  async getObjects({ filter, limit = Infinity }: { filter?: string; limit?: number } = {}): Promise<
-    Record<T['id'], T>
-  > {
+  async getObjects(opts: { filter?: string; limit?: number } = {}): Promise<Record<T['id'], T>> {
     let objects = await this.getAllCollectionObjects()
 
-    if (filter !== undefined) {
-      const predicate = CM.parse(filter).createPredicate()
-      objects = objects.filter(predicate)
-    }
-
-    if (limit < objects.length) {
-      objects.length = limit
-    }
+    objects = limitAndFilterArray(objects, opts)
 
     const objectById = {} as Record<T['id'], T>
 

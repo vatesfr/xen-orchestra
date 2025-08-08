@@ -893,7 +893,7 @@ export interface XenApiVbd {
   unpluggable: boolean
   userdevice: string
   uuid: string
-  VDI: XenApiVdi['$ref']
+  VDI: XenApiVdi['$ref'] | OPAQUE_REF_NULL
   VM: XenApiVm['$ref']
 }
 export type XenApiVbdWrapped = WrapperXenApi<XenApiVbd, 'VBD'>

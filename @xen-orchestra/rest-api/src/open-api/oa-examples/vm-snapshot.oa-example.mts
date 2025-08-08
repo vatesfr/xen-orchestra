@@ -178,3 +178,18 @@ export const vmSnapshot = {
   suspendVdi: 'string',
   type: 'VM-snapshot',
 }
+
+export const vmSnapshotVdis = [
+  {
+    VDI_type: 'user',
+    id: 'a2831a61-6b1c-41e3-a328-bdfd13e76488',
+    name_label: 'Debian Buster 10_oreva',
+    href: '/rest/v0/vdi-snapshots/a2831a61-6b1c-41e3-a328-bdfd13e76488',
+  },
+  {
+    VDI_type: 'user',
+    id: '41c52deb-0083-471e-bd72-252ea06a48b9',
+    name_label: 'MRA XCP 8.2_uvuvo',
+    href: '/rest/v0/vdi-snapshots/41c52deb-0083-471e-bd72-252ea06a48b9',
+  },
+]

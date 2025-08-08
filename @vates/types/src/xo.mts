@@ -509,7 +509,7 @@ export type XoVbd = BaseXapiXo & {
   position: string
   read_only: boolean
   type: 'VBD'
-  VDI: AnyXoVdi['id']
+  VDI?: XoVdi['id'] | XoVdiSnapshot['id']
   VM: AnyXoVm['id']
 }
 
@@ -545,9 +545,14 @@ export type XoVdiSnapshot = BaseXoVdi & {
   type: 'VDI-snapshot'
 }
 
-export type XoVdiUnmanaged = BaseXoVdi & {
+export type XoVdiUnmanaged = Omit<BaseXoVdi, '$VBDs'> & {
   id: Branded<'VDI-unmanaged'>
   type: 'VDI-unmanaged'
+
+  /**
+   * Unmanaged VDI have no VBDs
+   */
+  $VBDs: never[]
 }
 
 export type XoVgpu = BaseXapiXo & {
