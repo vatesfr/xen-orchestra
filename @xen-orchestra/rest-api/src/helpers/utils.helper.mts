@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import { AnyXoVm, XoSr } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { isPromise } from 'node:util/types'
@@ -120,4 +121,20 @@ export function escapeUnsafeComplexMatcher(maybeString: string | undefined): str
   }
 
   return `(${maybeString})`
+}
+
+export function limitAndFilterArray<T>(
+  array: T[],
+  { filter, limit = Infinity }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}
+): T[] {
+  if (filter !== undefined) {
+    const predicate = typeof filter === 'string' ? CM.parse(filter).createPredicate() : filter
+    array = array.filter(predicate)
+  }
+
+  if (limit < array.length) {
+    array = array.slice(0, limit)
+  }
+
+  return array
 }
