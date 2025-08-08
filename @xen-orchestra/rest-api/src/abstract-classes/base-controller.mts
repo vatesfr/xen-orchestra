@@ -28,7 +28,11 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     this.restApi = restApi
   }
 
-  sendObjects<Objects extends XoRecord = T>(objects: Objects[], req: Request, path?: string): SendObjects<Objects> {
+  sendObjects<Objects extends XoRecord = T>(
+    objects: Objects[],
+    req: Request,
+    path?: string | ((obj: Objects) => string)
+  ): SendObjects<Objects> {
     const mapper = makeObjectMapper(req, path)
     const mappedObjects = objects.map(mapper) as string[] | WithHref<Objects>[]
 

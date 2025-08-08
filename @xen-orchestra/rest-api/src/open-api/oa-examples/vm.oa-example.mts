@@ -247,3 +247,18 @@ export const vmStatsExample = {
     ],
   },
 }
+
+export const vmVdis = [
+  {
+    VDI_type: 'user',
+    id: '11045407-4764-4c1c-8865-63f89d686b1b',
+    name_label: 'Debian Bookworm 12_ogupi',
+    href: '/rest/v0/vdis/11045407-4764-4c1c-8865-63f89d686b1b',
+  },
+  {
+    VDI_type: 'user',
+    id: '0eb73d40-e5f8-443d-b611-a52e03858a6a',
+    name_label: 'MRA TrueNAS_emodi',
+    href: '/rest/v0/vdis/0eb73d40-e5f8-443d-b611-a52e03858a6a',
+  },
+]
