@@ -40,6 +40,68 @@ In the network creation view:
 - Only 1 encrypted GRE network and 1 encrypted VxLAN network per pool can exist at a time due to Open vSwitch limitation.
 :::
 
+### Network bonding
+
+#### Definition
+
+Network bonding, also known as link aggregation, involves combining two or more physical network interfaces into a single logical interface.
+
+The primary goals are to improve redundancy —so that a single cable or interface failure does not interrupt connectivity— and, depending on the bonding mode, to increase throughput by distributing traffic across multiple links.
+
+#### Supported bond types
+
+Xen Orchestra supports the following bond types:
+
+
+- **Active / Active (Balance-SLB)**  
+  - Does **not** require switch awareness (no LACP needed).  
+  - Balances traffic across all bond members.  
+  - Automatically shifts traffic to remaining members if one link fails.  
+  - May have compatibility issues with some low-end switches.
+
+- **Active / Backup**  
+  - Does **not** require switch awareness.  
+  - Uses one primary interface for traffic, switching to backup only upon link failure.
+
+- **LACP**  
+  - Requires the switch to support and be configured for LACP.  
+  - Offers rapid failover and can detect mid-span link failures even if the physical link stays up.
+  - Balances traffic across all bond members during normal operations.
+
+#### Creating a LACP bond
+
+1. Navigate to **New → Network** to open the **Create Network** page.  
+2. Choose the pool where you want the bond to be created.
+3. Enable the **Bonded network** toggle:
+    ![Bond creation interface](./assets/bond0.png)
+4. In the **Interface** dropdown, select two or more physical interfaces (PIFs) to include in the bond.  
+5. Provide a **name** and a **description** for the bond.
+6. Set the **Bond mode** to **LACP**.
+7. Leave the **MTU** field blank. This will work as-is in 99% of cases.
+8. Click **Create network**.
+    XO will then create the bond on the host(s):
+    ![Newly-created bond](./assets/bond1.png)
+
+:::tip
+- If applied to a pool, the bond is created across all pool members, so make sure all your pool members are cabled and configured on the switch side for LACP!
+- If the host’s management interface resides on one of the selected interfaces, XO will **automatically migrate the management interface** on top of the new bond (e.g., if management was on `eth0` and the bond consists of `eth0` + `eth1`).
+:::
+
+#### Adding VLANs on top of bonds
+
+Once a bond (e.g., `bond0`) is created, you can build VLANs over it:
+
+1. Go again to **New → Network** screen.  
+2. Select the new bond interface (e.g., `bond0`) in the **Interface** dropdown.  
+3. Provide a **name**, **description**, and specify the **VLAN** ID (for instance, `20`):
+    ![Setting up a VLAN on top of a new network bond](./assets/bond2.png)
+4. Validate the VLAN network creation.\
+    This creates a virtual network on top of the bond, using the name and ID you've specified, available for VM attachment.
+
+:::tip
+This process is the same whether you're adding a VLAN on top of a LACP network bond, or a bond in another mode (such as Active/Active or Active/Backup).
+:::
+
 ### Configuration
 
 Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](architecture#plugins).
