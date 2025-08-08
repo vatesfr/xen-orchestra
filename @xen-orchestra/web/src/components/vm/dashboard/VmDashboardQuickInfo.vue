@@ -1,5 +1,5 @@
 <template>
-  <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!isReady">
+  <VtsQuickInfoCard class="vm-dashboard-quick-info" :loading="!areVmsReady">
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
@@ -48,7 +48,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useVmStore } from '@/stores/xo-rest-api/vm.store.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { VM_POWER_STATE, type XoVm } from '@/types/xo/vm.type.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
@@ -71,7 +71,7 @@ const { vm } = defineProps<{
 
 const { t, locale } = useI18n()
 
-const { isReady, getVmHost } = useVmStore().subscribe()
+const { areVmsReady, getVmHost } = useXoVmCollection()
 
 const host = computed(() => getVmHost(vm))
 

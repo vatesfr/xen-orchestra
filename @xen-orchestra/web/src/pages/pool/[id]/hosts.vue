@@ -1,10 +1,10 @@
 <template>
-  <VtsLoadingHero v-if="!isReady" type="page" />
+  <VtsLoadingHero v-if="!areHostsReady" type="page" />
   <UiCard v-else class="hosts">
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-hosts', { n: hosts.length }) }}</p>
-      <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areHostsReady" v-bind="paginationBindings" />
     </div>
     <VtsTable vertical-border>
       <thead>
@@ -34,13 +34,13 @@
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-hosts', { n: hosts.length }) }}</p>
-      <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areHostsReady" v-bind="paginationBindings" />
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { HostState } from '@core/types/object-icon.type'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
@@ -65,7 +65,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const { isReady, hostsByPool } = useHostStore().subscribe()
+const { areHostsReady, hostsByPool } = useXoHostCollection()
 
 const definitions = computed(() =>
   defineTree(hostsByPool.value.get(props.pool.id) ?? [], {

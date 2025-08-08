@@ -15,7 +15,7 @@
 import PoolHostInternalNetworksTable from '@/components/pool/network/PoolHostInternalNetworksTable.vue'
 import PoolNetworkSidePanel from '@/components/pool/network/PoolNetworkSidePanel.vue'
 import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
@@ -29,7 +29,7 @@ const { pool } = defineProps<{
   pool: XoPool
 }>()
 
-const { networksWithoutPifs, networksWithPifs, get } = useNetworkStore().subscribe()
+const { networksWithoutPifs, networksWithPifs, getNetworkById } = useXoNetworkCollection()
 const uiStore = useUiStore()
 
 const internalNetworks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))
@@ -37,7 +37,7 @@ const internalNetworks = computed(() => networksWithoutPifs.value.filter(network
 const networks = computed(() => networksWithPifs.value.filter(network => network.$pool === pool.id))
 
 const selectedNetwork = useRouteQuery<XoNetwork | undefined>('id', {
-  toData: id => get(id as XoNetwork['id']),
+  toData: id => getNetworkById(id as XoNetwork['id']),
   toQuery: network => network?.id ?? '',
 })
 </script>

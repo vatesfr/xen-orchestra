@@ -39,12 +39,12 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-          <UiTablePagination v-if="isServerReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable
-        :is-ready="isServerReady"
-        :has-error
+        :is-ready="areServersReady"
+        :has-error="hasServerFetchError"
         :no-data-message="servers.length === 0 ? t('no-server-detected') : undefined"
       >
         <template #thead>
@@ -117,15 +117,15 @@
       </VtsStateHero>
       <VtsStateHero v-if="!servers.length" image="no-data" type="page" />
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-        <UiTablePagination v-if="isServerReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { useServerStore } from '@/stores/xo-rest-api/server.store.ts'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
 import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -166,8 +166,8 @@ const { servers } = defineProps<{
 
 const { t } = useI18n()
 
-const { isReady: isServerReady, hasError } = useServerStore().subscribe()
-const { get: getHostById } = useHostStore().subscribe()
+const { areServersReady, hasServerFetchError } = useXoServerCollection()
+const { getHostById } = useXoHostCollection()
 const selectedServerId = useRouteQuery('id')
 
 const searchQuery = ref('')
@@ -222,7 +222,7 @@ const getPoolInfo = (server: XoServer) => {
 }
 
 const getPrimaryHost = (server: XoServer) => {
-  const masterHost = server.master ? getHostById(server.master) : undefined
+  const masterHost = getHostById(server.master)
   return masterHost ? { label: masterHost.name_label, to: `/host/${masterHost.id}/`, icon: faServer } : undefined
 }
 

@@ -33,14 +33,15 @@ import PoolsStatus from '@/components/site/dashboard/PoolsStatus.vue'
 import Repositories from '@/components/site/dashboard/Repositories.vue'
 import ResourcesOverview from '@/components/site/dashboard/ResourcesOverview.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
-import { useSiteDashboard } from '@/requests/use-site-dashboard.request.ts'
-import { useAlarmStore } from '@/stores/xo-rest-api/alarm.store.ts'
+import { useXoAlarmCollection } from '@/remote-resources/use-xo-alarm-collection.ts'
+import { useXoSiteDashboard } from '@/remote-resources/use-xo-site-dashboard.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 
 const uiStore = useUiStore()
 
-const { dashboard, backupRepositories, storageRepositories } = useSiteDashboard()
-const { records: alarms } = useAlarmStore().subscribe()
+const { dashboard, backupRepositories, storageRepositories } = useXoSiteDashboard()
+
+const { alarms } = useXoAlarmCollection()
 </script>
 
 <style lang="postcss" scoped>

@@ -130,7 +130,7 @@
 
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store.ts'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -154,7 +154,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { getPifsByNetworkId } = usePifStore().subscribe()
+const { getPifsByNetworkId } = useXoPifCollection()
 const uiStore = useUiStore()
 
 const { t } = useI18n()

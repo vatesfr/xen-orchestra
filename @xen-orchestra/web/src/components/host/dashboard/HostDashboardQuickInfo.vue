@@ -1,5 +1,5 @@
 <template>
-  <VtsQuickInfoCard class="host-dashboard-quick-info" :loading="!isReady">
+  <VtsQuickInfoCard class="host-dashboard-quick-info" :loading="!areHostsReady">
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
@@ -50,7 +50,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { HOST_POWER_STATE, type XoHost } from '@/types/xo/host.type'
 import VtsIcon, { type IconAccent } from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
@@ -75,7 +75,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getMasterHostByPoolId, isMasterHost, isReady } = useHostStore().subscribe()
+const { getMasterHostByPoolId, isMasterHost, areHostsReady } = useXoHostCollection()
 
 const powerStateConfig: Record<
   string,

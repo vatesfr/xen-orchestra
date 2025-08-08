@@ -41,12 +41,12 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable
-        :is-ready
-        :has-error
+        :is-ready="areNetworksReady"
+        :has-error="hasNetworkFetchError"
         :no-data-message="networks.length === 0 ? t('no-network-detected') : undefined"
       >
         <template #thead>
@@ -104,14 +104,14 @@
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store.ts'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -147,7 +147,7 @@ const { networks } = defineProps<{
   networks: XoNetwork[]
 }>()
 
-const { isReady, hasError } = useNetworkStore().subscribe()
+const { areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
 
 const { t } = useI18n()
 const searchQuery = ref('')

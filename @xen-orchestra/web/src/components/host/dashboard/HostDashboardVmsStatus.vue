@@ -10,8 +10,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
 import { VM_POWER_STATE } from '@/types/xo/vm.type'
 import VtsDonutChartWithLegend, {
@@ -30,10 +30,10 @@ const { host } = defineProps<{
   host: XoHost
 }>()
 
-const { isReady: isHostReady } = useHostStore().subscribe()
-const { vmsByHost, isReady: isVmReady } = useVmStore().subscribe()
+const { areHostsReady } = useXoHostCollection()
+const { vmsByHost, areVmsReady } = useXoVmCollection()
 
-const isReady = logicAnd(isHostReady, isVmReady)
+const isReady = logicAnd(areHostsReady, areVmsReady)
 
 const hostVms = computed(() => vmsByHost.value.get(host.id) ?? [])
 

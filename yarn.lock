@@ -15319,10 +15319,10 @@ natural-compare@^1.4.0:
   resolved "https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz#4abebfeed7541f2c27acfb29bdbbd15c8d5ba4f7"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
 
-ndjson-readablestream@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/ndjson-readablestream/-/ndjson-readablestream-1.2.0.tgz#9c0929f272450a54f03a874662355ccab09e6e8c"
-  integrity sha512-QbWX2IIfKMVL+ZFHm9vFEzPh1NzZfzJql59T+9XoXzUp8n0wu2t9qgDV9nT0A77YYa6KbAjsHNWzJfpZTfp4xQ==
+ndjson-readablestream@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/ndjson-readablestream/-/ndjson-readablestream-1.3.0.tgz#169a726ee0d1397ff2a771403a09bbc71d8a9239"
+  integrity sha512-woBFmA+6hq6L/OgbY+a6jb2tUhQY+NsNPtC7ACDWCX/xYe+mUEziBsIAWeYhijvCRW7DqQ34/ZhcnhaXwDx4bw==
 
 ndjson@^2.0.0:
   version "2.0.0"

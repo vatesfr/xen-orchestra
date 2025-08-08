@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { useVmControllerStore } from '@/stores/xo-rest-api/vm-controller.store.ts'
+import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection.ts'
 import type { XoHost } from '@/types/xo/host.type.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -26,14 +26,14 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { get: getController } = useVmControllerStore().subscribe()
+const { getVmControllerById } = useXoVmControllerCollection()
 
 const controllerMemory = computed(() => {
   if (host.controlDomain === undefined) {
     return
   }
 
-  const controllerDomain = getController(host.controlDomain)
+  const controllerDomain = getVmControllerById(host.controlDomain)
 
   if (controllerDomain === undefined) {
     return
