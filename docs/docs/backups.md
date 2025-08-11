@@ -285,7 +285,9 @@ Supported remote types:
 - SMB (CIFS)
 
 :::warning
-The initial "/" or "\\" is automatically added.
+- The initial "/" or "\\" is automatically added.
+- For disks larger than **2 TB**, store backups on **block-based remotes**.
+- For **qcow2** disks, use **NBD** mode for backups.
 :::
 
 ### NFS
