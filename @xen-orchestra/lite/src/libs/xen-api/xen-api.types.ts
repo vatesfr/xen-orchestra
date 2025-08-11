@@ -183,7 +183,7 @@ export interface XenApiPbd extends XenApiRecord<'pbd'> {
 }
 
 export interface XenApiVm extends XenApiRecord<'vm'> {
-  HVM_boot_params: Record<string, string>
+  HVM_boot_params: Record<string, string | undefined>
   HVM_boot_policy: string
   HVM_shadow_multiplier: number
   NVRAM: Record<string, string>
