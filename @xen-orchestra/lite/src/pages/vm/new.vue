@@ -561,9 +561,7 @@ const isDiskTemplate = computed(() => {
 
 const automaticNetworks = computed(() => networks.value.filter(network => network.other_config.automatic === 'true'))
 
-const bootFirmwares = computed(() => [
-  ...new Set(templates.value.map(template => template.HVM_boot_params.firmware ?? '')),
-])
+const bootFirmwares = computed(() => [...new Set(templates.value.map(template => template.HVM_boot_params.firmware))])
 
 const defaultSr = computed(() => pool.value!.default_SR)
 
