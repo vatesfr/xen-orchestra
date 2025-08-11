@@ -40,8 +40,8 @@ const props = defineProps<{
 }>()
 
 const config: Config = {
-  host: { context: useHostStore().subscribe({ defer: true }), routeName: '/host/[uuid]/console' },
-  vm: { context: useVmStore().subscribe({ defer: true }), routeName: '/vm/[uuid]' },
+  host: { context: useHostStore().subscribe({ defer: true }), routeName: '/host/[uuid]/dashboard' },
+  vm: { context: useVmStore().subscribe({ defer: true }), routeName: '/vm/[uuid]/dashboard' },
   sr: { context: useSrStore().subscribe({ defer: true }), routeName: undefined },
   pool: { context: usePoolStore().subscribe({ defer: true }), routeName: '/pool/[uuid]/dashboard' },
 } satisfies Config<HandledTypes>
