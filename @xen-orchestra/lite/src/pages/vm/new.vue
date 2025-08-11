@@ -385,7 +385,7 @@
           <UiToaster v-if="isOpen" accent="danger" @close="isOpen = false">{{ errorMessage }}</UiToaster>
           <!-- ACTIONS -->
           <div class="footer">
-            <RouterLink :to="{ name: 'home' }">
+            <RouterLink :to="{ name: '/' }">
               <UiButton variant="secondary" accent="brand" size="medium">{{ t('cancel') }}</UiButton>
             </RouterLink>
             <UiButton
@@ -410,18 +410,18 @@
 import FormSelect from '@/components/form/FormSelect.vue'
 
 // XenAPI Store imports
-import type { XenApiSr, XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiSr, XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
-import { useNetworkStore } from '@/stores/xen-api/network.store'
-import { usePifStore } from '@/stores/xen-api/pif.store'
-import { usePoolStore } from '@/stores/xen-api/pool.store'
-import { useSrStore } from '@/stores/xen-api/sr.store'
-import { useVbdStore } from '@/stores/xen-api/vbd.store'
-import { useVdiStore } from '@/stores/xen-api/vdi.store'
-import { useVifStore } from '@/stores/xen-api/vif.store'
-import { useVmStore } from '@/stores/xen-api/vm.store'
-import { useXenApiStore } from '@/stores/xen-api.store'
-import { type Vdi, type VmState } from '@/types/new-vm'
+import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
+import { usePifStore } from '@/stores/xen-api/pif.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import { useSrStore } from '@/stores/xen-api/sr.store.ts'
+import { useVbdStore } from '@/stores/xen-api/vbd.store.ts'
+import { useVdiStore } from '@/stores/xen-api/vdi.store.ts'
+import { useVifStore } from '@/stores/xen-api/vif.store.ts'
+import { useVmStore } from '@/stores/xen-api/vm.store.ts'
+import { useXenApiStore } from '@/stores/xen-api.store.ts'
+import { type Vdi, type VmState } from '@/types/new-vm.ts'
 
 // UI components imports from web-core
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -441,7 +441,7 @@ import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 
 // Icon Imports
 import {
@@ -1033,7 +1033,7 @@ const _createVm = defer(async ($defer: Defer) => {
     isBusy.value = false
 
     await router.push({
-      name: 'vm.default',
+      name: '/vm/[uuid]/dashboard',
       params: { uuid: vm.uuid },
     })
 

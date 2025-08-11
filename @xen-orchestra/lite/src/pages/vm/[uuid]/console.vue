@@ -51,7 +51,7 @@ usePageTitleStore().setTitle(useI18n().t('console'))
 
 const { t } = useI18n()
 
-const route = useRoute()
+const route = useRoute<'/vm/[uuid]/console'>()
 const uiStore = useUiStore()
 const xenApiStore = useXenApiStore()
 
