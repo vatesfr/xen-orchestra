@@ -13,8 +13,11 @@ import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
+import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+
+useDefaultTab('/pool/[id]', 'dashboard')
 
 const route = useRoute<'/pool/[id]'>()
 
