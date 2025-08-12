@@ -30,6 +30,7 @@
   "allow-self-signed-ssl": "You may need to allow self-signed SSL certificates in your browser",
   "api-error-details": "API Error details",
   "appearance": "Appearance",
+  "aria.breadcrumb.label": "Breadcrumb",
   "ascending": "ascending",
   "auto-generated": "Automatically generated",
   "auto-power": "Auto power",
