@@ -501,13 +501,15 @@ export type XoUser = {
 }
 
 export type XoAuthenticationToken = {
-  client: string
+  client: {
+    id: string
+  }
   created_at: number
   description?: string
   user_id: XoUser['id']
-  expiration?: number
-  last_uses: Record<string, { timestamp: number }>
-  id: string
+  expiration: number
+  last_uses?: Record<string, { timestamp: number }>
+  id: Branded<'authentication-token'>
 }
 
 export type XoVbd = BaseXapiXo & {
@@ -659,15 +661,7 @@ export type XapiXoRecord =
   | XoVtpm
   | XoSm
 
-export type NonXapiXoRecord =
-  | XoGroup
-  | XoProxy
-  | XoJob
-  | XoBackupRepository
-  | XoSchedule
-  | XoServer
-  | XoUser
-  | XoAuthenticationToken
+export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
