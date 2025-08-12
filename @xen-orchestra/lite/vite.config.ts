@@ -1,9 +1,12 @@
+import { execFileSync } from 'child_process'
 import { resolve } from 'path'
 import { fileURLToPath, URL } from 'url'
 import vueI18n from '@intlify/unplugin-vue-i18n/vite'
 import vue from '@vitejs/plugin-vue'
 import vueRouter from 'unplugin-vue-router/vite'
 import { defineConfig, PluginOption } from 'vite'
+
+const GIT_HEAD = execFileSync('git', ['rev-parse', 'HEAD']).toString().trim()
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -39,7 +42,7 @@ export default defineConfig({
   ] as PluginOption[],
   define: {
     XO_LITE_VERSION: JSON.stringify(process.env.npm_package_version),
-    XO_LITE_GIT_HEAD: JSON.stringify(process.env.GIT_HEAD),
+    XO_LITE_GIT_HEAD: JSON.stringify(GIT_HEAD),
   },
   resolve: {
     alias: {
@@ -68,6 +71,25 @@ export default defineConfig({
           }
         },
       },
+      plugins: [
+        {
+          name: 'emit-build-json',
+          generateBundle() {
+            const content = {
+              version: process.env.npm_package_version,
+              gitHead: GIT_HEAD,
+              date: new Date().toISOString(),
+            }
+
+            // Emit a virtual file directly into the bundle
+            this.emitFile({
+              type: 'asset',
+              fileName: 'build.json',
+              source: JSON.stringify(content, null, 2),
+            })
+          },
+        },
+      ],
     },
     commonjsOptions: {
       include: [/complex-matcher/, /node_modules/],
