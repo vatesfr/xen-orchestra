@@ -18,6 +18,7 @@ const asyncEach = async (iterable, fn, thisArg = iterable) => {
 }
 
 export const Abstract = class AbstractVmBackupRunner {
+  noHealthcheck = false
   // calls fn for each function, warns of any errors, and throws only if there are no writers left
   async _callWriters(fn, step, parallel = true) {
     const writers = this._writers
@@ -69,6 +70,11 @@ export const Abstract = class AbstractVmBackupRunner {
     const settings = this._settings
 
     if (this._healthCheckSr === undefined) {
+      return
+    }
+
+    if (this.noHealthcheck) {
+      Task.info(`No healcheck needed because no data was transfered.`)
       return
     }
 

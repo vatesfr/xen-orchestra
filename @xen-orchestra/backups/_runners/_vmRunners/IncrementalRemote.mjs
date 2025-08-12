@@ -115,6 +115,9 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       // for healthcheck
       this._tags = metadata.vm.tags
     }
+    if (transferList.length === 0) {
+      this.noHealthcheck = true
+    }
   }
 }
 
