@@ -4,7 +4,7 @@
     :is="as"
     v-tooltip="tooltip ?? false"
     :class="{ selected, disabled }"
-    class="vts-menu-trigger typo p2-medium"
+    class="vts-menu-trigger typo-body-regular"
   >
     <VtsIcon :busy :icon accent="current" />
     <slot />
