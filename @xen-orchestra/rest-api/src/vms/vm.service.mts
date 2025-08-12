@@ -39,7 +39,7 @@ export class VmService {
     const xapi = xoApp.getXapi(pool)
     const currentUser = this.#restApi.getCurrentUser()
 
-    const xapiVm = await xapi.createVm(template, rest, undefined, currentUser?.id)
+    const xapiVm = await xapi.createVm(template, rest, undefined, currentUser.id)
     $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref))
     const xoVm = this.#restApi.getObject<XoVm>(xapiVm.uuid as XoVm['id'], 'VM')
 
