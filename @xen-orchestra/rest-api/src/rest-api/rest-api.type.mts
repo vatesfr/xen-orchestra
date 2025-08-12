@@ -118,7 +118,7 @@ export type XoApp = {
   getGroup(id: XoGroup['id']): Promise<XoGroup>
   getHVSupportedVersions: undefined | (() => Promise<{ [key: XoHost['productBrand']]: string }>)
   getJob(id: XoJob['id']): Promise<XoJob>
-  getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type']) => T
+  getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type'] | T['type'][]) => T
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],
     opts?: { filter?: string | ((obj: T) => boolean); limit?: number }

@@ -14,11 +14,14 @@
 - **Migrated REST API endpoints**:
 
   - `GET /rest/v0/hosts/<host-id>/smt` (PR [#8863](http://github.com/vatesfr/xen-orchestra/pull/8863))
+  - `GET /rest/v0/vms/<vm-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
+  - `GET /rest/v0/vm-templates/<vm-template-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
+  - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
+  - `GET /rest/v0/vm-controllers/<vm-controller-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
 
 - **XO 6**:
   - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8873](https://github.com/vatesfr/xen-orchestra/pull/8873))
   - Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”

@@ -18,7 +18,16 @@ import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
-import type { XapiStatsGranularity, XapiVmStats, XenApiVm, XoAlarm, XoHost, XoVm, XoVmSnapshot } from '@vates/types'
+import type {
+  XapiStatsGranularity,
+  XapiVmStats,
+  XenApiVm,
+  XoAlarm,
+  XoHost,
+  XoVdi,
+  XoVm,
+  XoVmSnapshot,
+} from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import {
@@ -31,13 +40,14 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { BASE_URL } from '../index.mjs'
-import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
+import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { partialVms, vm, vmIds, vmStatsExample } from '../open-api/oa-examples/vm.oa-example.mjs'
+import { partialVms, vm, vmIds, vmStatsExample, vmVdis } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+import { VmService } from './vm.service.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -50,9 +60,16 @@ const IGNORED_VDIS_TAG = '[NOSNAP]'
 @provide(VmController)
 export class VmController extends XapiXoController<XoVm> {
   #alarmService: AlarmService
-  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
+  #vmService: VmService
+
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(VmService) vmService: VmService
+  ) {
     super('VM', restApi)
     this.#alarmService = alarmService
+    this.#vmService = vmService
   }
 
   /**
@@ -464,5 +481,27 @@ export class VmController extends XapiXoController<XoVm> {
     })
 
     return this.sendObjects(Object.values(alarms), req, 'alarms')
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example fields "VDI_type,id,name_label"
+   * @example filter "VDI_type:user"
+   * @example limit 42
+   */
+  @Example(vmVdis)
+  @Get('{id}/vdis')
+  @Tags('vdis')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVmVdis(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoVdi>>> {
+    const vdis = this.#vmService.getVmVdis(id as XoVm['id'], 'VM')
+    return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
   }
 }

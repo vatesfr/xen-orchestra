@@ -267,21 +267,25 @@ export default class RestApi {
         },
         routes: {
           alarms: true,
+          vdis: true,
         },
       },
       'vm-controllers': {
         routes: {
           alarms: true,
+          vdis: true,
         },
       },
       'vm-snapshots': {
         routes: {
           alarms: true,
+          vdis: true,
         },
       },
       'vm-templates': {
         routes: {
           alarms: true,
+          vdis: true,
         },
       },
       hosts: {
