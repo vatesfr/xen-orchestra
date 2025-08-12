@@ -34,6 +34,7 @@
   "api-info-details": "Details de l'information API",
   "api-warning-details": "Details de l'avertissement API",
   "appearance": "Apparence",
+  "aria.breadcrumb.label": "Fil d'Ariane",
   "ascending": "ascendant",
   "auto-generated": "Généré automatiquement",
   "auto-power": "Démarrage automatique",
