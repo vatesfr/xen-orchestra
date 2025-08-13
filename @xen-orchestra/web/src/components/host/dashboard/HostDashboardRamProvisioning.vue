@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-ram-provisioning">
     <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!areHostsReady" type="card" />
     <template v-else>
       <UiProgressBar
         display-mode="percent"
@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -45,7 +45,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isReady } = useHostStore().subscribe()
+const { areHostsReady } = useXoHostCollection()
 
 const ramUsage = computed(() => {
   const total = host.memory.size

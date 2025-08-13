@@ -24,7 +24,7 @@
 <script lang="ts" setup>
 import HostTreeList from '@/components/tree/HostTreeList.vue'
 import VmTreeList from '@/components/tree/VmTreeList.vue'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { HostBranch, PoolBranch, VmLeaf } from '@/types/tree.type'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
@@ -41,7 +41,7 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const { runningVms } = useVmStore().subscribe()
+const { runningVms } = useXoVmCollection()
 
 const treeBranches = computed(
   () => props.branch.children.filter(child => child.discriminator === 'host') as HostBranch[]

@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isPoolReady" type="panel" />
+  <VtsLoadingHero v-if="!arePoolsReady" type="panel" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
@@ -190,8 +190,8 @@
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import type { XoServer } from '@/types/xo/server.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -237,11 +237,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-const { isReady: isPoolReady, get: getPoolById } = usePoolStore().subscribe()
-const { get: getHostById, hostsByPool } = useHostStore().subscribe()
+const { arePoolsReady, useGetPoolById } = useXoPoolCollection()
+const { useGetHostById, hostsByPool } = useXoHostCollection()
 
-const pool = computed(() => (server.poolId ? getPoolById(server.poolId) : undefined))
-const primaryHost = computed(() => (server.master ? getHostById(server.master) : undefined))
+const pool = useGetPoolById(() => server.poolId)
+const primaryHost = useGetHostById(() => server.master)
 const hosts = computed(() => (server.poolId ? hostsByPool.value.get(server.poolId) : undefined))
 
 const connectionStatus = useMapper(

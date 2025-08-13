@@ -178,8 +178,8 @@
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoVif } from '@/types/xo/vif.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
@@ -203,17 +203,17 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { get: getNetwork } = useNetworkStore().subscribe()
-const { get: getVm } = useVmStore().subscribe()
+const { useGetNetworkById } = useXoNetworkCollection()
+const { getVmById } = useXoVmCollection()
 const uiStore = useUiStore()
 
 const ipAddresses = computed(() => {
-  const addresses = getVm(vif.$VM)?.addresses
+  const addresses = getVmById(vif.$VM)?.addresses
 
   return addresses ? [...new Set(Object.values(addresses).sort())] : []
 })
 
-const network = computed(() => getNetwork(vif.$network))
+const network = useGetNetworkById(() => vif.$network)
 
 const status = computed(() => (vif.attached ? 'connected' : 'disconnected'))
 </script>

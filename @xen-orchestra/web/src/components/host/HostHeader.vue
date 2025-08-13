@@ -42,7 +42,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
 import type { HostState } from '@core/types/object-icon.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -61,6 +61,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isMasterHost } = useHostStore().subscribe()
+const { isMasterHost } = useXoHostCollection()
+
 const isMaster = computed(() => isMasterHost(host.id))
 </script>

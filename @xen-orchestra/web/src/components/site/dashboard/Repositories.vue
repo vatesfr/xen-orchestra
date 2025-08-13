@@ -12,7 +12,7 @@
 import BackupRepository from '@/components/site/dashboard/BackupRepository.vue'
 import S3BackupRepository from '@/components/site/dashboard/S3BackupRepository.vue'
 import StorageRepository from '@/components/site/dashboard/StorageRepository.vue'
-import type { BackupRepositories, StorageRepositories } from '@/requests/use-site-dashboard.request.ts'
+import type { BackupRepositories, StorageRepositories } from '@/remote-resources/use-xo-site-dashboard.ts'
 import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
