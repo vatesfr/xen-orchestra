@@ -1804,6 +1804,7 @@ const messages = {
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
+  templatePoolInfo: 'the Pool id.',
   templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
   coreOsDefaultTemplateError: 'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
@@ -2772,6 +2773,8 @@ const messages = {
   templatesLabel: 'Templates',
   recipesLabel: 'Recipes',
   network: 'Network',
+
+  // Recipe Kubernetes
   recipeSelectK8sVersion: 'Select Kubernetes version',
   recipeClusterNameLabel: 'Cluster name',
   recipeNumberOfNodesLabel: 'Number of worker nodes',
@@ -2791,6 +2794,14 @@ const messages = {
   recipeNameserverAddressesExample: '192.168.1.0,172.16.1.0',
   recipeSearches: 'Search domains',
   recipeSearchesExample: 'domain.com,search.org',
+
+  // Recipe DCScope
+  recipeVMNameLabel: 'VM Name',
+  recipeVMIpAddress: 'VM IP address',
+  recipeVMxoPassword: 'XO Password for DCScope',
+  recipeVMxoUser: 'XO Username for DCScope',
+  recipeXoUrl: 'XO url for DCScope',
+  recipeDcScopeTemplateId: 'DCScope template UUID',
 
   // Audit
   auditActionEvent: 'Action/Event',
