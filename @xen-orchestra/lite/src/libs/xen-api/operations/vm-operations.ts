@@ -73,8 +73,8 @@ export function createVmOperations(xenApi: XenApi) {
     getAllowedVbdDevices: (vmRefs: VmRefs): Promise<string[][]> =>
       Promise.all(toArray(vmRefs).map(vmRef => xenApi.call<string[]>('VM.get_allowed_VBD_devices', [vmRef]))),
 
-    getAllowedVifDevices: (vmRefs: VmRefs): Promise<string[][]> =>
-      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call<string[]>('VM.get_allowed_VIF_devices', [vmRef]))),
+    getAllowedVifDevices: (vmRefs: VmRefs): Promise<number[][]> =>
+      Promise.all(toArray(vmRefs).map(vmRef => xenApi.call<number[]>('VM.get_allowed_VIF_devices', [vmRef]))),
 
     migrate: (vmRefs: VmRefs, destinationHostRef: HostRef) =>
       Promise.all(

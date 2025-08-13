@@ -585,7 +585,7 @@ export interface XenApiVif extends XenApiRecord<'vif'> {
   allowed_operations: VIF_OPERATION[]
   current_operations: Record<string, VIF_OPERATION>
   currently_attached: boolean
-  device: string
+  device: number
   ipv4_addresses: string[]
   ipv4_allowed: string[]
   ipv4_configuration_mode: VIF_IPV4_CONFIGURATION_MODE
