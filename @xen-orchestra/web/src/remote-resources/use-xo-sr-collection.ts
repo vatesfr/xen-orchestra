@@ -16,12 +16,20 @@ export const useXoSrCollection = defineRemoteResource({
       baseName: 'sr',
     })
 
-    const concatVdisArray = computed(() => srs.value.flatMap(sr => (sr.SR_type === 'iso' && sr.VDIs ? sr.VDIs : [])))
+    const isoVdiIds = computed(() =>
+      srs.value.reduce((acc, sr) => {
+        if (sr.VDIs) {
+          sr.VDIs.forEach(vdiId => acc.add(vdiId))
+        }
+
+        return acc
+      }, new Set<XoVdi['id']>())
+    )
 
     const vdiIsosBySrName = computed(() => {
       const groupedVDIs: Record<string, XoVdi[]> = {}
 
-      concatVdisArray.value.forEach(vdiId => {
+      isoVdiIds.value.forEach(vdiId => {
         const vdi = getVdiById(vdiId)
 
         if (vdi) {
