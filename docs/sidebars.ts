@@ -78,6 +78,7 @@ export default {
       items: [
         'intro_backup',
         'backups',
+        'backup_howto',
         'proxy',
         'rolling_snapshots',
         'full_backups',
