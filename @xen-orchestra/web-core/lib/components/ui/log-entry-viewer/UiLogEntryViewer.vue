@@ -1,12 +1,13 @@
+<!-- v2 -->
 <template>
-  <div class="ui-quote-code" :class="className">
+  <div class="ui-log-entry-viewer" :class="className">
     <div class="label-container">
       <div :class="fontClasses.labelClass" class="label">
         {{ label }}
       </div>
-      <div v-if="slots.actions || copy" class="actions">
-        <VtsCopyButton v-if="copy" :value="codeTextValue ?? ''" />
-        <slot name="actions" />
+      <div class="actions">
+        <VtsCopyButton :value="codeTextValue ?? ''" />
+        <UiButtonIcon :icon="faArrowUpRightFromSquare" size="medium" accent="brand" @click="openRawValueInNewTab()" />
       </div>
     </div>
     <code ref="code-element" :class="fontClasses.codeClass" class="code-container">
@@ -17,27 +18,24 @@
 
 <script setup lang="ts">
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util.ts'
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import { computed, useTemplateRef } from 'vue'
 
-type QuoteCodeAccent = 'brand' | 'danger'
+type QuoteCodeAccent = 'info' | 'warning' | 'danger'
 type QuoteCodeSize = 'small' | 'medium'
 
 const { size, accent } = defineProps<{
   label: string
   size: QuoteCodeSize
   accent: QuoteCodeAccent
-  copy?: boolean
 }>()
 
-const slots = defineSlots<{
+defineSlots<{
   default(): any
-  actions?(): any
 }>()
-
-const codeElement = useTemplateRef('code-element')
-const codeTextValue = computed(() => codeElement.value?.textContent)
 
 const mapping = {
   small: {
@@ -57,10 +55,26 @@ const className = computed(() =>
     accent,
   })
 )
+
+const codeElement = useTemplateRef('code-element')
+const codeTextValue = computed(() => codeElement.value?.textContent)
+
+function openRawValueInNewTab() {
+  const rawValue =
+    typeof codeTextValue.value === 'object' ? JSON.stringify(codeTextValue.value, null, 2) : codeTextValue.value
+
+  const newTab = window.open('', '_blank')
+
+  if (newTab) {
+    const pre = newTab.document.createElement('pre')
+    pre.textContent = rawValue ?? null
+    newTab.document.body.appendChild(pre)
+  }
+}
 </script>
 
 <style lang="postcss" scoped>
-.ui-quote-code {
+.ui-log-entry-viewer {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -88,11 +102,19 @@ const className = computed(() =>
     border-inline-start: 0.2rem solid;
     white-space: pre-wrap;
     word-break: break-word;
+    max-height: 18rem;
+    overflow: auto;
   }
 
-  &.accent--brand {
+  &.accent--info {
     .code-container {
-      border-inline-start-color: var(--color-brand-item-base);
+      border-inline-start-color: var(--color-info-item-base);
+    }
+  }
+
+  &.accent--warning {
+    .code-container {
+      border-inline-start-color: var(--color-warning-item-base);
     }
   }
 

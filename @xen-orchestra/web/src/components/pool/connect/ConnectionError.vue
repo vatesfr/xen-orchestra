@@ -8,15 +8,14 @@
         <UiAlert accent="danger">
           {{ errorDetails.text }}
         </UiAlert>
-        <UiQuoteCode
+        <UiLogEntryViewer
           v-if="error instanceof ApiError && errorDetails.showCause"
           :label="t('api-error-details')"
           accent="danger"
           size="small"
-          copy
         >
           {{ error.cause }}
-        </UiQuoteCode>
+        </UiLogEntryViewer>
         <RouterLink :to="{ name: '/pool/connect' }">
           <UiButton variant="secondary" accent="brand" size="medium" @click="emit('goBack')">
             {{ t('go-back') }}
@@ -32,7 +31,7 @@ import { ApiError } from '@/error/api.error.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
+import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { HttpCodes } from '@core/types/http-codes.type.ts'
