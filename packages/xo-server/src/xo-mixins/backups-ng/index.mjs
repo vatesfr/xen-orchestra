@@ -3,6 +3,7 @@ import Disposable from 'promise-toolbox/Disposable'
 import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
+import { makeOnProgress } from '@vates/task/combineEvents'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
@@ -15,7 +16,7 @@ import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
-import { handleBackupLog } from '../../_handleBackupLog.mjs'
+import { forwardResult, handleBackupLog, handleBackupTaskLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
@@ -71,7 +72,7 @@ export default class BackupNg {
     app.hooks.on('start', async () => {
       this._logger = await app.getLogger('restore')
 
-      const executor = async ({ cancelToken, data, job: job_, logger, runJobId, schedule }) => {
+      const executor = async ({ cancelToken, data, job: job_, jobData, logger, runJobId, schedule }) => {
         const backupsConfig = app.config.get('backups')
 
         let job = job_
@@ -153,20 +154,16 @@ export default class BackupNg {
         const targetRemoteIds = unboxIdsFromPattern(job.remotes)
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
-            const localTaskIds = { __proto__: null }
-            const vmBackupInfo = new Map()
+            const store = await app.getStore('tasks')
+            const onLogFct = makeOnProgress({
+              onTaskUpdate: (log, event) => {
+                handleBackupTaskLog(log, event, { app: this._app, jobName: job.name, store })
+              },
+            })
             return await Task.run(
               {
-                properties: { name: 'backup run' },
-                onProgress: log =>
-                  handleBackupLog(log, {
-                    vmBackupInfo,
-                    app: this._app,
-                    jobName: job.name,
-                    localTaskIds,
-                    logger,
-                    runJobId,
-                  }),
+                properties: { name: 'backup run', ...jobData },
+                onProgress: onLogFct,
               },
               () =>
                 createRunner({
@@ -300,18 +297,19 @@ export default class BackupNg {
                 }
               )
 
-              const localTaskIds = { __proto__: null }
               let result
-              const vmBackupInfo = new Map()
+              const store = await app.getStore('tasks')
+              const onLogFct = makeOnProgress({
+                onRootTaskEnd: log => {
+                  result = forwardResult(log)
+                },
+                onTaskUpdate: (log, event) => {
+                  handleBackupTaskLog(log, event, { app: this._app, jobName: job.name, store })
+                },
+              })
+
               for await (const log of logsStream) {
-                result = handleBackupLog(log, {
-                  vmBackupInfo,
-                  app: this._app,
-                  jobName: job.name,
-                  logger,
-                  localTaskIds,
-                  runJobId,
-                })
+                onLogFct(log)
               }
               return result
             } catch (error) {
@@ -322,26 +320,29 @@ export default class BackupNg {
               throw error
             }
           } else {
-            const localTaskIds = { __proto__: null }
-            const vmBackupInfo = new Map()
-            return await runBackupWorker(
+            let result
+            const store = await app.getStore('tasks')
+            const onLogFct = makeOnProgress({
+              onRootTaskEnd: log => {
+                result = forwardResult(log)
+              },
+              onTaskUpdate: (log, event) => {
+                handleBackupTaskLog(log, event, { app: this._app, jobName: job.name, store })
+              },
+            })
+
+            await runBackupWorker(
               {
                 config: backupsConfig,
+                jobData,
                 remoteOptions: app.config.get('remoteOptions'),
                 resourceCacheDelay: app.config.getDuration('resourceCacheDelay'),
                 xapiOptions: app.config.get('xapiOptions'),
                 ...params,
               },
-              log =>
-                handleBackupLog(log, {
-                  vmBackupInfo,
-                  app: this._app,
-                  jobName: job.name,
-                  logger,
-                  localTaskIds,
-                  runJobId,
-                })
+              onLogFct
             )
+            return result
           }
         } finally {
           targetRemoteIds.forEach(id => this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, id))
