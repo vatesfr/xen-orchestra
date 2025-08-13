@@ -114,10 +114,7 @@ export type XoApp = {
   getAllSchedules(): Promise<XoSchedule[]>
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
-  getAuthenticationTokensForUser(
-    userId: XoUser['id'],
-    opts?: { filter?: string; limit?: number }
-  ): Promise<XoAuthenticationToken[]>
+  getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
   // @TODO: Correctly type this methods and XoLogs when migrate the endpoint "backup/logs"
   getBackupNgLogsSorted(opts: { filter: (log: Record<string, string>) => boolean }): Promise<Record<string, string>[]>
   getGroup(id: XoGroup['id']): Promise<XoGroup>

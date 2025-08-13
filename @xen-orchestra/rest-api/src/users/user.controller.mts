@@ -166,19 +166,11 @@ export class UserController extends XoController<XoUser> {
 
   /**
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
-   * @example fields "id,description,created_at"
-   * @example filter "description:Firefox"
-   * @example limit 42
    */
   @Get('{id}/authentication_tokens')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
-  async getAuthenticationTokens(
-    @Path() id: string,
-    @Query() fields?: string,
-    @Query() filter?: string,
-    @Query() limit?: number
-  ): Promise<SendObjects<UnbrandedXoAuthenticationToken>> {
+  async getAuthenticationTokens(@Path() id: string): Promise<SendObjects<UnbrandedXoAuthenticationToken>> {
     const user = await this.restApi.xoApp.getUser(id as XoUser['id'])
     const me = this.restApi.getCurrentUser()
 
@@ -186,7 +178,7 @@ export class UserController extends XoController<XoUser> {
       throw forbiddenOperation('get authentication tokens', 'can only see own authentication tokens')
     }
 
-    const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(id as XoUser['id'], { filter, limit })
+    const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(id as XoUser['id'])
 
     const unbrandedTokens = tokens.map(token => ({
       ...token,
