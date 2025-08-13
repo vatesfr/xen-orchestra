@@ -3,7 +3,7 @@
   <div class="ui-data-ruler typo-body-regular-small">
     <span>{{ n(0, 'percent') }}</span>
     <span v-for="(step, index) in steps" :key="step">
-      <VtsIcon v-if="index === 1 && step > 1" v-tooltip="message ?? undefined" :icon="faExclamationCircle" :accent />
+      <VtsIcon v-if="index === 1 && step > 1" v-tooltip="tooltip ?? undefined" :icon="faExclamationCircle" :accent />
       {{ n(step, 'percent') }}
     </span>
   </div>
@@ -18,7 +18,7 @@ import { useI18n } from 'vue-i18n'
 const { steps = [0.5, 1], accent = 'current' } = defineProps<{
   steps?: [number, number]
   accent?: IconAccent
-  message?: string
+  tooltip?: string
 }>()
 
 const { n } = useI18n()

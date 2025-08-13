@@ -3,7 +3,7 @@
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiDataRuler :steps :accent :message="t('cpu-provisioning-warning')" />
+      <UiDataRuler :steps :accent :tooltip="t('cpu-provisioning-warning')" />
       <UiProgressBar
         :thresholds="{ danger: 300, warning: 100 }"
         display-mode="percent"

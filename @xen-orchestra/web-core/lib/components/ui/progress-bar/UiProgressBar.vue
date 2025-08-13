@@ -44,6 +44,11 @@ interface ValueProps {
 
 const { value: _value, max: _max, displayMode, thresholds } = defineProps<Props & (PercentageProps | ValueProps)>()
 
+const DEFAULT_THRESHOLDS = {
+  danger: 90,
+  warning: 80,
+}
+
 const { percentage, fillWidth, value, max } = useProgress(
   () => _value,
   () => _max
@@ -62,11 +67,11 @@ const accent = computed((): LegendItemAccent => {
     return 'info'
   }
 
-  if (percentage.value >= 90) {
+  if (percentage.value >= DEFAULT_THRESHOLDS.danger) {
     return 'danger'
   }
 
-  if (percentage.value >= 80) {
+  if (percentage.value >= DEFAULT_THRESHOLDS.warning) {
     return 'warning'
   }
 
