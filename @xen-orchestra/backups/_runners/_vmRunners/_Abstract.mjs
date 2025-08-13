@@ -74,7 +74,7 @@ export const Abstract = class AbstractVmBackupRunner {
     }
 
     if (this.noTransfer) {
-      Task.info(`No healthcheck needed because no data was transfered.`)
+      Task.info(`No healthCheck needed because no data was transfered.`)
       return
     }
 
