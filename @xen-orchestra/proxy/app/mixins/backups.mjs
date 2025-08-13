@@ -201,20 +201,23 @@ export default class Backups {
             const run = () => new ImportVmBackup({ adapter, metadata, settings, srUuid, xapi }).run()
 
             if (streamLogs) {
-              return runWithLogs(async (args, onLog) => {
-                return Task({
-                  properties: {
-                    backupId,
-                    jobId: metadata.jobId,
-                    name: 'restore',
-                    srId: srUuid,
-                    time: metadata.timestamp,
-                  },
-                  onProgress: onLog,
-                })
-                  .run(run)
-                  .catch(() => {}) // errors are handled by logs,
-              }, dispose)
+              return runWithLogs(
+                async (args, onLog) =>
+                  Task.run(
+                    {
+                      properties: {
+                        backupId,
+                        jobId: metadata.jobId,
+                        name: 'restore',
+                        srId: srUuid,
+                        time: metadata.timestamp,
+                      },
+                      onProgress: onLog,
+                    },
+                    run
+                  ).catch(() => {}), // errors are handled by logs,
+                dispose
+              )
             }
 
             try {
