@@ -1,42 +1,46 @@
 <template>
-  <UiModal :color="isJsonValid ? 'success' : 'error'" @submit.prevent="handleSubmit()">
-    <FormModalLayout icon="fa:code" class="layout">
-      <template #default>
-        <UiTextarea v-model="editedJson" accent="brand" class="modal-textarea" />
-      </template>
+  <VtsModal
+    :accent="isJsonValid ? 'success' : 'danger'"
+    class="json-editor-modal"
+    icon="fa:code"
+    @confirm="handleSubmit()"
+  >
+    <template #content>
+      <UiTextarea v-model="editedJson" accent="brand" class="modal-textarea" />
+    </template>
 
-      <template #buttons>
-        <UiButton size="medium" accent="brand" variant="tertiary" @click="formatJson()">
-          {{ t('reformat') }}
-        </UiButton>
-        <ModalDeclineButton />
-        <ModalApproveButton :disabled="!isJsonValid">
-          {{ t('save') }}
-        </ModalApproveButton>
-      </template>
-    </FormModalLayout>
-  </UiModal>
+    <template #buttons>
+      <VtsModalButton variant="tertiary" @click="formatJson()">
+        {{ t('reformat') }}
+      </VtsModalButton>
+      <VtsModalCancelButton />
+      <VtsModalConfirmButton :disabled="!isJsonValid">
+        {{ t('save') }}
+      </VtsModalConfirmButton>
+    </template>
+  </VtsModal>
 </template>
 
 <script lang="ts" setup>
-import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
-import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
-import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
-import UiModal from '@/components/ui/modals/UiModal.vue'
-import { IK_MODAL } from '@/types/injection-keys'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import VtsModal from '@core/components/modal/VtsModal.vue'
+import VtsModalButton from '@core/components/modal/VtsModalButton.vue'
+import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
+import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
-import { computed, inject, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { initialValue } = defineProps<{
   initialValue?: string
+}>()
+
+const emit = defineEmits<{
+  confirm: [editedJson: string]
 }>()
 
 const { t } = useI18n()
 
-const editedJson = ref<string>(props.initialValue ?? '')
-const modal = inject(IK_MODAL)!
+const editedJson = ref<string>(initialValue ?? '')
 
 const isJsonValid = computed(() => {
   try {
@@ -62,12 +66,12 @@ const handleSubmit = () => {
 
   formatJson()
 
-  modal.approve(editedJson.value)
+  emit('confirm', editedJson.value)
 }
 </script>
 
 <style lang="postcss" scoped>
-.layout:deep(.modal-textarea) {
+.json-editor-modal:deep(.modal-textarea) {
   min-width: 50rem;
   min-height: 20rem;
 }
