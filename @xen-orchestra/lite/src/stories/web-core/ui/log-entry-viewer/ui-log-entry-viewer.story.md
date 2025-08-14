@@ -1,4 +1,4 @@
 ```typescript
-type QuoteCodeAccent = 'brand' | 'danger'
+type QuoteCodeAccent = 'info' | 'warning' | 'danger'
 type QuoteCodeSize = 'small' | 'medium'
 ```
