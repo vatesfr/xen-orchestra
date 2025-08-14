@@ -1,28 +1,18 @@
 <template>
-  <UiModal color="error" @submit="modal.approve()">
-    <ConfirmModalLayout :icon="faExclamationCircle">
-      <template #title>{{ t('invalid-field') }}</template>
-
-      <template #default>
-        {{ message }}
-      </template>
-
-      <template #buttons>
-        <ModalApproveButton>
-          {{ t('ok') }}
-        </ModalApproveButton>
-      </template>
-    </ConfirmModalLayout>
-  </UiModal>
+  <VtsModal accent="danger" dismissible>
+    <template #title>{{ t('invalid-field') }}</template>
+    <template #content>{{ message }}</template>
+    <template #buttons>
+      <VtsModalConfirmButton>
+        {{ t('ok') }}
+      </VtsModalConfirmButton>
+    </template>
+  </VtsModal>
 </template>
 
 <script lang="ts" setup>
-import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayout.vue'
-import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
-import UiModal from '@/components/ui/modals/UiModal.vue'
-import { IK_MODAL } from '@/types/injection-keys'
-import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
-import { inject } from 'vue'
+import VtsModal from '@core/components/modal/VtsModal.vue'
+import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -30,6 +20,4 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const modal = inject(IK_MODAL)!
 </script>
