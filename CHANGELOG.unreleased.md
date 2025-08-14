@@ -22,9 +22,12 @@
 - **XO 6**:
   - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8873](https://github.com/vatesfr/xen-orchestra/pull/8873))
   - Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
 
 ### Packages to release
 
