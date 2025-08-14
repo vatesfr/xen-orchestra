@@ -20,6 +20,7 @@ import {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } from './constants.mjs'
+import { exec } from 'node:child_process'
 
 const { warn } = createLogger('vates:nbd-client')
 
@@ -43,9 +44,9 @@ export default class NbdClient {
   // AFAIK, there is no guaranty the server answers in the same order as the queries
   // so we handle a backlog of command waiting for response and handle concurrency manually
 
-  #waitingForResponse // there is already a listener waiting for a response
+  #waitingForResponse // there is already a listenner waiting for a response
   #nextCommandQueryId = BigInt(0)
-  #commandQueryBacklog // map of command waiting for a response queryId => { size/*in byte*/, resolve, reject}
+  #commandQueryBacklog // map of command waiting for an response queryId => { size/*in byte*/, resolve, reject}
   #connected = false
 
   #reconnectingPromise
@@ -196,7 +197,7 @@ export default class NbdClient {
     }
 
     // send export name we want to access.
-    // it's implicitly closing the negotiation phase.
+    // it's  implictly closing the negociation phase.
     await this.#write(OPTS_MAGIC)
     await this.#writeInt32(NBD_OPT_EXPORT_NAME)
     const exportNameBuffer = Buffer.from(this.#exportName)
@@ -356,6 +357,33 @@ export default class NbdClient {
         warn('will retry reading block ', index, err)
         await this.reconnect()
       },
+    })
+  }
+
+  /**
+   *  return the map of the file with hole,zero and data , usefull to handle efficiently sparse source
+   * to implement this internally : use structure response if the server support it, and then ask for BLOCK_STATUS
+   *
+   *
+   * @returns {Promise<{ offset: number, length: number, type: number }[]>}
+   * A promise that resolves to an array where each object represents a segment:
+   * - `offset` — The byte offset from the start.
+   * - `length` — The size of the segment in bytes.
+   * - `type` — A numeric code indicating the segment type ( 0 means no data).
+  */
+  /* async */ getMap() {
+    return new Promise((resolve, reject) => {
+      exec(
+        `nbdinfo --json --map nbd://${this.#serverAddress}:${this.#serverPort}/${encodeURIComponent(this.#exportName)}`,
+        { maxBuffer: 10 * 1024 * 1024 },
+        (err, map) => {
+          if (err) {
+            reject(err)
+          } else {
+            return resolve(JSON.parse(map))
+          }
+        }
+      )
     })
   }
 }
