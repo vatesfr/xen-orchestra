@@ -10,19 +10,19 @@ Instead of a simple list of questions and answers, it walks you through **key de
 
 This part explains the terminology of backup types & features.
 
-- [**Full backup**](./full_backups): Copies the entire VM each time, regardless of previous backups. 
-- [**Incremental backup**](./incremental_backups): Saves only the changes since the last backup, reducing storage needs. 
-- [**Incremental replication**](./incremental_replication): Keeps a near-real-time copy of a VM on another host or pool.  
-- [**Full replication**](./full_replication): Creates a complete replica of a VM on another host or pool.  
-- [**Mirror backup**](./mirror_backup): Keeps an exact mirror of the VM backup set, with no retention — only the latest copy is kept.  
 - **Backup sequence**: A feature that allows you to chain multiple backup jobs to run one after the other, automatically. 
-- [**Long-term retention**](./backups#long-term-backup-retention-with-gfs-strategy): Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.  
-- [**Remote**](./backups#remotes): A storage location for backups (for instance: NFS, SMB, or Amazon S3).  
 - [**File restore**](./backups#restore-a-file): A feature that allows you to restore individual files from a VM backup without restoring the full VM.
+- [**Full backup**](./full_backups): Copies the entire VM each time, regardless of previous backups. 
+- [**Full replication**](./full_replication): Creates a complete replica of a VM on another host or pool.  
+- [**Incremental backup**](./incremental_backups): Saves only the changes since the last backup, reducing storage needs. 
+- [**Incremental replication**](./incremental_replication): Keeps a near-real-time copy of a VM on another host or pool.
+- [**Long-term retention**](./backups#long-term-backup-retention-with-gfs-strategy): Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.  
+- [**Mirror backup**](./mirror_backup): Keeps an exact mirror of the VM backup set, with no retention. Only the latest copy is kept.  
+- [**Remote**](./backups#remotes): A storage location for backups (for instance: NFS, SMB, or Amazon S3).  
 
 ---
 
-## 1. What should I do before setting up my backup?
+## What should I do before setting up my backup?
 
 Before creating your first backup job in Xen Orchestra, consider the following:
 
@@ -42,26 +42,27 @@ Identify which VMs are business-critical. These should have more frequent backup
 
 ### Retention
 Determine how long backups should be kept. This depends on:
-- Compliance requirements  
-- Recovery objectives (RPO/RTO)  
+- Compliance requirements
+- Recovery Point Objective (RPO)
+- Recovery Time Objective (RTO)  
 - Storage capacity
 
 ---
 
-## 2. What kind of backup should I set up?
+## What kind of backup should I set up?
 
 Below are the main backup and replication types available in Xen Orchestra.
 
 ### Full backup
-**Advantages:**
+**Pros:**
 - Complete independent copy each time  
 - Simplifies restore process
 
-**Disadvantages:**
+**Cons:**
 - Requires the most storage and network bandwidth  
 - Slower than incremental options
 
-**Limitations & extensions:**
+**Limitations and extensions:**
 - Can be combined with long-term retention  
 - No deduplication between runs
 
@@ -72,15 +73,15 @@ Below are the main backup and replication types available in Xen Orchestra.
 ---
 
 ### Delta backup
-**Advantages:**
+**Pros:**
 - Saves only modified blocks after the first full run  
 - Faster and more storage-efficient than full backups
 
-**Disadvantages:**
+**Cons:**
 - Restore requires the initial full backup plus subsequent deltas  
 - Slightly more complex restore process
 
-**Limitations & extensions:**
+**Limitations and extensions:**
 - Requires initial full backup  
 - Can be combined with long-term retention
 
@@ -91,15 +92,15 @@ Below are the main backup and replication types available in Xen Orchestra.
 ---
 
 ### Incremental replication
-**Advantages:**
+**Pros:**
 - Near-continuous protection  
 - Rapid failover to replicated VM
 
-**Disadvantages:**
+**Cons:**
 - Requires a secondary host or pool  
 - Not suitable for long-term retention
 
-**Limitations & extensions:**
+**Limitations and extensions:**
 - Works best over low-latency connections  
 - Not intended as an archival method
 
@@ -110,15 +111,15 @@ Below are the main backup and replication types available in Xen Orchestra.
 ---
 
 ### Full replication
-**Advantages:**
+**Pros:**
 - Creates a complete VM copy on another host/pool  
 - Ideal for disaster recovery
 
-**Disadvantages:**
+**Cons:**
 - Longer replication times than incremental  
 - Requires more bandwidth and storage
 
-**Limitations & extensions:**
+**Limitations and extensions:**
 - Run less frequently than incremental replication  
 - Suitable for DR plans
 
@@ -128,16 +129,16 @@ Below are the main backup and replication types available in Xen Orchestra.
 
 ---
 
-### Sequence
+### Pros
 **Advantages:**
 - Allows chaining multiple jobs in order  
-- Useful for complex backup/replication workflows
+- Useful for complex backup and replication workflows
 
-**Disadvantages:**
+**Cons:**
 - Increases job complexity  
 - Requires careful planning
 
-**Limitations & extensions:**
+**Limitations and extensions:**
 - Limited by the capabilities of individual job types
 
 **First steps:**
@@ -147,15 +148,15 @@ Below are the main backup and replication types available in Xen Orchestra.
 ---
 
 ### Mirror backup
-**Advantages:**
+**Pros:**
 - Always keeps the latest backup version  
 - Saves storage by not retaining old backups
 
-**Disadvantages:**
+**Cons:**
 - No historical versions available  
 - Risk of losing previous state
 
-**Limitations & extensions:**
+**Limitations and extensions:**
 - Best for non-critical or temporary workloads
 
 **First steps:**
@@ -164,22 +165,22 @@ Below are the main backup and replication types available in Xen Orchestra.
 
 ---
 
-## 3. What options are available to me?
+## What settings are available?
 
 ### Advanced settings
-- **Smart mode** – Automatically decides whether to run a full or delta backup based on circumstances (e.g., storage conditions, snapshot issues).  
-- **Compression** – Reduces backup size at the cost of CPU usage.  
-- **Encryption** – Protects backup data at rest.  
-- **Concurrency** – Controls how many jobs run in parallel.  
-- **Retention policy** – Fine-tunes how many backups to keep.
+- **Smart mode**: Automatically decides whether to run a full or delta backup based on circumstances (such as storage conditions or snapshot issues)
+- **Compression**: Reduces backup size at the cost of CPU usage 
+- **Encryption**: Protects backup data at rest
+- **Concurrency**: Controls how many jobs run in parallel
+- **Retention policy**: Fine-tunes how many backups to keep over certain periods of time
 
 ---
 
-## 4. Restore options
+## Restore options
 
 ### VM restore
 - Restore a VM to the same host/pool or another location  
-- Choose full or delta restore depending on backup type
+- Choose full or delta restore, depending on backup type
 
 ### File restore
 - Access individual files within a VM backup  
@@ -187,7 +188,7 @@ Below are the main backup and replication types available in Xen Orchestra.
 
 ---
 
-## 5. Long-term retention strategy
+## Long-term retention strategy
 
 - Define retention periods based on compliance and operational needs  
 - Use tiered storage if possible (fast storage for recent backups, cheaper storage for older ones)  
@@ -195,9 +196,9 @@ Below are the main backup and replication types available in Xen Orchestra.
 
 ---
 
-## 6. Putting it all together
+## Putting it all together
 
-When designing your Xen Orchestra backup strategy:
+When designing your backup strategy with Xen Orchestra:
 1. Assess criticality and resources.  
 2. Choose backup types that match your RPO/RTO goals.  
 3. Configure remotes and test them.  
@@ -206,3 +207,29 @@ When designing your Xen Orchestra backup strategy:
 6. Test restores regularly.
 
 ---
+
+## How to ensure XOA is always available
+
+Making sure XOA is always available should be a top priority for every administrator. Here’s how you can maximize its reliability:
+
+Since XOA runs as a virtual machine, you can apply standard VM protection measures:
+- Back up regularly (full or incremental).
+- Replicate the VM (full disaster recovery or incremental replication).
+- Take snapshots for quick rollback if needed.
+
+### Specific steps for the XOA VM
+- Use the **XO Config** feature to back up your XOA settings. This lets you restore them to any XOA VM if necessary.
+
+### Managing the loss of your XOA VM
+
+If you lose the host running your XOA VM:
+- **If the XOA VM was on shared storage**, you can restart it on another host in your pool.
+- **If the XOA VM was stored locally** or your host was alone in its pool, deploy a new XOA VM. You can do this proactively, as there’s no limit to the number of XOA VMs in your infrastructure. Register the new VM with the same Vates account, update it, and migrate your XOA license from the old VM if needed.
+- **If you are running XCP-ng 8.3**, you can use XO-lite by connecting to your master host’s IP address to manage your VMs.
+
+### Other important considerations
+- **XOA Free** includes all VM management features without affecting your main XOA VM. All VM-level actions are handled via API calls to the pool master, so changes made through one XOA will appear across all XOAs in your infrastructure.
+
+:::warning
+Avoid using multiple XOAs to back up the same VMs, as this can cause backup failures.
+:::
