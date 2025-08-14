@@ -8,7 +8,7 @@ Instead of a simple list of questions and answers, it walks you through **key de
 
 ## Glossary
 
-This part explains the terminology of backup types & features.
+This part explains the terminology of backup types and features.
 
 - **Backup sequence**: A feature that allows you to chain multiple backup jobs to run one after the other, automatically. 
 - [**File restore**](./backups#restore-a-file): A feature that allows you to restore individual files from a VM backup without restoring the full VM.
