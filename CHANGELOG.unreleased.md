@@ -33,5 +33,6 @@
 
 - @vates/nbd-client minor
 - @vates/read-chunk patch
+- @xen-orchestra/vmware-explorer minor
 
 <!--packages-end-->
