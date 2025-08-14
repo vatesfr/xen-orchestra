@@ -34,6 +34,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/Sequences] Prevent sequences from ending prematurely when a backup job is skipped (PR [#8859](https://github.com/vatesfr/xen-orchestra/pull/8859))
+- [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
 
 ### Packages to release
 
