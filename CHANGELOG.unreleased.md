@@ -31,4 +31,5 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client minor
 <!--packages-end-->
