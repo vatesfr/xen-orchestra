@@ -43,6 +43,7 @@
 <!--packages-start-->
 
 - @vates/nbd-client minor
+- @vates/read-chunk patch
 - @vates/types minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
