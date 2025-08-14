@@ -97,6 +97,7 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
       await vhd.readHeaderAndFooter(checkSecondFooter)
     } catch (err) {
       await vhd.dispose()
+      err.size = await handler.getSizeOnDisk().catch(() => -1)
       throw err
     }
     return {
@@ -207,7 +208,11 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
 
     if (checkSecondFooter) {
       const size = await this._handler.getSize(this._path)
-      assert(bufFooter.equals(await this._read(size - FOOTER_SIZE, FOOTER_SIZE)), 'footer1 !== footer2')
+      const endFooter = await this._read(size - FOOTER_SIZE, FOOTER_SIZE)
+      assert(
+        bufFooter.equals(endFooter),
+        `footer1 !== footer2 ${bufFooter.toString('base64')} !== ${endFooter.toString('base64')}`
+      )
     }
 
     this.footer = footer
