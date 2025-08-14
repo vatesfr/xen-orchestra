@@ -10,3 +10,11 @@ listVms.params = {
 }
 
 listVms.permission = 'admin'
+
+export function checkInstall() {
+  return this.checkVddkDependencies()
+}
+
+checkInstall.params = {}
+
+checkInstall.permission = 'admin'
