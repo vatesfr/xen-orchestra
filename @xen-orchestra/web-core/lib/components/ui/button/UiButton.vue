@@ -14,9 +14,9 @@ import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
-type ButtonAccent = 'brand' | 'warning' | 'danger'
-type ButtonSize = 'small' | 'medium'
+export type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
+export type ButtonAccent = 'brand' | 'warning' | 'danger'
+export type ButtonSize = 'small' | 'medium'
 
 const { accent, variant, size, disabled, busy, lockIcon } = defineProps<{
   variant: ButtonVariant
@@ -111,16 +111,10 @@ const classNames = computed(() => [
         color: var(--color-brand-txt-item);
       }
 
-      &:is(:disabled, .disabled) {
+      &:is(:disabled, .disabled, .busy) {
         background-color: var(--color-brand-item-disabled);
         border-color: var(--color-brand-item-disabled);
         color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-brand-item-base);
-        border-color: var(--color-brand-item-base);
-        color: var(--color-brand-txt-item);
       }
     }
 
@@ -145,16 +139,10 @@ const classNames = computed(() => [
         color: var(--color-brand-txt-active);
       }
 
-      &:is(:disabled, .disabled) {
+      &:is(:disabled, .disabled, .busy) {
         background-color: var(--color-neutral-background-disabled);
         border-color: var(--color-neutral-txt-secondary);
         color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-brand-item-base);
-        color: var(--color-brand-txt-base);
       }
     }
 
@@ -179,16 +167,10 @@ const classNames = computed(() => [
         color: var(--color-brand-txt-active);
       }
 
-      &:is(:disabled, .disabled) {
+      &:is(:disabled, .disabled, .busy) {
         background-color: transparent;
         border-color: transparent;
         color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-brand-background-selected);
-        border-color: var(--color-brand-background-selected);
-        color: var(--color-brand-txt-base);
       }
     }
   }
@@ -215,16 +197,10 @@ const classNames = computed(() => [
         color: var(--color-warning-txt-item);
       }
 
-      &:is(:disabled, .disabled) {
+      &:is(:disabled, .disabled, .busy) {
         background-color: var(--color-warning-item-disabled);
         border-color: var(--color-warning-item-disabled);
         color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-warning-item-base);
-        border-color: var(--color-warning-item-base);
-        color: var(--color-warning-txt-item);
       }
     }
 
@@ -249,16 +225,10 @@ const classNames = computed(() => [
         color: var(--color-warning-txt-active);
       }
 
-      &:is(:disabled, .disabled) {
+      &:is(:disabled, .disabled, .busy) {
         background-color: var(--color-neutral-background-disabled);
         border-color: var(--color-neutral-txt-secondary);
         color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-warning-txt-base);
-        color: var(--color-warning-txt-base);
       }
     }
 
@@ -283,16 +253,10 @@ const classNames = computed(() => [
         color: var(--color-warning-txt-active);
       }
 
-      &:is(:disabled, .disabled) {
+      &:is(:disabled, .disabled, .busy) {
         background-color: transparent;
         border-color: transparent;
         color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-warning-background-selected);
-        border-color: var(--color-warning-background-selected);
-        color: var(--color-warning-txt-base);
       }
     }
   }
@@ -319,16 +283,10 @@ const classNames = computed(() => [
         color: var(--color-danger-txt-item);
       }
 
-      &:is(:disabled, .disabled) {
+      &:is(:disabled, .disabled, .busy) {
         background-color: var(--color-danger-item-disabled);
         border-color: var(--color-danger-item-disabled);
         color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-danger-item-base);
-        border-color: var(--color-danger-item-base);
-        color: var(--color-danger-txt-item);
       }
     }
 
@@ -353,16 +311,10 @@ const classNames = computed(() => [
         color: var(--color-danger-txt-active);
       }
 
-      &:is(:disabled, .disabled) {
+      &:is(:disabled, .disabled, .busy) {
         background-color: var(--color-neutral-background-disabled);
         border-color: var(--color-neutral-txt-secondary);
         color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-neutral-background-primary);
-        border-color: var(--color-danger-txt-base);
-        color: var(--color-danger-txt-base);
       }
     }
 
@@ -387,16 +339,10 @@ const classNames = computed(() => [
         color: var(--color-danger-txt-active);
       }
 
-      &:is(:disabled, .disabled) {
+      &:is(:disabled, .disabled, .busy) {
         background-color: transparent;
         border-color: transparent;
         color: var(--color-neutral-txt-secondary);
-      }
-
-      &.busy {
-        background-color: var(--color-danger-background-selected);
-        border-color: var(--color-danger-background-selected);
-        color: var(--color-danger-txt-base);
       }
     }
   }

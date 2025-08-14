@@ -12,7 +12,7 @@
       </span>
     </UiFilter>
 
-    <UiActionButton icon="fa:plus" class="add-sort" @click="openModal()">
+    <UiActionButton icon="fa:plus" class="add-sort" @click="openFormModal()">
       {{ t('add-sort') }}
     </UiActionButton>
   </UiFilterGroup>
@@ -22,9 +22,9 @@
 import UiActionButton from '@/components/ui/UiActionButton.vue'
 import UiFilter from '@/components/ui/UiFilter.vue'
 import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
-import { useModal } from '@/composables/modal.composable'
-import type { ActiveSorts, NewSort, Sorts } from '@/types/sort'
+import type { ActiveSorts, Sorts } from '@/types/sort'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -41,13 +41,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const openModal = () => {
-  const { onApprove } = useModal<NewSort>(() => import('@/components/modals/CollectionSorterModal.vue'), {
-    availableSorts: computed(() => props.availableSorts),
-  })
-
-  onApprove(({ property, isAscending }) => emit('addSort', property, isAscending))
-}
+const openFormModal = useModal({
+  component: import('@/components/modals/CollectionSorterModal.vue'),
+  props: { availableSorts: computed(() => props.availableSorts) },
+  onConfirm: ({ property, isAscending }) => emit('addSort', property, isAscending),
+})
 </script>
 
 <style lang="postcss" scoped>

@@ -61,12 +61,12 @@
       <form @submit.prevent="deploy">
         <FormSection :label="t('configuration')">
           <div class="row">
-            <VtsInputWrapper :label="$t('storage')" :message="$t('n-gb-required', { n: REQUIRED_GB })">
+            <VtsInputWrapper :label="t('storage')" :message="t('n-gb-required', { n: REQUIRED_GB })">
               <VtsSelect :id="srSelectId" accent="brand" />
             </VtsInputWrapper>
           </div>
           <div class="row">
-            <VtsInputWrapper :label="$t('network')">
+            <VtsInputWrapper :label="t('network')">
               <VtsSelect :id="networkSelectId" accent="brand" />
             </VtsInputWrapper>
             <VtsInputWrapper
@@ -193,7 +193,6 @@ import FormSection from '@/components/form/FormSection.vue'
 import TitleBar from '@/components/TitleBar.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiRaw from '@/components/ui/UiRaw.vue'
-import { useModal } from '@/composables/modal.composable'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
@@ -207,6 +206,7 @@ import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiToggle from '@core/components/ui/toggle/UiToggle.vue'
 import { useFormSelect } from '@core/packages/form-select'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useUiStore } from '@core/stores/ui.store'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
@@ -220,10 +220,10 @@ const router = useRouter()
 
 usePageTitleStore().setTitle(() => t('deploy-xoa'))
 
-const invalidField = (message: string) =>
-  useModal(() => import('@/components/modals/InvalidFieldModal.vue'), {
-    message,
-  })
+const openInvalidFieldModal = useModal((message: string) => ({
+  component: import('@/components/modals/InvalidFieldModal.vue'),
+  props: { message },
+}))
 
 const uiStore = useUiStore()
 
@@ -338,7 +338,7 @@ async function deploy() {
 
   if (xoaPwd.value !== xoaPwdConfirm.value) {
     // TODO: use formal validation system
-    invalidField(t('xoa-password-confirm-different'))
+    openInvalidFieldModal(t('xoa-password-confirm-different'))
     return
   }
 
@@ -350,7 +350,7 @@ async function deploy() {
 
   if (enableSshAccount.value && sshPwd.value !== sshPwdConfirm.value) {
     // TODO: use form validation system
-    invalidField(t('xoa-ssh-password-confirm-different'))
+    openInvalidFieldModal(t('xoa-ssh-password-confirm-different'))
     return
   }
 
