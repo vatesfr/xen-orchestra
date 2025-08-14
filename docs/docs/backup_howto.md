@@ -1,21 +1,24 @@
 # Backup strategy guide
 
 This guide explains how to design and implement a backup strategy in Xen Orchestra.  
+
 Instead of a simple list of questions and answers, it walks you through **key decisions** and **best practices** before, during, and after setting up backups.
 
 ---
 
-## Glossary of backup types & features
+## Glossary
 
-- **Full backup** – Copies the entire VM each time, regardless of previous backups.  
-- **Delta backup** – Saves only the changes since the last backup, reducing storage needs.  
-- **Incremental replication** – Formerly called Continuous Replication (CR). Keeps a near-real-time copy of a VM on another host or pool.  
-- **Full replication** – Formerly called Disaster Recovery (DR). Creates a complete replica of a VM on another host or pool.  
-- **Mirror backup** – Keeps an exact mirror of the VM backup set, with no retention—only the latest copy is kept.  
-- **Sequence** – Groups multiple backups or replications in a specific order to be run as a single job.  
-- **Long-term retention** – Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.  
-- **Remote** – A storage location for backups (e.g., NFS, SMB, S3).  
-- **File restore** – Allows restoring individual files from a VM backup without restoring the full VM.
+This part explains the terminology of backup types & features.
+
+- [**Full backup**](./full_backups): Copies the entire VM each time, regardless of previous backups. 
+- [**Incremental backup**](./incremental_backups): Saves only the changes since the last backup, reducing storage needs. 
+- [**Incremental replication**](./incremental_replication): Keeps a near-real-time copy of a VM on another host or pool.  
+- [**Full replication**](./full_replication): Creates a complete replica of a VM on another host or pool.  
+- [**Mirror backup**](./mirror_backup): Keeps an exact mirror of the VM backup set, with no retention — only the latest copy is kept.  
+- **Backup sequence**: A feature that allows you to chain multiple backup jobs to run one after the other, automatically. 
+- [**Long-term retention**](./backups#long-term-backup-retention-with-gfs-strategy): Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.  
+- [**Remote**](./backups#remotes): A storage location for backups (for instance: NFS, SMB, or Amazon S3).  
+- [**File restore**](./backups#restore-a-file): A feature that allows you to restore individual files from a VM backup without restoring the full VM.
 
 ---
 
