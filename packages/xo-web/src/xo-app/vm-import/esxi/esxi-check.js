@@ -3,6 +3,7 @@ import { esxiCheckInstall } from 'xo'
 import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
+import { LibImport } from './lib-import'
 
 export class EsxiCheck extends Component {
   state = {
@@ -40,6 +41,7 @@ export class EsxiCheck extends Component {
             )
           })}
         </ul>
+        {result.vddk?.status === 'error' && <LibImport />}
       </div>
     )
   }

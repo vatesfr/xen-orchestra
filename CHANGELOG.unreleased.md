@@ -13,6 +13,7 @@
 
 - [V2V] Use vddk to transfer data from vmware (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
 - [V2V] Show if any prerequisite on XO is missing before import (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
+- [V2V] Show a form to install the VDDK library (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
 
 ### Bug fixes
 
