@@ -11,6 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [V2V] Use vddk to transfer data from vmware (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
+- [V2V] Show if any prerequisite on XO is missing before import (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -34,5 +37,7 @@
 - @vates/nbd-client minor
 - @vates/read-chunk patch
 - @xen-orchestra/vmware-explorer minor
+- xo-server minor
+- xo-web minor
 
 <!--packages-end-->
