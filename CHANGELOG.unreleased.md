@@ -32,4 +32,6 @@
 <!--packages-start-->
 
 - @vates/nbd-client minor
+- @vates/read-chunk patch
+
 <!--packages-end-->
