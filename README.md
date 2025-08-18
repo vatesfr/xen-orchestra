@@ -15,6 +15,8 @@ Log in to your account and use the deploy form available from the [Vates website
 
 The official documentation is available at https://docs.xen-orchestra.com/
 
+Documentation updates are deployed automatically once per day.
+
 ## 🚀 Features
 
 - **Centralized interface**: one Xen Orchestra to rule your entire infrastructure, even across datacenters at various locations
