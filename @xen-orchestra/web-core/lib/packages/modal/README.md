@@ -111,6 +111,26 @@ const openMyModal = useModal({
 <button @click="openModal()">Open modal</button>
 ```
 
+## Modal payload
+
+Modal payloads are fully typed.
+
+```ts
+const openMyModal = useModal({
+  component: import('path/to/MyModal.vue'),
+  onConfirm: () => 'Hello',
+  onCancel: () => 1234,
+})
+
+const result = await openMyModal()
+
+if (result.confirmed) {
+  result.payload // string
+} else {
+  result.payload // number
+}
+```
+
 ## Opening a modal with arguments
 
 You can pass a function returning a config instead of a config object.
