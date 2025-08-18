@@ -483,6 +483,7 @@
   "send-ctrl-alt-del": "Envoyer Ctrl+Alt+Suppr",
   "send-us-feedback": "Envoyez-nous vos commentaires",
   "settings": "Paramètres",
+  "settings.missing-translations": "Traductions manquantes ou incorrectes ?",
   "shutdown": "Arrêter",
   "sidebar.search-tree-view": "Rechercher dans l'arborescence",
   "sidebar.vms-treeview": "Arborescence des VMs",

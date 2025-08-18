@@ -101,7 +101,16 @@
     </UiCard>
     <UiCard class="group">
       <UiCardTitle>{{ t('language') }}</UiCardTitle>
-      <VtsSelect :id="localeSelectId" :icon="faEarthAmericas" accent="brand" />
+      <VtsColumns class="i18n-columns">
+        <VtsColumn>
+          <VtsSelect :id="localeSelectId" :icon="faEarthAmericas" accent="brand" />
+        </VtsColumn>
+        <VtsColumn class="i18n-link-column" :size="2">
+          <UiLink size="small" href="https://translate.vates.tech/engage/xen-orchestra/">
+            {{ t('settings.missing-translations') }}
+          </UiLink>
+        </VtsColumn>
+      </VtsColumns>
     </UiCard>
   </div>
 </template>
@@ -116,7 +125,10 @@ import UiKeyValueRow from '@/components/ui/UiKeyValueRow.vue'
 import { usePageTitleStore } from '@/stores/page-title.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { locales } from '@core/i18n.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -201,6 +213,16 @@ h5 {
       box-shadow: var(--shadow-100);
       border-radius: 8px;
     }
+  }
+}
+
+.i18n-columns {
+  padding-inline: 0;
+  gap: 2rem;
+
+  .i18n-link-column {
+    flex: 2;
+    justify-content: center;
   }
 }
 </style>
