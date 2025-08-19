@@ -2,7 +2,7 @@
 <template>
   <div class="ui-info">
     <VtsIcon :accent class="icon" :icon="faCircle" :overlay-icon="icon" />
-    <p v-tooltip="!wrap" class="typo-body-regular-small" :class="{ 'text-ellipsis': !wrap }">
+    <p v-if="slots.default" v-tooltip="!wrap" class="typo-body-regular-small" :class="{ 'text-ellipsis': !wrap }">
       <slot />
     </p>
   </div>
@@ -29,8 +29,8 @@ const { accent } = defineProps<{
   wrap?: boolean
 }>()
 
-defineSlots<{
-  default(): any
+const slots = defineSlots<{
+  default?(): any
 }>()
 
 const iconByAccent: Record<InfoAccent, IconDefinition> = {
