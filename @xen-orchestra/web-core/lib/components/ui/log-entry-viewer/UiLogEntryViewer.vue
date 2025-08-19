@@ -6,12 +6,12 @@
         {{ label }}
       </div>
       <div class="actions">
-        <VtsCopyButton :value="codeTextValue ?? ''" />
+        <VtsCopyButton :value="content" />
         <UiButtonIcon :icon="faArrowUpRightFromSquare" size="medium" accent="brand" @click="openRawValueInNewTab()" />
       </div>
     </div>
-    <code ref="code-element" :class="fontClasses.codeClass" class="code-container">
-      <slot />
+    <code :class="fontClasses.codeClass" class="code-container">
+      {{ content }}
     </code>
   </div>
 </template>
@@ -22,15 +22,20 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
-import { computed, useTemplateRef } from 'vue'
+import { computed, watch } from 'vue'
 
-type QuoteCodeAccent = 'info' | 'warning' | 'danger'
-type QuoteCodeSize = 'small' | 'medium'
+type LogEntryViewerAccent = 'info' | 'warning' | 'danger'
+type LogEntryViewerSize = 'small' | 'medium'
 
-const { size, accent } = defineProps<{
+const {
+  size,
+  accent,
+  content: rawContent = '',
+} = defineProps<{
   label: string
-  size: QuoteCodeSize
-  accent: QuoteCodeAccent
+  content: string | object | undefined
+  size: LogEntryViewerSize
+  accent: LogEntryViewerAccent
 }>()
 
 defineSlots<{
@@ -56,20 +61,26 @@ const className = computed(() =>
   })
 )
 
-const codeElement = useTemplateRef('code-element')
-const codeTextValue = computed(() => codeElement.value?.textContent)
+const content = computed(() => {
+  if (typeof rawContent === 'object') {
+    return JSON.stringify(rawContent, null, 2)
+  }
+
+  return rawContent
+})
+
+const pre = document.createElement('pre')
+
+watch(
+  () => content,
+  content => {
+    pre.textContent = content.value
+  },
+  { immediate: true }
+)
 
 function openRawValueInNewTab() {
-  const rawValue =
-    typeof codeTextValue.value === 'object' ? JSON.stringify(codeTextValue.value, null, 2) : codeTextValue.value
-
-  const newTab = window.open('', '_blank')
-
-  if (newTab) {
-    const pre = newTab.document.createElement('pre')
-    pre.textContent = rawValue ?? null
-    newTab.document.body.appendChild(pre)
-  }
+  window.open('', '_blank')?.document.body.appendChild(pre)
 }
 </script>
 

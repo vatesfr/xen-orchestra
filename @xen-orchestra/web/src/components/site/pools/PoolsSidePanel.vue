@@ -181,9 +181,7 @@
           {{ t('error') }}
           <UiCounter :value="1" accent="danger" size="small" variant="primary" />
         </UiCardTitle>
-        <UiLogEntryViewer accent="danger" :label="t('api-error-details')" size="small">
-          {{ server.error }}
-        </UiLogEntryViewer>
+        <UiLogEntryViewer accent="danger" :label="t('api-error-details')" size="small" :content="server.error" />
       </UiCard>
     </template>
   </UiPanel>

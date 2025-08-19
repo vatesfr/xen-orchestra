@@ -1,4 +1,4 @@
 ```typescript
-type QuoteCodeAccent = 'info' | 'warning' | 'danger'
-type QuoteCodeSize = 'small' | 'medium'
+type LogEntryViewerAccent = 'info' | 'warning' | 'danger'
+type LogEntryViewerSize = 'small' | 'medium'
 ```

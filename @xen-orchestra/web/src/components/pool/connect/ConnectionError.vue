@@ -13,9 +13,8 @@
           :label="t('api-error-details')"
           accent="danger"
           size="small"
-        >
-          {{ error.cause }}
-        </UiLogEntryViewer>
+          :content="error.cause"
+        />
         <RouterLink :to="{ name: '/pool/connect' }">
           <UiButton variant="secondary" accent="brand" size="medium" @click="emit('goBack')">
             {{ t('go-back') }}
