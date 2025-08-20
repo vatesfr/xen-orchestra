@@ -877,20 +877,27 @@ This is the place to compare metrics on comparable objects (VMs to VMs, hosts to
 
 ### Usage reports
 
-Xen Orchestra allows you to monitor the usage of some or all of your resources, by sending you regular reports via email.
+Xen Orchestra lets you monitor the usage of some or all of your resources by sending regular reports via email.
 
-To receive reports, you need to enable the **usage-report** plugin.
+To receive reports, you first need to enable the **usage-report** plugin:
 
-1. Navigate to the **Settings → Plugin** menu. A list of plugins appears.
-1. From the list, look for the **usage-report** plugin. You can scroll through the list or type the plugin name in the search bar.
-1. Enable the plugin by activating the toggle switch next to the plugin name.
-1. Click the **+** icon to reveal the plugin settings:
+1. Go to **Settings → Plugin**. A list of plugins will appear.
+2. From the list, look for the **usage-report** plugin (you can scroll through the list or search for it by name).
+3. Enable the plugin by switching on the toggle next to the plugin name. 
+4. Click the **+** icon to open the plugin settings:
     ![](./assets/usage-report-plugin.png)
-1. In the **emails** section, click **Add**. This will display a new text field.
-1. In that field, enter the email address where you wish to receive the usage reports. Repeat steps 5 and 6 to add more email addresses.
-1. Activate the toggle switch called **all** to include stats for all resources in your report.
-1. In the dropdown menu called **periodicity**, choose whether you want to receive **daily**, **weekly** or **monthly reports**.
-1. Click **Save configuration**. Your reports will be sent to the email addresses you've entered, at your desired frequency.
+5. In the **emails** section, click **Add**. A new text field will appear.
+6. Enter the email address where you want to receive the reports. Repeat steps 5–6 to add more addresses.  
+7. Turn on the **all** toggle to include stats for all resources in your report, including: 
+    - VMs
+    - Hosts
+    - Storage repositories
+
+:::tip
+To include these stats in your reports, you must have saved them at least once.  
+:::
+8. In the **periodicity** dropdown, choose whether you want to receive reports **daily**, **weekly**, or **monthly**.  
+9. Click **Save configuration**. Reports will be sent to the email addresses you entered at the frequency you selected. 
 
 ## Software RAID
 
