@@ -39,7 +39,7 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-          <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" :size="tablePaginationSize" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable
@@ -117,7 +117,7 @@
       </VtsStateHero>
       <VtsStateHero v-if="!servers.length" image="no-data" type="page" />
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-        <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" :size="tablePaginationSize" />
       </UiTopBottomTable>
     </div>
   </div>
@@ -146,6 +146,7 @@ import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { createMapper } from '@core/packages/mapper'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faCaretSquareDown,
@@ -165,6 +166,9 @@ const { servers } = defineProps<{
 }>()
 
 const { t } = useI18n()
+const uiStore = useUiStore()
+
+const tablePaginationSize = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
 
 const { areServersReady, hasServerFetchError } = useXoServerCollection()
 const { getHostById } = useXoHostCollection()

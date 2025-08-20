@@ -41,7 +41,7 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0">
-          <UiTablePagination v-if="arePifsReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="arePifsReady" v-bind="paginationBindings" :size="tablePaginationSize" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable
@@ -131,7 +131,7 @@
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-if="arePifsReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="arePifsReady" v-bind="paginationBindings" :size="tablePaginationSize" />
       </UiTopBottomTable>
     </div>
   </div>
@@ -159,6 +159,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
@@ -184,6 +185,10 @@ const { arePifsReady, hasPifFetchError } = useXoPifCollection()
 const { getNetworkById } = useXoNetworkCollection()
 
 const { t } = useI18n()
+const uiStore = useUiStore()
+
+const tablePaginationSize = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
+
 const selectedPifId = useRouteQuery('id')
 const searchQuery = ref('')
 
