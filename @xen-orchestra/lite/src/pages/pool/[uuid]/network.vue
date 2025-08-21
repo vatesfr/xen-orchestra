@@ -17,7 +17,6 @@
 import PoolHostInternalNetworksTable from '@/components/pool/network/PoolHostInternalNetworksTable.vue'
 import PoolNetworkSidePanel from '@/components/pool/network/PoolNetworkSidePanel.vue'
 import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -25,6 +24,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XenApiNetwork } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

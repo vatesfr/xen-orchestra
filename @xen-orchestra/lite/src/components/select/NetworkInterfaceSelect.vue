@@ -3,10 +3,10 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
+import type { XenApiNetwork } from '@vates/types'
 
 const model = defineModel<XenApiNetwork['$ref']>()
 

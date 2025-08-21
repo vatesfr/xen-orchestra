@@ -67,8 +67,6 @@
 <script lang="ts" setup>
 import PowerStateIcon from '@/components/PowerStateIcon.vue'
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
@@ -76,6 +74,7 @@ import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { VM_OPERATIONS, VM_POWER_STATE, type XenApiHost, type XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -101,18 +100,18 @@ const areVmsHalted = computed(() => vms.value.every(vm => vm.power_state === VM_
 const areVmsSuspended = computed(() => vms.value.every(vm => vm.power_state === VM_POWER_STATE.SUSPENDED))
 const areVmsPaused = computed(() => vms.value.every(vm => vm.power_state === VM_POWER_STATE.PAUSED))
 
-const areOperationsPending = (operation: VM_OPERATION | VM_OPERATION[]) =>
+const areOperationsPending = (operation: VM_OPERATIONS | VM_OPERATIONS[]) =>
   vms.value.some(vm => isVmOperationPending(vm, operation))
 
-const areVmsBusyToStart = computed(() => areOperationsPending(VM_OPERATION.START))
-const areVmsBusyToStartOnHost = computed(() => areOperationsPending(VM_OPERATION.START_ON))
-const areVmsBusyToPause = computed(() => areOperationsPending(VM_OPERATION.PAUSE))
-const areVmsBusyToSuspend = computed(() => areOperationsPending(VM_OPERATION.SUSPEND))
-const areVmsBusyToResume = computed(() => areOperationsPending([VM_OPERATION.UNPAUSE, VM_OPERATION.RESUME]))
-const areVmsBusyToReboot = computed(() => areOperationsPending(VM_OPERATION.CLEAN_REBOOT))
-const areVmsBusyToForceReboot = computed(() => areOperationsPending(VM_OPERATION.HARD_REBOOT))
-const areVmsBusyToShutdown = computed(() => areOperationsPending(VM_OPERATION.CLEAN_SHUTDOWN))
-const areVmsBusyToForceShutdown = computed(() => areOperationsPending(VM_OPERATION.HARD_SHUTDOWN))
+const areVmsBusyToStart = computed(() => areOperationsPending(VM_OPERATIONS.START))
+const areVmsBusyToStartOnHost = computed(() => areOperationsPending(VM_OPERATIONS.START_ON))
+const areVmsBusyToPause = computed(() => areOperationsPending(VM_OPERATIONS.PAUSE))
+const areVmsBusyToSuspend = computed(() => areOperationsPending(VM_OPERATIONS.SUSPEND))
+const areVmsBusyToResume = computed(() => areOperationsPending([VM_OPERATIONS.UNPAUSE, VM_OPERATIONS.RESUME]))
+const areVmsBusyToReboot = computed(() => areOperationsPending(VM_OPERATIONS.CLEAN_REBOOT))
+const areVmsBusyToForceReboot = computed(() => areOperationsPending(VM_OPERATIONS.HARD_REBOOT))
+const areVmsBusyToShutdown = computed(() => areOperationsPending(VM_OPERATIONS.CLEAN_SHUTDOWN))
+const areVmsBusyToForceShutdown = computed(() => areOperationsPending(VM_OPERATIONS.HARD_SHUTDOWN))
 const getHostState = (host: XenApiHost) => (isHostRunning(host) ? VM_POWER_STATE.RUNNING : VM_POWER_STATE.HALTED)
 </script>
 

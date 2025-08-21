@@ -48,7 +48,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
@@ -64,6 +63,7 @@ import useRelativeTime from '@core/composables/relative-time.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util'
+import type { XenApiHost } from '@vates/types'
 import { useNow } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'

@@ -56,7 +56,6 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiPool, XenApiSr } from '@/libs/xen-api/xen-api.types'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useVdiStore } from '@/stores/xen-api/vdi.store'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -64,6 +63,7 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XenApiPool, XenApiSr } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

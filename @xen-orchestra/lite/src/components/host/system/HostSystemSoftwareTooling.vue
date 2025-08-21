@@ -15,11 +15,11 @@
 
 <script setup lang="ts">
 import VtsRelativeTime from '@/components/RelativeTime.vue'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XenApiHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -24,9 +24,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { PRIMARY_ADDRESS_TYPE } from '@/libs/xen-api/xen-api.enums'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import UiButton from '@core/components/ui/button/UiButton.vue'
+import type { PRIMARY_ADDRESS_TYPE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

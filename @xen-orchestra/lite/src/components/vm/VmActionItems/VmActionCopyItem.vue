@@ -12,12 +12,11 @@
 
 <script lang="ts" setup>
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { VM_OPERATIONS, VM_POWER_STATE, type XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -41,7 +40,7 @@ const areAllSelectedVmsHalted = computed(
 )
 
 const areSomeSelectedVmsCloning = computed(() =>
-  selectedVms.value.some(vm => isVmOperationPending(vm, VM_OPERATION.CLONE))
+  selectedVms.value.some(vm => isVmOperationPending(vm, VM_OPERATIONS.CLONE))
 )
 
 const isDisabled = computed(() => {

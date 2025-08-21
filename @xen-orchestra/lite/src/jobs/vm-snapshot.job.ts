@@ -1,8 +1,8 @@
 import { vmsArg } from '@/jobs/args'
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { VM_OPERATIONS } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useVmSnapshotJob = defineJob('vm.snapshot', [vmsArg], () => {
@@ -22,7 +22,7 @@ export const useVmSnapshotJob = defineJob('vm.snapshot', [vmsArg], () => {
         throw new JobError(t('job.vm-snapshot.missing-vms'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.SNAPSHOT))) {
+      if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATIONS.SNAPSHOT))) {
         throw new JobRunningError(t('job.vm-snapshot.in-progress'))
       }
     },

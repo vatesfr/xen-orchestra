@@ -24,7 +24,6 @@
 
 <script lang="ts" setup>
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
@@ -34,6 +33,7 @@ import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XenApiHost } from '@vates/types'
 import { useToggle } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

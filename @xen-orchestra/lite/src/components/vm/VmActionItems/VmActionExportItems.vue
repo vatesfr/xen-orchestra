@@ -16,9 +16,9 @@
 <script lang="ts" setup>
 import VmActionExportItem from '@/components/vm/VmActionItems/VmActionExportItem.vue'
 import { exportVmsAsCsvFile, exportVmsAsJsonFile } from '@/libs/vm'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import type { XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

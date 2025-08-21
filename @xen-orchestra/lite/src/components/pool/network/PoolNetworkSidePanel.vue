@@ -126,7 +126,6 @@
 
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -138,6 +137,7 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XenApiNetwork } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

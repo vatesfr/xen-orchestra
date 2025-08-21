@@ -1,5 +1,5 @@
-import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { defineJobArg } from '@core/packages/job'
+import type { XenApiHost, XenApiVm } from '@vates/types'
 
 export const vmsArg = defineJobArg({
   identify: (vm: XenApiVm) => vm.$ref,

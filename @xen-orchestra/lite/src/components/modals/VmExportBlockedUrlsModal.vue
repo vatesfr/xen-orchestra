@@ -24,10 +24,10 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
+import type { XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

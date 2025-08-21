@@ -8,8 +8,6 @@ import type {
   ObjectTypeToRecord,
   RawXenApiRecord,
   XenApiEvent,
-  XenApiHost,
-  XenApiPool,
   XenApiRecordAddEvent,
   XenApiRecordAfterLoadEvent,
   XenApiRecordBeforeLoadEvent,
@@ -19,6 +17,7 @@ import type {
   XenApiRecordModEvent,
 } from '@/libs/xen-api/xen-api.types'
 import { buildXoObject, typeToRawType } from '@/libs/xen-api/xen-api.utils'
+import type { XenApiHost, XenApiPool } from '@vates/types'
 import { JSONRPCClient } from 'json-rpc-2.0'
 
 export default class XenApi {

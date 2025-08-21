@@ -43,13 +43,12 @@ import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import VmsActionsBar from '@/components/vm/VmsActionsBar.vue'
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import type { Filters } from '@/types/filter'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
+import { VM_OPERATIONS, VM_POWER_STATE, type XenApiVm } from '@vates/types'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -76,7 +75,7 @@ const selectedVmsRefs = ref([])
 
 titleStore.setCount(() => selectedVmsRefs.value.length)
 
-const isMigrating = (vm: XenApiVm) => isVmOperationPending(vm, VM_OPERATION.POOL_MIGRATE)
+const isMigrating = (vm: XenApiVm) => isVmOperationPending(vm, VM_OPERATIONS.POOL_MIGRATE)
 </script>
 
 <style lang="postcss" scoped>

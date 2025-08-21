@@ -1,5 +1,4 @@
-import type { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { VM_OPERATIONS, XenApiVm } from '@vates/types'
 import { saveAs } from 'file-saver'
 import { castArray } from 'lodash-es'
 
@@ -37,13 +36,13 @@ export function exportVmsAsJsonFile(vms: XenApiVm[], fileName: string) {
   )
 }
 
-export const isVmOperationPending = (vm: XenApiVm, operations: VM_OPERATION[] | VM_OPERATION) => {
+export const isVmOperationPending = (vm: XenApiVm, operations: VM_OPERATIONS[] | VM_OPERATIONS) => {
   const currentOperations = Object.values(vm.current_operations)
 
   return castArray(operations).some(operation => currentOperations.includes(operation))
 }
 
-export const areSomeVmOperationAllowed = (vm: XenApiVm, operations: VM_OPERATION[] | VM_OPERATION) => {
+export const areSomeVmOperationAllowed = (vm: XenApiVm, operations: VM_OPERATIONS[] | VM_OPERATIONS) => {
   const allowedOperations = Object.values(vm.allowed_operations)
 
   return castArray(operations).some(operation => allowedOperations.includes(operation))

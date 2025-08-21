@@ -1,5 +1,5 @@
 import { type GRANULARITY, RRD_STEP_FROM_STRING, type XapiStatsResponse } from '@/libs/xapi-stats'
-import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost, XenApiVm } from '@vates/types'
 import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types/common'
 import { type Pausable, promiseTimeout, useTimeoutPoll } from '@vueuse/core'
 import { computed, type ComputedRef, onUnmounted, ref, type Ref } from 'vue'

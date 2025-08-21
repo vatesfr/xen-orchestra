@@ -11,12 +11,12 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useControlDomainStore } from '@/stores/xen-api/control-domain.store.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import type { XenApiHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

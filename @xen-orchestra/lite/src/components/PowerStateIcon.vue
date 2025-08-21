@@ -6,6 +6,7 @@
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import { VM_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 
 const props = defineProps<{

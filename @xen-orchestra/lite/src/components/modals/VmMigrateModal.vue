@@ -22,7 +22,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsModal from '@core/components/modal/VtsModal.vue'
 import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'

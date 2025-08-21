@@ -12,12 +12,12 @@
 import ObjectNotFoundWrapper from '@/components/ObjectNotFoundWrapper.vue'
 import VmHeader from '@/components/vm/VmHeader.vue'
 import VmTabBar from '@/components/vm/VmTabBar.vue'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 
 import { useUiStore } from '@core/stores/ui.store'
+import type { XenApiVm } from '@vates/types'
 import { whenever } from '@vueuse/core'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'

@@ -1,7 +1,7 @@
-import type { XenApiSr, XenApiVdi } from '@/libs/xen-api/xen-api.types.ts'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { useVdiStore } from '@/stores/xen-api/vdi.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import type { XenApiSr, XenApiVdi } from '@vates/types'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 

@@ -36,14 +36,13 @@
 </template>
 
 <script setup lang="ts">
-import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { VM_OPERATIONS, type XenApiVm } from '@vates/types'
 import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -56,13 +55,13 @@ const { getByOpaqueRef } = useHostStore().subscribe()
 const affinityHost = computed(() => (vm.affinity ? getByOpaqueRef(vm.affinity) : undefined))
 
 const protectedOperations = [
-  VM_OPERATION.CLEAN_REBOOT,
-  VM_OPERATION.CLEAN_SHUTDOWN,
-  VM_OPERATION.HARD_REBOOT,
-  VM_OPERATION.HARD_SHUTDOWN,
-  VM_OPERATION.PAUSE,
-  VM_OPERATION.SUSPEND,
-  VM_OPERATION.SHUTDOWN,
+  VM_OPERATIONS.CLEAN_REBOOT,
+  VM_OPERATIONS.CLEAN_SHUTDOWN,
+  VM_OPERATIONS.HARD_REBOOT,
+  VM_OPERATIONS.HARD_SHUTDOWN,
+  VM_OPERATIONS.PAUSE,
+  VM_OPERATIONS.SUSPEND,
+  VM_OPERATIONS.SHUTDOWN,
 ]
 
 const isProtectedFromAccidentalShutdown = useArraySome(

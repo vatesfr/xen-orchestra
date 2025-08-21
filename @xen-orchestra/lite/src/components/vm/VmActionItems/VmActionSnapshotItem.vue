@@ -6,11 +6,10 @@
 
 <script lang="ts" setup>
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
+import { VM_OPERATIONS, type XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -26,7 +25,7 @@ const vms = computed(() =>
   props.vmRefs.map(vmRef => getByOpaqueRef(vmRef)).filter((vm): vm is XenApiVm => vm !== undefined)
 )
 
-const areSomeVmsSnapshotting = computed(() => vms.value.some(vm => isVmOperationPending(vm, VM_OPERATION.SNAPSHOT)))
+const areSomeVmsSnapshotting = computed(() => vms.value.some(vm => isVmOperationPending(vm, VM_OPERATIONS.SNAPSHOT)))
 
 const isDisabled = computed(() => vms.value.length === 0 || areSomeVmsSnapshotting.value)
 

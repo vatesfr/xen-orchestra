@@ -1,9 +1,9 @@
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useBondStore } from '@/stores/xen-api/bond.store'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import type { XenApiNetwork, XenApiPif } from '@vates/types'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 

@@ -17,14 +17,13 @@
 <script lang="ts" setup>
 import { useVmMigration } from '@/composables/vm-migration.composable.ts'
 import { areSomeVmOperationAllowed, isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { ABORT_MODAL } from '@core/packages/modal/types.ts'
 import { useModal } from '@core/packages/modal/use-modal.ts'
+import { VM_OPERATIONS, type XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -39,13 +38,13 @@ const { getByOpaqueRefs } = useVmStore().subscribe()
 
 const isMigratable = computed(() =>
   getByOpaqueRefs(selectedRefs).some(vm =>
-    areSomeVmOperationAllowed(vm, [VM_OPERATION.POOL_MIGRATE, VM_OPERATION.MIGRATE_SEND])
+    areSomeVmOperationAllowed(vm, [VM_OPERATIONS.POOL_MIGRATE, VM_OPERATIONS.MIGRATE_SEND])
   )
 )
 
 const isMigrating = computed(() =>
   getByOpaqueRefs(selectedRefs).some(vm =>
-    isVmOperationPending(vm, [VM_OPERATION.POOL_MIGRATE, VM_OPERATION.MIGRATE_SEND])
+    isVmOperationPending(vm, [VM_OPERATIONS.POOL_MIGRATE, VM_OPERATIONS.MIGRATE_SEND])
   )
 )
 

@@ -53,7 +53,6 @@
 
 <script setup lang="ts">
 import VtsRelativeTime from '@/components/RelativeTime.vue'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -65,6 +64,7 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XenApiHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

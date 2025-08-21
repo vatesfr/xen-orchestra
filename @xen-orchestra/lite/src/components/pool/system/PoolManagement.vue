@@ -35,7 +35,6 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiPool } from '@/libs/xen-api/xen-api.types'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -43,6 +42,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XenApiPool } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

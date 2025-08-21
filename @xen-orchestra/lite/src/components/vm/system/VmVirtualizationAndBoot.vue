@@ -29,13 +29,13 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XenApiVm } from '@vates/types'
 import { satisfies } from 'semver'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -17,6 +17,7 @@ import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useModal } from '@core/packages/modal/use-modal.ts'
+import { VM_POWER_STATE, type XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

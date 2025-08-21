@@ -31,10 +31,10 @@
 <script lang="ts" setup>
 import RelativeTime from '@/components/RelativeTime.vue'
 import { parseDateTime } from '@/libs/utils'
-import type { XenApiTask } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { useProgress } from '@core/packages/progress/use-progress.ts'
+import type { XenApiTask } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -134,7 +134,6 @@
 
 <script lang="ts" setup>
 import useMultiSelect from '@/composables/multi-select.composable'
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import type { IconName } from '@core/icons'
@@ -154,6 +153,7 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XenApiNetwork, XenApiPif } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
