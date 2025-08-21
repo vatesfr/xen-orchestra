@@ -11,6 +11,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [V2V] Use vddk to transfer data from vmware (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
+- [V2V] Show if any prerequisite on XO is missing before import (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
+- [V2V] Show a form to install the VDDK library (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
+
 - **Migrated REST API endpoints**:
 
   - `GET /rest/v0/hosts/<host-id>/smt` (PR [#8863](http://github.com/vatesfr/xen-orchestra/pull/8863))
@@ -42,10 +46,14 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client minor
+- @vates/read-chunk patch
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->

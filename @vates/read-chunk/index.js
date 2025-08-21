@@ -71,13 +71,17 @@ exports.readChunk = readChunk
  * If `size` bytes are not available to be read, the returned promise is rejected.
  *
  * @param {Readable} stream - A readable stream to read from.
- * @param {number} [size] - The number of bytes to read for binary streams (ignored for object streams).
+ * @param {number?} [size] - The number of bytes to read for binary streams (ignored for object streams).
  * @returns {Promise<Buffer|string|unknown>} - A Promise that resolves to the read chunk.
  */
 exports.readChunkStrict = async function readChunkStrict(stream, size) {
   const chunk = await readChunk(stream, size)
   if (chunk === null) {
-    throw new Error('stream has ended without data')
+    if (size === undefined) {
+      throw new Error(`stream has ended without data`)
+    } else {
+      throw new Error(`stream has ended without data, was looking for ${size} bytes`)
+    }
   }
 
   if (size !== undefined && chunk.length !== size) {
