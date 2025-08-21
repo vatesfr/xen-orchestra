@@ -37,7 +37,6 @@
 
 <script lang="ts" setup>
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { XoHost } from '@/types/xo/host.type'
 import type { VmState } from '@core/types/object-icon.type'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
 import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
@@ -51,6 +50,7 @@ import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagin
 import { usePagination } from '@core/composables/pagination.composable'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTree } from '@core/composables/tree.composable'
+import type { XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

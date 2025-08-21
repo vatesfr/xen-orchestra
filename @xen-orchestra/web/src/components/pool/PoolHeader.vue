@@ -41,11 +41,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoPool } from '@/types/xo/pool.type'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import type { XoPool } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{

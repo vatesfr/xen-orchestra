@@ -51,7 +51,6 @@
 
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { HOST_POWER_STATE, type XoHost } from '@/types/xo/host.type'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
@@ -64,6 +63,7 @@ import useRelativeTime from '@core/composables/relative-time.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util'
+import { HOST_POWER_STATE, type XoHost } from '@vates/types'
 import { useNow } from '@vueuse/core'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'

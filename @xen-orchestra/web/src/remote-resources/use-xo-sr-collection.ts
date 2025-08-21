@@ -1,8 +1,7 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
-import type { XoSr } from '@/types/xo/sr.type.ts'
-import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import type { XoSr, XoVdi } from '@vates/types'
 import { computed } from 'vue'
 
 export const useXoSrCollection = defineRemoteResource({

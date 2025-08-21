@@ -93,6 +93,7 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/chip/ui-chip': RouteRecordInfo<'/story/web-core/ui/chip/ui-chip', '/story/web-core/ui/chip/ui-chip', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/circle-progress-bar/ui-circle-progress-bar': RouteRecordInfo<'/story/web-core/ui/circle-progress-bar/ui-circle-progress-bar', '/story/web-core/ui/circle-progress-bar/ui-circle-progress-bar', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/collapsible-list/ui-collapsible-list': RouteRecordInfo<'/story/web-core/ui/collapsible-list/ui-collapsible-list', '/story/web-core/ui/collapsible-list/ui-collapsible-list', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/collapsible-list/ui-collapsible-list': RouteRecordInfo<'/story/web-core/ui/collapsible-list/ui-collapsible-list', '/story/web-core/ui/collapsible-list/ui-collapsible-list', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/counter/ui-counter': RouteRecordInfo<'/story/web-core/ui/counter/ui-counter', '/story/web-core/ui/counter/ui-counter', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/data-ruler/ui-data-ruler': RouteRecordInfo<'/story/web-core/ui/data-ruler/ui-data-ruler', '/story/web-core/ui/data-ruler/ui-data-ruler', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/donut-chart/ui-donut-chart': RouteRecordInfo<'/story/web-core/ui/donut-chart/ui-donut-chart', '/story/web-core/ui/donut-chart/ui-donut-chart', Record<never, never>, Record<never, never>>,

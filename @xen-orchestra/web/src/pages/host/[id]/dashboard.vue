@@ -45,10 +45,10 @@ import HostDashboardRamUsageChart from '@/components/host/dashboard/HostDashboar
 import HostDashboardVmsStatus from '@/components/host/dashboard/HostDashboardVmsStatus.vue'
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
 import { useXoHostAlarmsCollection } from '@/remote-resources/use-xo-host-alarms-collection.ts'
-import { type XoHost } from '@/types/xo/host.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
