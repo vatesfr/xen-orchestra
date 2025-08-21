@@ -49,7 +49,7 @@ Load balancing plans have:
 
 - A name
 - Pool(s) where to apply the policy
-- A mode (see below)
+- A mode (see [Plan modes](#plan-modes))
 
 ### Plan modes
 
@@ -59,7 +59,7 @@ Plans can work in one of these 3 modes:
     To specify how the performance plan should act, go to the [Performance plan behavior](#performance-plan-behavior) section.
     
 - **Density:** This time, the objective is to use the least hosts possible, and to concentrate your VMs. In this mode, unused (and compatible) hosts are shut down.
-- **Simple:** This mode allows you to use VM anti-affinity without using any load balancing mechanism. (see paragraph below)
+- **Simple:** This mode allows you to use VM anti-affinity without using any load balancing mechanism (see [VM Anti-affinity](#vm-anti-affinity)).
 
 ### Create a new plan
 
@@ -73,7 +73,7 @@ To create a new plan:
     Here, you can create a new load balancing plan or edit an existing one.
 
 3. In **Configuration → Plans**, check the box called **Fill information (optional)**:
-    ![The check box that lets you add a new load balancing plan](./assets/load_balancing_fill_information.png)
+    ![The check box that lets you add a new load balancing plan](./assets/load_balancing_fill_information.png)\
     The **Add** button will appear.
 4. Click **Add**:
     ![The load balancing form, with an emphasis on the checkbox and button to click in order to create a new load balancing plan](./assets/load_balancing_add.png)
@@ -95,26 +95,26 @@ In a load balancing plan, you can define different performance thresholds, such 
 
 To configure thresholds for your plan:
 
-1. Go to **Configuration → Plans**
+1. Go to **Configuration → Plans**.
 2. Select the plan you want to update.
 3. Go to **Plan → Critical thresholds**.
 4. Check the **Fill information (optional)** box.\
- New fields will appear, allowing you to set your thresholds.
+    New fields will appear where you can set your thresholds:
 
 ![A form to set up load balancing performance thresholds](./assets/load_balancing_thresholds.png)
 
 :::warning
-If the CPU threshold is set to 90%, the load balancer will be only triggered if the **average CPU usage on a host** is higher than 90%.
+If the CPU threshold is set to 90%, the load balancer will only trigger if the **average CPU usage on a host** exceeds 90%.  
 :::
 
-As for memory, load balancing will be trigger if there is **less** free RAM than the **Free memory** threshold.
+For memory, load balancing will trigger when **free RAM** drops below the **Free memory** threshold.  
 
 ### Exclusion
 
 If you want to prevent load balancing from triggering migrations on a particular host or VM, you can exclude it from the process. This can be done with:
 
-- the **Excluded hosts** setting in each plan
-- the **Ignored VM tags** parameter, which is common to every plan.
+- The **Excluded hosts** setting in each plan
+- The **Ignored VM tags** parameter, which is common to every plan
 
 ### Timing
 
@@ -170,14 +170,12 @@ It helps you avoid situations where redundant or similar VMs end up on the same 
 
 For example, imagine you have several VMs running MySQL and PostgreSQL with high availability or replication.  
 Naturally, you don’t want both replicated databases to be placed on the same physical host.  
-To prevent that, just set up your plan like this:
+To prevent that, set up your plan like this:
 
 ![](./assets/antiaffinity.png)
 
 - **Simple plan:** no active load balancing mechanism is used.  
 - **Anti-affinity**: we added two tags, meaning any VMs with one of these tags will not run on the same host as another VM that has the same tag (whenever possible).
-
-You can also use the performance plan with the anti-affinity mode activated to continue to migrate non-tagged VMs.
 
 You can also use the Performance plan with Anti-affinity enabled to continue migrating VMs that don’t have tags.
 
