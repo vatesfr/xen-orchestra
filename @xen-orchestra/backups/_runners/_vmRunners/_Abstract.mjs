@@ -18,7 +18,6 @@ const asyncEach = async (iterable, fn, thisArg = iterable) => {
 }
 
 export const Abstract = class AbstractVmBackupRunner {
-  _hasTransferredData = true
   // calls fn for each function, warns of any errors, and throws only if there are no writers left
   async _callWriters(fn, step, parallel = true) {
     const writers = this._writers
