@@ -8,11 +8,11 @@
 
 <script lang="ts" setup>
 import InfraVmItem from '@/components/infra/InfraVmItem.vue'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import { faDisplay } from '@fortawesome/free-solid-svg-icons'
+import type { XenApiHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

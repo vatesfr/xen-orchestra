@@ -32,8 +32,8 @@
 import RelativeTime from '@/components/RelativeTime.vue'
 import UiProgressBar from '@/components/ui/progress/UiProgressBar.vue'
 import { parseDateTime } from '@/libs/utils'
-import type { XenApiTask } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
+import type { XenApiTask } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

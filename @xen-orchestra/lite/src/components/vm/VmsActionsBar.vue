@@ -33,13 +33,13 @@ import VmActionExportItems from '@/components/vm/VmActionItems/VmActionExportIte
 import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateItem.vue'
 import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { faEdit, faEllipsis, faPowerOff } from '@fortawesome/free-solid-svg-icons'
+import type { XenApiVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

@@ -25,7 +25,6 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiNetwork, XenApiPool } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -33,6 +32,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faNetworkWired } from '@fortawesome/free-solid-svg-icons'
+import type { XenApiNetwork, XenApiPool } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -21,8 +21,6 @@ import monitor from '@/assets/monitor.svg'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
@@ -33,18 +31,19 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { useUiStore } from '@core/stores/ui.store'
+import { VM_OPERATIONS, VM_POWER_STATE, type XenApiVm } from '@vates/types'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const STOP_OPERATIONS = [
-  VM_OPERATION.SHUTDOWN,
-  VM_OPERATION.CLEAN_SHUTDOWN,
-  VM_OPERATION.HARD_SHUTDOWN,
-  VM_OPERATION.CLEAN_REBOOT,
-  VM_OPERATION.HARD_REBOOT,
-  VM_OPERATION.PAUSE,
-  VM_OPERATION.SUSPEND,
+  VM_OPERATIONS.SHUTDOWN,
+  VM_OPERATIONS.CLEAN_SHUTDOWN,
+  VM_OPERATIONS.HARD_SHUTDOWN,
+  VM_OPERATIONS.CLEAN_REBOOT,
+  VM_OPERATIONS.HARD_REBOOT,
+  VM_OPERATIONS.PAUSE,
+  VM_OPERATIONS.SUSPEND,
 ]
 
 usePageTitleStore().setTitle(useI18n().t('console'))

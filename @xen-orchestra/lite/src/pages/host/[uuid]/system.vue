@@ -22,11 +22,11 @@ import HostSystemHardwareSpecifications from '@/components/host/system/HostSyste
 import HostSystemNetworking from '@/components/host/system/HostSystemNetworking.vue'
 import HostSystemResourceManagement from '@/components/host/system/HostSystemResourceManagement.vue'
 import HostSystemSoftwareTooling from '@/components/host/system/HostSystemSoftwareTooling.vue'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
+import type { XenApiHost } from '@vates/types'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 

@@ -35,8 +35,8 @@
 import TaskRow from '@/components/tasks/TaskRow.vue'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiTable from '@/components/ui/UiTable.vue'
-import type { XenApiTask } from '@/libs/xen-api/xen-api.types'
 import { useTaskStore } from '@/stores/xen-api/task.store'
+import type { XenApiTask } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

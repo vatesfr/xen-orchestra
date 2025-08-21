@@ -23,7 +23,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -32,6 +31,7 @@ import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
+import type { XenApiHost } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

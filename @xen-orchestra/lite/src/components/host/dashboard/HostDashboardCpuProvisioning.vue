@@ -14,7 +14,6 @@
 
 <script lang="ts" setup>
 import { ACTIVE_STATES } from '@/libs/utils'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
@@ -23,6 +22,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
+import type { XenApiHost } from '@vates/types'
 import { and } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'

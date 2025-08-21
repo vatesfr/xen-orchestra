@@ -1,8 +1,8 @@
 import { vmsArg } from '@/jobs/args'
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useVmResumeJob = defineJob('vm.resume', [vmsArg], () => {
@@ -16,7 +16,7 @@ export const useVmResumeJob = defineJob('vm.resume', [vmsArg], () => {
         throw new JobError(t('job.vm-resume.missing-vms'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperationPending(vm, [VM_OPERATION.UNPAUSE, VM_OPERATION.RESUME]))) {
+      if (isRunning || vms.some(vm => isVmOperationPending(vm, [VM_OPERATIONS.UNPAUSE, VM_OPERATIONS.RESUME]))) {
         throw new JobRunningError(t('job.vm-resume.in-progress'))
       }
 

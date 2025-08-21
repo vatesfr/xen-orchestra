@@ -27,12 +27,12 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { usePciStore } from '@/stores/xen-api/pci.store.ts'
 import { usePgpuStore } from '@/stores/xen-api/pgpu.store.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XenApiHost } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
 import { useI18n } from 'vue-i18n'

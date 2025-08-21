@@ -172,7 +172,6 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiVif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
@@ -187,6 +186,7 @@ import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { faAngleLeft, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
+import type { XenApiVif } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

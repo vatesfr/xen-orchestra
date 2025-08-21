@@ -1,8 +1,8 @@
 import { vmsArg } from '@/jobs/args'
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useVmCopyJob = defineJob('vm.copy', [vmsArg], () => {
@@ -20,7 +20,7 @@ export const useVmCopyJob = defineJob('vm.copy', [vmsArg], () => {
         throw new JobError(t('job.vm-copy.missing-vms'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.CLONE))) {
+      if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATIONS.CLONE))) {
         throw new JobRunningError(t('job.vm-copy.in-progress'))
       }
 

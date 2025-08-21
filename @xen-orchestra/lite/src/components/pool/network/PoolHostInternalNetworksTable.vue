@@ -112,7 +112,6 @@
 
 <script setup lang="ts">
 import useMultiSelect from '@/composables/multi-select.composable'
-import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -139,6 +138,7 @@ import {
   faPlus,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
+import type { XenApiNetwork } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

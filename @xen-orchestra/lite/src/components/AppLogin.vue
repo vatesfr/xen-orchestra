@@ -13,7 +13,7 @@
           <FormInput v-model="login" name="login" readonly type="text" />
         </VtsInputWrapper>
 
-        <VtsInputWrapper :label="$t('password')">
+        <VtsInputWrapper :label="t('password')">
           <FormInput
             ref="passwordRef"
             v-model="password"

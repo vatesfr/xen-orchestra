@@ -348,7 +348,6 @@ import NetworkInterfaceSelect from '@/components/select/NetworkInterfaceSelect.v
 import SrSelect from '@/components/select/SrSelect.vue'
 
 // XenAPI Store imports
-import type { XenApiSr, XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
 import { usePifStore } from '@/stores/xen-api/pif.store.ts'
@@ -398,7 +397,15 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 // Vue imports
-import { type DOMAIN_TYPE, OPAQUE_REF, VBD_TYPE } from '@vates/types'
+import {
+  type DOMAIN_TYPE,
+  OPAQUE_REF,
+  VBD_TYPE,
+  type XenApiSr,
+  type XenApiVbd,
+  type XenApiVdi,
+  type XenApiVm,
+} from '@vates/types'
 import { logicNot } from '@vueuse/math'
 import defer, { type Defer } from 'golike-defer'
 import { computed, reactive, ref, toRef, watch } from 'vue'

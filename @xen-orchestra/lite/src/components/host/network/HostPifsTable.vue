@@ -135,7 +135,6 @@
 
 <script lang="ts" setup>
 import useMultiSelect from '@/composables/multi-select.composable'
-import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
@@ -167,6 +166,7 @@ import {
   faStar,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
+import type { XenApiNetwork, XenApiPif } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

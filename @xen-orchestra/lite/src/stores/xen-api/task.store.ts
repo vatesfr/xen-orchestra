@@ -3,9 +3,9 @@ import useCollectionFilter from '@/composables/collection-filter.composable'
 import useCollectionSorter from '@/composables/collection-sorter.composable'
 import useFilteredCollection from '@/composables/filtered-collection.composable'
 import useSortedCollection from '@/composables/sorted-collection.composable'
-import type { XenApiTask } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import type { XenApiTask } from '@vates/types'
 import { defineStore } from 'pinia'
 
 export const useTaskStore = defineStore('xen-api-task', () => {

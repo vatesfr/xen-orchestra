@@ -1,8 +1,8 @@
 import { hostArg, vmsArg } from '@/jobs/args'
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useVmStartOnJob = defineJob('vm.start-on', [vmsArg, hostArg], () => {
@@ -24,7 +24,7 @@ export const useVmStartOnJob = defineJob('vm.start-on', [vmsArg, hostArg], () =>
         throw new JobError(t('job.vm-start-on.missing-host'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.START_ON))) {
+      if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATIONS.START_ON))) {
         throw new JobRunningError(t('job.vm-start-on.in-progress'))
       }
 

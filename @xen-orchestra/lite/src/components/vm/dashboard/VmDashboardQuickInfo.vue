@@ -46,8 +46,6 @@
 </template>
 
 <script lang="ts" setup>
-import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
@@ -63,6 +61,7 @@ import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { faMoon, faPause, faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
+import { VM_POWER_STATE, type XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

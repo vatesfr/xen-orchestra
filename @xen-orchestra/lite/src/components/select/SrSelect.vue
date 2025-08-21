@@ -3,10 +3,10 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiSr } from '@/libs/xen-api/xen-api.types.ts'
 import { useSrStore } from '@/stores/xen-api/sr.store.ts'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
+import type { XenApiSr } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

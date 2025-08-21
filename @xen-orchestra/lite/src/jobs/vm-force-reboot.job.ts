@@ -1,8 +1,8 @@
 import { vmsArg } from '@/jobs/args'
 import { isVmOperationPending } from '@/libs/vm'
-import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
+import { VM_OPERATIONS, VM_POWER_STATE } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useVmForceRebootJob = defineJob('vm.force-reboot', [vmsArg], () => {
@@ -20,7 +20,7 @@ export const useVmForceRebootJob = defineJob('vm.force-reboot', [vmsArg], () => 
         throw new JobError(t('job.vm-force-reboot.missing-vms'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.HARD_REBOOT))) {
+      if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATIONS.HARD_REBOOT))) {
         throw new JobRunningError(t('job.vm-force-reboot.in-progress'))
       }
 

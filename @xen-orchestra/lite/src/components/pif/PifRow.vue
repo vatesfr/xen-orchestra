@@ -22,7 +22,6 @@
 </template>
 
 <script setup lang="ts">
-import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
@@ -31,6 +30,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
+import type { XenApiPif } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

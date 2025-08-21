@@ -1,4 +1,4 @@
-import type { XenApiHost, XenApiNetwork, XenApiSr, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types'
+import type { XenApiHost, XenApiNetwork, XenApiSr, XenApiVdi, XenApiVm } from '@vates/types'
 import { type OPAQUE_REF_NULL, type VDI_TYPE } from '@vates/types/common'
 
 export interface Vdi {

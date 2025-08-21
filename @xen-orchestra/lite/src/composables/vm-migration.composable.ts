@@ -1,9 +1,8 @@
-import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
+import { VM_OPERATIONS, type XenApiHost, type XenApiVm } from '@vates/types'
 import { castArray } from 'lodash-es'
 import type { MaybeRefOrGetter } from 'vue'
 import { computed, ref, toValue } from 'vue'
@@ -25,7 +24,7 @@ export const useVmMigration = (vmRefs: MaybeRefOrGetter<XenApiVm['$ref'] | XenAp
     () =>
       $isMigrating.value ||
       vms.value.some(vm =>
-        Object.values(vm.current_operations).some(operation => operation === VM_OPERATION.POOL_MIGRATE)
+        Object.values(vm.current_operations).some(operation => operation === VM_OPERATIONS.POOL_MIGRATE)
       )
   )
 

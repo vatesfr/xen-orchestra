@@ -138,7 +138,6 @@
 
 <script lang="ts" setup>
 import useMultiSelect from '@/composables/multi-select.composable'
-import type { XenApiNetwork, XenApiVif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
@@ -171,6 +170,7 @@ import {
   faPowerOff,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
+import type { XenApiNetwork, XenApiVif } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

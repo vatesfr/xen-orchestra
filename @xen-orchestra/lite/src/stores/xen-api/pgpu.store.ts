@@ -1,6 +1,6 @@
-import type { XenApiHost, XenApiPgpu } from '@/libs/xen-api/xen-api.types.ts'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
+import type { XenApiHost, XenApiPgpu } from '@vates/types'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 

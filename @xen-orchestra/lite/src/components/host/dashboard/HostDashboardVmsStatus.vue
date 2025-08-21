@@ -10,7 +10,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsDonutChartWithLegend, {
@@ -21,7 +20,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable'
-import { VM_POWER_STATE } from '@vates/types'
+import { VM_POWER_STATE, type XenApiHost } from '@vates/types'
 import { logicAnd, useSum } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

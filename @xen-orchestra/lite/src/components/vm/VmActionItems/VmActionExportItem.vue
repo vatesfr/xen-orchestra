@@ -14,13 +14,12 @@
 <script lang="ts" setup>
 import { useModal } from '@/composables/modal.composable'
 import { areSomeVmOperationAllowed } from '@/libs/vm'
-import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faDisplay } from '@fortawesome/free-solid-svg-icons'
+import { VM_OPERATIONS, type XenApiVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -34,7 +33,7 @@ const { t } = useI18n()
 const { getByOpaqueRefs } = useVmStore().subscribe()
 
 const isSomeExportable = computed(() =>
-  getByOpaqueRefs(props.vmRefs).some(vm => areSomeVmOperationAllowed(vm, VM_OPERATION.EXPORT))
+  getByOpaqueRefs(props.vmRefs).some(vm => areSomeVmOperationAllowed(vm, VM_OPERATIONS.EXPORT))
 )
 
 const isDisabled = useDisabled(() => !isSomeExportable.value)

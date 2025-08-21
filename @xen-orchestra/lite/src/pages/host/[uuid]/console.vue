@@ -21,8 +21,6 @@ import monitor from '@/assets/monitor.svg'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
 import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
 import { isHostOperationPending } from '@/libs/host'
-import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useConsoleStore } from '@/stores/xen-api/console.store'
 import { useControlDomainStore } from '@/stores/xen-api/control-domain.store'
@@ -34,13 +32,14 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import { useUiStore } from '@core/stores/ui.store'
+import { HOST_ALLOWED_OPERATIONS, type XenApiHost } from '@vates/types'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const { t } = useI18n()
 
-const STOP_OPERATIONS = [HOST_OPERATION.SHUTDOWN]
+const STOP_OPERATIONS = [HOST_ALLOWED_OPERATIONS.SHUTDOWN]
 
 usePageTitleStore().setTitle(useI18n().t('console'))
 

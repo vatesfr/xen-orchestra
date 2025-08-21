@@ -1,10 +1,10 @@
 import type { GetStats } from '@/composables/fetch-stats.composable'
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { createXapiStoreConfig } from '@/stores/xen-api/create-xapi-store-config'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import { createSubscribableStoreContext } from '@core/utils/create-subscribable-store-context.util'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
+import type { XenApiHost } from '@vates/types'
 import { defineStore } from 'pinia'
 import { computed } from 'vue'
 

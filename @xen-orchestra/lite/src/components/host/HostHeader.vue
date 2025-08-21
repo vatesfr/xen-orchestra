@@ -11,7 +11,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import type { HostState } from '@core/types/object-icon.type'
@@ -20,6 +19,7 @@ import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faCircle, faStar } from '@fortawesome/free-solid-svg-icons'
+import type { XenApiHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
