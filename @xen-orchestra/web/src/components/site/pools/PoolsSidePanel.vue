@@ -190,7 +190,6 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import type { XoServer } from '@/types/xo/server.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
@@ -222,6 +221,7 @@ import {
   faStar,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
+import type { XoServer } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

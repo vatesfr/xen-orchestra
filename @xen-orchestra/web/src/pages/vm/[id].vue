@@ -10,11 +10,11 @@
 <script lang="ts" setup>
 import VmHeader from '@/components/vm/VmHeader.vue'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { XoVm } from '@/types/xo/vm.type'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoVm } from '@vates/types'
 import { useRoute } from 'vue-router'
 
 useDefaultTab('/vm/[id]', 'dashboard')

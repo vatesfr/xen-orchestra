@@ -1,10 +1,8 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import type { XoHost } from '@/types/xo/host.type.ts'
-import type { XoPool } from '@/types/xo/pool.type.ts'
-import { VM_POWER_STATE, type XoVm } from '@/types/xo/vm.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
+import { VM_POWER_STATE, type XoHost, type XoPool, type XoVm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 

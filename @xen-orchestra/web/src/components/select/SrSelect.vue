@@ -3,9 +3,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoSr } from '@/types/xo/sr.type.ts'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
+import type { XoSr } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { srs } = defineProps<{

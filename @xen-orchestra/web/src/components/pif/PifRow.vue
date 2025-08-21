@@ -23,14 +23,13 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { HOST_POWER_STATE } from '@/types/xo/host.type'
-import type { XoPif } from '@/types/xo/pif.type'
 import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
+import { HOST_POWER_STATE, type XoPif } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'

@@ -13,8 +13,8 @@ import ConnectionForm from '@/components/pool/connect/ConnectionForm.vue'
 import ConnectionSuccess from '@/components/pool/connect/ConnectionSuccess.vue'
 import ConnectPoolHeader from '@/components/pool/connect/ConnectPoolHeader.vue'
 import { ApiError } from '@/error/api.error.ts'
-import type { XoServer } from '@/types/xo/server.type.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import type { XoServer } from '@vates/types'
 import { ref } from 'vue'
 
 const success = ref(false)

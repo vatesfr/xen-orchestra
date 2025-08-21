@@ -1,7 +1,7 @@
 import { toNameConfig } from '@/composables/xo-collection-state/to-name-config.ts'
 import type { BaseName, CollectionState, NameConfig } from '@/composables/xo-collection-state/types.ts'
-import type { XoRecord } from '@/types/xo'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
+import type { XoRecord } from '@vates/types'
 import { reactify } from '@vueuse/shared'
 import { type Ref } from 'vue'
 

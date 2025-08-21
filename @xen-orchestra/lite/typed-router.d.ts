@@ -106,6 +106,7 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/checkbox-group/ui-checkbox-group': RouteRecordInfo<'/story/web-core/ui/checkbox-group/ui-checkbox-group', '/story/web-core/ui/checkbox-group/ui-checkbox-group', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/chip/ui-chip': RouteRecordInfo<'/story/web-core/ui/chip/ui-chip', '/story/web-core/ui/chip/ui-chip', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/circle-progress-bar/ui-circle-progress-bar': RouteRecordInfo<'/story/web-core/ui/circle-progress-bar/ui-circle-progress-bar', '/story/web-core/ui/circle-progress-bar/ui-circle-progress-bar', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/collapsible-list/ui-collapsible-list': RouteRecordInfo<'/story/web-core/ui/collapsible-list/ui-collapsible-list', '/story/web-core/ui/collapsible-list/ui-collapsible-list', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/complex-icon/ui-complex-icon': RouteRecordInfo<'/story/web-core/ui/complex-icon/ui-complex-icon', '/story/web-core/ui/complex-icon/ui-complex-icon', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/counter/ui-counter': RouteRecordInfo<'/story/web-core/ui/counter/ui-counter', '/story/web-core/ui/counter/ui-counter', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/data-ruler/ui-data-ruler': RouteRecordInfo<'/story/web-core/ui/data-ruler/ui-data-ruler', '/story/web-core/ui/data-ruler/ui-data-ruler', Record<never, never>, Record<never, never>>,

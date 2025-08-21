@@ -20,10 +20,10 @@ import VmDashboardQuickInfo from '@/components/vm/dashboard/VmDashboardQuickInfo
 import VmDashboardRamUsageChart from '@/components/vm/dashboard/VmDashboardRamUsageChart.vue'
 import VmDashboardVdiUsageChart from '@/components/vm/dashboard/VmDashboardVdiUsageChart.vue'
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
-import { type XoVm } from '@/types/xo/vm.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import VtsOfflineHero from '@core/components/state-hero/VtsOfflineHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoVm } from '@vates/types'
 
 const { vm } = defineProps<{
   vm: XoVm

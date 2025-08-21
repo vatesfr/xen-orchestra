@@ -3,9 +3,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoNetwork } from '@/types/xo/network.type.ts'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
+import type { XoNetwork } from '@vates/types'
 
 const { networks } = defineProps<{
   networks: XoNetwork[]

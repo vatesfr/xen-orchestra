@@ -140,7 +140,6 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import type { XoPif } from '@/types/xo/pif.type.ts'
 import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -172,6 +171,7 @@ import {
   faStar,
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
+import type { XoPif } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

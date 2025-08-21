@@ -22,9 +22,9 @@ import VmNetworking from '@/components/vm/system/VmNetworking.vue'
 import VmResource from '@/components/vm/system/VmResource.vue'
 import VmStorageConfig from '@/components/vm/system/VmStorageConfig.vue'
 import VmVirtualizationAndBoot from '@/components/vm/system/VmVirtualizationAndBoot.vue'
-import type { XoVm } from '@/types/xo/vm.type'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
+import type { XoVm } from '@vates/types'
 
 defineProps<{ vm: XoVm }>()
 </script>

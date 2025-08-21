@@ -1,7 +1,6 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
-import type { XoPool } from '@/types/xo/pool.type.ts'
-import type { XoServer } from '@/types/xo/server.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import type { XoPool, XoServer } from '@vates/types'
 import { computed } from 'vue'
 
 export const useXoServerCollection = defineRemoteResource({

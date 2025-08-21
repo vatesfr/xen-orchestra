@@ -1,7 +1,5 @@
-import type { XoHost } from '@/types/xo/host.type.ts'
-import type { XoPool } from '@/types/xo/pool.type.ts'
-import type { XoVm } from '@/types/xo/vm.type.ts'
 import { type GRANULARITY, RRD_STEP_FROM_STRING } from '@/utils/rest-api-stats.ts'
+import type { XoHost, XoPool, XoVm } from '@vates/types'
 import type { XapiHostStats, XapiPoolStats, XapiVmStats } from '@vates/types/common'
 import { useFetch, useIntervalFn } from '@vueuse/core'
 import type { MaybeRefOrGetter } from '@vueuse/shared'

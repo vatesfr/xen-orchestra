@@ -1,8 +1,4 @@
-import type { XoAlarm } from '@/types/xo/alarm.type.ts'
-import type { XoHost } from '@/types/xo/host.type.ts'
-import type { XoSr } from '@/types/xo/sr.type.ts'
-import type { XoVm } from '@/types/xo/vm.type.ts'
-import type { XcpPatches, XsPatches } from '@vates/types'
+import type { XcpPatches, XoAlarm, XoHost, XoSr, XoVm, XsPatches } from '@vates/types'
 
 export type XoPoolDashboard = {
   hosts?: {

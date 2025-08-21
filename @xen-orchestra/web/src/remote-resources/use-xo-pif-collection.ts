@@ -1,9 +1,7 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import type { XoHost } from '@/types/xo/host.type.ts'
-import type { XoNetwork } from '@/types/xo/network.type.ts'
-import type { XoPif } from '@/types/xo/pif.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import type { XoHost, XoNetwork, XoPif } from '@vates/types'
 import { computed } from 'vue'
 
 export const useXoPifCollection = defineRemoteResource({

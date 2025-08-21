@@ -10,11 +10,11 @@
 <script lang="ts" setup>
 import HostHeader from '@/components/host/HostHeader.vue'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import type { XoHost } from '@/types/xo/host.type'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoHost } from '@vates/types'
 import { useRoute } from 'vue-router/auto'
 
 useDefaultTab('/host/[id]', 'dashboard')

@@ -48,7 +48,6 @@
 <script setup lang="ts">
 import createAndConnectServer from '@/api/connect-server.api.ts'
 import { ApiError } from '@/error/api.error.ts'
-import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -56,6 +55,7 @@ import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoServer } from '@vates/types'
 import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

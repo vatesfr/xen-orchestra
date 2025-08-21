@@ -51,7 +51,6 @@
 
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { HOST_POWER_STATE, type XoHost } from '@/types/xo/host.type'
 import VtsIcon, { type IconAccent } from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
@@ -65,6 +64,7 @@ import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { faCircle, faPlay, faServer, faStar, faStop } from '@fortawesome/free-solid-svg-icons'
+import { HOST_POWER_STATE, type XoHost } from '@vates/types'
 import { useNow } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

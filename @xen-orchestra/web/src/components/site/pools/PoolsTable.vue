@@ -126,7 +126,6 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
-import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -156,6 +155,7 @@ import {
   faHashtag,
   faServer,
 } from '@fortawesome/free-solid-svg-icons'
+import type { XoServer } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

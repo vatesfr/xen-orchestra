@@ -39,7 +39,6 @@
 
 <script lang="ts" setup>
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { XoPool } from '@/types/xo/pool.type'
 import type { VmState } from '@core/types/object-icon.type'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
 import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
@@ -54,6 +53,7 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTree } from '@core/composables/tree.composable'
 import { faAlignLeft, faDesktop } from '@fortawesome/free-solid-svg-icons'
+import type { XoPool } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

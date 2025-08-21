@@ -49,7 +49,6 @@
 
 <script lang="ts" setup>
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import { VM_POWER_STATE, type XoVm } from '@/types/xo/vm.type.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
@@ -62,6 +61,7 @@ import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { faMoon, faPause, faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
+import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

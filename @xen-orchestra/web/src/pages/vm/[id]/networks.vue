@@ -14,12 +14,12 @@
 import VmVifSidePanel from '@/components/vm/network/VmVifSidePanel.vue'
 import VmVifsTable from '@/components/vm/network/VmVifsTable.vue'
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
-import type { XoVif } from '@/types/xo/vif.type.ts'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoVif } from '@vates/types'
 import { useArrayFilter } from '@vueuse/shared'
 import { useRoute } from 'vue-router/auto'
 

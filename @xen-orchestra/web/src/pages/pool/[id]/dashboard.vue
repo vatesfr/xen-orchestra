@@ -37,9 +37,9 @@ import PoolDashboardStatus from '@/components/pool/dashboard/PoolDashboardStatus
 import PoolDashboardStoragesUsage from '@/components/pool/dashboard/PoolDashboardStoragesUsage.vue'
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
 import { useXoPoolDashboard } from '@/remote-resources/use-xo-pool-dashboard.ts'
-import type { XoPool } from '@/types/xo/pool.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoPool } from '@vates/types'
 
 const { pool } = defineProps<{ pool: XoPool }>()
 

@@ -11,10 +11,9 @@ import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.t
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection.ts'
-import type { XoVmController } from '@/types/xo/vm-controller.type.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { faDatabase, faDesktop, faServer } from '@fortawesome/free-solid-svg-icons'
-import type { XapiXoRecord } from '@vates/types'
+import type { XapiXoRecord, XoVmController } from '@vates/types'
 import { computed } from 'vue'
 
 const { type, uuid } = defineProps<{

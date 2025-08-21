@@ -34,12 +34,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoVm } from '@/types/xo/vm.type'
 import type { VmState } from '@core/types/object-icon.type'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
+import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{ vm: XoVm }>()

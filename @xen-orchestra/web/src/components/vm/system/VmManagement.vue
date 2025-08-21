@@ -39,13 +39,13 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { VM_OPERATION, type XoVm } from '@/types/xo/vm.type'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { faServer } from '@fortawesome/free-solid-svg-icons'
+import { VM_OPERATIONS, type XoVm } from '@vates/types'
 import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -57,13 +57,13 @@ const { getHostById } = useXoHostCollection()
 
 const affinityHostName = computed(() => (vm.affinityHost ? getHostById(vm.affinityHost)?.name_label : ''))
 const protectedOperations = [
-  VM_OPERATION.CLEAN_REBOOT,
-  VM_OPERATION.CLEAN_SHUTDOWN,
-  VM_OPERATION.HARD_REBOOT,
-  VM_OPERATION.HARD_SHUTDOWN,
-  VM_OPERATION.PAUSE,
-  VM_OPERATION.SUSPEND,
-  VM_OPERATION.SHUTDOWN,
+  VM_OPERATIONS.CLEAN_REBOOT,
+  VM_OPERATIONS.CLEAN_SHUTDOWN,
+  VM_OPERATIONS.HARD_REBOOT,
+  VM_OPERATIONS.HARD_SHUTDOWN,
+  VM_OPERATIONS.PAUSE,
+  VM_OPERATIONS.SUSPEND,
+  VM_OPERATIONS.SHUTDOWN,
 ]
 
 const isProtectedFromAccidentalShutdown = useArraySome(

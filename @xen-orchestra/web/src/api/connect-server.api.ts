@@ -1,5 +1,5 @@
-import type { XoServer } from '@/types/xo/server.type.ts'
 import { fetchDelete, fetchPost } from '@/utils/fetch.util.ts'
+import type { XoServer } from '@vates/types'
 
 export default async function createAndConnectServer(payload: NewServerPayload) {
   const { id } = await createServer(payload)

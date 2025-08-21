@@ -21,9 +21,9 @@ import HostSystemHardwareSpecifications from '@/components/host/system/HostSyste
 import HostSystemNetworking from '@/components/host/system/HostSystemNetworking.vue'
 import HostSystemResourceManagement from '@/components/host/system/HostSystemResourceManagement.vue'
 import HostSystemSoftwareTooling from '@/components/host/system/HostSystemSoftwareTooling.vue'
-import { type XoHost } from '@/types/xo/host.type'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
+import type { XoHost } from '@vates/types'
 
 const { host } = defineProps<{
   host: XoHost

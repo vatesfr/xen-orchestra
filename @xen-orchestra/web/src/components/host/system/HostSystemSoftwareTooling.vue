@@ -14,11 +14,11 @@
 </template>
 
 <script setup lang="ts">
-import { HOST_POWER_STATE, type XoHost } from '@/types/xo/host.type.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { HOST_POWER_STATE, type XoHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
