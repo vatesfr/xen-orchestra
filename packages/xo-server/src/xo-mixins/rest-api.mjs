@@ -225,6 +225,19 @@ export default class RestApi {
     // add migrated collections to maintain their discoverability
     const swaggerEndpoints = {
       alarms: {},
+      backup: {
+        routes: {
+          vms: {
+            jobs: true,
+          },
+          metadata: {
+            jobs: true,
+          },
+          mirror: {
+            jobs: true,
+          },
+        },
+      },
       dashboard: {},
       docs: {},
       messages: {},
@@ -328,6 +341,7 @@ export default class RestApi {
     {
       const types = [
         'host',
+        'backup',
         'message',
         'network',
         'PIF',
