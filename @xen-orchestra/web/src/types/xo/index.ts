@@ -1,8 +1,8 @@
 import type { XoAlarm } from '@/types/xo/alarm.type.ts'
 import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import type { XoHost } from '@/types/xo/host.type.ts'
-import type { XoMetadataBackup } from '@/types/xo/metadata-backup.type.ts'
-import type { XoMirrorBackup } from '@/types/xo/mirror-backup.type.ts'
+import type { XoMetadataBackupJob } from '@/types/xo/metadata-backup-job.type.ts'
+import type { XoMirrorBackupJob } from '@/types/xo/mirror-backup-job.type.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
 import type { XoPci } from '@/types/xo/pci.type.ts'
 import type { XoPgpu } from '@/types/xo/pgpu.type.ts'
@@ -15,7 +15,7 @@ import type { XoTask } from '@/types/xo/task.type.ts'
 import type { XoVbd } from '@/types/xo/vbd.type.ts'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVif } from '@/types/xo/vif.type.ts'
-import type { XoVmBackup } from '@/types/xo/vm-backup.type.ts'
+import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
 import type { XoVmController } from '@/types/xo/vm-controller.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type.ts'
 import type { XoVm } from '@/types/xo/vm.type.ts'
@@ -37,8 +37,8 @@ export type XoRecord =
   | XoServer
   | XoPci
   | XoPgpu
-  | XoVmBackup
-  | XoMetadataBackup
-  | XoMirrorBackup
+  | XoVmBackupJob
+  | XoMetadataBackupJob
+  | XoMirrorBackupJob
   | XoSchedule
   | XoBackupLog

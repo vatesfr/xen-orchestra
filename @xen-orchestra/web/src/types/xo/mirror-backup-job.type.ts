@@ -1,8 +1,8 @@
 import type { Branded } from '@core/types/utility.type'
 import type { XoBackupRepository } from '@vates/types'
 
-export type XoMirrorBackup = {
-  id: Branded<'backup-job'>
+export type XoMirrorBackupJob = {
+  id: Branded<'mirror-backup-job'>
   type: 'mirrorBackup'
   mode: 'delta' | 'full'
   name: string

@@ -2,8 +2,8 @@ import type { XoVm } from '@/types/xo/vm.type.ts'
 import type { Branded } from '@core/types/utility.type'
 import { type XoBackupRepository, type XoSchedule, type XoSr } from '@vates/types'
 
-export type XoVmBackup = {
-  id: Branded<'backup-job'>
+export type XoVmBackupJob = {
+  id: Branded<'vm-backup-job'>
   type: 'backup'
   name: string
   mode: 'full' | 'delta'
@@ -38,7 +38,7 @@ export type XoVmBackup = {
   remotes?: {
     id: XoBackupRepository['id'] | { __or: XoBackupRepository['id'][] }
   }
-  srs: {
+  srs?: {
     id: XoSr['id'] | { __or: XoSr['id'][] }
   }
   vms?: {

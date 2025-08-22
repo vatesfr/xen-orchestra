@@ -1,12 +1,12 @@
 import type { Branded } from '@core/types/utility.type'
 import type { XoBackupRepository, XoPool } from '@vates/types'
 
-export type XoMetadataBackup = {
-  id: Branded<'backup-job'>
+export type XoMetadataBackupJob = {
+  id: Branded<'metadata-backup-job'>
   type: 'metadataBackup'
   name: string
   xoMetadata?: boolean
-  pools: {
+  pools?: {
     id: XoPool['id'] | { __or: XoPool['id'][] }
   }
   remotes: {

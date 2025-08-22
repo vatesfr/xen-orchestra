@@ -4,7 +4,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
-export const useXoBackupLogsCollection = defineRemoteResource({
+export const useXoBackupLogCollection = defineRemoteResource({
   url: '/rest/v0/backup/logs/?fields=id,jobId,status,end',
   initialData: () => [] as XoBackupLog[],
   state: (rawBackupLogs, context) => {
