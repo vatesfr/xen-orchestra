@@ -16,7 +16,7 @@ import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs'
-import { forwardResult, handleBackupLog, handleBackupTaskLog } from '../../_handleBackupLog.mjs'
+import { forwardResult, handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { waitAll } from '../../_waitAll.mjs'
 
@@ -66,7 +66,7 @@ export default class BackupNg {
 
   constructor(app) {
     this._app = app
-    this._logger = undefined
+    this._logger = undefined // probably not usefull anymore
     this._runningRestores = new Set()
 
     app.hooks.on('start', async () => {
@@ -157,7 +157,7 @@ export default class BackupNg {
             const store = await app.getStore('tasks')
             const onLogFct = makeOnProgress({
               onTaskUpdate: (log, event) => {
-                handleBackupTaskLog(log, event, { app: this._app, jobName: job.name, store })
+                handleBackupLog(log, event, { app: this._app, jobName: job.name, store })
               },
             })
             return await Task.run(
@@ -277,6 +277,7 @@ export default class BackupNg {
 
           const params = {
             job,
+            jobData,
             recordToXapi,
             remotes,
             schedule,
@@ -304,7 +305,7 @@ export default class BackupNg {
                   result = forwardResult(log)
                 },
                 onTaskUpdate: (log, event) => {
-                  handleBackupTaskLog(log, event, { app: this._app, jobName: job.name, store })
+                  handleBackupLog(log, event, { app: this._app, jobName: job.name, store })
                 },
               })
 
@@ -327,7 +328,7 @@ export default class BackupNg {
                 result = forwardResult(log)
               },
               onTaskUpdate: (log, event) => {
-                handleBackupTaskLog(log, event, { app: this._app, jobName: job.name, store })
+                handleBackupLog(log, event, { app: this._app, jobName: job.name, store })
               },
             })
 
@@ -467,7 +468,6 @@ export default class BackupNg {
     const remote = await app.getRemoteWithCredentials(remoteId)
 
     let rootTaskId
-    const logger = this._logger
     try {
       let result
       if (remote.proxy !== undefined) {
@@ -500,17 +500,22 @@ export default class BackupNg {
             assertType: 'iterator',
           })
 
-          const localTaskIds = { __proto__: null }
+          const store = await app.getStore('tasks')
+          const onLogFct = makeOnProgress({
+            onRootTaskStart: log => {
+              this._runningRestores.add(log.id)
+              rootTaskId = log.id
+            },
+            onRootTaskEnd: log => {
+              result = forwardResult(log)
+            },
+            onTaskUpdate: (log, event) => {
+              handleBackupLog(log, event, { store })
+            },
+          })
+
           for await (const log of logsStream) {
-            result = handleBackupLog(log, {
-              logger,
-              localTaskIds,
-              handleRootTaskId: id => {
-                this._runningRestores.add(id)
-                rootTaskId = id
-              },
-              rootTaskId,
-            })
+            onLogFct(log)
           }
         } catch (error) {
           if (invalidParameters.is(error)) {
@@ -522,7 +527,18 @@ export default class BackupNg {
       } else {
         result = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
           const metadata = await adapter.readVmBackupMetadata(metadataFilename)
-          const localTaskIds = { __proto__: null }
+
+          const store = await app.getStore('tasks')
+          const onLogFct = makeOnProgress({
+            onRootTaskStart: log => {
+              this._runningRestores.add(log.id)
+              rootTaskId = log.id
+            },
+            onTaskUpdate: (log, event) => {
+              handleBackupLog(log, event, { store })
+            },
+          })
+
           return Task.run(
             {
               properties: {
@@ -532,15 +548,7 @@ export default class BackupNg {
                 srId,
                 time: metadata.timestamp,
               },
-              onProgress: log =>
-                handleBackupLog(log, {
-                  logger,
-                  localTaskIds,
-                  handleRootTaskId: id => {
-                    this._runningRestores.add(id)
-                    rootTaskId = id
-                  },
-                }),
+              onProgress: onLogFct,
             },
             async () =>
               new ImportVmBackup({
