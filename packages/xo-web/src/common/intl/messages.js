@@ -7,6 +7,8 @@ const messages = {
   alpha: 'Alpha',
   alerts: 'Alerts',
   connected: 'Connected',
+  dcScope: 'DC Scope',
+  deployDcScope: 'Deploy DC Scope',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   disable: 'Disable',
