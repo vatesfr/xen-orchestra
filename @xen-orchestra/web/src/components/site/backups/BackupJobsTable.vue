@@ -20,7 +20,7 @@
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" class="checkbox">
                 <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" />
+                  <UiCheckbox disabled accent="brand" />
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
@@ -49,7 +49,7 @@
               :class="{ checkbox: column.id === 'checkbox' }"
             >
               <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
+                <UiCheckbox disabled accent="brand" :value="row.id" />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
@@ -74,7 +74,7 @@
               <template v-else-if="column.id === 'last-runs'">
                 <ul class="last-three-runs">
                   <li v-for="(status, index) in column.value" :key="index" v-tooltip="status.tooltip">
-                    <UiInfo :accent="status.accent" />
+                    <NewVtsIcon size="medium" :name="status.icon" />
                   </li>
                 </ul>
               </template>
@@ -97,18 +97,18 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupLogsCollection } from '@/remote-resources/use-xo-backup-logs-collection.ts'
-import { useXoSchedulesCollection } from '@/remote-resources/use-xo-schedules-collection.ts'
+import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
+import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
+import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection.ts'
+import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
 import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
-import type { XoMetadataBackup } from '@/types/xo/metadata-backup.type.ts'
-import type { XoMirrorBackup } from '@/types/xo/mirror-backup.type.ts'
-import type { XoVmBackup } from '@/types/xo/vm-backup.type.ts'
+import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
+import NewVtsIcon from '@core/components/icon/NewVtsIcon.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
@@ -118,7 +118,6 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { createMapper } from '@core/packages/mapper'
@@ -128,8 +127,6 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export type XoBackupJob = XoVmBackup | XoMetadataBackup | XoMirrorBackup
-
 const { backupJobs } = defineProps<{
   backupJobs: XoBackupJob[]
   hasError: boolean
@@ -137,8 +134,9 @@ const { backupJobs } = defineProps<{
 
 const { t } = useI18n()
 
-const { schedulesByJobId } = useXoSchedulesCollection()
-const { getLastNBackupLogsByJobId } = useXoBackupLogsCollection()
+const { schedulesByJobId } = useXoScheduleCollection()
+const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
+const { getModeLabels } = useXoBackupUtils()
 
 const selectedBackupJobId = useRouteQuery('id')
 
@@ -156,106 +154,12 @@ const filteredBackupJobs = computed(() => {
   )
 })
 
-const backupJobsIds = computed(() => backupJobs.map(backupJob => backupJob.id))
-
-const { selected, areAllSelected } = useMultiSelect(backupJobsIds)
-
-const hasIds = (idField: string | { __or: string[] } | undefined) => {
-  if (typeof idField === 'string') {
-    return true
-  }
-
-  if (idField && '__or' in idField) {
-    return idField.__or.length > 0
-  }
-
-  return false
-}
-
-const getBackupTypeLabel = (backupJob: XoBackupJob) => {
-  if (backupJob.type === 'mirrorBackup') {
-    return t('backup.mirror')
-  }
-
-  if (backupJob.type === 'metadataBackup') {
-    return t('backup.metadata')
-  }
-}
-
-const getMirrorBackupModeLabel = (backupJob: XoMirrorBackup) => {
-  if (backupJob.mode === 'full') {
-    return t('backup.full')
-  }
-
-  if (backupJob.mode === 'delta') {
-    return t('backup.incremental')
-  }
-}
-
-const hasSnapshotRetention = (backupJob: XoVmBackup) =>
-  Object.values(backupJob.settings).some(
-    settingsGroup =>
-      settingsGroup.snapshotRetention &&
-      typeof settingsGroup.snapshotRetention === 'number' &&
-      settingsGroup.snapshotRetention > 0
-  )
-
-function getAllModesLabels(backupJob: XoBackupJob) {
-  const modes = []
-
-  // Add the backup type first, except for VM backup type
-  modes.push(getBackupTypeLabel(backupJob))
-
-  // Then add the specific modes
-  if (backupJob.type === 'mirrorBackup') {
-    modes.push(getMirrorBackupModeLabel(backupJob))
-  }
-
-  if (backupJob.type === 'backup') {
-    // Rolling Snapshot - check if any settings have snapshotRetention > 0
-    if (hasSnapshotRetention(backupJob)) {
-      modes.push(t('backup.rolling-snapshot'))
-    }
-
-    const hasRemotes = backupJob.remotes && hasIds(backupJob.remotes.id)
-    const hasSrs = backupJob.srs && hasIds(backupJob.srs.id)
-
-    if (backupJob.mode === 'full' && hasRemotes) {
-      modes.push(t('backup.full'))
-    }
-
-    if (backupJob.mode === 'delta' && hasRemotes) {
-      modes.push(t('backup.incremental'))
-    }
-
-    if (backupJob.mode === 'delta' && hasSrs) {
-      modes.push(t('backup.continuous-replication'))
-    }
-
-    if (backupJob.mode === 'full' && hasSrs) {
-      modes.push(t('backup.disaster-recovery'))
-    }
-  }
-
-  if (backupJob.type === 'metadataBackup') {
-    if (backupJob.pools && hasIds(backupJob.pools.id)) {
-      modes.push(t('backup.pool-metadata'))
-    }
-
-    if (backupJob.xoMetadata) {
-      modes.push(t('backup.xo-config'))
-    }
-  }
-
-  return modes
-}
-
-const getRunStatus = createMapper<XoBackupLog['status'], { accent: InfoAccent; tooltip: string }>(
+const getRunStatus = createMapper<XoBackupLog['status'], { icon: IconName; tooltip: string }>(
   {
-    success: { accent: 'success', tooltip: t('success') },
-    skipped: { accent: 'warning', tooltip: t('skipped') },
-    interrupted: { accent: 'danger', tooltip: t('interrupted') },
-    failure: { accent: 'danger', tooltip: t('failure') },
+    success: { icon: 'legacy:status:success', tooltip: t('success') },
+    skipped: { icon: 'legacy:status:warning', tooltip: t('skipped') },
+    interrupted: { icon: 'legacy:status:danger', tooltip: t('interrupted') },
+    failure: { icon: 'legacy:status:danger', tooltip: t('failure') },
   },
   'failure'
 )
@@ -270,7 +174,7 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('job-name', record => record.name, { label: t('job-name') }),
-    define('mode', record => getAllModesLabels(record), { label: t('mode') }),
+    define('mode', record => getModeLabels(record), { label: t('mode') }),
     define('last-runs', record => getLastThreeRunsStatuses(record), {
       label: t('last-n-runs', { n: 3 }),
     }),
@@ -281,9 +185,9 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
 
 const { pageRecords: backupJobsRecords, paginationBindings } = usePagination('backups-jobs', rows)
 
-type ServerHeader = 'job-name' | 'mode' | 'last-runs' | 'schedules'
+type BackupJobHeader = 'job-name' | 'mode' | 'last-runs' | 'schedules'
 
-const headerIcon: Record<ServerHeader, IconDefinition> = {
+const headerIcon: Record<BackupJobHeader, IconDefinition> = {
   'job-name': faAlignLeft,
   mode: faCaretSquareDown,
   'last-runs': faCaretSquareDown,

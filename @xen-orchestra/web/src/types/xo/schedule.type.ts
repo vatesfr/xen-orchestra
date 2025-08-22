@@ -1,12 +1,10 @@
-import type { XoMetadataBackup } from '@/types/xo/metadata-backup.type.ts'
-import type { XoMirrorBackup } from '@/types/xo/mirror-backup.type.ts'
-import type { XoVmBackup } from '@/types/xo/vm-backup.type.ts'
+import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import type { Branded } from '@core/types/utility.type'
 
 export type XoSchedule = {
   id: Branded<'schedule'>
   type: 'schedule'
-  jobId: XoVmBackup['id'] | XoMetadataBackup['id'] | XoMirrorBackup['id']
+  jobId: XoBackupJob['id']
   name?: string
   enabled: boolean
   cron: string
