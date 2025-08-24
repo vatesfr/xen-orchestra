@@ -14,6 +14,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+- [Task/Schedule] Set sequences as completly done on success (PR [#8527](https://github.com/vatesfr/xen-orchestra/pull/8527))
 
 ### Packages to release
 
