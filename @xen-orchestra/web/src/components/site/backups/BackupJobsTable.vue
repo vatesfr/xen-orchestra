@@ -2,6 +2,9 @@
   <div class="backup-jobs-table">
     <UiTitle>
       {{ t('backup-jobs') }}
+      <template #actions>
+        <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
+      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
