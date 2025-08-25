@@ -299,8 +299,8 @@
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store.ts'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store.ts'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoPif } from '@/types/xo/pif.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
@@ -328,15 +328,15 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { get: getNetwork } = useNetworkStore().subscribe()
-const { getBondsDevices } = usePifStore().subscribe()
+const { useGetNetworkById } = useXoNetworkCollection()
+const { getBondsDevices } = useXoPifCollection()
 const uiStore = useUiStore()
 
 const { t } = useI18n()
 
 const ipAddresses = computed(() => [pif.ip, ...pif.ipv6].filter(ip => ip))
 
-const network = computed(() => getNetwork(pif.$network))
+const network = useGetNetworkById(() => pif.$network)
 
 const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 

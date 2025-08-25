@@ -20,13 +20,13 @@ import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { computed, watch } from 'vue'
-import type { RouteRecordName } from 'vue-router'
+import { type RouteLocationTyped, type RouteRecordName } from 'vue-router'
 
 type HandledTypes = 'host' | 'vm' | 'sr' | 'pool'
 type XRecord = ObjectTypeToRecord<T>
-type Config = Partial<
+type Config<TType extends ObjectType = ObjectType> = Partial<
   Record<
-    ObjectType,
+    TType,
     {
       context: XapiContext<any> & { start: () => void; stop: () => void }
       routeName: RouteRecordName | undefined
@@ -40,11 +40,11 @@ const props = defineProps<{
 }>()
 
 const config: Config = {
-  host: { context: useHostStore().subscribe({ defer: true }), routeName: 'host.console' },
-  vm: { context: useVmStore().subscribe({ defer: true }), routeName: 'vm.default' },
+  host: { context: useHostStore().subscribe({ defer: true }), routeName: '/host/[uuid]/dashboard' },
+  vm: { context: useVmStore().subscribe({ defer: true }), routeName: '/vm/[uuid]/dashboard' },
   sr: { context: useSrStore().subscribe({ defer: true }), routeName: undefined },
-  pool: { context: usePoolStore().subscribe({ defer: true }), routeName: 'pool.dashboard' },
-} satisfies Record<HandledTypes, any>
+  pool: { context: usePoolStore().subscribe({ defer: true }), routeName: '/pool/[uuid]/dashboard' },
+} satisfies Config<HandledTypes>
 
 const context = computed(() => config[props.type]?.context)
 
@@ -73,7 +73,7 @@ const objectRoute = computed(() => {
   return {
     name: routeName,
     params: { uuid: props.uuid },
-  }
+  } as RouteLocationTyped<any, any>
 })
 </script>
 

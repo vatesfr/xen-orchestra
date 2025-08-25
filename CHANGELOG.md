@@ -1,8 +1,50 @@
 # ChangeLog
 
-## **5.109.0** (2025-07-31)
+## **next**
+
+### Enhancements
+
+- **Migrated REST API endpoints**:
+
+  - `GET /rest/v0/hosts/<host-id>/smt` (PR [#8863](http://github.com/vatesfr/xen-orchestra/pull/8863))
+  - `GET /rest/v0/vms/<vm-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
+  - `GET /rest/v0/vm-templates/<vm-template-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
+  - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
+  - `GET /rest/v0/vm-controllers/<vm-controller-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
+
+- **XO 6**:
+  - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8873](https://github.com/vatesfr/xen-orchestra/pull/8873))
+  - Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
+
+### Released packages
+
+- @vates/types 1.10.0
+- @xen-orchestra/web-core 0.27.0
+- @xen-orchestra/rest-api 0.14.0
+- @xen-orchestra/web 0.25.0
+- xo-server 5.185.0
+
+## **5.109.1** (2025-08-06)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [SR/disks] Do not display "Image format" column if SR is ISO type (PR [#8852](https://github.com/vatesfr/xen-orchestra/pull/8852))
+- Fix `incorrect state` error when trying to delete a disabled server [#11128](https://xcp-ng.org/forum/topic/11128/can-t-delete-disconnected-server-in-settings) (PR [#8854](https://github.com/vatesfr/xen-orchestra/pull/8854))
+
+- **XO 6:**
+  - [Pool,Host/Dashboard] CPU provisioning considers all VMs instead of just running VMs (PR [#8858](https://github.com/vatesfr/xen-orchestra/pull/8858))
+
+### Released packages
+
+- @xen-orchestra/web-core 0.26.1
+- @xen-orchestra/rest-api 0.13.1
+- @xen-orchestra/web 0.24.1
+- xo-server 5.184.2
+- xo-web 5.182.0
+
+## **5.109.0** (2025-07-31)
 
 ### Highlights
 

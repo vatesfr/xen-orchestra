@@ -8,7 +8,7 @@ import type { XapiHostStats, XapiStatsGranularity, XoAlarm, XoHost } from '@vate
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { host, hostIds, hostStats, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
+import { host, hostIds, hostSmt, hostStats, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
@@ -148,5 +148,23 @@ export class HostController extends XapiXoController<XoHost> {
     })
 
     return this.sendObjects(Object.values(alarms), req, 'alarms')
+  }
+
+  /**
+   * Returns a boolean indicating whether SMT (Simultaneous Multi-Threading) is enabled
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(hostSmt)
+  @Get('{id}/smt')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async gethostSmt(@Path() id: string): Promise<{ enabled: boolean }> {
+    const hostId = id as XoHost['id']
+
+    const xapiHost = this.getXapiObject(hostId)
+    const enabled = Boolean(await xapiHost.$xapi.isHyperThreadingEnabled(hostId))
+
+    return { enabled }
   }
 }

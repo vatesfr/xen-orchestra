@@ -1,5 +1,14 @@
 # ChangeLog
 
+## **next**
+
+- [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8872](https://github.com/vatesfr/xen-orchestra/pull/8872))
+- Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
+
+## **0.13.1** (2025-08-06)
+
+- [Pool,Host/Dashboard] CPU provisioning considers all VMs instead of just running VMs (PR [#8858](https://github.com/vatesfr/xen-orchestra/pull/8858))
+
 ## **0.13.0** (2025-07-31)
 
 - [Host/VM/Dashboard] Fix display error due to inversion of upload and download (PR [#8793](https://github.com/vatesfr/xen-orchestra/pull/8793))

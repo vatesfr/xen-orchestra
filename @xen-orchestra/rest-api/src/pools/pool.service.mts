@@ -1,4 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
+import { featureUnauthorized } from 'xo-common/api-errors.js'
 import {
   HOST_POWER_STATE,
   VM_POWER_STATE,
@@ -16,6 +17,8 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import { getTopPerProperty, isSrWritableOrIso, promiseWriteInStream } from '../helpers/utils.helper.mjs'
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import type { PoolDashboard } from './pool.type.mjs'
+import { MissingPatchesInfo } from '../hosts/host.type.mjs'
+import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
 
 const log = createLogger('xo:rest-api:pool-service')
 
@@ -71,13 +74,15 @@ export class PoolService {
     return Object.keys(alarms)
   }
 
-  async #getMissingPatches(poolId: XoPool['id']): Promise<PoolDashboard['hosts']['missingPatches']> {
-    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo({ filter: host => host.$pool === poolId })
-    if (!missingPatchesInfo.hasAuthorization) {
-      return {
-        hasAuthorization: false,
-      }
-    }
+  /**
+   * Throw if no authorization
+   */
+  async getMissingPatches(
+    poolId: XoPool['id']
+  ): Promise<Pick<MissingPatchesInfo, 'hasAuthorization' | 'missingPatches'>> {
+    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo({
+      filter: host => host.$pool === poolId,
+    })
 
     const { hasAuthorization, missingPatches } = missingPatchesInfo
     return {
@@ -240,8 +245,7 @@ export class PoolService {
     const pool = this.#restApi.getObject<XoPool>(poolId, 'pool')
 
     const vms = this.#restApi.getObjectsByType<XoVm>('VM', {
-      filter: vm =>
-        vm.$pool === poolId && (vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED),
+      filter: vm => vm.$pool === poolId,
     })
 
     let assignedVcpu = 0
@@ -275,7 +279,17 @@ export class PoolService {
       promiseWriteInStream({ maybePromise: this.#getHostsStatus(id), path: 'hosts.status', stream }),
       promiseWriteInStream({ maybePromise: this.#getVmsStatus(id), path: 'vms.status', stream }),
       promiseWriteInStream({ maybePromise: this.#getAlarms(id), path: 'alarms', stream }),
-      promiseWriteInStream({ maybePromise: this.#getMissingPatches(id), path: 'hosts.missingPatches', stream }),
+      promiseWriteInStream({
+        maybePromise: this.getMissingPatches(id).catch(err => {
+          if (featureUnauthorized.is(err)) {
+            return { hasAuthorization: false } as HasNoAuthorization
+          }
+
+          throw err
+        }),
+        path: 'hosts.missingPatches',
+        stream,
+      }),
       promiseWriteInStream({ maybePromise: this.#getTopFiveSrsUsage(id), path: 'srs.topFiveUsage', stream }),
       promiseWriteInStream({ maybePromise: this.#getTopFiveHostsRamUsage(id), path: 'hosts.topFiveUsage.ram', stream }),
       promiseWriteInStream({ maybePromise: this.#getTopFiveHostsCpuUsage(id), path: 'hosts.topFiveUsage.cpu', stream }),

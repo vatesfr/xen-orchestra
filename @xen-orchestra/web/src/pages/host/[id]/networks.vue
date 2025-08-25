@@ -13,21 +13,22 @@
 <script setup lang="ts">
 import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
 import HostPifTable from '@/components/host/network/HostPifTable.vue'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
+import type { XoHost } from '@/types/xo/host.type.ts'
 import type { XoPif } from '@/types/xo/pif.type'
 import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
-import { useArrayFilter } from '@vueuse/shared'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router/auto'
 
-const { records } = usePifStore().subscribe()
+const { pifsByHost } = useXoPifCollection()
 const uiStore = useUiStore()
 const route = useRoute<'/host/[id]'>()
 
-const pifs = useArrayFilter(records, pif => pif.$host === route.params.id)
+const pifs = computed(() => pifsByHost.value.get(route.params.id as XoHost['id']) ?? [])
 
 const selectedPif = useRouteQuery<XoPif | undefined>('id', {
   toData: id => pifs.value.find(pif => pif.id === id),

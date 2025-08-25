@@ -19,10 +19,10 @@ import PoolGeneralInfo from '@/components/pool/system/PoolGeneralInfo.vue'
 import PoolManagement from '@/components/pool/system/PoolManagement.vue'
 import PoolNetworking from '@/components/pool/system/PoolNetworking.vue'
 import PoolStorageConfiguration from '@/components/pool/system/PoolStorageConfiguration.vue'
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import { useServerStore } from '@/stores/xo-rest-api/server.store'
-import { useSrStore } from '@/stores/xo-rest-api/sr.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
+import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
@@ -31,10 +31,10 @@ import { logicAnd } from '@vueuse/math'
 
 defineProps<{ pool: XoPool }>()
 
-const { isReady: isServersReady } = useServerStore().subscribe()
-const { isReady: isHostsReady } = useHostStore().subscribe()
-const { isReady: isNetworksReady } = useNetworkStore().subscribe()
-const { isReady: isSrsReady } = useSrStore().subscribe()
+const { areServersReady } = useXoServerCollection()
+const { areHostsReady } = useXoHostCollection()
+const { areNetworksReady } = useXoNetworkCollection()
+const { areSrsReady } = useXoSrCollection()
 
-const isReady = logicAnd(isServersReady, isHostsReady, isNetworksReady, isSrsReady)
+const isReady = logicAnd(areServersReady, areHostsReady, areNetworksReady, areSrsReady)
 </script>

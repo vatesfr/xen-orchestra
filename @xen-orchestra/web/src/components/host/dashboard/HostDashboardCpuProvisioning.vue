@@ -13,10 +13,9 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
-import { VM_POWER_STATE } from '@/types/xo/vm.type.ts'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
@@ -33,26 +32,17 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isReady: isHostReady } = useHostStore().subscribe()
-const { vmsByHost, isReady: isVmReady } = useVmStore().subscribe()
+const { areHostsReady } = useXoHostCollection()
 
-const isReady = logicAnd(isHostReady, isVmReady)
+const { vmsByHost, areVmsReady } = useXoVmCollection()
+
+const isReady = logicAnd(areHostsReady, areVmsReady)
 
 const hostVms = computed(() => vmsByHost.value.get(host.id) ?? [])
 
 const cpusCount = computed(() => host.cpus.cores)
 
-const vCpusCount = useArrayReduce(
-  hostVms,
-  (total, vm) => {
-    if (vm.power_state !== VM_POWER_STATE.RUNNING && vm.power_state !== VM_POWER_STATE.PAUSED) {
-      return total
-    }
-
-    return total + vm.CPUs.number
-  },
-  0
-)
+const vCpusCount = useArrayReduce(hostVms, (total, vm) => total + vm.CPUs.number, 0)
 </script>
 
 <style lang="postcss" scoped>

@@ -6,6 +6,7 @@ import { incorrectState, operationFailed } from 'xo-common/api-errors.js'
 
 import { getCurrentVmUuid } from './_XenStore.mjs'
 import {
+  addCustomIpmiSensors,
   addIpmiSensorDataType,
   containsDigit,
   IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME,
@@ -146,7 +147,14 @@ class Host {
   }
 
   async getIpmiSensors(ref, { cache } = {}) {
-    const productName = (await this.call(cache, 'host.get_bios_strings', ref))['system-product-name']?.toLowerCase()
+    const biosStrings = await this.call(cache, 'host.get_bios_strings', ref)
+    let productName = biosStrings['system-product-name']?.toLowerCase()
+
+    // Olivier.L request: consider all DELL servers in the same way
+    if (biosStrings['system-manufacturer']?.toLowerCase().includes('dell')) {
+      productName = 'dell'
+    }
+
     const callIpmiPlugin = fn => this.call(cache, 'host.call_plugin', ref, 'ipmitool.py', fn, {})
 
     if (
@@ -172,14 +180,21 @@ class Host {
       addIpmiSensorDataType(ipmiSensor, productName)
       const dataType = ipmiSensor.dataType
 
-      if (ipmiSensorsByDataType[dataType] === undefined) {
+      const ipmiSensors = ipmiSensorsByDataType[dataType]
+      if (ipmiSensors === undefined) {
         ipmiSensorsByDataType[dataType] = containsDigit(ipmiSensor.name) ? [] : ipmiSensor
+      } else if (!Array.isArray(ipmiSensors)) {
+        // it can happen various sensors have the same name (e.g. temp for dell cpu temp)
+        // in such case, consider it as an array instead of single value
+        ipmiSensorsByDataType[dataType] = [ipmiSensors]
       }
 
-      if (Array.isArray(ipmiSensorsByDataType[ipmiSensor.dataType])) {
+      if (Array.isArray(ipmiSensorsByDataType[dataType])) {
         ipmiSensorsByDataType[dataType].push(ipmiSensor)
       }
     }
+
+    addCustomIpmiSensors(ipmiSensorsByDataType, productName)
 
     return ipmiSensorsByDataType
   }

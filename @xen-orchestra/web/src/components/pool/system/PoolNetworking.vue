@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('networking') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!areNetworksReady" type="card" />
     <template v-else>
       <VtsQuickInfoRow :label="t('backup-network')">
         <template #value>
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
@@ -43,7 +43,7 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { get: getNetworkById, isReady } = useNetworkStore().subscribe()
+const { getNetworkById, areNetworksReady } = useXoNetworkCollection()
 
 const backupNetwork = computed(() =>
   pool.otherConfig['xo:backupNetwork']

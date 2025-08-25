@@ -285,7 +285,9 @@ Supported remote types:
 - SMB (CIFS)
 
 :::warning
-The initial "/" or "\\" is automatically added.
+- The initial "/" or "\\" is automatically added.
+- For disks larger than **2 TB**, store backups on **block-based remotes**.
+- For **qcow2** disks, use **NBD** mode for backups.
 :::
 
 ### NFS
@@ -538,7 +540,15 @@ The Full and Delta options are mutually exclusive; Rolling Snapshots are compati
 
 ### Rolling Snapshots
 
-Vates recommends keeping the Rolling Snapshots retention to a minimum; if you check Dashboard>Health, you'll see a table for 'Too Many Snapshots,' which shows VMs that have more than 5 snapshots saved; this includes the snapshots used for any kind of backup, not simply the rolling snapshots.
+This feature is close to Backups, but it creates a snapshot when planned to do so. It also handles the retention (to remove the oldest snapshot).
+
+:::warning
+Snapshots are not backups. They help to roll back to a previous state, but all snapshots are on the same Storage than their original disk. If you lose the original VDI (or the SR), you'll **lose all your snapshots**.
+:::
+
+Vates recommends keeping the Rolling Snapshots retention to a minimum; if you check **Dashboard → Health**, you'll see a table for 'Too Many Snapshots', which shows VMs that have more than 5 snapshots saved. This includes the snapshots used for any kind of backup, not simply the rolling snapshots.
+
+To know more, read this [blog article](https://xen-orchestra.com/blog/xen-orchestra-4-2/#schedulerollingsnapshots).
 
 ### Retention of Backups and CR/DR
 

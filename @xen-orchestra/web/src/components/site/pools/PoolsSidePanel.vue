@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isPoolReady" type="panel" />
+  <VtsLoadingHero v-if="!arePoolsReady" type="panel" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
@@ -181,17 +181,15 @@
           {{ t('error') }}
           <UiCounter :value="1" accent="danger" size="small" variant="primary" />
         </UiCardTitle>
-        <UiQuoteCode accent="danger" :label="t('api-error-details')" size="small" copy>
-          {{ server.error }}
-        </UiQuoteCode>
+        <UiLogEntryViewer accent="danger" :label="t('api-error-details')" size="small" :content="server.error" />
       </UiCard>
     </template>
   </UiPanel>
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import type { XoServer } from '@/types/xo/server.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -207,8 +205,8 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
@@ -237,11 +235,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-const { isReady: isPoolReady, get: getPoolById } = usePoolStore().subscribe()
-const { get: getHostById, hostsByPool } = useHostStore().subscribe()
+const { arePoolsReady, useGetPoolById } = useXoPoolCollection()
+const { useGetHostById, hostsByPool } = useXoHostCollection()
 
-const pool = computed(() => (server.poolId ? getPoolById(server.poolId) : undefined))
-const primaryHost = computed(() => (server.master ? getHostById(server.master) : undefined))
+const pool = useGetPoolById(() => server.poolId)
+const primaryHost = useGetHostById(() => server.master)
 const hosts = computed(() => (server.poolId ? hostsByPool.value.get(server.poolId) : undefined))
 
 const connectionStatus = useMapper(

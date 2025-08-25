@@ -519,7 +519,6 @@
   "uuid": "UUID",
   "vcpus": "vCPUer",
   "vcpus-assigned": "vCPUs tilldelade",
-  "vcpus-used": "vCPUer använt",
   "vdis": "VDI | VDI | VDIer",
   "version": "Version",
   "vga": "VGA",
