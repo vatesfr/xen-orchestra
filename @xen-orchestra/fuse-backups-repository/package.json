@@ -9,6 +9,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "fuse-native": "^2.2.6",
     "lru-cache": "^7.14.0",
     "uuid": "^11.0.3"
   }
