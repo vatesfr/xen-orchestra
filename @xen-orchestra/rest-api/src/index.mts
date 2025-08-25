@@ -48,7 +48,7 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   // express.get('/rest/v0', (_req, res) => res.redirect('/rest/v0/docs'))
   express.use(`${BASE_URL}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec, SWAGGER_UI_OPTIONS))
 
-  express.get(`${BASE_URL}/api-docs`, (_req, res) => {
+  express.get(`${BASE_URL}/docs/swagger.json`, (_req, res) => {
     res.setHeader('Content-Type', 'application/json')
     res.json(swaggerOpenApiSpec)
   })
