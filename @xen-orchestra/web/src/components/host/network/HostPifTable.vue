@@ -184,6 +184,7 @@ const { arePifsReady, hasPifFetchError } = useXoPifCollection()
 const { getNetworkById } = useXoNetworkCollection()
 
 const { t } = useI18n()
+
 const selectedPifId = useRouteQuery('id')
 const searchQuery = ref('')
 

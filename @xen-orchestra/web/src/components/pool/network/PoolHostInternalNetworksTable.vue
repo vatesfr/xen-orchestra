@@ -150,6 +150,7 @@ const { networks } = defineProps<{
 const { areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
 
 const { t } = useI18n()
+
 const searchQuery = ref('')
 const selectedNetworkId = useRouteQuery('id')
 
