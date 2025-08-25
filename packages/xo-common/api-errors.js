@@ -214,3 +214,12 @@ exports.featureUnauthorized = create(26, ({ featureCode, currentPlan, minPlan })
   },
   message: 'feature Unauthorized',
 }))
+
+exports.noMatchingVm = create(27, ({ jobId, runJobId, scheduleId }) => ({
+  data: {
+    jobId,
+    runJobId,
+    scheduleId,
+  },
+  message: 'no VMs match this pattern',
+}))
