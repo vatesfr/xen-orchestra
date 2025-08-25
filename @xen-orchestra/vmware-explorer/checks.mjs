@@ -2,7 +2,11 @@ import { exec } from 'node:child_process'
 import semver from 'semver'
 import fs from 'node:fs/promises'
 
-async function nbdInfos() {
+/**
+ *
+ * @returns {Promise<Object>}
+ */
+/* async */ function nbdInfos() {
   return new Promise(function (resolve, reject) {
     const expectedVersion = '1.23.4'
     exec('nbdinfo --version', (error, stdout, stderr) => {
@@ -24,10 +28,13 @@ async function nbdInfos() {
     })
   })
 }
-
-async function nbdKit() {
+/**
+ *
+ * @returns {Promise<Object>}
+ */
+/* async */ function nbdKit() {
   const expectedVersion = '1.45'
-  return new Promise(function (resolve, reject) {
+  return new Promise(function (resolve) {
     exec('nbdkit --version', (error, stdout, stderr) => {
       if (error) {
         return resolve({
@@ -48,8 +55,12 @@ async function nbdKit() {
   })
 }
 
-async function nbdKitVddk() {
-  return new Promise(function (resolve, reject) {
+/**
+ *
+ * @returns {Promise<Object>}
+ */
+/* async */ function nbdKitVddk() {
+  return new Promise(function (resolve) {
     exec('nbdkit --dump-plugin vddk', (error, stdout, stderr) => {
       if (error) {
         return resolve({
@@ -64,6 +75,10 @@ async function nbdKitVddk() {
   })
 }
 
+/**
+ *
+ * @returns {Promise<Object>}
+ */
 async function vddk() {
   try {
     await fs.stat('/usr/local/lib/vddk/vmware-vix-disklib-distrib/lib64/libvixDiskLib.so')
@@ -76,7 +91,10 @@ async function vddk() {
     }
   }
 }
-
+/**
+ *
+ * @returns {Promise<Object>}
+ */
 export async function checkVddkDependencies() {
   return {
     nbdInfos: await nbdInfos(),

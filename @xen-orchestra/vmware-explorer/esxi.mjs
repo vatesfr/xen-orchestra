@@ -463,7 +463,11 @@ export default class Esxi extends EventEmitter {
     })
   }
 
-  async #getServerThumbprint() {
+  /**
+   * get the thumbprint of the certificate on the esxi. Extracted from vddk-remote code
+   * @returns {Promise<string>}
+   */
+  /* async */ #getServerThumbprint() {
     return new Promise((resolve, reject) => {
       exec(
         `openssl s_client -connect ${this.#host}:443 </dev/null | openssl x509 -in /dev/stdin -fingerprint -sha1 -noout`,
@@ -478,6 +482,7 @@ export default class Esxi extends EventEmitter {
             }
             return resolve(matches[1])
           }
+          reject(new Error(`no answer in getServerThumbprint `))
         }
       )
     })
@@ -540,8 +545,8 @@ export default class Esxi extends EventEmitter {
     const key = `${vmId}/${diskPath}/${singleLink}`
     if (!this.#nbdServers.has(key)) {
       warn(` process ${vmId}/${diskPath}/${singleLink} was already killed`)
-      return
+    } else {
+      this.#nbdServers.get(key).process.kill()
     }
-    this.#nbdServers.get(key).process.kill()
   }
 }

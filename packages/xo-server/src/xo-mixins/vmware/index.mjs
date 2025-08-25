@@ -28,25 +28,16 @@ export default class MigrateVm {
   }
 
   async #findVmSnapshot(xapi, metadata) {
-    // check the id of the vm
-    // check the source host
-    // check the id of the last snapshot in the VM must be one in one of the metadata
-    // ensure the VM has not booted
-    // ensure the template id has not changed
     const { vmId, snapshots } = metadata
-    return Object.values(xapi.objects.all).find(object => {
-      if (
+    return Object.values(xapi.objects.all).find(
+      object =>
         object.$type === 'VM' &&
-        object.is_a_snapshot === false &&
+        object.is_a_snapshot === true &&
         object.other_config.sourceVmId === vmId &&
         object.other_config.sourceSnapshotId === snapshots?.current &&
         object.blocked_operations?.start === 'Esxi migration in progress...' &&
         object.blocked_operations?.start_on === 'Esxi migration in progress...'
-      ) {
-        return true
-      }
-      return false
-    })
+    )
   }
 
   async #updateVmMetadata(xapiVm, metadata) {

@@ -95,12 +95,15 @@ export class NbdDisk extends RandomAccessDisk {
   getBlockIndexes() {
     const indexes = new Set()
     this.#dataMap?.forEach(({ offset, length }) => {
-      const lastBlockIndex = Math.ceil((offset + length) / this.getBlockSize())
-      for (let blockIndex = Math.floor(offset / this.getBlockSize()); blockIndex < lastBlockIndex; blockIndex++) {
+      if (length === 0) return
+      const firstBlockIndex = Math.floor(offset / this.getBlockSize())
+      const lastBlockIndex = Math.floor((offset + length - 1) / this.getBlockSize())
+
+      for (let blockIndex = firstBlockIndex; blockIndex <= lastBlockIndex; blockIndex++) {
         indexes.add(blockIndex)
       }
     })
-    return [...indexes].sort()
+    return [...indexes].sort((a, b) => a - b)
   }
 
   /**

@@ -27,14 +27,14 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     return
   }
   if (previouslyImportedIndex !== -1) {
-    if (previouslyImportedIndex < previouslyImportedIndex - 2) {
+    if (previouslyImportedIndex < chainByNode.length - 2) {
       throw new Error(
         'vddk import does not support importing multiple snapshots. Coalesce the non imported snapshot into one or force a full import'
       )
     }
     let nbdClient
     try {
-      // get the block changed of the next snapshot
+      // get the changed blocks of the next snapshot
       const existingDisk = chainByNode[previouslyImportedIndex]
       existingVdi = diskIsAlreadyImported(existingVdis, existingDisk)
       info(`found a previous import`, { vdiRef: existingVdi.$ref })
@@ -57,15 +57,14 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
       await nbdClient.disconnect()
       await esxi
         .killNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true })
-        .catch(err => warn('error whilestopping nbdkit server for the snapshot', err))
+        .catch(err => warn('error while stopping nbdkit server for the snapshot', err))
     }
   } else {
     info(`no reference disk found, fall back a full import`)
-    // process.exit()
   }
   let vmdk
   try {
-    // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when cluster are in parent only)
+    // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
     const { nbdInfos } = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
     vmdk = new NbdDisk(nbdInfos, 2 * 1024 * 1024, { dataMap })
 
@@ -112,13 +111,13 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     )
     await sr.$xapi.setFieldEntries('VDI', existingVdi.$ref, 'other_config', { esxi_uuid: uid })
   } catch (err) {
-    console.error(err)
+    warn(err)
     throw err
   } finally {
     await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
     await esxi
       .killNbdServer(vmId, `[${datastoreName}] ${diskPath}`)
-      .catch(err => warn('error whilestopping nbdkit server', err))
+      .catch(err => warn('error while stopping nbdkit server', err))
   }
 }
 

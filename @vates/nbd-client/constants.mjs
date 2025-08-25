@@ -1,6 +1,6 @@
 export const INIT_PASSWD = Buffer.from('NBDMAGIC') // "NBDMAGIC" ensure we're connected to a nbd server
 export const OPTS_MAGIC = Buffer.from('IHAVEOPT') // "IHAVEOPT" start an option block
-export const NBD_OPT_REPLY_MAGIC = 1100100111001001n // magic received during negociation
+export const NBD_OPT_REPLY_MAGIC = 1100100111001001n // magic received during negotiation
 export const NBD_OPT_EXPORT_NAME = 1
 export const NBD_OPT_ABORT = 2
 export const NBD_OPT_LIST = 3
