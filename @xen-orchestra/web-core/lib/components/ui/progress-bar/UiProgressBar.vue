@@ -4,10 +4,6 @@
     <div class="progress-bar">
       <div class="fill" :style="{ width: `${fillWidth}%` }" />
     </div>
-    <div v-if="shouldShowSteps" class="steps typo-body-regular-small">
-      <span>{{ n(0, 'percent') }}</span>
-      <span v-for="step in steps" :key="step">{{ n(step, 'percent') }}</span>
-    </div>
     <VtsLegendList class="legend">
       <UiLegend v-if="displayMode === 'percent'" :accent :value="Math.round(percentage)" unit="%">
         {{ legend }}
@@ -21,47 +17,61 @@
 
 <script lang="ts" setup>
 import VtsLegendList from '@core/components/legend-list/VtsLegendList.vue'
-import UiLegend from '@core/components/ui/legend/UiLegend.vue'
+import UiLegend, { type LegendItemAccent } from '@core/components/ui/legend/UiLegend.vue'
+import { useProgress } from '@core/composables/progress-bar.composable.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { toVariants } from '@core/utils/to-variants.util'
-import { useClamp, useMax } from '@vueuse/math'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 interface Props {
   legend: string
   value: number
-  showSteps?: boolean
+  thresholds?: {
+    danger?: number
+    warning?: number
+  }
 }
+
 interface PercentageProps {
   max?: number
   displayMode: 'percent'
 }
+
 interface ValueProps {
   max: number
   displayMode: 'value'
 }
 
-const { value: _value, max: _max, showSteps, displayMode } = defineProps<Props & (PercentageProps | ValueProps)>()
+const { value: _value, max: _max, displayMode, thresholds } = defineProps<Props & (PercentageProps | ValueProps)>()
 
-const { n } = useI18n()
+const DEFAULT_THRESHOLDS = {
+  danger: 90,
+  warning: 80,
+}
 
-const value = useMax(0, () => _value)
+const { percentage, fillWidth, value, max } = useProgress(
+  () => _value,
+  () => _max
+)
 
-const max = computed(() => _max ?? 100)
+const accent = computed((): LegendItemAccent => {
+  if (thresholds !== undefined) {
+    if (thresholds.danger !== undefined && percentage.value > thresholds.danger) {
+      return 'danger'
+    }
 
-const percentage = computed(() => (max.value <= 0 ? 0 : (value.value / max.value) * 100))
-const maxPercentage = computed(() => Math.ceil(percentage.value / 100) * 100)
-const fillWidth = useClamp(() => (percentage.value / maxPercentage.value) * 100 || 0, 0, 100)
-const shouldShowSteps = computed(() => showSteps || percentage.value > 100)
-const steps = useMax(1, () => Math.floor(maxPercentage.value / 100))
+    if (thresholds.warning !== undefined && percentage.value > thresholds.warning) {
+      return 'warning'
+    }
 
-const accent = computed(() => {
-  if (percentage.value >= 90) {
+    return 'info'
+  }
+
+  if (percentage.value >= DEFAULT_THRESHOLDS.danger) {
     return 'danger'
   }
 
-  if (percentage.value >= 80) {
+  if (percentage.value >= DEFAULT_THRESHOLDS.warning) {
     return 'warning'
   }
 
@@ -97,12 +107,6 @@ const legendValue = computed(() => {
       height: 100%;
       transition: width 0.25s ease-in-out;
     }
-  }
-
-  .steps {
-    color: var(--color-neutral-txt-secondary);
-    display: flex;
-    justify-content: space-between;
   }
 
   .legend {
