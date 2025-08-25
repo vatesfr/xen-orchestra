@@ -43,6 +43,7 @@
     "inversify": "^6.2.2",
     "inversify-binding-decorators": "^4.0.0",
     "lodash": "^4.17.21",
+    "promise-toolbox": "^0.21.0",
     "semver": "^7.7.2",
     "swagger-ui-express": "^5.0.1",
     "tsoa": "^6.6.0",
