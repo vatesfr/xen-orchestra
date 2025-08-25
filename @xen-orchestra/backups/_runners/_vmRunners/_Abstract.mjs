@@ -72,6 +72,9 @@ export const Abstract = class AbstractVmBackupRunner {
     if (this._healthCheckSr === undefined) {
       return
     }
+    if (this._hasTransferredData === undefined) {
+      throw new Error('Missing tag to check there are some transferred data ')
+    }
 
     if (!this._hasTransferredData) {
       Task.info(`No healthCheck needed because no data was transferred.`)
