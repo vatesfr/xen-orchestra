@@ -150,7 +150,7 @@ class Host {
     const biosStrings = await this.call(cache, 'host.get_bios_strings', ref)
     let productName = biosStrings['system-product-name']?.toLowerCase()
 
-    // Olivier.L request: considere all DELL servers in the same way
+    // Olivier.L request: consider all DELL servers in the same way
     if (biosStrings['system-manufacturer']?.toLowerCase().includes('dell')) {
       productName = 'dell'
     }
@@ -183,9 +183,9 @@ class Host {
       const ipmiSensors = ipmiSensorsByDataType[dataType]
       if (ipmiSensors === undefined) {
         ipmiSensorsByDataType[dataType] = containsDigit(ipmiSensor.name) ? [] : ipmiSensor
-      } else if (ipmiSensors !== undefined && !Array.isArray(ipmiSensors)) {
+      } else if (!Array.isArray(ipmiSensors)) {
         // it can happen various sensors have the same name (e.g. temp for dell cpu temp)
-        // in such case, considere it as an array instead of single value
+        // in such case, consider it as an array instead of single value
         ipmiSensorsByDataType[dataType] = [ipmiSensors]
       }
 
