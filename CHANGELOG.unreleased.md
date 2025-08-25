@@ -15,6 +15,7 @@
 
   - `GET /rest/v0/tasks` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8843))
   - `GET /rest/v0/tasks/<task-id>` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8843))
+  - `GET /rest/v0/pools/<pool-id>/missing_patches` (PR [#8871](http://github.com/vatesfr/xen-orchestra/pull/8871))
 
 - [Host/General] Display additional hardware data for Dell server (PR [#8861](https://github.com/vatesfr/xen-orchestra/pull/8861))
 

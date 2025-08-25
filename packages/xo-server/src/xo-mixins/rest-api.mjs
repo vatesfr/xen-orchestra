@@ -246,6 +246,7 @@ export default class RestApi {
         },
         routes: {
           alarms: true,
+          missing_patches: true,
         },
       },
       groups: {},
