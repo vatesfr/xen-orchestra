@@ -8,16 +8,25 @@ import type { XapiHostStats, XapiStatsGranularity, XcpPatches, XoAlarm, XoHost, 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { host, hostIds, hostSmt, hostMissingPatches, hostStats, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
+import {
+  host,
+  hostIds,
+  hostSmt,
+  hostMissingPatches,
+  hostStats,
+  partialHosts,
+} from '../open-api/oa-examples/host.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import {
+  featureUnauthorized,
   internalServerErrorResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import { HostService } from './host.service.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -26,9 +35,16 @@ import {
 @provide(HostController)
 export class HostController extends XapiXoController<XoHost> {
   #alarmService: AlarmService
-  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
+  #hostService: HostService
+
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(HostService) hostService: HostService
+  ) {
     super('host', restApi)
     this.#alarmService = alarmService
+    this.#hostService = hostService
   }
 
   /**
@@ -176,12 +192,9 @@ export class HostController extends XapiXoController<XoHost> {
   @Example(hostMissingPatches)
   @Get('{id}/missing_patches')
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
   async getMissingPatches(@Path() id: string): Promise<XcpPatches[] | XsPatches[]> {
-    await this.restApi.xoApp.checkFeatureAuthorization('LIST_MISSING_PATCHES')
-
-    const hostId = id as XoHost['id']
-    const xapiHost = this.getXapiObject(hostId)
-    return xapiHost.$xapi.listMissingPatches(hostId)
+    const { missingPatches } = await this.#hostService.getMissingPatchesInfo({ filter: host => host.id === id })
+    return missingPatches
   }
 }
