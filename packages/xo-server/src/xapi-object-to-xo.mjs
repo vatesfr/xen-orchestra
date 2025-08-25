@@ -807,7 +807,7 @@ const TRANSFORMS = {
       allowedIpv4Addresses: obj.ipv4_allowed,
       allowedIpv6Addresses: obj.ipv6_allowed,
       attached: Boolean(obj.currently_attached),
-      device: obj.device, // TODO: should it be cast to a number?
+      device: +obj.device, // TODO: should it be cast to a number?
       lockingMode: obj.locking_mode,
       MAC: obj.MAC,
       MTU: +obj.MTU,

@@ -595,7 +595,7 @@ export type XoVif = BaseXapiXo & {
   allowedIpv4Addresses: string[]
   allowedIpv6Addresses: string[]
   attached: boolean
-  device: string
+  device: number
   id: Branded<'VIF'>
   lockingMode: VIF_LOCKING_MODE
   MAC: string
