@@ -48,9 +48,9 @@ This composable will allow handling multiple progress bars and normalize their f
 ### Arguments
 
 | Argument  | Type                                                | Required | Description                                                                                                              |
-| --------- | --------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `sources` | `MaybeRefOrGetter<T[]>`                             | ✓        | The sources array                                                                                                        |
-| `fn`      | `(source: T) => { current: number; total: number }` | ~        | Returns `current` and `total` for each `source`. If `source` already has these properties, this argument can be omitted. |
+| --------- | --------------------------------------------------- | :------: | ------------------------------------------------------------------------------------------------------------------------ |
+| `sources` | `MaybeRefOrGetter<T[]>`                             |    ✓     | The sources array                                                                                                        |
+| `fn`      | `(source: T) => { current: number; total: number }` |    ~     | Returns `current` and `total` for each `source`. If `source` already has these properties, this argument can be omitted. |
 | `options` | `{ sort?: 'asc' \| 'desc' }                         |          | Whether to sort the progress items                                                                                       |
 
 ### Returns
