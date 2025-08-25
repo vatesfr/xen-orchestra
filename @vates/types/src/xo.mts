@@ -489,6 +489,28 @@ export type XoSm = BaseXapiXo & {
   type: 'SM'
 }
 
+export type XoTask = {
+  abortionRequestedAt?: number
+  end?: number
+  id: Branded<'task'>
+  infos?: { data: unknown; message: string }[]
+  properties: {
+    method?: string
+    name?: string
+    objectId?: string
+    params?: Record<string, unknown>
+    type?: string
+    userId?: string
+    [key: string]: unknown | undefined
+  }
+  result: Record<string, unknown>
+  start: number
+  status: 'failure' | 'interrupted' | 'pending' | 'success'
+  tasks?: XoTask[]
+  updatedAt?: number
+  warning?: { data: unknown; message: string }[]
+}
+
 export type XoUser = {
   authProviders?: Record<string, string>
   email: string
@@ -509,7 +531,7 @@ export type XoVbd = BaseXapiXo & {
   position: string
   read_only: boolean
   type: 'VBD'
-  VDI: AnyXoVdi['id']
+  VDI?: XoVdi['id'] | XoVdiSnapshot['id']
   VM: AnyXoVm['id']
 }
 
@@ -545,9 +567,14 @@ export type XoVdiSnapshot = BaseXoVdi & {
   type: 'VDI-snapshot'
 }
 
-export type XoVdiUnmanaged = BaseXoVdi & {
+export type XoVdiUnmanaged = Omit<BaseXoVdi, '$VBDs'> & {
   id: Branded<'VDI-unmanaged'>
   type: 'VDI-unmanaged'
+
+  /**
+   * Unmanaged VDI have no VBDs
+   */
+  $VBDs: never[]
 }
 
 export type XoVgpu = BaseXapiXo & {
@@ -649,7 +676,7 @@ export type XapiXoRecord =
   | XoVtpm
   | XoSm
 
-export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoUser
+export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoTask | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 

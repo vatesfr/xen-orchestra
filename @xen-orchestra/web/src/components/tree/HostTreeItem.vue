@@ -31,8 +31,8 @@
 
 <script lang="ts" setup>
 import VmTreeList from '@/components/tree/VmTreeList.vue'
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { HostBranch } from '@/types/tree.type'
 import type { HostState } from '@core/types/object-icon.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -52,8 +52,8 @@ const props = defineProps<{
 
 const { t } = useI18n()
 
-const { isMasterHost } = useHostStore().subscribe()
-const { runningVms } = useVmStore().subscribe()
+const { isMasterHost } = useXoHostCollection()
+const { runningVms } = useXoVmCollection()
 
 const isMaster = computed(() => isMasterHost(props.branch.data.id))
 
