@@ -11,6 +11,11 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **Migrated REST API endpoints**:
+
+  - `GET /rest/v0/tasks` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8843))
+  - `GET /rest/v0/tasks/<task-id>` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8843))
+
 - [Host/General] Display additional hardware data for Dell server (PR [#8861](https://github.com/vatesfr/xen-orchestra/pull/8861))
 
 ### Bug fixes
@@ -33,7 +38,12 @@
 
 <!--packages-start-->
 
+
+- @vates/types minor
+- @xen-orchestra/mixins patch
+- @xen-orchestra/rest-api minor
 - @xen-orchestra/xapi minor
+- xo-server minor
 - xo-web patch
 
 <!--packages-end-->

@@ -1,10 +1,10 @@
 <template>
-  <VtsLoadingHero v-if="!isReady" type="page" />
+  <VtsLoadingHero v-if="!areVmsReady" type="page" />
   <UiCard v-else class="vms">
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
     </div>
     <VtsTable vertical-border>
       <thead>
@@ -32,13 +32,13 @@
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { VmState } from '@core/types/object-icon.type'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
@@ -57,18 +57,18 @@ import { faAlignLeft, faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { pool } = defineProps<{
   pool: XoPool
 }>()
 
 const { t } = useI18n()
 
-const { isReady, records } = useVmStore().subscribe()
+const { areVmsReady, vmsByPool } = useXoVmCollection()
 
-const vmsByPool = computed(() => records.value.filter(vm => vm.$pool === props.pool.id))
+const poolVms = computed(() => vmsByPool.value.get(pool.id) ?? [])
 
 const definitions = computed(() =>
-  defineTree(vmsByPool.value ?? [], {
+  defineTree(poolVms.value, {
     getLabel: 'name_label',
   })
 )

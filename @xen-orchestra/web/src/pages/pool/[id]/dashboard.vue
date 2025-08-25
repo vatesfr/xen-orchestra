@@ -36,7 +36,7 @@ import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamU
 import PoolDashboardStatus from '@/components/pool/dashboard/PoolDashboardStatus.vue'
 import PoolDashboardStoragesUsage from '@/components/pool/dashboard/PoolDashboardStoragesUsage.vue'
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
-import { usePoolDashboard } from '@/requests/use-pool-dashboard.request.ts'
+import { useXoPoolDashboard } from '@/remote-resources/use-xo-pool-dashboard.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
@@ -45,7 +45,7 @@ const { pool } = defineProps<{ pool: XoPool }>()
 
 const { data, isFetching, error } = useFetchStats('pool', () => pool.id, GRANULARITY.Hours)
 
-const { dashboard: poolDashboard } = usePoolDashboard(() => pool.id)
+const { poolDashboard } = useXoPoolDashboard({}, () => pool.id)
 
 const uiStore = useUiStore()
 </script>

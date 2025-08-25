@@ -27,8 +27,8 @@
 </template>
 
 <script setup lang="ts">
-import { usePciStore } from '@/stores/xo-rest-api/pci.store'
-import { usePgpuStore } from '@/stores/xo-rest-api/pgpu.store'
+import { useXoPciCollection } from '@/remote-resources/use-xo-pci-collection.ts'
+import { useXoPgpuCollection } from '@/remote-resources/use-xo-pgpu-collection.ts'
 import type { XoHost } from '@/types/xo/host.type.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -43,21 +43,21 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { get: getPci, isReady: isPciReady } = usePciStore().subscribe()
-const { get: getGpu, isReady: isPgpuReady } = usePgpuStore().subscribe()
+const { getPciById, arePcisReady } = useXoPciCollection()
+const { getPgpuById, arePgpusReady } = useXoPgpuCollection()
 
-const isReady = logicAnd(isPgpuReady, isPciReady)
+const isReady = logicAnd(arePgpusReady, arePcisReady)
 
 const devicesNames = useArrayReduce(
   () => host.PGPUs ?? [],
   (acc, pGpuId) => {
-    const pciId = getGpu(pGpuId)?.pci
+    const pciId = getPgpuById(pGpuId)?.pci
 
     if (!pciId) {
       return acc
     }
 
-    const deviceName = getPci(pciId)?.device_name
+    const deviceName = getPciById(pciId)?.device_name
 
     if (!deviceName) {
       return acc

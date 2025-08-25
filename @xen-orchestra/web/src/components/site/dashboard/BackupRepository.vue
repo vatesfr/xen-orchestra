@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BackupRepositories } from '@/requests/use-site-dashboard.request.ts'
+import type { BackupRepositories } from '@/remote-resources/use-xo-site-dashboard.ts'
 import VtsStackedBarWithLegend, {
   type StackedBarWithLegendProps,
 } from '@core/components/stacked-bar-with-legend/VtsStackedBarWithLegend.vue'

@@ -8,7 +8,7 @@
       <UiTreeItemLabel
         v-else
         :icon="faCity"
-        :route="{ name: 'pool.dashboard', params: { uuid: pool.uuid } }"
+        :route="{ name: '/pool/[uuid]', params: { uuid: pool.uuid } }"
         @toggle="toggle()"
       >
         {{ pool.name_label || '(Pool)' }}

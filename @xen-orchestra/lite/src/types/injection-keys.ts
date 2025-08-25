@@ -4,7 +4,7 @@ import type { ModalController } from '@/types/index'
 import type { XapiHostStatsRaw, XapiVmStatsRaw } from '@vates/types/common'
 import type { ComputedRef, InjectionKey } from 'vue'
 
-export const IK_INPUT_TYPE = Symbol('IK_INPUT_TYPE') as InjectionKey<'select' | 'textarea'>
+export const IK_INPUT_TYPE = Symbol('IK_INPUT_TYPE') as InjectionKey<'textarea'>
 
 export const IK_CHECKBOX_TYPE = Symbol('IK_CHECKBOX_TYPE') as InjectionKey<'checkbox' | 'radio' | 'toggle'>
 

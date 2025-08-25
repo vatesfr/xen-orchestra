@@ -10,7 +10,7 @@
         :value="poolDashboard?.cpuProvisioning?.assigned ?? 0"
       />
       <div class="total">
-        <UiCardNumbers :label="t('vcpus-used')" :value="poolDashboard?.cpuProvisioning?.assigned" size="medium" />
+        <UiCardNumbers :label="t('vcpus-assigned')" :value="poolDashboard?.cpuProvisioning?.assigned" size="medium" />
         <UiCardNumbers :label="t('total-cpus')" :value="poolDashboard?.cpuProvisioning?.total" size="medium" />
       </div>
     </template>

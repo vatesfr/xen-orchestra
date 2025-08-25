@@ -130,11 +130,12 @@ export default class XenServers {
   }
 
   async unregisterXenServer(id) {
-    await this.disconnectXenServer(id)
-
-    if (!(await this._servers.remove(id))) {
-      throw noSuchObject(id, 'xenServer')
+    const server = await this.getXenServer(id)
+    if (server.enabled) {
+      await this.disconnectXenServer(id)
     }
+
+    await this._servers.remove(id)
   }
 
   async updateXenServer(id, properties) {
