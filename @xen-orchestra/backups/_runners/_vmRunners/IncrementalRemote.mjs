@@ -114,11 +114,8 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
       // for healthcheck
       this._tags = metadata.vm.tags
-      this._hasTransferredData = true
     }
-    if (transferList.length === 0) {
-      this._hasTransferredData = false
-    }
+    this._hasTransferredData = transferList.length > 0
   }
 }
 
