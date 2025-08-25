@@ -485,6 +485,7 @@
   "send-ctrl-alt-del": "Send Ctrl+Alt+Del",
   "send-us-feedback": "Send us feedback",
   "settings": "Settings",
+  "settings.missing-translations": "Missing or incorrect translations?",
   "shutdown": "Shutdown",
   "sidebar.search-tree-view": "Search in treeview",
   "sidebar.vms-treeview": "VMs treeview",
