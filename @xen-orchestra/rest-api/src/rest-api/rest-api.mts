@@ -1,6 +1,6 @@
 import type { XapiXoRecord } from '@vates/types'
 
-import type { HasNoAuthorization, XoApp } from './rest-api.type.mjs'
+import type { XoApp } from './rest-api.type.mjs'
 import type { Container } from 'inversify'
 
 export class RestApi {
@@ -49,31 +49,5 @@ export class RestApi {
 
   runWithApiContext(...args: Parameters<XoApp['runWithApiContext']>) {
     return this.#xoApp.runWithApiContext(...args)
-  }
-
-  async checkFeatureAuthorization(featureCode: string, opts: { throwAuthorization?: true }): Promise<void>
-  async checkFeatureAuthorization(
-    featureCode: string,
-    opts: { throwAuthorization: false }
-  ): Promise<void | HasNoAuthorization>
-  async checkFeatureAuthorization(
-    featureCode: string,
-    opts: { throwAuthorization?: boolean }
-  ): Promise<void | HasNoAuthorization>
-  async checkFeatureAuthorization(
-    featureCode: string,
-    { throwAuthorization = true }: { throwAuthorization?: boolean } = {}
-  ): Promise<void | HasNoAuthorization> {
-    try {
-      await this.xoApp.checkFeatureAuthorization(featureCode)
-    } catch (error) {
-      if (!throwAuthorization) {
-        return {
-          hasAuthorization: false,
-        }
-      }
-
-      throw error
-    }
   }
 }

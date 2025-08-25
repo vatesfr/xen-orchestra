@@ -1,4 +1,5 @@
 import groupBy from 'lodash/groupBy.js'
+import { featureUnauthorized } from 'xo-common/api-errors.js'
 import semver from 'semver'
 import {
   AnyXoVdi,
@@ -26,6 +27,7 @@ import { isReplicaVm, isSrWritableOrIso, promiseWriteInStream, vmContainsNoBakTa
 import type { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
+import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -245,12 +247,11 @@ export class XoaService {
     return nHostsEol
   }
 
+  /**
+   * Throw if no authorization
+   */
   async #getMissingPatchesInfo(): Promise<XoaDashboard['missingPatches']> {
-    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo({ throwAuthorization: false })
-
-    if (!missingPatchesInfo.hasAuthorization) {
-      return { hasAuthorization: false }
-    }
+    const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo()
 
     const { hasAuthorization, nHostsFailed, nHostsWithMissingPatches, nPoolsWithMissingPatches } = missingPatchesInfo
 
@@ -557,7 +558,17 @@ export class XoaService {
         handleError: true,
       }),
       promiseWriteInStream({ maybePromise: this.#getPoolsStatus(), path: 'poolsStatus', stream }),
-      promiseWriteInStream({ maybePromise: this.#getMissingPatchesInfo(), path: 'missingPatches', stream }),
+      promiseWriteInStream({
+        maybePromise: this.#getMissingPatchesInfo().catch(err => {
+          if (featureUnauthorized.is(err)) {
+            return { hasAuthorization: false } as HasNoAuthorization
+          }
+
+          throw err
+        }),
+        path: 'missingPatches',
+        stream,
+      }),
       promiseWriteInStream({
         maybePromise: this.#getBackupRepositoriesSizeInfo(),
         path: 'backupRepositories',

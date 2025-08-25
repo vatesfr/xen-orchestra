@@ -1,4 +1,5 @@
 import { createLogger } from '@xen-orchestra/log'
+import { featureUnauthorized } from 'xo-common/api-errors.js'
 import {
   HOST_POWER_STATE,
   VM_POWER_STATE,
@@ -17,7 +18,7 @@ import { getTopPerProperty, isSrWritableOrIso, promiseWriteInStream } from '../h
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import type { PoolDashboard } from './pool.type.mjs'
 import { MissingPatchesInfo } from '../hosts/host.type.mjs'
-import { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
+import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
 
 const log = createLogger('xo:rest-api:pool-service')
 
@@ -73,32 +74,15 @@ export class PoolService {
     return Object.keys(alarms)
   }
 
+  /**
+   * Throw if no authorization
+   */
   async getMissingPatches(
-    poolId: XoPool['id'],
-    opts?: { throwAuthorization?: true }
-  ): Promise<Pick<MissingPatchesInfo, 'hasAuthorization' | 'missingPatches'>>
-  async getMissingPatches(
-    poolId: XoPool['id'],
-    opts: { throwAuthorization: false }
-  ): Promise<HasNoAuthorization | Pick<MissingPatchesInfo, 'hasAuthorization' | 'missingPatches'>>
-  async getMissingPatches(
-    poolId: XoPool['id'],
-    opts?: { throwAuthorization?: boolean }
-  ): Promise<HasNoAuthorization | Pick<MissingPatchesInfo, 'hasAuthorization' | 'missingPatches'>>
-  async getMissingPatches(
-    poolId: XoPool['id'],
-    { throwAuthorization }: { throwAuthorization?: boolean } = {}
-  ): Promise<HasNoAuthorization | Pick<MissingPatchesInfo, 'hasAuthorization' | 'missingPatches'>> {
+    poolId: XoPool['id']
+  ): Promise<Pick<MissingPatchesInfo, 'hasAuthorization' | 'missingPatches'>> {
     const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo({
       filter: host => host.$pool === poolId,
-      throwAuthorization,
     })
-
-    if (!missingPatchesInfo.hasAuthorization) {
-      return {
-        hasAuthorization: false,
-      }
-    }
 
     const { hasAuthorization, missingPatches } = missingPatchesInfo
     return {
@@ -296,7 +280,13 @@ export class PoolService {
       promiseWriteInStream({ maybePromise: this.#getVmsStatus(id), path: 'vms.status', stream }),
       promiseWriteInStream({ maybePromise: this.#getAlarms(id), path: 'alarms', stream }),
       promiseWriteInStream({
-        maybePromise: this.getMissingPatches(id, { throwAuthorization: false }),
+        maybePromise: this.getMissingPatches(id).catch(err => {
+          if (featureUnauthorized.is(err)) {
+            return { hasAuthorization: false } as HasNoAuthorization
+          }
+
+          throw err
+        }),
         path: 'hosts.missingPatches',
         stream,
       }),

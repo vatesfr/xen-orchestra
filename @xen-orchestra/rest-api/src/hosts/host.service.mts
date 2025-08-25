@@ -4,7 +4,6 @@ import { HOST_POWER_STATE, XcpPatches, XsPatches, type XoHost } from '@vates/typ
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import type { MissingPatchesInfo } from './host.type.mjs'
-import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
 
 const log = createLogger('xo:rest-api:host-service')
 
@@ -53,33 +52,13 @@ export class HostService {
     }
   }
 
-  async getMissingPatchesInfo(opts: {
-    filter?: string | ((obj: XoHost) => boolean)
-    throwAuthorization: false
-  }): Promise<HasNoAuthorization | MissingPatchesInfo>
-  async getMissingPatchesInfo(opts: {
-    filter?: string | ((obj: XoHost) => boolean)
-    throwAuthorization?: true
-  }): Promise<MissingPatchesInfo>
-  async getMissingPatchesInfo(opts: {
-    filter?: string | ((obj: XoHost) => boolean)
-    throwAuthorization?: boolean
-  }): Promise<HasNoAuthorization | MissingPatchesInfo>
+  /**
+   * Throw if no authorization
+   */
   async getMissingPatchesInfo({
     filter,
-    throwAuthorization = true,
-  }: { filter?: string | ((obj: XoHost) => boolean); throwAuthorization?: boolean } = {}): Promise<
-    HasNoAuthorization | MissingPatchesInfo
-  > {
-    const featureAuthorization = await this.#restApi.checkFeatureAuthorization('LIST_MISSING_PATCHES', {
-      throwAuthorization,
-    })
-
-    if (featureAuthorization !== undefined) {
-      return {
-        hasAuthorization: false,
-      }
-    }
+  }: { filter?: string | ((obj: XoHost) => boolean) } = {}): Promise<MissingPatchesInfo> {
+    await this.#restApi.xoApp.checkFeatureAuthorization('LIST_MISSING_PATCHES')
 
     const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host', { filter }))
     const missingPatches = new Map<string, XcpPatches | XsPatches>()
