@@ -6,10 +6,10 @@ It returns the payload of the highest matching threshold for that value.
 
 ## Arguments
 
-| Argument       | Type                                               | Required | Description                           |
-| -------------- | -------------------------------------------------- | :------: | ------------------------------------- |
-| `currentValue` | `MaybeRefOrGetter<number>`                         |    ✓     | The value to check against thresholds |
-| `config`       | `Record<number, TPayload> & { default: TPayload }` |    ✓     | The thresholds configuration          |
+| Argument       | Type                                                                 | Required | Description                           |
+| -------------- | -------------------------------------------------------------------- | :------: | ------------------------------------- |
+| `currentValue` | `MaybeRefOrGetter<number>`                                           |    ✓     | The value to check against thresholds |
+| `config`       | `MaybeRefOrGetter<Record<number, TPayload> & { default: TPayload }>` |    ✓     | The thresholds configuration          |
 
 ## Returns
 
