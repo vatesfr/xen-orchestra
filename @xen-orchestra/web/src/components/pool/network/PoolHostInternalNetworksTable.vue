@@ -41,7 +41,7 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-          <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" :size="tablePaginationSize" />
+          <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable
@@ -104,7 +104,7 @@
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-        <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" :size="tablePaginationSize" />
+        <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
@@ -129,7 +129,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
@@ -151,9 +150,6 @@ const { networks } = defineProps<{
 const { areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
 
 const { t } = useI18n()
-const uiStore = useUiStore()
-
-const tablePaginationSize = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
 
 const searchQuery = ref('')
 const selectedNetworkId = useRouteQuery('id')

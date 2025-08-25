@@ -41,7 +41,7 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0">
-          <UiTablePagination v-if="isReady" v-bind="paginationBindings" :size="tablePaginationSize" />
+          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? t('no-pif-detected') : undefined">
@@ -127,7 +127,7 @@
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-if="isReady" v-bind="paginationBindings" :size="tablePaginationSize" />
+        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
@@ -154,7 +154,6 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
@@ -181,9 +180,6 @@ const { getByOpaqueRef } = useNetworkStore().subscribe()
 const { getPifStatus } = usePifStore().subscribe()
 
 const { t } = useI18n()
-const uiStore = useUiStore()
-
-const tablePaginationSize = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
 
 const selectedPifId = useRouteQuery('id')
 

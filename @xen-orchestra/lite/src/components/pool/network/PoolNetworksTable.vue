@@ -44,7 +44,7 @@
           </UiButton>
         </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-          <UiTablePagination v-if="isReady" v-bind="paginationBindings" :size="tablePaginationSize" />
+          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
       <VtsDataTable
@@ -108,7 +108,7 @@
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-        <UiTablePagination v-if="isReady" v-bind="paginationBindings" :size="tablePaginationSize" />
+        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
@@ -137,7 +137,6 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import {
   faAlignLeft,
@@ -162,9 +161,6 @@ const { records: pifs } = usePifStore().subscribe()
 const { getPifCarrier } = usePifMetricsStore().subscribe()
 
 const { t } = useI18n()
-const uiStore = useUiStore()
-
-const tablePaginationSize = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
 
 const selectedNetworkId = useRouteQuery('id')
 

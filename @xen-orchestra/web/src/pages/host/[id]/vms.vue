@@ -4,7 +4,7 @@
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" :size="tablePaginationSize" />
+      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
     </div>
     <VtsTable vertical-border>
       <thead>
@@ -30,7 +30,7 @@
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" :size="tablePaginationSize" />
+      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
     </div>
   </UiCard>
 </template>
@@ -51,7 +51,6 @@ import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagin
 import { usePagination } from '@core/composables/pagination.composable'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTree } from '@core/composables/tree.composable'
-import { useUiStore } from '@core/stores/ui.store.ts'
 import { faAlignLeft, faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -61,8 +60,6 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-const uiStore = useUiStore()
-const tablePaginationSize = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
 
 const { areVmsReady, vmsByHost } = useXoVmCollection()
 

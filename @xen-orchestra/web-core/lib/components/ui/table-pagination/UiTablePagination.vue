@@ -28,13 +28,15 @@ import { faAngleDoubleLeft, faAngleDoubleRight, faAngleLeft, faAngleRight } from
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+export type TablePaginationSize = 'small' | 'medium'
+
 const { size } = defineProps<{
   from: number
   to: number
   total: number
   isFirstPage: boolean
   isLastPage: boolean
-  size: 'small' | 'medium'
+  size: TablePaginationSize
 }>()
 
 const emit = defineEmits<{
