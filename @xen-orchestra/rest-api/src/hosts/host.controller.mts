@@ -3,21 +3,30 @@ import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
 import { pipeline } from 'node:stream/promises'
 import { provide } from 'inversify-binding-decorators'
-import type { XapiHostStats, XapiStatsGranularity, XoAlarm, XoHost } from '@vates/types'
+import type { XapiHostStats, XapiStatsGranularity, XcpPatches, XoAlarm, XoHost, XsPatches } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { host, hostIds, hostSmt, hostStats, partialHosts } from '../open-api/oa-examples/host.oa-example.mjs'
+import {
+  host,
+  hostIds,
+  hostSmt,
+  hostMissingPatches,
+  hostStats,
+  partialHosts,
+} from '../open-api/oa-examples/host.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import {
+  featureUnauthorized,
   internalServerErrorResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import { HostService } from './host.service.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -26,9 +35,16 @@ import {
 @provide(HostController)
 export class HostController extends XapiXoController<XoHost> {
   #alarmService: AlarmService
-  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
+  #hostService: HostService
+
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(HostService) hostService: HostService
+  ) {
     super('host', restApi)
     this.#alarmService = alarmService
+    this.#hostService = hostService
   }
 
   /**
@@ -166,5 +182,19 @@ export class HostController extends XapiXoController<XoHost> {
     const enabled = Boolean(await xapiHost.$xapi.isHyperThreadingEnabled(hostId))
 
     return { enabled }
+  }
+
+  /**
+   * Host must be running
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   */
+  @Example(hostMissingPatches)
+  @Get('{id}/missing_patches')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  async getMissingPatches(@Path() id: string): Promise<XcpPatches[] | XsPatches[]> {
+    const { missingPatches } = await this.#hostService.getMissingPatchesInfo({ filter: host => host.id === id })
+    return missingPatches
   }
 }
