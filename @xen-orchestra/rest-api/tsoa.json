@@ -34,7 +34,7 @@
         "/docs/swagger.json": {
           "get": {
             "operationId": "swaggerSpec",
-            "description": "Returns the swagger json ready to use for restapi clients",
+            "description": "Returns the swagger json ready to use for REST API clients",
             "responses": {
               "200": {
                 "description": "Ok"
