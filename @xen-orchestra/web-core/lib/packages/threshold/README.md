@@ -7,9 +7,9 @@ It returns the payload of the highest matching threshold for that value.
 ## Arguments
 
 | Argument       | Type                                               | Required | Description                           |
-| -------------- | -------------------------------------------------- | -------- | ------------------------------------- |
-| `currentValue` | `ComputedRef<number>`                              | ✓        | The value to check against thresholds |
-| `config`       | `Record<number, TPayload> & { default: TPayload }` | ✓        | The thresholds configuration          |
+| -------------- | -------------------------------------------------- | :------: | ------------------------------------- |
+| `currentValue` | `MaybeRefOrGetter<number>`                         |    ✓     | The value to check against thresholds |
+| `config`       | `Record<number, TPayload> & { default: TPayload }` |    ✓     | The thresholds configuration          |
 
 ## Returns
 
