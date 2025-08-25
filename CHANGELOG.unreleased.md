@@ -38,7 +38,6 @@
 
 <!--packages-start-->
 
-
 - @vates/types minor
 - @xen-orchestra/mixins patch
 - @xen-orchestra/rest-api minor
