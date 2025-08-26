@@ -25,6 +25,7 @@
   - Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
   - [i18n] Add Portuguese (Brazil) and update Czech, German, Spanish, Italian, Dutch and Swedish translations (PR [#8837](https://github.com/vatesfr/xen-orchestra/pull/8837))
   - [Site] Add Backup Jobs page (PR [#8889](https://github.com/vatesfr/xen-orchestra/pull/8889))
+  - [Account Menu] Add link to REST API documentation (PR [#8904](https://github.com/vatesfr/xen-orchestra/pull/8904))
 
 - [REST API] Expose `/rest/v0/docs/swagger.json` (PR [#8892](https://github.com/vatesfr/xen-orchestra/pull/8892))
 - [web] Add link to the rest api docs (PR [#8902](https://github.com/vatesfr/xen-orchestra/pull/8902))
@@ -35,6 +36,7 @@
 
 - [Backup/Sequences] Prevent sequences from ending prematurely when a backup job is skipped (PR [#8859](https://github.com/vatesfr/xen-orchestra/pull/8859))
 - [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
+- [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
 
 ### Packages to release
 
