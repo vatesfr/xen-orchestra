@@ -274,7 +274,7 @@ export default class Esxi extends EventEmitter {
     return Object.keys(datas)
       .map(id => {
         const { config, layoutEx, storage, runtime } = datas[id]
-        if (storage === undefined) {
+        if (storage === undefined || config === undefined) {
           return undefined
         }
         // vsan , maybe raw disk , that forbid access to a direct vmdk
