@@ -181,9 +181,7 @@
           {{ t('error') }}
           <UiCounter :value="1" accent="danger" size="small" variant="primary" />
         </UiCardTitle>
-        <UiQuoteCode accent="danger" :label="t('api-error-details')" size="small" copy>
-          {{ server.error }}
-        </UiQuoteCode>
+        <UiLogEntryViewer accent="danger" :label="t('api-error-details')" size="small" :content="server.error" />
       </UiCard>
     </template>
   </UiPanel>
@@ -207,8 +205,8 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'

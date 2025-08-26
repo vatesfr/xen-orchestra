@@ -10,7 +10,6 @@ import { json, Router } from 'express'
 import { Readable } from 'node:stream'
 import cloneDeep from 'lodash/cloneDeep.js'
 import path from 'node:path'
-import pDefer from 'promise-toolbox/defer'
 import pick from 'lodash/pick.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
@@ -247,6 +246,7 @@ export default class RestApi {
         },
         routes: {
           alarms: true,
+          missing_patches: true,
         },
       },
       groups: {},
@@ -294,6 +294,7 @@ export default class RestApi {
           'logs.tgz': true,
           alarms: true,
           smt: true,
+          missing_patches: true,
         },
       },
       srs: {
@@ -317,6 +318,7 @@ export default class RestApi {
         },
       },
       servers: {},
+      tasks: {},
     }
 
     const withParams = (fn, paramsSchema) => {
@@ -654,20 +656,7 @@ export default class RestApi {
     collections.restore = {}
     collections.tasks = {
       async getObject(id, req) {
-        const { wait } = req.query
-        if (wait !== undefined) {
-          const { promise, resolve } = pDefer()
-          const stopWatch = await app.tasks.watch(id, task => {
-            if (wait !== 'result' || task.status !== 'pending') {
-              stopWatch()
-              resolve(task)
-            }
-          })
-          req.on('close', stopWatch)
-          return promise
-        } else {
-          return app.tasks.get(id)
-        }
+        return app.tasks.get(id)
       },
       getObjects(filter, limit) {
         return app.tasks.list({ filter, limit })

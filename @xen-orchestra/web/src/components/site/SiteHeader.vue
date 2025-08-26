@@ -13,7 +13,11 @@
         {{ t('dashboard') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('backups') }}</TabItem>
+    <RouterLink v-slot="{ isExactActive, href }" to="/backups" custom>
+      <TabItem :active="isExactActive" :href tag="a">
+        {{ t('backups') }}
+      </TabItem>
+    </RouterLink>
     <TabItem disabled>{{ t('tasks') }}</TabItem>
     <RouterLink v-slot="{ isExactActive, href }" to="/pools" custom>
       <TabItem :active="isExactActive" :href tag="a">{{ t('pools') }}</TabItem>

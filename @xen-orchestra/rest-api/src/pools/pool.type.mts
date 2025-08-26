@@ -76,7 +76,7 @@ export type PoolDashboard = {
       | {
           hasAuthorization: false
         }
-      | { hasAuthorization: true; missingPatches: (XcpPatches | XsPatches)[] }
+      | { hasAuthorization: true; missingPatches: XcpPatches[] | XsPatches[] }
   }
   vms: {
     status: {

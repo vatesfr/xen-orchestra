@@ -13,6 +13,7 @@ import {
 import type { HttpStatusCodeLiteral } from 'tsoa'
 import { NextFunction, Request, Response } from 'express'
 
+import { ApiError } from '../helpers/error.helper.mjs'
 import type { XoError } from '../helpers/helper.type.mjs'
 
 const log = createLogger('xo:rest-api:error-handler')
@@ -32,7 +33,9 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
   }
   let statusCode: HttpStatusCodeLiteral
 
-  if (noSuchObject.is(error)) {
+  if (error instanceof ApiError) {
+    statusCode = error.status
+  } else if (noSuchObject.is(error)) {
     statusCode = 404
   } else if (unauthorized.is(error) || forbiddenOperation.is(error)) {
     statusCode = 403

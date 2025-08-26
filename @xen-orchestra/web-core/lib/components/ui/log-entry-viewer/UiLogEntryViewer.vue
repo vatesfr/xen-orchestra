@@ -1,43 +1,46 @@
+<!-- v2 -->
 <template>
-  <div class="ui-quote-code" :class="className">
+  <div class="ui-log-entry-viewer" :class="className">
     <div class="label-container">
       <div :class="fontClasses.labelClass" class="label">
         {{ label }}
       </div>
-      <div v-if="slots.actions || copy" class="actions">
-        <VtsCopyButton v-if="copy" :value="codeTextValue ?? ''" />
-        <slot name="actions" />
+      <div class="actions">
+        <VtsCopyButton :value="content" />
+        <UiButtonIcon :icon="faArrowUpRightFromSquare" size="medium" accent="brand" @click="openRawValueInNewTab()" />
       </div>
     </div>
-    <code ref="code-element" :class="fontClasses.codeClass" class="code-container">
-      <slot />
+    <code :class="fontClasses.codeClass" class="code-container">
+      {{ content }}
     </code>
   </div>
 </template>
 
 <script setup lang="ts">
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed, useTemplateRef } from 'vue'
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
+import { computed, watch } from 'vue'
 
-type QuoteCodeAccent = 'brand' | 'danger'
-type QuoteCodeSize = 'small' | 'medium'
+type LogEntryViewerAccent = 'info' | 'warning' | 'danger'
+type LogEntryViewerSize = 'small' | 'medium'
 
-const { size, accent } = defineProps<{
+const {
+  size,
+  accent,
+  content: rawContent = '',
+} = defineProps<{
   label: string
-  size: QuoteCodeSize
-  accent: QuoteCodeAccent
-  copy?: boolean
+  content: string | object | undefined
+  size: LogEntryViewerSize
+  accent: LogEntryViewerAccent
 }>()
 
-const slots = defineSlots<{
+defineSlots<{
   default(): any
-  actions?(): any
 }>()
-
-const codeElement = useTemplateRef('code-element')
-const codeTextValue = computed(() => codeElement.value?.textContent)
 
 const mapping = {
   small: {
@@ -57,10 +60,32 @@ const className = computed(() =>
     accent,
   })
 )
+
+const content = computed(() => {
+  if (typeof rawContent === 'object') {
+    return JSON.stringify(rawContent, null, 2)
+  }
+
+  return rawContent
+})
+
+const pre = document.createElement('pre')
+
+watch(
+  () => content,
+  content => {
+    pre.textContent = content.value
+  },
+  { immediate: true }
+)
+
+function openRawValueInNewTab() {
+  window.open('', '_blank')?.document.body.appendChild(pre)
+}
 </script>
 
 <style lang="postcss" scoped>
-.ui-quote-code {
+.ui-log-entry-viewer {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -88,11 +113,19 @@ const className = computed(() =>
     border-inline-start: 0.2rem solid;
     white-space: pre-wrap;
     word-break: break-word;
+    max-height: 18rem;
+    overflow: auto;
   }
 
-  &.accent--brand {
+  &.accent--info {
     .code-container {
-      border-inline-start-color: var(--color-brand-item-base);
+      border-inline-start-color: var(--color-info-item-base);
+    }
+  }
+
+  &.accent--warning {
+    .code-container {
+      border-inline-start-color: var(--color-warning-item-base);
     }
   }
 
