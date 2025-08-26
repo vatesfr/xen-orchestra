@@ -19,6 +19,9 @@
   - `GET /rest/v0/hosts/<host-id>/missing_patches` (PR [#8862](https://github.com/vatesfr/xen-orchestra/pull/8862))
 
 - [Host/General] Display additional hardware data for Dell server (PR [#8861](https://github.com/vatesfr/xen-orchestra/pull/8861))
+- [V2V] Use vddk to transfer data from vmware (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
+- [V2V] Show if any prerequisite on XO is missing before import (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
+- [V2V] Show a form to install the VDDK library (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
 
 - **XO 6**:
 
@@ -30,6 +33,8 @@
 
 - [REST API] Expose `/rest/v0/docs/swagger.json` (PR [#8892](https://github.com/vatesfr/xen-orchestra/pull/8892))
 - [web] Add link to the rest api docs (PR [#8902](https://github.com/vatesfr/xen-orchestra/pull/8902))
+- [V2V] Use vddk to transfer data from vmware (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
+- [V2V] Show if any prerequisite on XO is missing before import (PR [#840](https://github.com/vatesfr/))
 
 ### Bug fixes
 
@@ -57,11 +62,14 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client minor
+- @vates/read-chunk patch
 - @vates/types minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs patch
 - @xen-orchestra/mixins patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi minor

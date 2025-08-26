@@ -1438,7 +1438,6 @@ export async function importFromEsxi({
     template,
     user,
     vms: [vm],
-    workDirRemote,
   })
 }
 
@@ -1469,29 +1468,13 @@ export async function importMultipleFromEsxi({
   sslVerify,
   stopSource,
   stopOnError,
-  thin,
   template,
   user,
   vms,
-  workDirRemote,
 }) {
   const task = await this.tasks.create({ name: `importing vms ${vms.join(',')}` })
   let done = 0
   return task.run(async () => {
-    const PREFIX = '[vmware]'
-    const handlers = await Promise.all(
-      (await this.getAllRemotes())
-        .filter(({ name, enabled }) => enabled && name.toLocaleLowerCase().startsWith(PREFIX))
-        .map(remote => this.getRemoteHandler(remote))
-    )
-    const workDirRemoteHandler = workDirRemote ? await this.getRemoteHandler(workDirRemote) : undefined
-    const dataStoreToHandlers = {}
-    handlers.forEach(handler => {
-      const name = handler._remote.name
-      const dataStoreName = name.substring(PREFIX.length).trim()
-      dataStoreToHandlers[dataStoreName] = handler
-    })
-
     Task.set('total', vms.length)
     Task.set('done', 0)
     Task.set('progress', 0)
@@ -1507,14 +1490,11 @@ export async function importMultipleFromEsxi({
                 user,
                 password,
                 sslVerify,
-                thin,
                 vm,
                 sr,
                 network,
                 stopSource,
                 template,
-                dataStoreToHandlers,
-                workDirRemote: workDirRemoteHandler,
               })
               result[vm] = vmUuid
             } finally {

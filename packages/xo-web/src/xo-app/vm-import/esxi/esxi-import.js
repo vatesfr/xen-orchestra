@@ -3,22 +3,41 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import Collapse from 'collapse'
 import Component from 'base-component'
+import Dropzone from 'dropzone'
+import Icon from 'icon'
 import React from 'react'
 import { connectStore, resolveId } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { esxiListVms, importVmsFromEsxi, isSrWritable } from 'xo'
+import { esxiCheckInstall, esxiListVms, importVddkLib, importVmsFromEsxi, isSrWritable } from 'xo'
 import { find, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
 import { Password, Select, Toggle } from 'form'
-import { SelectNetwork, SelectRemote, SelectPool, SelectSr, SelectVmTemplate } from 'select-objects'
+import { SelectNetwork, SelectPool, SelectSr, SelectVmTemplate } from 'select-objects'
 
 import VmData from './vm-data'
 import { getRedirectionUrl } from '../utils'
 
 const N_IMPORT_VMS_IN_PARALLEL = 2
-
+function EsxiCheckResults({ esxiCheck }) {
+  return (
+    <ul className='list-group'>
+      {Object.entries(esxiCheck).map(([name, value]) => {
+        const { status, error, version, expectedVersion } = value
+        return (
+          <li key={name}>
+            <Icon icon={status} />
+            {name} :{status === 'success' && ' ok'}
+            {status === 'error' && error}
+            {status === 'error' && _('esxiCheckingPrerequisiteError')}
+            {version && status === 'alarm' && _('esxiCheckedPrerequisiteVersion', { version, expectedVersion })}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
 @injectIntl
 @connectStore({
   hostsById: createGetObjectsOfType('host'),
@@ -30,14 +49,36 @@ class EsxiImport extends Component {
     hostIp: '',
     isConnected: false,
     password: '',
-    skipSslVerify: false,
-    stopSource: false,
+    skipSslVerify: true,
+    stopSource: true,
     stopOnError: true,
     template: undefined,
     user: '',
-    workDirRemote: undefined,
+    vddkFile: undefined,
+    esxiCheck: undefined,
+    esxiCheckError: undefined,
   }
 
+  componentWillMount() {
+    this._esxiCheck()
+  }
+  _esxiCheck() {
+    this.setState({ esxiCheck: undefined }, async () => {
+      const esxiCheck = await esxiCheckInstall()
+      this.setState({ esxiCheck })
+    })
+  }
+  _handleDropVddk = files => {
+    this.setState({ vddkFile: files?.[0] })
+  }
+  _handleImportVddk = async () => {
+    try {
+      await importVddkLib({ file: this.state.vddkFile })
+    } catch (error) {
+      this.setState({ esxiCheckError: error })
+    }
+    return this._esxiCheck()
+  }
   _getDefaultNetwork = createSelector(
     () => this.state.pool?.master,
     () => this.props.hostsById,
@@ -66,20 +107,8 @@ class EsxiImport extends Component {
   )
 
   _importVms = () => {
-    const {
-      concurrency,
-      hostIp,
-      network,
-      password,
-      skipSslVerify,
-      sr,
-      stopSource,
-      stopOnError,
-      user,
-      template,
-      vms,
-      workDirRemote,
-    } = this.state
+    const { concurrency, hostIp, network, password, skipSslVerify, sr, stopSource, stopOnError, user, template, vms } =
+      this.state
     return importVmsFromEsxi({
       concurrency: +concurrency,
       host: hostIp,
@@ -92,7 +121,6 @@ class EsxiImport extends Component {
       template: template.id,
       user,
       vms: vms.map(vm => vm.value),
-      workDirRemote: workDirRemote?.id,
     })
   }
 
@@ -136,6 +164,7 @@ class EsxiImport extends Component {
     const { intl } = this.props
     const {
       concurrency,
+      esxiCheck,
       hostIp,
       isConnected,
       network = this._getDefaultNetwork(),
@@ -146,14 +175,50 @@ class EsxiImport extends Component {
       stopSource,
       stopOnError,
       user,
+      vddkFile,
       vms,
       vmsById,
-      workDirRemote,
     } = this.state
+
+    if (esxiCheck === undefined) {
+      return <div>checking</div>
+    }
+
+    if (esxiCheck.vddk?.status === 'error') {
+      return (
+        <div>
+          <p>
+            {_('esxiLibraryInfo')} :{' '}
+            <a
+              href='https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/9.0'
+              target='_blank'
+              rel='noreferrer'
+            >
+              {_('esxiLibraryLink')}
+            </a>
+          </p>
+          <Dropzone multiple={false} onDrop={this._handleDropVddk} message={_('esxiLibrary')} accept='.tar.gz' />
+          {vddkFile && (
+            <div className='form-group pull-right'>
+              <ActionButton btnStyle='primary' className='mr-1' handler={this._handleImportVddk} icon='import'>
+                {_('esxiLibraryImport')}
+              </ActionButton>
+            </div>
+          )}
+        </div>
+      )
+    }
+    if (Object.values(esxiCheck).some(({ status }) => status === 'error')) {
+      // do not show connection form is some prerequisites are in error
+      return <EsxiCheckResults esxiCheck={esxiCheck} />
+    }
 
     if (!isConnected) {
       return (
         <form>
+          <Row>
+            <EsxiCheckResults esxiCheck={esxiCheck} />
+          </Row>
           <Row>
             <LabelCol>{_('hostIp')}</LabelCol>
             <InputCol>
@@ -204,13 +269,7 @@ class EsxiImport extends Component {
         </form>
       )
     }
-    // check if at least one VM has at least one disk chain
-    // with at least one extent stored on vsan
-    const useExportVmMigration =
-      !isEmpty(vms) &&
-      vms.some(({ value }) => {
-        return vmsById[value].hasAllExtentsListed === false
-      })
+
     return (
       <form>
         <Row>
@@ -281,14 +340,6 @@ class EsxiImport extends Component {
             <small className='form-text text-muted'>{_('esxiImportStopOnErrorDescription')}</small>
           </InputCol>
         </Row>
-        {useExportVmMigration && (
-          <Row>
-            <LabelCol>{_('workDirLabel')}</LabelCol>
-            <InputCol>
-              <SelectRemote required value={workDirRemote?.id} onChange={this.linkState('workDirRemote')} />
-            </InputCol>
-          </Row>
-        )}
         <Row>
           <LabelCol>{_('originalTemplate')}</LabelCol>
           <InputCol>
@@ -316,7 +367,6 @@ class EsxiImport extends Component {
             ))}
           </div>
         )}
-        {useExportVmMigration && 'warningVsanImport'}
         <div className='form-group pull-right'>
           <ActionButton
             btnStyle='primary'

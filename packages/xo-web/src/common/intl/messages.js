@@ -17,6 +17,17 @@ const messages = {
   hostIp: 'Host IP',
   interfaces: 'Interfaces',
   keyValue: '{key}: {value}',
+  esxiLibraryInfo: 'The V2V tool need the vddk library, provided by Broadcom. Please download it from their website',
+  esxiLibraryLink: 'Donwload link',
+
+  esxiLibrary: 'Drop the tar.gz file of the vddk library (linux)',
+  esxiLibraryImport: 'Import and install library',
+  esxiCheckingPrerequisite: 'Checking prerequisite on XO',
+  esxiCheckedPrerequisite: 'Result of the prerequisite check on XO',
+
+  esxiCheckingPrerequisiteError: 'Must be corrected before importing VM',
+  // eslint-disable-next-line no-template-curly-in-string
+  esxiCheckedPrerequisiteVersion: 'expected version ${expectedVersion} , ${version} installed',
   esxiImportSslCertificate: 'Skip SSL check',
   esxiImportThin: 'Thin mode',
   esxiImportThinDescription:
@@ -1893,9 +1904,6 @@ const messages = {
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
   vmsToImport: 'VM{nVms, plural, one {} other {s}} to import',
-  warningVsanImport:
-    '<div>VM running from non file based datastore (like VSAN) will be migrated in a three steps process<ul><li>Stop the VM</li><li>Export the VM disks to a remote of Xen Orchestra</li><li>Load these disks in XCP-ng</li></ul>This process will be slower than migrating the VM to VMFS / NFS datastore and then migrating them to XCP-ng</div>',
-  workDirLabel: 'Remote used to store temporary disk files(VSAN migration)',
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',
