@@ -18,8 +18,12 @@ import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 @Tags('tasks')
 @provide(TaskController)
 export class TaskController extends XoController<XoTask> {
-  getAllCollectionObjects(): Promise<XoTask[]> {
-    return Array.fromAsync(this.restApi.tasks.list())
+  async getAllCollectionObjects(): Promise<XoTask[]> {
+    const result: XoTask[] = []
+    for await (const task of this.restApi.tasks.list()) {
+      result.push(task)
+    }
+    return result
   }
 
   getCollectionObject(id: XoTask['id']): Promise<XoTask> {
