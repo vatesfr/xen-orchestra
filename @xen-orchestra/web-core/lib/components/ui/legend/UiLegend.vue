@@ -46,6 +46,7 @@ const classNames = computed(() => toVariants({ accent }))
 
   .tooltip-icon {
     font-size: 1.2rem;
+    color: var(--color-info-item-base);
   }
 
   .label {
