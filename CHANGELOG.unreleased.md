@@ -21,6 +21,7 @@
 - [Host/General] Display additional hardware data for Dell server (PR [#8861](https://github.com/vatesfr/xen-orchestra/pull/8861))
 
 - **XO 6**:
+
   - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8873](https://github.com/vatesfr/xen-orchestra/pull/8873))
   - Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
   - [i18n] Add Portuguese (Brazil) and update Czech, German, Spanish, Italian, Dutch and Swedish translations (PR [#8837](https://github.com/vatesfr/xen-orchestra/pull/8837))
@@ -37,6 +38,8 @@
 - [Backup/Sequences] Prevent sequences from ending prematurely when a backup job is skipped (PR [#8859](https://github.com/vatesfr/xen-orchestra/pull/8859))
 - [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
 - [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
+- [Backup] Update timeout in filesystem for expensive listing requests
+- [Backup] Update timeout in filesystem for expensive listing requests (PR [#8903](https://github.com/vatesfr/xen-orchestra/pull/8903))
 
 ### Packages to release
 
@@ -55,8 +58,9 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/mixins patch
 - @xen-orchestra/backups minor
+- @xen-orchestra/fs patch
+- @xen-orchestra/mixins patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
