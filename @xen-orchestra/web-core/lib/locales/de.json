@@ -421,6 +421,7 @@
   "pools-status.unreachable": "Nicht erreichbar",
   "pools-status.unreachable.tooltip": "Server konfiguriert, aber nicht erreichbar",
   "power-on-host-for-console": "Host muss gestartet werden, um die Konsole zu erreichen",
+  "power-on-mode": "Externe Einschaltung",
   "power-on-vm-for-console": "VM muss gestartet werden, um die Konsole zu erreichen",
   "power-state": "Energiezustand",
   "professional-support": "Professioneller Support",
