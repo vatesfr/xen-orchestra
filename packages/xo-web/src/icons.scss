@@ -1202,6 +1202,11 @@
     @extend .fa-windows;
   }
 
+  // link to rest api doc
+  &-rest-api {
+    @extend .fa;
+    @extend .fa-code;
+  }
   // Home
   &-nav {
     @extend .fa;

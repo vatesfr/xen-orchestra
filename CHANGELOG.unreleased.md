@@ -19,6 +19,7 @@
   - `GET /rest/v0/hosts/<host-id>/missing_patches` (PR [#8862](https://github.com/vatesfr/xen-orchestra/pull/8862))
 
 - [Host/General] Display additional hardware data for Dell server (PR [#8861](https://github.com/vatesfr/xen-orchestra/pull/8861))
+
 - **XO 6**:
   - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8873](https://github.com/vatesfr/xen-orchestra/pull/8873))
   - Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
@@ -26,6 +27,7 @@
   - [Site] Add Backup Jobs page (PR [#8889](https://github.com/vatesfr/xen-orchestra/pull/8889))
 
 - [REST API] Expose `/rest/v0/docs/swagger.json` (PR [#8892](https://github.com/vatesfr/xen-orchestra/pull/8892))
+- [web] Add link to the rest api docs (PR [#8902](https://github.com/vatesfr/xen-orchestra/pull/8902))
 
 ### Bug fixes
 
@@ -57,6 +59,6 @@
 - @xen-orchestra/xapi minor
 - xo-common minor
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->

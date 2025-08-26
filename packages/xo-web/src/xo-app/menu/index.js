@@ -561,6 +561,18 @@ export default class Menu extends Component {
             </a>
           </li>
           {map(items, (item, index) => item && <MenuLinkItem key={index} item={item} />)}
+          <li className='nav-item xo-menu-item'>
+            <a className='nav-link' target="_blank" href="/rest/v0/docs/"> 
+              
+              <span className={classNames(styles.hiddenCollapsed)}>
+                  <Icon icon='rest-api' size='lg' fixedWidth /> {_('restApiDoc')} 
+              </span>
+              <span className={classNames(styles.hiddenUncollapsed)}>
+                <Icon icon="rest-api"  size='lg' fixedWidth/>
+              </span>
+                
+            </a>
+          </li>
           <li>&nbsp;</li>
           <li>&nbsp;</li>
           {!state.isXoaStatusOk && (
