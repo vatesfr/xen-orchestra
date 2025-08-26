@@ -37,7 +37,7 @@ export function useProgressGroup<TSource>(
   )
 
   const highestPercentageCap = computed(() =>
-    progressItems.value.reduce((highestCap, item) => Math.max(highestCap, item.percentageCap.value), 0)
+    progressItems.value.reduce((highestCap, item) => Math.max(highestCap, item.percentageCap.value), 100)
   )
 
   const normalizedProgressItems = useArrayMap(progressItems, item => {

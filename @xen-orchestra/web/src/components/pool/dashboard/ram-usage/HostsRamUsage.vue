@@ -1,23 +1,31 @@
 <template>
   <VtsNoDataHero v-if="topFiveRam === undefined" type="card" />
   <template v-else>
-    <UiProgressBar
-      v-for="ram in topFiveRam"
-      :key="ram.id"
-      display-mode="value"
-      :value="ram.usage"
-      :max="ram.size"
-      :legend="ram.name_label"
-    />
+    <VtsProgressBarGroup :items="progressBarItems" legend-type="bytes" />
   </template>
 </template>
 
 <script lang="ts" setup>
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
+import VtsProgressBarGroup, {
+  type ProgressBarGroupItem,
+} from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
 import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
-import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
+import { computed } from 'vue'
 
-defineProps<{
+const { topFiveRam = [] } = defineProps<{
   topFiveRam: NonNullable<NonNullable<XoPoolDashboard['hosts']>['topFiveUsage']>['ram'] | undefined
 }>()
+
+const progressBarItems = computed(() =>
+  topFiveRam.map(
+    ram =>
+      ({
+        id: ram.id,
+        label: ram.name_label,
+        current: ram.usage,
+        total: ram.size,
+      }) satisfies ProgressBarGroupItem
+  )
+)
 </script>

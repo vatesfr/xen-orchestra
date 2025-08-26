@@ -3,7 +3,12 @@
     <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
     <template v-else>
-      <UiProgressBar display-mode="percent" :value="memory?.usage ?? 0" :max="memory?.size" :legend="host.name_label" />
+      <VtsProgressBar
+        :current="memory?.usage ?? 0"
+        :label="host.name_label"
+        :total="memory?.size ?? 0"
+        legend-type="percent"
+      />
       <div class="total">
         <UiCardNumbers
           :label="t('total-assigned')"
@@ -26,11 +31,11 @@
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'

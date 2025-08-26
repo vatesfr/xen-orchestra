@@ -39,3 +39,9 @@ export const formatSizeParse = (size: number | undefined, unit?: string) => {
 
   return result
 }
+
+export function formatSize(bytes: number, decimals: number): string {
+  const { value, prefix } = formatSizeRaw(bytes, decimals)
+
+  return `${value} ${prefix}`
+}
