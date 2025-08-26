@@ -8,7 +8,7 @@
         :total="cpusCount"
         :thresholds="cpuProgressThresholds(t('cpu-provisioning-warning'))"
         :current="vCpusCount"
-        type="percent"
+        legend-type="percent"
       />
       <div class="total">
         <UiCardNumbers :label="t('vcpus-assigned')" :value="vCpusCount" size="medium" />
