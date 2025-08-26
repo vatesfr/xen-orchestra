@@ -20,6 +20,7 @@
 
 - [Host/General] Display additional hardware data for Dell server (PR [#8861](https://github.com/vatesfr/xen-orchestra/pull/8861))
 - [i18n] Add Portuguese (Brazil) and update Czech, German, Spanish, Italian, Dutch and Swedish translations (PR [#8837](https://github.com/vatesfr/xen-orchestra/pull/8837))
+- [web] Add link to the rest api docs (PR [#8837](https://github.com/vatesfr/xen-orchestra/pull/8837))
 
 ### Bug fixes
 

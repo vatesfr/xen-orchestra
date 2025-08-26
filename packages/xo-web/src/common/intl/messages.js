@@ -258,7 +258,7 @@ const messages = {
   customJob: 'Custom Job',
   userPage: 'User',
   xoa: 'XOA',
-
+  restApiDoc: 'REST API doc',
   // ----- Support -----
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
