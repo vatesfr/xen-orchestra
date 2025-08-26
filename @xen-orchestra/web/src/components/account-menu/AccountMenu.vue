@@ -28,6 +28,11 @@
         {{ t('professional-support') }}
       </a>
     </MenuItem>
+    <MenuItem :icon="faCode">
+      <a class="link typo-body-bold-small" href="/rest/v0/docs/#/" rel="noopener noreferrer" target="_blank">
+        {{ t('documentation-name', { name: 'REST API' }) }}
+      </a>
+    </MenuItem>
     <MenuItem :icon="faArrowRightFromBracket" class="logout" @click="logout()">
       {{ t('log-out') }}
     </MenuItem>
@@ -39,7 +44,7 @@ import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faArrowRightFromBracket, faBook, faHeadset } from '@fortawesome/free-solid-svg-icons'
+import { faArrowRightFromBracket, faBook, faCode, faHeadset } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
