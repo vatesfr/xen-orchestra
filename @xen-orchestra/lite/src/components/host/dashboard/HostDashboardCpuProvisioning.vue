@@ -2,14 +2,19 @@
   <UiCard class="host-dashboard-cpu-provisioning">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsLoadingHero v-if="!isReady" type="card" />
-    <VtsProgressBar
-      v-else
-      :current="vCpusCount"
-      :label="t('vcpus')"
-      :thresholds="cpuProgressThresholds()"
-      :total="cpusCount"
-      legend-type="percent"
-    />
+    <template v-else>
+      <VtsProgressBar
+        :current="vCpusCount"
+        :label="t('vcpus')"
+        :thresholds="cpuProgressThresholds()"
+        :total="cpusCount"
+        legend-type="percent"
+      />
+      <div class="total">
+        <UiCardNumbers :label="t('vcpus-assigned')" :value="vCpusCount" size="medium" />
+        <UiCardNumbers :label="t('total-cpus')" :value="cpusCount" size="medium" />
+      </div>
+    </template>
   </UiCard>
 </template>
 
@@ -22,6 +27,7 @@ import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { cpuProgressThresholds } from '@core/utils/progress.util.ts'
 import { and } from '@vueuse/math'

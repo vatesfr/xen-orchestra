@@ -1,7 +1,7 @@
 <template>
   <VtsNoDataHero v-if="topFiveRam === undefined" type="card" />
   <template v-else>
-    <VtsProgressBarGroup :items="progressBarItems" legend-type="bytes" />
+    <VtsProgressBarGroup :items="progressBarItems" legend-type="bytes-with-total" />
   </template>
 </template>
 
