@@ -37,6 +37,7 @@
 - [Backup/Sequences] Prevent sequences from ending prematurely when a backup job is skipped (PR [#8859](https://github.com/vatesfr/xen-orchestra/pull/8859))
 - [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
 - [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
+- [Backup] Update timeout in filesystem for expensive listing requests
 
 ### Packages to release
 
@@ -55,6 +56,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/fs minor
 - @xen-orchestra/mixins patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/rest-api minor
