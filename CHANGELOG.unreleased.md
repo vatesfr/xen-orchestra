@@ -38,6 +38,7 @@
 - [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
 - [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
 - [Backup] Update timeout in filesystem for expensive listing requests
+- [Backup] Update timeout in filesystem for expensive listing requests (PR [#8903](https://github.com/vatesfr/xen-orchestra/pull/8903))
 
 ### Packages to release
 
@@ -56,7 +57,7 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/fs minor
+- @xen-orchestra/fs patch
 - @xen-orchestra/mixins patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/rest-api minor
