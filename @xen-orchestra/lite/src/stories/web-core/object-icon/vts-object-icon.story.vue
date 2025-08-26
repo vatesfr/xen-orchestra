@@ -27,12 +27,12 @@
         .widget(),
     ]"
   >
-    <UiObjectIcon v-bind="properties" />
+    <VtsObjectIcon v-bind="properties" />
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { prop } from '@/libs/story/story-param'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
+import { prop } from '@/libs/story/story-param.ts'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 </script>

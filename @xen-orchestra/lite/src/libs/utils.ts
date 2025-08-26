@@ -1,7 +1,6 @@
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { Filter } from '@/types/filter'
-import { faSquareCheck } from '@fortawesome/free-regular-svg-icons'
-import { faFont, faHashtag, faList } from '@fortawesome/free-solid-svg-icons'
+import type { IconName } from '@core/icons'
 import { utcParse } from 'd3-time-format'
 import format from 'human-format'
 import { find, forEach, round, size, sum } from 'lodash-es'
@@ -10,11 +9,11 @@ export function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-const iconsByType = {
-  string: faFont,
-  number: faHashtag,
-  boolean: faSquareCheck,
-  enum: faList,
+const iconsByType: Record<string, IconName> = {
+  string: 'fa:font',
+  number: 'fa:hashtag',
+  boolean: 'fa:square-check',
+  enum: 'fa:list',
 }
 
 export function formatSize(bytes: number) {

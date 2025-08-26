@@ -7,7 +7,12 @@
       </div>
       <div class="actions">
         <VtsCopyButton :value="content" />
-        <UiButtonIcon :icon="faArrowUpRightFromSquare" size="medium" accent="brand" @click="openRawValueInNewTab()" />
+        <UiButtonIcon
+          icon="fa:arrow-up-right-from-square"
+          size="medium"
+          accent="brand"
+          @click="openRawValueInNewTab()"
+        />
       </div>
     </div>
     <code :class="fontClasses.codeClass" class="code-container">
@@ -21,7 +26,6 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons'
 import { computed, watch } from 'vue'
 
 type LogEntryViewerAccent = 'info' | 'warning' | 'danger'

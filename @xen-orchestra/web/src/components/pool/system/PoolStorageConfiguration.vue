@@ -8,7 +8,7 @@
       <VtsQuickInfoRow :label="t('default-storage-repository')">
         <template #value>
           <template v-if="defaultSr">
-            <VtsIcon :icon="faDatabase" accent="current" />
+            <VtsIcon name="fa:database" size="medium" />
             {{ defaultSr.name_label }}
           </template>
           <template v-else>
@@ -19,7 +19,7 @@
       <VtsQuickInfoRow :label="t('suspend-storage-repository')">
         <template #value>
           <template v-if="suspendSr">
-            <VtsIcon :icon="faDatabase" accent="current" />
+            <VtsIcon name="fa:database" size="medium" />
             {{ suspendSr.name_label }}
           </template>
           <template v-else>
@@ -30,7 +30,7 @@
       <VtsQuickInfoRow :label="t('crash-dump-storage-repository')">
         <template #value>
           <template v-if="crashDumpSr">
-            <VtsIcon :icon="faDatabase" accent="current" />
+            <VtsIcon name="fa:database" size="medium" />
             {{ crashDumpSr.name_label }}
           </template>
           <template v-else>
@@ -42,7 +42,7 @@
         <template #value>
           <ul v-if="haSrs.length > 0">
             <li v-for="haSr in haSrs" :key="haSr.id">
-              <VtsIcon :icon="faDatabase" accent="current" />
+              <VtsIcon name="fa:database" size="medium" />
               {{ haSr.name_label }}
             </li>
           </ul>
@@ -63,7 +63,6 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { faDatabase } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{

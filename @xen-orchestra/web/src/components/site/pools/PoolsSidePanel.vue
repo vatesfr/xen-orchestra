@@ -9,7 +9,7 @@
           size="medium"
           variant="tertiary"
           accent="brand"
-          :icon="faAngleLeft"
+          icon="fa:angle-left"
           @click="emit('close')"
         />
         <div class="action-buttons">
@@ -19,7 +19,7 @@
             variant="tertiary"
             size="medium"
             accent="brand"
-            :left-icon="faEdit"
+            left-icon="fa:edit"
           >
             {{ t('change-state') }}
           </UiButton>
@@ -29,11 +29,11 @@
             variant="tertiary"
             size="medium"
             accent="danger"
-            :left-icon="faTrash"
+            left-icon="fa:trash"
           >
             {{ t('forget') }}
           </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
+          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" icon="fa:ellipsis" />
         </div>
       </div>
     </template>
@@ -49,7 +49,7 @@
             <template #value>
               <UiLink
                 v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
-                :icon="faCity"
+                icon="fa:city"
                 size="small"
                 :to="`/pool/${server.poolId}/`"
               >
@@ -113,7 +113,7 @@
         <VtsCardRowKeyValue>
           <template #key>{{ t('master') }}</template>
           <template #value>
-            <UiLink v-if="primaryHost !== undefined" :icon="faServer" size="small" :to="`/host/${primaryHost.id}/`">
+            <UiLink v-if="primaryHost !== undefined" icon="fa:server" size="small" :to="`/host/${primaryHost.id}/`">
               {{ primaryHost.name_label }}
             </UiLink>
           </template>
@@ -170,9 +170,9 @@
         </UiCardTitle>
         <VtsNoDataHero v-if="hosts.length === 0" type="panel" />
         <template v-else>
-          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" :icon="faServer" size="small">
+          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" icon="fa:server" size="small">
             {{ host.name_label }}
-            <VtsIcon v-if="primaryHost?.id === host.id" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+            <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="legacy:primary" size="medium" />
           </UiLink>
         </template>
       </UiCard>
@@ -212,16 +212,6 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store'
-import {
-  faAngleLeft,
-  faCircle,
-  faCity,
-  faEdit,
-  faEllipsis,
-  faServer,
-  faStar,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

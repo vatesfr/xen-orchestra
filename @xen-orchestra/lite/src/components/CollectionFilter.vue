@@ -9,7 +9,7 @@
       {{ filter }}
     </UiFilter>
 
-    <UiActionButton :icon="faPlus" class="add-filter" @click="openModal()">
+    <UiActionButton icon="fa:plus" class="add-filter" @click="openModal()">
       {{ t('add-filter') }}
     </UiActionButton>
   </UiFilterGroup>
@@ -21,7 +21,6 @@ import UiFilter from '@/components/ui/UiFilter.vue'
 import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
 import { useModal } from '@/composables/modal.composable'
 import type { Filters } from '@/types/filter'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{

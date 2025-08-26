@@ -1,11 +1,10 @@
 <template>
-  <FormInput :before="faCode" :model-value="jsonValue" readonly @click="openModal()" />
+  <FormInput before="fa:code" :model-value="jsonValue" readonly @click="openModal()" />
 </template>
 
 <script lang="ts" setup>
 import FormInput from '@/components/form/FormInput.vue'
 import { useModal } from '@/composables/modal.composable'
-import { faCode } from '@fortawesome/free-solid-svg-icons'
 import { useVModel } from '@vueuse/core'
 import { computed } from 'vue'
 

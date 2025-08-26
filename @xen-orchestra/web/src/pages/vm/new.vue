@@ -1,6 +1,6 @@
 <template>
   <div class="new">
-    <UiHeadBar :icon="faPlus">
+    <UiHeadBar icon="fa:plus">
       {{ t('new-vm.add') }}
       <template #actions>
         <VtsSelect :id="poolSelectId" accent="brand" />
@@ -153,11 +153,11 @@
                 <thead>
                   <tr>
                     <th>
-                      <VtsIcon accent="current" :icon="faNetworkWired" />
+                      <VtsIcon name="fa:network-wired" size="medium" />
                       {{ t('interfaces') }}
                     </th>
                     <th>
-                      <VtsIcon accent="current" :icon="faAt" />
+                      <VtsIcon name="fa:at" size="medium" />
                       {{ t('mac-addresses') }}
                     </th>
                     <th />
@@ -173,7 +173,7 @@
                     </td>
                     <td>
                       <UiButtonIcon
-                        :icon="faTrash"
+                        icon="fa:trash"
                         size="medium"
                         accent="brand"
                         variant="secondary"
@@ -183,7 +183,7 @@
                   </tr>
                   <tr>
                     <td colspan="3">
-                      <UiButton :left-icon="faPlus" variant="tertiary" accent="brand" size="medium" @click="addVif()">
+                      <UiButton left-icon="fa:plus" variant="tertiary" accent="brand" size="medium" @click="addVif()">
                         {{ t('new') }}
                       </UiButton>
                     </td>
@@ -197,20 +197,20 @@
               <thead>
                 <tr>
                   <th>
-                    <VtsIcon accent="current" :icon="faDatabase" />
+                    <VtsIcon name="fa:database" size="medium" />
                     {{ t('storage-repositories') }}
                   </th>
                   <th>
-                    <VtsIcon accent="current" :icon="faAlignLeft" />
+                    <VtsIcon name="fa:align-left" size="medium" />
                     {{ t('disk-name') }}
                   </th>
                   <th>
-                    <VtsIcon accent="current" :icon="faMemory" />
+                    <VtsIcon name="fa:memory" size="medium" />
                     <!-- TODO remove (GB) when we can use new selector -->
                     {{ `${t('size')} (GB)` }}
                   </th>
                   <th>
-                    <VtsIcon accent="current" :icon="faAlignLeft" />
+                    <VtsIcon name="fa:align-left" size="medium" />
                     {{ t('description') }}
                   </th>
                   <th />
@@ -250,7 +250,7 @@
                     </td>
                     <td>
                       <UiButtonIcon
-                        :icon="faTrash"
+                        icon="fa:trash"
                         size="medium"
                         accent="brand"
                         variant="secondary"
@@ -262,7 +262,7 @@
                 <tr>
                   <td colspan="5">
                     <UiButton
-                      :left-icon="faPlus"
+                      left-icon="fa:plus"
                       variant="tertiary"
                       accent="brand"
                       size="medium"
@@ -287,15 +287,15 @@
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
               <!-- TODO change label to manage pluralization when we can have multiple vm -->
-              <VtsResource :icon="faDisplay" count="1" :label="t('vms', 1)" />
-              <VtsResource :icon="faMicrochip" :count="vmState.vCPU" :label="t('vcpus')" />
-              <VtsResource :icon="faMemory" :count="`${ramFormatted} GB`" :label="t('ram')" />
+              <VtsResource icon="fa:display" count="1" :label="t('vms', 1)" />
+              <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
+              <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
-                :icon="faDatabase"
+                icon="fa:database"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
                 :label="t('vdis')"
               />
-              <VtsResource :icon="faNetworkWired" :count="vmState.vifs.length" :label="t('interfaces')" />
+              <VtsResource icon="fa:network-wired" :count="vmState.vifs.length" :label="t('interfaces')" />
             </VtsResources>
           </div>
           <!-- TOASTER -->
@@ -360,17 +360,6 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useFormSelect } from '@core/packages/form-select'
-import {
-  faAlignLeft,
-  faAt,
-  faDatabase,
-  faDisplay,
-  faMemory,
-  faMicrochip,
-  faNetworkWired,
-  faPlus,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

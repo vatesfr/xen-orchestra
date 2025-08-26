@@ -27,11 +27,11 @@
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
-                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  <VtsIcon size="medium" :name="headerIcon[column.id]" />
                   {{ column.label }}
                 </div>
               </th>
@@ -57,13 +57,13 @@
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="t('coming-soon')"
-                :icon="faEllipsis"
+                icon="fa:ellipsis"
                 accent="brand"
                 disabled
                 size="small"
               />
               <div v-else-if="column.id === 'job-name'">
-                <UiLink size="medium" :icon="faFloppyDisk" @click.stop>
+                <UiLink size="medium" icon="fa:floppy-disk" @click.stop>
                   {{ column.value }}
                 </UiLink>
               </div>
@@ -77,7 +77,7 @@
               <template v-else-if="column.id === 'last-runs'">
                 <ul class="last-three-runs">
                   <li v-for="(status, index) in column.value" :key="index" v-tooltip="status.tooltip">
-                    <NewVtsIcon size="medium" :name="status.icon" />
+                    <VtsIcon size="medium" :name="status.icon" />
                   </li>
                 </ul>
               </template>
@@ -107,7 +107,6 @@ import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-coll
 import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
-import NewVtsIcon from '@core/components/icon/NewVtsIcon.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -124,8 +123,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { createMapper } from '@core/packages/mapper'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faAlignLeft, faCaretSquareDown, faEllipsis, faFloppyDisk, faHashtag } from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -190,11 +187,11 @@ const { pageRecords: backupJobsRecords, paginationBindings } = usePagination('ba
 
 type BackupJobHeader = 'job-name' | 'mode' | 'last-runs' | 'schedules'
 
-const headerIcon: Record<BackupJobHeader, IconDefinition> = {
-  'job-name': faAlignLeft,
-  mode: faCaretSquareDown,
-  'last-runs': faCaretSquareDown,
-  schedules: faHashtag,
+const headerIcon: Record<BackupJobHeader, IconName> = {
+  'job-name': 'fa:align-left',
+  mode: 'fa:square-caret-down',
+  'last-runs': 'fa:square-caret-down',
+  schedules: 'fa:hashtag',
 }
 </script>
 

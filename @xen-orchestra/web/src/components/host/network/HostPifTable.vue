@@ -6,7 +6,7 @@
         <UiButton
           v-tooltip="t('coming-soon')"
           disabled
-          :left-icon="faPlus"
+          left-icon="fa:plus"
           variant="secondary"
           accent="brand"
           size="medium"
@@ -22,7 +22,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faEdit"
+            left-icon="fa:edit"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -32,7 +32,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faTrash"
+            left-icon="fa:trash"
             variant="tertiary"
             accent="danger"
             size="medium"
@@ -58,11 +58,11 @@
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
-                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
                 </div>
               </th>
@@ -88,7 +88,7 @@
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="t('coming-soon')"
-                :icon="faEllipsis"
+                icon="fa:ellipsis"
                 accent="brand"
                 disabled
                 size="small"
@@ -109,9 +109,8 @@
                 <VtsIcon
                   v-if="column.value.management"
                   v-tooltip="t('management')"
-                  accent="info"
-                  :icon="faCircle"
-                  :overlay-icon="faStar"
+                  name="legacy:primary"
+                  size="medium"
                 />
               </div>
               <div v-else-if="column.id === 'ip'" class="ip-addresses">
@@ -142,6 +141,7 @@ import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collec
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoPif } from '@/types/xo/pif.type.ts'
 import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
+import type { IconName } from '@core/icons'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -159,19 +159,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import {
-  faAlignLeft,
-  faAt,
-  faCaretDown,
-  faCircle,
-  faEdit,
-  faEllipsis,
-  faPlus,
-  faPowerOff,
-  faStar,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -247,15 +234,15 @@ const { pageRecords: pifsRecords, paginationBindings } = usePagination('pifs', r
 
 type pifHeader = 'network' | 'device' | 'status' | 'vlan' | 'ip' | 'mac' | 'mode' | 'more'
 
-const headerIcon: Record<pifHeader, IconDefinition> = {
-  network: faAlignLeft,
-  device: faAlignLeft,
-  status: faPowerOff,
-  vlan: faAlignLeft,
-  ip: faAt,
-  mac: faAt,
-  mode: faCaretDown,
-  more: faEllipsis,
+const headerIcon: Record<pifHeader, IconName> = {
+  network: 'fa:align-left',
+  device: 'fa:align-left',
+  status: 'fa:power-off',
+  vlan: 'fa:align-left',
+  ip: 'fa:at',
+  mac: 'fa:at',
+  mode: 'fa:caret-down',
+  more: 'fa:ellipsis',
 }
 </script>
 

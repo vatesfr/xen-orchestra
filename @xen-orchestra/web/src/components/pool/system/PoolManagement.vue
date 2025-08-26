@@ -7,7 +7,7 @@
     <template v-else>
       <VtsQuickInfoRow :label="t('master')">
         <template #value>
-          <UiLink v-if="primaryHost" :icon="faServer" :to="`/host/${pool.master}/`" size="medium">
+          <UiLink v-if="primaryHost" icon="fa:server" :to="`/host/${pool.master}/`" size="medium">
             {{ primaryHost.name_label }}
           </UiLink>
           <template v-else>
@@ -43,7 +43,6 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{

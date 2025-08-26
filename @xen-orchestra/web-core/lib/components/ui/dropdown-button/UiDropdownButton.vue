@@ -1,24 +1,23 @@
 <!-- v5 -->
 <template>
   <button :class="{ selected }" :disabled="isDisabled" class="ui-dropdown-item" type="button">
-    <VtsIcon :icon accent="current" class="left-icon" fixed-width />
+    <VtsIcon :name="icon" size="medium" />
     <span class="typo-action-button label">
       <slot />
     </span>
-    <VtsIcon :icon="faAngleDown" accent="current" class="right-icon" fixed-width />
+    <VtsIcon name="fa:angle-down" size="medium" />
   </button>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
+import type { IconName } from '@core/icons'
 
 const { disabled, selected, icon } = defineProps<{
   disabled?: boolean
   selected?: boolean
-  icon?: IconDefinition
+  icon?: IconName
 }>()
 
 const isDisabled = useDisabled(() => disabled)

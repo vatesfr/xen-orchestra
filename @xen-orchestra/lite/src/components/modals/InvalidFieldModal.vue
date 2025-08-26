@@ -1,6 +1,6 @@
 <template>
   <UiModal color="error" @submit="modal.approve()">
-    <ConfirmModalLayout :icon="faExclamationCircle">
+    <ConfirmModalLayout icon="fa:exclamation-circle">
       <template #title>{{ t('invalid-field') }}</template>
 
       <template #default>
@@ -21,7 +21,6 @@ import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayou
 import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
 import UiModal from '@/components/ui/modals/UiModal.vue'
 import { IK_MODAL } from '@/types/injection-keys'
-import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -12,8 +12,8 @@ import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection.ts'
 import type { XoVmController } from '@/types/xo/vm-controller.type.ts'
+import type { IconName } from '@core/icons'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { faDatabase, faDesktop, faServer } from '@fortawesome/free-solid-svg-icons'
 import type { XapiXoRecord } from '@vates/types'
 import { computed } from 'vue'
 
@@ -46,17 +46,17 @@ const record = computed(() => {
 
 const nameLabel = computed(() => record.value?.name_label ?? uuid)
 
-const icon = computed(() => {
+const icon = computed<IconName | undefined>(() => {
   if (type === 'VM' || type === 'VM-controller') {
-    return faDesktop
+    return 'fa:desktop'
   }
 
   if (type === 'host') {
-    return faServer
+    return 'fa:server'
   }
 
   if (type === 'SR') {
-    return faDatabase
+    return 'fa:database'
   }
 
   return undefined

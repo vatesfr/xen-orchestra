@@ -4,7 +4,7 @@
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
           <span class="power-state">
-            <VtsIcon :accent="powerState.accent" :icon="powerState.icon" />
+            <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
         </template>
@@ -15,7 +15,7 @@
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
           <span v-if="host" class="host-name">
-            <UiLink :icon="faServer" :to="`/host/${host.id}`" size="medium">
+            <UiLink icon="fa:server" :to="`/host/${host.id}`" size="medium">
               {{ host.name_label }}
             </UiLink>
           </span>
@@ -50,6 +50,7 @@
 <script lang="ts" setup>
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { VM_POWER_STATE, type XoVm } from '@/types/xo/vm.type.ts'
+import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
@@ -61,7 +62,6 @@ import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
-import { faMoon, faPause, faPlay, faServer, faStop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -85,13 +85,13 @@ const host = computed(() => getVmHost(vm))
 // })
 
 // TODO as above, add this to icon when new component is available
-const powerState = useMapper(
+const powerState = useMapper<VM_POWER_STATE, { icon: IconName; text: string }>(
   () => vm.power_state,
   {
-    [VM_POWER_STATE.RUNNING]: { icon: faPlay, accent: 'success', text: t('vm-status.running') },
-    [VM_POWER_STATE.HALTED]: { icon: faStop, accent: 'danger', text: t('vm-status.halted') },
-    [VM_POWER_STATE.PAUSED]: { icon: faPause, accent: 'brand', text: t('vm-status.paused') },
-    [VM_POWER_STATE.SUSPENDED]: { icon: faMoon, accent: 'info', text: t('vm-status.suspended') },
+    [VM_POWER_STATE.RUNNING]: { icon: 'legacy:running', text: t('vm-status.running') },
+    [VM_POWER_STATE.HALTED]: { icon: 'legacy:halted', text: t('vm-status.halted') },
+    [VM_POWER_STATE.PAUSED]: { icon: 'legacy:paused', text: t('vm-status.paused') },
+    [VM_POWER_STATE.SUSPENDED]: { icon: 'legacy:suspended', text: t('vm-status.suspended') },
   },
   VM_POWER_STATE.RUNNING
 )

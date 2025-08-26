@@ -10,7 +10,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('affinity-host')">
       <template v-if="affinityHost?.uuid" #value>
-        <UiLink :icon="faServer" :to="`/host/${affinityHost.uuid}`" size="medium">
+        <UiLink icon="fa:server" :to="`/host/${affinityHost.uuid}`" size="medium">
           {{ affinityHost.name_label }}
         </UiLink>
       </template>
@@ -44,7 +44,6 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

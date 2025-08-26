@@ -9,7 +9,7 @@
           size="medium"
           variant="secondary"
           accent="brand"
-          :left-icon="faPlus"
+          left-icon="fa:plus"
         >
           {{ t('new-vif') }}
         </UiButton>
@@ -22,7 +22,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faPowerOff"
+            left-icon="fa:power-off"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -32,7 +32,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faEdit"
+            left-icon="fa:edit"
             variant="tertiary"
             accent="brand"
             size="medium"
@@ -42,7 +42,7 @@
           <UiButton
             v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faTrash"
+            left-icon="fa:trash"
             variant="tertiary"
             accent="danger"
             size="medium"
@@ -67,11 +67,11 @@
                 <UiCheckbox :v-model="areAllSelected" accent="brand" disabled />
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
-                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
                 </div>
               </th>
@@ -97,7 +97,7 @@
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
                 v-tooltip="t('coming-soon')"
-                :icon="faEllipsis"
+                icon="fa:ellipsis"
                 accent="brand"
                 disabled
                 size="small"
@@ -141,6 +141,7 @@ import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collec
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoVif } from '@/types/xo/vif.type'
+import type { IconName } from '@core/icons'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -157,18 +158,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import {
-  faAlignLeft,
-  faAt,
-  faCaretDown,
-  faEdit,
-  faEllipsis,
-  faHashtag,
-  faPlus,
-  faPowerOff,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -229,15 +218,15 @@ const { pageRecords: vifsRecords, paginationBindings } = usePagination('vifs', r
 
 type VifHeader = 'network' | 'device' | 'status' | 'ip' | 'MAC' | 'MTU' | 'lockingMode' | 'more'
 
-const headerIcon: Record<VifHeader, IconDefinition> = {
-  network: faAlignLeft,
-  device: faAlignLeft,
-  status: faPowerOff,
-  ip: faAt,
-  MAC: faAt,
-  MTU: faHashtag,
-  lockingMode: faCaretDown,
-  more: faEllipsis,
+const headerIcon: Record<VifHeader, IconName> = {
+  network: 'fa:align-left',
+  device: 'fa:align-left',
+  status: 'fa:power-off',
+  ip: 'fa:at',
+  MAC: 'fa:at',
+  MTU: 'fa:hashtag',
+  lockingMode: 'fa:caret-down',
+  more: 'fa:ellipsis',
 }
 </script>
 

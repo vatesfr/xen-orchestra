@@ -14,7 +14,7 @@
     @click="xenApi.resetPoolMasterIp"
   >
     <div class="wrapper">
-      <UiIcon :icon="faWarning" />
+      <VtsIcon name="fa:triangle-exclamation" size="medium" />
       <p v-if="!asTooltip">
         <I18nT keypath="you-are-currently-on">
           <strong>{{ masterSessionStorage }}</strong>
@@ -27,10 +27,9 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useXenApiStore } from '@/stores/xen-api.store'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faWarning } from '@fortawesome/free-solid-svg-icons'
 import { useSessionStorage } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 

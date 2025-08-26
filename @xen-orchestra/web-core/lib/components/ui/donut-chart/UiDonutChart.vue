@@ -1,25 +1,27 @@
 <!-- v3 -->
 <template>
-  <svg class="ui-donut-chart" viewBox="0 0 100 100">
-    <circle class="segment accent--muted" cx="50" cy="50" r="40" />
-    <circle
-      v-for="(segment, index) in computedSegments"
-      :key="index"
-      :class="`accent--${segment.accent}`"
-      :stroke-dasharray="`${segment.percent} ${circumference - segment.percent}`"
-      :stroke-dashoffset="segment.offset"
-      class="segment"
-      cx="50"
-      cy="50"
-      r="40"
-    />
-    <VtsIcon :icon accent="current" height="24" width="24" x="38" y="38" />
-  </svg>
+  <div class="ui-donut-chart">
+    <VtsIcon v-if="icon" :name="icon" size="medium" class="chart-icon" />
+    <svg viewBox="0 0 100 100">
+      <circle class="segment accent--muted" cx="50" cy="50" r="40" />
+      <circle
+        v-for="(segment, index) in computedSegments"
+        :key="index"
+        :class="`accent--${segment.accent}`"
+        :stroke-dasharray="`${segment.percent} ${circumference - segment.percent}`"
+        :stroke-dashoffset="segment.offset"
+        class="segment"
+        cx="50"
+        cy="50"
+        r="40"
+      />
+    </svg>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 import { computed } from 'vue'
 
 export type DonutSegmentAccent = 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
@@ -31,7 +33,7 @@ export type DonutSegment = {
 
 export type DonutChartProps = {
   segments: DonutSegment[]
-  icon?: IconDefinition
+  icon?: IconName
 }
 
 const props = defineProps<DonutChartProps>()
@@ -59,8 +61,19 @@ const computedSegments = computed(() => {
 
 <style lang="postcss" scoped>
 .ui-donut-chart {
+  display: grid;
+  place-items: center;
   width: 100px;
   height: 100px;
+
+  .chart-icon {
+    grid-area: 1 / 1;
+    z-index: 1;
+  }
+
+  svg {
+    grid-area: 1 / 1;
+  }
 
   .segment {
     stroke-width: 10;

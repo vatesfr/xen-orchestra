@@ -2,7 +2,7 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      iconProp().preset(faShip),
+      iconProp().preset('fa:display'),
       slot('title'),
       slot('subtitle'),
       slot('default'),
@@ -27,5 +27,4 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayout.vue'
 import { iconProp, setting, slot } from '@/libs/story/story-param'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import { faShip } from '@fortawesome/free-solid-svg-icons'
 </script>

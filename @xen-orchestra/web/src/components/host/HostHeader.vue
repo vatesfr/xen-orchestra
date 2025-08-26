@@ -1,11 +1,11 @@
 <template>
   <UiHeadBar>
     <template #icon>
-      <UiObjectIcon size="medium" type="host" :state="host.power_state.toLocaleLowerCase() as HostState" />
+      <VtsObjectIcon size="medium" type="host" :state="toLower(host.power_state)" />
     </template>
     {{ host.name_label }}
     <template v-if="isMaster" #status>
-      <VtsIcon v-tooltip="t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+      <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
     </template>
   </UiHeadBar>
   <TabList>
@@ -44,14 +44,13 @@
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
-import type { HostState } from '@core/types/object-icon.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCircle, faStar } from '@fortawesome/free-solid-svg-icons'
+import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -10,7 +10,7 @@
           :to="{ name: '/dev/icons/[name]', params: { name: iconItem.id } }"
           class="icon-link"
         >
-          <NewVtsIcon :name="iconItem.id" class="icon" size="current" />
+          <VtsIcon :name="iconItem.id" class="icon" size="current" />
           <div class="icon-name text-ellipsis">{{ iconItem.id }}</div>
         </RouterLink>
       </div>
@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts" setup>
-import NewVtsIcon from '@core/components/icon/NewVtsIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { type IconName, icons } from '@core/icons'

@@ -9,8 +9,8 @@
     <VtsTable vertical-border>
       <thead>
         <tr>
-          <ColumnTitle id="host" :icon="faServer">{{ t('host') }}</ColumnTitle>
-          <ColumnTitle id="description" :icon="faAlignLeft">{{ t('host-description') }}</ColumnTitle>
+          <ColumnTitle id="host" icon="fa:server">{{ t('host') }}</ColumnTitle>
+          <ColumnTitle id="description" icon="fa:align-left">{{ t('host-description') }}</ColumnTitle>
         </tr>
       </thead>
       <tbody>
@@ -18,7 +18,7 @@
           <VtsCellObject :id="host.data.id">
             <UiObjectLink :route="`/host/${host.data.id}`">
               <template #icon>
-                <UiObjectIcon
+                <VtsObjectIcon
                   size="medium"
                   type="host"
                   :state="host.data.power_state.toLocaleLowerCase() as HostState"
@@ -45,17 +45,16 @@ import type { XoPool } from '@/types/xo/pool.type'
 import type { HostState } from '@core/types/object-icon.type'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
 import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTree } from '@core/composables/tree.composable'
-import { faAlignLeft, faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

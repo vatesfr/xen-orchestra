@@ -18,7 +18,7 @@
             variant="secondary"
             accent="brand"
             size="medium"
-            :left-icon="faPlus"
+            left-icon="fa:plus"
             @click="emit('connectAnotherPool')"
           >
             {{ t('connect-another-pool') }}
@@ -37,7 +37,6 @@ import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 const { serverId } = defineProps<{

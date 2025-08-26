@@ -18,7 +18,7 @@
       />
     </svg>
     <div v-if="size !== 'extra-small'" class="overlay">
-      <VtsIcon v-if="isComplete" class="icon" :icon :accent="iconAccent" />
+      <VtsIcon v-if="isComplete" class="icon" :name="icon" size="medium" />
       <span v-else>{{ percentValue }}</span>
     </div>
   </div>
@@ -26,8 +26,8 @@
 
 <script setup lang="ts">
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { faCheck, faExclamation } from '@fortawesome/free-solid-svg-icons'
 import { useClamp, useMax } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -90,8 +90,7 @@ const dashOffset = computed(() => {
 
 const percentValue = computed(() => n(valuePercent.value / 100, 'percent'))
 
-const iconAccent = computed(() => (isCompleteWithSuccess.value ? 'success' : accent))
-const icon = computed(() => (accent === 'warning' || accent === 'danger' ? faExclamation : faCheck))
+const icon = computed<IconName>(() => (accent === 'warning' || accent === 'danger' ? 'fa:exclamation' : 'fa:check'))
 
 const className = computed(() => [
   fontClass.value,
@@ -124,6 +123,10 @@ const className = computed(() => [
 
     .success {
       stroke: var(--color-success-item-base);
+    }
+
+    .icon {
+      color: var(--color-success-item-base);
     }
   }
 

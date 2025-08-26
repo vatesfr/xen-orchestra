@@ -7,9 +7,9 @@
     placement="bottom-end"
   >
     <template v-if="uiStore.isMobile" #trigger="{ isOpen, open }">
-      <UiButtonIcon accent="brand" size="medium" :selected="isOpen" :icon="faEllipsis" @click="open" />
+      <UiButtonIcon accent="brand" size="medium" :selected="isOpen" icon="fa:ellipsis" @click="open" />
     </template>
-    <MenuItem :icon="faPowerOff">
+    <MenuItem icon="fa:power-off">
       {{ t('change-state') }}
       <template #submenu>
         <VmActionPowerStateItems :vm-refs="selectedRefs" />
@@ -17,7 +17,7 @@
     </MenuItem>
     <VmActionMigrateItem :selected-refs="selectedRefs" />
     <VmActionCopyItem :selected-refs="selectedRefs" />
-    <MenuItem v-tooltip="t('coming-soon')" :icon="faEdit">
+    <MenuItem v-tooltip="t('coming-soon')" icon="fa:edit">
       {{ t('edit-config') }}
     </MenuItem>
     <VmActionSnapshotItem :vm-refs="selectedRefs" />
@@ -39,7 +39,6 @@ import MenuList from '@core/components/menu/MenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
-import { faEdit, faEllipsis, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

@@ -8,8 +8,8 @@
       <VtsSelect v-if="currentFilter?.type === 'enum'" :id="builderValueSelectId" accent="brand" />
       <UiInput v-else-if="hasValueInput" v-model="newFilter.builder.value" accent="brand" />
     </template>
-    <UiActionButton v-if="!newFilter.isAdvanced" :icon="faPencil" @click="enableAdvancedMode" />
-    <UiActionButton :icon="faRemove" @click="emit('remove', newFilter.id)" />
+    <UiActionButton v-if="!newFilter.isAdvanced" icon="fa:pencil" @click="enableAdvancedMode" />
+    <UiActionButton icon="fa:remove" @click="emit('remove', newFilter.id)" />
   </div>
 </template>
 
@@ -21,7 +21,6 @@ import type { Filter, FilterComparisons, FilterComparisonType, Filters, FilterTy
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { faPencil, faRemove } from '@fortawesome/free-solid-svg-icons'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 

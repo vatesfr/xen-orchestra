@@ -8,7 +8,7 @@
       :model-value="selectedLabel"
       :placeholder
       :required="isRequired"
-      :right-icon="faAngleDown"
+      right-icon="fa:angle-down"
       readonly
     />
 
@@ -22,7 +22,7 @@
               ref="searchRef"
               v-model="searchTerm"
               :placeholder="searchPlaceholder"
-              :right-icon="faMagnifyingGlass"
+              right-icon="fa:magnifying-glass"
               accent="brand"
             />
           </div>
@@ -46,6 +46,7 @@ import VtsOption from '@core/components/select/VtsOption.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import type { IconName } from '@core/icons'
 import {
   type FormSelect,
   type FormSelectId,
@@ -53,8 +54,6 @@ import {
   useFormSelectController,
 } from '@core/packages/form-select'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faAngleDown, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import { useCurrentElement, useElementSize } from '@vueuse/core'
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -62,7 +61,7 @@ import { useI18n } from 'vue-i18n'
 const { accent, id } = defineProps<{
   accent: 'brand' | 'warning' | 'danger'
   id: TSelectId
-  icon?: IconDefinition
+  icon?: IconName
 }>()
 
 defineSlots<{
