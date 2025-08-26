@@ -35,6 +35,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/Sequences] Prevent sequences from ending prematurely when a backup job is skipped (PR [#8859](https://github.com/vatesfr/xen-orchestra/pull/8859))
+- [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
 
 ### Packages to release
 

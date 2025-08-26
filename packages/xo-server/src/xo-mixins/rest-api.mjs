@@ -1131,7 +1131,7 @@ export default class RestApi {
     for (const path of Object.keys(spec)) {
       if (path[0] === '_') {
         const handler = spec[path]
-        this.#api[path.slice(1)](base, json(), async (req, res, next) => {
+        this.#api[path.slice(1)](base, json(), async function autoRegisteredHandler(req, res, next) {
           try {
             const result = await handler(req, res, next)
             if (result !== undefined) {
@@ -1152,7 +1152,36 @@ export default class RestApi {
       }
     }
     return () => {
-      throw new Error('not implemented')
+      this.unregisterRestApi(spec, base)
+    }
+  }
+
+  unregisterRestApi(spec, base = '/') {
+    for (const path of Object.keys(spec)) {
+      if (path[0] === '_') {
+        const method = path.slice(1)
+        let found = false
+        // looping through the API routes backwards, as the auto-registered routes were probably added last
+        for (let i = this.#api.stack.length - 1; i >= 0; i--) {
+          const route = this.#api.stack[i].route
+          // route.stack[0] is the json parser
+          // checking the handler name for an extra safety we're not removing a hardcoded route
+          if (
+            route.path === base &&
+            route.stack[1]?.method === method &&
+            route.stack[1]?.handle?.name === 'autoRegisteredHandler'
+          ) {
+            this.#api.stack.splice(i, 1)
+            found = true
+            break
+          }
+        }
+        if (!found) {
+          console.warn('Route to unregister not found', base)
+        }
+      } else {
+        this.unregisterRestApi(spec[path], join(base, path))
+      }
     }
   }
 }
