@@ -20,7 +20,7 @@
 
 - [Host/General] Display additional hardware data for Dell server (PR [#8861](https://github.com/vatesfr/xen-orchestra/pull/8861))
 - [i18n] Add Portuguese (Brazil) and update Czech, German, Spanish, Italian, Dutch and Swedish translations (PR [#8837](https://github.com/vatesfr/xen-orchestra/pull/8837))
-- [web] Add link to the rest api docs (PR [#8837](https://github.com/vatesfr/xen-orchestra/pull/8837))
+- [web] Add link to the rest api docs (PR [#8902](https://github.com/vatesfr/xen-orchestra/pull/8902))
 
 ### Bug fixes
 
@@ -52,6 +52,6 @@
 - @xen-orchestra/xapi minor
 - xo-common minor
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
