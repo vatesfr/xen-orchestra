@@ -90,7 +90,6 @@ const dashOffset = computed(() => {
 
 const percentValue = computed(() => n(valuePercent.value / 100, 'percent'))
 
-// TODO: created colored icons
 const icon = computed<IconName>(() => (accent === 'warning' || accent === 'danger' ? 'fa:exclamation' : 'fa:check'))
 
 const className = computed(() => [
@@ -124,6 +123,10 @@ const className = computed(() => [
 
     .success {
       stroke: var(--color-success-item-base);
+    }
+
+    .icon {
+      color: var(--color-success-item-base);
     }
   }
 

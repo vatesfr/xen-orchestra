@@ -1001,9 +1001,6 @@ watch(
 const vdis = computed(() => {
   const vdis = new Map<XenApiVdi['$ref'], { vdi: XenApiVdi; srName: string }>()
 
-const vdis = computed(() => {
-  const vdis = new Map<XenApiVdi['$ref'], { vdi: XenApiVdi; srName: string }>()
-
   for (const [srName, srVdis] of Object.entries(vdiIsosBySrName.value)) {
     srVdis.forEach(vdi => {
       vdis.set(vdi.$ref, {
