@@ -4,6 +4,7 @@ import { fromEvent } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
+import { checkVddkDependencies } from '@xen-orchestra/vmware-explorer/checks.mjs'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
 import { importDisksFromDatastore } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
@@ -211,5 +212,9 @@ export default class MigrateVm {
     })
 
     return vm.uuid
+  }
+
+  async checkVddkDependencies() {
+    return checkVddkDependencies()
   }
 }
