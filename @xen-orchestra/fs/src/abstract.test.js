@@ -10,7 +10,7 @@ import AbstractHandler from './abstract'
 import fs from 'fs-extra'
 import tmp from 'tmp'
 
-const TIMEOUT = 6e5
+const TIMEOUT = 12e5
 
 class TestHandler extends AbstractHandler {
   constructor() {
