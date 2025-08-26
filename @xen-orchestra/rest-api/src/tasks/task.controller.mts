@@ -9,7 +9,7 @@ import { provide } from 'inversify-binding-decorators'
 import { partialTasks, task, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import pDefer from 'promise-toolbox/defer'
 import { ApiError } from '../helpers/error.helper.mjs'
-import { Readable } from 'node:stream'
+import { Transform } from 'node:stream'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 
 @Route('tasks')
@@ -52,7 +52,14 @@ export class TaskController extends XoController<XoTask> {
       }
 
       const userFilter = filter === undefined ? undefined : CM.parse(filter).createPredicate()
-      const stream = new Readable({ read() {} })
+      const stream = new Transform({
+        objectMode: true,
+        transform([event, object], encoding, callback) {
+          const mapper = makeObjectMapper(req)
+          callback(null, JSON.stringify([event, mapper(object)]) + '\n')
+        },
+      })
+
       stream.on('close', () => {
         this.restApi.tasks.off('update', update).off('remove', remove)
       })
@@ -65,12 +72,11 @@ export class TaskController extends XoController<XoTask> {
 
       function update(task: XoTask) {
         if (userFilter === undefined || userFilter(task)) {
-          const mapper = makeObjectMapper(req)
-          stream.push(JSON.stringify(['update', mapper(task)]) + '\n')
+          stream.write(['update', task])
         }
       }
       function remove(taskId: XoTask['id']) {
-        stream.push(JSON.stringify(['remove', taskId]) + '\n')
+        stream.write(['remove', { id: taskId }])
       }
 
       this.restApi.tasks.on('update', update).on('remove', remove)
