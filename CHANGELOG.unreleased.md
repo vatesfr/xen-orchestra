@@ -31,7 +31,10 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/vmware-explorer patch
+- xo-web minor
 
 <!--packages-end-->
