@@ -1,17 +1,24 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ t('status') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!areHostsStatusReady" type="card" />
+    <VtsStateHero v-if="!areHostsStatusReady || !areVmsStatusReady" format="card" busy />
     <template v-else>
       <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" icon="fa:server" />
       <UiCardNumbers :label="t('total')" :value="poolDashboard?.hosts?.status?.total" size="small" />
-    </template>
-    <VtsDivider type="stretch" />
-    <VtsLoadingHero v-if="!areVmsStatusReady" type="card" />
-    <VtsNoDataHero v-else-if="poolDashboard?.vms?.status?.total === 0" type="card" />
-    <template v-else>
-      <VtsDonutChartWithLegend :segments="vmsSegments" :title="{ label: t('vms', 2) }" icon="fa:display" />
-      <UiCardNumbers :label="t('total')" :value="poolDashboard?.vms?.status?.total" size="small" />
+      <VtsDivider type="stretch" />
+      <VtsStateHero
+        v-if="poolDashboard?.vms?.status?.total === 0"
+        format="card"
+        type="no-data"
+        image-size="small"
+        horizontal
+      >
+        {{ t('no-vm-detected') }}
+      </VtsStateHero>
+      <template v-else>
+        <VtsDonutChartWithLegend :segments="vmsSegments" :title="{ label: t('vms', 2) }" icon="fa:display" />
+        <UiCardNumbers :label="t('total')" :value="poolDashboard?.vms?.status?.total" size="small" />
+      </template>
     </template>
   </UiCard>
 </template>
@@ -22,8 +29,7 @@ import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

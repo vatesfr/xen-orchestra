@@ -1,7 +1,7 @@
 <template>
   <UiCard class="pool-dashboard-status" :color="hasError ? 'error' : undefined">
     <UiCardTitle>{{ t('status') }}</UiCardTitle>
-    <VtsErrorNoDataHero v-if="hasError" type="card" />
+    <VtsStateHero v-if="hasError" format="card" type="error" image-size="medium">{{ t('error-no-data') }}</VtsStateHero>
     <UiCardSpinner v-else-if="!isReady" />
     <template v-else>
       <PoolDashboardStatusItem
@@ -31,7 +31,7 @@ import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiSeparator from '@/components/ui/UiSeparator.vue'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

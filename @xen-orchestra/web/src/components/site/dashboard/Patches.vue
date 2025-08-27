@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ t('patches') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!arePatchesReady" type="card" />
+    <VtsStateHero v-if="!arePatchesReady" format="card" busy />
     <template v-else>
       <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" />
       <VtsDivider type="stretch" />
@@ -16,7 +16,7 @@ import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'

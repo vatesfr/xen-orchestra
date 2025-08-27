@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isReady" type="card" />
+  <VtsStateHero v-if="!isReady" format="card" busy />
   <VtsColumns v-else>
     <VtsColumn>
       <PoolGeneralInfo :pool />
@@ -26,7 +26,7 @@ import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { logicAnd } from '@vueuse/math'
 
 defineProps<{ pool: XoPool }>()

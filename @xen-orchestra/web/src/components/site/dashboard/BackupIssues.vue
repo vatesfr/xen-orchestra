@@ -5,8 +5,10 @@
       <UiCounter :value="nBackupIssues" accent="danger" size="medium" variant="primary" />
       <template #description>{{ t('in-last-three-jobs') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!areBackupIssuesReady" type="card" />
-    <VtsNoDataHero v-else-if="!hasBackupIssues" type="card" />
+    <VtsStateHero v-if="!areBackupIssuesReady" format="card" busy />
+    <VtsStateHero v-else-if="!hasBackupIssues" format="card" type="no-data" horizontal image-size="small">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <div v-else class="backup-items">
       <VtsDataTable is-ready>
         <template #thead>
@@ -50,8 +52,7 @@ import type { IconName } from '@core/icons'
 import VtsBackupState from '@core/components/backup-state/VtsBackupState.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'

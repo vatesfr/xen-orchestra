@@ -1,21 +1,21 @@
 <template>
-  <UiCard>
+  <UiCard :class="{ 'card-error': error }">
     <UiCardTitle>
       {{ t('load-average') }}
       <template #description>{{ t('last-week') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="loading || data === null" type="card" />
-    <VtsErrorNoDataHero v-else-if="error" type="card" />
-    <VtsNoDataHero v-else-if="loadAverage.length === 0" type="card" />
+    <VtsStateHero v-if="loading || data === null" format="card" busy />
+    <VtsStateHero v-else-if="error" format="card" type="error">{{ t('error-no-data') }}</VtsStateHero>
+    <VtsStateHero v-else-if="loadAverage.length === 0" format="card" type="no-data" image-size="medium">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <VtsLinearChart v-else :data="loadAverage" :max-value />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import type { LinearChartData } from '@core/types/chart.ts'
-import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import type { XapiHostStats } from '@vates/types/common'
@@ -70,3 +70,9 @@ const maxValue = computed(() => {
   return Math.ceil(maxLoad / 5) * 5
 })
 </script>
+
+<style scoped lang="postcss">
+.card-error {
+  background-color: var(--color-danger-background-selected);
+}
+</style>

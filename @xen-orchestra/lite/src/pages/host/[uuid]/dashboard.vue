@@ -1,5 +1,7 @@
 <template>
-  <VtsObjectNotFoundHero v-if="host === undefined" :id type="page" />
+  <VtsStateHero v-if="host === undefined" format="page" type="not-found" image-size="large">
+    {{ t('object-not-found', { id }) }}
+  </VtsStateHero>
   <div v-else class="host-dashboard-view" :class="{ mobile: uiStore.isMobile }">
     <HostDashboardQuickInfo class="quick-info" :host />
     <HostDashboardVmsStatus class="vms-status" :host />
@@ -26,7 +28,7 @@ import { GRANULARITY } from '@/libs/xapi-stats.ts'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
-import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed, onUnmounted, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'

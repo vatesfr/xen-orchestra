@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('networking') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!areNetworksReady" type="card" />
+    <VtsStateHero v-if="!areNetworksReady" format="card" busy />
     <template v-else>
       <VtsQuickInfoRow :label="t('backup-network')">
         <template #value>
@@ -29,7 +29,7 @@ import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collec
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
