@@ -113,7 +113,7 @@ export class TaskController extends XoController<XoTask> {
 
   @Delete('')
   @SuccessResponse(noContentResp.status, noContentResp.description)
-  async deleteTasks() {
+  async deleteTasks(): Promise<void> {
     await this.restApi.tasks.clearLogs()
   }
 
@@ -123,7 +123,7 @@ export class TaskController extends XoController<XoTask> {
   @Delete('{id}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async deleteTask(@Path() id: string) {
+  async deleteTask(@Path() id: string): Promise<void> {
     const task = await this.getObject(id as XoTask['id'])
     await this.restApi.tasks.deleteLog(task.id)
   }
