@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero class="connection-error" image="error" type="card" no-background>
+  <VtsStateHero class="connection-error" type="error" format="card" no-background>
     <div class="container">
       <div class="typo-h1 title">
         {{ ip !== undefined ? t('unable-to-connect-to', { ip }) : t('unable-to-connect-to-the-pool') }}

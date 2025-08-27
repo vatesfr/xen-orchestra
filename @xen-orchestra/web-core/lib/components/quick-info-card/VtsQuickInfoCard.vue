@@ -1,7 +1,7 @@
 <template>
   <UiCard class="vts-quick-info-card">
     <UiCardTitle>{{ t('quick-info') }}</UiCardTitle>
-    <VtsLoadingHero v-if="loading" type="card" />
+    <VtsStateHero v-if="loading" format="card" busy />
     <div v-else class="info-container">
       <slot />
     </div>
@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts" setup>
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useI18n } from 'vue-i18n'

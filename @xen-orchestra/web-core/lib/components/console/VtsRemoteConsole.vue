@@ -1,12 +1,12 @@
 <template>
   <div :class="uiStore.isMobile ? 'mobile' : undefined" class="vts-remote-console">
-    <VtsLoadingHero v-if="!isReady" type="panel" />
+    <VtsStateHero v-if="!isReady" format="panel" busy />
     <div ref="console-container" class="console" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import VncClient from '@novnc/novnc/lib/rfb'
 import { whenever } from '@vueuse/core'

@@ -6,8 +6,10 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!areStoragesUsageReady" type="card" />
-    <VtsNoDataHero v-else-if="topFiveUsage.length === 0" type="card" />
+    <VtsStateHero v-if="!areStoragesUsageReady" format="card" busy />
+    <VtsStateHero v-else-if="topFiveUsage.length === 0" format="card" type="no-data" image-size="medium">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <template v-else>
       <VtsProgressBarGroup :items="progressBarItems" legend-type="percent" />
       <div class="total">
@@ -34,8 +36,7 @@ import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import VtsProgressBarGroup, {
   type ProgressBarGroupItem,
 } from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

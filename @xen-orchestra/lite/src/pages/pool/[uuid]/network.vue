@@ -6,7 +6,9 @@
     </UiCard>
     <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
-      <VtsNoSelectionHero type="panel" />
+      <VtsStateHero format="panel" type="no-selection">
+        {{ t('select-to-see-details') }}
+      </VtsStateHero>
     </UiPanel>
   </div>
 </template>
@@ -18,7 +20,7 @@ import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
-import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'

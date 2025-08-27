@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-ram-provisioning">
     <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!areHostsReady" type="card" />
+    <VtsStateHero v-if="!areHostsReady" format="card" busy />
     <template v-else>
       <VtsProgressBar
         :label="host.name_label"
@@ -31,7 +31,7 @@
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

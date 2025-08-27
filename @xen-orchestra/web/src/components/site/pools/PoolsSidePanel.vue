@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!arePoolsReady" type="panel" />
+  <VtsStateHero v-if="!arePoolsReady" format="panel" busy />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
@@ -168,7 +168,9 @@
             <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
           </span>
         </UiCardTitle>
-        <VtsNoDataHero v-if="hosts.length === 0" type="panel" />
+        <VtsStateHero v-if="hosts.length === 0" format="card" type="no-data" image-size="small">
+          {{ t('no-data') }}
+        </VtsStateHero>
         <template v-else>
           <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" icon="fa:server" size="small">
             {{ host.name_label }}
@@ -195,8 +197,7 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'

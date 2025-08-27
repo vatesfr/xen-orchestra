@@ -5,7 +5,9 @@
     </UiCard>
     <VmVifsSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
-      <VtsNoSelectionHero type="panel" />
+      <VtsStateHero format="panel" type="no-selection">
+        {{ t('select-to-see-details') }}
+      </VtsStateHero>
     </UiPanel>
   </div>
 </template>
@@ -17,7 +19,7 @@ import type { XenApiVif } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVifStore } from '@/stores/xen-api/vif.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'

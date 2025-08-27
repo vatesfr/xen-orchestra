@@ -1,8 +1,8 @@
 <template>
   <div class="table-container">
-    <VtsLoadingHero v-if="!isReady" type="table" />
-    <VtsErrorNoDataHero v-else-if="hasError" type="table" />
-    <VtsNoDataHero v-else-if="noDataMessage" type="table" />
+    <VtsStateHero v-if="!isReady" format="table" busy />
+    <VtsStateHero v-else-if="hasError" format="table" type="error">{{ t('error-no-data') }}</VtsStateHero>
+    <VtsStateHero v-else-if="noDataMessage" format="table" type="no-data">{{ t('no-data') }}</VtsStateHero>
     <VtsTable v-else vertical-border>
       <thead>
         <slot name="thead" />
@@ -15,10 +15,9 @@
 </template>
 
 <script lang="ts" setup>
-import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   isReady?: boolean
@@ -30,6 +29,8 @@ defineSlots<{
   thead(): any
   tbody(): any
 }>()
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

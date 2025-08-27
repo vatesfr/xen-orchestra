@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('pool-management') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsStateHero v-if="!isReady" format="card" busy />
     <template v-else>
       <VtsQuickInfoRow :label="t('master')">
         <template #value>
@@ -39,7 +39,7 @@ import type { XenApiPool } from '@/libs/xen-api/xen-api.types'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

@@ -126,9 +126,10 @@
           </tr>
         </template>
       </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredVifs.length === 0" type="table" image="no-result">
+      <VtsStateHero v-if="searchQuery && filteredVifs.length === 0" format="table" type="no-result">
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
+      <VtsStateHero v-if="!vifs.length" type="no-data" format="table">{{ t('no-vif-detected') }}</VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
       </UiTopBottomTable>

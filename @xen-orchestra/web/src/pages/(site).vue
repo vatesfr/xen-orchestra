@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!arePoolsReady" type="page" />
+  <VtsStateHero v-if="!arePoolsReady" format="page" busy />
   <RouterView v-slot="{ Component }">
     <SiteHeader />
     <component :is="Component" />
@@ -9,7 +9,7 @@
 <script lang="ts" setup>
 import SiteHeader from '@/components/site/SiteHeader.vue'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 
 useDefaultTab('/(site)', 'dashboard')

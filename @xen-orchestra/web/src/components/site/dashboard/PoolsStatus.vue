@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ t('pools-status') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!arePoolsStatusReady" type="card" />
+    <VtsStateHero v-if="!arePoolsStatusReady" format="card" busy />
     <template v-else>
       <VtsDonutChartWithLegend icon="fa:city" :segments />
       <UiCardNumbers :value="total" class="total" label="Total" size="small" />
@@ -14,7 +14,7 @@ import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

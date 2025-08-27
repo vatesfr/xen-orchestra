@@ -1,21 +1,21 @@
 <template>
-  <UiCard>
+  <UiCard :class="{ 'card-error': error }">
     <UiCardTitle>
       {{ t('network-throughput') }}
       <template #description>{{ t('last-week') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="loading || data === null" type="card" />
-    <VtsErrorNoDataHero v-else-if="error" type="card" />
-    <VtsNoDataHero v-else-if="networkUsage.length === 0" type="card" />
+    <VtsStateHero v-if="loading || data === null" format="card" busy />
+    <VtsStateHero v-else-if="error" format="card" type="error">{{ t('error-no-data') }}</VtsStateHero>
+    <VtsStateHero v-else-if="networkUsage.length === 0" format="card" type="no-data" image-size="medium">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <VtsLinearChart v-else :data="networkUsage" :max-value :value-formatter="byteFormatter" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import type { LinearChartData } from '@core/types/chart.ts'
-import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
@@ -88,3 +88,9 @@ const byteFormatter = (value: number | null) => {
   return `${size.value} ${size.prefix}`
 }
 </script>
+
+<style scoped lang="postcss">
+.card-error {
+  background-color: var(--color-danger-background-selected);
+}
+</style>

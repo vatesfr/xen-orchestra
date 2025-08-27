@@ -9,7 +9,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsLoadingHero v-if="!areHostsRamUsageReady" type="card" />
+    <VtsStateHero v-if="!areHostsRamUsageReady" format="card" busy />
     <template v-else>
       <HostsRamUsage :top-five-ram="poolDashboard?.hosts?.topFiveUsage?.ram" />
     </template>
@@ -19,7 +19,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsLoadingHero v-if="!areVmsRamUsageReady" type="card" />
+    <VtsStateHero v-if="!areVmsRamUsageReady" format="card" busy />
     <template v-else>
       <VmsRamUsage :top-five-ram="poolDashboard?.vms?.topFiveUsage?.ram" />
     </template>
@@ -30,7 +30,7 @@
 import HostsRamUsage from '@/components/pool/dashboard/ram-usage/HostsRamUsage.vue'
 import VmsRamUsage from '@/components/pool/dashboard/ram-usage/VmsRamUsage.vue'
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

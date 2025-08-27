@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!areHostsReady" type="page" />
+  <VtsStateHero v-if="!areHostsReady" format="page" busy />
   <UiCard v-else class="hosts">
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
@@ -46,7 +46,7 @@ import type { HostState } from '@core/types/object-icon.type'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
 import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
