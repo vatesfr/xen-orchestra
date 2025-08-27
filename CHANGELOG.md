@@ -4,6 +4,15 @@
 
 ### Enhancements
 
+- [Host/General] Display additional hardware data for Dell server (PR [#8861](https://github.com/vatesfr/xen-orchestra/pull/8861))
+- [V2V] Use vddk to transfer data from vmware (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
+- [V2V] Show if any prerequisite on XO is missing before import (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
+- [V2V] Show a form to install the VDDK library (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
+- [REST API] Expose `/rest/v0/docs/swagger.json` (PR [#8892](https://github.com/vatesfr/xen-orchestra/pull/8892))
+- [web] Add link to the rest api docs (PR [#8902](https://github.com/vatesfr/xen-orchestra/pull/8902))
+- [V2V] Use vddk to transfer data from vmware (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
+- [V2V] Show if any prerequisite on XO is missing before import (PR [#840](https://github.com/vatesfr/))
+
 - **Migrated REST API endpoints**:
 
   - `GET /rest/v0/hosts/<host-id>/smt` (PR [#8863](http://github.com/vatesfr/xen-orchestra/pull/8863))
@@ -11,18 +20,48 @@
   - `GET /rest/v0/vm-templates/<vm-template-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
   - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
   - `GET /rest/v0/vm-controllers/<vm-controller-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
+  - `GET /rest/v0/tasks` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8843))
+  - `GET /rest/v0/tasks/<task-id>` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8843))
+  - `GET /rest/v0/pools/<pool-id>/missing_patches` (PR [#8871](http://github.com/vatesfr/xen-orchestra/pull/8871))
+  - `GET /rest/v0/hosts/<host-id>/missing_patches` (PR [#8862](https://github.com/vatesfr/xen-orchestra/pull/8862))
 
 - **XO 6**:
   - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8873](https://github.com/vatesfr/xen-orchestra/pull/8873))
   - Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
+  - [i18n] Add Portuguese (Brazil) and update Czech, German, Spanish, Italian, Dutch and Swedish translations (PR [#8837](https://github.com/vatesfr/xen-orchestra/pull/8837))
+  - [Site] Add Backup Jobs page (PR [#8889](https://github.com/vatesfr/xen-orchestra/pull/8889))
+  - [Account Menu] Add link to REST API documentation (PR [#8904](https://github.com/vatesfr/xen-orchestra/pull/8904))
+
+### Bug fixes
+
+- [Backup/Sequences] Prevent sequences from ending prematurely when a backup job is skipped (PR [#8859](https://github.com/vatesfr/xen-orchestra/pull/8859))
+- [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
+- [Backup] Update timeout in filesystem for expensive listing requests (PR [#8903](https://github.com/vatesfr/xen-orchestra/pull/8903))
+- [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
 
 ### Released packages
 
-- @vates/types 1.10.0
-- @xen-orchestra/web-core 0.27.0
-- @xen-orchestra/rest-api 0.14.0
-- @xen-orchestra/web 0.25.0
-- xo-server 5.185.0
+- @vates/read-chunk 1.2.1
+- @xen-orchestra/fs 4.6.3
+- xo-common 0.9.0
+- xen-api 4.7.4
+- @vates/nbd-client 3.2.0
+- @vates/types 1.11.0
+- @xen-orchestra/xapi 8.4.0
+- @xen-orchestra/backups 0.64.0
+- @xen-orchestra/backups-cli 1.1.3
+- @xen-orchestra/immutable-backups 1.0.24
+- @xen-orchestra/web-core 0.28.0
+- @xen-orchestra/mixins 0.16.5
+- @xen-orchestra/proxy 0.29.28
+- @xen-orchestra/rest-api 0.15.0
+- @xen-orchestra/vmware-explorer 0.10.0
+- @xen-orchestra/web 0.26.0
+- xo-acl-resolver 0.5.2
+- xo-server 5.186.0
+- xo-server-audit 0.14.1
+- xo-server-test 0.0.2
+- xo-web 5.183.0
 
 ## **5.109.1** (2025-08-06)
 

@@ -29,7 +29,7 @@
     "node": ">=15.3"
   },
   "dependencies": {
-    "@vates/read-chunk": "^1.2.0",
+    "@vates/read-chunk": "^1.2.1",
     "chalk": "^5.0.1",
     "content-type": "^1.0.5",
     "fs-extra": "^11.1.0",
