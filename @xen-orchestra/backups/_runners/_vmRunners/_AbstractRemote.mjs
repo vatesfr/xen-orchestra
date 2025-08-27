@@ -13,6 +13,8 @@ import { Task } from '../../Task.mjs'
 
 export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstract {
   _filterPredicate
+  _hasTransferredData
+
   constructor({
     config,
     job,
@@ -141,7 +143,16 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
         })
       }, 'writer.beforeBackup()')
       await this._run()
-      await this._healthCheck()
+
+      if (this._hasTransferredData === undefined) {
+        throw new Error('Missing tag to check there are some transferred data ')
+      }
+
+      if (this._hasTransferredData) {
+        await this._healthCheck()
+      } else {
+        Task.info(`No healthCheck needed because no data was transferred.`)
+      }
     })
   }
 }
