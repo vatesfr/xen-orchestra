@@ -7,7 +7,7 @@
       <VtsProgressBarGroup :items="data.progressBarItems" :n-items="N_ITEMS" legend-type="percent" />
       <div>
         <UiCardNumbers
-          :label="t('total-used:')"
+          :label="t('total-used')"
           :unit="data.usedSize.prefix"
           :value="data.usedSize.value"
           size="medium"
@@ -65,8 +65,8 @@ const data = computed(() => {
 
   return {
     progressBarItems,
-    maxSize: formatSizeRaw(maxSize, 2),
-    usedSize: formatSizeRaw(usedSize, 2),
+    maxSize: formatSizeRaw(maxSize, 0),
+    usedSize: formatSizeRaw(usedSize, 0),
   }
 })
 </script>

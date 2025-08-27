@@ -6,7 +6,7 @@
       <VtsProgressBar
         :current="vCpusCount"
         :label="t('vcpus')"
-        :thresholds="cpuProgressThresholds()"
+        :thresholds="cpuProgressThresholds(t('cpu-provisioning-warning'))"
         :total="cpusCount"
         legend-type="percent"
       />
