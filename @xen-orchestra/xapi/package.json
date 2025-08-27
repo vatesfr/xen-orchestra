@@ -27,7 +27,7 @@
     "@vates/decorate-with": "^2.1.0",
     "@vates/nbd-client": "^3.1.4",
     "@vates/parse-duration": "^0.1.1",
-    "@vates/read-chunk": "^1.2.0",
+    "@vates/read-chunk": "^1.2.1",
     "@vates/task": "^0.6.2",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/disk-transform": "^1.1.0",
