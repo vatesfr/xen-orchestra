@@ -32,6 +32,13 @@
   - [Site] Add Backup Jobs page (PR [#8889](https://github.com/vatesfr/xen-orchestra/pull/8889))
   - [Account Menu] Add link to REST API documentation (PR [#8904](https://github.com/vatesfr/xen-orchestra/pull/8904))
 
+### Bug fixes
+
+- [Backup/Sequences] Prevent sequences from ending prematurely when a backup job is skipped (PR [#8859](https://github.com/vatesfr/xen-orchestra/pull/8859))
+- [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
+- [Backup] Update timeout in filesystem for expensive listing requests (PR [#8903](https://github.com/vatesfr/xen-orchestra/pull/8903))
+- [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
+
 ### Released packages
 
 - @vates/read-chunk 1.2.1
@@ -64,10 +71,6 @@
 
 - [SR/disks] Do not display "Image format" column if SR is ISO type (PR [#8852](https://github.com/vatesfr/xen-orchestra/pull/8852))
 - Fix `incorrect state` error when trying to delete a disabled server [#11128](https://xcp-ng.org/forum/topic/11128/can-t-delete-disconnected-server-in-settings) (PR [#8854](https://github.com/vatesfr/xen-orchestra/pull/8854))
-- [Backup/Sequences] Prevent sequences from ending prematurely when a backup job is skipped (PR [#8859](https://github.com/vatesfr/xen-orchestra/pull/8859))
-- [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
-- [Backup] Update timeout in filesystem for expensive listing requests (PR [#8903](https://github.com/vatesfr/xen-orchestra/pull/8903))
-- [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
 
 - **XO 6:**
   - [Pool,Host/Dashboard] CPU provisioning considers all VMs instead of just running VMs (PR [#8858](https://github.com/vatesfr/xen-orchestra/pull/8858))
