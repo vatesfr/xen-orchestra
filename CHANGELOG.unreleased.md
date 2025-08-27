@@ -31,19 +31,4 @@
 
 <!--packages-start-->
 
-- @vates/nbd-client minor
-- @vates/read-chunk patch
-- @vates/types minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/fs patch
-- @xen-orchestra/mixins patch
-- @xen-orchestra/rest-api minor
-- @xen-orchestra/vmware-explorer minor
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- @xen-orchestra/xapi minor
-- xo-common minor
-- xo-server minor
-- xo-web minor
-
 <!--packages-end-->

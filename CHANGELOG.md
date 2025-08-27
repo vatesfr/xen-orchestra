@@ -34,11 +34,27 @@
 
 ### Released packages
 
-- @vates/types 1.10.0
-- @xen-orchestra/web-core 0.27.0
-- @xen-orchestra/rest-api 0.14.0
-- @xen-orchestra/web 0.25.0
-- xo-server 5.185.0
+- @vates/read-chunk 1.2.1
+- @xen-orchestra/fs 4.6.3
+- xo-common 0.9.0
+- xen-api 4.7.4
+- @vates/nbd-client 3.2.0
+- @vates/types 1.11.0
+- @xen-orchestra/xapi 8.4.0
+- @xen-orchestra/backups 0.64.0
+- @xen-orchestra/backups-cli 1.1.3
+- @xen-orchestra/immutable-backups 1.0.24
+- @xen-orchestra/web-core 0.28.0
+- @xen-orchestra/mixins 0.16.5
+- @xen-orchestra/proxy 0.29.28
+- @xen-orchestra/rest-api 0.15.0
+- @xen-orchestra/vmware-explorer 0.10.0
+- @xen-orchestra/web 0.26.0
+- xo-acl-resolver 0.5.2
+- xo-server 5.186.0
+- xo-server-audit 0.14.1
+- xo-server-test 0.0.2
+- xo-web 5.183.0
 
 ## **5.109.1** (2025-08-06)
 
