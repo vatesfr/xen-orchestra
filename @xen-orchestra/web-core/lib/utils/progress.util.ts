@@ -47,7 +47,7 @@ export function useProgressToLegend(
   function toLegend(label: string, progress: Progress | Reactive<Progress>): ProgressBarLegend | undefined {
     switch (type.value) {
       case 'percent':
-        return { label, value: n(toValue(progress.percentage) / 100, 'percent') }
+        return { label, value: n(toValue(progress.percentage) / 100, { maximumFractionDigits: 1, style: 'percent' }) }
       case 'bytes':
         return { label, value: formatSize(toValue(progress.current), 0) }
       case 'bytes-with-total':
