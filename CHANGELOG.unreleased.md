@@ -18,6 +18,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 [Backup]: fix error footer1 !== footer2 (PR [#8882](https://github.com/vatesfr/pull/8882))
+- [Backup] Fix false positive in FullRemote transfer where tag is undefined (PR [#8907](https://github.com/vatesfr/xen-orchestra/pull/8907))
 
 ### Packages to release
 
@@ -36,6 +37,7 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
