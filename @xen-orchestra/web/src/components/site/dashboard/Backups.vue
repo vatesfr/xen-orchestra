@@ -1,8 +1,10 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ t('backups') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!areBackupsReady" type="card" />
-    <VtsNoDataHero v-else-if="backups === undefined" type="card" />
+    <VtsStateHero v-if="!areBackupsReady" format="card" busy />
+    <VtsStateHero v-else-if="!backups" format="card" type="no-data" horizontal>
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend :segments="jobsSegments" :title="jobsTitle" />
       <UiCardNumbers :label="t('total')" :value="backups.jobs.total" size="small" />
@@ -18,8 +20,7 @@ import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

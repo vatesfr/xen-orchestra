@@ -1,7 +1,7 @@
 <template>
-  <div :class="[type, { error }]" class="vts-state-hero">
+  <div :class="[classNames, { horizontal, error, success }]" class="vts-state-hero">
     <UiLoader v-if="busy" class="loader" />
-    <img v-else-if="imageSrc" :src="imageSrc" alt="" class="image" />
+    <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
     <div v-if="slots.default" :class="typoClass" class="content">
       <slot />
     </div>
@@ -10,23 +10,34 @@
 
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
+import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
 
-export type StateHeroType = 'page' | 'card' | 'panel' | 'table'
+export type StateHeroFormat = 'page' | 'card' | 'panel' | 'table'
 
-const { type, busy, image, noBackground } = defineProps<{
-  type: StateHeroType
+type StateHeroType =
+  | 'no-result'
+  | 'under-construction'
+  | 'no-data'
+  | 'no-selection'
+  | 'error'
+  | 'not-found'
+  | 'offline'
+  | 'all-good'
+  | 'all-done'
+
+const {
+  format,
+  type,
+  imageSize = 'medium',
+  busy,
+  noBackground,
+} = defineProps<{
+  format: StateHeroFormat
+  type?: StateHeroType
+  imageSize?: 'small' | 'medium' | 'large'
+  horizontal?: boolean
   busy?: boolean
-  image?:
-    | 'no-result'
-    | 'under-construction'
-    | 'no-data'
-    | 'no-selection'
-    | 'error'
-    | 'not-found'
-    | 'offline'
-    | 'all-good'
-    | 'all-done'
   noBackground?: boolean
 }>()
 
@@ -34,15 +45,27 @@ const slots = defineSlots<{
   default?(): any
 }>()
 
-const typoClass = computed(() => (type === 'page' ? 'typo-h2' : 'typo-h4'))
-const error = computed(() => !noBackground && !busy && image === 'error')
+const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
+
+const classNames = computed(() => {
+  return [
+    toVariants({
+      imageSize,
+      format,
+    }),
+  ]
+})
+
+const error = computed(() => !noBackground && !busy && type === 'error')
+
+const success = computed(() => !busy && (type === 'all-good' || type === 'all-done'))
 
 const imageSrc = computed(() => {
-  if (!image) {
+  if (!type) {
     return undefined
   }
 
-  return new URL(`../../assets/${image}.svg`, import.meta.url).href
+  return new URL(`../../assets/${type}.svg`, import.meta.url).href
 })
 </script>
 
@@ -50,9 +73,38 @@ const imageSrc = computed(() => {
 .vts-state-hero {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2.4rem;
+
+  &:not(.horizontal) {
+    flex-direction: column;
+    .content {
+      align-items: center;
+    }
+  }
+
+  .image {
+    order: 2;
+  }
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
+
+  .loader,
+  .content {
+    order: 3;
+    color: var(--color-brand-txt-base);
+  }
+
+  &.success {
+    .content {
+      color: var(--color-success-txt-base);
+    }
+  }
 
   &.error {
     background-color: var(--color-danger-background-selected);
@@ -62,20 +114,25 @@ const imageSrc = computed(() => {
     }
   }
 
-  .loader,
-  .content {
-    color: var(--color-brand-txt-base);
+  &.format--card {
+    gap: 2rem;
+
+    .content {
+      order: 3;
+    }
+
+    .loader {
+      font-size: 9.6rem;
+      order: 1;
+    }
+
+    .image {
+      order: 2;
+    }
   }
 
-  .image {
-    order: 2;
-  }
-
-  .content {
-    order: 3;
-  }
-
-  &.page {
+  &.format--table {
+    padding: 4rem;
     gap: 2.4rem;
 
     .content {
@@ -84,36 +141,15 @@ const imageSrc = computed(() => {
 
     .loader {
       order: 1;
-      font-size: 10rem;
+      font-size: 9.6rem;
     }
 
     .image {
       order: 2;
-      width: 90%;
-      max-height: none;
     }
   }
 
-  &.card {
-    gap: 2rem;
-
-    .content {
-      order: 3;
-    }
-
-    .loader {
-      font-size: 6rem;
-      order: 1;
-    }
-
-    .image {
-      order: 2;
-      width: 70%;
-      max-height: 20rem;
-    }
-  }
-
-  &.panel {
+  &.format--panel {
     gap: 4rem;
     justify-content: unset;
     padding-top: 8rem;
@@ -129,26 +165,41 @@ const imageSrc = computed(() => {
 
     .image {
       order: 2;
-      width: 80%;
     }
   }
 
-  &.table {
-    padding: 4rem;
+  &.format--page {
     gap: 2.4rem;
 
     .content {
       order: 3;
     }
 
-    .image {
-      order: 2;
-      max-height: 20rem;
-    }
-
     .loader {
       order: 1;
-      font-size: 10rem;
+      font-size: 9.6rem;
+    }
+
+    .image {
+      order: 2;
+    }
+  }
+
+  &.imageSize--small {
+    .image {
+      max-height: 18rem;
+    }
+  }
+
+  &.imageSize--medium {
+    .image {
+      max-height: 30rem;
+    }
+  }
+
+  &.imageSize--large {
+    .image {
+      max-height: 50rem;
     }
   }
 }

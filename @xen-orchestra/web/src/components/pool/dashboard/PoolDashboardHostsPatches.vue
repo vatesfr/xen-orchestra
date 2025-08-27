@@ -8,8 +8,11 @@
         </template>
       </UiCardTitle>
     </div>
-    <VtsLoadingHero v-if="!areMissingPatchesReady" type="card" />
-    <VtsAllDoneHero v-else-if="noMissingPatches" type="card" />
+    <VtsStateHero v-if="!areMissingPatchesReady" format="card" busy />
+    <VtsStateHero v-else-if="noMissingPatches" format="card" type="all-done" image-size="small">
+      <span> {{ t('all-good') }} </span>
+      <span>{{ t('patches-up-to-date') }}</span>
+    </VtsStateHero>
     <div v-else class="table-wrapper">
       <VtsDataTable is-ready class="table">
         <template #thead>
@@ -43,8 +46,7 @@ import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsAllDoneHero from '@core/components/state-hero/VtsAllDoneHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useTable } from '@core/composables/table.composable.ts'

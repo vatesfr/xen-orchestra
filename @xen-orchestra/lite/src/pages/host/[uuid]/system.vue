@@ -1,5 +1,7 @@
 <template>
-  <VtsObjectNotFoundHero v-if="host === undefined" :id type="page" />
+  <VtsStateHero v-if="host === undefined" format="page" type="not-found" image-size="large">
+    {{ t('object-not-found', { id }) }}
+  </VtsStateHero>
   <VtsColumns v-else>
     <VtsColumn>
       <HostSystemGeneralInformation :host />
@@ -26,11 +28,14 @@ import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
-import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const route = useRoute<'/host/[uuid]/system'>()
+
+const { t } = useI18n()
 
 const id = computed(() => route.params.uuid as XenApiHost['uuid'])
 

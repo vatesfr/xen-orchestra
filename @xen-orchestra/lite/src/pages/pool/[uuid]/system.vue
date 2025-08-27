@@ -1,6 +1,6 @@
 <template>
-  <VtsNoDataHero v-if="pool === undefined" type="page" />
-  <VtsLoadingHero v-else-if="!isReady" type="page" />
+  <VtsStateHero v-if="pool === undefined" format="page" type="no-data">{{ t('no-data') }}</VtsStateHero>
+  <VtsStateHero v-else-if="!isReady" format="page" busy />
   <VtsColumns v-else>
     <VtsColumn>
       <PoolGeneralInfo :pool />
@@ -22,11 +22,12 @@ import { usePageTitleStore } from '@/stores/page-title.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool, isReady } = usePoolStore().subscribe()
+
+const { t } = useI18n()
 
 usePageTitleStore().setTitle(useI18n().t('system'))
 </script>

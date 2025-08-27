@@ -265,7 +265,7 @@
   "load-average": "میانگین مصرف",
   "load-now": "اکنون بارگذاری کنید",
   "loading-hosts": "در حال بارگذاری میزبان ها…",
-  "loading-in-progress": "بارگیری در حال انجام است…",
+  "loading": "بارگیری در حال انجام است…",
   "locking-mode": "حالت قفل کردن",
   "locking-mode-default": "حالت قفل کردن پیش‌فرض",
   "log-out": "خروج",

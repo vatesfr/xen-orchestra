@@ -1,8 +1,10 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!areVmsStatusReady" type="card" />
-    <VtsNoDataHero v-else-if="status?.total === 0" type="card" />
+    <VtsStateHero v-if="!areVmsStatusReady" format="card" busy />
+    <VtsStateHero v-else-if="status?.total === 0" format="card" horizontal type="no-data">
+      {{ t('no-vm-detected') }}
+    </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend icon="fa:desktop" :segments />
       <UiCardNumbers :label="t('total')" :value="status?.total" class="total" size="small" />
@@ -15,8 +17,7 @@ import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
