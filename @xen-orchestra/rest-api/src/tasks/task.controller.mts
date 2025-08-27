@@ -147,7 +147,7 @@ export class TaskController extends XoController<XoTask> {
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async abortTask(@Path() id: string, @Query() sync?: boolean) {
+  async abortTask(@Path() id: string, @Query() sync?: boolean): Promise<string | void> {
     const taskId = id as XoTask['id']
 
     const action = async () => {
