@@ -5,6 +5,7 @@ export type XoBackupLog = {
   id: Branded<'backup-log'>
   type: 'backup-log'
   jobId: XoBackupJob['id']
-  status: 'success' | 'failure' | 'skipped' | 'interrupted'
-  end: number
+  status: 'success' | 'failure' | 'skipped' | 'interrupted' | 'pending'
+  start: number
+  end?: number
 }
