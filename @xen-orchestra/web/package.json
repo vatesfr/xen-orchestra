@@ -25,7 +25,7 @@
     "@types/d3-time-format": "^4.0.3",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^18.19.80",
-    "@vates/types": "^1.10.0",
+    "@vates/types": "^1.11.0",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/tsconfig": "^0.7.0",
     "@vueuse/core": "^13.0.0",
