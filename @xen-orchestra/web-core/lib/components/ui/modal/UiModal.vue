@@ -4,14 +4,14 @@
       <UiButtonIcon
         v-if="onDismiss"
         :accent="closeIconAccent"
-        :icon="faXmark"
         :target-scale="2"
         class="dismiss-button"
+        icon="fa:xmark"
         size="small"
         @click="emit('dismiss')"
       />
       <main class="main">
-        <NewVtsIcon v-if="icon" :name="icon" class="icon" size="current" />
+        <VtsIcon v-if="icon" :name="icon" class="icon" size="current" />
         <div v-if="slots.title" class="typo-h4">
           <slot name="title" />
         </div>
@@ -26,12 +26,11 @@
 
 <script lang="ts" setup>
 import VtsButtonGroup from '@core/components/button-group/VtsButtonGroup.vue'
-import NewVtsIcon from '@core/components/icon/NewVtsIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 export type ModalAccent = 'info' | 'success' | 'warning' | 'danger'
