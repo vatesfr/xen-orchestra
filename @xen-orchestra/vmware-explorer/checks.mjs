@@ -12,8 +12,7 @@ import fs from 'node:fs/promises'
     exec('nbdinfo --version', (error, stdout, stderr) => {
       if (error) {
         return resolve({
-          installed: false,
-          error,
+          error: `exit code ${error.code}`,
           status: 'error',
         })
       }
@@ -38,8 +37,7 @@ import fs from 'node:fs/promises'
     exec('nbdkit --version', (error, stdout, stderr) => {
       if (error) {
         return resolve({
-          installed: false,
-          error,
+          error: `exit code ${error.code}`,
           status: 'error',
         })
       }
