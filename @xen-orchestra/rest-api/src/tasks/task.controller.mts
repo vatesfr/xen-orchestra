@@ -9,7 +9,7 @@ import {
   noContentResp,
   notFoundResp,
   unauthorizedResp,
-  Unbrand,
+  type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { partialTasks, task, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
