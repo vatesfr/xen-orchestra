@@ -30,7 +30,7 @@
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/disk-transform": "^1.1.0",
-    "@xen-orchestra/fs": "^4.6.2",
+    "@xen-orchestra/fs": "^4.6.3",
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/qcow2": "^1.0.0",
     "@xen-orchestra/template": "^0.1.0",
