@@ -27,9 +27,11 @@ function EsxiCheckResults({ esxiCheck }) {
         const { status, error, version, expectedVersion } = value
         return (
           <li key={name}>
-            <Icon icon={status} />
-            {name} :{status === 'success' && ' ok'}
-            {status === 'error' && error}
+            <Icon icon={status} size='lg' fixedWidth />
+            &nbsp;
+            {name} : {status === 'success' && ' ok'}
+            {status === 'error' && `"${error}"`}
+            &nbsp;
             {status === 'error' && _('esxiCheckingPrerequisiteError')}
             {version && status === 'alarm' && _('esxiCheckedPrerequisiteVersion', { version, expectedVersion })}
           </li>

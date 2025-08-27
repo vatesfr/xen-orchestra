@@ -26,8 +26,7 @@ const messages = {
   esxiCheckedPrerequisite: 'Result of the prerequisite check on XO',
 
   esxiCheckingPrerequisiteError: 'Must be corrected before importing VM',
-  // eslint-disable-next-line no-template-curly-in-string
-  esxiCheckedPrerequisiteVersion: 'expected version ${expectedVersion} , ${version} installed',
+  esxiCheckedPrerequisiteVersion: 'expected version {expectedVersion} , {version} installed',
   esxiImportSslCertificate: 'Skip SSL check',
   esxiImportThin: 'Thin mode',
   esxiImportThinDescription:
