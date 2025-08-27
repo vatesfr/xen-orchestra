@@ -4316,6 +4316,24 @@ export const importVddkLib = file => {
       })
   })
 }
+export const installNbdInfo = file => {
+  return _call('esxi.installNbdInfoFromSource')
+    .then(() => {
+      success('nbdInfo successfullly installed successfully installed')
+    })
+    .catch(err => {
+      error('fail to install nbdInfo', err)
+    })
+}
+export const installNbdKit = file => {
+  return _call('esxi.installNbdKitFromSource')
+    .then(() => {
+      success('nbdkit successfullly installed successfully installed')
+    })
+    .catch(err => {
+      error('fail to install nbdkit', err)
+    })
+}
 // GitHub API ---------------------------------------------------------------
 const _callGithubApi = async (endpoint = '') => {
   const url = new URL('https://api.github.com/repos/vatesfr/xen-orchestra')

@@ -8,7 +8,15 @@ import Icon from 'icon'
 import React from 'react'
 import { connectStore, resolveId } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { esxiCheckInstall, esxiListVms, importVddkLib, importVmsFromEsxi, isSrWritable } from 'xo'
+import {
+  esxiCheckInstall,
+  esxiListVms,
+  importVddkLib,
+  importVmsFromEsxi,
+  installNbdInfo,
+  installNbdKit,
+  isSrWritable,
+} from 'xo'
 import { find, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
@@ -79,6 +87,14 @@ class EsxiImport extends Component {
     } catch (error) {
       this.setState({ esxiCheckError: error })
     }
+    return this._esxiCheck()
+  }
+  _installNbdInfo = async () => {
+    await installNbdInfo()
+    return this._esxiCheck()
+  }
+  _installNbKit = async () => {
+    await installNbdKit()
     return this._esxiCheck()
   }
   _getDefaultNetwork = createSelector(
@@ -184,6 +200,51 @@ class EsxiImport extends Component {
 
     if (esxiCheck === undefined) {
       return <div>checking</div>
+    }
+
+    if (esxiCheck.nbdInfos?.status !== 'success') {
+      return (
+        <div>
+          {esxiCheck.nbdInfos.version === undefined && (
+            <div>
+              <p>nbdinfo library is not installed</p>
+              <div className='form-group pull-right'>
+                <ActionButton btnStyle='primary' className='mr-1' handler={this._installNbdInfo} icon='import'>
+                  install Nbdinfo (debian based system)
+                </ActionButton>
+              </div>
+            </div>
+          )}
+          {esxiCheck.nbdInfos.version !== undefined && (
+            <p>
+              nbdinfo library is outdated expecting {esxiCheck.nbdInfos.expectedVersion}, got{' '}
+              {esxiCheck.nbdInfos.version}
+            </p>
+          )}
+        </div>
+      )
+    }
+
+    if (esxiCheck.nbdkit?.status !== 'success') {
+      return (
+        <div>
+          {esxiCheck.nbdkit.version === undefined && (
+            <div>
+              <p>nbdinfo library is not installed</p>
+              <div className='form-group pull-right'>
+                <ActionButton btnStyle='primary' className='mr-1' handler={this._installNbKit} icon='import'>
+                  install Nbdkit (debian based system)
+                </ActionButton>
+              </div>
+            </div>
+          )}
+          {esxiCheck.nbdkit.version !== undefined && (
+            <p>
+              nbdinfo library is outdated expecting {esxiCheck.nbdkit.expectedVersion}, got {esxiCheck.nbdkit.version}
+            </p>
+          )}
+        </div>
+      )
     }
 
     if (esxiCheck.vddk?.status === 'error') {
