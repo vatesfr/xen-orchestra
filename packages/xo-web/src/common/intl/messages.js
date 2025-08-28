@@ -17,8 +17,8 @@ const messages = {
   hostIp: 'Host IP',
   interfaces: 'Interfaces',
   keyValue: '{key}: {value}',
-  esxiLibraryInfo: 'The V2V tool need the vddk library, provided by Broadcom. Please download it from their website',
-  esxiLibraryLink: 'Donwload link',
+  esxiLibraryInfo: 'The V2V tool needs the vddk library, provided by Broadcom. Please download it from their website',
+  esxiLibraryLink: 'Download link',
 
   esxiVddkLibrary: 'Drop the tar.gz file of the vddk library (linux)',
   esxiVddkLibraryImport: 'Import and install the Vddk library. VDDK9 need nbdkit 1.42+',
