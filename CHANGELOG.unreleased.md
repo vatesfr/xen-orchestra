@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+[Backup]: fix error footer1 !== footer2 (PR [#8882](https://github.com/vatesfr/pull/8882))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -39,5 +41,6 @@
 - @xen-orchestra/vmware-explorer patch
 - xo-server minor
 - xo-web minor
+- vhd-lib patch
 
 <!--packages-end-->
