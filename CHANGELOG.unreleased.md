@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [V2V] Auto install library (PR [#8911](https://github.com/vatesfr/pull/8911))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -35,6 +37,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/vmware-explorer patch
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->
