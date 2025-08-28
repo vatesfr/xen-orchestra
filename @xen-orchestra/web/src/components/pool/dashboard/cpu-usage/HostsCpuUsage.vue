@@ -2,6 +2,9 @@
   <VtsStateHero v-if="topFiveCpu === undefined" format="card" type="no-data" image-size="medium">
     {{ t('no-data-to-calculate') }}
   </VtsStateHero>
+  <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="medium">
+    {{ t('error-no-data') }}
+  </VtsStateHero>
   <template v-else>
     <VtsProgressBarGroup :items="progressBarItems" :thresholds="cpuProgressThresholds()" legend-type="percent" />
   </template>
@@ -19,6 +22,7 @@ import { useI18n } from 'vue-i18n'
 
 const { topFiveCpu = [] } = defineProps<{
   topFiveCpu: NonNullable<NonNullable<XoPoolDashboard['hosts']>['topFiveUsage']>['cpu'] | undefined
+  hasError?: boolean
 }>()
 
 const progressBarItems = computed(() =>

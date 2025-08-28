@@ -1,7 +1,10 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>{{ t('status') }}</UiCardTitle>
     <VtsStateHero v-if="!areHostsStatusReady || !areVmsStatusReady" format="card" busy />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" icon="fa:server" />
       <UiCardNumbers :label="t('total')" :value="poolDashboard?.hosts?.status?.total" size="small" />
@@ -38,6 +41,7 @@ import { useI18n } from 'vue-i18n'
 
 const { poolDashboard } = defineProps<{
   poolDashboard: XoPoolDashboard | undefined
+  hasError?: boolean
 }>()
 
 const areHostsStatusReady = computed(() => poolDashboard?.hosts?.status !== undefined)

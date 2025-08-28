@@ -35,7 +35,7 @@ const {
 } = defineProps<{
   format: StateHeroFormat
   type?: StateHeroType
-  imageSize?: 'small' | 'medium' | 'large'
+  imageSize?: 'extra-small' | 'small' | 'medium' | 'large'
   horizontal?: boolean
   busy?: boolean
   noBackground?: boolean
@@ -182,6 +182,12 @@ const imageSrc = computed(() => {
 
     .image {
       order: 2;
+    }
+  }
+
+  &.imageSize--extra-small {
+    .image {
+      max-height: 14rem;
     }
   }
 
