@@ -60,10 +60,12 @@ installVddkLib.permission = 'admin'
 
 async function install({ repository, version, executable }) {
   const tmpDir = await fs.mkdtemp(join(tmpdir(), 'xo-server'))
-  try {
-    await execPromise(`${executable} --version`)
-    throw new Error(`${executable} is already installed on this system please uninstall before rerunning this script`)
-  } catch (_) {}
+  const libPath = await execPromise(`which ${executable}`).catch(() => {})
+  if (libPath) {
+    throw new Error(
+      `${executable} is already installed at ${libPath} on this system please uninstall before rerunning this script`
+    )
+  }
   let id
   if ((id = (await execPromise('id -u')).trim() !== '0')) {
     throw new Error(`install script can only be run as root ${id}`)
@@ -71,15 +73,7 @@ async function install({ repository, version, executable }) {
   try {
     await execPromise('apt-get --version')
   } catch (err) {
-    const error = new Error('The nbdinfo auto install can only be run on a debian based system')
-    error.cause = err
-    throw err
-  }
-
-  try {
-    await execPromise('apt-get --version')
-  } catch (err) {
-    const error = new Error('The nbdinfo auto install can only be run on a debian based system')
+    const error = new Error(`The ${executable} auto install can only be run on a debian based system`)
     error.cause = err
     throw err
   }
