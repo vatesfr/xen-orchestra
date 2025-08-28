@@ -42,6 +42,7 @@ const { poolDashboard } = defineProps<{
 }>()
 
 const areHostsCpuUsageReady = computed(() => poolDashboard?.hosts?.topFiveUsage?.cpu !== undefined)
+
 const areVmsCpuUsageReady = computed(() => poolDashboard?.vms?.topFiveUsage?.cpu !== undefined)
 
 const { t } = useI18n()

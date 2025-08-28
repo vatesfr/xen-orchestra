@@ -1,8 +1,10 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle :left="t('storage-usage')" :right="t('top-#', { n: N_ITEMS })" />
-    <NoDataError v-if="hasError" />
-    <UiCardSpinner v-else-if="!isReady" />
+    <VtsStateHero v-if="hasError" format="card" type="error" image-size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="!isReady" format="card" busy />
     <template v-else>
       <VtsProgressBarGroup :items="data.progressBarItems" :n-items="N_ITEMS" legend-type="percent" />
       <div>
@@ -18,15 +20,14 @@
 </template>
 
 <script lang="ts" setup>
-import NoDataError from '@/components/NoDataError.vue'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { N_ITEMS } from '@/pages/pool/[uuid]/dashboard.vue'
 import { useSrStore } from '@/stores/xen-api/sr.store'
 import VtsProgressBarGroup, {
   type ProgressBarGroupItem,
 } from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'

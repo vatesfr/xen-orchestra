@@ -1,5 +1,12 @@
 <template>
-  <p v-if="!isHostConsoleRunning" class="typo-h5">{{ t('power-on-host-for-console') }}</p>
+  <VtsStateHero v-if="!isHostConsoleRunning" format="page" type="offline" image-size="large">
+    <span>{{ t('console-offline') }}</span>
+    <span class="title typo-h1">{{ t('host-not-running') }}</span>
+    <div class="description">
+      <span class="typo-body-bold">{{ t('console-unavailable-reason') }}</span>
+      <span class="typo-body-bold">{{ t('start-console', { type: 'host' }) }}</span>
+    </div>
+  </VtsStateHero>
   <VtsLayoutConsole v-else>
     <VtsRemoteConsole ref="console-element" :url :is-console-available="isHostConsoleAvailable" />
     <template #actions>
@@ -18,6 +25,7 @@ import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vu
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -42,3 +50,16 @@ const consoleElement = useTemplateRef('console-element')
 
 const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 </script>
+
+<style scoped lang="postcss">
+.title {
+  color: var(--color-neutral-txt-primary);
+}
+.description {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  align-items: center;
+  color: var(--color-neutral-txt-secondary);
+}
+</style>

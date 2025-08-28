@@ -2,7 +2,7 @@
   <div class="table-container">
     <VtsStateHero v-if="!isReady" format="table" busy />
     <VtsStateHero v-else-if="hasError" format="table" type="error">{{ t('error-no-data') }}</VtsStateHero>
-    <VtsStateHero v-else-if="noDataMessage" format="table" type="no-data">{{ t('no-data') }}</VtsStateHero>
+    <VtsStateHero v-else-if="noDataMessage" format="table" type="no-data">{{ noDataMessage }}</VtsStateHero>
     <VtsTable v-else vertical-border>
       <thead>
         <slot name="thead" />

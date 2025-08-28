@@ -13,7 +13,6 @@
     <template v-else>
       <VtsProgressBarGroup :items="progressBarItems" legend-type="percent" />
       <div class="total">
-        <!--  TODO Add max to display percent -->
         <UiCardNumbers
           :label="t('total-used')"
           :unit="formattedTotalUsage.prefix"
