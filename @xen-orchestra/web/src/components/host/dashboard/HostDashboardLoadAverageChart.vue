@@ -1,5 +1,5 @@
 <template>
-  <UiCard :class="{ 'card-error': error }">
+  <UiCard :has-error="error">
     <UiCardTitle>
       {{ t('load-average') }}
       <template #description>{{ t('last-week') }}</template>
@@ -25,7 +25,7 @@ import { useI18n } from 'vue-i18n'
 const { data } = defineProps<{
   data: XapiHostStats | null
   loading: boolean
-  error?: string
+  error?: boolean
 }>()
 
 const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linear-chart/VtsLinearChart.vue'))
@@ -70,9 +70,3 @@ const maxValue = computed(() => {
   return Math.ceil(maxLoad / 5) * 5
 })
 </script>
-
-<style scoped lang="postcss">
-.card-error {
-  background-color: var(--color-danger-background-selected);
-}
-</style>

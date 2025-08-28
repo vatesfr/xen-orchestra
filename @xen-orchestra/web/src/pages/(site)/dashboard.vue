@@ -1,8 +1,8 @@
 <template>
   <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
-    <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" />
-    <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" />
-    <VmsStatus class="vms-status" :status="dashboard.vmsStatus" />
+    <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
+    <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
+    <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
     <Alarms class="alarms" :alarms />
     <Patches
       class="patches"
@@ -10,15 +10,17 @@
       :n-hosts="dashboard.nHosts"
       :n-hosts-eol="dashboard.nHostsEol"
       :n-pools="dashboard.nPools"
+      :has-error
     />
-    <ResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" />
-    <Backups class="backups" :backups="dashboard.backups" />
+    <ResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" :has-error />
+    <Backups class="backups" :backups="dashboard.backups" :has-error />
     <BackupIssues class="backup-issues" :issues="dashboard.backups?.issues" />
     <Repositories
       class="repositories"
       :backup-repositories
       :storage-repositories
       :s3-size="dashboard.backupRepositories?.s3?.size"
+      :has-error
     />
   </div>
 </template>
@@ -39,7 +41,7 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 
 const uiStore = useUiStore()
 
-const { dashboard, backupRepositories, storageRepositories } = useXoSiteDashboard()
+const { dashboard, backupRepositories, storageRepositories, hasError } = useXoSiteDashboard()
 
 const { alarms } = useXoAlarmCollection()
 </script>

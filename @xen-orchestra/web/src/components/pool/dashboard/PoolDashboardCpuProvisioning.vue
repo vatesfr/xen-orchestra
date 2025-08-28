@@ -1,7 +1,10 @@
 <template>
-  <UiCard class="pool-dashboard-cpu-provisioning">
+  <UiCard :has-error class="pool-dashboard-cpu-provisioning">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
     <VtsStateHero v-if="!isCpuProvisioningReady" format="card" busy />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="extra-small" horizontal>
+      {{ t('error-no-data') }}
+    </VtsStateHero>
     <template v-else>
       <VtsProgressBar
         :current="assignedCpus"
@@ -31,6 +34,7 @@ import { useI18n } from 'vue-i18n'
 
 const { poolDashboard } = defineProps<{
   poolDashboard: XoPoolDashboard | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

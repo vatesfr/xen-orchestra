@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('cpu-usage') }}
     </UiCardTitle>
@@ -11,7 +11,7 @@
     </UiCardSubtitle>
     <VtsStateHero v-if="!areHostsCpuUsageReady" format="card" busy />
     <template v-else>
-      <HostsCpuUsage :top-five-cpu="poolDashboard?.hosts?.topFiveUsage?.cpu" />
+      <HostsCpuUsage :top-five-cpu="poolDashboard?.hosts?.topFiveUsage?.cpu" :has-error />
     </template>
     <UiCardSubtitle>
       {{ t('vms', 2) }}
@@ -21,7 +21,7 @@
     </UiCardSubtitle>
     <VtsStateHero v-if="!areVmsCpuUsageReady" format="card" busy />
     <template v-else>
-      <VmsCpuUsage :top-five-cpu="poolDashboard?.vms?.topFiveUsage?.cpu" />
+      <VmsCpuUsage :top-five-cpu="poolDashboard?.vms?.topFiveUsage?.cpu" :has-error />
     </template>
   </UiCard>
 </template>
@@ -39,6 +39,7 @@ import { useI18n } from 'vue-i18n'
 
 const { poolDashboard } = defineProps<{
   poolDashboard: XoPoolDashboard | undefined
+  hasError?: boolean
 }>()
 
 const areHostsCpuUsageReady = computed(() => poolDashboard?.hosts?.topFiveUsage?.cpu !== undefined)

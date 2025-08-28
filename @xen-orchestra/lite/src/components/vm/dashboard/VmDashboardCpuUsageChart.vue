@@ -1,5 +1,5 @@
 <template>
-  <UiCard :class="{ 'card-error': error }">
+  <UiCard :has-error="!!error">
     <UiCardTitle>
       {{ t('cpu-usage') }}
       <template #description>{{ t('last-week') }}</template>
@@ -83,9 +83,3 @@ const valueFormatter: ValueFormatter = value => {
   return n(value / 100, 'percent')
 }
 </script>
-
-<style scoped lang="postcss">
-.card-error {
-  background-color: var(--color-danger-background-selected);
-}
-</style>

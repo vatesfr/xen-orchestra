@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="pool-storages-usage">
+  <UiCard :has-error class="pool-storages-usage">
     <UiCardTitle>
       {{ t('storage-usage') }}
       <template #info>
@@ -7,6 +7,9 @@
       </template>
     </UiCardTitle>
     <VtsStateHero v-if="!areStoragesUsageReady" format="card" busy />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
     <VtsStateHero v-else-if="topFiveUsage.length === 0" format="card" type="no-data" image-size="medium">
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
@@ -46,6 +49,7 @@ import { useI18n } from 'vue-i18n'
 
 const { poolDashboard } = defineProps<{
   poolDashboard: XoPoolDashboard | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('ram-usage') }}
     </UiCardTitle>
@@ -11,7 +11,7 @@
     </UiCardSubtitle>
     <VtsStateHero v-if="!areHostsRamUsageReady" format="card" busy />
     <template v-else>
-      <HostsRamUsage :top-five-ram="poolDashboard?.hosts?.topFiveUsage?.ram" />
+      <HostsRamUsage :top-five-ram="poolDashboard?.hosts?.topFiveUsage?.ram" :has-error />
     </template>
     <UiCardSubtitle>
       {{ t('vms', 2) }}
@@ -21,7 +21,7 @@
     </UiCardSubtitle>
     <VtsStateHero v-if="!areVmsRamUsageReady" format="card" busy />
     <template v-else>
-      <VmsRamUsage :top-five-ram="poolDashboard?.vms?.topFiveUsage?.ram" />
+      <VmsRamUsage :top-five-ram="poolDashboard?.vms?.topFiveUsage?.ram" :has-error />
     </template>
   </UiCard>
 </template>
@@ -39,6 +39,7 @@ import { useI18n } from 'vue-i18n'
 
 const { poolDashboard } = defineProps<{
   poolDashboard: XoPoolDashboard | undefined
+  hasError?: boolean
 }>()
 
 const areHostsRamUsageReady = computed(() => poolDashboard?.hosts?.topFiveUsage?.ram !== undefined)
