@@ -103,7 +103,6 @@
       <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" format="table" type="no-result">
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
-      <VtsStateHero v-if="!networks.length" type="no-data" format="table">{{ t('no-network-detected') }}</VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
         <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
       </UiTopBottomTable>

@@ -122,7 +122,7 @@ const imageSrc = computed(() => {
     }
 
     .loader {
-      font-size: 9.6rem;
+      font-size: 6.4rem;
       order: 1;
     }
 
@@ -169,7 +169,7 @@ const imageSrc = computed(() => {
   }
 
   &.format--page {
-    gap: 2.4rem;
+    gap: 10rem;
 
     .content {
       order: 3;

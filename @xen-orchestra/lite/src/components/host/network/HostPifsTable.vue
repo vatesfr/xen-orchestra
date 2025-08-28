@@ -125,7 +125,6 @@
       <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" format="table" type="no-result">
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
-      <VtsStateHero v-if="!pifs.length" type="no-data" format="table">{{ t('no-pif-detected') }}</VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
       </UiTopBottomTable>

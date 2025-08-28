@@ -1,6 +1,6 @@
 <template>
   <div :class="uiStore.isMobile ? 'mobile' : undefined" class="vts-remote-console">
-    <VtsStateHero v-if="!isReady" format="panel" busy />
+    <VtsStateHero v-if="!isReady" format="page" busy>{{ t('loading') }}</VtsStateHero>
     <div ref="console-container" class="console" />
   </div>
 </template>
@@ -13,11 +13,14 @@ import { whenever } from '@vueuse/core'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
 import { onBeforeUnmount, ref, useTemplateRef, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   url: URL
   isConsoleAvailable: boolean
 }>()
+
+const { t } = useI18n()
 
 const uiStore = useUiStore()
 
@@ -147,6 +150,7 @@ defineExpose({
   }
 
   /* Required because the library adds "margin: auto" to the canvas which makes the canvas centered in space and not aligned to the rest of the layout */
+
   :deep(canvas) {
     margin: 0 auto !important;
     cursor: default !important;

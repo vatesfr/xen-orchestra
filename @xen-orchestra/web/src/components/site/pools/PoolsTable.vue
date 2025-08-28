@@ -115,7 +115,6 @@
       <VtsStateHero v-if="searchQuery && filteredServers.length === 0" format="table" type="no-result">
         {{ t('no-result') }}
       </VtsStateHero>
-      <VtsStateHero v-if="!servers.length" type="no-data" format="table">{{ t('no-pools-detected') }}</VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
         <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
       </UiTopBottomTable>

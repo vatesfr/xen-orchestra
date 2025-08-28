@@ -6,7 +6,11 @@
         <span>
           {{ t('all-quiet-launchpad') }}
         </span>
-        <span class="typo-h1">{{ t('vm-shutdown') }}</span>
+        <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
+        <div class="description">
+          <span class="typo-body-bold">{{ t('console-unavailable-reason') }}</span>
+          <span class="typo-body-bold">{{ t('start-console', { type: 'vm' }) }}</span>
+        </div>
       </VtsStateHero>
     </div>
     <template v-else>
@@ -86,6 +90,16 @@ const { t } = useI18n()
 
   .vdi-usage-chart {
     grid-area: vdi-usage-chart;
+  }
+
+  .title {
+    color: var(--color-neutral-txt-primary);
+  }
+  .description {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>
