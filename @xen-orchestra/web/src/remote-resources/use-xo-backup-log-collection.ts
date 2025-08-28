@@ -5,10 +5,10 @@ import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
 export const useXoBackupLogCollection = defineRemoteResource({
-  url: '/rest/v0/backup/logs/?fields=id,jobId,status,end',
+  url: '/rest/v0/backup/logs/?fields=id,jobId,status,start,end',
   initialData: () => [] as XoBackupLog[],
   state: (rawBackupLogs, context) => {
-    const backupLogs = useSorted(rawBackupLogs, (log1, log2) => log2.end - log1.end)
+    const backupLogs = useSorted(rawBackupLogs, (log1, log2) => log2.start - log1.start)
 
     const state = useXoCollectionState(backupLogs, {
       context,
@@ -16,16 +16,16 @@ export const useXoBackupLogCollection = defineRemoteResource({
     })
 
     const backupLogsByJobId = computed(() => {
-      const backupLogsByJobId = new Map<XoBackupLog['jobId'], XoBackupLog[]>()
+      const backupLogsByJobIdMap = new Map<XoBackupLog['jobId'], XoBackupLog[]>()
 
       backupLogs.value.forEach(backupLog => {
-        if (!backupLogsByJobId.has(backupLog.jobId)) {
-          backupLogsByJobId.set(backupLog.jobId, [])
+        if (!backupLogsByJobIdMap.has(backupLog.jobId)) {
+          backupLogsByJobIdMap.set(backupLog.jobId, [])
         }
-        backupLogsByJobId.get(backupLog.jobId)!.push(backupLog)
+        backupLogsByJobIdMap.get(backupLog.jobId)!.push(backupLog)
       })
 
-      return backupLogsByJobId
+      return backupLogsByJobIdMap
     })
 
     const getLastNBackupLogsByJobId = (jobId: XoBackupLog['jobId'], limit: number = 3): XoBackupLog[] => {

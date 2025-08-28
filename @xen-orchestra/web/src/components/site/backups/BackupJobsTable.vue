@@ -160,6 +160,7 @@ const getRunStatus = createMapper<XoBackupLog['status'], { icon: IconName; toolt
     skipped: { icon: 'legacy:status:warning', tooltip: t('skipped') },
     interrupted: { icon: 'legacy:status:danger', tooltip: t('interrupted') },
     failure: { icon: 'legacy:status:danger', tooltip: t('failure') },
+    pending: { icon: 'legacy:status:info', tooltip: t('in-progress') },
   },
   'failure'
 )

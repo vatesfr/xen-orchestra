@@ -260,6 +260,7 @@
   "hyper-threading": "Hyper-threading (SMT)",
   "id": "ID",
   "in-last-three-jobs": "Dans leurs trois derniers jobs",
+  "in-progress": "En cours",
   "install-settings": "Paramètres d'installation",
   "interfaces": "Interface | Interface | Interfaces",
   "interrupted": "Interrompu",
