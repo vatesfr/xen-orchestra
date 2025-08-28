@@ -5,6 +5,7 @@
 - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8872](https://github.com/vatesfr/xen-orchestra/pull/8872))
 - Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
 - Add i18n engage link on the settings page [Issue#8603](https://github.com/vatesfr/xen-orchestra/issues/8603) (PR [#8884](https://github.com/vatesfr/xen-orchestra/pull/8884))
+- Migrate progress bar usages to Web Core components and remove old Lite components (PR [#8899](https://github.com/vatesfr/xen-orchestra/pull/8899))
 
 ## **0.13.1** (2025-08-06)
 
