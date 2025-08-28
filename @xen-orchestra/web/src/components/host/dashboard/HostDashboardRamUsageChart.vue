@@ -1,5 +1,5 @@
 <template>
-  <UiCard :class="{ 'card-error': error }">
+  <UiCard :has-error="error">
     <UiCardTitle>
       {{ t('ram-usage') }}
       <template #description>{{ t('last-week') }}</template>
@@ -26,7 +26,7 @@ import { useI18n } from 'vue-i18n'
 const { data } = defineProps<{
   data: XapiHostStats | null
   loading: boolean
-  error?: string
+  error?: boolean
 }>()
 
 const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linear-chart/VtsLinearChart.vue'))
@@ -81,9 +81,3 @@ const byteFormatter = (value: number | null) => {
   return `${size.value} ${size.prefix}`
 }
 </script>
-
-<style scoped lang="postcss">
-.card-error {
-  background-color: var(--color-danger-background-selected);
-}
-</style>

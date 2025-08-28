@@ -1,7 +1,10 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>{{ t('backups') }}</UiCardTitle>
     <VtsStateHero v-if="!areBackupsReady" format="card" busy />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
     <VtsStateHero v-else-if="!backups" format="card" type="no-data" horizontal>
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
@@ -29,6 +32,7 @@ import { useI18n } from 'vue-i18n'
 
 const { backups } = defineProps<{
   backups: XoDashboard['backups'] | undefined
+  hasError?: boolean
 }>()
 
 const areBackupsReady = computed(() => backups?.jobs !== undefined && backups?.vmsProtection !== undefined)

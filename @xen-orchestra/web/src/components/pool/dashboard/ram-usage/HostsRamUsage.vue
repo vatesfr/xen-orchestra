@@ -2,6 +2,9 @@
   <VtsStateHero v-if="topFiveRam === undefined" format="card" type="no-data" image-size="medium">
     {{ t('no-data-to-calculate') }}
   </VtsStateHero>
+  <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="medium">
+    {{ t('error-no-data') }}
+  </VtsStateHero>
   <template v-else>
     <VtsProgressBarGroup :items="progressBarItems" legend-type="bytes-with-total" />
   </template>
@@ -18,6 +21,7 @@ import { useI18n } from 'vue-i18n'
 
 const { topFiveRam = [] } = defineProps<{
   topFiveRam: NonNullable<NonNullable<XoPoolDashboard['hosts']>['topFiveUsage']>['ram'] | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

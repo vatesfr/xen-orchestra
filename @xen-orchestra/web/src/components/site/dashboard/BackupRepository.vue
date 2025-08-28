@@ -5,8 +5,11 @@
       <template #description>{{ t('for-backup') }}</template>
     </UiCardTitle>
     <!--    TODO change and add loading when we have isReady available -->
-    <VtsStateHero v-if="!areBackupRepositoriesReady" format="card" type="no-data" horizontal image-size="small">
+    <VtsStateHero v-if="!areBackupRepositoriesReady" format="card" type="no-data" image-size="extra-small" horizontal>
       {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="extra-small" horizontal>
+      {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
       <VtsStackedBarWithLegend :max-value="maxValue" :segments />
@@ -47,6 +50,7 @@ import { useI18n } from 'vue-i18n'
 
 const { repositories } = defineProps<{
   repositories: BackupRepositories | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

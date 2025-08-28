@@ -1,5 +1,5 @@
 <template>
-  <UiCard :class="{ 'card-error': error }">
+  <UiCard :has-error="!!error">
     <UiCardTitle>
       {{ t('load-average') }}
       <template #description>{{ t('last-week') }}</template>
@@ -71,9 +71,3 @@ const maxValue = computed(() => {
   return Math.ceil(maxLoad / 5) * 5
 })
 </script>
-
-<style scoped lang="postcss">
-.card-error {
-  background-color: var(--color-danger-background-selected);
-}
-</style>

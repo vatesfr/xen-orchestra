@@ -1,10 +1,10 @@
 <template>
-  <UiCard :horizontal="!uiStore.isMobile">
-    <BackupRepository :repositories="backupRepositories" />
+  <UiCard :has-error :horizontal="!uiStore.isMobile">
+    <BackupRepository :repositories="backupRepositories" has-error />
     <VtsDivider type="stretch" />
     <StorageRepository :repositories="storageRepositories" />
     <VtsDivider type="stretch" />
-    <S3BackupRepository :size="s3Size" />
+    <S3BackupRepository :size="s3Size" has-error />
   </UiCard>
 </template>
 
@@ -22,6 +22,7 @@ const { backupRepositories, storageRepositories } = defineProps<{
   s3Size: NonNullable<XoDashboard['backupRepositories']>['s3']['size'] | undefined
   backupRepositories: BackupRepositories | undefined
   storageRepositories: StorageRepositories | undefined
+  hasError?: boolean
 }>()
 
 const uiStore = useUiStore()

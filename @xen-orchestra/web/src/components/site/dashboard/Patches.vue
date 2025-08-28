@@ -1,7 +1,10 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>{{ t('patches') }}</UiCardTitle>
     <VtsStateHero v-if="!arePatchesReady" format="card" busy />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" />
       <VtsDivider type="stretch" />
@@ -32,6 +35,7 @@ const {
   nPools: XoDashboard['nPools'] | undefined
   nHosts: XoDashboard['nHosts'] | undefined
   nHostsEol: XoDashboard['nHostsEol'] | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

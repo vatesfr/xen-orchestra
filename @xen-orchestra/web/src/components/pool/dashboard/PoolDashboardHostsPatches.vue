@@ -56,6 +56,7 @@ import { useI18n } from 'vue-i18n'
 
 const { poolDashboard } = defineProps<{
   poolDashboard: XoPoolDashboard | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

@@ -6,7 +6,7 @@
       <template #description>{{ t('in-last-three-jobs') }}</template>
     </UiCardTitle>
     <VtsStateHero v-if="!areBackupIssuesReady" format="card" busy />
-    <VtsStateHero v-else-if="!hasBackupIssues" format="card" type="no-data" horizontal image-size="small">
+    <VtsStateHero v-else-if="!hasBackupIssues" format="card" type="no-data" image-size="small" horizontal>
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
     <div v-else class="backup-items">
@@ -63,6 +63,7 @@ import { useI18n } from 'vue-i18n'
 
 const { issues } = defineProps<{
   issues: NonNullable<XoDashboard['backups']>['issues'] | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

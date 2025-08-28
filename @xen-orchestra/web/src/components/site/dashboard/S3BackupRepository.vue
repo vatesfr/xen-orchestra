@@ -5,8 +5,11 @@
       <template #description>{{ t('for-backup') }}</template>
     </UiCardTitle>
     <!--    TODO change and add loading when we have isReady available -->
-    <VtsStateHero v-if="!areS3BackupRepositoriesReady" format="card" type="no-data" horizontal image-size="small">
+    <VtsStateHero v-if="!areS3BackupRepositoriesReady" format="card" type="no-data" horizontal image-size="extra-small">
       {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="extra-small" horizontal>
+      {{ t('error-no-data') }}
     </VtsStateHero>
     <UiCardNumbers v-else :value="usedSize?.value" :unit="usedSize?.prefix" :label="t('used')" size="medium" />
   </div>
@@ -23,6 +26,7 @@ import { useI18n } from 'vue-i18n'
 
 const { size } = defineProps<{
   size: NonNullable<XoDashboard['backupRepositories']>['s3']['size'] | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

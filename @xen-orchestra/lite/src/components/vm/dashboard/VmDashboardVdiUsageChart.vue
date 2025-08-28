@@ -1,5 +1,5 @@
 <template>
-  <UiCard :class="{ 'card-error': error }">
+  <UiCard :has-error="!!error">
     <UiCardTitle>
       {{ t('vdi-throughput') }}
       <template #description>{{ t('last-week') }}</template>
@@ -104,9 +104,3 @@ const byteFormatter = (value: number | null) => {
   return `${size.value} ${size.prefix}`
 }
 </script>
-
-<style scoped lang="postcss">
-.card-error {
-  background-color: var(--color-danger-background-selected);
-}
-</style>

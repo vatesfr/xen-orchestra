@@ -1,7 +1,10 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
     <VtsStateHero v-if="!areVmsStatusReady" format="card" busy />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="extra-small" horizontal>
+      {{ t('error-no-data') }}
+    </VtsStateHero>
     <VtsStateHero v-else-if="status?.total === 0" format="card" horizontal type="no-data">
       {{ t('no-vm-detected') }}
     </VtsStateHero>
@@ -26,6 +29,7 @@ import { useI18n } from 'vue-i18n'
 
 const { status } = defineProps<{
   status: XoDashboard['vmsStatus'] | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()
