@@ -20,8 +20,15 @@ const messages = {
   esxiLibraryInfo: 'The V2V tool need the vddk library, provided by Broadcom. Please download it from their website',
   esxiLibraryLink: 'Donwload link',
 
-  esxiLibrary: 'Drop the tar.gz file of the vddk library (linux)',
-  esxiLibraryImport: 'Import and install library',
+  esxiVddkLibrary: 'Drop the tar.gz file of the vddk library (linux)',
+  esxiVddkLibraryImport: 'Import and install the Vddk library. VDDK9 need nbdkit 1.42+',
+  esxiLibraryManualInstall:
+    'For other systems, you can install manually from https://gitlab.com/nbdkit/nbdkit . For reference the list of packages need for a debian 13 is **git dh-autoreconf <pre>pkg-config make libxml2-dev ocaml libc-bin**',
+  esxiLibraryAutoInstall: 'install {library} (debian based system)',
+  esxiLibraryNotInstalled: '{library} is not installed',
+
+  esxiLibraryOutdated:
+    '{library} library is outdated expecting {expectedVersion}, got {version}. Please uninstall it and install the required version.',
   esxiCheckingPrerequisite: 'Checking prerequisite on XO',
   esxiCheckedPrerequisite: 'Result of the prerequisite check on XO',
 

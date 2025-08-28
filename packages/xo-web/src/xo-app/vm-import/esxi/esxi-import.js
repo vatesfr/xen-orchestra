@@ -202,49 +202,35 @@ class EsxiImport extends Component {
       return <div>checking</div>
     }
 
-    if (esxiCheck.nbdInfos?.status !== 'success') {
-      return (
-        <div>
-          {esxiCheck.nbdInfos.version === undefined && (
-            <div>
-              <p>nbdinfo library is not installed</p>
-              <div className='form-group pull-right'>
-                <ActionButton btnStyle='primary' className='mr-1' handler={this._installNbdInfo} icon='import'>
-                  install Nbdinfo (debian based system)
-                </ActionButton>
+    // cehck nbdkit, nbdinfo, nbdkit plugin vddk
+    for (const [library, fn] of [
+      ['nbdinfo', this._installNbdInfo],
+      ['nbdkit', this._installNbKit],
+      ['nbdkitPluginVddk', this._installNbKit],
+    ]) {
+      const check = esxiCheck[library]
+      if (check.status !== 'success') {
+        return (
+          <div>
+            {check.version === undefined && (
+              <div>
+                <p>{_('esxiLibraryNotInstalled', { library })}</p>
+                <div className='form-group pull-right'>
+                  <ActionButton btnStyle='primary' className='mr-1' handler={fn} icon='import'>
+                    {_('esxiLibraryAutoInstall', { library })}
+                  </ActionButton>
+                  <p>{_('esxiLibraryManualInstall')}</p>
+                </div>
               </div>
-            </div>
-          )}
-          {esxiCheck.nbdInfos.version !== undefined && (
-            <p>
-              nbdinfo library is outdated expecting {esxiCheck.nbdInfos.expectedVersion}, got{' '}
-              {esxiCheck.nbdInfos.version}
-            </p>
-          )}
-        </div>
-      )
-    }
-
-    if (esxiCheck.nbdkit?.status !== 'success') {
-      return (
-        <div>
-          {esxiCheck.nbdkit.version === undefined && (
-            <div>
-              <p>nbdinfo library is not installed</p>
-              <div className='form-group pull-right'>
-                <ActionButton btnStyle='primary' className='mr-1' handler={this._installNbKit} icon='import'>
-                  install Nbdkit (debian based system)
-                </ActionButton>
-              </div>
-            </div>
-          )}
-          {esxiCheck.nbdkit.version !== undefined && (
-            <p>
-              nbdinfo library is outdated expecting {esxiCheck.nbdkit.expectedVersion}, got {esxiCheck.nbdkit.version}
-            </p>
-          )}
-        </div>
-      )
+            )}
+            {check.version !== undefined && (
+              <p>
+                {_('esxiLibraryOutdated', { library, expectedVersion: check.expectedVersion, version: check.version })}
+              </p>
+            )}
+          </div>
+        )
+      }
     }
 
     if (esxiCheck.vddk?.status === 'error') {
@@ -260,20 +246,16 @@ class EsxiImport extends Component {
               {_('esxiLibraryLink')}
             </a>
           </p>
-          <Dropzone multiple={false} onDrop={this._handleDropVddk} message={_('esxiLibrary')} accept='.tar.gz' />
+          <Dropzone multiple={false} onDrop={this._handleDropVddk} message={_('esxiVddkLibrary')} accept='.tar.gz' />
           {vddkFile && (
             <div className='form-group pull-right'>
               <ActionButton btnStyle='primary' className='mr-1' handler={this._handleImportVddk} icon='import'>
-                {_('esxiLibraryImport')}
+                {_('esxiVddkLibraryImport')}
               </ActionButton>
             </div>
           )}
         </div>
       )
-    }
-    if (Object.values(esxiCheck).some(({ status }) => status === 'error')) {
-      // do not show connection form is some prerequisites are in error
-      return <EsxiCheckResults esxiCheck={esxiCheck} />
     }
 
     if (!isConnected) {
