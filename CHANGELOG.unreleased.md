@@ -31,7 +31,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web patch
-- @xen-orchestra/web-core patch
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 
 <!--packages-end-->
