@@ -10,8 +10,9 @@
 - [V2V] Show a form to install the VDDK library (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
 - [REST API] Expose `/rest/v0/docs/swagger.json` (PR [#8892](https://github.com/vatesfr/xen-orchestra/pull/8892))
 - [web] Add link to the rest api docs (PR [#8902](https://github.com/vatesfr/xen-orchestra/pull/8902))
-- [V2V] Use vddk to transfer data from vmware (PR [#840](https://github.com/vatesfr/xen-orchestra/pull/840))
-- [V2V] Show if any prerequisite on XO is missing before import (PR [#840](https://github.com/vatesfr/))
+- [V2V] Use vddk to transfer data from vmware (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
+- [V2V] Show if any prerequisite on XO is missing before import (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
+- [V2V] Auto install library (PR [#8911](https://github.com/vatesfr/pull/8911))
 
 - **Migrated REST API endpoints**:
 
@@ -38,6 +39,7 @@
 - [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
 - [Backup] Update timeout in filesystem for expensive listing requests (PR [#8903](https://github.com/vatesfr/xen-orchestra/pull/8903))
 - [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
+- [Backup] fix error footer1 !== footer2 (PR [#8882](https://github.com/vatesfr/pull/8882))
 
 ### Released packages
 
@@ -45,23 +47,24 @@
 - @xen-orchestra/fs 4.6.3
 - xo-common 0.9.0
 - xen-api 4.7.4
-- @vates/nbd-client 3.2.0
 - @vates/types 1.11.0
 - @xen-orchestra/xapi 8.4.0
-- @xen-orchestra/backups 0.64.0
 - @xen-orchestra/backups-cli 1.1.3
 - @xen-orchestra/immutable-backups 1.0.24
-- @xen-orchestra/web-core 0.28.0
 - @xen-orchestra/mixins 0.16.5
-- @xen-orchestra/proxy 0.29.28
 - @xen-orchestra/rest-api 0.15.0
-- @xen-orchestra/vmware-explorer 0.10.0
-- @xen-orchestra/web 0.26.0
 - xo-acl-resolver 0.5.2
-- xo-server 5.186.0
 - xo-server-audit 0.14.1
 - xo-server-test 0.0.2
-- xo-web 5.183.0
+- vhd-lib 4.14.1
+- @vates/nbd-client 3.2.1
+- @xen-orchestra/backups 0.64.1
+- @xen-orchestra/web-core 0.29.0
+- @xen-orchestra/proxy 0.29.29
+- @xen-orchestra/vmware-explorer 0.10.1
+- @xen-orchestra/web 0.27.0
+- xo-server 5.187.0
+- xo-web 5.184.0
 
 ## **5.109.1** (2025-08-06)
 
