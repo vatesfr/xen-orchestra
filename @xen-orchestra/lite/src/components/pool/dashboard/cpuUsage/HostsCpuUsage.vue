@@ -1,14 +1,14 @@
 <template>
   <UiCardTitle :left="t('hosts')" :level="UiCardTitleLevel.SubtitleWithUnderline" :right="t('top-#', { n: N_ITEMS })" />
-  <NoDataError v-if="hasError" />
-  <VtsStateHero v-if="isLoading" format="card" busy />
-  <NoResult v-else-if="isStatEmpty" />
+  <VtsStateHero v-if="hasError" format="card" type="error" image-size="medium">{{ t('error-no-data') }}</VtsStateHero>
+  <VtsStateHero v-else-if="isLoading" format="card" busy />
+  <VtsStateHero v-else-if="isStatEmpty" format="card" type="no-data" image-size="medium">
+    {{ t('no-data-to-calculate') }}
+  </VtsStateHero>
   <VtsProgressBarGroup v-else :items="data" :n-items="N_ITEMS" legend-type="percent" />
 </template>
 
 <script lang="ts" setup>
-import NoDataError from '@/components/NoDataError.vue'
-import NoResult from '@/components/NoResult.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { useStatStatus } from '@/composables/stat-status.composable'
 import { getAvgCpuUsage } from '@/libs/utils'
