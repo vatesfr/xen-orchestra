@@ -11,13 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [V2V] Auto install library (PR [#8911](https://github.com/vatesfr/pull/8911))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-[Backup]: fix error footer1 !== footer2 (PR [#8882](https://github.com/vatesfr/pull/8882))
 
 ### Packages to release
 
@@ -34,14 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @vates/nbd-client patch
-- @xen-orchestra/backups patch
-- @xen-orchestra/vmware-explorer patch
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- vhd-lib patch
-- xo-server minor
-- xo-web minor
 
 <!--packages-end-->
