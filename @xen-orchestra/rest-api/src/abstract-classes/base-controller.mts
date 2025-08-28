@@ -91,8 +91,10 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
   maybeCompressResponse(req: Request, res: ExResponse): Transform | ExResponse {
     let transform: Transform | undefined
 
-    let acceptEncoding = req.headers['accept-encoding']
-    acceptEncoding = Array.isArray(acceptEncoding) ? acceptEncoding : acceptEncoding?.split(',')
+    const _acceptEncoding = req.headers['accept-encoding']
+    const acceptEncoding: string[] | undefined = Array.isArray(_acceptEncoding)
+      ? _acceptEncoding
+      : _acceptEncoding?.split(',')
     if (
       acceptEncoding !== undefined &&
       acceptEncoding.some(encoding => {
