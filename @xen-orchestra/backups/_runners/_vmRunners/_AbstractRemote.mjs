@@ -145,7 +145,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
       await this._run()
 
       if (this._hasTransferredData === undefined) {
-        throw new Error('Missing tag to check there are some transferred data ')
+        throw new Error('Missing tag to check there are some transferred data')
       }
 
       if (this._hasTransferredData) {
