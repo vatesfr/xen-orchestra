@@ -35,18 +35,18 @@ export function useModal<
   TConfirmPayload = undefined,
   TCancelPayload = undefined,
 >(
-  _config?: TConfig | ((...args: TConfigBuilderArgs) => TConfig)
+  configOrBuilder?: TConfig | ((...args: TConfigBuilderArgs) => TConfig)
 ): UseModalReturn<TConfigBuilderArgs, TConfirmPayload, TCancelPayload> | ReturnType<typeof createModalOpener> {
   const openModal = createModalOpener()
 
-  if (_config === undefined) {
+  if (configOrBuilder === undefined) {
     return openModal
   }
 
   const id = Symbol('modal')
 
   return (...args: TConfigBuilderArgs) => {
-    const config = typeof _config === 'function' ? _config(...args) : _config
+    const config = typeof configOrBuilder === 'function' ? configOrBuilder(...args) : configOrBuilder
 
     return openModal(id, config)
   }
