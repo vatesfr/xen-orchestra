@@ -8,8 +8,8 @@
         </span>
         <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
         <div class="description">
-          <span class="typo-body-bold">{{ t('console-unavailable-reason') }}</span>
-          <span class="typo-body-bold">{{ t('start-console', { type: 'vm' }) }}</span>
+          <span class="typo-body-bold">{{ t('vm-off') }}</span>
+          <span class="typo-body-bold">{{ t('start-vm') }}</span>
         </div>
       </VtsStateHero>
     </div>

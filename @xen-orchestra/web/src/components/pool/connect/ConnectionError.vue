@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero class="connection-error" type="error" format="card" no-background>
+  <VtsStateHero class="connection-error" format="card" type="error" no-background>
     <div class="container">
       <div class="typo-h1 title">
         {{ ip !== undefined ? t('unable-to-connect-to', { ip }) : t('unable-to-connect-to-the-pool') }}
@@ -105,6 +105,7 @@ const errorDetails = useMapper(() => errorStatus.value, mapping, HttpCodes.Inter
 
   .title {
     text-align: center;
+    color: var(--color-neutral-txt-primary);
   }
 
   .content {

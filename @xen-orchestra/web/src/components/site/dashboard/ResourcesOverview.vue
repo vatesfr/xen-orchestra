@@ -8,9 +8,9 @@
     <VtsStateHero
       v-else-if="memorySize?.value === 0 && nCpus === 0 && srSize?.value === 0"
       format="card"
-      horizontal
       type="no-data"
-      image-size="small"
+      image-size="extra-small"
+      horizontal
     >
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
