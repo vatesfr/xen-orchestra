@@ -34,6 +34,7 @@ import type {
   XoGroup,
   XoPool,
   XoTask,
+  XoProxy,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -96,7 +97,9 @@ export type XoApp = {
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
+  getAllProxies(): Promise<XoProxy[]>
   getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
+  getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
   getAllRemotesInfo(): Promise<
