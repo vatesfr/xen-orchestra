@@ -4,13 +4,27 @@
   </VtsStateHero>
   <div v-else class="host-dashboard-view" :class="{ mobile: uiStore.isMobile }">
     <HostDashboardQuickInfo class="quick-info" :host />
-    <HostDashboardVmsStatus class="vms-status" :host />
-    <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
-    <HostDashboardRamProvisioning class="ram-provisioning" :host />
-    <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :error="lastError" :loading="isFetching" />
-    <HostDashboardRamUsageChart class="ram-usage-chart" :data :error="lastError" :loading="isFetching" />
-    <HostDashboardNetworkUsageChart class="network-usage-chart" :data :error="lastError" :loading="isFetching" />
-    <HostDashboardLoadAverageChart class="load-average-chart" :data :error="lastError" :loading="isFetching" />
+    <div v-if="data.stats === undefined" class="offline-hero-container">
+      <VtsStateHero format="page" type="offline" image-size="large" horizontal>
+        <span>
+          {{ t('engines-off') }}
+        </span>
+        <span class="title typo-h1">{{ t('host-off') }}</span>
+        <div class="description">
+          <span class="typo-body-bold">{{ t('host-currently-shutdown') }}</span>
+          <span class="typo-body-bold">{{ t('start-host') }}</span>
+        </div>
+      </VtsStateHero>
+    </div>
+    <template v-else>
+      <HostDashboardVmsStatus class="vms-status" :host />
+      <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
+      <HostDashboardRamProvisioning class="ram-provisioning" :host />
+      <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :error="lastError" :loading="isFetching" />
+      <HostDashboardRamUsageChart class="ram-usage-chart" :data :error="lastError" :loading="isFetching" />
+      <HostDashboardNetworkUsageChart class="network-usage-chart" :data :error="lastError" :loading="isFetching" />
+      <HostDashboardLoadAverageChart class="load-average-chart" :data :error="lastError" :loading="isFetching" />
+    </template>
   </div>
 </template>
 
@@ -80,7 +94,8 @@ onUnmounted(() => setRegisteredHost(undefined))
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
     'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-usage ram-usage ram-usage'
-    'cpu-usage-chart cpu-usage-chart memory-usage-chart memory-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart';
+    'cpu-usage-chart cpu-usage-chart memory-usage-chart memory-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart'
+    'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   &.mobile {
     grid-template-columns: 1fr;
@@ -92,11 +107,16 @@ onUnmounted(() => setRegisteredHost(undefined))
       'cpu-usage-chart'
       'memory-usage-chart'
       'network-usage-chart'
-      'load-average-chart';
+      'load-average-chart'
+      'offline-hero-container';
   }
 
   .quick-info {
     grid-area: quick-info;
+  }
+
+  .offline-hero-container {
+    grid-area: offline-hero-container;
   }
 
   .vms-status {
@@ -125,6 +145,16 @@ onUnmounted(() => setRegisteredHost(undefined))
 
   .load-average-chart {
     grid-area: load-average-chart;
+  }
+
+  .title {
+    color: var(--color-neutral-txt-primary);
+  }
+  .description {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>

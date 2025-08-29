@@ -92,7 +92,7 @@
         v-if="searchQuery && filteredBackupJobs.length === 0"
         format="table"
         type="no-result"
-        image-size="medium"
+        image-size="small"
       >
         {{ t('no-result') }}
       </VtsStateHero>
