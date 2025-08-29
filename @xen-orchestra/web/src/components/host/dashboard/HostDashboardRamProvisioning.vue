@@ -7,7 +7,7 @@
         :label="host.name_label"
         :total="host.memory.size"
         :current="host.memory.usage"
-        legent-type="percent"
+        legend-type="percent"
       />
       <div class="total">
         <UiCardNumbers
