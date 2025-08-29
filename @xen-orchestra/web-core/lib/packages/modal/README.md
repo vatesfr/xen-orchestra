@@ -145,7 +145,8 @@ const openMyModal = useModal((name: string) => ({
 ```
 
 ```html
-<button @click="openModal('John')">Open John modal</button> <button @click="openModal('Jane')">Open Jane modal</button>
+<button @click="openMyModal('John')">Open John modal</button>
+<button @click="openMyModal('Jane')">Open Jane modal</button>
 ```
 
 ## `onConfirm` and `onCancel` event args
