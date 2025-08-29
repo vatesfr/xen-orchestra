@@ -10,7 +10,7 @@ import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { invalidParameters, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { MaybeWithLength, SendObjects } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVdis, vdi, vdiIds } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { VdiService } from './vdi.service.mjs'
@@ -64,7 +64,7 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Request() req: ExRequest,
     @Path() id: string,
     @Path() format: 'vhd' | 'raw'
-  ): Promise<MaybeWithLength<Readable>> {
+  ): Promise<Readable> {
     const res = req.res as ExResponse
     const stream = await this.#vdiService.exportContent(id as XoVdi['id'], { format, response: res })
     process.on('SIGTERM', () => req.destroy())

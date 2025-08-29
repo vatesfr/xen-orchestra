@@ -8,7 +8,7 @@ import type { XoAlarm, XoVdiSnapshot } from '@vates/types'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { invalidParameters, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { MaybeWithLength, SendObjects } from '../helpers/helper.type.mjs'
+import type { SendObjects } from '../helpers/helper.type.mjs'
 import { partialVdiSnapshots, vdiSnapshot, vdiSnapshotIds } from '../open-api/oa-examples/vdi-snapshot.oa-example.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -65,7 +65,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
     @Request() req: ExRequest,
     @Path() id: string,
     @Path() format: 'vhd' | 'raw'
-  ): Promise<MaybeWithLength<Readable>> {
+  ): Promise<Readable> {
     const res = req.res as ExResponse
     const stream = await this.#vdiService.exportContent(id as XoVdiSnapshot['id'], { format, response: res })
     process.on('SIGTERM', () => req.destroy())

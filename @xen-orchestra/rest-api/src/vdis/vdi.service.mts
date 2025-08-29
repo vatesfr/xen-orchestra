@@ -2,7 +2,6 @@ import type { SUPPORTED_VDI_FORMAT, XoVdi, XoVdiSnapshot } from '@vates/types'
 import type { Readable } from 'node:stream'
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import type { Response as ExResponse } from 'express'
-import { MaybeWithLength } from '../helpers/helper.type.mjs'
 
 export class VdiService {
   #restApi: RestApi
@@ -14,7 +13,7 @@ export class VdiService {
   async exportContent(
     id: XoVdi['id'] | XoVdiSnapshot['id'],
     { format, response }: { format: SUPPORTED_VDI_FORMAT; response?: ExResponse }
-  ): Promise<MaybeWithLength<Readable>> {
+  ): Promise<Readable & { length?: number }> {
     const xapiVdi = this.#restApi.getXapiObject<XoVdi | XoVdiSnapshot>(id, ['VDI', 'VDI-snapshot'])
     const stream = await xapiVdi.$xapi.VDI_exportContent(xapiVdi.$ref, { format })
 

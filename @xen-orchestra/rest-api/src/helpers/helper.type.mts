@@ -18,5 +18,3 @@ export type NdjsonStream = Readable
 export type SendObjects<T> = string[] | WithHref<T>[] | NdjsonStream
 
 export type PromiseWriteInStreamError = { error: true }
-
-export type MaybeWithLength<T> = T & { length?: number }
