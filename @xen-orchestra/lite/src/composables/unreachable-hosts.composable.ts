@@ -1,6 +1,6 @@
-import { useModal } from '@/composables/modal.composable'
 import { ipToHostname } from '@/libs/utils'
 import { useHostStore } from '@/stores/xen-api/host.store'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { whenever } from '@vueuse/core'
 import { difference } from 'lodash-es'
 import { computed, ref, watch } from 'vue'
@@ -18,16 +18,15 @@ export const useUnreachableHosts = () => {
     })
   })
 
-  whenever(
-    () => unreachableHostsUrls.value.size > 0,
-    () => {
-      const { onApprove, onDecline } = useModal(() => import('@/components/modals/UnreachableHostsModal.vue'), {
-        urls: computed(() => Array.from(unreachableHostsUrls.value.values())),
-      })
+  const openModal = useModal({
+    keepOpenOnRouteChange: true,
+    component: import('@/components/modals/UnreachableHostsModal.vue'),
+    props: { urls: computed(() => Array.from(unreachableHostsUrls.value.values())) },
+    onConfirm: () => window.location.reload(),
+    onCancel: () => unreachableHostsUrls.value.clear(),
+  })
 
-      onApprove(() => window.location.reload())
-      onDecline(() => unreachableHostsUrls.value.clear())
-    },
-    { immediate: true }
-  )
+  whenever(() => unreachableHostsUrls.value.size > 0, openModal, {
+    immediate: true,
+  })
 }
