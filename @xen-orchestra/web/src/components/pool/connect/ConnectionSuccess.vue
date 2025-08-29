@@ -65,6 +65,7 @@ const server = useGetServerById(() => serverId)
 
   .title {
     text-align: center;
+    color: var(--color-neutral-txt-primary);
   }
 
   .content {

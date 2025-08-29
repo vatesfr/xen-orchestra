@@ -1,5 +1,5 @@
 <template>
-  <div :class="[classNames, { horizontal, error, success }]" class="vts-state-hero">
+  <div :class="[classNames, { horizontal, error, success, noBackground }]" class="vts-state-hero">
     <UiLoader v-if="busy" class="loader" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
     <div v-if="slots.default" :class="typoClass" class="content">
@@ -31,7 +31,6 @@ const {
   type,
   imageSize = 'medium',
   busy,
-  noBackground,
 } = defineProps<{
   format: StateHeroFormat
   type?: StateHeroType
@@ -56,7 +55,7 @@ const classNames = computed(() => {
   ]
 })
 
-const error = computed(() => !noBackground && !busy && type === 'error')
+const error = computed(() => !busy && type === 'error')
 
 const success = computed(() => !busy && (type === 'all-good' || type === 'all-done'))
 
@@ -108,6 +107,10 @@ const imageSrc = computed(() => {
 
   &.error {
     background-color: var(--color-danger-background-selected);
+
+    &.noBackground {
+      background-color: transparent;
+    }
 
     .content {
       color: var(--color-danger-txt-base);

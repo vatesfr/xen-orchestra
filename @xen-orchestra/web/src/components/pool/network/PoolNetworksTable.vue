@@ -104,7 +104,12 @@
           </tr>
         </template>
       </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" format="table" type="no-result">
+      <VtsStateHero
+        v-if="searchQuery && filteredNetworks.length === 0"
+        format="table"
+        type="no-result"
+        image-size="small"
+      >
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
