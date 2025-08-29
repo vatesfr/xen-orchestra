@@ -364,6 +364,140 @@ If you get a `403 Forbidden` error when testing the plugin, make sure you correc
 
 ## Recipes
 
+### What are recipes?
+
+In Xen Orchestra, recipes are ready-to-use automation templates that make it easy to deploy complex infrastructures. You don’t need to configure each virtual machine manually. 
+
+With a few clicks, you can launch a full multi-VM environment, where all nodes are automatically set up and connected.
+
 :::tip
-TODO: this section is still a work in progress!
+As of now, the only available recipe is for **Kubernetes clusters**. The rest of this guide will walk you through creating one.
 :::
+
+### Use recipes to create a Kubernetes cluster
+
+#### Introduction
+
+Xen Orchestra includes a Kubernetes cluster recipe that provides a simple way to deploy an official Kubernetes distribution called **MicroK8s** (maintained by Canonical).
+
+:::tip
+One of the key benefits of MicroK8s is its automatic security updates. For example, patch releases (like 1.30.x to 1.30.x+1) are applied automatically. This saves Kubernetes admins a lot of time and effort.
+:::
+
+#### Before you start
+
+Make sure your infrastructure meets these requirements:
+
+- A running Xen Orchestra instance connected to an XCP-ng pool.
+- A **VM template** for the base OS (e.g., an Ubuntu image).
+- Enough resources to host the **control plane** and **worker nodes**.
+
+#### Deployment steps
+
+1. In Xen Orchestra, go to **Hub → Recipes**.\
+    A list of recipes will appear:
+    ![Location of the Recipes link in the navigation bar](./assets/hub_recipes.png)
+2. Go to the **Kubernetes cluster** recipe and click **Create**.\
+    A cluster creation form appears:
+    ![Cluster creation form](./assets/kubernetes_cluster_creation.png)
+3. Configure your cluster:
+    1. Select a pool where you want to deploy your cluster.
+    2. Select a storage repository, a network and a Kubernetes version.
+    4. Enter a name for your cluster.
+    :::tip
+    The name provided to the cluster is also used to tag VMs, so that you can easily find them all:
+    ![VMs tagged with the name of their cluster](./assets/cluster-tagged-vms.png)
+    :::
+    5. Define the number of worker nodes.
+    6. Define the number of nodes used for the control plane.
+    7. (Optional). If you want your cluster to use static IP addresses, check the **Static IP addresses** box and specify the IP address parameters:\
+    ![Parameters for the static IP addreses](./assets/static_ip_addresses.png)
+4. Click **OK** to start deploying the cluster.
+
+Xen Orchestra handles the rest: cloning VMs, assigning IPs, bootstrapping Kubernetes and configuring internal networking.
+
+#### During deployment
+
+Follow the progress on the **Task** screen while the cluster is being created:
+![Cluster creation task running](./assets/running_cluster_deployment.png)
+
+### Using your cluster
+
+#### Connecting to the cluster
+
+Once the cluster and its VMs are ready, SSH into the first control plane node. From there, you can manage your Kubernetes cluster. 
+
+For example:
+
+```
+$ ssh debian@<replace-by-vm-ip>
+
+$ debian@cp-1:~$ microk8s kubectl get nodes
+NAME       STATUS   ROLES    AGE   VERSION
+cp-1       Ready    <none>   40m   v1.33.0
+cp-2       Ready    <none>   30m   v1.33.0
+cp-3       Ready    <none>   31m   v1.33.0
+worker-1   Ready    <none>   31m   v1.33.0
+worker-2   Ready    <none>   31m   v1.33.0
+worker-3   Ready    <none>   31m   v1.33.0
+```
+
+#### Managing the cluster with external tools
+Once the deployment finishes, Xen Orchestra provides a `kubeconfig` file. You can use it to manage your cluster with external tools:
+
+For example:
+
+```
+$ microk8s config
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: [...]
+    server: https://10.1.134.51:16443
+  name: microk8s-cluster
+contexts:
+- context:
+    cluster: microk8s-cluster
+    user: admin
+  name: microk8s
+current-context: microk8s
+kind: Config
+preferences: {}
+users:
+- name: admin
+  user:
+    client-certificate-data: LS0tLS1CRU[...]
+    client-key-data: LS0tLS1CRUdJ[...]
+```
+
+#### Add-ons
+
+In addition to the core components of the Kubernetes control plane, this recipe automatically installs the following add-ons:
+
+- **DNS:** Deploys [CoreDNS](https://coredns.io/) for internal address resolution.
+- **Helm:** Installs [Helm 3](https://helm.sh/), the Kubernetes package manager.
+- **RBAC:** Enable [Role-based access control (RBAC)](https://en.wikipedia.org/wiki/Role-based_access_control) for authorization. 
+
+:::warning
+RBAC is incompatible with some other add-ons.
+:::
+
+When **high availability (HA)** is enabled, the recipe also includes:
+
+- **HA-cluster:** Ensures high availability for clusters with three or more nodes.
+- **[Kube-VIP](https://kube-vip.io/):** Provides a virtual IP and load balancer for the control plane, deployed via the official Helm chart.
+
+
+### Best Practices
+
+When deploying Kubernetes clusters with recipes, it’s important to plan for performance and reliability. 
+
+- Always allocate enough CPU and memory resources for both control plane and worker nodes. Using three control plane nodes ensures high availability in production environments. 
+- Place the VMs on shared storage to allow live migration if needed. 
+- For security, restrict SSH access and consider enabling RBAC and network policies once the cluster is running. 
+
+Finally, keep your base template up to date with the latest OS patches and Kubernetes tools to avoid compatibility issues.
+
+### Related links
+
+- [Kubernetes official documentation](https://kubernetes.io/docs/home/)
