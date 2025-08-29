@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- [StateHero] Update VtsStateHero component and modify in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
+
 ## **0.14.0** (2025-08-28)
 
 - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8872](https://github.com/vatesfr/xen-orchestra/pull/8872))

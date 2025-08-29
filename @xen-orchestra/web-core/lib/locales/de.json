@@ -310,7 +310,7 @@
   "load-average": "Durchschnittsauslastung",
   "load-now": "Jetzt laden",
   "loading-hosts": "Lade Hosts…",
-  "loading-in-progress": "Ladevorgang läuft…",
+  "loading": "Ladevorgang läuft…",
   "locking-mode": "Sperrmodus",
   "locking-mode-default": "Standard-Sperrmodus",
   "log-out": "Abmelden",
