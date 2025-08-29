@@ -12,7 +12,7 @@ export function createVifOperations(xenApi: XenApi) {
 
   type VifCreateParams = {
     vmRef: VmRef
-    device?: string
+    device?: number
     network: NetworkRef
     MAC?: string
     MTU?: number

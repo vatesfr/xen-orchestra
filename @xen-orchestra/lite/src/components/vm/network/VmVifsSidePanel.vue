@@ -83,7 +83,7 @@
               {{ t('vif-device', { device: vif.device }) }}
             </template>
             <template #addons>
-              <VtsCopyButton :value="vif.device" />
+              <VtsCopyButton :value="String(vif.device)" />
             </template>
           </VtsCardRowKeyValue>
           <!-- VIF STATUS -->
