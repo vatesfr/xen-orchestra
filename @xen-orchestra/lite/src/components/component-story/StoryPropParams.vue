@@ -112,7 +112,6 @@ const params = useSortedCollection(toRef(props, 'params'), (p1, p2) => {
 const model = useVModel(props, 'modelValue', emit)
 
 const openRawValueModal = useModal((code: string) => ({
-  immediate: true,
   component: import('@/components/modals/CodeHighlightModal.vue'),
   props: { code },
 }))

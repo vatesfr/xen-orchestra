@@ -16,7 +16,9 @@
         <div v-if="slots.title" class="typo-h4">
           <slot name="title" />
         </div>
-        <slot name="content" />
+        <div class="content">
+          <slot name="content" />
+        </div>
       </main>
       <VtsButtonGroup v-if="slots.buttons" class="buttons">
         <slot name="buttons" />
@@ -77,7 +79,7 @@ const className = computed(() => toVariants({ accent }))
   .modal {
     display: flex;
     flex-direction: column;
-    min-width: 40rem;
+    min-width: min(40rem, calc(100% - 2rem));
     max-width: min(95vw, 120rem);
     max-height: min(90vh, 80rem);
     padding: 3.2rem 2.4rem 2.4rem;
@@ -111,6 +113,10 @@ const className = computed(() => toVariants({ accent }))
 
       .icon {
         font-size: 4.8rem;
+      }
+
+      .content {
+        width: 100%;
       }
     }
   }

@@ -65,5 +65,9 @@ const { id: isAscendingSelectId } = useFormSelect([true, false], {
 .form-selects {
   display: flex;
   gap: 1rem;
+
+  @media (--mobile) {
+    flex-direction: column;
+  }
 }
 </style>
