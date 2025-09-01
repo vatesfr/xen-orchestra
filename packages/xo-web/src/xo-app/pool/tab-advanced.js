@@ -230,7 +230,7 @@ class EnableHaModal extends Component {
           multi
           value={this.state.srs}
           onChange={srs => this.setState({ srs: srs.map(sr => sr.id) })}
-          predicate={sr => sr.shared && isSrWritable(sr)}
+          predicate={sr => sr.shared && isSrWritable(sr) && sr.$poolId === this.props.pool.id}
         />
       </div>
     )
@@ -246,7 +246,7 @@ class ToggleHa extends Component {
   _onChange = async value => {
     if (value) {
       const haSrs = await confirm({
-        body: <EnableHaModal srs={this.props.pool.haSrs ?? []} />,
+        body: <EnableHaModal srs={this.props.pool.haSrs ?? []} pool={this.props.pool} />,
         title: _('poolEnableHa'),
         icon: 'pool',
       })
