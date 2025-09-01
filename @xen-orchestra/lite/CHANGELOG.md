@@ -2,7 +2,7 @@
 
 ## **next**
 
-- [VM/System] Correctly display enable/disable for secure boot
+- [VM/System] Correctly display enable/disable for secure boot (PR [#8925](https://github.com/vatesfr/xen-orchestra/pull/8925))
 
 ## **0.14.0** (2025-08-28)
 
