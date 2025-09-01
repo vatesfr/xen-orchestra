@@ -6,7 +6,7 @@
     <VtsQuickInfoRow :label="t('virtualization-mode')" :value="virtualizationMode" />
     <VtsQuickInfoRow :label="t('secure-boot')">
       <template #value>
-        <VtsEnabledState :enabled="Boolean(vm.platform.secureboot)" />
+        <VtsEnabledState :enabled="vm.platform.secureboot === 'true'" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : t('none')" />
