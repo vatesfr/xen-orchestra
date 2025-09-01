@@ -57,7 +57,7 @@ export class RestApi {
     return this.#xoApp.getObjectsByType(type, opts)
   }
 
-  getXapiObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) {
+  getXapiObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type'] | T['type'][]) {
     return this.#xoApp.getXapiObject<T>(maybeId, type)
   }
 
