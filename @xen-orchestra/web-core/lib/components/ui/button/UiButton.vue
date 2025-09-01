@@ -1,4 +1,4 @@
-<!-- v6 -->
+<!-- v7 -->
 <template>
   <button :class="classNames" :disabled="busy || isDisabled || lockIcon" class="ui-button" type="button">
     <VtsIcon :busy :name="leftIcon" class="icon" size="current" />

@@ -15,6 +15,10 @@ defineProps<{
   variant: ButtonVariant
 }>()
 
+defineSlots<{
+  default(): any
+}>()
+
 const modal = inject(IK_MODAL)
 
 const modalAccent = inject(IK_MODAL_ACCENT)

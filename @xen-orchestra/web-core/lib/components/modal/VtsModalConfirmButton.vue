@@ -14,4 +14,8 @@ const { onClick } = defineProps<{
 const emit = defineEmits<{
   click: []
 }>()
+
+defineSlots<{
+  default(): any
+}>()
 </script>

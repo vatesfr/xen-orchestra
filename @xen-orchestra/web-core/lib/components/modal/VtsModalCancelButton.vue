@@ -18,6 +18,10 @@ const emit = defineEmits<{
   click: []
 }>()
 
+defineSlots<{
+  default?(): any
+}>()
+
 const { t } = useI18n()
 
 const modal = inject(IK_MODAL)
