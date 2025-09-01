@@ -351,7 +351,6 @@ export default class RestApi {
     {
       const types = [
         'host',
-        'backup',
         'message',
         'network',
         'PIF',

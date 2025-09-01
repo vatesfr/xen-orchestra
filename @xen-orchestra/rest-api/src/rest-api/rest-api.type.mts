@@ -22,7 +22,6 @@ import type {
   XenApiVtpmWrapped,
 } from '@vates/types/xen-api'
 import type {
-  AnyXoJob,
   XoBackupRepository,
   XoHost,
   XoServer,

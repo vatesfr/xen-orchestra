@@ -412,6 +412,7 @@ export type XoBackupJobScheduleSettings = {
 }
 // @TODO: create type for complex matcher
 export type XoBackupJob = BaseXoJob & {
+  type: 'backup'
   compression?: 'native' | 'zstd' | ''
   mode: 'full' | 'delta'
   remotes?: {
@@ -425,7 +426,6 @@ export type XoBackupJob = BaseXoJob & {
   srs?: {
     id: XoSr['id'] | { __or: XoSr['id'][] }
   }
-  type: 'backup'
   settings: {
     '': XoBackupJobGeneralSettings
     [key: XoSchedule['id']]: XoBackupJobScheduleSettings
