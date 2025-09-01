@@ -1,3 +1,4 @@
+<!-- v2 -->
 <template>
   <form :class="className" class="ui-modal" @click.self="emit('dismiss')">
     <div class="modal">
@@ -47,7 +48,7 @@ const emit = defineEmits<{
 
 const slots = defineSlots<{
   content(): any
-  buttons(): any
+  buttons?(): any
   title?(): any
 }>()
 

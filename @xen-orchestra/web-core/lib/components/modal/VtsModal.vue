@@ -4,7 +4,7 @@
       <slot name="title" />
     </template>
 
-    <template v-if="slots.content" #content>
+    <template #content>
       <slot name="content" />
     </template>
 
@@ -19,14 +19,16 @@ import UiModal, { type ModalAccent } from '@core/components/ui/modal/UiModal.vue
 import type { IconName } from '@core/icons'
 import { IK_MODAL } from '@core/packages/modal/types.ts'
 import { IK_MODAL_ACCENT } from '@core/utils/injection-keys.util.ts'
+import { useMagicKeys, whenever } from '@vueuse/core'
 import { computed, inject, provide } from 'vue'
 
-const { accent, dismissible, onConfirm, onDismiss } = defineProps<{
+const { accent, dismissible, onConfirm, onDismiss, current } = defineProps<{
   accent: ModalAccent
   icon?: IconName
   dismissible?: boolean
   onConfirm?: () => void
   onDismiss?: () => void
+  current?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -36,7 +38,7 @@ const emit = defineEmits<{
 
 const slots = defineSlots<{
   content(): any
-  buttons(): any
+  buttons?(): any
   title?(): any
 }>()
 
@@ -69,4 +71,12 @@ function handleSubmit(event: SubmitEvent) {
 
   modal?.value.onConfirm()
 }
+
+const { escape } = useMagicKeys()
+
+whenever(escape, () => {
+  if (dismissible && current) {
+    handleDismiss.value?.()
+  }
+})
 </script>
