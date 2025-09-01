@@ -7,12 +7,12 @@
   >
     <template #content>
       <UiTextarea v-model="editedJson" accent="brand" class="modal-textarea" />
-    </template>
-
-    <template #buttons>
       <VtsModalButton variant="tertiary" @click="formatJson()">
         {{ t('reformat') }}
       </VtsModalButton>
+    </template>
+
+    <template #buttons>
       <VtsModalCancelButton />
       <VtsModalConfirmButton :disabled="!isJsonValid">
         {{ t('save') }}
@@ -72,7 +72,7 @@ const handleSubmit = () => {
 
 <style lang="postcss" scoped>
 .json-editor-modal:deep(.modal-textarea) {
-  min-width: 50rem;
   min-height: 20rem;
+  margin-bottom: 1rem;
 }
 </style>

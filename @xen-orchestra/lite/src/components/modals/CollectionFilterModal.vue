@@ -9,6 +9,11 @@
           :available-filters="availableFilters"
           @remove="removeNewFilter($event)"
         />
+        <div>
+          <VtsModalButton variant="tertiary" @click="addNewFilter()">
+            {{ t('add-or') }}
+          </VtsModalButton>
+        </div>
       </div>
       <div v-if="newFilters.some(filter => filter.isAdvanced)" class="available-properties">
         {{ t('available-properties-for-advanced-filter') }}
@@ -20,9 +25,6 @@
       </div>
     </template>
     <template #buttons>
-      <VtsModalButton variant="tertiary" @click="addNewFilter()">
-        {{ t('add-or') }}
-      </VtsModalButton>
       <VtsModalCancelButton />
       <VtsModalConfirmButton :disabled="!isFilterValid">
         {{ editedFilter ? t('update') : t('add') }}
@@ -139,5 +141,10 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-width: 100%;
+
+  @media (--mobile) {
+    gap: 2.4rem;
+  }
 }
 </style>
