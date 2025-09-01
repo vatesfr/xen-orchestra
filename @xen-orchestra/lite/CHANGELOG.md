@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.14.0** (2025-08-28)
 
 - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8872](https://github.com/vatesfr/xen-orchestra/pull/8872))
 - Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
