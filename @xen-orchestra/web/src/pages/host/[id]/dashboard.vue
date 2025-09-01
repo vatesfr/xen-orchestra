@@ -1,13 +1,27 @@
 <template>
   <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
     <HostDashboardQuickInfo class="quick-info" :host />
-    <HostDashboardVmsStatus class="vms-status" :host />
-    <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
-    <HostDashboardRamProvisioning class="ram-provisioning" :host />
-    <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :loading="isFetching" :error />
-    <HostDashboardRamUsageChart class="ram-usage-chart" :data :loading="isFetching" :error />
-    <HostDashboardNetworkUsageChart class="network-usage-chart" :data :loading="isFetching" :error />
-    <HostDashboardLoadAverageChart class="load-average-chart" :data :loading="isFetching" :error />
+    <div v-if="!data" class="offline-hero-container">
+      <VtsStateHero format="page" type="offline" image-size="large" horizontal>
+        <span>
+          {{ t('engines-off') }}
+        </span>
+        <span class="title typo-h1">{{ t('host-off') }}</span>
+        <div class="description">
+          <span class="typo-body-bold">{{ t('host-currently-shutdown') }}</span>
+          <span class="typo-body-bold">{{ t('start-host') }}</span>
+        </div>
+      </VtsStateHero>
+    </div>
+    <template v-else>
+      <HostDashboardVmsStatus class="vms-status" :host />
+      <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
+      <HostDashboardRamProvisioning class="ram-provisioning" :host />
+      <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :loading="isFetching" :error />
+      <HostDashboardRamUsageChart class="ram-usage-chart" :data :loading="isFetching" :error />
+      <HostDashboardNetworkUsageChart class="network-usage-chart" :data :loading="isFetching" :error />
+      <HostDashboardLoadAverageChart class="load-average-chart" :data :loading="isFetching" :error />
+    </template>
   </div>
 </template>
 
@@ -23,11 +37,15 @@ import HostDashboardVmsStatus from '@/components/host/dashboard/HostDashboardVms
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
 import { type XoHost } from '@/types/xo/host.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: XoHost
 }>()
+
+const { t } = useI18n()
 
 const { data, isFetching, error } = useFetchStats('host', () => host.id, GRANULARITY.Hours)
 
@@ -43,7 +61,8 @@ const uiStore = useUiStore()
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
     'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-provisioning ram-provisioning ram-provisioning'
-    'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart';
+    'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart'
+    'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   &.mobile {
     grid-template-columns: 1fr;
@@ -55,11 +74,16 @@ const uiStore = useUiStore()
       'cpu-usage-chart'
       'ram-usage-chart'
       'network-usage-chart'
-      'load-average-chart';
+      'load-average-chart'
+      'offline-hero-container';
   }
 
   .quick-info {
     grid-area: quick-info;
+  }
+
+  .offline-hero-container {
+    grid-area: offline-hero-container;
   }
 
   .vms-status {
@@ -88,6 +112,16 @@ const uiStore = useUiStore()
 
   .load-average-chart {
     grid-area: load-average-chart;
+  }
+
+  .title {
+    color: var(--color-neutral-txt-primary);
+  }
+  .description {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>

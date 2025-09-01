@@ -2,7 +2,14 @@
   <div :class="{ 'no-ui': !uiStore.hasUi }" class="host-console-view">
     <div v-if="hasError">{{ t('error-occurred') }}</div>
     <UiSpinner v-else-if="!isReady" class="spinner" />
-    <UiStatusPanel v-else-if="!isHostRunning" :image-source="monitor" :title="t('power-on-host-for-console')" />
+    <VtsStateHero v-else-if="!isHostRunning" format="page" type="offline" image-size="large">
+      <span>{{ t('console-offline') }}</span>
+      <span class="title typo-h1">{{ t('host-not-running') }}</span>
+      <div class="description">
+        <span class="typo-body-bold">{{ t('console-unavailable-reason') }}</span>
+        <span class="typo-body-bold">{{ t('start-console', { type: 'host' }) }}</span>
+      </div>
+    </VtsStateHero>
     <template v-else-if="host && hostConsole">
       <VtsLayoutConsole>
         <VtsRemoteConsole v-if="url" ref="console-element" :url :is-console-available="isConsoleAvailable" />
@@ -17,9 +24,7 @@
 </template>
 
 <script lang="ts" setup>
-import monitor from '@/assets/monitor.svg'
 import UiSpinner from '@/components/ui/UiSpinner.vue'
-import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
 import { isHostOperationPending } from '@/libs/host'
 import { HOST_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
@@ -33,6 +38,7 @@ import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vu
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -114,6 +120,17 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 
   &.no-ui {
     height: 100%;
+  }
+
+  .title {
+    color: var(--color-neutral-txt-primary);
+  }
+  .description {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    align-items: center;
+    color: var(--color-neutral-txt-secondary);
   }
 }
 
