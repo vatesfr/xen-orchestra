@@ -33,6 +33,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web minor
+- @xen-orchestra/web patch
 
 <!--packages-end-->
