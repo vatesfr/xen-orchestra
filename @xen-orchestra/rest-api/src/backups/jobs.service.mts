@@ -9,14 +9,14 @@ export class JobService {
   }
 
   async getVmJobs(): Promise<XoBackupJob[]> {
-    return this.#restApi.xoApp.getAllJobs(BACKUP_TYPE.backup).then(jobs => jobs.flat(1)) as Promise<XoBackupJob[]>
+    return this.#restApi.xoApp.getAllJobs(BACKUP_TYPE.backup)
   }
 
   async getMetadataJobs(): Promise<XoMetadataJob[]> {
-    return this.#restApi.xoApp.getAllJobs(BACKUP_TYPE.metadata).then(jobs => jobs.flat(1)) as Promise<XoMetadataJob[]>
+    return this.#restApi.xoApp.getAllJobs(BACKUP_TYPE.metadata)
   }
 
   async getMirrorJobs(): Promise<XoMirrorJob[]> {
-    return this.#restApi.xoApp.getAllJobs(BACKUP_TYPE.mirror).then(jobs => jobs.flat(1)) as Promise<XoMirrorJob[]>
+    return this.#restApi.xoApp.getAllJobs(BACKUP_TYPE.mirror)
   }
 }

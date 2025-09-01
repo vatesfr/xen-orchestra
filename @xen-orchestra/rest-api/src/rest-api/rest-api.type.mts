@@ -22,7 +22,6 @@ import type {
   XenApiVtpmWrapped,
 } from '@vates/types/xen-api'
 import type {
-  AnyXoJob,
   XoBackupRepository,
   XoHost,
   XoServer,
@@ -33,6 +32,8 @@ import type {
   XoJob,
   XoGroup,
   XoPool,
+  AnyXoBackupJob,
+  AnyXoJob,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -92,7 +93,8 @@ export type XoApp = {
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
-  getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
+  getAllJobs(): Promise<AnyXoJob[]>
+  getAllJobs<T extends AnyXoBackupJob['type']>(type: T): Promise<Extract<AnyXoBackupJob, { type: T }>[]>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
   getAllRemotesInfo(): Promise<

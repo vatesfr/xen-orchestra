@@ -377,19 +377,19 @@ type BaseXoJob = {
   id: Branded<'job'>
   name?: string
   proxy?: XoProxy['id']
-  type: BACKUP_TYPE
   remotes?: {
     id: XoBackupRepository['id'] | { __or: XoBackupRepository['id'][] }
   }
 }
 // @TODO: create type for complex matcher
 export type XoBackupJob = BaseXoJob & {
+  type: 'backup'
   compression?: 'native' | 'zstd' | ''
   mode: 'full' | 'delta'
-  vms?: {
+  vms: {
     id: XoVm['id'] | { __or: XoVm['id'][] } | Record<string, unknown>
   }
-  srs: {
+  srs?: {
     id: XoSr['id'] | { __or: XoSr['id'][] }
   }
   settings: {
@@ -423,6 +423,7 @@ export type XoBackupJob = BaseXoJob & {
 }
 
 export type XoMetadataJob = BaseXoJob & {
+  type: 'metadataBackup'
   pools?: {
     id:
       | XoPool['id']
@@ -432,9 +433,7 @@ export type XoMetadataJob = BaseXoJob & {
   }
   xoMetadata: boolean
   settings: {
-    '': {
-      [key: string]: unknown
-    }
+    '': Record<string, unknown>
     [key: XoSchedule['id']]: {
       exportRetention?: number
       healthCheckSr?: XoSr['id']
@@ -448,6 +447,7 @@ export type XoMetadataJob = BaseXoJob & {
   }
 }
 export type XoMirrorJob = BaseXoJob & {
+  type: 'mirrorBackup'
   mirrorAllVmBackups: boolean
   mode: 'full' | 'delta'
   vmsToMirror?: {
@@ -707,3 +707,5 @@ export type AnyXoVm = XoVm | XoVmSnapshot | XoVmTemplate | XoVmController
 export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
 
 export type AnyXoJob = XoJob | XoBackupJob
+
+export type AnyXoBackupJob = XoBackupJob | XoMetadataJob | XoMirrorJob
