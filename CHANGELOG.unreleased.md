@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Pool/HA] Prevent SRs from other pools to be selectable on HA enabling modal
+- [Pool/HA] Prevent SRs from other pools to be selectable on HA enabling modal (PR [#8924](https://github.com/vatesfr/xen-orchestra/pull/8924))
 
 ### Packages to release
 
