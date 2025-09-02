@@ -9,7 +9,7 @@ import {
   XenApiVm,
   XenApiVmWrapped,
 } from '../xen-api.mjs'
-import type { Readable } from 'node:stream'
+import type { PassThrough, Readable } from 'node:stream'
 import type {
   XoGpuGroup,
   XoVgpuType,
@@ -78,6 +78,7 @@ export interface Xapi {
         }
   ): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
+  exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
@@ -97,6 +98,10 @@ export interface Xapi {
       startOnly?: boolean
     }
   ): Promise<void>
+  VM_export(
+    vmRef: XenApiVm['$ref'],
+    opts?: { cancelToken?: unknown; compress?: boolean; useSnapshot?: boolean }
+  ): ReturnType<Xapi['getResource']>
   VM_import(
     stream: Readable,
     srRef?: XenApiSr['$ref'],

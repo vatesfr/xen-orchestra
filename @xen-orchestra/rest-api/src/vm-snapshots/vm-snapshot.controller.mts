@@ -1,6 +1,7 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
+import { Readable } from 'node:stream'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
@@ -55,6 +56,33 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVmSnapshot>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+  }
+
+  /**
+   *
+   * Export VM-snapshot. Compress is only used for XVA format
+   *
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   */
+  @Get('{id}.{format}')
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid format, Invalid compress')
+  async exportVmSnapshot(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Path() format: 'xva' | 'ova',
+    @Query() compress?: boolean
+  ): Promise<Readable> {
+    const stream = await this.#vmService.export(id as XoVmSnapshot['id'], 'VM-snapshot', {
+      compress,
+      format,
+      response: req.res,
+    })
+    process.on('SIGTERM', () => req.destroy())
+    req.on('close', () => stream.destroy())
+
+    return stream
   }
 
   /**
