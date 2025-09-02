@@ -94,33 +94,28 @@ async function nbdKit() {
 async function vddk() {
   try {
     await fs.stat('/usr/local/lib/vddk/vmware-vix-disklib-distrib/lib64/libvixDiskLib.so')
-
-    try {
-      const isV9 = await fs.exists('/usr/local/lib/vddk/vmware-vix-disklib-distrib/lib64/libvixDiskLib.so.9')
-      const nbdKitVersion = await getNbdKitVersion()
-      if (isV9) {
-        if (!semver.satisfies(nbdKitVersion, `>=${NBDKIT_VERSION_VDDK9}`)) {
-          return {
-            status: 'warning',
-            expectedVersion: '1.42.5',
-            version: nbdKitVersion,
-          }
-        }
-      }
-      return { status: 'success' }
-    } catch (error) {
-      return {
-        status: 'warning',
-        expectedVersion: '1.42.5',
-        version: 'unknown',
-      }
-    }
   } catch (error) {
     return {
       status: 'error',
       error:
         'Vddk library is not present or accessible in /usr/local/lib/vddk/ it can be downloaded from https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/latest',
     }
+  }
+  try {
+    const isV9 = await fs.stat('/usr/local/lib/vddk/vmware-vix-disklib-distrib/lib64/libvixDiskLib.so.9')
+    const nbdKitVersion = await getNbdKitVersion()
+    if (isV9) {
+      if (!semver.satisfies(nbdKitVersion, `>=${NBDKIT_VERSION_VDDK9}`)) {
+        return {
+          status: 'alarm',
+          expectedVersion: '1.42.5',
+          version: nbdKitVersion,
+        }
+      }
+    }
+  } catch (error) {
+    // v8 is ok
+    return { status: 'success' }
   }
 }
 /**
