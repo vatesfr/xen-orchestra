@@ -31,6 +31,7 @@ export default class MigrateVm {
     const { vmId, snapshots } = metadata
     const candidates = Object.values(xapi.objects.indexes.type.VM).filter(
       object =>
+        object.$type === 'VM' &&
         object.is_a_snapshot === false &&
         object.other_config.sourceVmId === vmId &&
         object.other_config.sourceSnapshotId === snapshots?.current &&
@@ -43,11 +44,11 @@ export default class MigrateVm {
     }
     if (candidates.length > 1) {
       Task.warning(`More than one candidate found, fall back to full import to ensure data security`)
-      return
     }
-    // exactly one VM found
-    Task.info(`Found VM, resuming transfer.`)
-    return candidates[0]
+    if (candidates.length === 1) {
+      Task.info(`Found VM, resuming transfer.`)
+      return candidates[0]
+    }
   }
 
   async #updateVmMetadata(xapiVm, metadata) {
