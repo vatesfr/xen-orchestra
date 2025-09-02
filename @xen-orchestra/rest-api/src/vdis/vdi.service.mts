@@ -10,11 +10,12 @@ export class VdiService {
     this.#restApi = restApi
   }
 
-  async exportContent(
-    id: XoVdi['id'] | XoVdiSnapshot['id'],
+  async exportContent<Vdi extends XoVdi | XoVdiSnapshot>(
+    id: Vdi['id'],
+    type: Vdi['type'],
     { format, response }: { format: SUPPORTED_VDI_FORMAT; response?: ExResponse }
   ): Promise<Readable & { length?: number }> {
-    const xapiVdi = this.#restApi.getXapiObject<XoVdi | XoVdiSnapshot>(id, ['VDI', 'VDI-snapshot'])
+    const xapiVdi = this.#restApi.getXapiObject<Vdi>(id, type)
     const stream = await xapiVdi.$xapi.VDI_exportContent(xapiVdi.$ref, { format })
 
     if (response !== undefined) {

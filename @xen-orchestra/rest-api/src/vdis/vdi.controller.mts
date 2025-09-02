@@ -8,7 +8,7 @@ import type { XoAlarm, XoVdi } from '@vates/types'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { invalidParameters, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
@@ -59,14 +59,14 @@ export class VdiController extends XapiXoController<XoVdi> {
   @Get('{id}.{format}')
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(invalidParameters.status, invalidParameters.description)
+  @Response(422, 'Invalid format')
   async exportVdiContent(
     @Request() req: ExRequest,
     @Path() id: string,
     @Path() format: 'vhd' | 'raw'
   ): Promise<Readable> {
     const res = req.res as ExResponse
-    const stream = await this.#vdiService.exportContent(id as XoVdi['id'], { format, response: res })
+    const stream = await this.#vdiService.exportContent(id as XoVdi['id'], 'VDI', { format, response: res })
     process.on('SIGTERM', () => req.destroy())
     req.on('close', () => stream.destroy())
     return stream

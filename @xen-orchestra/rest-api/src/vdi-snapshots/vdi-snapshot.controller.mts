@@ -6,7 +6,7 @@ import type { Request as ExRequest, Response as ExResponse } from 'express'
 import type { XoAlarm, XoVdiSnapshot } from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
-import { invalidParameters, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { partialVdiSnapshots, vdiSnapshot, vdiSnapshotIds } from '../open-api/oa-examples/vdi-snapshot.oa-example.mjs'
@@ -60,14 +60,17 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   @Get('{id}.{format}')
   @SuccessResponse(200, 'Download started', 'application/octet-stream')
   @Response(notFoundResp.status, notFoundResp.description)
-  @Response(invalidParameters.status, invalidParameters.description)
+  @Response(422, 'Invalid format')
   async exportVdiSnapshotContent(
     @Request() req: ExRequest,
     @Path() id: string,
     @Path() format: 'vhd' | 'raw'
   ): Promise<Readable> {
     const res = req.res as ExResponse
-    const stream = await this.#vdiService.exportContent(id as XoVdiSnapshot['id'], { format, response: res })
+    const stream = await this.#vdiService.exportContent(id as XoVdiSnapshot['id'], 'VDI-snapshot', {
+      format,
+      response: res,
+    })
     process.on('SIGTERM', () => req.destroy())
     req.on('close', () => stream.destroy())
     return stream
