@@ -429,7 +429,7 @@ class EsxiImport extends Component {
           </div>
         )}
         <div className='form-group pull-right'>
-          {importing && <Link to='/home?p=1&s=[Importing...]&t=VM}'>{_('esxiProgressLinkText')}</Link>}
+          {importing && <Link to='/home?p=1&s="[Importing...]"&t=VM'>{_('esxiProgressLinkText')}</Link>}
           <br />
           <ActionButton
             btnStyle='primary'
