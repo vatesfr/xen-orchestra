@@ -28,6 +28,7 @@ const messages = {
   esxiLibraryNotInstalled: '{library} is not installed',
   esxiLibraryInstalling:
     "Installing {library} can take a few minutes. You can check the progress in the XO tasks screen while it's running.",
+  esxiProgressLinkText: 'Track progress',
 
   esxiLibraryOutdated:
     '{library} library is outdated expecting {expectedVersion}, got {version}. Please uninstall it and install the required version.',
