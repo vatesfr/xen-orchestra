@@ -38,6 +38,7 @@
 - @vates/types minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
+- xo-server patch
 - xo-web patch
 
 <!--packages-end-->
