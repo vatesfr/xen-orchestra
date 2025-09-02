@@ -57,6 +57,7 @@ class EsxiImport extends Component {
   state = {
     concurrency: N_IMPORT_VMS_IN_PARALLEL,
     hostIp: '',
+    installingEsxiLib: false,
     isConnected: false,
     password: '',
     skipSslVerify: true,
@@ -73,7 +74,7 @@ class EsxiImport extends Component {
     this._esxiCheck()
   }
   _esxiCheck() {
-    this.setState({ esxiCheck: undefined }, async () => {
+    this.setState({ esxiCheck: undefined, installingEsxiLib: false }, async () => {
       const esxiCheck = await esxiCheckInstall()
       this.setState({ esxiCheck })
     })
@@ -82,6 +83,7 @@ class EsxiImport extends Component {
     this.setState({ vddkFile: files?.[0] })
   }
   _handleImportVddk = async () => {
+    this.setState({ installingEsxiLib: true })
     try {
       await importVddkLib({ file: this.state.vddkFile })
     } catch (error) {
@@ -90,10 +92,12 @@ class EsxiImport extends Component {
     return this._esxiCheck()
   }
   _installNbdInfo = async () => {
+    this.setState({ installingEsxiLib: true })
     await installNbdInfo()
     return this._esxiCheck()
   }
   _installNbKit = async () => {
+    this.setState({ installingEsxiLib: true })
     await installNbdKit()
     return this._esxiCheck()
   }
@@ -184,6 +188,7 @@ class EsxiImport extends Component {
       concurrency,
       esxiCheck,
       hostIp,
+      installingEsxiLib,
       isConnected,
       network = this._getDefaultNetwork(),
       password,
@@ -219,7 +224,8 @@ class EsxiImport extends Component {
                   <ActionButton btnStyle='primary' className='mr-1' handler={fn} icon='import'>
                     {_('esxiLibraryAutoInstall', { library })}
                   </ActionButton>
-                  <p>{_('esxiLibraryManualInstall')}</p>
+                  {installingEsxiLib && <p>{_('esxiLibraryInstalling', { library })}</p>}
+                  {!installingEsxiLib && <p>{_('esxiLibraryManualInstall')}</p>}
                 </div>
               </div>
             )}
