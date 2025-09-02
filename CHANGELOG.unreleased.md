@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+[XO6/New VM] Display only ISO VDIs for the ISO input (PR [#8922](https://github.com/vatesfr/pull/8922))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,5 +37,6 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web patch
 
 <!--packages-end-->
