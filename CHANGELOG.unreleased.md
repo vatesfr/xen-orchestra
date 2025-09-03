@@ -17,9 +17,11 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [XO6/New VM] Display only ISO VDIs for the ISO input (PR [#8922](https://github.com/vatesfr/xen-orchestra/pull/8922))
-
 - [V2V] fix resuming importing retransfering the full VM (PR [#8928](https://github.com/vatesfr/xen-orchestra/pull/8928))
+
+- **XO 6**:
+  - Prevent dashboard charts reloading every 30 seconds (PR [#8939](https://github.com/vatesfr/pull/8939))
+  - [XO6/New VM] Display only ISO VDIs for the ISO input (PR [#8922](https://github.com/vatesfr/xen-orchestra/pull/8922))
 
 ### Packages to release
 
