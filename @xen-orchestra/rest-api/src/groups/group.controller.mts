@@ -190,7 +190,7 @@ export class GroupController extends XoController<XoGroup> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ) {
+  ): Promise<SendObjects<Partial<Unbrand<XoUser>>>> {
     const group = await this.getObject(id as XoGroup['id'])
     const users = await Promise.all(group.users.map(id => this.#userService.getUser(id)))
     return this.sendObjects(limitAndFilterArray(users, { filter, limit }), req, 'users')
