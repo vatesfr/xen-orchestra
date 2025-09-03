@@ -5,6 +5,7 @@ import { createWriteStream } from 'node:fs'
 import { VDDK_LIB_DIR } from '@xen-orchestra/vmware-explorer/esxi.mjs'
 import { exec } from 'node:child_process'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
+import { format } from 'json-rpc-peer'
 
 function execPromise(command, opts = []) {
   return new Promise((resolve, reject) => {
@@ -63,6 +64,7 @@ async function handleImport(req, res) {
     await Task.run({ properties: { name: `installing to ${VDDK_LIB_DIR}` } }, () =>
       execPromise(`tar xfz ${tempFilePath} -C ${VDDK_LIB_DIR}`)
     )
+    res.end(format.response(0))
   })
 }
 export async function installVddkLib() {
