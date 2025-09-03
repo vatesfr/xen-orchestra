@@ -110,9 +110,9 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(incorrectStateResp.status, incorrectStateResp.description)
-  async deleteVm(@Path() id: string): Promise<void> {
-    const xapiVm = this.getXapiObject(id as XoVmTemplate['id'])
-    await xapiVm.$xapi.VM_destroy(xapiVm.$ref)
+  async deleteVmTemplate(@Path() id: string): Promise<void> {
+    const xapiVmTemplate = this.getXapiObject(id as XoVmTemplate['id'])
+    await xapiVmTemplate.$xapi.VM_destroy(xapiVmTemplate.$ref)
   }
 
   /**
