@@ -222,17 +222,21 @@ class EsxiImport extends Component {
       if (check.status !== 'success') {
         return (
           <div>
+            <Row>
+              <EsxiCheckResults esxiCheck={esxiCheck} />
+            </Row>
             {check.version === undefined && (
               <div>
-                <p>{_('esxiLibraryNotInstalled', { library })}</p>
-                <div className='form-group pull-right'>
+                <div className='mt-1 form-group pull-right'>
                   <ActionButton btnStyle='primary' className='mr-1' handler={fn} icon='import'>
                     {_('esxiLibraryAutoInstall', { library })}
                   </ActionButton>
                   {installingEsxiLib && (
                     <p>
                       {_('esxiLibraryInstalling', { library })}
-                      <Link to='/tasks?s_xo=1_3_desc-status%3Apending+esxi.install'>{_('esxiProgressLinkText')}</Link>
+                      <Link to='/tasks?s_xo=1_3_desc-status%3Apending+esxi.install' target='_blank'>
+                        {_('esxiProgressLinkText')}
+                      </Link>
                     </p>
                   )}
                   {!installingEsxiLib && <p>{_('esxiLibraryManualInstall')}</p>}
@@ -252,6 +256,9 @@ class EsxiImport extends Component {
     if (esxiCheck.vddk?.status === 'error') {
       return (
         <div>
+          <Row>
+            <EsxiCheckResults esxiCheck={esxiCheck} />
+          </Row>
           <p>
             {_('esxiLibraryInfo')} :{' '}
             <a

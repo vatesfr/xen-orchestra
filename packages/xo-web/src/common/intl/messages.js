@@ -25,7 +25,6 @@ const messages = {
   esxiLibraryManualInstall:
     'For other systems, you can install manually from https://gitlab.com/nbdkit/ . For reference the list of packages need for a debian 13 is **git dh-autoreconf pkg-config make libxml2-dev ocaml libc-bin**',
   esxiLibraryAutoInstall: 'install {library} (debian based system)',
-  esxiLibraryNotInstalled: '{library} is not installed',
   esxiLibraryInstalling:
     "Installing {library} can take a few minutes. You can check the progress in the XO tasks screen while it's running.",
   esxiProgressLinkText: 'Track progress',
