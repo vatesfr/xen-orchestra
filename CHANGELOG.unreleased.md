@@ -18,6 +18,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [XO6/New VM] Display only ISO VDIs for the ISO input (PR [#8922](https://github.com/vatesfr/xen-orchestra/pull/8922))
+- [Backups] Display a warning in backup logs when delta replication falls back to a full replication (PR [#8926](https://github.com/vatesfr/xen-orchestra/pull/8926))
 
 ### Packages to release
 
