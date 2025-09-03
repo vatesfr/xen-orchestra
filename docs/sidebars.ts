@@ -62,6 +62,7 @@ export default {
       items: [
         'manage',
         'manage_infrastructure',
+        'v2v-migration-guide',
         'users',
         'vm-templates',
         'advanced',
