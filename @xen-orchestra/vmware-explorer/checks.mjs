@@ -2,8 +2,6 @@ import { exec } from 'node:child_process'
 import semver from 'semver'
 import fs from 'node:fs/promises'
 
-const NBDKIT_VERSION_VDDK9 = '1.42.5'
-
 /**
  *
  * @returns {Promise<Object>}
@@ -50,7 +48,7 @@ async function getNbdKitVersion() {
  * @returns {Promise<Object>}
  */
 async function nbdKit() {
-  const expectedVersion = '1.42'
+  const expectedVersion = '1.42.5'
   try {
     const version = await getNbdKitVersion()
     return {
@@ -100,21 +98,6 @@ async function vddk() {
       error:
         'Vddk library is not present or accessible in /usr/local/lib/vddk/ it can be downloaded from https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/latest',
     }
-  }
-  try {
-    const isV9 = await fs.stat('/usr/local/lib/vddk/vmware-vix-disklib-distrib/lib64/libvixDiskLib.so.9')
-    const nbdKitVersion = await getNbdKitVersion()
-    if (isV9) {
-      if (!semver.satisfies(nbdKitVersion, `>=${NBDKIT_VERSION_VDDK9}`)) {
-        return {
-          status: 'alarm',
-          expectedVersion: '1.42.5',
-          version: nbdKitVersion,
-        }
-      }
-    }
-  } catch (error) {
-    // v8 and older are ok
   }
   return { status: 'success' }
 }
