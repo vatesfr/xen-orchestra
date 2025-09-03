@@ -13,7 +13,7 @@
 
 - **Migrated REST API endpoints**:
 
-  - `GET /rest/v0/groups/<group-id>/users`
+  - `GET /rest/v0/groups/<group-id>/users` (PR [#8932](https://github.com/vatesfr/xen-orchestra/pull/8932))
 
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
 
