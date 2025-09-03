@@ -15,6 +15,7 @@ import {
   SuccessResponse,
   Tags,
 } from 'tsoa'
+import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoUser } from '@vates/types'
@@ -31,8 +32,10 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
+import { UserService } from './user.service.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('users')
@@ -41,25 +44,20 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 @Tags('users')
 @provide(UserController)
 export class UserController extends XoController<XoUser> {
+  #userService: UserService
+
+  constructor(@inject(RestApi) restApi: RestApi, @inject(UserService) userService: UserService) {
+    super(restApi)
+    this.#userService = userService
+  }
+
   // --- abstract methods
   async getAllCollectionObjects(): Promise<XoUser[]> {
-    const users = await this.restApi.xoApp.getAllUsers()
-    return users.map(user => this.#sanitizeUser(user))
+    return this.#userService.getUsers()
   }
 
   async getCollectionObject(id: XoUser['id']): Promise<XoUser> {
-    const user = await this.restApi.xoApp.getUser(id)
-    return this.#sanitizeUser(user)
-  }
-
-  #sanitizeUser(user: XoUser): XoUser {
-    const sanitizedUser = { ...user }
-
-    if (sanitizedUser.pw_hash !== undefined) {
-      sanitizedUser.pw_hash = '***obfuscated***'
-    }
-
-    return sanitizedUser
+    return this.#userService.getUser(id)
   }
 
   /**

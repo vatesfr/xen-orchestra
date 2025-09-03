@@ -249,7 +249,11 @@ export default class RestApi {
           missing_patches: true,
         },
       },
-      groups: {},
+      groups: {
+        routes: {
+          users: true,
+        },
+      },
       users: {},
       vifs: {
         routes: {
