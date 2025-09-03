@@ -22,6 +22,16 @@ const RECIPE_INFO = {
   description: 'Creates an DCScope VM with parameters and application inside',
 }
 
+const INDEX_TO_PERF_CONFIG = [
+  { cpu: 2, ram: 8 * 1024 * 1024 * 1024, diskSize: 10 * 1024 * 1024 * 1024 }, // 10GB
+  { cpu: 2, ram: 12 * 1024 * 1024 * 1024, diskSize: 250 * 1024 * 1024 * 1024 }, // 250GB
+  { cpu: 2, ram: 24 * 1024 * 1024 * 1024, diskSize: 550 * 1024 * 1024 * 1024 }, // 550GB
+  { cpu: 4, ram: 48 * 1024 * 1024 * 1024, diskSize: 750 * 1024 * 1024 * 1024 }, // 750GB
+  { cpu: 4, ram: 64 * 1024 * 1024 * 1024, diskSize: 1228 * 1024 * 1024 * 1024 }, // 1,2TB
+  { cpu: 8, ram: 96 * 1024 * 1024 * 1024, diskSize: 1536 * 1024 * 1024 * 1024 }, // 1,5TB
+  { cpu: 8, ram: 128 * 1024 * 1024 * 1024, diskSize: 2 * 1024 * 1024 * 1024 * 1024 }, // 2TB
+]
+
 export default decorate([
   withRouter,
   connectStore(() => ({
@@ -59,8 +69,12 @@ export default decorate([
           xoPassword,
           xoUrl,
           dcScopeTemplateId,
+          userEmail,
+          userCompany,
+          performanceIndex,
         } = recipeParams
 
+        const performanceConfig = INDEX_TO_PERF_CONFIG[performanceIndex]
         markRecipeAsCreating(RECIPE_INFO.id)
 
         const vmId = await createEasyVirtVM({
@@ -74,6 +88,9 @@ export default decorate([
           xoPassword,
           xoUrl,
           dcScopeTemplateId,
+          userEmail,
+          userCompany,
+          performanceConfig,
         })
         markRecipeAsDone(RECIPE_INFO.id)
 

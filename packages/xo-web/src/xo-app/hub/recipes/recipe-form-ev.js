@@ -8,6 +8,38 @@ import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { SelectPool, SelectNetwork, SelectSr } from 'select-objects'
+import { Select } from 'form'
+
+const PERF_CONFIG = [
+  {
+    label: _('dcScopeTest'),
+    value: 0,
+  },
+  {
+    label: _('dcScopeVerySmall'),
+    value: 1,
+  },
+  {
+    label: _('dcScopeSmall'),
+    value: 2,
+  },
+  {
+    label: _('dcScopeMedium'),
+    value: 3,
+  },
+  {
+    label: _('dcScopeBig'),
+    value: 4,
+  },
+  {
+    label: _('dcScopeVeryBig'),
+    value: 5,
+  },
+  {
+    label: _('dcScopeHuge'),
+    value: 6,
+  },
+]
 
 export default decorate([
   injectIntl,
@@ -49,6 +81,13 @@ export default decorate([
         onChange({
           ...prevValue,
           nameservers,
+        })
+      },
+      onChangePerformanceIndex(__, performanceIndex) {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          performanceIndex: performanceIndex.value,
         })
       },
       toggleStaticIpAddress(__, ev) {
@@ -150,6 +189,41 @@ export default decorate([
           required
           type='text'
           value={value.dcScopeTemplateId}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('recipeUserEmail')}</label>
+        <input
+          className='form-control'
+          name='userEmail'
+          onChange={effects.onChangeValue}
+          placeholder={formatMessage(messages.recipeUserEmail)}
+          required
+          type='text'
+          value={value.userEmail}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('recipeUserCompany')}</label>
+        <input
+          className='form-control'
+          name='userCompany'
+          onChange={effects.onChangeValue}
+          placeholder={formatMessage(messages.recipeUserCompany)}
+          required
+          type='text'
+          value={value.userCompany}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('recipePerformanceConfig')}</label>
+        <Select
+          className='mb-1'
+          name='performanceIndex'
+          onChange={effects.onChangePerformanceIndex}
+          options={PERF_CONFIG}
+          required
+          value={value.performanceIndex}
         />
       </FormGrid.Row>
       <FormGrid.Row>

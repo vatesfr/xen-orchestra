@@ -2819,6 +2819,16 @@ const messages = {
   recipeVMxoUser: 'XO Username for DCScope',
   recipeXoUrl: 'XO url for DCScope',
   recipeDcScopeTemplateId: 'DCScope template UUID',
+  recipeUserCompany: 'Company',
+  recipeUserEmail: 'Email',
+  recipePerformanceConfig: 'Performance for VM DCScope',
+  dcScopeTest: 'Test config (10 VM): CPU(2), RAM(4), Disk(10Go)',
+  dcScopeVerySmall: 'Very small config (<1000 VM): CPU(2), RAM(4), Disk(10Go)',
+  dcScopeSmall: 'Small config (1000-2500 VM): CPU(2), RAM(24), Disk(10Go)',
+  dcScopeMedium: 'Medium config (2500-5000 VM): CPU(4), RAM(48), Disk(10Go)',
+  dcScopeBig: 'Big config (5000-7500 VM): CPU(4), RAM(64), Disk(10Go)',
+  dcScopeVeryBig: 'Very big config (7500-10000 VM: CPU(8), RAM(96), Disk(10Go)',
+  dcScopeHuge: 'Huge config (>10000 VM): CPU(8), RAM(128), Disk(10Go)',
 
   // Audit
   auditActionEvent: 'Action/Event',
