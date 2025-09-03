@@ -1358,8 +1358,8 @@ async function import_({ data, sr, type = 'xva', url }) {
     if (type !== 'xva') {
       throw invalidParameters('URL import is only compatible with XVA')
     }
-
-    const ref = await xapi.VM_import(await hrp(url), sr._xapiRef)
+    const timeout = this.config.get('jsonrpc-api').xvaImportFromUrlTimeout ?? 6e3
+    const ref = await xapi.VM_import(await hrp(url, { timeout }), sr._xapiRef)
     return xapi.call('VM.get_uuid', ref)
   }
 
