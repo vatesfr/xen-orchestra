@@ -59,7 +59,7 @@ The new setup completly replace the previous solution. An auto check is added at
 On Debian, these are available through the contrib repository as `nbdkit-plugin-vddk` and `libnbd-bin`. You can also compile `nbdkit` and `libnbd` from source on GitLab, but the correct dependencies must be in place for `nbdinfo` and VDDK.
 :::
 
-2. Download the VMware Virtual Disk Development Kit (VDDK) from the [Broadcom developer portal](https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/latest?ref=xen-orchestra.com). Select the Linux *tar.gz* archive and upload it through the Xen Orchestra interface.
+2. Download the VMware Virtual Disk Development Kit (VDDK) from the [Broadcom developer portal](https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/9.0?ref=xen-orchestra.com). Select the Linux *tar.gz* archive and upload it through the Xen Orchestra interface.
 
 ## 👨‍🍳 Preparing the VMware Environment
 
