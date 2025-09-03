@@ -19,6 +19,8 @@
 
 - [XO6/New VM] Display only ISO VDIs for the ISO input (PR [#8922](https://github.com/vatesfr/xen-orchestra/pull/8922))
 
+- [V2V] fix resuming importing retransfering the full VM (PR [#8928](https://github.com/vatesfr/xen-orchestra/pull/8928))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -38,6 +40,7 @@
 - @vates/types minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
+- xo-server patch
 - xo-web patch
 
 <!--packages-end-->
