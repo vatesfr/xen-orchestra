@@ -27,17 +27,27 @@ export default class MigrateVm {
     return esxi.getAllVmMetadata()
   }
 
-  async #findVmSnapshot(xapi, metadata) {
+  async #findBaseVM(xapi, metadata) {
     const { vmId, snapshots } = metadata
-    return Object.values(xapi.objects.all).find(
+    const candidates = Object.values(xapi.objects.indexes.type.VM).filter(
       object =>
-        object.$type === 'VM' &&
-        object.is_a_snapshot === true &&
+        object.is_a_snapshot === false &&
         object.other_config.sourceVmId === vmId &&
         object.other_config.sourceSnapshotId === snapshots?.current &&
         object.blocked_operations?.start === 'Esxi migration in progress...' &&
         object.blocked_operations?.start_on === 'Esxi migration in progress...'
     )
+    if (candidates.length === 0) {
+      Task.info(`No previously transfered VM found, do a full transfer`)
+      return
+    }
+    if (candidates.length > 1) {
+      Task.warning(`More than one candidate found, fall back to full import to ensure data security`)
+      return
+    }
+    // exactly one VM found
+    Task.info(`Found VM, resuming transfer.`)
+    return candidates[0]
   }
 
   async #updateVmMetadata(xapiVm, metadata) {
@@ -53,7 +63,7 @@ export default class MigrateVm {
   async #createVmAndNetworks($defer, { metadata, networkId, template, xapi }) {
     const { guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
-    const existingVm = await this.#findVmSnapshot(xapi, metadata)
+    const existingVm = await this.#findBaseVM(xapi, metadata)
     if (existingVm !== undefined) {
       return this.#updateVmMetadata(existingVm, metadata)
     }
@@ -112,7 +122,7 @@ export default class MigrateVm {
     const isRunning = powerState !== 'poweredOff'
 
     if (isRunning && !stopSource) {
-      Task.warning(`Data in the latest snapshot won't be migrated to XCP-ng`)
+      Task.warning(`Data after the last snapshot on vmware won't be migrated to XCP-ng`)
     }
     const chainsByNodes = await Task.run(
       { properties: { name: `build disks and snapshots chains for ${vmId}` } },
