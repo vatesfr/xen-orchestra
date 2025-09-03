@@ -1,0 +1,109 @@
+<template>
+  <UiCard class="host-dashboard-patches">
+    <div class="title">
+      <UiCardTitle>
+        {{ t('patches') }}
+        <template v-if="!noMissingPatches" #info>
+          <span class="missing-patches-info"> {{ t('n-missing', missingPatches.length) }}</span>
+        </template>
+      </UiCardTitle>
+    </div>
+    <VtsLoadingHero v-if="!areHostMissingPatchesReady" type="card" />
+    <VtsAllDoneHero v-else-if="noMissingPatches" type="card" />
+    <div v-else class="table-wrapper">
+      <VtsDataTable is-ready class="table">
+        <template #thead>
+          <tr>
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th>
+                <div v-tooltip class="text-ellipsis">
+                  <VtsIcon size="medium" :name="headerIcon[column.id]" />
+                  {{ column.label }}
+                </div>
+              </th>
+            </template>
+          </tr>
+        </template>
+        <template #tbody>
+          <tr v-for="row of rows" :key="row.id">
+            <td v-for="column of row.visibleColumns" :key="column.id">
+              <div v-tooltip class="text-ellipsis" :class="{ version: column.id === 'version' }">
+                {{ column.value }}
+              </div>
+            </td>
+          </tr>
+        </template>
+      </VtsDataTable>
+    </div>
+  </UiCard>
+</template>
+
+<script setup lang="ts">
+import { useXoHostMissingPatchesCollection } from '@/remote-resources/use-xo-host-missing-patches-collection.ts'
+import type { XoHost } from '@/types/xo/host.type.ts'
+import type { IconName } from '@core/icons'
+import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsAllDoneHero from '@core/components/state-hero/VtsAllDoneHero.vue'
+import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { useTable } from '@core/composables/table.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { computed, useId } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { host } = defineProps<{
+  host: XoHost
+}>()
+
+const { t } = useI18n()
+
+const { hostMissingPatches: missingPatches, areHostMissingPatchesReady } = useXoHostMissingPatchesCollection(
+  {},
+  () => host?.id
+)
+
+const nMissingPatches = computed(() => missingPatches.value.length)
+
+const noMissingPatches = computed(() => nMissingPatches.value === 0)
+
+const { visibleColumns, rows } = useTable(
+  'missingPatches',
+  computed(() => missingPatches.value as { name: string; version?: string }[]),
+  {
+    rowId: () => useId(),
+    columns: define => [define('name', { label: t('name') }), define('version', { label: t('version') })],
+  }
+)
+
+const headerIcon: Record<'name' | 'version', IconName> = {
+  name: 'fa:align-left',
+  version: 'fa:hashtag',
+}
+</script>
+
+<style lang="postcss" scoped>
+.host-dashboard-patches {
+  max-height: 24.9rem;
+
+  .missing-patches-info {
+    color: var(--color-danger-txt-base);
+  }
+
+  .table-wrapper {
+    overflow-y: auto;
+    margin-inline: -2.4rem;
+    margin-block-end: -1.2rem;
+    border-block: 0.1rem solid var(--color-neutral-border);
+
+    .table {
+      margin-top: -0.1rem;
+    }
+  }
+
+  .version {
+    text-align: end;
+  }
+}
+</style>
