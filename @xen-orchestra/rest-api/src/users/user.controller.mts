@@ -169,6 +169,7 @@ export class UserController extends XoController<XoUser> {
   @Example(partialGroups)
   @Get('{id}/groups')
   @Tags('groups')
+  @Response(notFoundResp.status, notFoundResp.description)
   async getUserGroups(
     @Request() req: ExRequest,
     @Path() id: string,
