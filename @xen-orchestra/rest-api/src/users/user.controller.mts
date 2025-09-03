@@ -17,7 +17,7 @@ import {
 } from 'tsoa'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoUser } from '@vates/types'
+import type { XoGroup, XoUser } from '@vates/types'
 
 import {
   createdResp,
@@ -34,6 +34,8 @@ import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/use
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 
 @Route('users')
 @Security('*')
@@ -157,5 +159,29 @@ export class UserController extends XoController<XoUser> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteUser(@Path() id: string): Promise<void> {
     await this.restApi.xoApp.deleteUser(id as XoUser['id'])
+  }
+
+  /**
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * @example fields "name,id,users"
+   * @example filter "users:length:>0"
+   * @example limit 42
+   */
+  @Example(groupIds)
+  @Example(partialGroups)
+  @Get('{id}/groups')
+  @Tags('groups')
+  async getUserGroups(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoGroup>>>> {
+    const user = await this.getObject(id as XoUser['id'])
+    const groups = await Promise.all(user.groups.map(group => this.restApi.xoApp.getGroup(group)))
+
+    return this.sendObjects(limitAndFilterArray(groups, { filter, limit }), req, 'groups')
   }
 }
