@@ -114,9 +114,9 @@ async function vddk() {
       }
     }
   } catch (error) {
-    // v8 is ok
-    return { status: 'success' }
+    // v8 and older are ok
   }
+  return { status: 'success' }
 }
 /**
  *
