@@ -68,3 +68,8 @@ export const badRequestResp = {
   status: 400,
   description: 'Bad request',
 } as const
+
+export const incorrectStateResp = {
+  status: 409,
+  description: 'Incorrect state',
+} as const
