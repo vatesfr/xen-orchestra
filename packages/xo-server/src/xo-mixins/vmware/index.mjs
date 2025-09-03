@@ -27,7 +27,7 @@ export default class MigrateVm {
     return esxi.getAllVmMetadata()
   }
 
-  async #findVmSnapshot(xapi, metadata) {
+  async #findBaseVM(xapi, metadata) {
     const { vmId, snapshots } = metadata
     const candidates = Object.values(xapi.objects.indexes.type.VM).filter(
       object =>
@@ -64,7 +64,7 @@ export default class MigrateVm {
   async #createVmAndNetworks($defer, { metadata, networkId, template, xapi }) {
     const { guestId, firmware, memory, name_label, networks, nCpus } = metadata
 
-    const existingVm = await this.#findVmSnapshot(xapi, metadata)
+    const existingVm = await this.#findBaseVM(xapi, metadata)
     if (existingVm !== undefined) {
       return this.#updateVmMetadata(existingVm, metadata)
     }
