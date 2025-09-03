@@ -1,4 +1,4 @@
-import { Example, Get, Security, Query, Request, Response, Route, Tags, Path, SuccessResponse } from 'tsoa'
+import { Example, Get, Security, Query, Request, Response, Route, Tags, Path, Delete, SuccessResponse } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
@@ -8,7 +8,14 @@ import { Readable } from 'node:stream'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  forbiddenOperationResp,
+  incorrectStateResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 
@@ -93,6 +100,19 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   @Response(notFoundResp.status, notFoundResp.description)
   getVmTemplate(@Path() id: string): Unbrand<XoVmTemplate> {
     return this.getObject(id as XoVmTemplate['id'])
+  }
+
+  /**
+   * @example id "6d50ba76-0f11-1ff1-4f6a-b502afc31b8e"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  async deleteVm(@Path() id: string): Promise<void> {
+    const xapiVm = this.getXapiObject(id as XoVmTemplate['id'])
+    await xapiVm.$xapi.VM_destroy(xapiVm.$ref)
   }
 
   /**

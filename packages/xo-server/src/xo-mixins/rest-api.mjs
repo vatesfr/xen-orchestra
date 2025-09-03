@@ -1056,7 +1056,7 @@ export default class RestApi {
     )
 
     api.delete(
-      '/:collection(vdis|vdi-snapshots|vms|vm-snapshots|vm-templates)/:object',
+      '/:collection(vdis|vdi-snapshots)/:object',
       wrap(async (req, res) => {
         await req.xapiObject.$destroy()
         res.sendStatus(200)
