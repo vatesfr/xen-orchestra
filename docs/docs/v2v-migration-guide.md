@@ -67,6 +67,9 @@ On Debian, these are available through the contrib repository as `nbdkit-plugin-
 
 Before starting the migration, make sure your VMware environment meets the following conditions:
 
+### Network
+XO must be able to connect to the vsphere/esxi through the port running the web ui (default 443) and vddk (default: 902) .  There aren't currently any solution to select one network or another. If possible have one single network path from XO to vmware.
+
 ### VMware disk support
 
 #### ✅Supported 
