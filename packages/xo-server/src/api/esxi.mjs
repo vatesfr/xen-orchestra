@@ -40,7 +40,7 @@ checkInstall.params = {}
 checkInstall.permission = 'admin'
 
 async function handleImport(req, res) {
-  return Task.run({ properties: { name: 'hanling vddk import and installing' } }, async () => {
+  return Task.run({ properties: { name: 'handling vddk import and installing' } }, async () => {
     const tmpDir = await Task.run({ properties: { name: `create directory` } }, () =>
       fs.mkdtemp(join(tmpdir(), 'xo-server'))
     )
