@@ -28,6 +28,7 @@ import type {
   XoVm,
   XoVmSnapshot,
 } from '@vates/types'
+import { Readable } from 'node:stream'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import {
@@ -89,6 +90,29 @@ export class VmController extends XapiXoController<XoVm> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVm>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+  }
+
+  /**
+   *
+   * Export VM. Compress is only used for XVA format
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Get('{id}.{format}')
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid format, Invalid compress')
+  async exportVm(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Path() format: 'xva' | 'ova',
+    @Query() compress?: boolean
+  ): Promise<Readable> {
+    const stream = await this.#vmService.export(id as XoVm['id'], 'VM', { compress, format, response: req.res })
+    process.on('SIGTERM', () => req.destroy())
+    req.on('close', () => stream.destroy())
+
+    return stream
   }
 
   /**

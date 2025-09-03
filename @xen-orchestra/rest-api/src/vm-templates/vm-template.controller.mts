@@ -1,8 +1,9 @@
-import { Example, Get, Security, Query, Request, Response, Route, Tags, Path } from 'tsoa'
+import { Example, Get, Security, Query, Request, Response, Route, Tags, Path, SuccessResponse } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { XoAlarm, XoVdi, XoVmTemplate } from '@vates/types'
+import { Readable } from 'node:stream'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
@@ -55,6 +56,33 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVmTemplate>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+  }
+
+  /**
+   *
+   * Export VM-template. Compress is only used for XVA format
+   *
+   * @example id "b7569d99-30f8-178a-7d94-801de3e29b5b-f873abe0-b138-4995-8f6f-498b423d234d"
+   */
+  @Get('{id}.{format}')
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid format, Invalid compress')
+  async exportVmTemplate(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Path() format: 'xva' | 'ova',
+    @Query() compress?: boolean
+  ): Promise<Readable> {
+    const stream = await this.#vmService.export(id as XoVmTemplate['id'], 'VM-template', {
+      compress,
+      format,
+      response: req.res,
+    })
+    process.on('SIGTERM', () => req.destroy())
+    req.on('close', () => stream.destroy())
+
+    return stream
   }
 
   /**

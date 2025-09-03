@@ -944,24 +944,6 @@ export default class RestApi {
         res.sendStatus(204)
       })
     )
-    api.get(
-      '/:collection(vms|vm-snapshots|vm-templates)/:object.:format(ova|xva)',
-      wrap(async (req, res) => {
-        const vm = req.xapiObject
-
-        const stream =
-          req.params.format === 'ova'
-            ? await vm.$xapi.exportVmOva(vm.$ref)
-            : (
-                await vm.$export({
-                  compress: req.query.compress,
-                })
-              ).body
-
-        res.setHeader('content-disposition', 'attachment')
-        await pipeline(stream, res)
-      })
-    )
 
     api.get('/:collection/:object', (req, res, next) => {
       const { collection } = req
