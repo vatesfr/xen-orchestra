@@ -250,7 +250,11 @@ export default class RestApi {
         },
       },
       groups: {},
-      users: {},
+      users: {
+        routes: {
+          groups: true,
+        },
+      },
       vifs: {
         routes: {
           alarms: true,
