@@ -11,6 +11,7 @@ import { mergeVhdChain } from 'vhd-lib/merge.js'
 import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
 import handlerPath from '@xen-orchestra/fs/path'
+import { asyncEach } from '@vates/async-each'
 
 const { DISK_TYPES } = Constants
 
@@ -73,13 +74,13 @@ const listVhds = async (handler, vmDir, logWarn) => {
   const aliases = {}
   const interruptedVhds = new Map()
 
-  await asyncMap(
+  await asyncEach(
     await handler.list(`${vmDir}/vdis`, {
       ignoreMissing: true,
       prependDir: true,
     }),
     async jobDir =>
-      asyncMap(
+      asyncEach(
         await handler.list(jobDir, {
           prependDir: true,
         }),
@@ -89,26 +90,32 @@ const listVhds = async (handler, vmDir, logWarn) => {
           })
           aliases[vdiDir] = list.filter(vhd => isVhdAlias(vhd)).map(file => `${vdiDir}/${file}`)
 
-          await asyncMap(list, async file => {
-            const res = INTERRUPTED_VHDS_REG.exec(file)
-            if (res === null) {
-              vhds.add(`${vdiDir}/${file}`)
-            } else {
-              try {
-                const mergeState = JSON.parse(await handler.readFile(`${vdiDir}/${file}`))
-                interruptedVhds.set(`${vdiDir}/${res[1]}`, {
-                  statePath: `${vdiDir}/${file}`,
-                  chain: mergeState.chain,
-                })
-              } catch (error) {
-                // fall back to a non resuming merge
+          await asyncEach(
+            list,
+            async file => {
+              const res = INTERRUPTED_VHDS_REG.exec(file)
+              if (res === null) {
                 vhds.add(`${vdiDir}/${file}`)
-                logWarn('failed to read existing merge state', { path: file, error })
+              } else {
+                try {
+                  const mergeState = JSON.parse(await handler.readFile(`${vdiDir}/${file}`))
+                  interruptedVhds.set(`${vdiDir}/${res[1]}`, {
+                    statePath: `${vdiDir}/${file}`,
+                    chain: mergeState.chain,
+                  })
+                } catch (error) {
+                  // fall back to a non resuming merge
+                  vhds.add(`${vdiDir}/${file}`)
+                  logWarn('failed to read existing merge state', { path: file, error })
+                }
               }
-            }
-          })
-        }
-      )
+            },
+            { concurrency: 1 }
+          )
+        },
+        { concurrency: 1 }
+      ),
+    { concurrency: 1 }
   )
 
   return { vhds, interruptedVhds, aliases }
