@@ -233,3 +233,7 @@ xoaUpgradeTimeout = '5 min'
 [rest-api]
 dashboardCacheTimeout = '1 min'
 dashboardCacheExpiresIn = '1 min'
+
+
+[jsonrpc-api]
+xvaImportFromUrlTimeout = '6s'

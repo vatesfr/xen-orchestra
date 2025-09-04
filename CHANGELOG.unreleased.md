@@ -13,6 +13,7 @@
 
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
 - [V2V] Add task to track library installation progress and error (PR [#8927](https://github.com/vatesfr/xen-orchestra/pull/8927))
+- [Import] Make timeout for import xva from url configurable (PR [#8931](https://github.com/vatesfr/xen-orchestra/pull/8931))
 
 ### Bug fixes
 
