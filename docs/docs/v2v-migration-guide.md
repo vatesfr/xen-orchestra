@@ -46,7 +46,7 @@ A test case of importing a Debian VM with around 30GiB disk.
 
 ### Update Xen Orchestra 
 
-Mmake sure Xen Orchestra is up to date. The import page now includes an automatic check that highlights errors and warnings before migration. Errors must be resolved, and warnings should be addressed when possible:
+Make sure your Xen Orchestra instance is up to date. The import page now includes an automatic check that highlights errors and warnings before migration. Errors must be resolved, and warnings should be addressed when possible.
 
 The new setup completly replace the previous solution. An auto check is added at the top of the import page. Any error must be handled before trying a migration. Any warning should be addressed if possible. 
 <img width="481" height="239" alt="image" src="https://gist.github.com/user-attachments/assets/8ebda4cc-fe11-4bfb-ac6e-d1e6025c023d" />
