@@ -20,6 +20,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [XO6/New VM] Display only ISO VDIs for the ISO input (PR [#8922](https://github.com/vatesfr/xen-orchestra/pull/8922))
+- [Backups] Display a warning in backup logs when delta replication falls back to a full replication (PR [#8926](https://github.com/vatesfr/xen-orchestra/pull/8926))
 
 - [V2V] fix resuming importing retransfering the full VM (PR [#8928](https://github.com/vatesfr/xen-orchestra/pull/8928))
 - [V2V] Fix vddk check icon (PR [#8927](https://github.com/vatesfr/xen-orchestra/pull/8927))
@@ -41,9 +42,11 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web patch
+- @xen-orchestra/xapi patch
 - xo-server minor
 - xo-web minor
 

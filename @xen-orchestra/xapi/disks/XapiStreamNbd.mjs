@@ -7,10 +7,11 @@
  */
 
 import { DiskPassthrough } from '@xen-orchestra/disk-transform'
-import { connectNbdClientIfPossible } from './utils.mjs'
 import { createLogger } from '@xen-orchestra/log'
+import { connectNbdClientIfPossible } from './utils.mjs'
 
-const { warn } = createLogger('@xen-orchestra/xapi/disks/XapiStreamNbd')
+const { warn } = createLogger('xo:xapi:XapiStreamNbd')
+
 export class XapiStreamNbdSource extends DiskPassthrough {
   /** @type {MultiNbdClient|undefined} */
   #nbdClient
