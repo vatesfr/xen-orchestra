@@ -36,7 +36,7 @@
     "@vates/async-each": "^1.0.0",
     "@vates/task": "^0.6.1",
     "@vates/types": "^1.11.0",
-    "@xen-orchestra/backups": "^0.64.1",
+    "@xen-orchestra/backups": "^0.64.2",
     "@xen-orchestra/log": "^0.7.1",
     "complex-matcher": "^0.7.1",
     "golike-defer": "^0.5.1",

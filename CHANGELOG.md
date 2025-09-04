@@ -1,5 +1,29 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [V2V] Add task to track library installation progress and error (PR [#8927](https://github.com/vatesfr/xen-orchestra/pull/8927))
+- [Import] Make timeout for import xva from url configurable (PR [#8931](https://github.com/vatesfr/xen-orchestra/pull/8931))
+
+### Bug fixes
+
+- [XO6/New VM] Display only ISO VDIs for the ISO input (PR [#8922](https://github.com/vatesfr/xen-orchestra/pull/8922))
+- [Backups] Display a warning in backup logs when delta replication falls back to a full replication (PR [#8926](https://github.com/vatesfr/xen-orchestra/pull/8926))
+- [V2V] Fix resuming importing retransfering the full VM (PR [#8928](https://github.com/vatesfr/xen-orchestra/pull/8928))
+- [V2V] Fix vddk check icon (PR [#8927](https://github.com/vatesfr/xen-orchestra/pull/8927))
+
+### Released packages
+
+- @xen-orchestra/xapi 8.4.1
+- @xen-orchestra/backups 0.64.2
+- @xen-orchestra/proxy 0.29.30
+- @xen-orchestra/vmware-explorer 0.10.2
+- @xen-orchestra/web 0.27.1
+- xo-server 5.188.0
+- xo-web 5.185.0
+
 ## **5.110.0** (2025-08-28)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
