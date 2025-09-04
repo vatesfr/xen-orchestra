@@ -28,7 +28,11 @@ const slots = defineSlots<{
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 2.4rem;
+    gap: 1.6rem;
+
+    @media (--mobile) {
+      flex-direction: column-reverse;
+    }
   }
 }
 </style>

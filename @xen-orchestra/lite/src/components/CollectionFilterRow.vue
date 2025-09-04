@@ -1,15 +1,19 @@
 <template>
   <div class="collection-filter-row">
     <span class="or">{{ t('or') }}</span>
-    <UiInput v-if="newFilter.isAdvanced" v-model="filterContent" accent="brand" />
-    <template v-else>
-      <VtsSelect :id="builderPropertySelectId" accent="brand" :icon="currentFilterIcon" />
-      <VtsSelect v-if="hasComparisonSelect" :id="builderComparisonSelectId" accent="brand" />
-      <VtsSelect v-if="currentFilter?.type === 'enum'" :id="builderValueSelectId" accent="brand" />
-      <UiInput v-else-if="hasValueInput" v-model="newFilter.builder.value" accent="brand" />
-    </template>
-    <UiActionButton v-if="!newFilter.isAdvanced" icon="fa:pencil" @click="enableAdvancedMode" />
-    <UiActionButton icon="fa:remove" @click="emit('remove', newFilter.id)" />
+    <div class="inputs">
+      <UiInput v-if="newFilter.isAdvanced" v-model="filterContent" accent="brand" class="advanced-input" />
+      <template v-else>
+        <VtsSelect :id="builderPropertySelectId" accent="brand" :icon="currentFilterIcon" />
+        <VtsSelect v-if="hasComparisonSelect" :id="builderComparisonSelectId" accent="brand" />
+        <VtsSelect v-if="currentFilter?.type === 'enum'" :id="builderValueSelectId" accent="brand" />
+        <UiInput v-else-if="hasValueInput" v-model="newFilter.builder.value" accent="brand" />
+      </template>
+    </div>
+    <div class="buttons">
+      <UiActionButton v-if="!newFilter.isAdvanced" icon="fa:pencil" @click="enableAdvancedMode" />
+      <UiActionButton icon="fa:remove" @click="emit('remove', newFilter.id)" />
+    </div>
   </div>
 </template>
 
@@ -250,9 +254,24 @@ const { id: builderValueSelectId } = useFormSelect(
   &:first-child .or {
     visibility: hidden;
   }
-}
 
-.ui-action-button:first-of-type {
-  margin-left: auto;
+  .inputs,
+  .buttons {
+    display: flex;
+    gap: 1rem;
+
+    @media (--mobile) {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+
+  .inputs {
+    flex: 1;
+  }
+
+  .buttons {
+    margin-left: auto;
+  }
 }
 </style>

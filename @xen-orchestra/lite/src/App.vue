@@ -10,19 +10,19 @@
         <RouterView />
       </main>
     </div>
-    <VtsTooltipList />
   </div>
-  <ModalList />
+  <VtsModalList />
+  <VtsTooltipList />
 </template>
 
 <script lang="ts" setup>
 import AppHeader from '@/components/AppHeader.vue'
 import AppLogin from '@/components/AppLogin.vue'
 import AppNavigation from '@/components/AppNavigation.vue'
-import ModalList from '@/components/ui/modals/ModalList.vue'
 import { useUnreachableHosts } from '@/composables/unreachable-hosts.composable'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
+import VtsModalList from '@core/components/modal/VtsModalList.vue'
 import VtsTooltipList from '@core/components/tooltip-list/VtsTooltipList.vue'
 import { useChartTheme } from '@core/composables/chart-theme.composable'
 import { useUiStore } from '@core/stores/ui.store'
