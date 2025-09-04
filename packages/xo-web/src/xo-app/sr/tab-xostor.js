@@ -55,8 +55,8 @@ const RESOURCE_COLUMNS = [
   },
   {
     name: _('diskState'),
-    itemRenderer: ({ volume }) => volume['disk-state'],
-    sortCriteria: ({ volume }) => volume['disk-state'],
+    itemRenderer: ({ volume }) => volume?.['disk-state'],
+    sortCriteria: ({ volume }) => volume?.['disk-state'],
   },
 ]
 
@@ -172,23 +172,21 @@ export default class TabXostor extends Component {
       return resourceNames.flatMap(resourceName =>
         Object.entries(healthCheck.resources[resourceName].nodes).reduce((acc, [hostname, nodeInfo]) => {
           const volume = nodeInfo.volumes[0] // Max only one volume
-          if (volume !== undefined) {
-            const nodeStatus = healthCheck.nodes[hostname]
-            const host = this.props.hostByHostname[hostname][0]
+          const nodeStatus = healthCheck.nodes[hostname]
+          const host = this.props.hostByHostname[hostname][0]
 
-            const resourceState = _(
-              `${nodeInfo['tie-breaker'] ? 'tieBreaker' : nodeInfo.diskful ? 'diskful' : 'diskless'}`
-            )
-            acc.push({
-              inUse: nodeInfo['in-use'],
-              vdiId: healthCheck.resources[resourceName].uuid,
-              volume,
-              nodeStatus,
-              host,
-              resourceName,
-              resourceState,
-            })
-          }
+          const resourceState = _(
+            `${nodeInfo['tie-breaker'] ? 'tieBreaker' : nodeInfo.diskful ? 'diskful' : 'diskless'}`
+          )
+          acc.push({
+            inUse: nodeInfo['in-use'],
+            vdiId: healthCheck.resources[resourceName].uuid,
+            volume,
+            nodeStatus,
+            host,
+            resourceName,
+            resourceState,
+          })
           return acc
         }, [])
       )
