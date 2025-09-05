@@ -3,11 +3,15 @@ import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
 import some from 'lodash/some.js'
 import throttle from 'lodash/throttle.js'
+import { createLogger } from '@xen-orchestra/log'
 
+import backupGuard from './_backupGuard.mjs'
 import ensureArray from '../_ensureArray.mjs'
 import { asInteger } from '../xapi/utils.mjs'
 import { destroy as destroyXostor } from './xostor.mjs'
 import { forEach, isSrWritable, parseXml } from '../utils.mjs'
+
+const log = createLogger('xo:api:sr')
 
 // ===================================================================
 
@@ -1015,7 +1019,12 @@ disableMaintenanceMode.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function reclaimSpace({ sr }) {
+export async function reclaimSpace({ sr, bypassBackupCheck = false }) {
+  if (bypassBackupCheck) {
+    log.warn('sr.reclaimSpace with argument "bypassBackupCheck" set to true', { srId: sr.id })
+  } else {
+    await backupGuard.call(this, sr.$poolId)
+  }
   await this.getXapiObject(sr).$reclaimSpace()
 }
 
@@ -1023,6 +1032,10 @@ reclaimSpace.description = 'reclaim freed space on SR'
 
 reclaimSpace.params = {
   id: { type: 'string' },
+  bypassBackupCheck: {
+    type: 'boolean',
+    optional: true,
+  },
 }
 
 reclaimSpace.resolve = {

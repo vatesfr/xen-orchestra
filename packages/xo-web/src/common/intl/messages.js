@@ -2059,6 +2059,7 @@ const messages = {
   // ----- Modals -----
   bypassBackupHostModalMessage: 'There may be ongoing backups on the host. Are you sure you want to continue?',
   bypassBackupPoolModalMessage: 'There may be ongoing backups on the pool. Are you sure you want to continue?',
+  bypassBackupStorageModalMessage: 'There may be ongoing backups on the storage. Are you sure you want to continue?',
   bypassBlockedMigrationsModalTitle: 'Bypass blocked migrations',
   bypassBlockedMigrationsModalMessage: 'This will allow migration on these VMs: {vms}',
   emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
