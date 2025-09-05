@@ -79,7 +79,6 @@
       "/dist/",
       "/xen-api/",
       "/xo-server/",
-      "/xo-server-test/",
       "/xo-web/"
     ],
     "testRegex": "\\.spec\\.js$"
