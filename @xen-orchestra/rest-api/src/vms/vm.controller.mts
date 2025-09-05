@@ -23,6 +23,7 @@ import type {
   XapiVmStats,
   XenApiVm,
   XoAlarm,
+  XoBackupJob,
   XoHost,
   XoVdi,
   XoVm,
@@ -51,6 +52,8 @@ import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { VmService } from './vm.service.mjs'
+import { BackupService } from '../backups/backup.service.mjs'
+import type { UnbrandXoBackupJob } from '../backups/backup.type.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -64,15 +67,18 @@ const IGNORED_VDIS_TAG = '[NOSNAP]'
 export class VmController extends XapiXoController<XoVm> {
   #alarmService: AlarmService
   #vmService: VmService
+  #backupService: BackupService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(AlarmService) alarmService: AlarmService,
-    @inject(VmService) vmService: VmService
+    @inject(VmService) vmService: VmService,
+    @inject(BackupService) backupService: BackupService
   ) {
     super('VM', restApi)
     this.#alarmService = alarmService
     this.#vmService = vmService
+    this.#backupService = backupService
   }
 
   /**
@@ -542,5 +548,26 @@ export class VmController extends XapiXoController<XoVm> {
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVm['id'], 'VM')
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+  }
+
+  @Get('{id}/backup-jobs')
+  async getVmBackupJobs(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<UnbrandXoBackupJob>>> {
+    const backupJobs = await this.restApi.xoApp.getAllJobs('backup')
+
+    const vmBackupJobs: XoBackupJob[] = []
+    for (const backupJob of backupJobs) {
+      if (await this.#backupService.isVmInBackupJob(backupJob.id, id as XoVm['id'])) {
+        vmBackupJobs.push(backupJob)
+      }
+    }
+
+    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter, limit }), req, '/backup/jobs/vm')
   }
 }
