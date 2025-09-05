@@ -1,7 +1,6 @@
 // Types based on xapi-object-to-xo
 
 import type {
-  BACKUP_TYPE,
   Branded,
   DOMAIN_TYPE,
   HOST_ALLOWED_OPERATIONS,
@@ -382,52 +381,66 @@ export type XoProxy = {
 
 type BaseXoJob = {
   id: Branded<'job'>
+  name?: string
+}
+
+export type XoBackupJobGeneralSettings = {
+  cbtDestroySnapshotData?: boolean
+  concurrency?: number
+  longTermRetention?: {
+    daily?: { retention: number; settings: Record<string, unknown> }
+    weekly?: { retention: number; settings: Record<string, unknown> }
+    monthly?: { retention: number; settings: Record<string, unknown> }
+    yearly?: { retention: number; settings: Record<string, unknown> }
+  }
+  maxExportRate?: number
+  nbdConcurrency?: number
+  nRetriesVmBackupFailures?: number
+  preferNbd?: boolean
+  timezone?: string
+  [key: string]: unknown
+}
+export type XoBackupJobScheduleSettings = {
+  exportRetention?: number
+  healthCheckVmsWithTags?: string[]
+  fullInterval?: number
+  copyRetention?: number
+  snapshotRetention?: number
+  cbtDestroySnapshotData?: boolean
+  healthCheckSr?: XoSr['id']
+  [key: string]: unknown
 }
 // @TODO: create type for complex matcher
 export type XoBackupJob = BaseXoJob & {
   compression?: 'native' | 'zstd' | ''
   proxy?: XoProxy['id']
   mode: 'full' | 'delta'
-  name?: string
   remotes?: {
     id: XoBackupRepository['id'] | { __or: XoBackupRepository['id'][] }
   }
-  vms?: {
-    id: XoVm['id'] | { __or: XoVm['id'][] } | Record<string, unknown>
-  }
-  srs: {
+  vms:
+    | {
+        id: XoVm['id'] | { __or: XoVm['id'][] }
+      }
+    | Record<string, unknown>
+  srs?: {
     id: XoSr['id'] | { __or: XoSr['id'][] }
   }
-  type: BACKUP_TYPE
+  type: 'backup'
   settings: {
-    '': {
-      cbtDestroySnapshotData?: boolean
-      concurrency?: number
-      longTermRetention?: {
-        daily?: { retention: number; settings: Record<string, unknown> }
-        weekly?: { retention: number; settings: Record<string, unknown> }
-        monthly?: { retention: number; settings: Record<string, unknown> }
-        yearly?: { retention: number; settings: Record<string, unknown> }
-      }
-      maxExportRate?: number
-      nbdConcurrency?: number
-      nRetriesVmBackupFailures?: number
-      preferNbd?: boolean
-      timezone?: string
-      [key: string]: unknown
-    }
-    [key: XoSchedule['id']]: {
-      exportRetention?: number
-      healthCheckSr?: XoSr['id']
-      healthCheckVmsWithTags?: string[]
-      fullInterval?: number
-      copyRetention?: number
-      snapshotRetention?: number
-      cbtDestroySnapshotData?: boolean
-      [key: string]: unknown
-    }
+    '': XoBackupJobGeneralSettings
+    [key: XoSchedule['id']]: XoBackupJobScheduleSettings
   }
 }
+
+export type XoMetadataBackupJob = BaseXoJob & {
+  type: 'metadataBackup'
+}
+
+export type XoMirrorBackupJob = BaseXoJob & {
+  type: 'mirrorBackup'
+}
+
 export type XoJob = BaseXoJob & {}
 
 export type XoSchedule = {
@@ -691,4 +704,6 @@ export type AnyXoVm = XoVm | XoVmSnapshot | XoVmTemplate | XoVmController
 
 export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
 
-export type AnyXoJob = XoJob | XoBackupJob
+export type AnyXoJob = XoJob | AnyXoBackupJob
+
+export type AnyXoBackupJob = XoBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
