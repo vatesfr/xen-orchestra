@@ -704,6 +704,6 @@ export type AnyXoVm = XoVm | XoVmSnapshot | XoVmTemplate | XoVmController
 
 export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
 
-export type AnyXoJob = XoJob | XoBackupJob
+export type AnyXoJob = XoJob | AnyXoBackupJob
 
 export type AnyXoBackupJob = XoBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
