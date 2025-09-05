@@ -33,12 +33,13 @@ The new backend only reads allocated blocks, which accelerates transfers, and sn
 
 The interface has also seen significant improvements. A progress bar is now visible from the start of migration, speed metrics are recorded in the VDI, and snapshots are created at each step. This allows you to pause and resume the process safely without creating multiple VMs. Additionally, UEFI VMs are no longer forced into Secure Boot mode, resolving previous boot issues.
 
+![](./assets/v2v-track-progress.png)
+
 #### Performance gains 
 
 Performance gains can be significant, though results depend on the environment:
 
 - **In the best case**, when using VMs with many snapshots or mostly empty disks, migrations can be up to 100 times faster. In our high-performance lab, we measured around 150 MB/s per disk and up to 500 MB/s total, which means an infrastructure with 10 TB of data could be migrated in a single day, with less than five minutes of downtime per VM.
-A test case of importing a Debian VM with around 30GiB disk.
 
 - **In less favorable situations**, such as a fully allocated disk with no snapshots and a powered-off VM, improvements are smaller, mainly due to compression between XO and ESXi. In general, the limiting factor is the import speed on the XCP-ng side, which scales well until the storage is saturated. Most of the transfer occurs while the VM is running, so production data remains safe. 
 
@@ -48,18 +49,39 @@ A test case of importing a Debian VM with around 30GiB disk.
 
 Make sure your Xen Orchestra instance is up to date. The import page now includes an automatic check that highlights errors and warnings before migration. Errors must be resolved, and warnings should be addressed when possible.
 
-The new setup completly replace the previous solution. An auto check is added at the top of the import page. Any error must be handled before trying a migration. Any warning should be addressed if possible. 
-<img width="481" height="239" alt="image" src="https://gist.github.com/user-attachments/assets/8ebda4cc-fe11-4bfb-ac6e-d1e6025c023d" />
+![](./assets/import-prerequisite-check.png)
 
 ### Dependencies
 
-1. Install the required dependencies: `nbdkit`, the VDDK plugin, and `nbdinfo`.
+Install the following dependencies:
+- `nbdkit`
+- The VDDK plugin
+- `nbdinfo`
 
-:::tip
-On Debian, these are available through the contrib repository as `nbdkit-plugin-vddk` and `libnbd-bin`. You can also compile `nbdkit` and `libnbd` from source on GitLab, but the correct dependencies must be in place for `nbdinfo` and VDDK.
+#### Installing `nbdinfo` on Debian
+
+:::warning
+This procedure requires an active Internet connection and has only been tested on Debian 12 and 13.
+
+In the future, we plan to include the latest libraries directly in XOA.
 :::
 
-2. Download the VMware Virtual Disk Development Kit (VDDK) from the [Broadcom developer portal](https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/9.0?ref=xen-orchestra.com). Select the Linux *tar.gz* archive and upload it through the Xen Orchestra interface.
+To install `nbdinfo` on Debian:
+
+1. Go to the **Import → VM → From VMware** section.
+2. Click **install nbdinfo (debian based system)**:
+![](./assets/install_nbdinfo_progress.png)
+3. Keep an eye on the process, should any error occur during installation:
+![](./assets/import-prerequisite-check.png)
+
+#### Installing the other dependencies
+
+:::warning
+You can compile `nbdkit` and `libnbd` from source on GitLab, but the correct dependencies must be in place for `nbdinfo` and VDDK.
+:::
+
+1. Download the VMware Virtual Disk Development Kit (VDDK) from the [Broadcom developer portal](https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/9.0?ref=xen-orchestra.com). 
+2. Select the Linux *tar.gz* archive and upload it through the Xen Orchestra interface.
 
 ## 👨‍🍳 Preparing the VMware Environment
 
@@ -67,12 +89,12 @@ On Debian, these are available through the contrib repository as `nbdkit-plugin-
 
 Before starting the migration, make sure your VMware environment meets the following conditions:
 
-### Network
-XO must be able to connect to the vsphere/esxi through the port running the web ui (default 443) and vddk (default: 902). There aren't currently any solution to select one network or another. If possible have one single network path from XO to VMware.
+#### Network
+XO must be able to connect to the vsphere/esxi through the port running the web UI (default port: 443) and vddk (default port: 902). At the time of writing, there is no solution to select one network or another. If possible, keep one single network path from XO to VMware.
 
-### VMware disk support
+#### VMware disk support
 
-#### ✅Supported 
+##### ✅Supported 
 
 - **Native snapshots** are supported. To migrate these:
     1. Shut them down completely.
@@ -81,11 +103,11 @@ XO must be able to connect to the vsphere/esxi through the port running the web 
         1. Stop the VM.
         2. Remove any snapshots.
 
-#### ⚠️ Unofficial support
+##### ⚠️ Unofficial support
 
 VSAN configurations have not been fully tested, but they are expected to work.
 
-#### ❌ Unsupported
+##### ❌ Unsupported
 
 The following VMware disk types are not supporetd: 
 
