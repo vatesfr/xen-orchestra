@@ -386,9 +386,11 @@ export type XoBackupJob = BaseXoJob & {
   type: 'backup'
   compression?: 'native' | 'zstd' | ''
   mode: 'full' | 'delta'
-  vms: {
-    id: XoVm['id'] | { __or: XoVm['id'][] } | Record<string, unknown>
-  }
+  vms:
+    | Record<string, unknown>
+    | {
+        id: XoVm['id'] | { __or: XoVm['id'][] } | Record<string, unknown>
+      }
   srs?: {
     id: XoSr['id'] | { __or: XoSr['id'][] }
   }
