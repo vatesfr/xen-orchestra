@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Home/Pool] Fix "an error has occurred" for non-admin users
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -35,5 +37,6 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- xo-web patch
 
 <!--packages-end-->
