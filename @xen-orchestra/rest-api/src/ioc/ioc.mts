@@ -9,6 +9,7 @@ import { XoaService } from '../xoa/xoa.service.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import { PoolService } from '../pools/pool.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { BackupService } from '../backups/backup.service.mjs'
 
 const iocContainer = new Container()
 
@@ -62,6 +63,14 @@ export function setupContainer(xoApp: XoApp) {
     .toDynamicValue(ctx => {
       const restApi = ctx.container.get(RestApi)
       return new AlarmService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(BackupService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new BackupService(restApi)
     })
     .inSingletonScope()
 }
