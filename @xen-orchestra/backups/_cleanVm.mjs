@@ -73,6 +73,7 @@ const listVhds = async (handler, vmDir, logWarn) => {
   const vhds = new Set()
   const aliases = {}
   const interruptedVhds = new Map()
+  const concurrencyNb = handler.limitListConcurrency ? 1 : 0 // concurrency=0 means infinity
 
   await asyncEach(
     await handler.list(`${vmDir}/vdis`, {
@@ -110,12 +111,12 @@ const listVhds = async (handler, vmDir, logWarn) => {
                 }
               }
             },
-            { concurrency: 1 }
+            { concurrency: concurrencyNb }
           )
         },
-        { concurrency: 1 }
+        { concurrency: concurrencyNb }
       ),
-    { concurrency: 1 }
+    { concurrency: concurrencyNb }
   )
 
   return { vhds, interruptedVhds, aliases }
