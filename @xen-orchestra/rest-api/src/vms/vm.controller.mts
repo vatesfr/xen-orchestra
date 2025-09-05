@@ -54,6 +54,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { VmService } from './vm.service.mjs'
 import { BackupService } from '../backups/backup.service.mjs'
 import type { UnbrandXoBackupJob } from '../backups/backup.type.mjs'
+import { backupJobIds, partialBackupJobs } from '../open-api/oa-examples/backup.oa-example.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -550,7 +551,16 @@ export class VmController extends XapiXoController<XoVm> {
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
   }
 
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example fields "mode,name,compression"
+   * @example filter "mode:full"
+   * @example limit 42
+   */
+  @Example(backupJobIds)
+  @Example(partialBackupJobs)
   @Get('{id}/backup-jobs')
+  @Response(notFoundResp.status, notFoundResp.description)
   async getVmBackupJobs(
     @Request() req: ExRequest,
     @Path() id: string,
