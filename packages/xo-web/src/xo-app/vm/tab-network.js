@@ -689,7 +689,7 @@ const COLUMNS = [
   {
     itemRenderer: vif => `VIF #${vif.device}`,
     name: _('vifDeviceLabel'),
-    sortCriteria: 'device',
+    sortCriteria: vif => parseInt(vif.device),
   },
   {
     itemRenderer: vif => (
