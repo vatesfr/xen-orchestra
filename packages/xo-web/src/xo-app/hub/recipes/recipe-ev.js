@@ -1,4 +1,3 @@
-import * as ComplexMatcher from 'complex-matcher'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import ButtonLink from 'button-link'
@@ -7,22 +6,31 @@ import Icon from 'icon'
 import marked from 'marked'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
-import escapeRegExp from 'lodash/escapeRegExp.js'
 import { form } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { createKubernetesCluster } from 'xo'
+import { createEasyVirtVM } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { success } from 'notification'
 import { withRouter } from 'react-router'
 
-import RecipeForm from './recipe-form'
+import RecipeForm from './recipe-form-ev'
 
 const RECIPE_INFO = {
-  id: '05abc8a8-ebf4-41a6-b1ed-efcb2dbf893d',
-  name: 'Kubernetes cluster',
-  description: 'Creates a Kubernetes cluster composed of a configurable number of control planes and worker nodes.',
+  id: 'test',
+  name: 'DCScope VM',
+  description: 'Creates an DCScope VM with parameters and application inside',
 }
+
+const INDEX_TO_PERF_CONFIG = [
+  { cpu: 2, ram: 8 * 1024 * 1024 * 1024, diskSize: 10 * 1024 * 1024 * 1024 }, // 10GB
+  { cpu: 2, ram: 12 * 1024 * 1024 * 1024, diskSize: 250 * 1024 * 1024 * 1024 }, // 250GB
+  { cpu: 2, ram: 24 * 1024 * 1024 * 1024, diskSize: 550 * 1024 * 1024 * 1024 }, // 550GB
+  { cpu: 4, ram: 48 * 1024 * 1024 * 1024, diskSize: 750 * 1024 * 1024 * 1024 }, // 750GB
+  { cpu: 4, ram: 64 * 1024 * 1024 * 1024, diskSize: 1228 * 1024 * 1024 * 1024 }, // 1,2TB
+  { cpu: 8, ram: 96 * 1024 * 1024 * 1024, diskSize: 1536 * 1024 * 1024 * 1024 }, // 1,5TB
+  { cpu: 8, ram: 128 * 1024 * 1024 * 1024, diskSize: 2 * 1024 * 1024 * 1024 * 1024 }, // 2TB
+]
 
 export default decorate([
   withRouter,
@@ -51,46 +59,44 @@ export default decorate([
         })
 
         const {
-          clusterName,
-          controlPlaneIpAddress,
-          controlPlaneIpAddresses,
-          controlPlanePoolSize,
+          vmName,
+          vmIpAddress,
           gatewayIpAddress,
-          k8sVersion,
-          nameservers,
-          nbNodes,
           network,
-          searches,
           sr,
           sshKey,
-          vipAddress,
-          workerNodeIpAddresses,
+          xoUsername,
+          xoPassword,
+          xoUrl,
+          dcScopeTemplateId,
+          userEmail,
+          userCompany,
+          performanceIndex,
         } = recipeParams
 
+        const performanceConfig = INDEX_TO_PERF_CONFIG[performanceIndex]
         markRecipeAsCreating(RECIPE_INFO.id)
-        const tag = await createKubernetesCluster({
-          clusterName,
-          controlPlaneIpAddress,
-          controlPlaneIpAddresses,
-          controlPlanePoolSize,
+
+        const vmId = await createEasyVirtVM({
+          vmName,
+          vmIpAddress,
           gatewayIpAddress,
-          k8sVersion,
-          nameservers,
-          nbNodes: +nbNodes,
           network: network.id,
-          searches,
           sr: sr.id,
           sshKey,
-          vipAddress,
-          workerNodeIpAddresses,
+          xoUsername,
+          xoPassword,
+          xoUrl,
+          dcScopeTemplateId,
+          userEmail,
+          userCompany,
+          performanceConfig,
         })
         markRecipeAsDone(RECIPE_INFO.id)
 
-        const filter = new ComplexMatcher.Property('tags', new ComplexMatcher.RegExp(`^${escapeRegExp(tag)}$`))
-
         success(
           _('recipeCreatedSuccessfully'),
-          <ButtonLink btnStyle='success' size='small' to={`/home?s=${encodeURIComponent(filter)}`}>
+          <ButtonLink btnStyle='success' size='small' to={`/home?s=id:${vmId}&t=VM`}>
             {_('recipeViewCreatedVms')}
           </ButtonLink>,
           8e3
