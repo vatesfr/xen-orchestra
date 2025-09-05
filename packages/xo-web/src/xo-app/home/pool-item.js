@@ -152,7 +152,7 @@ export default class PoolItem extends Component {
   render() {
     const { item: pool, expandAll, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
     const { missingPatchCount } = this.state
-    const { icon, supportLevel } = this._getPoolLicenseInfo()
+    const { icon, supportLevel } = this._getPoolLicenseInfo() ?? {}
     const master = poolHosts[pool.master]
 
     return (
