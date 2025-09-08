@@ -501,10 +501,11 @@ export type XoUser = {
 }
 
 export type XoAuthenticationToken = {
-  client: {
-    id: string
+  client?: {
+    id: string,
+    [key: string]: unknown
   }
-  created_at: number
+  created_at?: number
   description?: string
   user_id: XoUser['id']
   expiration: number
