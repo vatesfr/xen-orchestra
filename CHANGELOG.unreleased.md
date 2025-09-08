@@ -35,5 +35,6 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- xo-server patch
 
 <!--packages-end-->
