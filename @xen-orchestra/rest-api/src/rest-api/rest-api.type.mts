@@ -69,7 +69,9 @@ export type XoApp = {
     getOptionalDuration(path: string): number | undefined
   }
   tasks: EventEmitter & {
+    clearLogs(): Promise<void>
     create: (params: { name: string; objectId?: string; type?: string }) => VatesTask
+    deleteLog(id: XoTask['id']): Promise<void>
     get(id: XoTask['id']): Promise<XoTask>
     list(opts?: { filter?: string | ((obj: XoTask) => boolean); limit?: number }): AsyncGenerator<XoTask>
     watch(id: XoTask['id'], cb: (task: XoTask) => void): Promise<() => void>

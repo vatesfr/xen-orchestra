@@ -2,9 +2,15 @@ import * as CM from 'complex-matcher'
 import type { Request as ExRequest } from 'express'
 import type { XoTask } from '@vates/types'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
-import { Get, Path, Query, Request, Route, Security, Tags, Response, Example } from 'tsoa'
+import { Get, Path, Query, Request, Route, Security, Tags, Response, Example, Delete, SuccessResponse } from 'tsoa'
 import { SendObjects } from '../helpers/helper.type.mjs'
-import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { partialTasks, task, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import pDefer from 'promise-toolbox/defer'
@@ -113,5 +119,22 @@ export class TaskController extends XoController<XoTask> {
     }
 
     return this.getObject(taskId)
+  }
+
+  @Delete('')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  async deleteTasks(): Promise<void> {
+    await this.restApi.tasks.clearLogs()
+  }
+
+  /**
+   * @example id "0mdd1basu"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteTask(@Path() id: string): Promise<void> {
+    const task = await this.getObject(id as XoTask['id'])
+    await this.restApi.tasks.deleteLog(task.id)
   }
 }
