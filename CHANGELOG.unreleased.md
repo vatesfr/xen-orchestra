@@ -24,7 +24,7 @@
 
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
 - [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
-- Cast VIF device to number to help sorting (PR [#8877](https://github.com/vatesfr/xen-orchestra/pull/8877))
+- [VIFs] Fix sorting by VIF device (PR [#8877](https://github.com/vatesfr/xen-orchestra/pull/8877))
 
 ### Bug fixes
 
