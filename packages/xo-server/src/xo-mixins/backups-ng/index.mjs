@@ -66,13 +66,13 @@ export default class BackupNg {
 
   constructor(app) {
     this._app = app
-    this._logger = undefined // probably not usefull anymore
+    this._store = undefined
     this._runningRestores = new Set()
 
     app.hooks.on('start', async () => {
-      this._logger = await app.getLogger('restore')
+      this._store = await app.getStore('tasks')
 
-      const executor = async ({ cancelToken, data, job: job_, jobData, logger, runJobId, schedule }) => {
+      const executor = async ({ cancelToken, data, job: job_, jobData, logger: jobsLogger, runJobId, schedule }) => {
         const backupsConfig = app.config.get('backups')
 
         let job = job_
@@ -100,7 +100,7 @@ export default class BackupNg {
                 try {
                   app.getObject(id)
                 } catch (error) {
-                  const taskId = logger.notice('missing pool', {
+                  const taskId = jobsLogger.notice('missing pool', {
                     data: {
                       type: 'pool',
                       id,
@@ -108,7 +108,7 @@ export default class BackupNg {
                     event: 'task.start',
                     parentId: runJobId,
                   })
-                  logger.error('missing pool', {
+                  jobsLogger.error('missing pool', {
                     event: 'task.end',
                     result: serializeError(error),
                     status: 'failure',
@@ -154,10 +154,9 @@ export default class BackupNg {
         const targetRemoteIds = unboxIdsFromPattern(job.remotes)
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
-            const store = await app.getStore('tasks')
             const onLogFct = makeOnProgress({
               onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name, store })
+                handleBackupLog(log, event, { app: this._app, jobName: job.name, store: this._store })
               },
             })
             return await Task.run(
@@ -299,13 +298,12 @@ export default class BackupNg {
               )
 
               let result
-              const store = await app.getStore('tasks')
               const onLogFct = makeOnProgress({
                 onRootTaskEnd: log => {
                   result = forwardResult(log)
                 },
                 onTaskUpdate: (log, event) => {
-                  handleBackupLog(log, event, { app: this._app, jobName: job.name, store })
+                  handleBackupLog(log, event, { app: this._app, jobName: job.name, store: this._store })
                 },
               })
 
@@ -322,13 +320,12 @@ export default class BackupNg {
             }
           } else {
             let result
-            const store = await app.getStore('tasks')
             const onLogFct = makeOnProgress({
               onRootTaskEnd: log => {
                 result = forwardResult(log)
               },
               onTaskUpdate: (log, event) => {
-                handleBackupLog(log, event, { app: this._app, jobName: job.name, store })
+                handleBackupLog(log, event, { app: this._app, jobName: job.name, store: this._store })
               },
             })
 
@@ -500,7 +497,6 @@ export default class BackupNg {
             assertType: 'iterator',
           })
 
-          const store = await app.getStore('tasks')
           const onLogFct = makeOnProgress({
             onRootTaskStart: log => {
               this._runningRestores.add(log.id)
@@ -510,7 +506,7 @@ export default class BackupNg {
               result = forwardResult(log)
             },
             onTaskUpdate: (log, event) => {
-              handleBackupLog(log, event, { store })
+              handleBackupLog(log, event, { store: this._store })
             },
           })
 
@@ -528,14 +524,13 @@ export default class BackupNg {
         result = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
           const metadata = await adapter.readVmBackupMetadata(metadataFilename)
 
-          const store = await app.getStore('tasks')
           const onLogFct = makeOnProgress({
             onRootTaskStart: log => {
               this._runningRestores.add(log.id)
               rootTaskId = log.id
             },
             onTaskUpdate: (log, event) => {
-              handleBackupLog(log, event, { store })
+              handleBackupLog(log, event, { store: this._store })
             },
           })
 

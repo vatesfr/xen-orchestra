@@ -24,7 +24,7 @@ export default class metadataBackup {
 
   constructor(app) {
     this._app = app
-    this._logger = undefined // probably not usefull anymore
+    this._store = undefined
     this._runningMetadataRestores = new Set()
 
     const debounceDelay = app.config.getDuration('backups.listingDebounce')
@@ -32,13 +32,13 @@ export default class metadataBackup {
     this._listPoolMetadataBackups = debounceWithKey(this._listPoolMetadataBackups, debounceDelay, remoteId => remoteId)
 
     app.hooks.on('start', async () => {
-      this._logger = await app.getLogger('metadataRestore')
+      this._store = await app.getStore('tasks')
 
       app.registerJobExecutor(METADATA_BACKUP_JOB_TYPE, this._executor.bind(this))
     })
   }
 
-  async _executor({ cancelToken, job: job_, jobData, logger, runJobId, schedule }) {
+  async _executor({ cancelToken, job: job_, jobData, logger: jobsLogger, runJobId, schedule }) {
     const job = cloneDeep(job_)
     const scheduleSettings = job.settings[schedule.id]
 
@@ -110,13 +110,12 @@ export default class metadataBackup {
         })
 
         let result
-        const store = await app.getStore('tasks')
         const onLogFct = makeOnProgress({
           onRootTaskEnd: log => {
             result = forwardResult(log)
           },
           onTaskUpdate: (log, event) => {
-            handleBackupLog(log, event, { store })
+            handleBackupLog(log, event, { store: this._store })
           },
         })
 
@@ -127,10 +126,9 @@ export default class metadataBackup {
       } else {
         cancelToken.throwIfRequested()
 
-        const store = await app.getStore('tasks')
         const onLogFct = makeOnProgress({
           onTaskUpdate: (log, event) => {
-            handleBackupLog(log, event, { store })
+            handleBackupLog(log, event, { store: this._store })
           },
         })
         return Task.run(
@@ -331,14 +329,13 @@ export default class metadataBackup {
 
     let rootTaskId
 
-    const store = await app.getStore('tasks')
     const onProgressFct = makeOnProgress({
       onRootTaskStart: log => {
         this._runningMetadataRestores.add(log.id)
         rootTaskId = log.id
       },
       onTaskUpdate: (log, event) => {
-        handleBackupLog(log, event, { store })
+        handleBackupLog(log, event, { store: this._store })
       },
     })
     const onLogFct = async event => {
