@@ -32,10 +32,10 @@ import {
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
-type UnbrandedXoAuthenticationToken = Unbrand<XoAuthenticationToken>
 @Route('users')
 @Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
@@ -162,11 +162,18 @@ export class UserController extends XoController<XoUser> {
 
   /**
    * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * @example filter "expiration:>1640995200000"
+   * @example limit 42
    */
   @Get('{id}/authentication_tokens')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
-  async getAuthenticationTokens(@Path() id: string): Promise<SendObjects<UnbrandedXoAuthenticationToken>> {
+  async getAuthenticationTokens(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Unbrand<XoAuthenticationToken>>> {
     const user = await this.getObject(id as XoUser['id'])
     const me = this.restApi.getCurrentUser()
 
@@ -176,7 +183,6 @@ export class UserController extends XoController<XoUser> {
 
     const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(user.id)
 
-
-    return limitAndFilterArray(tokens, {filter, limits})
+    return this.sendObjects(limitAndFilterArray(tokens, { filter, limit }), req)
   }
 }

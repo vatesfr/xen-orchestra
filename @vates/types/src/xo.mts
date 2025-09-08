@@ -531,7 +531,7 @@ export type XoUser = {
 
 export type XoAuthenticationToken = {
   client?: {
-    id: string,
+    id: string
     [key: string]: unknown
   }
   created_at?: number
@@ -696,7 +696,16 @@ export type XapiXoRecord =
   | XoVtpm
   | XoSm
 
-export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoTask | XoUser
+export type NonXapiXoRecord =
+  | XoGroup
+  | XoProxy
+  | XoJob
+  | XoBackupRepository
+  | XoSchedule
+  | XoServer
+  | XoTask
+  | XoUser
+  | XoAuthenticationToken
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
