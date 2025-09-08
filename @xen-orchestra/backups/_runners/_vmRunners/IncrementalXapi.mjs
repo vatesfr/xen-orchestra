@@ -45,6 +45,9 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     for (const key in deltaExport.disks) {
       const disk = deltaExport.disks[key]
       isVhdDifferencing[key] = disk.isDifferencing()
+      if (!isFull && !isVhdDifferencing[key] && key !== exportedVm.$suspend_VDI?.$ref) {
+        Task.warning('Backup fell back to a full')
+      }
       deltaExport.disks[key] = new SynchronizedDisk(disk)
       useNbd = useNbd || disk.useNbd()
     }

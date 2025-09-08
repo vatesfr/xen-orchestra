@@ -854,20 +854,6 @@ export default class RestApi {
       )
 
     api
-      .delete(
-        '/tasks',
-        wrap(async (req, res) => {
-          await app.tasks.clearLogs()
-          res.sendStatus(200)
-        })
-      )
-      .delete(
-        '/tasks/:id',
-        wrap(async (req, res) => {
-          await app.tasks.deleteLog(req.params.id)
-          res.sendStatus(200)
-        })
-      )
       .get(
         '/tasks/:id/actions',
         wrap(async (req, res) => {
@@ -875,15 +861,6 @@ export default class RestApi {
 
           await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
         })
-      )
-      .post(
-        '/tasks/:id/actions/abort',
-        wrap(async (req, res) => {
-          const { id } = req.params
-          await app.tasks.abort(id)
-          res.status = 202
-          res.end(req.baseUrl + '/tasks/' + id)
-        }, true)
       )
 
     api.get(
@@ -915,26 +892,6 @@ export default class RestApi {
       })
     )
 
-    // should go before routes /:collection/:object because they will match but
-    // will not work due to the extension being included in the object identifer
-    api.get(
-      '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
-      wrap(async (req, res) => {
-        const preferNbd = Object.hasOwn(req.query, 'preferNbd')
-        const nbdConcurrency = req.query.nbdConcurrency && parseInt(req.query.nbdConcurrency)
-        const stream = await req.xapiObject.$exportContent({ format: req.params.format, preferNbd, nbdConcurrency })
-
-        const headers = { 'content-disposition': 'attachment' }
-
-        const { length } = stream
-        if (length !== undefined) {
-          headers['content-length'] = length
-        }
-
-        res.writeHead(200, 'OK', headers)
-        await pipeline(stream, res)
-      })
-    )
     api.put(
       '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
       wrap(async (req, res) => {

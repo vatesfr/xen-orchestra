@@ -6,11 +6,11 @@ import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import NbdClient from '@vates/nbd-client'
 
-const { info, warn } = createLogger('xo:importdiskfromdatastore')
+const { warn } = createLogger('xo:importdiskfromdatastore')
 
 async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) {
   if (chainByNode.length === 0) {
-    info('Empty chain')
+    Task.info('Empty chain')
     return
   }
   const xapi = vm.$xapi
@@ -23,7 +23,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
   const previouslyImportedIndex = chainByNode.findLastIndex(disk => !!diskIsAlreadyImported(existingVdis, disk))
   let existingVdi
   if (previouslyImportedIndex === chainByNode.length - 1) {
-    info('Nothing to import in this chain')
+    Task.info('Nothing to import in this chain')
     return
   }
   if (previouslyImportedIndex !== -1) {
@@ -37,30 +37,30 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
       // get the changed blocks of the next snapshot
       const existingDisk = chainByNode[previouslyImportedIndex]
       existingVdi = diskIsAlreadyImported(existingVdis, existingDisk)
-      info(`found a previous import`, { vdiRef: existingVdi.$ref })
+      Task.info(`found a previous import`, { vdiRef: existingVdi.$ref })
       const nbdInfoSpawn = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
         singleLink: true,
       })
-      info(`nbd server for data map spawned`)
+      Task.info(`nbd server for data map spawned`)
       nbdClient = new NbdClient(nbdInfoSpawn.nbdInfos)
 
       await nbdClient.connect()
-      info(`nbd client for data map connected`)
+      Task.info(`nbd client for data map connected`)
       dataMap = await nbdClient.getMap()
-      info(
+      Task.info(
         `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
       )
     } catch (error) {
-      warn('error while getting the map of a snapshot, fall back to a full import', error)
+      Task.warning('error while getting the map of a snapshot, fall back to a full import', error)
       throw error
     } finally {
       await nbdClient.disconnect()
       await esxi
         .killNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true })
-        .catch(err => warn('error while stopping nbdkit server for the snapshot', err))
+        .catch(err => Task.warning('error while stopping nbdkit server for the snapshot', err))
     }
   } else {
-    info(`no reference disk found, fall back a full import`)
+    Task.info(`no reference disk found, fall back a full import`)
   }
   let vmdk
   try {
@@ -71,7 +71,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     await vmdk.init()
     vmdk = new ReadAhead(vmdk)
     if (!existingVdi) {
-      info(`create a new VDI for `, diskPath)
+      Task.info(`create a new VDI for `, diskPath)
       const vdiMetadata = {
         name_description: descriptionLabel,
         name_label: '[ESXI]' + nameLabel,
@@ -81,7 +81,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
       const vdiRef = await sr.$xapi.VDI_create(vdiMetadata)
       existingVdi = sr.$xapi.getObject(vdiRef, undefined) ?? (await sr.$xapi.waitObject(vdiRef))
 
-      info(
+      Task.info(
         `vdi created  `,
         diskPath,
         'will create vbd',
@@ -94,11 +94,11 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
         device: `xvd${String.fromCharCode('a'.charCodeAt(0) + userdevice)}`,
         userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
       })
-      info(`vbd created `, diskPath)
+      Task.info(`vbd created `, diskPath)
     }
     const stream = await toVhdStream(vmdk)
     await existingVdi.$importContent(stream, { format: VDI_FORMAT_VHD })
-    info(`import of ${diskPath} content done`, { datastoreName, diskPath, sourceVmId: vmId })
+    Task.info(`import of ${diskPath} content done`, { datastoreName, diskPath, sourceVmId: vmId })
     const transfered = Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
     const duration = Math.round((Date.now() - start) / 1000)
     const speed = Math.round(transfered / duration)
@@ -111,7 +111,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     )
     await sr.$xapi.setFieldEntries('VDI', existingVdi.$ref, 'other_config', { esxi_uuid: uid })
   } catch (err) {
-    warn(err)
+    Task.warning(err)
     throw err
   } finally {
     await vmdk?.close().catch(err => warn('error while closing source vmdk', err))
@@ -123,7 +123,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
 
 function diskIsAlreadyImported(vdis, vmdkDisk) {
   // look for a vdi with the right contentId
-  return vdis.find(vdi => vdi?.other_config.esxi_uuid === vmdkDisk.uid && vdi.is_a_snapshot === false)
+  return vdis.find(vdi => vdi?.other_config.esxi_uuid === vmdkDisk.uid)
 }
 
 export const importDisksFromDatastore = async function importDisksFromDatastore({ esxi, vm, vmId, chainsByNodes, sr }) {

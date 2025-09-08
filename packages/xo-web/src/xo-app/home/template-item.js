@@ -1,6 +1,7 @@
 import _ from 'intl'
 import Component from 'base-component'
 import defined from '@xen-orchestra/defined'
+import Copiable from 'copiable'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import Link from 'link'
@@ -72,26 +73,31 @@ export default class TemplateItem extends Component {
           </Col>
         </SingleLineRow>
         {(this.state.expanded || expandAll) && (
-          <Row>
-            <Col mediumSize={4} className={styles.itemExpanded}>
-              <span>
-                <Number value={vm.CPUs.number} onChange={this._setCpus} />x <Icon icon='cpu' className='mr-1' />
-                <Size value={defined(vm.memory.size, null)} onChange={this._setMemory} /> <Icon icon='memory' />
-              </span>
-            </Col>
-            <Col largeSize={4} className={styles.itemExpanded}>
-              {map(vm.addresses, address => (
-                <span key={address} className='tag tag-info tag-ip'>
-                  {address}
+          <div className={styles.itemExpanded}>
+            <Row>
+              <Col mediumSize={4}>
+                <span>
+                  <Number value={vm.CPUs.number} onChange={this._setCpus} />x <Icon icon='cpu' className='mr-1' />
+                  <Size value={defined(vm.memory.size, null)} onChange={this._setMemory} /> <Icon icon='memory' />
                 </span>
-              ))}
-            </Col>
-            <Col mediumSize={4}>
-              <div style={{ fontSize: '1.4em' }}>
-                <HomeTags type='VM-template' labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
-              </div>
-            </Col>
-          </Row>
+              </Col>
+              <Col largeSize={4} className={styles.itemExpanded}>
+                {map(vm.addresses, address => (
+                  <span key={address} className='tag tag-info tag-ip'>
+                    {address}
+                  </span>
+                ))}
+              </Col>
+              <Col mediumSize={4}>
+                <div style={{ fontSize: '1.4em' }}>
+                  <HomeTags type='VM-template' labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
+                </div>
+              </Col>
+            </Row>
+            <Copiable tagName='pre' className='text-muted mb-0'>
+              {vm.id}
+            </Copiable>
+          </div>
         )}
       </div>
     )

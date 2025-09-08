@@ -23,9 +23,11 @@ const messages = {
   esxiVddkLibrary: 'Drop the tar.gz file of the vddk library (linux)',
   esxiVddkLibraryImport: 'Import and install the Vddk library. VDDK9 need nbdkit 1.42+',
   esxiLibraryManualInstall:
-    'For other systems, you can install manually from https://gitlab.com/nbdkit/nbdkit . For reference the list of packages need for a debian 13 is **git dh-autoreconf pkg-config make libxml2-dev ocaml libc-bin**',
+    'For other systems, you can install manually from https://gitlab.com/nbdkit/ . For reference the list of packages need for a debian 13 is **git dh-autoreconf pkg-config make libxml2-dev ocaml libc-bin**',
   esxiLibraryAutoInstall: 'install {library} (debian based system)',
-  esxiLibraryNotInstalled: '{library} is not installed',
+  esxiLibraryInstalling:
+    "Installing {library} can take a few minutes. You can check the progress in the XO tasks screen while it's running.",
+  esxiProgressLinkText: 'Track progress',
 
   esxiLibraryOutdated:
     '{library} library is outdated expecting {expectedVersion}, got {version}. Please uninstall it and install the required version.',

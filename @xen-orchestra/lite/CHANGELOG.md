@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.14.1** (2025-09-04)
 
 - [VM/System] Correctly display enable/disable for secure boot (PR [#8925](https://github.com/vatesfr/xen-orchestra/pull/8925))
 
