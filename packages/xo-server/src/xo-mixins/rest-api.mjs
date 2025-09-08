@@ -862,15 +862,6 @@ export default class RestApi {
           await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
         })
       )
-      .post(
-        '/tasks/:id/actions/abort',
-        wrap(async (req, res) => {
-          const { id } = req.params
-          await app.tasks.abort(id)
-          res.status = 202
-          res.end(req.baseUrl + '/tasks/' + id)
-        }, true)
-      )
 
     api.get(
       '/:collection',
