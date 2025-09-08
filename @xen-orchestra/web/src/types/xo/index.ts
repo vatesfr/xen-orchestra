@@ -1,68 +1,44 @@
-import { xoApiDefinition } from '@/utils/xo-api-definition.util'
-import type { ComputedRef, Ref } from 'vue'
+import type { XoAlarm } from '@/types/xo/alarm.type.ts'
+import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
+import type { XoHost } from '@/types/xo/host.type.ts'
+import type { XoMetadataBackupJob } from '@/types/xo/metadata-backup-job.type.ts'
+import type { XoMirrorBackupJob } from '@/types/xo/mirror-backup-job.type.ts'
+import type { XoNetwork } from '@/types/xo/network.type.ts'
+import type { XoPci } from '@/types/xo/pci.type.ts'
+import type { XoPgpu } from '@/types/xo/pgpu.type.ts'
+import type { XoPif } from '@/types/xo/pif.type.ts'
+import type { XoPool } from '@/types/xo/pool.type.ts'
+import type { XoSchedule } from '@/types/xo/schedule.type.ts'
+import type { XoServer } from '@/types/xo/server.type.ts'
+import type { XoSr } from '@/types/xo/sr.type.ts'
+import type { XoTask } from '@/types/xo/task.type.ts'
+import type { XoVbd } from '@/types/xo/vbd.type.ts'
+import type { XoVdi } from '@/types/xo/vdi.type.ts'
+import type { XoVif } from '@/types/xo/vif.type.ts'
+import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
+import type { XoVmController } from '@/types/xo/vm-controller.type.ts'
+import type { XoVmTemplate } from '@/types/xo/vm-template.type.ts'
+import type { XoVm } from '@/types/xo/vm.type.ts'
 
-type XoApiDefinition = typeof xoApiDefinition
-
-type XoRecordMapping = {
-  [K in keyof XoApiDefinition]: {
-    type: XoApiDefinition[K]['type']
-    definition: XoApiDefinition[K]['handler'] extends (data: any) => infer T ? T : never
-  }
-}
-
-export type ApiDefinition = Record<
-  string,
-  {
-    type: 'single' | 'collection'
-    path: string
-    fields: string
-    handler: (data: any) => any
-    stream: boolean
-  }
->
-
-// SINGLE RECORD
-
-type XoSingleRecordMapping = {
-  [K in keyof XoRecordMapping as XoRecordMapping[K]['type'] extends 'single'
-    ? K
-    : never]: XoRecordMapping[K]['definition']
-}
-
-export type XoSingleRecordType = keyof XoSingleRecordMapping
-
-export type XoSingleRecord = XoSingleRecordMapping[XoSingleRecordType]
-
-export type XoSingleRecordContext<TRecord extends XoSingleRecord> = {
-  record: ComputedRef<TRecord | undefined>
-  isFetching: Readonly<Ref<boolean>>
-  isReady: Readonly<Ref<boolean>>
-  lastError: Readonly<Ref<string | undefined>>
-  hasError: ComputedRef<boolean>
-}
-
-export type TypeToSingleRecord<TType extends XoSingleRecordType> = XoSingleRecordMapping[TType]
-
-// COLLECTION RECORD
-
-type XoCollectionRecordMapping = {
-  [K in keyof XoRecordMapping as XoRecordMapping[K]['type'] extends 'collection'
-    ? K
-    : never]: XoRecordMapping[K]['definition']
-}
-
-export type XoCollectionRecordType = keyof XoCollectionRecordMapping
-
-export type XoCollectionRecord = XoCollectionRecordMapping[XoCollectionRecordType]
-
-export type XoCollectionRecordContext<TRecord extends XoCollectionRecord> = {
-  records: ComputedRef<TRecord[]>
-  get: (id: TRecord['id']) => TRecord | undefined
-  has: (id: TRecord['id']) => boolean
-  isFetching: Readonly<Ref<boolean>>
-  isReady: Readonly<Ref<boolean>>
-  lastError: Readonly<Ref<string | undefined>>
-  hasError: ComputedRef<boolean>
-}
-
-export type TypeToCollectionRecord<TType extends XoCollectionRecordType> = XoCollectionRecordMapping[TType]
+export type XoRecord =
+  | XoAlarm
+  | XoPool
+  | XoHost
+  | XoVm
+  | XoSr
+  | XoTask
+  | XoPif
+  | XoVbd
+  | XoVdi
+  | XoVif
+  | XoNetwork
+  | XoVmTemplate
+  | XoVmController
+  | XoServer
+  | XoPci
+  | XoPgpu
+  | XoVmBackupJob
+  | XoMetadataBackupJob
+  | XoMirrorBackupJob
+  | XoSchedule
+  | XoBackupLog

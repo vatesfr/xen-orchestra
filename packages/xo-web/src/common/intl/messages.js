@@ -17,6 +17,25 @@ const messages = {
   hostIp: 'Host IP',
   interfaces: 'Interfaces',
   keyValue: '{key}: {value}',
+  esxiLibraryInfo: 'The V2V tool needs the vddk library, provided by Broadcom. Please download it from their website',
+  esxiLibraryLink: 'Download link',
+
+  esxiVddkLibrary: 'Drop the tar.gz file of the vddk library (linux)',
+  esxiVddkLibraryImport: 'Import and install the Vddk library. VDDK9 need nbdkit 1.42+',
+  esxiLibraryManualInstall:
+    'For other systems, you can install manually from https://gitlab.com/nbdkit/ . For reference the list of packages need for a debian 13 is **git dh-autoreconf pkg-config make libxml2-dev ocaml libc-bin**',
+  esxiLibraryAutoInstall: 'install {library} (debian based system)',
+  esxiLibraryInstalling:
+    "Installing {library} can take a few minutes. You can check the progress in the XO tasks screen while it's running.",
+  esxiProgressLinkText: 'Track progress',
+
+  esxiLibraryOutdated:
+    '{library} library is outdated expecting {expectedVersion}, got {version}. Please uninstall it and install the required version.',
+  esxiCheckingPrerequisite: 'Checking prerequisite on XO',
+  esxiCheckedPrerequisite: 'Result of the prerequisite check on XO',
+
+  esxiCheckingPrerequisiteError: 'Must be corrected before importing VM',
+  esxiCheckedPrerequisiteVersion: 'expected version {expectedVersion} , {version} installed',
   esxiImportSslCertificate: 'Skip SSL check',
   esxiImportThin: 'Thin mode',
   esxiImportThinDescription:
@@ -258,7 +277,7 @@ const messages = {
   customJob: 'Custom Job',
   userPage: 'User',
   xoa: 'XOA',
-
+  restApiDoc: 'REST API doc',
   // ----- Support -----
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
@@ -1893,9 +1912,6 @@ const messages = {
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
   vmsToImport: 'VM{nVms, plural, one {} other {s}} to import',
-  warningVsanImport:
-    '<div>VM running from non file based datastore (like VSAN) will be migrated in a three steps process<ul><li>Stop the VM</li><li>Export the VM disks to a remote of Xen Orchestra</li><li>Load these disks in XCP-ng</li></ul>This process will be slower than migrating the VM to VMFS / NFS datastore and then migrating them to XCP-ng</div>',
-  workDirLabel: 'Remote used to store temporary disk files(VSAN migration)',
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',

@@ -7,6 +7,7 @@
       prop('total').required().num().widget().preset(137),
       prop('isFirstPage').required().bool().widget().preset(true),
       prop('isLastPage').required().bool().widget(),
+      prop('size').type(`'small' | 'medium'`).enum('small', 'medium').required().preset('medium').widget(),
       model('showBy')
         .preset('24')
         .prop(p => p.num())
@@ -36,6 +37,7 @@ const presets = {
       isFirstPage: true,
       isLastPage: false,
       showBy: 24,
+      size: 'medium',
     },
   },
   'Intermediate page': {
@@ -45,6 +47,7 @@ const presets = {
       total: 137,
       isFirstPage: false,
       isLastPage: false,
+      size: 'medium',
     },
   },
   'Last page': {
@@ -54,6 +57,7 @@ const presets = {
       total: 137,
       isFirstPage: false,
       isLastPage: true,
+      size: 'medium',
     },
   },
 }

@@ -8,25 +8,19 @@
     </UiCardTitle>
     <VtsLoadingHero v-if="!areStoragesUsageReady" type="card" />
     <template v-else>
-      <UiProgressBar
-        v-for="sr in topFiveUsage"
-        :key="sr.id"
-        display-mode="percent"
-        :value="sr.percent"
-        :legend="sr.name_label"
-      />
+      <VtsProgressBarGroup :items="progressBarItems" legend-type="percent" />
       <div class="total">
         <!--  TODO Add max to display percent -->
         <UiCardNumbers
           :label="t('total-used')"
-          :value="formattedTotalUsage.value"
           :unit="formattedTotalUsage.prefix"
+          :value="formattedTotalUsage.value"
           size="medium"
         />
         <UiCardNumbers
           :label="t('total-free')"
-          :value="formattedTotalSizeFree.value"
           :unit="formattedTotalSizeFree.prefix"
+          :value="formattedTotalSizeFree.value"
           size="medium"
         />
       </div>
@@ -36,11 +30,13 @@
 
 <script lang="ts" setup>
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
+import VtsProgressBarGroup, {
+  type ProgressBarGroupItem,
+} from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'
@@ -61,9 +57,21 @@ const totalSize = useArrayReduce(topFiveUsage, (sum, sr) => sum + sr.size, 0)
 
 const formattedTotalUsage = computed(() => formatSizeRaw(totalUsage.value, 0))
 const formattedTotalSizeFree = computed(() => formatSizeRaw(totalSize.value - totalUsage.value, 0))
+
+const progressBarItems = computed(() =>
+  topFiveUsage.value.map(
+    sr =>
+      ({
+        id: sr.id,
+        label: sr.name_label,
+        current: sr.percent,
+        total: 100,
+      }) satisfies ProgressBarGroupItem
+  )
+)
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .pool-storages-usage {
   .total {
     display: grid;

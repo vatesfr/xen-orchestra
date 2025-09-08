@@ -1,6 +1,6 @@
 ```vue-template
 <UiModal @submit.prevent="approve()">
-  <ConfirmModalLayout :icon="faShip">
+  <ConfirmModalLayout icon="fa:ship">
     <template #title>Do you confirm?</template>
     <template #subtitle>You should be sure about this</template>
     <template #buttons>

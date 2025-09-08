@@ -17,7 +17,7 @@ import { inject } from 'inversify'
 import { PassThrough } from 'node:stream'
 import { provide } from 'inversify-binding-decorators'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
-import type { Task } from '@vates/types/lib/vates/task'
+import type { VatesTask } from '@vates/types/lib/vates/task'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
@@ -35,6 +35,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import type {
   XapiPoolStats,
   XapiStatsGranularity,
+  XcpPatches,
   XenApiSr,
   XenApiVm,
   XoAlarm,
@@ -43,6 +44,7 @@ import type {
   XoPool,
   XoSr,
   XoVm,
+  XsPatches,
 } from '@vates/types'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -53,6 +55,7 @@ import {
   pool,
   poolDashboard,
   poolIds,
+  poolMissingPatches,
   poolStats,
 } from '../open-api/oa-examples/pool.oa-example.mjs'
 import type {
@@ -201,7 +204,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(notFoundResp.status, notFoundResp.description)
   rollingReboot(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
     const poolId = id as XoPool['id']
-    const action = async (task: Task) => {
+    const action = async (task: VatesTask) => {
       const pool = this.getObject(poolId)
       await this.restApi.xoApp.rollingPoolReboot(pool, { parentTask: task })
     }
@@ -228,7 +231,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(notFoundResp.status, notFoundResp.description)
   rollingUpdate(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
     const poolId = id as XoPool['id']
-    const action = async (task: Task) => {
+    const action = async (task: VatesTask) => {
       const pool = this.getObject(poolId)
       await this.restApi.xoApp.rollingPoolUpdate(pool, { parentTask: task })
     }
@@ -389,5 +392,19 @@ export class PoolController extends XapiXoController<XoPool> {
     })
 
     return this.sendObjects(Object.values(alarms), req, 'alarms')
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   */
+  @Example(poolMissingPatches)
+  @Get('{id}/missing_patches')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(featureUnauthorized.status, featureUnauthorized.description)
+  async getPoolMissingPatches(@Path() id: string): Promise<XcpPatches[] | XsPatches[]> {
+    const pool = this.getObject(id as XoPool['id'])
+    const { missingPatches } = await this.#poolService.getMissingPatches(pool.id)
+
+    return missingPatches
   }
 }

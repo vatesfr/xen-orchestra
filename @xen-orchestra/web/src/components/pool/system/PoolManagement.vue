@@ -3,11 +3,11 @@
     <UiTitle>
       {{ t('pool-management') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!areHostsReady" type="card" />
     <template v-else>
       <VtsQuickInfoRow :label="t('master')">
         <template #value>
-          <UiLink v-if="primaryHost" :icon="faServer" :to="`/host/${pool.master}/`" size="medium">
+          <UiLink v-if="primaryHost" icon="fa:server" :to="`/host/${pool.master}/`" size="medium">
             {{ primaryHost.name_label }}
           </UiLink>
           <template v-else>
@@ -35,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
@@ -43,8 +43,6 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
@@ -53,7 +51,7 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { get: getHostById, isReady } = useHostStore().subscribe()
+const { useGetHostById, areHostsReady } = useXoHostCollection()
 
-const primaryHost = computed(() => getHostById(pool.master))
+const primaryHost = useGetHostById(() => pool.master)
 </script>

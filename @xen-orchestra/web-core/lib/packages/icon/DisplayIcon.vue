@@ -21,5 +21,6 @@ defineProps<{
   transform-origin: 50% 50%;
   grid-template-rows: 1fr;
   grid-template-columns: 1fr;
+  vertical-align: -0.125em;
 }
 </style>

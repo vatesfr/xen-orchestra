@@ -3,10 +3,10 @@
     <UiCardTitle>{{ t('status') }}</UiCardTitle>
     <VtsLoadingHero v-if="!areHostsStatusReady && !areVmsStatusReady" type="card" />
     <template v-else>
-      <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" :icon="faServer" />
+      <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" icon="fa:server" />
       <UiCardNumbers :label="t('total')" :value="poolDashboard?.hosts?.status?.total" size="small" />
       <VtsDivider type="stretch" />
-      <VtsDonutChartWithLegend :segments="vmsSegments" :title="{ label: t('vms', 2) }" :icon="faDisplay" />
+      <VtsDonutChartWithLegend :segments="vmsSegments" :title="{ label: t('vms', 2) }" icon="fa:display" />
       <UiCardNumbers :label="t('total')" :value="poolDashboard?.vms?.status?.total" size="small" />
     </template>
   </UiCard>
@@ -22,7 +22,6 @@ import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { faDisplay, faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

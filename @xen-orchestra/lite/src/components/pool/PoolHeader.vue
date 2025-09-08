@@ -1,9 +1,9 @@
 <template>
-  <UiHeadBar :icon="faCity">
+  <UiHeadBar icon="fa:city">
     {{ name }}
     <template #actions>
-      <RouterLink :to="{ name: 'new-vm' }">
-        <UiButton :left-icon="faPlus" variant="secondary" accent="brand" size="medium">{{ t('new-vm') }}</UiButton>
+      <RouterLink :to="{ name: '/vm/new' }">
+        <UiButton left-icon="fa:plus" variant="secondary" accent="brand" size="medium">{{ t('new-vm') }}</UiButton>
       </RouterLink>
     </template>
   </UiHeadBar>
@@ -13,7 +13,6 @@
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
-import { faCity, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

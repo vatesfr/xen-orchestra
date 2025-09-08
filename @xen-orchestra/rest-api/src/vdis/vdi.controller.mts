@@ -1,7 +1,8 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import { Request as ExRequest } from 'express'
+import type { Readable } from 'node:stream'
+import type { Request as ExRequest, Response as ExResponse } from 'express'
 import type { XoAlarm, XoVdi } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
@@ -12,7 +13,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVdis, vdi, vdiIds } from '../open-api/oa-examples/vdi.oa-example.mjs'
-
+import { VdiService } from './vdi.service.mjs'
 @Route('vdis')
 @Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
@@ -20,9 +21,15 @@ import { partialVdis, vdi, vdiIds } from '../open-api/oa-examples/vdi.oa-example
 @provide(VdiController)
 export class VdiController extends XapiXoController<XoVdi> {
   #alarmService: AlarmService
-  constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
+  #vdiService: VdiService
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(AlarmService) alarmService: AlarmService,
+    @inject(VdiService) vdiService
+  ) {
     super('VDI', restApi)
     this.#alarmService = alarmService
+    this.#vdiService = vdiService
   }
 
   /**
@@ -41,6 +48,28 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
     return this.sendObjects(Object.values(this.getObjects({ filter, limit })), req)
+  }
+
+  /**
+   *
+   * Export VDI content
+   *
+   * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
+   */
+  @Get('{id}.{format}')
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid format')
+  async exportVdiContent(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Path() format: 'vhd' | 'raw'
+  ): Promise<Readable> {
+    const res = req.res as ExResponse
+    const stream = await this.#vdiService.exportContent(id as XoVdi['id'], 'VDI', { format, response: res })
+    process.on('SIGTERM', () => req.destroy())
+    req.on('close', () => stream.destroy())
+    return stream
   }
 
   /**

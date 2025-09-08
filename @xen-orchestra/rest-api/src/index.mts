@@ -43,6 +43,11 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
   setupContainer(xoApp)
   RegisterRoutes(express)
 
+  express.get(`${BASE_URL}/docs/swagger.json`, (_req, res) => {
+    res.setHeader('Content-Type', 'application/json')
+    res.json(swaggerOpenApiSpec)
+  })
+
   // do not register the doc at the root level, or it may lead to unwanted behaviour
   // uncomment when all endpoints are migrated to this API
   // express.get('/rest/v0', (_req, res) => res.redirect('/rest/v0/docs'))

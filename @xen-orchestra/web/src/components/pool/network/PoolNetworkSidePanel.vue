@@ -8,7 +8,7 @@
           size="medium"
           variant="tertiary"
           accent="brand"
-          :icon="faAngleLeft"
+          icon="fa:angle-left"
           @click="emit('close')"
         />
         <div class="action-buttons">
@@ -18,7 +18,7 @@
             size="medium"
             variant="tertiary"
             accent="brand"
-            :left-icon="faEdit"
+            left-icon="fa:edit"
           >
             {{ t('edit') }}
           </UiButton>
@@ -28,11 +28,11 @@
             size="medium"
             variant="tertiary"
             accent="danger"
-            :left-icon="faTrash"
+            left-icon="fa:trash"
           >
             {{ t('delete') }}
           </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
+          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" icon="fa:ellipsis" />
         </div>
       </div>
     </template>
@@ -130,7 +130,7 @@
 
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store.ts'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -142,7 +142,6 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { faAngleLeft, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -154,7 +153,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { getPifsByNetworkId } = usePifStore().subscribe()
+const { getPifsByNetworkId } = useXoPifCollection()
 const uiStore = useUiStore()
 
 const { t } = useI18n()

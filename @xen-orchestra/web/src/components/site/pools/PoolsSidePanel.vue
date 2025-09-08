@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!isPoolReady" type="panel" />
+  <VtsLoadingHero v-if="!arePoolsReady" type="panel" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
@@ -9,7 +9,7 @@
           size="medium"
           variant="tertiary"
           accent="brand"
-          :icon="faAngleLeft"
+          icon="fa:angle-left"
           @click="emit('close')"
         />
         <div class="action-buttons">
@@ -19,7 +19,7 @@
             variant="tertiary"
             size="medium"
             accent="brand"
-            :left-icon="faEdit"
+            left-icon="fa:edit"
           >
             {{ t('change-state') }}
           </UiButton>
@@ -29,11 +29,11 @@
             variant="tertiary"
             size="medium"
             accent="danger"
-            :left-icon="faTrash"
+            left-icon="fa:trash"
           >
             {{ t('forget') }}
           </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" :icon="faEllipsis" />
+          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" icon="fa:ellipsis" />
         </div>
       </div>
     </template>
@@ -49,7 +49,7 @@
             <template #value>
               <UiLink
                 v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
-                :icon="faCity"
+                icon="fa:city"
                 size="small"
                 :to="`/pool/${server.poolId}/`"
               >
@@ -113,7 +113,7 @@
         <VtsCardRowKeyValue>
           <template #key>{{ t('master') }}</template>
           <template #value>
-            <UiLink v-if="primaryHost !== undefined" :icon="faServer" size="small" :to="`/host/${primaryHost.id}/`">
+            <UiLink v-if="primaryHost !== undefined" icon="fa:server" size="small" :to="`/host/${primaryHost.id}/`">
               {{ primaryHost.name_label }}
             </UiLink>
           </template>
@@ -170,9 +170,9 @@
         </UiCardTitle>
         <VtsNoDataHero v-if="hosts.length === 0" type="panel" />
         <template v-else>
-          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" :icon="faServer" size="small">
+          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" icon="fa:server" size="small">
             {{ host.name_label }}
-            <VtsIcon v-if="primaryHost?.id === host.id" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+            <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="legacy:primary" size="medium" />
           </UiLink>
         </template>
       </UiCard>
@@ -181,17 +181,15 @@
           {{ t('error') }}
           <UiCounter :value="1" accent="danger" size="small" variant="primary" />
         </UiCardTitle>
-        <UiQuoteCode accent="danger" :label="t('api-error-details')" size="small" copy>
-          {{ server.error }}
-        </UiQuoteCode>
+        <UiLogEntryViewer accent="danger" :label="t('api-error-details')" size="small" :content="server.error" />
       </UiCard>
     </template>
   </UiPanel>
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import type { XoServer } from '@/types/xo/server.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -207,23 +205,13 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import UiQuoteCode from '@core/components/ui/quoteCode/UiQuoteCode.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store'
-import {
-  faAngleLeft,
-  faCircle,
-  faCity,
-  faEdit,
-  faEllipsis,
-  faServer,
-  faStar,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -237,11 +225,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-const { isReady: isPoolReady, get: getPoolById } = usePoolStore().subscribe()
-const { get: getHostById, hostsByPool } = useHostStore().subscribe()
+const { arePoolsReady, useGetPoolById } = useXoPoolCollection()
+const { useGetHostById, hostsByPool } = useXoHostCollection()
 
-const pool = computed(() => (server.poolId ? getPoolById(server.poolId) : undefined))
-const primaryHost = computed(() => (server.master ? getHostById(server.master) : undefined))
+const pool = useGetPoolById(() => server.poolId)
+const primaryHost = useGetHostById(() => server.master)
 const hosts = computed(() => (server.poolId ? hostsByPool.value.get(server.poolId) : undefined))
 
 const connectionStatus = useMapper(

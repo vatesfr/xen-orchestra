@@ -1,5 +1,5 @@
 <template>
-  <TitleBar :icon="faDisplay">
+  <TitleBar icon="fa:display">
     {{ name }}
     <template #actions>
       <MenuList v-if="vm !== undefined" placement="bottom-end">
@@ -9,11 +9,11 @@
             accent="brand"
             variant="primary"
             :class="{ pressed: isOpen }"
-            :left-icon="faPowerOff"
+            left-icon="fa:power-off"
             @click="open"
           >
             {{ t('change-state') }}
-            <UiIcon :icon="faAngleDown" />
+            <VtsIcon name="fa:angle-down" size="medium" />
           </UiButton>
         </template>
         <VmActionPowerStateItems :vm-refs="[vm.$ref]" />
@@ -26,7 +26,7 @@
               content: t('more-actions'),
             }"
             :selected="isOpen"
-            :icon="faEllipsisVertical"
+            icon="fa:ellipsis-vertical"
             accent="brand"
             class="more-actions-button"
             size="large"
@@ -44,7 +44,6 @@
 
 <script lang="ts" setup>
 import TitleBar from '@/components/TitleBar.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import VmActionCopyItem from '@/components/vm/VmActionItems/VmActionCopyItem.vue'
 import VmActionExportItem from '@/components/vm/VmActionItems/VmActionExportItem.vue'
 import VmActionMigrateItem from '@/components/vm/VmActionItems/VmActionMigrateItem.vue'
@@ -52,21 +51,21 @@ import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPower
 import VmActionSnapshotItem from '@/components/vm/VmActionItems/VmActionSnapshotItem.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faAngleDown, faDisplay, faEllipsisVertical, faPowerOff } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 const { t } = useI18n()
 
 const { getByUuid: getVmByUuid } = useVmStore().subscribe()
-const { currentRoute } = useRouter()
+const route = useRoute<'/vm/[uuid]'>()
 
-const vm = computed(() => getVmByUuid(currentRoute.value.params.uuid as XenApiVm['uuid']))
+const vm = computed(() => getVmByUuid(route.params.uuid as XenApiVm['uuid']))
 
 const name = computed(() => vm.value?.name_label)
 </script>

@@ -2,18 +2,18 @@
 <template>
   <div class="ui-legend-title typo-caption-small">
     <slot />
-    <VtsIcon v-tooltip="iconTooltip ?? false" :icon accent="info" />
+    <VtsIcon v-tooltip="iconTooltip ?? false" class="icon" :name="icon" size="medium" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 
 export type LegendTitleProps = {
   iconTooltip?: string
-  icon?: IconDefinition
+  icon?: IconName
 }
 
 defineProps<LegendTitleProps>()
@@ -29,5 +29,9 @@ defineSlots<{
   display: flex;
   gap: 0.8rem;
   align-items: center;
+
+  .icon {
+    color: var(--color-info-item-base);
+  }
 }
 </style>

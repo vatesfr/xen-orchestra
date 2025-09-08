@@ -4,7 +4,7 @@
       <img alt="XO Lite" src="../assets/logo-title.svg" />
       <PoolOverrideWarning />
       <p v-if="isHostIsSlaveErr(error)" class="error">
-        <UiIcon :icon="faExclamationCircle" />
+        <VtsIcon name="fa:exclamation-circle" size="medium" />
         {{ t('login-only-on-master') }}
         <a :href="masterUrl.href">{{ masterUrl.hostname }}</a>
       </p>
@@ -42,14 +42,13 @@
 import FormInput from '@/components/form/FormInput.vue'
 import LoginError from '@/components/LoginError.vue'
 import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import type { XenApiError } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
 import { useLocalStorage, whenever } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'

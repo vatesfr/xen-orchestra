@@ -15,7 +15,7 @@
       <UiCounter :value="3" accent="danger" size="medium" variant="primary" />
       <template #info>
         {{ settings.infoSlotContent }}
-        <UiButton variant="tertiary" size="small" accent="brand" :right-icon="faAngleRight">See all</UiButton>
+        <UiButton variant="tertiary" size="small" accent="brand">See all</UiButton>
       </template>
       <template #description>{{ settings.descriptionSlotContent }}</template>
     </UiCardTitle>
@@ -29,5 +29,4 @@ import { text } from '@/libs/story/story-widget'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
 </script>

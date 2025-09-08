@@ -10,7 +10,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('affinity-host')">
       <template #value>
-        <UiLink v-if="vm.affinityHost" :icon="faServer" :to="`/host/${vm.affinityHost}`" size="small">
+        <UiLink v-if="vm.affinityHost" icon="fa:server" :to="`/host/${vm.affinityHost}`" size="small">
           {{ affinityHostName }}
         </UiLink>
         <template v-else>
@@ -38,14 +38,13 @@
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { VM_OPERATION, type XoVm } from '@/types/xo/vm.type'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -53,7 +52,7 @@ import { useI18n } from 'vue-i18n'
 const { vm } = defineProps<{ vm: XoVm }>()
 const { t } = useI18n()
 
-const { get: getHostById } = useHostStore().subscribe()
+const { getHostById } = useXoHostCollection()
 
 const affinityHostName = computed(() => (vm.affinityHost ? getHostById(vm.affinityHost)?.name_label : ''))
 const protectedOperations = [

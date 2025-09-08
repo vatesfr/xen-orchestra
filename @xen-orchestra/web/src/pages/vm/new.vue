@@ -1,16 +1,9 @@
 <template>
   <div class="new">
-    <UiHeadBar :icon="faPlus">
+    <UiHeadBar icon="fa:plus">
       {{ t('new-vm.add') }}
       <template #actions>
-        <div class="custom-select">
-          <select v-model="vmState.pool">
-            <option v-for="pool in pools" :key="pool.id" :value="pool">
-              {{ pool.name_label }}
-            </option>
-          </select>
-          <FontAwesomeIcon class="icon" :icon="faAngleDown" />
-        </div>
+        <VtsSelect :id="poolSelectId" accent="brand" />
       </template>
     </UiHeadBar>
     <div class="card-container">
@@ -19,16 +12,9 @@
           <!-- TEMPLATE SECTION -->
           <UiTitle>{{ t('template') }}</UiTitle>
           <div class="template-container">
-            <p class="typo-body-regular">{{ t('pick-template') }}</p>
-            <!--        // Todo: Replace by the new select component -->
-            <div class="custom-select">
-              <select v-model="vmState.new_vm_template" @change="onTemplateChange()">
-                <option v-for="template in vmsTemplates" :key="template.id" :value="template" class="template-option">
-                  {{ `${template.name_label} - ${vmState.pool.name_label}` }}
-                </option>
-              </select>
-              <FontAwesomeIcon class="icon" :icon="faAngleDown" />
-            </div>
+            <VtsInputWrapper :label="t('pick-template')">
+              <VtsSelect :id="templateSelectId" accent="brand" />
+            </VtsInputWrapper>
           </div>
           <div v-if="vmState.new_vm_template" class="form-container">
             <!-- INSTALL SETTINGS SECTION -->
@@ -61,18 +47,7 @@
                   </UiRadioButton>
                 -->
               </div>
-              <div v-if="vmState.installMode === 'cdrom'" class="custom-select">
-                <select v-model="vmState.selectedVdi">
-                  <template v-for="(vdis, srName) in filteredVDIs" :key="srName">
-                    <optgroup :label="srName">
-                      <option v-for="vdi in vdis" :key="vdi.id" :value="vdi.id">
-                        {{ vdi.name_label }}
-                      </option>
-                    </optgroup>
-                  </template>
-                </select>
-                <FontAwesomeIcon class="icon" :icon="faAngleDown" />
-              </div>
+              <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
               <!-- TODO need to be add later after confirmation -->
               <!--
                <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
@@ -152,18 +127,9 @@
                 <UiTextarea v-model="vmState.description" accent="brand">
                   {{ t('new-vm.description') }}
                 </UiTextarea>
-                <div class="select">
-                  <UiLabel accent="neutral">{{ t('affinity-host') }}</UiLabel>
-                  <div class="custom-select">
-                    <select v-model="vmState.affinity_host">
-                      <option :value="undefined">{{ t('select-host') }}</option>
-                      <option v-for="host in hosts" :key="host.id" :value="host.id">
-                        {{ host.name_label }}
-                      </option>
-                    </select>
-                    <FontAwesomeIcon class="icon" :icon="faAngleDown" />
-                  </div>
-                </div>
+                <VtsInputWrapper :label="t('affinity-host')">
+                  <VtsSelect :id="affinityHostSelectId" accent="brand" />
+                </VtsInputWrapper>
               </div>
             </div>
             <!-- MEMORY SECTION -->
@@ -187,11 +153,11 @@
                 <thead>
                   <tr>
                     <th>
-                      <VtsIcon accent="current" :icon="faNetworkWired" />
+                      <VtsIcon name="fa:network-wired" size="medium" />
                       {{ t('interfaces') }}
                     </th>
                     <th>
-                      <VtsIcon accent="current" :icon="faAt" />
+                      <VtsIcon name="fa:at" size="medium" />
                       {{ t('mac-addresses') }}
                     </th>
                     <th />
@@ -200,22 +166,14 @@
                 <tbody>
                   <tr v-for="(vif, index) in vmState.vifs" :key="index">
                     <td>
-                      <!--        // Todo: Replace by the new select component -->
-                      <div class="custom-select">
-                        <select v-model="vif.network">
-                          <option v-for="network in filteredNetworks" :key="network.id" :value="network.id">
-                            {{ network.name_label }}
-                          </option>
-                        </select>
-                        <FontAwesomeIcon class="icon" :icon="faAngleDown" />
-                      </div>
+                      <NetworkSelect v-model="vif.network" :networks="filteredNetworks" />
                     </td>
                     <td>
                       <UiInput v-model="vif.mac" :placeholder="t('auto-generated')" accent="brand" />
                     </td>
                     <td>
                       <UiButtonIcon
-                        :icon="faTrash"
+                        icon="fa:trash"
                         size="medium"
                         accent="brand"
                         variant="secondary"
@@ -225,7 +183,7 @@
                   </tr>
                   <tr>
                     <td colspan="3">
-                      <UiButton :left-icon="faPlus" variant="tertiary" accent="brand" size="medium" @click="addVif()">
+                      <UiButton left-icon="fa:plus" variant="tertiary" accent="brand" size="medium" @click="addVif()">
                         {{ t('new') }}
                       </UiButton>
                     </td>
@@ -239,20 +197,20 @@
               <thead>
                 <tr>
                   <th>
-                    <VtsIcon accent="current" :icon="faDatabase" />
+                    <VtsIcon name="fa:database" size="medium" />
                     {{ t('storage-repositories') }}
                   </th>
                   <th>
-                    <VtsIcon accent="current" :icon="faAlignLeft" />
+                    <VtsIcon name="fa:align-left" size="medium" />
                     {{ t('disk-name') }}
                   </th>
                   <th>
-                    <VtsIcon accent="current" :icon="faMemory" />
+                    <VtsIcon name="fa:memory" size="medium" />
                     <!-- TODO remove (GB) when we can use new selector -->
                     {{ `${t('size')} (GB)` }}
                   </th>
                   <th>
-                    <VtsIcon accent="current" :icon="faAlignLeft" />
+                    <VtsIcon name="fa:align-left" size="medium" />
                     {{ t('description') }}
                   </th>
                   <th />
@@ -262,20 +220,7 @@
                 <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
                   <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
                     <td>
-                      <!--        // Todo: Replace by the new select component -->
-                      <div class="custom-select">
-                        <select v-model="vdi.sr">
-                          <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
-                            {{ `${sr.name_label} -` }}
-                            {{
-                              t('n-gb-left', {
-                                n: bytesToGiB(sr.size - sr.physical_usage),
-                              })
-                            }}
-                          </option>
-                        </select>
-                        <FontAwesomeIcon class="icon" :icon="faAngleDown" />
-                      </div>
+                      <SrSelect v-model="vdi.sr" :srs="filteredSrs" />
                     </td>
                     <td>
                       <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
@@ -292,20 +237,7 @@
                 <template v-if="vmState.vdis && vmState.vdis.length > 0">
                   <tr v-for="(vdi, index) in vmState.vdis" :key="index">
                     <td>
-                      <!--        // Todo: Replace by the new select component -->
-                      <div class="custom-select">
-                        <select v-model="vdi.sr">
-                          <option v-for="sr in filteredSrs" :key="sr.id" :value="sr.id">
-                            {{ `${sr.name_label} -` }}
-                            {{
-                              t('n-gb-left', {
-                                n: bytesToGiB(sr.size - sr.physical_usage),
-                              })
-                            }}
-                          </option>
-                        </select>
-                        <FontAwesomeIcon class="icon" :icon="faAngleDown" />
-                      </div>
+                      <SrSelect v-model="vdi.sr" :srs="filteredSrs" />
                     </td>
                     <td>
                       <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
@@ -318,7 +250,7 @@
                     </td>
                     <td>
                       <UiButtonIcon
-                        :icon="faTrash"
+                        icon="fa:trash"
                         size="medium"
                         accent="brand"
                         variant="secondary"
@@ -330,7 +262,7 @@
                 <tr>
                   <td colspan="5">
                     <UiButton
-                      :left-icon="faPlus"
+                      left-icon="fa:plus"
                       variant="tertiary"
                       accent="brand"
                       size="medium"
@@ -355,15 +287,15 @@
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
               <!-- TODO change label to manage pluralization when we can have multiple vm -->
-              <VtsResource :icon="faDisplay" count="1" :label="t('vms', 1)" />
-              <VtsResource :icon="faMicrochip" :count="vmState.vCPU" :label="t('vcpus')" />
-              <VtsResource :icon="faMemory" :count="`${ramFormatted} GB`" :label="t('ram')" />
+              <VtsResource icon="fa:display" count="1" :label="t('vms', 1)" />
+              <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
+              <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
-                :icon="faDatabase"
+                icon="fa:database"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
                 :label="t('vdis')"
               />
-              <VtsResource :icon="faNetworkWired" :count="vmState.vifs.length" :label="t('interfaces')" />
+              <VtsResource icon="fa:network-wired" :count="vmState.vifs.length" :label="t('interfaces')" />
             </VtsResources>
           </div>
           <!-- TOASTER -->
@@ -391,17 +323,19 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
+import NetworkSelect from '@/components/select/NetworkSelect.vue'
+import SrSelect from '@/components/select/SrSelect.vue'
 import { createVM } from '@/jobs/vm-create.job.ts'
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
-import { useSrStore } from '@/stores/xo-rest-api/sr.store'
-import { useVbdStore } from '@/stores/xo-rest-api/vbd.store'
-import { useVdiStore } from '@/stores/xo-rest-api/vdi.store'
-import { useVifStore } from '@/stores/xo-rest-api/vif.store'
-import { useVmTemplateStore } from '@/stores/xo-rest-api/vm-template.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
+import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
+import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
+import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
 import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
 import type { XoPool } from '@/types/xo/pool.type.ts'
@@ -411,6 +345,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -419,27 +354,14 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import UiLabel from '@core/components/ui/label/UiLabel.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import {
-  faAlignLeft,
-  faAngleDown,
-  faAt,
-  faDatabase,
-  faDisplay,
-  faMemory,
-  faMicrochip,
-  faNetworkWired,
-  faPlus,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { useFormSelect } from '@core/packages/form-select'
 
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -454,15 +376,15 @@ const isOpen = ref(false)
 
 const isBusy = ref(false)
 
-const { records: networks, get: getNetwork } = useNetworkStore().subscribe()
-const { getPifsByNetworkId } = usePifStore().subscribe()
-const { records: pools } = usePoolStore().subscribe()
-const { vmsTemplatesByPool } = useVmTemplateStore().subscribe()
-const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
-const { get: getVbd } = useVbdStore().subscribe()
-const { get: getVdi } = useVdiStore().subscribe()
-const { get: getVif } = useVifStore().subscribe()
-const { hostsByPool } = useHostStore().subscribe()
+const { networks, getNetworkById } = useXoNetworkCollection()
+const { getPifsByNetworkId } = useXoPifCollection()
+const { pools } = useXoPoolCollection()
+const { srs, vdiIsosBySrName } = useXoSrCollection()
+const { getVbdById } = useXoVbdCollection()
+const { getVdiById } = useXoVdiCollection()
+const { getVifById } = useXoVifCollection()
+const { hostsByPool } = useXoHostCollection()
+const { vmsTemplatesByPool } = useXoVmTemplateCollection()
 
 const vmState = reactive<VmState>({
   name: '',
@@ -506,29 +428,22 @@ const ramFormatted = computed({
 })
 
 const hosts = computed(() => {
-  if (!vmState.pool) return
-  return hostsByPool.value.get(vmState.pool.id)
+  if (!vmState.pool) {
+    return []
+  }
+
+  return hostsByPool.value.get(vmState.pool.id) ?? []
 })
 
 const vmsTemplates = computed(() => {
-  if (!vmState.pool) return
-  return vmsTemplatesByPool.value.get(vmState.pool.id)
+  if (!vmState.pool) {
+    return []
+  }
+
+  return vmsTemplatesByPool.value.get(vmState.pool.id) ?? []
 })
 
 const filteredNetworks = computed(() => networks.value.filter(network => network.$pool === vmState.pool?.id))
-
-const filteredVDIs = computed(() => {
-  const result: Record<string, XoVdi[]> = {}
-
-  for (const [key, vdis] of Object.entries(vdiIsosBySrName.value)) {
-    const filteredList = vdis.filter(vdi => vdi.$pool === vmState.pool?.id)
-    if (filteredList.length > 0) {
-      result[key] = filteredList
-    }
-  }
-
-  return result
-})
 
 const generateRandomString = (length: number) => {
   return Math.random()
@@ -603,13 +518,13 @@ const getVmTemplateVdis = (template: XoVmTemplate) =>
 
 const getExistingVdis = (template: XoVmTemplate) => {
   return template.$VBDs.reduce<Vdi[]>((acc, vbdId) => {
-    const vbd = getVbd(vbdId)
+    const vbd = getVbdById(vbdId)
 
     if (vbd === undefined || vbd.is_cd_drive) {
       return acc
     }
 
-    const vdi = getVdi(vbd.VDI)
+    const vdi = getVdiById(vbd.VDI)
 
     if (vdi === undefined) {
       console.error('VDI not found')
@@ -658,14 +573,14 @@ const getExistingVifs = (template: XoVmTemplate): Vif[] => {
     return []
   }
   return template.VIFs.reduce<Vif[]>((acc, vifId) => {
-    const vif = getVif(vifId)
+    const vif = getVifById(vifId)
 
     if (vif === undefined) {
       console.error('VIF not found')
       return acc
     }
 
-    const network = getNetwork(vif.$network)
+    const network = getNetworkById(vif.$network)
 
     if (network === undefined) {
       console.error('Network not found')
@@ -737,32 +652,9 @@ const isCreateVmDisabled = computed(() => {
   )
 })
 
-const onTemplateChange = () => {
-  const template = vmState.new_vm_template
-  if (template === undefined) {
-    return
-  }
-
-  const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
-
-  Object.assign(vmState, {
-    isDiskTemplateSelected: isDiskTemplate,
-    vm_name: name_label,
-    vm_description: isDefaultTemplate ? '' : name_description,
-    ram: memory.dynamic[1],
-    tags,
-    vCPU: CPUs.number,
-    vdis: getVmTemplateVdis(template),
-    existingVdis: getExistingVdis(template),
-    vifs: getExistingVifs(template),
-    selectedVdi: undefined,
-    installMode: undefined,
-  })
-}
-
 // TODO: when refactoring the component, remove the param and sync with the pool id in the route
 const redirectToPool = (poolId: XoPool['id']) => {
-  router.push({ name: '/pool/:id', params: { id: poolId } })
+  router.push({ name: '/pool/[id]/dashboard', params: { id: poolId } })
 }
 
 function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
@@ -915,19 +807,114 @@ const createNewVM = async () => {
   }
 }
 
+// POOL SELECTOR
+
+const { id: poolSelectId } = useFormSelect(pools, {
+  searchable: true,
+  model: toRef(vmState, 'pool'),
+  option: {
+    label: 'name_label',
+  },
+})
+
+// TEMPLATE SELECTOR
+
+const { id: templateSelectId } = useFormSelect(vmsTemplates, {
+  searchable: true,
+  required: true,
+  model: toRef(vmState, 'new_vm_template'),
+  option: {
+    id: 'uuid',
+    label: 'name_label',
+  },
+})
+
 watch(
-  () => vmState.pool,
-  (newPool, oldPool) => {
-    if (newPool !== oldPool) {
-      vmState.new_vm_template = undefined
+  () => vmState.new_vm_template?.uuid,
+  () => {
+    const template = vmState.new_vm_template
+
+    if (!template) {
+      return
     }
+
+    const { name_label, isDefaultTemplate, name_description, tags, CPUs, memory } = template
+
+    Object.assign(vmState, {
+      isDiskTemplateSelected: isDiskTemplate.value ?? false,
+      name: name_label,
+      description: isDefaultTemplate ? '' : name_description,
+      ram: memory.dynamic[1],
+      tags,
+      vCPU: CPUs.number,
+      vdis: getVmTemplateVdis(template),
+      existingVdis: getExistingVdis(template),
+      vifs: getExistingVifs(template),
+      selectedVdi: undefined,
+      installMode: undefined,
+    } satisfies Partial<VmState>)
   }
 )
+
+// VDI ISOS SELECTOR
+
+const vdis = computed(() => {
+  const vdis = new Map<XoVdi['id'], { vdi: XoVdi; srName: string }>()
+
+  for (const [srName, srVdis] of Object.entries(vdiIsosBySrName.value)) {
+    srVdis
+      .filter(vdi => vdi.$pool === vmState.pool?.id)
+      .forEach(vdi => {
+        vdis.set(vdi.id, {
+          vdi,
+          srName,
+        })
+      })
+  }
+
+  return vdis
+})
+
+const { id: vdiSelectId } = useFormSelect(
+  computed(() => Array.from(vdis.value.values()).map(v => v.vdi)),
+  {
+    model: toRef(vmState, 'selectedVdi'),
+    searchable: true,
+    option: {
+      value: 'id',
+      label: vdi => `[${vdis.value.get(vdi.id)!.srName}] ${vdi.name_label}`,
+    },
+  }
+)
+
+// AFFINITY HOST SELECTOR
+
+const { id: affinityHostSelectId } = useFormSelect(hosts, {
+  model: toRef(vmState, 'affinity_host'),
+  searchable: true,
+  emptyOption: {
+    label: t('select-host'),
+    value: undefined,
+  },
+  option: {
+    label: 'name_label',
+    value: 'id',
+  },
+})
+
+watch(
+  () => vmState.pool?.id,
+  () => {
+    vmState.new_vm_template = undefined
+  }
+)
+
 watch(
   pools,
   newPools => {
     const targetPool = newPools.find(pool => pool.id === poolId.value)
-    if (targetPool) {
+
+    if (targetPool?.id !== vmState.pool?.id) {
       vmState.pool = targetPool
     }
   },

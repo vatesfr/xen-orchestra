@@ -8,7 +8,7 @@
           size="medium"
           variant="tertiary"
           accent="brand"
-          :icon="faAngleLeft"
+          icon="fa:angle-left"
           @click="emit('close')"
         />
         <div class="action-buttons">
@@ -18,7 +18,7 @@
             size="medium"
             variant="tertiary"
             accent="brand"
-            :left-icon="faEdit"
+            left-icon="fa:edit"
           >
             {{ t('edit') }}
           </UiButton>
@@ -28,7 +28,7 @@
             size="medium"
             variant="tertiary"
             accent="danger"
-            :left-icon="faTrash"
+            left-icon="fa:trash"
           >
             {{ t('delete') }}
           </UiButton>
@@ -144,7 +144,7 @@
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="t('coming-soon')"
                   disabled
-                  :icon="faEllipsis"
+                  icon="fa:ellipsis"
                   size="medium"
                   accent="brand"
                 />
@@ -178,8 +178,8 @@
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoVif } from '@/types/xo/vif.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
@@ -191,7 +191,6 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { faAngleLeft, faEdit, faEllipsis, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -203,17 +202,17 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const { get: getNetwork } = useNetworkStore().subscribe()
-const { get: getVm } = useVmStore().subscribe()
+const { useGetNetworkById } = useXoNetworkCollection()
+const { getVmById } = useXoVmCollection()
 const uiStore = useUiStore()
 
 const ipAddresses = computed(() => {
-  const addresses = getVm(vif.$VM)?.addresses
+  const addresses = getVmById(vif.$VM)?.addresses
 
   return addresses ? [...new Set(Object.values(addresses).sort())] : []
 })
 
-const network = computed(() => getNetwork(vif.$network))
+const network = useGetNetworkById(() => vif.$network)
 
 const status = computed(() => (vif.attached ? 'connected' : 'disconnected'))
 </script>

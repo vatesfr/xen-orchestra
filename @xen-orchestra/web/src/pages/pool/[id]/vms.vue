@@ -1,16 +1,16 @@
 <template>
-  <VtsLoadingHero v-if="!isReady" type="page" />
+  <VtsLoadingHero v-if="!areVmsReady" type="page" />
   <UiCard v-else class="vms">
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
     </div>
     <VtsTable vertical-border>
       <thead>
         <tr>
-          <ColumnTitle id="vm" :icon="faDesktop">{{ t('vm') }}</ColumnTitle>
-          <ColumnTitle id="description" :icon="faAlignLeft">{{ t('vm-description') }}</ColumnTitle>
+          <ColumnTitle id="vm" icon="fa:desktop">{{ t('vm') }}</ColumnTitle>
+          <ColumnTitle id="description" icon="fa:align-left">{{ t('vm-description') }}</ColumnTitle>
         </tr>
       </thead>
       <tbody>
@@ -18,7 +18,7 @@
           <VtsCellObject :id="vm.data.id">
             <UiObjectLink :route="`/vm/${vm.data.id}/`">
               <template #icon>
-                <UiObjectIcon size="medium" :state="vm.data.power_state.toLocaleLowerCase() as VmState" type="vm" />
+                <VtsObjectIcon size="medium" :state="vm.data.power_state.toLocaleLowerCase() as VmState" type="vm" />
               </template>
               {{ vm.data.name_label }}
             </UiObjectLink>
@@ -32,43 +32,42 @@
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->
       <p class="typo-body-regular-small count">{{ t('n-vms', { n: vms.length }) }}</p>
-      <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { VmState } from '@core/types/object-icon.type'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
 import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTree } from '@core/composables/tree.composable'
-import { faAlignLeft, faDesktop } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { pool } = defineProps<{
   pool: XoPool
 }>()
 
 const { t } = useI18n()
 
-const { isReady, records } = useVmStore().subscribe()
+const { areVmsReady, vmsByPool } = useXoVmCollection()
 
-const vmsByPool = computed(() => records.value.filter(vm => vm.$pool === props.pool.id))
+const poolVms = computed(() => vmsByPool.value.get(pool.id) ?? [])
 
 const definitions = computed(() =>
-  defineTree(vmsByPool.value ?? [], {
+  defineTree(poolVms.value, {
     getLabel: 'name_label',
   })
 )

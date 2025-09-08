@@ -3,6 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { HOST_POWER_STATE, XcpPatches, XsPatches, type XoHost } from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
+import type { MissingPatchesInfo } from './host.type.mjs'
 
 const log = createLogger('xo:rest-api:host-service')
 
@@ -51,23 +52,15 @@ export class HostService {
     }
   }
 
-  async getMissingPatchesInfo(opts?: { filter?: string | ((obj: XoHost) => boolean) }): Promise<
-    | { hasAuthorization: false }
-    | {
-        hasAuthorization: true
-        nHostsWithMissingPatches: number
-        nPoolsWithMissingPatches: number
-        nHostsFailed: number
-        missingPatches: (XcpPatches | XsPatches)[]
-      }
-  > {
-    if (!(await this.#restApi.xoApp.hasFeatureAuthorization('LIST_MISSING_PATCHES'))) {
-      return {
-        hasAuthorization: false,
-      }
-    }
+  /**
+   * Throw if no authorization
+   */
+  async getMissingPatchesInfo({
+    filter,
+  }: { filter?: string | ((obj: XoHost) => boolean) } = {}): Promise<MissingPatchesInfo> {
+    await this.#restApi.xoApp.checkFeatureAuthorization('LIST_MISSING_PATCHES')
 
-    const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host', opts))
+    const hosts = Object.values(this.#restApi.getObjectsByType<XoHost>('host', { filter }))
     const missingPatches = new Map<string, XcpPatches | XsPatches>()
     const poolsWithMissingPatches = new Set()
     let nHostsWithMissingPatches = 0
@@ -92,7 +85,7 @@ export class HostService {
 
     return {
       hasAuthorization: true,
-      missingPatches: Array.from(missingPatches.values()),
+      missingPatches: Array.from(missingPatches.values()) as XcpPatches[] | XsPatches[],
       nHostsFailed,
       nHostsWithMissingPatches,
       nPoolsWithMissingPatches: poolsWithMissingPatches.size,

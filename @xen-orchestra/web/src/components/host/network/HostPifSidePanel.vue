@@ -8,7 +8,7 @@
           size="medium"
           variant="tertiary"
           accent="brand"
-          :icon="faAngleLeft"
+          icon="fa:angle-left"
           @click="emit('close')"
         />
         <div class="action-buttons">
@@ -18,7 +18,7 @@
             size="medium"
             variant="tertiary"
             accent="brand"
-            :left-icon="faEdit"
+            left-icon="fa:edit"
           >
             {{ t('edit') }}
           </UiButton>
@@ -28,7 +28,7 @@
             size="medium"
             variant="tertiary"
             accent="danger"
-            :left-icon="faTrash"
+            left-icon="fa:trash"
           >
             {{ t('delete') }}
           </UiButton>
@@ -49,13 +49,7 @@
               {{ pif.id }}
             </template>
             <template #addons>
-              <VtsIcon
-                v-if="pif.management"
-                v-tooltip="t('management')"
-                accent="info"
-                :icon="faCircle"
-                :overlay-icon="faStar"
-              />
+              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
               <VtsCopyButton :value="pif.id" />
             </template>
           </VtsCardRowKeyValue>
@@ -155,7 +149,7 @@
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="t('coming-soon')"
                   disabled
-                  :icon="faEllipsis"
+                  icon="fa:ellipsis"
                   size="medium"
                   accent="brand"
                 />
@@ -246,7 +240,7 @@
                   v-if="index === 0 && bondDevices.length > 1"
                   v-tooltip="t('coming-soon')"
                   disabled
-                  :icon="faEllipsis"
+                  icon="fa:ellipsis"
                   size="medium"
                   accent="brand"
                 />
@@ -299,8 +293,8 @@
 </template>
 
 <script setup lang="ts">
-import { useNetworkStore } from '@/stores/xo-rest-api/network.store.ts'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store.ts'
+import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoPif } from '@/types/xo/pif.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
@@ -315,7 +309,6 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { faAngleLeft, faCircle, faEdit, faEllipsis, faStar, faTrash } from '@fortawesome/free-solid-svg-icons'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -328,15 +321,15 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { get: getNetwork } = useNetworkStore().subscribe()
-const { getBondsDevices } = usePifStore().subscribe()
+const { useGetNetworkById } = useXoNetworkCollection()
+const { getBondsDevices } = useXoPifCollection()
 const uiStore = useUiStore()
 
 const { t } = useI18n()
 
 const ipAddresses = computed(() => [pif.ip, ...pif.ipv6].filter(ip => ip))
 
-const network = computed(() => getNetwork(pif.$network))
+const network = useGetNetworkById(() => pif.$network)
 
 const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 

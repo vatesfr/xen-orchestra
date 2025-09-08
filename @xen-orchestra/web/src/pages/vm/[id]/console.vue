@@ -11,9 +11,9 @@
 </template>
 
 <script lang="ts" setup>
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
 import type { XoVm } from '@/types/xo/vm.type'
 import { VM_OPERATION } from '@/types/xo/vm.type'
+import { isVmOperatingPending } from '@/utils/xo-records/vm.util.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
@@ -27,8 +27,6 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-
-const { isVmOperatingPending } = useVmStore().subscribe()
 
 const STOP_OPERATIONS = [
   VM_OPERATION.SHUTDOWN,

@@ -1,7 +1,7 @@
 export interface StatData {
   id: string
-  value: number
-  label?: string
+  current: number
+  total: number
+  label: string
   badgeLabel?: string
-  maxValue?: number
 }

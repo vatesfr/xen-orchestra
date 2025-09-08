@@ -1,18 +1,17 @@
 <!-- v6 -->
 <template>
   <button :class="classNames" :disabled="busy || isDisabled || lockIcon" class="ui-button" type="button">
-    <VtsIcon :busy :icon="leftIcon" accent="current" class="icon" fixed-width />
+    <VtsIcon :busy :name="leftIcon" class="icon" size="current" />
     <slot />
-    <VtsIcon v-if="lockIcon" :icon="faLock" accent="current" class="icon" fixed-width />
+    <VtsIcon v-if="lockIcon" name="fa:lock" size="medium" class="icon" />
   </button>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faLock } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
@@ -26,7 +25,7 @@ const { accent, variant, size, disabled, busy, lockIcon } = defineProps<{
   busy?: boolean
   disabled?: boolean
   lockIcon?: boolean
-  leftIcon?: IconDefinition
+  leftIcon?: IconName
 }>()
 
 defineSlots<{

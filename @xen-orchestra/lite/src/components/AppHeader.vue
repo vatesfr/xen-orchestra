@@ -4,12 +4,12 @@
       <UiButtonIcon
         v-if="!uiStore.isDesktopLarge"
         ref="navigationTrigger"
-        :icon="faBars"
-        accent="brand"
-        size="medium"
         :class="{ 'menu-to-right': !uiStore.isMobile }"
+        accent="brand"
+        icon="fa:bars"
+        size="medium"
       />
-      <RouterLink :to="{ name: 'home' }" class="logo-container">
+      <RouterLink :to="logoRoute" class="logo-container">
         <img v-if="uiStore.isMobile" alt="XO Lite" src="../assets/logo.svg" />
         <TextLogo v-else />
       </RouterLink>
@@ -29,15 +29,27 @@ import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
 import TextLogo from '@/components/TextLogo.vue'
 import XoaButton from '@/components/XoaButton.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
+import type { RouteLocationRaw } from 'vue-router'
 
 const uiStore = useUiStore()
+const { pool } = usePoolStore().getContext()
 
 const navigationStore = useNavigationStore()
 const { trigger: navigationTrigger } = storeToRefs(navigationStore)
+
+const logoRoute = computed<RouteLocationRaw>(() =>
+  pool.value
+    ? {
+        name: '/pool/[uuid]/dashboard',
+        params: { uuid: pool.value.uuid },
+      }
+    : { name: '/' }
+)
 </script>
 
 <style lang="postcss" scoped>

@@ -5,7 +5,7 @@
       <RouterLink
         v-if="host !== undefined"
         :to="{
-          name: 'host.dashboard',
+          name: '/host/[uuid]/dashboard',
           params: { uuid: host.uuid },
         }"
       >
@@ -13,7 +13,7 @@
       </RouterLink>
     </td>
     <td>
-      <UiProgressBar v-if="isPending" :max-value="1" :value="task.progress" />
+      <UiProgressBar v-if="isPending" :fill-width accent="info" />
     </td>
     <td>
       <RelativeTime v-if="isPending" :date="createdAt" />
@@ -30,29 +30,32 @@
 
 <script lang="ts" setup>
 import RelativeTime from '@/components/RelativeTime.vue'
-import UiProgressBar from '@/components/ui/progress/UiProgressBar.vue'
 import { parseDateTime } from '@/libs/utils'
 import type { XenApiTask } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
+import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
+import { useProgress } from '@core/packages/progress/use-progress.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { task, isPending } = defineProps<{
   isPending?: boolean
   task: XenApiTask
 }>()
+
+const { fillWidth } = useProgress(() => task.progress, 1)
 
 const { d } = useI18n()
 
 const { getByOpaqueRef: getHost } = useHostStore().subscribe()
 
-const createdAt = computed(() => parseDateTime(props.task.created))
+const createdAt = computed(() => parseDateTime(task.created))
 
-const host = computed(() => getHost(props.task.resident_on))
+const host = computed(() => getHost(task.resident_on))
 
-const estimatedEndAt = computed(() => createdAt.value + (new Date().getTime() - createdAt.value) / props.task.progress)
+const estimatedEndAt = computed(() => createdAt.value + (new Date().getTime() - createdAt.value) / task.progress)
 
-const finishedAt = computed(() => (props.isPending ? undefined : parseDateTime(props.task.finished)))
+const finishedAt = computed(() => (isPending ? undefined : parseDateTime(task.finished)))
 </script>
 
 <style lang="postcss" scoped>

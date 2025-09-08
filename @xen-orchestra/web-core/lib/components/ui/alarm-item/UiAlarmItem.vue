@@ -5,7 +5,7 @@
       <div class="label-percent typo-body-regular text-ellipsis">
         <UiButtonIcon
           v-if="description"
-          :icon="isDescriptionVisible ? faAngleDown : faAngleRight"
+          :icon="isDescriptionVisible ? 'fa:angle-down' : 'fa:angle-right'"
           size="small"
           accent="brand"
           :target-scale="2"
@@ -38,7 +38,6 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { toVariants } from '@core/utils/to-variants.util'
-import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

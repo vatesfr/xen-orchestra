@@ -2,11 +2,13 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('legend').preset('Legend').required().widget(),
-      prop('value').preset(25).required().widget(),
-      prop('max').num().widget().help(`Max will be required when displayMode is set to 'value'.`),
-      prop('displayMode').enum('value', 'percent').required().preset('percent').widget(),
-      prop('showSteps').bool().help('Meant to display steps values under the progress bar. See Presets.').widget(),
+      prop('accent').type('ProgressBarAccent').enum('info', 'warning', 'danger').preset('info').required().widget(),
+      prop('fill-width').str().preset('25%').required().widget(),
+      prop('legend')
+        .obj('ProgressBarLegend')
+        .widget()
+        .preset({ label: 'Foo', value: '12 / 48' })
+        .help('{ label: string; value?: string | number }'),
     ]"
     :presets
   >

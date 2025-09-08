@@ -5,8 +5,6 @@
 <script setup lang="ts">
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCopy } from '@fortawesome/free-regular-svg-icons'
-import { faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 import { useClipboard } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,5 +17,5 @@ const { t } = useI18n()
 
 const { copy, copied } = useClipboard({ source: () => value })
 
-const icon = computed(() => (copied.value ? faCheckCircle : faCopy))
+const icon = computed(() => (copied.value ? 'fa:check-circle' : 'fa:copy'))
 </script>

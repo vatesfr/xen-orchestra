@@ -1,45 +1,41 @@
-<!-- v3 -->
+<!-- v5 -->
 <template>
-  <div class="ui-table-pagination">
-    <div class="buttons-container">
-      <PaginationButton :disabled="isFirstPage" :icon="faAngleDoubleLeft" @click="emit('first')" />
-      <PaginationButton :disabled="isFirstPage" :icon="faAngleLeft" @click="emit('previous')" />
-      <PaginationButton :disabled="isLastPage" :icon="faAngleRight" @click="emit('next')" />
-      <PaginationButton :disabled="isLastPage" :icon="faAngleDoubleRight" @click="emit('last')" />
+  <div class="ui-table-pagination" :class="className">
+    <div class="container">
+      <span class="typo-body-regular-small label">
+        {{ t('core.select.n-object-of', { from, to, total }) }}
+      </span>
+      <div class="buttons-container">
+        <PaginationButton :disabled="isFirstPage" icon="fa:angle-double-left" @click="emit('first')" />
+        <PaginationButton :disabled="isFirstPage" icon="fa:angle-left" @click="emit('previous')" />
+        <PaginationButton :disabled="isLastPage" icon="fa:angle-right" @click="emit('next')" />
+        <PaginationButton :disabled="isLastPage" icon="fa:angle-double-right" @click="emit('last')" />
+      </div>
     </div>
-    <span class="typo-body-regular-small label">
-      {{ t('core.select.n-object-of', { from, to, total }) }}
-    </span>
-    <span class="typo-body-regular-small label show">{{ t('core.pagination.show-by') }}</span>
-    <div class="dropdown-wrapper">
-      <select v-model="showBy" class="dropdown typo-body-regular-small">
-        <option v-for="option in [12, 24, 48, -1]" :key="option" :value="option" class="typo-body-bold-small">
-          {{ option === -1 ? t('core.pagination.all') : option }}
-        </option>
-      </select>
-      <VtsIcon :icon="faAngleDown" accent="current" class="icon" />
+    <div class="container">
+      <span class="typo-body-regular-small label show">{{ t('core.pagination.show-by') }}</span>
+      <VtsSelect :id="showBySelectId" accent="brand" class="typo-body-regular-small show-by-select" />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsSelect from '@core/components/select/VtsSelect.vue'
 import PaginationButton from '@core/components/ui/table-pagination/PaginationButton.vue'
-import {
-  faAngleDoubleLeft,
-  faAngleDoubleRight,
-  faAngleDown,
-  faAngleLeft,
-  faAngleRight,
-} from '@fortawesome/free-solid-svg-icons'
+import { useFormSelect } from '@core/packages/form-select'
+import { toVariants } from '@core/utils/to-variants.util.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+export type TablePaginationSize = 'small' | 'medium'
+
+const { size } = defineProps<{
   from: number
   to: number
   total: number
   isFirstPage: boolean
   isLastPage: boolean
+  size: TablePaginationSize
 }>()
 
 const emit = defineEmits<{
@@ -51,7 +47,16 @@ const emit = defineEmits<{
 
 const showBy = defineModel<number>('showBy', { default: 24 })
 
+const className = computed(() => toVariants({ size }))
+
 const { t } = useI18n()
+
+const { id: showBySelectId } = useFormSelect([12, 24, 48, -1], {
+  model: showBy,
+  option: {
+    label: option => (option === -1 ? t('core.pagination.all') : option.toString()),
+  },
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -59,6 +64,21 @@ const { t } = useI18n()
   display: flex;
   align-items: center;
   gap: 0.8rem;
+
+  &.size--small {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  &.size--medium {
+    flex-direction: row;
+  }
+
+  .container {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
 
   .buttons-container {
     display: flex;
@@ -69,78 +89,19 @@ const { t } = useI18n()
     color: var(--color-neutral-txt-secondary);
   }
 
-  .show::before {
-    content: '-';
-    margin-right: 0.8rem;
-  }
+  /* Workaround: we don't have "small" select yet */
+  .show-by-select {
+    width: 6rem;
 
-  .dropdown-wrapper {
-    position: relative;
-
-    .dropdown {
-      cursor: pointer;
-      padding: 0.2rem 0.6rem;
+    &:deep(.ui-input) {
       height: 3rem;
-      width: 5rem;
-      appearance: none;
-      border-radius: 0.4rem;
-      color: var(--color-brand-txt-base);
-      border: 0.1rem solid var(--color-neutral-border);
-      background-color: var(--color-neutral-background-primary);
-
-      &:hover {
-        border-color: var(--color-brand-item-hover);
-        background-color: var(--color-brand-background-hover);
-        color: var(--color-brand-txt-hover);
-
-        + .icon {
-          color: var(--color-brand-txt-hover);
-        }
-      }
-
-      &:disabled {
-        cursor: not-allowed;
-        background-color: var(--color-neutral-background-disabled);
-        color: var(--color-neutral-txt-secondary);
-        border-color: transparent;
-
-        + .icon {
-          color: var(--color-neutral-txt-secondary);
-        }
-      }
-
-      &:active {
-        background-color: var(--color-brand-background-active);
-        border-color: var(--color-brand-item-active);
-      }
-
-      &:focus-visible {
-        outline: 0.1rem solid var(--color-brand-item-base);
-        border: 0.1rem solid var(--color-brand-item-base);
-        color: var(--color-brand-txt-base);
-        background-color: var(--color-brand-background-selected);
-
-        + .icon {
-          color: var(--color-brand-txt-base);
-        }
-      }
-
-      option {
-        background-color: var(--color-neutral-background-primary);
-        border: 0.1rem solid var(--color-neutral-border);
-        border-radius: 0.4rem;
-        color: var(--color-neutral-txt-primary);
-      }
+      padding-inline: 0.8rem;
+      gap: 0.8rem;
+      min-width: 6rem;
     }
 
-    .icon {
-      position: absolute;
-      top: 50%;
-      right: 0.8rem;
-      transform: translateY(-50%);
-      pointer-events: none;
-      font-size: 1rem;
-      color: var(--color-brand-txt-base);
+    &:deep(.input) {
+      font-size: 1.4rem;
     }
   }
 }

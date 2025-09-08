@@ -2,7 +2,7 @@
   <th>
     <div class="content">
       <span class="label">
-        <UiIcon :icon />
+        <VtsIcon :name="icon" size="medium" />
         <slot />
       </span>
     </div>
@@ -10,11 +10,11 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 
 defineProps<{
-  icon?: IconDefinition
+  icon?: IconName
 }>()
 </script>
 

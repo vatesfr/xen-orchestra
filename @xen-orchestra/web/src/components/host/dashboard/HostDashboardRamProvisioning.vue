@@ -1,13 +1,13 @@
 <template>
   <UiCard class="host-dashboard-ram-provisioning">
     <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsLoadingHero v-if="!areHostsReady" type="card" />
     <template v-else>
-      <UiProgressBar
-        display-mode="percent"
-        :value="host.memory.usage"
-        :max="host.memory.size"
-        :legend="host.name_label"
+      <VtsProgressBar
+        :label="host.name_label"
+        :total="host.memory.size"
+        :current="host.memory.usage"
+        legend-type="percent"
       />
       <div class="total">
         <UiCardNumbers
@@ -28,13 +28,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
+import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -45,7 +45,7 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { isReady } = useHostStore().subscribe()
+const { areHostsReady } = useXoHostCollection()
 
 const ramUsage = computed(() => {
   const total = host.memory.size

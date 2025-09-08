@@ -1,24 +1,6 @@
 <template>
   <span :class="wrapperClass" class="container" v-bind="wrapperAttrs">
-    <template v-if="inputType === 'select'">
-      <select
-        :id
-        ref="inputElement"
-        v-model="value"
-        :class="inputClass"
-        :disabled="isDisabled"
-        :required
-        class="select"
-        v-bind="attrs"
-      >
-        <slot />
-      </select>
-      <span class="caret">
-        <UiIcon :fixed-width="false" :icon="faAngleDown" />
-      </span>
-    </template>
     <input
-      v-else
       :id
       ref="inputElement"
       v-model="value"
@@ -29,25 +11,22 @@
       v-bind="attrs"
     />
     <span v-if="before !== undefined" class="before">
-      <template v-if="typeof before === 'string'">{{ before }}</template>
-      <UiIcon v-else :icon="before" class="before" />
+      <VtsIcon :name="before" class="before" size="medium" />
     </span>
     <span v-if="after !== undefined" class="after">
-      <template v-if="typeof after === 'string'">{{ after }}</template>
-      <UiIcon v-else :icon="after" class="after" />
+      <VtsIcon :name="after" class="after" size="medium" />
     </span>
   </span>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useContext } from '@/composables/context.composable'
 import { ColorContext } from '@/context'
 import type { Color } from '@/types'
 import { IK_INPUT_ID, IK_INPUT_TYPE } from '@/types/injection-keys'
+import type { IconName } from '@core/icons'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 import { useVModel } from '@vueuse/core'
 import { computed, type HTMLAttributes, inject, ref, useAttrs } from 'vue'
 
@@ -57,8 +36,8 @@ const props = defineProps<{
   id?: string
   modelValue?: any
   color?: Color
-  before?: IconDefinition | string
-  after?: IconDefinition | string
+  before?: IconName
+  after?: IconName
   beforeWidth?: string
   afterWidth?: string
   disabled?: boolean
@@ -116,15 +95,13 @@ defineExpose({
   font-size: 2rem;
 }
 
-.form-input,
-.form-select {
+.form-input {
   display: grid;
   align-items: stretch;
   max-width: 30em;
 
   --before-width: v-bind('beforeWidth || "1.75em"');
   --after-width: v-bind('afterWidth || "1.625em"');
-  --caret-width: 1.5em;
 
   --text-color: var(--color-neutral-txt-primary);
 
@@ -141,16 +118,7 @@ defineExpose({
   grid-template-columns: var(--before-width) auto var(--after-width);
 }
 
-.form-select {
-  grid-template-columns:
-    var(--before-width)
-    auto
-    var(--after-width)
-    var(--caret-width);
-}
-
-.input,
-.select {
+.input {
   font-size: 1em;
   width: 100%;
   height: 4rem;
@@ -258,24 +226,8 @@ defineExpose({
   }
 }
 
-.select {
-  min-width: fit-content;
-  padding: 0 calc(var(--caret-width) + 0.25em) 0 0.625em;
-  grid-column: 1 / 5;
-  appearance: none;
-
-  &.has-before {
-    padding-left: calc(var(--before-width) + 0.25em);
-  }
-
-  &.has-after {
-    padding-right: calc(var(--after-width) + 0.25em + var(--caret-width));
-  }
-}
-
 .before,
-.after,
-.caret {
+.after {
   display: inline-flex;
   align-items: center;
   pointer-events: none;
@@ -291,10 +243,5 @@ defineExpose({
 .after {
   justify-self: start;
   grid-column: 3 / 4;
-}
-
-.caret {
-  justify-self: start;
-  grid-column: 4 / 5;
 }
 </style>

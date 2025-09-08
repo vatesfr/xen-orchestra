@@ -22,6 +22,7 @@ import type {
   XoVm,
   XoVmTemplate,
 } from '../xo.mjs'
+import type { SUPPORTED_VDI_FORMAT } from '../common.mjs'
 
 export type XcpPatches = {
   changelog?: {
@@ -154,6 +155,10 @@ export interface Xapi {
     opts?: { destroyAllVifs: boolean }
   ): Promise<XenApiVmWrapped>
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
+  VDI_exportContent(
+    vdiRef: XenApiVdi['$ref'],
+    opts: { baseRef?: string; cancelToken?: unknown; format: SUPPORTED_VDI_FORMAT }
+  ): Promise<Readable & { length?: number }>
   VM_createCloudInitConfig(
     vmRef: XenApiVm['$ref'],
     cloudConfig: string,
@@ -172,4 +177,5 @@ export interface Xapi {
     pathname: string,
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
+  isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
 }

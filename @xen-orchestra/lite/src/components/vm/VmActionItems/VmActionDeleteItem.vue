@@ -2,7 +2,7 @@
   <MenuItem
     v-tooltip="areSomeVmsInExecution && t('selected-vms-in-execution')"
     :disabled="isDisabled"
-    :icon="faTrashCan"
+    icon="fa:trash"
     @click="openDeleteModal"
   >
     {{ t('delete') }}
@@ -16,7 +16,6 @@ import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

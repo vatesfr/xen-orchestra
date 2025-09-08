@@ -1,6 +1,6 @@
 <template>
   <UiModal color="error" @submit="modal.approve()">
-    <ConfirmModalLayout :icon="faServer">
+    <ConfirmModalLayout icon="fa:server">
       <template #title>{{ t('unreachable-hosts') }}</template>
 
       <template #default>
@@ -33,7 +33,6 @@ import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
 import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
 import UiModal from '@/components/ui/modals/UiModal.vue'
 import { IK_MODAL } from '@/types/injection-keys'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 

@@ -22,7 +22,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('pool')">
       <template v-if="pool !== undefined" #value>
-        <UiLink size="medium" :to="`/pool/${pool.id}/`" :icon="faCity">
+        <UiLink size="medium" :to="`/pool/${pool.id}/`" icon="fa:city">
           {{ pool.name_label }}
         </UiLink>
       </template>
@@ -30,10 +30,10 @@
     <VtsQuickInfoRow :label="t('master')">
       <template #value>
         <template v-if="isMaster">
-          <VtsIcon v-tooltip="t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+          <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
           {{ t('this-host') }}
         </template>
-        <UiLink v-else-if="masterHost !== undefined" size="medium" :to="`/host/${masterHost.id}/`" :icon="faServer">
+        <UiLink v-else-if="masterHost !== undefined" size="medium" :to="`/host/${masterHost.id}/`" icon="fa:server">
           {{ masterHost.name_label }}
         </UiLink>
       </template>
@@ -52,8 +52,8 @@
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store.ts'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store.ts'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { HOST_POWER_STATE, type XoHost } from '@/types/xo/host.type.ts'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -65,7 +65,6 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCircle, faCity, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -75,10 +74,11 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { get: getPoolById } = usePoolStore().subscribe()
-const { getMasterHostByPoolId, isMasterHost } = useHostStore().subscribe()
+const { useGetPoolById } = useXoPoolCollection()
 
-const pool = computed(() => getPoolById(host.$pool))
+const { getMasterHostByPoolId, isMasterHost } = useXoHostCollection()
+
+const pool = useGetPoolById(() => host.$pool)
 
 const isMaster = computed(() => isMasterHost(host.id))
 

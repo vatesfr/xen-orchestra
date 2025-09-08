@@ -2,7 +2,12 @@ import { createLogger } from '@xen-orchestra/log'
 import { type Defer, defer } from 'golike-defer'
 import { Task } from '@vates/task'
 import {
+  AnyXoVm,
   VM_POWER_STATE,
+  XoVbd,
+  XoVdiSnapshot,
+  XoVmController,
+  XoVmSnapshot,
   type XenApiVdiWrapped,
   type XoPool,
   type XoVdi,
@@ -34,7 +39,7 @@ export class VmService {
     const xapi = xoApp.getXapi(pool)
     const currentUser = this.#restApi.getCurrentUser()
 
-    const xapiVm = await xapi.createVm(template, rest, undefined, currentUser?.id)
+    const xapiVm = await xapi.createVm(template, rest, undefined, currentUser.id)
     $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref))
     const xoVm = this.#restApi.getObject<XoVm>(xapiVm.uuid as XoVm['id'], 'VM')
 
@@ -112,5 +117,26 @@ export class VmService {
       unknown: nUnknown,
       total,
     }
+  }
+
+  getVmVdis(id: XoVm['id'], vmType: 'VM'): XoVdi[]
+  getVmVdis(id: XoVmTemplate['id'], vmType: 'VM-template'): XoVdi[]
+  getVmVdis(id: XoVmSnapshot['id'], vmType: 'VM-snapshot'): XoVdiSnapshot[]
+  getVmVdis(id: XoVmController['id'], vmType: 'VM-controller'): (XoVdi | XoVdiSnapshot)[]
+  getVmVdis<T extends AnyXoVm>(id: T['id'], vmType: T['type']): (XoVdi | XoVdiSnapshot)[] {
+    const getObject = this.#restApi.getObject.bind(this.#restApi)
+    const vdis: (XoVdi | XoVdiSnapshot)[] = []
+
+    const vm = getObject<T>(id, vmType)
+
+    for (const vbdId of vm.$VBDs) {
+      const vbd = getObject<XoVbd>(vbdId, 'VBD')
+      if (vbd.VDI !== undefined) {
+        const vdi = getObject<XoVdi | XoVdiSnapshot>(vbd.VDI, ['VDI-snapshot', 'VDI'])
+        vdis.push(vdi)
+      }
+    }
+
+    return vdis
   }
 }

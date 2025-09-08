@@ -1,5 +1,5 @@
 <template>
-  <MenuItem :busy="areSomeVmsSnapshotting" :disabled="isDisabled" :icon="faCamera" @click="handleSnapshot">
+  <MenuItem :busy="areSomeVmsSnapshotting" :disabled="isDisabled" icon="fa:camera" @click="handleSnapshot">
     {{ t('snapshot') }}
   </MenuItem>
 </template>
@@ -11,7 +11,6 @@ import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { faCamera } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

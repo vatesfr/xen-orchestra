@@ -1,15 +1,15 @@
 <template>
   <div class="page-dev-icons-name">
-    <UiLink :to="{ name: '/dev/icons/' }" :icon="faAngleLeft" size="medium">Back to all icons</UiLink>
+    <UiLink :to="{ name: '/dev/icons/' }" icon="fa:angle-left" size="medium">Back to all icons</UiLink>
     <UiCard>
       <div class="sizes">
         <div v-for="size of ['small', 'medium', 'large'] as const" :key="size" class="size">
-          <NewVtsIcon :name="route.params.name as IconName" :size />
+          <VtsIcon :name="route.params.name as IconName" :size />
           <div>{{ size }}</div>
         </div>
       </div>
       <div class="big">
-        <NewVtsIcon :name="route.params.name as IconName" size="current" />
+        <VtsIcon :name="route.params.name as IconName" size="current" />
         <div class="icon-name">{{ route.params.name }}</div>
       </div>
     </UiCard>
@@ -18,10 +18,9 @@
 
 <script lang="ts" setup>
 import type { IconName } from '@core/icons'
-import NewVtsIcon from '@core/components/icon/NewVtsIcon.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { faAngleLeft } from '@fortawesome/free-solid-svg-icons'
 import { useRoute } from 'vue-router'
 
 const route = useRoute('/dev/icons/[name]')

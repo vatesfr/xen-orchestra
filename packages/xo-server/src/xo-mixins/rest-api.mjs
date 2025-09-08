@@ -10,7 +10,6 @@ import { json, Router } from 'express'
 import { Readable } from 'node:stream'
 import cloneDeep from 'lodash/cloneDeep.js'
 import path from 'node:path'
-import pDefer from 'promise-toolbox/defer'
 import pick from 'lodash/pick.js'
 import * as CM from 'complex-matcher'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
@@ -247,6 +246,7 @@ export default class RestApi {
         },
         routes: {
           alarms: true,
+          missing_patches: true,
         },
       },
       groups: {},
@@ -267,21 +267,25 @@ export default class RestApi {
         },
         routes: {
           alarms: true,
+          vdis: true,
         },
       },
       'vm-controllers': {
         routes: {
           alarms: true,
+          vdis: true,
         },
       },
       'vm-snapshots': {
         routes: {
           alarms: true,
+          vdis: true,
         },
       },
       'vm-templates': {
         routes: {
           alarms: true,
+          vdis: true,
         },
       },
       hosts: {
@@ -289,6 +293,8 @@ export default class RestApi {
           'audit.txt': true,
           'logs.tgz': true,
           alarms: true,
+          smt: true,
+          missing_patches: true,
         },
       },
       srs: {
@@ -312,6 +318,7 @@ export default class RestApi {
         },
       },
       servers: {},
+      tasks: {},
     }
 
     const withParams = (fn, paramsSchema) => {
@@ -649,20 +656,7 @@ export default class RestApi {
     collections.restore = {}
     collections.tasks = {
       async getObject(id, req) {
-        const { wait } = req.query
-        if (wait !== undefined) {
-          const { promise, resolve } = pDefer()
-          const stopWatch = await app.tasks.watch(id, task => {
-            if (wait !== 'result' || task.status !== 'pending') {
-              stopWatch()
-              resolve(task)
-            }
-          })
-          req.on('close', stopWatch)
-          return promise
-        } else {
-          return app.tasks.get(id)
-        }
+        return app.tasks.get(id)
       },
       getObjects(filter, limit) {
         return app.tasks.list({ filter, limit })
@@ -847,20 +841,6 @@ export default class RestApi {
       )
 
     api
-      .delete(
-        '/tasks',
-        wrap(async (req, res) => {
-          await app.tasks.clearLogs()
-          res.sendStatus(200)
-        })
-      )
-      .delete(
-        '/tasks/:id',
-        wrap(async (req, res) => {
-          await app.tasks.deleteLog(req.params.id)
-          res.sendStatus(200)
-        })
-      )
       .get(
         '/tasks/:id/actions',
         wrap(async (req, res) => {
@@ -908,26 +888,6 @@ export default class RestApi {
       })
     )
 
-    // should go before routes /:collection/:object because they will match but
-    // will not work due to the extension being included in the object identifer
-    api.get(
-      '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
-      wrap(async (req, res) => {
-        const preferNbd = Object.hasOwn(req.query, 'preferNbd')
-        const nbdConcurrency = req.query.nbdConcurrency && parseInt(req.query.nbdConcurrency)
-        const stream = await req.xapiObject.$exportContent({ format: req.params.format, preferNbd, nbdConcurrency })
-
-        const headers = { 'content-disposition': 'attachment' }
-
-        const { length } = stream
-        if (length !== undefined) {
-          headers['content-length'] = length
-        }
-
-        res.writeHead(200, 'OK', headers)
-        await pipeline(stream, res)
-      })
-    )
     api.put(
       '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
       wrap(async (req, res) => {
@@ -1124,7 +1084,7 @@ export default class RestApi {
     for (const path of Object.keys(spec)) {
       if (path[0] === '_') {
         const handler = spec[path]
-        this.#api[path.slice(1)](base, json(), async (req, res, next) => {
+        this.#api[path.slice(1)](base, json(), async function autoRegisteredHandler(req, res, next) {
           try {
             const result = await handler(req, res, next)
             if (result !== undefined) {
@@ -1145,7 +1105,36 @@ export default class RestApi {
       }
     }
     return () => {
-      throw new Error('not implemented')
+      this.unregisterRestApi(spec, base)
+    }
+  }
+
+  unregisterRestApi(spec, base = '/') {
+    for (const path of Object.keys(spec)) {
+      if (path[0] === '_') {
+        const method = path.slice(1)
+        let found = false
+        // looping through the API routes backwards, as the auto-registered routes were probably added last
+        for (let i = this.#api.stack.length - 1; i >= 0; i--) {
+          const route = this.#api.stack[i].route
+          // route.stack[0] is the json parser
+          // checking the handler name for an extra safety we're not removing a hardcoded route
+          if (
+            route.path === base &&
+            route.stack[1]?.method === method &&
+            route.stack[1]?.handle?.name === 'autoRegisteredHandler'
+          ) {
+            this.#api.stack.splice(i, 1)
+            found = true
+            break
+          }
+        }
+        if (!found) {
+          console.warn('Route to unregister not found', base)
+        }
+      } else {
+        this.unregisterRestApi(spec[path], join(base, path))
+      }
     }
   }
 }

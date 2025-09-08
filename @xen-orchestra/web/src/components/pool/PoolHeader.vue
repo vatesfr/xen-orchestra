@@ -1,8 +1,8 @@
 <template>
-  <UiHeadBar :icon="faCity">
+  <UiHeadBar icon="fa:city">
     {{ pool.name_label }}
     <template #actions>
-      <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: pool.id } }" :icon="faPlus">
+      <UiLink size="medium" :to="{ name: '/vm/new', query: { poolid: pool.id } }" icon="fa:plus">
         {{ t('new-vm') }}
       </UiLink>
     </template>
@@ -46,7 +46,6 @@ import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { faCity, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{

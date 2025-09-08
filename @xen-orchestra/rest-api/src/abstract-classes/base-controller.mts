@@ -3,7 +3,7 @@ import { createGzip } from 'node:zlib'
 import { pipeline } from 'node:stream/promises'
 import { Readable, type Transform } from 'node:stream'
 import { Request } from 'express'
-import type { Task } from '@vates/types/lib/vates/task'
+import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { XapiXoRecord, XoRecord } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
@@ -28,7 +28,11 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     this.restApi = restApi
   }
 
-  sendObjects<Objects extends XoRecord = T>(objects: Objects[], req: Request, path?: string): SendObjects<Objects> {
+  sendObjects<Objects extends XoRecord = T>(
+    objects: Objects[],
+    req: Request,
+    path?: string | ((obj: Objects) => string)
+  ): SendObjects<Objects> {
     const mapper = makeObjectMapper(req, path)
     const mappedObjects = objects.map(mapper) as string[] | WithHref<Objects>[]
 
@@ -49,7 +53,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
    * statusCode must represent the status code in case of a synchronous request. Default 200
    */
   async createAction<CbType>(
-    cb: (task: Task) => MaybePromise<CbType>,
+    cb: (task: VatesTask) => MaybePromise<CbType>,
     {
       statusCode = 200,
       sync = false,
@@ -57,7 +61,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     }: {
       statusCode?: HttpStatusCodeLiteral
       sync?: boolean
-      taskProperties: { name: string; objectId: T['id']; args?: unknown; [key: string]: unknown }
+      taskProperties: { name: string; objectId: T['id']; params?: unknown; [key: string]: unknown }
     }
   ): Promise<string | CbType> {
     taskProperties.name = 'REST API: ' + taskProperties.name

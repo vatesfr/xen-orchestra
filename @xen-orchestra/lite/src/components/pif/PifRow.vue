@@ -2,7 +2,7 @@
   <tr class="pif-row" :class="{ clickable: pifHost }" @click="pifHost?.redirect()">
     <td v-tooltip class="typo-body-regular-small text-ellipsis host-container">
       <div v-if="pifHost" class="host">
-        <UiObjectIcon :state="pifHost.powerState" type="host" size="small" />
+        <VtsObjectIcon :state="pifHost.powerState" type="host" size="small" />
         <span v-tooltip class="typo-body-regular-small text-ellipsis host-name">
           {{ pifHost.label }}
         </span>
@@ -16,7 +16,7 @@
       <VtsConnectionStatus :status />
     </td>
     <td>
-      <UiButtonIcon size="small" accent="brand" :icon="faAngleRight" :disabled="!pifHost" />
+      <UiButtonIcon size="small" accent="brand" icon="fa:angle-right" :disabled="!pifHost" />
     </td>
   </tr>
 </template>
@@ -27,10 +27,9 @@ import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -61,7 +60,7 @@ const pifHost = computed(() => {
     powerState: isHostRunning(host) ? 'running' : 'halted',
     redirect() {
       router.push({
-        name: 'host.network',
+        name: '/host/[uuid]/network',
         params: { uuid: host.uuid },
         query: { id: pif.uuid },
       })

@@ -129,4 +129,17 @@ export default class MultiNbdClient {
       yield readAhead.shift()
     }
   }
+  /**
+   *  returns the map of the file with holes, zeros and data, useful to handle efficiently sparse source   *
+   *
+   * @returns {Promise<{ offset: number, length: number, type: number }[]>}
+   * A promise that resolves to an array where each object represents a segment:
+   * - `offset` — The byte offset from the start.
+   * - `length` — The size of the segment in bytes.
+   * - `type` — A numeric code indicating the segment type (0 means no data).
+   */
+  async getMap() {
+    // ask the map from one of the connected client
+    return this.#clients[Math.floor(this.#clients.length * Math.random())].getMap()
+  }
 }

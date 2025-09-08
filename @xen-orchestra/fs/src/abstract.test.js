@@ -10,7 +10,7 @@ import AbstractHandler from './abstract'
 import fs from 'fs-extra'
 import tmp from 'tmp'
 
-const TIMEOUT = 6e5
+const TIMEOUT = 12e5
 
 class TestHandler extends AbstractHandler {
   constructor() {
@@ -54,7 +54,7 @@ describe('closeFile()', () => {
 
     const promise = testHandler.closeFile({ fd: undefined, path: '' })
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
@@ -64,7 +64,7 @@ describe('getInfo()', () => {
 
     const promise = testHandler.getInfo()
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
@@ -74,7 +74,7 @@ describe('getSize()', () => {
 
     const promise = testHandler.getSize('')
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
@@ -84,7 +84,7 @@ describe('list()', () => {
 
     const promise = testHandler.list('.')
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
@@ -94,7 +94,7 @@ describe('openFile()', () => {
 
     const promise = testHandler.openFile('path')
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
@@ -104,7 +104,7 @@ describe('rename()', () => {
 
     const promise = testHandler.rename('oldPath', 'newPath')
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
@@ -114,7 +114,7 @@ describe('rmdir()', () => {
 
     const promise = testHandler.rmdir('dir')
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 

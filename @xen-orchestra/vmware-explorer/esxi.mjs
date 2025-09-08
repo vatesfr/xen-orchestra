@@ -1,6 +1,6 @@
 import { Client } from '@vates/node-vsphere-soap'
 import { createLogger } from '@xen-orchestra/log'
-import { dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { strictEqual, notStrictEqual } from 'node:assert'
 import { Agent } from 'undici'
@@ -9,9 +9,16 @@ import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
 import xml2js from 'xml2js'
+import { exec, spawn } from 'node:child_process'
 
-const { warn } = createLogger('xo:vmware-explorer:esxi')
+import { tmpdir } from 'node:os'
+import fs from 'node:fs/promises'
 
+const { info, warn } = createLogger('xo:vmware-explorer:esxi')
+
+export const VDDK_LIB_DIR = '/usr/local/lib/vddk/'
+export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
+let nbdPort = 11000
 export default class Esxi extends EventEmitter {
   #client
   #cookies
@@ -21,6 +28,7 @@ export default class Esxi extends EventEmitter {
   #user
   #password
   #ready = false
+  #nbdServers = new Map()
 
   constructor(host, user, password, sslVerify) {
     super()
@@ -255,7 +263,8 @@ export default class Esxi extends EventEmitter {
       ...parsed,
       datastore: diskDataStore,
       path: dirname(diskPath),
-      descriptionLabel: ' from esxi',
+      diskPath,
+      descriptionLabel: '',
     }
   }
 
@@ -265,7 +274,7 @@ export default class Esxi extends EventEmitter {
     return Object.keys(datas)
       .map(id => {
         const { config, layoutEx, storage, runtime } = datas[id]
-        if (storage === undefined) {
+        if (storage === undefined || config === undefined) {
           return undefined
         }
         // vsan , maybe raw disk , that forbid access to a direct vmdk
@@ -393,6 +402,7 @@ export default class Esxi extends EventEmitter {
       snapshots,
       disks,
       networks,
+      vmId,
     }
   }
 
@@ -453,40 +463,122 @@ export default class Esxi extends EventEmitter {
     })
   }
 
-  async export(vmId) {
-    const exported = await this.#exec('ExportVm', { _this: vmId })
-    const exportTaskId = exported.returnval.$value
-    let isReady = false
-    for (let i = 0; i < 10 && !isReady; i++) {
-      const state = await this.fetchProperty('HttpNfcLease', exportTaskId, 'state')
-      isReady = state._ === 'ready'
-      if (!isReady) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
+  /**
+   * get the thumbprint of the certificate on the esxi. Extracted from vddk-remote code
+   * @returns {Promise<string>}
+   */
+  async #getServerThumbprint() {
+    const tmpDir = await fs.mkdtemp(join(tmpdir(), 'xo-server'))
+    const certFile = join(tmpDir, 'cert')
+
+    try {
+      const devnull = await fs.open('/dev/null')
+      // ensure arguments are properly escaped
+      const cert = await new Promise((resolve, reject) => {
+        const process = spawn('openssl', ['s_client', '-connect', `${this.#host}:443`])
+        let cert = ''
+        let stderr = ''
+        devnull.createReadStream().pipe(process.stdin)
+        process.stdout.on('data', data => {
+          cert += data
+        })
+
+        process.stderr.on('data', data => {
+          stderr += data
+        })
+
+        process.on('close', code => {
+          if (code !== 0) {
+            reject(new Error(`cert got an error code ${code} ${stderr}`))
+          } else {
+            resolve(cert)
+          }
+        })
+      })
+      await fs.writeFile(certFile, cert)
+      const sha = await new Promise((resolve, reject) => {
+        exec(`openssl x509 -in ${certFile} -fingerprint -sha1 -noout`, (err, stdout, stderr) => {
+          if (err) {
+            return reject(err)
+          }
+          if (stdout) {
+            const matches = stdout.match(/sha1 Fingerprint=([0-9A-F:]+)/)
+            if (matches === null) {
+              throw new Error(`Can't extract server finger print`, { stdout })
+            }
+            return resolve(matches[1])
+          }
+          reject(new Error(`no answer in handling server thumbprint `))
+        })
+      })
+      return sha
+    } finally {
+      await fs.unlink(certFile).catch(() => {})
+    }
+  }
+
+  async spanwNbdKitProcess(vmId, diskPath, { singleLink = false, threads = 1, compression = 'fastlz' } = {}) {
+    const key = `${vmId}/${diskPath}/${singleLink}`
+    if (!this.#nbdServers.has(key)) {
+      const thumbprint = await this.#getServerThumbprint()
+      const port = nbdPort++
+      const tmpDir = await fs.mkdtemp(join(tmpdir(), 'xo-server'))
+      const passFile = join(tmpDir, 'params')
+      const outFd = await fs.open(join(tmpDir, 'stdout'), 'a')
+      const outFile = outFd.createWriteStream()
+      const errFd = await fs.open(join(tmpDir, 'stderr'), 'a')
+      const errFile = errFd.createWriteStream()
+      await fs.writeFile(passFile, this.#password)
+      const args = [
+        '-r', // readonly
+        '-v',
+        '-f',
+        '--exit-with-parent', // implies -f , ensure we don't leave orphans
+        `--threads=${threads}`,
+        `--port=${port}`,
+        'vddk', // the vddk plugin
+        `compression=${compression}`,
+        `thumbprint=${thumbprint}`,
+        `server=${this.#host}`,
+        `user=${this.#user}`,
+        `password=+${passFile}`,
+        `libdir=${VDDK_LIB_PATH}`,
+        `vm=moref=${vmId}`,
+        singleLink ? 'single-link=true' : '',
+        diskPath,
+      ]
+      try {
+        const nbdKitProcess = spawn('nbdkit', args, {
+          cwd: tmpDir,
+        })
+        nbdKitProcess.stdout.pipe(outFile)
+        nbdKitProcess.stderr.pipe(errFile)
+        this.#nbdServers.set(key, {
+          process: nbdKitProcess,
+          nbdInfos: { address: '127.0.0.1', port, exportname: diskPath },
+        })
+
+        info(`nbdkit logs of ${diskPath} are in ${tmpDir}`)
+
+        nbdKitProcess.on('close', code => {
+          if (code !== 0) {
+            warn(`nbdkit server process exited with code ${code}`)
+          }
+        })
+        // @todo find a better to wait for server ready
+        await new Promise(resolve => setTimeout(resolve, 2000))
+      } finally {
+        fs.unlink(passFile).catch(warn)
       }
     }
-    if (!isReady) {
-      throw new Error('not ready')
+    return this.#nbdServers.get(key)
+  }
+  async killNbdServer(vmId, diskPath, { singleLink = false } = {}) {
+    const key = `${vmId}/${diskPath}/${singleLink}`
+    if (!this.#nbdServers.has(key)) {
+      warn(` process ${vmId}/${diskPath}/${singleLink} was already killed`)
+    } else {
+      this.#nbdServers.get(key).process.kill()
     }
-
-    const { deviceUrl: deviceUrls } = await this.fetchProperty('HttpNfcLease', exportTaskId, 'info')
-    const streams = {}
-    for (let { url, disk, targetId } of deviceUrls) {
-      url = url[0]
-      disk = disk[0]
-      // filter ram/cdrom/..
-      if (disk === 'true') {
-        const fullUrl = new URL(url)
-        if (url.indexOf('/*/') > 0) {
-          // the url returned can be in the form of https://*/ followed by a short-lived link, default 5mn
-          // in this case, use the vsphere ip/name
-          fullUrl.host = this.#host
-        }
-        const vmdkres = await this.#fetch(fullUrl)
-        const stream = vmdkres.body
-        streams[targetId] = stream
-      }
-    }
-
-    return streams
   }
 }
