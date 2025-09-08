@@ -34,6 +34,7 @@ import type {
   XoGroup,
   XoPool,
   XoTask,
+  XoProxy,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -68,7 +69,9 @@ export type XoApp = {
     getOptionalDuration(path: string): number | undefined
   }
   tasks: EventEmitter & {
+    clearLogs(): Promise<void>
     create: (params: { name: string; objectId?: string; type?: string }) => VatesTask
+    deleteLog(id: XoTask['id']): Promise<void>
     get(id: XoTask['id']): Promise<XoTask>
     list(opts?: { filter?: string | ((obj: XoTask) => boolean); limit?: number }): AsyncGenerator<XoTask>
     watch(id: XoTask['id'], cb: (task: XoTask) => void): Promise<() => void>
@@ -96,7 +99,9 @@ export type XoApp = {
   createGroup(params: { name: string; provider?: string; providerGroup?: string }): Promise<XoGroup>
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
+  getAllProxies(): Promise<XoProxy[]>
   getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
+  getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
   getAllRemotesInfo(): Promise<

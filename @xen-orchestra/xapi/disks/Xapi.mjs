@@ -6,15 +6,15 @@
  */
 
 import { DiskLargerBlock, DiskPassthrough, ReadAhead } from '@xen-orchestra/disk-transform'
+import { createLogger } from '@xen-orchestra/log'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiStreamNbdSource } from './XapiStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
-import { createLogger } from '@xen-orchestra/log'
 import { XapiProgressHandler } from './XapiProgress.mjs'
 import { XapiQcow2StreamSource } from './XapiQcow2StreamSource.mjs'
 
 // @todo how to type this ?
-const { info, warn } = createLogger('@xen-orchestra/xapi/disks/Xapi')
+const { info, warn } = createLogger('xo:xapi:xapi-disks')
 
 export const VHD_MAX_SIZE = 2 * 1024 * 1024 * 1024 * 1024 /* 2TB */ - 8 * 1024 /* metadata */
 
@@ -166,7 +166,7 @@ export class XapiDiskSource extends DiskPassthrough {
       readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD+CBT`)
       return readAhead
     } catch (error) {
-      info('openNbdCBT', error)
+      info('Error in openNbdCBT', error)
       await source.close()
       // A lot of things can go wrong with CBT:
       // Not enabled on the baseRef,
