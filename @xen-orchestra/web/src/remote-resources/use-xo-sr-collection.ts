@@ -16,8 +16,10 @@ export const useXoSrCollection = defineRemoteResource({
       baseName: 'sr',
     })
 
+    const isoSrs = computed(() => srs.value.filter(sr => sr.SR_type === 'iso'))
+
     const isoVdiIds = computed(() =>
-      srs.value.reduce((acc, sr) => {
+      isoSrs.value.reduce((acc, sr) => {
         if (sr.VDIs) {
           sr.VDIs.forEach(vdiId => acc.add(vdiId))
         }

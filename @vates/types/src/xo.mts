@@ -371,7 +371,14 @@ export type XoPool = BaseXapiXo & {
 
 export type XoProxy = {
   id: Branded<'proxy'>
-}
+  url: string
+  version?: string
+  name: string
+} & (
+  | { address?: undefined; vmUuid: XoVm['id'] }
+  | { address: string; vmUuid?: undefined }
+  | { address: string; vmUuid: XoVm['id'] }
+)
 
 type BaseXoJob = {
   id: Branded<'job'>

@@ -5,6 +5,7 @@ import Collapse from 'collapse'
 import Component from 'base-component'
 import Dropzone from 'dropzone'
 import Icon from 'icon'
+import Link from 'link'
 import React from 'react'
 import { connectStore, resolveId } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
@@ -57,6 +58,8 @@ class EsxiImport extends Component {
   state = {
     concurrency: N_IMPORT_VMS_IN_PARALLEL,
     hostIp: '',
+    installingEsxiLib: false,
+    importing: false,
     isConnected: false,
     password: '',
     skipSslVerify: true,
@@ -73,7 +76,7 @@ class EsxiImport extends Component {
     this._esxiCheck()
   }
   _esxiCheck() {
-    this.setState({ esxiCheck: undefined }, async () => {
+    this.setState({ esxiCheck: undefined, installingEsxiLib: false }, async () => {
       const esxiCheck = await esxiCheckInstall()
       this.setState({ esxiCheck })
     })
@@ -82,6 +85,7 @@ class EsxiImport extends Component {
     this.setState({ vddkFile: files?.[0] })
   }
   _handleImportVddk = async () => {
+    this.setState({ installingEsxiLib: true })
     try {
       await importVddkLib({ file: this.state.vddkFile })
     } catch (error) {
@@ -90,10 +94,12 @@ class EsxiImport extends Component {
     return this._esxiCheck()
   }
   _installNbdInfo = async () => {
+    this.setState({ installingEsxiLib: true })
     await installNbdInfo()
     return this._esxiCheck()
   }
   _installNbKit = async () => {
+    this.setState({ installingEsxiLib: true })
     await installNbdKit()
     return this._esxiCheck()
   }
@@ -127,6 +133,7 @@ class EsxiImport extends Component {
   _importVms = () => {
     const { concurrency, hostIp, network, password, skipSslVerify, sr, stopSource, stopOnError, user, template, vms } =
       this.state
+    this.setState({ importing: true })
     return importVmsFromEsxi({
       concurrency: +concurrency,
       host: hostIp,
@@ -169,6 +176,7 @@ class EsxiImport extends Component {
   _resetImportForm = () => {
     this.setState({
       concurrency: N_IMPORT_VMS_IN_PARALLEL,
+      importing: false,
       network: undefined,
       pool: undefined,
       sr: undefined,
@@ -184,6 +192,8 @@ class EsxiImport extends Component {
       concurrency,
       esxiCheck,
       hostIp,
+      installingEsxiLib,
+      importing,
       isConnected,
       network = this._getDefaultNetwork(),
       password,
@@ -212,14 +222,24 @@ class EsxiImport extends Component {
       if (check.status !== 'success') {
         return (
           <div>
+            <Row>
+              <EsxiCheckResults esxiCheck={esxiCheck} />
+            </Row>
             {check.version === undefined && (
               <div>
-                <p>{_('esxiLibraryNotInstalled', { library })}</p>
-                <div className='form-group pull-right'>
+                <div className='mt-1 form-group pull-right'>
                   <ActionButton btnStyle='primary' className='mr-1' handler={fn} icon='import'>
                     {_('esxiLibraryAutoInstall', { library })}
                   </ActionButton>
-                  <p>{_('esxiLibraryManualInstall')}</p>
+                  {installingEsxiLib && (
+                    <p>
+                      {_('esxiLibraryInstalling', { library })}
+                      <Link to='/tasks?s_xo=1_3_desc-status%3Apending+esxi.install' target='_blank'>
+                        {_('esxiProgressLinkText')}
+                      </Link>
+                    </p>
+                  )}
+                  {!installingEsxiLib && <p>{_('esxiLibraryManualInstall')}</p>}
                 </div>
               </div>
             )}
@@ -236,6 +256,9 @@ class EsxiImport extends Component {
     if (esxiCheck.vddk?.status === 'error') {
       return (
         <div>
+          <Row>
+            <EsxiCheckResults esxiCheck={esxiCheck} />
+          </Row>
           <p>
             {_('esxiLibraryInfo')} :{' '}
             <a
@@ -413,6 +436,8 @@ class EsxiImport extends Component {
           </div>
         )}
         <div className='form-group pull-right'>
+          {importing && <Link to='/home?p=1&s="[Importing...]"&t=VM'>{_('esxiProgressLinkText')}</Link>}
+          <br />
           <ActionButton
             btnStyle='primary'
             className='mr-1'
