@@ -137,7 +137,10 @@ export type XoApp = {
   getUser: (id: XoUser['id']) => Promise<XoUser>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
-  getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
+  getXapiObject: <T extends XapiXoRecord>(
+    maybeId: T['id'] | T,
+    type: T['type'] | T['type'][]
+  ) => XapiRecordByXapiXoRecord[T['type']]
   getXapiPoolStats(poolId: XoPool['id'], granularity?: XapiStatsGranularity): Promise<XapiPoolStats>
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
