@@ -142,11 +142,25 @@ const methods = {
             await Task.run({ properties: { name: `Waiting for host to be up`, hostId, hostName } }, async () => {
               await timeout.call(
                 (async () => {
-                  await this._waitObjectState(
-                    hostId,
-                    host => host.enabled && rebootTime < host.other_config.agent_start_time * 1e3
+                  await Task.run(
+                    {
+                      properties: {
+                        name: 'Waiting for host to be enabled and agent to be up',
+                        objectId: hostId,
+                        hostId,
+                        hostName,
+                      },
+                    },
+                    () =>
+                      this._waitObjectState(
+                        hostId,
+                        host => host.enabled && rebootTime < host.other_config.agent_start_time * 1e3
+                      )
                   )
-                  await this._waitObjectState(metricsRef, metrics => metrics.live)
+                  await Task.run(
+                    { properties: { name: 'Waiting for host metrics to be live', objectId: hostId, hostId, hostName } },
+                    () => this._waitObjectState(metricsRef, metrics => metrics.live)
+                  )
                 })(),
                 this._restartHostTimeout,
                 new Error(`Host ${hostId} took too long to restart`)
