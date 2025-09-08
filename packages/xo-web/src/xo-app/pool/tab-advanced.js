@@ -245,11 +245,20 @@ class ToggleHa extends Component {
 
   _onChange = async value => {
     if (value) {
-      const haSrs = await confirm({
-        body: <EnableHaModal srs={this.props.pool.haSrs ?? []} pool={this.props.pool} />,
-        title: _('poolEnableHa'),
-        icon: 'pool',
-      })
+      let haSrs
+      try {
+        haSrs = await confirm({
+          body: <EnableHaModal srs={this.props.pool.haSrs ?? []} pool={this.props.pool} />,
+          title: _('poolEnableHa'),
+          icon: 'pool',
+        })
+      } catch (err) {
+        // don't throw for confirm cancel
+        if (typeof err === 'undefined') {
+          return
+        }
+        throw err
+      }
 
       try {
         this.setState({ busy: true })
@@ -262,10 +271,15 @@ class ToggleHa extends Component {
         this.setState({ busy: false })
       }
     } else {
-      await confirm({
-        title: _('poolDisableHa'),
-        body: _('poolDisableHaConfirm'),
-      })
+      try {
+        await confirm({
+          title: _('poolDisableHa'),
+          body: _('poolDisableHaConfirm'),
+        })
+      } catch (err) {
+        // don't throw for confirm cancel
+        return
+      }
       try {
         this.setState({ busy: true })
         await disableHa(this.props.pool)
