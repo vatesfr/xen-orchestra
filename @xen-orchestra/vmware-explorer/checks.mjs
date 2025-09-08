@@ -6,14 +6,13 @@ import fs from 'node:fs/promises'
  *
  * @returns {Promise<Object>}
  */
-/* async */ function nbdInfos() {
+/* async */ function nbdInfo() {
   return new Promise(function (resolve, reject) {
     const expectedVersion = '1.23.4'
     exec('nbdinfo --version', (error, stdout, stderr) => {
       if (error) {
         return resolve({
-          installed: false,
-          error,
+          error: `exit code ${error.code}`,
           status: 'error',
         })
       }
@@ -28,31 +27,42 @@ import fs from 'node:fs/promises'
     })
   })
 }
-/**
- *
- * @returns {Promise<Object>}
- */
-/* async */ function nbdKit() {
-  const expectedVersion = '1.45'
+
+async function getNbdKitVersion() {
   return new Promise(function (resolve) {
     exec('nbdkit --version', (error, stdout, stderr) => {
       if (error) {
         return resolve({
-          installed: false,
-          error,
+          error: `exit code ${error.code}`,
           status: 'error',
         })
       }
       const matches = stdout.match(/nbdkit ([0-9.]+)/)
       const version = matches?.[1] ?? ''
-      resolve({
-        installed: true,
-        version,
-        status: semver.satisfies(version, `>=${expectedVersion}`) ? 'success' : 'alarm',
-        expectedVersion,
-      })
+      resolve(version)
     })
   })
+}
+/**
+ *
+ * @returns {Promise<Object>}
+ */
+async function nbdKit() {
+  const expectedVersion = '1.42.5'
+  try {
+    const version = await getNbdKitVersion()
+    return {
+      installed: true,
+      version,
+      status: semver.satisfies(version, `>=${expectedVersion}`) ? 'success' : 'alarm',
+      expectedVersion,
+    }
+  } catch (error) {
+    return {
+      error: `exit code ${error.code}`,
+      status: 'error',
+    }
+  }
 }
 
 /**
@@ -82,7 +92,6 @@ import fs from 'node:fs/promises'
 async function vddk() {
   try {
     await fs.stat('/usr/local/lib/vddk/vmware-vix-disklib-distrib/lib64/libvixDiskLib.so')
-    return { status: 'success' }
   } catch (error) {
     return {
       status: 'error',
@@ -90,6 +99,7 @@ async function vddk() {
         'Vddk library is not present or accessible in /usr/local/lib/vddk/ it can be downloaded from https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/latest',
     }
   }
+  return { status: 'success' }
 }
 /**
  *
@@ -97,9 +107,9 @@ async function vddk() {
  */
 export async function checkVddkDependencies() {
   return {
-    nbdInfos: await nbdInfos(),
+    nbdinfo: await nbdInfo(),
     nbdkit: await nbdKit(),
-    nbdKitVddk: await nbdKitVddk(),
+    nbdkitPluginVddk: await nbdKitVddk(),
     vddk: await vddk(),
   }
 }

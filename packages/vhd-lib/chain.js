@@ -19,12 +19,10 @@ module.exports = async function chain(parentHandler, parentPath, childHandler, c
         }
         footer.diskType = DISK_TYPES.DIFFERENCING
       }
-      await childVhd.readBlockAllocationTable()
 
       const parentName = relativeFromFile(childPath, parentPath)
       header.parentUuid = parentVhd.footer.uuid
       header.parentUnicodeName = parentName
-      await childVhd.setUniqueParentLocator(parentName)
       await childVhd.writeHeader()
       await childVhd.writeFooter()
     }

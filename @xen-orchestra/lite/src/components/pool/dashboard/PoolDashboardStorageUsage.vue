@@ -3,23 +3,32 @@
     <UiCardTitle :left="t('storage-usage')" :right="t('top-#', { n: N_ITEMS })" />
     <NoDataError v-if="hasError" />
     <UiCardSpinner v-else-if="!isReady" />
-    <UsageBar v-else :data="data.result" :n-items="N_ITEMS">
-      <template #footer>
-        <SizeStatsSummary :size="data.maxSize" :usage="data.usedSize" />
-      </template>
-    </UsageBar>
+    <template v-else>
+      <VtsProgressBarGroup :items="data.progressBarItems" :n-items="N_ITEMS" legend-type="percent" />
+      <div>
+        <UiCardNumbers
+          :label="t('total-used')"
+          :unit="data.usedSize.prefix"
+          :value="data.usedSize.value"
+          size="medium"
+        />
+      </div>
+    </template>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import NoDataError from '@/components/NoDataError.vue'
-import SizeStatsSummary from '@/components/ui/SizeStatsSummary.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UsageBar from '@/components/UsageBar.vue'
 import { N_ITEMS } from '@/pages/pool/[uuid]/dashboard.vue'
 import { useSrStore } from '@/stores/xen-api/sr.store'
+import VtsProgressBarGroup, {
+  type ProgressBarGroupItem,
+} from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
+import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -27,12 +36,8 @@ const { t } = useI18n()
 
 const { records: srs, isReady, hasError } = useSrStore().subscribe()
 
-const data = computed<{
-  result: { id: string; label: string; value: number }[]
-  maxSize: number
-  usedSize: number
-}>(() => {
-  const result: { id: string; label: string; value: number }[] = []
+const data = computed(() => {
+  const progressBarItems: ProgressBarGroupItem[] = []
   let maxSize = 0
   let usedSize = 0
 
@@ -50,12 +55,18 @@ const data = computed<{
       return
     }
 
-    result.push({
+    progressBarItems.push({
       id: uuid,
       label: name_label,
-      value: percent,
+      current: percent,
+      total: 100,
     })
   })
-  return { result, maxSize, usedSize }
+
+  return {
+    progressBarItems,
+    maxSize: formatSizeRaw(maxSize, 0),
+    usedSize: formatSizeRaw(usedSize, 0),
+  }
 })
 </script>

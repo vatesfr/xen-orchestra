@@ -378,11 +378,13 @@ export default class NbdClient {
         `nbd://${this.#serverAddress}:${this.#serverPort}/${encodeURIComponent(this.#exportName)}`,
       ])
       let text = ''
+      let errText = ''
       process.stdout.on('data', data => (text += data))
+      process.stderr.on('data', data => (errText += data))
       process.on('error', reject)
       process.on('close', code => {
         if (code !== 0) {
-          return reject(new Error(`process ended with code ${code}`))
+          return reject(new Error(`Error during getMap (code: ${code}): ${errText}`))
         }
         try {
           const json = JSON.parse(text)

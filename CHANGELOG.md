@@ -1,8 +1,53 @@
 # ChangeLog
 
-## **next**
+## **5.110.1** (2025-09-04)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
+
+- [V2V] Add task to track library installation progress and error (PR [#8927](https://github.com/vatesfr/xen-orchestra/pull/8927))
+- [Import] Make timeout for import xva from url configurable (PR [#8931](https://github.com/vatesfr/xen-orchestra/pull/8931))
+
+### Bug fixes
+
+- [XO6/New VM] Display only ISO VDIs for the ISO input (PR [#8922](https://github.com/vatesfr/xen-orchestra/pull/8922))
+- [Backups] Display a warning in backup logs when delta replication falls back to a full replication (PR [#8926](https://github.com/vatesfr/xen-orchestra/pull/8926))
+- [V2V] Fix resuming importing retransfering the full VM (PR [#8928](https://github.com/vatesfr/xen-orchestra/pull/8928))
+- [V2V] Fix vddk check icon (PR [#8927](https://github.com/vatesfr/xen-orchestra/pull/8927))
+
+### Released packages
+
+- @xen-orchestra/xapi 8.4.1
+- @xen-orchestra/backups 0.64.2
+- @xen-orchestra/proxy 0.29.30
+- @xen-orchestra/vmware-explorer 0.10.2
+- @xen-orchestra/web 0.27.1
+- xo-server 5.188.0
+- xo-web 5.185.0
+
+## **5.110.0** (2025-08-28)
+
+### Highlights
+
+- [V2V] Use vddk to transfer data from VMware (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
+- [REST API] Expose `/rest/v0/docs/swagger.json` (PR [#8892](https://github.com/vatesfr/xen-orchestra/pull/8892))
+- [web] Add link to the rest api docs (PR [#8902](https://github.com/vatesfr/xen-orchestra/pull/8902))
+- [Backup/Sequences] Prevent sequences from ending prematurely when a backup job is skipped (PR [#8859](https://github.com/vatesfr/xen-orchestra/pull/8859))
+- **XO 6**:
+  - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8873](https://github.com/vatesfr/xen-orchestra/pull/8873))
+  - [Site] Add Backup Jobs page (PR [#8889](https://github.com/vatesfr/xen-orchestra/pull/8889))
+  - [Account Menu] Add link to REST API documentation (PR [#8904](https://github.com/vatesfr/xen-orchestra/pull/8904))
+- **Migrated REST API endpoints**:
+  - `GET /rest/v0/tasks` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8843))
+  - `GET /rest/v0/tasks/<task-id>` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8843))
+
+### Enhancements
+
+- [Host/General] Display additional hardware data for Dell server (PR [#8861](https://github.com/vatesfr/xen-orchestra/pull/8861))
+- [V2V] Show if any prerequisite on XO is missing before import (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
+- [V2V] Show a form to install the VDDK library (PR [#8840](https://github.com/vatesfr/xen-orchestra/pull/8840))
+- [V2V] Auto install library (PR [#8911](https://github.com/vatesfr/xen-orchestra/pull/8911))
 
 - **Migrated REST API endpoints**:
 
@@ -11,22 +56,48 @@
   - `GET /rest/v0/vm-templates/<vm-template-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
   - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
   - `GET /rest/v0/vm-controllers/<vm-controller-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
+  - `GET /rest/v0/pools/<pool-id>/missing_patches` (PR [#8871](http://github.com/vatesfr/xen-orchestra/pull/8871))
+  - `GET /rest/v0/hosts/<host-id>/missing_patches` (PR [#8862](https://github.com/vatesfr/xen-orchestra/pull/8862))
 
 - **XO 6**:
-  - [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8873](https://github.com/vatesfr/xen-orchestra/pull/8873))
   - Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
+  - [i18n] Add Portuguese (Brazil) and update Czech, German, Spanish, Italian, Dutch and Swedish translations (PR [#8837](https://github.com/vatesfr/xen-orchestra/pull/8837))
+
+### Bug fixes
+
+- [Backups] Fix healthCheck triggered even when no data is transfered in delta backups (PR [#8879](https://github.com/vatesfr/xen-orchestra/pull/8879))
+- [Backup] Update timeout in filesystem for expensive listing requests (PR [#8903](https://github.com/vatesfr/xen-orchestra/pull/8903))
+- [Plugins/audit] Prevent audit plugin disabling from failing (PR [#8898](https://github.com/vatesfr/xen-orchestra/pull/8898))
+- [Backup] fix error footer1 !== footer2 (PR [#8882](https://github.com/vatesfr/pull/8882))
 
 ### Released packages
 
-- @vates/types 1.10.0
-- @xen-orchestra/web-core 0.27.0
-- @xen-orchestra/rest-api 0.14.0
-- @xen-orchestra/web 0.25.0
-- xo-server 5.185.0
+- @vates/read-chunk 1.2.1
+- @xen-orchestra/fs 4.6.3
+- xo-common 0.9.0
+- xen-api 4.7.4
+- @vates/types 1.11.0
+- @xen-orchestra/xapi 8.4.0
+- @xen-orchestra/backups-cli 1.1.3
+- @xen-orchestra/immutable-backups 1.0.24
+- @xen-orchestra/mixins 0.16.5
+- @xen-orchestra/rest-api 0.15.0
+- xo-acl-resolver 0.5.2
+- xo-server-audit 0.14.1
+- xo-server-test 0.0.2
+- vhd-lib 4.14.1
+- @vates/nbd-client 3.2.1
+- @xen-orchestra/backups 0.64.1
+- @xen-orchestra/web-core 0.29.0
+- @xen-orchestra/proxy 0.29.29
+- @xen-orchestra/vmware-explorer 0.10.1
+- @xen-orchestra/web 0.27.0
+- xo-server 5.187.0
+- xo-web 5.184.0
 
 ## **5.109.1** (2025-08-06)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -129,8 +200,6 @@
 - xo-web 5.181.1
 
 ## **5.108.1** (2025-07-03)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 

@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.63.0",
+  "version": "0.64.2",
   "engines": {
     "node": ">=14.18"
   },
@@ -26,11 +26,11 @@
     "@vates/disposable": "^0.1.6",
     "@vates/fuse-vhd": "^2.1.2",
     "@vates/generator-toolbox": "^1.0.4",
-    "@vates/nbd-client": "^3.1.4",
+    "@vates/nbd-client": "^3.2.1",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/disk-transform": "^1.1.0",
-    "@xen-orchestra/fs": "^4.6.2",
+    "@xen-orchestra/fs": "^4.6.3",
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/qcow2": "^1.0.0",
     "@xen-orchestra/template": "^0.1.0",
@@ -51,8 +51,8 @@
     "tar": "^6.1.15",
     "uuid": "^9.0.0",
     "value-matcher": "^0.2.0",
-    "vhd-lib": "^4.14.0",
-    "xen-api": "^4.7.3",
+    "vhd-lib": "^4.14.1",
+    "xen-api": "^4.7.4",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
@@ -62,7 +62,7 @@
     "tmp": "^0.2.1"
   },
   "peerDependencies": {
-    "@xen-orchestra/xapi": "^8.3.3"
+    "@xen-orchestra/xapi": "^8.4.1"
   },
   "license": "AGPL-3.0-or-later",
   "author": {
