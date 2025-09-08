@@ -250,7 +250,11 @@ export default class RestApi {
         },
       },
       groups: {},
-      users: {},
+      users: {
+        routes: {
+          authentication_tokens: true,
+        },
+      },
       vifs: {
         routes: {
           alarms: true,
@@ -680,6 +684,19 @@ export default class RestApi {
     }
     collections.users = {
       routes: {
+        async authentication_tokens(req, res) {
+          const { filter, limit } = req.query
+
+          const me = app.apiContext.user
+          const user = req.object
+          if (me.id !== user.id) {
+            return res.status(403).json('You can only see your own authentication tokens')
+          }
+
+          const tokens = await app.getAuthenticationTokensForUser(me.id)
+
+          res.json(handleArray(tokens, filter, limit))
+        },
         async groups(req, res) {
           const { filter, limit } = req.query
           await sendObjects(
