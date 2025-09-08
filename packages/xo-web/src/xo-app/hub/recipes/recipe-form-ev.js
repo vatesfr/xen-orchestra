@@ -9,6 +9,10 @@ import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { SelectPool, SelectNetwork, SelectSr } from 'select-objects'
 import { Select } from 'form'
+import TimezonePicker from '../../../common/timezone-picker'
+import moment from 'moment-timezone'
+
+const DEFAULT_TIMEZONE = moment.tz.guess()
 
 const PERF_CONFIG = [
   {
@@ -83,6 +87,13 @@ export default decorate([
           nameservers,
         })
       },
+      onTimezoneChange(__, timezone) {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          timezone,
+        })
+      },
       onChangePerformanceIndex(__, performanceIndex) {
         const { onChange, value } = this.props
         onChange({
@@ -142,6 +153,10 @@ export default decorate([
           type='text'
           value={value.vmName}
         />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('selectTimezone')}</label>
+        <TimezonePicker defaultValue={DEFAULT_TIMEZONE} value={value.timezone} onChange={effects.onTimezoneChange} />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('recipeVMxoUser')}</label>
