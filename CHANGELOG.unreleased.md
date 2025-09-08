@@ -11,8 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- Cast VIF device to number to help sorting (PR [#8877](https://github.com/vatesfr/xen-orchestra/pull/8877))
-
+- [VIFs] Fix sorting by VIF device (PR [#8877](https://github.com/vatesfr/xen-orchestra/pull/8877))
 - **Migrated REST API endpoints**:
 
   - `DELETE /rest/v0/tasks` (PR [#8905](https://github.com/vatesfr/xen-orchestra/pull/8905))
