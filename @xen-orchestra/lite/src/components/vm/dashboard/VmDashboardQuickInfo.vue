@@ -12,10 +12,14 @@
       <VtsQuickInfoRow :label="t('ip-address')" :value="mainIpAddress" />
       <VtsQuickInfoRow :label="t('created-on')" :value="installDateFormatted" />
       <VtsQuickInfoRow :label="t('started')" :value="relativeStartTime" />
+    </VtsQuickInfoColumn>
+    <VtsQuickInfoColumn>
+      <VtsQuickInfoRow :label="t('uuid')" :value="vm.uuid" />
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
           <span v-if="host" class="host-name">
-            <UiLink icon="fa:server" :to="`/host/${host.uuid}`" size="medium">
+            <VtsObjectIcon type="host" :state="hostPowerState" size="medium" />
+            <UiLink :to="`/host/${host.uuid}`" size="medium">
               {{ host.name_label }}
             </UiLink>
           </span>
@@ -26,7 +30,6 @@
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('uuid')" :value="vm.uuid" />
       <VtsQuickInfoRow :label="t('description')" :value="vm.name_description" />
       <VtsQuickInfoRow :label="t('os-name')" :value="osVersion" />
       <VtsQuickInfoRow :label="t('virtualization-type')" :value="virtualizationType" />
@@ -48,10 +51,12 @@
 <script lang="ts" setup>
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
@@ -74,7 +79,7 @@ const { t, locale } = useI18n()
 const { isReady, getVmHost } = useVmStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 const { getByOpaqueRef: getMetricsByOpaqueRef } = useVmMetricsStore().subscribe()
-// const { isHostRunning } = useHostMetricsStore().subscribe()
+const { isHostRunning } = useHostMetricsStore().subscribe()
 
 const guestMetrics = computed(() => getGuestMetricsByOpaqueRef(vm.guest_metrics))
 
@@ -82,16 +87,14 @@ const metrics = computed(() => getMetricsByOpaqueRef(vm.metrics))
 
 const host = computed(() => getVmHost(vm))
 
-// TODO add this to icon when new component is available
-// const hostPowerState = computed(() => {
-//   if (host.value === undefined) {
-//     return
-//   }
-//
-//   return isHostRunning(host.value) ? 'running' : 'halted'
-// })
+const hostPowerState = computed(() => {
+  if (host.value === undefined) {
+    return 'unknown'
+  }
 
-// TODO Same as above, add this to icon when new component is available
+  return isHostRunning(host.value) ? 'running' : 'halted'
+})
+
 const powerState = useMapper(
   () => vm.power_state,
   {

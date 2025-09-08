@@ -11,11 +11,29 @@
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('ip-address')" :value="vm.mainIpAddress" />
       <VtsQuickInfoRow :label="t('created-on')" :value="installDateFormatted" />
+      <VtsQuickInfoRow :label="t('created-by')" :value="user?.email ?? t('unknown')" />
       <VtsQuickInfoRow :label="t('started')" :value="relativeStartTime" />
+    </VtsQuickInfoColumn>
+    <VtsQuickInfoColumn>
+      <VtsQuickInfoRow :label="t('uuid')" :value="vm.id" />
+      <VtsQuickInfoRow :label="t('pool')">
+        <template #value>
+          <span v-if="pool" class="host-name">
+            <VtsIcon name="fa:city" size="medium" />
+            <UiLink :to="`/pool/${pool.id}`" size="medium">
+              {{ pool.name_label }}
+            </UiLink>
+          </span>
+          <span v-else>
+            {{ t('none') }}
+          </span>
+        </template>
+      </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
           <span v-if="host" class="host-name">
-            <UiLink icon="fa:server" :to="`/host/${host.id}`" size="medium">
+            <VtsObjectIcon type="host" :state="hostPowerState" size="medium" />
+            <UiLink :to="`/host/${host.id}`" size="medium">
               {{ host.name_label }}
             </UiLink>
           </span>
@@ -26,7 +44,6 @@
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('uuid')" :value="vm.id" />
       <VtsQuickInfoRow :label="t('description')" :value="vm.name_description" />
       <VtsQuickInfoRow :label="t('os-name')" :value="vm.os_version?.name" />
       <VtsQuickInfoRow :label="t('virtualization-type')" :value="virtualizationType" />
@@ -48,10 +65,13 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { VM_POWER_STATE, type XoVm } from '@/types/xo/vm.type.ts'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
@@ -72,19 +92,21 @@ const { vm } = defineProps<{
 const { t, locale } = useI18n()
 
 const { areVmsReady, getVmHost } = useXoVmCollection()
+const { getPoolById } = useXoPoolCollection()
+const { user } = useXoUserResource({}, () => vm.creation?.user)
 
 const host = computed(() => getVmHost(vm))
 
-// TODO add this to icon when new component is available
-// const hostPowerState = computed(() => {
-//   if (host.value === undefined) {
-//     return
-//   }
-//
-//   return host.value.power_state === 'Running' ? 'running' : 'halted'
-// })
+const pool = computed(() => getPoolById(vm.$pool))
 
-// TODO as above, add this to icon when new component is available
+const hostPowerState = computed(() => {
+  if (host.value === undefined) {
+    return 'unknown'
+  }
+
+  return host.value.power_state === 'Running' ? 'running' : 'halted'
+})
+
 const powerState = useMapper<VM_POWER_STATE, { icon: IconName; text: string }>(
   () => vm.power_state,
   {

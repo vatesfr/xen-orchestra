@@ -154,6 +154,7 @@
   "crash-dump-storage-repository": "Dépôt de stockage des log de crash",
   "create": "Créer",
   "created-on": "Créé le",
+  "created-by": "Créé par",
   "cron-pattern": "Pattern cron",
   "custom-config": "Configuration personnalisée",
   "dark-mode.auto": "Mode sombre automatique",
