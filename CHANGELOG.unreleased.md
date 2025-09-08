@@ -20,7 +20,7 @@
 
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
 - [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
-- [DC Scope] Deploy, detect and access a DC Scope instance
+- [DC Scope] Deploy, detect and access a DC Scope instance (PR [#8951](https://github.com/vatesfr/xen-orchestra/pull/8951))
 
 ### Bug fixes
 
