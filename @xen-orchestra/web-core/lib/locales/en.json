@@ -154,6 +154,7 @@
   "crash-dump-storage-repository": "Crash dump storage repository",
   "create": "Create",
   "created-on": "Created on",
+  "created-by": "Created by",
   "cron-pattern": "Cron pattern",
   "custom-config": "Custom config",
   "dark-mode.auto": "Auto dark mode",
