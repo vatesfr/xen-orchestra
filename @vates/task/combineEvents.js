@@ -23,7 +23,7 @@ exports.makeOnProgress = function ({ onRootTaskEnd = noop, onRootTaskStart = noo
         Object.defineProperty(taskLog, '$root', { value: taskLog })
 
         // start of a root task
-        onRootTaskStart(taskLog)
+        onRootTaskStart(taskLog, event)
       } else {
         // start of a subtask
         const parent = taskLogs.get(parentId)
@@ -54,10 +54,10 @@ exports.makeOnProgress = function ({ onRootTaskEnd = noop, onRootTaskStart = noo
       }
 
       if (type === 'end' && taskLog.$root === taskLog) {
-        onRootTaskEnd(taskLog)
+        onRootTaskEnd(taskLog, event)
       }
     }
 
-    onTaskUpdate(taskLog)
+    onTaskUpdate(taskLog, event)
   }
 }

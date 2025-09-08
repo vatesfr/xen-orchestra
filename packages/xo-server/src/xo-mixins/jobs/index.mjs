@@ -169,7 +169,7 @@ export default class Jobs {
     const logger = this._logger
     const { id, type } = job
 
-    const runJobId = logger.notice(`Starting execution of ${id}.`, {
+    const jobData = {
       data:
         type === 'backup' || type === 'metadataBackup' || type === 'mirrorBackup'
           ? {
@@ -187,7 +187,8 @@ export default class Jobs {
       scheduleId: schedule?.id,
       key: job.key,
       type,
-    })
+    }
+    const runJobId = logger.notice(`Starting execution of ${id}.`, jobData)
 
     const app = this._app
     try {
@@ -283,6 +284,7 @@ export default class Jobs {
         connection,
         data: data_,
         job,
+        jobData,
         logger,
         runJobId,
         schedule,
