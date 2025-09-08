@@ -287,7 +287,7 @@ class ToggleHa extends Component {
     .sort()
   return {
     backupNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:backupNetwork']),
-    dcScopeVms: createGetObjectsOfType('VM').filter([vm => vm.other['xo:dcScope'] !== undefined]), // TODO: change to actual detection method
+    dcScopeVms: createGetObjectsOfType('VM').filter([vm => vm.other['xo:dcscope:installTime'] !== undefined]),
     hosts: getHosts,
     hostsByMultipathing: createGroupBy(
       getHosts,
@@ -331,14 +331,20 @@ export default class TabAdvanced extends Component {
         return
       }
 
-      let latestDcScopeVm = Object.values(dcScopeVms)[0]
+      const getInstallTime = vm => vm.other['xo:dcscope:installTime']
+      const getIp = vm => vm.addresses['0/ipv4/0'] ?? vm.addresses['0/ipv6/0']
+
+      let latestDcScopeVm
       Object.values(dcScopeVms).forEach(vm => {
-        if (vm.other['xo:dcScope'].date > latestDcScopeVm.other['xo:dcScope'].date) {
+        if (
+          getIp(vm) !== undefined &&
+          (latestDcScopeVm === undefined || getInstallTime(vm) > getInstallTime(latestDcScopeVm))
+        ) {
           latestDcScopeVm = vm
         }
       })
 
-      return latestDcScopeVm.addresses['0/ipv4/0'] ?? latestDcScopeVm.addresses['0/ipv6/0']
+      return latestDcScopeVm && getIp(latestDcScopeVm)
     }
   )
 
@@ -401,7 +407,7 @@ export default class TabAdvanced extends Component {
               ) : (
                 <TabButton
                   btnStyle='success'
-                  handler={() => window.open(dcScopeIp)}
+                  handler={() => window.open(`http://${dcScopeIp}`)}
                   icon='telemetry'
                   labelId='dcScope'
                 />
