@@ -960,6 +960,22 @@ export default class RestApi {
       )
 
     api.get(
+      '/:collection/:object/tasks',
+      wrap(async (req, res) => {
+        const { query } = req
+        const objectId = req.object.id
+        const tasks = app.tasks.list({
+          filter: every(
+            _ => _.status === 'pending' && _.properties.objectId === objectId,
+            handleOptionalUserFilter(query.filter)
+          ),
+          limit: ifDef(query.limit, Number),
+        })
+        await sendObjects(tasks, req, res, '/tasks')
+      })
+    )
+
+    api.get(
       ['/:collection/_/actions', '/:collection/:object/actions'],
       wrap((req, res) => {
         const { actions } = req.collection
