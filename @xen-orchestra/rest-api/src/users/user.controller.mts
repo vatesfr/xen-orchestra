@@ -171,7 +171,7 @@ export class UserController extends XoController<XoUser> {
    * @example filter "expiration:>1757371582496"
    * @example limit 42
    */
-  @Example(userAuthenticationToken)
+  @Example(userAuthenticationTokens)
   @Get('{id}/authentication_tokens')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
