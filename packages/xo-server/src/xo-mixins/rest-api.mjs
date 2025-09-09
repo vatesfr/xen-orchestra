@@ -268,6 +268,7 @@ export default class RestApi {
         routes: {
           alarms: true,
           vdis: true,
+          tasks: true,
         },
       },
       'vm-controllers': {
