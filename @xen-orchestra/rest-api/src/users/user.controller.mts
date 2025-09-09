@@ -30,7 +30,13 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
-import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import {
+  partialUsers,
+  user,
+  userAuthenticationToken,
+  userId,
+  userIds,
+} from '../open-api/oa-examples/user.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
@@ -165,6 +171,7 @@ export class UserController extends XoController<XoUser> {
    * @example filter "expiration:>1757371582496"
    * @example limit 42
    */
+  @Example(userAuthenticationToken)
   @Get('{id}/authentication_tokens')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)

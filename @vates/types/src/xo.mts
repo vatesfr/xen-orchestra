@@ -696,15 +696,7 @@ export type XapiXoRecord =
   | XoVtpm
   | XoSm
 
-export type NonXapiXoRecord =
-  | XoGroup
-  | XoProxy
-  | XoJob
-  | XoBackupRepository
-  | XoSchedule
-  | XoServer
-  | XoTask
-  | XoUser
+export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoTask | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
