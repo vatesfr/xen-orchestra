@@ -705,7 +705,6 @@ export type NonXapiXoRecord =
   | XoServer
   | XoTask
   | XoUser
-  | XoAuthenticationToken
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 

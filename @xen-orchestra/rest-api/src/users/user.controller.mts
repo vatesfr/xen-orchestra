@@ -183,6 +183,6 @@ export class UserController extends XoController<XoUser> {
 
     const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(user.id)
 
-    return this.sendObjects(limitAndFilterArray(tokens, { filter, limit }), req, 'tokens')
+    return limitAndFilterArray(tokens, {filter, limits})
   }
 }
