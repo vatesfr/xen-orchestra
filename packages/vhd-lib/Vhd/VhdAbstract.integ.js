@@ -251,7 +251,7 @@ describe('VhdAbstract', { concurrency: 1 }, async () => {
       // first block should be empty
       const EMPTY = Buffer.alloc(blockDataLength, 0)
       const firstBlock = buffer.slice(0, blockDataLength)
-      // using buffer1 toEquals buffer2 make jest crash trying to stringify it on failure
+      // using buffer1 toEquals buffer2 make test runner crash trying to stringify it on failure
       assert.equal(firstBlock.equals(EMPTY), true)
 
       let remainingLength = initialByteSize - blockDataLength // already checked the first block
