@@ -62,18 +62,3 @@ export const authenticationTokens = [
   },
 ]
 
-export const userAuthenticationToken = {
-  client: {
-    id: 'nemyw6m3dx',
-  },
-  created_at: 1757403131342,
-  description: 'Mozilla/5.0 (X11; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0',
-  user_id: '722d17b9-699b-49d2-8193-be1ac573d3de',
-  expiration: 1757439131342,
-  last_uses: {
-    '::ffff:127.0.0.1': {
-      timestamp: 1757429180436,
-    },
-  },
-  id: '2x6DYCr0PnxECV1uaQ9UuT1Okvbg1g6zOTPzmhTNqkQ',
-}
