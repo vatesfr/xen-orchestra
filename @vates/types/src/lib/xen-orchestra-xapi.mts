@@ -9,7 +9,7 @@ import {
   XenApiVm,
   XenApiVmWrapped,
 } from '../xen-api.mjs'
-import type { Readable } from 'node:stream'
+import type { PassThrough, Readable } from 'node:stream'
 import type {
   XoGpuGroup,
   XoVgpuType,
@@ -22,6 +22,7 @@ import type {
   XoVm,
   XoVmTemplate,
 } from '../xo.mjs'
+import type { SUPPORTED_VDI_FORMAT } from '../common.mjs'
 
 export type XcpPatches = {
   changelog?: {
@@ -78,6 +79,7 @@ export interface Xapi {
         }
   ): Promise<XenApiNetworkWrapped>
   deleteNetwork(id: XoNetwork['id']): Promise<void>
+  exportVmOva(vmRef: XenApiVm['$ref']): Promise<PassThrough>
   listMissingPatches(host: XoHost['id']): Promise<XcpPatches[] | XsPatches[]>
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
@@ -97,6 +99,10 @@ export interface Xapi {
       startOnly?: boolean
     }
   ): Promise<void>
+  VM_export(
+    vmRef: XenApiVm['$ref'],
+    opts?: { cancelToken?: unknown; compress?: boolean; useSnapshot?: boolean }
+  ): ReturnType<Xapi['getResource']>
   VM_import(
     stream: Readable,
     srRef?: XenApiSr['$ref'],
@@ -154,6 +160,10 @@ export interface Xapi {
     opts?: { destroyAllVifs: boolean }
   ): Promise<XenApiVmWrapped>
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
+  VDI_exportContent(
+    vdiRef: XenApiVdi['$ref'],
+    opts: { baseRef?: string; cancelToken?: unknown; format: SUPPORTED_VDI_FORMAT }
+  ): Promise<Readable & { length?: number }>
   VM_createCloudInitConfig(
     vmRef: XenApiVm['$ref'],
     cloudConfig: string,

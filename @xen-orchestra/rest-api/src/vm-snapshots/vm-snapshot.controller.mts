@@ -1,11 +1,19 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
+import { Readable } from 'node:stream'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  forbiddenOperationResp,
+  incorrectStateResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { XoAlarm, XoVdiSnapshot, XoVmSnapshot } from '@vates/types'
@@ -58,6 +66,33 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   }
 
   /**
+   *
+   * Export VM-snapshot. Compress is only used for XVA format
+   *
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   */
+  @Get('{id}.{format}')
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid format, Invalid compress')
+  async exportVmSnapshot(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Path() format: 'xva' | 'ova',
+    @Query() compress?: boolean
+  ): Promise<Readable> {
+    const stream = await this.#vmService.export(id as XoVmSnapshot['id'], 'VM-snapshot', {
+      compress,
+      format,
+      response: req.res,
+    })
+    process.on('SIGTERM', () => req.destroy())
+    req.on('close', () => stream.destroy())
+
+    return stream
+  }
+
+  /**
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    */
   @Example(vmSnapshot)
@@ -65,6 +100,19 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Response(notFoundResp.status, notFoundResp.description)
   getVmSnapshot(@Path() id: string): Unbrand<XoVmSnapshot> {
     return this.getObject(id as XoVmSnapshot['id'])
+  }
+
+  /**
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  async deleteVmSnapshot(@Path() id: string): Promise<void> {
+    const xapiVmSnapshot = this.getXapiObject(id as XoVmSnapshot['id'])
+    await xapiVmSnapshot.$xapi.VM_destroy(xapiVmSnapshot.$ref)
   }
 
   /**
