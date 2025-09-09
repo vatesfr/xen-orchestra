@@ -6,7 +6,7 @@ export const backupJobIds = [
 export const partialBackupJobs = [
   {
     mode: 'full',
-    name: 'smart-mode',
+    name: 'backup-test',
     href: '/rest/v0/backup/jobs/vm/55c50647-6129-4981-9324-af638a836d9a',
   },
   {

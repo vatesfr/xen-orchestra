@@ -4,6 +4,8 @@ import type { XoBackupJob, XoVm } from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
+const NO_BAK_TAG = 'xo:no-bak'
+
 export class BackupService {
   #restApi: RestApi
 
@@ -14,6 +16,10 @@ export class BackupService {
   async isVmInBackupJob(backupJobId: XoBackupJob['id'], vmId: XoVm['id']): Promise<boolean> {
     const backupJob = await this.#restApi.xoApp.getJob<XoBackupJob>(backupJobId)
     const vm = this.#restApi.getObject<XoVm>(vmId, 'VM')
+
+    if (vm.tags.includes(NO_BAK_TAG)) {
+      return false
+    }
 
     try {
       const vmIds: XoVm['id'][] = extractIdsFromSimplePattern(backupJob.vms)
