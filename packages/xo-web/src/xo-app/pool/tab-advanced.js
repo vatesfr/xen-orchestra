@@ -15,7 +15,7 @@ import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
-import { forEach, map, values } from 'lodash'
+import { forEach, isEmpty, map, values } from 'lodash'
 import { SelectSr } from 'select-objects'
 import { Text, XoSelect } from 'editable'
 import { Toggle } from 'form'
@@ -287,6 +287,7 @@ class ToggleHa extends Component {
     .sort()
   return {
     backupNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:backupNetwork']),
+    dcScopeVms: createGetObjectsOfType('VM').filter([vm => vm.other['xo:dcscope:installTime'] !== undefined]),
     hosts: getHosts,
     hostsByMultipathing: createGroupBy(
       getHosts,
@@ -321,6 +322,30 @@ export default class TabAdvanced extends Component {
       )
     ),
     networkIds => network => networkIds.has(network.id)
+  )
+
+  _getDcScopeIp = createSelector(
+    () => this.props.dcScopeVms,
+    dcScopeVms => {
+      if (isEmpty(dcScopeVms)) {
+        return
+      }
+
+      const getInstallTime = vm => vm.other['xo:dcscope:installTime']
+      const getIp = vm => vm.addresses['0/ipv4/0'] ?? vm.addresses['0/ipv6/0']
+
+      let latestDcScopeVm
+      Object.values(dcScopeVms).forEach(vm => {
+        if (
+          getIp(vm) !== undefined &&
+          (latestDcScopeVm === undefined || getInstallTime(vm) > getInstallTime(latestDcScopeVm))
+        ) {
+          latestDcScopeVm = vm
+        }
+      })
+
+      return latestDcScopeVm && getIp(latestDcScopeVm)
+    }
   )
 
   _isNetboxPluginLoaded = createSelector(
@@ -364,11 +389,29 @@ export default class TabAdvanced extends Component {
     const isEnterprisePlan = getXoaPlan().value >= ENTERPRISE.value
     const isMigrationCompressionAvailable = pool.migrationCompression !== undefined
 
+    const dcScopeIp = this._getDcScopeIp()
+
     return (
       <div>
         <Container>
           <Row>
             <Col className='text-xs-right'>
+              {dcScopeIp === undefined ? (
+                <TabButton
+                  btnStyle='warning'
+                  icon='deploy'
+                  handler={() => {}}
+                  labelId='deployDcScope'
+                  redirectOnSuccess='/hub/recipes'
+                />
+              ) : (
+                <TabButton
+                  btnStyle='success'
+                  handler={() => window.open(`http://${dcScopeIp}`)}
+                  icon='telemetry'
+                  labelId='dcScope'
+                />
+              )}
               <TabButton
                 btnStyle='warning'
                 handler={rollingPoolReboot}
