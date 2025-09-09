@@ -655,6 +655,14 @@ export const BACKUP_TYPE = { backup: 'backup', metadata: 'metadataBackup', mirro
 
 export type BACKUP_TYPE = (typeof BACKUP_TYPE)[keyof typeof BACKUP_TYPE]
 
+export const SUPPORTED_VDI_FORMAT = {
+  raw: 'raw',
+  vhd: 'vhd',
+  qcow2: 'qcow2',
+} as const
+
+export type SUPPORTED_VDI_FORMAT = (typeof SUPPORTED_VDI_FORMAT)[keyof typeof SUPPORTED_VDI_FORMAT]
+
 // ----- XAPI Stats
 
 type XapiStatsResponse<T> = {

@@ -28,11 +28,14 @@ import type {
   XoVm,
   XoVmSnapshot,
 } from '@vates/types'
+import { Readable } from 'node:stream'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import {
   asynchronousActionResp,
   createdResp,
+  forbiddenOperationResp,
+  incorrectStateResp,
   internalServerErrorResp,
   noContentResp,
   notFoundResp,
@@ -93,6 +96,29 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    *
+   * Export VM. Compress is only used for XVA format
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Get('{id}.{format}')
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid format, Invalid compress')
+  async exportVm(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Path() format: 'xva' | 'ova',
+    @Query() compress?: boolean
+  ): Promise<Readable> {
+    const stream = await this.#vmService.export(id as XoVm['id'], 'VM', { compress, format, response: req.res })
+    process.on('SIGTERM', () => req.destroy())
+    req.on('close', () => stream.destroy())
+
+    return stream
+  }
+
+  /**
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(vm)
@@ -100,6 +126,19 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(notFoundResp.status, notFoundResp.description)
   getVm(@Path() id: string): Unbrand<XoVm> {
     return this.getObject(id as XoVm['id'])
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  async deleteVm(@Path() id: string): Promise<void> {
+    const xapiVm = this.getXapiObject(id as XoVm['id'])
+    await xapiVm.$xapi.VM_destroy(xapiVm.$ref)
   }
 
   /**
