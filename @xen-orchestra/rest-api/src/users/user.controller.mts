@@ -173,16 +173,16 @@ export class UserController extends XoController<XoUser> {
     @Path() id: string,
     @Query() filter?: string,
     @Query() limit?: number
-  ): Promise<SendObjects<Unbrand<XoAuthenticationToken>>> {
+  ): Promise<Unbrand<XoAuthenticationToken>[]> {
     const user = await this.getObject(id as XoUser['id'])
-    const me = this.restApi.getCurrentUser()
 
+    const me = this.restApi.getCurrentUser()
     if (me.id !== user.id) {
       throw forbiddenOperation('get authentication tokens', 'can only see own authentication tokens')
     }
 
     const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(user.id)
 
-    return limitAndFilterArray(tokens, {filter, limits})
+    return limitAndFilterArray(tokens, { filter, limit })
   }
 }
