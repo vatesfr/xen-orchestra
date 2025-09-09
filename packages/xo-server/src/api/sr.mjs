@@ -1023,7 +1023,7 @@ export async function reclaimSpace({ sr, bypassBackupCheck = false }) {
   if (bypassBackupCheck) {
     log.warn('sr.reclaimSpace with argument "bypassBackupCheck" set to true', { srId: sr.id })
   } else {
-    await backupGuard.call(this, sr.$poolId)
+    await backupGuard.call(this, sr.$pool)
   }
   await this.getXapiObject(sr).$reclaimSpace()
 }
