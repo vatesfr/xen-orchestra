@@ -70,6 +70,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- complex-matcher major
 - xo-server minor
 - xo-web minor
 

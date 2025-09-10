@@ -75,7 +75,7 @@ class Comparison extends Node {
   }
 
   match(value) {
-    return typeof value === 'number' && this._comparator(value, this._value)
+    return this._comparator(value, this._value)
   }
 
   toString() {

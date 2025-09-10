@@ -76,6 +76,13 @@ describe('Comparison', () => {
     assert(new Comparison('<', 42).match(41))
     assert(new Comparison('<=', 42).match(42))
   })
+
+  it('can match with non numbers', () => {
+    const ts = Date.now()
+
+    assert(new Comparison('>', ts).match(new Date(ts + 1)))
+    assert(!new Comparison('>', ts).match(new Date(ts)))
+  })
 })
 
 describe('GlobPattern', () => {
