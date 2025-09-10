@@ -11,7 +11,7 @@ export async function instantiateController(host, tlsHelper) {
     return controller
   } catch (error) {
     if (error.code === 'XENAPI_MISSING_PLUGIN') {
-      log.info('use direct poenflow channel')
+      log.info('use direct openflow channel')
       return new OpenFlowChannel(host, tlsHelper)
     } else {
       throw error

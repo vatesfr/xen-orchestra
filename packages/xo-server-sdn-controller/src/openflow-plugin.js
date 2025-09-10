@@ -51,10 +51,15 @@ export class OpenFlowPlugin {
     log.debug('deleteNetworkRule', { network, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(network, 'del-rule', { allow, protocol, ipRange, direction, port })
   }
+
   async check(host) {
     log.debug('check', { host })
-    await Promise.all(
-      host.$PIFs.map(async ({ $network }) => {
+    // if at least one of the network can answer with a well formed answer from the plugin
+    // then the plugin is considered installed and working
+    // some network can fails this test,
+    let lastError
+    for (const { $network } of host.$PIFs) {
+      try {
         const response = await host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, 'dump-flows', {
           bridge: $network.bridge,
         })
@@ -64,7 +69,19 @@ export class OpenFlowPlugin {
           0,
           `plugin check should have a return code of 0 to succeed, got ${json.returncode}`
         )
-      })
-    )
+        // one of the network is valid, let's stop the check here
+        return true
+      } catch (error) {
+        if (error.code === 'XENAPI_MISSING_PLUGIN') {
+          // plugin is not installed , no need to test other networks
+          throw error
+        }
+        log('error while checking if the host has the sdn plugin', error)
+        // track at least
+        lastError = error
+      }
+    }
+
+    throw lastError ?? new Error(`No network associated to host ${host.id}`)
   }
 }
