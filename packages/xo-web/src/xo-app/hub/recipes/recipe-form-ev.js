@@ -10,9 +10,6 @@ import { isSrWritable } from 'xo'
 import { SelectPool, SelectNetwork, SelectSr } from 'select-objects'
 import { Select } from 'form'
 import TimezonePicker from '../../../common/timezone-picker'
-import moment from 'moment-timezone'
-
-const DEFAULT_TIMEZONE = moment.tz.guess()
 
 const PERF_CONFIG = [
   {
@@ -156,7 +153,7 @@ export default decorate([
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('selectTimezone')}</label>
-        <TimezonePicker defaultValue={DEFAULT_TIMEZONE} value={value.timezone} onChange={effects.onTimezoneChange} />
+        <TimezonePicker value={value.timezone} onChange={effects.onTimezoneChange} />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('recipeVMxoUser')}</label>

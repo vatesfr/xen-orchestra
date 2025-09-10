@@ -15,6 +15,8 @@ import { success } from 'notification'
 import { withRouter } from 'react-router'
 
 import RecipeForm from './recipe-form-ev'
+import moment from 'moment-timezone'
+const DEFAULT_TIMEZONE = moment.tz.guess()
 
 const RECIPE_INFO = {
   id: 'test',
@@ -49,7 +51,9 @@ export default decorate([
           defaultValue: {
             pool: {},
           },
-          render: props => <RecipeForm {...props} value={{ nbNodes: 1, ...props.value }} />,
+          render: props => {
+            return <RecipeForm {...props} value={{ ...props.value, timezone: DEFAULT_TIMEZONE }} />
+          },
           header: (
             <span>
               <Icon icon='hub-recipe' /> {RECIPE_INFO.name}
