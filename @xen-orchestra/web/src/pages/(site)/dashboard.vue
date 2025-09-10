@@ -1,39 +1,43 @@
 <template>
   <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
-    <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
-    <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
-    <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
-    <DashboardAlarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
-    <Patches
-      class="patches"
-      :missing-patches="dashboard.missingPatches"
-      :n-hosts="dashboard.nHosts"
-      :n-hosts-eol="dashboard.nHostsEol"
-      :n-pools="dashboard.nPools"
-      :has-error
-    />
-    <ResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" :has-error />
-    <Backups class="backups" :backups="dashboard.backups" :has-error />
-    <BackupIssues class="backup-issues" :issues="dashboard.backups?.issues" />
-    <Repositories
-      class="repositories"
-      :backup-repositories
-      :storage-repositories
-      :s3-size="dashboard.backupRepositories?.s3?.size"
-      :has-error
-    />
+    <div class="row first-row">
+      <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
+      <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
+      <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
+      <ResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" :has-error />
+    </div>
+    <div class="row second-row">
+      <Alarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
+      <Patches
+        class="patches"
+        :missing-patches="dashboard.missingPatches"
+        :n-hosts="dashboard.nHosts"
+        :n-hosts-eol="dashboard.nHostsEol"
+        :n-pools="dashboard.nPools"
+        :has-error
+      />
+      <BackupJobsStatus class="backup-jobs-status" :backups="dashboard.backups" :has-error />
+      <VmsProtection class="vms-protection" :backups="dashboard.backups" :has-error />
+      <BackupIssues class="backup-issues" :issues="dashboard.backups?.issues" :has-error />
+      <BackupRepository class="backup-repository" :repositories="backupRepositories" :has-error />
+      <StorageRepository class="storage-repository" :repositories="storageRepositories" :has-error />
+      <S3BackupRepository class="s3-backup-repository" :size="dashboard.backupRepositories?.s3?.size" :has-error />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import DashboardAlarms from '@/components/alarms/DashboardAlarms.vue'
+import Alarms from '@/components/site/dashboard/Alarms.vue'
 import BackupIssues from '@/components/site/dashboard/BackupIssues.vue'
-import Backups from '@/components/site/dashboard/Backups.vue'
+import BackupJobsStatus from '@/components/site/dashboard/BackupJobsStatus.vue'
+import BackupRepository from '@/components/site/dashboard/BackupRepository.vue'
 import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
 import Patches from '@/components/site/dashboard/Patches.vue'
 import PoolsStatus from '@/components/site/dashboard/PoolsStatus.vue'
-import Repositories from '@/components/site/dashboard/Repositories.vue'
 import ResourcesOverview from '@/components/site/dashboard/ResourcesOverview.vue'
+import S3BackupRepository from '@/components/site/dashboard/S3BackupRepository.vue'
+import StorageRepository from '@/components/site/dashboard/StorageRepository.vue'
+import VmsProtection from '@/components/site/dashboard/VmsProtection.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 import { useXoAlarmCollection } from '@/remote-resources/use-xo-alarm-collection.ts'
 import { useXoSiteDashboard } from '@/remote-resources/use-xo-site-dashboard.ts'
@@ -48,18 +52,25 @@ const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
 
 <style lang="postcss" scoped>
 .site-dashboard {
-  display: grid;
   margin: 0.8rem;
-  gap: 0.8rem;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-areas:
-    'pools-status pools-status hosts-status hosts-status vms-status vms-status resources-overview resources-overview'
-    'alarms alarms alarms alarms alarms alarms patches patches'
-    'backups backups backups backup-issues backup-issues backup-issues backup-issues backup-issues'
-    'repositories repositories repositories repositories repositories repositories repositories repositories';
 
-  &.mobile {
-    grid-template-columns: minmax(20rem, 1fr);
+  /* === DESKTOP === */
+  .row {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .row + .row {
+    margin-top: 0.8rem;
+  }
+
+  .first-row {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-areas: 'pools-status hosts-status vms-status resources-overview';
+  }
+
+  .second-row {
+    grid-template-columns: repeat(3, 1fr);
     grid-template-areas:
       'pools-status'
       'hosts-status'
@@ -97,16 +108,42 @@ const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
     grid-area: resources-overview;
   }
 
-  .backups {
-    grid-area: backups;
+  .backup-jobs-status {
+    grid-area: backup-jobs-status;
+  }
+
+  .vms-protection {
+    grid-area: vms-protection;
   }
 
   .backup-issues {
     grid-area: backup-issues;
   }
 
-  .repositories {
-    grid-area: repositories;
+  .backup-repository {
+    grid-area: backup-repository;
+  }
+
+  .storage-repository {
+    grid-area: storage-repository;
+  }
+
+  .s3-backup-repository {
+    grid-area: s3-backup-repository;
+  }
+
+  /* === MOBILE === */
+  &.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  &.mobile .row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 0;
   }
 }
 </style>
