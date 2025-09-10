@@ -3,7 +3,7 @@ import type { XoMetadataBackupJob } from '@/types/xo/metadata-backup-job.type.ts
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 
 export const useXoMetadataBackupJobCollection = defineRemoteResource({
-  url: '/rest/v0/backup-jobs?filter=type:metadataBackup&fields=id,name,type,pools,xoMetadata,remotes',
+  url: '/rest/v0/backup-jobs?filter=type:metadataBackup&fields=id,name,type,pools,xoMetadata,remotes,settings',
   initialData: () => [] as XoMetadataBackupJob[],
   state: (metadataBackupJobs, context) =>
     useXoCollectionState(metadataBackupJobs, {

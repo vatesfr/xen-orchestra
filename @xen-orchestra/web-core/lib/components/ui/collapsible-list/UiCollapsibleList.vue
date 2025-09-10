@@ -60,6 +60,10 @@ useStyleTag(style)
     flex-direction: column;
     gap: 0.8rem;
     width: 100%;
+
+    :deep(li) {
+      line-height: 1;
+    }
   }
 
   .footer {
