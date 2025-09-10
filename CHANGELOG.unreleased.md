@@ -57,6 +57,7 @@
 
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- complex-matcher major
 - xo-server minor
 - xo-web minor
 
