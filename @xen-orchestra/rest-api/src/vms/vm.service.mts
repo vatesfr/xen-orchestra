@@ -14,6 +14,8 @@ import {
   type XoVm,
   type XoVmTemplate,
 } from '@vates/types'
+import { Response as ExResponse } from 'express'
+import { Readable } from 'node:stream'
 
 import type { CreateVmAfterCreateParams, CreateVmParams } from '../pools/pool.type.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -138,5 +140,31 @@ export class VmService {
     }
 
     return vdis
+  }
+
+  async export<Vm extends XoVm | XoVmSnapshot | XoVmTemplate>(
+    id: Vm['id'],
+    vmType: Vm['type'],
+    { compress, format, response }: { compress?: boolean; format: 'ova' | 'xva'; response?: ExResponse }
+  ): Promise<Readable> {
+    const xapiVm = this.#restApi.getXapiObject(id, vmType)
+
+    let stream: Readable
+    if (format === 'xva') {
+      stream = (await xapiVm.$xapi.VM_export(xapiVm.$ref, { compress })).body
+    } else {
+      stream = await xapiVm.$xapi.exportVmOva(xapiVm.$ref)
+    }
+
+    if (response !== undefined) {
+      const headers = new Headers({
+        'content-disposition': `attachment; filename=${id}.${format}`,
+        'content-type': 'application/octet-stream',
+      })
+
+      response.setHeaders(headers)
+    }
+
+    return stream
   }
 }
