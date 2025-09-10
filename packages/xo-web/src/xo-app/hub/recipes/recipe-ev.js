@@ -9,7 +9,7 @@ import { Card, CardBlock, CardHeader } from 'card'
 import { form } from 'modal'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { createEasyVirtVM } from 'xo'
+import { createDcScopeVM } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { success } from 'notification'
 import { withRouter } from 'react-router'
@@ -80,7 +80,7 @@ export default decorate([
 
         const performanceConfig = INDEX_TO_PERF_CONFIG[performanceIndex]
 
-        const vmId = await createEasyVirtVM({
+        const vmId = await createDcScopeVM({
           vmName,
           vmIpAddress,
           gatewayIpAddress,
