@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ t('backup-issues') }}
       <UiCounter :value="nBackupIssues" accent="danger" size="medium" variant="primary" />
-      <template #description>{{ t('in-last-three-jobs') }}</template>
+      <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
     <div class="backup-items">
       <VtsTable :state>

@@ -1,34 +1,36 @@
 <template>
-  <div class="site-dashboard-storage-repository">
-    <UiCardTitle>
-      {{ t('storage-repository') }}
-      <template #description>{{ t('for-replication') }}</template>
-    </UiCardTitle>
-    <VtsStateHero v-if="!areStorageRepositoriesReady" format="card" type="busy" size="medium" />
-    <template v-else>
-      <VtsStackedBarWithLegend :max-value="maxValue" :segments />
-      <div class="numbers">
-        <UiCardNumbers
-          :value="repositories?.used?.value"
-          :unit="repositories?.used?.prefix"
-          :label="t('used')"
-          size="medium"
-        />
-        <UiCardNumbers
-          :value="repositories?.available?.value"
-          :unit="repositories?.available?.prefix"
-          :label="t('available')"
-          size="medium"
-        />
-        <UiCardNumbers
-          :value="repositories?.total?.value"
-          :unit="repositories?.total?.prefix"
-          :label="t('total')"
-          size="medium"
-        />
-      </div>
-    </template>
-  </div>
+  <UiCard>
+    <div class="site-dashboard-storage-repository">
+      <UiCardTitle>
+        {{ t('storage-repository') }}
+        <template #description>{{ t('for-replication') }}</template>
+      </UiCardTitle>
+      <VtsStateHero v-if="!areStorageRepositoriesReady" format="card" type="busy" size="medium" />
+      <template v-else>
+        <VtsStackedBarWithLegend :max-value="maxValue" :segments />
+        <div class="numbers">
+          <UiCardNumbers
+            :value="repositories?.used?.value"
+            :unit="repositories?.used?.prefix"
+            :label="t('used-for-backup')"
+            size="medium"
+          />
+          <UiCardNumbers
+            :value="repositories?.available?.value"
+            :unit="repositories?.available?.prefix"
+            :label="t('available')"
+            size="medium"
+          />
+          <UiCardNumbers
+            :value="repositories?.total?.value"
+            :unit="repositories?.total?.prefix"
+            :label="t('total')"
+            size="medium"
+          />
+        </div>
+      </template>
+    </div>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
@@ -37,6 +39,7 @@ import VtsStackedBarWithLegend, {
   type StackedBarWithLegendProps,
 } from '@core/components/stacked-bar-with-legend/VtsStackedBarWithLegend.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'

@@ -7,7 +7,7 @@
     </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend icon="object:host" :segments />
-      <UiCardNumbers :label="t('total')" :value="status?.total" class="total" size="small" />
+      <UiCardNumbers :label="t('total')" :value="status?.total"  size="small" />
     </template>
   </UiCard>
 </template>
@@ -38,22 +38,17 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     value: status?.running ?? 0,
     accent: 'success',
   },
-  {
-    label: t('host:status:halted', 2),
-    value: status?.halted ?? 0,
-    accent: 'warning',
-  },
+  // TODO change unknown to disabled when available in api
   {
     label: t('host:status:unknown'),
     value: status?.unknown ?? 0,
     accent: 'muted',
     tooltip: t('host:status:unknown:tooltip'),
   },
+  {
+    label: t('host:status:halted', 2),
+    value: status?.halted ?? 0,
+    accent: 'danger',
+  },
 ])
 </script>
-
-<style lang="postcss" scoped>
-.total {
-  margin-left: auto;
-}
-</style>

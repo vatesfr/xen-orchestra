@@ -1,23 +1,32 @@
 <template>
-  <div class="site-dashboard-s3-backup-repository">
-    <UiCardTitle>
-      {{ t('s3-backup-repository') }}
-      <template #description>{{ t('for-backup') }}</template>
-    </UiCardTitle>
-    <!--    TODO change and add loading when we have isReady available -->
-    <VtsStateHero v-if="!areS3BackupRepositoriesReady" format="card" type="no-data" horizontal size="extra-small">
-      {{ t('no-data-to-calculate') }}
-    </VtsStateHero>
-    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
-      {{ t('error-no-data') }}
-    </VtsStateHero>
-    <UiCardNumbers v-else :value="usedSize?.value" :unit="usedSize?.prefix" :label="t('used')" size="medium" />
-  </div>
+  <UiCard>
+    <div class="site-dashboard-s3-backup-repository">
+      <UiCardTitle>
+        {{ t('s3-backup-repository') }}
+        <template #description>{{ t('for-backup') }}</template>
+      </UiCardTitle>
+      <!--    TODO change and add loading when we have isReady available -->
+      <VtsStateHero v-if="!areS3BackupRepositoriesReady" format="card" type="no-data" horizontal size="extra-small">
+        {{ t('no-data-to-calculate') }}
+      </VtsStateHero>
+      <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
+        {{ t('error-no-data') }}
+      </VtsStateHero>
+      <UiCardNumbers
+        v-else
+        :value="usedSize?.value"
+        :unit="usedSize?.prefix"
+        :label="t('used-for-backup')"
+        size="medium"
+      />
+    </div>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
