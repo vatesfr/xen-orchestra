@@ -1,5 +1,6 @@
 import { guessItemId } from '@core/packages/collection/guess-item-id.ts'
 import type { EmptyObject } from '@core/types/utility.type.ts'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import type {
   Collection,
   CollectionConfigFlags,
@@ -8,7 +9,7 @@ import type {
   ExtractSourceId,
   GetItemId,
 } from './types.ts'
-import { computed, type MaybeRefOrGetter, toValue } from 'vue'
+import { computed, type MaybeRefOrGetter } from 'vue'
 import { createCollection } from './create-collection.ts'
 import { createItem } from './create-item.ts'
 import { useFlagRegistry } from './use-flag-registry.ts'
@@ -82,7 +83,7 @@ export function useCollection<
 ): Collection<TSource, TFlag, TProperties, $TId> {
   const flagRegistry = useFlagRegistry<TFlag, $TId>(config?.flags)
 
-  const sources = computed(() => toValue(_sources))
+  const sources = toComputed(_sources)
 
   const items = computed(() =>
     sources.value.map(source => {

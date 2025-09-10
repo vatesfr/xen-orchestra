@@ -1,7 +1,8 @@
 import type { MenuToggleTrigger } from '@core/packages/menu'
+import { toComputed } from '@core/utils/to-computed.util'
 import { autoUpdate, flip, type Placement, shift, useFloating, type UseFloatingReturn } from '@floating-ui/vue'
 import { unrefElement } from '@vueuse/core'
-import { computed, reactive, ref, type Ref, toValue, type UnwrapRef } from 'vue'
+import { computed, reactive, ref, type Ref, type UnwrapRef } from 'vue'
 
 export interface MenuToggleTargetConfig {
   placement?: Placement
@@ -26,7 +27,7 @@ export class MenuToggleTarget {
     public config: MenuToggleTargetConfig
   ) {
     const { floatingStyles } = useFloating(trigger.element, this.element, {
-      placement: computed(() => toValue(config.placement) ?? 'bottom-start'),
+      placement: toComputed(config.placement, 'bottom-start'),
       open: trigger.isOpen,
       whileElementsMounted: autoUpdate,
       middleware: [shift(), flip()],

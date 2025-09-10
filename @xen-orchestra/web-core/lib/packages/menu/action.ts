@@ -1,5 +1,6 @@
 import { BaseItem, type Menu, type MenuLike, parseConfigHolder } from '@core/packages/menu'
-import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
+import { toComputed } from '@core/utils/to-computed.util'
+import { computed, type MaybeRefOrGetter, reactive, ref } from 'vue'
 
 export interface MenuActionConfig {
   handler: () => any
@@ -33,7 +34,7 @@ export class MenuAction extends BaseItem {
   }
 
   get busyConfig() {
-    return computed(() => toValue(this.config.busy) ?? false)
+    return toComputed(this.config.busy, false)
   }
 
   get isBusy() {
@@ -45,7 +46,7 @@ export class MenuAction extends BaseItem {
   }
 
   get disabledConfig() {
-    return computed(() => toValue(this.config.disabled) ?? false)
+    return toComputed(this.config.disabled, false)
   }
 
   get isDisabled() {

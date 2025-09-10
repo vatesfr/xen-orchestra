@@ -1,5 +1,6 @@
+import { toComputed } from '@core/utils/to-computed.util'
 import type { ComputedRef, InjectionKey, MaybeRefOrGetter } from 'vue'
-import { computed, inject, provide, toValue } from 'vue'
+import { inject, provide, toValue } from 'vue'
 
 export const createContext = <T, Output = ComputedRef<T>>(
   initialValue: MaybeRefOrGetter<T>,
@@ -27,8 +28,5 @@ export const useContext = <Ctx extends Context, T extends ContextValue<Ctx>>(
   const updatedValue = () => toValue(newValue) ?? toValue(currentValue) ?? context.initialValue
   provide(context.id, updatedValue)
 
-  return context.builder(
-    computed(() => toValue(updatedValue)),
-    computed(() => toValue(currentValue))
-  )
+  return context.builder(toComputed(updatedValue), toComputed(currentValue))
 }
