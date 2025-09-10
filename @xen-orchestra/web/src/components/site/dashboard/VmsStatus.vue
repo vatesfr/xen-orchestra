@@ -10,7 +10,7 @@
     </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend icon="fa:desktop" :segments />
-      <UiCardNumbers :label="t('total')" :value="status?.total" class="total" size="small" />
+      <UiCardNumbers :label="t('total')" :value="status?.total" size="small" />
     </template>
   </UiCard>
 </template>
@@ -56,9 +56,3 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   },
 ])
 </script>
-
-<style lang="postcss" scoped>
-.total {
-  margin-left: auto;
-}
-</style>
