@@ -63,7 +63,7 @@
                 size="small"
               />
               <div v-else-if="column.id === 'job-name'">
-                <UiLink size="medium" icon="object:backup-job" @click.stop>
+                <UiLink size="medium" icon="object:backup-job" :to="`/backup/${row.id}/runs`" @click.stop>
                   {{ column.value }}
                 </UiLink>
               </div>
