@@ -35,6 +35,7 @@ import type {
   XoTask,
   XoProxy,
   AnyXoBackupJob,
+  AnyXoJob,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
