@@ -1,7 +1,7 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import type { Branded, XoJob, XoMetadataJob } from '@vates/types'
+import type { Branded, XoJob, XoMetadataBackupJob } from '@vates/types'
 
 import { notFoundResp, type Unbrand } from '../../open-api/common/response.common.mjs'
 import type { SendObjects } from '../../helpers/helper.type.mjs'
@@ -11,25 +11,25 @@ import { inject } from 'inversify'
 import { JobService } from '../jobs.service.mjs'
 import { job, jobIds, partialJobs } from '../../open-api/oa-examples/jobs.oa-example.mjs'
 
-type UnbrandedXoMetadataJob = Unbrand<Omit<XoMetadataJob, 'settings'>>
+type UnbrandedXoMetadataJob = Unbrand<Omit<XoMetadataBackupJob, 'settings'>>
 
 @Security('*')
 @Route('backup/jobs')
 @Response(notFoundResp.status, notFoundResp.description)
 @Tags('backup')
 @provide(MetadataJobController)
-export class MetadataJobController extends XoController<XoMetadataJob> {
+export class MetadataJobController extends XoController<XoMetadataBackupJob> {
   #jobService: JobService
   constructor(@inject(RestApi) restApi: RestApi) {
     super(restApi)
     this.#jobService = new JobService(this.restApi)
   }
-  async getAllCollectionObjects(): Promise<XoMetadataJob[]> {
+  async getAllCollectionObjects(): Promise<XoMetadataBackupJob[]> {
     return this.#jobService.getMetadataJobs()
   }
 
-  async getCollectionObject(id: Branded<'job'>): Promise<XoMetadataJob> {
-    return this.restApi.xoApp.getJob(id) as Promise<XoMetadataJob>
+  async getCollectionObject(id: Branded<'job'>): Promise<XoMetadataBackupJob> {
+    return this.restApi.xoApp.getJob(id) as Promise<XoMetadataBackupJob>
   }
 
   /**
