@@ -37,6 +37,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Task/Schedule] Set sequences as completly done on success (PR [#8527](https://github.com/vatesfr/xen-orchestra/pull/8527))
+
 - [Pool/HA] Prevent SRs from other pools to be selectable on HA enabling modal (PR [#8924](https://github.com/vatesfr/xen-orchestra/pull/8924))
 - [VIFs] Fix sorting by VIF device (PR [#8877](https://github.com/vatesfr/xen-orchestra/pull/8877))
 - [Home/Pool] Fix "an error has occurred" for non-admin users (PR [#8946](https://github.com/vatesfr/xen-orchestra/pull/8946))
