@@ -224,19 +224,6 @@ export default class RestApi {
     // add migrated collections to maintain their discoverability
     const swaggerEndpoints = {
       alarms: {},
-      backup: {
-        routes: {
-          vms: {
-            jobs: true,
-          },
-          metadata: {
-            jobs: true,
-          },
-          mirror: {
-            jobs: true,
-          },
-        },
-      },
       dashboard: {},
       docs: {},
       messages: {},
@@ -797,14 +784,6 @@ export default class RestApi {
       res.redirect(307, req.baseUrl + '/users/' + user.id + (req.params[0] ?? ''))
     })
 
-    const backupTypes = {
-      __proto__: null,
-
-      metadata: 'metadataBackup',
-      mirror: 'mirrorBackup',
-      vm: 'backup',
-    }
-
     api
       .get(
         '/backup',
@@ -821,35 +800,6 @@ export default class RestApi {
           await sendObjects(logs, req, res)
         })
       )
-      .get(
-        '/backup/jobs',
-        wrap((req, res) =>
-          sendObjects(
-            Object.keys(backupTypes).map(id => ({ id })),
-            req,
-            res
-          )
-        )
-      )
-
-    for (const [collection, type] of Object.entries(backupTypes)) {
-      api
-        .get(
-          '/backup/jobs/' + collection,
-          wrap(async (req, res) => sendObjects(await app.getAllJobs(type), req, res))
-        )
-        .get(
-          `/backup/jobs/${collection}/:id`,
-          wrap(async (req, res) => {
-            res.json(await app.getJob(req.params.id, type))
-          }, true)
-        )
-    }
-
-    // For compatibility, redirect /backup/jobs/:id to /backup/jobs/vm/:id
-    api.get('/backup/jobs/:id', (req, res) => {
-      res.redirect(308, req.baseUrl + '/backup/jobs/vm/' + req.params.id)
-    })
 
     api
       .get(
@@ -874,15 +824,14 @@ export default class RestApi {
         }, true)
       )
 
-    api
-      .get(
-        '/tasks/:id/actions',
-        wrap(async (req, res) => {
-          const task = await app.tasks.get(req.params.id)
+    api.get(
+      '/tasks/:id/actions',
+      wrap(async (req, res) => {
+        const task = await app.tasks.get(req.params.id)
 
-          await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
-        })
-      )
+        await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+      })
+    )
 
     api.get(
       '/:collection',
