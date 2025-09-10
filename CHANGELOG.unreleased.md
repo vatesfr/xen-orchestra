@@ -18,6 +18,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [XO6/New VM] Display only ISO VDIs for the ISO input (PR [#8922](https://github.com/vatesfr/xen-orchestra/pull/8922))
+- [Backup] Fix VDI_NOT_MANAGED error during incremental replication (PR [#8935](https://github.com/vatesfr/xen-orchestra/pull/8935))
 
 ### Packages to release
 
@@ -36,6 +37,7 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web patch
 - xo-web patch
