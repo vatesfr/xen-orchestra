@@ -65,7 +65,6 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/select/vts-select': RouteRecordInfo<'/story/web-core/select/vts-select', '/story/web-core/select/vts-select', Record<never, never>, Record<never, never>>,
     '/story/web-core/stacked-bar-with-legend/vts-stacked-bar-with-legend': RouteRecordInfo<'/story/web-core/stacked-bar-with-legend/vts-stacked-bar-with-legend', '/story/web-core/stacked-bar-with-legend/vts-stacked-bar-with-legend', Record<never, never>, Record<never, never>>,
     '/story/web-core/state-hero/vts-state-hero': RouteRecordInfo<'/story/web-core/state-hero/vts-state-hero', '/story/web-core/state-hero/vts-state-hero', Record<never, never>, Record<never, never>>,
-    '/story/web-core/status/vts-status': RouteRecordInfo<'/story/web-core/status/vts-status', '/story/web-core/status/vts-status', Record<never, never>, Record<never, never>>,
     '/story/web-core/tab/router-tab': RouteRecordInfo<'/story/web-core/tab/router-tab', '/story/web-core/tab/router-tab', Record<never, never>, Record<never, never>>,
     '/story/web-core/tab/tab-item': RouteRecordInfo<'/story/web-core/tab/tab-item', '/story/web-core/tab/tab-item', Record<never, never>, Record<never, never>>,
     '/story/web-core/tab/tab-list': RouteRecordInfo<'/story/web-core/tab/tab-list', '/story/web-core/tab/tab-list', Record<never, never>, Record<never, never>>,
