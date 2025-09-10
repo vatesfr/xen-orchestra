@@ -65,8 +65,8 @@
 </template>
 
 <script lang="ts" setup>
-import BackupJobsSmartModePools from '@/components/backups/jobs/panel/cards-items/BackupJobsSmartModePools.vue'
-import BackupJobsSmartModeTags from '@/components/backups/jobs/panel/cards-items/BackupJobsSmartModeTags.vue'
+import BackupJobSmartModePools from '@/components/backups/panel/card-items/BackupJobSmartModePools.vue'
+import BackupJobSmartModeTags from '@/components/backups/panel/card-items/BackupJobSmartModeTags.vue'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { VmsSmartModeDisabled, VmsSmartModeEnabled, XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
