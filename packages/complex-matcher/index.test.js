@@ -6,6 +6,7 @@ const assert = require('assert').strict
 const { ast, pattern } = require('./index.fixtures')
 const {
   getPropertyClausesStrings,
+  Comparison,
   GlobPattern,
   Null,
   NumberNode,
@@ -50,6 +51,37 @@ describe('parse', () => {
 
   it('supports non-ASCII letters in raw strings', () => {
     assert.deepEqual(parse('åäöé:ÅÄÖÉ'), new Property('åäöé', new StringNode('ÅÄÖÉ')))
+  })
+})
+
+describe('Comparison', () => {
+  it('value should be a valid number', () => {
+    const cmp = value => new Comparison('>', value)
+
+    cmp(1)
+    assert.throws(() => cmp('foo'), { message: 'value must be a number' })
+    assert.throws(() => cmp(NaN), { message: 'value must be a number' })
+  })
+
+  it('can compare with numbers', () => {
+    assert(new Comparison('>', 42).match(43))
+    assert(!new Comparison('>', 42).match(42))
+
+    assert(new Comparison('>', 42).match(43))
+    assert(new Comparison('>=', 42).match(42))
+
+    assert(new Comparison('<', 42).match(41))
+    assert(!new Comparison('<', 42).match(42))
+
+    assert(new Comparison('<', 42).match(41))
+    assert(new Comparison('<=', 42).match(42))
+  })
+
+  it('can match with non numbers', () => {
+    const ts = Date.now()
+
+    assert(new Comparison('>', ts).match(new Date(ts + 1)))
+    assert(!new Comparison('>', ts).match(new Date(ts)))
   })
 })
 
