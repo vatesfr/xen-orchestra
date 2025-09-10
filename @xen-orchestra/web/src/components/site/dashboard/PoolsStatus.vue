@@ -4,7 +4,7 @@
     <VtsLoadingHero v-if="!arePoolsStatusReady" type="card" />
     <template v-else>
       <VtsDonutChartWithLegend icon="fa:city" :segments />
-      <UiCardNumbers :value="total" class="total" label="Total" size="small" />
+      <UiCardNumbers :value="total" label="Total" size="small" />
     </template>
   </UiCard>
 </template>
@@ -38,23 +38,18 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     value: status?.connected ?? 0,
     accent: 'success',
   },
-  {
-    label: t('pools-status.unreachable'),
-    value: status?.unreachable ?? 0,
-    accent: 'warning',
-    tooltip: t('pools-status.unreachable.tooltip'),
-  },
+  // TODO change to disconnected when available in api
   {
     label: t('pools-status.unknown'),
     value: status?.unknown ?? 0,
     accent: 'muted',
     tooltip: t('pools-status.unknown.tooltip'),
   },
+  {
+    label: t('pools-status.unreachable'),
+    value: status?.unreachable ?? 0,
+    accent: 'danger',
+    tooltip: t('pools-status.unreachable.tooltip'),
+  },
 ])
 </script>
-
-<style lang="postcss" scoped>
-.total {
-  margin-left: auto;
-}
-</style>

@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ t('backup-issues') }}
       <UiCounter :value="nBackupIssues" accent="danger" size="medium" variant="primary" />
-      <template #description>{{ t('in-last-three-jobs') }}</template>
+      <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
     <VtsLoadingHero v-if="!areBackupIssuesReady" type="card" />
     <VtsNoDataHero v-else-if="!hasBackupIssues" type="card" />
@@ -12,7 +12,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th :class="{ logs: column.id.startsWith('logs-') }">
+              <th>
                 <div v-tooltip class="text-ellipsis">
                   <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
@@ -34,7 +34,11 @@
                 </div>
               </div>
               <div v-else-if="column.value">
-                <VtsBackupState :state="column.value" />
+                <ul class="last-three-runs">
+                  <li v-for="(status, index) in column.value" :key="index" v-tooltip="status.tooltip">
+                    <VtsIcon size="medium" :name="status.icon" />
+                  </li>
+                </ul>
               </div>
             </td>
           </tr>
@@ -45,9 +49,9 @@
 </template>
 
 <script lang="ts" setup>
+import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import type { IconName } from '@core/icons'
-import VtsBackupState from '@core/components/backup-state/VtsBackupState.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
@@ -57,6 +61,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { createMapper } from '@core/packages/mapper'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -70,21 +75,30 @@ const areBackupIssuesReady = computed(() => issues !== undefined)
 
 const backupIssues = computed(() => issues ?? [])
 
-const logLabels = [t('last'), t('2nd-last'), t('3rd-last')]
+const getRunStatus = createMapper<XoBackupLog['status'], { icon: IconName; tooltip: string }>(
+  {
+    success: { icon: 'legacy:status:success', tooltip: t('success') },
+    skipped: { icon: 'legacy:status:warning', tooltip: t('skipped') },
+    interrupted: { icon: 'legacy:status:danger', tooltip: t('interrupted') },
+    failure: { icon: 'legacy:status:danger', tooltip: t('failure') },
+    pending: { icon: 'legacy:status:info', tooltip: t('in-progress') },
+  },
+  'failure'
+)
 
 const { visibleColumns, rows } = useTable('backupIssues', backupIssues, {
   rowId: record => record.uuid,
   columns: define => [
     define('name', { label: t('job-name') }),
-    ...logLabels.map((label, index) => define(`logs-${index}`, record => record.logs?.[index], { label })),
+    define('last-runs', record => (record.logs ?? []).map(log => getRunStatus(log)), {
+      label: t('last-n-runs', { n: 3 }),
+    }),
   ],
 })
 
 const headerIcon: Record<string, IconName> = {
   name: 'fa:floppy-disk',
-  'logs-0': 'fa:square-caret-down',
-  'logs-1': 'fa:square-caret-down',
-  'logs-2': 'fa:square-caret-down',
+  'last-runs': 'fa:square-caret-down',
 }
 const nBackupIssues = computed(() => backupIssues.value.length)
 
@@ -104,8 +118,10 @@ const hasBackupIssues = computed(() => nBackupIssues.value > 0)
     gap: 0.8rem;
   }
 
-  .logs {
-    max-width: 1.5rem;
+  .last-three-runs {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
   }
 }
 </style>
