@@ -90,7 +90,7 @@
         </template>
       </VtsDataTable>
       <VtsStateHero v-if="searchQuery && filteredBackupJobs.length === 0" format="table" type="no-result" size="small">
-        <div>{{ t('no-result') }}</div>
+        {{ t('no-result') }}
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-bind="paginationBindings" />
