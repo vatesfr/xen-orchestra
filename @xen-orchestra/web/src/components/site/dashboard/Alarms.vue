@@ -5,7 +5,7 @@
       <UiCounter
         v-if="alarms.length !== 0 && areAlarmsReady"
         accent="danger"
-        size="small"
+        size="medium"
         variant="primary"
         :value="alarms.length"
       />
