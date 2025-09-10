@@ -39,9 +39,9 @@
           <VtsEnabledState :enabled="cbtDestroySnapshotData" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="maxExportRate !== undefined">
+      <VtsCardRowKeyValue v-if="settings.maxExportRate !== undefined">
         <template #key>{{ t('speed-limit') }}</template>
-        <template #value>{{ `${maxExportRate.value} ${maxExportRate.prefix}` }}</template>
+        <template #value>{{ `${maxExportRate?.value} ${maxExportRate?.prefix}` }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.checkpointSnapshot !== undefined">
         <template #key>{{ t('checkpoint-snapshot') }}</template>
@@ -79,23 +79,23 @@
         <template #key>{{ t('timezone') }}</template>
         <template #value>{{ settings.timezone }}</template>
       </VtsCardRowKeyValue>
-      <template v-if="settings.reportRecipients && settings.reportRecipients.length > 0">
+      <template v-if="settings.reportRecipients?.length > 0">
         <VtsCardRowKeyValue v-for="(recipient, index) in settings.reportRecipients" :key="index">
           <template #key>
-            <template v-if="index === 0">{{ t('report-recipients') }}</template>
+            <div v-if="index === 0">{{ t('report-recipients') }}</div>
           </template>
           <!-- TODO: use UiCollapsibleList when VtsCardRowKeyValue is updated -->
           <template #value>{{ recipient }}</template>
         </VtsCardRowKeyValue>
       </template>
-      <VtsCardRowKeyValue v-if="formattedTimeout !== undefined">
+      <VtsCardRowKeyValue v-if="settings.timeout">
         <template #key>{{ t('timeout') }}</template>
         <template #value>{{ formattedTimeout }}</template>
       </VtsCardRowKeyValue>
 
       <!-- Settings rest -->
       <UiLogEntryViewer
-        v-if="settings.other && Object.keys(settings.other).length > 0"
+        v-if="Object.keys(settings.other).length > 0"
         :content="settings.other"
         :label="t('other-settings')"
         size="small"
@@ -126,15 +126,11 @@ const { backupJob } = defineProps<{
 
 const { t, locale } = useI18n()
 
-const { useGetProxyById } = useXoProxyCollection()
+const { getProxyById } = useXoProxyCollection()
 
 type ReportWhen = 'always' | 'failure' | 'error' | 'never'
 
 const settings = reactiveComputed(() => {
-  if (!backupJob.settings['']) {
-    return {}
-  }
-
   const {
     preferNbd,
     cbtDestroySnapshotData,
@@ -178,7 +174,7 @@ const settings = reactiveComputed(() => {
   }
 })
 
-const proxy = useGetProxyById(() => settings.proxy)
+const proxy = computed(() => getProxyById(settings.proxy))
 
 const reportWhenValueTranslation = useMapper<ReportWhen, string>(
   () => settings.reportWhen as ReportWhen | undefined,
@@ -199,9 +195,7 @@ const cbtDestroySnapshotData = computed(() =>
 
 const maxExportRate = computed(() => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate) : undefined))
 
-const formattedTimeout = computed(() =>
-  settings.timeout !== undefined ? formatTimeout(Number(settings.timeout), locale.value) : undefined
-)
+const formattedTimeout = computed(() => formatTimeout(Number(settings.timeout), locale.value))
 
 const compression = computed(() => {
   if (backupJob.compression === undefined) {

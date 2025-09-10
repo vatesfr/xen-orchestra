@@ -1,12 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink
-        v-if="backupJob.name !== undefined"
-        size="small"
-        icon="object:backup-job"
-        :to="`/backup/${backupJob.id}/runs`"
-      >
+      <UiLink v-if="backupJob.name !== undefined" size="small" icon="object:backup-job">
         {{ backupJob.name }}
       </UiLink>
     </UiCardTitle>
@@ -22,9 +17,9 @@
         <template #key>{{ t('mode') }}</template>
         <template #value>
           <UiTagsList>
-            <UiTag v-for="(mode, index) in backupJobModes" :key="index" accent="info" variant="secondary">
-              {{ mode }}
-            </UiTag>
+            <template v-for="(mode, index) in backupJobModes" :key="index">
+              <UiTag v-if="mode !== undefined" accent="info" variant="secondary">{{ mode }}</UiTag>
+            </template>
           </UiTagsList>
         </template>
         <template v-if="backupJobModes !== undefined" #addons>
@@ -56,7 +51,7 @@ const { t } = useI18n()
 
 const { getModeLabels } = useXoBackupUtils()
 
-const backupJobModes = computed(() => getModeLabels(backupJob).filter(mode => mode))
+const backupJobModes = computed(() => getModeLabels(backupJob))
 </script>
 
 <style scoped lang="postcss">
