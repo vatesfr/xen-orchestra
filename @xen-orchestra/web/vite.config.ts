@@ -38,5 +38,13 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    build: {
+      commonjsOptions: {
+        include: [/value-matcher/],
+      },
+    },
+    optimizeDeps: {
+      include: ['value-matcher'],
+    },
   }
 })
