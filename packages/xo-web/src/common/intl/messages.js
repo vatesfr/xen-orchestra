@@ -2812,16 +2812,16 @@ const messages = {
   recipeSearches: 'Search domains',
   recipeSearchesExample: 'domain.com,search.org',
 
-  // Recipe DCScope
+  // Recipe DC Scope
   recipeVMNameLabel: 'VM Name',
   recipeVMIpAddress: 'VM IP address',
-  recipeVMxoPassword: 'XO Password for DCScope',
-  recipeVMxoUser: 'XO Username for DCScope',
-  recipeXoUrl: 'XO url for DCScope',
-  recipeDcScopeTemplateId: 'DCScope template UUID',
+  recipeVMxoPassword: 'XO Password for DC Scope',
+  recipeVMxoUser: 'XO Username for DC Scope',
+  recipeXoUrl: 'XO URL for DC Scope',
+  recipeDcScopeTemplateId: 'DC Scope template UUID',
   recipeUserCompany: 'Company',
   recipeUserEmail: 'Email',
-  recipePerformanceConfig: 'Performance for VM DCScope',
+  recipePerformanceConfig: 'Performance for VM DC Scope',
   dcScopeTest: 'Test config (10 VM): CPU(2), RAM(4), Disk(10Go)',
   dcScopeVerySmall: 'Very small config (<1000 VM): CPU(2), RAM(4), Disk(10Go)',
   dcScopeSmall: 'Small config (1000-2500 VM): CPU(2), RAM(24), Disk(10Go)',

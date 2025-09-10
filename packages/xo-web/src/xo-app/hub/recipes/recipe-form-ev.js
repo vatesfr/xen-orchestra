@@ -119,7 +119,7 @@ export default decorate([
     },
   }),
   injectState,
-  ({ effects, install, intl: { formatMessage }, state, value }) => (
+  ({ effects, intl: { formatMessage }, state, value }) => (
     <Container>
       <FormGrid.Row>
         <label>{_('vmImportToPool')}</label>
