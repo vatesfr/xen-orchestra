@@ -1,6 +1,6 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { provide } from 'inversify-binding-decorators'
-import { Request as ExRequest } from 'express'
+import { Request as ExRequest, Response as ExResponse } from 'express'
 import type { Branded, XoBackupJob, XoJob } from '@vates/types'
 
 import { notFoundResp, type Unbrand } from '../../open-api/common/response.common.mjs'
@@ -58,5 +58,16 @@ export class VmJobController extends XoController<XoBackupJob> {
   @Response(notFoundResp.status, notFoundResp.description)
   async getVmJob(@Path() id: string): Promise<UnbrandedXoBackupJob> {
     return this.getObject(id as XoJob['id'])
+  }
+
+  /**
+   * Redirects from /backup/jobs/{id} to /backup/jobs/vm/{id}
+   * @example id "7d98fee4-3357-41a7-ac3f-9124212badb7"
+   */
+  @Get('{id}')
+  @Response(308, 'Permanent Redirect')
+  async redirectToVmJob(@Path() id: string, @Request() req: ExRequest): Promise<void> {
+    const res = req.res as ExResponse
+    res.redirect(308, `/rest/v0/backup/jobs/vm/${id}`)
   }
 }
