@@ -12,7 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
-- [Xostor] Show resource without volumes in xostor View (PR [#8944](https://github.com/vatesfr/xen-orchestra/pull/8944))
+- [XOSTOR] Show resource without volumes in XOSTOR view (PR [#8944](https://github.com/vatesfr/xen-orchestra/pull/8944))
 
 ### Bug fixes
 
