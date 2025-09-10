@@ -20,7 +20,7 @@ const DEFAULT_TIMEZONE = moment.tz.guess()
 
 const RECIPE_INFO = {
   id: 'test',
-  name: 'DCScope VM',
+  name: 'DC Scope VM',
   description: 'Creates an DCScope VM with parameters and application inside',
 }
 
@@ -46,7 +46,6 @@ export default decorate([
     }),
     effects: {
       async create() {
-        const { markRecipeAsCreating, markRecipeAsDone } = this.props
         const recipeParams = await form({
           defaultValue: {
             pool: {},
@@ -80,7 +79,6 @@ export default decorate([
         } = recipeParams
 
         const performanceConfig = INDEX_TO_PERF_CONFIG[performanceIndex]
-        markRecipeAsCreating(RECIPE_INFO.id)
 
         const vmId = await createEasyVirtVM({
           vmName,
@@ -98,7 +96,6 @@ export default decorate([
           userCompany,
           performanceConfig,
         })
-        markRecipeAsDone(RECIPE_INFO.id)
 
         success(
           _('recipeCreatedSuccessfully'),
