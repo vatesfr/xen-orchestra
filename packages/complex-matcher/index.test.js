@@ -62,6 +62,20 @@ describe('Comparison', () => {
     assert.throws(() => cmp('foo'), { message: 'value must be a number' })
     assert.throws(() => cmp(NaN), { message: 'value must be a number' })
   })
+
+  it('can compare with numbers', () => {
+    assert(new Comparison('>', 42).match(43))
+    assert(!new Comparison('>', 42).match(42))
+
+    assert(new Comparison('>', 42).match(43))
+    assert(new Comparison('>=', 42).match(42))
+
+    assert(new Comparison('<', 42).match(41))
+    assert(!new Comparison('<', 42).match(42))
+
+    assert(new Comparison('<', 42).match(41))
+    assert(new Comparison('<=', 42).match(42))
+  })
 })
 
 describe('GlobPattern', () => {
