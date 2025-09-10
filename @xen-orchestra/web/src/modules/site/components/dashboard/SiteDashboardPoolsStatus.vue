@@ -7,7 +7,7 @@
     </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend icon="object:pool" :segments />
-      <UiCardNumbers :value="total" class="total" :label="t('total')" size="small" />
+      <UiCardNumbers :value="total"  :label="t('total')" size="small" />
     </template>
   </UiCard>
 </template>
@@ -42,23 +42,18 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     value: status?.connected ?? 0,
     accent: 'success',
   },
-  {
-    label: t('pool:status:unreachable', 2),
-    value: status?.unreachable ?? 0,
-    accent: 'warning',
-    tooltip: t('pool:status:unreachable:tooltip'),
-  },
+  // TODO change to disconnected when available in api
   {
     label: t('pool:status:unknown'),
     value: status?.unknown ?? 0,
     accent: 'muted',
     tooltip: t('pool:status:unknown:tooltip'),
   },
+  {
+    label: t('pool:status:unreachable', 2),
+    value: status?.unreachable ?? 0,
+    accent: 'danger',
+    tooltip: t('pool:status:unreachable:tooltip'),
+  },
 ])
 </script>
-
-<style lang="postcss" scoped>
-.total {
-  margin-left: auto;
-}
-</style>

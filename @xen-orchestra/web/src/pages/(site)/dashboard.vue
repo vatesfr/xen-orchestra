@@ -1,10 +1,14 @@
 <template>
   <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
-    <SiteDashboardPoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
+    <div class="row first-row">
+      <SiteDashboardPoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
     <SiteDashboardHostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
-    <SiteDashboardVmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
-    <DashboardAlarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
-    <SiteDashboardPatches
+      <SiteDashboardVmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
+    <SiteDashboardResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" :has-error />
+    </div>
+      <div class="row second-row">
+      <DashboardAlarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
+      <SiteDashboardPatches
       class="patches"
       :missing-patches="dashboard.missingPatches"
       :n-hosts="dashboard.nHosts"
@@ -12,16 +16,13 @@
       :n-pools="dashboard.nPools"
       :has-error
     />
-    <SiteDashboardResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" :has-error />
-    <SiteDashboardBackups class="backups" :backups="dashboard.backups" :has-error />
-    <SiteDashboardBackupIssues class="backup-issues" :issues="dashboard.backups?.issues" />
-    <SiteDashboardRepositories
-      class="repositories"
-      :backup-repositories
-      :storage-repositories
-      :s3-size="dashboard.backupRepositories?.s3?.size"
-      :has-error
-    />
+        <BackupJobsStatus class="backup-jobs-status" :backups="dashboard.backups" :has-error />
+        <VmsProtection class="vms-protection" :backups="dashboard.backups" :has-error />
+        <BackupIssues class="backup-issues" :issues="dashboard.backups?.issues" :has-error />
+        <BackupRepository class="backup-repository" :repositories="backupRepositories" :has-error />
+        <StorageRepository class="storage-repository" :repositories="storageRepositories" :has-error />
+        <S3BackupRepository class="s3-backup-repository" :size="dashboard.backupRepositories?.s3?.size" :has-error />
+      </div>
   </div>
 </template>
 
@@ -48,18 +49,25 @@ const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
 
 <style lang="postcss" scoped>
 .site-dashboard {
-  display: grid;
   margin: 0.8rem;
-  gap: 0.8rem;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-areas:
-    'pools-status pools-status hosts-status hosts-status vms-status vms-status resources-overview resources-overview'
-    'alarms alarms alarms alarms alarms alarms patches patches'
-    'backups backups backups backup-issues backup-issues backup-issues backup-issues backup-issues'
-    'repositories repositories repositories repositories repositories repositories repositories repositories';
 
-  &.mobile {
-    grid-template-columns: minmax(20rem, 1fr);
+  /* === DESKTOP === */
+  .row {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .row + .row {
+    margin-top: 0.8rem;
+  }
+
+  .first-row {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-areas: 'pools-status hosts-status vms-status resources-overview';
+  }
+
+  .second-row {
+    grid-template-columns: repeat(3, 1fr);
     grid-template-areas:
       'pools-status'
       'hosts-status'
@@ -97,16 +105,42 @@ const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
     grid-area: resources-overview;
   }
 
-  .backups {
-    grid-area: backups;
+  .backup-jobs-status {
+    grid-area: backup-jobs-status;
+  }
+
+  .vms-protection {
+    grid-area: vms-protection;
   }
 
   .backup-issues {
     grid-area: backup-issues;
   }
 
-  .repositories {
-    grid-area: repositories;
+  .backup-repository {
+    grid-area: backup-repository;
+  }
+
+  .storage-repository {
+    grid-area: storage-repository;
+  }
+
+  .s3-backup-repository {
+    grid-area: s3-backup-repository;
+  }
+
+  /* === MOBILE === */
+  &.mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  &.mobile .row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 0;
   }
 }
 </style>
