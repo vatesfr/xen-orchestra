@@ -1823,6 +1823,7 @@ const messages = {
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
+  templatePoolInfo: 'the Pool id.',
   templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
   coreOsDefaultTemplateError: 'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
@@ -2789,6 +2790,8 @@ const messages = {
   templatesLabel: 'Templates',
   recipesLabel: 'Recipes',
   network: 'Network',
+
+  // Recipe Kubernetes
   recipeSelectK8sVersion: 'Select Kubernetes version',
   recipeClusterNameLabel: 'Cluster name',
   recipeNumberOfNodesLabel: 'Number of worker nodes',
@@ -2808,6 +2811,24 @@ const messages = {
   recipeNameserverAddressesExample: '192.168.1.0,172.16.1.0',
   recipeSearches: 'Search domains',
   recipeSearchesExample: 'domain.com,search.org',
+
+  // Recipe DC Scope
+  recipeVMNameLabel: 'VM Name',
+  recipeVMIpAddress: 'VM IP address',
+  recipeVMxoPassword: 'XO Password for DC Scope',
+  recipeVMxoUser: 'XO Username for DC Scope',
+  recipeXoUrl: 'XO URL for DC Scope',
+  recipeDcScopeTemplateId: 'DC Scope template UUID',
+  recipeUserCompany: 'Company',
+  recipeUserEmail: 'Email',
+  recipePerformanceConfig: 'Performance for VM DC Scope',
+  dcScopeTest: 'Test config (10 VM): CPU(2), RAM(4), Disk(10Go)',
+  dcScopeVerySmall: 'Very small config (<1000 VM): CPU(2), RAM(4), Disk(10Go)',
+  dcScopeSmall: 'Small config (1000-2500 VM): CPU(2), RAM(24), Disk(10Go)',
+  dcScopeMedium: 'Medium config (2500-5000 VM): CPU(4), RAM(48), Disk(10Go)',
+  dcScopeBig: 'Big config (5000-7500 VM): CPU(4), RAM(64), Disk(10Go)',
+  dcScopeVeryBig: 'Very big config (7500-10000 VM: CPU(8), RAM(96), Disk(10Go)',
+  dcScopeHuge: 'Huge config (>10000 VM): CPU(8), RAM(128), Disk(10Go)',
 
   // Audit
   auditActionEvent: 'Action/Event',
