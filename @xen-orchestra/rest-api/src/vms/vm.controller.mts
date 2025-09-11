@@ -557,16 +557,15 @@ export class VmController extends XapiXoController<XoVm> {
   async getVmTasks(
     @Request() req: ExRequest,
     @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const vm = this.getObject(id as XoVm['id'])
 
     const tasks = await Array.fromAsync(
-      this.restApi.tasks.list({
-        filter: `objectId:${vm.id}${filter ? ' ' + filter : ''}`,
-        limit,
-      })
+      this.restApi.tasks.list({ filter: (task: XoTask) => task.properties?.objectId === vm.id, limit })
     )
 
     return this.sendObjects(tasks, req, 'tasks')

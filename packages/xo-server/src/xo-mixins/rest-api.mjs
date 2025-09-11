@@ -853,15 +853,14 @@ export default class RestApi {
         }, true)
       )
 
-    api
-      .get(
-        '/tasks/:id/actions',
-        wrap(async (req, res) => {
-          const task = await app.tasks.get(req.params.id)
+    api.get(
+      '/tasks/:id/actions',
+      wrap(async (req, res) => {
+        const task = await app.tasks.get(req.params.id)
 
-          await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
-        })
-      )
+        await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+      })
+    )
 
     api.get(
       '/:collection',
@@ -961,6 +960,10 @@ export default class RestApi {
 
     api.get(
       '/:collection/:object/tasks',
+      (req, res, next) => {
+        if (req.params.collection === 'vms') return next('route')
+        next()
+      },
       wrap(async (req, res) => {
         const { query } = req
         const objectId = req.object.id
