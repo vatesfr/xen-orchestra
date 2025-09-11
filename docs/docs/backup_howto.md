@@ -199,7 +199,6 @@ Below are the main backup and replication types available in Xen Orchestra.
 ## Long-term retention strategy
 
 - Define retention periods based on compliance and operational needs  
-- Use tiered storage if possible (fast storage for recent backups, cheaper storage for older ones)  
 - Regularly test restore from long-term backups
 
 :::warning
