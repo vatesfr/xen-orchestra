@@ -742,6 +742,9 @@ const messages = {
     'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up GB but allows faster merge)',
   remoteUseVhdDirectoryTooltip:
     'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500-1000 files per GB of backed up data)',
+  remoteLimitListConcurrency: 'Only access once per connection to list blob storage',
+  remoteLimitListConcurrencyTooltip:
+    'Use this option only if your remote cannot handle parallel listing and timeouts with a lot of files (ex: Backblaze)',
   remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
   remoteEncryptionEncryptedfiles:
     'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote.',
