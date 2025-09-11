@@ -249,11 +249,6 @@ export default class RestApi {
           missing_patches: true,
         },
       },
-      groups: {},
-      users: {
-        routes: {
-          users: true,
-          authentication_tokens: true,
       groups: {
         routes: {
           users: true,
