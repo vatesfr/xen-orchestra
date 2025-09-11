@@ -33,7 +33,7 @@ import { forbiddenOperation } from 'xo-common/api-errors.js'
 import {
   partialUsers,
   user,
-  userAuthenticationToken,
+  userAuthenticationTokens,
   userId,
   userIds,
 } from '../open-api/oa-examples/user.oa-example.mjs'
