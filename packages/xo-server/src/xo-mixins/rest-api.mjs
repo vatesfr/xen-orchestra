@@ -252,6 +252,16 @@ export default class RestApi {
       groups: {},
       users: {
         routes: {
+          users: true,
+          authentication_tokens: true,
+      groups: {
+        routes: {
+          users: true,
+        },
+      },
+      users: {
+        routes: {
+          groups: true,
           authentication_tokens: true,
         },
       },
@@ -866,15 +876,6 @@ export default class RestApi {
           await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
         })
       )
-      .post(
-        '/tasks/:id/actions/abort',
-        wrap(async (req, res) => {
-          const { id } = req.params
-          await app.tasks.abort(id)
-          res.status = 202
-          res.end(req.baseUrl + '/tasks/' + id)
-        }, true)
-      )
 
     api.get(
       '/:collection',
@@ -912,24 +913,6 @@ export default class RestApi {
         await req.xapiObject.$importContent(req, { format: req.params.format })
 
         res.sendStatus(204)
-      })
-    )
-    api.get(
-      '/:collection(vms|vm-snapshots|vm-templates)/:object.:format(ova|xva)',
-      wrap(async (req, res) => {
-        const vm = req.xapiObject
-
-        const stream =
-          req.params.format === 'ova'
-            ? await vm.$xapi.exportVmOva(vm.$ref)
-            : (
-                await vm.$export({
-                  compress: req.query.compress,
-                })
-              ).body
-
-        res.setHeader('content-disposition', 'attachment')
-        await pipeline(stream, res)
       })
     )
 
@@ -1087,7 +1070,7 @@ export default class RestApi {
     )
 
     api.delete(
-      '/:collection(vdis|vdi-snapshots|vms|vm-snapshots|vm-templates)/:object',
+      '/:collection(vdis|vdi-snapshots)/:object',
       wrap(async (req, res) => {
         await req.xapiObject.$destroy()
         res.sendStatus(200)

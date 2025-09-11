@@ -239,7 +239,7 @@ installPatches.description = 'Install patches on hosts'
 export const rollingUpdate = async function ({ bypassBackupCheck = false, pool, rebootVm }) {
   const poolId = pool.id
   if (bypassBackupCheck) {
-    log.warn('pool.rollingUpdate update with argument "bypassBackupCheck" set to true', { poolId })
+    log.warn('pool.rollingUpdate with argument "bypassBackupCheck" set to true', { poolId })
   } else {
     await backupGuard.call(this, poolId)
   }
@@ -268,7 +268,7 @@ rollingUpdate.resolve = {
 export async function rollingReboot({ bypassBackupCheck, pool }) {
   const poolId = pool.id
   if (bypassBackupCheck) {
-    log.warn('pool.rollingReboot update with argument "bypassBackupCheck" set to true', { poolId })
+    log.warn('pool.rollingReboot with argument "bypassBackupCheck" set to true', { poolId })
   } else {
     await backupGuard.call(this, poolId)
   }
