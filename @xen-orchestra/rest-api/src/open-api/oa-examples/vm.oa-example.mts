@@ -262,9 +262,3 @@ export const vmVdis = [
     href: '/rest/v0/vdis/0eb73d40-e5f8-443d-b611-a52e03858a6a',
   },
 ]
-
-export const vmTasks = [
-  '/rest/v0/vms/613f541c-4bed-fc77-7ca8-2db6b68f079c/tasks/0mfcbgbm5',
-  '/rest/v0/vms/613f541c-4bed-fc77-7ca8-2db6b68f079c/tasks/0mfcbheek',
-  '/rest/v0/vms/613f541c-4bed-fc77-7ca8-2db6b68f079c/tasks/0mfcbhw6z',
-]

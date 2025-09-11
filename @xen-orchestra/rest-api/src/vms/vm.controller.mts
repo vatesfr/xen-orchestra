@@ -46,9 +46,9 @@ import {
 import { BASE_URL } from '../index.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { partialVms, vm, vmIds, vmStatsExample, vmTasks, vmVdis } from '../open-api/oa-examples/vm.oa-example.mjs'
+import { partialVms, vm, vmIds, vmStatsExample, vmVdis } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import { partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { VmService } from './vm.service.mjs'
@@ -547,10 +547,10 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
-   * @example filter "status:pending"
+   * @example filter "status:failure"
    * @example limit 42
    */
-  @Example(vmTasks)
+  @Example(partialTasks)
   @Get('{id}/tasks')
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
@@ -560,17 +560,15 @@ export class VmController extends XapiXoController<XoVm> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    this.getObject(id as XoVm['id'])
+    const vm = this.getObject(id as XoVm['id'])
 
-    const baseFilter = (t: XoTask) => t.properties?.objectId === id
+    const tasks = await Array.fromAsync(
+      this.restApi.tasks.list({
+        filter: `objectId:${vm.id}${filter ? ' ' + filter : ''}`,
+        limit,
+      })
+    )
 
-    const collectedTasks: XoTask[] = []
-    for await (const t of this.restApi.tasks.list({ filter: baseFilter })) {
-      collectedTasks.push(t)
-    }
-
-    const tasks = limitAndFilterArray(collectedTasks, { filter, limit })
-
-    return this.sendObjects(tasks, req)
+    return this.sendObjects(tasks, req, 'tasks')
   }
 }
