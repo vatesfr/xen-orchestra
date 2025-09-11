@@ -10,7 +10,7 @@ import SortedTable from 'sorted-table'
 import StateButton from 'state-button'
 import Tooltip from 'tooltip'
 import { confirm } from 'modal'
-import { connectStore, noop } from 'utils'
+import { connectStore, noop, toNaturalSortableString } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { error } from 'notification'
@@ -232,7 +232,7 @@ const PIF_COLUMNS = [
     default: true,
     itemRenderer: pif => pif.device,
     name: _('pifDeviceLabel'),
-    sortCriteria: 'device',
+    sortCriteria: pif => toNaturalSortableString(pif.device),
   },
   {
     itemRenderer: (pif, userData) => (

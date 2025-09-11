@@ -716,3 +716,8 @@ export const getDetachedBackupsOrSnapshots = (backupsOrSnapshots, { jobs, schedu
 
   return detachedBackupsOrSnapshots
 }
+
+// ===================================================================
+
+// 'foo42bar' → 'foo00000042bar'
+export const toNaturalSortableString = (str, nDigits = 8) => str.replace(/\d+/g, n => n.padStart(nDigits, '0'))

@@ -31,7 +31,7 @@
 - [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
 - [REST API] Expose `/rest/v0/vms/<vm-id>/backup-jobs` (PR [#8948](https://github.com/vatesfr/xen-orchestra/pull/8948))
 - [SR/Advanced] Add a security to prevent accidentally reclaiming freed space during backups (PR [#8947](https://github.com/vatesfr/xen-orchestra/pull/8947))
-
+- [Host/PIFs] Use a natural sort when sorting by device (eth9 < eth10) (PR [#8967](https://github.com/vatesfr/xen-orchestra/pull/8967))
 
 ### Bug fixes
 
