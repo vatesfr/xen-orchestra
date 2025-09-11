@@ -1,7 +1,7 @@
 import type { EventEmitter } from 'node:events'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
-import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, BACKUP_TYPE, XapiPoolStats } from '@vates/types/common'
+import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, XapiPoolStats } from '@vates/types/common'
 import type {
   XenApiGpuGroupWrapped,
   XenApiHostWrapped,
@@ -35,6 +35,7 @@ import type {
   XoPool,
   XoTask,
   XoProxy,
+  AnyXoBackupJob,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -69,7 +70,10 @@ export type XoApp = {
     getOptionalDuration(path: string): number | undefined
   }
   tasks: EventEmitter & {
+    abort(id: XoTask['id'], reason?: string): Promise<void>
+    clearLogs(): Promise<void>
     create: (params: { name: string; objectId?: string; type?: string }) => VatesTask
+    deleteLog(id: XoTask['id']): Promise<void>
     get(id: XoTask['id']): Promise<XoTask>
     list(opts?: { filter?: string | ((obj: XoTask) => boolean); limit?: number }): AsyncGenerator<XoTask>
     watch(id: XoTask['id'], cb: (task: XoTask) => void): Promise<() => void>
@@ -98,7 +102,8 @@ export type XoApp = {
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
   getAllProxies(): Promise<XoProxy[]>
-  getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
+  getAllJobs(): Promise<AnyXoJob[]>
+  getAllJobs<T extends AnyXoBackupJob['type']>(type: T): Promise<Extract<AnyXoBackupJob, { type: T }>[]>
   getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
@@ -124,7 +129,7 @@ export type XoApp = {
   getBackupNgLogsSorted(opts: { filter: (log: Record<string, string>) => boolean }): Promise<Record<string, string>[]>
   getGroup(id: XoGroup['id']): Promise<XoGroup>
   getHVSupportedVersions: undefined | (() => Promise<{ [key: XoHost['productBrand']]: string }>)
-  getJob(id: XoJob['id']): Promise<XoJob>
+  getJob<T extends AnyXoJob>(id: T['id']): Promise<T>
   getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type'] | T['type'][]) => T
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],
@@ -135,7 +140,10 @@ export type XoApp = {
   getUser: (id: XoUser['id']) => Promise<XoUser>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
-  getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
+  getXapiObject: <T extends XapiXoRecord>(
+    maybeId: T['id'] | T,
+    type: T['type'] | T['type'][]
+  ) => XapiRecordByXapiXoRecord[T['type']]
   getXapiPoolStats(poolId: XoPool['id'], granularity?: XapiStatsGranularity): Promise<XapiPoolStats>
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>

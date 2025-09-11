@@ -23,16 +23,20 @@ import type {
   XapiVmStats,
   XenApiVm,
   XoAlarm,
+  XoBackupJob,
   XoHost,
   XoVdi,
   XoVm,
   XoVmSnapshot,
 } from '@vates/types'
+import { Readable } from 'node:stream'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import {
   asynchronousActionResp,
   createdResp,
+  forbiddenOperationResp,
+  incorrectStateResp,
   internalServerErrorResp,
   noContentResp,
   notFoundResp,
@@ -48,6 +52,9 @@ import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { VmService } from './vm.service.mjs'
+import { BackupService } from '../backups/backup.service.mjs'
+import type { UnbrandXoBackupJob } from '../backups/backup.type.mjs'
+import { backupJobIds, partialBackupJobs } from '../open-api/oa-examples/backup.oa-example.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -61,15 +68,18 @@ const IGNORED_VDIS_TAG = '[NOSNAP]'
 export class VmController extends XapiXoController<XoVm> {
   #alarmService: AlarmService
   #vmService: VmService
+  #backupService: BackupService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(AlarmService) alarmService: AlarmService,
-    @inject(VmService) vmService: VmService
+    @inject(VmService) vmService: VmService,
+    @inject(BackupService) backupService: BackupService
   ) {
     super('VM', restApi)
     this.#alarmService = alarmService
     this.#vmService = vmService
+    this.#backupService = backupService
   }
 
   /**
@@ -93,6 +103,29 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    *
+   * Export VM. Compress is only used for XVA format
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Get('{id}.{format}')
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid format, Invalid compress')
+  async exportVm(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Path() format: 'xva' | 'ova',
+    @Query() compress?: boolean
+  ): Promise<Readable> {
+    const stream = await this.#vmService.export(id as XoVm['id'], 'VM', { compress, format, response: req.res })
+    process.on('SIGTERM', () => req.destroy())
+    req.on('close', () => stream.destroy())
+
+    return stream
+  }
+
+  /**
+   *
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    */
   @Example(vm)
@@ -100,6 +133,19 @@ export class VmController extends XapiXoController<XoVm> {
   @Response(notFoundResp.status, notFoundResp.description)
   getVm(@Path() id: string): Unbrand<XoVm> {
     return this.getObject(id as XoVm['id'])
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  async deleteVm(@Path() id: string): Promise<void> {
+    const xapiVm = this.getXapiObject(id as XoVm['id'])
+    await xapiVm.$xapi.VM_destroy(xapiVm.$ref)
   }
 
   /**
@@ -503,5 +549,35 @@ export class VmController extends XapiXoController<XoVm> {
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVm['id'], 'VM')
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example fields "mode,name,compression"
+   * @example filter "mode:full"
+   * @example limit 42
+   */
+  @Example(backupJobIds)
+  @Example(partialBackupJobs)
+  @Get('{id}/backup-jobs')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getVmBackupJobs(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<UnbrandXoBackupJob>>> {
+    const backupJobs = await this.restApi.xoApp.getAllJobs('backup')
+
+    const vmBackupJobs: XoBackupJob[] = []
+    for (const backupJob of backupJobs) {
+      if (await this.#backupService.isVmInBackupJob(backupJob.id, id as XoVm['id'])) {
+        vmBackupJobs.push(backupJob)
+      }
+    }
+
+    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter, limit }), req, '/backup/jobs/vm')
   }
 }
