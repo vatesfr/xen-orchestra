@@ -1,4 +1,4 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
@@ -6,7 +6,7 @@ import type { Request as ExRequest, Response as ExResponse } from 'express'
 import type { XoAlarm, XoVdiSnapshot } from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { partialVdiSnapshots, vdiSnapshot, vdiSnapshotIds } from '../open-api/oa-examples/vdi-snapshot.oa-example.mjs'
@@ -111,5 +111,16 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
     })
 
     return this.sendObjects(Object.values(alarms), req, 'alarms')
+  }
+
+  /**
+   * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteVdiSnapshot(@Path() id: string): Promise<void> {
+    const xapiVdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])
+    await xapiVdiSnapshot.$xapi.VDI_destroy(xapiVdiSnapshot.$ref)
   }
 }
