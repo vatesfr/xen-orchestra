@@ -1,10 +1,10 @@
 <template>
   <div class="table-container">
-    <VtsStateHero v-if="!isReady" format="table" busy />
-    <VtsStateHero v-else-if="hasError" format="table" type="error" image-size="small" no-background>
+    <VtsStateHero v-if="!isReady" format="table" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="table" type="error" size="small" no-background>
       {{ t('error-no-data') }}
     </VtsStateHero>
-    <VtsStateHero v-else-if="noDataMessage" format="table" type="no-data" image-size="small">
+    <VtsStateHero v-else-if="noDataMessage" format="table" type="no-data" size="small">
       {{ noDataMessage ? noDataMessage : t('no-data') }}
     </VtsStateHero>
     <VtsTable v-else vertical-border>

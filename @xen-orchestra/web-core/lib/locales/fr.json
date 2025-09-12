@@ -108,7 +108,7 @@
   "console-clipboard": "Presse-papiers de la console",
   "console-offline": "Console hors ligne",
   "console-unavailable": "Console indisponible",
-  "console-unavailable-reason": "La console est actuellement indisponible car l'hôte est éteint.",
+  "console-unavailable-reason": "La console est actuellement indisponible car {type} est éteint.",
   "control-domain-memory": "Mémoire du domaine de contrôle",
   "copy": "Copier",
   "copy-all": "Copier tout",

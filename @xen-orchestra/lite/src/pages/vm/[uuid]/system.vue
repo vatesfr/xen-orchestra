@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="vm === undefined" format="page" type="not-found" image-size="large">
+  <VtsStateHero v-if="vm === undefined" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id }) }}
   </VtsStateHero>
   <VtsColumns v-else>

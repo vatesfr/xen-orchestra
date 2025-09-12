@@ -1,6 +1,8 @@
 <template>
-  <VtsStateHero v-if="pool === undefined" format="page" type="no-data">{{ t('no-data') }}</VtsStateHero>
-  <VtsStateHero v-else-if="!isReady" format="page" busy />
+  <VtsStateHero v-if="!isReady" format="page" busy size="medium" />
+  <VtsStateHero v-else-if="pool === undefined" format="page" type="no-data" size="medium">
+    {{ t('no-data') }}
+  </VtsStateHero>
   <VtsColumns v-else>
     <VtsColumn>
       <PoolGeneralInfo :pool />

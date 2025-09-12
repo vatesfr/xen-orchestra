@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-vms-status">
     <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
-    <VtsStateHero v-if="!isReady" format="card" busy />
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
     <template v-else>
       <VtsDonutChartWithLegend :segments />
       <UiCardNumbers class="total" :label="t('total')" :value="total" size="small" />

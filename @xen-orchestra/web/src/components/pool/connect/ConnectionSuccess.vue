@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero class="connection-success" type="all-good" format="card">
+  <VtsStateHero class="connection-success" type="all-good" format="card" size="medium">
     <div class="container">
       <div v-if="server" class="typo-h1 title">{{ t('connected-to-ip', { ip: server.host }) }}</div>
       <div class="content" :class="{ mobile: uiStore.isMobile, desktop: !uiStore.isDesktopLarge }">

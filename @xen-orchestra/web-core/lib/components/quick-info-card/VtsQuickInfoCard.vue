@@ -1,7 +1,7 @@
 <template>
   <UiCard class="vts-quick-info-card">
     <UiCardTitle>{{ t('quick-info') }}</UiCardTitle>
-    <VtsStateHero v-if="loading" format="card" busy />
+    <VtsStateHero v-if="loading" format="card" busy size="medium" />
     <div v-else class="info-container">
       <slot />
     </div>

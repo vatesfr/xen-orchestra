@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('networking') }}
     </UiTitle>
-    <VtsStateHero v-if="!areNetworksReady" format="card" busy />
+    <VtsStateHero v-if="!areNetworksReady" format="card" busy size="medium" />
     <template v-else>
       <VtsQuickInfoRow :label="t('backup-network')">
         <template #value>

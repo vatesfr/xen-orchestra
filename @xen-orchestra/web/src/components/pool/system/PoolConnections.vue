@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('connections') }}
     </UiTitle>
-    <VtsStateHero v-if="!areServersReady" format="card" busy />
+    <VtsStateHero v-if="!areServersReady" format="card" busy size="medium" />
     <template v-else>
       <VtsQuickInfoRow :label="t('ip-address')" :value="server?.host" />
       <VtsQuickInfoRow :label="t('proxy-url')" :value="server?.httpProxy" />

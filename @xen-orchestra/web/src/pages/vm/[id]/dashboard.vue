@@ -2,14 +2,14 @@
   <div class="dashboard" :class="{ mobile: isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="!data" class="offline-hero-container">
-      <VtsStateHero format="page" type="offline" image-size="large" horizontal>
+      <VtsStateHero format="page" type="offline" size="large" horizontal>
         <span>
           {{ t('all-quiet-launchpad') }}
         </span>
         <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
-        <div class="description">
-          <span class="typo-body-bold">{{ t('vm-off') }}</span>
-          <span class="typo-body-bold">{{ t('start-vm') }}</span>
+        <div class="description typo-body-bold">
+          <span>{{ t('vm-off') }}</span>
+          <span>{{ t('start-vm') }}</span>
         </div>
       </VtsStateHero>
     </div>
@@ -95,6 +95,7 @@ const { t } = useI18n()
   .title {
     color: var(--color-neutral-txt-primary);
   }
+
   .description {
     display: flex;
     flex-direction: column;

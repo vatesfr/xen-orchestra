@@ -1,6 +1,6 @@
 <template>
   <div class="page-not-found">
-    <VtsStateHero format="page" type="not-found" image-size="large">
+    <VtsStateHero format="page" type="not-found" size="large">
       {{ t('page-not-found') }}
     </VtsStateHero>
     <UiLink to="/" size="medium">

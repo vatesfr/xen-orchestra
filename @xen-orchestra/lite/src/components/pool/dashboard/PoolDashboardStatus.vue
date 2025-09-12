@@ -1,8 +1,8 @@
 <template>
   <UiCard class="pool-dashboard-status" :color="hasError ? 'error' : undefined">
     <UiCardTitle>{{ t('status') }}</UiCardTitle>
-    <VtsStateHero v-if="hasError" format="card" type="error" image-size="medium">{{ t('error-no-data') }}</VtsStateHero>
-    <VtsStateHero v-else-if="!isReady" format="card" busy />
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
     <template v-else>
       <PoolDashboardStatusItem
         :active="activeHostsCount"

@@ -129,7 +129,7 @@
           </tr>
         </template>
       </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredVifs.length === 0" format="table" type="no-result" image-size="small">
+      <VtsStateHero v-if="searchQuery && filteredVifs.length === 0" format="table" type="no-result" size="small">
         {{ t('no-result') }}
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">

@@ -1,6 +1,6 @@
 <template>
-  <VtsStateHero v-if="!areVmsReady" format="page" busy />
-  <VtsStateHero v-else-if="!vm" format="page" type="not-found" image-size="large">
+  <VtsStateHero v-if="!areVmsReady" format="page" busy size="large" />
+  <VtsStateHero v-else-if="!vm" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">

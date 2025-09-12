@@ -9,7 +9,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsStateHero v-if="!areHostsRamUsageReady" format="card" busy />
+    <VtsStateHero v-if="!areHostsRamUsageReady" format="card" busy size="medium" />
     <template v-else>
       <HostsRamUsage :top-five-ram="poolDashboard?.hosts?.topFiveUsage?.ram" :has-error />
     </template>
@@ -19,7 +19,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsStateHero v-if="!areVmsRamUsageReady" format="card" busy />
+    <VtsStateHero v-if="!areVmsRamUsageReady" format="card" busy size="medium" />
     <template v-else>
       <VmsRamUsage :top-five-ram="poolDashboard?.vms?.topFiveUsage?.ram" :has-error />
     </template>

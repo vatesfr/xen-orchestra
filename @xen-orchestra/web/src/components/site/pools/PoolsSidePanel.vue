@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="!arePoolsReady" format="panel" busy />
+  <VtsStateHero v-if="!arePoolsReady" format="panel" busy size="medium" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
@@ -168,7 +168,7 @@
             <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
           </span>
         </UiCardTitle>
-        <VtsStateHero v-if="hosts.length === 0" format="card" type="no-data" image-size="small">
+        <VtsStateHero v-if="hosts.length === 0" format="card" type="no-data" size="small">
           {{ t('no-data') }}
         </VtsStateHero>
         <template v-else>

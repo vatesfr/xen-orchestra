@@ -1,8 +1,8 @@
 <template>
   <UiCard :has-error>
     <UiCardTitle>{{ t('hosts-status') }}</UiCardTitle>
-    <VtsStateHero v-if="!areHostsStatusReady" format="card" busy />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="extra-small" horizontal>
+    <VtsStateHero v-if="!areHostsStatusReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
