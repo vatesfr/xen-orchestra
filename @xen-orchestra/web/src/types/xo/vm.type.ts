@@ -65,6 +65,7 @@ export type XoVm = {
   startTime?: number | null
   installTime?: number | null
   pvDriversDetected?: boolean
+  managementAgentDetected?: boolean
   vga: 'std' | 'cirrus'
   videoram?: number
   pvDriversVersion?: string

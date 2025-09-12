@@ -22,6 +22,7 @@
             <UiLink :to="`/host/${host.uuid}`" size="medium">
               {{ host.name_label }}
             </UiLink>
+            <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="legacy:primary" size="medium" />
           </span>
           <span v-else>
             {{ t('none') }}
@@ -33,6 +34,7 @@
       <VtsQuickInfoRow :label="t('description')" :value="vm.name_description" />
       <VtsQuickInfoRow :label="t('os-name')" :value="osVersion" />
       <VtsQuickInfoRow :label="t('virtualization-type')" :value="virtualizationType" />
+      <VtsQuickInfoRow :label="t('guest-tools')" :value="guestTools" />
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('vcpus')" :value="String(vm.VCPUs_at_startup)" />
@@ -52,6 +54,7 @@
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store.ts'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store.ts'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
@@ -64,6 +67,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util.ts'
@@ -80,12 +84,15 @@ const { isReady, getVmHost } = useVmStore().subscribe()
 const { getByOpaqueRef: getGuestMetricsByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 const { getByOpaqueRef: getMetricsByOpaqueRef } = useVmMetricsStore().subscribe()
 const { isHostRunning } = useHostMetricsStore().subscribe()
+const { pool } = usePoolStore().subscribe()
 
 const guestMetrics = computed(() => getGuestMetricsByOpaqueRef(vm.guest_metrics))
 
 const metrics = computed(() => getMetricsByOpaqueRef(vm.metrics))
 
 const host = computed(() => getVmHost(vm))
+
+const isPoolMaster = computed(() => pool.value?.master === host.value?.$ref)
 
 const hostPowerState = computed(() => {
   if (host.value === undefined) {
@@ -154,6 +161,20 @@ const domainType = computed(() => {
 const virtualizationType = computed(() =>
   domainType.value === 'hvm' && guestMetrics.value?.PV_drivers_detected ? 'pvhvm' : domainType.value
 )
+
+const guestTools = computed(() => {
+  const version = guestMetrics.value?.PV_drivers_version
+
+  if (!guestMetrics.value?.PV_drivers_detected || !version) {
+    return ''
+  }
+
+  if (Object.entries(version).length === 0) {
+    return ''
+  }
+
+  return `${version.major}.${version.minor}.${version.micro}-${version.build}`
+})
 
 const mainIpAddress = computed(() => {
   if (!guestMetrics.value?.networks) {
