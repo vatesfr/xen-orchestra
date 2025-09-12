@@ -5,7 +5,7 @@
         {{ label }}
       </slot>
     </span>
-    <span class="typo-body-regular value">
+    <span v-tooltip class="typo-body-regular value text-ellipsis">
       <slot name="value">
         {{ value }}
       </slot>
