@@ -18,7 +18,7 @@ import {
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { provide } from 'inversify-binding-decorators'
 
-import { unauthorizedResp } from '../open-api/common/response.common.mjs'
+import { notFoundResp, unauthorizedResp } from '../open-api/common/response.common.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type {
   UnbrandAnyXoBackupJob,
@@ -87,6 +87,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
    * @example id "d33f3dc1-92b4-469c-ad58-4c2a106a4721"
    */
   @Example(vmBackupJob)
+  @Response(notFoundResp.status, notFoundResp.description)
   @Get('{id}')
   getBackupJob(@Path() id: string): Promise<UnbrandAnyXoBackupJob> {
     return this.getObject(id as AnyXoBackupJob['id'])
@@ -169,6 +170,7 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
    */
   @Example(vmBackupJob)
   @Deprecated()
+  @Response(notFoundResp.status, notFoundResp.description)
   @Get('jobs/vm/{id}')
   getVmBackupJob(@Path() id: string): Promise<UnbrandXoVmBackupJob> {
     console.log('jobs/vm/:id')
@@ -201,6 +203,7 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
    */
   @Example(metadataBackupJob)
   @Deprecated()
+  @Response(notFoundResp.status, notFoundResp.description)
   @Get('jobs/metadata/{id}')
   getMetadataBackupJob(@Path() id: string): Promise<UnbrandXoMetadataBackupJob> {
     return this.getObject(id as XoMetadataBackupJob['id'], 'metadataBackup')
@@ -232,6 +235,7 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
    */
   @Example(mirrorBackupJob)
   @Deprecated()
+  @Response(notFoundResp.status, notFoundResp.description)
   @Get('jobs/mirror/{id}')
   getMirrorBackupJob(@Path() id: string): Promise<UnbrandXoMirrorBackupJob> {
     return this.getObject(id as XoMirrorBackupJob['id'], 'mirrorBackup')
