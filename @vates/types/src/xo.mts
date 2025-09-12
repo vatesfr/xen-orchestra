@@ -421,7 +421,6 @@ export type XoVmBackupJobScheduleSettings = {
   healthCheckSr?: XoSr['id']
   [key: string]: unknown
 }
-
 export type XoVmBackupJob = BaseXoJob & {
   compression?: 'native' | 'zstd' | ''
   proxy?: XoProxy['id']
