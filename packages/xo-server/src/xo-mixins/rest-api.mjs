@@ -268,6 +268,7 @@ export default class RestApi {
         routes: {
           alarms: true,
           vdis: true,
+          tasks: true,
         },
       },
       'vm-controllers': {
@@ -853,15 +854,14 @@ export default class RestApi {
         }, true)
       )
 
-    api
-      .get(
-        '/tasks/:id/actions',
-        wrap(async (req, res) => {
-          const task = await app.tasks.get(req.params.id)
+    api.get(
+      '/tasks/:id/actions',
+      wrap(async (req, res) => {
+        const task = await app.tasks.get(req.params.id)
 
-          await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
-        })
-      )
+        await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+      })
+    )
 
     api.get(
       '/:collection',
@@ -959,12 +959,11 @@ export default class RestApi {
         })
       )
 
-    api.get(
-      '/:collection/:object/tasks',
-      (req, res, next) => {
-        if (req.params.collection === 'vms') return next('route')
-        next()
-      },
+    api.get('/:collection/:object/tasks', (req, res, next) => {
+      const collection = req.params.collection
+      if (swaggerEndpoints[collection].routes.tasks) {
+        return next('route')
+      }
       wrap(async (req, res) => {
         const { query } = req
         const objectId = req.object.id
@@ -976,8 +975,8 @@ export default class RestApi {
           limit: ifDef(query.limit, Number),
         })
         await sendObjects(tasks, req, res, '/tasks')
-      })
-    )
+      })(req, res, next)
+    })
 
     api.get(
       ['/:collection/_/actions', '/:collection/:object/actions'],
