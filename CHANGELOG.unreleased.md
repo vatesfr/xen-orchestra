@@ -12,7 +12,6 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **Migrated REST API endpoints**:
-
   - `DELETE /rest/v0/tasks` (PR [#8905](https://github.com/vatesfr/xen-orchestra/pull/8905))
   - `DELETE /rest/v0/tasks/<task-id>` (PR [#8905](https://github.com/vatesfr/xen-orchestra/pull/8905))
   - `DELETE /rest/v0/vms/<vm-id>` (PR [#8938](https://github.com/vatesfr/xen-orchestra/pull/8938))
@@ -26,12 +25,18 @@
   - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>.(xva|ova)` (PR [#8929](https://github.com/vatesfr/xen-orchestra/pull/8929))
   - `GET /rest/v0/groups/<group-id>/users` (PR [#8932](https://github.com/vatesfr/xen-orchestra/pull/8932))
   - `GET /rest/v0/users/<user-id>/groups` (PR [#8936](https://github.com/vatesfr/xen-orchestra/pull/8936))
+  - **deprecated** `GET /rest/v0/backup/jobs/vm` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/jobs/vm/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/jobs/metadata` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/jobs/metadata/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/jobs/mirror` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/jobs/mirror/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
 
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
 - [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
 - [REST API] Expose `/rest/v0/vms/<vm-id>/backup-jobs` (PR [#8948](https://github.com/vatesfr/xen-orchestra/pull/8948))
 - [SR/Advanced] Add a security to prevent accidentally reclaiming freed space during backups (PR [#8947](https://github.com/vatesfr/xen-orchestra/pull/8947))
-
+- [REST API] Expose `/rest/v0/backup-jobs` and `/rest/v0/backup-jobs/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
 
 ### Bug fixes
 
@@ -62,6 +67,7 @@
 - @vates/types minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web patch
 - xo-server minor
 - xo-web minor
 
