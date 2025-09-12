@@ -1823,6 +1823,7 @@ const messages = {
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
+  templateSshInfo: "SSH key corresponding to the key title.",
   templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
   coreOsDefaultTemplateError: 'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
