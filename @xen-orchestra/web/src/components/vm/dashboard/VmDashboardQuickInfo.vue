@@ -98,7 +98,7 @@ const { t, locale } = useI18n()
 
 const { areVmsReady, getVmHost } = useXoVmCollection()
 const { isMasterHost } = useXoHostCollection()
-const { getPoolById } = useXoPoolCollection()
+const { useGetPoolById } = useXoPoolCollection()
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 
 const host = computed(() => getVmHost(vm))
@@ -111,7 +111,7 @@ const isMaster = computed(() => {
   return isMasterHost(host.value.id)
 })
 
-const pool = computed(() => getPoolById(vm.$pool))
+const pool = useGetPoolById(vm.$pool)
 
 const hostPowerState = computed(() => {
   if (host.value === undefined) {
