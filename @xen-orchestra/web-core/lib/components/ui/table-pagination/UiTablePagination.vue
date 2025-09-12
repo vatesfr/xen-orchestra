@@ -91,13 +91,13 @@ const { id: showBySelectId } = useFormSelect([12, 24, 48, -1], {
 
   /* Workaround: we don't have "small" select yet */
   .show-by-select {
-    width: 6rem;
+    width: 7rem;
 
     &:deep(.ui-input) {
       height: 3rem;
       padding-inline: 0.8rem;
       gap: 0.8rem;
-      min-width: 6rem;
+      min-width: 7rem;
     }
 
     &:deep(.input) {
