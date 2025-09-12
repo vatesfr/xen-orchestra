@@ -2,7 +2,16 @@
   <div class="dashboard" :class="{ mobile: isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="!data" class="offline-hero-container">
-      <VtsOfflineHero type="page" />
+      <VtsStateHero format="page" type="offline" size="large" horizontal>
+        <span>
+          {{ t('all-quiet-launchpad') }}
+        </span>
+        <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
+        <div class="description typo-body-bold">
+          <span>{{ t('vm-off') }}</span>
+          <span>{{ t('start-vm') }}</span>
+        </div>
+      </VtsStateHero>
     </div>
     <template v-else>
       <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
@@ -22,8 +31,9 @@ import VmDashboardVdiUsageChart from '@/components/vm/dashboard/VmDashboardVdiUs
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
 import { type XoVm } from '@/types/xo/vm.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
-import VtsOfflineHero from '@core/components/state-hero/VtsOfflineHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
   vm: XoVm
@@ -32,6 +42,8 @@ const { vm } = defineProps<{
 const { data, isFetching, error } = useFetchStats('vm', () => vm.id, GRANULARITY.Hours)
 
 const { isMobile } = useUiStore()
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
@@ -62,8 +74,6 @@ const { isMobile } = useUiStore()
 
   .offline-hero-container {
     grid-area: offline-hero-container;
-    width: 50rem;
-    margin: 0 auto;
   }
 
   .cpu-usage-chart {
@@ -80,6 +90,17 @@ const { isMobile } = useUiStore()
 
   .vdi-usage-chart {
     grid-area: vdi-usage-chart;
+  }
+
+  .title {
+    color: var(--color-neutral-txt-primary);
+  }
+
+  .description {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>

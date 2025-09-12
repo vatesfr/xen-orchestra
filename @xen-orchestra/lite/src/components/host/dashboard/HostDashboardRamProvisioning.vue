@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-ram-provisioning">
     <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
     <template v-else>
       <VtsProgressBar
         :current="memory?.usage ?? 0"
@@ -32,7 +32,7 @@ import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

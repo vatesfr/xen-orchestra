@@ -1,23 +1,26 @@
 <template>
   <div :class="uiStore.isMobile ? 'mobile' : undefined" class="vts-remote-console">
-    <VtsLoadingHero v-if="!isReady" type="panel" />
+    <VtsStateHero v-if="!isReady" format="page" busy size="medium">{{ t('loading') }}</VtsStateHero>
     <div ref="console-container" class="console" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import VncClient from '@novnc/novnc/lib/rfb'
 import { whenever } from '@vueuse/core'
 import { promiseTimeout } from '@vueuse/shared'
 import { fibonacci } from 'iterable-backoff'
 import { onBeforeUnmount, ref, useTemplateRef, watchEffect } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   url: URL
   isConsoleAvailable: boolean
 }>()
+
+const { t } = useI18n()
 
 const uiStore = useUiStore()
 
@@ -147,6 +150,7 @@ defineExpose({
   }
 
   /* Required because the library adds "margin: auto" to the canvas which makes the canvas centered in space and not aligned to the rest of the layout */
+
   :deep(canvas) {
     margin: 0 auto !important;
     cursor: default !important;

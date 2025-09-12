@@ -306,7 +306,7 @@
   "load-average": "Carga media del sistema",
   "load-now": "Cargar ahora",
   "loading-hosts": "Cargando servidores…",
-  "loading-in-progress": "Cargando…",
+  "loading": "Cargando…",
   "locking-mode": "Modo de bloqueo",
   "locking-mode-default": "Modo de bloqueo por defecto",
   "log-out": "Desconectarse",

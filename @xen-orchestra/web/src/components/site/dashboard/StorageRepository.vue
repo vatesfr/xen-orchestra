@@ -4,7 +4,7 @@
       {{ t('storage-repository') }}
       <template #description>{{ t('for-replication') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!areStorageRepositoriesReady" type="card" />
+    <VtsStateHero v-if="!areStorageRepositoriesReady" format="card" busy size="medium" />
     <template v-else>
       <VtsStackedBarWithLegend :max-value="maxValue" :segments />
       <div class="numbers">
@@ -36,7 +36,7 @@ import type { StorageRepositories } from '@/remote-resources/use-xo-site-dashboa
 import VtsStackedBarWithLegend, {
   type StackedBarWithLegendProps,
 } from '@core/components/stacked-bar-with-legend/VtsStackedBarWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'

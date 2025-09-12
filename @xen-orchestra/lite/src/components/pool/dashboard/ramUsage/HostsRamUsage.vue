@@ -1,15 +1,14 @@
 <template>
   <UiCardTitle :left="t('hosts')" :level="UiCardTitleLevel.SubtitleWithUnderline" :right="t('top-#', { n: N_ITEMS })" />
-  <NoDataError v-if="hasError" />
-  <UiCardSpinner v-else-if="isLoading" />
-  <NoResult v-else-if="isStatEmpty" />
+  <VtsStateHero v-if="hasError" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
+  <VtsStateHero v-else-if="isLoading" format="card" busy size="medium" />
+  <VtsStateHero v-else-if="isStatEmpty" format="card" type="no-data" size="medium">
+    {{ t('no-data-to-calculate') }}
+  </VtsStateHero>
   <VtsProgressBarGroup v-else :items="data" :n-items="N_ITEMS" legend-type="bytes-with-total" />
 </template>
 
 <script lang="ts" setup>
-import NoDataError from '@/components/NoDataError.vue'
-import NoResult from '@/components/NoResult.vue'
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { useStatStatus } from '@/composables/stat-status.composable'
 import { parseRamUsage } from '@/libs/utils'
@@ -19,6 +18,7 @@ import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_STATS } from '@/types/injection-keys'
 import type { StatData } from '@/types/stat'
 import VtsProgressBarGroup from '@core/components/progress-bar-group/VtsProgressBarGroup.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 

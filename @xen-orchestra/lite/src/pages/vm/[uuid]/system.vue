@@ -1,5 +1,7 @@
 <template>
-  <VtsObjectNotFoundHero v-if="vm === undefined" :id type="page" />
+  <VtsStateHero v-if="vm === undefined" format="page" type="not-found" size="large">
+    {{ t('object-not-found', { id }) }}
+  </VtsStateHero>
   <VtsColumns v-else>
     <VtsColumn>
       <VmGeneralInfo :vm />
@@ -28,13 +30,15 @@ import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
-import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 const route = useRoute<'/vm/[uuid]/system'>()
 const { getByUuid } = useVmStore().subscribe()
+
+const { t } = useI18n()
 
 usePageTitleStore().setTitle(useI18n().t('system'))
 

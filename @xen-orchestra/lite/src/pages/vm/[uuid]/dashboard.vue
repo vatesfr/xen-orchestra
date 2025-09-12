@@ -1,15 +1,26 @@
 <template>
-  <VtsObjectNotFoundHero v-if="vm === undefined" :id type="page" />
+  <VtsStateHero v-if="vm === undefined" format="page" type="not-found" size="large">
+    {{ t('object-not-found', { id }) }}
+  </VtsStateHero>
   <div v-else class="vm-dashboard-view" :class="{ mobile: isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="data.stats === undefined" class="offline-hero-container">
-      <VtsOfflineHero type="page" />
+      <VtsStateHero format="page" type="offline" size="large" horizontal>
+        <span>
+          {{ t('all-quiet-launchpad') }}
+        </span>
+        <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
+        <div class="description typo-body-bold">
+          <span>{{ t('vm-off') }}</span>
+          <span>{{ t('start-vm') }}</span>
+        </div>
+      </VtsStateHero>
     </div>
     <template v-else>
-      <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="lastError" :loading="isFetching" />
-      <VmDashboardRamUsageChart class="ram-usage-chart" :data :error="lastError" :loading="isFetching" />
-      <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error="lastError" :loading="isFetching" />
-      <VmDashboardVdiUsageChart class="disk-usage-chart" :data :error="lastError" :loading="isFetching" />
+      <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+      <VmDashboardRamUsageChart class="ram-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+      <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+      <VmDashboardVdiUsageChart class="disk-usage-chart" :data :error="!!lastError" :loading="isFetching" />
     </template>
   </div>
 </template>
@@ -25,8 +36,7 @@ import { GRANULARITY } from '@/libs/xapi-stats.ts'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useVmStore } from '@/stores/xen-api/vm.store.ts'
-import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
-import VtsOfflineHero from '@core/components/state-hero/VtsOfflineHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { computed, onUnmounted, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -97,8 +107,6 @@ onUnmounted(() => setRegisteredVm(undefined))
 
   .offline-hero-container {
     grid-area: offline-hero-container;
-    width: 50rem;
-    margin: 0 auto;
   }
 
   .cpu-usage-chart {
@@ -115,6 +123,17 @@ onUnmounted(() => setRegisteredVm(undefined))
 
   .disk-usage-chart {
     grid-area: disk-usage-chart;
+  }
+
+  .title {
+    color: var(--color-neutral-txt-primary);
+  }
+
+  .description {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>

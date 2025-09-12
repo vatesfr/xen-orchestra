@@ -1,21 +1,23 @@
 <template>
-  <UiCard>
+  <UiCard :has-error="error">
     <UiCardTitle>
       {{ t('ram-usage') }}
       <template #description>{{ t('last-week') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="loading" type="card" />
-    <VtsErrorNoDataHero v-else-if="error" type="card" />
-    <VtsNoDataHero v-else-if="ramUsage.length === 0" type="card" />
+    <VtsStateHero v-if="loading" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="error" format="card" type="error" size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="ramUsage.length === 0" format="card" type="no-data" size="medium">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <VtsLinearChart v-else :data="ramUsage" :max-value :value-formatter="byteFormatter" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import type { LinearChartData } from '@core/types/chart.ts'
-import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
@@ -26,7 +28,7 @@ import { useI18n } from 'vue-i18n'
 const { data } = defineProps<{
   data: XapiVmStats | null
   loading: boolean
-  error?: string
+  error?: boolean
 }>()
 
 const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linear-chart/VtsLinearChart.vue'))

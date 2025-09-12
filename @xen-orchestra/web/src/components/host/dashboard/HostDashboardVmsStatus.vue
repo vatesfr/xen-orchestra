@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-vms-status">
     <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
     <template v-else>
       <VtsDonutChartWithLegend :segments />
       <UiCardNumbers class="total" :label="t('total')" :value="total" size="small" />
@@ -17,7 +17,7 @@ import { VM_POWER_STATE } from '@/types/xo/vm.type'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

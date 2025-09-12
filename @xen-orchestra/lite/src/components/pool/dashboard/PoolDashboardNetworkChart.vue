@@ -4,16 +4,19 @@
     <UiCardTitle :level="UiCardTitleLevel.Subtitle">
       {{ t('last-week') }}
     </UiCardTitle>
-    <NoDataError v-if="hasError" />
-    <UiCardSpinner v-else-if="isLoading" />
+    <VtsStateHero v-if="isLoading" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="data.length === 0" format="card" type="no-data" size="medium">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <VtsLinearChart v-else :data :max-value="customMaxValue" :value-formatter="customValueFormatter" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import NoDataError from '@/components/NoDataError.vue'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { formatSize } from '@/libs/utils'
 import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
@@ -21,6 +24,7 @@ import { useHostStore } from '@/stores/xen-api/host.store'
 import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
 import type { LinearChartData } from '@core/types/chart'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import type { XapiHostStatsRaw } from '@vates/types'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('connections') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!areServersReady" type="card" />
+    <VtsStateHero v-if="!areServersReady" format="card" busy size="medium" />
     <template v-else>
       <VtsQuickInfoRow :label="t('ip-address')" :value="server?.host" />
       <VtsQuickInfoRow :label="t('proxy-url')" :value="server?.httpProxy" />
@@ -27,7 +27,7 @@ import { useXoServerCollection } from '@/remote-resources/use-xo-server-collecti
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'

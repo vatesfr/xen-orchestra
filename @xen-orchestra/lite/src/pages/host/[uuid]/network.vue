@@ -5,7 +5,9 @@
     </UiCard>
     <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" @close="selectedPif = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
-      <VtsNoSelectionHero type="panel" />
+      <VtsStateHero format="panel" type="no-selection" size="medium">
+        {{ t('select-to-see-details') }}
+      </VtsStateHero>
     </UiPanel>
   </div>
 </template>
@@ -17,7 +19,7 @@ import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
-import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'

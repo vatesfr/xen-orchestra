@@ -112,10 +112,9 @@
           </tr>
         </template>
       </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredServers.length === 0" type="table" image="no-result">
-        <div>{{ t('no-result') }}</div>
+      <VtsStateHero v-if="searchQuery && filteredServers.length === 0" format="table" type="no-result" size="medium">
+        {{ t('no-result') }}
       </VtsStateHero>
-      <VtsStateHero v-if="!servers.length" image="no-data" type="page" />
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
         <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
       </UiTopBottomTable>

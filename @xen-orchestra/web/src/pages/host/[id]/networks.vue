@@ -5,7 +5,9 @@
     </UiCard>
     <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" @close="selectedPif = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
-      <VtsNoSelectionHero type="panel" />
+      <VtsStateHero format="panel" type="no-selection" size="small">
+        {{ t('select-to-see-details') }}
+      </VtsStateHero>
     </UiPanel>
   </div>
 </template>
@@ -16,17 +18,20 @@ import HostPifTable from '@/components/host/network/HostPifTable.vue'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoHost } from '@/types/xo/host.type.ts'
 import type { XoPif } from '@/types/xo/pif.type'
-import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router/auto'
 
 const { pifsByHost } = useXoPifCollection()
 const uiStore = useUiStore()
 const route = useRoute<'/host/[id]'>()
+
+const { t } = useI18n()
 
 const pifs = computed(() => pifsByHost.value.get(route.params.id as XoHost['id']) ?? [])
 
