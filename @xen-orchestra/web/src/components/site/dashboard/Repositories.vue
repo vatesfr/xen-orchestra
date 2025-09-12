@@ -1,10 +1,10 @@
 <template>
   <UiCard :has-error :horizontal="!uiStore.isMobile">
-    <BackupRepository :repositories="backupRepositories" has-error />
+    <BackupRepository :repositories="backupRepositories" :has-error />
     <VtsDivider type="stretch" />
     <StorageRepository :repositories="storageRepositories" />
     <VtsDivider type="stretch" />
-    <S3BackupRepository :size="s3Size" has-error />
+    <S3BackupRepository :size="s3Size" :has-error />
   </UiCard>
 </template>
 
