@@ -108,7 +108,7 @@
   "console-clipboard": "Console clipboard",
   "console-offline": "Console offline",
   "console-unavailable": "Console unavailable",
-  "console-unavailable-reason": "The console is currently unavailable because the host is powered off.",
+  "console-unavailable-reason": "The console is currently unavailable because the {type} is powered off.",
   "control-domain-memory": "Control domain memory",
   "copy": "Copy",
   "copy-all": "Copy all",

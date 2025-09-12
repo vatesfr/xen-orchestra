@@ -1,5 +1,5 @@
 <template>
-  <div :class="[classNames, { horizontal, error, success, noBackground }]" class="vts-state-hero">
+  <div :class="[className, { horizontal, error, success, 'no-background': noBackground }]" class="vts-state-hero">
     <UiLoader v-if="busy" class="loader" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
     <div v-if="slots.default" :class="typoClass" class="content">
@@ -26,15 +26,10 @@ type StateHeroType =
   | 'all-good'
   | 'all-done'
 
-const {
-  format,
-  type,
-  imageSize = 'medium',
-  busy,
-} = defineProps<{
+const { format, type, size, busy } = defineProps<{
   format: StateHeroFormat
   type?: StateHeroType
-  imageSize?: 'extra-small' | 'small' | 'medium' | 'large'
+  size: 'extra-small' | 'small' | 'medium' | 'large'
   horizontal?: boolean
   busy?: boolean
   noBackground?: boolean
@@ -46,14 +41,7 @@ const slots = defineSlots<{
 
 const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
 
-const classNames = computed(() => {
-  return [
-    toVariants({
-      imageSize,
-      format,
-    }),
-  ]
-})
+const className = computed(() => toVariants({ size, format }))
 
 const error = computed(() => !busy && type === 'error')
 
@@ -78,6 +66,7 @@ const imageSrc = computed(() => {
 
   &:not(.horizontal) {
     flex-direction: column;
+
     .content {
       align-items: center;
     }
@@ -108,7 +97,7 @@ const imageSrc = computed(() => {
   &.error {
     background-color: var(--color-danger-background-selected);
 
-    &.noBackground {
+    &.no-background {
       background-color: transparent;
     }
 
@@ -125,7 +114,6 @@ const imageSrc = computed(() => {
     }
 
     .loader {
-      font-size: 6.4rem;
       order: 1;
     }
 
@@ -144,7 +132,6 @@ const imageSrc = computed(() => {
 
     .loader {
       order: 1;
-      font-size: 9.6rem;
     }
 
     .image {
@@ -163,7 +150,6 @@ const imageSrc = computed(() => {
 
     .loader {
       order: 3;
-      font-size: 6.4rem;
     }
 
     .image {
@@ -180,7 +166,6 @@ const imageSrc = computed(() => {
 
     .loader {
       order: 1;
-      font-size: 9.6rem;
     }
 
     .image {
@@ -188,25 +173,40 @@ const imageSrc = computed(() => {
     }
   }
 
-  &.imageSize--extra-small {
+  &.size--extra-small {
+    .loader {
+      font-size: 1.6rem;
+    }
+
     .image {
       max-height: 14rem;
     }
   }
 
-  &.imageSize--small {
+  &.size--small {
+    .loader {
+      font-size: 2.4rem;
+    }
+
     .image {
       max-height: 18rem;
     }
   }
 
-  &.imageSize--medium {
+  &.size--medium {
+    .loader {
+      font-size: 6.4rem;
+    }
+
     .image {
       max-height: 30rem;
     }
   }
 
-  &.imageSize--large {
+  &.size--large {
+    .loader {
+      font-size: 9.6rem;
+    }
     .image {
       max-height: 50rem;
     }

@@ -6,7 +6,7 @@
     </UiCard>
     <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
-      <VtsStateHero format="panel" type="no-selection">
+      <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>
     </UiPanel>

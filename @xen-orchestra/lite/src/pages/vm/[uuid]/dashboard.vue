@@ -1,26 +1,26 @@
 <template>
-  <VtsStateHero v-if="vm === undefined" format="page" type="not-found" image-size="large">
+  <VtsStateHero v-if="vm === undefined" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id }) }}
   </VtsStateHero>
   <div v-else class="vm-dashboard-view" :class="{ mobile: isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="data.stats === undefined" class="offline-hero-container">
-      <VtsStateHero format="page" type="offline" image-size="large" horizontal>
+      <VtsStateHero format="page" type="offline" size="large" horizontal>
         <span>
           {{ t('all-quiet-launchpad') }}
         </span>
         <span class="title typo-h1">{{ t('vm-shutdown') }}</span>
-        <div class="description">
-          <span class="typo-body-bold">{{ t('vm-off') }}</span>
-          <span class="typo-body-bold">{{ t('start-vm') }}</span>
+        <div class="description typo-body-bold">
+          <span>{{ t('vm-off') }}</span>
+          <span>{{ t('start-vm') }}</span>
         </div>
       </VtsStateHero>
     </div>
     <template v-else>
-      <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="lastError" :loading="isFetching" />
-      <VmDashboardRamUsageChart class="ram-usage-chart" :data :error="lastError" :loading="isFetching" />
-      <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error="lastError" :loading="isFetching" />
-      <VmDashboardVdiUsageChart class="disk-usage-chart" :data :error="lastError" :loading="isFetching" />
+      <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+      <VmDashboardRamUsageChart class="ram-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+      <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error="!!lastError" :loading="isFetching" />
+      <VmDashboardVdiUsageChart class="disk-usage-chart" :data :error="!!lastError" :loading="isFetching" />
     </template>
   </div>
 </template>
@@ -128,6 +128,7 @@ onUnmounted(() => setRegisteredVm(undefined))
   .title {
     color: var(--color-neutral-txt-primary);
   }
+
   .description {
     display: flex;
     flex-direction: column;

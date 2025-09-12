@@ -16,8 +16,11 @@
         {{ t('console') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('alarms') }}</TabItem>
-    <TabItem disabled>{{ t('stats') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/backups`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('backups') }}
+      </TabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/system`" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('system') }}

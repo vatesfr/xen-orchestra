@@ -1,15 +1,15 @@
 <template>
   <UiCard :has-error>
     <UiCardTitle>{{ t('resources-overview') }}</UiCardTitle>
-    <VtsStateHero v-if="!areResourcesOverviewReady" format="card" busy />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="extra-small" horizontal>
+    <VtsStateHero v-if="!areResourcesOverviewReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
     <VtsStateHero
       v-else-if="memorySize?.value === 0 && nCpus === 0 && srSize?.value === 0"
       format="card"
       type="no-data"
-      image-size="extra-small"
+      size="extra-small"
       horizontal
     >
       {{ t('no-data-to-calculate') }}

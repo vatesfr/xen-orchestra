@@ -4,9 +4,9 @@
     :level="UiCardTitleLevel.SubtitleWithUnderline"
     :right="t('top-#', { n: N_ITEMS })"
   />
-  <VtsStateHero v-if="hasError" format="card" type="error" image-size="medium">{{ t('error-no-data') }}</VtsStateHero>
-  <VtsStateHero v-else-if="isLoading" format="card" busy />
-  <VtsStateHero v-else-if="isStatEmpty" format="card" type="no-data" image-size="medium">
+  <VtsStateHero v-if="isLoading" format="card" busy size="medium" />
+  <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
+  <VtsStateHero v-else-if="isStatEmpty" format="card" type="no-data" size="medium">
     {{ t('no-data-to-calculate') }}
   </VtsStateHero>
   <VtsProgressBarGroup v-else :items="data" :n-items="N_ITEMS" legend-type="percent" />

@@ -1,10 +1,10 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
-    <VtsStateHero v-if="hasError" format="card" type="error" image-size="medium">
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
-    <VtsStateHero v-else-if="!isReady" format="card" busy />
     <template v-else>
       <VtsProgressBar
         :current="nVcpuAssigned"

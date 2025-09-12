@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="!areHostsReady" format="page" busy />
+  <VtsStateHero v-if="!areHostsReady" format="page" busy size="medium" />
   <UiCard v-else class="hosts">
     <div class="pagination-container">
       <!-- TODO: update with item selection button when available -->

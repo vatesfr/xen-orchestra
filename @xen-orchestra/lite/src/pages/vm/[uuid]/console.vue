@@ -2,12 +2,12 @@
   <div :class="{ 'no-ui': !uiStore.hasUi }" class="vm-console-view">
     <div v-if="hasError">{{ t('error-occurred') }}</div>
     <UiSpinner v-else-if="!isReady" class="spinner" />
-    <VtsStateHero v-else-if="!isVmRunning" format="page" type="offline" image-size="large">
+    <VtsStateHero v-else-if="!isVmRunning" format="page" type="offline" size="large">
       <span>{{ t('console-offline') }}</span>
       <span class="title typo-h1">{{ t('vm-not-running') }}</span>
-      <div class="description">
-        <span class="typo-body-bold">{{ t('console-unavailable-reason') }}</span>
-        <span class="typo-body-bold">{{ t('start-console', { type: 'vm' }) }}</span>
+      <div class="description typo-body-bold">
+        <span>{{ t('console-unavailable-reason', { type: 'virtual machine' }) }}</span>
+        <span>{{ t('start-console', { type: 'VM' }) }}</span>
       </div>
     </VtsStateHero>
     <template v-else-if="vm && vmConsole">
@@ -119,6 +119,7 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
   .title {
     color: var(--color-neutral-txt-primary);
   }
+
   .description {
     display: flex;
     flex-direction: column;

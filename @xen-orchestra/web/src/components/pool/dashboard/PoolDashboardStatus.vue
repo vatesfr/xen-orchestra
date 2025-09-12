@@ -1,21 +1,15 @@
 <template>
   <UiCard :has-error>
     <UiCardTitle>{{ t('status') }}</UiCardTitle>
-    <VtsStateHero v-if="!areHostsStatusReady || !areVmsStatusReady" format="card" busy />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="medium">
+    <VtsStateHero v-if="!areHostsStatusReady || !areVmsStatusReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" icon="fa:server" />
       <UiCardNumbers :label="t('total')" :value="poolDashboard?.hosts?.status?.total" size="small" />
       <VtsDivider type="stretch" />
-      <VtsStateHero
-        v-if="poolDashboard?.vms?.status?.total === 0"
-        format="card"
-        type="no-data"
-        image-size="small"
-        horizontal
-      >
+      <VtsStateHero v-if="poolDashboard?.vms?.status?.total === 0" format="card" type="no-data" size="small" horizontal>
         {{ t('no-vm-detected') }}
       </VtsStateHero>
       <template v-else>

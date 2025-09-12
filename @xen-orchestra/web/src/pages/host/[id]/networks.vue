@@ -5,7 +5,7 @@
     </UiCard>
     <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" @close="selectedPif = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
-      <VtsStateHero format="panel" type="no-selection" image-size="small">
+      <VtsStateHero format="panel" type="no-selection" size="small">
         {{ t('select-to-see-details') }}
       </VtsStateHero>
     </UiPanel>

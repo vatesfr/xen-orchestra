@@ -10,8 +10,8 @@
         :value="alarms.length"
       />
     </UiCardTitle>
-    <VtsStateHero v-if="!areAlarmsReady" format="card" busy />
-    <VtsStateHero v-else-if="alarms.length === 0" format="card" type="all-good" image-size="medium" horizontal>
+    <VtsStateHero v-if="!areAlarmsReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="alarms.length === 0" format="card" type="all-good" size="medium" horizontal>
       <span>{{ t('all-good') }}</span>
       <span>{{ t('no-alarms-detected') }}</span>
     </VtsStateHero>

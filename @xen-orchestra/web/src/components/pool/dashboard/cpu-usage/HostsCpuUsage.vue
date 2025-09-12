@@ -1,8 +1,8 @@
 <template>
-  <VtsStateHero v-if="topFiveCpu === undefined" format="card" type="no-data" image-size="medium">
+  <VtsStateHero v-if="topFiveCpu === undefined" format="card" type="no-data" size="medium">
     {{ t('no-data-to-calculate') }}
   </VtsStateHero>
-  <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="medium">
+  <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
     {{ t('error-no-data') }}
   </VtsStateHero>
   <template v-else>

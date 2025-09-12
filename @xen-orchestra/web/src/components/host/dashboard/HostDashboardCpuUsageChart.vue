@@ -4,9 +4,9 @@
       {{ t('cpu-usage') }}
       <template #description>{{ t('last-week') }}</template>
     </UiCardTitle>
-    <VtsStateHero v-if="loading || data === null" format="card" busy />
-    <VtsStateHero v-else-if="error" format="card" type="error">{{ t('error-no-data') }}</VtsStateHero>
-    <VtsStateHero v-else-if="cpuUsage.length === 0" format="card" type="no-data" image-size="medium">
+    <VtsStateHero v-if="loading || data === null" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="error" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
+    <VtsStateHero v-else-if="cpuUsage.length === 0" format="card" type="no-data" size="medium">
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
     <VtsLinearChart v-else :data="cpuUsage" :max-value :value-formatter class="chart" />

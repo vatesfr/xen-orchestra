@@ -1,11 +1,11 @@
 <template>
   <UiCard :has-error>
     <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
-    <VtsStateHero v-if="!areVmsStatusReady" format="card" busy />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="extra-small" horizontal>
+    <VtsStateHero v-if="!areVmsStatusReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
-    <VtsStateHero v-else-if="status?.total === 0" format="card" type="no-data" image-size="extra-small" horizontal>
+    <VtsStateHero v-else-if="status?.total === 0" format="card" type="no-data" size="extra-small" horizontal>
       {{ t('no-vm-detected') }}
     </VtsStateHero>
     <template v-else>

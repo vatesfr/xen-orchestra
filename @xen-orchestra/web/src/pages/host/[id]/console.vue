@@ -1,10 +1,10 @@
 <template>
-  <VtsStateHero v-if="!isHostConsoleRunning" format="page" type="offline" image-size="large">
+  <VtsStateHero v-if="!isHostConsoleRunning" format="page" type="offline" size="large">
     <span>{{ t('console-offline') }}</span>
     <span class="title typo-h1">{{ t('host-not-running') }}</span>
-    <div class="description">
-      <span class="typo-body-bold">{{ t('console-unavailable-reason') }}</span>
-      <span class="typo-body-bold">{{ t('start-console', { type: 'host' }) }}</span>
+    <div class="description typo-body-bold">
+      <span>{{ t('console-unavailable-reason', { type: 'host' }) }}</span>
+      <span>{{ t('start-console', { type: 'host' }) }}</span>
     </div>
   </VtsStateHero>
   <VtsLayoutConsole v-else>
@@ -55,6 +55,7 @@ const sendCtrlAltDel = () => consoleElement.value?.sendCtrlAltDel()
 .title {
   color: var(--color-neutral-txt-primary);
 }
+
 .description {
   display: flex;
   flex-direction: column;

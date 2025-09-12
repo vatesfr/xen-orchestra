@@ -5,7 +5,7 @@
     </UiCard>
     <PoolsSidePanel v-if="selectedServer" :server="selectedServer" @close="selectedServer = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
-      <VtsStateHero format="panel" type="no-selection" image-size="medium">
+      <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>
     </UiPanel>

@@ -1,11 +1,11 @@
 <template>
   <UiCard :has-error>
     <UiCardTitle>{{ t('backups') }}</UiCardTitle>
-    <VtsStateHero v-if="!areBackupsReady" format="card" busy />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" image-size="medium">
+    <VtsStateHero v-if="!areBackupsReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
-    <VtsStateHero v-else-if="!backups" format="card" type="no-data" horizontal>
+    <VtsStateHero v-else-if="!backups" format="card" type="no-data" horizontal size="medium">
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
     <template v-else>

@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('storage-configuration') }}
     </UiTitle>
-    <VtsStateHero v-if="!isReady" format="card" busy />
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
     <template v-else>
       <VtsQuickInfoRow :label="t('default-storage-repository')">
         <template #value>

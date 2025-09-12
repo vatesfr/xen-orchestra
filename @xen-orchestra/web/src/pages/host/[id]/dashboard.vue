@@ -2,14 +2,14 @@
   <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
     <HostDashboardQuickInfo class="quick-info" :host />
     <div v-if="!data" class="offline-hero-container">
-      <VtsStateHero format="page" type="offline" image-size="large" horizontal>
+      <VtsStateHero format="page" type="offline" size="large" horizontal>
         <span>
           {{ t('engines-off') }}
         </span>
         <span class="title typo-h1">{{ t('host-off') }}</span>
-        <div class="description">
-          <span class="typo-body-bold">{{ t('host-currently-shutdown') }}</span>
-          <span class="typo-body-bold">{{ t('start-host') }}</span>
+        <div class="description typo-body-bold">
+          <span>{{ t('host-currently-shutdown') }}</span>
+          <span>{{ t('start-host') }}</span>
         </div>
       </VtsStateHero>
     </div>
@@ -117,6 +117,7 @@ const uiStore = useUiStore()
   .title {
     color: var(--color-neutral-txt-primary);
   }
+
   .description {
     display: flex;
     flex-direction: column;
