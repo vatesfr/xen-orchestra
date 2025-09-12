@@ -1,20 +1,20 @@
 import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
-import type { XoBackupJob, XoVm } from '@vates/types'
+import type { XoVmBackupJob, XoVm } from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
 
 const NO_BAK_TAG = 'xo:no-bak'
 
-export class BackupService {
+export class BackupJobService {
   #restApi: RestApi
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
   }
 
-  async isVmInBackupJob(backupJobId: XoBackupJob['id'], vmId: XoVm['id']): Promise<boolean> {
-    const backupJob = await this.#restApi.xoApp.getJob<XoBackupJob>(backupJobId)
+  async isVmInBackupJob(backupJobId: XoVmBackupJob['id'], vmId: XoVm['id']): Promise<boolean> {
+    const backupJob = await this.#restApi.xoApp.getJob<XoVmBackupJob>(backupJobId)
     const vm = this.#restApi.getObject<XoVm>(vmId, 'VM')
 
     if (vm.tags.includes(NO_BAK_TAG)) {

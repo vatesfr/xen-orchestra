@@ -21,6 +21,10 @@
     "./lib/xen-orchestra/*": {
       "default": "./dist/lib/xen-orchestra-*.mjs",
       "type": "./dist/lib/xen-orchestra-*.d.mts"
+    },
+    "./lib/complex-matcher": {
+      "default": "./dist/lib/complex-matcher.mjs",
+      "type": "./dist/lib/complex-matcher.d.mts"
     }
   },
   "type": "module",
