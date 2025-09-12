@@ -1,6 +1,8 @@
 <template>
   <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
     <HostDashboardQuickInfo class="quick-info" :host />
+    <HostDashboardAlarms class="alarms" :host />
+    <HostDashboardPatches class="patches" :host />
     <HostDashboardVmsStatus class="vms-status" :host />
     <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
     <HostDashboardRamProvisioning class="ram-provisioning" :host />
@@ -12,10 +14,12 @@
 </template>
 
 <script lang="ts" setup>
+import HostDashboardAlarms from '@/components/host/dashboard/alarms/HostDashboardAlarms.vue'
 import HostDashboardCpuProvisioning from '@/components/host/dashboard/HostDashboardCpuProvisioning.vue'
 import HostDashboardCpuUsageChart from '@/components/host/dashboard/HostDashboardCpuUsageChart.vue'
 import HostDashboardLoadAverageChart from '@/components/host/dashboard/HostDashboardLoadAverageChart.vue'
 import HostDashboardNetworkUsageChart from '@/components/host/dashboard/HostDashboardNetworkUsageChart.vue'
+import HostDashboardPatches from '@/components/host/dashboard/HostDashboardPatches.vue'
 import HostDashboardQuickInfo from '@/components/host/dashboard/HostDashboardQuickInfo.vue'
 import HostDashboardRamProvisioning from '@/components/host/dashboard/HostDashboardRamProvisioning.vue'
 import HostDashboardRamUsageChart from '@/components/host/dashboard/HostDashboardRamUsageChart.vue'
@@ -42,6 +46,7 @@ const uiStore = useUiStore()
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
+    'alarms alarms alarms alarms alarms alarms patches patches'
     'vms-status vms-status cpu-provisioning cpu-provisioning cpu-provisioning ram-provisioning ram-provisioning ram-provisioning'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart load-average-chart load-average-chart';
 
@@ -49,6 +54,8 @@ const uiStore = useUiStore()
     grid-template-columns: 1fr;
     grid-template-areas:
       'quick-info'
+      'alarms'
+      'patches'
       'vms-status'
       'cpu-provisioning'
       'ram-provisioning'
@@ -60,6 +67,14 @@ const uiStore = useUiStore()
 
   .quick-info {
     grid-area: quick-info;
+  }
+
+  .alarms {
+    grid-area: alarms;
+  }
+
+  .patches {
+    grid-area: patches;
   }
 
   .vms-status {

@@ -5,6 +5,7 @@
       <VtsOfflineHero type="page" />
     </div>
     <template v-else>
+      <VmDashboardAlarms class="alarms" :vm />
       <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
       <VmDashboardRamUsageChart class="ram-usage-chart" :data :error :loading="isFetching" />
       <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error :loading="isFetching" />
@@ -14,6 +15,7 @@
 </template>
 
 <script lang="ts" setup>
+import VmDashboardAlarms from '@/components/vm/dashboard/alarms/VmDashboardAlarms.vue'
 import VmDashboardCpuUsageChart from '@/components/vm/dashboard/VmDashboardCpuUsageChart.vue'
 import VmDashboardNetworkUsageChart from '@/components/vm/dashboard/VmDashboardNetworkUsageChart.vue'
 import VmDashboardQuickInfo from '@/components/vm/dashboard/VmDashboardQuickInfo.vue'
@@ -42,6 +44,7 @@ const { isMobile } = useUiStore()
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
+    'alarms alarms alarms alarms alarms alarms alarms alarms'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
@@ -49,6 +52,7 @@ const { isMobile } = useUiStore()
     grid-template-columns: 1fr;
     grid-template-areas:
       'quick-info'
+      'alarms'
       'cpu-usage-chart'
       'ram-usage-chart'
       'network-usage-chart'
@@ -58,6 +62,10 @@ const { isMobile } = useUiStore()
 
   .quick-info {
     grid-area: quick-info;
+  }
+
+  .alarms {
+    grid-area: alarms;
   }
 
   .offline-hero-container {
