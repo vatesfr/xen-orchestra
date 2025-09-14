@@ -31,7 +31,7 @@
 - [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
 - [REST API] Expose `/rest/v0/vms/<vm-id>/backup-jobs` (PR [#8948](https://github.com/vatesfr/xen-orchestra/pull/8948))
 - [SR/Advanced] Add a security to prevent accidentally reclaiming freed space during backups (PR [#8947](https://github.com/vatesfr/xen-orchestra/pull/8947))
-
+- [sdn-controller] Use the Xapi plugin instead of a direct channel to drive openflow (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 
 ### Bug fixes
 
@@ -63,6 +63,8 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - xo-server minor
+- xo-server-perf-alert patch
+- xo-server-sdn-controller minor
 - xo-web minor
 
 <!--packages-end-->

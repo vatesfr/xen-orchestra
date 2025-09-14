@@ -89,7 +89,7 @@ export class OpenFlowChannel extends EventEmitter {
 
   // ---------------------------------------------------------------------------
 
-  async addRule(vif, allow, protocol, port, ipRange, direction, ofport) {
+  async addRule({ vif, allow, protocol, port, ipRange, direction, ofport }) {
     log.info('Adding OF rule', {
       allow,
       protocol,
@@ -178,7 +178,7 @@ export class OpenFlowChannel extends EventEmitter {
     }
   }
 
-  async deleteRule(vif, protocol, port, ipRange, direction, ofport) {
+  async deleteRule({ vif, protocol, port, ipRange, direction, ofport }) {
     log.info('Deleting OF rule', {
       protocol,
       port,
