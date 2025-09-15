@@ -1,6 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!areVmBackupJobsReady" type="panel" />
-  <UiPanel v-else class="backup-jobs-side-panel" :class="{ 'mobile-drawer': uiStore.isMobile }">
+  <UiPanel class="backup-jobs-side-panel" :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
@@ -64,12 +63,10 @@ import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-co
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
-import { useXoVmBackupJobCollection } from '@/remote-resources/use-xo-vm-backup-job-collection.ts'
 import type { XoBackupRepository } from '@/types/xo/br.type.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoSr } from '@/types/xo/sr.type.ts'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
@@ -88,7 +85,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-const { areVmBackupJobsReady } = useXoVmBackupJobCollection()
 
 const { getSrsByIds } = useXoSrCollection()
 const { getBackupRepositoriesByIds } = useXoBackupRepositoryCollection()

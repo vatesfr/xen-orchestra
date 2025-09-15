@@ -9,7 +9,9 @@
       @close="selectedBackupJob = undefined"
     />
     <UiPanel v-else-if="!uiStore.isMobile">
-      <VtsNoSelectionHero type="panel" />
+      <VtsStateHero format="panel" type="no-selection" size="medium">
+        {{ t('select-to-see-details') }}
+      </VtsStateHero>
     </UiPanel>
   </div>
 </template>
@@ -18,15 +20,18 @@
 import BackupJobsTable from '@/components/backups/jobs/BackupJobsTable.vue'
 import BackupJobsSidePanel from '@/components/backups/jobs/panel/BackupJobsSidePanel.vue'
 import { useXoBackupJobCollection, type XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
-import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
+import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 
 const { backupJobs, hasFetchError } = useXoBackupJobCollection()
+
+const { t } = useI18n()
 
 const selectedBackupJob = useRouteQuery<XoBackupJob | undefined>('id', {
   toData: id => backupJobs.value.find(backupJob => backupJob.id === id),
