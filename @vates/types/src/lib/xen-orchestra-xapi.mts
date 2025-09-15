@@ -159,6 +159,7 @@ export interface Xapi {
     creatorId?: XoUser['id'],
     opts?: { destroyAllVifs: boolean }
   ): Promise<XenApiVmWrapped>
+  VDI_destroy(vdiRef: XenApiVdi['$ref']): Promise<void>
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
   VDI_exportContent(
     vdiRef: XenApiVdi['$ref'],
