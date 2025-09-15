@@ -26,8 +26,8 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
       .filter(vdi => {
         // REPLICATED_TO_SR_UUID is not used here since we are already filtering from sr.$VDIs
         return (
-          vdi.managed &&
-          !vdi.is_a_snapshot /* only look for real vdi */ &&
+          vdi?.managed &&
+          !vdi?.is_a_snapshot /* only look for real vdi */ &&
           baseUuidToSrcVdi.has(vdi?.other_config[COPY_OF])
         )
       })
