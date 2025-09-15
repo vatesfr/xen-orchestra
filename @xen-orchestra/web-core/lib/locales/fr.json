@@ -331,6 +331,7 @@
   "language": "Langue",
   "last": "Dernier",
   "last-n-runs": "{n} derniers runs",
+  "last-run-number": "Dernière exécution #{n}",
   "last-week": "Semaine dernière",
   "learn-more": "En savoir plus",
   "license-socket": "Licence socket",
