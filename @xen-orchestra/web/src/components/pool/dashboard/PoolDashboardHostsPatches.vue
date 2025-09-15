@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="pool-dashboard-patches">
+  <UiCard :has-error class="pool-dashboard-patches">
     <div class="title">
       <UiCardTitle>
         {{ t('patches') }}

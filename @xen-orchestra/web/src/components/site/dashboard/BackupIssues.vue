@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('backup-issues') }}
       <UiCounter :value="nBackupIssues" accent="danger" size="medium" variant="primary" />
