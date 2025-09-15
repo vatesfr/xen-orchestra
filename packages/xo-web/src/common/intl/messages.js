@@ -2824,11 +2824,11 @@ const messages = {
   recipePerformanceConfig: 'Performance for VM DC Scope',
   dcScopeTest: 'Test config (10 VM): CPU(2), RAM(4), Disk(10Go)',
   dcScopeVerySmall: 'Very small config (<1000 VM): CPU(2), RAM(4), Disk(10Go)',
-  dcScopeSmall: 'Small config (1000-2500 VM): CPU(2), RAM(24), Disk(10Go)',
-  dcScopeMedium: 'Medium config (2500-5000 VM): CPU(4), RAM(48), Disk(10Go)',
-  dcScopeBig: 'Big config (5000-7500 VM): CPU(4), RAM(64), Disk(10Go)',
-  dcScopeVeryBig: 'Very big config (7500-10000 VM: CPU(8), RAM(96), Disk(10Go)',
-  dcScopeHuge: 'Huge config (>10000 VM): CPU(8), RAM(128), Disk(10Go)',
+  dcScopeSmall: 'Small config (1000-2500 VM): CPU(2), RAM(24), Disk(250Go)',
+  dcScopeMedium: 'Medium config (2500-5000 VM): CPU(4), RAM(48), Disk(550Go)',
+  dcScopeBig: 'Big config (5000-7500 VM): CPU(4), RAM(64), Disk(750Go)',
+  dcScopeVeryBig: 'Very big config (7500-10000 VM: CPU(8), RAM(96), Disk(1,2To)',
+  dcScopeHuge: 'Huge config (>10000 VM): CPU(8), RAM(128), Disk(2To)',
 
   // Audit
   auditActionEvent: 'Action/Event',
