@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **Migrated REST API endpoints**:
+
   - `DELETE /rest/v0/tasks` (PR [#8905](https://github.com/vatesfr/xen-orchestra/pull/8905))
   - `DELETE /rest/v0/tasks/<task-id>` (PR [#8905](https://github.com/vatesfr/xen-orchestra/pull/8905))
   - `DELETE /rest/v0/vms/<vm-id>` (PR [#8938](https://github.com/vatesfr/xen-orchestra/pull/8938))
@@ -35,12 +36,13 @@
 
 - **XO 6:**
   - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
+  - [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Task/Schedule] Set sequences as completly done on success (PR [#8527](https://github.com/vatesfr/xen-orchestra/pull/8527))
+- [Task/Schedule] Set sequences as completely done on success (PR [#8527](https://github.com/vatesfr/xen-orchestra/pull/8527))
 - [Pool/HA] Prevent SRs from other pools to be selectable on HA enabling modal (PR [#8924](https://github.com/vatesfr/xen-orchestra/pull/8924))
 - [VIFs] Fix sorting by VIF device (PR [#8877](https://github.com/vatesfr/xen-orchestra/pull/8877))
 - [Home/Pool] Fix "an error has occurred" for non-admin users (PR [#8946](https://github.com/vatesfr/xen-orchestra/pull/8946))
@@ -66,6 +68,7 @@
 - @vates/types minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-web minor

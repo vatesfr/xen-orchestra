@@ -313,7 +313,7 @@
   "load-average": "Gemiddelde belasting",
   "load-now": "Nu laden",
   "loading-hosts": "Hosts laden…",
-  "loading-in-progress": "Bezig met laden…",
+  "loading": "Bezig met laden…",
   "locking-mode": "Vergrendelmodus",
   "locking-mode-default": "Standaard vergrendelingsmodus",
   "log-out": "Uitloggen",
