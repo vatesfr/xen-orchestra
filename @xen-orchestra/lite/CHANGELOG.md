@@ -2,6 +2,7 @@
 
 ## **next**
 
+- [settings] Change the icons on the settings pages and the color scheme (PR [#8977](https://github.com/vatesfr/xen-orchestra/pull/8977))
 - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
 
 ## **0.14.1** (2025-09-04)

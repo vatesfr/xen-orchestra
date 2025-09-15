@@ -1,5 +1,5 @@
 <template>
-  <TitleBar icon="fa:gear">{{ t('settings') }}</TitleBar>
+  <TitleBar icon="fa:floppy-disk">{{ t('settings') }}</TitleBar>
   <div class="card-view">
     <UiCard class="group about">
       <UiCardTitle>{{ t('about') }}</UiCardTitle>
