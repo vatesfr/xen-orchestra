@@ -1,0 +1,38 @@
+<template>
+  <div class="backups" :class="{ mobile: uiStore.isMobile }">
+    <UiCard class="container">
+      <VmBackupJobsTable :backup-jobs="vmBackupJobs" :has-error="hasVmBackupJobFetchError" />
+    </UiCard>
+  </div>
+</template>
+
+<script setup lang="ts">
+import VmBackupJobsTable from '@/components/vm/backups/VmBackupJobsTable.vue'
+import { useXoVmBackupJobCollection } from '@/remote-resources/use-xo-vm-backup-job-collection.ts'
+import type { XoVm } from '@/types/xo/vm.type.ts'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import { useUiStore } from '@core/stores/ui.store'
+
+const { vm } = defineProps<{
+  vm: XoVm
+}>()
+
+const uiStore = useUiStore()
+
+const { vmBackupJobs, hasVmBackupJobFetchError } = useXoVmBackupJobCollection({}, () => vm.id)
+</script>
+
+<style scoped lang="postcss">
+.backups {
+  &:not(.mobile) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .container {
+    height: fit-content;
+    gap: 4rem;
+    margin: 0.8rem;
+  }
+}
+</style>
