@@ -1,13 +1,13 @@
 <template>
   <div class="backups" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <VmBackupJobsTable :backup-jobs="vmBackupJobs" :has-error="hasVmBackupJobFetchError" />
+      <BackupJobsTable :backup-jobs="vmBackupJobs" :has-error="hasVmBackupJobFetchError" />
     </UiCard>
   </div>
 </template>
 
 <script setup lang="ts">
-import VmBackupJobsTable from '@/components/vm/backups/VmBackupJobsTable.vue'
+import BackupJobsTable from '@/components/backups/jobs/BackupJobsTable.vue'
 import { useXoVmBackupJobCollection } from '@/remote-resources/use-xo-vm-backup-job-collection.ts'
 import type { XoVm } from '@/types/xo/vm.type.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'

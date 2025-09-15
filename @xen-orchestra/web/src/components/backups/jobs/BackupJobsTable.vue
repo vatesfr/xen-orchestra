@@ -1,5 +1,5 @@
 <template>
-  <div class="vm-backup-jobs-table">
+  <div class="backup-jobs-table">
     <UiTitle>
       {{ t('backup-jobs') }}
       <template #actions>
@@ -63,7 +63,7 @@
                 size="small"
               />
               <div v-else-if="column.id === 'job-name'">
-                <UiLink size="medium" icon="fa:floppy-disk" @click.stop>
+                <UiLink size="medium" icon="object:backup-job" @click.stop>
                   {{ column.value }}
                 </UiLink>
               </div>
@@ -78,6 +78,7 @@
                 <ul class="last-three-runs">
                   <li v-for="(status, index) in column.value" :key="index" v-tooltip="status.tooltip">
                     <VtsIcon size="medium" :name="status.icon" />
+                    <span class="visually-hidden">{{ t('last-run-number', { n: index + 1 }) }}</span>
                   </li>
                 </ul>
               </template>
@@ -88,7 +89,7 @@
           </tr>
         </template>
       </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredBackupJobs.length === 0" image="no-result" type="table" size="medium">
+      <VtsStateHero v-if="searchQuery && filteredBackupJobs.length === 0" format="table" type="no-result" size="small">
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
@@ -117,10 +118,10 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
-import { usePagination } from '@core/composables/pagination.composable'
-import { useRouteQuery } from '@core/composables/route-query.composable'
-import { useTable } from '@core/composables/table.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTable } from '@core/composables/table.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { createMapper } from '@core/packages/mapper'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
@@ -153,19 +154,24 @@ const filteredBackupJobs = computed(() => {
   )
 })
 
-const getRunStatus = createMapper<XoBackupLog['status'], { icon: IconName; tooltip: string }>(
+const getRunStatusIcon = createMapper<XoBackupLog['status'], IconName>(
   {
-    success: { icon: 'legacy:status:success', tooltip: t('success') },
-    skipped: { icon: 'legacy:status:warning', tooltip: t('skipped') },
-    interrupted: { icon: 'legacy:status:danger', tooltip: t('interrupted') },
-    failure: { icon: 'legacy:status:danger', tooltip: t('failure') },
-    pending: { icon: 'legacy:status:info', tooltip: t('in-progress') },
+    success: 'legacy:status:success',
+    skipped: 'legacy:status:warning',
+    interrupted: 'legacy:status:danger',
+    failure: 'legacy:status:danger',
+    pending: 'legacy:status:info',
   },
   'failure'
 )
 
+const getRunInfo = (backupLog: XoBackupLog, index: number) => ({
+  icon: getRunStatusIcon(backupLog.status),
+  tooltip: `${t('last-run-number', { n: index + 1 })}: ${new Date(backupLog.end ?? backupLog.start).toLocaleString()}, ${t(backupLog.status)}`,
+})
+
 const getLastThreeRunsStatuses = (backupJob: XoBackupJob) =>
-  getLastNBackupLogsByJobId(backupJob.id).map(backupLog => getRunStatus(backupLog.status))
+  getLastNBackupLogsByJobId(backupJob.id).map((backupLog, index) => getRunInfo(backupLog, index))
 
 const getTotalSchedules = (backupJob: XoBackupJob) => schedulesByJobId.value.get(backupJob.id)?.length ?? 0
 
@@ -196,14 +202,14 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
 </script>
 
 <style scoped lang="postcss">
-.vm-backup-jobs-table,
+.backup-jobs-table,
 .table-actions,
 .container {
   display: flex;
   flex-direction: column;
 }
 
-.vm-backup-jobs-table {
+.backup-jobs-table {
   gap: 2.4rem;
 
   .container,
@@ -229,6 +235,28 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
     display: flex;
     gap: 0.8rem;
     align-items: center;
+
+    li:not(:first-child) {
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        transform: scale(1.3);
+      }
+    }
+
+    li:first-child {
+      transform: scale(1.2);
+      margin-inline-end: 0.3rem;
+    }
+
+    li:last-child {
+      transform: scale(0.8);
+
+      &::after {
+        transform: scale(1.6);
+      }
+    }
   }
 
   .schedules {

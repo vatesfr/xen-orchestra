@@ -12,7 +12,7 @@ export const icons = defineIconPack({
 
 export type IconName = Exclude<keyof typeof icons, typeof ICON_SYMBOL>
 
-export type ObjectIconName = Extract<IconName, `object:${string}`>
+export type ObjectIconName = Extract<IconName, `object:${string}:${string}`>
 
 export function icon<TName extends IconName>(name: TName): TName {
   return name
