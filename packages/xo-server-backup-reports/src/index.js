@@ -32,6 +32,11 @@ export const configurationSchema = {
       },
       minItems: 1,
     },
+    customSubject: {
+      type: 'string',
+      title: 'Custom subject',
+      description: 'String added at the end of any backup report',
+    },
   },
 }
 
@@ -98,9 +103,10 @@ class BackupReportsXoPlugin {
     this._eventListener = (...args) => this._report(...args).catch(noop)
   }
 
-  configure({ toMails, toXmpp }) {
+  configure({ toMails, toXmpp, customSubject }) {
     this._mailsReceivers = toMails
     this._xmppReceivers = toXmpp
+    this._customSubject = customSubject
   }
 
   load() {
@@ -160,7 +166,9 @@ class BackupReportsXoPlugin {
     throw new Error(`Unknown backup job type: ${job.type}`)
   }
 
-  async _metadataHandler(log, { name: jobName, settings }, schedule) {
+  async _metadataHandler(log, job, schedule) {
+    const jobName = job.name
+    const settings = job.settings
     const xo = this._xo
 
     const formatDate = createDateFormatter(schedule?.timezone)
@@ -189,6 +197,7 @@ class BackupReportsXoPlugin {
     const context = {
       jobName,
       log,
+      customSubject: this._customSubject,
       pkg,
       tasksByStatus,
       formatDate,
@@ -205,8 +214,10 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _vmHandler(log, { name: jobName, settings }, schedule) {
+  async _vmHandler(log, job, schedule) {
     const xo = this._xo
+    const jobName = job.name
+    const settings = job.settings
 
     const mailReceivers = get(() => settings[''].reportRecipients)
 
@@ -361,6 +372,7 @@ class BackupReportsXoPlugin {
     const context = {
       jobName,
       log,
+      customSubject: this._customSubject,
       pkg,
       tasksByStatus: {
         failure: { tasks: failedTasks, count: nFailures },
