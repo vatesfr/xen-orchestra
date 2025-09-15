@@ -37,6 +37,7 @@ Choose and configure your remote storage.
 - Supported types: NFS, SMB/CIFS, S3-compatible object storage, Microsoft Azure, or local storage.  
 - Ensure proper permissions and network connectivity.  
 - Test write/read performance before relying on it.
+- If you're using block storage, check whether your solution supports encryption (for data-at-rest protection) and immutability (to prevent backups from being modified or deleted, even by mistake or maliciously).
 
 ### Resources available
 - **Storage**: Calculate how much space will be required based on your backup type and retention.  
@@ -78,6 +79,8 @@ Below are the main backup and replication types available in Xen Orchestra.
 1. Configure a reliable remote with sufficient capacity  
 2. Schedule during low I/O periods
 
+**Best suited usage**
+
 ---
 
 ### Delta backup
@@ -93,9 +96,7 @@ Below are the main backup and replication types available in Xen Orchestra.
 - Requires initial full backup  
 - Can be combined with long-term retention
 
-**First steps:**
-1. Run an initial full backup  
-2. Schedule regular delta backups
+**Best suited usage**
 
 ---
 
@@ -112,14 +113,14 @@ Below are the main backup and replication types available in Xen Orchestra.
 - Must keep the chain short ( < 10): Not intended as an archival method
 
 **First steps:**
-1. Configure target host or pool  
+1. Configure target storage inside the same pool or another pool
 2. Ensure compatible storage and network settings
 
 ---
 
 ### Full replication
 **Pros:**
-- Creates a complete VM copy on another host/pool  
+- Creates a complete VM copy on another storage (same pool or another pool)
 - Ideal for disaster recovery
 
 **Cons:**
@@ -131,12 +132,12 @@ Below are the main backup and replication types available in Xen Orchestra.
 - Suitable for DR plans
 
 **First steps:**
-1. Configure DR target host or pool  
+1. Configure DR target storage (same pool or another pool)
 2. Test failover procedures
 
 ---
 
-### Pros
+### Sequence
 **Advantages:**
 - Allows chaining multiple jobs in order  
 - Useful for complex backup and replication workflows
@@ -156,15 +157,10 @@ Below are the main backup and replication types available in Xen Orchestra.
 
 ### Mirror backup
 **Pros:**
-- Always keeps the latest backup version  
-- Saves storage by not retaining old backups
-
-**Cons:**
-- No historical versions available  
-- Risk of losing previous state
+- Always keeps the latest backup version
 
 **Limitations and extensions:**
-- Best for non-critical or temporary workloads
+- Best suited for replication to storage with low bandwidth
 - You can mirror incremental backups or full backups
 
 **First steps:**
@@ -178,7 +174,7 @@ Below are the main backup and replication types available in Xen Orchestra.
 ### Advanced settings
 - **Smart mode**: Automatically decides whether to run a full or delta backup based on circumstances (such as storage conditions or snapshot issues)
 - **Compression**: Reduces backup size at the cost of CPU usage and backup speed.
-- **Encryption**: Protects backup data at rest
+- **Encryption**: Protects backup data at rest. This option is configured at the backup repository level, not per individual backup job.
 - **Concurrency**: Controls how many VMs run in parallel in this backup job
 - **Retention policy**: Fine-tunes how many backups to keep over certain periods of time
 
@@ -193,6 +189,8 @@ Below are the main backup and replication types available in Xen Orchestra.
 ### File restore
 - Access individual files within a VM backup  
 - Ideal for quick recovery of deleted or corrupted files without a full VM restore
+
+### Limitations
 
 ---
 
