@@ -14,7 +14,12 @@
       </VtsStateHero>
     </div>
     <template v-else>
-      <VmDashboardAlarms class="alarms" :vm />
+      <DashboardAlarms
+        class="alarms"
+        :alarms="vmAlarms"
+        :is-ready="areVmAlarmsReady"
+        :has-ready="hasVmAlarmFetchError"
+      />
       <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
       <VmDashboardRamUsageChart class="ram-usage-chart" :data :error :loading="isFetching" />
       <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error :loading="isFetching" />
@@ -24,13 +29,14 @@
 </template>
 
 <script lang="ts" setup>
-import VmDashboardAlarms from '@/components/vm/dashboard/alarms/VmDashboardAlarms.vue'
+import DashboardAlarms from '@/components/alarms/DashboardAlarms.vue'
 import VmDashboardCpuUsageChart from '@/components/vm/dashboard/VmDashboardCpuUsageChart.vue'
 import VmDashboardNetworkUsageChart from '@/components/vm/dashboard/VmDashboardNetworkUsageChart.vue'
 import VmDashboardQuickInfo from '@/components/vm/dashboard/VmDashboardQuickInfo.vue'
 import VmDashboardRamUsageChart from '@/components/vm/dashboard/VmDashboardRamUsageChart.vue'
 import VmDashboardVdiUsageChart from '@/components/vm/dashboard/VmDashboardVdiUsageChart.vue'
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
+import { useXoVmAlarmsCollection } from '@/remote-resources/use-xo-vm-alarms-collection.ts'
 import { type XoVm } from '@/types/xo/vm.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -42,6 +48,8 @@ const { vm } = defineProps<{
 }>()
 
 const { data, isFetching, error } = useFetchStats('vm', () => vm.id, GRANULARITY.Hours)
+
+const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollection({}, () => vm.id)
 
 const { isMobile } = useUiStore()
 
@@ -78,6 +86,7 @@ const { t } = useI18n()
 
   .alarms {
     grid-area: alarms;
+    height: 46.2rem;
   }
 
   .offline-hero-container {

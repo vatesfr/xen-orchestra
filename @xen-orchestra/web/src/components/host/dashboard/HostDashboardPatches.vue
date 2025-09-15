@@ -8,8 +8,11 @@
         </template>
       </UiCardTitle>
     </div>
-    <VtsLoadingHero v-if="!areHostMissingPatchesReady" type="card" />
-    <VtsAllDoneHero v-else-if="noMissingPatches" type="card" />
+    <VtsStateHero v-if="!areHostMissingPatchesReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="noMissingPatches" format="card" type="all-done" size="extra-small" horizontal>
+      <span> {{ t('all-good') }} </span>
+      <span>{{ t('patches-up-to-date') }}</span>
+    </VtsStateHero>
     <div v-else class="table-wrapper">
       <VtsDataTable is-ready class="table">
         <template #thead>
@@ -44,13 +47,12 @@ import type { XoHost } from '@/types/xo/host.type.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsAllDoneHero from '@core/components/state-hero/VtsAllDoneHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { computed, useId } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -61,7 +63,7 @@ const { t } = useI18n()
 
 const { hostMissingPatches: missingPatches, areHostMissingPatchesReady } = useXoHostMissingPatchesCollection(
   {},
-  () => host?.id
+  () => host.id
 )
 
 const nMissingPatches = computed(() => missingPatches.value.length)
@@ -72,7 +74,7 @@ const { visibleColumns, rows } = useTable(
   'missingPatches',
   computed(() => missingPatches.value as { name: string; version?: string }[]),
   {
-    rowId: () => useId(),
+    rowId: patch => `${patch.name}-${patch.version}`,
     columns: define => [define('name', { label: t('name') }), define('version', { label: t('version') })],
   }
 )
@@ -85,7 +87,7 @@ const headerIcon: Record<'name' | 'version', IconName> = {
 
 <style lang="postcss" scoped>
 .host-dashboard-patches {
-  max-height: 24.9rem;
+  max-height: 46.2rem;
 
   .missing-patches-info {
     color: var(--color-danger-txt-base);
