@@ -10,29 +10,6 @@
           :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
           @click="emit('close')"
         />
-        <div v-if="uiStore.isMobile" class="action-buttons">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            variant="tertiary"
-            size="medium"
-            accent="brand"
-            left-icon="fa:edit"
-          >
-            {{ t('change-state') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            variant="tertiary"
-            size="medium"
-            accent="danger"
-            left-icon="fa:trash"
-          >
-            {{ t('forget') }}
-          </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" icon="fa:ellipsis" />
-        </div>
       </div>
     </template>
     <template #default>
@@ -67,7 +44,6 @@ import type { XoBackupRepository } from '@/types/xo/br.type.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoSr } from '@/types/xo/sr.type.ts'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
