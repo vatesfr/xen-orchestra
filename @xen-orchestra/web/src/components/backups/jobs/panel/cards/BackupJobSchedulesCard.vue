@@ -11,7 +11,12 @@
             {{ t('name') }}
           </template>
           <template #value>
-            <UiLink v-if="schedule.name" size="small" icon="object:backup-schedule" :href="`/#/backup/${schedule.jobId}/edit`">
+            <UiLink
+              v-if="schedule.name"
+              size="small"
+              icon="object:backup-schedule"
+              :href="`/#/backup/${schedule.jobId}/edit`"
+            >
               {{ schedule.name }}
             </UiLink>
           </template>
@@ -49,7 +54,11 @@
             <VtsCopyButton :value="schedule.cron" />
           </template>
         </VtsCardRowKeyValue>
-        <VtsDivider v-if="backupJobSchedules.length > 1 && index < backupJobSchedules.length - 1" class="divider" type="stretch" />
+        <VtsDivider
+          v-if="backupJobSchedules.length > 1 && index < backupJobSchedules.length - 1"
+          class="divider"
+          type="stretch"
+        />
       </template>
     </div>
   </UiCard>
@@ -79,7 +88,6 @@ const { t } = useI18n()
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  max-height: 40rem;
 
   .divider {
     margin-block: 1.6rem;
