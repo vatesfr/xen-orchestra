@@ -584,7 +584,7 @@ export default class BackupNg {
         }))
       } else {
         backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter =>
-          formatVmBackups(await adapter.listAllVmBackups())
+          formatVmBackups(await adapter.listAllVmBackups(), remote.id)
         )
       }
 

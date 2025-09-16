@@ -36,6 +36,9 @@ import type {
   XoTask,
   XoProxy,
   AnyXoBackupJob,
+  XoVmBackupArchive,
+  XoConfigBackupArchive,
+  XoPoolBackupArchive,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -149,6 +152,16 @@ export type XoApp = {
   getXenServer(id: XoServer['id']): Promise<XoServer>
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
+  listMetadataBackups(
+    backupRepositoryIds: XoBackupRepository['id'][]
+  ): Promise<{
+    xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
+    pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
+  }>
+  listVmBackupsNg(
+    backupRepositoryIds: XoBackupRepository['id'][],
+    _forceRefresh?: boolean
+  ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]>>>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(body: InsertableXoServer): Promise<XoServer>
   rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask }): Promise<void>
