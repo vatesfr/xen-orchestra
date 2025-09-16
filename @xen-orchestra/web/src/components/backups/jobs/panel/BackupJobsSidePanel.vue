@@ -1,5 +1,5 @@
 <template>
-  <UiPanel class="backup-jobs-side-panel" :class="{ 'mobile-drawer': uiStore.isMobile }">
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
@@ -122,22 +122,20 @@ const hasSettings = computed(
 </script>
 
 <style scoped lang="postcss">
-.backup-jobs-side-panel {
-  .mobile-drawer {
-    position: fixed;
-    inset: 0;
+.mobile-drawer {
+  position: fixed;
+  inset: 0;
 
-    .action-buttons-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      width: 100%;
-    }
-  }
-
-  .action-buttons {
+  .action-buttons-container {
     display: flex;
+    justify-content: space-between;
     align-items: center;
+    width: 100%;
   }
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
 }
 </style>

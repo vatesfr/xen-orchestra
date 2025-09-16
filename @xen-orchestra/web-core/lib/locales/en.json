@@ -338,7 +338,7 @@
   "keep-page-open": "Do not refresh or quit tab before end of deployment.",
   "language": "Language",
   "last": "Last",
-  "last-n-runs": "Last {n} runs",
+  "last-n-runs": "Last run | Last {n} runs",
   "last-run-number": "Last run #{n}",
   "last-week": "Last week",
   "learn-more": "Learn more",
