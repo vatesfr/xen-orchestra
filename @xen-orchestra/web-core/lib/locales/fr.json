@@ -338,7 +338,7 @@
   "keep-page-open": "Ne pas rafraichir ou quitter cette page avant la fin du déploiement.",
   "language": "Langue",
   "last": "Dernier",
-  "last-n-runs": "{n} derniers runs",
+  "last-n-runs": "Dernier run | {n} derniers runs",
   "last-run-number": "Dernière exécution #{n}",
   "last-week": "Semaine dernière",
   "learn-more": "En savoir plus",
