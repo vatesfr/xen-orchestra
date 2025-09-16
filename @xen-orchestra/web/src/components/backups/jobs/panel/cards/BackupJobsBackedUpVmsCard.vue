@@ -52,7 +52,7 @@
           <BackupJobsSmartModeTags :tags="smartModeTags.notValues" :label="t('excluded-vms-tags')" />
         </template>
       </div>
-      <VtsDivider class="divider" type="stretch" />
+      <VtsDivider v-if="backedUpVmsCount > 0" class="divider" type="stretch" />
       <!-- Backed up VMs list -->
       <UiCollapsibleList tag="ul" :total-items="backedUpVmsCount">
         <template v-for="(vm, index) in backedUpVms" :key="index">

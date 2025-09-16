@@ -79,7 +79,7 @@
         <template #key>{{ t('timezone') }}</template>
         <template #value>{{ settings.timezone }}</template>
       </VtsCardRowKeyValue>
-      <template v-if="settings.reportRecipients?.length > 0">
+      <template v-if="settings.reportRecipients && settings.reportRecipients.length > 0">
         <VtsCardRowKeyValue v-for="(recipient, index) in settings.reportRecipients" :key="index">
           <template #key>
             <div v-if="index === 0">{{ t('report-recipients') }}</div>
@@ -95,7 +95,7 @@
 
       <!-- Settings rest -->
       <UiLogEntryViewer
-        v-if="Object.keys(settings.other).length > 0"
+        v-if="settings.other && Object.keys(settings.other).length > 0"
         :content="settings.other"
         :label="t('other-settings')"
         size="small"
@@ -126,11 +126,15 @@ const { backupJob } = defineProps<{
 
 const { t, locale } = useI18n()
 
-const { getProxyById } = useXoProxyCollection()
+const { useGetProxyById } = useXoProxyCollection()
 
 type ReportWhen = 'always' | 'failure' | 'error' | 'never'
 
 const settings = reactiveComputed(() => {
+  if (!backupJob.settings['']) {
+    return {}
+  }
+
   const {
     preferNbd,
     cbtDestroySnapshotData,
@@ -174,7 +178,7 @@ const settings = reactiveComputed(() => {
   }
 })
 
-const proxy = computed(() => getProxyById(settings.proxy))
+const proxy = useGetProxyById(settings.proxy)
 
 const reportWhenValueTranslation = useMapper<ReportWhen, string>(
   () => settings.reportWhen as ReportWhen | undefined,
