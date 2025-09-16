@@ -18,6 +18,8 @@ function formatVmBackup(backup) {
     }
   }
   return {
+    type: 'xo-vm-backups',
+    backupRepository: backup.backupRepositoryId,
     disks:
       backup.vhds === undefined
         ? []
@@ -38,6 +40,7 @@ function formatVmBackup(backup) {
     size: backup.size,
     timestamp: backup.timestamp,
     vm: {
+      uuid: backup.vm.uuid,
       name_description: backup.vm.name_description,
       name_label: backup.vm.name_label,
     },
@@ -48,7 +51,12 @@ function formatVmBackup(backup) {
   }
 }
 
-// format all backups as returned by RemoteAdapter#listAllVmBackups()
-export function formatVmBackups(backupsByVM) {
-  return mapValues(backupsByVM, backups => backups.map(formatVmBackup))
+/**
+ * format all backups as returned by RemoteAdapter#listAllVmBackups()
+ * @param {Record<string, object[]>} backupsByVM
+ * @param {string} backupRepositoryId
+ * @returns {Record<string, object[]>}
+ */
+export function formatVmBackups(backupsByVM, backupRepositoryId) {
+  return mapValues(backupsByVM, backups => backups.map(backup => formatVmBackup({ ...backup, backupRepositoryId })))
 }

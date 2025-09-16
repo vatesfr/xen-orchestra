@@ -19,6 +19,7 @@ import type {
   VM_POWER_STATE,
 } from './common.mjs'
 import type * as CMType from './lib/complex-matcher.mjs'
+import type { XenApiPool } from './xen-api.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -143,6 +144,48 @@ export type XoBackupLog = BaseXoLog & {
 }
 export type XoRestoreLog = BaseXoLog & {
   message: 'restore'
+}
+export type XoVmBackupArchive = {
+  id: Branded<'vm-backup-archive'>
+  type: 'xo-vm-backups'
+  backupRepository: XoBackupRepository['id']
+  disks: { id: string; name: string; uuid: XoVdiSnapshot['uuid'] }[]
+  isImmutable?: boolean
+  jobId: XoBackupJob['id'] // rename once backup endpoint migrated
+  mode: XoBackupJob['mode'] // rename once backup endpoint migrated
+  scheduleId: XoSchedule['id']
+  size: number
+  timestamp: number
+  vm: {
+    uuid: XoVm['uuid']
+    name_description: string
+    name_label: string
+  }
+  differencingVhds?: number
+  dynamicVhds?: number
+  withMemory: boolean
+}
+
+type XoMetadataBackupArchive = {
+  id: Branded<'metadata-backup-archive'>
+  backupRepository: XoBackupRepository['id']
+  jobId: XoBackupJob['id'] // rename once backup endpoint migrated
+  jobName: XoBackupJob['name'] // rename once backup endpoint migrated
+  scheduleId: XoSchedule['id']
+  scheduleName: XoSchedule['name']
+  timestamp: number
+}
+export type XoConfigBackupArchive = XoMetadataBackupArchive & {
+  id: Branded<'config-backup-archive'>
+  data: string
+  type: 'xo-config-backups'
+}
+
+export type XoPoolBackupArchive = XoMetadataBackupArchive & {
+  id: Branded<'pool-backup-archive'>
+  pool: XenApiPool
+  poolMaster: XenApiPool
+  type: 'xo-pool-metadata-backups'
 }
 
 export type XoBackupRepository = {
@@ -761,10 +804,17 @@ export type XapiXoRecord =
   | XoSm
 
 export type NonXapiXoRecord =
+<<<<<<< HEAD
   | AnyXoJob
   | AnyXoLog
   | XoGroup
   | XoProxy
+=======
+  | AnyXoBackupArchive
+  | XoGroup
+  | XoProxy
+  | XoJob
+>>>>>>> fecec9cf9 (feat(@xen-orchestra/rest-api): expose backup-archives)
   | XoBackupRepository
   | XoSchedule
   | XoServer
@@ -779,6 +829,12 @@ export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
 
 export type AnyXoJob = XoJob | AnyXoBackupJob
 
+<<<<<<< HEAD
 export type AnyXoBackupJob = XoVmBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
 
 export type AnyXoLog = XoBackupLog | XoRestoreLog
+=======
+export type AnyXoBackupJob = XoBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
+
+export type AnyXoBackupArchive = XoVmBackupArchive | XoConfigBackupArchive | XoPoolBackupArchive
+>>>>>>> fecec9cf9 (feat(@xen-orchestra/rest-api): expose backup-archives)
