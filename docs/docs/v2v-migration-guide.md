@@ -82,6 +82,10 @@ This starts the install.
 4. Once the installation finishes, the `nbdinfo` install screen updates automatically. It lets you know if everything was completed successfully and flags any warnings that came up during the process:
     ![The Import screen showing a completed nbdinfo install, with warnings](./assets/nbdinfo_install_complete.png)
 
+    :::tip
+    `nbdkit` and the `nbdkit-plugin-vddk` are installed using the same approach.
+    :::
+
 
 #### Installing the other dependencies
 
@@ -145,7 +149,17 @@ Starting with Xen Orchestra 5.110, NFS-based migration and VSAN exports are no l
 
 ### Step-by-step procedure 
 
-Once these requirements are met, follow these steps to prepare the source VM:
+Here is the "surefire method" to prepare your VMware environment. 
+
+It involves a lot of manual steps, but it lets you detect and fix issues without impacting production.
+
+:::tip
+There’s also a "fire-and-forget" approach: launch the migration with `stop source` enabled, then start the VM once the migration is complete. 
+
+This method is only recommended for non-critical VMs, and only after the first few migrations have gone smoothly.
+:::
+
+Once the [prerequisites](#prerequisites) are met, follow these steps to prepare the source VM:
 
 #### Optimize the Source VM
 
