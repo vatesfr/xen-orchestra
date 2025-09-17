@@ -12,7 +12,6 @@ import cloneDeep from 'lodash/cloneDeep.js'
 import path from 'node:path'
 import pick from 'lodash/pick.js'
 import * as CM from 'complex-matcher'
-import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
 import { getUserPublicProperties, isAlarm } from '../utils.mjs'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
@@ -861,15 +860,14 @@ export default class RestApi {
         }, true)
       )
 
-    api
-      .get(
-        '/tasks/:id/actions',
-        wrap(async (req, res) => {
-          const task = await app.tasks.get(req.params.id)
+    api.get(
+      '/tasks/:id/actions',
+      wrap(async (req, res) => {
+        const task = await app.tasks.get(req.params.id)
 
-          await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
-        })
-      )
+        await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+      })
+    )
 
     api.get(
       '/:collection',
@@ -1043,23 +1041,6 @@ export default class RestApi {
           return next()
         }
         return handler(req, res, next)
-      })
-    )
-
-    api.post(
-      '/:collection(srs)/:object/vdis',
-      wrap(async (req, res) => {
-        const sr = req.xapiObject
-        req.length = ifDef(req.headers['content-length'], Number)
-
-        const { name_label, name_description, raw } = req.query
-        const vdiRef = await sr.$importVdi(req, {
-          format: raw !== undefined ? VDI_FORMAT_RAW : VDI_FORMAT_VHD,
-          name_label,
-          name_description,
-        })
-
-        res.end(await sr.$xapi.getField('VDI', vdiRef, 'uuid'))
       })
     )
 
