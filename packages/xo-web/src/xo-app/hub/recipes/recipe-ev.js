@@ -13,14 +13,15 @@ import { createDcScopeVM } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { success } from 'notification'
 import { withRouter } from 'react-router'
+import { generateId } from 'reaclette-utils'
 
 import RecipeForm from './recipe-form-ev'
 import moment from 'moment-timezone'
 const DEFAULT_TIMEZONE = moment.tz.guess()
 
 const RECIPE_INFO = {
-  id: 'test',
-  name: 'DC Scope VM',
+  id: generateId(),
+  name: "EasyVirt's DC Scope VM",
   description: 'Creates an DCScope VM with parameters and application inside',
 }
 
@@ -41,9 +42,6 @@ export default decorate([
     recipeCreatingResources: state => state.recipeCreatingResources,
   })),
   provideState({
-    initialState: () => ({
-      selectedInstallPools: [],
-    }),
     effects: {
       async create() {
         const recipeParams = await form({
@@ -67,7 +65,6 @@ export default decorate([
           gatewayIpAddress,
           network,
           sr,
-          sshKey,
           timezone,
           xoUsername,
           xoPassword,
@@ -86,7 +83,6 @@ export default decorate([
           gatewayIpAddress,
           network: network.id,
           sr: sr.id,
-          sshKey,
           timezone,
           xoUsername,
           xoPassword,
@@ -99,7 +95,7 @@ export default decorate([
 
         success(
           _('recipeCreatedSuccessfully'),
-          <ButtonLink btnStyle='success' size='small' to={`/home?s=id:${vmId}&t=VM`}>
+          <ButtonLink btnStyle='success' size='small' to={`/vms/${vmId}/general`}>
             {_('recipeViewCreatedVms')}
           </ButtonLink>,
           8e3
