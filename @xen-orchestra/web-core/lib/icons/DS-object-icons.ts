@@ -23,6 +23,8 @@ import {
   faServer,
   faSlash,
   faSquare,
+  faUserCircle,
+  faUsers,
 } from '@fortawesome/free-solid-svg-icons'
 
 // info: 'var(--color-info-txt-item)'
@@ -705,4 +707,11 @@ export const ObjectsIcons = defineIconPack({
       icon: runningNeutral,
     },
   ],
+
+  // #TODO user logo is not compatible with actual icon system
+
+  account: [{ icon: faUserCircle }],
+
+  // update lib for acces to new faUsers icon
+  organization: [{ icon: faUsers }],
 })
