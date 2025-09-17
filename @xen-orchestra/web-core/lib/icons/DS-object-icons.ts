@@ -312,7 +312,7 @@ const schedule = defineIcon([
   },
 ])
 
-export const ObjectsIcons = defineIconPack({
+export const dsObjectsIcons = defineIconPack({
   instance: {
     icon: faSatellite,
     color: 'var(--color-neutral-txt-primary)',
