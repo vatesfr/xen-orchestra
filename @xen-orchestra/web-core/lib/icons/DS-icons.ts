@@ -4,12 +4,15 @@ import {
   faBan,
   faCircle,
   faCity,
+  faDesktop,
   faExclamation,
+  faPause,
   faPlay,
   faSatellite,
   faServer,
   faSlash,
   faSquare,
+  faMoon,
 } from '@fortawesome/free-solid-svg-icons'
 
 // info: 'var(--color-info-txt-item)'
@@ -119,6 +122,48 @@ const halted = defineIcon([
   },
 ])
 
+const pause = defineIcon([
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-primary)',
+    translate: [7, 5.5],
+    size: 13,
+  },
+  {
+    icon: faCircle,
+    color: 'var(--color-brand-item-base)',
+    translate: [7, 5.5],
+    size: 10,
+  },
+  {
+    icon: faPause,
+    color: 'var(--color-brand-txt-item)',
+    translate: [7, 5.5],
+    size: 6,
+  },
+])
+
+const suspended = defineIcon([
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-primary)',
+    translate: [7, 5.5],
+    size: 13,
+  },
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-disabled)',
+    translate: [7, 5.5],
+    size: 10,
+  },
+  {
+    icon: faMoon,
+    color: 'var(--color-neutral-txt-secondary)',
+    translate: [7, 5.5],
+    size: 6,
+  },
+])
+
 export const ObjectsIcons = defineIconPack({
   instance: {
     icon: faSatellite,
@@ -188,6 +233,73 @@ export const ObjectsIcons = defineIconPack({
   'host-halted': [
     {
       icon: faServer,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: halted,
+    },
+  ],
+
+  vm: [
+    {
+      icon: faDesktop,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+  ],
+
+  'vm-unknown': [
+    {
+      icon: faDesktop,
+      color: 'var(--color-neutral-txt-secondary)',
+    },
+    {
+      icon: slash,
+    },
+  ],
+
+  'vm-running': [
+    {
+      icon: faDesktop,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: running,
+    },
+  ],
+
+  'vm-paused': [
+    {
+      icon: faDesktop,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: pause,
+    },
+  ],
+
+  'vm-suspended': [
+    {
+      icon: faDesktop,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: suspended,
+    },
+  ],
+
+  'vm-warning': [
+    {
+      icon: faDesktop,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: warning,
+    },
+  ],
+
+  'vm-halted': [
+    {
+      icon: faDesktop,
       color: 'var(--color-neutral-txt-primary)',
     },
     {
