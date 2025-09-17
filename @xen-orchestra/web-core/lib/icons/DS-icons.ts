@@ -17,6 +17,7 @@ import {
   faCheck,
   faMinus,
   faClose,
+  faHdd,
 } from '@fortawesome/free-solid-svg-icons'
 
 // info: 'var(--color-info-txt-item)'
@@ -438,6 +439,63 @@ export const ObjectsIcons = defineIconPack({
   'sr-disconnected': [
     {
       icon: faDatabase,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: disconnected,
+    },
+  ],
+
+  vdi: [
+    {
+      icon: faHdd,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+  ],
+
+  'vdi-unknown': [
+    {
+      icon: faHdd,
+      color: 'var(--color-neutral-txt-secondary)',
+    },
+    {
+      icon: slash,
+    },
+  ],
+
+  'vdi-attached': [
+    {
+      icon: faHdd,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: connected,
+    },
+  ],
+
+  'vdi-disable': [
+    {
+      icon: faHdd,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: disableLigne,
+    },
+  ],
+
+  'vdi-warning': [
+    {
+      icon: faHdd,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: warning,
+    },
+  ],
+
+  'vdi-detached': [
+    {
+      icon: faHdd,
       color: 'var(--color-neutral-txt-primary)',
     },
     {
