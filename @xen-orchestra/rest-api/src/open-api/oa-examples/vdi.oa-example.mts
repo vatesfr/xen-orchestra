@@ -3,6 +3,10 @@ export const vdiIds = [
   '/rest/v0/vdis/771d5baf-4364-42f9-8c92-8e5fe08b332a',
 ]
 
+export const vdiId = {
+  id: '5e13f673-760e-41be-826e-620d16b7f43b',
+}
+
 export const partialVdis = [
   {
     type: 'VDI',

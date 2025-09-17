@@ -2,7 +2,7 @@ import { Example, Get, Path, Post, Query, Request, Response, Route, Security, Su
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import { SUPPORTED_VDI_FORMAT, XenApiVdi, type XoAlarm, type XoSr } from '@vates/types'
+import { SUPPORTED_VDI_FORMAT, XenApiVdi, XoVdi, type XoAlarm, type XoSr } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { BASE_URL } from '../index.mjs'
@@ -10,6 +10,7 @@ import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { createdResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialSrs, sr, srIds } from '../open-api/oa-examples/sr.oa-example.mjs'
+import { vdiId } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
@@ -88,6 +89,7 @@ export class SrController extends XapiXoController<XoSr> {
    * @example name_description "VDI imported by the REST API"
    * @example raw true
    */
+  @Example(vdiId)
   @Post('{id}/vdis')
   @Tags('vdis')
   @SuccessResponse(createdResp.status, 'VDI imported')
@@ -98,7 +100,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() name_label?: string,
     @Query() name_description?: string,
     @Query() raw?: boolean
-  ) {
+  ): Promise<{ id: Unbrand<XoVdi>['id'] }> {
     const xapiSr = this.getXapiObject(id as XoSr['id'])
     const xapi = xapiSr.$xapi
 
