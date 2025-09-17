@@ -9,6 +9,7 @@ import { alert } from './modal'
 const AVAILABLE_TEMPLATE_VARS = {
   '{name}': 'templateNameInfo',
   '{index}': 'templateIndexInfo',
+  '{sshKey:<sshTitle>}': 'templateSshInfo',
 }
 
 const showAvailableTemplateVars = () =>
