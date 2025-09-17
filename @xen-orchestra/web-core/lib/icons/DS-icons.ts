@@ -18,6 +18,7 @@ import {
   faMinus,
   faClose,
   faHdd,
+  faBoxesStacked,
 } from '@fortawesome/free-solid-svg-icons'
 import { faNetworkWired } from '@fortawesome/free-solid-svg-icons/faNetworkWired'
 
@@ -544,6 +545,63 @@ export const ObjectsIcons = defineIconPack({
   'network-detached': [
     {
       icon: faNetworkWired,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: disconnected,
+    },
+  ],
+
+  br: [
+    {
+      icon: faBoxesStacked,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+  ],
+
+  'br-unknown': [
+    {
+      icon: faBoxesStacked,
+      color: 'var(--color-neutral-txt-secondary)',
+    },
+    {
+      icon: slash,
+    },
+  ],
+
+  'br-connected': [
+    {
+      icon: faBoxesStacked,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: connected,
+    },
+  ],
+
+  'br-disable': [
+    {
+      icon: faBoxesStacked,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: disableLigne,
+    },
+  ],
+
+  'br-warning': [
+    {
+      icon: faBoxesStacked,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: warning,
+    },
+  ],
+
+  'br-detached': [
+    {
+      icon: faBoxesStacked,
       color: 'var(--color-neutral-txt-primary)',
     },
     {
