@@ -46,50 +46,23 @@ export default decorate([
   injectIntl,
   provideState({
     effects: {
-      onChangePool(__, pool) {
-        const { onChange, value } = this.props
-        onChange({
-          ...value,
-          pool,
-        })
-      },
-      onChangeSr(__, sr) {
-        const { onChange, value } = this.props
-        onChange({
-          ...value,
-          sr,
-        })
-      },
-      onChangeNetwork(__, network) {
-        const { onChange, value } = this.props
-        onChange({
-          ...value,
-          network,
-        })
-      },
-      onChangeValue(__, ev) {
-        const { name, value } = ev.target
+      onChangeValue(__, valueOrEvent, fieldName) {
         const { onChange, value: prevValue } = this.props
-        onChange({
-          ...prevValue,
-          [name]: value,
-        })
-      },
-      onChangeNameserver(__, ev) {
-        const { value } = ev.target
-        const { onChange, value: prevValue } = this.props
-        const nameservers = value.split(',').map(nameserver => nameserver.trim())
-        onChange({
-          ...prevValue,
-          nameservers,
-        })
-      },
-      onTimezoneChange(__, timezone) {
-        const { onChange, value } = this.props
-        onChange({
-          ...value,
-          timezone,
-        })
+
+        if (fieldName) {
+          const updates = { fieldName: valueOrEvent }
+          onChange({
+            ...prevValue,
+            ...updates,
+          })
+        } else {
+          const { name, value } = valueOrEvent.target
+          const { onChange, value: prevValue } = this.props
+          onChange({
+            ...prevValue,
+            [name]: value,
+          })
+        }
       },
       onChangePerformanceIndex(__, performanceIndex) {
         const { onChange, value } = this.props
@@ -123,17 +96,27 @@ export default decorate([
     <Container>
       <FormGrid.Row>
         <label>{_('vmImportToPool')}</label>
-        <SelectPool className='mb-1' onChange={effects.onChangePool} required value={value.pool} />
+        <SelectPool
+          className='mb-1'
+          onChange={pool => effects.onChangeValue(pool, 'pool')}
+          required
+          value={value.pool}
+        />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('vmImportToSr')}</label>
-        <SelectSr onChange={effects.onChangeSr} predicate={state.srPredicate} required value={value.sr} />
+        <SelectSr
+          onChange={sr => effects.onChangeValue(sr, 'sr')}
+          predicate={state.srPredicate}
+          required
+          value={value.sr}
+        />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('network')}</label>
         <SelectNetwork
           className='mb-1'
-          onChange={effects.onChangeNetwork}
+          onChange={network => effects.onChangeValue(network, 'network')}
           required
           value={value.network}
           predicate={state.networkPredicate}
@@ -153,7 +136,7 @@ export default decorate([
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('selectTimezone')}</label>
-        <TimezonePicker value={value.timezone} onChange={effects.onTimezoneChange} />
+        <TimezonePicker value={value.timezone} onChange={timezone => effects.onChangeValue(timezone, 'timezone')} />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('recipeVMxoUser')}</label>
@@ -248,7 +231,7 @@ export default decorate([
             value={value.staticIpAddress}
           />
           &nbsp;
-          {_('recipeStaticIpAddresses')}
+          {_('recipeStaticIpAddress')}
         </label>
       </FormGrid.Row>
       {value.staticIpAddress && [
@@ -276,31 +259,7 @@ export default decorate([
             value={value.gatewayIpAddress}
           />
         </FormGrid.Row>,
-        <FormGrid.Row key='nameserverRow'>
-          <label>{_('recipeNameserverAddresses')}</label>
-          <input
-            className='form-control'
-            name='nameservers'
-            onChange={effects.onChangeNameserver}
-            placeholder={formatMessage(messages.recipeNameserverAddressesExample)}
-            required
-            type='text'
-            value={value.nameservers}
-          />
-        </FormGrid.Row>,
       ]}
-      <FormGrid.Row>
-        <label>{_('recipeSshKeyLabel')}</label>
-        <input
-          className='form-control'
-          name='sshKey'
-          onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeSshKeyLabel)}
-          required
-          type='text'
-          value={value.sshKey}
-        />
-      </FormGrid.Row>
     </Container>
   ),
 ])
