@@ -172,25 +172,47 @@ Below are the main backup and replication types available in Xen Orchestra.
 ## What settings are available?
 
 ### Advanced settings
-- **Smart mode**: Automatically decides whether to run a full or delta backup based on circumstances (such as storage conditions or snapshot issues)
+
+- **Smart mode**: Automatically decides whether to run a full or delta backup based on circumstances (such as storage conditions or snapshot issues).
 - **Compression**: Reduces backup size at the cost of CPU usage and backup speed.
-- **Encryption**: Protects backup data at rest. This option is configured at the backup repository level, not per individual backup job.
-- **Concurrency**: Controls how many VMs run in parallel in this backup job
-- **Retention policy**: Fine-tunes how many backups to keep over certain periods of time
+- **Encryption**: Protects backup data at rest.
+- **Concurrency**: Controls how many VMs run in parallel in this backup job.
+- **Retention policy**: Fine-tunes how many backups to keep over certain periods of time.
+
+:::tip
+- **Compression** is configured at the backup job level, and applies only to full backups. For full backups, prefer [Zstandard (Zstd)](https://en.wikipedia.org/wiki/Zstd) if your host supports it.
+- **Encryption** is configured at the backup repository level, not per individual backup job. To use encryption with incremental backups, the **use VHD blocks** setting must be enabled.
+:::
 
 ---
 
 ## Restore options
 
 ### VM restore
-- Restore a VM to the same host/pool or another location  
-- Choose full or delta restore, depending on backup type
+- Restore a VM to the same host/pool or another location.
+- Choose full or delta restore, depending on backup type.
+
+:::tip
+- **Delta restores** are only available for delta backups and operate on a best-effort basis. This process depends on internal factors like backup and snapshot chains and the underlying storage system.
+    If a delta restore isn't possible, Xen Orchestra automatically switches to a full restore, transferring the entire VM to the host.
+- For **full backups**, restores will always transfer the complete VM.
+:::
 
 ### File restore
 - Access individual files within a VM backup  
 - Ideal for quick recovery of deleted or corrupted files without a full VM restore
 
 ### Limitations
+The file restore feature includes the following constraints:
+
+- **Supported partition types** are limited to those compatible with Debian systems and NTFS. ReFS and Windows dynamic disks are not supported.
+- **LVM support** is limited and may fail in certain edge cases.
+- File restore is designed for **small file sets** and is not suitable for large-scale recovery.
+
+:::tip
+For **advanced scenarios**, you can use the `fuse-vhd` helper script to manually mount backup chains as raw disks and perform partition discovery:
+ [View fuse-vhd on GitHub](https://github.com/vatesfr/xen-orchestra/tree/master/%40vates/fuse-vhd).
+:::
 
 ---
 
@@ -200,7 +222,7 @@ Below are the main backup and replication types available in Xen Orchestra.
 - Regularly test restore from long-term backups
 
 :::warning
-To prevent backup duplication, do not mix long-term retention with schedule retention.
+To prevent backup duplication, do not mix long-term retention with multiple schedules.
 :::
 
 ---
