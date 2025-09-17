@@ -16,7 +16,7 @@ import {
   Tags,
 } from 'tsoa'
 import { inject } from 'inversify'
-import { json, type Request as ExRequest } from 'express'
+import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoGroup, XoUser } from '@vates/types'
 
@@ -62,6 +62,14 @@ export class UserController extends XoController<XoUser> {
     return this.#userService.getUser(id)
   }
 
+  #redirectCurrentUser(req: ExRequest): void {
+    const currentUser = this.restApi.getCurrentUser()
+    const originalUrl = req.originalUrl
+    const res = req.res as ExResponse
+
+    res.redirect(307, originalUrl.replace('/me', `/${currentUser.id}`))
+  }
+
   /**
    * @example fields "permission,name,id"
    * @example filter "permission:none"
@@ -79,6 +87,24 @@ export class UserController extends XoController<XoUser> {
   ): Promise<SendObjects<Partial<Unbrand<XoUser>>>> {
     const users = Object.values(await this.getObjects({ filter, limit }))
     return this.sendObjects(users, req)
+  }
+
+  /**
+   * Redirect to `/users/:id`
+   */
+  @SuccessResponse(307, 'Temporary redirect')
+  @Get('me')
+  redirectMe(@Request() req: ExRequest) {
+    this.#redirectCurrentUser(req)
+  }
+
+  /**
+   * Redirect to `/users/:id/<rest-of-your-path>`
+   */
+  @SuccessResponse(307, 'Temporary redirect')
+  @Get('me/*')
+  redirectMeWithPath(@Request() req: ExRequest) {
+    this.#redirectCurrentUser(req)
   }
 
   /**
