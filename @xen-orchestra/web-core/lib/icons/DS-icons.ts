@@ -1,26 +1,29 @@
 import { defineIcon } from '@core/packages/icon'
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
 import {
+  faArchive,
+  faArrowLeft,
   faBan,
+  faBoxesStacked,
+  faCheck,
   faCircle,
   faCity,
+  faClock,
+  faClose,
+  faDatabase,
   faDesktop,
   faExclamation,
+  faHdd,
+  faMinus,
+  faMoon,
+  faNetworkWired,
   faPause,
   faPlay,
   faSatellite,
   faServer,
   faSlash,
   faSquare,
-  faMoon,
-  faDatabase,
-  faCheck,
-  faMinus,
-  faClose,
-  faHdd,
-  faBoxesStacked,
 } from '@fortawesome/free-solid-svg-icons'
-import { faNetworkWired } from '@fortawesome/free-solid-svg-icons/faNetworkWired'
 
 // info: 'var(--color-info-txt-item)'
 // success: 'var(--color-success-txt-item)'
@@ -60,6 +63,27 @@ const running = defineIcon([
   {
     icon: faPlay,
     color: 'var(--color-success-txt-item)',
+    translate: [7.5, 5.5],
+    size: 5,
+  },
+])
+
+const runningNeutral = defineIcon([
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-primary)',
+    translate: [7, 5.5],
+    size: 13,
+  },
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-txt-primary)',
+    translate: [7, 5.5],
+    size: 10,
+  },
+  {
+    icon: faPlay,
+    color: 'var(--color-neutral-background-primary)',
     translate: [7.5, 5.5],
     size: 5,
   },
@@ -245,6 +269,44 @@ const disconnected = defineIcon([
     color: 'var(--color-danger-txt-item)',
     translate: [7, 5.5],
     size: 8,
+  },
+])
+
+const retrun = defineIcon([
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-primary)',
+    translate: [7, 5.5],
+    size: 13,
+  },
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-txt-primary)',
+    translate: [7, 5.5],
+    size: 10,
+  },
+  // not enough boldered
+  {
+    icon: faArrowLeft,
+    color: 'var(--color-danger-txt-item)',
+    translate: [7, 5.5],
+    size: [6, 6.5],
+  },
+])
+
+const schedule = defineIcon([
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-primary)',
+    translate: [7, 5.5],
+    size: 13,
+  },
+  {
+    // faclockThree is not enabled in free fa
+    icon: faClock,
+    color: 'var(--color-neutral-txt-primary)',
+    translate: [7, 5.5],
+    size: 10,
   },
 ])
 
@@ -606,6 +668,41 @@ export const ObjectsIcons = defineIconPack({
     },
     {
       icon: disconnected,
+    },
+  ],
+
+  backup: [
+    {
+      icon: faArchive,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+  ],
+
+  'backup-job': [
+    {
+      icon: faArchive,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: retrun,
+    },
+  ],
+  'backup-schedule': [
+    {
+      icon: faArchive,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: schedule,
+    },
+  ],
+  'backup-run': [
+    {
+      icon: faArchive,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: runningNeutral,
     },
   ],
 })
