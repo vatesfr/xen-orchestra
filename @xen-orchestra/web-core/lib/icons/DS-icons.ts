@@ -13,6 +13,10 @@ import {
   faSlash,
   faSquare,
   faMoon,
+  faDatabase,
+  faCheck,
+  faMinus,
+  faClose,
 } from '@fortawesome/free-solid-svg-icons'
 
 // info: 'var(--color-info-txt-item)'
@@ -58,7 +62,7 @@ const running = defineIcon([
   },
 ])
 
-const disabled = defineIcon([
+const disabledBan = defineIcon([
   {
     icon: faCircle,
     color: 'var(--color-neutral-background-primary)',
@@ -80,6 +84,27 @@ const disabled = defineIcon([
   },
 ])
 
+const disableLigne = defineIcon([
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-primary)',
+    translate: [7, 5.5],
+    size: 13,
+  },
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-disabled)',
+    translate: [7, 5.5],
+    size: 10,
+  },
+  {
+    icon: faMinus,
+    color: 'var(--color-neutral-txt-secondary)',
+    translate: [7, 5.5],
+    size: [6, 8],
+  },
+])
+
 const warning = defineIcon([
   {
     icon: faCircle,
@@ -97,7 +122,7 @@ const warning = defineIcon([
     icon: faExclamation,
     color: 'var(--color-warning-txt-item)',
     translate: [7, 5.5],
-    size: 8,
+    size: [9, 7],
   },
 ])
 
@@ -164,6 +189,62 @@ const suspended = defineIcon([
   },
 ])
 
+const connected = defineIcon([
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-primary)',
+    translate: [7, 5.5],
+    size: 13,
+  },
+  {
+    icon: faCircle,
+    color: 'var(--color-success-item-base)',
+    translate: [7, 5.5],
+    size: 10,
+  },
+  {
+    icon: faCheck,
+    color: 'var(--color-success-txt-item)',
+    translate: [7, 5.5],
+    size: 6,
+  },
+  // not enough boldered
+  // {
+  //   icon: faCheck,
+  //   color: 'var(--color-success-txt-item)',
+  //   translate: [7.2, 5.5],
+  //   size: 6,
+  // },
+  // {
+  //   icon: faCheck,
+  //   color: 'var(--color-success-txt-item)',
+  //   translate: [7, 5.3],
+  //   size: 6,
+  // },
+])
+
+const disconnected = defineIcon([
+  {
+    icon: faCircle,
+    color: 'var(--color-neutral-background-primary)',
+    translate: [7, 5.5],
+    size: 13,
+  },
+  {
+    icon: faCircle,
+    color: 'var(--color-danger-item-base)',
+    translate: [7, 5.5],
+    size: 10,
+  },
+  // not enough boldered
+  {
+    icon: faClose,
+    color: 'var(--color-danger-txt-item)',
+    translate: [7, 5.5],
+    size: 8,
+  },
+])
+
 export const ObjectsIcons = defineIconPack({
   instance: {
     icon: faSatellite,
@@ -216,7 +297,7 @@ export const ObjectsIcons = defineIconPack({
       color: 'var(--color-neutral-txt-primary)',
     },
     {
-      icon: disabled,
+      icon: disabledBan,
     },
   ],
 
@@ -304,6 +385,63 @@ export const ObjectsIcons = defineIconPack({
     },
     {
       icon: halted,
+    },
+  ],
+
+  sr: [
+    {
+      icon: faDatabase,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+  ],
+
+  'sr-unknown': [
+    {
+      icon: faDatabase,
+      color: 'var(--color-neutral-txt-secondary)',
+    },
+    {
+      icon: slash,
+    },
+  ],
+
+  'sr-connected': [
+    {
+      icon: faDatabase,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: connected,
+    },
+  ],
+
+  'sr-disable': [
+    {
+      icon: faDatabase,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: disableLigne,
+    },
+  ],
+
+  'sr-partially-connected': [
+    {
+      icon: faDatabase,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: warning,
+    },
+  ],
+
+  'sr-disconnected': [
+    {
+      icon: faDatabase,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: disconnected,
     },
   ],
 })
