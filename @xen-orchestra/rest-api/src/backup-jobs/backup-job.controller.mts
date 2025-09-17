@@ -50,17 +50,19 @@ const log = createLogger('xo:rest-api:backupJob-controller')
 @provide(BackupJobController)
 export class BackupJobController extends XoController<AnyXoBackupJob> {
   async getAllCollectionObjects(): Promise<AnyXoBackupJob[]> {
-    const backupJobs = await this.restApi.xoApp.getAllJobs()
-    return backupJobs.filter(job => 'type' in job)
+    const allJobs = await this.restApi.xoApp.getAllJobs()
+    const backupJobs = allJobs.filter(job => 'type' in job)
+    return backupJobs
   }
 
   async getCollectionObject(id: AnyXoBackupJob['id']): Promise<AnyXoBackupJob> {
-    const backupJob = await this.restApi.xoApp.getJob(id)
-    if (!('type' in backupJob)) {
+    const job = await this.restApi.xoApp.getJob(id)
+    if (!('type' in job)) {
+      // not a backup job
       throw noSuchObject(id, 'backup-job')
     }
 
-    return backupJob
+    return job
   }
 
   /**
@@ -160,7 +162,6 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
   @Hidden()
   @Get('jobs/{id}')
   async redirectToVmBackupJob(@Request() req: ExRequest, @Path() id: string) {
-    console.log('redirect called')
     const res = req.res as ExResponse
     res.redirect(308, BASE_URL + '/backup/jobs/vm/' + id)
   }
@@ -173,7 +174,6 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
   @Response(notFoundResp.status, notFoundResp.description)
   @Get('jobs/vm/{id}')
   getVmBackupJob(@Path() id: string): Promise<UnbrandXoVmBackupJob> {
-    console.log('jobs/vm/:id')
     return this.getObject(id as XoVmBackupJob['id'], 'backup')
   }
 
