@@ -1,8 +1,11 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
-    <NoDataError v-if="hasError" />
-    <template v-else-if="isReady">
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
+    <template v-else>
       <VtsProgressBar
         :current="nVcpuAssigned"
         :total="nPCpu"
@@ -15,20 +18,18 @@
         <UiCardNumbers :label="t('total-cpus')" :value="nPCpu" size="medium" />
       </div>
     </template>
-    <UiCardSpinner v-else />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import NoDataError from '@/components/NoDataError.vue'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { ACTIVE_STATES } from '@/libs/utils'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import { cpuProgressThresholds } from '@core/utils/progress.util.ts'
 import { logicAnd } from '@vueuse/math'
