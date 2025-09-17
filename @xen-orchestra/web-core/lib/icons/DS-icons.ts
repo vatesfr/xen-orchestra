@@ -19,6 +19,7 @@ import {
   faClose,
   faHdd,
 } from '@fortawesome/free-solid-svg-icons'
+import { faNetworkWired } from '@fortawesome/free-solid-svg-icons/faNetworkWired'
 
 // info: 'var(--color-info-txt-item)'
 // success: 'var(--color-success-txt-item)'
@@ -496,6 +497,53 @@ export const ObjectsIcons = defineIconPack({
   'vdi-detached': [
     {
       icon: faHdd,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: disconnected,
+    },
+  ],
+
+  network: [
+    {
+      icon: faNetworkWired,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+  ],
+
+  'network-unknown': [
+    {
+      icon: faNetworkWired,
+      color: 'var(--color-neutral-txt-secondary)',
+    },
+    {
+      icon: slash,
+    },
+  ],
+
+  'network-connected': [
+    {
+      icon: faNetworkWired,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: connected,
+    },
+  ],
+
+  'network-warning': [
+    {
+      icon: faNetworkWired,
+      color: 'var(--color-neutral-txt-primary)',
+    },
+    {
+      icon: warning,
+    },
+  ],
+
+  'network-detached': [
+    {
+      icon: faNetworkWired,
       color: 'var(--color-neutral-txt-primary)',
     },
     {
