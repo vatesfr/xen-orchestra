@@ -804,28 +804,10 @@ export default class RestApi {
         )
       )
 
-    api
-      .get(
-        '/restore',
-        wrap((req, res) => sendObjects([{ id: 'logs' }], req, res))
-      )
-      .get(
-        '/restore/logs',
-        wrap(async (req, res) => {
-          const { filter, limit } = req.query
-          const logs = await app.getBackupNgLogsSorted({
-            filter: every(_ => _.message === 'restore', handleOptionalUserFilter(filter)),
-            limit: ifDef(limit, Number),
-          })
-          await sendObjects(logs, req, res)
-        })
-      )
-      .get(
-        '/restore/logs/:id',
-        wrap(async (req, res) => {
-          res.json(await app.getBackupNgLogs(req.params.id))
-        }, true)
-      )
+    api.get(
+      '/restore',
+      wrap((req, res) => sendObjects([{ id: 'logs' }], req, res))
+    )
 
     api.get(
       '/tasks/:id/actions',
