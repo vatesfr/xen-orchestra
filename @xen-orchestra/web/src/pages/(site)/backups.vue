@@ -1,7 +1,7 @@
 <template>
   <div class="backups" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <BackupJobsTable :backup-jobs :has-error="hasFetchError" />
+      <BackupJobsTable :backup-jobs :has-error="hasBackupJobFetchError" />
     </UiCard>
     <BackupJobsSidePanel
       v-if="selectedBackupJob"
@@ -29,7 +29,7 @@ import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 
-const { backupJobs, hasFetchError } = useXoBackupJobCollection()
+const { backupJobs, hasBackupJobFetchError } = useXoBackupJobCollection()
 
 const { t } = useI18n()
 
