@@ -109,9 +109,4 @@ const hasSettings = computed(
     width: 100%;
   }
 }
-
-.action-buttons {
-  display: flex;
-  align-items: center;
-}
 </style>
