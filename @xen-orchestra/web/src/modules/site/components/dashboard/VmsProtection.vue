@@ -1,8 +1,8 @@
 <template>
   <UiCard>
     <UiCardTitle>{{ t('backups.vms-protection') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!areBackupsVmsProtectionReady" type="card" />
-    <VtsNoDataHero v-else-if="backups === undefined" type="card" />
+    <VtsStateHero v-if="!areBackupsVmsProtectionReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="backups === undefined" format="card" type="no-data" size="medium" />
     <template v-else>
       <VtsDonutChartWithLegend :segments="vmsProtectionSegments" />
       <div>
@@ -18,8 +18,7 @@ import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
