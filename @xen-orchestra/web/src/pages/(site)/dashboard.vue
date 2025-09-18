@@ -69,15 +69,9 @@ const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
   .second-row {
     grid-template-columns: repeat(3, 1fr);
     grid-template-areas:
-      'pools-status'
-      'hosts-status'
-      'vms-status'
-      'alarms'
-      'patches'
-      'resources-overview'
-      'backups'
-      'backup-issues'
-      'repositories';
+      'alarms alarms patches'
+      'backup-jobs-status vms-protection backup-issues'
+      'backup-repository storage-repository s3-backup-repository';
   }
 
   .pools-status {

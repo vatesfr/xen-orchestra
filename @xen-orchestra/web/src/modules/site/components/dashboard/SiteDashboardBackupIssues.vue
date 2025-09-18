@@ -5,6 +5,10 @@
       <UiCounter :value="nBackupIssues" accent="danger" size="medium" variant="primary" />
       <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
+    <VtsStateHero v-if="!areBackupIssuesReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="!hasBackupIssues" format="card" type="no-data" size="extra-small" horizontal>
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <div class="backup-items">
       <VtsTable :state>
         <thead>
@@ -25,6 +29,7 @@ import type { BackupIssue, XoDashboard } from '@/modules/site/types/xo-dashboard
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { useTableState } from '@core/composables/table-state.composable'
