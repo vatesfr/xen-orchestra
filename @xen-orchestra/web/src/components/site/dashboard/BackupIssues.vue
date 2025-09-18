@@ -6,7 +6,7 @@
       <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
     <VtsStateHero v-if="!areBackupIssuesReady" format="card" busy size="medium" />
-    <VtsStateHero v-else-if="!hasBackupIssues" format="card" type="no-data" size="small" horizontal>
+    <VtsStateHero v-else-if="!hasBackupIssues" format="card" type="no-data" size="extra-small" horizontal>
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
     <div v-else class="backup-items">

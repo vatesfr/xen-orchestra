@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('backups.jobs-status') }}
       <template #info>
