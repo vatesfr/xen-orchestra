@@ -792,17 +792,7 @@ export default class RestApi {
         '/backup',
         wrap((req, res) => sendObjects([{ id: 'jobs' }, { id: 'logs' }], req, res))
       )
-      .get(
-        '/backup/logs',
-        wrap(async (req, res) => {
-          const { filter, limit } = req.query
-          const logs = await app.getBackupNgLogsSorted({
-            filter: every(({ message: m }) => m === 'backup' || m === 'metadata', handleOptionalUserFilter(filter)),
-            limit: ifDef(limit, Number),
-          })
-          await sendObjects(logs, req, res)
-        })
-      )
+
       .get(
         '/backup/jobs',
         wrap((req, res) =>
@@ -831,21 +821,20 @@ export default class RestApi {
         })
       )
       .get(
-        ['/backup/logs/:id', '/restore/logs/:id'],
+        '/restore/logs/:id',
         wrap(async (req, res) => {
           res.json(await app.getBackupNgLogs(req.params.id))
         }, true)
       )
 
-    api
-      .get(
-        '/tasks/:id/actions',
-        wrap(async (req, res) => {
-          const task = await app.tasks.get(req.params.id)
+    api.get(
+      '/tasks/:id/actions',
+      wrap(async (req, res) => {
+        const task = await app.tasks.get(req.params.id)
 
-          await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
-        })
-      )
+        await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+      })
+    )
 
     api.get(
       '/:collection',
