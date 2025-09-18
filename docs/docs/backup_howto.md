@@ -173,7 +173,6 @@ Below are the main backup and replication types available in Xen Orchestra.
 
 ### Advanced settings
 
-- **Smart mode**: Automatically decides whether to run a full or delta backup based on circumstances (such as storage conditions or snapshot issues).
 - **Compression**: Reduces backup size at the cost of CPU usage and backup speed.
 - **Encryption**: Protects backup data at rest.
 - **Concurrency**: Controls how many VMs run in parallel in this backup job.
@@ -190,13 +189,7 @@ Below are the main backup and replication types available in Xen Orchestra.
 
 ### VM restore
 - Restore a VM to the same host/pool or another location.
-- Choose full or delta restore, depending on backup type.
-
-:::tip
-- **Delta restores** are only available for delta backups and operate on a best-effort basis. This process depends on internal factors like backup and snapshot chains and the underlying storage system.
-    If a delta restore isn't possible, Xen Orchestra automatically switches to a full restore, transferring the entire VM to the host.
-- For **full backups**, restores will always transfer the complete VM.
-:::
+- When restoring, Xen Orchestra can attempt a **delta restore**, which reuses the current VM disk to speed up the process.
 
 ### File restore
 - Access individual files within a VM backup  
