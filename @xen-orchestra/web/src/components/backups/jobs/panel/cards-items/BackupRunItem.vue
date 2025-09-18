@@ -17,10 +17,10 @@
       {{ t('date') }}
     </template>
     <template #value>
-      {{ new Date(runDate).toLocaleString() }}
+      {{ formattedRunDate }}
     </template>
     <template #addons>
-      <VtsCopyButton :value="new Date(runDate).toLocaleString()" />
+      <VtsCopyButton :value="formattedRunDate" />
     </template>
   </VtsCardRowKeyValue>
   <VtsCardRowKeyValue>
@@ -36,12 +36,23 @@
       {{ t('schedule') }}
     </template>
     <template #value>
-      <UiLink v-if="scheduleName" size="small" icon="object:backup-schedule" :href="`/#/backup/${backupRun.jobId}/edit`">
+      <UiLink
+        v-if="scheduleName"
+        size="small"
+        icon="object:backup-schedule"
+        :href="`/#/backup/${backupRun.jobId}/edit`"
+      >
         {{ scheduleName }}
       </UiLink>
     </template>
   </VtsCardRowKeyValue>
-  <UiLogEntryViewer v-if="shouldShowLog" :content="backupRun.tasks![0].result.stack as string" :label="t('api-error-details')" size="small" :accent="backupRun.status === 'skipped' ? 'warning' : 'danger'" />
+  <UiLogEntryViewer
+    v-if="shouldShowLog"
+    :content="backupRun.tasks![0].result.stack as string"
+    :label="t('api-error-details')"
+    size="small"
+    :accent="backupRun.status === 'skipped' ? 'warning' : 'danger'"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -65,9 +76,11 @@ const { schedules } = useXoScheduleCollection()
 
 const runDate = computed(() => backupRun.end ?? backupRun.start)
 
+const formattedRunDate = computed(() => new Date(runDate.value).toLocaleString())
+
 const shouldShowLog = computed(
   () => backupRun.status !== 'success' && backupRun.status !== 'pending' && backupRun.tasks && backupRun.tasks[0].result
 )
 
-const scheduleName = computed(() => schedules.value.filter(schedule => schedule.jobId === backupRun.jobId)[0].name)
+const scheduleName = computed(() => schedules.value.filter(schedule => schedule.jobId === backupRun.jobId)[0]?.name)
 </script>
