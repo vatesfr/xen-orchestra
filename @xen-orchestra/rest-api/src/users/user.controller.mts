@@ -67,7 +67,7 @@ export class UserController extends XoController<XoUser> {
     const originalUrl = req.originalUrl
     const res = req.res as ExResponse
 
-    res.redirect(307, originalUrl.replace('/me', `/${currentUser.id}`))
+    res.redirect(307, originalUrl.replace(/\/users\/me(?=\/|$)/, `/users/${currentUser.id}`))
   }
 
   /**
