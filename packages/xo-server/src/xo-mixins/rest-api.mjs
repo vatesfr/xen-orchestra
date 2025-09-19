@@ -773,11 +773,6 @@ export default class RestApi {
       })
     )
 
-    // For compatibility redirect from /backups* to /backup
-    api.get('/backups*', (req, res) => {
-      res.redirect(308, req.baseUrl + '/backup' + req.params[0])
-    })
-
     const backupTypes = {
       __proto__: null,
 
@@ -812,25 +807,6 @@ export default class RestApi {
           )
         )
       )
-
-    for (const [collection, type] of Object.entries(backupTypes)) {
-      api
-        .get(
-          '/backup/jobs/' + collection,
-          wrap(async (req, res) => sendObjects(await app.getAllJobs(type), req, res))
-        )
-        .get(
-          `/backup/jobs/${collection}/:id`,
-          wrap(async (req, res) => {
-            res.json(await app.getJob(req.params.id, type))
-          }, true)
-        )
-    }
-
-    // For compatibility, redirect /backup/jobs/:id to /backup/jobs/vm/:id
-    api.get('/backup/jobs/:id', (req, res) => {
-      res.redirect(308, req.baseUrl + '/backup/jobs/vm/' + req.params.id)
-    })
 
     api
       .get(
