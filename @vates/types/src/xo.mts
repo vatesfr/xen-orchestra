@@ -133,6 +133,18 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
   }
 }
 
+// TODO: to be typed when Bastien.N has finished working on the XO task
+type BaseXoLog = {
+  id: Branded<'xo-log'>
+  [key: string]: unknown
+}
+export type XoBackupLog = BaseXoLog & {
+  message: 'backup' | 'metadata'
+}
+export type XoRestoreLog = BaseXoLog & {
+  message: 'restore'
+}
+
 export type XoBackupRepository = {
   benchmarks?: { readRate: number; timestamp: number; writeRate: number }[]
   enabled: boolean
@@ -737,6 +749,7 @@ export type XapiXoRecord =
 
 export type NonXapiXoRecord =
   | AnyXoJob
+  | AnyXoLog
   | XoGroup
   | XoProxy
   | XoBackupRepository
@@ -754,3 +767,5 @@ export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
 export type AnyXoJob = XoJob | AnyXoBackupJob
 
 export type AnyXoBackupJob = XoVmBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
+
+export type AnyXoLog = XoBackupLog | XoRestoreLog
