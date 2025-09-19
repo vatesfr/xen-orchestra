@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import { createLogger } from '@xen-orchestra/log'
 import { invalidCredentials } from 'xo-common/api-errors.js'
 import type { XapiXoRecord, XoUser } from '@vates/types'
@@ -52,9 +53,12 @@ export class RestApi {
 
   getObjectsByType<T extends XapiXoRecord>(
     type: T['type'],
-    opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
+    { filter, ...opts }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}
   ) {
-    return this.#xoApp.getObjectsByType(type, opts)
+    if (filter !== undefined && typeof filter === 'string') {
+      filter = CM.parse(filter).createPredicate()
+    }
+    return this.#xoApp.getObjectsByType(type, { filter, ...opts })
   }
 
   getXapiObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type'] | T['type'][]) {
