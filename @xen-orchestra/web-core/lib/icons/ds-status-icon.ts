@@ -1,5 +1,9 @@
 import { defineIconPack } from '@core/packages/icon'
-import { faSquare as checkboxEmpty, faCircle as circleEmpty } from '@fortawesome/free-regular-svg-icons'
+import {
+  faSquare as checkboxEmpty,
+  faCircle as circleEmpty,
+  type IconDefinition,
+} from '@fortawesome/free-regular-svg-icons'
 import {
   faBan,
   faBolt,
@@ -22,11 +26,15 @@ import {
   faUserAstronaut,
 } from '@fortawesome/free-solid-svg-icons'
 
-export const dsStatusIcon = defineIconPack({
-  runnign: {
-    icon: faPlay,
+function constructIcon(icon: IconDefinition): any {
+  return {
+    icon,
     color: 'var(--color-neutral-txt-primary)',
-  },
+  }
+}
+
+export const dsStatusIcon = defineIconPack({
+  runnign: constructIcon(faPlay),
 
   'runnign-circle': [
     {
@@ -41,10 +49,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  pause: {
-    icon: faPause,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  pause: constructIcon(faPause),
 
   'pause-circle': [
     {
@@ -58,10 +63,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  suspended: {
-    icon: faMoon,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  suspended: constructIcon(faMoon),
 
   'suspended-circle': [
     {
@@ -76,10 +78,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  halted: {
-    icon: faSquare,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  halted: constructIcon(faSquare),
 
   'halted-circle': [
     {
@@ -106,10 +105,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  info: {
-    icon: faInfo,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  info: constructIcon(faInfo),
 
   'info-circle': [
     {
@@ -123,15 +119,9 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  'info-picto': {
-    icon: faUserAstronaut,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'info-picto': constructIcon(faUserAstronaut),
 
-  success: {
-    icon: faCheck,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  success: constructIcon(faCheck),
 
   'success-circle': [
     {
@@ -146,10 +136,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  warning: {
-    icon: faExclamation,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  warning: constructIcon(faExclamation),
 
   'warning-circle': [
     {
@@ -163,10 +150,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  'warning-picto': {
-    icon: faSatelliteDish,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'warning-picto': constructIcon(faSatelliteDish),
 
   'danger-circle': [
     {
@@ -181,10 +165,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  'danger-picto': {
-    icon: faMeteor,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'danger-picto': constructIcon(faMeteor),
 
   disabled: [
     {
@@ -198,10 +179,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  checkbox: {
-    icon: checkboxEmpty,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  checkbox: constructIcon(checkboxEmpty),
 
   'checkbox-checked': [
     {
@@ -227,10 +205,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  'radio-button': {
-    icon: circleEmpty,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'radio-button': constructIcon(circleEmpty),
 
   'radio-button-checked': [
     {
@@ -244,10 +219,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  primary: {
-    icon: faStar,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  primary: constructIcon(faStar),
 
   'primary-circle': [
     {
