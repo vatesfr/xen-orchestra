@@ -38,6 +38,7 @@
 - [Pool/HA] Prevent SRs from other pools to be selectable on HA enabling modal (PR [#8924](https://github.com/vatesfr/xen-orchestra/pull/8924))
 - [VIFs] Fix sorting by VIF device (PR [#8877](https://github.com/vatesfr/xen-orchestra/pull/8877))
 - [Home/Pool] Fix "an error has occurred" for non-admin users (PR [#8946](https://github.com/vatesfr/xen-orchestra/pull/8946))
+- [Plugins/Load balancer] Prevent mass migration when receiving incorrect host data (PR [#8965](https://github.com/vatesfr/xen-orchestra/pull/8965))
 
 ### Packages to release
 

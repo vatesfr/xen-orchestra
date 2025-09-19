@@ -317,7 +317,7 @@ export default class Plan {
     // removing hosts which have incorrect cpu count value to avoid mass migration on rrd malfunction
     const sanitizedHostList = hosts.filter(host => host.cpus.cores > 0)
     if (sanitizedHostList.length < hosts.length) {
-      const unhealthyHosts = hosts.filter(host => host.cpus.cores === undefined || host.cpus.cores === 0))
+      const unhealthyHosts = hosts.filter(host => host.cpus.cores === undefined || host.cpus.cores === 0)
       for (const unhealthyHost of unhealthyHosts) {
         warn(
           `vCPU balancing: host ${unhealthyHost.id} has unexpected CPU value: ${inspect(unhealthyHost.cpus, { depth: null })}`
