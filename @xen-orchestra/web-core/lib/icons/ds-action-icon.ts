@@ -1,5 +1,5 @@
 import { defineIconPack } from '@core/packages/icon'
-import { faSquare as checkboxEmpty } from '@fortawesome/free-regular-svg-icons'
+import { faSquare as checkboxEmpty, type IconDefinition } from '@fortawesome/free-regular-svg-icons'
 import {
   faAdd,
   faArrowCircleRight,
@@ -33,28 +33,23 @@ import {
   faUpRightAndDownLeftFromCenter,
 } from '@fortawesome/free-solid-svg-icons'
 
+function constructIcon(icon: IconDefinition): any {
+  return {
+    icon,
+    color: 'var(--color-neutral-txt-primary)',
+  }
+}
+
 export const dsActionIcon = defineIconPack({
-  menu: {
-    icon: faBars,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  menu: constructIcon(faBars),
 
-  'pin-panel': {
-    icon: faThumbTack,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'pin-panel': constructIcon(faThumbTack),
 
-  'pin-panel-hide': {
-    icon: faThumbTackSlash,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'pin-panel-hide': constructIcon(faThumbTackSlash),
 
   resize: [
     // bad arrow
-    {
-      icon: faArrowsLeftRight,
-      color: 'var(--color-neutral-txt-primary)',
-    },
+    constructIcon(faArrowsLeftRight),
     {
       icon: faMinus,
       color: 'var(--color-neutral-txt-primary)',
@@ -62,26 +57,14 @@ export const dsActionIcon = defineIconPack({
     },
   ],
 
-  search: {
-    icon: faSearch,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  search: constructIcon(faSearch),
 
-  'close-cancel-clear': {
-    icon: faClose,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'close-cancel-clear': constructIcon(faClose),
 
-  disable: {
-    icon: faBan,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  disable: constructIcon(faBan),
 
   'disable-and-evacuate': [
-    {
-      icon: faBan,
-      color: 'var(--color-neutral-txt-primary)',
-    },
+    constructIcon(faBan),
     {
       icon: faCircle,
       color: 'var(--color-neutral-background-primary)',
@@ -102,10 +85,7 @@ export const dsActionIcon = defineIconPack({
     },
   ],
 
-  add: {
-    icon: faAdd,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  add: constructIcon(faAdd),
 
   'add-circle': [
     {
@@ -119,37 +99,20 @@ export const dsActionIcon = defineIconPack({
     },
   ],
 
-  remove: {
-    icon: faMinus,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  remove: constructIcon(faMinus),
 
-  force: {
-    icon: faBolt,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  force: constructIcon(faBolt),
 
-  smart: {
-    icon: faLightbulb,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  smart: constructIcon(faLightbulb),
 
-  'open-in-new-tab': {
-    icon: faArrowUpRightFromSquare,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'open-in-new-tab': constructIcon(faArrowUpRightFromSquare),
 
-  'open-fullscreen': {
-    icon: faUpRightAndDownLeftFromCenter,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'open-fullscreen': constructIcon(faUpRightAndDownLeftFromCenter),
 
   screenshot: [
-    {
-      // faDrawSquare is pro version
-      icon: checkboxEmpty,
-      color: 'var(--color-neutral-txt-primary)',
-    },
+    // faDrawSquare is pro version
+    constructIcon(checkboxEmpty),
+
     {
       icon: faCircle,
       color: 'var(--color-neutral-txt-primary)',
@@ -176,40 +139,19 @@ export const dsActionIcon = defineIconPack({
     },
   ],
 
-  edit: {
-    icon: faEdit,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  edit: constructIcon(faEdit),
 
-  duplicate: {
-    icon: faClone,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  duplicate: constructIcon(faClone),
 
-  copy: {
-    icon: faCopy,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  copy: constructIcon(faCopy),
 
-  connect: {
-    icon: faLink,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  connect: constructIcon(faLink),
 
-  forget: {
-    icon: faEraser,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  forget: constructIcon(faEraser),
 
-  delete: {
-    icon: faTrash,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  delete: constructIcon(faTrash),
 
-  'more-action': {
-    icon: faEllipsis,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'more-action': constructIcon(faEllipsis),
 
   'more-actions-vertical': {
     icon: faEllipsis,
@@ -217,16 +159,10 @@ export const dsActionIcon = defineIconPack({
     rotate: 90,
   },
 
-  reboot: {
-    icon: faArrowRotateRight,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  reboot: constructIcon(faArrowRotateRight),
 
   'reboot-force': [
-    {
-      icon: faArrowRotateRight,
-      color: 'var(--color-neutral-txt-primary)',
-    },
+    constructIcon(faArrowRotateRight),
     {
       icon: faCircle,
       color: 'var(--color-neutral-background-primary)',
@@ -248,10 +184,7 @@ export const dsActionIcon = defineIconPack({
   ],
 
   'reboot-smart': [
-    {
-      icon: faArrowRotateRight,
-      color: 'var(--color-neutral-txt-primary)',
-    },
+    constructIcon(faArrowRotateRight),
     {
       icon: faCircle,
       color: 'var(--color-neutral-background-primary)',
@@ -266,44 +199,20 @@ export const dsActionIcon = defineIconPack({
     },
   ],
 
-  undo: {
-    icon: faArrowRotateLeft,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  undo: constructIcon(faArrowRotateLeft),
 
-  scan: {
-    icon: faRefresh,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  scan: constructIcon(faRefresh),
 
-  'change-state': {
-    icon: faPowerOff,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'change-state': constructIcon(faPowerOff),
 
-  migrate: {
-    // #FIXME I don’t know this icon
-    icon: faPowerOff,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  // #FIXME I don’t know this icon
+  migrate: constructIcon(faPowerOff),
 
-  snapshoot: {
-    icon: faCamera,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  snapshoot: constructIcon(faCamera),
 
-  downloard: {
-    icon: faDownload,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  downloard: constructIcon(faDownload),
 
-  'health-check': {
-    icon: faHeart,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'health-check': constructIcon(faHeart),
 
-  evacuate: {
-    icon: faArrowCircleRight,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  evacuate: constructIcon(faArrowCircleRight),
 })
