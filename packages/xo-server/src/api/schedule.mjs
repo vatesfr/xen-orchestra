@@ -82,6 +82,7 @@ export async function runSequence({ schedules }) {
       const job = await this.getJob(schedule.jobId)
       try {
         await this.runJob(job, schedule)
+        Task.set('progress', Math.round(((i + 1) * 100) / nb))
       } catch (error) {
         // prevent skipped backups from stopping the sequence
         if (!noMatchingVm.is(error)) {

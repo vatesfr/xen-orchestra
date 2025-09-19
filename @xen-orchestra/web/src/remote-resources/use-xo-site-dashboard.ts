@@ -42,6 +42,7 @@ export const useXoSiteDashboard = defineRemoteResource({
       isDashboardReady: context.isReady,
       backupRepositories,
       storageRepositories,
+      hasError: context.hasError,
     }
   },
 })
