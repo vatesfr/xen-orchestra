@@ -94,11 +94,13 @@ export async function exportIncrementalVm(
     }
   })
 
+  // Get a fresh list of VM's VTPM to avoid `vm.VTPMs: [undefined]`
+  const vmVtpms = await vm.$xapi.getField('VM', vm.$ref, 'VTPMs')
   const vtpms = await Promise.all(
-    vm.$VTPMs.map(async vtpm => {
+    vmVtpms.map(async vtpmRef => {
       let content
       try {
-        content = await vm.$xapi.call('VTPM.get_contents', vtpm.$ref)
+        content = await vm.$xapi.call('VTPM.get_contents', vtpmRef)
       } catch (err) {
         console.error(err)
       }
