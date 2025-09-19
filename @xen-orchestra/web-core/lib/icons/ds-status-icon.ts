@@ -77,7 +77,7 @@ export const dsStatusIcon = defineIconPack({
   ],
 
   halted: {
-    icon: checkboxEmpty,
+    icon: faSquare,
     color: 'var(--color-neutral-txt-primary)',
   },
 
@@ -87,7 +87,7 @@ export const dsStatusIcon = defineIconPack({
       color: 'var(--color-danger-item-base)',
     },
     {
-      icon: checkboxEmpty,
+      icon: faSquare,
       color: 'var(--color-danger-txt-item)',
       size: 7,
     },
