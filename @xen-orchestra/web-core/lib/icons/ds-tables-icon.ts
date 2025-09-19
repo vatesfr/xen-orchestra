@@ -22,59 +22,37 @@ import {
   faHashtag,
   faLayerGroup,
   faSquareCaretDown,
+  type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 
+function constructIcon(icon: IconDefinition): any {
+  return {
+    icon,
+    color: 'var(--color-neutral-txt-primary)',
+  }
+}
+
 export const dsTableIcon = defineIconPack({
-  objcet: {
-    icon: faA,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  objcet: constructIcon(faA),
 
-  string: {
-    icon: faAlignLeft,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  string: constructIcon(faAlignLeft),
 
-  int: {
-    icon: faHashtag,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  int: constructIcon(faHashtag),
 
-  select: {
-    icon: faSquareCaretDown,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  select: constructIcon(faSquareCaretDown),
 
-  date: {
-    icon: faCalendar,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  date: constructIcon(faCalendar),
 
-  time: {
-    icon: faClock,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  time: constructIcon(faClock),
 
-  'arraw-up-a-z': {
-    icon: faArrowUpAZ,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'arraw-up-a-z': constructIcon(faArrowUpAZ),
 
-  'arraw-down-a-z': {
-    icon: faArrowDownAZ,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'arraw-down-a-z': constructIcon(faArrowDownAZ),
 
-  filter: {
-    icon: faFilter,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  filter: constructIcon(faFilter),
 
   'filter-add': [
-    {
-      icon: faFilter,
-      color: 'var(--color-neutral-txt-primary)',
-    },
+    constructIcon(faFilter),
     {
       icon: faCircle,
       color: 'var(--color-neutral-background-primary)',
@@ -89,16 +67,10 @@ export const dsTableIcon = defineIconPack({
     },
   ],
 
-  group: {
-    icon: faLayerGroup,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  group: constructIcon(faLayerGroup),
 
   'group-add': [
-    {
-      icon: faLayerGroup,
-      color: 'var(--color-neutral-txt-primary)',
-    },
+    constructIcon(faLayerGroup),
     {
       icon: faCircle,
       color: 'var(--color-neutral-background-primary)',
@@ -113,53 +85,23 @@ export const dsTableIcon = defineIconPack({
     },
   ],
 
-  show: {
-    icon: faEye,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  show: constructIcon(faEye),
 
-  'show-hide': {
-    icon: faEyeSlash,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'show-hide': constructIcon(faEyeSlash),
 
-  'angle-up': {
-    icon: faAngleUp,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'angle-up': constructIcon(faAngleUp),
 
-  'angle-left': {
-    icon: faAngleLeft,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'angle-left': constructIcon(faAngleLeft),
 
-  'angle-down': {
-    icon: faAngleDown,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'angle-down': constructIcon(faAngleDown),
 
-  'angle-right': {
-    icon: faAngleRight,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'angle-right': constructIcon(faAngleRight),
 
-  'angles-left': {
-    icon: faAnglesLeft,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'angles-left': constructIcon(faAnglesLeft),
 
-  'angles-right': {
-    icon: faAnglesRight,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'angles-right': constructIcon(faAnglesRight),
 
-  'arrow-up': {
-    icon: faArrowUp,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'arrow-up': constructIcon(faArrowUp),
 
-  'arrow-down': {
-    icon: faArrowDown,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  'arrow-down': constructIcon(faArrowDown),
 })
