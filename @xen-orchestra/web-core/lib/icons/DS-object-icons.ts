@@ -3,36 +3,47 @@ import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
 import {
   faArchive,
   faArrowLeft,
-  faBan,
   faBoxesStacked,
-  faCheck,
   faCircle,
   faCity,
   faClock,
-  faClose,
   faDatabase,
   faDesktop,
-  faExclamation,
   faHdd,
-  faMinus,
-  faMoon,
   faNetworkWired,
-  faPause,
   faPlay,
   faSatellite,
   faServer,
   faSlash,
-  faSquare,
   faUserCircle,
   faUsers,
+  type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
+import { dsStatusIcon } from './ds-status-icon'
 
-// info: 'var(--color-info-txt-item)'
-// success: 'var(--color-success-txt-item)'
-// warning: 'var(--color-warning-txt-item)'
-// danger: 'var(--color-danger-txt-item)'
-// muted: 'var(--color-neutral-txt-secondary)'
-// netral: 'var(--color-neutral-txt-primary)'
+// type this
+function CircleStatus(status: keyof typeof dsStatusIcon): any {
+  return [
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-background-primary)',
+      translate: [7, 5.5],
+      size: 13,
+    },
+    {
+      icon: dsStatusIcon[status],
+      translate: [7, 5.5],
+      size: 10,
+    },
+  ]
+}
+
+function constructIcon(icon: IconDefinition): any {
+  return {
+    icon,
+    color: 'var(--color-neutral-txt-primary)',
+  }
+}
 
 const slash = defineIcon([
   {
@@ -46,27 +57,6 @@ const slash = defineIcon([
     color: 'var(--color-neutral-txt-secondary)',
     translate: [0.5, -0.5],
     size: 20,
-  },
-])
-
-const running = defineIcon([
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [7, 5.5],
-    size: 13,
-  },
-  {
-    icon: faCircle,
-    color: 'var(--color-success-item-base)',
-    translate: [7, 5.5],
-    size: 10,
-  },
-  {
-    icon: faPlay,
-    color: 'var(--color-success-txt-item)',
-    translate: [7.5, 5.5],
-    size: 5,
   },
 ])
 
@@ -88,189 +78,6 @@ const runningNeutral = defineIcon([
     color: 'var(--color-neutral-background-primary)',
     translate: [7.5, 5.5],
     size: 5,
-  },
-])
-
-const disabledBan = defineIcon([
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [7, 5.5],
-    size: 13,
-  },
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-disabled)',
-    translate: [7, 5.5],
-    size: 10,
-  },
-  {
-    icon: faBan,
-    color: 'var(--color-neutral-txt-secondary)',
-    translate: [7, 5.5],
-    size: 8,
-    // increase bold for match with Figma
-  },
-])
-
-const disableLigne = defineIcon([
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [7, 5.5],
-    size: 13,
-  },
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-disabled)',
-    translate: [7, 5.5],
-    size: 10,
-  },
-  {
-    icon: faMinus,
-    color: 'var(--color-neutral-txt-secondary)',
-    translate: [7, 5.5],
-    size: [6, 8],
-  },
-])
-
-const warning = defineIcon([
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [7, 5.5],
-    size: 13,
-  },
-  {
-    icon: faCircle,
-    color: 'var(--color-warning-item-base)',
-    translate: [7, 5.5],
-    size: 10,
-  },
-  {
-    icon: faExclamation,
-    color: 'var(--color-warning-txt-item)',
-    translate: [7, 5.5],
-    size: [9, 7],
-  },
-])
-
-const halted = defineIcon([
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [7, 5.5],
-    size: 13,
-  },
-  {
-    icon: faCircle,
-    color: 'var(--color-danger-item-base)',
-    translate: [7, 5.5],
-    size: 10,
-  },
-  {
-    icon: faSquare,
-    color: 'var(--color-danger-txt-item)',
-    translate: [7, 5.5],
-    size: 4.5,
-  },
-])
-
-const pause = defineIcon([
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [7, 5.5],
-    size: 13,
-  },
-  {
-    icon: faCircle,
-    color: 'var(--color-brand-item-base)',
-    translate: [7, 5.5],
-    size: 10,
-  },
-  {
-    icon: faPause,
-    color: 'var(--color-brand-txt-item)',
-    translate: [7, 5.5],
-    size: 6,
-  },
-])
-
-const suspended = defineIcon([
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [7, 5.5],
-    size: 13,
-  },
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-disabled)',
-    translate: [7, 5.5],
-    size: 10,
-  },
-  {
-    icon: faMoon,
-    color: 'var(--color-neutral-txt-secondary)',
-    translate: [7, 5.5],
-    size: 6,
-  },
-])
-
-const connected = defineIcon([
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [7, 5.5],
-    size: 13,
-  },
-  {
-    icon: faCircle,
-    color: 'var(--color-success-item-base)',
-    translate: [7, 5.5],
-    size: 10,
-  },
-  {
-    icon: faCheck,
-    color: 'var(--color-success-txt-item)',
-    translate: [7, 5.5],
-    size: 6,
-  },
-  // not enough boldered
-  // {
-  //   icon: faCheck,
-  //   color: 'var(--color-success-txt-item)',
-  //   translate: [7.2, 5.5],
-  //   size: 6,
-  // },
-  // {
-  //   icon: faCheck,
-  //   color: 'var(--color-success-txt-item)',
-  //   translate: [7, 5.3],
-  //   size: 6,
-  // },
-])
-
-const disconnected = defineIcon([
-  {
-    icon: faCircle,
-    color: 'var(--color-neutral-background-primary)',
-    translate: [7, 5.5],
-    size: 13,
-  },
-  {
-    icon: faCircle,
-    color: 'var(--color-danger-item-base)',
-    translate: [7, 5.5],
-    size: 10,
-  },
-  // not enough boldered
-  {
-    icon: faClose,
-    color: 'var(--color-danger-txt-item)',
-    translate: [7, 5.5],
-    size: 8,
   },
 ])
 
@@ -313,15 +120,9 @@ const schedule = defineIcon([
 ])
 
 export const dsObjectsIcons = defineIconPack({
-  instance: {
-    icon: faSatellite,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  instance: constructIcon(faSatellite),
 
-  pool: {
-    icon: faCity,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  pool: constructIcon(faCity),
 
   'pool-unknown': [
     {
@@ -333,10 +134,7 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  host: {
-    icon: faServer,
-    color: 'var(--color-neutral-txt-primary)',
-  },
+  host: constructIcon(faServer),
 
   'host-unknown': [
     {
@@ -348,52 +146,15 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'host-running': [
-    {
-      icon: faServer,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: running,
-    },
-  ],
+  'host-running': [constructIcon(faServer), ...CircleStatus('runnign-circle')],
 
-  'host-disabled': [
-    {
-      icon: faServer,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: disabledBan,
-    },
-  ],
+  'host-disabled': [constructIcon(faServer), ...CircleStatus('disabled-host-circle')],
 
-  'host-warning': [
-    {
-      icon: faServer,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: warning,
-    },
-  ],
+  'host-warning': [constructIcon(faServer), ...CircleStatus('warning-circle')],
 
-  'host-halted': [
-    {
-      icon: faServer,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: halted,
-    },
-  ],
+  'host-halted': [constructIcon(faServer), ...CircleStatus('halted-circle')],
 
-  vm: [
-    {
-      icon: faDesktop,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-  ],
+  vm: [constructIcon(faDesktop)],
 
   'vm-unknown': [
     {
@@ -405,62 +166,17 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'vm-running': [
-    {
-      icon: faDesktop,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: running,
-    },
-  ],
+  'vm-running': [constructIcon(faDesktop), ...CircleStatus('runnign-circle')],
 
-  'vm-paused': [
-    {
-      icon: faDesktop,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: pause,
-    },
-  ],
+  'vm-paused': [constructIcon(faDesktop), ...CircleStatus('pause-circle')],
 
-  'vm-suspended': [
-    {
-      icon: faDesktop,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: suspended,
-    },
-  ],
+  'vm-suspended': [constructIcon(faDesktop), ...CircleStatus('suspended-circle')],
 
-  'vm-warning': [
-    {
-      icon: faDesktop,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: warning,
-    },
-  ],
+  'vm-warning': [constructIcon(faDesktop), ...CircleStatus('warning-circle')],
 
-  'vm-halted': [
-    {
-      icon: faDesktop,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: halted,
-    },
-  ],
+  'vm-halted': [constructIcon(faDesktop), ...CircleStatus('halted-circle')],
 
-  sr: [
-    {
-      icon: faDatabase,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-  ],
+  sr: [constructIcon(faDatabase)],
 
   'sr-unknown': [
     {
@@ -472,52 +188,15 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'sr-connected': [
-    {
-      icon: faDatabase,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: connected,
-    },
-  ],
+  'sr-connected': [constructIcon(faDatabase), ...CircleStatus('success-circle')],
 
-  'sr-disable': [
-    {
-      icon: faDatabase,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: disableLigne,
-    },
-  ],
+  'sr-disable': [constructIcon(faDatabase), ...CircleStatus('disabled')],
 
-  'sr-partially-connected': [
-    {
-      icon: faDatabase,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: warning,
-    },
-  ],
+  'sr-partially-connected': [constructIcon(faDatabase), ...CircleStatus('warning-circle')],
 
-  'sr-disconnected': [
-    {
-      icon: faDatabase,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: disconnected,
-    },
-  ],
+  'sr-disconnected': [constructIcon(faDatabase), ...CircleStatus('danger-circle')],
 
-  vdi: [
-    {
-      icon: faHdd,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-  ],
+  vdi: [constructIcon(faHdd)],
 
   'vdi-unknown': [
     {
@@ -529,52 +208,15 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'vdi-attached': [
-    {
-      icon: faHdd,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: connected,
-    },
-  ],
+  'vdi-attached': [constructIcon(faHdd), ...CircleStatus('success-circle')],
 
-  'vdi-disable': [
-    {
-      icon: faHdd,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: disableLigne,
-    },
-  ],
+  'vdi-disable': [constructIcon(faHdd), ...CircleStatus('disabled')],
 
-  'vdi-warning': [
-    {
-      icon: faHdd,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: warning,
-    },
-  ],
+  'vdi-warning': [constructIcon(faHdd), ...CircleStatus('warning-circle')],
 
-  'vdi-detached': [
-    {
-      icon: faHdd,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: disconnected,
-    },
-  ],
+  'vdi-detached': [constructIcon(faHdd), ...CircleStatus('danger-circle')],
 
-  network: [
-    {
-      icon: faNetworkWired,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-  ],
+  network: [constructIcon(faNetworkWired)],
 
   'network-unknown': [
     {
@@ -586,42 +228,13 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'network-connected': [
-    {
-      icon: faNetworkWired,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: connected,
-    },
-  ],
+  'network-connected': [constructIcon(faNetworkWired), ...CircleStatus('success-circle')],
 
-  'network-warning': [
-    {
-      icon: faNetworkWired,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: warning,
-    },
-  ],
+  'network-warning': [constructIcon(faNetworkWired), ...CircleStatus('warning-circle')],
 
-  'network-detached': [
-    {
-      icon: faNetworkWired,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: disconnected,
-    },
-  ],
+  'network-detached': [constructIcon(faNetworkWired), ...CircleStatus('danger-circle')],
 
-  br: [
-    {
-      icon: faBoxesStacked,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-  ],
+  br: [constructIcon(faBoxesStacked)],
 
   'br-unknown': [
     {
@@ -633,76 +246,30 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'br-connected': [
-    {
-      icon: faBoxesStacked,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: connected,
-    },
-  ],
+  'br-connected': [constructIcon(faBoxesStacked), ...CircleStatus('success-circle')],
 
-  'br-disable': [
-    {
-      icon: faBoxesStacked,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: disableLigne,
-    },
-  ],
+  'br-disable': [constructIcon(faBoxesStacked), ...CircleStatus('disabled-host-circle')],
 
-  'br-warning': [
-    {
-      icon: faBoxesStacked,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: warning,
-    },
-  ],
+  'br-warning': [constructIcon(faBoxesStacked), ...CircleStatus('warning-circle')],
 
-  'br-detached': [
-    {
-      icon: faBoxesStacked,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-    {
-      icon: disconnected,
-    },
-  ],
+  'br-detached': [constructIcon(faBoxesStacked), ...CircleStatus('danger-circle')],
 
-  backup: [
-    {
-      icon: faArchive,
-      color: 'var(--color-neutral-txt-primary)',
-    },
-  ],
+  backup: [constructIcon(faArchive)],
 
   'backup-job': [
-    {
-      icon: faArchive,
-      color: 'var(--color-neutral-txt-primary)',
-    },
+    constructIcon(faArchive),
     {
       icon: retrun,
     },
   ],
   'backup-schedule': [
-    {
-      icon: faArchive,
-      color: 'var(--color-neutral-txt-primary)',
-    },
+    constructIcon(faArchive),
     {
       icon: schedule,
     },
   ],
   'backup-run': [
-    {
-      icon: faArchive,
-      color: 'var(--color-neutral-txt-primary)',
-    },
+    constructIcon(faArchive),
     {
       icon: runningNeutral,
     },
