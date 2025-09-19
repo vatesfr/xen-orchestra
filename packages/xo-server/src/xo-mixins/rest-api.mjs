@@ -773,12 +773,6 @@ export default class RestApi {
       })
     )
 
-    // handle /users/me and /users/me/*
-    api.get(/^\/users\/me(\/.*)?$/, (req, res) => {
-      const user = app.apiContext.user
-      res.redirect(307, req.baseUrl + '/users/' + user.id + (req.params[0] ?? ''))
-    })
-
     const backupTypes = {
       __proto__: null,
 
