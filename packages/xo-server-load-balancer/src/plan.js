@@ -315,7 +315,7 @@ export default class Plan {
     const promises = []
 
     // removing hosts which have incorrect cpu count value to avoid mass migration on rrd malfunction
-    const sanitizedHostList = hosts.filter(host => parseInt(host.cpus.cores) > 0)
+    const sanitizedHostList = hosts.filter(host => host.cpus.cores > 0)
     if (sanitizedHostList.length < hosts.length) {
       const unhealthyHosts = hosts.filter(host => !(parseInt(host.cpus.cores) > 0))
       for (const unhealthyHost of unhealthyHosts) {
