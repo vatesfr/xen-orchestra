@@ -315,10 +315,14 @@ export default class Plan {
     const promises = []
 
     // removing hosts which have incorrect cpu count value to avoid mass migration on rrd malfunction
-    const sanitizedHostList = hosts.filter(host => parseInt(host.CPUs.cpu_count) > 0)
+    const sanitizedHostList = hosts.filter(host => parseInt(host.cpus.cores) > 0)
     if (sanitizedHostList.length < hosts.length) {
-      const unhealthyHost = hosts.find(host => !(parseInt(host.CPUs.cpu_count) > 0))
-      warn(`vCPU balancing: A host has unexpected CPU value: ${inspect(unhealthyHost.CPUs, { depth: null })}`)
+      const unhealthyHosts = hosts.filter(host => !(parseInt(host.cpus.cores) > 0))
+      for (const unhealthyHost of unhealthyHosts) {
+        warn(
+          `vCPU balancing: host ${unhealthyHost.id} has unexpected CPU value: ${inspect(unhealthyHost.cpus, { depth: null })}`
+        )
+      }
       if (sanitizedHostList.length < 2) {
         // need at least 2 hosts
         return
