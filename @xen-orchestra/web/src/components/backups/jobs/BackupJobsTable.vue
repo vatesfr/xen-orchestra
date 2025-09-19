@@ -90,7 +90,7 @@
         </template>
       </VtsDataTable>
       <VtsStateHero v-if="searchQuery && filteredBackupJobs.length === 0" format="table" type="no-result" size="small">
-        <div>{{ t('no-result') }}</div>
+        {{ t('no-result') }}
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-bind="paginationBindings" />
@@ -245,17 +245,21 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
       }
     }
 
-    li:first-child {
-      transform: scale(1.2);
-      margin-inline-end: 0.3rem;
-    }
-
+    /* Order of selectors matters
+    *  because when there is only one item, it is both the first and the last child
+    *  and we want to apply the first-child style in that case
+    **/
     li:last-child {
       transform: scale(0.8);
 
       &::after {
         transform: scale(1.6);
       }
+    }
+
+    li:first-child {
+      transform: scale(1.2);
+      margin-inline-end: 0.3rem;
     }
   }
 

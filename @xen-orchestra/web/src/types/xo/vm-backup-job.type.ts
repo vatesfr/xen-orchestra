@@ -1,12 +1,31 @@
-import type { XoVm } from '@/types/xo/vm.type.ts'
+import type { XoProxy } from '@/types/xo/proxy.type.ts'
+import type { XoSr } from '@/types/xo/sr.type.ts'
+import type { VM_POWER_STATE, XoVm } from '@/types/xo/vm.type.ts'
 import type { Branded } from '@core/types/utility.type'
-import { type XoBackupRepository, type XoSchedule, type XoSr } from '@vates/types'
+import { type XoBackupRepository, type XoSchedule } from '@vates/types'
+
+export type VmsSmartModeDisabled = {
+  id:
+    | XoVm['id']
+    | {
+        __or: XoVm['id'][]
+      }
+    | Record<string, unknown>
+}
+
+export type VmsSmartModeEnabled = {
+  $pool?: Record<string, unknown>
+  power_state?: VM_POWER_STATE
+  tags?: Record<string, unknown>
+  type: 'VM'
+}
 
 export type XoVmBackupJob = {
   id: Branded<'vm-backup-job'>
   type: 'backup'
   name: string
   mode: 'full' | 'delta'
+  compression?: 'native' | 'zstd' | ''
   settings: {
     '': {
       cbtDestroySnapshotData?: boolean
@@ -22,6 +41,15 @@ export type XoVmBackupJob = {
       nRetriesVmBackupFailures?: number
       preferNbd?: boolean
       timezone?: string
+      timeout?: number
+      hideSuccessfulItems?: boolean
+      backupReportTpl?: string
+      reportWhen?: 'error' | 'failure' | 'always' | 'never'
+      checkpointSnapshot?: boolean
+      offlineBackup?: boolean
+      offlineSnapshot?: boolean
+      mergeBackupsSynchronously?: boolean
+      reportRecipients?: string[]
       [key: string]: unknown
     }
     [key: XoSchedule['id']]: {
@@ -41,7 +69,6 @@ export type XoVmBackupJob = {
   srs?: {
     id: XoSr['id'] | { __or: XoSr['id'][] }
   }
-  vms?: {
-    id: XoVm['id'] | { __or: XoVm['id'][] } | Record<string, unknown>
-  }
+  vms?: VmsSmartModeDisabled | VmsSmartModeEnabled
+  proxy?: XoProxy['id']
 }
