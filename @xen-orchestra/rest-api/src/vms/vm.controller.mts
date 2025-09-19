@@ -586,7 +586,7 @@ export class VmController extends XapiXoController<XoVm> {
 
   /**
    * @example id "cef5f68c-61ae-3831-d2e6-1590d4934acf"
-   * @example fields "name,body,id,$object"
+   * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
    */
