@@ -37,7 +37,7 @@
   - **deprecated** `GET /rest/v0/backup/jobs/mirror` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
   - **deprecated** `GET /rest/v0/backup/jobs/mirror/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
   - `GET /rest/v0/vms/<vm-id>/messages` (PR [#8988](https://github.com/vatesfr/xen-orchestra/pull/8988))
-  - `GET /rest/v0/vm-templates/<vm-template-id>/messages` (PR [#8988](https://github.com/vatesfr/xen-orchestra/pull/8988))
+  - `GET /rest/v0/vm-templates/<vm-template-id>/messages` (PR [#8995](https://github.com/vatesfr/xen-orchestra/pull/8995))
 
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
 - [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
