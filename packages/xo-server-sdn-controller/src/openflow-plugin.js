@@ -2,7 +2,7 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { strictEqual } from 'node:assert'
 
-const PLUGIN_NAME = 'sdn-controller.py'
+const PLUGIN_NAME = 'sdncontroller.py'
 
 const log = createLogger('xo:sdn-controller:openflowplugin')
 export class OpenFlowPlugin {
