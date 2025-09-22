@@ -217,32 +217,32 @@ export default class {
     if (objects) {
       set.objects = objects
     }
-
-    const previousLimits = set.limits
-    const newLimits = {}
-    forEach(limits, (quantity, id) => {
-      const previous = previousLimits[id]
-      if (previous !== undefined) {
-        newLimits[id] = {
-          total: quantity,
-          usage: previous.usage,
+    if (limits !== undefined) {
+      const previousLimits = set.limits
+      const newLimits = {}
+      forEach(limits, (quantity, id) => {
+        const previous = previousLimits[id]
+        if (previous !== undefined) {
+          newLimits[id] = {
+            total: quantity,
+            usage: previous.usage,
+          }
+        } else {
+          newLimits[id] = {
+            total: quantity,
+            usage: 0,
+          }
         }
-      } else {
+      })
+
+      const removedLimits = Object.keys(previousLimits).filter(key => !(key in newLimits))
+      removedLimits.forEach(id => {
         newLimits[id] = {
-          total: quantity,
-          usage: 0,
+          usage: previousLimits[id].usage ?? 0,
         }
-      }
-    })
-
-    const removedLimits = Object.keys(previousLimits).filter(key => !(key in newLimits))
-    removedLimits.forEach(id => {
-      newLimits[id] = {
-        usage: previousLimits[id].usage ?? 0,
-      }
-    })
-    set.limits = newLimits
-
+      })
+      set.limits = newLimits
+    }
     if (ipPools) {
       set.ipPools = ipPools
     }

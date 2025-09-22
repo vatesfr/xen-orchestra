@@ -12,6 +12,7 @@ import type { XoSchedule } from '@/types/xo/schedule.type.ts'
 import type { XoServer } from '@/types/xo/server.type.ts'
 import type { XoSr } from '@/types/xo/sr.type.ts'
 import type { XoTask } from '@/types/xo/task.type.ts'
+import type { XoUser } from '@/types/xo/user.type.ts'
 import type { XoVbd } from '@/types/xo/vbd.type.ts'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVif } from '@/types/xo/vif.type.ts'
@@ -42,3 +43,4 @@ export type XoRecord =
   | XoMirrorBackupJob
   | XoSchedule
   | XoBackupLog
+  | XoUser

@@ -1,7 +1,7 @@
 import { filter, groupBy, includes, isEmpty, keyBy, map as mapToArray, maxBy, minBy, size, sortBy } from 'lodash'
 import { inspect } from 'util'
 
-import { EXECUTION_DELAY, debug } from './utils'
+import { EXECUTION_DELAY, debug, warn } from './utils'
 
 const MINUTES_OF_HISTORICAL_DATA = 30
 
@@ -314,9 +314,23 @@ export default class Plan {
   async _processVcpuPrepositioning(hosts) {
     const promises = []
 
-    const idToHost = keyBy(hosts, 'id')
+    // removing hosts which have incorrect cpu count value to avoid mass migration on rrd malfunction
+    const sanitizedHostList = hosts.filter(host => host.cpus.cores > 0)
+    if (sanitizedHostList.length < hosts.length) {
+      const unhealthyHosts = hosts.filter(host => host.cpus.cores === undefined || host.cpus.cores === 0)
+      for (const unhealthyHost of unhealthyHosts) {
+        warn(
+          `vCPU balancing: host ${unhealthyHost.id} has unexpected CPU value: ${inspect(unhealthyHost.cpus, { depth: null })}`
+        )
+      }
+      if (sanitizedHostList.length < 2) {
+        // need at least 2 hosts
+        return
+      }
+    }
+    const idToHost = keyBy(sanitizedHostList, 'id')
     const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
-    const hostList = this._getVCPUHosts(hosts, allVms)
+    const hostList = this._getVCPUHosts(sanitizedHostList, allVms)
     const idealVcpuPerCpuRatio =
       hostList.reduce((sum, host) => sum + host.vcpuCount, 0) / hostList.reduce((sum, host) => sum + host.cpuCount, 0)
 

@@ -10,8 +10,11 @@
         :value="alarms.length"
       />
     </UiCardTitle>
-    <VtsLoadingHero v-if="!areAlarmsReady" type="card" />
-    <VtsAllGoodHero v-else-if="alarms.length === 0" type="card" />
+    <VtsStateHero v-if="!areAlarmsReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="alarms.length === 0" format="card" type="all-good" size="medium" horizontal>
+      <span>{{ t('all-good') }}</span>
+      <span>{{ t('no-alarms-detected') }}</span>
+    </VtsStateHero>
     <div v-else class="alarm-list-container">
       <UiAlarmList>
         <UiAlarmItem
@@ -38,8 +41,7 @@ import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection.ts'
 import type { XoAlarm } from '@/types/xo/alarm.type.ts'
-import VtsAllGoodHero from '@core/components/state-hero/VtsAllGoodHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlarmItem from '@core/components/ui/alarm-item/UiAlarmItem.vue'
 import UiAlarmList from '@core/components/ui/alarm-list/UiAlarmList.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

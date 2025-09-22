@@ -1,23 +1,23 @@
 <template>
   <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
     <div class="row first-row">
-      <PoolDashboardStatus class="status" :pool-dashboard />
-      <PoolDashboardAlarms class="alarms" :pool-dashboard />
-      <PoolDashboardHostsPatches class="patches" :pool-dashboard />
+      <PoolDashboardStatus class="status" :pool-dashboard :has-error />
+      <PoolDashboardAlarms class="alarms" :pool-dashboard :has-error />
+      <PoolDashboardHostsPatches class="patches" :pool-dashboard :has-error />
     </div>
 
     <div class="row second-row">
       <div class="column first-column">
-        <PoolDashboardStoragesUsage class="storage-usage" :pool-dashboard />
+        <PoolDashboardStoragesUsage class="storage-usage" :pool-dashboard :has-error />
         <PoolDashboardNetworkChart class="network-chart" :data :loading="isFetching" :error />
       </div>
       <div class="column second-column">
-        <PoolDashboardRamUsage class="ram-usage" :pool-dashboard />
+        <PoolDashboardRamUsage class="ram-usage" :pool-dashboard :has-error />
         <PoolDashboardRamChart class="ram-chart" :data :loading="isFetching" :error />
       </div>
       <div class="column third-column">
-        <PoolDashboardCpuProvisioning class="cpu-provisioning" :pool-dashboard />
-        <PoolDashboardCpuUsage class="cpu-usage" :pool-dashboard />
+        <PoolDashboardCpuProvisioning class="cpu-provisioning" :pool-dashboard :has-error />
+        <PoolDashboardCpuUsage class="cpu-usage" :pool-dashboard :has-error />
         <PoolDashboardCpuChart class="cpu-chart" :data :loading="isFetching" :error />
       </div>
     </div>
@@ -45,7 +45,7 @@ const { pool } = defineProps<{ pool: XoPool }>()
 
 const { data, isFetching, error } = useFetchStats('pool', () => pool.id, GRANULARITY.Hours)
 
-const { poolDashboard } = useXoPoolDashboard({}, () => pool.id)
+const { poolDashboard, hasError } = useXoPoolDashboard({}, () => pool.id)
 
 const uiStore = useUiStore()
 </script>

@@ -12,7 +12,6 @@ import cloneDeep from 'lodash/cloneDeep.js'
 import path from 'node:path'
 import pick from 'lodash/pick.js'
 import * as CM from 'complex-matcher'
-import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
 import { getUserPublicProperties, isAlarm } from '../utils.mjs'
 import { compileXoJsonSchema } from './_xoJsonSchema.mjs'
@@ -773,17 +772,6 @@ export default class RestApi {
       })
     )
 
-    // For compatibility redirect from /backups* to /backup
-    api.get('/backups*', (req, res) => {
-      res.redirect(308, req.baseUrl + '/backup' + req.params[0])
-    })
-
-    // handle /users/me and /users/me/*
-    api.get(/^\/users\/me(\/.*)?$/, (req, res) => {
-      const user = app.apiContext.user
-      res.redirect(307, req.baseUrl + '/users/' + user.id + (req.params[0] ?? ''))
-    })
-
     const backupTypes = {
       __proto__: null,
 
@@ -818,25 +806,6 @@ export default class RestApi {
           )
         )
       )
-
-    for (const [collection, type] of Object.entries(backupTypes)) {
-      api
-        .get(
-          '/backup/jobs/' + collection,
-          wrap(async (req, res) => sendObjects(await app.getAllJobs(type), req, res))
-        )
-        .get(
-          `/backup/jobs/${collection}/:id`,
-          wrap(async (req, res) => {
-            res.json(await app.getJob(req.params.id, type))
-          }, true)
-        )
-    }
-
-    // For compatibility, redirect /backup/jobs/:id to /backup/jobs/vm/:id
-    api.get('/backup/jobs/:id', (req, res) => {
-      res.redirect(308, req.baseUrl + '/backup/jobs/vm/' + req.params.id)
-    })
 
     api
       .get(
@@ -1043,31 +1012,6 @@ export default class RestApi {
           return next()
         }
         return handler(req, res, next)
-      })
-    )
-
-    api.post(
-      '/:collection(srs)/:object/vdis',
-      wrap(async (req, res) => {
-        const sr = req.xapiObject
-        req.length = ifDef(req.headers['content-length'], Number)
-
-        const { name_label, name_description, raw } = req.query
-        const vdiRef = await sr.$importVdi(req, {
-          format: raw !== undefined ? VDI_FORMAT_RAW : VDI_FORMAT_VHD,
-          name_label,
-          name_description,
-        })
-
-        res.end(await sr.$xapi.getField('VDI', vdiRef, 'uuid'))
-      })
-    )
-
-    api.delete(
-      '/:collection(vdis|vdi-snapshots)/:object',
-      wrap(async (req, res) => {
-        await req.xapiObject.$destroy()
-        res.sendStatus(200)
       })
     )
 

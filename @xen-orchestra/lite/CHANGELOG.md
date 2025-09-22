@@ -1,5 +1,11 @@
 # ChangeLog
 
+## **next**
+
+- [Settings] Add icon for external links on settings page (PR [#8980](https://github.com/vatesfr/xen-orchestra/pull/8980))
+- [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
+- [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
+
 ## **0.14.1** (2025-09-04)
 
 - [VM/System] Correctly display enable/disable for secure boot (PR [#8925](https://github.com/vatesfr/xen-orchestra/pull/8925))
