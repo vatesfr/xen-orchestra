@@ -34,7 +34,7 @@ import { forbiddenOperation } from 'xo-common/api-errors.js'
 import {
   partialUsers,
   user,
-  userAuthenticationTokens,
+  authenticationTokens,
   userId,
   userIds,
 } from '../open-api/oa-examples/user.oa-example.mjs'
@@ -196,7 +196,7 @@ export class UserController extends XoController<XoUser> {
    * @example filter "expiration:>1757371582496"
    * @example limit 42
    */
-  @Example(userAuthenticationTokens)
+  @Example(authenticationTokens)
   @Get('{id}/authentication_tokens')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
