@@ -189,7 +189,7 @@ Below are the main backup and replication types available in Xen Orchestra.
 
 ### VM restore
 - Restore a VM to the same host/pool or another location.
-- When restoring, Xen Orchestra can attempt a **delta restore**, which reuses the current VM disk to speed up the process.
+- When restoring, Xen Orchestra can attempt a **differential restore**, which reuses the current VM disk to speed up the process.
 
 ### File restore
 - Access individual files within a VM backup  
