@@ -294,6 +294,7 @@ export default class RestApi {
         routes: {
           alarms: true,
           vdis: true,
+          messages: true,
         },
       },
       hosts: {
@@ -831,15 +832,14 @@ export default class RestApi {
         }, true)
       )
 
-    api
-      .get(
-        '/tasks/:id/actions',
-        wrap(async (req, res) => {
-          const task = await app.tasks.get(req.params.id)
+    api.get(
+      '/tasks/:id/actions',
+      wrap(async (req, res) => {
+        const task = await app.tasks.get(req.params.id)
 
-          await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
-        })
-      )
+        await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+      })
+    )
 
     api.get(
       '/:collection',
