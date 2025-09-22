@@ -838,9 +838,9 @@ export default class RestApi {
         wrap(async (req, res) => {
           const task = await app.tasks.get(req.params.id)
 
-        await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
-      })
-    )
+          await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+        })
+      )
 
     api.get(
       '/:collection',
