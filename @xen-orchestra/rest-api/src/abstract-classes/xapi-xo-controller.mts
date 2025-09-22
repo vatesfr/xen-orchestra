@@ -1,4 +1,3 @@
-import * as CM from 'complex-matcher'
 import type { XapiXoRecord } from '@vates/types/xo'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -12,11 +11,8 @@ export abstract class XapiXoController<T extends XapiXoRecord> extends BaseContr
     this.#type = type
   }
 
-  getObjects({ filter, limit }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}): Record<T['id'], T> {
-    if (filter !== undefined && typeof filter === 'string') {
-      filter = CM.parse(filter).createPredicate()
-    }
-    return this.restApi.getObjectsByType<T>(this.#type, { filter: filter as (obj: XapiXoRecord) => boolean, limit })
+  getObjects(opts?: { filter?: string | ((obj: T) => boolean); limit?: number }): Record<T['id'], T> {
+    return this.restApi.getObjectsByType<T>(this.#type, opts)
   }
 
   getObject(id: T['id']): T {
