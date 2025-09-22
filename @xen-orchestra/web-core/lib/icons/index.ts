@@ -1,6 +1,6 @@
-import { dsActionIcon } from '@core/icons/ds-action-icon'
-import { dsStatusIcon } from '@core/icons/ds-status-icon'
-import { dsTableIcon } from '@core/icons/ds-tables-icon'
+import { dsActionIcons } from '@core/icons/ds-action-icon'
+import { dsStatusIcons } from '@core/icons/ds-status-icon'
+import { dsTableIcons } from '@core/icons/ds-tables-icon'
 import { faIcons } from '@core/icons/fa-icons.ts'
 import { legacyIcons } from '@core/icons/legacy-icons.ts'
 import { objectIcons } from '@core/icons/object-icons.ts'
@@ -11,9 +11,9 @@ export const icons = defineIconPack({
   fa: faIcons,
   legacy: legacyIcons,
   object: objectIcons,
-  dsStatus: dsStatusIcon,
-  dsAction: dsActionIcon,
-  dsTable: dsTableIcon,
+  dsStatus: dsStatusIcons,
+  dsAction: dsActionIcons,
+  dsTable: dsTableIcons,
 })
 
 export type IconName = Exclude<keyof typeof icons, typeof ICON_SYMBOL>
