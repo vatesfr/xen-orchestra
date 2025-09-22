@@ -33,10 +33,10 @@ function constructIcon(icon: IconDefinition): any {
   }
 }
 
-export const dsStatusIcon = defineIconPack({
-  runnign: constructIcon(faPlay),
+export const dsStatusIcons = defineIconPack({
+  running: constructIcon(faPlay),
 
-  'runnign-circle': [
+  'running-circle': [
     {
       icon: faCircle,
       color: 'var(--color-success-item-base)',
@@ -92,7 +92,7 @@ export const dsStatusIcon = defineIconPack({
     },
   ],
 
-  'disabled-host-circle': [
+  'host-disabled-circle': [
     {
       icon: faCircle,
       color: 'var(--color-neutral-background-disabled)',

@@ -26,6 +26,7 @@ import {
   faMinus,
   faPowerOff,
   faRefresh,
+  faRoute,
   faSearch,
   faThumbTack,
   faThumbTackSlash,
@@ -40,7 +41,7 @@ function constructIcon(icon: IconDefinition): any {
   }
 }
 
-export const dsActionIcon = defineIconPack({
+export const dsActionIcons = defineIconPack({
   menu: constructIcon(faBars),
 
   'pin-panel': constructIcon(faThumbTack),
@@ -151,7 +152,7 @@ export const dsActionIcon = defineIconPack({
 
   delete: constructIcon(faTrash),
 
-  'more-action': constructIcon(faEllipsis),
+  'more-actions': constructIcon(faEllipsis),
 
   'more-actions-vertical': {
     icon: faEllipsis,
@@ -205,12 +206,11 @@ export const dsActionIcon = defineIconPack({
 
   'change-state': constructIcon(faPowerOff),
 
-  // #FIXME I don’t know this icon
-  migrate: constructIcon(faPowerOff),
+  migrate: constructIcon(faRoute),
 
-  snapshoot: constructIcon(faCamera),
+  snapshot: constructIcon(faCamera),
 
-  downloard: constructIcon(faDownload),
+  download: constructIcon(faDownload),
 
   'health-check': constructIcon(faHeart),
 

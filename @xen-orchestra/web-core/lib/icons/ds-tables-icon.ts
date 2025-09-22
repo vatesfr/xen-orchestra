@@ -32,8 +32,8 @@ function constructIcon(icon: IconDefinition): any {
   }
 }
 
-export const dsTableIcon = defineIconPack({
-  objcet: constructIcon(faA),
+export const dsTableIcons = defineIconPack({
+  object: constructIcon(faA),
 
   string: constructIcon(faAlignLeft),
 
@@ -45,9 +45,9 @@ export const dsTableIcon = defineIconPack({
 
   time: constructIcon(faClock),
 
-  'arraw-up-a-z': constructIcon(faArrowUpAZ),
+  'arrow-up-a-z': constructIcon(faArrowUpAZ),
 
-  'arraw-down-a-z': constructIcon(faArrowDownAZ),
+  'arrow-down-a-z': constructIcon(faArrowDownAZ),
 
   filter: constructIcon(faFilter),
 
@@ -87,7 +87,7 @@ export const dsTableIcon = defineIconPack({
 
   show: constructIcon(faEye),
 
-  'show-hide': constructIcon(faEyeSlash),
+  hide: constructIcon(faEyeSlash),
 
   'angle-up': constructIcon(faAngleUp),
 
