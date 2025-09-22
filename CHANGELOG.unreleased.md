@@ -44,6 +44,7 @@
 - [SR/Advanced] Add a security to prevent accidentally reclaiming freed space during backups (PR [#8947](https://github.com/vatesfr/xen-orchestra/pull/8947))
 - [New VM] Add a new variable in custom cloud config to easily add SSH keys (PR [#8968](https://github.com/vatesfr/xen-orchestra/pull/8968))
 - [REST API] Expose `/rest/v0/backup-jobs` and `/rest/v0/backup-jobs/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+- [Host/PIFs] Use a natural sort when sorting by device (eth9 < eth10) (PR [#8967](https://github.com/vatesfr/xen-orchestra/pull/8967))
 
 - **XO 6:**
   - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
@@ -61,7 +62,10 @@
 - [Backup] Fix VDI_NOT_MANAGED error during incremental replication (PR [#8935](https://github.com/vatesfr/xen-orchestra/pull/8935))
 - [Backup] Fix replication delta always falling back to full [Forum#11261](https://xcp-ng.org/forum/topic/11261/continuous-replication-jobs-creates-full-backups-every-time-since-2025-09-06-xo-from-source) (PR [#8971](https://github.com/vatesfr/xen-orchestra/pull/8971))
 - [API] Fix resource set limits being deleted when calling `resourceSet.set` on the API (PR [#8979](https://github.com/vatesfr/xen-orchestra/pull/8979))
+- [Plugins/Load balancer] Prevent mass migration when receiving incorrect host data (PR [#8965](https://github.com/vatesfr/xen-orchestra/pull/8965))
+- [Backup] Fix _INTERNAL_ERROR(Failure(\"Expected string, got 'N'\"))_ for backup on VM with VTPM (PR [#8990](https://github.com/vatesfr/xen-orchestra/pull/8990))
 - [XOA] Fix XOA UI showing expired license error during trial (PR [#8991](https://github.com/vatesfr/xen-orchestra/pull/8991))
+
 
 ### Packages to release
 
@@ -85,6 +89,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server minor
+- xo-server-load-balancer patch
 - xo-web minor
 
 <!--packages-end-->
