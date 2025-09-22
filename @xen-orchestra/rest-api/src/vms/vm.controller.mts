@@ -48,7 +48,7 @@ import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/util
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { partialVms, vm, vmIds, vmStatsExample, vmVdis } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { partialTasks, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { VmService } from './vm.service.mjs'
@@ -550,6 +550,7 @@ export class VmController extends XapiXoController<XoVm> {
    * @example filter "status:failure"
    * @example limit 42
    */
+  @Example(taskIds)
   @Example(partialTasks)
   @Get('{id}/tasks')
   @Tags('tasks')
@@ -565,7 +566,10 @@ export class VmController extends XapiXoController<XoVm> {
     const vm = this.getObject(id as XoVm['id'])
 
     const tasks: XoTask[] = []
-    for await (const task of this.restApi.tasks.list({ filter: `objectId:${vm.id}`, limit })) {
+    for await (const task of this.restApi.tasks.list({
+      filter,
+      limit,
+    })) {
       tasks.push(task)
     }
 
