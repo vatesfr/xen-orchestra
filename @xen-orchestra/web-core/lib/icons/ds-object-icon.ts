@@ -111,7 +111,6 @@ const schedule = defineIcon([
     size: 13,
   },
   {
-    // faclockThree is not enabled in free fa
     icon: faClock,
     color: 'var(--color-neutral-txt-primary)',
     translate: [7, 5.5],
