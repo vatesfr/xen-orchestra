@@ -76,7 +76,7 @@ export class OpenFlowPlugin {
           // plugin is not installed , no need to test other networks
           throw error
         }
-        log('error while checking if the host has the sdn plugin', error)
+        log.error('error while checking if the host has the sdn plugin', error)
         // track at least
         lastError = error
       }
