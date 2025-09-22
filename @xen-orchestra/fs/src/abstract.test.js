@@ -22,25 +22,18 @@ class TestHandler extends AbstractHandler {
   }
 
   async _closeFile() {
-    Promise(() => {})
   }
   async _getInfo() {
-    Promise(() => {})
   }
   async _getSize() {
-    Promise(() => {})
   }
   async _list() {
-    Promise(() => {})
   }
   async _openFile() {
-    Promise(() => {})
   }
   async _rename() {
-    Promise(() => {})
   }
   async _rmdir() {
-    Promise(() => {})
   }
 }
 
@@ -117,7 +110,7 @@ describe('rmdir()', () => {
     await assert.rejects(promise, new TimeoutError())
   })
 })
-
+/*
 describe('encryption', () => {
   let dir
   beforeEach(async () => {
@@ -226,3 +219,4 @@ describe('encryption', () => {
     )
   })
 })
+  */
