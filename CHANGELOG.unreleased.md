@@ -60,6 +60,7 @@
   - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
   - [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
   - [VM] Add Backup Jobs page (PR [#8976](https://github.com/vatesfr/xen-orchestra/pull/8976))
+  - [Treeview] Add a debounce function to the search input to improve user experience (PR [#8892](https://github.com/vatesfr/xen-orchestra/pull/8892))
 
 ### Bug fixes
 
