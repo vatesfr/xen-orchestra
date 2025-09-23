@@ -23,15 +23,17 @@ import type {
   XapiVmStats,
   XenApiVm,
   XoAlarm,
+  XoVmBackupJob,
   XoHost,
   XoTask,
   XoVdi,
   XoVm,
   XoVmSnapshot,
+  XoMessage,
 } from '@vates/types'
 import { Readable } from 'node:stream'
 
-import { AlarmService } from '../alarms/alarm.service.mjs'
+import { AlarmService, rawAlarmFilter } from '../alarms/alarm.service.mjs'
 import {
   asynchronousActionResp,
   createdResp,
@@ -53,6 +55,10 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { VmService } from './vm.service.mjs'
 import { TaskService } from '../tasks/task.service.mjs'
+import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
+import type { UnbrandXoVmBackupJob } from '../backup-jobs/backup-job.type.mjs'
+import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/backup-job.oa-example.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -67,17 +73,20 @@ export class VmController extends XapiXoController<XoVm> {
   #alarmService: AlarmService
   #vmService: VmService
   #taskService: TaskService
+  #backupJobService: BackupJobService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(AlarmService) alarmService: AlarmService,
     @inject(VmService) vmService: VmService,
-    @inject(TaskService) taskService: TaskService
+    @inject(TaskService) taskService: TaskService,
+    @inject(BackupJobService) backupJobService: BackupJobService
   ) {
     super('VM', restApi)
     this.#alarmService = alarmService
     this.#vmService = vmService
     this.#taskService = taskService
+    this.#backupJobService = backupJobService
   }
 
   /**
@@ -548,7 +557,60 @@ export class VmController extends XapiXoController<XoVm> {
     const vdis = this.#vmService.getVmVdis(id as XoVm['id'], 'VM')
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
   }
+  
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example fields "mode,name,type,id"
+   * @example filter "mode:full"
+   * @example limit 42
+   */
+  @Example(vmBackupJobIds)
+  @Example(partialVmBackupJobs)
+  @Get('{id}/backup-jobs')
+  @Tags('backup-jobs')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async vmGetVmBackupJobs(
+  ): Promise<SendObjects<Partial<UnbrandXoVmBackupJob>>> {
+    const backupJobs = await this.restApi.xoApp.getAllJobs('backup')
 
+    const vmBackupJobs: XoVmBackupJob[] = []
+    for (const backupJob of backupJobs) {
+      if (await this.#backupJobService.isVmInBackupJob(backupJob.id, id as XoVm['id'])) {
+        vmBackupJobs.push(backupJob)
+      }
+    }
+
+    return this.sendObjects(limitAndFilterArray(vmBackupJobs, { filter, limit }), req, '/backup-jobs')
+  }
+
+  /**
+   * @example id "cef5f68c-61ae-3831-d2e6-1590d4934acf"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVmMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const vm = this.getObject(id as XoVm['id'])
+    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${vm.uuid} !${rawAlarmFilter}`,
+      limit,
+    })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+  
   /**
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example fields "id,properties"

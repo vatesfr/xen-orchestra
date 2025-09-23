@@ -5,14 +5,19 @@
       <template #description>{{ t('for-backup') }}</template>
     </UiCardTitle>
     <!--    TODO change and add loading when we have isReady available -->
-    <VtsNoDataHero v-if="!areS3BackupRepositoriesReady" type="card" />
+    <VtsStateHero v-if="!areS3BackupRepositoriesReady" format="card" type="no-data" horizontal size="extra-small">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
+      {{ t('error-no-data') }}
+    </VtsStateHero>
     <UiCardNumbers v-else :value="usedSize?.value" :unit="usedSize?.prefix" :label="t('used')" size="medium" />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
@@ -21,6 +26,7 @@ import { useI18n } from 'vue-i18n'
 
 const { size } = defineProps<{
   size: NonNullable<XoDashboard['backupRepositories']>['s3']['size'] | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

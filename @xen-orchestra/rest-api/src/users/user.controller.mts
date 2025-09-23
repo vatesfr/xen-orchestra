@@ -15,9 +15,10 @@ import {
   SuccessResponse,
   Tags,
 } from 'tsoa'
-import { json, type Request as ExRequest } from 'express'
+import { inject } from 'inversify'
+import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoUser } from '@vates/types'
+import type { XoGroup, XoUser } from '@vates/types'
 
 import {
   createdResp,
@@ -31,9 +32,13 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
+import { UserService } from './user.service.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 
 @Route('users')
 @Security('*')
@@ -41,25 +46,28 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 @Tags('users')
 @provide(UserController)
 export class UserController extends XoController<XoUser> {
+  #userService: UserService
+
+  constructor(@inject(RestApi) restApi: RestApi, @inject(UserService) userService: UserService) {
+    super(restApi)
+    this.#userService = userService
+  }
+
   // --- abstract methods
   async getAllCollectionObjects(): Promise<XoUser[]> {
-    const users = await this.restApi.xoApp.getAllUsers()
-    return users.map(user => this.#sanitizeUser(user))
+    return this.#userService.getUsers()
   }
 
   async getCollectionObject(id: XoUser['id']): Promise<XoUser> {
-    const user = await this.restApi.xoApp.getUser(id)
-    return this.#sanitizeUser(user)
+    return this.#userService.getUser(id)
   }
 
-  #sanitizeUser(user: XoUser): XoUser {
-    const sanitizedUser = { ...user }
+  #redirectCurrentUser(req: ExRequest): void {
+    const currentUser = this.restApi.getCurrentUser()
+    const originalUrl = req.originalUrl
+    const res = req.res as ExResponse
 
-    if (sanitizedUser.pw_hash !== undefined) {
-      sanitizedUser.pw_hash = '***obfuscated***'
-    }
-
-    return sanitizedUser
+    res.redirect(307, originalUrl.replace(/\/users\/me(?=\/|$)/, `/users/${currentUser.id}`))
   }
 
   /**
@@ -79,6 +87,24 @@ export class UserController extends XoController<XoUser> {
   ): Promise<SendObjects<Partial<Unbrand<XoUser>>>> {
     const users = Object.values(await this.getObjects({ filter, limit }))
     return this.sendObjects(users, req)
+  }
+
+  /**
+   * Redirect to `/users/:id`
+   */
+  @SuccessResponse(307, 'Temporary redirect')
+  @Get('me')
+  redirectMe(@Request() req: ExRequest) {
+    this.#redirectCurrentUser(req)
+  }
+
+  /**
+   * Redirect to `/users/:id/<rest-of-your-path>`
+   */
+  @SuccessResponse(307, 'Temporary redirect')
+  @Get('me/*')
+  redirectMeWithPath(@Request() req: ExRequest) {
+    this.#redirectCurrentUser(req)
   }
 
   /**
@@ -157,5 +183,30 @@ export class UserController extends XoController<XoUser> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteUser(@Path() id: string): Promise<void> {
     await this.restApi.xoApp.deleteUser(id as XoUser['id'])
+  }
+
+  /**
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * @example fields "name,id,users"
+   * @example filter "users:length:>0"
+   * @example limit 42
+   */
+  @Example(groupIds)
+  @Example(partialGroups)
+  @Get('{id}/groups')
+  @Tags('groups')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getUserGroups(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoGroup>>>> {
+    const user = await this.getObject(id as XoUser['id'])
+    const groups = await Promise.all(user.groups.map(group => this.restApi.xoApp.getGroup(group)))
+
+    return this.sendObjects(limitAndFilterArray(groups, { filter, limit }), req, 'groups')
   }
 }

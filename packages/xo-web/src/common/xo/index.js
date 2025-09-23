@@ -2840,6 +2840,17 @@ export const reclaimSrSpace = async sr => {
     if (err?.data?.message?.includes('Operation not supported')) {
       throw new Error('Space reclaim not supported. Only supported on block based/LVM based SRs.')
     }
+    if (backupIsRunning(err, sr.$pool)) {
+      await confirm({
+        body: (
+          <p className='text-warning'>
+            <Icon icon='alarm' /> {_('bypassBackupStorageModalMessage')}
+          </p>
+        ),
+        title: _('srReclaimSpace'),
+      })
+      return _call('sr.reclaimSpace', { id: resolveId(sr), bypassBackupCheck: true })
+    }
     throw err
   }
 }

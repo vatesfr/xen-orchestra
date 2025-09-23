@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('cpu-usage') }}
     </UiCardTitle>
@@ -9,9 +9,9 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsLoadingHero v-if="!areHostsCpuUsageReady" type="card" />
+    <VtsStateHero v-if="!areHostsCpuUsageReady" format="card" busy size="medium" />
     <template v-else>
-      <HostsCpuUsage :top-five-cpu="poolDashboard?.hosts?.topFiveUsage?.cpu" />
+      <HostsCpuUsage :top-five-cpu="poolDashboard?.hosts?.topFiveUsage?.cpu" :has-error />
     </template>
     <UiCardSubtitle>
       {{ t('vms', 2) }}
@@ -19,9 +19,9 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsLoadingHero v-if="!areVmsCpuUsageReady" type="card" />
+    <VtsStateHero v-if="!areVmsCpuUsageReady" format="card" busy size="medium" />
     <template v-else>
-      <VmsCpuUsage :top-five-cpu="poolDashboard?.vms?.topFiveUsage?.cpu" />
+      <VmsCpuUsage :top-five-cpu="poolDashboard?.vms?.topFiveUsage?.cpu" :has-error />
     </template>
   </UiCard>
 </template>
@@ -30,7 +30,7 @@
 import HostsCpuUsage from '@/components/pool/dashboard/cpu-usage/HostsCpuUsage.vue'
 import VmsCpuUsage from '@/components/pool/dashboard/cpu-usage/VmsCpuUsage.vue'
 import type { XoPoolDashboard } from '@/types/xo/pool-dashboard.type.ts'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardSubtitle from '@core/components/ui/card-subtitle/UiCardSubtitle.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -39,9 +39,11 @@ import { useI18n } from 'vue-i18n'
 
 const { poolDashboard } = defineProps<{
   poolDashboard: XoPoolDashboard | undefined
+  hasError?: boolean
 }>()
 
 const areHostsCpuUsageReady = computed(() => poolDashboard?.hosts?.topFiveUsage?.cpu !== undefined)
+
 const areVmsCpuUsageReady = computed(() => poolDashboard?.vms?.topFiveUsage?.cpu !== undefined)
 
 const { t } = useI18n()

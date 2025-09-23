@@ -1,7 +1,7 @@
 import type { EventEmitter } from 'node:events'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
-import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, BACKUP_TYPE, XapiPoolStats } from '@vates/types/common'
+import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, XapiPoolStats } from '@vates/types/common'
 import type {
   XenApiGpuGroupWrapped,
   XenApiHostWrapped,
@@ -35,6 +35,8 @@ import type {
   XoPool,
   XoTask,
   XoProxy,
+  AnyXoBackupJob,
+  AnyXoLog,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -101,7 +103,8 @@ export type XoApp = {
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
   getAllProxies(): Promise<XoProxy[]>
-  getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
+  getAllJobs<T extends AnyXoBackupJob['type']>(type: T): Promise<Extract<AnyXoBackupJob, { type: T }>[]>
+  getAllJobs(type?: string): Promise<AnyXoJob[]>
   getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
@@ -123,11 +126,17 @@ export type XoApp = {
   getAllSchedules(): Promise<XoSchedule[]>
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
-  // @TODO: Correctly type this methods and XoLogs when migrate the endpoint "backup/logs"
-  getBackupNgLogsSorted(opts: { filter: (log: Record<string, string>) => boolean }): Promise<Record<string, string>[]>
+  getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
+  getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
+  getBackupNgLogsSorted(opts: {
+    after?: number
+    before?: number
+    filter: (log: AnyXoLog) => boolean
+    limit?: number
+  }): Promise<AnyXoLog[]>
   getGroup(id: XoGroup['id']): Promise<XoGroup>
   getHVSupportedVersions: undefined | (() => Promise<{ [key: XoHost['productBrand']]: string }>)
-  getJob(id: XoJob['id']): Promise<XoJob>
+  getJob<T extends AnyXoJob>(id: T['id']): Promise<T>
   getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type'] | T['type'][]) => T
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],

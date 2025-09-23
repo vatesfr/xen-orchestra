@@ -1823,6 +1823,7 @@ const messages = {
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
+  templateSshInfo: 'SSH key corresponding to the SSH title',
   templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
   coreOsDefaultTemplateError: 'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
@@ -2059,6 +2060,7 @@ const messages = {
   // ----- Modals -----
   bypassBackupHostModalMessage: 'There may be ongoing backups on the host. Are you sure you want to continue?',
   bypassBackupPoolModalMessage: 'There may be ongoing backups on the pool. Are you sure you want to continue?',
+  bypassBackupStorageModalMessage: 'There may be ongoing backups on the storage. Are you sure you want to continue?',
   bypassBlockedMigrationsModalTitle: 'Bypass blocked migrations',
   bypassBlockedMigrationsModalMessage: 'This will allow migration on these VMs: {vms}',
   emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
