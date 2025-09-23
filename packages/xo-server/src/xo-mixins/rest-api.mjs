@@ -277,6 +277,7 @@ export default class RestApi {
           alarms: true,
           vdis: true,
           messages: true,
+          tasks: true,
         },
       },
       'vm-controllers': {
@@ -910,8 +911,11 @@ export default class RestApi {
         })
       )
 
-    api.get(
-      '/:collection/:object/tasks',
+    api.get('/:collection/:object/tasks', (req, res, next) => {
+      const collection = req.params.collection
+      if (swaggerEndpoints[collection].routes.tasks) {
+        return next('route')
+      }
       wrap(async (req, res) => {
         const { query } = req
         const objectId = req.object.id
@@ -923,8 +927,8 @@ export default class RestApi {
           limit: ifDef(query.limit, Number),
         })
         await sendObjects(tasks, req, res, '/tasks')
-      })
-    )
+      })(req, res, next)
+    })
 
     api.get(
       ['/:collection/_/actions', '/:collection/:object/actions'],
