@@ -42,6 +42,7 @@
   - **deprecated** `GET /rest/v0/restore/logs` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
   - **deprecated** `GET /rest/v0/restore/logs/<restore-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
   - `GET /rest/v0/vms/<vm-id>/messages` (PR [#8988](https://github.com/vatesfr/xen-orchestra/pull/8988))
+  - `GET /rest/v0/vm-templates/<vm-template-id>/messages` (PR [#8995](https://github.com/vatesfr/xen-orchestra/pull/8995))
 
 
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
