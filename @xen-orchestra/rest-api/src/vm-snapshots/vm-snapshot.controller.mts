@@ -166,7 +166,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   }
 
   /**
-   * @example id "cef5f68c-61ae-3831-d2e6-1590d4934acf"
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
