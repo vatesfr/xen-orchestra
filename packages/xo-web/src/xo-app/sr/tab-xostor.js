@@ -173,7 +173,7 @@ export default class TabXostor extends Component {
         Object.entries(healthCheck.resources[resourceName].nodes).reduce((acc, [hostname, nodeInfo]) => {
           const volume = nodeInfo.volumes[0] // Max only one volume
           const nodeStatus = healthCheck.nodes[hostname]
-          const host = this.props.hostByHostname[hostname][0]
+          const host = this.props.hostByHostname[hostname]?.[0]
 
           const resourceState = _(
             `${nodeInfo['tie-breaker'] ? 'tieBreaker' : nodeInfo.diskful ? 'diskful' : 'diskless'}`
