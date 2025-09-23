@@ -35,6 +35,7 @@ import type {
   XoPool,
   XoTask,
   XoProxy,
+  XoAuthenticationToken,
   AnyXoBackupJob,
   AnyXoLog,
 } from '@vates/types/xo'
@@ -126,6 +127,7 @@ export type XoApp = {
   getAllSchedules(): Promise<XoSchedule[]>
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
+  getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
   getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
   getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
   getBackupNgLogsSorted(opts: {

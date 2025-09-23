@@ -256,6 +256,7 @@ export default class RestApi {
       users: {
         routes: {
           groups: true,
+          authentication_tokens: true,
         },
       },
       vifs: {
