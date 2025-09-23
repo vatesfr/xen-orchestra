@@ -128,8 +128,6 @@ export type XoApp = {
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
   getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
-  // @TODO: Correctly type this methods and XoLogs when migrate the endpoint "backup/logs"
-  getBackupNgLogsSorted(opts: { filter: (log: Record<string, string>) => boolean }): Promise<Record<string, string>[]>
   getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
   getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
   getBackupNgLogsSorted(opts: {
