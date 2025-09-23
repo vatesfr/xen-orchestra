@@ -569,6 +569,12 @@ export class VmController extends XapiXoController<XoVm> {
   @Get('{id}/backup-jobs')
   @Tags('backup-jobs')
   @Response(notFoundResp.status, notFoundResp.description)
+  @Request() req: ExRequest,
+  @Path() id: string,
+  @Query() fields?: string,
+  @Query() ndjson?: boolean,
+  @Query() filter?: string,
+  @Query() limit?: number
   async vmGetVmBackupJobs(
   ): Promise<SendObjects<Partial<UnbrandXoVmBackupJob>>> {
     const backupJobs = await this.restApi.xoApp.getAllJobs('backup')
