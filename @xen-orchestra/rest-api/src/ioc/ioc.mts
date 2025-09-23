@@ -70,11 +70,6 @@ export function setupContainer(xoApp: XoApp) {
     })
     .inSingletonScope()
 
-  iocContainer.bind(VdiService).toDynamicValue(ctx => {
-    const restApi = ctx.container.get(RestApi)
-    return new VdiService(restApi)
-  })
-
   iocContainer.bind(TaskService).toDynamicValue(ctx => {
     const restApi = ctx.container.get(RestApi)
     return new TaskService(restApi)
