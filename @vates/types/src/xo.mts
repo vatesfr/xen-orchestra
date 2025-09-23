@@ -593,6 +593,19 @@ export type XoUser = {
   preferences: Record<string, string>
 }
 
+export type XoAuthenticationToken = {
+  client?: {
+    id: string
+    [key: string]: unknown
+  }
+  created_at?: number
+  description?: string
+  user_id: XoUser['id']
+  expiration: number
+  last_uses?: Record<string, { timestamp: number }>
+  id: Branded<'authentication-token'>
+}
+
 export type XoVbd = BaseXapiXo & {
   attached: boolean
   bootable: boolean
