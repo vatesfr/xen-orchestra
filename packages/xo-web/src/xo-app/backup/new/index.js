@@ -849,7 +849,7 @@ const New = decorate([
       reportWhen = 'failure',
       backupReportTpl = 'mjml',
       hideSuccessfulItems,
-      mergeBackupsSynchronously,
+      mergeBackupsSynchronously = true,
       timeout,
     } = settings.get('') || {}
 
