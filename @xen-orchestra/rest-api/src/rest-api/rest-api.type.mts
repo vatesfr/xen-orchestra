@@ -35,7 +35,9 @@ import type {
   XoPool,
   XoTask,
   XoProxy,
+  XoAuthenticationToken,
   AnyXoBackupJob,
+  AnyXoLog,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -125,8 +127,15 @@ export type XoApp = {
   getAllSchedules(): Promise<XoSchedule[]>
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
-  // @TODO: Correctly type this methods and XoLogs when migrate the endpoint "backup/logs"
-  getBackupNgLogsSorted(opts: { filter: (log: Record<string, string>) => boolean }): Promise<Record<string, string>[]>
+  getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
+  getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
+  getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
+  getBackupNgLogsSorted(opts: {
+    after?: number
+    before?: number
+    filter: (log: AnyXoLog) => boolean
+    limit?: number
+  }): Promise<AnyXoLog[]>
   getGroup(id: XoGroup['id']): Promise<XoGroup>
   getHVSupportedVersions: undefined | (() => Promise<{ [key: XoHost['productBrand']]: string }>)
   getJob<T extends AnyXoJob>(id: T['id']): Promise<T>
