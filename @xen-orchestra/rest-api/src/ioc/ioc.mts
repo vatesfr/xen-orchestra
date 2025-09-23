@@ -10,6 +10,7 @@ import { HostService } from '../hosts/host.service.mjs'
 import { PoolService } from '../pools/pool.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { VdiService } from '../vdis/vdi.service.mjs'
+import { TaskService } from '../tasks/task.service.mjs'
 
 const iocContainer = new Container()
 
@@ -69,6 +70,11 @@ export function setupContainer(xoApp: XoApp) {
   iocContainer.bind(VdiService).toDynamicValue(ctx => {
     const restApi = ctx.container.get(RestApi)
     return new VdiService(restApi)
+  })
+
+  iocContainer.bind(TaskService).toDynamicValue(ctx => {
+    const restApi = ctx.container.get(RestApi)
+    return new TaskService(restApi)
   })
 }
 

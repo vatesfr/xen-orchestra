@@ -52,6 +52,7 @@ import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/tas
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { VmService } from './vm.service.mjs'
+import { TaskService } from '../tasks/task.service.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -65,15 +66,18 @@ const IGNORED_VDIS_TAG = '[NOSNAP]'
 export class VmController extends XapiXoController<XoVm> {
   #alarmService: AlarmService
   #vmService: VmService
+  #taskService: TaskService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(AlarmService) alarmService: AlarmService,
-    @inject(VmService) vmService: VmService
+    @inject(VmService) vmService: VmService,
+    @inject(TaskService) taskService: TaskService
   ) {
     super('VM', restApi)
     this.#alarmService = alarmService
     this.#vmService = vmService
+    this.#taskService = taskService
   }
 
   /**
@@ -565,13 +569,10 @@ export class VmController extends XapiXoController<XoVm> {
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const vm = this.getObject(id as XoVm['id'])
 
-    const tasks: XoTask[] = []
-    for await (const task of this.restApi.tasks.list({
-      filter,
+    const tasks = await this.#taskService.getTasks({
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} |(properties:objectId:${vm.id} properties:params:id:${vm.id})`,
       limit,
-    })) {
-      tasks.push(task)
-    }
+    })
 
     return this.sendObjects(tasks, req, 'tasks')
   }
