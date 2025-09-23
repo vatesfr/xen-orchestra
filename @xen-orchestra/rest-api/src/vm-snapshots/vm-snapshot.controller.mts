@@ -3,7 +3,7 @@ import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { Readable } from 'node:stream'
 
-import { AlarmService } from '../alarms/alarm.service.mjs'
+import { AlarmService, rawAlarmFilter } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
@@ -16,7 +16,7 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { XoAlarm, XoVdiSnapshot, XoVmSnapshot } from '@vates/types'
+import { XoAlarm, XoMessage, XoVdiSnapshot, XoVmSnapshot } from '@vates/types'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { provide } from 'inversify-binding-decorators'
 import {
@@ -26,6 +26,7 @@ import {
   vmSnapshotVdis,
 } from '../open-api/oa-examples/vm-snapshot.oa-example.mjs'
 import { VmService } from '../vms/vm.service.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
 @Route('vm-snapshots')
 @Security('*')
@@ -162,5 +163,33 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   ): SendObjects<Partial<Unbrand<XoVdiSnapshot>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmSnapshot['id'], 'VM-snapshot')
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+  }
+
+  /**
+   * @example id "cef5f68c-61ae-3831-d2e6-1590d4934acf"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVmMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const vm = this.getObject(id as XoVmSnapshot['id'])
+    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${vm.uuid} !${rawAlarmFilter}`,
+      limit,
+    })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
   }
 }
