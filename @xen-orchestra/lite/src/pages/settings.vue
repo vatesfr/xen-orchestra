@@ -17,17 +17,17 @@
             <UiKeyValueRow>
               <template #key>{{ t('news') }}</template>
               <template #value>
-                <a target="_blank" rel="noopener noreferrer" href="https://xen-orchestra.com/blog/">
+                <UiLink size="medium" href="https://xen-orchestra.com/blog/">
                   {{ t('news-name', { name: 'Xen Orchestra' }) }}
-                </a>
+                </UiLink>
               </template>
             </UiKeyValueRow>
             <UiKeyValueRow>
               <template #key>{{ t('community') }}</template>
               <template #value>
-                <a target="_blank" rel="noopener noreferrer" href="https://xcp-ng.org/forum/category/12/xen-orchestra">
+                <UiLink size="medium" href="https://xcp-ng.org/forum/category/12/xen-orchestra">
                   {{ t('community-name', { name: 'Xen Orchestra' }) }}
-                </a>
+                </UiLink>
               </template>
             </UiKeyValueRow>
           </UiKeyValueList>
@@ -42,33 +42,33 @@
             <UiKeyValueRow>
               <template #key>{{ t('news') }}</template>
               <template #value>
-                <a target="_blank" rel="noopener noreferrer" href="https://xcp-ng.org/blog/">
+                <UiLink size="medium" href="https://xcp-ng.org/blog/">
                   {{ t('news-name', { name: 'XCP-ng' }) }}
-                </a>
+                </UiLink>
               </template>
             </UiKeyValueRow>
             <UiKeyValueRow>
               <template #key>{{ t('community') }}</template>
               <template #value>
-                <a target="_blank" rel="noopener noreferrer" href="https://xcp-ng.org/forum">
+                <UiLink size="medium" href="https://xcp-ng.org/forum">
                   {{ t('community-name', { name: 'XCP-ng' }) }}
-                </a>
+                </UiLink>
               </template>
             </UiKeyValueRow>
             <UiKeyValueRow>
               <template #key>{{ t('documentation') }}</template>
               <template #value>
-                <a target="_blank" rel="noopener noreferrer" href="https://xcp-ng.org/docs/">
+                <UiLink size="medium" href="https://xcp-ng.org/docs/">
                   {{ t('documentation-name', { name: 'XCP-ng' }) }}
-                </a>
+                </UiLink>
               </template>
             </UiKeyValueRow>
             <UiKeyValueRow>
               <template #key>{{ t('support') }}</template>
               <template #value>
-                <a target="_blank" rel="noopener noreferrer" href="https://xcp-ng.com/">
+                <UiLink size="medium" href="https://xcp-ng.com/">
                   {{ t('professional-support') }}
-                </a>
+                </UiLink>
               </template>
             </UiKeyValueRow>
           </UiKeyValueList>
@@ -106,7 +106,7 @@
           <VtsSelect :id="localeSelectId" icon="fa:earth-americas" accent="brand" />
         </VtsColumn>
         <VtsColumn class="i18n-link-column" :size="2">
-          <UiLink size="small" href="https://translate.vates.tech/engage/xen-orchestra/">
+          <UiLink size="medium" href="https://translate.vates.tech/engage/xen-orchestra/">
             {{ t('settings.missing-translations') }}
           </UiLink>
         </VtsColumn>
