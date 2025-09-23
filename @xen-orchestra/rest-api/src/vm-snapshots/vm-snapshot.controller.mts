@@ -176,7 +176,7 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Get('{id}/messages')
   @Tags('messages')
   @Response(notFoundResp.status, notFoundResp.description)
-  getVmMessages(
+  getVmSnapshotsMessages(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
