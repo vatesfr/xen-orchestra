@@ -251,6 +251,7 @@ function isControllerNeeded(xapi) {
 // =============================================================================
 
 class SDNController extends EventEmitter {
+  #staticConfig
   /*
   Attributes on created networks:
   - `other_config`:
@@ -272,9 +273,9 @@ class SDNController extends EventEmitter {
     - `xo:sdn-controller:of-rules`: A list of openflow entries to apply to this VIF
   */
 
-  constructor({ xo, getDataDir }) {
+  constructor({ xo, getDataDir, staticConfig }) {
     super()
-
+    this.#staticConfig = staticConfig
     this._xo = xo
     this._getDataDir = getDataDir
 
@@ -1355,7 +1356,7 @@ class SDNController extends EventEmitter {
     let channel = this.ofChannels[host.$ref]
     if (channel === undefined) {
       // this ensure only one channel is create in parallel
-      channel = this.ofChannels[host.$ref] = instantiateController(host)
+      channel = this.ofChannels[host.$ref] = instantiateController(host, this._tlsHelper, this.#staticConfig)
     }
     if (this.ofChannels[host.$ref].then) {
       this.ofChannels[host.$ref] = await this.ofChannels[host.$ref]
