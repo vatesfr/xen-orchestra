@@ -1,5 +1,5 @@
 import type { XoTask } from '@vates/types/xo'
-import { RestApi } from '../rest-api/rest-api.mjs'
+import type { RestApi } from '../rest-api/rest-api.mjs'
 import * as CM from 'complex-matcher'
 
 export class TaskService {
