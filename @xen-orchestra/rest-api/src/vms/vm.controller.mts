@@ -557,7 +557,7 @@ export class VmController extends XapiXoController<XoVm> {
     const vdis = this.#vmService.getVmVdis(id as XoVm['id'], 'VM')
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
   }
-  
+
   /**
    * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
    * @example fields "mode,name,type,id"
