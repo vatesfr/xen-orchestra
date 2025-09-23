@@ -619,7 +619,7 @@ export class VmController extends XapiXoController<XoVm> {
   
   /**
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
-   * @example fields "id,properties"
+   * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
    */
