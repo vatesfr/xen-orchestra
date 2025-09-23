@@ -14,8 +14,8 @@
             <UiTag variant="secondary" accent="info">
               {{ backupJob.mode }}
             </UiTag>
-          </template></VtsQuickInfoRow
-        >
+          </template>
+        </VtsQuickInfoRow>
       </VtsQuickInfoColumn>
     </span>
   </UiCard>

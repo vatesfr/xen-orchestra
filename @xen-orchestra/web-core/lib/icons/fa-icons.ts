@@ -1,11 +1,11 @@
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
 import {
   faBuilding,
+  faCopy,
   faFile,
   faFolderClosed,
   faFolderOpen,
   faSquareCheck,
-  faCopy,
 } from '@fortawesome/free-regular-svg-icons'
 import {
   faA,
@@ -129,6 +129,7 @@ export const faIcons = defineIconPack({
   book: { icon: faBook },
   building: { icon: faBuilding },
   camera: { icon: faCamera },
+  caledar: { icon: faCalendar },
   'caret-down': { icon: faCaretDown },
   'caret-up': { icon: faCaretUp },
   check: { icon: faCheck },
@@ -144,6 +145,7 @@ export const faIcons = defineIconPack({
   'circle-xmark': { icon: faCircleXmark },
   city: { icon: faCity },
   close: { icon: faClose },
+  clock: { icon: faClock },
   code: { icon: faCode },
   comments: { icon: faComments },
   copy: { icon: faCopy },

@@ -417,6 +417,7 @@
   "new-vm.name": "Nom de la VM",
   "news": "Actualités",
   "news-name": "Actualités {name}",
+  "next-run": "prochaine execution",
   "nic-type": "Type de carte réseau (NIC)",
   "no-alarm-triggered": "Aucune alarme déclenchée",
   "no-alarms-detected": "Aucune alarme détectée",

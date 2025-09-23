@@ -417,6 +417,7 @@
   "new-vm.name": "VM name",
   "news": "News",
   "news-name": "{name} news",
+  "next-run": "next-run",
   "nic-type": "NIC type",
   "no-alarm-triggered": "No alarm triggered",
   "no-alarms-detected": "No alarms detected",

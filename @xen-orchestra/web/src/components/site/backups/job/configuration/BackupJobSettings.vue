@@ -1,6 +1,6 @@
 <template>
   <UiCard class="backupJobSettings">
-    <UiTitle> {{ t('general-information') }} </UiTitle>
+    <UiTitle> {{ t('settings') }} </UiTitle>
     <span>
       <VtsQuickInfoColumn>
         <VtsQuickInfoRow :label="t('proxy')" :value="backupJob.proxy" />
