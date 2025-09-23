@@ -24,7 +24,7 @@ const computeRate = (hrtime, size) => {
 }
 
 const DEFAULT_TIMEOUT = 12e5 // 20 min
-const DEFAULT_MAX_PARALLEL_OPERATIONS = 10
+const DEFAULT_MAX_PARALLEL_OPERATIONS = 50
 
 const ENCRYPTION_DESC_FILENAME = 'encryption.json'
 const ENCRYPTION_METADATA_FILENAME = 'metadata.json'

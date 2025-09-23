@@ -46,6 +46,7 @@
 - [REST API] Expose `/rest/v0/backup-jobs` and `/rest/v0/backup-jobs/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
 - [Host/PIFs] Use a natural sort when sorting by device (eth9 < eth10) (PR [#8967](https://github.com/vatesfr/xen-orchestra/pull/8967))
 - [Backup] New backup job use "merge backup synchronously" by default (PR [#8996](https://github.com/vatesfr/xen-orchestra/pull/8996))
+- [Backup] Improve the default concurrency on remote from 10 to 50 action in parallel (PR [#8996](https://github.com/vatesfr/xen-orchestra/pull/8996))
 
 - **XO 6:**
   - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
@@ -85,6 +86,7 @@
 
 - @vates/types minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/fs minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
