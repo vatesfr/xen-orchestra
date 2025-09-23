@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-cpu-provisioning">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
     <template v-else>
       <VtsProgressBar
         :label="t('vcpus')"
@@ -23,7 +23,7 @@ import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.t
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

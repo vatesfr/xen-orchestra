@@ -62,6 +62,7 @@ export default {
       items: [
         'manage',
         'manage_infrastructure',
+        'v2v-migration-guide',
         'users',
         'vm-templates',
         'advanced',
@@ -78,6 +79,7 @@ export default {
       items: [
         'intro_backup',
         'backups',
+        'backup_howto',
         'proxy',
         'rolling_snapshots',
         'full_backups',
