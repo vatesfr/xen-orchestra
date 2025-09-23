@@ -12,7 +12,6 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **Migrated REST API endpoints**:
-
   - `DELETE /rest/v0/tasks` (PR [#8905](https://github.com/vatesfr/xen-orchestra/pull/8905))
   - `DELETE /rest/v0/tasks/<task-id>` (PR [#8905](https://github.com/vatesfr/xen-orchestra/pull/8905))
   - `DELETE /rest/v0/vms/<vm-id>` (PR [#8938](https://github.com/vatesfr/xen-orchestra/pull/8938))
@@ -39,7 +38,6 @@
   - **deprecated** `GET /rest/v0/backup/jobs/mirror/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
   - `GET /rest/v0/vms/<vm-id>/messages` (PR [#8988](https://github.com/vatesfr/xen-orchestra/pull/8988))
 
-
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
 - [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
 - [REST API] Expose `/rest/v0/vms/<vm-id>/backup-jobs` (PR [#8948](https://github.com/vatesfr/xen-orchestra/pull/8948))
@@ -47,6 +45,7 @@
 - [New VM] Add a new variable in custom cloud config to easily add SSH keys (PR [#8968](https://github.com/vatesfr/xen-orchestra/pull/8968))
 - [REST API] Expose `/rest/v0/backup-jobs` and `/rest/v0/backup-jobs/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
 - [Host/PIFs] Use a natural sort when sorting by device (eth9 < eth10) (PR [#8967](https://github.com/vatesfr/xen-orchestra/pull/8967))
+- [Backup] New backup job use "merge backup synchronously" by default (PR [#8996](https://github.com/vatesfr/xen-orchestra/pull/8996))
 
 - **XO 6:**
   - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
@@ -67,7 +66,6 @@
 - [Plugins/Load balancer] Prevent mass migration when receiving incorrect host data (PR [#8965](https://github.com/vatesfr/xen-orchestra/pull/8965))
 - [Backup] Fix _INTERNAL_ERROR(Failure(\"Expected string, got 'N'\"))_ for backup on VM with VTPM (PR [#8990](https://github.com/vatesfr/xen-orchestra/pull/8990))
 - [XOA] Fix XOA UI showing expired license error during trial (PR [#8991](https://github.com/vatesfr/xen-orchestra/pull/8991))
-
 
 ### Packages to release
 
