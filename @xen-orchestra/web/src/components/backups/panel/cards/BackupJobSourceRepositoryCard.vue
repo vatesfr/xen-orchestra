@@ -28,7 +28,9 @@ const { getBackupRepositoryById } = useXoBackupRepositoryCollection()
 
 const sourceBackupRepository = computed(() => getBackupRepositoryById(mirrorBackupJob.sourceRemote))
 
-const sourceBackupRepositoryIcon = computed(() => sourceBackupRepository.value?.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected')
+const sourceBackupRepositoryIcon = computed(() =>
+  sourceBackupRepository.value?.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected'
+)
 </script>
 
 <style scoped lang="postcss">
