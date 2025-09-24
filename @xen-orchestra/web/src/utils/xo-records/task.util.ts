@@ -1,6 +1,6 @@
 import type { XoTask } from '@vates/types'
 
-export type BackupLogResult = { message: string; stack: string }
+export type BackupLogResult = { message: string; stack: unknown }
 
 export function getTasksResultsRecursively(task: XoTask, rawType: 'failure' | 'warning' | 'info'): BackupLogResult[] {
   const data: BackupLogResult[] = []
@@ -11,7 +11,7 @@ export function getTasksResultsRecursively(task: XoTask, rawType: 'failure' | 'w
     if (task.status === 'failure' && task.result !== undefined) {
       data.push({
         message: (task.result.message as string) ?? 'Unknown error',
-        stack: (task.result.stack as string) ?? '',
+        stack: task.result.stack ?? '',
       })
     }
   } else if (type in task && Array.isArray(task[type]) && task[type].length > 0) {
