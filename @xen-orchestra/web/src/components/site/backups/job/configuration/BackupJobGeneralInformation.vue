@@ -1,28 +1,36 @@
 <template>
   <UiCard class="backup-job-information">
     <UiTitle> {{ t('general-information') }} </UiTitle>
-    <span>
-      <VtsQuickInfoColumn>
-        <VtsQuickInfoRow :label="t('name')" :value="backupJob.name" />
-      </VtsQuickInfoColumn>
-      <VtsQuickInfoColumn>
-        <VtsQuickInfoRow :label="t('id')" :value="backupJob.id" />
-      </VtsQuickInfoColumn>
-      <VtsQuickInfoColumn>
-        <VtsQuickInfoRow :label="t('mode')" :value="backupJob.mode">
-          <template #value>
-            <UiTag variant="secondary" accent="info">
-              {{ backupJob.mode }}
-            </UiTag>
-          </template>
-        </VtsQuickInfoRow>
-      </VtsQuickInfoColumn>
-    </span>
+    <VtsColumns>
+      <VtsColumn class="text-ellipsis">
+        <VtsQuickInfoColumn>
+          <VtsQuickInfoRow :label="t('name')" :value="backupJob.name" />
+        </VtsQuickInfoColumn>
+      </VtsColumn>
+      <VtsColumn class="text-ellipsis">
+        <VtsQuickInfoColumn>
+          <VtsQuickInfoRow :label="t('id')" :value="backupJob.id" />
+        </VtsQuickInfoColumn>
+      </VtsColumn>
+      <VtsColumn class="text-ellipsis">
+        <VtsQuickInfoColumn>
+          <VtsQuickInfoRow :label="t('mode')" :value="backupJob.mode">
+            <template #value>
+              <UiTag variant="secondary" accent="info">
+                {{ backupJob.mode }}
+              </UiTag>
+            </template>
+          </VtsQuickInfoRow>
+        </VtsQuickInfoColumn>
+      </VtsColumn>
+    </VtsColumns>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -40,11 +48,5 @@ const { t } = useI18n()
 <style lang="postcss" scoped>
 .backup-job-information {
   width: 100%;
-  span {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    justify-content: space-between;
-  }
 }
 </style>
