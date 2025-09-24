@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="backupJobConfiguration">
+  <UiCard class="backup-job-information">
     <UiTitle> {{ t('general-information') }} </UiTitle>
     <span>
       <VtsQuickInfoColumn>
@@ -38,7 +38,7 @@ const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.backupJobConfiguration {
+.backup-job-information {
   width: 100%;
   span {
     display: flex;

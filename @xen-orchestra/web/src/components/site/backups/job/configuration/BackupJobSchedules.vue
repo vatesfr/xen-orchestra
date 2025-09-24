@@ -174,4 +174,35 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
 th.checkbox {
   width: 4rem;
 }
+
+.last-three-runs {
+  display: flex;
+  gap: 0.8rem;
+
+  li:not(:first-child) {
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      transform: scale(1.3);
+    }
+  }
+
+  /* Order of selectors matters
+    *  because when there is only one item, it is both the first and the last child
+    *  and we want to apply the first-child style in that case
+    **/
+  li:last-child {
+    transform: scale(0.8);
+
+    &::after {
+      transform: scale(1.6);
+    }
+  }
+
+  li:first-child {
+    transform: scale(1.2);
+    margin-inline-end: 0.3rem;
+  }
+}
 </style>

@@ -1,6 +1,6 @@
 <template>
-  <UiHeadBar icon="fa:satellite" class="backupsHeader">
-    <span class="backupsHeaderPath">
+  <UiHeadBar icon="fa:satellite" class="backups-header">
+    <span class="backups-header-path">
       <UiLink to="/" size="medium">
         {{ t('site-name') }}
       </UiLink>
@@ -13,7 +13,7 @@
       {{ backupName }}
     </span>
   </UiHeadBar>
-  <UiHeadBar icon="object:backup-job" class="backupsHeader">
+  <UiHeadBar icon="object:backup-job" class="backups-header">
     {{ backupName }}
     <template #actions>
       <UiLink size="medium" href="/#/backup/config">{{ t('configure-in-xo-5') }}</UiLink>
@@ -34,10 +34,10 @@ const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.backupsHeader {
+.backups-header {
   font-size: 1.6rem;
 
-  .backupsHeaderPath {
+  .backups-header-path {
     display: flex;
     align-items: center;
     gap: 0.8rem;

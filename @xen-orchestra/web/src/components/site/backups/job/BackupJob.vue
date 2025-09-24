@@ -4,8 +4,10 @@
   </template>
   <template v-else>
     <BackupsHeader :backup-name="selectedBackupJob.name" />
-    <span class="backupJob">
-      <BackupjobMenu />
+    <span class="backup-job">
+      <span>
+        <BackupjobMenu />
+      </span>
       <BackupjobConfiguration :backup-job="selectedBackupJob" />
     </span>
   </template>
@@ -29,7 +31,7 @@ const selectedBackupJob = computed(() => {
 </script>
 
 <style lang="postcss" scoped>
-.backupJob {
+.backup-job {
   display: flex;
   width: 100%;
   margin: 0.8rem;
