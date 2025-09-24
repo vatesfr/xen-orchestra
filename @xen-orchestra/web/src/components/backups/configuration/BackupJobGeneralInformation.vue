@@ -2,19 +2,19 @@
   <UiCard class="backup-job-information">
     <UiTitle> {{ t('general-information') }} </UiTitle>
     <VtsColumns>
-      <VtsColumn class="text-ellipsis">
+      <VtsColumn>
         <VtsQuickInfoColumn>
           <VtsQuickInfoRow :label="t('name')" :value="backupJob.name" />
         </VtsQuickInfoColumn>
       </VtsColumn>
-      <VtsColumn class="text-ellipsis">
+      <VtsColumn>
         <VtsQuickInfoColumn>
           <VtsQuickInfoRow :label="t('id')" :value="backupJob.id" />
         </VtsQuickInfoColumn>
       </VtsColumn>
-      <VtsColumn class="text-ellipsis">
+      <VtsColumn>
         <VtsQuickInfoColumn>
-          <VtsQuickInfoRow :label="t('mode')" :value="backupJob.mode">
+          <VtsQuickInfoRow :label="t('mode')">
             <template #value>
               <UiTag variant="secondary" accent="info">
                 {{ backupJob.mode }}
