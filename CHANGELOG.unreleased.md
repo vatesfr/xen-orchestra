@@ -17,6 +17,7 @@
   - `GET /rest/v0/vdi-snapshots/<vdi-snapshot-id>/messages` (PR [#9043](https://github.com/vatesfr/xen-orchestra/pull/9043))
   - `GET /rest/v0/vdis/<vdi-id>/messages` (PR [#9044](https://github.com/vatesfr/xen-orchestra/pull/9044))
   - `GET /rest/v0/vifs/<vif-id>/messages` (PR [#9049](https://github.com/vatesfr/xen-orchestra/pull/9049))
+  - `GET /rest/v0/vm-templates/<vm-template-id>/tasks` (PR[#9004](https://github.com/vatesfr/xen-orchestra/pull/9004))
 
 ### Bug fixes
 
