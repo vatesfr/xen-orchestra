@@ -288,6 +288,7 @@ class ToggleHa extends Component {
   return {
     backupNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:backupNetwork']),
     dcScopeVms: createGetObjectsOfType('VM').filter([vm => vm.other['xo:dcscope:installTime'] !== undefined]),
+    dcNetscopeVms: createGetObjectsOfType('VM').filter([vm => vm.other['xo:dcnetscope:installTime'] !== undefined]),
     hosts: getHosts,
     hostsByMultipathing: createGroupBy(
       getHosts,
@@ -324,28 +325,32 @@ export default class TabAdvanced extends Component {
     networkIds => network => networkIds.has(network.id)
   )
 
+  _getLatestVmIp = (vms, product) => {
+    if (isEmpty(vms)) {
+      return
+    }
+
+    const getInstallTime = vm => vm.other[`xo:${product}:installTime`]
+    const getIp = vm => vm.addresses['0/ipv4/0'] ?? vm.addresses['0/ipv6/0']
+
+    let latestVm
+    Object.values(vms).forEach(vm => {
+      if (getIp(vm) !== undefined && (latestVm === undefined || getInstallTime(vm) > getInstallTime(latestVm))) {
+        latestVm = vm
+      }
+    })
+
+    return latestVm && getIp(latestVm)
+  }
+
   _getDcScopeIp = createSelector(
     () => this.props.dcScopeVms,
-    dcScopeVms => {
-      if (isEmpty(dcScopeVms)) {
-        return
-      }
+    dcScopeVms => this._getLatestVmIp(dcScopeVms, 'dcscope')
+  )
 
-      const getInstallTime = vm => vm.other['xo:dcscope:installTime']
-      const getIp = vm => vm.addresses['0/ipv4/0'] ?? vm.addresses['0/ipv6/0']
-
-      let latestDcScopeVm
-      Object.values(dcScopeVms).forEach(vm => {
-        if (
-          getIp(vm) !== undefined &&
-          (latestDcScopeVm === undefined || getInstallTime(vm) > getInstallTime(latestDcScopeVm))
-        ) {
-          latestDcScopeVm = vm
-        }
-      })
-
-      return latestDcScopeVm && getIp(latestDcScopeVm)
-    }
+  _getDcNetscopeIp = createSelector(
+    () => this.props.dcNetscopeVms,
+    dcNetscopeVms => this._getLatestVmIp(dcNetscopeVms, 'dcnetscope')
   )
 
   _isNetboxPluginLoaded = createSelector(
@@ -390,6 +395,7 @@ export default class TabAdvanced extends Component {
     const isMigrationCompressionAvailable = pool.migrationCompression !== undefined
 
     const dcScopeIp = this._getDcScopeIp()
+    const dcNetscopeIp = this._getDcNetscopeIp()
 
     return (
       <div>
@@ -410,6 +416,22 @@ export default class TabAdvanced extends Component {
                   handler={() => window.open(`http://${dcScopeIp}`)}
                   icon='telemetry'
                   labelId='dcScope'
+                />
+              )}
+              {dcNetscopeIp === undefined ? (
+                <TabButton
+                  btnStyle='warning'
+                  icon='deploy'
+                  handler={() => {}}
+                  labelId='deployDcNetscope'
+                  redirectOnSuccess='/hub/recipes'
+                />
+              ) : (
+                <TabButton
+                  btnStyle='success'
+                  handler={() => window.open(`http://${dcNetscopeIp}`)}
+                  icon='telemetry'
+                  labelId='dcNetscope'
                 />
               )}
               <TabButton

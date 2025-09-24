@@ -9,6 +9,8 @@ const messages = {
   connected: 'Connected',
   dcScope: 'DC Scope',
   deployDcScope: 'Deploy DC Scope',
+  dcNetscope: 'DC Netscope',
+  deployDcNetscope: 'Deploy DC Netscope',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   disable: 'Disable',
