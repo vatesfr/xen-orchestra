@@ -33,7 +33,6 @@ const selectedBackupJob = computed(() => {
 <style lang="postcss" scoped>
 .backup-job {
   display: flex;
-  width: 100%;
   margin: 0.8rem;
   gap: 0.8rem;
 }
