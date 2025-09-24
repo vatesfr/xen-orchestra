@@ -1,6 +1,10 @@
 <template>
   <UiCard>
     <UiTitle> {{ t('schedules') }} </UiTitle>
+    <UiQuerySearchBar @search="value => (searchQuery = value)" />
+    <UiTopBottomTable :selected-items="0" :total-items="0">
+      <UiTablePagination v-bind="paginationBindings" />
+    </UiTopBottomTable>
     <VtsDataTable is-ready :no-data-message="backupJobs.length === 0 ? t('no-backup-available') : undefined">
       <template #thead>
         <tr>
@@ -23,12 +27,7 @@
         </tr>
       </template>
       <template #tbody>
-        <tr
-          v-for="row of backupJobsRecords"
-          :key="row.id"
-          :class="{ selected: selectedBackupJobId === row.id }"
-          @click="selectedBackupJobId = row.id"
-        >
+        <tr v-for="row of backupJobsRecords" :key="row.id" :class="{ selected: selectedBackupJobId === row.id }">
           <td v-for="column of row.visibleColumns" :key="column.id" :class="{ checkbox: column.id === 'checkbox' }">
             <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
               <UiCheckbox disabled accent="brand" :value="row.id" />
@@ -46,11 +45,15 @@
                 {{ column.value }}
               </UiLink>
             </div>
-            <UiTagsList v-else-if="column.id === 'id'">
-              <template v-for="(backupMode, index) in column.value" :key="index">
-                {{ backupMode }}
-              </template>
-            </UiTagsList>
+            <div v-else-if="column.id === 'id'" class="text-ellipsis">
+              {{ column.value }}
+            </div>
+            <div v-else-if="column.id === 'cron-pattern'">
+              {{ column.value }}
+            </div>
+            <div v-else-if="column.id === 'next-run'">
+              {{ column.value }}
+            </div>
             <template v-else-if="column.id === 'status'">
               <VtsEnabledState :enabled="column.value ?? false" />
             </template>
@@ -75,6 +78,7 @@
 <script setup lang="ts">
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection'
+import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection'
 import type { XoBackupLog } from '@/types/xo/backup-log.type'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -84,8 +88,8 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
@@ -103,7 +107,7 @@ const { backupJobs } = defineProps<{
 const { t } = useI18n()
 
 const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
-
+const scheduleData = useXoScheduleCollection()
 const selectedBackupJobId = useRouteQuery('id')
 
 const searchQuery = ref('')
@@ -111,13 +115,24 @@ const searchQuery = ref('')
 const filteredBackupJobs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
+  let filteredJob: XoBackupJob[]
   if (!searchTerm) {
-    return backupJobs
+    filteredJob = backupJobs
   }
 
-  return backupJobs.filter(backupJob =>
+  filteredJob = backupJobs.filter(backupJob =>
     Object.values(backupJob).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
+
+  const schedule = filteredJob
+    .map(job => {
+      return (scheduleData.schedulesByJobId.value.get(job.id) ?? []).map(schedule => {
+        return { schedule, job }
+      })
+    })
+    .flat()
+
+  return schedule
 })
 
 const getRunStatusIcon = createMapper<XoBackupLog['status'], IconName>(
@@ -140,17 +155,17 @@ const getLastThreeRunsStatuses = (backupJob: XoBackupJob) =>
   getLastNBackupLogsByJobId(backupJob.id).map((backupLog, index) => getRunInfo(backupLog, index))
 
 const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
-  rowId: record => record.id,
+  rowId: record => record.schedule.id,
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
-    define('schedule', record => record.name, { label: t('job-name') }),
-    define('id', record => record.id, { label: t('id') }),
-    define('status', record => record.settings[''].preferNbd, { label: t('status') }), // #TODO bad data
-    define('cron-pattern', record => record.settings[''].backupReportTpl, { label: t('cron-pattern') }), // #TODO bad data
-    define('last-runs', record => getLastThreeRunsStatuses(record), {
+    define('schedule', record => record.schedule.name, { label: t('job-name') }),
+    define('id', record => record.schedule.id, { label: t('id') }),
+    define('status', record => record.schedule.enabled, { label: t('status') }),
+    define('cron-pattern', record => record.schedule.cron, { label: t('cron-pattern') }),
+    define('last-runs', record => getLastThreeRunsStatuses(record.job), {
       label: t('last-n-runs', { n: 3 }),
     }),
-    define('next-run', record => record.settings[''].timezone, { label: t('next-run') }), // #TODO bad data
+    define('next-run', () => 'comming soon', { label: t('next-run') }), // #TODO bad data
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
