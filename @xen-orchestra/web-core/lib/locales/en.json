@@ -90,6 +90,7 @@
   "bytes.gi": "GiB",
   "bytes.ki": "KiB",
   "bytes.mi": "MiB",
+  "by": "By",
   "cancel": "Cancel",
   "cbt-destroy-snapshot-data": "Purge snapshot data when using CBT",
   "change-block-tracking": "Change block tracking (CBT)",
