@@ -103,11 +103,11 @@ export default decorate([
           performanceIndex: performanceIndex.value,
         })
       },
-      onChangeEasyVirtTemplateName(__, evTemplateName) {
+      onChangeEasyVirtTemplateName(__, productName) {
         const { onChange, value } = this.props
         onChange({
           ...value,
-          evTemplateName: evTemplateName.value,
+          productName: productName.value,
         })
       },
       toggleStaticIpAddress(__, ev) {
@@ -152,12 +152,51 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeVMNameLabel')}</label>
+        <label>
+          <input
+            className='mt-1'
+            name='staticIpAddress'
+            onChange={effects.toggleStaticIpAddress}
+            type='checkbox'
+            value={value.staticIpAddress}
+          />
+          &nbsp;
+          {_('recipeStaticIpAddress')}
+        </label>
+      </FormGrid.Row>
+      {value.staticIpAddress && [
+        <FormGrid.Row key='vmIpAddrRow'>
+          <label>{_('staticIp')}</label>
+          <input
+            className='form-control'
+            name='vmIpAddress'
+            onChange={effects.onChangeValue}
+            placeholder={formatMessage(messages.staticIp)}
+            required
+            type='text'
+            value={value.vmIpAddress}
+          />
+        </FormGrid.Row>,
+        <FormGrid.Row key='gatewayRow'>
+          <label>{_('recipeGatewayIpAddress')}</label>
+          <input
+            className='form-control'
+            name='gatewayIpAddress'
+            onChange={effects.onChangeValue}
+            placeholder={formatMessage(messages.recipeGatewayIpAddress)}
+            required
+            type='text'
+            value={value.gatewayIpAddress}
+          />
+        </FormGrid.Row>,
+      ]}
+      <FormGrid.Row>
+        <label>{_('recipeVmNameLabel')}</label>
         <input
           className='form-control'
           name='vmName'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeVMNameLabel)}
+          placeholder={formatMessage(messages.recipeVmNameLabel)}
           required
           type='text'
           value={value.vmName}
@@ -168,36 +207,36 @@ export default decorate([
         <TimezonePicker value={value.timezone} onChange={timezone => effects.onChangeValue(timezone, 'timezone')} />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeVMxoUser')}</label>
+        <label>{_('recipeXoUser')}</label>
         <input
           className='form-control'
           name='xoUsername'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeVMxoUser)}
+          placeholder={formatMessage(messages.recipeXoUser)}
           required
           type='text'
           value={value.xoUsername}
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeVMxoPassword')}</label>
+        <label>{_('recipeXoPassword')}</label>
         <input
           className='form-control'
           name='xoPassword'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeVMxoPassword)}
+          placeholder={formatMessage(messages.recipeXoPassword)}
           required
           type='password'
           value={value.xoPassword}
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeXoUrl')}</label>
+        <label>{_('recipeXoFqdn')}</label>
         <input
           className='form-control'
           name='xoUrl'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeXoUrl)}
+          placeholder='xoa.local'
           required
           type='text'
           value={value.xoUrl}
@@ -207,13 +246,26 @@ export default decorate([
         <label>{_('recipeEasyVirt')}</label>
         <Select
           className='mb-1'
-          name='evTemplateName'
+          name='productName'
           onChange={effects.onChangeEasyVirtTemplateName}
           options={EASYVIRT_VM}
           required
-          value={value.evTemplateName}
+          value={value.productName}
         />
       </FormGrid.Row>
+      {value.productName === 'dcScope' && (
+        <FormGrid.Row>
+          <label>{_('recipePerformanceConfig')}</label>
+          <Select
+            className='mb-1'
+            name='performanceIndex'
+            onChange={effects.onChangePerformanceIndex}
+            options={PERF_CONFIG}
+            required
+            value={value.performanceIndex}
+          />
+        </FormGrid.Row>
+      )}
       <FormGrid.Row>
         <label>{_('recipeUserEmail')}</label>
         <input
@@ -238,58 +290,6 @@ export default decorate([
           value={value.userCompany}
         />
       </FormGrid.Row>
-      {value.evTemplateName === 'dcScope' && (
-        <FormGrid.Row>
-          <label>{_('recipePerformanceConfig')}</label>
-          <Select
-            className='mb-1'
-            name='performanceIndex'
-            onChange={effects.onChangePerformanceIndex}
-            options={PERF_CONFIG}
-            required
-            value={value.performanceIndex}
-          />
-        </FormGrid.Row>
-      )}
-      <FormGrid.Row>
-        <label>
-          <input
-            className='mt-1'
-            name='staticIpAddress'
-            onChange={effects.toggleStaticIpAddress}
-            type='checkbox'
-            value={value.staticIpAddress}
-          />
-          &nbsp;
-          {_('recipeStaticIpAddress')}
-        </label>
-      </FormGrid.Row>
-      {value.staticIpAddress && [
-        <FormGrid.Row key='vmIpAddrRow'>
-          <label>{_('recipeVMIpAddress')}</label>
-          <input
-            className='form-control'
-            name='vmIpAddress'
-            onChange={effects.onChangeValue}
-            placeholder={formatMessage(messages.recipeVMIpAddress)}
-            required
-            type='text'
-            value={value.vmIpAddress}
-          />
-        </FormGrid.Row>,
-        <FormGrid.Row key='gatewayRow'>
-          <label>{_('recipeGatewayIpAddress')}</label>
-          <input
-            className='form-control'
-            name='gatewayIpAddress'
-            onChange={effects.onChangeValue}
-            placeholder={formatMessage(messages.recipeGatewayIpAddress)}
-            required
-            type='text'
-            value={value.gatewayIpAddress}
-          />
-        </FormGrid.Row>,
-      ]}
     </Container>
   ),
 ])
