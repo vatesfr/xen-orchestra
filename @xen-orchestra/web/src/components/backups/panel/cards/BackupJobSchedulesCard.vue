@@ -6,7 +6,6 @@
     </UiCardTitle>
     <div class="content">
       <template v-for="(schedule, index) in backupJobSchedules" :key="schedule.id">
-        <VtsDivider v-if="index > 0" class="divider" type="stretch" />
         <VtsCardRowKeyValue>
           <template #key>
             {{ t('name') }}
@@ -55,6 +54,11 @@
             <VtsCopyButton :value="schedule.cron" />
           </template>
         </VtsCardRowKeyValue>
+        <VtsDivider
+          v-if="backupJobSchedules.length > 1 && index < backupJobSchedules.length - 1"
+          class="divider"
+          type="stretch"
+        />
       </template>
     </div>
   </UiCard>

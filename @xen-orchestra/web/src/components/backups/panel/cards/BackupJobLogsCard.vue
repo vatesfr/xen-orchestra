@@ -4,10 +4,10 @@
       {{ t('last-n-runs', { n: backupLogs.length }) }}
     </UiCardTitle>
     <div class="content">
-      <template v-for="(backupRun, index) in backupLogs" :key="backupRun.id">
-        <VtsDivider v-if="index > 0" class="divider" type="stretch" />
+      <template v-for="(run, index) in backupLogs" :key="run.id">
         <span class="subtitle typo-body-bold-small">{{ t('last-run-number', { n: index + 1 }) }}</span>
-        <BackupRunItem :backup-run />
+        <BackupRunItem :backup-run="run" />
+        <VtsDivider v-if="backupLogs.length > 1 && index < backupLogs.length - 1" class="divider" type="stretch" />
       </template>
     </div>
   </UiCard>

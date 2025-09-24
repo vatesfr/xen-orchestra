@@ -17,7 +17,7 @@
           :label="t('api-error-details')"
           size="small"
           :accent="cardMetadata.accent"
-          :content="JSON.stringify(result.stack, null, 2)"
+          :content="result.stack"
           class="stack"
         />
         <VtsDivider v-if="results.length > 1 && index < results.length - 1" class="divider" type="stretch" />
