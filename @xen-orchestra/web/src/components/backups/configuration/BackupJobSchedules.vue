@@ -45,7 +45,7 @@
                 {{ column.value.name }}
               </UiLink>
             </div>
-            <div v-else-if="column.id === 'id'" class="text-ellipsis">
+            <div v-else-if="column.id === 'id'" v-tooltip class="text-ellipsis">
               {{ column.value }}
             </div>
             <div v-else-if="column.id === 'cron-pattern'" v-tooltip class="text-ellipsis">

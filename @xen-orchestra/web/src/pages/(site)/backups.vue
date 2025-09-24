@@ -29,7 +29,7 @@ import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 
-const { backupJobs, getBackupJobById, hasBackupJobFetchError } = useXoBackupJobCollection()
+const { backupJobs, hasBackupJobFetchError, getBackupJobById } = useXoBackupJobCollection()
 
 const { t } = useI18n()
 
