@@ -1,8 +1,8 @@
 <template>
-  <UiCard class="backup-job-settings">
+  <UiCard>
     <UiTitle> {{ t('settings') }} </UiTitle>
-    <span>
-      <VtsQuickInfoColumn>
+    <VtsColumns>
+      <VtsColumn class="text-ellipsis">
         <VtsQuickInfoRow :label="t('proxy')" :value="backupJob.proxy" />
         <VtsQuickInfoRow :label="t('snapshot-mode')">
           <template #value>
@@ -14,10 +14,11 @@
           :value="backupJob.settings[''].nRetriesVmBackupFailures?.toString()"
         />
         <VtsQuickInfoRow :label="t('timeout')" :value="backupJob.settings[''].timeout?.toString()" />
-      </VtsQuickInfoColumn>
-      <VtsQuickInfoColumn>
+      </VtsColumn>
+      <VtsColumn class="text-ellipsis">
         <VtsQuickInfoRow :label="t('speed-limit')" :value="backupJob.settings[''].maxExportRate?.toString()" />
         <VtsQuickInfoRow :label="t('report-when')" :value="backupJob.settings[''].reportWhen" />
+        <!-- #FIXME overflow if too many tag -->
         <VtsQuickInfoRow :label="t('report-recipients')">
           <template #value>
             <UiTag
@@ -31,8 +32,8 @@
           </template>
         </VtsQuickInfoRow>
         <VtsQuickInfoRow :label="t('concurrency')" :value="backupJob.settings[''].concurrency?.toString()" />
-      </VtsQuickInfoColumn>
-      <VtsQuickInfoColumn>
+      </VtsColumn>
+      <VtsColumn class="text-ellipsis">
         <VtsQuickInfoRow :label="t('compression')" :value="backupJob.compression" />
         <VtsQuickInfoRow :label="t('offline-backup')">
           <template #value>
@@ -45,15 +46,16 @@
             <VtsEnabledState :enabled="backupJob.settings[''].mergeBackupsSynchronously ?? false" />
           </template>
         </VtsQuickInfoRow>
-      </VtsQuickInfoColumn>
-    </span>
+      </VtsColumn>
+    </VtsColumns>
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
-import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
@@ -66,15 +68,3 @@ const { backupJob } = defineProps<{
 
 const { t } = useI18n()
 </script>
-
-<style lang="postcss" scoped>
-.backup-job-settings {
-  width: 100%;
-  span {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    justify-content: space-between;
-  }
-}
-</style>
