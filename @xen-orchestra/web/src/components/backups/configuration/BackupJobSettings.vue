@@ -21,14 +21,16 @@
         <!-- #FIXME overflow if too many tag -->
         <VtsQuickInfoRow :label="t('report-recipients')">
           <template #value>
-            <UiTag
-              v-for="(recipient, index) in backupJob.settings[''].reportRecipients"
-              :key="index"
-              variant="secondary"
-              accent="info"
-            >
-              {{ recipient }}
-            </UiTag>
+            <UiTagsList>
+              <UiTag
+                v-for="(recipient, index) in backupJob.settings[''].reportRecipients"
+                :key="index"
+                variant="secondary"
+                accent="info"
+              >
+                {{ recipient }}
+              </UiTag>
+            </UiTagsList>
           </template>
         </VtsQuickInfoRow>
         <VtsQuickInfoRow :label="t('concurrency')" :value="backupJob.settings[''].concurrency?.toString()" />
@@ -59,6 +61,7 @@ import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
+import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
