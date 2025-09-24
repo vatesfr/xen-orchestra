@@ -76,7 +76,7 @@
 - [Plugins/Load balancer] Prevent mass migration when receiving incorrect host data (PR [#8965](https://github.com/vatesfr/xen-orchestra/pull/8965))
 - [Backup] Fix _INTERNAL_ERROR(Failure(\"Expected string, got 'N'\"))_ for backup on VM with VTPM (PR [#8990](https://github.com/vatesfr/xen-orchestra/pull/8990))
 - [XOA] Fix XOA UI showing expired license error during trial (PR [#8991](https://github.com/vatesfr/xen-orchestra/pull/8991))
-
+- [SDN-controller] Fix `No PIF found in center` (PR [#8319](https://github.com/vatesfr/xen-orchestra/pull/9000))
 
 ### Packages to release
 
@@ -101,6 +101,7 @@
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-load-balancer patch
+- xo-server-sdn-controller patch
 - xo-web minor
 
 <!--packages-end-->
