@@ -41,19 +41,21 @@
               size="small"
             />
             <div v-else-if="column.id === 'schedule'">
-              <UiLink size="medium" icon="object:backup-job" to="/backups/configuration">
-                {{ column.value }}
+              <UiLink size="medium" icon="object:backup-job" :href="`/#/backup/${column.value.jobId}/edit`">
+                {{ column.value.name }}
               </UiLink>
             </div>
             <div v-else-if="column.id === 'id'" class="text-ellipsis">
               {{ column.value }}
             </div>
-            <div v-else-if="column.id === 'cron-pattern'">
+            <div v-else-if="column.id === 'cron-pattern'" v-tooltip class="text-ellipsis">
               {{ column.value }}
             </div>
-            <div v-else-if="column.id === 'next-run'">
+            <!--
+ <div v-else-if="column.id === 'next-run'">
               {{ column.value }}
             </div>
+-->
             <template v-else-if="column.id === 'status'">
               <VtsEnabledState :enabled="column.value ?? false" />
             </template>
@@ -95,6 +97,7 @@ import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTa
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { createMapper } from '@core/packages/mapper'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
@@ -158,21 +161,21 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
   rowId: record => record.schedule.id,
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
-    define('schedule', record => record.schedule.name, { label: t('job-name') }),
+    define('schedule', record => record.schedule, { label: t('job-name') }),
     define('id', record => record.schedule.id, { label: t('id') }),
     define('status', record => record.schedule.enabled, { label: t('status') }),
     define('cron-pattern', record => record.schedule.cron, { label: t('cron-pattern') }),
     define('last-runs', record => getLastThreeRunsStatuses(record.job), {
       label: t('last-n-runs', { n: 3 }),
     }),
-    define('next-run', () => 'comming soon', { label: t('next-run') }), // #TODO bad data
+    // define('next-run', () => 'comming soon', { label: t('next-run') }), // #TODO bad data
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
 const { pageRecords: backupJobsRecords, paginationBindings } = usePagination('backups-jobs', rows)
 
-type BackupJobHeader = 'id' | 'schedule' | 'job-name' | 'cron-pattern' | 'status' | 'last-runs' | 'next-run'
+type BackupJobHeader = 'id' | 'schedule' | 'job-name' | 'cron-pattern' | 'status' | 'last-runs'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
   id: 'fa:hashtag',
@@ -181,7 +184,7 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
   'cron-pattern': 'fa:clock',
   status: 'fa:square-caret-down',
   'last-runs': 'fa:square-caret-down',
-  'next-run': 'fa:caledar',
+  // 'next-run': 'fa:caledar',
 }
 </script>
 

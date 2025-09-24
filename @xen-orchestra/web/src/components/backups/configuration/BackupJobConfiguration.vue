@@ -7,9 +7,9 @@
 </template>
 
 <script setup lang="ts">
-import BackupJobGeneralInformation from '@/components/site/backups/job/configuration/BackupJobGeneralInformation.vue'
-import BackupJobSchedules from '@/components/site/backups/job/configuration/BackupJobSchedules.vue'
-import BackupJobsSettings from '@/components/site/backups/job/configuration/BackupJobSettings.vue'
+import BackupJobGeneralInformation from '@/components/backups/configuration/BackupJobGeneralInformation.vue'
+import BackupJobSchedules from '@/components/backups/configuration/BackupJobSchedules.vue'
+import BackupJobsSettings from '@/components/backups/configuration/BackupJobSettings.vue'
 import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
 import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
 import { computed } from 'vue'
