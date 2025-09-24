@@ -579,7 +579,7 @@ export type XoTask = {
   status: 'failure' | 'interrupted' | 'pending' | 'success'
   tasks?: XoTask[]
   updatedAt?: number
-  warning?: { data: unknown; message: string }[]
+  warnings?: { data: unknown; message: string }[]
 }
 
 export type XoUser = {
