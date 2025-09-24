@@ -69,7 +69,7 @@ export default decorate([
           xoUsername,
           xoPassword,
           xoUrl,
-          dcScopeTemplateId,
+          evTemplateName,
           userEmail,
           userCompany,
           performanceIndex,
@@ -87,7 +87,7 @@ export default decorate([
           xoUsername,
           xoPassword,
           xoUrl,
-          dcScopeTemplateId,
+          evTemplateName,
           userEmail,
           userCompany,
           performanceConfig,
@@ -115,7 +115,13 @@ export default decorate([
           }}
         />
         <hr />
-        <ActionButton block handler={effects.create} icon='deploy' pending={recipeCreatingResources[RECIPE_INFO.id]}>
+        <ActionButton
+          block
+          handler={effects.create}
+          icon='deploy'
+          pending={recipeCreatingResources[RECIPE_INFO.id]}
+          // redirectOnSuccess={(vmId) => `/vms/${vmId}/general`}
+        >
           {_('create')}
         </ActionButton>
       </CardBlock>

@@ -42,10 +42,42 @@ const PERF_CONFIG = [
   },
 ]
 
+const EASYVIRT_VM = [
+  {
+    label: _('recipeDcScopeVM'),
+    value: 'dcScope',
+  },
+  {
+    label: _('recipeDcNetScopeVM'),
+    value: 'dcNetScope',
+  },
+]
+
 export default decorate([
   injectIntl,
   provideState({
     effects: {
+      onChangePool(__, pool) {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          pool,
+        })
+      },
+      onChangeSr(__, sr) {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          sr,
+        })
+      },
+      onChangeNetwork(__, network) {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          network,
+        })
+      },
       onChangeValue(__, valueOrEvent, fieldName) {
         const { onChange, value: prevValue } = this.props
 
@@ -69,6 +101,13 @@ export default decorate([
         onChange({
           ...value,
           performanceIndex: performanceIndex.value,
+        })
+      },
+      onChangeEasyVirtTemplateName(__, evTemplateName) {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          evTemplateName: evTemplateName.value,
         })
       },
       toggleStaticIpAddress(__, ev) {
@@ -96,27 +135,17 @@ export default decorate([
     <Container>
       <FormGrid.Row>
         <label>{_('vmImportToPool')}</label>
-        <SelectPool
-          className='mb-1'
-          onChange={pool => effects.onChangeValue(pool, 'pool')}
-          required
-          value={value.pool}
-        />
+        <SelectPool className='mb-1' onChange={effects.onChangePool} required value={value.pool} />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('vmImportToSr')}</label>
-        <SelectSr
-          onChange={sr => effects.onChangeValue(sr, 'sr')}
-          predicate={state.srPredicate}
-          required
-          value={value.sr}
-        />
+        <SelectSr onChange={effects.onChangeSr} predicate={state.srPredicate} required value={value.sr} />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('network')}</label>
         <SelectNetwork
           className='mb-1'
-          onChange={network => effects.onChangeValue(network, 'network')}
+          onChange={effects.onChangeNetwork}
           required
           value={value.network}
           predicate={state.networkPredicate}
@@ -175,15 +204,14 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeDcScopeTemplateId')}</label>
-        <input
-          className='form-control'
-          name='dcScopeTemplateId'
-          onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeDcScopeTemplateId)}
+        <label>{_('recipeEasyVirt')}</label>
+        <Select
+          className='mb-1'
+          name='evTemplateName'
+          onChange={effects.onChangeEasyVirtTemplateName}
+          options={EASYVIRT_VM}
           required
-          type='text'
-          value={value.dcScopeTemplateId}
+          value={value.evTemplateName}
         />
       </FormGrid.Row>
       <FormGrid.Row>
@@ -210,17 +238,19 @@ export default decorate([
           value={value.userCompany}
         />
       </FormGrid.Row>
-      <FormGrid.Row>
-        <label>{_('recipePerformanceConfig')}</label>
-        <Select
-          className='mb-1'
-          name='performanceIndex'
-          onChange={effects.onChangePerformanceIndex}
-          options={PERF_CONFIG}
-          required
-          value={value.performanceIndex}
-        />
-      </FormGrid.Row>
+      {value.evTemplateName === 'dcScope' && (
+        <FormGrid.Row>
+          <label>{_('recipePerformanceConfig')}</label>
+          <Select
+            className='mb-1'
+            name='performanceIndex'
+            onChange={effects.onChangePerformanceIndex}
+            options={PERF_CONFIG}
+            required
+            value={value.performanceIndex}
+          />
+        </FormGrid.Row>
+      )}
       <FormGrid.Row>
         <label>
           <input
