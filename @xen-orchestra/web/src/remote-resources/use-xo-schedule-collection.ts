@@ -5,7 +5,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { computed } from 'vue'
 
 export const useXoScheduleCollection = defineRemoteResource({
-  url: '/rest/v0/schedules/?fields=id,jobId,name,enabled,cron,timezone',
+  url: '/rest/v0/schedules?fields=id,jobId,name,enabled,cron,timezone',
   initialData: () => [] as XoSchedule[],
   state: (schedules, context) => {
     const state = useXoCollectionState(schedules, {
