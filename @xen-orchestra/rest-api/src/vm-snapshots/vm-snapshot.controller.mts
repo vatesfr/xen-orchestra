@@ -6,6 +6,7 @@ import { Readable } from 'node:stream'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
+import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import {
   forbiddenOperationResp,
   incorrectStateResp,
@@ -16,7 +17,7 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { XoAlarm, XoMessage, XoVdiSnapshot, XoVmSnapshot } from '@vates/types'
+import { XoAlarm, XoMessage, XoVdiSnapshot, XoTask, XoVmSnapshot } from '@vates/types'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { provide } from 'inversify-binding-decorators'
 import {
@@ -25,6 +26,7 @@ import {
   vmSnapshotIds,
   vmSnapshotVdis,
 } from '../open-api/oa-examples/vm-snapshot.oa-example.mjs'
+import { TaskService } from '../tasks/task.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
@@ -36,15 +38,18 @@ import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-
 export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   #alarmService: AlarmService
   #vmService: VmService
+  #taskService: TaskService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(AlarmService) alarmService: AlarmService,
-    @inject(VmService) vmService: VmService
+    @inject(VmService) vmService: VmService,
+    @inject(TaskService) taskService: TaskService
   ) {
     super('VM-snapshot', restApi)
     this.#alarmService = alarmService
     this.#vmService = vmService
+    this.#taskService = taskService
   }
 
   /**
@@ -187,5 +192,28 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     const messages = this.getMessagesForObject(id as XoVmSnapshot['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "9078c9f1-edae-0603-3579-df080a2de9c7"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getVmSnapshotTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.#taskService.getTasks({ filter, limit })
+    return this.sendObjects(tasks, req, 'tasks')
   }
 }
