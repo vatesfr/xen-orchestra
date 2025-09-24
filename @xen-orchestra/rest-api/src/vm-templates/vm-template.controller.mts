@@ -2,7 +2,7 @@ import { Example, Get, Security, Query, Request, Response, Route, Tags, Path, De
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import type { XoAlarm, XoVdi, XoVmTemplate } from '@vates/types'
+import type { XoAlarm, XoVdi, XoTask, XoVmTemplate } from '@vates/types'
 import { Readable } from 'node:stream'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
@@ -26,6 +26,8 @@ import {
   vmTemplateIds,
   vmTemplateVdis,
 } from '../open-api/oa-examples/vm-template.oa-example.mjs'
+import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { TaskService } from '../tasks/task.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 
 @Route('vm-templates')
@@ -36,15 +38,18 @@ import { VmService } from '../vms/vm.service.mjs'
 export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   #alarmService: AlarmService
   #vmService: VmService
+  #taskService: TaskService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(AlarmService) alarmService: AlarmService,
-    @inject(VmService) vmService: VmService
+    @inject(VmService) vmService: VmService,
+    @inject(TaskService) taskService: TaskService
   ) {
     super('VM-template', restApi)
     this.#alarmService = alarmService
     this.#vmService = vmService
+    this.#taskService = taskService
   }
 
   /**
@@ -162,5 +167,28 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmTemplate['id'], 'VM-template')
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+  }
+
+  /**
+   * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getVmTemplateTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.#taskService.getTasks({ filter, limit })
+    return this.sendObjects(tasks, req, 'tasks')
   }
 }
