@@ -25,7 +25,7 @@
         <UiTag v-if="task?.type" accent="info" variant="secondary">
           {{ task.type }}
         </UiTag>
-        <UiInfo v-if="task.status === 'failure' || task.status === 'interrupted'" accent="danger" />
+        <UiInfo v-if="isError" accent="danger" />
         <UiInfo v-if="task.warning?.length" accent="warning" />
         <UiInfo v-if="task.infos?.length" accent="info" />
         <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="muted" variant="primary" size="small" />
@@ -46,7 +46,7 @@
         <div class="progress">
           <UiCircleProgressBar
             v-if="task.progress"
-            :accent="task.status === 'failure' || task.status === 'interrupted' ? 'danger' : 'info'"
+            :accent="isError ? 'danger' : 'info'"
             size="small"
             :value="task.progress"
           />
@@ -55,6 +55,7 @@
           <div class="cancel">
             <UiButtonIcon v-if="task.status === 'pending'" icon="fa:close" size="medium" accent="danger" />
           </div>
+          <!-- TODO add link to open side panel with task details -->
           <UiButtonIcon icon="fa:eye" size="medium" accent="brand" />
         </div>
       </div>
@@ -106,8 +107,12 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const subTasks = computed(() => task.tasks ?? [])
+
 const subTasksCount = computed(() => subTasks.value.length)
+
 const hasSubTasks = computed(() => subTasksCount.value > 0)
+
+const isError = computed(() => task.status === 'failure' || task.status === 'interrupted')
 
 const started = useTimeAgo(() => task.start)
 const end = useTimeAgo(() => task.end ?? 0)
