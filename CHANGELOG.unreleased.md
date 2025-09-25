@@ -37,8 +37,14 @@
   - **deprecated** `GET /rest/v0/backup/jobs/metadata/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
   - **deprecated** `GET /rest/v0/backup/jobs/mirror` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
   - **deprecated** `GET /rest/v0/backup/jobs/mirror/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/logs` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
+  - **deprecated** `GET /rest/v0/backup/logs/<backup-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
+  - **deprecated** `GET /rest/v0/restore/logs` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
+  - **deprecated** `GET /rest/v0/restore/logs/<restore-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
   - `GET /rest/v0/vms/<vm-id>/messages` (PR [#8988](https://github.com/vatesfr/xen-orchestra/pull/8988))
-
+  - `GET /rest/v0/users/<user-id>/authentication_tokens` (PR [#8865](https://github.com/vatesfr/xen-orchestra/pull/8865))
+  - `GET /rest/v0/vms/<vm-id>/tasks` (PR[#8955](https://github.com/vatesfr/xen-orchestra/pull/8955))
+  - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>/messages` (PR [#8997](https://github.com/vatesfr/xen-orchestra/pull/8997))
 
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
 - [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
@@ -47,12 +53,15 @@
 - [New VM] Add a new variable in custom cloud config to easily add SSH keys (PR [#8968](https://github.com/vatesfr/xen-orchestra/pull/8968))
 - [REST API] Expose `/rest/v0/backup-jobs` and `/rest/v0/backup-jobs/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
 - [Host/PIFs] Use a natural sort when sorting by device (eth9 < eth10) (PR [#8967](https://github.com/vatesfr/xen-orchestra/pull/8967))
+- [REST API] Expose `/rest/v0/backup-logs` and `/rest/v0/backup-logs/<backup-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
+- [REST API] Expose `/rest/v0/restore-logs` and `/rest/v0/restore-logs/<restore-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
 - [XOSTOR] Show resource without volumes in XOSTOR view (PR [#8944](https://github.com/vatesfr/xen-orchestra/pull/8944))
 
 - **XO 6:**
   - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
   - [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
   - [VM] Add Backup Jobs page (PR [#8976](https://github.com/vatesfr/xen-orchestra/pull/8976))
+  - [Treeview] Add a debounce function to the search input to improve user experience (PR [#8892](https://github.com/vatesfr/xen-orchestra/pull/8892))
 
 ### Bug fixes
 
@@ -68,7 +77,7 @@
 - [Plugins/Load balancer] Prevent mass migration when receiving incorrect host data (PR [#8965](https://github.com/vatesfr/xen-orchestra/pull/8965))
 - [Backup] Fix _INTERNAL_ERROR(Failure(\"Expected string, got 'N'\"))_ for backup on VM with VTPM (PR [#8990](https://github.com/vatesfr/xen-orchestra/pull/8990))
 - [XOA] Fix XOA UI showing expired license error during trial (PR [#8991](https://github.com/vatesfr/xen-orchestra/pull/8991))
-
+- [SDN-controller] Fix `No PIF found in center` (PR [#8319](https://github.com/vatesfr/xen-orchestra/pull/9000))
 
 ### Packages to release
 
@@ -93,6 +102,7 @@
 - @xen-orchestra/web-core minor
 - xo-server minor
 - xo-server-load-balancer patch
+- xo-server-sdn-controller patch
 - xo-web minor
 
 <!--packages-end-->

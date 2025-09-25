@@ -133,6 +133,18 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
   }
 }
 
+// TODO: to be typed when Bastien.N has finished working on the XO task
+type BaseXoLog = {
+  id: Branded<'xo-log'>
+  [key: string]: unknown
+}
+export type XoBackupLog = BaseXoLog & {
+  message: 'backup' | 'metadata'
+}
+export type XoRestoreLog = BaseXoLog & {
+  message: 'restore'
+}
+
 export type XoBackupRepository = {
   benchmarks?: { readRate: number; timestamp: number; writeRate: number }[]
   enabled: boolean
@@ -567,7 +579,7 @@ export type XoTask = {
   status: 'failure' | 'interrupted' | 'pending' | 'success'
   tasks?: XoTask[]
   updatedAt?: number
-  warning?: { data: unknown; message: string }[]
+  warnings?: { data: unknown; message: string }[]
 }
 
 export type XoUser = {
@@ -579,6 +591,19 @@ export type XoUser = {
   permission: string
   pw_hash?: string
   preferences: Record<string, string>
+}
+
+export type XoAuthenticationToken = {
+  client?: {
+    id: string
+    [key: string]: unknown
+  }
+  created_at?: number
+  description?: string
+  user_id: XoUser['id']
+  expiration: number
+  last_uses?: Record<string, { timestamp: number }>
+  id: Branded<'authentication-token'>
 }
 
 export type XoVbd = BaseXapiXo & {
@@ -737,6 +762,7 @@ export type XapiXoRecord =
 
 export type NonXapiXoRecord =
   | AnyXoJob
+  | AnyXoLog
   | XoGroup
   | XoProxy
   | XoBackupRepository
@@ -754,3 +780,5 @@ export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
 export type AnyXoJob = XoJob | AnyXoBackupJob
 
 export type AnyXoBackupJob = XoVmBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
+
+export type AnyXoLog = XoBackupLog | XoRestoreLog
