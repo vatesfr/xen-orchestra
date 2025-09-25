@@ -16,14 +16,14 @@
         />
         <div v-else class="h-line" />
 
-        <div v-if="task.properties.name" class="typo-body-bold">
+        <div v-if="task.name" class="typo-body-bold">
           <UiLink :href="`#task-${task.id}`" size="medium">
-            {{ task.properties.name }}
+            {{ task.name }}
           </UiLink>
         </div>
 
-        <UiTag v-if="task.properties?.type" accent="info" variant="secondary">
-          {{ task.properties.type }}
+        <UiTag v-if="task?.type" accent="info" variant="secondary">
+          {{ task.type }}
         </UiTag>
         <UiInfo
           v-if="task.status === 'failure' || task.status === 'interrupted'"
@@ -35,10 +35,10 @@
         <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="muted" variant="primary" size="small" />
       </div>
       <div class="information typo-body-regular-small">
-        <div v-if="task.properties.userId" class="user">
+        <div v-if="task?.userName" class="user">
           {{ t('by') }}
           <UiAccountMenuButton size="small" />
-          {{ task.properties?.userId }}
+          {{ task.userName }}
         </div>
 
         <span v-if="task.start" class="start-time">
@@ -48,12 +48,7 @@
           {{ `${t('task.estimated-end')} ${end}` }}
         </span>
         <div class="progress">
-          <UiCircleProgressBar
-            v-if="task.properties.progress"
-            accent="info"
-            size="small"
-            :value="task.properties.progress"
-          />
+          <UiCircleProgressBar v-if="task.progress" accent="info" size="small" :value="task.progress" />
         </div>
         <div class="actions">
           <div class="cancel">
@@ -84,16 +79,14 @@ import UiCircleProgressBar from '../circle-progress-bar/UiCircleProgressBar.vue'
 import UiInfo from '../info/UiInfo.vue'
 
 export type Task = {
-  end?: number
   id: string
   infos?: { data: unknown; message: string }[]
-  properties: {
-    name?: string
-    progress?: number
-    type?: string
-    userId?: string
-  }
+  name?: string
+  progress?: number
+  type?: string
+  userName?: string
   start: number
+  end?: number
   status: 'failure' | 'interrupted' | 'pending' | 'success'
   tasks?: Task[]
   warning?: { data: unknown; message: string }[]
