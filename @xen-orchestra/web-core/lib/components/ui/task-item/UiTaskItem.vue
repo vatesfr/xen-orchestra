@@ -117,7 +117,15 @@ const end = useTimeAgo(() => task.end ?? 0)
   display: flex;
   justify-content: space-between;
   height: 4.8rem;
-  border-bottom: 0.1rem solid var(--color-neutral-border);
+
+  &::after {
+    content: '';
+    width: 100%;
+    height: 0.1rem;
+    background: var(--color-neutral-border);
+    position: absolute;
+    clip-path: inset(0 0 0 calc(4rem * v-bind(depth - 1)));
+  }
 
   .information,
   .content {
