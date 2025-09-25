@@ -4,7 +4,7 @@ import type { Task as CoreTask } from '@core/components/ui/quick-task-item/UiQui
 export const convertTaskToCore = (task: XoTask): CoreTask => ({
   id: task.id,
   status: task.status === 'interrupted' ? 'failure' : task.status,
-  name: task.properties.name,
+  name: task.properties.name ? task.properties.name : '',
   tag: task.properties.type,
   start: task.start,
   end: task.end,
