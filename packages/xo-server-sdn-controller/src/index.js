@@ -643,7 +643,8 @@ class SDNController extends EventEmitter {
     try {
       const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to add a rule')
-      const channel = await this._getOrCreateOfChannel(network.$PIFs[0].$host)
+      const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
+      const channel = await this._getOrCreateOfChannel(host)
       await channel.addNetworkRule({ network, allow, protocol, port, ipRange, direction })
       const networkRules = network.other_config['xo:sdn-controller:of-rules']
       const newNetworkRules = networkRules !== undefined ? JSON.parse(networkRules) : []
@@ -724,7 +725,8 @@ class SDNController extends EventEmitter {
       let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
       assert(network.$PIFs.length > 0, 'Network needs to be plugged to delete a rule')
 
-      const channel = await this._getOrCreateOfChannel(network.$PIFs[0].$host)
+      const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
+      const channel = await this._getOrCreateOfChannel(host)
       await channel.deleteNetworkRule({ network, protocol, port, ipRange, direction })
       if (!updateOtherConfig) {
         return
