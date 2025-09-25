@@ -380,9 +380,9 @@ class SDNController extends EventEmitter {
     addRule.params = {
       allow: { type: 'boolean' },
       direction: { type: 'string' },
-      ipRange: { type: 'string', optional: true },
+      ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
-      protocol: { type: 'string', optional: true },
+      protocol: { type: 'string' },
       vifId: { type: 'string' },
     }
     addRule.permission = 'admin'
@@ -391,9 +391,9 @@ class SDNController extends EventEmitter {
     deleteRule.description = 'Delete an ACL rule from a VIF'
     deleteRule.params = {
       direction: { type: 'string' },
-      ipRange: { type: 'string', optional: true },
+      ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
-      protocol: { type: 'string', optional: true },
+      protocol: { type: 'string' },
       vifId: { type: 'string' },
     }
     deleteRule.permission = 'admin'
@@ -403,8 +403,8 @@ class SDNController extends EventEmitter {
     addNetworkRule.params = {
       allow: { type: 'boolean' },
       direction: { type: 'string' },
-      ipRange: { type: 'string', optional: true },
-      port: { type: 'integer', optional: true },
+      ipRange: { type: 'string' },
+      port: { type: 'integer' },
       protocol: { type: 'string', optional: true },
       networkId: { type: 'string' },
     }
@@ -414,9 +414,9 @@ class SDNController extends EventEmitter {
     deleteNetworkRule.description = 'Delete an ACL rule from a network'
     deleteNetworkRule.params = {
       direction: { type: 'string' },
-      ipRange: { type: 'string', optional: true },
+      ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
-      protocol: { type: 'string', optional: true },
+      protocol: { type: 'string' },
       networkId: { type: 'string' },
     }
     deleteNetworkRule.permission = 'admin'
