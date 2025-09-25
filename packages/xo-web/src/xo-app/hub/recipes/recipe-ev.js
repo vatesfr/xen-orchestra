@@ -3,7 +3,6 @@ import ActionButton from 'action-button'
 import ButtonLink from 'button-link'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
-import marked from 'marked'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import { form } from 'modal'
@@ -108,20 +107,9 @@ export default decorate([
     <Card shadow>
       <CardHeader>{RECIPE_INFO.name}</CardHeader>
       <CardBlock>
-        <div
-          className='text-muted'
-          dangerouslySetInnerHTML={{
-            __html: marked(RECIPE_INFO.description),
-          }}
-        />
+        <p className='text-muted'>{RECIPE_INFO.description}</p>
         <hr />
-        <ActionButton
-          block
-          handler={effects.create}
-          icon='deploy'
-          pending={recipeCreatingResources[RECIPE_INFO.id]}
-          // redirectOnSuccess={(vmId) => `/vms/${vmId}/general`}
-        >
+        <ActionButton block handler={effects.create} icon='deploy' pending={recipeCreatingResources[RECIPE_INFO.id]}>
           {_('create')}
         </ActionButton>
       </CardBlock>
