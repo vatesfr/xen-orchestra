@@ -68,14 +68,6 @@ const tasks = [
     warning: [{ data: null, message: 'Espace disque faible' }],
     tasks: [
       {
-        id: '2-1',
-        name: 'Analyse partielle',
-        start: 1695634200000,
-        progress: 80,
-        status: 'success',
-        infos: [{ data: { parsed: 400 }, message: '400 lignes analysées' }],
-      },
-      {
         id: '2-2',
         name: 'Analyse complémentaire',
         start: 1695636000000,
@@ -154,6 +146,14 @@ const tasks = [
             ],
           },
         ],
+      },
+      {
+        id: '2-1',
+        name: 'Analyse partielle',
+        start: 1695634200000,
+        progress: 80,
+        status: 'success',
+        infos: [{ data: { parsed: 400 }, message: '400 lignes analysées' }],
       },
     ],
   },
