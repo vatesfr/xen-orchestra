@@ -31,8 +31,8 @@ const RESOURCE_COLUMNS = [
   },
   {
     name: _('node'),
-    itemRenderer: ({ host }) => <Host id={host.id} link />,
-    sortCriteria: ({ host }) => host.name_label,
+    itemRenderer: ({ host }) => host && <Host id={host.id} link />,
+    sortCriteria: ({ host }) => (host ? host.name_label : ''),
   },
   {
     name: _('nodeStatus'),
