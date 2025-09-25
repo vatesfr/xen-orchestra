@@ -1,6 +1,6 @@
 <template>
-  <li>
-    <div class="ui-task-item">
+  <li class="ui-task-item" :data-depth="depth">
+    <div class="container">
       <div class="content">
         <div v-for="index in depth - 1" :key="index" class="tree-line">
           <div class="tree-line-vertical" />
@@ -14,10 +14,10 @@
           :target-scale="{ x: 1.5, y: 2 }"
           @click="emit('expand')"
         />
-        <div v-else class="h-line" />
+        <div v-else class="h-space" />
 
         <div v-if="task.name" class="typo-body-bold">
-          <UiLink :href="`#task-${task.id}`" size="medium">
+          <UiLink :to="`#task-${task.id}`" size="medium">
             {{ task.name }}
           </UiLink>
         </div>
@@ -25,16 +25,12 @@
         <UiTag v-if="task?.type" accent="info" variant="secondary">
           {{ task.type }}
         </UiTag>
-        <UiInfo
-          v-if="task.status === 'failure' || task.status === 'interrupted'"
-          class="typo-body-regular-small"
-          accent="danger"
-        />
-        <UiInfo v-if="task.warning?.length" class="typo-body-regular-small" accent="warning" />
-        <UiInfo v-if="task.infos?.length" class="typo-body-regular-small" accent="info" />
+        <UiInfo v-if="task.status === 'failure' || task.status === 'interrupted'" accent="danger" />
+        <UiInfo v-if="task.warning?.length" accent="warning" />
+        <UiInfo v-if="task.infos?.length" accent="info" />
         <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="muted" variant="primary" size="small" />
       </div>
-      <div class="information typo-body-regular-small">
+      <div class="content typo-body-regular-small">
         <div v-if="task?.userName" class="user">
           {{ t('by') }}
           <UiAccountMenuButton size="small" />
@@ -114,75 +110,77 @@ const end = useTimeAgo(() => task.end ?? 0)
 
 <style lang="postcss" scoped>
 .ui-task-item {
-  display: flex;
-  justify-content: space-between;
-  height: 4.8rem;
-
-  &::after {
-    content: '';
-    width: 100%;
-    height: 0.1rem;
-    background: var(--color-neutral-border);
-    position: absolute;
-    clip-path: inset(0 0 0 calc(4rem * v-bind(depth - 1)));
+  &[data-depth='1']:last-child {
+    border-bottom: 0.1rem solid var(--color-neutral-border);
   }
 
-  .information,
-  .content {
+  .container {
     display: flex;
-    align-items: center;
-    gap: 1.6rem;
-    padding: 0.4rem 1.6rem;
-  }
+    justify-content: space-between;
+    height: 4.8rem;
 
-  .tree-line {
-    flex: 0 0 1em;
-    align-self: stretch;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .tree-line-vertical {
-      width: 0.1rem;
-      background: var(--color-brand-txt-base);
-      height: calc(100% + 0.8rem);
+    &::after {
+      content: '';
+      width: 100%;
+      height: 0.1rem;
+      background: var(--color-neutral-border);
+      position: absolute;
+      clip-path: inset(0 0 0 calc(4rem * v-bind(depth - 1)));
     }
-  }
 
-  .h-line {
-    width: 2rem;
-  }
+    .content {
+      display: flex;
+      align-items: center;
+      gap: 1.6rem;
+      padding: 0.4rem 1.6rem;
+      color: var(--color-neutral-txt-secondary);
+    }
 
-  .user {
-    display: flex;
-    align-items: center;
-  }
+    .tree-line {
+      flex: 0 0 1em;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
-  .user::after {
-    content: '•';
-    margin-inline-start: 1.6rem;
-  }
+      .tree-line-vertical {
+        width: 0.1rem;
+        background: var(--color-brand-txt-base);
+        height: calc(100% + 0.8rem);
+      }
+    }
 
-  .start-time + .end-time::before {
-    content: '•';
-    margin-inline-end: 1.6rem;
-  }
+    .h-space {
+      width: 1.8rem;
+    }
 
-  .typo-body-regular-small {
-    color: var(--color-neutral-txt-secondary);
-  }
+    .user {
+      display: flex;
+      align-items: center;
+    }
 
-  .progress {
-    display: flex;
-    width: 4rem;
-  }
+    .user::after {
+      content: '•';
+      margin-inline-start: 1.6rem;
+    }
 
-  .actions {
-    display: flex;
-    gap: 1.6rem;
+    .start-time + .end-time::before {
+      content: '•';
+      margin-inline-end: 1.6rem;
+    }
 
-    .cancel {
-      width: calc(4rem - 1.6rem);
+    .progress {
+      display: flex;
+      width: 4rem;
+    }
+
+    .actions {
+      display: flex;
+      gap: 1.6rem;
+
+      .cancel {
+        width: calc(4rem - 1.6rem);
+      }
     }
   }
 }
