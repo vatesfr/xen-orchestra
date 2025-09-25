@@ -387,7 +387,7 @@
 ### Security
 
 - [VM] Detect XSA-468 vulnerable VMs. Read our announcement on the [XCP-ng blog](https://xcp-ng.org/blog/2025/05/27/xsa-468-windows-pv-driver-vulnerabilities/) for more details. (PR [#8638](https://github.com/vatesfr/xen-orchestra/pull/8638))
-- Contains an XO security update. Update as soon as possible
+- [LDAP] Fix a bug where if the `ID attribute` was misconfigured in the plugin, a user would be able to login as another user (PR [#8639](https://github.com/vatesfr/xen-orchestra/pull/8639))
 
 ### Enhancements
 
