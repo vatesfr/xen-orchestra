@@ -20,8 +20,8 @@ const DEFAULT_TIMEZONE = moment.tz.guess()
 
 const RECIPE_INFO = {
   id: generateId(),
-  name: 'EasyVirt VM',
-  description: 'Creates a DC Scope or a DC Net Scope VM with parameters and application inside',
+  name: _('easyVirtVmLabel'),
+  description: _('easyVirtDescription'),
 }
 
 const INDEX_TO_PERF_CONFIG = [

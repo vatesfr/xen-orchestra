@@ -2814,6 +2814,8 @@ const messages = {
 
   // Recipe DC Scope
   vmNameCompleteLabel: 'VM Name',
+  easyVirtVmLabel: 'EasyVirt VM',
+  easyVirtDescription: 'Creates a DC Scope or a DC Net Scope VM with parameters and application inside',
   xoPassword: 'Xen Orchestra Password',
   xoUsername: 'Xen Orchestra Username',
   xoFqdn: 'Xen Orchestra FQDN / IP',
