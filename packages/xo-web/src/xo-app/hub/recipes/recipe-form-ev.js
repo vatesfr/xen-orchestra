@@ -44,11 +44,11 @@ const PERF_CONFIG = [
 
 const EASYVIRT_VM = [
   {
-    label: _('recipeDcScopeVM'),
+    label: _('dcScopeVm'),
     value: 'dcScope',
   },
   {
-    label: _('recipeDcNetScopeVM'),
+    label: _('dcNetScopeVm'),
     value: 'dcNetScope',
   },
 ]
@@ -191,12 +191,12 @@ export default decorate([
         </FormGrid.Row>,
       ]}
       <FormGrid.Row>
-        <label>{_('recipeVmNameLabel')}</label>
+        <label>{_('vmNameCompleteLabel')}</label>
         <input
           className='form-control'
           name='vmName'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeVmNameLabel)}
+          placeholder={formatMessage(messages.vmNameCompleteLabel)}
           required
           type='text'
           value={value.vmName}
@@ -207,31 +207,31 @@ export default decorate([
         <TimezonePicker value={value.timezone} onChange={timezone => effects.onChangeValue(timezone, 'timezone')} />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeXoUser')}</label>
+        <label>{_('xoUsername')}</label>
         <input
           className='form-control'
           name='xoUsername'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeXoUser)}
+          placeholder={formatMessage(messages.xoUsername)}
           required
           type='text'
           value={value.xoUsername}
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeXoPassword')}</label>
+        <label>{_('xoPassword')}</label>
         <input
           className='form-control'
           name='xoPassword'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeXoPassword)}
+          placeholder={formatMessage(messages.xoPassword)}
           required
           type='password'
           value={value.xoPassword}
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeXoFqdn')}</label>
+        <label>{_('xoFqdn')}</label>
         <input
           className='form-control'
           name='xoUrl'
@@ -255,7 +255,7 @@ export default decorate([
       </FormGrid.Row>
       {value.productName === 'dcScope' && (
         <FormGrid.Row>
-          <label>{_('recipePerformanceConfig')}</label>
+          <label>{_('performanceConfigDcScope')}</label>
           <Select
             className='mb-1'
             name='performanceIndex'
@@ -272,7 +272,7 @@ export default decorate([
           className='form-control'
           name='userEmail'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeUserEmail)}
+          placeholder={formatMessage(messages.emailPlaceholderExample)}
           required
           type='text'
           value={value.userEmail}
