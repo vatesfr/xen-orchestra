@@ -134,6 +134,7 @@
 - [V2V] Auto install library (PR [#8911](https://github.com/vatesfr/xen-orchestra/pull/8911))
 
 - **Migrated REST API endpoints**:
+
   - `GET /rest/v0/hosts/<host-id>/smt` (PR [#8863](http://github.com/vatesfr/xen-orchestra/pull/8863))
   - `GET /rest/v0/vms/<vm-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
   - `GET /rest/v0/vm-templates/<vm-template-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
@@ -203,6 +204,7 @@
 ### Highlights
 
 - **XO 6:**
+
   - [SearchBar] Updated query search bar to work in responsive (PR [#8761](https://github.com/vatesfr/xen-orchestra/pull/8761))
   - [Sidebar] Updated sidebar to auto close when the screen is small (PR [#8760](https://github.com/vatesfr/xen-orchestra/pull/8760))
   - [i18n] Update Czech, German, Spanish, Italian, Dutch and Russian translations (PR [#8765](https://github.com/vatesfr/xen-orchestra/pull/8765))
@@ -213,6 +215,7 @@
 ### Enhancements
 
 - **Migrated REST API endpoints**:
+
   - `GET /rest/v0/hosts/<host-id>/alarms` (PR [#8800](http://github.com/vatesfr/xen-orchestra/pull/8800))
   - `GET /rest/v0/networks/<network-id>/alarms` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8801))
   - `GET /rest/v0/pifs/<pif-id>/alarms` (PR [#8802](http://github.com/vatesfr/xen-orchestra/pull/8802))
@@ -253,6 +256,7 @@
 - [Backup] Better handling of filesystem error while reading file (PR [#8818](https://github.com/vatesfr/xen-orchestra/pull/8818))
 
 - **XO 6:**
+
   - [Host/VM/Dashboard] Fix display error due to inversion of upload and download (PR [#8793](https://github.com/vatesfr/xen-orchestra/pull/8793))
 
 - [Health] Fix labels and modals mentioning VMs instead of snapshots when deleting snapshots (PR [#8775](https://github.com/vatesfr/xen-orchestra/pull/8775))
@@ -284,6 +288,7 @@
 ### Enhancements
 
 - **Migrated REST API endpoints**
+
   - `GET /rest/v0/hosts/<host-id>/audit.txt` (PR [#8757](https://github.com/vatesfr/xen-orchestra/pull/8757))
 
 - [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
@@ -294,6 +299,7 @@
 - [Backups] fix backup job getting stuck without NBD (PR [#8780](https://github.com/vatesfr/xen-orchestra/pull/8780))
 
 - **XO 6:**
+
   - [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
 
 ### Released packages
@@ -311,9 +317,11 @@
 ### Highlights
 
 - **Azure Blob Storage**:
+
   - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PRs [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415) [#8753](https://github.com/vatesfr/xen-orchestra/pull/8753))
 
 - **XO 6:**
+
   - [Dashboard] Cards are displayed as soon as they are ready (PR [#8695](https://github.com/vatesfr/xen-orchestra/pull/8695))
   - [VM/Dashboard] Display VM information in dashboard tab (PR [#8585](https://github.com/vatesfr/xen-orchestra/pull/8585))
   - [Pool/system] Display pool information in pool/system tab (PR [#8581](https://github.com/vatesfr/xen-orchestra/pull/8581))
@@ -328,6 +336,7 @@
 ### Enhancements
 
 - **XO 6:**
+
   - [Host/Dashboard] Update RAM usage components wordings and update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
   - [Site/Dashboard] Update BackupIssues and VtsBackupState components to display data in table (PR [#8674](https://github.com/vatesfr/xen-orchestra/pull/8674))
   - [Site] Add "Site" level in treeview and add "Site" header and tabs (PR [#8694](https://github.com/vatesfr/xen-orchestra/pull/8694))
@@ -338,6 +347,7 @@
   - [Table] add pagination on table (PR [#8573](https://github.com/vatesfr/xen-orchestra/pull/8573))
 
 - **Migrated REST API endpoints**
+
   - `/rest/v0/pools/<pool-id>/actions/emergency_shutdown` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
   - `/rest/v0/pools/<pool-id>/actions/rolling_reboot` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
   - `/rest/v0/pools/<pool-id>/actions/rolling_update` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
