@@ -2790,6 +2790,8 @@ const messages = {
   templatesLabel: 'Templates',
   recipesLabel: 'Recipes',
   network: 'Network',
+
+  // Recipe Kubernetes
   recipeSelectK8sVersion: 'Select Kubernetes version',
   recipeClusterNameLabel: 'Cluster name',
   recipeNumberOfNodesLabel: 'Number of worker nodes',
@@ -2806,9 +2808,31 @@ const messages = {
   recipeWorkerIpAddress: 'Worker node { i, number } IP address/subnet mask',
   recipeGatewayIpAddress: 'Gateway IP address',
   recipeNameserverAddresses: 'Nameserver IP addresses',
+  recipeStaticIpAddress: 'Static IP Address',
   recipeNameserverAddressesExample: '192.168.1.0,172.16.1.0',
   recipeSearches: 'Search domains',
   recipeSearchesExample: 'domain.com,search.org',
+
+  // Recipe DC Scope
+  vmNameCompleteLabel: 'VM Name',
+  easyVirtVmLabel: 'EasyVirt VM',
+  easyVirtDescription: 'Creates a DC Scope or a DC NetScope VM with parameters and application inside',
+  xoPassword: 'Xen Orchestra Password',
+  xoUsername: 'Xen Orchestra Username',
+  xoFqdn: 'Xen Orchestra FQDN / IP',
+  dcScopeVm: 'DC Scope VM',
+  dcNetScopeVm: 'DC NetScope VM',
+  recipeEasyVirt: 'EasyVirt VM to deploy',
+  recipeUserCompany: 'Company',
+  recipeUserEmail: 'Email for EasyVirt',
+  performanceConfigDcScope: 'Performance for VM DC Scope',
+  dcScopeTest: 'Test config (10 VM): CPU(2), RAM(4), Disk(10GB)',
+  dcScopeVerySmall: 'Very small config (<1000 VM): CPU(2), RAM(12), Disk(250GB)',
+  dcScopeSmall: 'Small config (1000-2500 VM): CPU(2), RAM(24), Disk(550GB)',
+  dcScopeMedium: 'Medium config (2500-5000 VM): CPU(4), RAM(48), Disk(750GB)',
+  dcScopeBig: 'Big config (5000-7500 VM): CPU(4), RAM(64), Disk(1.2TB)',
+  dcScopeVeryBig: 'Very big config (7500-10000 VM: CPU(8), RAM(96), Disk(1.5TB)',
+  dcScopeHuge: 'Huge config (>10000 VM): CPU(8), RAM(128), Disk(2TB)',
 
   // Audit
   auditActionEvent: 'Action/Event',
