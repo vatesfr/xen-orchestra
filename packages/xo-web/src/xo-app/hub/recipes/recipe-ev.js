@@ -25,7 +25,7 @@ const RECIPE_INFO = {
 }
 
 const INDEX_TO_PERF_CONFIG = [
-  { cpu: 2, ram: 8 * 1024 * 1024 * 1024, diskSize: 10 * 1024 * 1024 * 1024 }, // 10GB
+  { cpu: 2, ram: 4 * 1024 * 1024 * 1024, diskSize: 10 * 1024 * 1024 * 1024 }, // 10GB
   { cpu: 2, ram: 12 * 1024 * 1024 * 1024, diskSize: 250 * 1024 * 1024 * 1024 }, // 250GB
   { cpu: 2, ram: 24 * 1024 * 1024 * 1024, diskSize: 550 * 1024 * 1024 * 1024 }, // 550GB
   { cpu: 4, ram: 48 * 1024 * 1024 * 1024, diskSize: 750 * 1024 * 1024 * 1024 }, // 750GB
