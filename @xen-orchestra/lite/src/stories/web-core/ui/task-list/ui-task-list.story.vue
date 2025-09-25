@@ -59,7 +59,7 @@ const tasks: Task[] = [
     status: 'failure',
     userName: 'Admin',
     type: 'migration',
-    progress: 50,
+    progress: 100,
     warning: [
       {
         data: { file: 'server-1.log' },
@@ -74,7 +74,7 @@ const tasks: Task[] = [
     status: 'interrupted',
     userName: 'Admin',
     type: 'storage-migration',
-    progress: 75,
+    progress: 100,
     infos: [
       { data: { rows: 1200 }, message: 'info' },
       { data: null, message: 'info' },
