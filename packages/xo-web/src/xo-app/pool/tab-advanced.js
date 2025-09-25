@@ -331,16 +331,15 @@ export default class TabAdvanced extends Component {
     }
 
     const getInstallTime = vm => vm.other[`xo:${product}:installTime`]
-    const getIp = vm => vm.addresses['0/ipv4/0'] ?? vm.addresses['0/ipv6/0']
 
     let latestVm
     Object.values(vms).forEach(vm => {
-      if (getIp(vm) !== undefined && (latestVm === undefined || getInstallTime(vm) > getInstallTime(latestVm))) {
+      if (vm.mainIpAddress !== undefined && (latestVm === undefined || getInstallTime(vm) > getInstallTime(latestVm))) {
         latestVm = vm
       }
     })
 
-    return latestVm && getIp(latestVm)
+    return latestVm && latestVm.mainIpAddress
   }
 
   _getDcScopeIp = createSelector(
