@@ -415,8 +415,8 @@ class SDNController extends EventEmitter {
     deleteNetworkRule.params = {
       direction: { type: 'string' },
       ipRange: { type: 'string' },
-      port: { type: 'integer' },
-      protocol: { type: 'string', optional: true },
+      port: { type: 'integer', optional: true },
+      protocol: { type: 'string' },
       networkId: { type: 'string' },
     }
     deleteNetworkRule.permission = 'admin'
