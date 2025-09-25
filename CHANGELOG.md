@@ -2,9 +2,87 @@
 
 ## **next**
 
+### Enhancements
+
+- **Migrated REST API endpoints**:
+  - `DELETE /rest/v0/tasks` (PR [#8905](https://github.com/vatesfr/xen-orchestra/pull/8905))
+  - `DELETE /rest/v0/tasks/<task-id>` (PR [#8905](https://github.com/vatesfr/xen-orchestra/pull/8905))
+  - `DELETE /rest/v0/vms/<vm-id>` (PR [#8938](https://github.com/vatesfr/xen-orchestra/pull/8938))
+  - `DELETE /rest/v0/vm-templates/<vm-template-id>` (PR [#8938](https://github.com/vatesfr/xen-orchestra/pull/8938))
+  - `DELETE /rest/v0/vm-snapshots/<vm-snapshot-id>` (PR [#8938](https://github.com/vatesfr/xen-orchestra/pull/8938))
+  - `DELETE /rest/v0/vdis/<vdi-id>` (PR [#8961](https://github.com/vatesfr/xen-orchestra/pull/8961))
+  - `DELETE /rest/v0/vdi-snapshots/<vdi-snapshot-id>` (PR [#8961](https://github.com/vatesfr/xen-orchestra/pull/8961))
+  - `POST /rest/v0/tasks/<task-id>/actions/abort` (PR [#8908](https://github.com/vatesfr/xen-orchestra/pull/8908))
+  - `POST /rest/v0/srs/<sr-id>/vdis` (PR [#8984](https://github.com/vatesfr/xen-orchestra/pull/8984))
+  - `GET /rest/v0/vdis/<vdi-id>.(raw|vhd)` (PR [#8923](http://github.com/vatesfr/xen-orchestra/pull/8923))
+  - `GET /rest/v0/vdi-snapshots/<vdi-snapshot-id>.(raw|vhd)` (PR [#8923](http://github.com/vatesfr/xen-orchestra/pull/8923))
+  - `GET /rest/v0/vms/<vm-id>.(xva|ova)` (PR [#8929](https://github.com/vatesfr/xen-orchestra/pull/8929))
+  - `GET /rest/v0/vm-templates/<vm-template-id>.(xva|ova)` (PR [#8929](https://github.com/vatesfr/xen-orchestra/pull/8929))
+  - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>.(xva|ova)` (PR [#8929](https://github.com/vatesfr/xen-orchestra/pull/8929))
+  - `GET /rest/v0/groups/<group-id>/users` (PR [#8932](https://github.com/vatesfr/xen-orchestra/pull/8932))
+  - `GET /rest/v0/users/<user-id>/groups` (PR [#8936](https://github.com/vatesfr/xen-orchestra/pull/8936))
+  - `GET /rest/v0/users/me` (PR [#8985](https://github.com/vatesfr/xen-orchestra/pull/8985))
+  - `GET /rest/v0/users/me/*` (PR [#8985](https://github.com/vatesfr/xen-orchestra/pull/8985))
+  - **deprecated** `GET /rest/v0/backup/jobs/vm` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/jobs/vm/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/jobs/metadata` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/jobs/metadata/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/jobs/mirror` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/jobs/mirror/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+  - **deprecated** `GET /rest/v0/backup/logs` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
+  - **deprecated** `GET /rest/v0/backup/logs/<backup-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
+  - **deprecated** `GET /rest/v0/restore/logs` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
+  - **deprecated** `GET /rest/v0/restore/logs/<restore-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
+  - `GET /rest/v0/vms/<vm-id>/messages` (PR [#8988](https://github.com/vatesfr/xen-orchestra/pull/8988))
+  - `GET /rest/v0/users/<user-id>/authentication_tokens` (PR [#8865](https://github.com/vatesfr/xen-orchestra/pull/8865))
+  - `GET /rest/v0/vms/<vm-id>/tasks` (PR[#8955](https://github.com/vatesfr/xen-orchestra/pull/8955))
+  - `GET /rest/v0/vm-snapshots/<vm-snapshot-id>/messages` (PR [#8997](https://github.com/vatesfr/xen-orchestra/pull/8997))
+
+- [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
+- [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
+- [REST API] Expose `/rest/v0/vms/<vm-id>/backup-jobs` (PR [#8948](https://github.com/vatesfr/xen-orchestra/pull/8948))
+- [SR/Advanced] Add a security to prevent accidentally reclaiming freed space during backups (PR [#8947](https://github.com/vatesfr/xen-orchestra/pull/8947))
+- [New VM] Add a new variable in custom cloud config to easily add SSH keys (PR [#8968](https://github.com/vatesfr/xen-orchestra/pull/8968))
+- [REST API] Expose `/rest/v0/backup-jobs` and `/rest/v0/backup-jobs/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
+- [Host/PIFs] Use a natural sort when sorting by device (eth9 < eth10) (PR [#8967](https://github.com/vatesfr/xen-orchestra/pull/8967))
+- [REST API] Expose `/rest/v0/backup-logs` and `/rest/v0/backup-logs/<backup-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
+- [REST API] Expose `/rest/v0/restore-logs` and `/rest/v0/restore-logs/<restore-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
+- [XOSTOR] Show resource without volumes in XOSTOR view (PR [#8944](https://github.com/vatesfr/xen-orchestra/pull/8944))
+- [Hub/Recipe] Add new recipe to deploy DC Scope and DC NetScope VMs (PR [#8797](https://github.com/vatesfr/xen-orchestra/pull/8797))
+
+- **XO 6:**
+  - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
+  - [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
+  - [VM] Add Backup Jobs page (PR [#8976](https://github.com/vatesfr/xen-orchestra/pull/8976))
+  - [Treeview] Add a debounce function to the search input to improve user experience (PR [#8892](https://github.com/vatesfr/xen-orchestra/pull/8892))
+
+### Bug fixes
+
+- [Task/Schedule] Set sequences as completely done on success (PR [#8527](https://github.com/vatesfr/xen-orchestra/pull/8527))
+- [Pool/HA] Prevent SRs from other pools to be selectable on HA enabling modal (PR [#8924](https://github.com/vatesfr/xen-orchestra/pull/8924))
+- [VIFs] Fix sorting by VIF device (PR [#8877](https://github.com/vatesfr/xen-orchestra/pull/8877))
+- [Home/Pool] Fix "an error has occurred" for non-admin users (PR [#8946](https://github.com/vatesfr/xen-orchestra/pull/8946))
+- [Backup] Fix VDI_NOT_MANAGED error during incremental replication (PR [#8935](https://github.com/vatesfr/xen-orchestra/pull/8935))
+- [Backup] Fix replication delta always falling back to full [Forum#11261](https://xcp-ng.org/forum/topic/11261/continuous-replication-jobs-creates-full-backups-every-time-since-2025-09-06-xo-from-source) (PR [#8971](https://github.com/vatesfr/xen-orchestra/pull/8971))
+- [API] Fix resource set limits being deleted when calling `resourceSet.set` on the API (PR [#8979](https://github.com/vatesfr/xen-orchestra/pull/8979))
+- [Plugins/Load balancer] Prevent mass migration when receiving incorrect host data (PR [#8965](https://github.com/vatesfr/xen-orchestra/pull/8965))
+- [Backup] Fix _INTERNAL_ERROR(Failure(\"Expected string, got 'N'\"))_ for backup on VM with VTPM (PR [#8990](https://github.com/vatesfr/xen-orchestra/pull/8990))
+- [XOA] Fix XOA UI showing expired license error during trial (PR [#8991](https://github.com/vatesfr/xen-orchestra/pull/8991))
+- [SDN-controller] Fix `No PIF found in center` (PR [#8319](https://github.com/vatesfr/xen-orchestra/pull/9000))
+
 ### Released packages
 
 - complex-matcher 1.0.0
+- @vates/types 1.12.0
+- @xen-orchestra/backups 0.64.3
+- @xen-orchestra/web-core 0.30.0
+- @xen-orchestra/proxy 0.29.31
+- @xen-orchestra/rest-api 0.16.0
+- @xen-orchestra/web 0.28.0
+- xo-server 5.189.0
+- xo-server-load-balancer 0.10.3
+- xo-server-sdn-controller 1.1.1
+- xo-web 5.186.0
 
 ## **5.110.1** (2025-09-04)
 
@@ -56,7 +134,6 @@
 - [V2V] Auto install library (PR [#8911](https://github.com/vatesfr/xen-orchestra/pull/8911))
 
 - **Migrated REST API endpoints**:
-
   - `GET /rest/v0/hosts/<host-id>/smt` (PR [#8863](http://github.com/vatesfr/xen-orchestra/pull/8863))
   - `GET /rest/v0/vms/<vm-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
   - `GET /rest/v0/vm-templates/<vm-template-id>/vdis` (PR [#8876](http://github.com/vatesfr/xen-orchestra/pull/8876))
@@ -126,7 +203,6 @@
 ### Highlights
 
 - **XO 6:**
-
   - [SearchBar] Updated query search bar to work in responsive (PR [#8761](https://github.com/vatesfr/xen-orchestra/pull/8761))
   - [Sidebar] Updated sidebar to auto close when the screen is small (PR [#8760](https://github.com/vatesfr/xen-orchestra/pull/8760))
   - [i18n] Update Czech, German, Spanish, Italian, Dutch and Russian translations (PR [#8765](https://github.com/vatesfr/xen-orchestra/pull/8765))
@@ -137,7 +213,6 @@
 ### Enhancements
 
 - **Migrated REST API endpoints**:
-
   - `GET /rest/v0/hosts/<host-id>/alarms` (PR [#8800](http://github.com/vatesfr/xen-orchestra/pull/8800))
   - `GET /rest/v0/networks/<network-id>/alarms` (PR [#8801](https://github.com/vatesfr/xen-orchestra/pull/8801))
   - `GET /rest/v0/pifs/<pif-id>/alarms` (PR [#8802](http://github.com/vatesfr/xen-orchestra/pull/8802))
@@ -178,7 +253,6 @@
 - [Backup] Better handling of filesystem error while reading file (PR [#8818](https://github.com/vatesfr/xen-orchestra/pull/8818))
 
 - **XO 6:**
-
   - [Host/VM/Dashboard] Fix display error due to inversion of upload and download (PR [#8793](https://github.com/vatesfr/xen-orchestra/pull/8793))
 
 - [Health] Fix labels and modals mentioning VMs instead of snapshots when deleting snapshots (PR [#8775](https://github.com/vatesfr/xen-orchestra/pull/8775))
@@ -210,7 +284,6 @@
 ### Enhancements
 
 - **Migrated REST API endpoints**
-
   - `GET /rest/v0/hosts/<host-id>/audit.txt` (PR [#8757](https://github.com/vatesfr/xen-orchestra/pull/8757))
 
 - [REST API] Expose `/rest/v0/pools/<pool-id>/stats` (PR [#8764](https://github.com/vatesfr/xen-orchestra/pull/8764))
@@ -221,7 +294,6 @@
 - [Backups] fix backup job getting stuck without NBD (PR [#8780](https://github.com/vatesfr/xen-orchestra/pull/8780))
 
 - **XO 6:**
-
   - [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
 
 ### Released packages
@@ -239,11 +311,9 @@
 ### Highlights
 
 - **Azure Blob Storage**:
-
   - [Backups]: Implemented Azure Blob Storage for backups, Integrating with both the Azurite emulator and Azure (PRs [#8415](https://github.com/vatesfr/xen-orchestra/pull/8415) [#8753](https://github.com/vatesfr/xen-orchestra/pull/8753))
 
 - **XO 6:**
-
   - [Dashboard] Cards are displayed as soon as they are ready (PR [#8695](https://github.com/vatesfr/xen-orchestra/pull/8695))
   - [VM/Dashboard] Display VM information in dashboard tab (PR [#8585](https://github.com/vatesfr/xen-orchestra/pull/8585))
   - [Pool/system] Display pool information in pool/system tab (PR [#8581](https://github.com/vatesfr/xen-orchestra/pull/8581))
@@ -258,7 +328,6 @@
 ### Enhancements
 
 - **XO 6:**
-
   - [Host/Dashboard] Update RAM usage components wordings and update CPU provisioning logic (PR [#8648](https://github.com/vatesfr/xen-orchestra/pull/8648))
   - [Site/Dashboard] Update BackupIssues and VtsBackupState components to display data in table (PR [#8674](https://github.com/vatesfr/xen-orchestra/pull/8674))
   - [Site] Add "Site" level in treeview and add "Site" header and tabs (PR [#8694](https://github.com/vatesfr/xen-orchestra/pull/8694))
@@ -269,7 +338,6 @@
   - [Table] add pagination on table (PR [#8573](https://github.com/vatesfr/xen-orchestra/pull/8573))
 
 - **Migrated REST API endpoints**
-
   - `/rest/v0/pools/<pool-id>/actions/emergency_shutdown` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
   - `/rest/v0/pools/<pool-id>/actions/rolling_reboot` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
   - `/rest/v0/pools/<pool-id>/actions/rolling_update` (PR [#8653](https://github.com/vatesfr/xen-orchestra/pull/8653))
