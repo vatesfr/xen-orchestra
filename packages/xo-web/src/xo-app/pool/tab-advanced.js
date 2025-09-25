@@ -288,7 +288,7 @@ class ToggleHa extends Component {
   return {
     backupNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:backupNetwork']),
     dcScopeVms: createGetObjectsOfType('VM').filter([vm => vm.other['xo:dcscope:installTime'] !== undefined]),
-    dcNetscopeVms: createGetObjectsOfType('VM').filter([vm => vm.other['xo:dcnetscope:installTime'] !== undefined]),
+    dcNetScopeVms: createGetObjectsOfType('VM').filter([vm => vm.other['xo:dcnetscope:installTime'] !== undefined]),
     hosts: getHosts,
     hostsByMultipathing: createGroupBy(
       getHosts,
@@ -348,9 +348,9 @@ export default class TabAdvanced extends Component {
     dcScopeVms => this._getLatestVmIp(dcScopeVms, 'dcscope')
   )
 
-  _getDcNetscopeIp = createSelector(
-    () => this.props.dcNetscopeVms,
-    dcNetscopeVms => this._getLatestVmIp(dcNetscopeVms, 'dcnetscope')
+  _getDcNetScopeIp = createSelector(
+    () => this.props.dcNetScopeVms,
+    dcNetScopeVms => this._getLatestVmIp(dcNetScopeVms, 'dcnetscope')
   )
 
   _isNetboxPluginLoaded = createSelector(
@@ -395,7 +395,7 @@ export default class TabAdvanced extends Component {
     const isMigrationCompressionAvailable = pool.migrationCompression !== undefined
 
     const dcScopeIp = this._getDcScopeIp()
-    const dcNetscopeIp = this._getDcNetscopeIp()
+    const dcNetScopeIp = this._getDcNetScopeIp()
 
     return (
       <div>
@@ -418,20 +418,20 @@ export default class TabAdvanced extends Component {
                   labelId='dcScope'
                 />
               )}
-              {dcNetscopeIp === undefined ? (
+              {dcNetScopeIp === undefined ? (
                 <TabButton
                   btnStyle='warning'
                   icon='deploy'
                   handler={() => {}}
-                  labelId='deployDcNetscope'
+                  labelId='deployDcNetScope'
                   redirectOnSuccess='/hub/recipes'
                 />
               ) : (
                 <TabButton
                   btnStyle='success'
-                  handler={() => window.open(`http://${dcNetscopeIp}`)}
+                  handler={() => window.open(`http://${dcNetScopeIp}`)}
                   icon='telemetry'
-                  labelId='dcNetscope'
+                  labelId='dcNetScope'
                 />
               )}
               <TabButton
