@@ -44,13 +44,18 @@
           {{ `${t('task.estimated-end')} ${end}` }}
         </span>
         <div class="progress">
-          <UiCircleProgressBar v-if="task.progress" accent="info" size="small" :value="task.progress" />
+          <UiCircleProgressBar
+            v-if="task.progress"
+            :accent="task.status === 'failure' || task.status === 'interrupted' ? 'danger' : 'info'"
+            size="small"
+            :value="task.progress"
+          />
         </div>
         <div class="actions">
           <div class="cancel">
             <UiButtonIcon v-if="task.status === 'pending'" icon="fa:close" size="medium" accent="danger" />
           </div>
-          <UiButtonIcon icon="fa:check" size="medium" accent="brand" />
+          <UiButtonIcon icon="fa:eye" size="medium" accent="brand" />
         </div>
       </div>
     </div>
