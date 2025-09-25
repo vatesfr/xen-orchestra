@@ -70,27 +70,31 @@ export class OpenFlowPlugin {
     // then the plugin is considered installed and working
     // some network can fails this test,
     let lastError
-    for (const { $network } of host.$PIFs) {
-      try {
-        const response = await host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, 'dump-flows', {
-          bridge: $network.bridge,
-        })
-        const json = JSON.parse(response)
-        strictEqual(
-          json.returncode,
-          0,
-          `plugin check should have a return code of 0 to succeed, got ${json.returncode}`
-        )
-        // one of the network is valid, let's stop the check here
-        return true
-      } catch (error) {
-        if (error.code === 'XENAPI_MISSING_PLUGIN') {
-          // plugin is not installed , no need to test other networks
-          throw error
+    if (!host.$PIFs) {
+      log.error('error while listing the host PIFs', host)
+    } else {
+      for (const { $network } of host.$PIFs) {
+        try {
+          const response = await host.$xapi.call('host.call_plugin', host.$ref, PLUGIN_NAME, 'dump-flows', {
+            bridge: $network.bridge,
+          })
+          const json = JSON.parse(response)
+          strictEqual(
+            json.returncode,
+            0,
+            `plugin check should have a return code of 0 to succeed, got ${json.returncode}`
+          )
+          // one of the network is valid, let's stop the check here
+          return true
+        } catch (error) {
+          if (error.code === 'XENAPI_MISSING_PLUGIN') {
+            // plugin is not installed , no need to test other networks
+            throw error
+          }
+          log.error('error while checking if the host has the sdn plugin', error)
+          // track at least
+          lastError = error
         }
-        log.error('error while checking if the host has the sdn plugin', error)
-        // track at least
-        lastError = error
       }
     }
 
