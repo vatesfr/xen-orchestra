@@ -31,7 +31,7 @@
 - [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
 - [REST API] Expose `/rest/v0/vms/<vm-id>/backup-jobs` (PR [#8948](https://github.com/vatesfr/xen-orchestra/pull/8948))
 - [SR/Advanced] Add a security to prevent accidentally reclaiming freed space during backups (PR [#8947](https://github.com/vatesfr/xen-orchestra/pull/8947))
-
+- [Hub/Recipe] Add new recipe to deploy DC Scope and DC Net Scope VMs (PR [#8797](https://github.com/vatesfr/xen-orchestra/pull/8797))
 
 ### Bug fixes
 
