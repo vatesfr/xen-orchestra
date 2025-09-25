@@ -412,7 +412,7 @@ export default class TabAdvanced extends Component {
               ) : (
                 <TabButton
                   btnStyle='success'
-                  handler={() => window.open(`http://${dcScopeIp}`)}
+                  handler={() => window.open(`https://${dcScopeIp}`)}
                   icon='telemetry'
                   labelId='dcScope'
                 />
@@ -428,7 +428,7 @@ export default class TabAdvanced extends Component {
               ) : (
                 <TabButton
                   btnStyle='success'
-                  handler={() => window.open(`http://${dcNetScopeIp}`)}
+                  handler={() => window.open(`https://${dcNetScopeIp}`)}
                   icon='telemetry'
                   labelId='dcNetScope'
                 />
