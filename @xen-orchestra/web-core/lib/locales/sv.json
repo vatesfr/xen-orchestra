@@ -294,7 +294,7 @@
   "load-average": "Genomsnittslast",
   "load-now": "Ladda nu",
   "loading-hosts": "Ladda hostar…",
-  "loading-in-progress": "Laddning pågår…",
+  "loading": "Laddning pågår…",
   "locking-mode": "Låsläge",
   "locking-mode-default": "Standard låsläge",
   "log-out": "Logga ut",

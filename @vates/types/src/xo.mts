@@ -18,6 +18,7 @@ import type {
   VM_OPERATIONS,
   VM_POWER_STATE,
 } from './common.mjs'
+import type * as CMType from './lib/complex-matcher.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -130,6 +131,18 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
     uuid: XapiXoRecord['uuid']
     href?: string
   }
+}
+
+// TODO: to be typed when Bastien.N has finished working on the XO task
+type BaseXoLog = {
+  id: Branded<'xo-log'>
+  [key: string]: unknown
+}
+export type XoBackupLog = BaseXoLog & {
+  message: 'backup' | 'metadata'
+}
+export type XoRestoreLog = BaseXoLog & {
+  message: 'restore'
 }
 
 export type XoBackupRepository = {
@@ -384,7 +397,14 @@ type BaseXoJob = {
   name?: string
 }
 
-export type XoBackupJobGeneralSettings = {
+type XoBackupJobGeneralSettings = {
+  backupReportTpl?: 'compactMjml' | 'mjml'
+  reportWhen?: 'always' | 'error' | 'failure' | 'never'
+  hideSuccessfulItems?: boolean
+  [key: string]: unknown
+}
+
+export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
   cbtDestroySnapshotData?: boolean
   concurrency?: number
   longTermRetention?: {
@@ -398,11 +418,14 @@ export type XoBackupJobGeneralSettings = {
   nRetriesVmBackupFailures?: number
   preferNbd?: boolean
   timezone?: string
+  mergeBackupsSynchronously?: boolean
+  offlineBackup?: boolean
+  timeout?: number
   [key: string]: unknown
 }
-export type XoBackupJobScheduleSettings = {
+export type XoVmBackupJobScheduleSettings = {
   exportRetention?: number
-  healthCheckVmsWithTags?: string[]
+  healthCheckVmsWithTags?: XoVm['tags']
   fullInterval?: number
   copyRetention?: number
   snapshotRetention?: number
@@ -410,35 +433,63 @@ export type XoBackupJobScheduleSettings = {
   healthCheckSr?: XoSr['id']
   [key: string]: unknown
 }
-// @TODO: create type for complex matcher
-export type XoBackupJob = BaseXoJob & {
+export type XoVmBackupJob = BaseXoJob & {
   compression?: 'native' | 'zstd' | ''
   proxy?: XoProxy['id']
   mode: 'full' | 'delta'
-  remotes?: {
-    id: XoBackupRepository['id'] | { __or: XoBackupRepository['id'][] }
-  }
-  vms:
-    | {
-        id: XoVm['id'] | { __or: XoVm['id'][] }
-      }
-    | Record<string, unknown>
-  srs?: {
-    id: XoSr['id'] | { __or: XoSr['id'][] }
-  }
+  remotes?: CMType.IdOr<XoBackupRepository['id']>
+  vms: CMType.IdOr<XoVm['id']> | Record<string, unknown>
+  srs?: CMType.IdOr<XoSr['id']>
   type: 'backup'
   settings: {
-    '': XoBackupJobGeneralSettings
-    [key: XoSchedule['id']]: XoBackupJobScheduleSettings
+    '': XoVmBackupJobGeneralSettings
+    [key: XoSchedule['id']]: XoVmBackupJobScheduleSettings | undefined
   }
 }
 
+export type XoMetadataBackupJobGeneralSettings = XoBackupJobGeneralSettings
+export type XoMetadataBackupJobScheduleSettings = {
+  retentionPoolMetadata?: number
+  retentionXoMetadata?: number
+  [key: string]: unknown
+}
 export type XoMetadataBackupJob = BaseXoJob & {
   type: 'metadataBackup'
+  pools?: CMType.IdOr<XoPool['id']>
+  remotes: CMType.IdOr<XoBackupRepository['id']>
+  settings: {
+    ''?: XoMetadataBackupJobGeneralSettings
+    [scheduleId: XoSchedule['id']]: XoMetadataBackupJobScheduleSettings | undefined
+  }
+  xoMetadata?: boolean
+  userId: XoUser['id']
+  proxy?: XoProxy['id']
 }
 
+export type XoMirrorBackupGeneralSettings = XoBackupJobGeneralSettings & {
+  concurrency?: number
+  nRetriesVmBackupFailures?: number
+  timeout?: number
+  maxExportRate?: number
+  backupReportTpl?: 'compactMjml'
+  reportWhen: 'failure'
+  [key: string]: unknown
+}
+export type XoMirrorBackupScheduleSettings = {
+  exportRetention?: number
+  healthCheckVmsWithTags?: XoVm['tags']
+  healthCheckSr?: XoSr['id']
+  [key: string]: unknown
+}
 export type XoMirrorBackupJob = BaseXoJob & {
   type: 'mirrorBackup'
+  mode: 'full' | 'delta'
+  sourceRemote: XoBackupRepository['id']
+  remotes: CMType.IdOr<XoBackupRepository['id']>
+  settings: {
+    '': XoMirrorBackupGeneralSettings
+    [scheduleId: XoSchedule['id']]: XoMirrorBackupScheduleSettings | undefined
+  }
 }
 
 export type XoJob = BaseXoJob & {}
@@ -447,7 +498,7 @@ export type XoSchedule = {
   cron: string
   enabled: boolean
   id: Branded<'schedule'>
-  jobId: (XoJob | XoBackupJob)['id']
+  jobId: AnyXoJob['id']
   name?: string
   timezone?: string
 }
@@ -528,7 +579,7 @@ export type XoTask = {
   status: 'failure' | 'interrupted' | 'pending' | 'success'
   tasks?: XoTask[]
   updatedAt?: number
-  warning?: { data: unknown; message: string }[]
+  warnings?: { data: unknown; message: string }[]
 }
 
 export type XoUser = {
@@ -540,6 +591,19 @@ export type XoUser = {
   permission: string
   pw_hash?: string
   preferences: Record<string, string>
+}
+
+export type XoAuthenticationToken = {
+  client?: {
+    id: string
+    [key: string]: unknown
+  }
+  created_at?: number
+  description?: string
+  user_id: XoUser['id']
+  expiration: number
+  last_uses?: Record<string, { timestamp: number }>
+  id: Branded<'authentication-token'>
 }
 
 export type XoVbd = BaseXapiXo & {
@@ -696,7 +760,16 @@ export type XapiXoRecord =
   | XoVtpm
   | XoSm
 
-export type NonXapiXoRecord = XoGroup | XoProxy | XoJob | XoBackupRepository | XoSchedule | XoServer | XoTask | XoUser
+export type NonXapiXoRecord =
+  | AnyXoJob
+  | AnyXoLog
+  | XoGroup
+  | XoProxy
+  | XoBackupRepository
+  | XoSchedule
+  | XoServer
+  | XoTask
+  | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
 
@@ -706,4 +779,6 @@ export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
 
 export type AnyXoJob = XoJob | AnyXoBackupJob
 
-export type AnyXoBackupJob = XoBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
+export type AnyXoBackupJob = XoVmBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
+
+export type AnyXoLog = XoBackupLog | XoRestoreLog

@@ -3,7 +3,7 @@
     <li v-if="loading">
       <div class="loading">
         <UiLoader />
-        <div>{{ t('loading-in-progress') }}</div>
+        <div>{{ t('loading') }}</div>
       </div>
     </li>
     <template v-else>

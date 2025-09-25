@@ -1,5 +1,5 @@
 <template>
-  <div class="ui-card" :class="{ horizontal }">
+  <div class="ui-card" :class="{ horizontal, 'has-error': hasError }">
     <slot />
   </div>
 </template>
@@ -7,6 +7,7 @@
 <script lang="ts" setup>
 defineProps<{
   horizontal?: boolean
+  hasError?: boolean
 }>()
 
 defineSlots<{
@@ -38,6 +39,10 @@ defineSlots<{
 
   &.horizontal {
     flex-direction: row;
+  }
+
+  &.has-error {
+    background-color: var(--color-danger-background-selected);
   }
 }
 </style>

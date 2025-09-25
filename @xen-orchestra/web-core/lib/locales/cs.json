@@ -313,7 +313,7 @@
   "load-average": "Průměrné vytížení",
   "load-now": "Načíst nyní",
   "loading-hosts": "Načítání hostitelů…",
-  "loading-in-progress": "Probíhá načítání…",
+  "loading": "Probíhá načítání…",
   "locking-mode": "Režim zamykání",
   "locking-mode-default": "Výchozí režim zamykání",
   "log-out": "Odhlásit",

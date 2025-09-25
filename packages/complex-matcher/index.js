@@ -63,14 +63,19 @@ exports.And = And
 
 class Comparison extends Node {
   constructor(operator, value) {
+    if (typeof value !== 'number' || Number.isNaN(value)) {
+      throw new TypeError('value must be a number')
+    }
+
     super()
+
     this._comparator = Comparison.comparators[operator]
     this._operator = operator
     this._value = value
   }
 
   match(value) {
-    return typeof value === 'number' && this._comparator(value, this._value)
+    return this._comparator(value, this._value)
   }
 
   toString() {
@@ -521,11 +526,7 @@ const parser = P.grammar({
       P.seq(P.text('|'), r.ws, P.text('('), r.ws, r.term.repeat(1), P.text(')')).map(_ => new Or(_[4])),
       P.seq(P.text('!'), r.ws, r.term).map(_ => new Not(_[2])),
       P.seq(P.regex(/[<>]=?/), r.rawString).map(([op, val]) => {
-        val = +val
-        if (Number.isNaN(val)) {
-          throw new TypeError('value must be a number')
-        }
-        return new Comparison(op, val)
+        return new Comparison(op, +val)
       }),
       P.seq(r.property, r.ws, P.text(':'), r.ws, r.term).map(_ => new Property(_[0], _[4])),
       P.seq(r.property, P.text('?')).map(_ => new TruthyProperty(_[0])),

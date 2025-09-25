@@ -49,7 +49,7 @@
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/log": "^0.7.1",
     "async-iterator-to-stream": "^1.1.0",
-    "complex-matcher": "^0.7.1",
+    "complex-matcher": "^1.0.0",
     "golike-defer": "^0.5.1",
     "ndjson": "^2.0.0",
     "promise-toolbox": "^0.21.0",

@@ -155,7 +155,7 @@ export const ICON_POOL_LICENSE = {
     vm => vm.vulnerabilities?.xsa468?.reason === 'pv-driver-version-vulnerable' && !vm.tags.includes('HIDE_XSA468'),
   ])
   return {
-    trial: state.xoaTrialState,
+    trialState: state.xoaTrialState,
     registerNeeded: state.xoaUpdaterState === 'registerNeeded',
     signedUp: !!state.user,
     hosts: getHosts(state),
@@ -449,13 +449,13 @@ export default class XoApp extends Component {
   }
 
   render() {
-    const { signedUp, trial, registerNeeded, xsa468VulnerableVms } = this.props
+    const { signedUp, trialState, registerNeeded, xsa468VulnerableVms } = this.props
     const { pathname } = this.context.router.location
-    const licenseNearExpiration = this.props.selfLicences && getLicenseNearExpiration(this.props.selfLicences, trial)
+    const licenseNearExpiration = this.props.selfLicences && getLicenseNearExpiration(this.props.selfLicences, trialState)
     // If we are under expired or unstable trial (signed up only)
     const blocked =
       signedUp &&
-      (blockXoaAccess(trial) || licenseNearExpiration?.blocked === true) &&
+      (blockXoaAccess(trialState) || licenseNearExpiration?.blocked === true) &&
       !(pathname.startsWith('/xoa/') || pathname === '/backup/restore')
     const plan = getXoaPlan()
 
@@ -494,11 +494,11 @@ export default class XoApp extends Component {
                   </button>
                 </div>
               )}
-              {isTrialRunning(trial.trial) && !this.state.dismissedTrialBanner && (
+              {isTrialRunning(trialState.trial) && !this.state.dismissedTrialBanner && (
                 <div className='alert alert-info mb-0'>
                   {_('trialLicenseInfo', {
-                    edition: getXoaPlan(productId2Plan[trial.trial.productId]),
-                    date: new Date(trial.trial.end),
+                    edition: getXoaPlan(productId2Plan[trialState.trial.productId]),
+                    date: new Date(trialState.trial.end),
                   })}
                   <button className='close' onClick={this.dismissTrialBanner}>
                     &times;
