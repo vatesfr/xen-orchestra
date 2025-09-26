@@ -33,8 +33,6 @@ const { backupJobs, getBackupJobById, hasBackupJobFetchError } = useXoBackupJobC
 
 const { t } = useI18n()
 
-const { t } = useI18n()
-
 const selectedBackupJob = useRouteQuery<XoBackupJob | undefined>('id', {
   toData: id => getBackupJobById(id as XoBackupJob['id']),
   toQuery: backupJob => backupJob?.id ?? '',
