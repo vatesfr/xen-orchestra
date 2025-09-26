@@ -777,11 +777,9 @@ export default class NewVm extends BaseComponent {
       '{name}': state => state.name_label || '',
       '%': (state, i) => (state.multipleVms ? i : '%'),
     }
-    if (this.props.userSshKeys && this.props.userSshKeys.length > 0) {
-      this.props.userSshKeys.forEach(sshKey => {
-        rules[`{sshKey:${sshKey.title}}`] = sshKey.key
-      })
-    }
+    this.props.userSshKeys?.forEach(sshKey => {
+      rules[`{sshKey:${sshKey.title}}`] = sshKey.key
+    })
     return compileTemplate(pattern, rules)
   }
 
