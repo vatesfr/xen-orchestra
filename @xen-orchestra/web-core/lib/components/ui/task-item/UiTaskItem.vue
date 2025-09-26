@@ -16,7 +16,7 @@
         />
         <div v-else class="h-space" />
 
-        <div v-if="task.name" class="typo-body-bold">
+        <div v-if="task.name">
           <UiLink :to="`#task-${task.id}`" size="medium">
             {{ task.name }}
           </UiLink>
@@ -44,12 +44,7 @@
           {{ `${t('task.estimated-end')} ${end}` }}
         </span>
         <div class="progress">
-          <UiCircleProgressBar
-            v-if="task.progress"
-            :accent="isError ? 'danger' : 'info'"
-            size="small"
-            :value="task.progress"
-          />
+          <UiCircleProgressBar v-if="task.progress" :accent="progressAccent" size="small" :value="task.progress" />
         </div>
         <div class="actions">
           <div class="cancel">
@@ -113,6 +108,8 @@ const subTasksCount = computed(() => subTasks.value.length)
 const hasSubTasks = computed(() => subTasksCount.value > 0)
 
 const isError = computed(() => task.status === 'failure' || task.status === 'interrupted')
+
+const progressAccent = computed(() => (isError.value ? 'danger' : task.warning?.length ? 'warning' : 'info'))
 
 const started = useTimeAgo(() => task.start)
 const end = useTimeAgo(() => task.end ?? 0)
