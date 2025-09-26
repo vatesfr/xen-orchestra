@@ -42,5 +42,6 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-web patch
 
 <!--packages-end-->
