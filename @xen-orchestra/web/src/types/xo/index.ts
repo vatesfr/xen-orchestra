@@ -1,5 +1,6 @@
 import type { XoAlarm } from '@/types/xo/alarm.type.ts'
 import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
+import type { XoBackupRepository } from '@/types/xo/br.type.ts'
 import type { XoHost } from '@/types/xo/host.type.ts'
 import type { XoMetadataBackupJob } from '@/types/xo/metadata-backup-job.type.ts'
 import type { XoMirrorBackupJob } from '@/types/xo/mirror-backup-job.type.ts'
@@ -8,6 +9,7 @@ import type { XoPci } from '@/types/xo/pci.type.ts'
 import type { XoPgpu } from '@/types/xo/pgpu.type.ts'
 import type { XoPif } from '@/types/xo/pif.type.ts'
 import type { XoPool } from '@/types/xo/pool.type.ts'
+import type { XoProxy } from '@/types/xo/proxy.type.ts'
 import type { XoSchedule } from '@/types/xo/schedule.type.ts'
 import type { XoServer } from '@/types/xo/server.type.ts'
 import type { XoSr } from '@/types/xo/sr.type.ts'
@@ -44,3 +46,5 @@ export type XoRecord =
   | XoSchedule
   | XoBackupLog
   | XoUser
+  | XoProxy
+  | XoBackupRepository

@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import BackupJobsTable from '@/components/backups/jobs/BackupJobsTable.vue'
-import { useXoVmBackupJobCollection } from '@/remote-resources/use-xo-vm-backup-job-collection.ts'
+import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
 import type { XoVm } from '@/types/xo/vm.type.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useUiStore } from '@core/stores/ui.store'
@@ -19,7 +19,10 @@ const { vm } = defineProps<{
 
 const uiStore = useUiStore()
 
-const { vmBackupJobs, hasVmBackupJobFetchError } = useXoVmBackupJobCollection({}, () => vm.id)
+const { backupJobs: vmBackupJobs, hasBackupJobFetchError: hasVmBackupJobFetchError } = useXoBackupJobCollection(
+  {},
+  () => vm.id
+)
 </script>
 
 <style scoped lang="postcss">

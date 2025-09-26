@@ -14,6 +14,7 @@
 - **XO 6:**
   - [i18n] Update some wordings in French translation (contribution by [@Luxinenglish](https://github.com/Luxinenglish)) (PR [#8983](https://github.com/vatesfr/xen-orchestra/pull/8983))
   - [i18n] Update Czech, Spanish, Italian, Dutch, Portuguese (Brazil), Russian and Ukrainian translations (PR [#8901](https://github.com/vatesfr/xen-orchestra/pull/8901))
+  - [Site/Backups] Add side panel to backup jobs view (PR [#8966](https://github.com/vatesfr/xen-orchestra/pull/8966))
 
 ### Bug fixes
 
@@ -38,7 +39,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 
 <!--packages-end-->
