@@ -9,7 +9,7 @@ export const useXoVmBackupJobCollection = defineRemoteResource({
   url: (vmId?: XoVm['id']) =>
     vmId
       ? `/rest/v0/vms/${vmId}/backup-jobs?fields=${backupJobFields}`
-      : `/rest/v0/backup/jobs/vm?fields=${backupJobFields}`,
+      : `/rest/v0/backup-jobs?filter=type:backup&fields=${backupJobFields}`,
   initialData: () => [] as XoVmBackupJob[],
   state: (vmBackupJobs, context) =>
     useXoCollectionState(vmBackupJobs, {
