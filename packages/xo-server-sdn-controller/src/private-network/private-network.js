@@ -60,6 +60,7 @@ export class PrivateNetwork {
 
     const transportPif = await this.getTransportPif(network)
     const centerTransportPif = await this.getTransportPif(centerNetwork)
+
     const hostPif = host.$PIFs.find(pif => pif.network === transportPif.network)
     const centerPif = this.center.$PIFs.find(pif => pif.network === centerTransportPif.network)
 
