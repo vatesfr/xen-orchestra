@@ -48,6 +48,7 @@ export default decorate([
       region: undefined,
       allowUnauthorized: undefined,
       useVhdDirectory: undefined,
+      limitListConcurrency: undefined,
       encryptionKey: undefined,
     }),
     effects: {
@@ -80,12 +81,14 @@ export default decorate([
           let {
             path = remote.path,
             useVhdDirectory = remote.useVhdDirectory,
+            limitListConcurrency = remote.limitListConcurrency,
             allowUnauthorized = remote.allowUnauthorized,
           } = state
 
           // making it undefined if falsish won't save it in the remote url
           allowUnauthorized = allowUnauthorized ? true : undefined
           useVhdDirectory = useVhdDirectory ? true : undefined
+          limitListConcurrency = limitListConcurrency ? true : undefined
           if (type === 's3') {
             const { parsedPath, bucket = parsedPath.split('/')[0], directory = parsedPath.split('/')[1] } = state
             path = bucket + '/' + directory
@@ -115,6 +118,7 @@ export default decorate([
               region,
               allowUnauthorized,
               useVhdDirectory,
+              limitListConcurrency,
               encryptionKey: encryptionKey?.trim() !== '' ? encryptionKey : undefined,
             }),
             options: options !== '' ? options : null,
@@ -145,6 +149,7 @@ export default decorate([
             type = 'nfs',
             username,
             useVhdDirectory = undefined,
+            limitListConcurrency = undefined,
             encryptionKey = '',
           } = state
 
@@ -154,6 +159,7 @@ export default decorate([
             port,
             type,
             useVhdDirectory,
+            limitListConcurrency,
             encryptionKey: encryptionKey.trim() !== '' ? encryptionKey : undefined,
           }
           if (type === 's3') {
@@ -199,6 +205,9 @@ export default decorate([
       setUseVhdDirectory(_, value) {
         this.state.useVhdDirectory = value
       },
+      setLimitListConcurrency(_, value) {
+        this.state.limitListConcurrency = value
+      },
     },
     computed: {
       formId: generateId,
@@ -235,6 +244,7 @@ export default decorate([
       username = remote.username || '',
       allowUnauthorized = remote.allowUnauthorized || false,
       useVhdDirectory = remote.useVhdDirectory || type === 's3',
+      limitListConcurrency = undefined,
       encryptionKey = remote.encryptionKey || '',
     } = state
 
@@ -619,6 +629,25 @@ export default decorate([
               </div>
             </fieldset>
           )}
+          {type === 's3' ||
+            type === 'file' ||
+            (type === 'nfs' && (
+              <fieldset className='form-group form-group'>
+                <div className='input-group form-group'>
+                  <span className='align-middle'>
+                    {_('remoteLimitListConcurrency')}{' '}
+                    <Tooltip content={_('remoteLimitListConcurrencyTooltip')}>
+                      <Icon icon='info' size='lg' />
+                    </Tooltip>
+                  </span>
+                  <Toggle
+                    className='align-middle pull-right'
+                    onChange={effects.setLimitListConcurrency}
+                    value={limitListConcurrency === true}
+                  />
+                </div>
+              </fieldset>
+            ))}
           <div className='form-group'>
             <ActionButton
               btnStyle='primary'
