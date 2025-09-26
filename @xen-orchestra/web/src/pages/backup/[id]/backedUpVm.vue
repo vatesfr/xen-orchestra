@@ -14,3 +14,12 @@ const { backupJob } = defineProps<{
   backupJob: XoBackupJob
 }>()
 </script>
+
+<style lang="postcss" scoped>
+.backed-up-vm {
+  margin: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+</style>

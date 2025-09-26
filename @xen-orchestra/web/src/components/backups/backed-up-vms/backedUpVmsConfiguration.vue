@@ -1,9 +1,9 @@
 <template>
   <UiCard class="card-container">
-    <UiCardTitle>
-      {{ t('backed-up-vms') }}
+    <UiTitle>
+      {{ t('configuration') }}
       <UiCounter :value="backedUpVmsCount" accent="neutral" size="small" variant="primary" />
-    </UiCardTitle>
+    </UiTitle>
     <VtsColumns>
       <VtsColumn>
         <VtsQuickInfoRow :label="t('smart-mode')">
@@ -73,11 +73,11 @@ import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import * as ValueMatcher from 'value-matcher'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
