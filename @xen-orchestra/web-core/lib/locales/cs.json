@@ -375,7 +375,6 @@
   "n-hosts": "1 hostitel | {n} hostitelů",
   "n-hosts-awaiting-patch": "{n} hostitel čeká na tuto záplatu | {n} hostitelů čeká na tuto záplatu",
   "n-missing": "{n} chybí",
-  "n-more": "{n} další",
   "n-percent": "{n}%",
   "n-vms": "1 virt. stroj | {n} virt. strojů",
   "name": "Název",

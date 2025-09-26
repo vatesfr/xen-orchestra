@@ -375,7 +375,6 @@
   "n-hosts": "1 host | {n} hosts",
   "n-hosts-awaiting-patch": "{n} host wacht op deze patch {n} hosts wachten op deze patch",
   "n-missing": "{n} ontbreekt",
-  "n-more": "{n} meer",
   "n-percent": "{n} %",
   "n-vms": "1 VM | {n} VMs",
   "name": "Naam",
