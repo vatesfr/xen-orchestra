@@ -1,13 +1,14 @@
 import type { ThresholdConfig, ThresholdResult } from '@core/packages/threshold/type.ts'
-import { computed, type ComputedRef, type MaybeRefOrGetter, toValue } from 'vue'
+import { toComputed } from '@core/utils/to-computed.util'
+import { computed, type ComputedRef, type MaybeRefOrGetter } from 'vue'
 
 export function useThreshold<TPayload>(
   rawCurrentValue: MaybeRefOrGetter<number>,
   rawConfig: MaybeRefOrGetter<ThresholdConfig<TPayload>>
 ): ComputedRef<ThresholdResult<TPayload>> {
-  const currentValue = computed(() => toValue(rawCurrentValue))
+  const currentValue = toComputed(rawCurrentValue)
 
-  const config = computed(() => toValue(rawConfig))
+  const config = toComputed(rawConfig)
 
   return computed(
     () =>

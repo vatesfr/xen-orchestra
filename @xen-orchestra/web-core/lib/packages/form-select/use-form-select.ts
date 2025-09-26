@@ -7,6 +7,7 @@ import {
 } from '@core/packages/collection'
 import type { EmptyObject, MaybeArray } from '@core/types/utility.type.ts'
 import { toArray } from '@core/utils/to-array.utils.ts'
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import { computed, type ComputedRef, type MaybeRefOrGetter, provide, ref, type Ref, toRaw, toValue, watch } from 'vue'
 import { guessLabel } from './guess-label.ts'
 import { guessValue } from './guess-value.ts'
@@ -259,19 +260,19 @@ export function useFormSelect<
 
   const normalizedSearchTerm = computed(() => normalizeSearchTerm(searchTerm))
 
-  const isMultiple = computed(() => toValue(config?.multiple) ?? false) as ComputedRef<TMultiple>
+  const isMultiple = toComputed(config?.multiple, false) as ComputedRef<TMultiple>
 
-  const isDisabled = computed(() => toValue(config?.disabled) ?? false)
+  const isDisabled = toComputed(config?.disabled, false)
 
-  const isLoading = computed(() => toValue(config?.loading) ?? false)
+  const isLoading = toComputed(config?.loading, false)
 
-  const isRequired = computed(() => toValue(config?.required) ?? false)
+  const isRequired = toComputed(config?.required, false)
 
-  const placeholder = computed(() => toValue(config?.placeholder) ?? '')
+  const placeholder = toComputed(config?.placeholder, '')
 
-  const searchPlaceholder = computed(() => toValue(config?.searchPlaceholder) ?? '')
+  const searchPlaceholder = toComputed(config?.searchPlaceholder, '')
 
-  const isSearchable = computed(() => toValue(config?.searchable) ?? false)
+  const isSearchable = toComputed(config?.searchable, false)
 
   const sources = computed(() =>
     config?.emptyOption !== undefined ? [EMPTY_OPTION, ...toValue(baseSources)] : toValue(baseSources)
