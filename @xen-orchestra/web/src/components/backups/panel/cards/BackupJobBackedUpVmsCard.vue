@@ -29,13 +29,13 @@
           </VtsCardRowKeyValue>
           <!-- Pools -->
           <template v-if="smartModePools !== undefined">
-            <BackupJobsSmartModePools
+            <BackupJobSmartModePools
               v-for="(pool, index) in smartModePools.included"
               :key="pool.id"
               :pool
               :label="index === 0 ? t('resident-on') : undefined"
             />
-            <BackupJobsSmartModePools
+            <BackupJobSmartModePools
               v-for="(pool, index) in smartModePools.excluded"
               :key="pool.id"
               :pool
@@ -44,8 +44,8 @@
           </template>
           <!-- Tags -->
           <template v-if="smartModeTags !== undefined">
-            <BackupJobsSmartModeTags :tags="smartModeTags.included ?? []" :label="t('vms-tags')" />
-            <BackupJobsSmartModeTags :tags="smartModeTags.excluded ?? []" :label="t('excluded-vms-tags')" />
+            <BackupJobSmartModeTags :tags="smartModeTags.included ?? []" :label="t('vms-tags')" />
+            <BackupJobSmartModeTags :tags="smartModeTags.excluded ?? []" :label="t('excluded-vms-tags')" />
           </template>
         </div>
       </template>
