@@ -23,7 +23,6 @@ export class OpenFlowPlugin {
     if (port) {
       port = String(port)
     }
-    allow = String(allow)
     log.debug('addRule', { vif, allow, protocol, ipRange, direction, port })
     return this.#callPluginOnAllNetwork(vif.$network, 'add-rule', {
       mac: vif.MAC,
@@ -54,16 +53,27 @@ export class OpenFlowPlugin {
     if (port) {
       port = String(port)
     }
-    allow = String(allow)
     log.debug('addNetworkRule', { network, allow, protocol, ipRange, direction, port })
-    return this.#callPluginOnAllNetwork(network, 'add-rule', { allow, protocol, ipRange, direction, port })
+    return this.#callPluginOnAllNetwork(network, 'add-rule', {
+      allow: allow ? 'true' : 'false',
+      protocol,
+      ipRange,
+      direction,
+      port,
+    })
   }
   async deleteNetworkRule({ network, allow, protocol, ipRange, direction, port }) {
     if (port) {
       port = String(port)
     }
     log.debug('deleteNetworkRule', { network, allow, protocol, ipRange, direction, port })
-    return this.#callPluginOnAllNetwork(network, 'del-rule', { allow, protocol, ipRange, direction, port })
+    return this.#callPluginOnAllNetwork(network, 'del-rule', {
+      allow: allow ? 'true' : 'false',
+      protocol,
+      ipRange,
+      direction,
+      port,
+    })
   }
 
   async check(host) {
