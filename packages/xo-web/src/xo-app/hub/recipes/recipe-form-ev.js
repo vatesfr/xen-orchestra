@@ -110,7 +110,7 @@ export default decorate([
           productName: productName.value,
         })
       },
-      toggleStaticIpAddress(__, ev) {
+      toggleValue(__, ev) {
         const { name } = ev.target
         const { onChange, value: prevValue } = this.props
         onChange({
@@ -156,7 +156,7 @@ export default decorate([
           <input
             className='mt-1'
             name='staticIpAddress'
-            onChange={effects.toggleStaticIpAddress}
+            onChange={effects.toggleValue}
             type='checkbox'
             value={value.staticIpAddress}
           />
@@ -289,6 +289,20 @@ export default decorate([
           type='text'
           value={value.userCompany}
         />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>
+          <input
+            className='mt-1'
+            name='rgpd'
+            onChange={effects.toggleValue}
+            required
+            type='checkbox'
+            value={value.rgpd}
+          />
+          &nbsp;
+          {_('rgpdCompliance')}
+        </label>
       </FormGrid.Row>
     </Container>
   ),
