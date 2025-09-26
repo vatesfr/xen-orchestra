@@ -20,3 +20,12 @@ const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
 
 const backupLogs = computed(() => getLastNBackupLogsByJobId(backupJob.id, 1) ?? [])
 </script>
+
+<style lang="postcss" scoped>
+.backed-up-vm {
+  margin: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+</style>
