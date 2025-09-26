@@ -88,7 +88,13 @@ const tasks: Task[] = [
     status: 'success',
     userName: 'Admin',
     type: 'final',
-    progress: 100,
+    progress: 75,
+    warning: [
+      {
+        data: { file: 'server-1.log' },
+        message: 'warning',
+      },
+    ],
   },
 ]
 </script>
