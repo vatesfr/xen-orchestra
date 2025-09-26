@@ -179,6 +179,9 @@ checkNetboxVersion = true
 [plugins]
 lookupPaths = ['./node_modules', '../', '/usr/local/lib/node_modules']
 
+[plugins.sdn-controller]
+useDirectChannel = true
+
 [remoteOptions]
 mountsDir = '/run/xo-server/mounts'
 
