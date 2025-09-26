@@ -17,8 +17,7 @@
   - [Site/Backups] Add side panel to backup jobs view (PR [#8966](https://github.com/vatesfr/xen-orchestra/pull/8966))
   - [VM/Backups] Add side panel to VM backup jobs view (PR [#8978](https://github.com/vatesfr/xen-orchestra/pull/8978))
 
-
-- [sdn-controller] Use the Xapi plugin instead of a direct channel to drive openflow (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
+- [sdn-controller] Use the XCP-ng plugin instead of a direct channel to drive openflow (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 
 ### Bug fixes
 
@@ -26,6 +25,7 @@
 
 - **XO 6:**
   - [VM/New] Fix `auto_poweron is an excess property and therefore is not allowed` during VM creation (PR [#8998](https://github.com/vatesfr/xen-orchestra/pull/8998))
+  - [sdn-controller] Remove port for ICMP filtering (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 
 ### Packages to release
 
