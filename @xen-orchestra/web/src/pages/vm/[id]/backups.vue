@@ -3,15 +3,31 @@
     <UiCard class="container">
       <BackupJobsTable :backup-jobs="vmBackupJobs" :has-error="hasVmBackupJobFetchError" />
     </UiCard>
+    <BackupJobsSidePanel
+      v-if="selectedBackupJob"
+      :backup-job="selectedBackupJob"
+      @close="selectedBackupJob = undefined"
+    />
+    <UiPanel v-else-if="!uiStore.isMobile">
+      <VtsStateHero format="panel" type="no-selection" size="medium">
+        {{ t('select-to-see-details') }}
+      </VtsStateHero>
+    </UiPanel>
   </div>
 </template>
 
 <script setup lang="ts">
 import BackupJobsTable from '@/components/backups/jobs/BackupJobsTable.vue'
+import BackupJobsSidePanel from '@/components/backups/jobs/panel/BackupJobsSidePanel.vue'
+import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection'
 import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
 import type { XoVm } from '@/types/xo/vm.type.ts'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
+import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
   vm: XoVm
@@ -19,17 +35,21 @@ const { vm } = defineProps<{
 
 const uiStore = useUiStore()
 
-const { backupJobs: vmBackupJobs, hasBackupJobFetchError: hasVmBackupJobFetchError } = useXoBackupJobCollection(
-  {},
-  () => vm.id
-)
+const { backupJobs: vmBackupJobs, hasBackupJobFetchError: hasVmBackupJobFetchError } = useXoBackupJobCollection({}, () => vm.id)
+
+const { t } = useI18n()
+
+const selectedBackupJob = useRouteQuery<XoBackupJob | undefined>('id', {
+  toData: id => vmBackupJobs.value.find(backupJob => backupJob.id === id),
+  toQuery: backupJob => backupJob?.id ?? '',
+})
 </script>
 
 <style scoped lang="postcss">
 .backups {
   &:not(.mobile) {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 40rem;
   }
 
   .container {
