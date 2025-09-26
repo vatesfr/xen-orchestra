@@ -30,7 +30,7 @@ export const useXoBackupJobCollection = defineRemoteResource({
     vmId
       ? `/rest/v0/vms/${vmId}/backup-jobs?fields=${backupJobFields}`
       : `/rest/v0/backup-jobs?fields=${backupJobFields}`,
-  initialData: () => [] as XoVmBackupJob[],
+  initialData: () => [] as XoBackupJob[],
   state: (rawBackupJobs, context) => {
     const backupJobs = useSorted(rawBackupJobs, (backup1, backup2) => backup1.name.localeCompare(backup2.name))
 

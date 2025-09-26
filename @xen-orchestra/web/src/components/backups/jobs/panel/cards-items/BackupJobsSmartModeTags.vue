@@ -4,7 +4,7 @@
       {{ label }}
     </template>
     <template #value>
-      <UiTagsList v-if="tags !== undefined && tags.length > 0">
+      <UiTagsList v-if="tags.length > 0">
         <UiTag v-for="tag in tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
       </UiTagsList>
     </template>
@@ -17,7 +17,7 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 
 defineProps<{
-  tags: string[] | undefined
+  tags: string[]
   label: string
 }>()
 </script>

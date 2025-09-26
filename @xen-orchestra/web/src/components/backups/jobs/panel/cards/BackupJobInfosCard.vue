@@ -17,9 +17,9 @@
         <template #key>{{ t('mode') }}</template>
         <template #value>
           <UiTagsList>
-            <template v-for="(mode, index) in backupJobModes" :key="index">
-              <UiTag v-if="mode !== undefined" accent="info" variant="secondary">{{ mode }}</UiTag>
-            </template>
+            <UiTag v-for="(mode, index) in backupJobModes" :key="index" accent="info" variant="secondary">
+              {{ mode }}
+            </UiTag>
           </UiTagsList>
         </template>
         <template v-if="backupJobModes !== undefined" #addons>
@@ -51,7 +51,7 @@ const { t } = useI18n()
 
 const { getModeLabels } = useXoBackupUtils()
 
-const backupJobModes = computed(() => getModeLabels(backupJob))
+const backupJobModes = computed(() => getModeLabels(backupJob).filter(mode => mode))
 </script>
 
 <style scoped lang="postcss">

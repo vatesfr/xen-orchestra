@@ -29,12 +29,12 @@ import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 
-const { backupJobs, hasBackupJobFetchError } = useXoBackupJobCollection()
+const { backupJobs, getBackupJobById, hasBackupJobFetchError } = useXoBackupJobCollection()
 
 const { t } = useI18n()
 
 const selectedBackupJob = useRouteQuery<XoBackupJob | undefined>('id', {
-  toData: id => backupJobs.value.find(backupJob => backupJob.id === id),
+  toData: id => getBackupJobById(id as XoBackupJob['id']),
   toQuery: backupJob => backupJob?.id ?? '',
 })
 </script>

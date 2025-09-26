@@ -39,9 +39,9 @@
           <VtsEnabledState :enabled="cbtDestroySnapshotData" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.maxExportRate !== undefined">
+      <VtsCardRowKeyValue v-if="maxExportRate !== undefined">
         <template #key>{{ t('speed-limit') }}</template>
-        <template #value>{{ `${maxExportRate?.value} ${maxExportRate?.prefix}` }}</template>
+        <template #value>{{ `${maxExportRate.value} ${maxExportRate.prefix}` }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.checkpointSnapshot !== undefined">
         <template #key>{{ t('checkpoint-snapshot') }}</template>
@@ -82,13 +82,13 @@
       <template v-if="settings.reportRecipients && settings.reportRecipients.length > 0">
         <VtsCardRowKeyValue v-for="(recipient, index) in settings.reportRecipients" :key="index">
           <template #key>
-            <div v-if="index === 0">{{ t('report-recipients') }}</div>
+            <template v-if="index === 0">{{ t('report-recipients') }}</template>
           </template>
           <!-- TODO: use UiCollapsibleList when VtsCardRowKeyValue is updated -->
           <template #value>{{ recipient }}</template>
         </VtsCardRowKeyValue>
       </template>
-      <VtsCardRowKeyValue v-if="settings.timeout">
+      <VtsCardRowKeyValue v-if="formattedTimeout !== undefined">
         <template #key>{{ t('timeout') }}</template>
         <template #value>{{ formattedTimeout }}</template>
       </VtsCardRowKeyValue>
@@ -178,7 +178,7 @@ const settings = reactiveComputed(() => {
   }
 })
 
-const proxy = useGetProxyById(settings.proxy)
+const proxy = useGetProxyById(() => settings.proxy)
 
 const reportWhenValueTranslation = useMapper<ReportWhen, string>(
   () => settings.reportWhen as ReportWhen | undefined,
@@ -199,7 +199,9 @@ const cbtDestroySnapshotData = computed(() =>
 
 const maxExportRate = computed(() => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate) : undefined))
 
-const formattedTimeout = computed(() => formatTimeout(Number(settings.timeout), locale.value))
+const formattedTimeout = computed(() =>
+  settings.timeout !== undefined ? formatTimeout(Number(settings.timeout), locale.value) : undefined
+)
 
 const compression = computed(() => {
   if (backupJob.compression === undefined) {
