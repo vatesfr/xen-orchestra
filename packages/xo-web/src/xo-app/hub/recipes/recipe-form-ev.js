@@ -207,6 +207,19 @@ export default decorate([
         <TimezonePicker value={value.timezone} onChange={timezone => effects.onChangeValue(timezone, 'timezone')} />
       </FormGrid.Row>
       <FormGrid.Row>
+        <label>
+          <input
+            className='mt-1'
+            name='bootAfterCreate'
+            onChange={effects.toggleValue}
+            type='checkbox'
+            value={value.bootAfterCreate}
+          />
+          &nbsp;
+          {_('newVmBootAfterCreate')}
+        </label>
+      </FormGrid.Row>
+      <FormGrid.Row>
         <label>{_('xoUsername')}</label>
         <input
           className='form-control'
