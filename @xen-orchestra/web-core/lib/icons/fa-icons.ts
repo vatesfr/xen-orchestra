@@ -8,6 +8,7 @@ import {
   faSquareCheck,
 } from '@fortawesome/free-regular-svg-icons'
 import {
+  faA,
   faAlignLeft,
   faAngleDoubleLeft,
   faAngleDoubleRight,
@@ -213,4 +214,5 @@ export const faIcons = defineIconPack({
   'up-right-from-square': { icon: faUpRightFromSquare },
   warning: { icon: faWarning },
   xmark: { icon: faXmark },
+  a: { icon: faA },
 })

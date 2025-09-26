@@ -154,9 +154,9 @@ const getRunInfo = (backupLog: XoBackupLog, index: number) => ({
   tooltip: `${t('last-run-number', { n: index + 1 })}: ${new Date(backupLog.end ?? backupLog.start).toLocaleString()}, ${t(backupLog.status)}`,
 })
 
-const getLastThreeRunsStatuses = (backupJob: XoBackupJob) =>
-  getLastNBackupLogsByJobId(backupJob.id).map((backupLog, index) => getRunInfo(backupLog, index))
-
+const getLastThreeRunsStatuses = (backupJob: XoBackupJob) => {
+  return getLastNBackupLogsByJobId(backupJob.id).map((backupLog, index) => getRunInfo(backupLog, index))
+}
 const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
   rowId: record => record.schedule.id,
   columns: define => [
