@@ -8,6 +8,7 @@ import type { ThresholdConfig } from '@core/packages/threshold/type.ts'
 import { formatSize } from '@core/utils/size.util.ts'
 import { computed, type ComputedRef, type MaybeRefOrGetter, type Reactive, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { toComputed } from './to-computed.util'
 
 export function defaultProgressThresholds(tooltip?: string): ThresholdConfig<ProgressBarThresholdPayload> {
   return {
@@ -42,7 +43,7 @@ export function useProgressToLegend(
 ) {
   const { n } = useI18n()
 
-  const type = computed(() => toValue(rawType))
+  const type = toComputed(rawType)
 
   function toLegend(label: string, progress: Progress | Reactive<Progress>): ProgressBarLegend | undefined {
     switch (type.value) {
