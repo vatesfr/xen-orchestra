@@ -6,7 +6,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import { computed } from 'vue'
 
 export const useXoSrCollection = defineRemoteResource({
-  url: '/rest/v0/srs?fields=id,name_label,name_description,$pool,content_type,physical_usage,size,SR_type,VDIs',
+  url: '/rest/v0/srs?fields=id,name_label,name_description,$pool,content_type,physical_usage,size,SR_type,VDIs,type',
   initialData: () => [] as XoSr[],
   state: (srs, context) => {
     const { getVdiById } = useXoVdiCollection(context)

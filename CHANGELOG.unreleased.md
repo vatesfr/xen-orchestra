@@ -11,8 +11,17 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **Migrated REST API endpoints**:
+
+  - `GET /rest/v0/vm-templates/<vm-template-id>/messages` (PR [#8995](https://github.com/vatesfr/xen-orchestra/pull/8995))
+
 - **XO 6:**
   - [i18n] Update some wordings in French translation (contribution by [@Luxinenglish](https://github.com/Luxinenglish)) (PR [#8983](https://github.com/vatesfr/xen-orchestra/pull/8983))
+  - [i18n] Update Czech, Spanish, Italian, Dutch, Portuguese (Brazil), Russian and Ukrainian translations (PR [#8901](https://github.com/vatesfr/xen-orchestra/pull/8901))
+  - [Site/Backups] Add side panel to backup jobs view (PR [#8966](https://github.com/vatesfr/xen-orchestra/pull/8966))
+  - [VM/Backups] Add side panel to VM backup jobs view (PR [#8978](https://github.com/vatesfr/xen-orchestra/pull/8978))
+
+- [sdn-controller] Use the XCP-ng plugin instead of a direct channel to drive openflow (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 
 ### Bug fixes
 
@@ -20,6 +29,7 @@
 
 - **XO 6:**
   - [VM/New] Fix `auto_poweron is an excess property and therefore is not allowed` during VM creation (PR [#8998](https://github.com/vatesfr/xen-orchestra/pull/8998))
+  - [sdn-controller] Remove port for ICMP filtering (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 
 ### Packages to release
 
@@ -37,8 +47,11 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web patch
+- @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server minor
+- xo-server-sdn-controller minor
 - xo-web patch
 
 <!--packages-end-->

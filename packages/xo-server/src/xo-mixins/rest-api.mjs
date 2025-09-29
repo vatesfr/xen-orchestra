@@ -297,6 +297,7 @@ export default class RestApi {
         routes: {
           alarms: true,
           vdis: true,
+          messages: true,
         },
       },
       hosts: {
