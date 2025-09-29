@@ -278,7 +278,7 @@
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand">
               <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('boot-vm') }}</UiCheckbox>
-              <UiCheckbox v-model="vmState.auto_poweron" accent="brand">{{ t('auto-power') }}</UiCheckbox>
+              <UiCheckbox v-model="vmState.autoPoweron" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.clone" accent="brand">
                 {{ t('fast-clone') }}
               </UiCheckbox>
@@ -394,7 +394,7 @@ const vmState = reactive<VmState>({
   boot_firmware: '',
   new_vm_template: undefined,
   boot_vm: true,
-  auto_poweron: false,
+  autoPoweron: false,
   clone: true,
   ssh_key: '',
   selectedVdi: undefined,
@@ -777,7 +777,7 @@ const vmData = computed(() => {
   )
 
   return {
-    auto_poweron: vmState.auto_poweron,
+    autoPoweron: vmState.autoPoweron,
     boot: vmState.boot_vm,
     clone: vmState.clone,
     memory: vmState.ram,

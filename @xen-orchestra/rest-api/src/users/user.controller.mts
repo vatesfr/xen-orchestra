@@ -18,7 +18,7 @@ import {
 import { inject } from 'inversify'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoGroup, XoUser } from '@vates/types'
+import type { XoAuthenticationToken, XoGroup, XoUser } from '@vates/types'
 
 import {
   createdResp,
@@ -31,13 +31,13 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
-import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import { partialUsers, user, authenticationTokens, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
 import { UserService } from './user.service.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
-import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 
 @Route('users')
@@ -208,5 +208,32 @@ export class UserController extends XoController<XoUser> {
     const groups = await Promise.all(user.groups.map(group => this.restApi.xoApp.getGroup(group)))
 
     return this.sendObjects(limitAndFilterArray(groups, { filter, limit }), req, 'groups')
+  }
+
+  /**
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * @example filter "expiration:>1757371582496"
+   * @example limit 42
+   */
+  @Example(authenticationTokens)
+  @Get('{id}/authentication_tokens')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  async getAuthenticationTokens(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<Unbrand<XoAuthenticationToken>[]> {
+    const user = await this.getObject(id as XoUser['id'])
+
+    const me = this.restApi.getCurrentUser()
+    if (me.id !== user.id) {
+      throw forbiddenOperation('get authentication tokens', 'can only see own authentication tokens')
+    }
+
+    const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(user.id)
+
+    return limitAndFilterArray(tokens, { filter, limit })
   }
 }

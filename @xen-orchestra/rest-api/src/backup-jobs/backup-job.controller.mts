@@ -1,5 +1,14 @@
-import { AnyXoBackupJob, XoVmBackupJob, XoMetadataBackupJob, XoMirrorBackupJob } from '@vates/types'
+import * as CM from 'complex-matcher'
+import {
+  AnyXoBackupJob,
+  XoVmBackupJob,
+  XoMetadataBackupJob,
+  XoMirrorBackupJob,
+  AnyXoLog,
+  XoBackupLog,
+} from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
+import { inject } from 'inversify'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import {
   Deprecated,
@@ -18,7 +27,10 @@ import {
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { provide } from 'inversify-binding-decorators'
 
-import { notFoundResp, unauthorizedResp } from '../open-api/common/response.common.mjs'
+import { backupLog, backupLogIds, partialBackupLogs } from '../open-api/oa-examples/backup-log.oa-example.mjs'
+import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
+import { notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type {
   UnbrandAnyXoBackupJob,
@@ -100,15 +112,21 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
 @Route('backup')
 @Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
-@Tags('backup-jobs')
 @Middlewares((_req, _res, next) => {
   log.warn(
-    'You are calling a deprecated route. It will be removed in the futur. Please use `/rest/v0/backup-jobs` instead'
+    'You are calling a deprecated route. It will be removed in the futur. Please use `/rest/v0/backup-jobs` or `/rest/v0/backup-logs` instead'
   )
   next()
 })
-@provide(DeprecatedBackupJobController)
-export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> {
+@provide(DeprecatedBackupController)
+export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
+  #backupLogService: BackupLogService
+
+  constructor(@inject(RestApi) restApi: RestApi, @inject(BackupLogService) backupLogService: BackupLogService) {
+    super(restApi)
+    this.#backupLogService = backupLogService
+  }
+
   async getAllCollectionObjects(): Promise<AnyXoBackupJob[]> {
     const backupJobs = await this.restApi.xoApp.getAllJobs()
     return backupJobs.filter(job => 'type' in job)
@@ -147,6 +165,7 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
   @Example(partialVmBackupJobs)
   @Deprecated()
   @Get('jobs/vm')
+  @Tags('backup-jobs')
   async getVmBackupJobs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -161,6 +180,7 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
   // For compatibility, redirect /backup/jobs/:id to /backup/jobs/vm/:id
   @Hidden()
   @Get('jobs/{id}')
+  @Tags('backup-jobs')
   async redirectToVmBackupJob(@Request() req: ExRequest, @Path() id: string) {
     const res = req.res as ExResponse
     res.redirect(308, BASE_URL + '/backup/jobs/vm/' + id)
@@ -173,6 +193,7 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
   @Deprecated()
   @Response(notFoundResp.status, notFoundResp.description)
   @Get('jobs/vm/{id}')
+  @Tags('backup-jobs')
   getVmBackupJob(@Path() id: string): Promise<UnbrandXoVmBackupJob> {
     return this.getObject(id as XoVmBackupJob['id'], 'backup')
   }
@@ -187,6 +208,7 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
   @Example(partialMetadataBackupJobs)
   @Deprecated()
   @Get('jobs/metadata')
+  @Tags('backup-jobs')
   async getMetadataBackupJobs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -205,6 +227,7 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
   @Deprecated()
   @Response(notFoundResp.status, notFoundResp.description)
   @Get('jobs/metadata/{id}')
+  @Tags('backup-jobs')
   getMetadataBackupJob(@Path() id: string): Promise<UnbrandXoMetadataBackupJob> {
     return this.getObject(id as XoMetadataBackupJob['id'], 'metadataBackup')
   }
@@ -219,6 +242,7 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
   @Example(partialMirrorBackupJobs)
   @Deprecated()
   @Get('jobs/mirror')
+  @Tags('backup-jobs')
   async getMirrorBackupJobs(
     @Request() req: ExRequest,
     @Query() fields?: string,
@@ -237,8 +261,55 @@ export class DeprecatedBackupJobController extends XoController<AnyXoBackupJob> 
   @Deprecated()
   @Response(notFoundResp.status, notFoundResp.description)
   @Get('jobs/mirror/{id}')
+  @Tags('backup-jobs')
   getMirrorBackupJob(@Path() id: string): Promise<UnbrandXoMirrorBackupJob> {
     return this.getObject(id as XoMirrorBackupJob['id'], 'mirrorBackup')
+  }
+
+  /**
+   * @example fields "jobName,status,data"
+   * @example filter "status:success"
+   * @example limit 42
+   */
+  @Example(backupLogIds)
+  @Example(partialBackupLogs)
+  @Deprecated()
+  @Get('logs')
+  @Tags('backup-logs')
+  async getDeprecatedBackupLogs(
+    @Request() req: ExRequest,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoBackupLog>>>> {
+    const userFilter = filter === undefined ? () => true : CM.parse(filter).createPredicate()
+
+    const predicate = (log: AnyXoLog) => {
+      if (!this.#backupLogService.isBackupLog(log)) {
+        return false
+      }
+
+      return userFilter(log)
+    }
+    const logs = (await this.restApi.xoApp.getBackupNgLogsSorted({ filter: predicate, limit })) as XoBackupLog[]
+    return this.sendObjects(logs, req, 'backup-logs')
+  }
+
+  /**
+   * @example id "1753776067468"
+   */
+  @Example(backupLog)
+  @Deprecated()
+  @Get('logs/{id}')
+  @Tags('backup-logs')
+  async getDeprecatedBackupLog(@Path() id: string): Promise<Unbrand<XoBackupLog>> {
+    const log = await this.restApi.xoApp.getBackupNgLogs(id as XoBackupLog['id'])
+    if (!this.#backupLogService.isBackupLog(log)) {
+      throw noSuchObject('backup-log')
+    }
+
+    return log
   }
 }
 // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (09-12-2026)--------------------

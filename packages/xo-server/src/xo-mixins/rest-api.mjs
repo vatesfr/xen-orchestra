@@ -256,6 +256,7 @@ export default class RestApi {
       users: {
         routes: {
           groups: true,
+          authentication_tokens: true,
         },
       },
       vifs: {
@@ -276,6 +277,7 @@ export default class RestApi {
           alarms: true,
           vdis: true,
           messages: true,
+          tasks: true,
         },
       },
       'vm-controllers': {
@@ -288,6 +290,7 @@ export default class RestApi {
         routes: {
           alarms: true,
           vdis: true,
+          messages: true,
         },
       },
       'vm-templates': {
@@ -787,17 +790,7 @@ export default class RestApi {
         '/backup',
         wrap((req, res) => sendObjects([{ id: 'jobs' }, { id: 'logs' }], req, res))
       )
-      .get(
-        '/backup/logs',
-        wrap(async (req, res) => {
-          const { filter, limit } = req.query
-          const logs = await app.getBackupNgLogsSorted({
-            filter: every(({ message: m }) => m === 'backup' || m === 'metadata', handleOptionalUserFilter(filter)),
-            limit: ifDef(limit, Number),
-          })
-          await sendObjects(logs, req, res)
-        })
-      )
+
       .get(
         '/backup/jobs',
         wrap((req, res) =>
@@ -814,24 +807,6 @@ export default class RestApi {
         '/restore',
         wrap((req, res) => sendObjects([{ id: 'logs' }], req, res))
       )
-      .get(
-        '/restore/logs',
-        wrap(async (req, res) => {
-          const { filter, limit } = req.query
-          const logs = await app.getBackupNgLogsSorted({
-            filter: every(_ => _.message === 'restore', handleOptionalUserFilter(filter)),
-            limit: ifDef(limit, Number),
-          })
-          await sendObjects(logs, req, res)
-        })
-      )
-      .get(
-        ['/backup/logs/:id', '/restore/logs/:id'],
-        wrap(async (req, res) => {
-          res.json(await app.getBackupNgLogs(req.params.id))
-        }, true)
-      )
-
     api
       .get(
         '/tasks/:id/actions',
@@ -938,8 +913,11 @@ export default class RestApi {
         })
       )
 
-    api.get(
-      '/:collection/:object/tasks',
+    api.get('/:collection/:object/tasks', (req, res, next) => {
+      const collection = req.params.collection
+      if (swaggerEndpoints[collection].routes.tasks) {
+        return next('route')
+      }
       wrap(async (req, res) => {
         const { query } = req
         const objectId = req.object.id
@@ -951,8 +929,8 @@ export default class RestApi {
           limit: ifDef(query.limit, Number),
         })
         await sendObjects(tasks, req, res, '/tasks')
-      })
-    )
+      })(req, res, next)
+    })
 
     api.get(
       ['/:collection/_/actions', '/:collection/:object/actions'],

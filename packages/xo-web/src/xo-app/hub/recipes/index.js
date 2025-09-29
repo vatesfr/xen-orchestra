@@ -3,7 +3,8 @@ import React from 'react'
 import { adminOnly } from 'utils'
 import { Container, Col, Row } from 'grid'
 
-import Recipe from './recipe'
+import RecipeKub from './recipe-kub'
+import RecipeEasyVirt from './recipe-ev'
 
 // ==================================================================
 
@@ -13,7 +14,10 @@ export default decorate([
     <Container>
       <Row>
         <Col mediumSize={4}>
-          <Recipe />
+          <RecipeKub />
+        </Col>
+        <Col mediumSize={4}>
+          <RecipeEasyVirt />
         </Col>
       </Row>
     </Container>
