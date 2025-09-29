@@ -1,7 +1,7 @@
 <template>
   <VtsCardRowKeyValue>
     <template #key>
-      {{ label }}
+      <span v-if="label">{{ label }}</span>
     </template>
     <template #value>
       <UiLink size="small" icon="fa:city" :to="`/pool/${pool.id}`">
