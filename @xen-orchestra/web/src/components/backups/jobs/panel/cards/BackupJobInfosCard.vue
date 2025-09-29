@@ -1,7 +1,12 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="backupJob.name !== undefined" size="small" icon="object:backup-job">
+      <UiLink
+        v-if="backupJob.name !== undefined"
+        size="small"
+        icon="object:backup-job"
+        :to="`/backup/${backupJob.id}/runs`"
+      >
         {{ backupJob.name }}
       </UiLink>
     </UiCardTitle>
