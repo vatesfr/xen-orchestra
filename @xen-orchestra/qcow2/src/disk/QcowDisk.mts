@@ -90,13 +90,13 @@ export abstract class QcowDisk extends RandomAccessDisk {
 
     for (let i = 0; i < l1TableBuffer.length; i += 8) {
       const l2TableIndex = i / 8
-      const l2Offset = Number(l1TableBuffer.readBigUInt64BE(i) & 0x00fffffffffff8n)
+      const l2Offset = Number(l1TableBuffer.readBigUInt64BE(i) & 0x00ffffffffffe0n)
       if (l2Offset !== 0) {
         // the last table may be smaller
         const nbClusterInTable = Math.min(nbClusterPerL2Table, nbClustersInFile - l2TableIndex * nbClusterPerL2Table)
         const l2TableBuffer = await this.readBuffer(l2Offset, nbClusterInTable * 8)
         for (let j = 0; j < l2TableBuffer.length; j += 8) {
-          const clusterOffset = Number(l2TableBuffer.readBigUInt64BE(j) & 0x00fffffffffff8n)
+          const clusterOffset = Number(l2TableBuffer.readBigUInt64BE(j) & 0x00ffffffffffe0n)
           if (clusterOffset !== 0) {
             clusters.set(l2TableIndex * nbClusterPerL2Table + j / 8, clusterOffset)
           }
