@@ -2,10 +2,10 @@ import { Example, Get, Security, Query, Request, Response, Route, Tags, Path, De
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
-import type { XoAlarm, XoVdi, XoVmTemplate } from '@vates/types'
+import type { XoAlarm, XoMessage, XoVdi, XoVmTemplate } from '@vates/types'
 import { Readable } from 'node:stream'
 
-import { AlarmService } from '../alarms/alarm.service.mjs'
+import { AlarmService, RAW_ALARM_FILTER } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
@@ -27,6 +27,7 @@ import {
   vmTemplateVdis,
 } from '../open-api/oa-examples/vm-template.oa-example.mjs'
 import { VmService } from '../vms/vm.service.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
 @Route('vm-templates')
 @Security('*')
@@ -162,5 +163,33 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   ): SendObjects<Partial<Unbrand<XoVdi>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmTemplate['id'], 'VM-template')
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+  }
+
+  /**
+   * @example id "6d50ba76-0f11-1ff1-4f6a-b502afc31b8e"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVmTemplateMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const vmTemplate = this.getObject(id as XoVmTemplate['id'])
+    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${vmTemplate.uuid} !${RAW_ALARM_FILTER}`,
+      limit,
+    })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
   }
 }
