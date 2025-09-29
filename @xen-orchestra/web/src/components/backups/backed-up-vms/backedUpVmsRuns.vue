@@ -5,12 +5,16 @@
     <UiTopBottomTable :selected-items="0" :total-items="0">
       <UiTablePagination v-bind="paginationBindings" />
     </UiTopBottomTable>
-    <VtsDataTable is-ready :no-data-message="backedUpVms.length === 0 ? t('no-backup-available') : undefined">
+    <VtsDataTable is-ready :no-data-message="backupLogs.length === 0 ? t('no-backup-available') : undefined">
       <template #thead>
         <tr>
           <template v-for="column of visibleColumns" :key="column.id">
-            <th v-if="column.id === 'disk-size'" class="checkbox" />
-            <th v-else-if="column.id === 'vm'" />
+            <th>
+              <div v-tooltip class="text-ellipsis">
+                <VtsIcon size="medium" :name="headerIcon[column.id]" />
+                {{ column.label }}
+              </div>
+            </th>
           </template>
         </tr>
       </template>
@@ -27,22 +31,28 @@
               </UiLink>
             </template>
             <template v-else-if="column.id === 'disk-size'">
-              {{ column.value }}
+              {{ column.value?.value ? `${column.value?.value} ${column.value?.prefix}` : t('no-data') }}
             </template>
           </td>
         </tr>
       </template>
     </VtsDataTable>
+    <UiTopBottomTable :selected-items="0" :total-items="0">
+      <UiTablePagination v-bind="paginationBindings" />
+    </UiTopBottomTable>
   </UiCard>
 </template>
 
 <script setup lang="ts">
+import { useXoBackupLogsUtils } from '@/composables/xo-backup-log-utils.composable'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection'
 import type { XoBackupLog } from '@/types/xo/backup-log.type'
 import type { VmsSmartModeDisabled, VmsSmartModeEnabled, XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
 import { VM_POWER_STATE } from '@/types/xo/vm.type.ts'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
+import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -66,6 +76,7 @@ const { t } = useI18n()
 
 const searchQuery = ref('')
 const { getVmsByIds, vms } = useXoVmCollection()
+const { getTransferSize } = useXoBackupLogsUtils()
 const selectedBackupJobId = useRouteQuery('id')
 
 function checkSmartModeEnabled(
@@ -92,7 +103,7 @@ const backedUpVms = computed(() => {
     const query = searchQuery.value.toLowerCase()
     filteredVms = filteredVms.filter(vm => vm.name_label.toLowerCase().includes(query))
   }
-  console.log(backupLogs)
+
   return filteredVms
 })
 
@@ -100,9 +111,18 @@ const { visibleColumns, rows } = useTable('backup-jobs', backedUpVms, {
   rowId: record => record.id,
   columns: define => [
     define('vm', record => record, { label: t('vm') }),
-    define('disk-size', record => record.id, { label: t('disk-size') }),
+    define('disk-size', () => getTransferSize(backupLogs[0]), {
+      label: t('disk-size'),
+    }),
   ],
 })
+
+type BackupJobHeader = 'vm' | 'disk-size'
+
+const headerIcon: Record<BackupJobHeader, IconName> = {
+  vm: 'fa:a',
+  'disk-size': 'fa:hashtag',
+}
 
 const { pageRecords: backedUpVmsRecords, paginationBindings } = usePagination('backups-jobs', rows)
 </script>

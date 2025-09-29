@@ -18,7 +18,9 @@ const { backupJob } = defineProps<{
 
 const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
 
-const backupLogs = computed(() => getLastNBackupLogsByJobId(backupJob.id, 1) ?? [])
+const backupLogs = computed(() => {
+  return getLastNBackupLogsByJobId(backupJob.id, 1) ?? []
+})
 </script>
 
 <style lang="postcss" scoped>
