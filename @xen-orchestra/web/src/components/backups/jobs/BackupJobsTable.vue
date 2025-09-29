@@ -63,9 +63,13 @@
                 size="small"
               />
               <div v-else-if="column.id === 'job-name'">
-                <!-- <UiLink size="medium" icon="object:backup-job" :to="`/backup/${row.id}/runs`" @click.stop> -->
-                <UiLink size="medium" icon="object:backup-job" :to="`/backup/${row.id}/backedUpVm`" @click.stop>
-                  {{ column.value }}
+                <UiLink
+                  size="medium"
+                  icon="object:backup-job"
+                  :to="column.value.show ? `/backup/${row.id}/backedUpVm` : ''"
+                  @click.stop
+                >
+                  {{ column.value.name }}
                 </UiLink>
               </div>
               <UiTagsList v-else-if="column.id === 'mode'">
@@ -180,7 +184,13 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
-    define('job-name', record => record.name, { label: t('job-name') }),
+    define(
+      'job-name',
+      record => {
+        return { name: record.name, show: record.type === 'backup' }
+      },
+      { label: t('job-name') }
+    ),
     define('mode', record => getModeLabels(record), { label: t('mode') }),
     define('last-runs', record => getLastThreeRunsStatuses(record), {
       label: t('last-n-runs', { n: 3 }),

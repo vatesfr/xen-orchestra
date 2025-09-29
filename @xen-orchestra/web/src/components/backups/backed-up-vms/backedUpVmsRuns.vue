@@ -51,6 +51,7 @@ import type { VmsSmartModeDisabled, VmsSmartModeEnabled, XoVmBackupJob } from '@
 import { VM_POWER_STATE } from '@/types/xo/vm.type.ts'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
 import type { IconName } from '@core/icons'
+import type { Branded } from '@core/types/utility.type'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -96,7 +97,7 @@ const backedUpVms = computed(() => {
     const predicate = ValueMatcher.createPredicate(rawBackedUpVms)
     filteredVms = vms.value.filter(vm => predicate(vm) && !vm.tags?.includes('xo:no-bak'))
   } else {
-    filteredVms = getVmsByIds(extractIdsFromSimplePattern(rawBackedUpVms) as any)
+    filteredVms = getVmsByIds(extractIdsFromSimplePattern(rawBackedUpVms) as Branded<'vm'>[])
   }
 
   if (searchQuery.value) {
