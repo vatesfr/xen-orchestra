@@ -201,7 +201,11 @@ export default class MigrateVm {
       await vm.set_name_label(metadata.name_label)
 
       // remove lock on start if the VM has been completly imported
-      stopSource && (await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null)))
+      // a running VM without stopsource will still have the data since the last snapshot
+      const isRunning = metadata.powerState !== 'poweredOff'
+      if (!isRunning || stopSource) {
+        await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
+      }
     })
 
     return vm.uuid
