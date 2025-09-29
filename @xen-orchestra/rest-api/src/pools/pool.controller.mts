@@ -39,6 +39,7 @@ import type {
   XenApiSr,
   XenApiVm,
   XoAlarm,
+  XoMessage,
   XoNetwork,
   XoPif,
   XoPool,
@@ -46,7 +47,7 @@ import type {
   XoVm,
   XsPatches,
 } from '@vates/types'
-import { AlarmService } from '../alarms/alarm.service.mjs'
+import { AlarmService, RAW_ALARM_FILTER } from '../alarms/alarm.service.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   createVm,
@@ -71,6 +72,7 @@ import { BASE_URL } from '../index.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { PoolService } from './pool.service.mjs'
 import { escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
 @Route('pools')
 @Security('*')
@@ -406,5 +408,33 @@ export class PoolController extends XapiXoController<XoPool> {
     const { missingPatches } = await this.#poolService.getMissingPatches(pool.id)
 
     return missingPatches
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getPoolMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const pool = this.getObject(id as XoPool['id'])
+    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${pool.uuid} !${RAW_ALARM_FILTER}`,
+      limit,
+    })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
   }
 }
