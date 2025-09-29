@@ -18,7 +18,7 @@ type UnbrandedXoMessage = Unbrand<XoMessage>
 @Route('messages')
 @Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
-@Tags('message')
+@Tags('messages')
 @provide(MessageController)
 export class MessageController extends XapiXoController<XoMessage> {
   constructor(@inject(RestApi) restapi: RestApi) {
