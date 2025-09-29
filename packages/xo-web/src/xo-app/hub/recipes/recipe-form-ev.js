@@ -307,14 +307,14 @@ export default decorate([
         <label>
           <input
             className='mt-1'
-            name='rgpd'
+            name='gdpr'
             onChange={effects.toggleValue}
             required
             type='checkbox'
-            value={value.rgpd}
+            value={value.gdpr}
           />
           &nbsp;
-          {_('rgpdCompliance')}
+          {_('gdprCompliance')}
         </label>
       </FormGrid.Row>
     </Container>
