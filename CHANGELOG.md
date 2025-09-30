@@ -79,6 +79,7 @@
 - **XO 6:**
   - [VM/New] Fix `auto_poweron is an excess property and therefore is not allowed` during VM creation (PR [#8998](https://github.com/vatesfr/xen-orchestra/pull/8998))
   - [sdn-controller] Remove port for ICMP filtering (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
+  - Fix the impossibility to change tab in the tasks quick panel (PR [#8930](https://github.com/vatesfr/xen-orchestra/pull/8930))
 
 ### Released packages
 
@@ -89,10 +90,10 @@
 - xo-server-load-balancer 0.10.3
 - @xen-orchestra/web-core 0.31.0
 - @xen-orchestra/rest-api 0.17.0
-- @xen-orchestra/web 0.29.0
 - xo-server 5.190.0
 - xo-server-sdn-controller 1.2.0
 - xo-web 5.187.0
+- @xen-orchestra/web 0.29.1
 
 ## **5.110.1** (2025-09-04)
 

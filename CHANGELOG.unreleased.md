@@ -15,9 +15,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- **XO 6**:
-  - Fix the impossibility to change tab in the tasks quick panel (PR [#8930](https://github.com/vatesfr/xen-orchestra/pull/8930))
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -33,7 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/web patch
 
 <!--packages-end-->
