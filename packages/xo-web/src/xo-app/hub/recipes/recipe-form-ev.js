@@ -110,7 +110,7 @@ export default decorate([
           productName: productName.value,
         })
       },
-      toggleStaticIpAddress(__, ev) {
+      toggleValue(__, ev) {
         const { name } = ev.target
         const { onChange, value: prevValue } = this.props
         onChange({
@@ -156,7 +156,7 @@ export default decorate([
           <input
             className='mt-1'
             name='staticIpAddress'
-            onChange={effects.toggleStaticIpAddress}
+            onChange={effects.toggleValue}
             type='checkbox'
             value={value.staticIpAddress}
           />
@@ -205,6 +205,19 @@ export default decorate([
       <FormGrid.Row>
         <label>{_('selectTimezone')}</label>
         <TimezonePicker value={value.timezone} onChange={timezone => effects.onChangeValue(timezone, 'timezone')} />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>
+          <input
+            className='mt-1'
+            name='bootAfterCreate'
+            onChange={effects.toggleValue}
+            type='checkbox'
+            value={value.bootAfterCreate}
+          />
+          &nbsp;
+          {_('newVmBootAfterCreate')}
+        </label>
       </FormGrid.Row>
       <FormGrid.Row>
         <label>{_('xoUsername')}</label>
@@ -289,6 +302,20 @@ export default decorate([
           type='text'
           value={value.userCompany}
         />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>
+          <input
+            className='mt-1'
+            name='gdpr'
+            onChange={effects.toggleValue}
+            required
+            type='checkbox'
+            value={value.gdpr}
+          />
+          &nbsp;
+          {_('gdprCompliance')}
+        </label>
       </FormGrid.Row>
     </Container>
   ),

@@ -2828,6 +2828,7 @@ const messages = {
   dcNetScopeVm: 'DC NetScope VM',
   recipeEasyVirt: 'EasyVirt VM to deploy',
   recipeUserCompany: 'Company',
+  gdprCompliance: 'I agree that the data in this form may be shared exclusively between Vates and EasyVirt',
   recipeUserEmail: 'Email for EasyVirt',
   performanceConfigDcScope: 'Performance for VM DC Scope',
   dcScopeTest: 'Test config (10 VM): CPU(2), RAM(4), Disk(10GB)',

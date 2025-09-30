@@ -72,6 +72,8 @@ export default decorate([
           userEmail,
           userCompany,
           performanceIndex,
+          bootAfterCreate,
+          gdpr,
         } = recipeParams
 
         const performanceConfig = INDEX_TO_PERF_CONFIG[performanceIndex]
@@ -90,6 +92,8 @@ export default decorate([
           userEmail,
           userCompany,
           performanceConfig,
+          bootAfterCreate,
+          gdpr,
         })
 
         success(
