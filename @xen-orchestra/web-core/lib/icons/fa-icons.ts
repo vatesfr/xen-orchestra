@@ -8,6 +8,7 @@ import {
   faCopy,
 } from '@fortawesome/free-regular-svg-icons'
 import {
+  faA,
   faAlignLeft,
   faAngleDoubleLeft,
   faAngleDoubleRight,
@@ -108,6 +109,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 export const faIcons = defineIconPack({
+  a: { icon: faA },
   'align-left': { icon: faAlignLeft },
   'angle-double-left': { icon: faAngleDoubleLeft },
   'angle-double-right': { icon: faAngleDoubleRight },
