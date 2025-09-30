@@ -8,4 +8,6 @@ export type XoBackupRepository = {
   options?: string
   proxy?: XoProxy['id']
   url: string
+  physical_usage: number
+  size: number
 }
