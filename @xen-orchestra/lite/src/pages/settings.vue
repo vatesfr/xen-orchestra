@@ -4,7 +4,7 @@
     <UiTitle>{{ t('about') }}</UiTitle>
     <VtsColumns class="about-columns">
       <VtsQuickInfoColumn>
-        <div class="typo-h5">{{ t('xo-lite') }}</div>
+        <div class="typo-h5">Xen Orchestra Lite</div>
         <VtsQuickInfoColumn>
           <VtsQuickInfoRow :label="t('version')">
             <template #value>
@@ -39,7 +39,7 @@
         </VtsQuickInfoColumn>
       </VtsQuickInfoColumn>
       <VtsQuickInfoColumn>
-        <h5>{{ t('xcp-ng') }}</h5>
+        <div class="typo-h5">XCP-ng</div>
         <VtsQuickInfoColumn>
           <VtsQuickInfoRow :label="t('version')">
             <template #value>{{ `v${xcpVersion}` }}</template>
@@ -47,7 +47,7 @@
           <VtsQuickInfoRow :label="t('news')">
             <template #value>
               <UiLink size="medium" href="https://xcp-ng.org/blog/">
-                {{ t('news-name', { name: t('xcp-ng') }) }}
+                {{ t('news-name', { name: 'xcp-ng' }) }}
               </UiLink>
             </template>
           </VtsQuickInfoRow>
