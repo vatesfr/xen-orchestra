@@ -1,6 +1,26 @@
 # ChangeLog
 
-## **next**
+## **5.111.0** (2025-09-30)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [Hub/Recipe] Add new recipe to deploy EasyVirt's DC Scope and DC NetScope VMs (PRs [#8797](https://github.com/vatesfr/xen-orchestra/pull/8797) [#8951](https://github.com/vatesfr/xen-orchestra/pull/8951))
+- [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
+- [SR/Advanced] Add a security to prevent accidentally reclaiming freed space during backups (PR [#8947](https://github.com/vatesfr/xen-orchestra/pull/8947))
+- [Host/PIFs] Use a natural sort when sorting by device (eth9 < eth10) (PR [#8967](https://github.com/vatesfr/xen-orchestra/pull/8967))
+- [New VM] Add a new variable in custom cloud config to easily add SSH keys (PR [#8968](https://github.com/vatesfr/xen-orchestra/pull/8968))
+- [XOSTOR] Show resource without volumes in XOSTOR view (PR [#8944](https://github.com/vatesfr/xen-orchestra/pull/8944))
+- [sdn-controller] Use the XCP-ng plugin instead of a direct channel to drive openflow (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
+
+- **XO 6:**
+  - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
+  - [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
+  - [VM] Add Backup Jobs page (PR [#8976](https://github.com/vatesfr/xen-orchestra/pull/8976))
+  - [Site/Backups] Add side panel to backup jobs view (PR [#8966](https://github.com/vatesfr/xen-orchestra/pull/8966))
+  - [VM/Backups] Add side panel to VM backup jobs view (PR [#8978](https://github.com/vatesfr/xen-orchestra/pull/8978))
+  - [HOST/VM/Alarms] Implement alarms component in host and vm pages (PR [#8937]( https://github.com/vatesfr/xen-orchestra/pull/8937))
 
 ### Enhancements
 
@@ -40,28 +60,15 @@
   - `GET /rest/v0/vm-templates/<vm-template-id>/messages` (PR [#8995](https://github.com/vatesfr/xen-orchestra/pull/8995))
 
 - [REST API] Expose `/rest/v0/proxies` and `/rest/v0/proxies/<proxy-id>` (PR [#8920](https://github.com/vatesfr/xen-orchestra/pull/8920))
-- [XO5/Templates] Show template id when expanded the templates list (PR [#8949](https://github.com/vatesfr/xen-orchestra/pull/8949))
 - [REST API] Expose `/rest/v0/vms/<vm-id>/backup-jobs` (PR [#8948](https://github.com/vatesfr/xen-orchestra/pull/8948))
-- [SR/Advanced] Add a security to prevent accidentally reclaiming freed space during backups (PR [#8947](https://github.com/vatesfr/xen-orchestra/pull/8947))
-- [New VM] Add a new variable in custom cloud config to easily add SSH keys (PR [#8968](https://github.com/vatesfr/xen-orchestra/pull/8968))
 - [REST API] Expose `/rest/v0/backup-jobs` and `/rest/v0/backup-jobs/<backup-job-id>` (PR [#8970](https://github.com/vatesfr/xen-orchestra/pull/8970))
-- [Host/PIFs] Use a natural sort when sorting by device (eth9 < eth10) (PR [#8967](https://github.com/vatesfr/xen-orchestra/pull/8967))
 - [REST API] Expose `/rest/v0/backup-logs` and `/rest/v0/backup-logs/<backup-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
 - [REST API] Expose `/rest/v0/restore-logs` and `/rest/v0/restore-logs/<restore-log-id>` (PR [#8987](https://github.com/vatesfr/xen-orchestra/pull/8987))
-- [XOSTOR] Show resource without volumes in XOSTOR view (PR [#8944](https://github.com/vatesfr/xen-orchestra/pull/8944))
-- [Hub/Recipe] Add new recipe to deploy EasyVirt's DC Scope and DC NetScope VMs (PRs [#8797](https://github.com/vatesfr/xen-orchestra/pull/8797) [#8951](https://github.com/vatesfr/xen-orchestra/pull/8951))
-- [sdn-controller] Use the XCP-ng plugin instead of a direct channel to drive openflow (PR [#8488](https://github.com/vatesfr/xen-orchestra/pull/8488))
 
 - **XO 6:**
-  - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
-  - [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
-  - [VM] Add Backup Jobs page (PR [#8976](https://github.com/vatesfr/xen-orchestra/pull/8976))
   - [Treeview] Add a debounce function to the search input to improve user experience (PR [#8892](https://github.com/vatesfr/xen-orchestra/pull/8892))
   - [i18n] Update some wordings in French translation (contribution by [@Luxinenglish](https://github.com/Luxinenglish)) (PR [#8983](https://github.com/vatesfr/xen-orchestra/pull/8983))
   - [i18n] Update Czech, Spanish, Italian, Dutch, Portuguese (Brazil), Russian and Ukrainian translations (PR [#8901](https://github.com/vatesfr/xen-orchestra/pull/8901))
-  - [Site/Backups] Add side panel to backup jobs view (PR [#8966](https://github.com/vatesfr/xen-orchestra/pull/8966))
-  - [VM/Backups] Add side panel to VM backup jobs view (PR [#8978](https://github.com/vatesfr/xen-orchestra/pull/8978))
-  - [HOST/VM/Alarms] Implement alarms component in host and vm pages (PR [#8937]( https://github.com/vatesfr/xen-orchestra/pull/8937))
 
 ### Bug fixes
 
@@ -98,7 +105,7 @@
 
 ## **5.110.1** (2025-09-04)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -192,8 +199,6 @@
 - xo-web 5.184.0
 
 ## **5.109.1** (2025-08-06)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
