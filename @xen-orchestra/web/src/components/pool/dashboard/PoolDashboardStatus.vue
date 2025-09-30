@@ -9,7 +9,13 @@
       <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" icon="fa:server" />
       <UiCardNumbers :label="t('total')" :value="poolDashboard?.hosts?.status?.total" size="small" />
       <VtsDivider type="stretch" />
-      <VtsStateHero v-if="poolDashboard?.vms?.status?.total === 0" format="card" type="no-data" size="small" horizontal>
+      <VtsStateHero
+        v-if="poolDashboard?.vms?.status?.total === 0"
+        format="card"
+        type="no-data"
+        size="extra-small"
+        horizontal
+      >
         {{ t('no-vm-detected') }}
       </VtsStateHero>
       <template v-else>
