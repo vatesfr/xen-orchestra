@@ -12,7 +12,7 @@ export type XoTask = {
     params?: Record<string, unknown>
     progress?: number
     type?: string
-    userId?: string
+    userId?: Branded<'user'>
     [key: string]: unknown | undefined
   }
   result: Record<string, unknown>
