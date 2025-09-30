@@ -307,6 +307,7 @@ export default class RestApi {
           alarms: true,
           smt: true,
           missing_patches: true,
+          messages: true,
         },
       },
       srs: {
