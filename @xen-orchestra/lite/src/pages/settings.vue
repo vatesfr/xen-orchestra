@@ -47,7 +47,7 @@
           <VtsQuickInfoRow :label="t('news')">
             <template #value>
               <UiLink size="medium" href="https://xcp-ng.org/blog/">
-                {{ t('news-name', { name: 'xcp-ng' }) }}
+                {{ t('news-name', { name: 'XCP-ng' }) }}
               </UiLink>
             </template>
           </VtsQuickInfoRow>
