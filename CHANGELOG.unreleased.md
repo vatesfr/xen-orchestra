@@ -12,7 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **Migrated REST API endpoints**:
-  - `GET /rest/v0/srs/<sr-id>/messages` (PR [#8995](https://github.com/vatesfr/xen-orchestra/pull/8995))
+  - `GET /rest/v0/srs/<sr-id>/messages` (PR [#9028](https://github.com/vatesfr/xen-orchestra/pull/9028))
 
 ### Bug fixes
 
