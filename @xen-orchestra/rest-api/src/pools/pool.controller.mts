@@ -413,7 +413,7 @@ export class PoolController extends XapiXoController<XoPool> {
   /**
    * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
    * @example fields "name,id,$object"
-   * @example filter "name:VM_STARTED"
+   * @example filter "name:IP_CONFIGURED_PIF_CAN_UNPLUG"
    * @example limit 42
    */
   @Example(messageIds)
