@@ -494,6 +494,7 @@
   "no-selected-vm-can-be-migrated": "No selected VM can be migrated",
   "no-server-detected": "No servers detected",
   "no-storage-repository-detected": "No storage repositories detected",
+  "no-task-detected": "No tasks detected",
   "no-task": "No tasks",
   "no-task-detected": "No tasks detected",
   "no-vdi-attached": "No VDIs attached",
