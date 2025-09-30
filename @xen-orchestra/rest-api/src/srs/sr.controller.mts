@@ -2,9 +2,9 @@ import { Example, Get, Path, Post, Query, Request, Response, Route, Security, Su
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import { SUPPORTED_VDI_FORMAT, XenApiVdi, XoVdi, type XoAlarm, type XoSr } from '@vates/types'
+import { SUPPORTED_VDI_FORMAT, XenApiVdi, XoMessage, XoVdi, type XoAlarm, type XoSr } from '@vates/types'
 
-import { AlarmService } from '../alarms/alarm.service.mjs'
+import { AlarmService, RAW_ALARM_FILTER } from '../alarms/alarm.service.mjs'
 import { BASE_URL } from '../index.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -14,6 +14,7 @@ import { vdiId } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
 @Route('srs')
 @Security('*')
@@ -118,5 +119,33 @@ export class SrController extends XapiXoController<XoSr> {
     this.setHeader('Location', `${BASE_URL}/vdis/${vdiId}`)
 
     return { id: vdiId }
+  }
+
+  /**
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getSrMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const sr = this.getObject(id as XoSr['id'])
+    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${sr.uuid} !${RAW_ALARM_FILTER}`,
+      limit,
+    })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
   }
 }

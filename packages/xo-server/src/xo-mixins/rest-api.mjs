@@ -312,6 +312,7 @@ export default class RestApi {
       srs: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       vbds: {
