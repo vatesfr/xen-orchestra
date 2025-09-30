@@ -15,15 +15,13 @@
           @click="emit('expand')"
         />
         <div v-else class="h-space" />
-
         <div v-if="task.name">
           <UiLink :to="`#task-${task.id}`" size="medium">
             {{ task.name }}
           </UiLink>
         </div>
-
-        <UiTag v-if="task?.type" accent="info" variant="secondary">
-          {{ task.type }}
+        <UiTag v-if="task?.tag" accent="info" variant="secondary">
+          {{ task.tag }}
         </UiTag>
         <UiInfo v-if="isError" accent="danger" />
         <UiInfo v-if="task.warning?.length" accent="warning" />
@@ -36,7 +34,6 @@
           <UiAccountMenuButton size="small" />
           {{ task.userName }}
         </div>
-
         <span v-if="task.start" class="start-time">
           {{ `${t('task.started')} ${started}` }}
         </span>
@@ -68,26 +65,13 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { Task } from '@core/types/task.type.ts'
 import { useTimeAgo } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 import UiCircleProgressBar from '../circle-progress-bar/UiCircleProgressBar.vue'
 import UiInfo from '../info/UiInfo.vue'
-
-export type Task = {
-  id: string
-  infos?: { data: unknown; message: string }[]
-  name?: string
-  progress?: number
-  type?: string
-  userName?: string
-  start: number
-  end?: number
-  status: 'failure' | 'interrupted' | 'pending' | 'success'
-  tasks?: Task[]
-  warning?: { data: unknown; message: string }[]
-}
 
 const { task } = defineProps<{
   task: Task
@@ -101,7 +85,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const subTasks = computed(() => task.tasks ?? [])
+const subTasks = computed(() => task.subtasks ?? [])
 
 const subTasksCount = computed(() => subTasks.value.length)
 
