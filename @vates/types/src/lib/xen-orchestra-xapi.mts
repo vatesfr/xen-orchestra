@@ -84,6 +84,23 @@ export interface Xapi {
   pool_emergencyShutdown(): Promise<void>
   resumeVm(id: XoVm['id']): Promise<void>
   unpauseVm(id: XoVm['id']): Promise<void>
+  SR_importVdi(
+    ref: XenApiSr['$ref'],
+    stream: Readable,
+    opts?: {
+      format?: SUPPORTED_VDI_FORMAT
+      name_description?: XoVdi['name_description']
+      name_label?: XoVdi['name_label']
+      other_config?: XoVdi['other_config']
+      read_only?: boolean
+      sharable?: boolean
+      SR?: XenApiSr['$ref']
+      tags?: XoVdi['tags']
+      type?: XoVdi['type']
+      virtual_size?: XoVdi['size']
+      xenstore_data?: Record<string, string>
+    }
+  ): Promise<XenApiVdi['$ref']>
   startVm(
     id: XoVm['id'],
     opts?: {

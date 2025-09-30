@@ -10,8 +10,10 @@ import { HostService } from '../hosts/host.service.mjs'
 import { PoolService } from '../pools/pool.service.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { VdiService } from '../vdis/vdi.service.mjs'
+import { TaskService } from '../tasks/task.service.mjs'
 import { UserService } from '../users/user.service.mjs'
-import { BackupService } from '../backups/backup.service.mjs'
+import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
+import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 
 const iocContainer = new Container()
 
@@ -68,13 +70,18 @@ export function setupContainer(xoApp: XoApp) {
     })
     .inSingletonScope()
 
-  iocContainer
-  .bind(VdiService)
-  .toDynamicValue(ctx => {
+  iocContainer.bind(TaskService).toDynamicValue(ctx => {
     const restApi = ctx.container.get(RestApi)
-    return new VdiService(restApi)
+    return new TaskService(restApi)
   })
-  .inSingletonScope()
+
+  iocContainer
+    .bind(VdiService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new VdiService(restApi)
+    })
+    .inSingletonScope()
 
   iocContainer
     .bind(UserService)
@@ -85,10 +92,17 @@ export function setupContainer(xoApp: XoApp) {
     .inSingletonScope()
 
   iocContainer
-    .bind(BackupService)
+    .bind(BackupJobService)
     .toDynamicValue(ctx => {
       const restApi = ctx.container.get(RestApi)
-      return new BackupService(restApi)
+      return new BackupJobService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(BackupLogService)
+    .toDynamicValue(() => {
+      return new BackupLogService()
     })
     .inSingletonScope()
 }

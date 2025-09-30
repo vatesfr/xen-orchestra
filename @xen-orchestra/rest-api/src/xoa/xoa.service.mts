@@ -6,7 +6,7 @@ import {
   AnyXoVm,
   BACKUP_TYPE,
   VM_POWER_STATE,
-  XoBackupJob,
+  XoVmBackupJob,
   XoHost,
   XoPool,
   XoSchedule,
@@ -333,7 +333,7 @@ export class XoaService {
     const nonReplicaVms = Object.values(this.#restApi.getObjectsByType<XoVm>('VM', { filter: vm => !isReplicaVm(vm) }))
     const restApi = this.#restApi
     const xoApp = restApi.xoApp
-    function _extractVmIdsFromBackupJob(job: XoBackupJob) {
+    function _extractVmIdsFromBackupJob(job: XoVmBackupJob) {
       let vmIds: XoVm['id'][]
       try {
         vmIds = extractIdsFromSimplePattern(job.vms)
@@ -344,7 +344,7 @@ export class XoaService {
       }
       return vmIds
     }
-    function _processVmsProtection(job: XoBackupJob, isProtected: boolean) {
+    function _processVmsProtection(job: XoVmBackupJob, isProtected: boolean) {
       if (job.type !== BACKUP_TYPE.backup) {
         return
       }
@@ -370,7 +370,7 @@ export class XoaService {
         vmIdsUnprotected.add(vmId)
       }
     }
-    async function _jobHasAtLeastOneScheduleEnabled(job: XoBackupJob) {
+    async function _jobHasAtLeastOneScheduleEnabled(job: XoVmBackupJob) {
       for (const maybeScheduleId in job.settings) {
         if (maybeScheduleId === '') {
           continue
@@ -403,7 +403,7 @@ export class XoaService {
             xoApp.getAllJobs('backup'),
             xoApp.getAllJobs('mirrorBackup'),
             xoApp.getAllJobs('metadataBackup'),
-          ]).then(jobs => jobs.flat(1)) as Promise<XoBackupJob[]>,
+          ]).then(jobs => jobs.flat(1)) as Promise<XoVmBackupJob[]>,
         ])
         const logsByJob = groupBy(logs, 'jobId')
 

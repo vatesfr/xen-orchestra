@@ -3,6 +3,7 @@
 ## **next**
 
 - [settigns] fix key-value alignement and refactor page (PR [#8981](https://github.com/vatesfr/xen-orchestra/pull/8981))
+- [Settings] Add icon for external links on settings page (PR [#8980](https://github.com/vatesfr/xen-orchestra/pull/8980))
 - [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
 - [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
 
