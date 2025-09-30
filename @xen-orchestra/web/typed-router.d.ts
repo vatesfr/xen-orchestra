@@ -22,6 +22,7 @@ declare module 'vue-router/auto-routes' {
     '/(site)/backups': RouteRecordInfo<'/(site)/backups', '/backups', Record<never, never>, Record<never, never>>,
     '/(site)/dashboard': RouteRecordInfo<'/(site)/dashboard', '/dashboard', Record<never, never>, Record<never, never>>,
     '/(site)/pools': RouteRecordInfo<'/(site)/pools', '/pools', Record<never, never>, Record<never, never>>,
+    '/(site)/tasks': RouteRecordInfo<'/(site)/tasks', '/tasks', Record<never, never>, Record<never, never>>,
     '/[...path]': RouteRecordInfo<'/[...path]', '/:path(.*)', { path: ParamValue<true> }, { path: ParamValue<false> }>,
     '/dev/': RouteRecordInfo<'/dev/', '/dev', Record<never, never>, Record<never, never>>,
     '/dev/colors': RouteRecordInfo<'/dev/colors', '/dev/colors', Record<never, never>, Record<never, never>>,
