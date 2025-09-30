@@ -61,6 +61,7 @@
   - [i18n] Update Czech, Spanish, Italian, Dutch, Portuguese (Brazil), Russian and Ukrainian translations (PR [#8901](https://github.com/vatesfr/xen-orchestra/pull/8901))
   - [Site/Backups] Add side panel to backup jobs view (PR [#8966](https://github.com/vatesfr/xen-orchestra/pull/8966))
   - [VM/Backups] Add side panel to VM backup jobs view (PR [#8978](https://github.com/vatesfr/xen-orchestra/pull/8978))
+  - [HOST/VM/Alarms] Implement alarms component in host and vm pages (PR [#8937]( https://github.com/vatesfr/xen-orchestra/pull/8937))
 
 ### Bug fixes
 
@@ -93,7 +94,7 @@
 - xo-server-sdn-controller 1.2.0
 - xo-web 5.187.0
 - @xen-orchestra/web-core 0.31.1
-- @xen-orchestra/web 0.29.2
+- @xen-orchestra/web 0.30.0
 
 ## **5.110.1** (2025-09-04)
 
