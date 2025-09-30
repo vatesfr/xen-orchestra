@@ -493,6 +493,7 @@
   "no-selected-vm-can-be-migrated": "Aucune VM sélectionnée ne peut être migrée",
   "no-server-detected": "Aucun serveur détecté",
   "no-storage-repository-detected": "Aucun dépôt de stockage détecté",
+  "no-task-detected": "Aucune tâche détectée",
   "no-task": "Aucune tâche",
   "no-vdi-attached": "Aucun VDI attaché",
   "no-vdi-detected": "Aucun VDI détecté",
