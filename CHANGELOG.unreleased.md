@@ -21,6 +21,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [V2V] Do not lock stopped VMs (PR [#9047](https://github.com/vatesfr/xen-orchestra/pull/9047))
+- [Backups] Fix EEXIST error when retrying a backup (PR [#9039](https://github.com/vatesfr/xen-orchestra/pull/9039))
 
 ### Packages to release
 
@@ -38,6 +39,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - xo-server patch
 
