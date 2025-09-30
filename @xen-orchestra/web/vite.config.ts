@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       commonjsOptions: {
-        include: [/value-matcher/],
+        include: [/value-matcher/, /node_modules/],
       },
     },
     optimizeDeps: {
