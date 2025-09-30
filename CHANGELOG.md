@@ -88,12 +88,12 @@
 - @xen-orchestra/backups 0.64.3
 - @xen-orchestra/proxy 0.29.31
 - xo-server-load-balancer 0.10.3
-- @xen-orchestra/web-core 0.31.0
 - @xen-orchestra/rest-api 0.17.0
 - xo-server 5.190.0
 - xo-server-sdn-controller 1.2.0
 - xo-web 5.187.0
-- @xen-orchestra/web 0.29.1
+- @xen-orchestra/web-core 0.31.1
+- @xen-orchestra/web 0.29.2
 
 ## **5.110.1** (2025-09-04)
 
