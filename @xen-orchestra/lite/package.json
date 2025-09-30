@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/lite",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "type": "module",
   "scripts": {
     "dev": "GIT_HEAD=$(git rev-parse HEAD) vite",
@@ -34,7 +34,7 @@
     "@vueuse/core": "^13.0.0",
     "@vueuse/math": "^13.0.0",
     "@vueuse/shared": "^13.0.0",
-    "@xen-orchestra/web-core": "^0.30.0",
+    "@xen-orchestra/web-core": "^0.31.1",
     "complex-matcher": "^1.0.0",
     "d3-time-format": "^4.1.0",
     "decorator-synchronized": "^0.6.0",

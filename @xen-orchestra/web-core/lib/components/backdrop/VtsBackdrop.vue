@@ -1,6 +1,14 @@
 <template>
-  <div class="vts-backdrop" />
+  <div class="vts-backdrop">
+    <slot />
+  </div>
 </template>
+
+<script lang="ts" setup>
+defineSlots<{
+  default?(): any
+}>()
+</script>
 
 <style lang="postcss" scoped>
 .vts-backdrop {
