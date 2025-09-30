@@ -3,9 +3,17 @@ import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
 import { pipeline } from 'node:stream/promises'
 import { provide } from 'inversify-binding-decorators'
-import type { XapiHostStats, XapiStatsGranularity, XcpPatches, XoAlarm, XoHost, XsPatches } from '@vates/types'
+import type {
+  XapiHostStats,
+  XapiStatsGranularity,
+  XcpPatches,
+  XoAlarm,
+  XoHost,
+  XoMessage,
+  XsPatches,
+} from '@vates/types'
 
-import { AlarmService } from '../alarms/alarm.service.mjs'
+import { AlarmService, RAW_ALARM_FILTER } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
@@ -27,6 +35,7 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { HostService } from './host.service.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -196,5 +205,33 @@ export class HostController extends XapiXoController<XoHost> {
   async getMissingPatches(@Path() id: string): Promise<XcpPatches[] | XsPatches[]> {
     const { missingPatches } = await this.#hostService.getMissingPatchesInfo({ filter: host => host.id === id })
     return missingPatches
+  }
+
+  /**
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example fields "name,id,$object"
+   * @example filter "name:PBD_PLUG_FAILED_ON_SERVER_START"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getHostMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const host = this.getObject(id as XoHost['id'])
+    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${host.uuid} !${RAW_ALARM_FILTER}`,
+      limit,
+    })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
   }
 }
