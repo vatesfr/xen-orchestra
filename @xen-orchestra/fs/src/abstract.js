@@ -48,24 +48,31 @@ const WITH_LIMIT = [
   'writeFile',
 ]
 
-const WITH_RETRY = [
-  '_closeFile',
-  '_copy',
-  '_getInfo',
-  '_getSize',
-  '_list',
-  '_mkdir',
-  '_openFile',
-  '_outputFile',
-  '_read',
-  '_readFile',
-  '_rename',
-  '_rmdir',
-  '_truncate',
-  '_unlink',
-  '_write',
-  '_writeFile',
-]
+const WITH_RETRY = {
+  _closeFile: {},
+  _copy: {},
+  _getInfo: {},
+  _getSize: {},
+  _list: {},
+  _mkdir: {},
+  _openFile: {},
+  _read: {},
+  _readFile: {},
+  _rename: {},
+  _rmdir: {},
+  _truncate: {},
+  _unlink: {},
+  _write: {},
+  _writeFile: {
+    updateArguments(error, [file, data, options]) {
+      options = options ?? {}
+      if (options.flags === 'wx' && error.code !== 'EEXIST') {
+        options.flags = 'w'
+      }
+      return [file, data, options]
+    },
+  },
+}
 
 const WITH_TIMEOUT = [
   '_closeFile',
@@ -179,7 +186,7 @@ export default class RemoteHandlerAbstract {
       }
     })
 
-    this._withRetry.forEach(functionName => {
+    Object.entries(this._withRetry).forEach(([functionName, retryOpts]) => {
       if (this[functionName] !== undefined) {
         // adding the retry on the top level method won't
         // cover when _functionName are called internally
@@ -194,7 +201,15 @@ export default class RemoteHandlerAbstract {
               delay: this.delay,
               error,
               file: this.arguments?.[0],
+              retryOpts,
             })
+            if (retryOpts.updateArguments) {
+              warn('updating arguments ', {
+                method: functionName,
+                attemptNumber: this.attemptNumber,
+              })
+              this.arguments = retryOpts.updateArguments(error, this.arguments)
+            }
           },
         })
       }
