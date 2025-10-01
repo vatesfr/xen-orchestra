@@ -1,12 +1,32 @@
-import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Delete,
+  Deprecated,
+  Example,
+  Get,
+  Path,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
-import type { XoAlarm, XoMessage, XoTask, XoVdiSnapshot } from '@vates/types'
+import type { SUPPORTED_VDI_FORMAT, XoAlarm, XoMessage, XoTask, XoVdiSnapshot } from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
-import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  internalServerErrorResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { partialVdiSnapshots, vdiSnapshot, vdiSnapshotIds } from '../open-api/oa-examples/vdi-snapshot.oa-example.mjs'
@@ -66,7 +86,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   async exportVdiSnapshotContent(
     @Request() req: ExRequest,
     @Path() id: string,
-    @Path() format: 'vhd' | 'raw'
+    @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
   ): Promise<Readable> {
     const res = req.res as ExResponse
     const stream = await this.#vdiService.exportContent(id as XoVdiSnapshot['id'], 'VDI-snapshot', {
@@ -77,6 +97,35 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
     req.on('close', () => stream.destroy())
     return stream
   }
+
+  // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (10-01-2026)--------------------
+  // Do not forget to also remove the spec in tsoa.json
+  /**
+   *
+   * Import VDI-snapshot content
+   *
+   * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
+   */
+  @Deprecated()
+  @Put('{id}.{format}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid format')
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async importVdiContent(
+    @Request() req: ExRequest & { length?: number },
+    @Path() id: string,
+    @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
+  ) {
+    const xapiVdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])
+
+    if (req.headers['content-length'] !== undefined) {
+      req.length = +req.headers['content-length']
+    }
+    process.on('SIGTERM', () => req.destroy())
+    await xapiVdiSnapshot.$xapi.VDI_importContent(xapiVdiSnapshot.$ref, req, { format })
+  }
+  // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (10-01-2026)--------------------
 
   /**
    * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
