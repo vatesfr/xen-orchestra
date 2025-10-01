@@ -27,7 +27,7 @@
     <template #tbody>
       <tr v-for="row of spacesRecords" :key="row.id" class="typo-body-regular-small">
         <td v-for="column of row.visibleColumns" :key="column.id">
-          <UiLink v-if="column.id == 'title'" size="medium">
+          <UiLink v-if="column.id == 'title'" size="medium" :icon="column.value.icon" href="/#/settings/remotes">
             {{ column.value.label }}
           </UiLink>
           <!--
@@ -88,7 +88,11 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupRepositor
     define(
       'title',
       record => {
-        return { label: record.name, id: record.id }
+        return {
+          label: record.name,
+          id: record.id,
+          icon: brIcon(record),
+        }
       },
       { label: t('backup-repository') }
     ),
@@ -104,5 +108,9 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
   'used-space': 'fa:hashtag',
   'remaning-space': 'fa:hashtag',
   'total-capacity': 'fa:hashtag',
+}
+
+function brIcon(br: XoBackupRepository): IconName {
+  return br.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected'
 }
 </script>
