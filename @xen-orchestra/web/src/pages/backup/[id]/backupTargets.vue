@@ -1,12 +1,13 @@
 <template>
   <UiCard class="backupTarget">
-    <SpaceTable :backup-repository-targets="backupRepositoryTargets" />
-    <SpaceTable :storage-repository-targets="storageRepositoryTargets" />
+    <BackupRepositorTable :backup-repository-targets="backupRepositoryTargets" />
+    <StorageRepositoryTable :storage-repository-targets="storageRepositoryTargets" />
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import SpaceTable from '@/components/backups/target/spaceTable.vue'
+import BackupRepositorTable from '@/components/backups/target/backupRepositorTable.vue'
+import StorageRepositoryTable from '@/components/backups/target/storageRepositoryTable.vue'
 import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import type { XoBackupRepository } from '@/types/xo/br.type'
