@@ -320,6 +320,7 @@ export default class RestApi {
           missing_patches: true,
           messages: true,
           tasks: true,
+          tags: true,
         },
       },
       srs: {
@@ -919,7 +920,11 @@ export default class RestApi {
       )
       .delete(
         '/:collection/:object/tags/:tag',
-        wrap(async (req, res) => {
+        wrap(async (req, res, next) => {
+          const { collection } = req
+          if (swaggerEndpoints[collection.id].routes.tags) {
+            return next('route')
+          }
           await req.xapiObject.$call('remove_tags', req.params.tag)
 
           res.sendStatus(204)
@@ -927,7 +932,11 @@ export default class RestApi {
       )
       .put(
         '/:collection/:object/tags/:tag',
-        wrap(async (req, res) => {
+        wrap(async (req, res, next) => {
+          const { collection } = req
+          if (swaggerEndpoints[collection.id].routes.tags) {
+            return next('route')
+          }
           await req.xapiObject.$call('add_tags', req.params.tag)
 
           res.sendStatus(204)

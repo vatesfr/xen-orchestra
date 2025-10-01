@@ -1,4 +1,4 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
 import { pipeline } from 'node:stream/promises'
@@ -31,6 +31,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import {
   featureUnauthorized,
   internalServerErrorResp,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -255,5 +256,29 @@ export class HostController extends XapiXoController<XoHost> {
     const tasks = await this.getTasksForObject(id as XoHost['id'], { filter, limit })
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putHostTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const host = this.getXapiObject(id as XoHost['id'])
+    await host.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteHostTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const host = this.getXapiObject(id as XoHost['id'])
+    await host.$call('remove_tags', tag)
   }
 }
