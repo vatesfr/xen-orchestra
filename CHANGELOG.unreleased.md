@@ -14,6 +14,8 @@
 - **Migrated REST API endpoints**:
   - `GET /rest/v0/srs/<sr-id>/messages` (PR [#9028](https://github.com/vatesfr/xen-orchestra/pull/9028))
   - `GET /rest/v0/hosts/<host-id>/messages` (PR [#9027](https://github.com/vatesfr/xen-orchestra/pull/9027))
+  - `PUT /rest/v0/vdis/<vdi-id>.(vhd|raw)` (PR [#9038](https://github.com/vatesfr/xen-orchestra/pull/9038))
+  - **deprecated** `PUT /rest/v0/vdi-snapshots/<vdi-snapshot-id>.(vhd|raw)` (PR [#9038](https://github.com/vatesfr/xen-orchestra/pull/9038))
 
 
 ### Bug fixes
@@ -36,6 +38,7 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/rest-api minor
 - xo-server patch
 
