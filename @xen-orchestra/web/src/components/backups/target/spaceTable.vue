@@ -2,6 +2,12 @@
   <UiTitle>
     {{ storageRepositoryTargets ? t('storage-repository') : t('backup-repository') }}
   </UiTitle>
+  <div class="table-actions">
+    <UiQuerySearchBar @search="value => (searchQuery = value)" />
+    <UiTopBottomTable :selected-items="0" :total-items="0">
+      <UiTablePagination v-bind="paginationBindings" />
+    </UiTopBottomTable>
+  </div>
   <VtsDataTable is-ready :no-data-message="unifySpaces.length === 0 ? t('no-backup-available') : undefined">
     <template #thead>
       <tr>
@@ -16,7 +22,7 @@
       </tr>
     </template>
     <template #tbody>
-      <tr v-for="row of backupJobsRecords" :key="row.id" class="typo-body-regular-small">
+      <tr v-for="row of spacesRecords" :key="row.id" class="typo-body-regular-small">
         <td v-for="column of row.visibleColumns" :key="column.id">
           <template v-if="column.id == 'used-space'">
             {{ column.value }}
@@ -26,6 +32,11 @@
       </tr>
     </template>
   </VtsDataTable>
+  <div class="table-actions">
+    <UiTopBottomTable :selected-items="0" :total-items="0">
+      <UiTablePagination v-bind="paginationBindings" />
+    </UiTopBottomTable>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -34,11 +45,14 @@ import type { XoSr } from '@/types/xo/sr.type'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useTable } from '@core/composables/table.composable'
 import { formatSizeRaw } from '@core/utils/size.util'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { storageRepositoryTargets, backupRepositoryTargets } = defineProps<{
@@ -48,9 +62,18 @@ const { storageRepositoryTargets, backupRepositoryTargets } = defineProps<{
 
 const { t } = useI18n()
 
+const searchQuery = ref('')
+
 const unifySpaces = computed(() => {
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
   const spaces =
     storageRepositoryTargets?.map(repository => {
+      if (searchTerm) {
+        if (!Object.values(repository).some(value => String(value).toLocaleLowerCase().includes(searchTerm))) {
+          return null
+        }
+      }
+
       return {
         id: repository.id,
         label: repository.name_label,
@@ -62,6 +85,12 @@ const unifySpaces = computed(() => {
 
   const backupSpaces =
     backupRepositoryTargets?.map(repository => {
+      if (searchTerm) {
+        if (!Object.values(repository).some(value => String(value).toLocaleLowerCase().includes(searchTerm))) {
+          return null
+        }
+      }
+
       return {
         id: repository.id,
         label: repository.name,
@@ -71,7 +100,8 @@ const unifySpaces = computed(() => {
       }
     }) ?? []
 
-  return [...spaces, ...backupSpaces]
+  // join arrays and remove all null values if search is active
+  return [...spaces, ...backupSpaces].filter(space => space !== null)
 })
 
 const { visibleColumns, rows } = useTable('backup-jobs', unifySpaces, {
@@ -83,7 +113,7 @@ const { visibleColumns, rows } = useTable('backup-jobs', unifySpaces, {
   ],
 })
 
-const { pageRecords: backupJobsRecords } = usePagination('backups-jobs', rows)
+const { pageRecords: spacesRecords, paginationBindings } = usePagination('backups-jobs', rows)
 
 type BackupJobHeader = 'used-space' | 'remaning-space' | 'total-capacity'
 
