@@ -182,6 +182,11 @@ export interface Xapi {
     vdiRef: XenApiVdi['$ref'],
     opts: { baseRef?: string; cancelToken?: unknown; format: SUPPORTED_VDI_FORMAT }
   ): Promise<Readable & { length?: number }>
+  VDI_importContent(
+    vdiRef: XenApiVdi['$ref'],
+    stream: Readable,
+    opts: { cancelToken?: unknown; format: SUPPORTED_VDI_FORMAT }
+  ): Promise<void>
   VM_createCloudInitConfig(
     vmRef: XenApiVm['$ref'],
     cloudConfig: string,
