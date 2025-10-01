@@ -116,7 +116,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
     @Request() req: ExRequest & { length?: number },
     @Path() id: string,
     @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
-  ) {
+  ): Promise<void> {
     const xapiVdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])
 
     if (req.headers['content-length'] !== undefined) {

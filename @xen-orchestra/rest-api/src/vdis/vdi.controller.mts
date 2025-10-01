@@ -95,7 +95,7 @@ export class VdiController extends XapiXoController<XoVdi> {
     @Request() req: ExRequest & { length?: number },
     @Path() id: string,
     @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
-  ) {
+  ): Promise<void> {
     const xapiVdi = this.getXapiObject(id as XoVdi['id'])
 
     if (req.headers['content-length'] !== undefined) {
