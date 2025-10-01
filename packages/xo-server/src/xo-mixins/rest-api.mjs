@@ -308,6 +308,7 @@ export default class RestApi {
           smt: true,
           missing_patches: true,
           messages: true,
+          tags: true,
         },
       },
       srs: {
@@ -804,20 +805,18 @@ export default class RestApi {
         )
       )
 
-    api
-      .get(
-        '/restore',
-        wrap((req, res) => sendObjects([{ id: 'logs' }], req, res))
-      )
-    api
-      .get(
-        '/tasks/:id/actions',
-        wrap(async (req, res) => {
-          const task = await app.tasks.get(req.params.id)
+    api.get(
+      '/restore',
+      wrap((req, res) => sendObjects([{ id: 'logs' }], req, res))
+    )
+    api.get(
+      '/tasks/:id/actions',
+      wrap(async (req, res) => {
+        const task = await app.tasks.get(req.params.id)
 
-          await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
-        })
-      )
+        await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+      })
+    )
 
     api.get(
       '/:collection',
@@ -900,7 +899,11 @@ export default class RestApi {
       )
       .delete(
         '/:collection/:object/tags/:tag',
-        wrap(async (req, res) => {
+        wrap(async (req, res, next) => {
+          const { collection } = req
+          if (swaggerEndpoints[collection.id].routes.tags) {
+            return next('route')
+          }
           await req.xapiObject.$call('remove_tags', req.params.tag)
 
           res.sendStatus(204)
@@ -908,7 +911,11 @@ export default class RestApi {
       )
       .put(
         '/:collection/:object/tags/:tag',
-        wrap(async (req, res) => {
+        wrap(async (req, res, next) => {
+          const { collection } = req
+          if (swaggerEndpoints[collection.id].routes.tags) {
+            return next('route')
+          }
           await req.xapiObject.$call('add_tags', req.params.tag)
 
           res.sendStatus(204)
