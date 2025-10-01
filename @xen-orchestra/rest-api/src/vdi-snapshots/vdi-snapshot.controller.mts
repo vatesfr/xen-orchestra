@@ -112,7 +112,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(422, 'Invalid format')
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async importVdiContent(
+  async importVdiSnapshotContent(
     @Request() req: ExRequest & { length?: number },
     @Path() id: string,
     @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
