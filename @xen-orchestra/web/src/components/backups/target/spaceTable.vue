@@ -27,7 +27,9 @@
           <template v-if="column.id == 'used-space'">
             {{ column.value }}
           </template>
-          <template v-else> {{ column.value.value }} {{ column.value.prefix }} </template>
+          <template v-else-if="column.value.value < Infinity">
+            {{ column.value.value }} {{ column.value.prefix }}
+          </template>
         </td>
       </tr>
     </template>
@@ -78,8 +80,8 @@ const unifySpaces = computed(() => {
         id: repository.id,
         label: repository.name_label,
         used: repository.physical_usage,
-        totalCapacity: repository.size,
-        remaningSpace: repository.size - repository.physical_usage,
+        totalCapacity: repository.size ?? Infinity,
+        remaningSpace: repository.size ? repository.size - repository.physical_usage : Infinity,
       }
     }) ?? []
 
@@ -94,9 +96,9 @@ const unifySpaces = computed(() => {
       return {
         id: repository.id,
         label: repository.name,
-        used: repository.physical_usage,
-        totalCapacity: repository.size,
-        remaningSpace: repository.size - repository.physical_usage,
+        used: 0,
+        totalCapacity: 0,
+        remaningSpace: 0,
       }
     }) ?? []
 

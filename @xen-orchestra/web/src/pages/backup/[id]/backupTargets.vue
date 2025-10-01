@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard class="backupTarget">
     <SpaceTable :backup-repository-targets="backupRepositoryTargets" />
     <SpaceTable :storage-repository-targets="storageRepositoryTargets" />
   </UiCard>
@@ -35,3 +35,9 @@ const storageRepositoryTargets = computed(() => {
   return getSrsByIds(extractIdsFromSimplePattern(backupJob.srs) as XoSr['id'][])
 })
 </script>
+
+<style lang="postcss" scoped>
+.backupTarget {
+  margin: 0.8rem;
+}
+</style>
