@@ -14,8 +14,9 @@
 - **Migrated REST API endpoints**:
   - `GET /rest/v0/srs/<sr-id>/messages` (PR [#9028](https://github.com/vatesfr/xen-orchestra/pull/9028))
   - `GET /rest/v0/hosts/<host-id>/messages` (PR [#9027](https://github.com/vatesfr/xen-orchestra/pull/9027))
-  - `PUT /rest/v0/hosts/<host-id>/tags/:tag` (PR [#9027](https://github.com/vatesfr/xen-orchestra/pull/9027))
-  - `DELETE /rest/v0/hosts/<host-id>/tags/:tag` (PR [#9027](https://github.com/vatesfr/xen-orchestra/pull/9027))
+  - `PUT /rest/v0/hosts/<host-id>/tags/:tag` (PR [#9037](https://github.com/vatesfr/xen-orchestra/pull/9037))
+  - `DELETE /rest/v0/hosts/<host-id>/tags/:tag` (PR [#9037](https://github.com/vatesfr/xen-orchestra/pull/9037))
+
 
 ### Bug fixes
 
