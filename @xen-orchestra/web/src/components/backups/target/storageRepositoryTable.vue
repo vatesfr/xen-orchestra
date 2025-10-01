@@ -17,7 +17,7 @@
         <template v-for="column of visibleColumns" :key="column.id">
           <th>
             <div v-tooltip class="text-ellipsis">
-              <VtsIcon size="medium" :name="headerIcon[column.id]" />
+              <VtsIcon size="medium" :name="headerIcon[column.id]" icon="fa:database" />
               {{ column.label }}
             </div>
           </th>
