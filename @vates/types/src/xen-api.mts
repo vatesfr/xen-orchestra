@@ -489,7 +489,6 @@ export interface XenApiDrTask {
 }
 
 type XenApiHostCallMethods = TagCallMethods & {}
-
 export interface XenApiHost {
   $ref: Branded<'host'>
   address: string
