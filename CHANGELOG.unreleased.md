@@ -23,7 +23,7 @@
 - [V2V] Do not lock stopped VMs (PR [#9047](https://github.com/vatesfr/xen-orchestra/pull/9047))
 - [Backups] Fix EEXIST error when retrying a backup (PR [#9039](https://github.com/vatesfr/xen-orchestra/pull/9039))
 - [Backups] Fix stuck backup when the source is timing out (PR [#9039](https://github.com/vatesfr/xen-orchestra/pull/9039))
-- [V2V] Fix import stuck before any disk data (PR [#8527](https://github.com/vatesfr/xen-orchestra/pull/8527))
+- [V2V] Fix import stuck before any disk data (PR [#9045](https://github.com/vatesfr/xen-orchestra/pull/9045))
 
 ### Packages to release
 
