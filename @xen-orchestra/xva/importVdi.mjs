@@ -1,7 +1,7 @@
 import { isNotEmptyRef } from './_isNotEmptyRef.mjs'
 import { importVm } from './importVm.mjs'
 
-export async function importVdi(vdi, vhd, xapi, sr) {
+export async function importVdi(vdi, disk, xapi, sr) {
   // create a fake VM
   const vmRef = await importVm(
     {
@@ -10,7 +10,7 @@ export async function importVdi(vdi, vhd, xapi, sr) {
       nCpus: 1,
       firmware: 'bios',
       vdis: [vdi],
-      vhds: [vhd],
+      disks: [disk],
     },
     xapi,
     sr
@@ -20,13 +20,13 @@ export async function importVdi(vdi, vhd, xapi, sr) {
 
   const vbdRefs = await xapi.getField('VM', vmRef, 'VBDs')
   // get the disk
-  const disks = { __proto__: null }
+  const createdDisks = { __proto__: null }
   ;(await xapi.getRecords('VBD', vbdRefs)).forEach(vbd => {
     if (vbd.type === 'Disk' && isNotEmptyRef(vbd.VDI)) {
-      disks[vbd.VDI] = true
+      createdDisks[vbd.VDI] = true
     }
   })
   // destroy the VM and VBD
   await xapi.call('VM.destroy', vmRef)
-  return await xapi.getRecord('VDI', Object.keys(disks)[0])
+  return Object.keys(createdDisks)[0]
 }

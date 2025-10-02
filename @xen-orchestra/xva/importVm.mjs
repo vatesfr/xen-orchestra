@@ -1,7 +1,7 @@
 import tar from 'tar-stream'
 
 import writeOvaXml from './_writeOvaXml.mjs'
-import writeDisk from './_writeDisk.mjs'
+import { writeDisk } from './_writeDisk.mjs'
 
 export async function importVm(vm, xapi, sr, network) {
   const pack = tar.pack()
@@ -18,8 +18,8 @@ export async function importVm(vm, xapi, sr, network) {
     .catch(err => console.error(err))
 
   await writeOvaXml(pack, vm, { sr, network })
-  for (const vhd of vm.vhds) {
-    await writeDisk(pack, vhd, vhd.ref)
+  for (const disk of vm.disks) {
+    await writeDisk(pack, disk, disk.ref)
   }
   pack.finalize()
   const str = await promise

@@ -13,7 +13,7 @@ import { XVA_DISK_CHUNK_LENGTH } from './_writeDisk.mjs'
 
 export default async function writeOvaXml(
   pack,
-  { memory, networks, nCpus, firmware, vdis, vhds, ...vmSnapshot },
+  { memory, networks, nCpus, firmware, vdis, disks, ...vmSnapshot },
   { sr, network }
 ) {
   let refId = 0
@@ -76,10 +76,10 @@ export default async function writeOvaXml(
   )
 
   data.objects.push(srObj)
-  assert.strictEqual(vhds.length, vdis.length)
-  for (let index = 0; index < vhds.length; index++) {
+  assert.strictEqual(disks.length, vdis.length)
+  for (let index = 0; index < vdis.length; index++) {
     const userdevice = index + 1
-    const vhd = vhds[index]
+    const disk = disks[index]
     const alignedSize = Math.ceil(vdis[index].virtual_size / XVA_DISK_CHUNK_LENGTH) * XVA_DISK_CHUNK_LENGTH
     const vdi = defaultsDeep(
       {
@@ -97,7 +97,7 @@ export default async function writeOvaXml(
 
     data.objects.push(vdi)
     srObj.snapshot.VDIs.push(vdi.id)
-    vhd.ref = vdi.id
+    disk.ref = vdi.id
 
     const vbd = defaultsDeep(
       {

@@ -5,6 +5,7 @@ import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import NbdClient from '@vates/nbd-client'
+import { importVdi as importVdiThroughXva } from '@xen-orchestra/xva/importVdi.mjs'
 
 const { warn } = createLogger('xo:importdiskfromdatastore')
 
@@ -66,19 +67,20 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
   try {
     // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
     const { nbdInfos } = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
-    vmdk = new NbdDisk(nbdInfos, 2 * 1024 * 1024, { dataMap })
+    vmdk = new NbdDisk(nbdInfos, 1024 * 1024, { dataMap })
 
     await vmdk.init()
     vmdk = new ReadAhead(vmdk)
     if (!existingVdi) {
       Task.info(`create a new VDI for `, diskPath)
+
       const vdiMetadata = {
         name_description: descriptionLabel,
         name_label: '[ESXI]' + nameLabel,
         SR: sr.$ref,
         virtual_size: vmdk.getVirtualSize(),
       }
-      const vdiRef = await sr.$xapi.VDI_create(vdiMetadata)
+      const vdiRef = await importVdiThroughXva(vdiMetadata, vmdk, sr.$xapi, sr)
       existingVdi = sr.$xapi.getObject(vdiRef, undefined) ?? (await sr.$xapi.waitObject(vdiRef))
 
       Task.info(
@@ -95,9 +97,10 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
         userdevice: String(userdevice < 3 ? userdevice : userdevice + 1),
       })
       Task.info(`vbd created `, diskPath)
+    } else {
+      const stream = await toVhdStream(vmdk)
+      await existingVdi.$importContent(stream, { format: VDI_FORMAT_VHD })
     }
-    const stream = await toVhdStream(vmdk)
-    await existingVdi.$importContent(stream, { format: VDI_FORMAT_VHD })
     Task.info(`import of ${diskPath} content done`, { datastoreName, diskPath, sourceVmId: vmId })
     const transfered = Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
     const duration = Math.round((Date.now() - start) / 1000)
