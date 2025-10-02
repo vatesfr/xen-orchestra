@@ -3,7 +3,7 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
-import type { XoAlarm, XoVdiSnapshot } from '@vates/types'
+import type { XoAlarm, XoMessage, XoVdiSnapshot } from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
@@ -14,6 +14,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { VdiService } from '../vdis/vdi.service.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
 @Route('vdi-snapshots')
 @Security('*')
@@ -122,5 +123,29 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   async deleteVdiSnapshot(@Path() id: string): Promise<void> {
     const xapiVdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])
     await xapiVdiSnapshot.$xapi.VDI_destroy(xapiVdiSnapshot.$ref)
+  }
+
+  /**
+   * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVdiSnapshotMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const messages = this.getMessagesForObject(id as XoVdiSnapshot['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
   }
 }
