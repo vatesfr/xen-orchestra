@@ -30,7 +30,7 @@ export async function writeDisk(pack, disk, basePath) {
     }
     previousIndex = index
     if (data.length > XVA_DISK_CHUNK_LENGTH) {
-      throw new Error(`Block must be at most {XVA_DISK_CHUNK_LENGTH} bytes, got ${data.length}`)
+      throw new Error(`Block must be at most ${XVA_DISK_CHUNK_LENGTH} bytes, got ${data.length}`)
     }
     if (
       // write first block
