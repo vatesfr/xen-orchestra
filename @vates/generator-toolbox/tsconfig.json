@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2023",
     "module": "ESNext",
+    "types": ["node"],
     "moduleResolution": "bundler",
     "strict": true,
     "declaration": true, // Generates `.d.ts` files for type safety

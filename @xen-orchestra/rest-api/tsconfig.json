@@ -9,6 +9,7 @@
     "moduleResolution": "bundler",
     "target": "ES2023",
     "skipLibCheck": true,
+    "types": ["node"],
     "noImplicitAny": false, // otherwise it will throw an error when importing packages without type definition
 
     /* Experimental options */
