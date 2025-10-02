@@ -3,7 +3,7 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
-import type { XoAlarm, XoVdi } from '@vates/types'
+import type { XoAlarm, XoMessage, XoVdi } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -14,6 +14,7 @@ import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVdis, vdi, vdiIds } from '../open-api/oa-examples/vdi.oa-example.mjs'
 import { VdiService } from './vdi.service.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 @Route('vdis')
 @Security('*')
 @Response(unauthorizedResp.status, unauthorizedResp.description)
@@ -118,5 +119,29 @@ export class VdiController extends XapiXoController<XoVdi> {
   async deleteVdi(@Path() id: string): Promise<void> {
     const xapiVdi = this.getXapiObject(id as XoVdi['id'])
     await xapiVdi.$xapi.VDI_destroy(xapiVdi.$ref)
+  }
+
+  /**
+   * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVdiMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const messages = this.getMessagesForObject(id as XoVdi['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
   }
 }
