@@ -13,7 +13,7 @@ import type {
   XsPatches,
 } from '@vates/types'
 
-import { AlarmService, RAW_ALARM_FILTER } from '../alarms/alarm.service.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
@@ -226,11 +226,7 @@ export class HostController extends XapiXoController<XoHost> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const host = this.getObject(id as XoHost['id'])
-    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
-      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${host.uuid} !${RAW_ALARM_FILTER}`,
-      limit,
-    })
+    const messages = this.getMessagesForObject(id as XoHost['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
   }

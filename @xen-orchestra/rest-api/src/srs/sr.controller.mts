@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
 import { SUPPORTED_VDI_FORMAT, XenApiVdi, XoMessage, XoVdi, type XoAlarm, type XoSr } from '@vates/types'
 
-import { AlarmService, RAW_ALARM_FILTER } from '../alarms/alarm.service.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
 import { BASE_URL } from '../index.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
@@ -140,11 +140,7 @@ export class SrController extends XapiXoController<XoSr> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const sr = this.getObject(id as XoSr['id'])
-    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
-      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${sr.uuid} !${RAW_ALARM_FILTER}`,
-      limit,
-    })
+    const messages = this.getMessagesForObject(id as XoSr['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
   }

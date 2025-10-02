@@ -33,7 +33,7 @@ import type {
 } from '@vates/types'
 import { Readable } from 'node:stream'
 
-import { AlarmService, RAW_ALARM_FILTER } from '../alarms/alarm.service.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
 import {
   asynchronousActionResp,
   createdResp,
@@ -608,15 +608,11 @@ export class VmController extends XapiXoController<XoVm> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const vm = this.getObject(id as XoVm['id'])
-    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
-      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${vm.uuid} !${RAW_ALARM_FILTER}`,
-      limit,
-    })
+    const messages = this.getMessagesForObject(id as XoVm['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
   }
-  
+
   /**
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example fields "id,status,properties"
