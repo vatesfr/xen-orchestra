@@ -17,6 +17,7 @@
   - `GET /rest/v0/pools/<pool-id>/messages` (PR [#9022](https://github.com/vatesfr/xen-orchestra/pull/9022))
   - `GET /rest/v0/networks/<network-id>/messages` (PR [#9023](https://github.com/vatesfr/xen-orchestra/pull/9023))
 
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
