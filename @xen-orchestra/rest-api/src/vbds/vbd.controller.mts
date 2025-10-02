@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoAlarm, XoMessage, XoVbd } from '@vates/types'
 
-import { AlarmService, RAW_ALARM_FILTER } from '../alarms/alarm.service.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
@@ -102,11 +102,7 @@ export class VbdController extends XapiXoController<XoVbd> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const vbd = this.getObject(id as XoVbd['id'])
-    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
-      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${vbd.uuid} !${RAW_ALARM_FILTER}`,
-      limit,
-    })
+    const messages = this.getMessagesForObject(id as XoVbd['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
   }
