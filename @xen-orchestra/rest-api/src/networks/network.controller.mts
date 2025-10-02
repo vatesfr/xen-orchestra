@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
 import type { XoAlarm, XoMessage, XoNetwork } from '@vates/types'
 
-import { AlarmService, RAW_ALARM_FILTER } from '../alarms/alarm.service.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { network, networkIds, partialNetworks } from '../open-api/oa-examples/network.oa-example.mjs'
@@ -111,11 +111,7 @@ export class NetworkController extends XapiXoController<XoNetwork> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const network = this.getObject(id as XoNetwork['id'])
-    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
-      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${network.uuid} !${RAW_ALARM_FILTER}`,
-      limit,
-    })
+    const messages = this.getMessagesForObject(id as XoNetwork['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
   }
