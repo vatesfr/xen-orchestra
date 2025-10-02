@@ -47,7 +47,7 @@ import type {
   XoVm,
   XsPatches,
 } from '@vates/types'
-import { AlarmService, RAW_ALARM_FILTER } from '../alarms/alarm.service.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
   createVm,
@@ -429,11 +429,7 @@ export class PoolController extends XapiXoController<XoPool> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoMessage>>> {
-    const pool = this.getObject(id as XoPool['id'])
-    const messages = this.restApi.getObjectsByType<XoMessage>('message', {
-      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} $object:${pool.uuid} !${RAW_ALARM_FILTER}`,
-      limit,
-    })
+    const messages = this.getMessagesForObject(id as XoPool['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
   }
