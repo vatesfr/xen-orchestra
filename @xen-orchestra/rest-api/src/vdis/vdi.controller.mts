@@ -122,7 +122,7 @@ export class VdiController extends XapiXoController<XoVdi> {
   }
 
   /**
-   * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
+   * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
    * @example fields "name,id,$object"
    * @example filter "name:VM_STARTED"
    * @example limit 42
