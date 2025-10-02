@@ -32,7 +32,7 @@
     "vhd-lib": "^4.14.1"
   },
   "devDependencies": {
-    "rimraf": "^5.0.5",
+    "rimraf": "^6.0.1",
     "tap": "^18.6.1"
   },
   "scripts": {
