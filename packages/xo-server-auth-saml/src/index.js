@@ -1,4 +1,4 @@
-import { Strategy } from 'passport-saml'
+import { Strategy } from '@node-saml/passport-saml'
 
 // ===================================================================
 
