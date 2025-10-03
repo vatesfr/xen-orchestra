@@ -17,8 +17,9 @@
         <template v-for="column of visibleColumns" :key="column.id">
           <th>
             <div v-tooltip class="text-ellipsis">
-              <VtsIcon size="medium" :name="headerIcon[column.id]" icon="fa:database" />
-              {{ column.label }}
+              <VtsIcon size="medium" :name="headerIcon[column.id]">
+                {{ column.label }}
+              </VtsIcon>
             </div>
           </th>
         </template>
@@ -27,7 +28,7 @@
     <template #tbody>
       <tr v-for="row of spacesRecords" :key="row.id" class="typo-body-regular-small">
         <td v-for="column of row.visibleColumns" :key="column.id">
-          <UiLink v-if="column.id == 'title'" size="medium" :href="column.value.link">
+          <UiLink v-if="column.id == 'title'" size="medium" :to="column.value.link" icon="fa:database">
             {{ column.value.label }}
           </UiLink>
           <template v-else-if="column.value && column.value.value < Infinity">
