@@ -14,9 +14,9 @@ import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
-type ButtonAccent = 'brand' | 'warning' | 'danger'
-type ButtonSize = 'small' | 'medium'
+export type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
+export type ButtonAccent = 'brand' | 'warning' | 'danger'
+export type ButtonSize = 'small' | 'medium'
 
 const { accent, variant, size, disabled, busy, lockIcon } = defineProps<{
   variant: ButtonVariant
