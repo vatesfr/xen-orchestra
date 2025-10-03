@@ -29,7 +29,7 @@
     "node": ">=12"
   },
   "dependencies": {
-    "passport-saml": "^3.2.0"
+    "@node-saml/passport-saml": "^5.1.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
