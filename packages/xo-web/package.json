@@ -143,7 +143,8 @@
     "xo-vmdk-to-vhd": "^2.5.8"
   },
   "scripts": {
-    "build": "GIT_HEAD=$(git rev-parse HEAD) NODE_ENV=production gulp build",
+        "build": "GIT_HEAD=$(git rev-parse HEAD) NODE_ENV=production gulp build",
+
     "clean": "gulp clean",
     "dev": "GIT_HEAD=$(git rev-parse HEAD) NODE_ENV=development gulp build",
     "prebuild": "yarn run clean && index-modules --auto src",
