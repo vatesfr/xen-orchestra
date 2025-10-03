@@ -1,7 +1,7 @@
 <!-- v3 -->
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
-    <VtsIcon :name="icon" size="medium" />
+    <VtsIcon :name="icon" size="current" class="icon" />
     <slot />
     <VtsIcon v-if="attributes.target === '_blank'" name="fa:up-right-from-square" size="medium" class="external-icon" />
   </component>
@@ -64,6 +64,10 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
 
   .external-icon {
     font-size: 0.75em;
+  }
+
+  .icon {
+    font-size: 1.9rem;
   }
 }
 </style>

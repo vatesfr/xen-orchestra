@@ -1,5 +1,4 @@
-<!-- WIP -->
-<!-- TODO: Add complex icon -->
+<!-- v10 WIP -->
 <template>
   <button :class="classNames" :disabled class="ui-button-icon" type="button">
     <VtsIcon :name="icon" size="medium" />
@@ -13,8 +12,9 @@ import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-type ButtonIconAccent = 'brand' | 'warning' | 'danger'
-type ButtonSize = 'small' | 'medium' | 'large'
+export type ButtonIconAccent = 'brand' | 'info' | 'warning' | 'danger'
+
+export type ButtonIconSize = 'small' | 'medium' | 'large'
 
 const {
   accent,
@@ -24,7 +24,7 @@ const {
   targetScale = 1,
 } = defineProps<{
   icon: IconName
-  size: ButtonSize
+  size: ButtonIconSize
   accent: ButtonIconAccent
   disabled?: boolean
   selected?: boolean
@@ -45,7 +45,7 @@ const classNames = computed(() => {
     toVariants({
       accent,
       size,
-      muted: disabled,
+      disabled,
       selected,
     }),
   ]
@@ -115,7 +115,38 @@ const classNames = computed(() => {
       background-color: var(--color-brand-background-selected);
     }
 
-    &.muted {
+    &.disabled {
+      color: var(--color-neutral-txt-secondary);
+      background-color: transparent;
+    }
+  }
+
+  &.accent--info {
+    & {
+      color: var(--color-info-txt-base);
+      background-color: transparent;
+    }
+
+    &:hover {
+      color: var(--color-info-txt-hover);
+      background-color: var(--color-info-background-hover);
+    }
+
+    &:focus-visible::before {
+      border-color: var(--color-brand-txt-base);
+    }
+
+    &:active {
+      color: var(--color-info-txt-active);
+      background-color: var(--color-info-background-active);
+    }
+
+    &.selected {
+      color: var(--color-info-txt-base);
+      background-color: var(--color-info-background-selected);
+    }
+
+    &.disabled {
       color: var(--color-neutral-txt-secondary);
       background-color: transparent;
     }
@@ -146,7 +177,7 @@ const classNames = computed(() => {
       background-color: var(--color-warning-background-selected);
     }
 
-    &.muted {
+    &.disabled {
       color: var(--color-neutral-txt-secondary);
       background-color: transparent;
     }
@@ -181,7 +212,7 @@ const classNames = computed(() => {
       background-color: var(--color-danger-background-selected);
     }
 
-    &.muted {
+    &.disabled {
       color: var(--color-neutral-txt-secondary);
       background-color: transparent;
     }
@@ -191,9 +222,9 @@ const classNames = computed(() => {
 
   &.size--small {
     & {
-      width: 1.6rem;
-      height: 1.6rem;
-      font-size: 1.2rem;
+      width: 2.4rem;
+      height: 2.4rem;
+      font-size: 1.6rem;
     }
 
     .dot {
@@ -206,9 +237,9 @@ const classNames = computed(() => {
 
   &.size--medium {
     & {
-      width: 2.4rem;
-      height: 2.4rem;
-      font-size: 1.6rem;
+      width: 3.2rem;
+      height: 3.2rem;
+      font-size: 2rem;
     }
 
     .dot {
@@ -223,7 +254,7 @@ const classNames = computed(() => {
     & {
       width: 4rem;
       height: 4rem;
-      font-size: 2.4rem;
+      font-size: 3.2rem;
     }
 
     .dot {

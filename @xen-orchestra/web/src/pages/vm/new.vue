@@ -149,131 +149,11 @@
             <!-- NETWORK SECTION -->
             <UiTitle>{{ t('network') }}</UiTitle>
             <div class="network-container">
-              <VtsTable vertical-border>
-                <thead>
-                  <tr>
-                    <th>
-                      <VtsIcon name="fa:network-wired" size="medium" />
-                      {{ t('interfaces') }}
-                    </th>
-                    <th>
-                      <VtsIcon name="fa:at" size="medium" />
-                      {{ t('mac-addresses') }}
-                    </th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(vif, index) in vmState.vifs" :key="index">
-                    <td>
-                      <NetworkSelect v-model="vif.network" :networks="filteredNetworks" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vif.mac" :placeholder="t('auto-generated')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiButtonIcon
-                        icon="fa:trash"
-                        size="medium"
-                        accent="brand"
-                        variant="secondary"
-                        @click="deleteItem(vmState.vifs, index)"
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="3">
-                      <UiButton left-icon="fa:plus" variant="tertiary" accent="brand" size="medium" @click="addVif()">
-                        {{ t('new') }}
-                      </UiButton>
-                    </td>
-                  </tr>
-                </tbody>
-              </VtsTable>
+              <NetworkTable />
             </div>
             <!-- STORAGE SECTION -->
             <UiTitle>{{ t('storage') }}</UiTitle>
-            <VtsTable vertical-border>
-              <thead>
-                <tr>
-                  <th>
-                    <VtsIcon name="fa:database" size="medium" />
-                    {{ t('storage-repositories') }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:align-left" size="medium" />
-                    {{ t('disk-name') }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:memory" size="medium" />
-                    <!-- TODO remove (GB) when we can use new selector -->
-                    {{ `${t('size')} (GB)` }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:align-left" size="medium" />
-                    {{ t('description') }}
-                  </th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
-                  <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
-                    <td>
-                      <SrSelect v-model="vdi.sr" :srs="filteredSrs" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.size" :placeholder="t('size')" accent="brand" disabled />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_description" :placeholder="t('description')" accent="brand" />
-                    </td>
-                    <td />
-                  </tr>
-                </template>
-                <template v-if="vmState.vdis && vmState.vdis.length > 0">
-                  <tr v-for="(vdi, index) in vmState.vdis" :key="index">
-                    <td>
-                      <SrSelect v-model="vdi.sr" :srs="filteredSrs" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.size" :placeholder="t('size')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_description" :placeholder="t('description')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiButtonIcon
-                        icon="fa:trash"
-                        size="medium"
-                        accent="brand"
-                        variant="secondary"
-                        @click="deleteItem(vmState.vdis, index)"
-                      />
-                    </td>
-                  </tr>
-                </template>
-                <tr>
-                  <td colspan="5">
-                    <UiButton
-                      left-icon="fa:plus"
-                      variant="tertiary"
-                      accent="brand"
-                      size="medium"
-                      @click="addStorageEntry()"
-                    >
-                      {{ t('new') }}
-                    </UiButton>
-                  </td>
-                </tr>
-              </tbody>
-            </VtsTable>
+            <SrTable />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand">
@@ -324,8 +204,6 @@
 </template>
 
 <script lang="ts" setup>
-import NetworkSelect from '@/components/select/NetworkSelect.vue'
-import SrSelect from '@/components/select/SrSelect.vue'
 import { createVM } from '@/jobs/vm-create.job.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
@@ -341,14 +219,11 @@ import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
 import type { XoPool } from '@/types/xo/pool.type.ts'
 import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
@@ -361,6 +236,8 @@ import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useFormSelect } from '@core/packages/form-select'
 
+import { useNewVmNetworkTable } from '@core/tables/use-new-vm-network-table'
+import { useNewVmSrTable } from '@core/tables/use-new-vm-sr-table'
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -657,20 +534,19 @@ const redirectToPool = (poolId: XoPool['id']) => {
   router.push({ name: '/pool/[id]/dashboard', params: { id: poolId } })
 }
 
-function getExistingVdisDiff(vdi1: Vdi, vdi2: Vdi) {
-  const changes: Record<string, unknown> = {}
+function getExistingVdisDiff<TVdi extends Vdi>(vdi1: TVdi, vdi2: TVdi) {
+  const changes = {} as Record<keyof TVdi, unknown>
+
   let hasChanged = false
 
-  for (const _key in vdi1) {
-    const key = _key as keyof Vdi
-
+  for (const key in vdi1) {
     if (vdi1[key] !== vdi2[key]) {
       hasChanged = true
       changes[key] = vdi2[key]
     }
   }
 
-  return hasChanged ? (changes as Partial<Vdi>) : undefined
+  return hasChanged ? (changes as Partial<TVdi>) : undefined
 }
 
 const modifiedExistingVdis = computed(() => {
@@ -919,6 +795,22 @@ watch(
     }
   },
   { immediate: true }
+)
+
+const NetworkTable = useNewVmNetworkTable(() => vmState.vifs, {
+  transform: (vif, index) => ({ id: vif.id ?? String(index) }),
+  networks: filteredNetworks,
+  handleAdd: addVif,
+  handleDelete: index => deleteItem(vmState.vifs, index),
+})
+
+const SrTable = useNewVmSrTable(
+  { existingVdis: () => vmState.existingVdis, newVdis: () => vmState.vdis },
+  {
+    handleAdd: addStorageEntry,
+    handleDelete: index => deleteItem(vmState.vdis, index),
+    srs: filteredSrs,
+  }
 )
 </script>
 
