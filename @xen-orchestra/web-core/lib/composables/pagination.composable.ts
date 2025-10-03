@@ -4,6 +4,21 @@ import { useUiStore } from '@core/stores/ui.store.ts'
 import { clamp, useLocalStorage } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, toValue } from 'vue'
 
+export type PaginationBindings = {
+  size: TablePaginationSize
+  showBy: number
+  'onUpdate:showBy': (value: number) => void
+  from: number
+  to: number
+  total: number
+  isFirstPage: boolean
+  isLastPage: boolean
+  onFirst: () => void
+  onLast: () => void
+  onNext: () => void
+  onPrevious: () => void
+}
+
 export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>) {
   const records = computed(() => toValue(_records))
 
@@ -64,7 +79,7 @@ export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>) {
 
   const uiStore = useUiStore()
 
-  const paginationBindings = computed(() => ({
+  const paginationBindings = computed<PaginationBindings>(() => ({
     size: (uiStore.isMobile ? 'small' : 'medium') as TablePaginationSize,
     showBy: showBy.value,
     'onUpdate:showBy': (value: number) => (showBy.value = value),
