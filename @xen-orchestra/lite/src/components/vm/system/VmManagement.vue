@@ -5,7 +5,7 @@
     </UiTitle>
     <VtsQuickInfoRow :label="t('high-availability')">
       <template #value>
-        <VtsEnabledState :enabled="vm.ha_restart_priority !== ''" />
+        <VtsStatus :status="vm.ha_restart_priority !== ''" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('affinity-host')">
@@ -18,17 +18,17 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('protect-from-accidental-deletion')">
       <template #value>
-        <VtsEnabledState :enabled="vm.blocked_operations?.destroy === 'true'" />
+        <VtsStatus :status="vm.blocked_operations?.destroy === 'true'" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('protect-from-accidental-shutdown')">
       <template #value>
-        <VtsEnabledState :enabled="isProtectedFromAccidentalShutdown" />
+        <VtsStatus :status="isProtectedFromAccidentalShutdown" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('auto-power')">
       <template #value>
-        <VtsEnabledState :enabled="vm.other_config.auto_poweron === 'true'" />
+        <VtsStatus :status="vm.other_config.auto_poweron === 'true'" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('start-delay')" :value="formattedStartDelay" />
@@ -39,8 +39,8 @@
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

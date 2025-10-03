@@ -16,13 +16,13 @@
       <VtsCardRowKeyValue v-if="settings.backupReportTpl !== undefined">
         <template #key>{{ t('shorter-backup-reports') }}</template>
         <template #value>
-          <VtsEnabledState :enabled="settings.backupReportTpl === 'compactMjml'" />
+          <VtsStatus :status="settings.backupReportTpl === 'compactMjml'" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.hideSuccessfulItems !== undefined">
         <template #key>{{ t('hide-successful-items') }}</template>
         <template #value>
-          <VtsEnabledState :enabled="!!settings.hideSuccessfulItems" />
+          <VtsStatus :status="!!settings.hideSuccessfulItems" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.concurrency !== undefined">
@@ -36,7 +36,7 @@
       <VtsCardRowKeyValue v-if="cbtDestroySnapshotData !== undefined">
         <template #key>{{ t('cbt-destroy-snapshot-data') }}</template>
         <template #value>
-          <VtsEnabledState :enabled="cbtDestroySnapshotData" />
+          <VtsStatus :status="cbtDestroySnapshotData" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="maxExportRate !== undefined">
@@ -46,7 +46,7 @@
       <VtsCardRowKeyValue v-if="settings.checkpointSnapshot !== undefined">
         <template #key>{{ t('checkpoint-snapshot') }}</template>
         <template #value>
-          <VtsEnabledState :enabled="!!settings.checkpointSnapshot" />
+          <VtsStatus :status="!!settings.checkpointSnapshot" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.nRetriesVmBackupFailures !== undefined">
@@ -60,19 +60,19 @@
       <VtsCardRowKeyValue v-if="settings.offlineBackup !== undefined">
         <template #key>{{ t('offline-backup') }}</template>
         <template #value>
-          <VtsEnabledState :enabled="!!settings.offlineBackup" />
+          <VtsStatus :status="!!settings.offlineBackup" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.offlineSnapshot !== undefined">
         <template #key>{{ t('offline-snapshot') }}</template>
         <template #value>
-          <VtsEnabledState :enabled="!!settings.offlineSnapshot" />
+          <VtsStatus :status="!!settings.offlineSnapshot" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.mergeBackupsSynchronously !== undefined">
         <template #key>{{ t('merge-backups-synchronously') }}</template>
         <template #value>
-          <VtsEnabledState :enabled="!!settings.mergeBackupsSynchronously" />
+          <VtsStatus :status="!!settings.mergeBackupsSynchronously" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.timezone">
@@ -109,7 +109,7 @@
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoProxyCollection } from '@/remote-resources/use-xo-proxy-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'

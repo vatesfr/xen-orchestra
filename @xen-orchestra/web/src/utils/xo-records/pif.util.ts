@@ -1,7 +1,7 @@
 import type { XoPif } from '@/types/xo/pif.type.ts'
-import type { ConnectionStatus } from '@core/components/connection-status/VtsConnectionStatus.vue'
+import type { Status } from '@core/components/status/VtsStatus.vue'
 
-export function getPifStatus(pif: XoPif): ConnectionStatus {
+export function getPifStatus(pif: XoPif): Status {
   if (!pif.attached) {
     return 'disconnected'
   }
