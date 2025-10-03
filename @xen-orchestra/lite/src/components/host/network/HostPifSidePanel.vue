@@ -93,7 +93,7 @@
               {{ isBond ? t('bond-status') : t('pif-status') }}
             </template>
             <template #value>
-              <VtsConnectionStatus :status />
+              <VtsStatus :status />
             </template>
           </VtsCardRowKeyValue>
           <!-- PHYSICAL INTERFACE STATUS -->
@@ -102,7 +102,7 @@
               {{ t('physical-interface-status') }}
             </template>
             <template #value>
-              <VtsConnectionStatus :status="physicalInterfaceStatus" />
+              <VtsStatus :status="physicalInterfaceStatus" />
             </template>
           </VtsCardRowKeyValue>
           <!-- VLAN -->
@@ -300,9 +300,9 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
