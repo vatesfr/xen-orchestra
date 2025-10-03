@@ -42,9 +42,14 @@
 <!--packages-start-->
 
 - @vates/async-each patch
+- @vates/generator-toolbox patch
+- @vates/types patch
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/fs patch
+- @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
-- xo-server patch
+- xo-server minor
+- xo-server-auth-saml minor
 
 <!--packages-end-->
