@@ -1,5 +1,5 @@
 <template>
-  <UiInfo v-tooltip="iconOnly ? currentStatus.text : false" :accent="currentStatus.accent">
+  <UiInfo v-tooltip="iconOnly ? currentStatus.text : false" class="vts-status" :accent="currentStatus.accent">
     <template v-if="!iconOnly">{{ currentStatus.text }}</template>
   </UiInfo>
 </template>
@@ -11,11 +11,13 @@ import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
 
 export type Status =
+  | 'connecting'
   | 'connected'
   | 'disconnected'
   | 'partially-connected'
   | 'disconnected-from-physical-device'
   | 'physically-disconnected'
+  | 'unable-to-connect-to-the-pool'
   | 'success'
   | 'skipped'
   | 'interrupted'
@@ -36,11 +38,13 @@ const { t } = useI18n()
 const currentStatus = useMapper<Status, { text: string; accent: InfoAccent }>(
   () => status,
   () => [
+    ['connecting', { text: t('connecting'), accent: 'info' }],
     ['connected', { text: t('connected'), accent: 'success' }],
     ['disconnected', { text: t('disconnected'), accent: 'danger' }],
     ['partially-connected', { text: t('partially-connected'), accent: 'warning' }],
     ['disconnected-from-physical-device', { text: t('disconnected-from-physical-device'), accent: 'warning' }],
     ['physically-disconnected', { text: t('disconnected-from-physical-device'), accent: 'danger' }],
+    ['unable-to-connect-to-the-pool', { text: t('unable-to-connect-to-the-pool'), accent: 'danger' }],
     ['success', { text: t('success'), accent: 'success' }],
     ['skipped', { text: t('skipped'), accent: 'warning' }],
     ['interrupted', { text: t('interrupted'), accent: 'danger' }],
@@ -54,3 +58,9 @@ const currentStatus = useMapper<Status, { text: string; accent: InfoAccent }>(
   false
 )
 </script>
+
+<style lang="postcss" scoped>
+.vts-status {
+  align-items: center;
+}
+</style>
