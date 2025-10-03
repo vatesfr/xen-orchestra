@@ -16,10 +16,11 @@
   - `GET /rest/v0/hosts/<host-id>/messages` (PR [#9027](https://github.com/vatesfr/xen-orchestra/pull/9027))
   - `GET /rest/v0/pools/<pool-id>/messages` (PR [#9022](https://github.com/vatesfr/xen-orchestra/pull/9022))
 
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [V2V] Do not lock stopped VMs (PR [#9047](https://github.com/vatesfr/xen-orchestra/pull/9047))
 
 ### Packages to release
 
