@@ -8,6 +8,7 @@ import {
   faCopy,
 } from '@fortawesome/free-regular-svg-icons'
 import {
+  faA,
   faAlignLeft,
   faAngleDoubleLeft,
   faAngleDoubleRight,
@@ -56,6 +57,7 @@ import {
   faExclamation,
   faExclamationCircle,
   faExternalLink,
+  faEye,
   faEyeSlash,
   faFileCsv,
   faFileExport,
@@ -108,6 +110,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 export const faIcons = defineIconPack({
+  a: { icon: faA },
   'align-left': { icon: faAlignLeft },
   'angle-double-left': { icon: faAngleDoubleLeft },
   'angle-double-right': { icon: faAngleDoubleRight },
@@ -125,6 +128,7 @@ export const faIcons = defineIconPack({
   'bars-progress': { icon: faBarsProgress },
   book: { icon: faBook },
   building: { icon: faBuilding },
+  calendar: { icon: faCalendar },
   camera: { icon: faCamera },
   'caret-down': { icon: faCaretDown },
   'caret-up': { icon: faCaretUp },
@@ -157,6 +161,7 @@ export const faIcons = defineIconPack({
   exclamation: { icon: faExclamation },
   'exclamation-circle': { icon: faExclamationCircle },
   'external-link': { icon: faExternalLink },
+  eye: { icon: faEye },
   'eye-slash': { icon: faEyeSlash },
   file: { icon: faFile },
   'file-csv': { icon: faFileCsv },
