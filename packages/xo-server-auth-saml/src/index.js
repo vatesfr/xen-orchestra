@@ -16,7 +16,7 @@ export const configurationSchema = {
       description: 'the callback URL',
       type: 'string',
     },
-    cert: {
+    idpCert: {
       $multiline: true,
       title: 'Certificate',
       description: "Copy/paste the identity provider's certificate",
@@ -53,7 +53,7 @@ You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddr
       type: 'boolean',
     },
   },
-  required: ['cert', 'entryPoint', 'issuer', 'usernameField'],
+  required: ['idpCert', 'entryPoint', 'issuer', 'usernameField'],
 }
 
 // ===================================================================
