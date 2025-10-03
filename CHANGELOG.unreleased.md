@@ -15,7 +15,6 @@
   - `GET /rest/v0/srs/<sr-id>/messages` (PR [#9028](https://github.com/vatesfr/xen-orchestra/pull/9028))
   - `GET /rest/v0/hosts/<host-id>/messages` (PR [#9027](https://github.com/vatesfr/xen-orchestra/pull/9027))
 
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -36,7 +35,12 @@
 
 <!--packages-start-->
 
+- @vates/generator-toolbox patch
+- @vates/types patch
+- @xen-orchestra/disk-transform patch
+- @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
-- xo-server patch
+- xo-server minor
+- xo-server-auth-saml minor
 
 <!--packages-end-->
