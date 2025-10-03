@@ -42,7 +42,7 @@ import ensureArray from './_ensureArray.mjs'
 import Xo from './xo.mjs'
 
 import bodyParser from 'body-parser'
-import connectFlash from 'connect-flash'
+import connectFlash from 'typed-flash'
 import cookieParser from 'cookie-parser'
 import expressSession from 'express-session'
 import passport from 'passport'
