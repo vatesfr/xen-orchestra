@@ -24,6 +24,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     settings,
     sourceRemoteAdapter,
     throttleGenerator,
+    throttleStream,
     vmUuid,
   }) {
     super()
@@ -37,6 +38,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     this._healthCheckSr = healthCheckSr
     this._sourceRemoteAdapter = sourceRemoteAdapter
     this._throttleGenerator = throttleGenerator
+    this._throttleStream = throttleStream
     this._vmUuid = vmUuid
 
     const allSettings = job.settings

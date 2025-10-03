@@ -48,6 +48,18 @@ export class DiskPassthrough extends Disk {
   async buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> {
     return this.source.buildDiskBlockGenerator()
   }
+
+  async *diskBlocks(uid:string): AsyncGenerator<DiskBlock>{
+    console.log('PASSTHROUGH disk blocks', this.source)
+    try{
+      for await(const block of this.source.diskBlocks(uid)){
+        yield block
+      }
+    }catch(error){
+      console.error('ERROR IN PASSTHROUGH ', error)
+      throw error
+    }
+  }
 }
 
 export abstract class RandomDiskPassthrough extends RandomAccessDisk {
@@ -81,8 +93,9 @@ export abstract class RandomDiskPassthrough extends RandomAccessDisk {
   getBlockSize(): number {
     return this.source.getBlockSize()
   }
-
-  abstract openSource(): Promise<RandomAccessDisk>
+  async openSource(): Promise<RandomAccessDisk> {
+    throw new Error('open source should be implemented to handle complex open scenario')
+  }
   async init(): Promise<void> {
     // open only if nothing has been given to the constructor
     this.#source = this.#source ?? (await this.openSource())

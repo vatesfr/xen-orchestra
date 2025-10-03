@@ -190,6 +190,7 @@ export class XapiVhdStreamSource extends Disk {
     async function* generator() {
       for (const { offset, index } of blockIndexes) {
         await self.#skip(offset - self.#streamOffset) // this will skip the bitmap
+       // await new Promise(resolve => setTimeout(resolve, 10000))
         const data = await self.#read(DEFAULT_BLOCK_SIZE)
         yield {
           index,
