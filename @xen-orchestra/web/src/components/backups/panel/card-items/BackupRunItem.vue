@@ -41,14 +41,19 @@
       {{ t('schedule') }}
     </template>
     <template #value>
-      <UiLink size="small" icon="object:backup-schedule" :href="`/#/backup/${backupRun.jobId}/edit`">
-        {{ scheduleName || backupRun.jobId }}
+      <UiLink
+        v-if="scheduleName"
+        size="small"
+        icon="object:backup-schedule"
+        :href="`/#/backup/${backupRun.jobId}/edit`"
+      >
+        {{ scheduleName }}
       </UiLink>
     </template>
   </VtsCardRowKeyValue>
   <UiLogEntryViewer
-    v-if="logContent"
-    :content="logContent"
+    v-if="shouldShowLog"
+    :content="backupRun.tasks![0].result.stack as string"
     :label="t('api-error-details')"
     size="small"
     :accent="backupRun.status === 'skipped' ? 'warning' : 'danger'"
@@ -78,13 +83,9 @@ const runDate = computed(() => backupRun.end ?? backupRun.start)
 
 const formattedRunDate = computed(() => new Date(runDate.value).toLocaleString())
 
-const logContent = computed(() => {
-  if (backupRun.status !== 'success' && backupRun.status !== 'pending' && backupRun.tasks && backupRun.tasks[0]) {
-    return backupRun.tasks[0].result.stack
-  }
+const shouldShowLog = computed(
+  () => backupRun.status !== 'success' && backupRun.status !== 'pending' && backupRun.tasks && backupRun.tasks[0].result
+)
 
-  return undefined
-})
-
-const scheduleName = computed(() => schedules.value.find(schedule => schedule.jobId === backupRun.jobId)?.name)
+const scheduleName = computed(() => schedules.value.filter(schedule => schedule.jobId === backupRun.jobId)[0]?.name)
 </script>

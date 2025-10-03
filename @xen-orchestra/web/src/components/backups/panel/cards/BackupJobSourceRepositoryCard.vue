@@ -24,9 +24,9 @@ const { mirrorBackupJob } = defineProps<{
 
 const { t } = useI18n()
 
-const { useGetBackupRepositoryById } = useXoBackupRepositoryCollection()
+const { getBackupRepositoryById } = useXoBackupRepositoryCollection()
 
-const sourceBackupRepository = useGetBackupRepositoryById(() => mirrorBackupJob.sourceRemote)
+const sourceBackupRepository = computed(() => getBackupRepositoryById(mirrorBackupJob.sourceRemote))
 
 const sourceBackupRepositoryIcon = computed(() =>
   sourceBackupRepository.value?.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected'

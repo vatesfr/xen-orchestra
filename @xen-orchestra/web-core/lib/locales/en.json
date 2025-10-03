@@ -412,6 +412,7 @@
   "new-vm.name": "VM name",
   "news": "News",
   "news-name": "{name} news",
+  "next-run": "next-run",
   "nic-type": "NIC type",
   "no-alarm-triggered": "No alarm triggered",
   "no-alarms-detected": "No alarms detected",
@@ -436,6 +437,7 @@
   "not-resident-on": "Not resident on",
   "not-running": "Not running",
   "not-yet-available": "Information is not yet available",
+  "number-retries-vm-fails": "Number of retries if VM backup fails",
   "object": "Object",
   "object-not-found": "Object {id} can't be found…",
   "off": "Off",
@@ -557,10 +559,12 @@
   "shutdown": "Shutdown",
   "sidebar.search-tree-view": "Search in treeview",
   "sidebar.vms-treeview": "VMs treeview",
+  "site-name": "Xen Orchestra Appliance",
   "size": "Size",
   "skipped": "Skipped",
   "smart-mode": "Smart mode",
   "snapshot": "Snapshot",
+  "snapshot-mode": "Snapshot-mode",
   "sockets-with-cores-per-socket": "{nSockets} sockets × {nCores} cores/socket",
   "software-tooling": "Software & tooling",
   "sort-by": "Sort by",
@@ -707,5 +711,8 @@
   "xoa-ssh-account": "XOA SSH account",
   "xoa-ssh-password-confirm-different": "SSH password confirmation is different",
   "you-are-currently-on": "You are currently on: {0}",
-  "zstd": "zstd"
+  "zstd": "zstd",
+  "used-space": "Used space",
+  "remaning-space": "Remaning space",
+  "total-capacity": "Total capacity"
 }
