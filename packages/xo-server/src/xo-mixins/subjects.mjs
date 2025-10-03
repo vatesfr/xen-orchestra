@@ -233,7 +233,7 @@ export default class {
   async getAllUsers() {
     const users = await this._users.get()
 
-    // TODO: remove when no longer the email property has been
+    // TODO: remove when the email property has been
     // completely eradicated.
     return users.map(user => {
       if (!('name' in user)) {
