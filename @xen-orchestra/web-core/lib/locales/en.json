@@ -428,6 +428,7 @@
   "no-config": "No configuration",
   "no-data": "No data",
   "no-data-to-calculate": "No data to calculate",
+  "no-hosts-available": "no hosts available",
   "no-network-detected": "No network detected",
   "no-pif-detected": "No PIF detected",
   "no-pools-detected": "No pools detected",
