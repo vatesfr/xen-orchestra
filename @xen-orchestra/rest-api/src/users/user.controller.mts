@@ -18,7 +18,7 @@ import {
 import { inject } from 'inversify'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoAuthenticationToken, XoGroup, XoUser } from '@vates/types'
+import type { XoAuthenticationToken, XoGroup, XoTask, XoUser } from '@vates/types'
 
 import {
   createdResp,
@@ -39,6 +39,7 @@ import type { UpdateUserRequestBody } from './user.type.mjs'
 import { UserService } from './user.service.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
+import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('users')
 @Security('*')
@@ -235,5 +236,29 @@ export class UserController extends XoController<XoUser> {
     const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(user.id)
 
     return limitAndFilterArray(tokens, { filter, limit })
+  }
+
+  /**
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getUserTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoUser['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
 }
