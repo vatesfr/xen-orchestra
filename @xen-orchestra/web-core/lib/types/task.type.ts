@@ -11,5 +11,5 @@ export type Task = {
   end?: number
   status: TaskStatus
   subtasks?: Task[]
-  warning?: { data: unknown; message: string }[]
+  warnings?: { data: unknown; message: string }[]
 }

@@ -9,6 +9,8 @@ export const convertTaskToCore = (task: XoTask, userName?: string): Task => ({
   progress: typeof task.properties.progress === 'number' ? task.properties.progress : 0,
   userName,
   start: task.start,
+  infos: task.infos,
+  warnings: task.warnings,
   end: task.end,
   subtasks: task.tasks?.map(subtask => convertTaskToCore(subtask, userName)),
 })

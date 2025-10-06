@@ -1,0 +1,57 @@
+<template>
+  <UiCard>
+    <UiCardTitle>
+      {{ t('task.properties') }}
+      <UiCounter
+        v-if="properties.other"
+        :value="Object.keys(properties.other).length"
+        accent="neutral"
+        size="small"
+        variant="primary"
+      />
+    </UiCardTitle>
+    <div class="content">
+      <UiLogEntryViewer
+        v-if="properties.other && Object.keys(properties.other).length > 0"
+        :content="properties.other"
+        :label="t('other-properties')"
+        size="small"
+        accent="info"
+      />
+    </div>
+    <div>
+      <TaskPropertiesRecursive :data="properties.other as Record<string, unknown>" />
+    </div>
+  </UiCard>
+</template>
+
+<script lang="ts" setup>
+import TaskPropertiesRecursive from '@/components/tasks/panel/cards/TaskPropertiesRecursive.vue'
+import { useTaskPropertiesUtils } from '@/composables/xo-task-properties-utils.composable.ts'
+import type { XoTask } from '@/types/xo/task.type.ts'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import { useI18n } from 'vue-i18n'
+
+const { task } = defineProps<{
+  task: XoTask
+}>()
+
+const { t } = useI18n()
+
+const { properties } = useTaskPropertiesUtils(task)
+</script>
+
+<style scoped lang="postcss">
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  .divider {
+    margin-block: 1.6rem;
+  }
+}
+</style>
