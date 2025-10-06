@@ -100,6 +100,7 @@
 
 <!--packages-start-->
 
+- @vates/generator-toolbox minor
 - @vates/types minor
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api minor
