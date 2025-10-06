@@ -1,8 +1,36 @@
 # ChangeLog
 
-## **5.111.0** (2025-09-30)
+## **5.111.1** (2025-10-06)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- **Migrated REST API endpoints**:
+  - `GET /rest/v0/srs/<sr-id>/messages` (PR [#9028](https://github.com/vatesfr/xen-orchestra/pull/9028))
+  - `GET /rest/v0/hosts/<host-id>/messages` (PR [#9027](https://github.com/vatesfr/xen-orchestra/pull/9027))
+  - `GET /rest/v0/pools/<pool-id>/messages` (PR [#9022](https://github.com/vatesfr/xen-orchestra/pull/9022))
+
+### Bug fixes
+
+- [V2V] Do not lock stopped VMs (PR [#9047](https://github.com/vatesfr/xen-orchestra/pull/9047))
+- [Backups] Fix EEXIST error when retrying a backup (PR [#9039](https://github.com/vatesfr/xen-orchestra/pull/9039))
+- [Backups] Fix stuck backup when the source is timing out (PR [#9039](https://github.com/vatesfr/xen-orchestra/pull/9039))
+- [V2V] Fix import stuck before any disk data (PR [#9045](https://github.com/vatesfr/xen-orchestra/pull/9045))
+
+### Released packages
+
+- @vates/async-each 1.0.1
+- @xen-orchestra/fs 4.6.4
+- @vates/types 1.12.1
+- @xen-orchestra/proxy 0.29.32
+- @xen-orchestra/rest-api 0.18.0
+- @xen-orchestra/vmware-explorer 0.10.3
+- @xen-orchestra/web 0.30.1
+- xo-server 5.190.1
+- xo-server-auth-saml 0.11.1
+
+## **5.111.0** (2025-09-30)
 
 ### Highlights
 

@@ -502,7 +502,7 @@ export default class Esxi extends EventEmitter {
             return reject(err)
           }
           if (stdout) {
-            const matches = stdout.match(/sha1 Fingerprint=([0-9A-F:]+)/)
+            const matches = stdout.match(/sha1 Fingerprint=([0-9A-F:]+)/i)
             if (matches === null) {
               throw new Error(`Can't extract server finger print`, { stdout })
             }
