@@ -694,6 +694,7 @@
   "task-type": "Task type",
   "task:ended": "@:ended",
   "task:started": "@:started",
+  "task:type": "Task type",
   "tasks": "Tasks",
   "tasks:all": "@:all",
   "tasks:done": "@:done",

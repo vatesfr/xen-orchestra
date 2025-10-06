@@ -694,6 +694,7 @@
   "task-type": "Type de tâche",
   "task:ended": "Terminée",
   "task:started": "Démarrée",
+  "task:type": "Type de tâche",
   "tasks": "Tâches",
   "tasks:all": "Toutes",
   "tasks:done": "Terminées",
