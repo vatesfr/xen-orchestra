@@ -26,7 +26,6 @@ import {
   vmTemplateIds,
   vmTemplateVdis,
 } from '../open-api/oa-examples/vm-template.oa-example.mjs'
-import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
@@ -42,7 +41,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(AlarmService) alarmService: AlarmService,
-    @inject(VmService) vmService: VmService,
+    @inject(VmService) vmService: VmService
   ) {
     super('VM-template', restApi)
     this.#alarmService = alarmService
@@ -190,6 +189,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     return this.sendObjects(Object.values(messages), req, 'messages')
   }
 
+
   /**
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example fields "id,status,properties"
@@ -209,7 +209,7 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.getTasksForObject(id as XoVmTemplate['id'], { filter, limit })
+        const tasks = await this.getTasksForObject(id as XoVmTemplate['id'], { filter, limit })
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
