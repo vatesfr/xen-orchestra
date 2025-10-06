@@ -103,10 +103,12 @@
 - @vates/generator-toolbox minor
 - @vates/types minor
 - @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform minor
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
 - xo-server minor
 - xo-server-auth-saml minor
 - xo-web patch
