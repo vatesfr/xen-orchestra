@@ -16,7 +16,7 @@ export const configurationSchema = {
       description: 'the callback URL',
       type: 'string',
     },
-    idpCert: {
+    cert: {
       $multiline: true,
       title: 'Certificate',
       description: "Copy/paste the identity provider's certificate",
@@ -53,7 +53,7 @@ You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddr
       type: 'boolean',
     },
   },
-  required: ['idpCert', 'entryPoint', 'issuer', 'usernameField'],
+  required: ['cert', 'entryPoint', 'issuer', 'usernameField'],
 }
 
 // ===================================================================
@@ -73,6 +73,7 @@ class AuthSamlXoPlugin {
       ...this._strategyOptions,
       ...DEFAULTS,
       path: '/signin/saml/callback',
+      idpCert: conf.cert,
 
       ...conf,
     }
