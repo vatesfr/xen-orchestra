@@ -29,6 +29,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     settings,
     srs,
     throttleGenerator,
+    throttleStream,
     vm,
   }) {
     super()
@@ -63,6 +64,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     this._jobId = job.id
     this._jobSnapshotVdis = undefined
     this._throttleGenerator = throttleGenerator
+    this._throttleStream = throttleStream
     this._xapi = vm.$xapi
 
     // Base VM for the export

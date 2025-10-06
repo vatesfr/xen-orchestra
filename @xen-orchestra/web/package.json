@@ -3,7 +3,6 @@
   "version": "0.30.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "optimize": "vite optimize --force",
     "preview": "vite preview",
