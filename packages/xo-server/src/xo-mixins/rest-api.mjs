@@ -265,6 +265,7 @@ export default class RestApi {
       vifs: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       vms: {
