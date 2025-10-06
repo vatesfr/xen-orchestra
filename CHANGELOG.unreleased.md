@@ -109,6 +109,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
+- vhd-lib patch
 - xo-server minor
 - xo-server-auth-saml minor
 - xo-web patch
