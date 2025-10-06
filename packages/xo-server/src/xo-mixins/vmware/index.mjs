@@ -199,9 +199,12 @@ export default class MigrateVm {
     await Task.run({ properties: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
       await vm.set_name_label(metadata.name_label)
+      const wasStopped = metadata.powerState === 'poweredOff'
 
       // remove lock on start if the VM has been completly imported
-      stopSource && (await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null)))
+      if (stopSource || wasStopped) {
+        await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
+      }
     })
 
     return vm.uuid

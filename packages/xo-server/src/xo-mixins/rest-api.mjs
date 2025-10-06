@@ -229,11 +229,13 @@ export default class RestApi {
       networks: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       pifs: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       pools: {
@@ -331,6 +333,7 @@ export default class RestApi {
       'vdi-snapshots': {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       servers: {},
