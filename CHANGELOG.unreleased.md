@@ -47,6 +47,7 @@
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/xapi patch
+- vhd-lib patch
 - xo-server patch
 
 <!--packages-end-->

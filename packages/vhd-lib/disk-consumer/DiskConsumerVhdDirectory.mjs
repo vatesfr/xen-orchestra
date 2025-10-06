@@ -45,8 +45,9 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
     const { handler, path, compression, flags, validator, concurrency } = this.#target
     const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
     const uid = 'to stream ' + Math.random()
-    const generator = this.source.diskBlocks(uid)
+    let generator
     try {
+      generator = this.source.diskBlocks(uid)
       await handler.mktree(dataPath)
       const vhd = new VhdDirectory(handler, dataPath, { flags, compression })
       vhd.footer = unpackFooter(this.computeVhdFooter())
@@ -62,6 +63,7 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       await validator(dataPath)
       await VhdAbstract.createAlias(handler, path, dataPath)
     } catch (err) {
+      await this.source.close().catch(() => {}) // close this disk in error
       await handler.rmtree(dataPath).catch(() => {}) // data
       await handler.unlink(path).catch(() => {}) // alias
       throw err
