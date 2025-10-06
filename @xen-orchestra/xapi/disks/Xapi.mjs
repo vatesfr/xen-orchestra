@@ -5,7 +5,7 @@
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
  */
 
-import { DiskLargerBlock, DiskPassthrough, ReadAhead, TimeoutDisk, TimeoutRandomDisk } from '@xen-orchestra/disk-transform'
+import { DiskLargerBlock, DiskPassthrough, ReadAhead, TimeoutDisk } from '@xen-orchestra/disk-transform'
 import { createLogger } from '@xen-orchestra/log'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiStreamNbdSource } from './XapiStreamNbd.mjs'
@@ -55,7 +55,15 @@ export class XapiDiskSource extends DiskPassthrough {
    * @param {number} [params.blockSize=2*1024*1024]
    * @param {number} [params.timeout=5*60*1000]
    */
-  constructor({ xapi, vdiRef, baseRef, preferNbd = xapi._preferNbd, nbdConcurrency = 2, blockSize = 2 * 1024 * 1024 , timeout = 5*1000}) {
+  constructor({
+    xapi,
+    vdiRef,
+    baseRef,
+    preferNbd = xapi._preferNbd,
+    nbdConcurrency = 2,
+    blockSize = 2 * 1024 * 1024,
+    timeout = 5 * 1000,
+  }) {
     super(undefined)
     this.#baseRef = baseRef
     this.#blockSize = blockSize
@@ -88,7 +96,6 @@ export class XapiDiskSource extends DiskPassthrough {
       }
       source = new XapiStreamNbdSource(streamSource, { vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
       await source.init()
-      source = new TimeoutRandomDisk(source, this.#timeout)
       if (source.getBlockSize() < this.#blockSize) {
         source = new DiskLargerBlock(source, this.#blockSize)
       }
@@ -105,6 +112,7 @@ export class XapiDiskSource extends DiskPassthrough {
     }
     this.#useNbd = true
     const readAhead = new ReadAhead(source)
+    source = new TimeoutDisk(source, this.#timeout)
     const label = await xapi.getField('VDI', vdiRef, 'name_label')
     readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD`)
     return readAhead
@@ -131,7 +139,6 @@ export class XapiDiskSource extends DiskPassthrough {
       }
       await source.init()
       source = new TimeoutDisk(source, this.#timeout)
-
     } catch (error) {
       await source?.close()
       if (baseRef !== undefined) {
@@ -164,7 +171,7 @@ export class XapiDiskSource extends DiskPassthrough {
       this.#useNbd = true
       this.#useCbt = true
       const readAhead = new ReadAhead(source)
-      source = new TimeoutRandomDisk(source, this.#timeout)
+      source = new TimeoutDisk(source, this.#timeout)
       if (source.getBlockSize() < this.#blockSize) {
         source = new DiskLargerBlock(source, this.#blockSize)
       }
@@ -214,8 +221,8 @@ export class XapiDiskSource extends DiskPassthrough {
     return this.#useCbt
   }
 
-  async readBlock(index){
-    if(this.source.readBlock !== undefined){
+  async readBlock(index) {
+    if (this.source.readBlock !== undefined) {
       return this.source.readBlock(index)
     } else {
       throw new Error("Can't readblock of stream")

@@ -14,7 +14,7 @@ import {
   setVmDeltaChainLength,
   markExportSuccessfull,
 } from '../../_otherConfig.mjs'
-import { ThrottledDisk, SynchronizedDisk, ThrottledRandomDisk } from '@xen-orchestra/disk-transform'
+import { ThrottledDisk, SynchronizedDisk } from '@xen-orchestra/disk-transform'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
@@ -49,11 +49,7 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
         Task.warning('Backup fell back to a full')
       }
       useNbd = useNbd || disk.useNbd()
-      if(disk.useNbd()){
-        disk = new ThrottledRandomDisk(disk, this._throttleGenerator)
-      } else {
-        disk = new ThrottledDisk(disk, this._throttleGenerator)
-      } 
+      disk = new ThrottledDisk(disk, this._throttleGenerator)
       deltaExport.disks[key] = new SynchronizedDisk(disk)
     }
     if (useNbd) {

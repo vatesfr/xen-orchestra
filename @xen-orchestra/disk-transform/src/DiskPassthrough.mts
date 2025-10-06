@@ -46,19 +46,8 @@ export class DiskPassthrough extends Disk {
     return this.source.hasBlock(index)
   }
   async buildDiskBlockGenerator(): Promise<AsyncGenerator<DiskBlock>> {
+    console.log('passthrouh', this, this.source)
     return this.source.buildDiskBlockGenerator()
-  }
-
-  async *diskBlocks(uid:string): AsyncGenerator<DiskBlock>{
-    console.log('PASSTHROUGH disk blocks', this.source)
-    try{
-      for await(const block of this.source.diskBlocks(uid)){
-        yield block
-      }
-    }catch(error){
-      console.error('ERROR IN PASSTHROUGH ', error)
-      throw error
-    }
   }
 }
 
