@@ -16,7 +16,7 @@ export const FullRemote = class FullRemoteVmBackupRunner extends AbstractRemote 
     const transferList = await this._computeTransferList(({ mode }) => mode === 'full')
 
     for (const metadata of transferList) {
-      const stream = await this._sourceRemoteAdapter.readFullVmBackup(metadata)
+      const stream = this._throttleStream(await this._sourceRemoteAdapter.readFullVmBackup(metadata))
       const sizeContainer = watchStreamSize(stream)
 
       // @todo shouldn't transfer backup if it will be deleted by retention policy (higher retention on source than destination)

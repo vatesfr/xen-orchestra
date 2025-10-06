@@ -9,6 +9,7 @@ import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { FullRemote } from './_vmRunners/FullRemote.mjs'
 import { IncrementalRemote } from './_vmRunners/IncrementalRemote.mjs'
 import { Throttle } from '@vates/generator-toolbox'
+import createStreamThrottle from './_createStreamThrottle.mjs'
 
 const noop = Function.prototype
 
@@ -41,7 +42,8 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
     const schedule = this._schedule
     const settings = this._settings
 
-    const throttleGenerator = new Throttle()
+    const throttleGenerator = new Throttle(settings.maxExportRate)
+    const throttleStream = createStreamThrottle(settings.maxExportRate)
 
     const config = this._config
 
@@ -89,7 +91,8 @@ export const VmsRemote = class RemoteVmsBackupRunner extends Abstract {
             schedule,
             settings: vmSettings,
             sourceRemoteAdapter,
-            throttleGenerator,
+            throttleGenerator, // for incrementals
+            throttleStream, // for full
             vmUuid,
           }
           let vmBackup

@@ -42,6 +42,7 @@
 
 - @vates/async-each patch
 - @vates/generator-toolbox minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - xo-server patch
