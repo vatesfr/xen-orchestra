@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.111.1** (2025-10-06)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -29,8 +31,6 @@
 - xo-server-auth-saml 0.11.1
 
 ## **5.111.0** (2025-09-30)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
