@@ -42,9 +42,11 @@
 <!--packages-start-->
 
 - @vates/async-each patch
+- @vates/types patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/vmware-explorer patch
 - xo-server patch
+- xo-server-auth-saml patch
 
 <!--packages-end-->
