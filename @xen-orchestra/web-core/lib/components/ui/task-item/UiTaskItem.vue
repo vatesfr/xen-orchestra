@@ -24,7 +24,7 @@
           {{ task.tag }}
         </UiTag>
         <UiInfo v-if="isError" accent="danger" />
-        <UiInfo v-if="task.warning?.length" accent="warning" />
+        <UiInfo v-if="task.warnings?.length" accent="warning" />
         <UiInfo v-if="task.infos?.length" accent="info" />
         <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="muted" variant="primary" size="small" />
       </div>
@@ -35,10 +35,10 @@
           {{ task.userName }}
         </div>
         <span v-if="task.start" class="start-time">
-          {{ `${t('task.started')} ${started}` }}
+          {{ `${t('task.started')} ${relativeStartTime}` }}
         </span>
         <span v-if="task.end" class="end-time">
-          {{ `${t('task.estimated-end')} ${end}` }}
+          {{ `${task.status === 'pending' ? t('task.estimated-end') : t('task.ended')} ${relativeEndTime}` }}
         </span>
         <div class="progress">
           <UiCircleProgressBar v-if="task.progress" :accent="progressAccent" size="small" :value="task.progress" />
@@ -48,7 +48,7 @@
             <UiButtonIcon v-if="task.status === 'pending'" icon="fa:close" size="medium" accent="danger" />
           </div>
           <!-- TODO add link to open side panel with task details -->
-          <UiButtonIcon icon="fa:eye" size="medium" accent="brand" />
+          <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select')" />
         </div>
       </div>
     </div>
@@ -64,9 +64,11 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
+import useRelativeTime from '@core/composables/relative-time.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { Task } from '@core/types/task.type.ts'
-import { useTimeAgo } from '@vueuse/core'
+import { parseDateTime } from '@core/utils/time.util.ts'
+import { useNow } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
@@ -81,6 +83,7 @@ const { task } = defineProps<{
 
 const emit = defineEmits<{
   expand: []
+  select: []
 }>()
 
 const { t } = useI18n()
@@ -93,10 +96,14 @@ const hasSubTasks = computed(() => subTasksCount.value > 0)
 
 const isError = computed(() => task.status === 'failure' || task.status === 'interrupted')
 
-const progressAccent = computed(() => (isError.value ? 'danger' : task.warning?.length ? 'warning' : 'info'))
+const progressAccent = computed(() => (isError.value ? 'danger' : 'info'))
 
-const started = useTimeAgo(() => task.start)
-const end = useTimeAgo(() => task.end ?? 0)
+const startDate = computed(() => new Date(parseDateTime(task.start)))
+const endDate = computed(() => new Date(parseDateTime(task.end ?? 0)))
+
+const now = useNow({ interval: 1000 })
+const relativeStartTime = useRelativeTime(startDate, now)
+const relativeEndTime = useRelativeTime(endDate, now)
 </script>
 
 <style lang="postcss" scoped>
