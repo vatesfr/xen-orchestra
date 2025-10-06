@@ -15,7 +15,7 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.0",
+    "@vates/async-each": "^1.0.1",
     "@vates/diff": "^0.1.0",
     "@vates/read-chunk": "^1.2.1",
     "@vates/stream-reader": "^0.1.0",
