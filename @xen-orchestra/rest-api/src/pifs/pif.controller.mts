@@ -2,7 +2,7 @@ import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } f
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import type { XoAlarm, XoPif } from '@vates/types'
+import type { XoAlarm, XoMessage, XoPif } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -12,6 +12,7 @@ import { partialPifs, pif, pifIds } from '../open-api/oa-examples/pif.oa-example
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
 type UnbrandedXoPif = Unbrand<XoPif>
 
@@ -80,5 +81,29 @@ export class PifController extends XapiXoController<XoPif> {
     })
 
     return this.sendObjects(Object.values(alarms), req, 'alarms')
+  }
+
+  /**
+   * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getPifMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const messages = this.getMessagesForObject(id as XoPif['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
   }
 }

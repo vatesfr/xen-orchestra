@@ -22,7 +22,7 @@
     "node": ">=14.0.0"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.0",
+    "@vates/async-each": "^1.0.1",
     "@xen-orchestra/backups": "^0.64.3",
     "@xen-orchestra/log": "^0.7.1",
     "app-conf": "^3.0.0",
