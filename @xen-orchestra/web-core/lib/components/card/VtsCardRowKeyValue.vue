@@ -26,17 +26,15 @@ const slots = defineSlots<{
 .vts-card-row-key-value {
   display: flex;
   align-items: center;
-  gap: 1.2rem;
+  gap: 1.6rem;
 
   .key {
-    width: 12rem;
-    min-width: 12rem;
     overflow-wrap: break-word;
     color: var(--color-neutral-txt-secondary);
   }
 
   .value {
-    width: 20rem;
+    max-width: 25rem;
     color: var(--color-neutral-txt-primary);
   }
 
