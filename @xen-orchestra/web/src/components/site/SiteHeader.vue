@@ -22,7 +22,9 @@
     <RouterLink v-slot="{ isExactActive, href }" to="/pools" custom>
       <TabItem :active="isExactActive" :href tag="a">{{ t('pools') }}</TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('hosts') }}</TabItem>
+    <RouterLink v-slot="{ isExactActive, href }" to="/hosts" custom>
+      <TabItem :active="isExactActive" :href tag="a">{{ t('hosts') }}</TabItem>
+    </RouterLink>
     <TabItem disabled>{{ t('vms', 2) }}</TabItem>
   </TabList>
 </template>
