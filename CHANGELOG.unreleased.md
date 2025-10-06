@@ -38,6 +38,9 @@
 
 - [VM] Fix some action buttons being hidden from admin users when VM had been created with Self Service (PR [#9061](https://github.com/vatesfr/xen-orchestra/pull/9061))
 
+- **XO 6**:
+  - [Site/Backups] Fix an issue properties of undefined in backups tab (PR [#9064](https://github.com/vatesfr/xen-orchestra/pull/9064))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
