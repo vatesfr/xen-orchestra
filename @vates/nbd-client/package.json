@@ -19,7 +19,7 @@
   },
   "main": "./index.mjs",
   "dependencies": {
-    "@vates/async-each": "^1.0.0",
+    "@vates/async-each": "^1.0.1",
     "@vates/read-chunk": "^1.2.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/disk-transform": "^1.0.1",
