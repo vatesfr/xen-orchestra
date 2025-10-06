@@ -7,7 +7,7 @@ import { computed } from 'vue'
 const ONE_DAY = 24 * 60 * 60 * 1000
 
 export const useXoTaskCollection = defineRemoteResource({
-  url: '/rest/v0/tasks?fields=id,start,end,properties,status,progress,tasks',
+  url: '/rest/v0/tasks?fields=id,start,end,properties,infos,warnings,status,progress,tasks,result',
   initialData: () => [] as XoTask[],
   state: (tasks, context) => {
     const lastDayTasks = computed(() => {
