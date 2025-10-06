@@ -73,20 +73,20 @@ exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 10, s
       }
       nextIsRunning = true
       if (running < concurrency) {
-        const cursor = await it.next()
-        if (cursor.done) {
-          next = () => {
-            if (running === 0) {
-              if (errors.length === 0) {
-                resolve()
-              } else {
-                reject(new AggregateError(errors))
+        try {
+          const cursor = await it.next()
+          if (cursor.done) {
+            next = () => {
+              if (running === 0) {
+                if (errors.length === 0) {
+                  resolve()
+                } else {
+                  reject(new AggregateError(errors))
+                }
               }
             }
-          }
-        } else {
-          ++running
-          try {
+          } else {
+            ++running
             const result = iteratee.call(this, cursor.value, index++, iterable)
             let then
             if (result != null && typeof result === 'object' && typeof (then = result.then) === 'function') {
@@ -94,9 +94,9 @@ exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 10, s
             } else {
               onFulfilled(result)
             }
-          } catch (error) {
-            onRejected(error)
           }
+        } catch (error) {
+          onRejected(error)
         }
         nextIsRunning = false
         return next()

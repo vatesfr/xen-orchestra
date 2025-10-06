@@ -229,11 +229,13 @@ export default class RestApi {
       networks: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       pifs: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       pools: {
