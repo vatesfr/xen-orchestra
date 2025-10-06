@@ -327,6 +327,7 @@ export default class RestApi {
       vdis: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       'vdi-snapshots': {
