@@ -104,6 +104,7 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/input/ui-input': RouteRecordInfo<'/story/web-core/ui/input/ui-input', '/story/web-core/ui/input/ui-input', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/input/ui-textarea': RouteRecordInfo<'/story/web-core/ui/input/ui-textarea', '/story/web-core/ui/input/ui-textarea', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/label/ui-label': RouteRecordInfo<'/story/web-core/ui/label/ui-label', '/story/web-core/ui/label/ui-label', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/label-value/ui-label-value': RouteRecordInfo<'/story/web-core/ui/label-value/ui-label-value', '/story/web-core/ui/label-value/ui-label-value', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/legend/ui-legend': RouteRecordInfo<'/story/web-core/ui/legend/ui-legend', '/story/web-core/ui/legend/ui-legend', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/legend/ui-legend-title': RouteRecordInfo<'/story/web-core/ui/legend/ui-legend-title', '/story/web-core/ui/legend/ui-legend-title', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/link/ui-link': RouteRecordInfo<'/story/web-core/ui/link/ui-link', '/story/web-core/ui/link/ui-link', Record<never, never>, Record<never, never>>,
