@@ -26,13 +26,22 @@
             :icon="`object:host:${isHostRunning(column.value.state)}`"
             :to="`/host/${column.value.id}/`"
             size="medium"
+            class="value"
           >
-            {{ column.value.label }}
+            <span v-tooltip class="text-ellipsis">
+              {{ column.value.label }}
+            </span>
           </UiLink>
           <span v-else-if="column.id === 'description'">
             {{ column.value }}
           </span>
-          <span v-else-if="column.id === 'ipv4-address'">
+          <span
+            v-else-if="column.id === 'ipv4-address'"
+            v-tooltip="
+              `${column.value.masterIp}${column.value.pif.length > 0 ? ', ' : ''}${column.value.pif.join(', ')}`
+            "
+            class="text-ellipsis"
+          >
             <span class="text-ellipsis">{{ column.value.masterIp }}</span>
             <span v-if="column.value.pif.length > 0" class="typo-body-regular-small more-ips">
               {{ ` +${column.value.pif.length}` }}
@@ -72,6 +81,7 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useTable } from '@core/composables/table.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { HOST_POWER_STATE } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -141,3 +151,9 @@ const isHostRunning = (host: HOST_POWER_STATE) => {
   }
 }
 </script>
+
+<style lang="postcss" scoped>
+.value {
+  width: 100%;
+}
+</style>
