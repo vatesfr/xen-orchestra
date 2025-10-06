@@ -235,6 +235,7 @@ export default class RestApi {
       pifs: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       pools: {
