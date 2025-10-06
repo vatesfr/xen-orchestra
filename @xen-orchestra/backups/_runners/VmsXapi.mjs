@@ -10,6 +10,7 @@ import { getAdaptersByRemote } from './_getAdaptersByRemote.mjs'
 import { IncrementalXapi } from './_vmRunners/IncrementalXapi.mjs'
 import { FullXapi } from './_vmRunners/FullXapi.mjs'
 import { Throttle } from '@vates/generator-toolbox'
+import createStreamThrottle from './_createStreamThrottle.mjs'
 
 const noop = Function.prototype
 
@@ -55,7 +56,8 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
     const schedule = this._schedule
     const settings = this._settings
 
-    const throttleGenerator = new Throttle()
+    const throttleGenerator = new Throttle(settings.maxExportRate)
+    const throttleStream = createStreamThrottle(settings.maxExportRate)
 
     const config = this._config
 
@@ -148,6 +150,7 @@ export const VmsXapi = class VmsXapiBackupRunner extends Abstract {
                       settings: vmSettings,
                       srs,
                       throttleGenerator,
+                      throttleStream,
                       vm,
                     }
 

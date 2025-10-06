@@ -102,6 +102,7 @@
 
 - @vates/generator-toolbox minor
 - @vates/types minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
