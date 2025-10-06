@@ -58,9 +58,6 @@
     "copy-to-clipboard": "^3.0.8",
     "d3": "^5.0.0",
     "debounce-input-decorator": "^1.0.0",
-    "enzyme": "^3.3.0",
-    "enzyme-adapter-react-15": "^1.0.5",
-    "enzyme-to-json": "^3.3.0",
     "font-awesome": "^4.7.0",
     "font-mfizz": "^2.4.1",
     "get-stream": "^4.0.0",
@@ -154,12 +151,6 @@
     "transform": [
       "babelify",
       "loose-envify"
-    ]
-  },
-  "jest": {
-    "setupTestFrameworkScriptFile": "./setup-tests.js",
-    "snapshotSerializers": [
-      "enzyme-to-json/serializer"
     ]
   }
 }
