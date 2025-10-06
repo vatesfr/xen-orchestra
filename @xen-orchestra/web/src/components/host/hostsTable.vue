@@ -33,7 +33,10 @@
             {{ column.value }}
           </span>
           <span v-else-if="column.id === 'ipv4-address'">
-            {{ column.value }}
+            <span class="text-ellipsis">{{ column.value.masterIp }}</span>
+            <span v-if="column.value.pif.length > 0" class="typo-body-regular-small more-ips">
+              {{ ` +${column.value.pif.length}` }}
+            </span>
           </span>
           <span v-else-if="column.id === 'tags'">
             <template v-if="column.value.length > 0">
@@ -56,6 +59,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection'
 import type { XoHost } from '@/types/xo/host.type'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -77,6 +81,7 @@ const { hosts } = defineProps<{
 }>()
 
 const { t } = useI18n()
+const { pifsByHost } = useXoPifCollection()
 
 const searchQuery = ref('')
 
@@ -97,7 +102,20 @@ const { visibleColumns, rows } = useTable('hosts', filteredHosts, {
       label: t('name'),
     }),
     define('description', record => record.name_description, { label: t('description') }),
-    define('ipv4-address', record => record.address, { label: t('ip-addresses') }),
+    define(
+      'ipv4-address',
+      record => ({
+        masterIp: record.address,
+        pif:
+          pifsByHost.value
+            .get(record.id)
+            ?.map(pif => pif.ip)
+            .filter(ip => ip !== '' && ip !== record.address) ?? [],
+      }),
+      {
+        label: t('ip-addresses'),
+      }
+    ),
     define('tags', record => record.tags, { label: t('tags') }),
   ],
 })
