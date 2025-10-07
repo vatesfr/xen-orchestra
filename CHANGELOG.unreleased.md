@@ -22,7 +22,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Copy to clipboard] Fix button sometimes disappearing when trying to reach it
+- [Copy to clipboard] Fix button sometimes disappearing when trying to reach it (PR [#9059](https://github.com/vatesfr/xen-orchestra/pull/9059))
 
 ### Packages to release
 
