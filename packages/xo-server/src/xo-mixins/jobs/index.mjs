@@ -143,7 +143,11 @@ export default class Jobs {
       job = await this.getJob(id)
       patch(job, props)
     }
-    await this._jobs.update(job)
+    console.log('-=-=-=-=-=->', job)
+    const tmp = await this._jobs.update(job)
+    console.log("........res:", tmp)
+    const tmp2 = await this.getJob(job.id)
+    console.log("~~~~~~~tmp2:", tmp2)
   }
 
   registerJobExecutor(type, executor) {
@@ -189,6 +193,9 @@ export default class Jobs {
       type,
     }
     const runJobId = logger.notice(`Starting execution of ${id}.`, jobData)
+    // Links the job run to a backup log
+    // We keep the jobs for this because of some mehcnanism jobs have like preventing double execution.
+    jobData.runJobId = runJobId
 
     const app = this._app
     try {
@@ -205,6 +212,9 @@ export default class Jobs {
 
       // runId is a temporary property used to check if the report is sent after the server interruption
       this.updateJob({ id, runId: runJobId })::ignoreErrors()
+      const jobUpdateFct = (backupTaskId) => {console.log("---> fct", backupTaskId, 'jobId:', id); try {this.updateJob({ id, backupTaskId })} catch(err) {console.log("======> ERR", err)}}
+      // this.getJob(id)
+
       runningJobs[id] = runJobId
 
       $defer(() => {
@@ -284,6 +294,7 @@ export default class Jobs {
         connection,
         data: data_,
         job,
+        jobUpdateFct,
         jobData,
         logger,
         runJobId,
