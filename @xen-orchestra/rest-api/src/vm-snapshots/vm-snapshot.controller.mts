@@ -26,7 +26,6 @@ import {
   vmSnapshotIds,
   vmSnapshotVdis,
 } from '../open-api/oa-examples/vm-snapshot.oa-example.mjs'
-import { TaskService } from '../tasks/task.service.mjs'
 import { VmService } from '../vms/vm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
@@ -38,18 +37,15 @@ import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-
 export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   #alarmService: AlarmService
   #vmService: VmService
-  #taskService: TaskService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
     @inject(AlarmService) alarmService: AlarmService,
-    @inject(VmService) vmService: VmService,
-    @inject(TaskService) taskService: TaskService
+    @inject(VmService) vmService: VmService
   ) {
     super('VM-snapshot', restApi)
     this.#alarmService = alarmService
     this.#vmService = vmService
-    this.#taskService = taskService
   }
 
   /**
@@ -213,7 +209,8 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
-    const tasks = await this.#taskService.getTasks({ filter, limit })
-    return this.sendObjects(tasks, req, 'tasks')
+    const tasks = await this.getTasksForObject(id as XoVmSnapshot['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
 }
