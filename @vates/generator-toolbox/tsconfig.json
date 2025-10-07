@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2023",
     "module": "ESNext",
+    "types": ["node"], // Only use types from Node.js and packages that are explicitly imported
     "moduleResolution": "bundler",
     "strict": true,
     "declaration": true, // Generates `.d.ts` files for type safety

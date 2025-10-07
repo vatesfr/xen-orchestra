@@ -1,4 +1,4 @@
-import { Strategy } from 'passport-saml'
+import { Strategy } from '@node-saml/passport-saml'
 
 // ===================================================================
 
@@ -73,6 +73,7 @@ class AuthSamlXoPlugin {
       ...this._strategyOptions,
       ...DEFAULTS,
       path: '/signin/saml/callback',
+      idpCert: conf.cert,
 
       ...conf,
     }
