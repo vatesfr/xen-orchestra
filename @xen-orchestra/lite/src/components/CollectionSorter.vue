@@ -28,7 +28,7 @@ import { useModal } from '@core/packages/modal/use-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { availableSorts } = defineProps<{
   availableSorts: Sorts
   activeSorts: ActiveSorts<Record<string, any>>
 }>()
@@ -43,7 +43,7 @@ const { t } = useI18n()
 
 const openFormModal = useModal({
   component: import('@/components/modals/CollectionSorterModal.vue'),
-  props: { availableSorts: computed(() => props.availableSorts) },
+  props: { availableSorts: computed(() => availableSorts) },
   onConfirm: ({ property, isAscending }) => emit('addSort', property, isAscending),
 })
 </script>

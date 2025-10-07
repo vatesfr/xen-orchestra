@@ -46,7 +46,7 @@ import { Or, parse } from 'complex-matcher'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { editedFilter } = defineProps<{
   availableFilters: Filters
   editedFilter?: string
 }>()
@@ -92,12 +92,12 @@ const generatedFilter = computed(() => {
 const isFilterValid = computed(() => generatedFilter.value !== '')
 
 onMounted(() => {
-  if (props.editedFilter === undefined) {
+  if (editedFilter === undefined) {
     addNewFilter()
     return
   }
 
-  const parsedFilter = parse(props.editedFilter)
+  const parsedFilter = parse(editedFilter)
 
   const nodes = parsedFilter instanceof Or ? parsedFilter.children : [parsedFilter]
 

@@ -28,7 +28,7 @@ import { useFormSelect } from '@core/packages/form-select'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { availableFilters } = defineProps<{
   availableFilters: Filters
 }>()
 
@@ -99,10 +99,10 @@ function getDefaultComparisonType(property: string) {
     enum: 'enumIs',
   }
 
-  return defaultTypes[props.availableFilters[property].type]
+  return defaultTypes[availableFilters[property].type]
 }
 
-const currentFilter = computed<Filter | undefined>(() => props.availableFilters[builderProperty.value])
+const currentFilter = computed<Filter | undefined>(() => availableFilters[builderProperty.value])
 
 const currentFilterIcon = computed(() => getFilterIcon(currentFilter.value))
 
@@ -117,7 +117,7 @@ const enumChoices = computed(() => {
     return []
   }
 
-  const availableFilter = props.availableFilters[builderProperty.value]
+  const availableFilter = availableFilters[builderProperty.value]
 
   if (availableFilter.type !== 'enum') {
     return []
@@ -199,7 +199,7 @@ const comparisons = computed<FilterComparisons>(() => {
 
 // BUILDER PROPERTY SELECT
 
-const { id: builderPropertySelectId } = useFormSelect(Object.entries(props.availableFilters), {
+const { id: builderPropertySelectId } = useFormSelect(Object.entries(availableFilters), {
   model: builderProperty,
   placeholder: `- ${t('property')} -`,
   option: {
