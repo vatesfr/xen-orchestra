@@ -6,6 +6,7 @@ import { utcParse } from 'd3-time-format'
 import assert from 'node:assert'
 const logger = createLogger('xo:xo-server-perf-alert')
 
+logger.debug('DEBUG ENABLED')
 const PARAMS_JSON_SCHEMA = [
   {
     properties: {
@@ -392,12 +393,21 @@ async function getServerTimestamp(xapi, host) {
 const isSrWritable = sr => sr !== undefined && sr.content_type !== 'iso' && sr.size > 0
 
 class PerfAlertXoPlugin {
+  #timers = {
+    downloading: 0,
+    jsonParsing: 0,
+    jsonHandling: 0,
+  }
+  #nbCheckRunning = 0
   constructor(xo) {
     this._xo = xo
     this._job = createSchedule('* * * * *').createJob(async () => {
       try {
+        this.#nbCheckRunning++
         await this._checkMonitors()
+        this.#nbCheckRunning--
       } catch (error) {
+        this.#nbCheckRunning--
         console.error('[WARN] scheduled function:', (error && error.stack) || error)
       }
     })
@@ -659,7 +669,10 @@ ${monitorBodies.join('\n')}`
   //    listItem: '  * [lab1](localhost:3000#/hosts/485ea1f-b475-f6f2-58a7-895ab626ce5d/stats): 70%\n'
   //  }
   async _checkMonitors() {
+    const jobUid = new Date()
+    logger.debug('_checkMonitors', { jobUid, nb: this.#nbCheckRunning })
     const monitors = this._getMonitors()
+
     for (const monitor of monitors) {
       const snapshot = await monitor.snapshot()
 
@@ -732,6 +745,8 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
         () => {}
       )
     }
+
+    logger.debug('_checkMonitors', { jobUid, nb: this.#nbCheckRunning, timers: this.#timers })
   }
 
   _sendAlertEmail(subjectSuffix, markdownBody) {
@@ -753,6 +768,8 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
     if (host == null) {
       return null
     }
+    const start = performance.now()
+
     const xapi = this._xo.getXapi(host.uuid)
     if (hostCache[host.uuid] === undefined) {
       hostCache[host.uuid] = getServerTimestamp(xapi, host)
@@ -769,7 +786,14 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
           return xapi.getResource('/rrd_updates', payload)
         })
         .then(res => res.body.text())
-        .then(text => JSON5.parse(text))
+        .then(text => {
+          const downloaded = performance.now()
+          this.#timers.downloading += downloaded - start
+          const json = JSON5.parse(text)
+          const jsonParsing = performance.now()
+          this.#timers.jsonParsing += jsonParsing - downloaded
+          return json
+        })
         .catch(err => {
           delete hostCache[host.uuid]
           throw err
@@ -782,6 +806,7 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
       data: [],
     }
     if (json.data.length > 0) {
+      const start = performance.now()
       // copy only the data relevant the object
       const data = [...json.data]
 
@@ -803,7 +828,10 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
         }
         firstPass = false
       })
+      const legendParsed = performance.now()
+      this.#timers.jsonHandling += legendParsed - start
     }
+
     return results
   }
 }
