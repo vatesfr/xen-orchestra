@@ -189,6 +189,9 @@ export default class Jobs {
       type,
     }
     const runJobId = logger.notice(`Starting execution of ${id}.`, jobData)
+    // Links the backup log to the job run
+    // We keep the jobs for this because of some mehcnanism jobs have like preventing double execution.
+    jobData.runJobId = runJobId
 
     const app = this._app
     try {
@@ -205,6 +208,7 @@ export default class Jobs {
 
       // runId is a temporary property used to check if the report is sent after the server interruption
       this.updateJob({ id, runId: runJobId })::ignoreErrors()
+
       runningJobs[id] = runJobId
 
       $defer(() => {
@@ -278,12 +282,22 @@ export default class Jobs {
       runs[runJobId] = { cancel }
       $defer(() => delete runs[runJobId])
 
+      // Links the job run to its backup log
+      const jobUpdateFct = async backupTaskId => {
+        await logger.notice(`Adding backupTaskId to run job ${runJobId}`, {
+          backupTaskId,
+          event: 'job.update',
+          runJobId,
+        })
+      }
+
       await executor({
         app,
         cancelToken: token,
         connection,
         data: data_,
         job,
+        jobUpdateFct,
         jobData,
         logger,
         runJobId,

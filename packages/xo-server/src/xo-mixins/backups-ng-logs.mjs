@@ -73,12 +73,13 @@ export default {
         this.getLogs('restore'),
         this.getLogs('metadataRestore'),
       ])
+      const taskStore = await this.getStore('tasks')
 
       const { runningJobs, runningRestores, runningMetadataRestores } = this
       const consolidated = {}
       const started = {}
 
-      const handleLog = ({ data, time, message }, id) => {
+      const handleLog = async ({ data, time, message }, id) => {
         const { event } = data
         if (event === 'job.start') {
           if ((data.type === 'backup' || data.key === undefined) && (runId === undefined || runId === id)) {
@@ -102,6 +103,13 @@ export default {
             delete started[runJobId]
             log.end = time
             log.status = computeStatusAndSortTasks(getStatus((log.result = data.error)), log.tasks)
+          }
+        } else if (event === 'job.update') {
+          // happens once, only for backups using XO Tasks
+          const { runJobId } = data
+          const log = started[runJobId]
+          if (log !== undefined && (await taskStore.has(data.backupTaskId))) {
+            log.tasks = [await taskStore.get(data.backupTaskId)]
           }
         } else if (event === 'task.start') {
           const task = {

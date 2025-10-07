@@ -72,7 +72,16 @@ export default class BackupNg {
     app.hooks.on('start', async () => {
       this._store = await app.getStore('tasks')
 
-      const executor = async ({ cancelToken, data, job: job_, jobData, logger: jobsLogger, runJobId, schedule }) => {
+      const executor = async ({
+        cancelToken,
+        data,
+        job: job_,
+        jobData,
+        logger: jobsLogger,
+        runJobId,
+        schedule,
+        jobUpdateFct,
+      }) => {
         const backupsConfig = app.config.get('backups')
 
         let job = job_
@@ -321,6 +330,10 @@ export default class BackupNg {
           } else {
             let result
             const onLogFct = makeOnProgress({
+              onRootTaskStart: log => {
+                jobUpdateFct(log.id) // is async, but makeOnProgress doesn't await onRootTaskXXX functions
+                result = forwardResult(log)
+              },
               onRootTaskEnd: log => {
                 result = forwardResult(log)
               },
