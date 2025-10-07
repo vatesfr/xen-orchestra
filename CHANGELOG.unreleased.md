@@ -22,6 +22,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM] Fix some action buttons being hidden from admin users when VM had been created with Self Service (PR [#9061](https://github.com/vatesfr/xen-orchestra/pull/9061))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -40,5 +42,6 @@
 
 - @xen-orchestra/rest-api minor
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
