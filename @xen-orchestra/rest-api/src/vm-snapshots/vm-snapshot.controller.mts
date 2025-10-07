@@ -17,7 +17,7 @@ import {
 } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { XoAlarm, XoMessage, XoVdiSnapshot, XoTask, XoVmSnapshot } from '@vates/types'
+import type { XoAlarm, XoMessage, XoVdiSnapshot, XoTask, XoVmSnapshot } from '@vates/types'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { provide } from 'inversify-binding-decorators'
 import {
