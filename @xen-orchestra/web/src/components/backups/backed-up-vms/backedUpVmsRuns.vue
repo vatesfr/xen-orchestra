@@ -30,8 +30,11 @@
                 {{ column.value.name_label }}
               </UiLink>
             </template>
-            <template v-else-if="column.id === 'disk-size'">
+            <template v-else-if="column.id === 'total-disk-size'">
               {{ column.value?.value ? `${column.value?.value} ${column.value?.prefix}` : t('no-data') }}
+            </template>
+            <template v-else-if="column.id == 'nb-of-backup'">
+              {{ column.value }}
             </template>
           </td>
         </tr>
@@ -64,6 +67,7 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 
+import { formatSizeRaw } from '@core/utils/size.util'
 import * as ValueMatcher from 'value-matcher'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -77,7 +81,7 @@ const { t } = useI18n()
 
 const searchQuery = ref('')
 const { getVmsByIds, vms } = useXoVmCollection()
-const { getTransferSize } = useXoBackupLogsUtils()
+const { findTransferTask } = useXoBackupLogsUtils()
 const selectedBackupJobId = useRouteQuery('id')
 
 function checkSmartModeEnabled(
@@ -112,17 +116,31 @@ const { visibleColumns, rows } = useTable('backup-jobs', backedUpVms, {
   rowId: record => record.id,
   columns: define => [
     define('vm', record => record, { label: t('vm') }),
-    define('disk-size', () => getTransferSize(backupLogs[0]), {
-      label: t('disk-size'),
+    define('total-disk-size', () => formatSizeRaw(backupsLogsSize(backupLogs), 2), {
+      label: t('total-disk-size'),
+    }),
+    define('nb-of-backup', () => backupLogs.reduce((accumulator, log) => accumulator + (log.tasks?.length ?? 1), 1), {
+      label: t('nb-of-backup'),
     }),
   ],
 })
-
-type BackupJobHeader = 'vm' | 'disk-size'
+function backupsLogsSize(backupLogs: XoBackupLog[]) {
+  return backupLogs.reduce((totalSize, log) => {
+    if (!log.tasks) {
+      return totalSize
+    }
+    return (
+      totalSize +
+      log.tasks.reduce((accumulator, backup) => accumulator + (findTransferTask(backup.tasks ?? []) ?? 0), 0)
+    )
+  }, 0)
+}
+type BackupJobHeader = 'vm' | 'total-disk-size' | 'nb-of-backup'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
   vm: 'fa:a',
-  'disk-size': 'fa:hashtag',
+  'total-disk-size': 'fa:hashtag',
+  'nb-of-backup': 'fa:hashtag',
 }
 
 const { pageRecords: backedUpVmsRecords, paginationBindings } = usePagination('backups-jobs', rows)
