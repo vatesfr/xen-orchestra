@@ -103,6 +103,12 @@ export default {
             log.end = time
             log.status = computeStatusAndSortTasks(getStatus((log.result = data.error)), log.tasks)
           }
+        } else if (event === 'job.update') {
+          const { runJobId } = data
+          const log = started[runJobId]
+          if (log !== undefined) {
+            log.backupTaskId = data?.backupTaskId
+          }
         } else if (event === 'task.start') {
           const task = {
             data: data.data,
