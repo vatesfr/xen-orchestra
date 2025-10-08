@@ -319,6 +319,7 @@ export default class RestApi {
           smt: true,
           missing_patches: true,
           messages: true,
+          tasks: true,
         },
       },
       srs: {
