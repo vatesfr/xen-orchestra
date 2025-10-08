@@ -69,7 +69,7 @@ import type {
   CreateVmParams,
   PoolDashboard,
 } from './pool.type.mjs'
-import { taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
 import { VmService } from '../vms/vm.service.mjs'
@@ -467,7 +467,7 @@ export class PoolController extends XapiXoController<XoPool> {
    * @example limit 42
    */
   @Example(taskIds)
-  @Example(partialMessages)
+  @Example(partialTasks)
   @Get('{id}/tasks')
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
