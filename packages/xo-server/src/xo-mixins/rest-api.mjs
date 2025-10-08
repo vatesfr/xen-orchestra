@@ -260,6 +260,7 @@ export default class RestApi {
         routes: {
           groups: true,
           authentication_tokens: true,
+          tasks: true,
         },
       },
       vifs: {
