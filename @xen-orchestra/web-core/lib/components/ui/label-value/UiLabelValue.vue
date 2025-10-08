@@ -7,25 +7,34 @@
     </div>
     <div class="value">
       <slot name="value">
-        {{ value }}
+        <div v-if="value && !Array.isArray(value)" v-tooltip="wrap" :class="{ 'text-ellipsis': wrap }">
+          {{ value }}
+        </div>
+        <UiTagsList v-else-if="Array.isArray(value)" v-tooltip="wrap" :class="{ 'text-ellipsis': wrap }">
+          <UiTag v-for="tag in value" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+        </UiTagsList>
       </slot>
-    </div>
-    <!--
- <div v-if="slots.addons" class="addons">
-      <slot name="addons" />
-    </div>
--->
-    <!-- </div> -->
-    <div v-if="slots.actions" class="actions">
-      <slot name="actions" />
+      <!--
+        <div v-if="slots.addons" class="addons">
+          <slot name="addons" />
+        </div>
+        -->
+      <div v-if="slots.actions" class="actions">
+        <slot name="actions" />
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { vTooltip } from '@core/directives/tooltip.directive'
+import UiTag from '../tag/UiTag.vue'
+import UiTagsList from '../tag/UiTagsList.vue'
+
 defineProps<{
   label: string
   value?: string | string[]
+  wrap?: boolean
 }>()
 
 const slots = defineSlots<{
@@ -39,28 +48,33 @@ const slots = defineSlots<{
 .ui-label-value {
   display: grid;
   column-gap: 1.6rem;
+  grid-template-columns: 20rem;
   row-gap: 0.8rem;
+  container-type: inline-size;
+  container-name: card;
 
   @container card (max-width: 42rem) {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-
     .label {
-      grid-column: 1 / -1;
+      grid-column: 1;
       grid-row: 1;
     }
 
     .value {
-      grid-column: 1 / -1;
+      grid-column: 1;
       grid-row: 2;
-    }
-
-    .actions {
-      grid-row: 1;
     }
   }
 
   @container card (min-width: 42rem) {
-    grid-template-columns: 18rem minmax(12rem, 4fr) max-content;
+    .label {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .value {
+      grid-column: 2;
+      grid-row: 1;
+    }
   }
 
   .label {
@@ -73,7 +87,7 @@ const slots = defineSlots<{
     min-width: 0;
     color: var(--color-neutral-txt-primary);
     display: flex;
-    flex-direction: column;
+    align-items: left;
     gap: 0.8rem;
   }
 
