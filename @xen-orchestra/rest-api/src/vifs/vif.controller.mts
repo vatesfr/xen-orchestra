@@ -1,7 +1,7 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import type { Request as ExRequest } from 'express'
-import type { XoAlarm, XoMessage, XoVif } from '@vates/types'
+import type { XoAlarm, XoMessage, XoServer, XoTask, XoVif } from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
@@ -13,6 +13,7 @@ import { partialVifs, vif, vifIds } from '../open-api/oa-examples/vif.oa-example
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
+import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
 
 type UnbrandedXoVif = Unbrand<XoVif>
 
@@ -105,5 +106,29 @@ export class VifController extends XapiXoController<XoVif> {
     const messages = this.getMessagesForObject(id as XoVif['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "832d21e6-5209-0e6f-44bb-ad3c185c5101"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getServerTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoVif['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
 }
