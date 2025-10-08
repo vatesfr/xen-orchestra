@@ -113,6 +113,7 @@ const slots = defineSlots<{
   .valueAddonWraper {
     display: flex;
     gap: 0.8rem;
+    width: 100%;
   }
 
   .actions {

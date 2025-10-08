@@ -100,6 +100,8 @@
             <UiLabelValue v-for="(ip, index) in ipAddresses" :key="ip" :label="t('ip-addresses')" :value="ip">
               <template #actions>
                 <VtsCopyButton :value="ip" />
+              </template>
+              <template #addons>
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="t('coming-soon')"
