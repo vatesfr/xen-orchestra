@@ -3,30 +3,30 @@
     <UiCardTitle>
       {{ t('alarms') }}
       <UiCounter
-        v-if="alarms.length !== 0 && isReady"
+        v-if="rawAlarms.length !== 0 && isReady"
         accent="danger"
         size="small"
         variant="primary"
-        :value="alarms.length"
+        :value="rawAlarms.length"
       />
     </UiCardTitle>
     <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
-    <VtsStateHero v-else-if="alarms.length === 0" format="card" type="all-good" horizontal size="medium">
+    <VtsStateHero v-else-if="rawAlarms.length === 0" format="card" type="all-good" horizontal size="medium">
       <span>{{ t('all-good') }}</span>
       <span>{{ t('no-alarms-detected') }}</span>
     </VtsStateHero>
-    <div v-else class="alarm-list-container">
-      <UiAlarmList>
+    <div v-else class="alarm-list-container" v-bind="containerProps">
+      <UiAlarmList v-bind="wrapperProps">
         <UiAlarmItem
           v-for="alarm in alarms"
-          :key="alarm.id"
-          :label="alarm.body.name"
-          :percent="Number(alarm.body.value)"
+          :key="alarm.index"
+          :label="alarm.data.body.name"
+          :percent="Number(alarm.data.body.value)"
           :size="uiStore.isDesktopLarge ? 'large' : 'small'"
-          :date="alarm.time"
+          :date="alarm.data.time"
         >
           <template #link>
-            <AlarmLink :type="alarm.object.type" :uuid="alarm.object.uuid" />
+            <AlarmLink :type="alarm.data.object.type" :uuid="alarm.data.object.uuid" />
           </template>
         </UiAlarmItem>
       </UiAlarmList>
@@ -44,9 +44,11 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { useVirtualList } from '@vueuse/core'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const { alarms: rawAlarms } = defineProps<{
   alarms: XoAlarm[]
   isReady: boolean
   hasError?: boolean
@@ -55,6 +57,15 @@ defineProps<{
 const { t } = useI18n()
 
 const uiStore = useUiStore()
+
+const {
+  list: alarms,
+  containerProps,
+  wrapperProps,
+} = useVirtualList(
+  computed(() => rawAlarms),
+  { itemHeight: 40 }
+)
 </script>
 
 <style lang="postcss" scoped>

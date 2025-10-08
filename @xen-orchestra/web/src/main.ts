@@ -3,8 +3,10 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { handleHotUpdate, routes } from 'vue-router/auto-routes'
+import VueVirtualScroller from 'vue-virtual-scroller'
 import App from './App.vue'
 import '@xen-orchestra/web-core/assets/css/base.pcss'
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
 const app = createApp(App)
 
@@ -20,5 +22,6 @@ if (import.meta.hot) {
 app.use(i18n)
 app.use(createPinia())
 app.use(router)
+app.use(VueVirtualScroller)
 
 app.mount('#app')

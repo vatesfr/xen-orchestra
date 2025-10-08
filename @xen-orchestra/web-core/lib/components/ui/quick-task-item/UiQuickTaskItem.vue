@@ -1,6 +1,6 @@
 <!-- WIP -->
 <template>
-  <li class="ui-quick-task-item">
+  <div class="ui-quick-task-item">
     <div v-if="hasSubTasks" class="toggle" @click="toggleExpand()">
       <UiButtonIcon accent="brand" :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'" size="small" />
     </div>
@@ -26,7 +26,7 @@
       </div>
       <VtsQuickTaskList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist />
     </div>
-  </li>
+  </div>
 </template>
 
 <script lang="ts" setup>

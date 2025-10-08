@@ -22,6 +22,8 @@
   - `GET /rest/v0/servers/<server-id>/tasks` (PR [#9065](https://github.com/vatesfr/xen-orchestra/pull/9065))
   - `GET /rest/v0/vm-templates/<vm-template-id>/tasks` (PR [#9004](https://github.com/vatesfr/xen-orchestra/pull/9004))
   - `GET /rest/v0/users/<user-id>/tasks` (PR [#9066](https://github.com/vatesfr/xen-orchestra/pull/9066))
+- **XO 6:**
+  - [Collections] Implement virtual lists for tasks and alarms to improve performance (PR [#9077](https://github.com/vatesfr/xen-orchestra/pull/9077))
 
 ### Bug fixes
 
@@ -46,6 +48,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
 - xo-server patch
 - xo-web patch
 
