@@ -6,21 +6,28 @@
       {{ label }}
     </div>
     <div class="value">
-      <slot name="value">
-        <div v-if="value && !Array.isArray(value)" v-tooltip="wrap" :class="{ 'text-ellipsis': wrap }">
-          {{ value }}
+      <div class="valueActionWrapper">
+        <div class="valueAddonWraper">
+          <slot name="value">
+            <div v-if="value && !Array.isArray(value)" v-tooltip="wrap" :class="{ 'text-ellipsis': wrap }">
+              {{ value }}
+            </div>
+            <UiTagsList
+              v-else-if="Array.isArray(value) && value.length > 0"
+              v-tooltip="wrap"
+              :class="{ 'text-ellipsis': wrap }"
+            >
+              <UiTag v-for="tag in value" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            </UiTagsList>
+          </slot>
+          <div v-if="slots.addons" class="addons">
+            <slot name="addons" />
+          </div>
         </div>
-        <UiTagsList v-else-if="Array.isArray(value)" v-tooltip="wrap" :class="{ 'text-ellipsis': wrap }">
-          <UiTag v-for="tag in value" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
-        </UiTagsList>
-      </slot>
-      <!--
-        <div v-if="slots.addons" class="addons">
-          <slot name="addons" />
+
+        <div v-if="slots.actions" class="actions">
+          <slot name="actions" />
         </div>
-        -->
-      <div v-if="slots.actions" class="actions">
-        <slot name="actions" />
       </div>
     </div>
   </div>
@@ -93,12 +100,19 @@ const slots = defineSlots<{
     gap: 0.8rem;
   }
 
-  .value:empty::before {
+  .valueAddonWraper:empty::before {
     content: '-';
   }
 
-  .addons {
-    margin-inline-start: -1.6rem;
+  .valueActionWrapper {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .valueAddonWraper {
+    display: flex;
+    gap: 0.8rem;
   }
 
   .actions {
