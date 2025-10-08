@@ -26,6 +26,7 @@
   - `GET /rest/v0/vm-controllers/<vm-controller-id>/tasks` (PR [#9069](https://github.com/vatesfr/xen-orchestra/pull/9069))
   - `GET /rest/v0/vifs/<vif-id>/tasks` (PR [#9075](https://github.com/vatesfr/xen-orchestra/pull/9075))
   - `GET /rest/v0/pools/<pool-id>/tasks` (PR [#9080](https://github.com/vatesfr/xen-orchestra/pull/9080))
+  - `GET /rest/v0/vbds/<vbd-id>/tasks` (PR [#9083](https://github.com/vatesfr/xen-orchestra/pull/9083))
 
 ### Bug fixes
 
