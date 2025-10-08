@@ -404,8 +404,13 @@ class PerfAlertXoPlugin {
     this._xo = xo
   }
   async #watchMonitors() {
+    if (this.#running) {
+      // only one can run in parallel
+      return
+    }
+    this.#running = true
     while (this.#running) {
-      const start = Date.now()
+      const start = performance.now()
       try {
         this.#nbCheckRunning++
         await this._checkMonitors()
@@ -414,10 +419,10 @@ class PerfAlertXoPlugin {
         logger.warn('[WARN] scheduled function:', (error && error.stack) || error)
         this.#nbCheckRunning--
       }
-      const duration = Date.now() - start
+      const duration = performance.now() - start
       if (duration < MINIMAL_DELAY) {
-        logger.debug('will wait ', duration - MINIMAL_DELAY)
-        await new Promise(resolve => setTimeout(resolve, duration - MINIMAL_DELAY))
+        logger.debug('will wait ', MINIMAL_DELAY - duration)
+        await new Promise(resolve => setTimeout(resolve, MINIMAL_DELAY - duration))
       }
     }
   }
