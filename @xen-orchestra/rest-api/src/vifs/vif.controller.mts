@@ -109,7 +109,7 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
-   * @example id "832d21e6-5209-0e6f-44bb-ad3c185c5101"
+   * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
@@ -119,7 +119,7 @@ export class VifController extends XapiXoController<XoVif> {
   @Get('{id}/tasks')
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
-  async getServerTasks(
+  async getVifTasks(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
