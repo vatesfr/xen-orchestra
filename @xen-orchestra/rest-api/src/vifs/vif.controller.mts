@@ -1,7 +1,7 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import type { Request as ExRequest } from 'express'
-import type { XoAlarm, XoVif } from '@vates/types'
+import type { XoAlarm, XoMessage, XoTask, XoVif } from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
@@ -12,6 +12,8 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVifs, vif, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
+import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
 
 type UnbrandedXoVif = Unbrand<XoVif>
 
@@ -80,5 +82,53 @@ export class VifController extends XapiXoController<XoVif> {
     })
 
     return this.sendObjects(Object.values(alarms), req, 'alarms')
+  }
+
+  /**
+   * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVifMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const messages = this.getMessagesForObject(id as XoVif['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "f028c5d4-578a-332c-394e-087aaca32dd3"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getVifTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoVif['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
 }

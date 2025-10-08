@@ -229,11 +229,15 @@ export default class RestApi {
       networks: {
         routes: {
           alarms: true,
+          messages: true,
+          tasks: true,
         },
       },
       pifs: {
         routes: {
           alarms: true,
+          messages: true,
+          tasks: true,
         },
       },
       pools: {
@@ -252,17 +256,21 @@ export default class RestApi {
       groups: {
         routes: {
           users: true,
+          tasks: true,
         },
       },
       users: {
         routes: {
           groups: true,
           authentication_tokens: true,
+          tasks: true,
         },
       },
       vifs: {
         routes: {
           alarms: true,
+          messages: true,
+          tasks: true,
         },
       },
       vms: {
@@ -285,6 +293,8 @@ export default class RestApi {
         routes: {
           alarms: true,
           vdis: true,
+          messages: true,
+          tasks: true,
         },
       },
       'vm-snapshots': {
@@ -309,6 +319,7 @@ export default class RestApi {
           smt: true,
           missing_patches: true,
           messages: true,
+          tasks: true,
         },
       },
       srs: {
@@ -326,14 +337,20 @@ export default class RestApi {
       vdis: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       'vdi-snapshots': {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
-      servers: {},
+      servers: {
+        routes: {
+          tasks: true,
+        },
+      },
       tasks: {},
     }
 
@@ -806,20 +823,18 @@ export default class RestApi {
         )
       )
 
-    api
-      .get(
-        '/restore',
-        wrap((req, res) => sendObjects([{ id: 'logs' }], req, res))
-      )
-    api
-      .get(
-        '/tasks/:id/actions',
-        wrap(async (req, res) => {
-          const task = await app.tasks.get(req.params.id)
+    api.get(
+      '/restore',
+      wrap((req, res) => sendObjects([{ id: 'logs' }], req, res))
+    )
+    api.get(
+      '/tasks/:id/actions',
+      wrap(async (req, res) => {
+        const task = await app.tasks.get(req.params.id)
 
-          await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
-        })
-      )
+        await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+      })
+    )
 
     api.get(
       '/:collection',

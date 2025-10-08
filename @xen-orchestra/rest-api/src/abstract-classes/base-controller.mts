@@ -1,10 +1,11 @@
+import * as CM from 'complex-matcher'
 import { Controller, HttpStatusCodeLiteral } from 'tsoa'
 import { createGzip } from 'node:zlib'
 import { pipeline } from 'node:stream/promises'
 import { Readable, type Transform } from 'node:stream'
 import { Request } from 'express'
 import type { VatesTask } from '@vates/types/lib/vates/task'
-import type { XapiXoRecord, XoRecord } from '@vates/types/xo'
+import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 import { BASE_URL } from '../index.mjs'
@@ -47,6 +48,34 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     } else {
       return mappedObjects
     }
+  }
+
+  async getTasksForObject(
+    id: T['id'],
+    { filter, limit = Infinity }: { filter?: string; limit?: number } = {}
+  ): Promise<Record<XoTask['id'], XoTask>> {
+    const tasks: Record<XoTask['id'], XoTask> = {}
+    const object = await Promise.resolve(this.getObject(id))
+
+    const objectFilter = (task: XoTask) =>
+      task.properties.objectId === object.id || task.properties.params?.id === object.id
+
+    let userFilter: (task: XoTask) => boolean = () => true
+    if (filter !== undefined) {
+      userFilter = typeof filter === 'string' ? CM.parse(filter).createPredicate() : filter
+    }
+
+    for await (const task of this.restApi.tasks.list({ filter: objectFilter })) {
+      if (limit === 0) {
+        break
+      }
+      if (userFilter(task)) {
+        tasks[task.id] = task
+        limit--
+      }
+    }
+
+    return tasks
   }
 
   /**

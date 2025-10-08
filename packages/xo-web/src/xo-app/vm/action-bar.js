@@ -3,7 +3,7 @@ import ActionBar, { Action } from 'action-bar'
 import React from 'react'
 import { addSubscriptions, connectStore } from 'utils'
 import { find, includes } from 'lodash'
-import { createSelector, getCheckPermissions, getUser } from 'selectors'
+import { createSelector, getCheckPermissions, getUser, isAdmin } from 'selectors'
 import { cloneVm, copyVm, exportVm, migrateVm, restartVm, snapshotVm, startVm, stopVm, subscribeResourceSets } from 'xo'
 
 const vmActionBarByState = {
@@ -163,11 +163,17 @@ const VmActionBar = addSubscriptions(() => ({
   connectStore(() => ({
     checkPermissions: getCheckPermissions,
     user: getUser,
-  }))(({ checkPermissions, vm, user, resourceSets }) => {
+    isAdmin,
+  }))(({ checkPermissions, vm, user, resourceSets, isAdmin }) => {
     // Is the user in the same resource set as the VM
     const _getIsSelfUser = createSelector(
+      () => isAdmin,
       () => resourceSets,
-      resourceSets => {
+      (isAdmin, resourceSets) => {
+        if (isAdmin) {
+          return false
+        }
+
         const vmResourceSet = vm.resourceSet && find(resourceSets, { id: vm.resourceSet })
 
         return (
