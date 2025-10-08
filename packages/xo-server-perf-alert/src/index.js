@@ -1,5 +1,4 @@
 import JSON5 from 'json5'
-import { createSchedule } from '@xen-orchestra/cron'
 import { createLogger } from '@xen-orchestra/log'
 import { filter, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
@@ -392,6 +391,7 @@ async function getServerTimestamp(xapi, host) {
 
 const isSrWritable = sr => sr !== undefined && sr.content_type !== 'iso' && sr.size > 0
 
+const MINIMAL_DELAY = 60_000
 class PerfAlertXoPlugin {
   #timers = {
     downloading: 0,
@@ -399,18 +399,25 @@ class PerfAlertXoPlugin {
     jsonHandling: 0,
   }
   #nbCheckRunning = 0
-  constructor(xo) {
-    this._xo = xo
-    this._job = createSchedule('* * * * *').createJob(async () => {
+  #running = false
+
+  async #watchMonitors() {
+    while (this.#running) {
+      const start = Date.now()
       try {
         this.#nbCheckRunning++
         await this._checkMonitors()
         this.#nbCheckRunning--
       } catch (error) {
+        logger.warn('[WARN] scheduled function:', (error && error.stack) || error)
         this.#nbCheckRunning--
-        console.error('[WARN] scheduled function:', (error && error.stack) || error)
       }
-    })
+      const duration = Date.now() - start
+      if (duration < MINIMAL_DELAY) {
+        logger.debug('will wait ', duration - MINIMAL_DELAY)
+        await new Promise(resolve => setTimeout(resolve, duration - MINIMAL_DELAY))
+      }
+    }
   }
 
   async configure(configuration) {
@@ -419,11 +426,11 @@ class PerfAlertXoPlugin {
   }
 
   load() {
-    this._job.start()
+    this.#watchMonitors().catch(logger.warn)
   }
 
   unload() {
-    this._job.stop()
+    this.#running = false
   }
 
   _generateUrl(type, object) {
