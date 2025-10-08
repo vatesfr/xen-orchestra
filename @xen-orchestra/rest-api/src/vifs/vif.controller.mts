@@ -1,7 +1,7 @@
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import type { Request as ExRequest } from 'express'
-import type { XoAlarm, XoMessage, XoServer, XoTask, XoVif } from '@vates/types'
+import type { XoAlarm, XoMessage, XoTask, XoVif } from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
