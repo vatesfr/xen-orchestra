@@ -1,21 +1,11 @@
-import type { BodyCellRenderer } from './body-cell'
-import type { BodyRowRenderer } from './body-row'
-import type { Extensions } from './extensions'
-import type { HeaderCellRenderer } from './header-cell'
-import type { HeaderRowRenderer } from './header-row'
-import type { TableRenderer } from './table'
-import type { TBodyRenderer } from './tbody'
-import type { THeadRenderer } from './thead'
+import type { Extensions, TableRenderer, TableCellRenderer, TableRowRenderer, TableSectionRenderer } from '.'
 import type { ComputedRef } from 'vue'
 
-export * from './body-cell'
-export * from './body-row'
+export * from './table-cell'
+export * from './table-row'
 export * from './extensions'
-export * from './header-cell'
-export * from './header-row'
 export * from './table'
-export * from './tbody'
-export * from './thead'
+export * from './table-section'
 
 export type ComponentLoader<TProps> = () => Promise<{
   default: abstract new () => {
@@ -31,12 +21,9 @@ export type Renderer<
   TPropsConfig extends Record<string, any>,
 > =
   | TableRenderer<TComponentProps, TExtensions, TPropsConfig>
-  | THeadRenderer<TComponentProps, TExtensions, TPropsConfig>
-  | TBodyRenderer<TComponentProps, TExtensions, TPropsConfig>
-  | HeaderRowRenderer<TComponentProps, TExtensions, TPropsConfig>
-  | HeaderCellRenderer<TComponentProps, TExtensions, TPropsConfig>
-  | BodyRowRenderer<TComponentProps, TExtensions, TPropsConfig>
-  | BodyCellRenderer<TComponentProps, TExtensions, TPropsConfig>
+  | TableSectionRenderer<TComponentProps, TExtensions, TPropsConfig>
+  | TableRowRenderer<TComponentProps, TExtensions, TPropsConfig>
+  | TableCellRenderer<TComponentProps, TExtensions, TPropsConfig>
 
 export type Sources<T = any> = ComputedRef<T[]>
 

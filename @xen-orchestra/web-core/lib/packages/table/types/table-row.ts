@@ -1,12 +1,12 @@
 import type { Branded } from '@core/types/utility.type'
-import type { PropsOverride } from '.'
-import type { BodyCellVNode } from './body-cell'
-import type { Extensions } from './extensions'
+import type { PropsOverride, Extensions, TableCellVNodes } from '.'
 import type { VNode } from 'vue'
 
-export type BodyRowVNode = Branded<'BodyRowVNode', VNode>
+export type TableRowVNode = Branded<'RowVNode', VNode>
 
-export type BodyRowRenderer<
+export type TableRowVNodes = TableRowVNode | TableRowVNodes[]
+
+export type TableRowRenderer<
   TComponentProps extends Record<string, any>,
   TExtensions extends Extensions<TComponentProps>,
   TPropsConfig extends Record<string, any>,
@@ -15,6 +15,6 @@ export type BodyRowRenderer<
     extensions?: { [K in keyof TExtensions]?: Parameters<TExtensions[K]>[0] }
     key: string | number
     props?: PropsOverride<TComponentProps>
-    cells: () => BodyCellVNode | BodyCellVNode[]
+    cells: () => TableCellVNodes
   } & TPropsConfig
-) => BodyRowVNode
+) => TableRowVNode

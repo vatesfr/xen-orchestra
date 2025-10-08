@@ -1,10 +1,14 @@
-import type { ComponentLoader, PropsOverride } from './types'
-import type { Extensions } from './types/extensions'
-import type { THeadRenderer, THeadVNode } from './types/thead'
 import { type VNode, defineAsyncComponent, h } from 'vue'
-import { applyExtensions } from './apply-extensions'
+import {
+  applyExtensions,
+  type TableSectionRenderer,
+  type TableSectionVNode,
+  type Extensions,
+  type ComponentLoader,
+  type PropsOverride,
+} from '..'
 
-export function defineTHeadRenderer<
+export function defineSectionRenderer<
   TComponentProps extends Record<string, any>,
   TExtensions extends Extensions<TComponentProps>,
   TPropsConfig extends Record<string, any>,
@@ -12,14 +16,14 @@ export function defineTHeadRenderer<
   component: ComponentLoader<TComponentProps>
   props?: (config: TPropsConfig) => PropsOverride<TComponentProps>
   extensions?: TExtensions
-}): THeadRenderer<TComponentProps, TExtensions, TPropsConfig> {
+}): TableSectionRenderer<TComponentProps, TExtensions, TPropsConfig> {
   const component = defineAsyncComponent(config.component)
 
-  return function RenderTHead(renderConfig) {
+  return function RenderSection(renderConfig): TableSectionVNode {
     const extension = applyExtensions(config, renderConfig)
 
     return h(component, extension.props, {
       default: () => renderConfig.rows(),
-    }) satisfies VNode as THeadVNode
+    }) satisfies VNode as TableSectionVNode
   }
 }

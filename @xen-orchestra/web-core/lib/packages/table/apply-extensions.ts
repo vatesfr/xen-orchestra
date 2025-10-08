@@ -1,4 +1,4 @@
-import type { Extensions } from './types/extensions'
+import type { Extensions } from '.'
 import { mergeProps } from 'vue'
 
 export function applyExtensions(

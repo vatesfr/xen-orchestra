@@ -1,6 +1,5 @@
-import type { Sources, TransformProperty } from './types'
-import type { MaybeRefOrGetter } from 'vue'
-import { transformSources } from './transform-sources'
+import { type MaybeRefOrGetter } from 'vue'
+import { type Sources, type TransformProperty, transformSources } from '..'
 
 export function defineMultiSourceTable<
   TSources extends Record<string, Sources>,

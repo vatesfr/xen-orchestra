@@ -1,5 +1,4 @@
-import type { BodyCellVNode } from './types/body-cell'
-import type { HeaderCellVNode } from './types/header-cell'
+import type { TableCellVNode } from '.'
 import { reactive, computed } from 'vue'
 
 export function defineColumns<
@@ -7,8 +6,8 @@ export function defineColumns<
   TColumns extends Record<
     string,
     | {
-        header: (arg: THeaderArg) => HeaderCellVNode
-        body: (source: TSource, arg: TBodyArg) => BodyCellVNode
+        header: (arg: THeaderArg) => TableCellVNode
+        body: (source: TSource, arg: TBodyArg) => TableCellVNode
       }
     | undefined
   >,
@@ -20,8 +19,8 @@ export function defineColumns<
     Record<
       string,
       | {
-          header: (arg: THeaderArg) => HeaderCellVNode
-          body: (source: TSource, arg: TBodyArg) => BodyCellVNode
+          header: (arg: THeaderArg) => TableCellVNode
+          body: (source: TSource, arg: TBodyArg) => TableCellVNode
         }
       | undefined
     >
@@ -37,12 +36,12 @@ export function defineColumns<
   const visibleColumnsCount = computed(() => visibleColumnNames.value.length)
 
   type GetHeaderCells = THeaderArg extends undefined
-    ? (arg?: THeaderArg) => HeaderCellVNode[]
-    : (arg: THeaderArg) => HeaderCellVNode[]
+    ? (arg?: THeaderArg) => TableCellVNode[]
+    : (arg: THeaderArg) => TableCellVNode[]
 
   type GetBodyCells = TBodyArg extends undefined
-    ? (source: TSource, arg?: TBodyArg) => BodyCellVNode[]
-    : (source: TSource, arg: TBodyArg) => BodyCellVNode[]
+    ? (source: TSource, arg?: TBodyArg) => TableCellVNode[]
+    : (source: TSource, arg: TBodyArg) => TableCellVNode[]
 
   return {
     getHeaderCells: ((arg?: THeaderArg) =>

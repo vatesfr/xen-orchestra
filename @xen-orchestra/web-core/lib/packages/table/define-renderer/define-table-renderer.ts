@@ -1,8 +1,12 @@
-import type { ComponentLoader, PropsOverride } from './types'
-import type { Extensions } from './types/extensions'
-import type { TableRenderer, TableVNode } from './types/table'
 import { type VNode, defineAsyncComponent, h } from 'vue'
-import { applyExtensions } from './apply-extensions'
+import {
+  applyExtensions,
+  type ComponentLoader,
+  type PropsOverride,
+  type Extensions,
+  type TableRenderer,
+  type TableVNode,
+} from '..'
 
 export function defineTableRenderer<
   TComponentProps extends Record<string, any>,
@@ -30,16 +34,9 @@ export function defineTableRenderer<
     const renderTbody =
       typeof tbody === 'function'
         ? tbody
-        : 'cells' in tbody && tbody.cells
-          ? () =>
-              h(
-                'tbody',
-                {},
-                tbody.cells().map(cells => h('tr', {}, cells))
-              )
-          : 'rows' in tbody && tbody.rows
-            ? () => h('tbody', {}, { default: () => tbody.rows() })
-            : () => undefined
+        : 'rows' in tbody && tbody.rows
+          ? () => h('tbody', {}, { default: () => tbody.rows() })
+          : () => undefined
 
     const extension = applyExtensions(config, renderConfig)
 
