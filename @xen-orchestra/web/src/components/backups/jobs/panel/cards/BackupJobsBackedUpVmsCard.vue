@@ -6,27 +6,21 @@
     </UiCardTitle>
     <div>
       <!-- Smart mode state -->
-      <VtsCardRowKeyValue>
-        <template #key>
-          {{ t('smart-mode') }}
-        </template>
+      <UiLabelValue :label="t('smart-mode')">
         <template #value>
           <VtsEnabledState :enabled="isSmartModeEnabled" />
         </template>
-      </VtsCardRowKeyValue>
+      </UiLabelValue>
       <template v-if="isSmartModeEnabled">
         <VtsDivider class="divider" type="stretch" />
         <div class="content">
           <!-- Power state -->
-          <VtsCardRowKeyValue v-if="smartModePowerState !== undefined">
-            <template #key>
-              {{ t('power-state') }}
-            </template>
+          <UiLabelValue v-if="smartModePowerState !== undefined" :label="t('power-state')">
             <template #value>
               <VtsIcon size="small" :name="`legacy:${toLower(smartModePowerState)}`" />
               {{ smartModePowerState }}
             </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
           <!-- Pools -->
           <template v-if="smartModePools !== undefined">
             <BackupJobsSmartModePools
@@ -72,7 +66,6 @@ import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { VmsSmartModeDisabled, VmsSmartModeEnabled, XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
 import { type XoVm } from '@/types/xo/vm.type.ts'
 import { destructSmartPattern, extractIdsFromSimplePattern } from '@/utils/pattern.util.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -80,6 +73,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { toLower } from 'lodash-es'
 import * as ValueMatcher from 'value-matcher'
