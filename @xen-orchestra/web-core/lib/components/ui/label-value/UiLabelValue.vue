@@ -62,6 +62,7 @@ const slots = defineSlots<{
     .value {
       grid-column: 1;
       grid-row: 2;
+      width: 100cqi;
     }
   }
 
@@ -69,11 +70,12 @@ const slots = defineSlots<{
     .label {
       grid-column: 1;
       grid-row: 1;
+      width: 20rem;
     }
-
     .value {
       grid-column: 2;
       grid-row: 1;
+      align-items: left;
     }
   }
 
