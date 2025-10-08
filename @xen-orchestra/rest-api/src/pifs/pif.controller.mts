@@ -2,7 +2,7 @@ import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } f
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import type { XoAlarm, XoMessage, XoPif } from '@vates/types'
+import type { XoAlarm, XoMessage, XoPif, XoTask } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -13,6 +13,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
+import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 
 type UnbrandedXoPif = Unbrand<XoPif>
 
@@ -105,5 +106,29 @@ export class PifController extends XapiXoController<XoPif> {
     const messages = this.getMessagesForObject(id as XoPif['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "d9e42451-3794-089f-de81-4ee0e6137bee"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getPifTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoPif['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
 }
