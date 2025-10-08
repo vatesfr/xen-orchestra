@@ -44,6 +44,7 @@ import type {
   XoPif,
   XoPool,
   XoSr,
+  XoTask,
   XoVm,
   XsPatches,
 } from '@vates/types'
@@ -66,7 +67,7 @@ import type {
   CreateVmParams,
   PoolDashboard,
 } from './pool.type.mjs'
-import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import { taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import { createNetwork } from '../open-api/oa-examples/schedule.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
 import { VmService } from '../vms/vm.service.mjs'
@@ -432,5 +433,29 @@ export class PoolController extends XapiXoController<XoPool> {
     const messages = this.getMessagesForObject(id as XoPool['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialMessages)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getPoolTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoPool['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
 }
