@@ -255,6 +255,7 @@ export default class RestApi {
       groups: {
         routes: {
           users: true,
+          tasks: true,
         },
       },
       users: {
@@ -268,6 +269,7 @@ export default class RestApi {
         routes: {
           alarms: true,
           messages: true,
+          tasks: true,
         },
       },
       vms: {
@@ -291,6 +293,7 @@ export default class RestApi {
           alarms: true,
           vdis: true,
           messages: true,
+          tasks: true,
         },
       },
       'vm-snapshots': {
