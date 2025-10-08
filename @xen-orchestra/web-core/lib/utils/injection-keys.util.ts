@@ -1,4 +1,5 @@
 import type { InputWrapperController } from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import type { ModalAccent } from '@core/components/ui/modal/UiModal.vue'
 import type { ValueFormatter } from '@core/types/chart'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 
@@ -21,3 +22,5 @@ export const IK_MENU_TELEPORTED = Symbol('IK_MENU_TELEPORTED') as InjectionKey<b
 export const IK_DISABLED = Symbol('IK_DISABLED') as InjectionKey<ComputedRef<boolean>>
 
 export const IK_INPUT_WRAPPER_CONTROLLER = Symbol('IK_INPUT_WRAPPER_CONTROLLER') as InjectionKey<InputWrapperController>
+
+export const IK_MODAL_ACCENT = Symbol('IK_MODAL_ACCENT') as InjectionKey<ComputedRef<ModalAccent>>
