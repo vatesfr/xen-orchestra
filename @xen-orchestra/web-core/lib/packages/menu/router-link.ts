@@ -1,5 +1,6 @@
 import { BaseItem, type Menu, type MenuLike, parseConfigHolder } from '@core/packages/menu'
-import { computed, markRaw, type MaybeRefOrGetter, reactive, toValue } from 'vue'
+import { toComputed } from '@core/utils/to-computed.util'
+import { markRaw, type MaybeRefOrGetter, reactive } from 'vue'
 import { type RouteLocationRaw, RouterLink } from 'vue-router'
 
 export interface MenuRouterLinkConfig {
@@ -31,7 +32,7 @@ export class MenuRouterLink extends BaseItem {
       as: markRaw(RouterLink),
       onMouseenter: () => this.activate(),
       onClick: () => this.deactivate(),
-      to: computed(() => toValue(this.config.to)),
+      to: toComputed(this.config.to),
       'data-menu-id': this.menu.context.id,
     })
   }
