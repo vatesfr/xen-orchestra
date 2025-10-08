@@ -83,11 +83,11 @@
 import CodeHighlight from '@/components/CodeHighlight.vue'
 import StoryParamsTable from '@/components/component-story/StoryParamsTable.vue'
 import StoryWidget from '@/components/component-story/StoryWidget.vue'
-import { useModal } from '@/composables/modal.composable'
 import useSortedCollection from '@/composables/sorted-collection.composable'
 import type { PropParam } from '@/libs/story/story-param'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useVModel } from '@vueuse/core'
 import { toRef } from 'vue'
 
@@ -111,10 +111,10 @@ const params = useSortedCollection(toRef(props, 'params'), (p1, p2) => {
 
 const model = useVModel(props, 'modelValue', emit)
 
-const openRawValueModal = (code: string) =>
-  useModal(() => import('@/components/modals/CodeHighlightModal.vue'), {
-    code,
-  })
+const openRawValueModal = useModal((code: string) => ({
+  component: import('@/components/modals/CodeHighlightModal.vue'),
+  props: { code },
+}))
 </script>
 
 <style lang="postcss" scoped>

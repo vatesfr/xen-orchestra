@@ -1,57 +1,49 @@
 <template>
-  <UiModal @submit.prevent="handleSubmit()">
-    <FormModalLayout>
-      <template #title>
-        {{ t('migrate-n-vms', { n: vmRefs.length }) }}
-      </template>
+  <VtsModal accent="info" @confirm="emit('confirm', selectedHost)">
+    <template #title>
+      {{ t('migrate-n-vms', { n: count }) }}
+    </template>
 
+    <template #content>
       <div>
-        <VtsInputWrapper :label="$t('select-destination-host')">
+        <VtsInputWrapper :label="t('select-destination-host')">
           <VtsSelect :id="hostSelectId" accent="brand" />
         </VtsInputWrapper>
       </div>
+    </template>
 
-      <template #buttons>
-        <ModalDeclineButton />
-        <ModalApproveButton>
-          {{ t('migrate-n-vms', { n: vmRefs.length }) }}
-        </ModalApproveButton>
-      </template>
-    </FormModalLayout>
-  </UiModal>
+    <template #buttons>
+      <VtsModalCancelButton />
+      <VtsModalConfirmButton :disabled="!selectedHost">
+        {{ t('migrate-n-vms', { n: count }) }}
+      </VtsModalConfirmButton>
+    </template>
+  </VtsModal>
 </template>
 
 <script lang="ts" setup>
-import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
-import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
-import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
-import UiModal from '@/components/ui/modals/UiModal.vue'
-import { useVmMigration } from '@/composables/vm-migration.composable'
-import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
-import { IK_MODAL } from '@/types/injection-keys'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
+import VtsModal from '@core/components/modal/VtsModal.vue'
+import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
+import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { inject } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
-  vmRefs: XenApiVm['$ref'][]
+const { availableHosts } = defineProps<{
+  count: number
+  availableHosts: XenApiHost[]
 }>()
 
+const emit = defineEmits<{
+  confirm: [selectedHost: XenApiHost | undefined]
+}>()
+
+const selectedHost = ref<XenApiHost>()
+
 const { t } = useI18n()
-
-const modal = inject(IK_MODAL)!
-
-const { selectedHost, availableHosts, isValid, migrate } = useVmMigration(() => props.vmRefs)
-
-const handleSubmit = () => {
-  if (!isValid.value) {
-    return
-  }
-
-  modal.approve(migrate())
-}
 
 const { id: hostSelectId } = useFormSelect(availableHosts, {
   model: selectedHost,

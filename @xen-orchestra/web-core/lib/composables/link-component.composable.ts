@@ -1,5 +1,6 @@
+import { toComputed } from '@core/utils/to-computed.util'
 import type { MaybeRefOrGetter } from 'vue'
-import { computed, toValue } from 'vue'
+import { computed } from 'vue'
 import type { RouteLocationAsPathGeneric, RouteLocationAsRelativeGeneric, RouteLocationAsString } from 'vue-router'
 
 export type LinkOptions = {
@@ -11,7 +12,7 @@ export type LinkOptions = {
 }
 
 export function useLinkComponent(defaultComponent: string, options: MaybeRefOrGetter<LinkOptions>) {
-  const config = computed(() => toValue(options))
+  const config = toComputed(options)
 
   const isDisabled = computed(() => config.value.disabled || (!config.value.to && !config.value.href))
 
