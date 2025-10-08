@@ -2,7 +2,7 @@ import { themes as prismThemes } from 'prism-react-renderer'
 import type { Config } from '@docusaurus/types'
 import type * as Preset from '@docusaurus/preset-classic'
 
-const config: Config = {
+export default {
   title: 'Xen Orchestra | XO Documentation',
   tagline: 'Discover how to use Xen Orchestra',
   favicon: 'img/favicon.ico',
@@ -19,7 +19,6 @@ const config: Config = {
   // projectName: 'docusaurus', // Usually your repo name.
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -163,6 +162,10 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
   } satisfies Preset.ThemeConfig,
-}
 
-export default config
+  markdown:{
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
+}
