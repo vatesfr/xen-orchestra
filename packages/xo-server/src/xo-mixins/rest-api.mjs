@@ -230,6 +230,7 @@ export default class RestApi {
         routes: {
           alarms: true,
           messages: true,
+          tasks: true,
         },
       },
       pifs: {
@@ -318,6 +319,7 @@ export default class RestApi {
           smt: true,
           missing_patches: true,
           messages: true,
+          tasks: true,
         },
       },
       srs: {
@@ -329,12 +331,14 @@ export default class RestApi {
       vbds: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       vdis: {
         routes: {
           alarms: true,
           messages: true,
+          tasks: true,
         },
       },
       'vdi-snapshots': {
