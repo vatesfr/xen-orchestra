@@ -342,7 +342,7 @@ export default class RestApi {
       servers: {
         routes: {
           tasks: true,
-        },
+        }
       },
       tasks: {},
     }
