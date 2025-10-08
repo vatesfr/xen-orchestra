@@ -253,6 +253,7 @@ export default class RestApi {
           missing_patches: true,
           messages: true,
           tags: true,
+          tasks: true,
         },
       },
       groups: {
