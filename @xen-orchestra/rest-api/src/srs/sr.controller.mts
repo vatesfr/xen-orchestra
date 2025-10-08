@@ -2,7 +2,7 @@ import { Example, Get, Path, Post, Query, Request, Response, Route, Security, Su
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import { SUPPORTED_VDI_FORMAT, XenApiVdi, XoMessage, XoVdi, type XoAlarm, type XoSr } from '@vates/types'
+import { SUPPORTED_VDI_FORMAT, XenApiVdi, XoMessage, XoTask, XoVdi, type XoAlarm, type XoSr } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { BASE_URL } from '../index.mjs'
@@ -15,6 +15,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
+import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('srs')
 @Security('*')
@@ -143,5 +144,28 @@ export class SrController extends XapiXoController<XoSr> {
     const messages = this.getMessagesForObject(id as XoSr['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "c4284e12-37c9-7967-b9e8-83ef229c3e03"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getSrTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoSr['id'], { filter, limit })
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
 }
