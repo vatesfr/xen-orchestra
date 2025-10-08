@@ -355,7 +355,7 @@ export default class RestApi {
       servers: {
         routes: {
           tasks: true,
-        },
+        }
       },
       tasks: {},
     }
@@ -829,18 +829,20 @@ export default class RestApi {
         )
       )
 
-    api.get(
-      '/restore',
-      wrap((req, res) => sendObjects([{ id: 'logs' }], req, res))
-    )
-    api.get(
-      '/tasks/:id/actions',
-      wrap(async (req, res) => {
-        const task = await app.tasks.get(req.params.id)
+    api
+      .get(
+        '/restore',
+        wrap((req, res) => sendObjects([{ id: 'logs' }], req, res))
+      )
+    api
+      .get(
+        '/tasks/:id/actions',
+        wrap(async (req, res) => {
+          const task = await app.tasks.get(req.params.id)
 
-        await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
-      })
-    )
+          await sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+        })
+      )
 
     api.get(
       '/:collection',
