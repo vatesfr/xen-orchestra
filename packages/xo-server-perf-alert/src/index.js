@@ -497,6 +497,49 @@ ${monitorBodies.join('\n')}`
       : definition.uuids
   }
 
+  #buildRRDParser(definition, result, uuid) {
+    const { objectType } = definition
+    const lcObjectType = objectType.toLowerCase()
+    const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
+
+    const parsedLegend = result.meta.legend.map((l, index) => {
+      const [operation, type, uuid, name] = l.split(':')
+      const parsedName = name.split('_')
+      const lastComponent = parsedName[parsedName.length - 1]
+      const relatedEntity = parsedName.length > 1 && lastComponent.match(/^[0-9a-f]{8}$/) ? lastComponent : null
+      return {
+        operation,
+        type,
+        uuid,
+        name,
+        relatedEntity,
+        parsedName,
+        index,
+      }
+    })
+    const legendTree = {}
+    const getNode = (element, name, defaultValue = {}) => {
+      const child = element[name]
+      if (child === undefined) {
+        element[name] = defaultValue
+        return defaultValue
+      }
+      return child
+    }
+    parsedLegend.forEach(l => {
+      const root = getNode(legendTree, l.uuid)
+      const relatedNode = getNode(root, l.relatedEntity)
+      relatedNode[l.name] = l
+    })
+    const parser = typeFunction.createParser(
+      definition.comparator,
+      parsedLegend.filter(l => l.uuid === uuid),
+      definition.alarmTriggerLevel
+    )
+    result.data.forEach(d => parser.parseRow(d))
+    return parser
+  }
+
   #buildSnapshot(definition, cache) {
     const { objectType } = definition
     const lcObjectType = objectType.toLowerCase()
@@ -505,44 +548,6 @@ ${monitorBodies.join('\n')}`
 
     const observationPeriod = definition.alarmTriggerPeriod !== undefined ? definition.alarmTriggerPeriod : 60
 
-    const parseData = (result, uuid) => {
-      const parsedLegend = result.meta.legend.map((l, index) => {
-        const [operation, type, uuid, name] = l.split(':')
-        const parsedName = name.split('_')
-        const lastComponent = parsedName[parsedName.length - 1]
-        const relatedEntity = parsedName.length > 1 && lastComponent.match(/^[0-9a-f]{8}$/) ? lastComponent : null
-        return {
-          operation,
-          type,
-          uuid,
-          name,
-          relatedEntity,
-          parsedName,
-          index,
-        }
-      })
-      const legendTree = {}
-      const getNode = (element, name, defaultValue = {}) => {
-        const child = element[name]
-        if (child === undefined) {
-          element[name] = defaultValue
-          return defaultValue
-        }
-        return child
-      }
-      parsedLegend.forEach(l => {
-        const root = getNode(legendTree, l.uuid)
-        const relatedNode = getNode(root, l.relatedEntity)
-        relatedNode[l.name] = l
-      })
-      const parser = typeFunction.createParser(
-        definition.comparator,
-        parsedLegend.filter(l => l.uuid === uuid),
-        definition.alarmTriggerLevel
-      )
-      result.data.forEach(d => parser.parseRow(d))
-      return parser
-    }
     return Promise.all(
       map(this.#buildSnapshotUidList(definition), async uuid => {
         try {
@@ -561,7 +566,7 @@ ${monitorBodies.join('\n')}`
             // Stats via RRD
             result.rrd = await this.getRrd(result.object, observationPeriod, cache)
             if (result.rrd !== null) {
-              const data = parseData(result.rrd, result.object.uuid)
+              const data = this.#buildRRDParser(definition, result.rrd, result.object.uuid)
               Object.assign(result, {
                 data,
                 value: data.getDisplayableValue(),
