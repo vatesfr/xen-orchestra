@@ -1,7 +1,7 @@
 import { inject } from 'inversify'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { XoAlarm, XoTask, XoVdi, XoVdiSnapshot, XoVmController } from '@vates/types'
+import type { XoAlarm, XoMessage, XOTask, XoVdi, XoVdiSnapshot, XoVmController } from '@vates/types'
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 
@@ -18,6 +18,7 @@ import {
   vmControllerVdis,
 } from '../open-api/oa-examples/vm-controller.oa-example.mjs'
 import { VmService } from '../vms/vm.service.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('vm-controllers')
@@ -115,6 +116,30 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   ): SendObjects<Partial<Unbrand<XoVdi> | Unbrand<XoVdiSnapshot>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmController['id'], 'VM-controller')
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+  }
+
+  /**
+   * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVmControllerMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const messages = this.getMessagesForObject(id as XoVmController['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
   }
 
   /**

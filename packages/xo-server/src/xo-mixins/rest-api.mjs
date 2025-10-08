@@ -254,12 +254,14 @@ export default class RestApi {
       groups: {
         routes: {
           users: true,
+          tasks: true,
         },
       },
       users: {
         routes: {
           groups: true,
           authentication_tokens: true,
+          tasks: true,
         },
       },
       vifs: {
@@ -288,6 +290,7 @@ export default class RestApi {
         routes: {
           alarms: true,
           vdis: true,
+          messages: true,
           tasks: true,
         },
       },
@@ -338,7 +341,11 @@ export default class RestApi {
           messages: true,
         },
       },
-      servers: {},
+      servers: {
+        routes: {
+          tasks: true,
+        }
+      },
       tasks: {},
     }
 
