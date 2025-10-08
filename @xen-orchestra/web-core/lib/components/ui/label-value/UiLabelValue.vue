@@ -15,9 +15,8 @@
             >
               {{ value }}
             </div>
-            <UiTagsList v-else-if="Array.isArray(value) && value.length > 0" :class="{ 'text-ellipsis': ellipsis }">
-              <!-- #TODO fix toolTip -->
-              <UiTag v-for="tag in value" :key="tag" v-tooltip="tag" accent="info" variant="secondary">
+            <UiTagsList v-else-if="Array.isArray(value) && value.length > 0" class="tagList">
+              <UiTag v-for="tag in value" :key="tag" accent="info" variant="secondary">
                 {{ tag }}
               </UiTag>
             </UiTagsList>
@@ -132,12 +131,16 @@ const slots = defineSlots<{
           text-wrap: wrap;
           overflow-wrap: anywhere;
         }
-      }
 
-      .valueAddonWraper:empty::before {
-        content: '-';
+        .valueAddonWraper:empty::before {
+          content: '-';
+        }
       }
     }
+  }
+
+  .tagList {
+    width: 100%;
   }
 }
 </style>

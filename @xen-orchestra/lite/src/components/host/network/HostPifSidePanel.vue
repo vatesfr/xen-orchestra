@@ -41,95 +41,44 @@
         <UiCardTitle>{{ isBond ? t('bond') : t('pif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
-            <template #value>
-              {{ pif.uuid }}
-            </template>
+          <UiLabelValue :label="t('uuid')" :value="pif.uuid" :copy-value="pif.uuid" ellipsis>
             <template #addons>
               <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
-              <VtsCopyButton :value="pif.uuid" />
             </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
           <!-- NETWORK -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('network') }}
-            </template>
-            <template #value>
-              <div class="network">
-                <!-- TODO Remove the span when the link works and the icon is fixed -->
-                <!--
+          <UiLabelValue :label="t('network')" :value="network?.name_label" :copy-value="network?.name_label" ellipsis />
+          <!-- TODO Remove the span when the link works and the icon is fixed -->
+          <!--
                 <UiComplexIcon size="medium">
                   <VtsIcon icon="fa:network-wired" accent="current" />
                   <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                 </UiComplexIcon>
                 <a href="">{{ networkNameLabel }}</a>
                 -->
-                <span v-tooltip class="value text-ellipsis">{{ network?.name_label }}</span>
-              </div>
-            </template>
-            <template v-if="network?.name_label" #addons>
-              <VtsCopyButton :value="network.name_label" />
-            </template>
-          </VtsCardRowKeyValue>
           <!-- DEVICE -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('device') }}
-            </template>
-            <template #value>
-              {{ pif.device }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="pif.device" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('device')" :value="pif.device" :copy-value="pif.device" ellipsis />
           <!-- PIF STATUS -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ isBond ? t('bond-status') : t('pif-status') }}
-            </template>
+          <UiLabelValue :label="isBond ? t('bond-status') : t('pif-status')" ellipsis>
             <template #value>
               <VtsStatus :status />
             </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
           <!-- PHYSICAL INTERFACE STATUS -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('physical-interface-status') }}
-            </template>
+          <UiLabelValue :label="t('physical-interface-status')" ellipsis>
             <template #value>
               <VtsStatus :status="physicalInterfaceStatus" />
             </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
           <!-- VLAN -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('vlan') }}
-            </template>
-            <template #value>
-              {{ pif.VLAN === -1 ? t('none') : pif.VLAN }}
-            </template>
-            <template v-if="pif.VLAN !== -1" #addons>
-              <VtsCopyButton :value="String(pif.VLAN)" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue
+            :label="t('vlan')"
+            :value="pif.VLAN === -1 ? t('none') : String(pif.VLAN)"
+            :copy-value="pif.VLAN === -1 ? undefined : String(pif.VLAN)"
+            ellipsis
+          />
           <!-- TAGS -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('tags') }}
-            </template>
-            <template #value>
-              <UiTagsList class="tags value">
-                <UiTag v-for="tag in network?.tags" :key="tag" accent="info" variant="secondary">
-                  {{ tag }}
-                </UiTag>
-              </UiTagsList>
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('tags')" :value="network?.tags" ellipsis />
         </div>
       </UiCard>
       <!-- NETWORK INFORMATION -->
@@ -138,116 +87,62 @@
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
-            <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
-              <template #key>
-                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
+            <UiLabelValue :label="t('ip-addresses')">
+              <template v-if="ipAddresses.length > 0" #value>
+                <div class="IPs">
+                  <div v-for="(ip, index) in ipAddresses" :key="ip" class="ip">
+                    <span v-tooltip class="text-ellipsis">
+                      {{ ip }}
+                    </span>
+                    <VtsCopyButton :value="ip" />
+                    <UiButtonIcon
+                      v-if="index === 0 && ipAddresses.length > 1"
+                      v-tooltip="t('coming-soon')"
+                      disabled
+                      icon="fa:ellipsis"
+                      size="medium"
+                      accent="brand"
+                    />
+                  </div>
+                </div>
               </template>
-              <template #value>
-                <span v-tooltip class="text-ellipsis">{{ ip }}</span>
-              </template>
-              <template #addons>
-                <VtsCopyButton :value="ip" />
-                <UiButtonIcon
-                  v-if="index === 0 && ipAddresses.length > 1"
-                  v-tooltip="t('coming-soon')"
-                  disabled
-                  icon="fa:ellipsis"
-                  size="medium"
-                  accent="brand"
-                />
-              </template>
-            </VtsCardRowKeyValue>
+            </UiLabelValue>
           </div>
-          <VtsCardRowKeyValue v-else>
-            <template #key>
-              {{ t('ip-addresses') }}
-            </template>
-            <template #value>
-              <span class="value" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue v-else :label="t('ip-addresses')" ellipsis />
           <!-- MAC ADDRESSES -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('mac-address') }}
-            </template>
-            <template #value>
-              {{ pif.MAC }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="pif.MAC" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('mac-address')" :value="pif.MAC" :copy-value="pif.MAC" ellipsis />
           <!-- NETMASK -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('netmask') }}
-            </template>
-            <template #value>
-              <span class="value">{{ pif.netmask }}</span>
-            </template>
-            <template v-if="pif.netmask" #addons>
-              <VtsCopyButton :value="String(pif.netmask)" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('netmask')" :value="pif.netmask" :copy-value="pif.netmask" ellipsis />
           <!-- DNS -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('dns') }}
-            </template>
-            <template #value>
-              <span class="value">
-                {{ pif.DNS }}
-              </span>
-            </template>
-            <template v-if="pif.DNS" #addons>
-              <VtsCopyButton :value="String(pif.DNS)" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('dns')" :value="pif.DNS" :copy-value="pif.DNS" ellipsis />
           <!-- GATEWAY -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('gateway') }}
-            </template>
-            <template #value>
-              <span class="value">
-                {{ pif.gateway }}
-              </span>
-            </template>
-            <template v-if="pif.gateway" #addons>
-              <VtsCopyButton :value="String(pif.gateway)" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('gateway')" :value="pif.gateway" :copy-value="pif.gateway" ellipsis />
           <!-- IP CONFIGURATION MODE -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('ip-mode') }}
-            </template>
-            <template #value>
-              {{ ipConfigurationMode }}
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('ip-mode')" :value="ipConfigurationMode" ellipsis />
           <!-- BOND DEVICES -->
           <div>
-            <VtsCardRowKeyValue v-for="(device, index) in bondDevices" :key="device">
-              <template #key>
-                <div v-if="index === 0">{{ t('bond-devices') }}</div>
+            <UiLabelValue :label="t('bond-devices')">
+              <template v-if="bondDevices.length > 0" #value>
+                <div class="bound-devices">
+                  <div v-for="(device, index) in bondDevices" :key="device" class="device">
+                    <span v-tooltip class="text-ellipsis">
+                      {{ device }}
+                    </span>
+                    <template v-if="device">
+                      <VtsCopyButton :value="device" />
+                      <UiButtonIcon
+                        v-if="index === 0 && bondDevices.length > 1"
+                        v-tooltip="t('coming-soon')"
+                        disabled
+                        icon="fa:ellipsis"
+                        size="medium"
+                        accent="brand"
+                      />
+                    </template>
+                  </div>
+                </div>
               </template>
-              <template #value>
-                <span v-tooltip class="text-ellipsis">{{ device }}</span>
-              </template>
-              <template v-if="device" #addons>
-                <VtsCopyButton :value="device" />
-                <UiButtonIcon
-                  v-if="index === 0 && bondDevices.length > 1"
-                  v-tooltip="t('coming-soon')"
-                  disabled
-                  icon="fa:ellipsis"
-                  size="medium"
-                  accent="brand"
-                />
-              </template>
-            </VtsCardRowKeyValue>
+            </UiLabelValue>
           </div>
         </div>
       </UiCard>
@@ -256,38 +151,21 @@
         <UiCardTitle>{{ t('properties') }}</UiCardTitle>
         <div class="content">
           <!-- MTU -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('mtu') }}
-            </template>
-            <template #value>
-              {{ pif.MTU === -1 ? t('none') : pif.MTU }}
-            </template>
-            <template v-if="pif.MTU !== -1" #addons>
-              <VtsCopyButton :value="String(pif.MTU)" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue
+            :label="t('mtu')"
+            :value="pif.MTU === -1 ? t('none') : String(pif.MTU)"
+            :copy-value="pif.MTU === -1 ? undefined : String(pif.MTU)"
+            ellipsis
+          />
           <!-- SPEED -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('speed') }}
-            </template>
-            <template #value>
-              {{ speed }}
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('speed')" :value="speed" ellipsis />
           <!-- NETWORK BLOCK DEVICE -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('network-block-device') }}
-            </template>
-            <template #value>
-              {{ networkPurpose }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="networkPurpose" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue
+            :label="t('network-block-device')"
+            :value="networkPurpose"
+            :copy-value="networkPurpose"
+            ellipsis
+          />
         </div>
       </UiCard>
     </template>
@@ -299,7 +177,6 @@ import type { XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -307,9 +184,8 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import humanFormat from 'human-format'
@@ -353,7 +229,6 @@ const ipConfigurationMode = computed(() => {
 })
 
 const bondDevices = computed(() => getBondsDevices(pif))
-
 const isBond = computed(() => isBondMaster(pif))
 
 const speed = computed(() => {
@@ -376,21 +251,19 @@ const speed = computed(() => {
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-  }
 
-  .network {
-    display: flex;
-    gap: 0.8rem;
-  }
+    .bound-devices,
+    .IPs {
+      width: 100%;
 
-  .tags {
-    width: 100%;
-    display: flex;
-    gap: 0.8rem;
-  }
-
-  .value:empty::before {
-    content: '-';
+      .device,
+      .ip {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        width: 100%;
+      }
+    }
   }
 }
 

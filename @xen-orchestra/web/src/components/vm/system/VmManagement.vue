@@ -3,48 +3,51 @@
     <UiTitle>
       {{ t('vm-management') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('high-availability')">
+    <UiLabelValue :label="t('high-availability')">
       <template #value>
         <VtsStatus :status="vm.high_availability !== ''" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('affinity-host')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('affinity-host')">
       <template #value>
-        <UiLink v-if="vm.affinityHost" icon="fa:server" :to="`/host/${vm.affinityHost}`" size="small">
-          {{ affinityHostName }}
+        <UiLink v-if="vm.affinityHost" icon="fa:server" :to="`/host/${vm.affinityHost}`" size="small" class="link">
+          <div v-tooltip class="text-ellipsis">
+            {{ affinityHostName }}
+          </div>
         </UiLink>
         <template v-else>
           {{ t('none') }}
         </template>
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('protect-from-accidental-deletion')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('protect-from-accidental-deletion')">
       <template #value>
         <VtsStatus :status="vm.blockedOperations.destroy !== undefined" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('protect-from-accidental-shutdown')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('protect-from-accidental-shutdown')">
       <template #value>
         <VtsStatus :status="isProtectedFromAccidentalShutdown" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('auto-power')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('auto-power')">
       <template #value>
         <VtsStatus :status="vm.auto_poweron" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('start-delay')" :value="formattedStartDelay" />
+    </UiLabelValue>
+    <UiLabelValue :label="t('start-delay')" :value="formattedStartDelay" />
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { VM_OPERATION, type XoVm } from '@/types/xo/vm.type'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -96,3 +99,9 @@ const formattedStartDelay = computed(() => {
   return parts.join(' ')
 })
 </script>
+
+<style lang="postcss" scoped>
+.link {
+  width: 100%;
+}
+</style>

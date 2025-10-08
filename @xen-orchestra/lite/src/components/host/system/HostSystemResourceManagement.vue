@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('resource-management') }}
     </UiTitle>
-    <VtsQuickInfoRow
+    <UiLabelValue
       :label="t('control-domain-memory')"
       :value="`${controllerMemory?.value} ${controllerMemory?.prefix}`"
     />
@@ -13,8 +13,8 @@
 <script setup lang="ts">
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useControlDomainStore } from '@/stores/xen-api/control-domain.store.ts'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'

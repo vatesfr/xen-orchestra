@@ -6,13 +6,7 @@
     </UiCardTitle>
     <div class="content">
       <template v-for="(result, index) in results" :key="index">
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('message') }}</template>
-          <template #value>{{ result.message }}</template>
-          <template #addons>
-            <VtsCopyButton :value="result.message" />
-          </template>
-        </VtsCardRowKeyValue>
+        <UiLabelValue :label="t('message')" :value="result.message" :copy-value="result.message" ellipsis />
         <UiLogEntryViewer
           v-if="result.stack"
           :label="cardMetadata.logEntryTitle"
@@ -29,12 +23,11 @@
 
 <script lang="ts" setup>
 import type { BackupLogResult } from '@/utils/xo-records/task.util.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { useMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'

@@ -5,7 +5,7 @@
     </UiTitle>
     <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
     <template v-else>
-      <VtsQuickInfoRow :label="t('backup-network')">
+      <UiLabelValue :label="t('backup-network')">
         <template #value>
           <UiLink
             v-if="backupNetwork !== undefined"
@@ -19,7 +19,7 @@
             {{ t('none') }}
           </template>
         </template>
-      </VtsQuickInfoRow>
+      </UiLabelValue>
     </template>
   </UiCard>
 </template>
@@ -27,9 +27,9 @@
 <script setup lang="ts">
 import type { XenApiNetwork, XenApiPool } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'

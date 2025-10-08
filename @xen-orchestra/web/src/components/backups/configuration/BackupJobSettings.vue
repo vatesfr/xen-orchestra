@@ -3,62 +3,49 @@
     <UiTitle>{{ t('settings') }}</UiTitle>
     <VtsColumns>
       <VtsColumn>
-        <VtsQuickInfoRow :label="t('proxy')" :value="proxy?.name" />
-        <VtsQuickInfoRow :label="t('snapshot-mode')">
+        <UiLabelValue :label="t('proxy')" :value="proxy?.name" />
+        <UiLabelValue :label="t('snapshot-mode')">
           <template v-if="backupJob.mode" #value>
             <UiTag variant="secondary" accent="info">{{ t(snapshotModeTranslation) }}</UiTag>
           </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow
+        </UiLabelValue>
+        <UiLabelValue
           :label="t('vm-backup-failure-number-of-retries')"
           :value="
             settings.nRetriesVmBackupFailures !== undefined ? String(settings.nRetriesVmBackupFailures) : undefined
           "
         />
-        <VtsQuickInfoRow :label="t('timeout')" :value="formattedTimeout" />
+        <UiLabelValue :label="t('timeout')" :value="formattedTimeout" />
       </VtsColumn>
       <VtsColumn>
-        <VtsQuickInfoRow
+        <UiLabelValue
           :label="t('speed-limit')"
           :value="maxExportRate ? `${maxExportRate.value} ${maxExportRate.prefix}` : undefined"
         />
-        <VtsQuickInfoRow :label="t('report-when')" :value="reportWhenValueTranslation" />
-        <VtsQuickInfoRow :label="t('report-recipients')">
-          <template #value>
-            <UiTagsList v-if="settings.reportRecipients">
-              <UiTag
-                v-for="(recipient, index) in settings.reportRecipients"
-                :key="index"
-                variant="secondary"
-                accent="info"
-              >
-                {{ recipient }}
-              </UiTag>
-            </UiTagsList>
-          </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow
+        <UiLabelValue :label="t('report-when')" :value="reportWhenValueTranslation" />
+        <UiLabelValue :label="t('report-recipients')" :value="settings.reportRecipients" />
+        <UiLabelValue
           :label="t('concurrency')"
           :value="settings.concurrency !== undefined ? String(settings.concurrency) : undefined"
         />
       </VtsColumn>
       <VtsColumn>
-        <VtsQuickInfoRow :label="t('compression')" :value="compression" />
-        <VtsQuickInfoRow :label="t('offline-backup')">
+        <UiLabelValue :label="t('compression')" :value="compression" />
+        <UiLabelValue :label="t('offline-backup')">
           <template #value>
             <VtsEnabledState :enabled="!!settings.offlineBackup" />
           </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('shorter-backup-reports')">
+        </UiLabelValue>
+        <UiLabelValue :label="t('shorter-backup-reports')">
           <template #value>
             <VtsEnabledState :enabled="settings.backupReportTpl ? settings.backupReportTpl === 'compactMjml' : false" />
           </template>
-        </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('merge-backups-synchronously')">
+        </UiLabelValue>
+        <UiLabelValue :label="t('merge-backups-synchronously')">
           <template #value>
             <VtsEnabledState :enabled="!!settings.mergeBackupsSynchronously" />
           </template>
-        </VtsQuickInfoRow>
+        </UiLabelValue>
       </VtsColumn>
     </VtsColumns>
   </UiCard>
@@ -70,10 +57,9 @@ import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 

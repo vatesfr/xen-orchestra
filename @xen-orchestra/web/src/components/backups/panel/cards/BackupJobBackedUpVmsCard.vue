@@ -6,46 +6,30 @@
     </UiCardTitle>
     <div>
       <!-- Smart mode state -->
-      <VtsCardRowKeyValue>
-        <template #key>
-          {{ t('smart-mode') }}
-        </template>
+      <UiLabelValue :label="t('smart-mode')" ellipsis>
         <template #value>
           <VtsStatus :status="isSmartModeEnabled" />
         </template>
-      </VtsCardRowKeyValue>
+      </UiLabelValue>
       <template v-if="isSmartModeEnabled">
         <VtsDivider class="divider" type="stretch" />
         <div class="content">
           <!-- Power state -->
-          <VtsCardRowKeyValue v-if="smartModePowerState !== undefined">
-            <template #key>
-              {{ t('power-state') }}
-            </template>
+          <UiLabelValue v-if="smartModePowerState !== undefined" :label="t('power-state')" ellipsis>
             <template #value>
               <VtsIcon size="small" :name="`legacy:${toLower(smartModePowerState)}`" />
               {{ smartModePowerState }}
             </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
           <!-- Pools -->
           <template v-if="smartModePools !== undefined">
-            <BackupJobSmartModePools
-              v-for="(pool, index) in smartModePools.included"
-              :key="pool.id"
-              :pool
-              :label="index === 0 ? t('resident-on') : undefined"
-            />
-            <BackupJobSmartModePools
-              v-for="(pool, index) in smartModePools.excluded"
-              :key="pool.id"
-              :pool
-              :label="index === 0 ? t('not-resident-on') : undefined"
-            />
+            <BackupJobSmartModePools :label="t('resident-on')" :pools="smartModePools.included" />
+            <BackupJobSmartModePools :label="t('not-resident-on')" :pools="smartModePools.excluded" />
           </template>
           <!-- Tags -->
           <template v-if="smartModeTags !== undefined">
-            <BackupJobSmartModeTags :tags="smartModeTags.included ?? []" :label="t('vms-tags')" />
-            <BackupJobSmartModeTags :tags="smartModeTags.excluded ?? []" :label="t('excluded-vms-tags')" />
+            <UiLabelValue :label="t('vms-tags')" :value="smartModeTags.included ?? []" ellipsis />
+            <UiLabelValue :label="t('excluded-vms-tags')" :value="smartModeTags.excluded ?? []" ellipsis />
           </template>
         </div>
       </template>
@@ -66,10 +50,8 @@
 
 <script lang="ts" setup>
 import BackupJobSmartModePools from '@/components/backups/panel/card-items/BackupJobSmartModePools.vue'
-import BackupJobSmartModeTags from '@/components/backups/panel/card-items/BackupJobSmartModeTags.vue'
 import { useXoBackedUpVmsUtils } from '@/composables/xo-backed-up-vms-utils.composable'
 import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -77,6 +59,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'

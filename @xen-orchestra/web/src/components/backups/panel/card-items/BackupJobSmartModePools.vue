@@ -1,23 +1,29 @@
 <template>
-  <VtsCardRowKeyValue>
-    <template #key>
-      {{ label }}
-    </template>
+  <UiLabelValue :label>
     <template #value>
-      <UiLink size="small" icon="fa:city" :to="`/pool/${pool.id}`">
-        {{ pool.name_label }}
+      <UiLink v-for="pool in pools" :key="pool.id" size="small" icon="fa:city" :to="`/pool/${pool.id}`" class="pool">
+        <span v-tooltip class="text-ellipsis">
+          {{ pool.name_label }}
+        </span>
       </UiLink>
     </template>
-  </VtsCardRowKeyValue>
+  </UiLabelValue>
 </template>
 
 <script lang="ts" setup>
 import type { XoPool } from '@/types/xo/pool.type.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 
 defineProps<{
-  pool: XoPool
-  label?: string
+  pools: XoPool[]
+  label: string
 }>()
 </script>
+
+<style scoped lang="postcss">
+.pool {
+  width: 100%;
+}
+</style>

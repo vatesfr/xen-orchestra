@@ -3,32 +3,21 @@
     <UiTitle>
       {{ t('licensing') }}
     </UiTitle>
-    <VtsCardRowKeyValue>
-      <template #key> {{ t('license-type') }}</template>
+    <UiLabelValue :label="t('license-type')">
       <!--        Waiting for the API endpoint -->
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ t('license-socket') }}
-      </template>
-      <template #value>
-        <!--        Waiting for the API endpoint -->
-      </template>
-    </VtsCardRowKeyValue>
-    <VtsCardRowKeyValue>
-      <template #key>
-        {{ t('expiration-date') }}
-      </template>
-      <template #value>
-        <!--        Waiting for the API endpoint -->
-      </template>
-    </VtsCardRowKeyValue>
+    </UiLabelValue>
+    <UiLabelValue :label="t('license-socket')">
+      <!--        Waiting for the API endpoint -->
+    </UiLabelValue>
+    <UiLabelValue :label="t('expiration-date')">
+      <!--        Waiting for the API endpoint -->
+    </UiLabelValue>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 

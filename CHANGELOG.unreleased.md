@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **XO 6:**
+  - [Core] Create a new component for improved readability on the side panel and on system page. (PR [#9109](https://github.com/vatesfr/xen-orchestra/pull/9109))
 
 ### Bug fixes
 

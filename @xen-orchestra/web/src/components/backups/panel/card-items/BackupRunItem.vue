@@ -1,51 +1,34 @@
 <template>
-  <VtsCardRowKeyValue>
-    <template #key>
-      {{ t('run') }}
-    </template>
+  <UiLabelValue :label="t('run')" :copy-value="backupRun.id" ellipsis>
     <template #value>
       <UiLink
         v-if="backupRun.id"
         size="small"
         icon="object:backup-log"
         :to="`/backup/${backupRun.jobId}/runs?id=${backupRun.id}`"
+        class="link"
       >
-        {{ backupRun.id }}
+        <div v-tooltip class="text-ellipsis">
+          {{ backupRun.id }}
+        </div>
       </UiLink>
     </template>
-    <template #addons>
-      <VtsCopyButton :value="backupRun.id" />
-    </template>
-  </VtsCardRowKeyValue>
-  <VtsCardRowKeyValue>
-    <template #key>
-      {{ t('date') }}
-    </template>
-    <template #value>
-      {{ formattedRunDate }}
-    </template>
-    <template #addons>
-      <VtsCopyButton :value="formattedRunDate" />
-    </template>
-  </VtsCardRowKeyValue>
-  <VtsCardRowKeyValue>
-    <template #key>
-      {{ t('status') }}
-    </template>
+  </UiLabelValue>
+  <UiLabelValue :label="t('date')" :value="formattedRunDate" :copy-value="formattedRunDate" ellipsis />
+  <UiLabelValue :label="t('status')" ellipsis>
     <template #value>
       <VtsStatus :status="backupRun.status" />
     </template>
-  </VtsCardRowKeyValue>
-  <VtsCardRowKeyValue>
-    <template #key>
-      {{ t('schedule') }}
-    </template>
+  </UiLabelValue>
+  <UiLabelValue :label="t('schedule')" ellipsis>
     <template #value>
-      <UiLink size="small" icon="object:backup-schedule" :href="`/#/backup/${backupRun.jobId}/edit`">
-        {{ scheduleName || backupRun.jobId }}
+      <UiLink size="small" icon="object:backup-schedule" :href="`/#/backup/${backupRun.jobId}/edit`" class="link">
+        <div v-tooltip class="text-ellipsis">
+          {{ scheduleName || backupRun.jobId }}
+        </div>
       </UiLink>
     </template>
-  </VtsCardRowKeyValue>
+  </UiLabelValue>
   <UiLogEntryViewer
     v-if="logContent"
     :content="logContent"
@@ -58,11 +41,11 @@
 <script lang="ts" setup>
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
 import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -88,3 +71,9 @@ const logContent = computed(() => {
 
 const scheduleName = computed(() => schedules.value.find(schedule => schedule.jobId === backupRun.jobId)?.name)
 </script>
+
+<style lang="postcss" scoped>
+.link {
+  width: 100%;
+}
+</style>
