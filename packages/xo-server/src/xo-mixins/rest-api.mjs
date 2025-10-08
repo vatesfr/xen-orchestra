@@ -331,6 +331,7 @@ export default class RestApi {
       vbds: {
         routes: {
           alarms: true,
+          messages: true,
         },
       },
       vdis: {
