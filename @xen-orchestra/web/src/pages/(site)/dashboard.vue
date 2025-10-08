@@ -3,7 +3,7 @@
     <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
     <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
     <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
-    <Alarms class="alarms" :alarms />
+    <DashboardAlarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
     <Patches
       class="patches"
       :missing-patches="dashboard.missingPatches"
@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts" setup>
-import Alarms from '@/components/site/dashboard/Alarms.vue'
+import DashboardAlarms from '@/components/alarms/DashboardAlarms.vue'
 import BackupIssues from '@/components/site/dashboard/BackupIssues.vue'
 import Backups from '@/components/site/dashboard/Backups.vue'
 import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
@@ -36,14 +36,26 @@ import Repositories from '@/components/site/dashboard/Repositories.vue'
 import ResourcesOverview from '@/components/site/dashboard/ResourcesOverview.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 import { useXoAlarmCollection } from '@/remote-resources/use-xo-alarm-collection.ts'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
 import { useXoSiteDashboard } from '@/remote-resources/use-xo-site-dashboard.ts'
+import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection'
+import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { logicAnd } from '@vueuse/math'
 
 const uiStore = useUiStore()
 
 const { dashboard, backupRepositories, storageRepositories, hasError } = useXoSiteDashboard()
 
-const { alarms } = useXoAlarmCollection()
+const { areHostsReady } = useXoHostCollection()
+const { areVmsReady } = useXoVmCollection()
+const { areVmControllersReady } = useXoVmControllerCollection()
+const { areSrsReady } = useXoSrCollection()
+
+const areAlarmsReady = logicAnd(areHostsReady, areVmsReady, areVmControllersReady, areSrsReady)
+
+const { alarms, hasAlarmFetchError } = useXoAlarmCollection()
 </script>
 
 <style lang="postcss" scoped>
@@ -86,6 +98,7 @@ const { alarms } = useXoAlarmCollection()
 
   .alarms {
     grid-area: alarms;
+    max-height: 40.6rem;
   }
 
   .patches {
