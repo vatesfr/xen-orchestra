@@ -254,6 +254,7 @@ export default class RestApi {
       groups: {
         routes: {
           users: true,
+          tasks: true,
         },
       },
       users: {
