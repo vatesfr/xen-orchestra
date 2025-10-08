@@ -1,7 +1,7 @@
 import { inject } from 'inversify'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { XoAlarm, XoMessage, XOTask, XoVdi, XoVdiSnapshot, XoVmController } from '@vates/types'
+import type { XoAlarm, XoMessage, XoTask, XoVdi, XoVdiSnapshot, XoVmController } from '@vates/types'
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 
