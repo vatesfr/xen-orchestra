@@ -816,7 +816,14 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
         .then(text => {
           const downloaded = performance.now()
           this.#timers.downloading += downloaded - start
-          const json = JSON5.parse(text)
+          let json
+          try {
+            // starting from XAPI 23.31, the response is valid JSON
+            json = JSON.parse(text)
+          } catch (_) {
+            logger.debug('fallback JSON5')
+            json = JSON5.parse(text)
+          }
           const jsonParsing = performance.now()
           this.#timers.jsonParsing += jsonParsing - downloaded
           return json
