@@ -1,35 +1,35 @@
 <template>
-  <UiModal @submit.prevent="handleSubmit">
-    <ConfirmModalLayout>
-      <template #default>
-        <div class="form-selects">
-          <VtsSelect :id="sortPropertySelectId" accent="brand" />
-          <VtsSelect :id="isAscendingSelectId" accent="brand" />
-        </div>
-      </template>
+  <VtsModal accent="info" dismissible @confirm="handleSubmit()">
+    <template #content>
+      <div class="form-selects">
+        <VtsSelect :id="sortPropertySelectId" accent="brand" />
+        <VtsSelect :id="isAscendingSelectId" accent="brand" />
+      </div>
+    </template>
 
-      <template #buttons>
-        <ModalDeclineButton />
-        <ModalApproveButton>{{ t('add') }}</ModalApproveButton>
-      </template>
-    </ConfirmModalLayout>
-  </UiModal>
+    <template #buttons>
+      <VtsModalCancelButton />
+      <VtsModalConfirmButton :disabled="!newSortProperty">{{ t('add') }}</VtsModalConfirmButton>
+    </template>
+  </VtsModal>
 </template>
 
 <script lang="ts" setup>
-import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayout.vue'
-import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
-import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
-import UiModal from '@/components/ui/modals/UiModal.vue'
-import { IK_MODAL } from '@/types/injection-keys'
 import type { NewSort, Sorts } from '@/types/sort'
+import VtsModal from '@core/components/modal/VtsModal.vue'
+import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
+import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { inject, ref } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { availableSorts } = defineProps<{
   availableSorts: Sorts
+}>()
+
+const emit = defineEmits<{
+  confirm: [sort: NewSort]
 }>()
 
 const { t } = useI18n()
@@ -37,14 +37,11 @@ const { t } = useI18n()
 const newSortProperty = ref()
 const newSortIsAscending = ref<boolean>(true)
 
-const modal = inject(IK_MODAL)!
-
-const handleSubmit = () => {
-  modal.approve<NewSort>({
+const handleSubmit = () =>
+  emit('confirm', {
     property: newSortProperty.value,
     isAscending: newSortIsAscending.value,
   })
-}
 
 const { id: sortPropertySelectId } = useFormSelect(Object.entries(availableSorts), {
   model: newSortProperty,
@@ -68,5 +65,9 @@ const { id: isAscendingSelectId } = useFormSelect([true, false], {
 .form-selects {
   display: flex;
   gap: 1rem;
+
+  @media (--mobile) {
+    flex-direction: column;
+  }
 }
 </style>
