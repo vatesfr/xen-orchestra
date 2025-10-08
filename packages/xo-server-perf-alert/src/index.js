@@ -400,7 +400,9 @@ class PerfAlertXoPlugin {
   }
   #nbCheckRunning = 0
   #running = false
-
+  constructor(xo) {
+    this._xo = xo
+  }
   async #watchMonitors() {
     while (this.#running) {
       const start = Date.now()
@@ -575,65 +577,67 @@ ${monitorBodies.join('\n')}`
     return result.value.toFixed(1) + typeFunction.unit
   }
 
-  #buildSnapshot(definition, cache) {
-    const { objectType } = definition
-    const lcObjectType = objectType.toLowerCase()
+  #buildSnapshotFunction(definition, cache) {
+    return () => {
+      const { objectType } = definition
+      const lcObjectType = objectType.toLowerCase()
 
-    const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
+      const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
 
-    const observationPeriod = definition.alarmTriggerPeriod !== undefined ? definition.alarmTriggerPeriod : 60
+      const observationPeriod = definition.alarmTriggerPeriod !== undefined ? definition.alarmTriggerPeriod : 60
 
-    return Promise.all(
-      map(this.#buildSnapshotUidList(definition), async uuid => {
-        try {
-          const result = {
-            uuid,
-            object: this._xo.getXapi(uuid).getObject(uuid),
-          }
+      return Promise.all(
+        map(this.#buildSnapshotUidList(definition), async uuid => {
+          try {
+            const result = {
+              uuid,
+              object: this._xo.getXapi(uuid).getObject(uuid),
+            }
 
-          if (result.object === undefined) {
-            throw new Error('object not found')
-          }
+            if (result.object === undefined) {
+              throw new Error('object not found')
+            }
 
-          result.objectLink = `[${result.object.name_label}](${this._generateUrl(lcObjectType, result.object)})`
+            result.objectLink = `[${result.object.name_label}](${this._generateUrl(lcObjectType, result.object)})`
 
-          if (typeFunction.createGetter === undefined) {
-            // Stats via RRD
-            result.rrd = await this.getRrd(result.object, observationPeriod, cache)
-            if (result.rrd !== null) {
-              const data = this.#buildRRDParser(definition, result.rrd, result.object.uuid)
+            if (typeFunction.createGetter === undefined) {
+              // Stats via RRD
+              result.rrd = await this.getRrd(result.object, observationPeriod, cache)
+              if (result.rrd !== null) {
+                const data = this.#buildRRDParser(definition, result.rrd, result.object.uuid)
+                Object.assign(result, {
+                  data,
+                  value: data.getDisplayableValue(),
+                  shouldAlarm: data.shouldAlarm(),
+                  threshold: data.threshold,
+                  observationPeriod,
+                })
+              }
+            } else {
+              // Stats via XAPI
+              const getter = typeFunction.createGetter(definition.comparator, definition.alarmTriggerLevel)
+              const data = getter(result.object)
               Object.assign(result, {
-                data,
                 value: data.getDisplayableValue(),
                 shouldAlarm: data.shouldAlarm(),
                 threshold: data.threshold,
                 observationPeriod,
               })
             }
-          } else {
-            // Stats via XAPI
-            const getter = typeFunction.createGetter(definition.comparator, definition.alarmTriggerLevel)
-            const data = getter(result.object)
-            Object.assign(result, {
-              value: data.getDisplayableValue(),
-              shouldAlarm: data.shouldAlarm(),
-              threshold: data.threshold,
-              observationPeriod,
-            })
+            result.listItem = `  * ${result.objectLink}: ${this.#getListItem(definition, result)}\n`
+            return result
+          } catch (error) {
+            logger.warn(error)
+            return {
+              uuid,
+              object: null,
+              objectLink: `cannot find object ${uuid}`,
+              listItem: `  * ${uuid}: **Can't read performance counters**\n`,
+            }
           }
-          result.listItem = `  * ${result.objectLink}: ${this.#getListItem(result)}\n`
-          return result
-        } catch (error) {
-          logger.warn(error)
-          return {
-            uuid,
-            object: null,
-            objectLink: `cannot find object ${uuid}`,
-            listItem: `  * ${uuid}: **Can't read performance counters**\n`,
-          }
-        }
-      })
-    )
+        })
+      )
+    }
   }
 
   _parseDefinition(definition, cache) {
@@ -646,7 +650,7 @@ ${monitorBodies.join('\n')}`
       alarmId,
       vmFunction: typeFunction,
       title: `${typeFunction.name} ${definition.comparator} ${definition.alarmTriggerLevel}${typeFunction.unit}`,
-      snapshot: this.#buildSnapshot(definition, cache),
+      snapshot: this.#buildSnapshotFunction(definition, cache),
     }
   }
 
