@@ -468,11 +468,43 @@ ${monitorBodies.join('\n')}`
     )
   }
 
-  _parseDefinition(definition, cache) {
+  #buildSnapshotUidList(definition) {
+    const { objectType } = definition
+    return definition.smartMode || definition.excludeUuids
+      ? filter(this._xo.getObjects(), obj => {
+          if (obj.type !== objectType) {
+            return false
+          }
+
+          if (
+            (definition.smartMode || definition.excludeUuids) &&
+            (objectType === 'VM' || objectType === 'host') &&
+            obj.power_state !== 'Running'
+          ) {
+            return false
+          }
+
+          if (definition.excludeUuids && definition.uuids.includes(obj.uuid)) {
+            return false
+          }
+
+          if (objectType === 'SR' && !isSrWritable(obj)) {
+            return false
+          }
+
+          return true
+        }).map(obj => obj.uuid)
+      : definition.uuids
+  }
+
+  #buildSnapshot(definition, cache) {
     const { objectType } = definition
     const lcObjectType = objectType.toLowerCase()
-    const alarmId = `${lcObjectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
+
     const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
+
+    const observationPeriod = definition.alarmTriggerPeriod !== undefined ? definition.alarmTriggerPeriod : 60
+
     const parseData = (result, uuid) => {
       const parsedLegend = result.meta.legend.map((l, index) => {
         const [operation, type, uuid, name] = l.split(':')
@@ -511,126 +543,104 @@ ${monitorBodies.join('\n')}`
       result.data.forEach(d => parser.parseRow(d))
       return parser
     }
-    const observationPeriod = definition.alarmTriggerPeriod !== undefined ? definition.alarmTriggerPeriod : 60
+    return Promise.all(
+      map(this.#buildSnapshotUidList(definition), async uuid => {
+        try {
+          const result = {
+            uuid,
+            object: this._xo.getXapi(uuid).getObject(uuid),
+          }
+
+          if (result.object === undefined) {
+            throw new Error('object not found')
+          }
+
+          result.objectLink = `[${result.object.name_label}](${this._generateUrl(lcObjectType, result.object)})`
+
+          if (typeFunction.createGetter === undefined) {
+            // Stats via RRD
+            result.rrd = await this.getRrd(result.object, observationPeriod, cache)
+            if (result.rrd !== null) {
+              const data = parseData(result.rrd, result.object.uuid)
+              Object.assign(result, {
+                data,
+                value: data.getDisplayableValue(),
+                shouldAlarm: data.shouldAlarm(),
+                threshold: data.threshold,
+                observationPeriod,
+              })
+            }
+          } else {
+            // Stats via XAPI
+            const getter = typeFunction.createGetter(definition.comparator, definition.alarmTriggerLevel)
+            const data = getter(result.object)
+            Object.assign(result, {
+              value: data.getDisplayableValue(),
+              shouldAlarm: data.shouldAlarm(),
+              threshold: data.threshold,
+              observationPeriod,
+            })
+          }
+
+          const isManagementAgentDetected = (vm, guestMetrics) => {
+            if ((vm.power_state !== 'Running' && vm.power_state !== 'Paused') || guestMetrics === undefined) {
+              return
+            }
+
+            const { major, minor } = guestMetrics.PV_drivers_version
+            const hasPvVersion = major !== undefined && minor !== undefined
+            return hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
+          }
+
+          const getListItem = () => {
+            if (result.value == null) {
+              return "**Can't read performance counters**"
+            }
+
+            // VM RAM usage is reported by the VM itself through guest tools. If guest tools are not installed, ignore RAM usage stats
+            if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
+              const vm = result.object
+              const guestMetrics = this._xo.getXapi(uuid).getObject(vm.guest_metrics)
+              const managementAgentDetected = isManagementAgentDetected(vm, guestMetrics)
+
+              if (managementAgentDetected === undefined) {
+                return "**Can't read performance counters**"
+              }
+              if (managementAgentDetected === false) {
+                return '**Guest tools must be installed**'
+              }
+            }
+
+            return result.value.toFixed(1) + typeFunction.unit
+          }
+
+          result.listItem = `  * ${result.objectLink}: ${getListItem()}\n`
+
+          return result
+        } catch (error) {
+          logger.warn(error)
+          return {
+            uuid,
+            object: null,
+            objectLink: `cannot find object ${uuid}`,
+            listItem: `  * ${uuid}: **Can't read performance counters**\n`,
+          }
+        }
+      })
+    )
+  }
+
+  _parseDefinition(definition, cache) {
+    const { objectType } = definition
+    const lcObjectType = objectType.toLowerCase()
+    const alarmId = `${lcObjectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
+    const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
     return {
       ...definition,
       alarmId,
       vmFunction: typeFunction,
       title: `${typeFunction.name} ${definition.comparator} ${definition.alarmTriggerLevel}${typeFunction.unit}`,
-      snapshot: async () => {
-        return Promise.all(
-          map(
-            definition.smartMode || definition.excludeUuids
-              ? filter(this._xo.getObjects(), obj => {
-                  if (obj.type !== objectType) {
-                    return false
-                  }
-
-                  if (
-                    (definition.smartMode || definition.excludeUuids) &&
-                    (objectType === 'VM' || objectType === 'host') &&
-                    obj.power_state !== 'Running'
-                  ) {
-                    return false
-                  }
-
-                  if (definition.excludeUuids && definition.uuids.includes(obj.uuid)) {
-                    return false
-                  }
-
-                  if (objectType === 'SR' && !isSrWritable(obj)) {
-                    return false
-                  }
-
-                  return true
-                }).map(obj => obj.uuid)
-              : definition.uuids,
-            async uuid => {
-              try {
-                const result = {
-                  uuid,
-                  object: this._xo.getXapi(uuid).getObject(uuid),
-                }
-
-                if (result.object === undefined) {
-                  throw new Error('object not found')
-                }
-
-                result.objectLink = `[${result.object.name_label}](${this._generateUrl(lcObjectType, result.object)})`
-
-                if (typeFunction.createGetter === undefined) {
-                  // Stats via RRD
-                  result.rrd = await this.getRrd(result.object, observationPeriod, cache)
-                  if (result.rrd !== null) {
-                    const data = parseData(result.rrd, result.object.uuid)
-                    Object.assign(result, {
-                      data,
-                      value: data.getDisplayableValue(),
-                      shouldAlarm: data.shouldAlarm(),
-                      threshold: data.threshold,
-                      observationPeriod,
-                    })
-                  }
-                } else {
-                  // Stats via XAPI
-                  const getter = typeFunction.createGetter(definition.comparator, definition.alarmTriggerLevel)
-                  const data = getter(result.object)
-                  Object.assign(result, {
-                    value: data.getDisplayableValue(),
-                    shouldAlarm: data.shouldAlarm(),
-                    threshold: data.threshold,
-                    observationPeriod,
-                  })
-                }
-
-                const isManagementAgentDetected = (vm, guestMetrics) => {
-                  if ((vm.power_state !== 'Running' && vm.power_state !== 'Paused') || guestMetrics === undefined) {
-                    return
-                  }
-
-                  const { major, minor } = guestMetrics.PV_drivers_version
-                  const hasPvVersion = major !== undefined && minor !== undefined
-                  return hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
-                }
-
-                const getListItem = () => {
-                  if (result.value == null) {
-                    return "**Can't read performance counters**"
-                  }
-
-                  // VM RAM usage is reported by the VM itself through guest tools. If guest tools are not installed, ignore RAM usage stats
-                  if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
-                    const vm = result.object
-                    const guestMetrics = this._xo.getXapi(uuid).getObject(vm.guest_metrics)
-                    const managementAgentDetected = isManagementAgentDetected(vm, guestMetrics)
-
-                    if (managementAgentDetected === undefined) {
-                      return "**Can't read performance counters**"
-                    }
-                    if (managementAgentDetected === false) {
-                      return '**Guest tools must be installed**'
-                    }
-                  }
-
-                  return result.value.toFixed(1) + typeFunction.unit
-                }
-
-                result.listItem = `  * ${result.objectLink}: ${getListItem()}\n`
-
-                return result
-              } catch (error) {
-                logger.warn(error)
-                return {
-                  uuid,
-                  object: null,
-                  objectLink: `cannot find object ${uuid}`,
-                  listItem: `  * ${uuid}: **Can't read performance counters**\n`,
-                }
-              }
-            }
-          )
-        )
-      },
+      snapshot: this.#buildSnapshot(definition, cache),
     }
   }
 
