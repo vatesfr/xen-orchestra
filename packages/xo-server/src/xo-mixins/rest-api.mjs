@@ -289,6 +289,7 @@ export default class RestApi {
         routes: {
           alarms: true,
           vdis: true,
+          messages: true,
         },
       },
       'vm-snapshots': {
@@ -338,7 +339,11 @@ export default class RestApi {
           messages: true,
         },
       },
-      servers: {},
+      servers: {
+        routes: {
+          tasks: true,
+        }
+      },
       tasks: {},
     }
 
