@@ -459,7 +459,7 @@ class PerfAlertXoPlugin {
     const monitorBodies = await Promise.all(
       map(
         this._getMonitors(),
-        async m => `
+        async ({ monitors: m }) => `
 ## Monitor for ${m.title}
 
 ${(await m.snapshot()).map(entry => entry.listItem).join('')}`
@@ -660,10 +660,15 @@ ${monitorBodies.join('\n')}`
   }
 
   _getMonitors() {
-    const cache = {}
-    return map(this._configuration.hostMonitors, def => this._parseDefinition({ ...def, objectType: 'host' }, cache))
-      .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'VM' }, cache)))
-      .concat(map(this._configuration.srMonitors, def => this._parseDefinition({ ...def, objectType: 'SR' })))
+    const cache = new Map()
+    return {
+      monitors: map(this._configuration.hostMonitors, def =>
+        this._parseDefinition({ ...def, objectType: 'host' }, cache)
+      )
+        .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'VM' }, cache)))
+        .concat(map(this._configuration.srMonitors, def => this._parseDefinition({ ...def, objectType: 'SR' }))),
+      cache,
+    }
   }
 
   // Sample of a monitor
@@ -703,7 +708,7 @@ ${monitorBodies.join('\n')}`
   async _checkMonitors() {
     const jobUid = new Date()
     logger.debug('_checkMonitors', { jobUid, nb: this.#nbCheckRunning })
-    const monitors = this._getMonitors()
+    const { monitors, cache } = this._getMonitors()
 
     for (const monitor of monitors) {
       const snapshot = await monitor.snapshot()
@@ -777,7 +782,7 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
         () => {}
       )
     }
-
+    cache.clear()
     logger.debug('_checkMonitors', { jobUid, nb: this.#nbCheckRunning, timers: this.#timers })
   }
 
@@ -803,43 +808,46 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
     const start = performance.now()
 
     const xapi = this._xo.getXapi(host.uuid)
-    if (hostCache[host.uuid] === undefined) {
-      hostCache[host.uuid] = getServerTimestamp(xapi, host)
-        .then(serverTimestamp => {
-          const payload = {
-            host,
-            query: {
-              cf: 'AVERAGE',
-              host: 'true',
-              json: 'true',
-              start: serverTimestamp - secondsAgo,
-            },
-          }
-          return xapi.getResource('/rrd_updates', payload)
-        })
-        .then(res => res.body.text())
-        .then(text => {
-          const downloaded = performance.now()
-          this.#timers.downloading += downloaded - start
-          let json
-          try {
-            // starting from XAPI 23.31, the response is valid JSON
-            json = JSON.parse(text)
-          } catch (_) {
-            logger.debug('fallback JSON5')
-            json = JSON5.parse(text)
-          }
-          const jsonParsing = performance.now()
-          this.#timers.jsonParsing += jsonParsing - downloaded
-          return json
-        })
-        .catch(err => {
-          delete hostCache[host.uuid]
-          throw err
-        })
+    if (hostCache.get(host.uuid) === undefined) {
+      hostCache.set(
+        host.uuid,
+        getServerTimestamp(xapi, host)
+          .then(serverTimestamp => {
+            const payload = {
+              host,
+              query: {
+                cf: 'AVERAGE',
+                host: 'true',
+                json: 'true',
+                start: serverTimestamp - secondsAgo,
+              },
+            }
+            return xapi.getResource('/rrd_updates', payload)
+          })
+          .then(res => res.body.text())
+          .then(text => {
+            const downloaded = performance.now()
+            this.#timers.downloading += downloaded - start
+            let json
+            try {
+              // starting from XAPI 23.31, the response is valid JSON
+              json = JSON.parse(text)
+            } catch (_) {
+              logger.debug('fallback JSON5')
+              json = JSON5.parse(text)
+            }
+            const jsonParsing = performance.now()
+            this.#timers.jsonParsing += jsonParsing - downloaded
+            return json
+          })
+          .catch(err => {
+            delete hostCache[host.uuid]
+            throw err
+          })
+      )
     }
     // reuse an existing/in flight query
-    const json = await hostCache[host.uuid]
+    const json = await hostCache.get(host.uuid)
     const results = {
       meta: { ...json.meta, legend: [] },
       data: [],
