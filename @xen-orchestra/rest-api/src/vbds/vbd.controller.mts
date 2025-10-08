@@ -2,7 +2,7 @@ import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } f
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
-import type { XoAlarm, XoVbd } from '@vates/types'
+import type { XoAlarm, XoTask, XoVbd } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -12,6 +12,7 @@ import { partialVbds, vbd, vbdIds } from '../open-api/oa-examples/vbd.oa-example
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('vbds')
 @Security('*')
@@ -80,5 +81,28 @@ export class VbdController extends XapiXoController<XoVbd> {
     })
 
     return this.sendObjects(Object.values(alarms), req, 'alarms')
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getVbdTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoVbd['id'], { filter, limit })
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
 }
