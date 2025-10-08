@@ -118,7 +118,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   }
 
   /**
-   * @example id "e3fc847c-159a-48dc-bee4-cf2da216a795"
+   * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42
@@ -128,7 +128,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
   @Get('{id}/tasks')
   @Tags('tasks')
   @Response(notFoundResp.status, notFoundResp.description)
-  async getVmSnapshotTasks(
+  async getVmControllerTasks(
     @Request() req: ExRequest,
     @Path() id: string,
     @Query() fields?: string,
