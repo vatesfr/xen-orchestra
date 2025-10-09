@@ -12,6 +12,8 @@ import {
   Middlewares,
   Body,
   SuccessResponse,
+  Put,
+  Delete,
 } from 'tsoa'
 import { inject } from 'inversify'
 import { PassThrough } from 'node:stream'
@@ -432,5 +434,29 @@ export class PoolController extends XapiXoController<XoPool> {
     const messages = this.getMessagesForObject(id as XoPool['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putPoolTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const pool = this.getXapiObject(id as XoPool['id'])
+    await pool.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deletePoolTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const pool = this.getXapiObject(id as XoPool['id'])
+    await pool.$call('remove_tags', tag)
   }
 }
