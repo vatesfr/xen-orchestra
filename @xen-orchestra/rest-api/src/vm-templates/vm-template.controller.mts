@@ -1,4 +1,4 @@
-import { Example, Get, Security, Query, Request, Response, Route, Tags, Path, Delete, SuccessResponse } from 'tsoa'
+import { Example, Get, Security, Query, Request, Response, Route, Tags, Path, Delete, SuccessResponse, Put } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
@@ -212,5 +212,29 @@ export class VmTemplateController extends XapiXoController<XoVmTemplate> {
     const tasks = await this.getTasksForObject(id as XoVmTemplate['id'], { filter, limit })
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putVmTemplateTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vmTemplate = this.getXapiObject(id as XoVmTemplate['id'])
+    await vmTemplate.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteVmTemplateTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vmTemplate = this.getXapiObject(id as XoVmTemplate['id'])
+    await vmTemplate.$call('remove_tags', tag)
   }
 }
