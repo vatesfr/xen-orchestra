@@ -162,6 +162,6 @@ export class NetworkController extends XapiXoController<XoNetwork> {
   @Response(notFoundResp.status, notFoundResp.description)
   async deleteNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const network = this.getXapiObject(id as XoNetwork['id'])
-    await network.$call('add_tags', tag)
+    await network.$call('remove_tags', tag)
   }
 }
