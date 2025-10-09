@@ -38,6 +38,8 @@
   - `PUT /rest/v0/pools/<pool-id>/tags/:tag` (PR [#9088](https://github.com/vatesfr/xen-orchestra/pull/9088))
   - `DELETE /rest/v0/pools/<pool-id>/tags/:tag` (PR [#9088](https://github.com/vatesfr/xen-orchestra/pull/9088))
   - `GET /rest/v0/pools/<pool-id>/tasks` (PR [#9080](https://github.com/vatesfr/xen-orchestra/pull/9080))
+  - **removed** `PUT /rest/v0/vifs/<vif-id>/tags/:tag` (PR [#9096](https://github.com/vatesfr/xen-orchestra/pull/9096))
+  - **removed** `DELETE /rest/v0/vifs/<vif-id>/tags/:tag` (PR [#9096](https://github.com/vatesfr/xen-orchestra/pull/9096))
 
 ### Bug fixes
 
