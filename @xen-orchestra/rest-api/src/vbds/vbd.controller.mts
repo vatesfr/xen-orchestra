@@ -1,4 +1,4 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -7,7 +7,7 @@ import type { XoAlarm, XoMessage, XoVbd } from '@vates/types'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialVbds, vbd, vbdIds } from '../open-api/oa-examples/vbd.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -105,5 +105,29 @@ export class VbdController extends XapiXoController<XoVbd> {
     const messages = this.getMessagesForObject(id as XoVbd['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example tag "from-rest-api"
+   */
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Put('{id}/tags/{tag}')
+  async putVbdTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vbd = this.getXapiObject(id as XoVbd['id'])
+    await vbd.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example tag "from-rest-api"
+   */
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Delete('{id}/tags/{tag}')
+  async deleteVbdTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vbd = this.getXapiObject(id as XoVbd['id'])
+    await vbd.$call('remove_tags', tag)
   }
 }

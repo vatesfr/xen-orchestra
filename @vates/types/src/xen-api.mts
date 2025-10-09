@@ -877,6 +877,8 @@ export interface XenApiVdi {
 }
 export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI'>
 
+type XenApiVbdCallMethods = TagCallMethods & {}
+
 export interface XenApiVbd {
   $ref: Branded<'VBD'>
   allowed_operations: VBD_OPERATIONS[]
@@ -903,7 +905,7 @@ export interface XenApiVbd {
   VDI: XenApiVdi['$ref'] | OPAQUE_REF_NULL
   VM: XenApiVm['$ref']
 }
-export type XenApiVbdWrapped = WrapperXenApi<XenApiVbd, 'VBD'>
+export type XenApiVbdWrapped = WrapperXenApi<XenApiVbd, 'VBD', XenApiVbdCallMethods>
 
 /** @deprecated */
 export interface XenApiVbdMetrics {
