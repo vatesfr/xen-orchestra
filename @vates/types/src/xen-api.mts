@@ -263,7 +263,7 @@ export interface XenApiPoolUpdate {
   version?: string
 }
 
-type XenApiVmCallMethods = {
+type XenApiVmCallMethods = TagCallMethods & {
   (method: 'start', start_paused: boolean, force: boolean): Promise<void>
   (method: 'clean_shutdown'): Promise<void>
   (method: 'hard_shutdown'): Promise<void>
