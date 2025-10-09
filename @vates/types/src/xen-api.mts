@@ -167,6 +167,8 @@ export interface XenApiEvent {
   timestamp?: string
 }
 
+type XenApiPoolCallMethods = TagCallMethods & {}
+
 export interface XenApiPool {
   $ref: Branded<'pool'>
   allowed_operations: POOL_ALLOWED_OPERATIONS[]
@@ -229,7 +231,7 @@ export interface XenApiPool {
   /** @deprecated */
   wlb_verify_cert?: boolean
 }
-export type XenApiPoolWrapped = WrapperXenApi<XenApiPool, 'pool'>
+export type XenApiPoolWrapped = WrapperXenApi<XenApiPool, 'pool', XenApiPoolCallMethods>
 
 /** @deprecated */
 export interface XenApiPoolPatch {
