@@ -620,6 +620,8 @@ export interface XenApiHostCpu {
   vendor: string
 }
 
+type XenApiNetworkCallMethods = TagCallMethods & {}
+
 export interface XenApiNetwork {
   $ref: Branded<'network'>
   allowed_operations: NETWORK_OPERATIONS[]
@@ -639,8 +641,7 @@ export interface XenApiNetwork {
   uuid: string
   VIFs: XenApiVif['$ref'][]
 }
-export interface XenApiNetworkWrapped extends WrapperXenApi<XenApiNetwork, 'network'> {}
-
+export interface XenApiNetworkWrapped extends WrapperXenApi<XenApiNetwork, 'network', XenApiNetworkCallMethods> {}
 export interface XenApiVif {
   $ref: Branded<'VIF'>
   allowed_operations: VIF_OPERATIONS[]
