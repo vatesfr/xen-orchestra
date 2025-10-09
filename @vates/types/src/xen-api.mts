@@ -875,7 +875,7 @@ export interface XenApiVdi {
   virtual_size: number
   xenstore_data: Record<string, string>
 }
-export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI'>
+export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI', XenApiVdiSnapshotCallMethods>
 
 export interface XenApiVbd {
   $ref: Branded<'VBD'>
