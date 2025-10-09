@@ -298,6 +298,7 @@ export default class RestApi {
           vdis: true,
           messages: true,
           tasks: true,
+          tags: true,
         },
       },
       'vm-snapshots': {

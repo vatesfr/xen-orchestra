@@ -2,13 +2,13 @@ import { inject } from 'inversify'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { XoAlarm, XoMessage, XoTask, XoVdi, XoVdiSnapshot, XoVmController } from '@vates/types'
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import {
@@ -164,5 +164,29 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     const tasks = await this.getTasksForObject(id as XoVmController['id'], { filter, limit })
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putVmTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vmController = this.getXapiObject(id as XoVmController['id'])
+    await vmController.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "9b4775bd-9493-490a-9afa-f786a44caa4f"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteVmTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vmController = this.getXapiObject(id as XoVmController['id'])
+    await vmController.$call('remove_tags', tag)
   }
 }
