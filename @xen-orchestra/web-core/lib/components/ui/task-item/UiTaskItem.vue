@@ -24,7 +24,7 @@
           {{ task.tag }}
         </UiTag>
         <UiInfo v-if="isError" accent="danger" />
-        <UiInfo v-if="task.warning?.length" accent="warning" />
+        <UiInfo v-if="task.warnings?.length" accent="warning" />
         <UiInfo v-if="task.infos?.length" accent="info" />
         <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="muted" variant="primary" size="small" />
       </div>
@@ -48,7 +48,7 @@
             <UiButtonIcon v-if="task.status === 'pending'" icon="fa:close" size="medium" accent="danger" />
           </div>
           <!-- TODO add link to open side panel with task details -->
-          <UiButtonIcon icon="fa:eye" size="medium" accent="brand" />
+          <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select')" />
         </div>
       </div>
     </div>
@@ -81,6 +81,7 @@ const { task } = defineProps<{
 
 const emit = defineEmits<{
   expand: []
+  select: []
 }>()
 
 const { t } = useI18n()
@@ -93,7 +94,7 @@ const hasSubTasks = computed(() => subTasksCount.value > 0)
 
 const isError = computed(() => task.status === 'failure' || task.status === 'interrupted')
 
-const progressAccent = computed(() => (isError.value ? 'danger' : task.warning?.length ? 'warning' : 'info'))
+const progressAccent = computed(() => (isError.value ? 'danger' : 'info'))
 
 const started = useTimeAgo(() => task.start)
 const end = useTimeAgo(() => task.end ?? 0)

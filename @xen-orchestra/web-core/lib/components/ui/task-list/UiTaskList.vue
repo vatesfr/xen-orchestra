@@ -6,6 +6,7 @@
       :task="task.source"
       :expanded="task.flags.expanded"
       :depth="depth + 1"
+      @select="emit('select', task.id)"
       @expand="task.toggleFlag('expanded')"
     />
   </ul>
@@ -19,6 +20,10 @@ import type { Task } from '@core/types/task.type.ts'
 const { tasks, depth = 0 } = defineProps<{
   tasks: Task[]
   depth?: number
+}>()
+
+const emit = defineEmits<{
+  select: [id: string]
 }>()
 
 const { items: tasksItems } = useCollection(() => tasks, {
