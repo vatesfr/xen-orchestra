@@ -4,6 +4,9 @@ import { Strategy } from '@node-saml/passport-saml'
 
 const DEFAULTS = {
   disableRequestedAuthnContext: false,
+  wantAssertionsSigned: false,
+  wantAuthnResponseSigned: false,
+  audience: false,
 }
 
 export const configurationSchema = {
@@ -50,6 +53,20 @@ You should try \`http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddr
       title: 'Force re-authentication',
       description: 'Request the identity provider to authenticate the user, even if they possess a valid session.',
       default: false,
+      type: 'boolean',
+    },
+    wantAssertionsSigned: {
+      title: 'Check if the IdP should always sign the assertions',
+      description:
+        'Specify that the IdP should always sign the assertions<br/>Note: either the response or the assertion must be signed even if both are turned off.',
+      default: DEFAULTS.wantAssertionsSigned,
+      type: 'boolean',
+    },
+    wantAuthnResponseSigned: {
+      title: 'Check signature for all kind of responses',
+      description:
+        'If true, require that all incoming authentication response messages be signed at the top level, not just at the assertions.<br/>Note: either the response or the assertion must be signed even if both are turned off.',
+      default: DEFAULTS.wantAuthnResponseSigned,
       type: 'boolean',
     },
   },
