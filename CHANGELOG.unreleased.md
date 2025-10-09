@@ -31,6 +31,8 @@
   - `GET /rest/v0/vbds/<vbd-id>/messages` (PR [#9029](https://github.com/vatesfr/xen-orchestra/pull/9029))
   - `GET /rest/v0/vdis/<vdi-id>/tasks` (PR [#9079](https://github.com/vatesfr/xen-orchestra/pull/9079))
   - `GET /rest/v0/vdi-snapshots/<vdi-snaphot-id>/tasks` (PR [#9082](https://github.com/vatesfr/xen-orchestra/pull/9082))
+  - `PUT /rest/v0/hosts/<host-id>/tags/:tag` (PR [#9037](https://github.com/vatesfr/xen-orchestra/pull/9037))
+  - `DELETE /rest/v0/hosts/<host-id>/tags/:tag` (PR [#9037](https://github.com/vatesfr/xen-orchestra/pull/9037))
 
 ### Bug fixes
 
@@ -57,6 +59,7 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor

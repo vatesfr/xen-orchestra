@@ -70,6 +70,11 @@ import type { Xapi } from './lib/xen-orchestra-xapi.mjs'
 // https://github.com/vatesfr/xen-orchestra/tree/wip-xapi-types-generator/%40xen-orchestra/xapi-generator
 // All properties added after XenServer 7.0 (dundee) release have been marked as optional
 
+type TagCallMethods = {
+  (method: 'add_tags', tag: string): Promise<void>
+  (method: 'remove_tags', tag: string): Promise<void>
+}
+
 /**
  * Add properties injected by `xen-api`.
  * $ref property is also injected by XOLite, so she is not present here.
@@ -483,6 +488,7 @@ export interface XenApiDrTask {
   uuid: string
 }
 
+type XenApiHostCallMethods = TagCallMethods & {}
 export interface XenApiHost {
   $ref: Branded<'host'>
   address: string
@@ -559,7 +565,7 @@ export interface XenApiHost {
   uuid: string
   virtual_hardware_platform_versions: number[]
 }
-export type XenApiHostWrapped = WrapperXenApi<XenApiHost, 'host'>
+export type XenApiHostWrapped = WrapperXenApi<XenApiHost, 'host', XenApiHostCallMethods>
 
 export interface XenApiHostCrashdump {
   $ref: Branded<'host_crashdump'>
