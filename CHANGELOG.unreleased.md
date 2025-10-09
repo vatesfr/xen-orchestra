@@ -37,6 +37,7 @@
   - `DELETE /rest/v0/networks/<network-id>/tags/:tag` (PR [#9087](https://github.com/vatesfr/xen-orchestra/pull/9087))
   - `PUT /rest/v0/pools/<pool-id>/tags/:tag` (PR [#9088](https://github.com/vatesfr/xen-orchestra/pull/9088))
   - `DELETE /rest/v0/pools/<pool-id>/tags/:tag` (PR [#9088](https://github.com/vatesfr/xen-orchestra/pull/9088))
+  - `GET /rest/v0/pools/<pool-id>/tasks` (PR [#9080](https://github.com/vatesfr/xen-orchestra/pull/9080))
 
 ### Bug fixes
 
