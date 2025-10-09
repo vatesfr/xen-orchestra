@@ -841,6 +841,8 @@ export interface XenApiLvhd {
   uuid: string
 }
 
+type XenApiVdiCallMethods = TagCallMethods & {}
+
 export interface XenApiVdi {
   $ref: Branded<'VDI'>
   allow_caching: boolean
@@ -877,7 +879,8 @@ export interface XenApiVdi {
   virtual_size: number
   xenstore_data: Record<string, string>
 }
-export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI'>
+
+export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI', XenApiVdiCallMethods>
 
 export interface XenApiVbd {
   $ref: Branded<'VBD'>
