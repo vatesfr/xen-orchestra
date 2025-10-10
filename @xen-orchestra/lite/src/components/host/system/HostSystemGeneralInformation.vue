@@ -17,7 +17,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('status')">
       <template #value>
-        <VtsEnabledState :enabled="host.enabled" />
+        <VtsStatus :status="host.enabled" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('pool')">
@@ -45,7 +45,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('power-on-mode')">
       <template #value>
-        <VtsEnabledState :enabled="host.power_on_mode !== ''" />
+        <VtsStatus :status="host.power_on_mode !== ''" />
       </template>
     </VtsQuickInfoRow>
   </UiCard>
@@ -56,9 +56,9 @@ import VtsRelativeTime from '@/components/RelativeTime.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'

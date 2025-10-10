@@ -13,7 +13,7 @@
     </td>
     <td v-tooltip class="typo-body-regular-small text-ellipsis device">{{ pif.device }}</td>
     <td v-tooltip class="typo-body-regular-small status">
-      <VtsConnectionStatus :status />
+      <VtsStatus :status />
     </td>
     <td>
       <UiButtonIcon size="small" accent="brand" icon="fa:angle-right" :disabled="!pifHost" />
@@ -26,8 +26,8 @@ import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.t
 import { HOST_POWER_STATE } from '@/types/xo/host.type'
 import type { XoPif } from '@/types/xo/pif.type'
 import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { computed } from 'vue'

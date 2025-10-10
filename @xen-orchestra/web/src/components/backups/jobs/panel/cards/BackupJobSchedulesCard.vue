@@ -41,7 +41,7 @@
             {{ t('status') }}
           </template>
           <template #value>
-            <VtsEnabledState :enabled="schedule.enabled" />
+            <VtsStatus :status="schedule.enabled" />
           </template>
         </VtsCardRowKeyValue>
         <VtsCardRowKeyValue>
@@ -65,7 +65,7 @@ import type { XoSchedule } from '@/types/xo/schedule.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'

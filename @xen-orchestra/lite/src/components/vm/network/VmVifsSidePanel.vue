@@ -92,7 +92,7 @@
               {{ t('vif-status') }}
             </template>
             <template #value>
-              <VtsConnectionStatus :status />
+              <VtsStatus :status />
             </template>
           </VtsCardRowKeyValue>
           <!-- MTU -->
@@ -177,8 +177,8 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
