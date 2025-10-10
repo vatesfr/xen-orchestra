@@ -126,7 +126,7 @@ export const faIcons = defineIconPack({
   book: { icon: faBook },
   building: { icon: faBuilding },
   camera: { icon: faCamera },
-  caledar: { icon: faCalendar },
+  calendar: { icon: faCalendar },
   'caret-down': { icon: faCaretDown },
   'caret-up': { icon: faCaretUp },
   check: { icon: faCheck },
