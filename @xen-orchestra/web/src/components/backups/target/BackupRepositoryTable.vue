@@ -1,49 +1,45 @@
 <template>
-  <UiTitle>
-    {{ t('backup-repository') }}
-  </UiTitle>
-  <div class="table-actions">
-    <UiQuerySearchBar @search="value => (searchQuery = value)" />
-    <UiTopBottomTable :selected-items="0" :total-items="0">
-      <UiTablePagination v-bind="paginationBindings" />
-    </UiTopBottomTable>
-  </div>
-  <VtsDataTable
-    is-ready
-    :no-data-message="filteredBackupRepository.length === 0 ? t('no-backup-available') : undefined"
-  >
-    <template #thead>
-      <tr>
-        <template v-for="column of visibleColumns" :key="column.id">
-          <th>
-            <div v-tooltip class="text-ellipsis">
-              <VtsIcon size="medium" :name="headerIcon[column.id]" />
-              {{ column.label }}
-            </div>
-          </th>
-        </template>
-      </tr>
-    </template>
-    <template #tbody>
-      <tr v-for="row of spacesRecords" :key="row.id" class="typo-body-regular-small">
-        <td v-for="column of row.visibleColumns" :key="column.id">
-          <UiLink v-if="column.id == 'title'" size="medium" :icon="column.value.icon" href="/#/settings/remotes">
-            {{ column.value.label }}
-          </UiLink>
-          <!--
- #TODO wating for br-info routes
- <template v-else-if="column.value && column.value.value < Infinity">
-            {{ column.value.value }} {{ column.value.prefix }}
+  <div class="backup-repository-table">
+    <UiTitle>
+      {{ t('backup-repository') }}
+    </UiTitle>
+    <div>
+      <UiQuerySearchBar @search="value => (searchQuery = value)" />
+      <UiTopBottomTable :selected-items="0" :total-items="0">
+        <UiTablePagination v-bind="paginationBindings" />
+      </UiTopBottomTable>
+    </div>
+    <VtsDataTable
+      is-ready
+      :no-data-message="filteredBackupRepository.length === 0 ? t('no-backup-available') : undefined"
+    >
+      <template #thead>
+        <tr>
+          <template v-for="column of visibleColumns" :key="column.id">
+            <th>
+              <div v-tooltip class="text-ellipsis">
+                <VtsIcon size="medium" :name="headerIcon[column.id]" />
+                {{ column.label }}
+              </div>
+            </th>
           </template>
--->
-        </td>
-      </tr>
-    </template>
-  </VtsDataTable>
-  <div class="table-actions">
-    <UiTopBottomTable :selected-items="0" :total-items="0">
-      <UiTablePagination v-bind="paginationBindings" />
-    </UiTopBottomTable>
+        </tr>
+      </template>
+      <template #tbody>
+        <tr v-for="row of spacesRecords" :key="row.id" class="typo-body-regular-small">
+          <td v-for="column of row.visibleColumns" :key="column.id">
+            <UiLink v-if="column.id == 'title'" size="medium" :icon="column.value.icon" href="/#/settings/remotes">
+              {{ column.value.label }}
+            </UiLink>
+          </td>
+        </tr>
+      </template>
+    </VtsDataTable>
+    <div>
+      <UiTopBottomTable :selected-items="0" :total-items="0">
+        <UiTablePagination v-bind="paginationBindings" />
+      </UiTopBottomTable>
+    </div>
   </div>
 </template>
 
@@ -87,13 +83,11 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupRepositor
   columns: define => [
     define(
       'title',
-      record => {
-        return {
-          label: record.name,
-          id: record.id,
-          icon: brIcon(record),
-        }
-      },
+      record => ({
+        label: record.name,
+        id: record.id,
+        icon: brIcon(record),
+      }),
       { label: t('backup-repository') }
     ),
   ],
@@ -101,16 +95,24 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupRepositor
 
 const { pageRecords: spacesRecords, paginationBindings } = usePagination('backups-jobs', rows)
 
-type BackupJobHeader = 'used-space' | 'remaning-space' | 'total-capacity' | 'title'
+type BackupJobHeader = /* 'used-space' | 'remaning-space' | 'total-capacity' | */ 'title'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
-  title: 'fa:a',
-  'used-space': 'fa:hashtag',
-  'remaning-space': 'fa:hashtag',
-  'total-capacity': 'fa:hashtag',
+  title: 'fa:object',
+  // 'used-space': 'fa:hashtag',
+  // 'remaning-space': 'fa:hashtag',
+  // 'total-capacity': 'fa:hashtag',
 }
 
 function brIcon(br: XoBackupRepository): IconName {
   return br.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected'
 }
 </script>
+
+<style lang="postcss" scoped>
+.backup-repository-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+}
+</style>

@@ -521,6 +521,7 @@
   "relative-time.past": "{str} ago",
   "relative-time.second": "1 second | {n} seconds",
   "relative-time.year": "1 year | {n} years",
+  "remaning-space": "Remaning space",
   "remote-syslog": "Remote syslog",
   "report-recipients": "Report recipients",
   "report-when": "Report when",
@@ -636,6 +637,7 @@
   "topology": "Topology",
   "total": "Total",
   "total-assigned": "Total assigned",
+  "total-capacity": "Total capacity",
   "total-cpus": "Total CPUs",
   "total-free": "Total free",
   "total-free:": "Total free:",
@@ -655,6 +657,7 @@
   "up-to-date": "Up-to-date",
   "update": "Update",
   "used": "Used",
+  "used-space": "Used space",
   "user-config": "User config",
   "username": "Username",
   "uuid": "UUID",
@@ -718,8 +721,5 @@
   "xoa-ssh-account": "XOA SSH account",
   "xoa-ssh-password-confirm-different": "SSH password confirmation is different",
   "you-are-currently-on": "You are currently on: {0}",
-  "zstd": "zstd",
-  "used-space": "Used space",
-  "remaning-space": "Remaning space",
-  "total-capacity": "Total capacity"
+  "zstd": "zstd"
 }

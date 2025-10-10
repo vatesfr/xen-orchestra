@@ -6,8 +6,8 @@
 </template>
 
 <script setup lang="ts">
-import BackupRepositorTable from '@/components/backups/target/backupRepositorTable.vue'
-import StorageRepositoryTable from '@/components/backups/target/storageRepositoryTable.vue'
+import BackupRepositorTable from '@/components/backups/target/BackupRepositoryTable.vue'
+import StorageRepositoryTable from '@/components/backups/target/StorageRepositoryTable.vue'
 import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import type { XoBackupRepository } from '@/types/xo/br.type'
@@ -40,5 +40,6 @@ const storageRepositoryTargets = computed(() => {
 <style lang="postcss" scoped>
 .backupTarget {
   margin: 0.8rem;
+  gap: 4rem;
 }
 </style>
