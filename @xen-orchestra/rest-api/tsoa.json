@@ -46,6 +46,21 @@
             }
           }
         },
+        "/vdis/{id}.{format}": {
+          "put": {
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/octet-stream": {
+                  "schema": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
         "/docs/swagger.json": {
           "get": {
             "operationId": "swaggerSpec",

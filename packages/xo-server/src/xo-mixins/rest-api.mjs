@@ -882,16 +882,6 @@ export default class RestApi {
       })
     )
 
-    api.put(
-      '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
-      wrap(async (req, res) => {
-        req.length = +req.headers['content-length']
-        await req.xapiObject.$importContent(req, { format: req.params.format })
-
-        res.sendStatus(204)
-      })
-    )
-
     api.get('/:collection/:object', (req, res, next) => {
       const { collection } = req
       if (swaggerEndpoints[collection.id] !== undefined) {

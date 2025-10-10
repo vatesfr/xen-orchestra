@@ -3,12 +3,18 @@ import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
-import type { XoAlarm, XoMessage, XoTask, XoVdi } from '@vates/types'
+import type { SUPPORTED_VDI_FORMAT, XoAlarm, XoMessage, XoTask, XoVdi } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  internalServerErrorResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
@@ -65,13 +71,38 @@ export class VdiController extends XapiXoController<XoVdi> {
   async exportVdiContent(
     @Request() req: ExRequest,
     @Path() id: string,
-    @Path() format: 'vhd' | 'raw'
+    @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
   ): Promise<Readable> {
     const res = req.res as ExResponse
     const stream = await this.#vdiService.exportContent(id as XoVdi['id'], 'VDI', { format, response: res })
     process.on('SIGTERM', () => req.destroy())
     req.on('close', () => stream.destroy())
     return stream
+  }
+
+  /**
+   *
+   * Import VDI content
+   *
+   * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
+   */
+  @Put('{id}.{format}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid format')
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async importVdiContent(
+    @Request() req: ExRequest & { length?: number },
+    @Path() id: string,
+    @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
+  ): Promise<void> {
+    const xapiVdi = this.getXapiObject(id as XoVdi['id'])
+
+    if (req.headers['content-length'] !== undefined) {
+      req.length = +req.headers['content-length']
+    }
+    process.on('SIGTERM', () => req.destroy())
+    await xapiVdi.$xapi.VDI_importContent(xapiVdi.$ref, req, { format })
   }
 
   /**
