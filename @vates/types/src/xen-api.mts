@@ -879,7 +879,6 @@ export interface XenApiVdi {
   virtual_size: number
   xenstore_data: Record<string, string>
 }
-
 export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI', XenApiVdiCallMethods>
 
 export interface XenApiVbd {
