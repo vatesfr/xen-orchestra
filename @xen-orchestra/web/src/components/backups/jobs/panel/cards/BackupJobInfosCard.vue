@@ -6,26 +6,16 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('id') }}</template>
-        <template #value>{{ backupJob.id }}</template>
-        <template #addons>
+      <UiLabelValue :label="t('id')" :value="backupJob.id">
+        <template #actions>
           <VtsCopyButton :value="backupJob.id" />
         </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('mode') }}</template>
-        <template #value>
-          <UiTagsList>
-            <UiTag v-for="(mode, index) in backupJobModes" :key="index" accent="info" variant="secondary">
-              {{ mode }}
-            </UiTag>
-          </UiTagsList>
-        </template>
-        <template v-if="backupJobModes !== undefined" #addons>
+      </UiLabelValue>
+      <UiLabelValue :label="t('mode')" :value="backupJobModes">
+        <template v-if="backupJobModes !== undefined" #actions>
           <VtsCopyButton :value="backupJobModes.join(', ')" />
         </template>
-      </VtsCardRowKeyValue>
+      </UiLabelValue>
     </div>
   </UiCard>
 </template>
@@ -33,13 +23,11 @@
 <script lang="ts" setup>
 import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
