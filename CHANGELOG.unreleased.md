@@ -54,6 +54,8 @@
   - `DELETE /rest/v0/srs/<sr-id>/tags/:tag` (PR [#9089](https://github.com/vatesfr/xen-orchestra/pull/9089))
   - `PUT /rest/v0/vm-snapshots/<vm-snapshot-id>/tags/:tag` (PR [#9098](https://github.com/vatesfr/xen-orchestra/pull/9098))
   - `DELETE /rest/v0/vm-snapshots/<vm-snapshot-id>/tags/:tag` (PR [#9098](https://github.com/vatesfr/xen-orchestra/pull/9098))
+  - `DELETE /rest/v0/vm-templates/<vm-template-id>/tags/:tag` (PR [#9099](https://github.com/vatesfr/xen-orchestra/pull/9099))
+  - `GET /rest/v0/vm-templates/<vm-template-id>/tasks` (PR [#9099](https://github.com/vatesfr/xen-orchestra/pull/9099))
 
 ### Bug fixes
 
