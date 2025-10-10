@@ -338,6 +338,7 @@ export default class RestApi {
         routes: {
           alarms: true,
           messages: true,
+          tags: true,
           tasks: true,
         },
       },
