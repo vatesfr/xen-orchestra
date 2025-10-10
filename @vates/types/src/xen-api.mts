@@ -791,6 +791,7 @@ export interface XenApiSm {
 }
 export type XenApiSmWrapped = WrapperXenApi<XenApiSm, 'SM'>
 
+type XenApiSrCallMethods = TagCallMethods & {}
 export interface XenApiSr {
   $ref: Branded<'SR'>
   allowed_operations: STORAGE_OPERATIONS[]
@@ -815,7 +816,7 @@ export interface XenApiSr {
   VDIs: XenApiVdi['$ref'][]
   virtual_allocation: number
 }
-export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR'>
+export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR', XenApiSrCallMethods>
 
 export interface XenApiSrStat {
   $ref: Branded<'sr_stat'>
@@ -840,6 +841,8 @@ export interface XenApiLvhd {
   $ref: Branded<'LVHD'>
   uuid: string
 }
+
+type XenApiVdiCallMethods = TagCallMethods & {}
 
 export interface XenApiVdi {
   $ref: Branded<'VDI'>
@@ -877,7 +880,7 @@ export interface XenApiVdi {
   virtual_size: number
   xenstore_data: Record<string, string>
 }
-export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI'>
+export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI', XenApiVdiCallMethods>
 
 export interface XenApiVbd {
   $ref: Branded<'VBD'>
