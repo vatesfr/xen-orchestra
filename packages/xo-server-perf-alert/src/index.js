@@ -1,11 +1,11 @@
 import JSON5 from 'json5'
-import { createSchedule } from '@xen-orchestra/cron'
 import { createLogger } from '@xen-orchestra/log'
 import { filter, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 import assert from 'node:assert'
 const logger = createLogger('xo:xo-server-perf-alert')
 
+logger.debug('DEBUG ENABLED')
 const PARAMS_JSON_SCHEMA = [
   {
     properties: {
@@ -391,16 +391,40 @@ async function getServerTimestamp(xapi, host) {
 
 const isSrWritable = sr => sr !== undefined && sr.content_type !== 'iso' && sr.size > 0
 
+const MINIMAL_DELAY = 60_000
 class PerfAlertXoPlugin {
+  #timers = {
+    downloading: 0,
+    jsonParsing: 0,
+    jsonHandling: 0,
+  }
+  #nbCheckRunning = 0
+  #running = false
   constructor(xo) {
     this._xo = xo
-    this._job = createSchedule('* * * * *').createJob(async () => {
+  }
+  async #watchMonitors() {
+    if (this.#running) {
+      // only one can run in parallel
+      return
+    }
+    this.#running = true
+    while (this.#running) {
+      const start = performance.now()
       try {
+        this.#nbCheckRunning++
         await this._checkMonitors()
+        this.#nbCheckRunning--
       } catch (error) {
-        console.error('[WARN] scheduled function:', (error && error.stack) || error)
+        logger.warn('[WARN] scheduled function:', (error && error.stack) || error)
+        this.#nbCheckRunning--
       }
-    })
+      const duration = performance.now() - start
+      if (duration < MINIMAL_DELAY) {
+        logger.debug('will wait ', MINIMAL_DELAY - duration)
+        await new Promise(resolve => setTimeout(resolve, MINIMAL_DELAY - duration))
+      }
+    }
   }
 
   async configure(configuration) {
@@ -409,11 +433,11 @@ class PerfAlertXoPlugin {
   }
 
   load() {
-    this._job.start()
+    this.#watchMonitors().catch(logger.warn)
   }
 
   unload() {
-    this._job.stop()
+    this.#running = false
   }
 
   _generateUrl(type, object) {
@@ -435,7 +459,7 @@ class PerfAlertXoPlugin {
     const monitorBodies = await Promise.all(
       map(
         this._getMonitors(),
-        async m => `
+        async ({ monitors: m }) => `
 ## Monitor for ${m.title}
 
 ${(await m.snapshot()).map(entry => entry.listItem).join('')}`
@@ -451,177 +475,200 @@ ${monitorBodies.join('\n')}`
     )
   }
 
+  #buildSnapshotUidList(definition) {
+    const { objectType } = definition
+    return definition.smartMode || definition.excludeUuids
+      ? filter(this._xo.getObjects(), obj => {
+          if (obj.type !== objectType) {
+            return false
+          }
+
+          if (
+            (definition.smartMode || definition.excludeUuids) &&
+            (objectType === 'VM' || objectType === 'host') &&
+            obj.power_state !== 'Running'
+          ) {
+            return false
+          }
+
+          if (definition.excludeUuids && definition.uuids.includes(obj.uuid)) {
+            return false
+          }
+
+          if (objectType === 'SR' && !isSrWritable(obj)) {
+            return false
+          }
+
+          return true
+        }).map(obj => obj.uuid)
+      : definition.uuids
+  }
+
+  #buildRRDParser(definition, result, uuid) {
+    const { objectType } = definition
+    const lcObjectType = objectType.toLowerCase()
+    const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
+
+    const parsedLegend = result.meta.legend.map((l, index) => {
+      const [operation, type, uuid, name] = l.split(':')
+      const parsedName = name.split('_')
+      const lastComponent = parsedName[parsedName.length - 1]
+      const relatedEntity = parsedName.length > 1 && lastComponent.match(/^[0-9a-f]{8}$/) ? lastComponent : null
+      return {
+        operation,
+        type,
+        uuid,
+        name,
+        relatedEntity,
+        parsedName,
+        index,
+      }
+    })
+    const legendTree = {}
+    const getNode = (element, name, defaultValue = {}) => {
+      const child = element[name]
+      if (child === undefined) {
+        element[name] = defaultValue
+        return defaultValue
+      }
+      return child
+    }
+    parsedLegend.forEach(l => {
+      const root = getNode(legendTree, l.uuid)
+      const relatedNode = getNode(root, l.relatedEntity)
+      relatedNode[l.name] = l
+    })
+    const parser = typeFunction.createParser(
+      definition.comparator,
+      parsedLegend.filter(l => l.uuid === uuid),
+      definition.alarmTriggerLevel
+    )
+    result.data.forEach(d => parser.parseRow(d))
+    return parser
+  }
+
+  #isManagementAgentDetected(vm, guestMetrics) {
+    if ((vm.power_state !== 'Running' && vm.power_state !== 'Paused') || guestMetrics === undefined) {
+      return
+    }
+
+    const { major, minor } = guestMetrics.PV_drivers_version
+    const hasPvVersion = major !== undefined && minor !== undefined
+    return hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
+  }
+
+  #getListItem(definition, result) {
+    const { objectType } = definition
+    const lcObjectType = objectType.toLowerCase()
+    const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
+    if (result.value == null) {
+      return "**Can't read performance counters**"
+    }
+
+    // VM RAM usage is reported by the VM itself through guest tools. If guest tools are not installed, ignore RAM usage stats
+    if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
+      const vm = result.object
+      const guestMetrics = this._xo.getXapi(vm.uuid).getObject(vm.guest_metrics)
+      const managementAgentDetected = this.#isManagementAgentDetected(vm, guestMetrics)
+
+      if (managementAgentDetected === undefined) {
+        return "**Can't read performance counters**"
+      }
+      if (managementAgentDetected === false) {
+        return '**Guest tools must be installed**'
+      }
+    }
+
+    return result.value.toFixed(1) + typeFunction.unit
+  }
+
+  #buildSnapshotFunction(definition, cache) {
+    return () => {
+      const { objectType } = definition
+      const lcObjectType = objectType.toLowerCase()
+
+      const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
+
+      const observationPeriod = definition.alarmTriggerPeriod !== undefined ? definition.alarmTriggerPeriod : 60
+
+      return Promise.all(
+        map(this.#buildSnapshotUidList(definition), async uuid => {
+          try {
+            const result = {
+              uuid,
+              object: this._xo.getXapi(uuid).getObject(uuid),
+            }
+
+            if (result.object === undefined) {
+              throw new Error('object not found')
+            }
+
+            result.objectLink = `[${result.object.name_label}](${this._generateUrl(lcObjectType, result.object)})`
+
+            if (typeFunction.createGetter === undefined) {
+              // Stats via RRD
+              result.rrd = await this.getRrd(result.object, observationPeriod, cache)
+              if (result.rrd !== null) {
+                const data = this.#buildRRDParser(definition, result.rrd, result.object.uuid)
+                Object.assign(result, {
+                  data,
+                  value: data.getDisplayableValue(),
+                  shouldAlarm: data.shouldAlarm(),
+                  threshold: data.threshold,
+                  observationPeriod,
+                })
+              }
+            } else {
+              // Stats via XAPI
+              const getter = typeFunction.createGetter(definition.comparator, definition.alarmTriggerLevel)
+              const data = getter(result.object)
+              Object.assign(result, {
+                value: data.getDisplayableValue(),
+                shouldAlarm: data.shouldAlarm(),
+                threshold: data.threshold,
+                observationPeriod,
+              })
+            }
+            result.listItem = `  * ${result.objectLink}: ${this.#getListItem(definition, result)}\n`
+            return result
+          } catch (error) {
+            logger.warn(error)
+            return {
+              uuid,
+              object: null,
+              objectLink: `cannot find object ${uuid}`,
+              listItem: `  * ${uuid}: **Can't read performance counters**\n`,
+            }
+          }
+        })
+      )
+    }
+  }
+
   _parseDefinition(definition, cache) {
     const { objectType } = definition
     const lcObjectType = objectType.toLowerCase()
     const alarmId = `${lcObjectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
     const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
-    const parseData = (result, uuid) => {
-      const parsedLegend = result.meta.legend.map((l, index) => {
-        const [operation, type, uuid, name] = l.split(':')
-        const parsedName = name.split('_')
-        const lastComponent = parsedName[parsedName.length - 1]
-        const relatedEntity = parsedName.length > 1 && lastComponent.match(/^[0-9a-f]{8}$/) ? lastComponent : null
-        return {
-          operation,
-          type,
-          uuid,
-          name,
-          relatedEntity,
-          parsedName,
-          index,
-        }
-      })
-      const legendTree = {}
-      const getNode = (element, name, defaultValue = {}) => {
-        const child = element[name]
-        if (child === undefined) {
-          element[name] = defaultValue
-          return defaultValue
-        }
-        return child
-      }
-      parsedLegend.forEach(l => {
-        const root = getNode(legendTree, l.uuid)
-        const relatedNode = getNode(root, l.relatedEntity)
-        relatedNode[l.name] = l
-      })
-      const parser = typeFunction.createParser(
-        definition.comparator,
-        parsedLegend.filter(l => l.uuid === uuid),
-        definition.alarmTriggerLevel
-      )
-      result.data.forEach(d => parser.parseRow(d))
-      return parser
-    }
-    const observationPeriod = definition.alarmTriggerPeriod !== undefined ? definition.alarmTriggerPeriod : 60
     return {
       ...definition,
       alarmId,
       vmFunction: typeFunction,
       title: `${typeFunction.name} ${definition.comparator} ${definition.alarmTriggerLevel}${typeFunction.unit}`,
-      snapshot: async () => {
-        return Promise.all(
-          map(
-            definition.smartMode || definition.excludeUuids
-              ? filter(this._xo.getObjects(), obj => {
-                  if (obj.type !== objectType) {
-                    return false
-                  }
-
-                  if (
-                    (definition.smartMode || definition.excludeUuids) &&
-                    (objectType === 'VM' || objectType === 'host') &&
-                    obj.power_state !== 'Running'
-                  ) {
-                    return false
-                  }
-
-                  if (definition.excludeUuids && definition.uuids.includes(obj.uuid)) {
-                    return false
-                  }
-
-                  if (objectType === 'SR' && !isSrWritable(obj)) {
-                    return false
-                  }
-
-                  return true
-                }).map(obj => obj.uuid)
-              : definition.uuids,
-            async uuid => {
-              try {
-                const result = {
-                  uuid,
-                  object: this._xo.getXapi(uuid).getObject(uuid),
-                }
-
-                if (result.object === undefined) {
-                  throw new Error('object not found')
-                }
-
-                result.objectLink = `[${result.object.name_label}](${this._generateUrl(lcObjectType, result.object)})`
-
-                if (typeFunction.createGetter === undefined) {
-                  // Stats via RRD
-                  result.rrd = await this.getRrd(result.object, observationPeriod, cache)
-                  if (result.rrd !== null) {
-                    const data = parseData(result.rrd, result.object.uuid)
-                    Object.assign(result, {
-                      data,
-                      value: data.getDisplayableValue(),
-                      shouldAlarm: data.shouldAlarm(),
-                      threshold: data.threshold,
-                      observationPeriod,
-                    })
-                  }
-                } else {
-                  // Stats via XAPI
-                  const getter = typeFunction.createGetter(definition.comparator, definition.alarmTriggerLevel)
-                  const data = getter(result.object)
-                  Object.assign(result, {
-                    value: data.getDisplayableValue(),
-                    shouldAlarm: data.shouldAlarm(),
-                    threshold: data.threshold,
-                    observationPeriod,
-                  })
-                }
-
-                const isManagementAgentDetected = (vm, guestMetrics) => {
-                  if ((vm.power_state !== 'Running' && vm.power_state !== 'Paused') || guestMetrics === undefined) {
-                    return
-                  }
-
-                  const { major, minor } = guestMetrics.PV_drivers_version
-                  const hasPvVersion = major !== undefined && minor !== undefined
-                  return hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1'
-                }
-
-                const getListItem = () => {
-                  if (result.value == null) {
-                    return "**Can't read performance counters**"
-                  }
-
-                  // VM RAM usage is reported by the VM itself through guest tools. If guest tools are not installed, ignore RAM usage stats
-                  if (lcObjectType === 'vm' && definition.variableName === 'memoryUsage') {
-                    const vm = result.object
-                    const guestMetrics = this._xo.getXapi(uuid).getObject(vm.guest_metrics)
-                    const managementAgentDetected = isManagementAgentDetected(vm, guestMetrics)
-
-                    if (managementAgentDetected === undefined) {
-                      return "**Can't read performance counters**"
-                    }
-                    if (managementAgentDetected === false) {
-                      return '**Guest tools must be installed**'
-                    }
-                  }
-
-                  return result.value.toFixed(1) + typeFunction.unit
-                }
-
-                result.listItem = `  * ${result.objectLink}: ${getListItem()}\n`
-
-                return result
-              } catch (error) {
-                logger.warn(error)
-                return {
-                  uuid,
-                  object: null,
-                  objectLink: `cannot find object ${uuid}`,
-                  listItem: `  * ${uuid}: **Can't read performance counters**\n`,
-                }
-              }
-            }
-          )
-        )
-      },
+      snapshot: this.#buildSnapshotFunction(definition, cache),
     }
   }
 
   _getMonitors() {
-    const cache = {}
-    return map(this._configuration.hostMonitors, def => this._parseDefinition({ ...def, objectType: 'host' }, cache))
-      .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'VM' }, cache)))
-      .concat(map(this._configuration.srMonitors, def => this._parseDefinition({ ...def, objectType: 'SR' })))
+    const cache = new Map()
+    return {
+      monitors: map(this._configuration.hostMonitors, def =>
+        this._parseDefinition({ ...def, objectType: 'host' }, cache)
+      )
+        .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'VM' }, cache)))
+        .concat(map(this._configuration.srMonitors, def => this._parseDefinition({ ...def, objectType: 'SR' }))),
+      cache,
+    }
   }
 
   // Sample of a monitor
@@ -659,7 +706,10 @@ ${monitorBodies.join('\n')}`
   //    listItem: '  * [lab1](localhost:3000#/hosts/485ea1f-b475-f6f2-58a7-895ab626ce5d/stats): 70%\n'
   //  }
   async _checkMonitors() {
-    const monitors = this._getMonitors()
+    const jobUid = new Date()
+    logger.debug('_checkMonitors', { jobUid, nb: this.#nbCheckRunning })
+    const { monitors, cache } = this._getMonitors()
+
     for (const monitor of monitors) {
       const snapshot = await monitor.snapshot()
 
@@ -732,6 +782,8 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
         () => {}
       )
     }
+    cache.clear()
+    logger.debug('_checkMonitors', { jobUid, nb: this.#nbCheckRunning, timers: this.#timers })
   }
 
   _sendAlertEmail(subjectSuffix, markdownBody) {
@@ -753,35 +805,55 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
     if (host == null) {
       return null
     }
+    const start = performance.now()
+
     const xapi = this._xo.getXapi(host.uuid)
-    if (hostCache[host.uuid] === undefined) {
-      hostCache[host.uuid] = getServerTimestamp(xapi, host)
-        .then(serverTimestamp => {
-          const payload = {
-            host,
-            query: {
-              cf: 'AVERAGE',
-              host: 'true',
-              json: 'true',
-              start: serverTimestamp - secondsAgo,
-            },
-          }
-          return xapi.getResource('/rrd_updates', payload)
-        })
-        .then(res => res.body.text())
-        .then(text => JSON5.parse(text))
-        .catch(err => {
-          delete hostCache[host.uuid]
-          throw err
-        })
+    if (hostCache.get(host.uuid) === undefined) {
+      hostCache.set(
+        host.uuid,
+        getServerTimestamp(xapi, host)
+          .then(serverTimestamp => {
+            const payload = {
+              host,
+              query: {
+                cf: 'AVERAGE',
+                host: 'true',
+                json: 'true',
+                start: serverTimestamp - secondsAgo,
+              },
+            }
+            return xapi.getResource('/rrd_updates', payload)
+          })
+          .then(res => res.body.text())
+          .then(text => {
+            const downloaded = performance.now()
+            this.#timers.downloading += downloaded - start
+            let json
+            try {
+              // starting from XAPI 23.31, the response is valid JSON
+              json = JSON.parse(text)
+            } catch (_) {
+              logger.debug('fallback JSON5')
+              json = JSON5.parse(text)
+            }
+            const jsonParsing = performance.now()
+            this.#timers.jsonParsing += jsonParsing - downloaded
+            return json
+          })
+          .catch(err => {
+            delete hostCache[host.uuid]
+            throw err
+          })
+      )
     }
     // reuse an existing/in flight query
-    const json = await hostCache[host.uuid]
+    const json = await hostCache.get(host.uuid)
     const results = {
       meta: { ...json.meta, legend: [] },
       data: [],
     }
     if (json.data.length > 0) {
+      const start = performance.now()
       // copy only the data relevant the object
       const data = [...json.data]
 
@@ -803,7 +875,10 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
         }
         firstPass = false
       })
+      const legendParsed = performance.now()
+      this.#timers.jsonHandling += legendParsed - start
     }
+
     return results
   }
 }
