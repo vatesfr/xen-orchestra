@@ -253,6 +253,7 @@ export default class RestApi {
           missing_patches: true,
           messages: true,
           tags: true,
+          tasks: true,
         },
       },
       groups: {
@@ -273,6 +274,7 @@ export default class RestApi {
           alarms: true,
           messages: true,
           tasks: true,
+          tags: true,
         },
       },
       vms: {
@@ -289,6 +291,7 @@ export default class RestApi {
           vdis: true,
           messages: true,
           tasks: true,
+          tags: true,
         },
       },
       'vm-controllers': {
@@ -329,12 +332,15 @@ export default class RestApi {
         routes: {
           alarms: true,
           messages: true,
+          tasks: true,
         },
       },
       vbds: {
         routes: {
           alarms: true,
           messages: true,
+          tags: true,
+          tasks: true,
         },
       },
       vdis: {
@@ -350,6 +356,7 @@ export default class RestApi {
           alarms: true,
           messages: true,
           tasks: true,
+          tags: true,
         },
       },
       servers: {
