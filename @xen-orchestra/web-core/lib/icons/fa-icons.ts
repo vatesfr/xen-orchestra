@@ -1,11 +1,11 @@
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
 import {
   faBuilding,
+  faCopy,
   faFile,
   faFolderClosed,
   faFolderOpen,
   faSquareCheck,
-  faCopy,
 } from '@fortawesome/free-regular-svg-icons'
 import {
   faA,
@@ -109,7 +109,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 export const faIcons = defineIconPack({
-  a: { icon: faA },
   'align-left': { icon: faAlignLeft },
   'angle-double-left': { icon: faAngleDoubleLeft },
   'angle-double-right': { icon: faAngleDoubleRight },
@@ -185,6 +184,7 @@ export const faIcons = defineIconPack({
   minus: { icon: faMinus },
   moon: { icon: faMoon },
   'network-wired': { icon: faNetworkWired },
+  object: { icon: faA },
   pause: { icon: faPause },
   pencil: { icon: faPencil },
   play: { icon: faPlay },

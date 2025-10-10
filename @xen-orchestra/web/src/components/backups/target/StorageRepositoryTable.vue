@@ -1,47 +1,49 @@
 <template>
-  <UiTitle>
-    {{ storageRepositoryTargets ? t('storage-repository') : t('backup-repository') }}
-  </UiTitle>
-  <div class="table-actions">
-    <UiQuerySearchBar @search="value => (searchQuery = value)" />
-    <UiTopBottomTable :selected-items="0" :total-items="0">
-      <UiTablePagination v-bind="paginationBindings" />
-    </UiTopBottomTable>
-  </div>
-  <VtsDataTable
-    is-ready
-    :no-data-message="filteredStorageRepository.length === 0 ? t('no-backup-available') : undefined"
-  >
-    <template #thead>
-      <tr>
-        <template v-for="column of visibleColumns" :key="column.id">
-          <th>
-            <div v-tooltip class="text-ellipsis">
-              <VtsIcon size="medium" :name="headerIcon[column.id]">
-                {{ column.label }}
-              </VtsIcon>
-            </div>
-          </th>
-        </template>
-      </tr>
-    </template>
-    <template #tbody>
-      <tr v-for="row of spacesRecords" :key="row.id" class="typo-body-regular-small">
-        <td v-for="column of row.visibleColumns" :key="column.id">
-          <UiLink v-if="column.id == 'title'" size="medium" :to="column.value.link" icon="fa:database">
-            {{ column.value.label }}
-          </UiLink>
-          <template v-else-if="column.value && column.value.value < Infinity">
-            {{ column.value.value }} {{ column.value.prefix }}
+  <div class="storage-repository-table">
+    <UiTitle>
+      {{ t('storage-repository') }}
+    </UiTitle>
+    <div class="table-actions">
+      <UiQuerySearchBar @search="value => (searchQuery = value)" />
+      <UiTopBottomTable :selected-items="0" :total-items="0">
+        <UiTablePagination v-bind="paginationBindings" />
+      </UiTopBottomTable>
+    </div>
+    <VtsDataTable
+      is-ready
+      :no-data-message="filteredStorageRepository.length === 0 ? t('no-backup-available') : undefined"
+    >
+      <template #thead>
+        <tr>
+          <template v-for="column of visibleColumns" :key="column.id">
+            <th>
+              <div v-tooltip class="text-ellipsis">
+                <VtsIcon size="medium" :name="headerIcon[column.id]">
+                  {{ column.label }}
+                </VtsIcon>
+              </div>
+            </th>
           </template>
-        </td>
-      </tr>
-    </template>
-  </VtsDataTable>
-  <div class="table-actions">
-    <UiTopBottomTable :selected-items="0" :total-items="0">
-      <UiTablePagination v-bind="paginationBindings" />
-    </UiTopBottomTable>
+        </tr>
+      </template>
+      <template #tbody>
+        <tr v-for="row of spacesRecords" :key="row.id" class="typo-body-regular-small">
+          <td v-for="column of row.visibleColumns" :key="column.id">
+            <UiLink v-if="column.id == 'title'" size="medium" :to="column.value.link" icon="fa:database">
+              {{ column.value.label }}
+            </UiLink>
+            <template v-else-if="column.value && column.value.value < Infinity">
+              {{ column.value.value }} {{ column.value.prefix }}
+            </template>
+          </td>
+        </tr>
+      </template>
+    </VtsDataTable>
+    <div class="table-actions">
+      <UiTopBottomTable :selected-items="0" :total-items="0">
+        <UiTablePagination v-bind="paginationBindings" />
+      </UiTopBottomTable>
+    </div>
   </div>
 </template>
 
@@ -86,9 +88,11 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredStorageReposito
   columns: define => [
     define(
       'title',
-      record => {
-        return { label: record.name_label, id: record.id, link: storageRepositoryTargets ? `/srs/${record.id}` : '' }
-      },
+      record => ({
+        label: record.name_label,
+        id: record.id,
+        link: storageRepositoryTargets ? `/srs/${record.id}` : '',
+      }),
       { label: storageRepositoryTargets ? t('storage-repository') : t('backup-repository') }
     ),
     define('used-space', record => formatSizeRaw(record.physical_usage, 2), { label: t('used-space') }),
@@ -104,9 +108,17 @@ const { pageRecords: spacesRecords, paginationBindings } = usePagination('backup
 type BackupJobHeader = 'used-space' | 'remaning-space' | 'total-capacity' | 'title'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
-  title: 'fa:a',
+  title: 'fa:object',
   'used-space': 'fa:hashtag',
   'remaning-space': 'fa:hashtag',
   'total-capacity': 'fa:hashtag',
 }
 </script>
+
+<style lang="postcss" scoped>
+.storage-repository-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+}
+</style>
