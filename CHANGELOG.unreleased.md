@@ -46,6 +46,8 @@
   - **removed** `DELETE /rest/v0/vbds/<vbd-id>/tags/:tag` (PR [#9090](https://github.com/vatesfr/xen-orchestra/pull/9090))
   - **removed** `PUT /rest/v0/vifs/<vif-id>/tags/:tag` (PR [#9096](https://github.com/vatesfr/xen-orchestra/pull/9096))
   - **removed** `DELETE /rest/v0/vifs/<vif-id>/tags/:tag` (PR [#9096](https://github.com/vatesfr/xen-orchestra/pull/9096))
+  - `PUT /rest/v0/vdi-snapshots/<vdi-snapshot-id>/tags/:tag` (PR [#9091](https://github.com/vatesfr/xen-orchestra/pull/9087))
+  - `DELETE /rest/v0/vdi-snapshots/<vdi-snapshot-id>/tags/:tag` (PR [#9091](https://github.com/vatesfr/xen-orchestra/pull/9091))
 
 ### Bug fixes
 
