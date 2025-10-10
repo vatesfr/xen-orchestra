@@ -7,6 +7,7 @@ import tsoaToXoErrorHandler from './middlewares/tsoa-to-xo-error.middleware.mjs'
 import { RegisterRoutes } from './open-api/routes/routes.js'
 import { setupContainer } from './ioc/ioc.mjs'
 import type { XoApp } from './rest-api/rest-api.type.mjs'
+import { setupApiContext } from './middlewares/authentication.middleware.mjs'
 
 // Avoid using "import from" to import a json file as this requires assert/with and will break compatibility with recent node versions
 // https://github.com/nodejs/node/issues/51622
@@ -41,6 +42,9 @@ const SWAGGER_UI_OPTIONS = {
 
 export default function setupRestApi(express: Express, xoApp: XoApp) {
   setupContainer(xoApp)
+
+  express.use(BASE_URL, setupApiContext(xoApp))
+
   RegisterRoutes(express)
 
   express.get(`${BASE_URL}/docs/swagger.json`, (_req, res) => {
