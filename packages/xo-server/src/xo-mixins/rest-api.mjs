@@ -307,6 +307,7 @@ export default class RestApi {
           alarms: true,
           vdis: true,
           messages: true,
+          tags: true,
         },
       },
       'vm-templates': {
