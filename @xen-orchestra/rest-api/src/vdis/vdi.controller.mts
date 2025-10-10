@@ -1,4 +1,4 @@
-import { Delete, Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
@@ -167,5 +167,29 @@ export class VdiController extends XapiXoController<XoVdi> {
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoVdi['id'], { filter, limit })
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putVdiTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vdi = this.getXapiObject(id as XoVdi['id'])
+    await vdi.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "c77f9955-c1d2-4b39-aa1c-73cdb2dacb7e"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteVdiTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vdi = this.getXapiObject(id as XoVdi['id'])
+    await vdi.$call('remove_tags', tag)
   }
 }

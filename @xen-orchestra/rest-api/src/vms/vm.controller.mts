@@ -632,4 +632,28 @@ export class VmController extends XapiXoController<XoVm> {
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
+
+  /**
+   * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putVmTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vm = this.getXapiObject(id as XoVm['id'])
+    await vm.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteVmTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vm = this.getXapiObject(id as XoVm['id'])
+    await vm.$call('remove_tags', tag)
+  }
 }
