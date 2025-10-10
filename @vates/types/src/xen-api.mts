@@ -70,6 +70,11 @@ import type { Xapi } from './lib/xen-orchestra-xapi.mjs'
 // https://github.com/vatesfr/xen-orchestra/tree/wip-xapi-types-generator/%40xen-orchestra/xapi-generator
 // All properties added after XenServer 7.0 (dundee) release have been marked as optional
 
+type TagCallMethods = {
+  (method: 'add_tags', tag: string): Promise<void>
+  (method: 'remove_tags', tag: string): Promise<void>
+}
+
 /**
  * Add properties injected by `xen-api`.
  * $ref property is also injected by XOLite, so she is not present here.
@@ -162,6 +167,8 @@ export interface XenApiEvent {
   timestamp?: string
 }
 
+type XenApiPoolCallMethods = TagCallMethods & {}
+
 export interface XenApiPool {
   $ref: Branded<'pool'>
   allowed_operations: POOL_ALLOWED_OPERATIONS[]
@@ -224,7 +231,7 @@ export interface XenApiPool {
   /** @deprecated */
   wlb_verify_cert?: boolean
 }
-export type XenApiPoolWrapped = WrapperXenApi<XenApiPool, 'pool'>
+export type XenApiPoolWrapped = WrapperXenApi<XenApiPool, 'pool', XenApiPoolCallMethods>
 
 /** @deprecated */
 export interface XenApiPoolPatch {
@@ -256,7 +263,7 @@ export interface XenApiPoolUpdate {
   version?: string
 }
 
-type XenApiVmCallMethods = {
+type XenApiVmCallMethods = TagCallMethods & {
   (method: 'start', start_paused: boolean, force: boolean): Promise<void>
   (method: 'clean_shutdown'): Promise<void>
   (method: 'hard_shutdown'): Promise<void>
@@ -483,6 +490,7 @@ export interface XenApiDrTask {
   uuid: string
 }
 
+type XenApiHostCallMethods = TagCallMethods & {}
 export interface XenApiHost {
   $ref: Branded<'host'>
   address: string
@@ -559,7 +567,7 @@ export interface XenApiHost {
   uuid: string
   virtual_hardware_platform_versions: number[]
 }
-export type XenApiHostWrapped = WrapperXenApi<XenApiHost, 'host'>
+export type XenApiHostWrapped = WrapperXenApi<XenApiHost, 'host', XenApiHostCallMethods>
 
 export interface XenApiHostCrashdump {
   $ref: Branded<'host_crashdump'>
@@ -614,6 +622,8 @@ export interface XenApiHostCpu {
   vendor: string
 }
 
+type XenApiNetworkCallMethods = TagCallMethods & {}
+
 export interface XenApiNetwork {
   $ref: Branded<'network'>
   allowed_operations: NETWORK_OPERATIONS[]
@@ -633,8 +643,7 @@ export interface XenApiNetwork {
   uuid: string
   VIFs: XenApiVif['$ref'][]
 }
-export interface XenApiNetworkWrapped extends WrapperXenApi<XenApiNetwork, 'network'> {}
-
+export interface XenApiNetworkWrapped extends WrapperXenApi<XenApiNetwork, 'network', XenApiNetworkCallMethods> {}
 export interface XenApiVif {
   $ref: Branded<'VIF'>
   allowed_operations: VIF_OPERATIONS[]

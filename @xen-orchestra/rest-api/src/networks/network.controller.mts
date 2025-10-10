@@ -1,8 +1,8 @@
-import { Example, Get, Path, Query, Response, Request, Route, Security, Tags, Delete, SuccessResponse } from 'tsoa'
+import { Example, Get, Path, Query, Response, Request, Route, Security, Tags, Delete, SuccessResponse, Put } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import type { XoAlarm, XoMessage, XoNetwork } from '@vates/types'
+import type { XoAlarm, XoMessage, XoNetwork, XoTask } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
@@ -13,6 +13,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
+import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('networks')
 @Security('*')
@@ -114,5 +115,53 @@ export class NetworkController extends XapiXoController<XoNetwork> {
     const messages = this.getMessagesForObject(id as XoNetwork['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getNetworkTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoNetwork['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const network = this.getXapiObject(id as XoNetwork['id'])
+    await network.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const network = this.getXapiObject(id as XoNetwork['id'])
+    await network.$call('remove_tags', tag)
   }
 }

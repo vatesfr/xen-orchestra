@@ -75,7 +75,7 @@ const formattedRunDate = computed(() => new Date(runDate.value).toLocaleString()
 
 const logContent = computed(() => {
   if (backupRun.status !== 'success' && backupRun.status !== 'pending' && backupRun.tasks && backupRun.tasks[0]) {
-    return backupRun.tasks[0].result.stack
+    return backupRun.tasks[0].result?.stack
   }
 
   return undefined

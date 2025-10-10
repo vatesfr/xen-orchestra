@@ -78,7 +78,7 @@ curl: (35) error:1407742E:SSL routines:SSL23_GET_SERVER_HELLO:tlsv1 alert protoc
 It means that the secure HTTPS protocol is not supported, you can bypass this using the unsecure command instead:
 
 ```sh
-bash -c "$(wget --no-verbose -O- https://xoa.io/deploy)"
+bash -c "$(wget --no-verbose -O- http://xoa.io/deploy)"
 ```
 
 :::

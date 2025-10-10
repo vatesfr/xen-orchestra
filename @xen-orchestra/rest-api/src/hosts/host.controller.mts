@@ -1,4 +1,4 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
 import { pipeline } from 'node:stream/promises'
@@ -10,6 +10,7 @@ import type {
   XoAlarm,
   XoHost,
   XoMessage,
+  XoTask,
   XsPatches,
 } from '@vates/types'
 
@@ -30,12 +31,14 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import {
   featureUnauthorized,
   internalServerErrorResp,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { HostService } from './host.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
+import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -229,5 +232,53 @@ export class HostController extends XapiXoController<XoHost> {
     const messages = this.getMessagesForObject(id as XoHost['id'], { filter, limit })
 
     return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getHostTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoHost['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putHostTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const host = this.getXapiObject(id as XoHost['id'])
+    await host.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteHostTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const host = this.getXapiObject(id as XoHost['id'])
+    await host.$call('remove_tags', tag)
   }
 }
