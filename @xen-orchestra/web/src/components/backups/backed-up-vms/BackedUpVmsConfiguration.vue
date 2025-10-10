@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="card-container">
+  <UiCard>
     <UiTitle>
       {{ t('configuration') }}
     </UiTitle>
@@ -12,17 +12,19 @@
         </VtsQuickInfoRow>
         <VtsQuickInfoRow :label="t('vms-tags')">
           <template #value>
-            <UiTagsList v-if="smartModeTags?.values !== undefined && smartModeTags.values.length > 0">
-              <UiTag v-for="tag in smartModeTags.values" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
+            <UiTagsList v-if="smartModeConfig.tags?.values !== undefined && smartModeConfig.tags.values.length > 0">
+              <UiTag v-for="tag in smartModeConfig.tags.values" :key="tag" accent="info" variant="secondary">
+                {{ tag }}
+              </UiTag>
             </UiTagsList>
           </template>
         </VtsQuickInfoRow>
       </VtsColumn>
       <VtsColumn>
         <VtsQuickInfoRow :label="t('resident-on')">
-          <template v-if="smartModePools" #value>
+          <template v-if="smartModeConfig.pools" #value>
             <UiLink
-              v-for="pool in smartModePools.values"
+              v-for="pool in smartModeConfig.pools.values"
               :key="pool.id"
               size="small"
               icon="fa:city"
@@ -34,8 +36,10 @@
         </VtsQuickInfoRow>
         <VtsQuickInfoRow :label="t('excluded-vms-tags')">
           <template #value>
-            <UiTagsList v-if="smartModeTags?.notValues !== undefined && smartModeTags.notValues.length > 0">
-              <UiTag v-for="tag in smartModeTags.notValues" :key="tag" accent="info" variant="secondary">
+            <UiTagsList
+              v-if="smartModeConfig.tags?.notValues !== undefined && smartModeConfig.tags.notValues.length > 0"
+            >
+              <UiTag v-for="tag in smartModeConfig.tags.notValues" :key="tag" accent="info" variant="secondary">
                 {{ tag }}
               </UiTag>
             </UiTagsList>
@@ -44,9 +48,9 @@
       </VtsColumn>
       <VtsColumn>
         <VtsQuickInfoRow :label="t('not-resident-on')">
-          <template v-if="smartModePools" #value>
+          <template v-if="smartModeConfig.pools" #value>
             <UiLink
-              v-for="pool in smartModePools.notValues"
+              v-for="pool in smartModeConfig.pools.notValues"
               :key="pool.id"
               size="small"
               icon="fa:city"
@@ -97,47 +101,37 @@ function checkSmartModeEnabled(
   return !('id' in value)
 }
 
-const smartModePools = computed(() => {
-  if (!checkSmartModeEnabled(rawBackedUpVms) || rawBackedUpVms.$pool === undefined) {
-    return undefined
+const smartModeConfig = computed(() => {
+  if (!checkSmartModeEnabled(rawBackedUpVms)) {
+    return {
+      pools: undefined,
+      tags: undefined,
+    }
   }
 
-  const poolIds = destructSmartPattern(rawBackedUpVms.$pool)
+  let pools
+  if (rawBackedUpVms.$pool !== undefined) {
+    const poolIds = destructSmartPattern(rawBackedUpVms.$pool)
+    if (poolIds) {
+      pools = {
+        values: getPoolsByIds(poolIds.values),
+        notValues: getPoolsByIds(poolIds.notValues),
+      }
+    }
+  }
 
-  if (!poolIds) {
-    return undefined
+  let tags
+  if (rawBackedUpVms.tags !== undefined) {
+    const tagPattern = destructSmartPattern(rawBackedUpVms.tags)
+    tags = {
+      values: tagPattern.values?.flat(),
+      notValues: [...tagPattern.notValues?.flat(), 'xo:no-bak'],
+    }
   }
 
   return {
-    values: getPoolsByIds(poolIds.values),
-    notValues: getPoolsByIds(poolIds.notValues),
-  }
-})
-
-const smartModeTags = computed(() => {
-  if (!checkSmartModeEnabled(rawBackedUpVms) || rawBackedUpVms.tags === undefined) {
-    return undefined
-  }
-
-  const tags = destructSmartPattern(rawBackedUpVms.tags)
-
-  return {
-    values: tags.values?.flat(),
-    notValues: [...tags.notValues?.flat(), 'xo:no-bak'],
+    pools,
+    tags,
   }
 })
 </script>
-
-<style scoped lang="postcss">
-.card-container {
-  .divider {
-    margin-block: 1.6rem;
-  }
-
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 1.6rem;
-  }
-}
-</style>

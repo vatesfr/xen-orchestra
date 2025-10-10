@@ -66,7 +66,7 @@
                 <UiLink
                   size="medium"
                   icon="object:backup-job"
-                  :to="column.value.show ? `/backup/${row.id}/backedUpVm` : ''"
+                  :to="column.value.show ? `/backup/${row.id}/backedUpVms` : ''"
                   @click.stop
                 >
                   {{ column.value.name }}

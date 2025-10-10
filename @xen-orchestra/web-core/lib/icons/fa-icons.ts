@@ -214,5 +214,5 @@ export const faIcons = defineIconPack({
   'up-right-from-square': { icon: faUpRightFromSquare },
   warning: { icon: faWarning },
   xmark: { icon: faXmark },
-  a: { icon: faA },
+  object: { icon: faA },
 })

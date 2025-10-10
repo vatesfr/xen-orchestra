@@ -24,7 +24,7 @@ declare module 'vue-router/auto-routes' {
     '/(site)/pools': RouteRecordInfo<'/(site)/pools', '/pools', Record<never, never>, Record<never, never>>,
     '/[...path]': RouteRecordInfo<'/[...path]', '/:path(.*)', { path: ParamValue<true> }, { path: ParamValue<false> }>,
     '/backup/[id]': RouteRecordInfo<'/backup/[id]', '/backup/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
-    '/backup/[id]/backedUpVm': RouteRecordInfo<'/backup/[id]/backedUpVm', '/backup/:id/backedUpVm', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/backup/[id]/backedUpVms': RouteRecordInfo<'/backup/[id]/backedUpVms', '/backup/:id/backedUpVms', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/backup/[id]/configuration': RouteRecordInfo<'/backup/[id]/configuration', '/backup/:id/configuration', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/backup/[id]/runs': RouteRecordInfo<'/backup/[id]/runs', '/backup/:id/runs', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/dev/': RouteRecordInfo<'/dev/', '/dev', Record<never, never>, Record<never, never>>,
