@@ -2,7 +2,8 @@ import { Example, Get, Path, Post, Query, Request, Response, Route, Security, Su
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
-import type { SUPPORTED_VDI_FORMAT, XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
+import type { XenApiVdi, XoMessage, XoTask, XoVdi, XoAlarm, XoSr } from '@vates/types'
+import { SUPPORTED_VDI_FORMAT } from '@vates/types'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { BASE_URL } from '../index.mjs'
