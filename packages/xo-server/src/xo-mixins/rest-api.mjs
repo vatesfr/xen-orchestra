@@ -291,6 +291,7 @@ export default class RestApi {
           vdis: true,
           messages: true,
           tasks: true,
+          tags: true,
         },
       },
       'vm-controllers': {
@@ -331,12 +332,15 @@ export default class RestApi {
         routes: {
           alarms: true,
           messages: true,
+          tasks: true,
         },
       },
       vbds: {
         routes: {
           alarms: true,
           messages: true,
+          tags: true,
+          tasks: true,
         },
       },
       vdis: {
