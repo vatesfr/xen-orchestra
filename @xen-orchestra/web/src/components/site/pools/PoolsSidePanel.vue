@@ -44,8 +44,7 @@
         </UiCardTitle>
         <div class="content">
           <!-- Pool -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('pool') }}</template>
+          <UiLabelValue :label="t('pool')">
             <template #value>
               <UiLink
                 v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
@@ -56,38 +55,28 @@
                 {{ server.poolNameLabel }}
               </UiLink>
             </template>
-            <template v-if="server.poolId !== undefined" #addons>
+            <template v-if="server.poolId !== undefined" #actions>
               <VtsCopyButton :value="server.poolId" />
             </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
           <!-- ID -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('id') }}</template>
-            <template #value>{{ server.id }}</template>
-            <template #addons>
+          <UiLabelValue :label="t('id')" :value="server.id">
+            <template #actions>
               <VtsCopyButton :value="server.id" />
             </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
           <!-- Description -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('description') }}</template>
-            <template #value>{{ server.poolNameDescription }}</template>
-            <template v-if="server.poolNameDescription !== undefined" #addons>
+          <UiLabelValue :label="t('description')" :value="server.poolNameDescription">
+            <template v-if="server.poolNameDescription !== undefined" #actions>
               <VtsCopyButton :value="server.poolNameDescription" />
             </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
           <!-- tag -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('tags') }}</template>
-            <template #value>
-              <UiTagsList v-if="pool !== undefined && pool.tags.length > 0">
-                <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="primary">{{ tag }}</UiTag>
-              </UiTagsList>
-            </template>
-            <template v-if="pool !== undefined && pool.tags.length > 0" #addons>
+          <UiLabelValue :label="t('tags')" :value="pool ? String(pool.tags.length) : undefined">
+            <template v-if="pool !== undefined && pool.tags.length > 0" #actions>
               <VtsCopyButton :value="pool.tags.join(', ')" />
             </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
         </div>
       </UiCard>
       <UiAlert v-else accent="danger">
@@ -101,65 +90,55 @@
           {{ t('connection') }}
         </UiCardTitle>
         <!-- status -->
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('status') }}</template>
+        <UiLabelValue :label="t('status')">
           <template #value>
             <UiInfo :accent="connectionStatus.accent">
               {{ connectionStatus.text }}
             </UiInfo>
           </template>
-        </VtsCardRowKeyValue>
+        </UiLabelValue>
         <!-- primary-host -->
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('master') }}</template>
+        <UiLabelValue :label="t('master')">
           <template #value>
             <UiLink v-if="primaryHost !== undefined" icon="fa:server" size="small" :to="`/host/${primaryHost.id}/`">
               {{ primaryHost.name_label }}
             </UiLink>
           </template>
-          <template v-if="primaryHost !== undefined" #addons>
+          <template v-if="primaryHost !== undefined" #actions>
             <VtsCopyButton :value="primaryHost.id" />
           </template>
-        </VtsCardRowKeyValue>
+        </UiLabelValue>
         <!-- ip-address -->
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('ip-address') }}</template>
-          <template #value>{{ server.host }}</template>
-          <template #addons>
+        <UiLabelValue :label="t('ip-address')" :value="server.host">
+          <template #actions>
             <VtsCopyButton :value="server.host" />
           </template>
-        </VtsCardRowKeyValue>
+        </UiLabelValue>
         <!-- proxy-url -->
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('proxy-url') }}</template>
-          <template #value>{{ server.httpProxy }}</template>
-          <template v-if="server.httpProxy !== undefined" #addons>
+        <UiLabelValue :label="t('proxy-url')" :value="server.httpProxy">
+          <template v-if="server.httpProxy !== undefined" #actions>
             <VtsCopyButton :value="server.httpProxy" />
           </template>
-        </VtsCardRowKeyValue>
+        </UiLabelValue>
         <!-- username -->
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('username') }}</template>
-          <template #value>{{ server.username }}</template>
-          <template #addons>
+        <UiLabelValue :label="t('username')" :value="server.username">
+          <template #actions>
             <VtsCopyButton :value="server.username" />
           </template>
-        </VtsCardRowKeyValue>
+        </UiLabelValue>
         <!-- read-only -->
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('read-only') }}</template>
+        <UiLabelValue :label="t('read-only')">
           <template #value>
             <VtsEnabledState :enabled="server.readOnly" />
           </template>
-        </VtsCardRowKeyValue>
+        </UiLabelValue>
         <!-- self-signed-certificates -->
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('self-signed-certificates') }}</template>
+        <UiLabelValue :label="t('self-signed-certificates')">
           <template #value>
             <!-- todo add information button. waiting modal -->
             <VtsEnabledState :enabled="server.allowUnauthorized" />
           </template>
-        </VtsCardRowKeyValue>
+        </UiLabelValue>
       </UiCard>
       <UiCard v-if="hosts !== undefined">
         <UiCardTitle>
@@ -193,7 +172,6 @@
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import type { XoServer } from '@/types/xo/server.type'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -205,11 +183,10 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store'

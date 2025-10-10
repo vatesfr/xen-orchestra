@@ -64,11 +64,7 @@
             </template>
           </UiLabelValue>
           <!-- DEVICE -->
-          <UiLabelValue :label="t('device')" :value="t('vif-device', { device: vif.device })">
-            <template #actions>
-              <VtsCopyButton :value="vif.device" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('device')" :value="t('vif-device', { device: vif.device })" />
           <!-- VIF STATUS -->
           <UiLabelValue :label="t('vif-status')">
             <template #value>

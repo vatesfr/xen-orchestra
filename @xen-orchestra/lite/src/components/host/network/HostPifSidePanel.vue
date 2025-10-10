@@ -41,14 +41,13 @@
         <UiCardTitle>{{ isBond ? t('bond') : t('pif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <UiLabelValue :label="t('uuid')" :value="pif.uuid">
-            <template #actions>
+          <UiLabelValue :label="t('uuid')" :value="pif.uuid" copyable>
+            <template #addons>
               <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
-              <VtsCopyButton :value="pif.uuid" />
             </template>
           </UiLabelValue>
           <!-- NETWORK -->
-          <UiLabelValue :label="t('network')" :value="network?.name_label">
+          <UiLabelValue :label="t('network')" :value="network?.name_label" copyable>
             <!-- TODO Remove the span when the link works and the icon is fixed -->
             <!--
                 <UiComplexIcon size="medium">
@@ -57,16 +56,9 @@
                 </UiComplexIcon>
                 <a href="">{{ networkNameLabel }}</a>
                 -->
-            <template v-if="network?.name_label" #actions>
-              <VtsCopyButton :value="network.name_label" />
-            </template>
           </UiLabelValue>
           <!-- DEVICE -->
-          <UiLabelValue :label="t('device')" :value="pif.device">
-            <template #actions>
-              <VtsCopyButton :value="pif.device" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('device')" :value="pif.device" copyable />
           <!-- PIF STATUS -->
           <UiLabelValue :label="isBond ? t('bond-status') : t('pif-status')">
             <template #value>
@@ -95,10 +87,7 @@
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
-            <UiLabelValue v-for="(ip, index) in ipAddresses" :key="ip" :label="t('ip-addresses')" :value="ip">
-              <template #actions>
-                <VtsCopyButton :value="ip" />
-              </template>
+            <UiLabelValue v-for="(ip, index) in ipAddresses" :key="ip" :label="t('ip-addresses')" :value="ip" copyable>
               <template #addons>
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
@@ -111,31 +100,14 @@
               </template>
             </UiLabelValue>
           </div>
-          <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" />
           <!-- MAC ADDRESSES -->
-          <UiLabelValue :label="t('mac-address')" :value="pif.MAC">
-            <template #actions>
-              <VtsCopyButton :value="pif.MAC" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('mac-address')" :value="pif.MAC" copyable />
           <!-- NETMASK -->
-          <UiLabelValue :label="t('netmask')" :value="pif.netmask">
-            <template v-if="pif.netmask" #actions>
-              <VtsCopyButton :value="pif.netmask" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('netmask')" :value="pif.netmask" copyable />
           <!-- DNS -->
-          <UiLabelValue :label="t('dns')" :value="pif.DNS">
-            <template v-if="pif.DNS" #actions>
-              <VtsCopyButton :value="pif.DNS" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('dns')" :value="pif.DNS" copyable />
           <!-- GATEWAY -->
-          <UiLabelValue :label="t('gateway')" :value="pif.gateway">
-            <template v-if="pif.gateway" #actions>
-              <VtsCopyButton :value="pif.gateway" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('gateway')" :value="pif.gateway" copyable />
           <!-- IP CONFIGURATION MODE -->
           <UiLabelValue :label="t('ip-mode')" :value="ipConfigurationMode" />
           <!-- BOND DEVICES -->
@@ -145,11 +117,9 @@
               :key="device"
               :label="t('bond-devices')"
               :value="device"
+              copyable
             >
               <template v-if="device" #addons>
-                <VtsCopyButton :value="device" />
-              </template>
-              <template v-if="device" #actions>
                 <UiButtonIcon
                   v-if="index === 0 && bondDevices.length > 1"
                   v-tooltip="t('coming-soon')"
@@ -168,19 +138,11 @@
         <UiCardTitle>{{ t('properties') }}</UiCardTitle>
         <div class="content">
           <!-- MTU -->
-          <UiLabelValue :label="t('mtu')" :value="pif.MTU === -1 ? t('none') : String(pif.MTU)">
-            <template v-if="pif.MTU !== -1" #actions>
-              <VtsCopyButton :value="String(pif.MTU)" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('mtu')" :value="pif.MTU === -1 ? t('none') : String(pif.MTU)" copyable />
           <!-- SPEED -->
           <UiLabelValue :label="t('speed')" :value="speed" />
           <!-- NETWORK BLOCK DEVICE -->
-          <UiLabelValue :label="t('network-block-device')" :value="networkPurpose">
-            <template #actions>
-              <VtsCopyButton :value="networkPurpose" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('network-block-device')" :value="networkPurpose" copyable />
         </div>
       </UiCard>
     </template>
@@ -262,6 +224,7 @@ const speed = computed(() => {
 <style scoped lang="postcss">
 .card {
   gap: 1.6rem;
+  background-color: lime;
 
   .content {
     display: flex;
