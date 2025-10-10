@@ -1,79 +1,83 @@
 <template>
-  <UiCard>
+  <UiCard class="backup-jobs-schedules">
     <UiTitle> {{ t('schedules') }} </UiTitle>
-    <UiQuerySearchBar @search="value => (searchQuery = value)" />
-    <UiTopBottomTable :selected-items="0" :total-items="0">
-      <UiTablePagination v-bind="paginationBindings" />
-    </UiTopBottomTable>
-    <VtsDataTable is-ready :no-data-message="backupJobs.length === 0 ? t('no-backup-available') : undefined">
-      <template #thead>
-        <tr>
-          <template v-for="column of visibleColumns" :key="column.id">
-            <th v-if="column.id === 'checkbox'" class="checkbox">
-              <div v-tooltip="t('coming-soon')">
-                <UiCheckbox disabled accent="brand" />
+    <div class="container">
+      <div class="table-actions">
+        <UiQuerySearchBar @search="value => (searchQuery = value)" />
+        <UiTopBottomTable :selected-items="0" :total-items="0">
+          <UiTablePagination v-bind="paginationBindings" />
+        </UiTopBottomTable>
+      </div>
+      <VtsDataTable is-ready :no-data-message="backupJobs.length === 0 ? t('no-backup-available') : undefined">
+        <template #thead>
+          <tr>
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th v-if="column.id === 'checkbox'" class="checkbox">
+                <div v-tooltip="t('coming-soon')">
+                  <UiCheckbox disabled accent="brand" />
+                </div>
+              </th>
+              <th v-else-if="column.id === 'more'">
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
+              </th>
+              <th v-else>
+                <div v-tooltip>
+                  <VtsIcon size="medium" :name="headerIcon[column.id]" />
+                  {{ column.label }}
+                </div>
+              </th>
+            </template>
+          </tr>
+        </template>
+        <template #tbody>
+          <tr v-for="row of backupJobsRecords" :key="row.id" :class="{ selected: selectedBackupJobId === row.id }">
+            <td v-for="column of row.visibleColumns" :key="column.id" :class="{ checkbox: column.id === 'checkbox' }">
+              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
+                <UiCheckbox disabled accent="brand" :value="row.id" />
               </div>
-            </th>
-            <th v-else-if="column.id === 'more'">
-              <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-            </th>
-            <th v-else>
-              <div v-tooltip>
-                <VtsIcon size="medium" :name="headerIcon[column.id]" />
-                {{ column.label }}
+              <UiButtonIcon
+                v-else-if="column.id === 'more'"
+                v-tooltip="t('coming-soon')"
+                icon="fa:ellipsis"
+                accent="brand"
+                disabled
+                size="small"
+              />
+              <div v-else-if="column.id === 'schedule'">
+                <UiLink size="medium" icon="object:backup-job" :href="`/#/backup/${column.value.jobId}/edit`">
+                  {{ column.value.name }}
+                </UiLink>
               </div>
-            </th>
-          </template>
-        </tr>
-      </template>
-      <template #tbody>
-        <tr v-for="row of backupJobsRecords" :key="row.id" :class="{ selected: selectedBackupJobId === row.id }">
-          <td v-for="column of row.visibleColumns" :key="column.id" :class="{ checkbox: column.id === 'checkbox' }">
-            <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-              <UiCheckbox disabled accent="brand" :value="row.id" />
-            </div>
-            <UiButtonIcon
-              v-else-if="column.id === 'more'"
-              v-tooltip="t('coming-soon')"
-              icon="fa:ellipsis"
-              accent="brand"
-              disabled
-              size="small"
-            />
-            <div v-else-if="column.id === 'schedule'">
-              <UiLink size="medium" icon="object:backup-job" :href="`/#/backup/${column.value.jobId}/edit`">
-                {{ column.value.name }}
-              </UiLink>
-            </div>
-            <div v-else-if="column.id === 'id'" v-tooltip class="text-ellipsis">
-              {{ column.value }}
-            </div>
-            <div v-else-if="column.id === 'cron-pattern'" v-tooltip class="text-ellipsis">
-              {{ column.value }}
-            </div>
-            <!--
+              <div v-else-if="column.id === 'id'" v-tooltip class="text-ellipsis">
+                {{ column.value }}
+              </div>
+              <div v-else-if="column.id === 'cron-pattern'" v-tooltip class="text-ellipsis">
+                {{ column.value }}
+              </div>
+              <!--
  <div v-else-if="column.id === 'next-run'">
               {{ column.value }}
             </div>
 -->
-            <template v-else-if="column.id === 'status'">
-              <VtsEnabledState :enabled="column.value ?? false" />
-            </template>
-            <template v-else-if="column.id === 'last-runs'">
-              <ul class="last-three-runs">
-                <li v-for="(status, index) in column.value" :key="index" v-tooltip="status.tooltip">
-                  <VtsIcon size="medium" :name="status.icon" />
-                  <span class="visually-hidden">{{ t('last-run-number', { n: index + 1 }) }}</span>
-                </li>
-              </ul>
-            </template>
-          </td>
-        </tr>
-      </template>
-    </VtsDataTable>
-    <UiTopBottomTable :selected-items="0" :total-items="0">
-      <UiTablePagination v-bind="paginationBindings" />
-    </UiTopBottomTable>
+              <template v-else-if="column.id === 'status'">
+                <VtsEnabledState :enabled="column.value ?? false" />
+              </template>
+              <template v-else-if="column.id === 'last-runs'">
+                <ul class="last-three-runs">
+                  <li v-for="(status, index) in column.value" :key="index" v-tooltip="status.tooltip">
+                    <VtsIcon size="medium" :name="status.icon" />
+                    <span class="visually-hidden">{{ t('last-run-number', { n: index + 1 }) }}</span>
+                  </li>
+                </ul>
+              </template>
+            </td>
+          </tr>
+        </template>
+      </VtsDataTable>
+      <UiTopBottomTable :selected-items="0" :total-items="0">
+        <UiTablePagination v-bind="paginationBindings" />
+      </UiTopBottomTable>
+    </div>
   </UiCard>
 </template>
 
@@ -184,7 +188,7 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
   'cron-pattern': 'fa:clock',
   status: 'fa:square-caret-down',
   'last-runs': 'fa:square-caret-down',
-  // 'next-run': 'fa:caledar',
+  // 'next-run': 'fa:calendar',
 }
 </script>
 
