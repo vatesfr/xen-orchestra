@@ -9,20 +9,22 @@
             <UiTag variant="secondary" accent="info">{{ backupJob.mode }}</UiTag>
           </template>
         </VtsQuickInfoRow>
-        <VtsQuickInfoRow
-          :label="t('number-retries-vm-fails')"
-          :value="backupJob.settings[''].nRetriesVmBackupFailures?.toString()"
-        />
-        <VtsQuickInfoRow :label="t('timeout')" :value="backupJob.settings[''].timeout?.toString()" />
+        <VtsQuickInfoRow :label="t('number-retries-vm-fails')" :value="settings.nRetriesVmBackupFailures" />
+        <VtsQuickInfoRow :label="t('timeout')" :value="settings.timeout" />
       </VtsColumn>
       <VtsColumn>
-        <VtsQuickInfoRow :label="t('speed-limit')" :value="backupJob.settings[''].maxExportRate?.toString()" />
-        <VtsQuickInfoRow :label="t('report-when')" :value="backupJob.settings[''].reportWhen" />
+        <VtsQuickInfoRow
+          :label="t('speed-limit')"
+          :value="
+            settings.maxExportRate ? `${settings.maxExportRate?.value} ${settings.maxExportRate?.prefix}` : undefined
+          "
+        />
+        <VtsQuickInfoRow :label="t('report-when')" :value="settings.reportWhen" />
         <VtsQuickInfoRow :label="t('report-recipients')">
           <template #value>
             <UiTagsList>
               <UiTag
-                v-for="(recipient, index) in backupJob.settings[''].reportRecipients"
+                v-for="(recipient, index) in settings.reportRecipients"
                 :key="index"
                 variant="secondary"
                 accent="info"
@@ -32,19 +34,19 @@
             </UiTagsList>
           </template>
         </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('concurrency')" :value="backupJob.settings[''].concurrency?.toString()" />
+        <VtsQuickInfoRow :label="t('concurrency')" :value="settings.concurrency" />
       </VtsColumn>
       <VtsColumn>
         <VtsQuickInfoRow :label="t('compression')" :value="backupJob.compression" />
         <VtsQuickInfoRow :label="t('offline-backup')">
           <template #value>
-            <VtsEnabledState :enabled="backupJob.settings[''].offlineBackup ?? false" />
+            <VtsEnabledState :enabled="settings.offlineBackup ?? false" />
           </template>
         </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('shorter-backup-reports')" :value="backupJob.settings[''].reportWhen" />
+        <VtsQuickInfoRow :label="t('shorter-backup-reports')" :value="settings.reportWhen" />
         <VtsQuickInfoRow :label="t('merge-backups-synchronously')">
           <template #value>
-            <VtsEnabledState :enabled="backupJob.settings[''].mergeBackupsSynchronously ?? false" />
+            <VtsEnabledState :enabled="settings.mergeBackupsSynchronously ?? false" />
           </template>
         </VtsQuickInfoRow>
       </VtsColumn>
@@ -62,6 +64,8 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { formatSpeedRaw } from '@core/utils/speed.util'
+import { reactiveComputed } from '@vueuse/shared'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
@@ -69,4 +73,40 @@ const { backupJob } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const settings = reactiveComputed(() => {
+  if (!backupJob.settings['']) {
+    return {}
+  }
+
+  const {
+    proxy,
+    mode,
+    nRetriesVmBackupFailures,
+    timeout,
+    maxExportRate,
+    reportWhen,
+    reportRecipients,
+    concurrency,
+    compression,
+    offlineBackup,
+    mergeBackupsSynchronously,
+    ...other
+  } = backupJob.settings['']
+
+  return {
+    proxy,
+    mode,
+    nRetriesVmBackupFailures: nRetriesVmBackupFailures ? String(nRetriesVmBackupFailures) : undefined,
+    timeout: timeout ? String(timeout) : undefined,
+    maxExportRate: maxExportRate ? formatSpeedRaw(maxExportRate) : undefined,
+    reportWhen,
+    reportRecipients,
+    concurrency: concurrency ? String(concurrency) : undefined,
+    compression,
+    offlineBackup,
+    mergeBackupsSynchronously,
+    other,
+  }
+})
 </script>
