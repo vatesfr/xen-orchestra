@@ -164,7 +164,7 @@ export type XoApp = {
   rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: VatesTask }): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: XoJob, schedule: XoSchedule): void
-  runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
+  runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
   updateUser(
