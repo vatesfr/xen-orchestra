@@ -274,6 +274,7 @@ export default class RestApi {
           alarms: true,
           messages: true,
           tasks: true,
+          tags: true,
         },
       },
       vms: {
@@ -290,6 +291,7 @@ export default class RestApi {
           vdis: true,
           messages: true,
           tasks: true,
+          tags: true,
         },
       },
       'vm-controllers': {
@@ -306,6 +308,7 @@ export default class RestApi {
           alarms: true,
           vdis: true,
           messages: true,
+          tags: true,
         },
       },
       'vm-templates': {
@@ -313,6 +316,7 @@ export default class RestApi {
           alarms: true,
           vdis: true,
           messages: true,
+          tags: true,
         },
       },
       hosts: {
@@ -331,12 +335,16 @@ export default class RestApi {
         routes: {
           alarms: true,
           messages: true,
+          tasks: true,
+          tags: true,
         },
       },
       vbds: {
         routes: {
           alarms: true,
           messages: true,
+          tags: true,
+          tasks: true,
         },
       },
       vdis: {
@@ -344,6 +352,7 @@ export default class RestApi {
           alarms: true,
           messages: true,
           tasks: true,
+          tags: true,
         },
       },
       'vdi-snapshots': {
@@ -351,6 +360,7 @@ export default class RestApi {
           alarms: true,
           messages: true,
           tasks: true,
+          tags: true,
         },
       },
       servers: {

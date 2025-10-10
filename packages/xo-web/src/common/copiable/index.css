@@ -1,6 +1,6 @@
 .container .button {
   position: absolute;
-  margin-left: 1ex;
+  padding-left: 1ex;
   visibility: hidden;
 }
 
