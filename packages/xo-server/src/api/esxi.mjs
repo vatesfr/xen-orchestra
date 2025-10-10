@@ -108,7 +108,7 @@ async function install({ repository, version, executable }) {
     }
   })
 
-  await Task.run({ properties: { name: `updating apt repositories` } }, () => execPromise('apt update'))
+  await Task.run({ properties: { name: `updating apt repositories` } }, () => execPromise('apt update')).catch(err => Task.warning('Error while updating system', {err}))
 
   await Task.run({ properties: { name: `installing dependencies` } }, () =>
     execPromise('apt-get install -y git dh-autoreconf pkg-config make libxml2-dev ocaml libc-bin')
