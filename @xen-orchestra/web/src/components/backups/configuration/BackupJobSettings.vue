@@ -3,19 +3,22 @@
     <UiTitle> {{ t('settings') }} </UiTitle>
     <VtsColumns>
       <VtsColumn>
-        <VtsQuickInfoRow :label="t('proxy')" :value="backupJob.proxy" />
+        <VtsQuickInfoRow :label="t('proxy')" :value="proxy?.name" />
         <VtsQuickInfoRow :label="t('snapshot-mode')">
           <template v-if="backupJob.mode" #value>
             <UiTag variant="secondary" accent="info">{{ backupJob.mode }}</UiTag>
           </template>
         </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('vm-backup-failure-number-of-retries')" :value="settings.nRetriesVmBackupFailures" />
+        <VtsQuickInfoRow
+          :label="t('vm-backup-failure-number-of-retries')"
+          :value="settings.nRetriesVmBackupFailures ? String(settings.nRetriesVmBackupFailures) : undefined"
+        />
         <VtsQuickInfoRow :label="t('timeout')" :value="formattedTimeout" />
       </VtsColumn>
       <VtsColumn>
         <VtsQuickInfoRow
           :label="t('speed-limit')"
-          :value="maxExportRate ? `${maxExportRate.value} ${maxExportRate.prefix}` : undefined"
+          :value="exportRate ? `${exportRate.value} ${exportRate.prefix}` : undefined"
         />
         <VtsQuickInfoRow :label="t('report-when')" :value="reportWhenValueTranslation" />
         <VtsQuickInfoRow :label="t('report-recipients')">
@@ -32,10 +35,10 @@
             </UiTagsList>
           </template>
         </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('concurrency')" :value="nbdConcurrency" />
+        <VtsQuickInfoRow :label="t('concurrency')" :value="nbdConcurrency ? String(nbdConcurrency) : undefined" />
       </VtsColumn>
       <VtsColumn>
-        <VtsQuickInfoRow :label="t('compression')" :value="compression" />
+        <VtsQuickInfoRow :label="t('compression')" :value="compressionLabel" />
         <VtsQuickInfoRow :label="t('offline-backup')">
           <template #value>
             <VtsEnabledState :enabled="settings.offlineBackup ?? false" />
@@ -43,7 +46,7 @@
         </VtsQuickInfoRow>
         <VtsQuickInfoRow :label="t('shorter-backup-reports')">
           <template #value>
-            <VtsEnabledState :enabled="settings.backupReportTpl ?? false" />
+            <VtsEnabledState :enabled="settings.backupReportTpl ? settings.backupReportTpl === 'compactMjml' : false" />
           </template>
         </VtsQuickInfoRow>
         <VtsQuickInfoRow :label="t('merge-backups-synchronously')">
@@ -57,6 +60,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoBackupJob } from '@/composables/xo-backup-job.composable'
 import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
@@ -67,9 +71,6 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useMapper } from '@core/packages/mapper'
-import { formatSpeedRaw } from '@core/utils/speed.util'
-import { formatTimeout } from '@core/utils/time.util'
-import { reactiveComputed } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -77,56 +78,17 @@ const { backupJob } = defineProps<{
   backupJob: XoVmBackupJob
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
-const settings = reactiveComputed(() => {
-  if (!backupJob.settings['']) {
-    return {}
-  }
+const { getExportRate, getNbdConcurrency, getFormattedTimeout, getCompressionLabel, getProxy, getsettings } =
+  useXoBackupJob()
 
-  const {
-    proxy,
-    mode,
-    nRetriesVmBackupFailures,
-    timeout,
-    maxExportRate,
-    reportWhen,
-    reportRecipients,
-    backupReportTpl,
-    concurrency,
-    compression,
-    offlineBackup,
-    mergeBackupsSynchronously,
-    cbtDestroySnapshotData,
-    preferNbd,
-    nbdConcurrency,
-    ...other
-  } = backupJob.settings['']
-
-  return {
-    proxy,
-    mode,
-    nRetriesVmBackupFailures: nRetriesVmBackupFailures ? String(nRetriesVmBackupFailures) : undefined,
-    timeout: timeout ? String(timeout) : undefined,
-    maxExportRate,
-    reportWhen,
-    reportRecipients,
-    backupReportTpl: backupReportTpl ? backupReportTpl === 'compactMjml' : false,
-    concurrency: concurrency ? String(concurrency) : undefined,
-    compression,
-    offlineBackup,
-    mergeBackupsSynchronously,
-    cbtDestroySnapshotData,
-    preferNbd,
-    nbdConcurrency,
-    other,
-  }
-})
+const settings = computed(() => getsettings(backupJob))
 
 type ReportWhen = 'always' | 'failure' | 'error' | 'never'
 
 const reportWhenValueTranslation = useMapper<ReportWhen, string>(
-  () => settings.reportWhen as ReportWhen | undefined,
+  () => settings.value.reportWhen as ReportWhen | undefined,
   {
     always: t('report-when.always'),
     failure: t('report-when.skipped-and-failure'),
@@ -136,23 +98,9 @@ const reportWhenValueTranslation = useMapper<ReportWhen, string>(
   'never'
 )
 
-const nbdConcurrency = computed(() => (settings.preferNbd ? String(settings.nbdConcurrency ?? 1) : undefined))
-
-const maxExportRate = computed(() => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate) : undefined))
-
-const formattedTimeout = computed(() =>
-  settings.timeout !== undefined ? formatTimeout(Number(settings.timeout), locale.value) : undefined
-)
-
-const compression = computed(() => {
-  if (backupJob.compression === undefined) {
-    return undefined
-  }
-
-  if (backupJob.compression === 'native') {
-    return 'GZIP'
-  }
-
-  return backupJob.compression
-})
+const nbdConcurrency = computed(() => getNbdConcurrency(backupJob))
+const exportRate = computed(() => getExportRate(settings.value.maxExportRate))
+const formattedTimeout = computed(() => getFormattedTimeout(settings.value.timeout as number | undefined))
+const compressionLabel = computed(() => getCompressionLabel(settings.value.compression))
+const proxy = getProxy(backupJob)
 </script>
