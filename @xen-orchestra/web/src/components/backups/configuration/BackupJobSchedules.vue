@@ -12,7 +12,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
+              <th v-if="column.id === 'checkbox'">
                 <div v-tooltip="t('coming-soon')">
                   <UiCheckbox disabled accent="brand" />
                 </div>
@@ -31,7 +31,7 @@
         </template>
         <template #tbody>
           <tr v-for="row of backupJobsRecords" :key="row.id" :class="{ selected: selectedBackupJobId === row.id }">
-            <td v-for="column of row.visibleColumns" :key="column.id" :class="{ checkbox: column.id === 'checkbox' }">
+            <td v-for="column of row.visibleColumns" :key="column.id">
               <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
                 <UiCheckbox disabled accent="brand" :value="row.id" />
               </div>
@@ -162,11 +162,11 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
 
 const { pageRecords: backupJobsRecords, paginationBindings } = usePagination('backups-jobs', rows)
 
-type BackupJobHeader = 'id' | 'schedule' | 'cron-pattern' | 'status' | 'last-runs'
+type BackupJobHeader = 'schedule' | 'id' | 'status' | 'cron-pattern' | 'last-runs'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
   id: 'fa:hashtag',
-  schedule: 'fa:align-left',
+  schedule: 'fa:object',
   'cron-pattern': 'fa:clock',
   status: 'fa:square-caret-down',
   'last-runs': 'fa:square-caret-down',
