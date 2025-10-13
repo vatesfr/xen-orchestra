@@ -601,6 +601,10 @@ export default class RemoteHandlerAbstract {
     return this._remote.useVhdDirectory ?? false
   }
 
+  limitListConcurrency() {
+    return this._remote.limitListConcurrency ?? false
+  }
+
   async _closeFile(fd) {
     throw new Error('Not implemented')
   }
