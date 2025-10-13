@@ -151,8 +151,8 @@ export type XoVmBackupArchive = {
   backupRepository: XoBackupRepository['id']
   disks: { id: string; name: string; uuid: XoVdiSnapshot['uuid'] }[]
   isImmutable?: boolean
-  jobId: XoBackupJob['id'] // rename once backup endpoint migrated
-  mode: XoBackupJob['mode'] // rename once backup endpoint migrated
+  jobId: XoVmBackupJob['id']
+  mode: XoVmBackupJob['mode']
   scheduleId: XoSchedule['id']
   size: number
   timestamp: number
@@ -169,8 +169,8 @@ export type XoVmBackupArchive = {
 type XoMetadataBackupArchive = {
   id: Branded<'metadata-backup-archive'>
   backupRepository: XoBackupRepository['id']
-  jobId: XoBackupJob['id'] // rename once backup endpoint migrated
-  jobName: XoBackupJob['name'] // rename once backup endpoint migrated
+  jobId: XoVmBackupJob['id']
+  jobName: XoVmBackupJob['name']
   scheduleId: XoSchedule['id']
   scheduleName: XoSchedule['name']
   timestamp: number
@@ -804,17 +804,14 @@ export type XapiXoRecord =
   | XoSm
 
 export type NonXapiXoRecord =
-<<<<<<< HEAD
+  | AnyXoBackupArchive
   | AnyXoJob
   | AnyXoLog
   | XoGroup
   | XoProxy
-=======
-  | AnyXoBackupArchive
   | XoGroup
   | XoProxy
   | XoJob
->>>>>>> fecec9cf9 (feat(@xen-orchestra/rest-api): expose backup-archives)
   | XoBackupRepository
   | XoSchedule
   | XoServer
@@ -829,12 +826,8 @@ export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
 
 export type AnyXoJob = XoJob | AnyXoBackupJob
 
-<<<<<<< HEAD
 export type AnyXoBackupJob = XoVmBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
 
 export type AnyXoLog = XoBackupLog | XoRestoreLog
-=======
-export type AnyXoBackupJob = XoBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
 
 export type AnyXoBackupArchive = XoVmBackupArchive | XoConfigBackupArchive | XoPoolBackupArchive
->>>>>>> fecec9cf9 (feat(@xen-orchestra/rest-api): expose backup-archives)
