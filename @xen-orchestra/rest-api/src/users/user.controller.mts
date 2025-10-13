@@ -16,6 +16,7 @@ import {
   SuccessResponse,
   Tags,
 } from 'tsoa'
+import { createLogger } from '@xen-orchestra/log'
 import { inject } from 'inversify'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
 import { provide } from 'inversify-binding-decorators'
@@ -50,6 +51,8 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
+
+const log = createLogger('xo:rest-api:user-controller')
 
 @Route('users')
 @Security('*')
@@ -292,6 +295,9 @@ export class UserController extends XoController<XoUser> {
       expiresIn?: string | number
     }
   ): Promise<{ token: Unbrand<XoAuthenticationToken> }> {
+    log.warn(
+      'You are calling a deprecated route. It will be removed in the futur. Please use `/rest/v0/users/:id/authentication_tokens` or `/rest/v0/users/me/authentication_tokens` instead'
+    )
     const user = this.restApi.getCurrentUser()
 
     const token = await this.restApi.xoApp.createAuthenticationToken({
