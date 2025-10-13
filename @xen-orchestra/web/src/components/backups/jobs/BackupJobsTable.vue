@@ -2,9 +2,6 @@
   <div class="backup-jobs-table">
     <UiTitle>
       {{ t('backup-jobs') }}
-      <template #actions>
-        <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
-      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
@@ -63,7 +60,7 @@
                 size="small"
               />
               <div v-else-if="column.id === 'job-name'">
-                <UiLink size="medium" icon="object:backup-job" @click.stop>
+                <UiLink size="medium" icon="object:backup-job" :to="`/backup/${row.id}/runs`" @click.stop>
                   {{ column.value }}
                 </UiLink>
               </div>
