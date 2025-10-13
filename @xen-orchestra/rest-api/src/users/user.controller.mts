@@ -310,7 +310,7 @@ export class UserController extends XoController<XoUser> {
   // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (10-13-2026)--------------------
 
   /**
-   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * @example id "me"
    * @example body {"client": {"id": "my-fav-client"}, "description": "token for CLI usage", "expiresIn": "1 hour"}
    */
   @Example(authenticationToken)
