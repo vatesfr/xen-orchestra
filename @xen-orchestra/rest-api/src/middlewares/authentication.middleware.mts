@@ -14,6 +14,7 @@ export type SecurityName = '*' | 'token' | 'basic'
 
 // TODO: correctly handle ACL/Resource set users
 // for now only support "xoa-admin"
+// TSOA spec require this function to be async
 export async function expressAuthentication(req: AuthenticatedRequest, securityName: SecurityName) {
   const restApi = iocContainer.get(RestApi)
   const user = restApi.getCurrentUser()
@@ -41,7 +42,7 @@ export function setupApiContext(xoApp: XoApp) {
     const hasBasic = Boolean(authorization)
 
     if (hasToken && hasBasic) {
-      throw new ApiError('Having multiple authentication methods is not supported, please choose one', 400)
+      return next(new ApiError('Having multiple authentication methods is not supported, please choose one', 400))
     }
 
     if (!hasToken && !hasBasic) {
@@ -55,7 +56,7 @@ export function setupApiContext(xoApp: XoApp) {
     } else {
       const [, encoded] = authorization!.split(' ')
       if (encoded === undefined) {
-        throw new ApiError('Malformed Authorization header', 400)
+        return next(new ApiError('Malformed Authorization header', 400))
       }
 
       const [username, password] = Buffer.from(encoded, 'base64').toString().split(':')
@@ -63,7 +64,11 @@ export function setupApiContext(xoApp: XoApp) {
       res.locals.authType = 'basic'
     }
 
-    const { user } = await xoApp.authenticateUser(credentials, { ip })
-    return xoApp.runWithApiContext(user, next)
+    try {
+      const { user } = await xoApp.authenticateUser(credentials, { ip })
+      return xoApp.runWithApiContext(user, next)
+    } catch (error) {
+      return next(error)
+    }
   }
 }
