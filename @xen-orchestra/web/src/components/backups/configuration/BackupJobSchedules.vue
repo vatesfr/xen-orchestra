@@ -78,7 +78,6 @@ import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-c
 import type { XoBackupLog } from '@/types/xo/backup-log.type'
 import type { XoSchedule } from '@/types/xo/schedule.type'
 import type { IconName } from '@core/icons'
-import type { Branded } from '@core/types/utility.type'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -142,10 +141,8 @@ const getRunInfo = (backupLog: XoBackupLog, index: number) => ({
   tooltip: `${t('last-run-number', { n: index + 1 })}: ${new Date(backupLog.end ?? backupLog.start).toLocaleString()}, ${t(backupLog.status)}`,
 })
 
-const getLastThreeRunsStatuses = (backupJobId: string) =>
-  getLastNBackupLogsByJobId(backupJobId as Branded<'vm-backup-job'>).map((backupLog, index) =>
-    getRunInfo(backupLog, index)
-  )
+const getLastThreeRunsStatuses = (backupJob: XoSchedule) =>
+  getLastNBackupLogsByJobId(backupJob.jobId).map((backupLog, index) => getRunInfo(backupLog, index))
 
 const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
   rowId: record => record.id,
@@ -155,7 +152,7 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
     define('id', record => record.id, { label: t('id') }),
     define('status', record => record.enabled, { label: t('status') }),
     define('cron-pattern', record => record.cron, { label: t('cron-pattern') }),
-    define('last-runs', record => getLastThreeRunsStatuses(record.jobId), {
+    define('last-runs', record => getLastThreeRunsStatuses(record), {
       label: t('last-n-runs', { n: 3 }),
     }),
     // define('next-run', () => 'comming soon', { label: t('next-run') }), // #TODO bad data
