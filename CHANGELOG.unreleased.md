@@ -115,6 +115,7 @@
   - [Site/Backups] Add side panel to backup jobs view (PR [#8966](https://github.com/vatesfr/xen-orchestra/pull/8966))
   - [VM/Backups] Add side panel to VM backup jobs view (PR [#8978](https://github.com/vatesfr/xen-orchestra/pull/8978))
   - [Site/Backups] Add backup runs view (PR [#9007](https://github.com/vatesfr/xen-orchestra/pull/9007))
+  - [Site/Backups] Add backup configuration view (PR [#9008](https://github.com/vatesfr/xen-orchestra/pull/9008))
 
 ### Bug fixes
 

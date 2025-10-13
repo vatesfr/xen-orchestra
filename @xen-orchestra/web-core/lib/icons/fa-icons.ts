@@ -8,6 +8,7 @@ import {
   faSquareCheck,
 } from '@fortawesome/free-regular-svg-icons'
 import {
+  faA,
   faAlignLeft,
   faAngleDoubleLeft,
   faAngleDoubleRight,
@@ -185,6 +186,7 @@ export const faIcons = defineIconPack({
   minus: { icon: faMinus },
   moon: { icon: faMoon },
   'network-wired': { icon: faNetworkWired },
+  object: { icon: faA },
   pause: { icon: faPause },
   pencil: { icon: faPencil },
   play: { icon: faPlay },
