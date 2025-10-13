@@ -1,27 +1,26 @@
 <template>
   <div class="backup-jobs-configuration">
-    <BackupJobsGeneralInformation :backup-job />
-    <BackupJobsSettings :backup-job />
-    <BackupJobsSchedules :backup-jobs="backupJobsSchedules" />
+    <BackupJobGeneralInformation :backup-job />
+    <BackupJobSettings :backup-job />
+    <BackupJobSchedules :backup-jobs-schedules />
   </div>
 </template>
 
 <script setup lang="ts">
-import BackupJobsSettings from '@/components/backups/configuration/BackupJobSettings.vue'
-import BackupJobsGeneralInformation from '@/components/backups/configuration/BackupJobsGeneralInformation.vue'
-import BackupJobsSchedules from '@/components/backups/configuration/BackupJobsSchedules.vue'
-import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
+import BackupJobGeneralInformation from '@/components/backups/configuration/BackupJobGeneralInformation.vue'
+import BackupJobSchedules from '@/components/backups/configuration/BackupJobSchedules.vue'
+import BackupJobSettings from '@/components/backups/configuration/BackupJobSettings.vue'
+import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection'
 import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
 import { computed } from 'vue'
 
 const { backupJob } = defineProps<{
   backupJob: XoVmBackupJob
 }>()
-const { backupJobs } = useXoBackupJobCollection()
 
-const backupJobsSchedules = computed(() => {
-  return backupJobs.value.filter(backup => backup.id === backupJob.id)
-})
+const { schedulesByJobId } = useXoScheduleCollection()
+
+const backupJobsSchedules = computed(() => schedulesByJobId.value.get(backupJob.id) ?? [])
 </script>
 
 <style lang="postcss" scoped>

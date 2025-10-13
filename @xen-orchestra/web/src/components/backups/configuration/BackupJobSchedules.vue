@@ -8,7 +8,7 @@
           <UiTablePagination v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
-      <VtsDataTable is-ready :no-data-message="backupJobs.length === 0 ? t('no-backup-available') : undefined">
+      <VtsDataTable is-ready :no-data-message="backupJobsSchedules.length === 0 ? t('no-backup-available') : undefined">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -48,17 +48,6 @@
                   {{ column.value.name }}
                 </UiLink>
               </div>
-              <div v-else-if="column.id === 'id'" v-tooltip class="text-ellipsis">
-                {{ column.value }}
-              </div>
-              <div v-else-if="column.id === 'cron-pattern'" v-tooltip class="text-ellipsis">
-                {{ column.value }}
-              </div>
-              <!--
- <div v-else-if="column.id === 'next-run'">
-              {{ column.value }}
-            </div>
--->
               <template v-else-if="column.id === 'status'">
                 <VtsEnabledState :enabled="column.value ?? false" />
               </template>
@@ -70,6 +59,9 @@
                   </li>
                 </ul>
               </template>
+              <div v-else v-tooltip class="text-ellipsis">
+                {{ column.value }}
+              </div>
             </td>
           </tr>
         </template>
@@ -82,11 +74,11 @@
 </template>
 
 <script setup lang="ts">
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection'
-import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection'
 import type { XoBackupLog } from '@/types/xo/backup-log.type'
+import type { XoSchedule } from '@/types/xo/schedule.type'
 import type { IconName } from '@core/icons'
+import type { Branded } from '@core/types/utility.type'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -107,14 +99,14 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupJobs } = defineProps<{
-  backupJobs: XoBackupJob[]
+const { backupJobsSchedules } = defineProps<{
+  backupJobsSchedules: XoSchedule[]
 }>()
 
 const { t } = useI18n()
 
 const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
-const scheduleData = useXoScheduleCollection()
+
 const selectedBackupJobId = useRouteQuery('id')
 
 const searchQuery = ref('')
@@ -122,24 +114,16 @@ const searchQuery = ref('')
 const filteredBackupJobs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
-  let filteredJob: XoBackupJob[]
+  let filteredSchedules: XoSchedule[]
   if (!searchTerm) {
-    filteredJob = backupJobs
+    filteredSchedules = backupJobsSchedules
   }
 
-  filteredJob = backupJobs.filter(backupJob =>
-    Object.values(backupJob).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+  filteredSchedules = backupJobsSchedules.filter(schedules =>
+    Object.values(schedules).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 
-  const schedule = filteredJob
-    .map(job => {
-      return (scheduleData.schedulesByJobId.value.get(job.id) ?? []).map(schedule => {
-        return { schedule, job }
-      })
-    })
-    .flat()
-
-  return schedule
+  return filteredSchedules
 })
 
 const getRunStatusIcon = createMapper<XoBackupLog['status'], IconName>(
@@ -158,18 +142,20 @@ const getRunInfo = (backupLog: XoBackupLog, index: number) => ({
   tooltip: `${t('last-run-number', { n: index + 1 })}: ${new Date(backupLog.end ?? backupLog.start).toLocaleString()}, ${t(backupLog.status)}`,
 })
 
-const getLastThreeRunsStatuses = (backupJob: XoBackupJob) =>
-  getLastNBackupLogsByJobId(backupJob.id).map((backupLog, index) => getRunInfo(backupLog, index))
+const getLastThreeRunsStatuses = (backupJobId: string) =>
+  getLastNBackupLogsByJobId(backupJobId as Branded<'vm-backup-job'>).map((backupLog, index) =>
+    getRunInfo(backupLog, index)
+  )
 
 const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
-  rowId: record => record.schedule.id,
+  rowId: record => record.id,
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
-    define('schedule', record => record.schedule, { label: t('job-name') }),
-    define('id', record => record.schedule.id, { label: t('id') }),
-    define('status', record => record.schedule.enabled, { label: t('status') }),
-    define('cron-pattern', record => record.schedule.cron, { label: t('cron-pattern') }),
-    define('last-runs', record => getLastThreeRunsStatuses(record.job), {
+    define('schedule', record => record, { label: t('schedule') }),
+    define('id', record => record.id, { label: t('id') }),
+    define('status', record => record.enabled, { label: t('status') }),
+    define('cron-pattern', record => record.cron, { label: t('cron-pattern') }),
+    define('last-runs', record => getLastThreeRunsStatuses(record.jobId), {
       label: t('last-n-runs', { n: 3 }),
     }),
     // define('next-run', () => 'comming soon', { label: t('next-run') }), // #TODO bad data
@@ -179,12 +165,11 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
 
 const { pageRecords: backupJobsRecords, paginationBindings } = usePagination('backups-jobs', rows)
 
-type BackupJobHeader = 'id' | 'schedule' | 'job-name' | 'cron-pattern' | 'status' | 'last-runs'
+type BackupJobHeader = 'id' | 'schedule' | 'cron-pattern' | 'status' | 'last-runs'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
   id: 'fa:hashtag',
   schedule: 'fa:align-left',
-  'job-name': 'fa:hashtag',
   'cron-pattern': 'fa:clock',
   status: 'fa:square-caret-down',
   'last-runs': 'fa:square-caret-down',
@@ -193,38 +178,54 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
 </script>
 
 <style lang="postcss" scoped>
-th.checkbox {
-  width: 4rem;
+.backup-jobs-schedules,
+.table-actions,
+.container {
+  display: flex;
+  flex-direction: column;
 }
 
-.last-three-runs {
-  display: flex;
-  gap: 0.8rem;
+.backup-jobs-schedules {
+  gap: 2.4rem;
 
-  li:not(:first-child) {
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      transform: scale(1.3);
-    }
+  .container,
+  .table-actions {
+    gap: 0.8rem;
   }
 
-  /* Order of selectors matters
+  .more {
+    width: 4.8rem;
+  }
+
+  .last-three-runs {
+    display: flex;
+    gap: 0.8rem;
+
+    li:not(:first-child) {
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        transform: scale(1.3);
+      }
+    }
+
+    /* Order of selectors matters
     *  because when there is only one item, it is both the first and the last child
     *  and we want to apply the first-child style in that case
     **/
-  li:last-child {
-    transform: scale(0.8);
+    li:last-child {
+      transform: scale(0.8);
 
-    &::after {
-      transform: scale(1.6);
+      &::after {
+        transform: scale(1.6);
+      }
     }
-  }
 
-  li:first-child {
-    transform: scale(1.2);
-    margin-inline-end: 0.3rem;
+    li:first-child {
+      transform: scale(1.2);
+      margin-inline-end: 0.3rem;
+    }
   }
 }
 </style>
