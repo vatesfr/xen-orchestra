@@ -1,4 +1,4 @@
-import { XoUser } from '@vates/types'
+import type { XoUser } from '@vates/types'
 import { Request, Response, NextFunction } from 'express'
 
 export function redirectMeAlias(
@@ -12,7 +12,6 @@ export function redirectMeAlias(
   const originalUrl = req.originalUrl
   const currentUser = req.user
 
-  console.log(currentUser)
   const matchMeAlias = originalUrl.match(meAliasRegex)
 
   if (currentUser !== undefined && matchMeAlias) {
