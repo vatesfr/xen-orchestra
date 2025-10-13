@@ -39,9 +39,9 @@
           <VtsStatus :status="cbtDestroySnapshotData" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="maxExportRate !== undefined">
+      <VtsCardRowKeyValue v-if="exportRate !== undefined">
         <template #key>{{ t('speed-limit') }}</template>
-        <template #value>{{ `${maxExportRate.value} ${maxExportRate.prefix}` }}</template>
+        <template #value>{{ `${exportRate.value} ${exportRate.prefix}` }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.checkpointSnapshot !== undefined">
         <template #key>{{ t('checkpoint-snapshot') }}</template>
@@ -53,9 +53,9 @@
         <template #key>{{ t('vm-backup-failure-number-of-retries') }}</template>
         <template #value>{{ settings.nRetriesVmBackupFailures }}</template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="compression !== undefined">
+      <VtsCardRowKeyValue v-if="compressionLabel !== undefined">
         <template #key>{{ t('compression') }}</template>
-        <template #value>{{ compression }}</template>
+        <template #value>{{ compressionLabel }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.offlineBackup !== undefined">
         <template #key>{{ t('offline-backup') }}</template>
@@ -106,17 +106,14 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoBackupJob } from '@/composables/xo-backup-job.composable'
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
-import { useXoProxyCollection } from '@/remote-resources/use-xo-proxy-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { useMapper } from '@core/packages/mapper'
-import { formatSpeedRaw } from '@core/utils/speed.util.ts'
-import { formatTimeout } from '@core/utils/time.util.ts'
-import { reactiveComputed } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -124,64 +121,24 @@ const { backupJob } = defineProps<{
   backupJob: XoBackupJob
 }>()
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 
-const { useGetProxyById } = useXoProxyCollection()
+const {
+  getExportRate,
+  getNbdConcurrency,
+  getCbtDestroySnapshotData,
+  getFormattedTimeout,
+  getCompressionLabel,
+  getProxy,
+  getsettings,
+} = useXoBackupJob()
+
+const settings = computed(() => getsettings(backupJob))
 
 type ReportWhen = 'always' | 'failure' | 'error' | 'never'
 
-const settings = reactiveComputed(() => {
-  if (!backupJob.settings['']) {
-    return {}
-  }
-
-  const {
-    preferNbd,
-    cbtDestroySnapshotData,
-    concurrency,
-    nbdConcurrency,
-    maxExportRate,
-    nRetriesVmBackupFailures,
-    hideSuccessfulItems,
-    backupReportTpl,
-    reportWhen,
-    timeout,
-    checkpointSnapshot,
-    offlineBackup,
-    offlineSnapshot,
-    mergeBackupsSynchronously,
-    timezone,
-    reportRecipients,
-    ...other
-  } = backupJob.settings['']
-
-  return {
-    compression: backupJob.compression,
-    proxy: backupJob.proxy,
-    preferNbd,
-    cbtDestroySnapshotData,
-    concurrency,
-    nbdConcurrency,
-    maxExportRate,
-    nRetriesVmBackupFailures,
-    hideSuccessfulItems,
-    backupReportTpl,
-    reportWhen,
-    timeout,
-    checkpointSnapshot,
-    offlineBackup,
-    offlineSnapshot,
-    mergeBackupsSynchronously,
-    timezone,
-    reportRecipients: reportRecipients as string[],
-    other,
-  }
-})
-
-const proxy = useGetProxyById(() => settings.proxy)
-
 const reportWhenValueTranslation = useMapper<ReportWhen, string>(
-  () => settings.reportWhen as ReportWhen | undefined,
+  () => settings.value.reportWhen as ReportWhen | undefined,
   {
     always: t('report-when.always'),
     failure: t('report-when.skipped-and-failure'),
@@ -191,29 +148,12 @@ const reportWhenValueTranslation = useMapper<ReportWhen, string>(
   'never'
 )
 
-const nbdConcurrency = computed(() => (settings.preferNbd ? (settings.nbdConcurrency ?? 1) : undefined))
-
-const cbtDestroySnapshotData = computed(() =>
-  !!settings.preferNbd && settings.cbtDestroySnapshotData !== undefined ? settings.cbtDestroySnapshotData : undefined
-)
-
-const maxExportRate = computed(() => (settings.maxExportRate ? formatSpeedRaw(settings.maxExportRate) : undefined))
-
-const formattedTimeout = computed(() =>
-  settings.timeout !== undefined ? formatTimeout(Number(settings.timeout), locale.value) : undefined
-)
-
-const compression = computed(() => {
-  if (backupJob.compression === undefined) {
-    return undefined
-  }
-
-  if (backupJob.compression === 'native') {
-    return 'GZIP'
-  }
-
-  return backupJob.compression
-})
+const nbdConcurrency = computed(() => getNbdConcurrency(backupJob))
+const exportRate = computed(() => getExportRate(settings.value.maxExportRate))
+const cbtDestroySnapshotData = computed(() => getCbtDestroySnapshotData(backupJob))
+const formattedTimeout = computed(() => getFormattedTimeout(settings.value.timeout as number | undefined))
+const compressionLabel = computed(() => getCompressionLabel(settings.value.compression))
+const proxy = getProxy(backupJob)
 </script>
 
 <style scoped lang="postcss">
