@@ -45,5 +45,5 @@ export async function expressAuthentication(req: Request, securityName: Security
   }
 
   await restApi.runWithApiContext(user, noop)
-  Promise.resolve(user)
+  return user
 }

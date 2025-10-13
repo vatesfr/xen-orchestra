@@ -16,7 +16,7 @@ import {
   Tags,
 } from 'tsoa'
 import { inject } from 'inversify'
-import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
+import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
 import type { XoAuthenticationToken, XoGroup, XoTask, XoUser } from '@vates/types'
 
@@ -40,9 +40,11 @@ import { UserService } from './user.service.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { redirectMeAlias } from './user.middleware.mjs'
 
 @Route('users')
 @Security('*')
+@Middlewares(redirectMeAlias)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('users')
 @provide(UserController)
@@ -63,14 +65,6 @@ export class UserController extends XoController<XoUser> {
     return this.#userService.getUser(id)
   }
 
-  #redirectCurrentUser(req: ExRequest): void {
-    const currentUser = this.restApi.getCurrentUser()
-    const originalUrl = req.originalUrl
-    const res = req.res as ExResponse
-
-    res.redirect(307, originalUrl.replace(/\/users\/me(?=\/|$)/, `/users/${currentUser.id}`))
-  }
-
   /**
    * @example fields "permission,name,id"
    * @example filter "permission:none"
@@ -88,24 +82,6 @@ export class UserController extends XoController<XoUser> {
   ): Promise<SendObjects<Partial<Unbrand<XoUser>>>> {
     const users = Object.values(await this.getObjects({ filter, limit }))
     return this.sendObjects(users, req)
-  }
-
-  /**
-   * Redirect to `/users/:id`
-   */
-  @SuccessResponse(307, 'Temporary redirect')
-  @Get('me')
-  redirectMe(@Request() req: ExRequest) {
-    this.#redirectCurrentUser(req)
-  }
-
-  /**
-   * Redirect to `/users/:id/<rest-of-your-path>`
-   */
-  @SuccessResponse(307, 'Temporary redirect')
-  @Get('me/*')
-  redirectMeWithPath(@Request() req: ExRequest) {
-    this.#redirectCurrentUser(req)
   }
 
   /**
