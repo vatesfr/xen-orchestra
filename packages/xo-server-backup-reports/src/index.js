@@ -214,10 +214,8 @@ class BackupReportsXoPlugin {
     })
   }
 
-  async _vmHandler(log, job, schedule) {
+  async _vmHandler(log, { name: jobName, settings }, schedule) {
     const xo = this._xo
-    const jobName = job.name
-    const settings = job.settings
 
     const mailReceivers = get(() => settings[''].reportRecipients)
 
