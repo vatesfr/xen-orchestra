@@ -5,11 +5,11 @@
       <VtsColumn>
         <VtsQuickInfoRow :label="t('proxy')" :value="backupJob.proxy" />
         <VtsQuickInfoRow :label="t('snapshot-mode')">
-          <template #value>
+          <template v-if="backupJob.mode" #value>
             <UiTag variant="secondary" accent="info">{{ backupJob.mode }}</UiTag>
           </template>
         </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('number-retries-vm-fails')" :value="settings.nRetriesVmBackupFailures" />
+        <VtsQuickInfoRow :label="t('vm-backup-failure-number-of-retries')" :value="settings.nRetriesVmBackupFailures" />
         <VtsQuickInfoRow :label="t('timeout')" :value="settings.timeout" />
       </VtsColumn>
       <VtsColumn>
@@ -22,7 +22,7 @@
         <VtsQuickInfoRow :label="t('report-when')" :value="settings.reportWhen" />
         <VtsQuickInfoRow :label="t('report-recipients')">
           <template #value>
-            <UiTagsList>
+            <UiTagsList v-if="settings.reportRecipients">
               <UiTag
                 v-for="(recipient, index) in settings.reportRecipients"
                 :key="index"
@@ -43,7 +43,11 @@
             <VtsEnabledState :enabled="settings.offlineBackup ?? false" />
           </template>
         </VtsQuickInfoRow>
-        <VtsQuickInfoRow :label="t('shorter-backup-reports')" :value="settings.reportWhen" />
+        <VtsQuickInfoRow :label="t('shorter-backup-reports')">
+          <template #value>
+            <VtsEnabledState :enabled="settings.backupReportTpl ?? false" />
+          </template>
+        </VtsQuickInfoRow>
         <VtsQuickInfoRow :label="t('merge-backups-synchronously')">
           <template #value>
             <VtsEnabledState :enabled="settings.mergeBackupsSynchronously ?? false" />
@@ -87,6 +91,7 @@ const settings = reactiveComputed(() => {
     maxExportRate,
     reportWhen,
     reportRecipients,
+    backupReportTpl,
     concurrency,
     compression,
     offlineBackup,
@@ -102,6 +107,7 @@ const settings = reactiveComputed(() => {
     maxExportRate: maxExportRate ? formatSpeedRaw(maxExportRate) : undefined,
     reportWhen,
     reportRecipients,
+    backupReportTpl: backupReportTpl ? backupReportTpl === 'compactMjml' : false,
     concurrency: concurrency ? String(concurrency) : undefined,
     compression,
     offlineBackup,

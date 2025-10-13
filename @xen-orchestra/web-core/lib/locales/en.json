@@ -443,7 +443,6 @@
   "not-resident-on": "Not resident on",
   "not-running": "Not running",
   "not-yet-available": "Information is not yet available",
-  "number-retries-vm-fails": "Number of retries if VM backup fails",
   "object": "Object",
   "object-not-found": "Object {id} can't be found…",
   "off": "Off",
