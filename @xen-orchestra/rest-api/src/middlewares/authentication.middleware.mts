@@ -54,7 +54,7 @@ export function setupApiContext(xoApp: XoApp) {
       res.locals.authType = 'token'
     } else {
       const [, encoded] = authorization!.split(' ')
-      if (!encoded) {
+      if (encoded === undefined) {
         throw new ApiError('Malformed Authorization header', 400)
       }
 

@@ -279,7 +279,6 @@ export class UserController extends XoController<XoUser> {
   @Example(authenticationToken)
   @Deprecated()
   @Post('authentication_tokens')
-  @Security('*')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -310,7 +309,6 @@ export class UserController extends XoController<XoUser> {
    */
   @Example(authenticationToken)
   @Post('{id}/authentication_tokens')
-  @Security('*')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
