@@ -74,10 +74,11 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection'
-import type { XoBackupLog } from '@/types/xo/backup-log.type'
+import { useXoBackupJobSchedules } from '@/composables/xo-backup-job-schedules.composable'
+import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
 import type { XoSchedule } from '@/types/xo/schedule.type'
 import type { IconName } from '@core/icons'
+import type { Branded } from '@core/types/utility.type'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -93,7 +94,6 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { createMapper } from '@core/packages/mapper'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -104,7 +104,8 @@ const { backupJobsSchedules } = defineProps<{
 
 const { t } = useI18n()
 
-const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
+const { useGetBackupJobById } = useXoBackupJobCollection()
+const { getLastThreeRunsStatuses } = useXoBackupJobSchedules()
 
 const selectedBackupJobId = useRouteQuery('id')
 
@@ -125,24 +126,11 @@ const filteredBackupJobs = computed(() => {
   return filteredSchedules
 })
 
-const getRunStatusIcon = createMapper<XoBackupLog['status'], IconName>(
-  {
-    success: 'legacy:status:success',
-    skipped: 'legacy:status:warning',
-    interrupted: 'legacy:status:danger',
-    failure: 'legacy:status:danger',
-    pending: 'legacy:status:info',
-  },
-  'failure'
-)
-
-const getRunInfo = (backupLog: XoBackupLog, index: number) => ({
-  icon: getRunStatusIcon(backupLog.status),
-  tooltip: `${t('last-run-number', { n: index + 1 })}: ${new Date(backupLog.end ?? backupLog.start).toLocaleString()}, ${t(backupLog.status)}`,
-})
-
-const getLastThreeRunsStatuses = (backupJob: XoSchedule) =>
-  getLastNBackupLogsByJobId(backupJob.jobId).map((backupLog, index) => getRunInfo(backupLog, index))
+function GetBackupJobById(
+  id: Branded<'vm-backup-job'> | Branded<'metadata-backup-job'> | Branded<'mirror-backup-job'>
+) {
+  return useGetBackupJobById(id).value
+}
 
 const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
   rowId: record => record.id,
@@ -152,7 +140,7 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
     define('id', record => record.id, { label: t('id') }),
     define('status', record => record.enabled, { label: t('status') }),
     define('cron-pattern', record => record.cron, { label: t('cron-pattern') }),
-    define('last-runs', record => getLastThreeRunsStatuses(record), {
+    define('last-runs', record => getLastThreeRunsStatuses(GetBackupJobById(record.jobId)), {
       label: t('last-n-runs', { n: 3 }),
     }),
     // define('next-run', () => 'comming soon', { label: t('next-run') }), // #TODO bad data
