@@ -40,7 +40,7 @@ const progress = useProgress(
 
 const { percentageCap, percentage, fillWidth } = progress
 
-const legend = useProgressToLegend(() => legendType, label, progress)
+const legend = useProgressToLegend(() => legendType, () => label, progress)
 
 const threshold = useThreshold(percentage, () => thresholds)
 </script>

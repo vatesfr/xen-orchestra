@@ -28,22 +28,23 @@ export function cpuProgressThresholds(tooltip?: string): ThresholdConfig<Progres
 
 export function useProgressToLegend(
   rawType: MaybeRefOrGetter<ProgressBarLegendType | undefined>
-): (label: string, progress: Progress | Reactive<Progress>) => ProgressBarLegend | undefined
+): (rawLabel: MaybeRefOrGetter<string>, progress: Progress | Reactive<Progress>) => ProgressBarLegend | undefined
 
 export function useProgressToLegend(
   rawType: MaybeRefOrGetter<ProgressBarLegendType | undefined>,
-  label: string,
+  rawLabel: MaybeRefOrGetter<string>,
   progress: Progress | Reactive<Progress>
 ): ComputedRef<ProgressBarLegend | undefined>
 
 export function useProgressToLegend(
   rawType: MaybeRefOrGetter<ProgressBarLegendType | undefined>,
-  label?: string,
+  rawLabel?: MaybeRefOrGetter<string>,
   progress?: Progress | Reactive<Progress>
 ) {
   const { n } = useI18n()
 
   const type = toComputed(rawType)
+  const label = toComputed(rawLabel ?? '')
 
   function toLegend(label: string, progress: Progress | Reactive<Progress>): ProgressBarLegend | undefined {
     switch (type.value) {
@@ -66,7 +67,7 @@ export function useProgressToLegend(
   }
 
   if (label && progress) {
-    return computed(() => toLegend(label, progress))
+    return computed(() => toLegend(label.value, progress))
   }
 
   return toLegend
