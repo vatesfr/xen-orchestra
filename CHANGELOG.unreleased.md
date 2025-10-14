@@ -26,6 +26,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM] Fix some action buttons being hidden from admin users when VM had been created with Self Service (PR [#9061](https://github.com/vatesfr/xen-orchestra/pull/9061))
+- [Backup/immutabiltiy] Fix double delete file that can block immutability lifting (PR [#9104](https://github.com/vatesfr/xen-orchestra/pull/9104))
 
 ### Packages to release
 
@@ -43,6 +44,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api minor
 - xo-server patch
 - xo-web patch
