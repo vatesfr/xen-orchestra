@@ -63,14 +63,13 @@
                   {{ column.value.name }}
                 </UiLink>
               </div>
-              <div v-else-if="column.id === 'size'">
-                <VtsProgressBar
+              <template v-else-if="column.id === 'size'">
+                <StorageRepositorySizeProgressCell
                   v-if="column.value.total > 0"
                   :current="column.value.used"
                   :total="column.value.total"
-                  label="Size"
                 />
-              </div>
+              </template>
               <div v-else :class="{ shared: column.id === 'shared' }">
                 {{ column.value }}
               </div>
@@ -89,11 +88,11 @@
 </template>
 
 <script setup lang="ts">
+import StorageRepositorySizeProgressCell from '@/components/storage-repositories/panel/table/StorageRepositorySizeProgressCell.vue'
 import type { XoSr } from '@/types/xo/sr.type'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
