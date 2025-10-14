@@ -1,4 +1,4 @@
-import { Example, Get, Path, Query, Response, Request, Route, Security, Tags, Delete, SuccessResponse } from 'tsoa'
+import { Example, Get, Path, Query, Response, Request, Route, Security, Tags, Delete, SuccessResponse, Put } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
@@ -139,5 +139,29 @@ export class NetworkController extends XapiXoController<XoNetwork> {
     const tasks = await this.getTasksForObject(id as XoNetwork['id'], { filter, limit })
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const network = this.getXapiObject(id as XoNetwork['id'])
+    await network.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "9fe12ca3-d75d-cfb0-492e-cfd2bc6c568f"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteNetworkTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const network = this.getXapiObject(id as XoNetwork['id'])
+    await network.$call('remove_tags', tag)
   }
 }

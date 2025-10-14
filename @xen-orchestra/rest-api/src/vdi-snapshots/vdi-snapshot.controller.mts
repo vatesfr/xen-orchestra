@@ -1,9 +1,9 @@
-import { Delete, Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Readable } from 'node:stream'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
-import type { XoAlarm, XoMessage, XoTask, XoVdiSnapshot } from '@vates/types'
+import type { SUPPORTED_VDI_FORMAT, XoAlarm, XoMessage, XoTask, XoVdiSnapshot } from '@vates/types'
 
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
@@ -66,7 +66,7 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   async exportVdiSnapshotContent(
     @Request() req: ExRequest,
     @Path() id: string,
-    @Path() format: 'vhd' | 'raw'
+    @Path() format: Exclude<SUPPORTED_VDI_FORMAT, 'qcow2'>
   ): Promise<Readable> {
     const res = req.res as ExResponse
     const stream = await this.#vdiService.exportContent(id as XoVdiSnapshot['id'], 'VDI-snapshot', {
@@ -171,5 +171,29 @@ export class VdiSnapshotController extends XapiXoController<XoVdiSnapshot> {
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoVdiSnapshot['id'], { filter, limit })
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putVdiSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])
+    await vdiSnapshot.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "d2727772-735b-478f-b6f9-11e7db56dfd0"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteVdiSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vdiSnapshot = this.getXapiObject(id as XoVdiSnapshot['id'])
+    await vdiSnapshot.$call('remove_tags', tag)
   }
 }

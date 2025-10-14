@@ -18,13 +18,15 @@ const Copiable = ({ className, tagName = 'span', ...props }) =>
       className: classNames(styles.container, className),
     },
     props.children,
-    <Tooltip content={_('copyToClipboard')}>
-      <CopyToClipboard text={props.data || props.children}>
-        <Button className={styles.button} size='small'>
-          <Icon icon='clipboard' />
-        </Button>
-      </CopyToClipboard>
-    </Tooltip>
+    <CopyToClipboard text={props.data || props.children}>
+      <span className={styles.button}>
+        <Tooltip content={_('copyToClipboard')}>
+          <Button size='small'>
+            <Icon icon='clipboard' />
+          </Button>
+        </Tooltip>
+      </span>
+    </CopyToClipboard>
   )
 
 Copiable.propTypes = {

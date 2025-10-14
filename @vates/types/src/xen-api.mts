@@ -167,6 +167,8 @@ export interface XenApiEvent {
   timestamp?: string
 }
 
+type XenApiPoolCallMethods = TagCallMethods & {}
+
 export interface XenApiPool {
   $ref: Branded<'pool'>
   allowed_operations: POOL_ALLOWED_OPERATIONS[]
@@ -229,7 +231,7 @@ export interface XenApiPool {
   /** @deprecated */
   wlb_verify_cert?: boolean
 }
-export type XenApiPoolWrapped = WrapperXenApi<XenApiPool, 'pool'>
+export type XenApiPoolWrapped = WrapperXenApi<XenApiPool, 'pool', XenApiPoolCallMethods>
 
 /** @deprecated */
 export interface XenApiPoolPatch {
@@ -261,7 +263,7 @@ export interface XenApiPoolUpdate {
   version?: string
 }
 
-type XenApiVmCallMethods = {
+type XenApiVmCallMethods = TagCallMethods & {
   (method: 'start', start_paused: boolean, force: boolean): Promise<void>
   (method: 'clean_shutdown'): Promise<void>
   (method: 'hard_shutdown'): Promise<void>
@@ -620,6 +622,8 @@ export interface XenApiHostCpu {
   vendor: string
 }
 
+type XenApiNetworkCallMethods = TagCallMethods & {}
+
 export interface XenApiNetwork {
   $ref: Branded<'network'>
   allowed_operations: NETWORK_OPERATIONS[]
@@ -639,8 +643,7 @@ export interface XenApiNetwork {
   uuid: string
   VIFs: XenApiVif['$ref'][]
 }
-export interface XenApiNetworkWrapped extends WrapperXenApi<XenApiNetwork, 'network'> {}
-
+export interface XenApiNetworkWrapped extends WrapperXenApi<XenApiNetwork, 'network', XenApiNetworkCallMethods> {}
 export interface XenApiVif {
   $ref: Branded<'VIF'>
   allowed_operations: VIF_OPERATIONS[]
@@ -788,6 +791,7 @@ export interface XenApiSm {
 }
 export type XenApiSmWrapped = WrapperXenApi<XenApiSm, 'SM'>
 
+type XenApiSrCallMethods = TagCallMethods & {}
 export interface XenApiSr {
   $ref: Branded<'SR'>
   allowed_operations: STORAGE_OPERATIONS[]
@@ -812,7 +816,7 @@ export interface XenApiSr {
   VDIs: XenApiVdi['$ref'][]
   virtual_allocation: number
 }
-export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR'>
+export type XenApiSrWrapped = WrapperXenApi<XenApiSr, 'SR', XenApiSrCallMethods>
 
 export interface XenApiSrStat {
   $ref: Branded<'sr_stat'>
@@ -837,6 +841,8 @@ export interface XenApiLvhd {
   $ref: Branded<'LVHD'>
   uuid: string
 }
+
+type XenApiVdiCallMethods = TagCallMethods & {}
 
 export interface XenApiVdi {
   $ref: Branded<'VDI'>
@@ -874,7 +880,7 @@ export interface XenApiVdi {
   virtual_size: number
   xenstore_data: Record<string, string>
 }
-export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI'>
+export type XenApiVdiWrapped = WrapperXenApi<XenApiVdi, 'VDI', XenApiVdiCallMethods>
 
 export interface XenApiVbd {
   $ref: Branded<'VBD'>
@@ -927,6 +933,7 @@ export interface XenApiPbd {
   SR: XenApiSr['$ref']
   uuid: string
 }
+export type XenApiPbdWrapped = WrapperXenApi<XenApiPbd, 'PBD'>
 
 /** @deprecated */
 export interface XenApiCrashdump {
@@ -1363,6 +1370,7 @@ export type XenApiRecord =
 export type WrappedXenApiRecord =
   | XenApiHostWrapped
   | XenApiNetworkWrapped
+  | XenApiPbdWrapped
   | XenApiPifWrapped
   | XenApiPoolWrapped
   | XenApiSrWrapped

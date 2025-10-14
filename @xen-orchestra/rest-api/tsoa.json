@@ -11,6 +11,10 @@
         "type": "apiKey",
         "name": "authenticationToken",
         "in": "cookie"
+      },
+      "basic": {
+        "type": "http",
+        "scheme": "basic"
       }
     },
     "specMerging": "recursive",
@@ -33,6 +37,21 @@
         },
         "/srs/{id}/vdis": {
           "post": {
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/octet-stream": {
+                  "schema": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/vdis/{id}.{format}": {
+          "put": {
             "requestBody": {
               "required": true,
               "content": {
