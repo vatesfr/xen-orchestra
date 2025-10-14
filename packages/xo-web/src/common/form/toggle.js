@@ -28,13 +28,13 @@ export default class Toggle extends Component {
     const { props } = this
 
     if (!props.disabled) {
-      // turning props.onChange into a promise to cover both sync and async onChange functions
-      Promise.resolve(props.onChange(!props.value)).catch(error => {
-        // ignore when undefined because it usually means that the action has been canceled
-        if (error !== undefined) {
-          throw error
-        }
-      })
+     try {
+       await props.onChange(!props.value)
+     } catch (err) {
+       if (err !== undefined) {
+         throw err
+       }
+     }
     }
   }
 
