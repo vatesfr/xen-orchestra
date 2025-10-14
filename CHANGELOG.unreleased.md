@@ -67,6 +67,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server patch
+- xo-server-auth-saml minor
 - xo-web patch
 
 <!--packages-end-->
