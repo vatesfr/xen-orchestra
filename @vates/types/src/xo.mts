@@ -527,7 +527,7 @@ export type XoSr = BaseXapiXo & {
 
   VDIs: AnyXoVdi['id'][]
 
-  allocationStrategy: 'thin' | 'thick' | 'unknown'
+  allocationStrategy?: 'thin' | 'thick' | 'unknown'
   content_type: string
   current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SR'>
