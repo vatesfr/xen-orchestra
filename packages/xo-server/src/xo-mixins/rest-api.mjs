@@ -104,35 +104,6 @@ export default class RestApi {
     this.#api = api
     this.#app = app
 
-    // register the route BEFORE the authentication middleware because this route does not require authentication
-    api.post('/users/authentication_tokens', json(), async (req, res) => {
-      const authorization = req.headers.authorization ?? ''
-      const [, encodedCredentials] = authorization.split(' ')
-      if (encodedCredentials === undefined) {
-        return res.status(401).json('missing credentials')
-      }
-
-      const [username, password] = Buffer.from(encodedCredentials, 'base64').toString().split(':')
-
-      try {
-        const { user } = await app.authenticateUser({ username, password, otp: req.query.otp })
-        const token = await app.createAuthenticationToken({
-          client: req.body.client,
-          userId: user.id,
-          description: req.body.description,
-          expiresIn: req.body.expiresIn,
-        })
-        res.json({ token })
-      } catch (error) {
-        if (invalidCredentials.is(error)) {
-          res.status(401)
-        } else {
-          res.status(400)
-        }
-        res.json(error.message)
-      }
-    })
-
     setupRestApi(express, app)
   }
 
