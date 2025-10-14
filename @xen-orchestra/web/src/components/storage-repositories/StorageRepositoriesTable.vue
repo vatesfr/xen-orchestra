@@ -1,0 +1,194 @@
+<template>
+  <div class="storage-repositories-table">
+    <UiTitle>
+      {{ t('storage-repositories') }}
+      <template #actions>
+        <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
+      </template>
+    </UiTitle>
+    <div class="container">
+      <div class="table-actions">
+        <UiQuerySearchBar @search="value => (searchQuery = value)" />
+        <UiTopBottomTable :selected-items="0" :total-items="0">
+          <UiTablePagination v-bind="paginationBindings" />
+        </UiTopBottomTable>
+      </div>
+      <VtsDataTable is-ready :has-error :no-data-message="srs.length === 0 ? t('no-backup-available') : undefined">
+        <template #thead>
+          <tr>
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th v-if="column.id === 'checkbox'" class="checkbox">
+                <div v-tooltip="t('coming-soon')">
+                  <UiCheckbox disabled accent="brand" />
+                </div>
+              </th>
+              <th v-else-if="column.id === 'more'" class="more">
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
+              </th>
+              <th v-else>
+                <div v-tooltip class="text-ellipsis">
+                  <VtsIcon size="medium" :name="headerIcon[column.id]" />
+                  {{ column.label }}
+                </div>
+              </th>
+            </template>
+          </tr>
+        </template>
+        <template #tbody>
+          <tr
+            v-for="row of srsRecords"
+            :key="row.id"
+            :class="{ selected: selectedSrId === row.id }"
+            @click="selectedSrId = row.id"
+          >
+            <td
+              v-for="column of row.visibleColumns"
+              :key="column.id"
+              class="typo-body-regular-small"
+              :class="{ checkbox: column.id === 'checkbox' }"
+            >
+              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
+                <UiCheckbox disabled accent="brand" :value="row.id" />
+              </div>
+              <UiButtonIcon
+                v-else-if="column.id === 'more'"
+                v-tooltip="t('coming-soon')"
+                icon="fa:ellipsis"
+                accent="brand"
+                disabled
+                size="small"
+              />
+              <div v-else-if="column.id === 'name'">
+                <UiLink size="medium" icon="object:sr:muted" :href="`/#/srs/${column.value.id}/general`" @click.stop>
+                  {{ column.value.name }}
+                </UiLink>
+              </div>
+              <div v-else-if="column.id === 'size'">
+                <VtsProgressBar
+                  v-if="column.value.total > 0"
+                  :current="column.value.used"
+                  :total="column.value.total"
+                  label="Size"
+                />
+              </div>
+              <div v-else :class="{ shared: column.id === 'shared' }">
+                {{ column.value }}
+              </div>
+            </td>
+          </tr>
+        </template>
+      </VtsDataTable>
+      <VtsStateHero v-if="searchQuery && filteredSrs.length === 0" format="table" type="no-result" size="small">
+        {{ t('no-result') }}
+      </VtsStateHero>
+      <UiTopBottomTable :selected-items="0" :total-items="0">
+        <UiTablePagination v-bind="paginationBindings" />
+      </UiTopBottomTable>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { XoSr } from '@/types/xo/sr.type'
+import type { IconName } from '@core/icons'
+import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTable } from '@core/composables/table.composable.ts'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { noop } from '@vueuse/shared'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { srs } = defineProps<{
+  srs: XoSr[]
+  hasError: boolean
+}>()
+
+const { t } = useI18n()
+
+const selectedSrId = useRouteQuery('id')
+
+const searchQuery = ref('')
+
+const filteredSrs = computed(() => {
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
+  if (!searchTerm) {
+    return srs
+  }
+
+  return srs.filter(sr => Object.values(sr).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+})
+
+const { visibleColumns, rows } = useTable('backup-jobs', filteredSrs, {
+  rowId: record => record.id,
+  columns: define => [
+    define('checkbox', noop, { label: '', isHideable: false }),
+    define('name', record => ({ name: record.name_label, id: record.id }), { label: t('storage-repository') }),
+    define('description', record => record.name_description, { label: t('description') }),
+    define('storage-format', record => record.SR_type, { label: t('storage-format') }),
+    define('shared', record => record.shared, { label: t('shared') }),
+    define('size', record => ({ used: record.physical_usage, total: record.size }), { label: t('size') }),
+    // define('mode', record => getModeLabels(record), { label: t('mode') }),
+    // define('last-runs', record => getLastThreeRunsStatuses(record), {
+    //   label: t('last-n-runs', { n: 3 }),
+    // }),
+    define('more', noop, { label: '', isHideable: false }),
+  ],
+})
+
+const { pageRecords: srsRecords, paginationBindings } = usePagination('srs', rows)
+
+type BackupJobHeader = 'name' | 'description' | 'storage-format' | 'shared' | 'size'
+
+const headerIcon: Record<BackupJobHeader, IconName> = {
+  name: 'fa:align-left',
+  description: 'fa:align-left',
+  'storage-format': 'fa:square-caret-down',
+  shared: 'fa:square-caret-down',
+  size: 'fa:hashtag',
+}
+</script>
+
+<style scoped lang="postcss">
+.storage-repositories-table,
+.table-actions,
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.storage-repositories-table {
+  gap: 2.4rem;
+
+  .container,
+  .table-actions {
+    gap: 0.8rem;
+  }
+
+  .checkbox,
+  .more {
+    width: 4.8rem;
+  }
+
+  .checkbox {
+    text-align: center;
+    line-height: 1;
+  }
+
+  .shared {
+    text-transform: capitalize;
+  }
+}
+</style>
