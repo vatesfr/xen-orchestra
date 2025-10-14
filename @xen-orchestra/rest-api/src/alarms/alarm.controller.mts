@@ -6,7 +6,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XoAlarm, XoMessage } from '@vates/types'
 
 import { alarm, alarmIds, partialAlarms } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
@@ -16,6 +16,7 @@ type UnbrandedXoAlarm = Unbrand<XoAlarm>
 
 @Route('alarms')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('alarms')
 @provide(AlarmController)

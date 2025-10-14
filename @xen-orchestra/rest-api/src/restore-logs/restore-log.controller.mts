@@ -8,7 +8,7 @@ import type { Request as ExRequest } from 'express'
 
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { SendObjects } from '../helpers/helper.type.mjs'
 import { partialRestoreLogs, restoreLog, restoreLogIds } from '../open-api/oa-examples/restore-log.oa-example.mjs'
@@ -17,6 +17,7 @@ const log = createLogger('xo:rest-api:restoreLog-controller')
 
 @Route('restore-logs')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('restore-logs')
 @provide(RestoreLogController)
@@ -73,6 +74,7 @@ export class RestoreLogController extends XoController<XoRestoreLog> {
 // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (09-12-2026)--------------------
 @Route('restore/logs')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Middlewares((_req, _res, next) => {
   log.warn(
