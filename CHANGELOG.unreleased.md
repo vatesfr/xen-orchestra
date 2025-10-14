@@ -65,6 +65,7 @@
 - [REST API] `/rest/v0` redirect now to `/rest/v0/docs` and the swagger is now available for unauthenticated users (PR [#9101](https://github.com/vatesfr/xen-orchestra/pull/9101))
 - [REST API] Expose `/rest/v0/users/:id/authentication_tokens` (PR [#9102](https://github.com/vatesfr/xen-orchestra/pull/9102))
 - [REST API] Possibility to use `Basic Auth` for authenticated endpoints (PR [#9102](https://github.com/vatesfr/xen-orchestra/pull/9102))
+- [REST API] Expose `/rest/v0/pbds` and `/rest/v0/pbds/:id` (PR [#9106](https://github.com/vatesfr/xen-orchestra/pull/9106))
 
 ### Bug fixes
 
