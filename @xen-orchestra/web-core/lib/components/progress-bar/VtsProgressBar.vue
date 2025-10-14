@@ -1,6 +1,6 @@
 <template>
   <div class="vts-progress-bar">
-    <UiDataRuler :max="percentageCap" :warning="threshold.payload" />
+    <UiDataRuler v-if="!noruler" :max="percentageCap" :warning="threshold.payload" />
     <UiProgressBar :accent="threshold.payload.accent ?? 'info'" :fill-width :legend />
   </div>
 </template>
@@ -31,6 +31,7 @@ const {
   label: string
   legendType?: ProgressBarLegendType
   thresholds?: ProgressBarThresholdConfig
+  noruler?: boolean
 }>()
 
 const progress = useProgress(
@@ -40,7 +41,11 @@ const progress = useProgress(
 
 const { percentageCap, percentage, fillWidth } = progress
 
-const legend = useProgressToLegend(() => legendType, () => label, progress)
+const legend = useProgressToLegend(
+  () => legendType,
+  () => label,
+  progress
+)
 
 const threshold = useThreshold(percentage, () => thresholds)
 </script>
