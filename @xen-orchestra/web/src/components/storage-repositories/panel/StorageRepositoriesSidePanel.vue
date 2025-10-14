@@ -2,11 +2,19 @@
   <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
-        <UiButtonIcon v-tooltip="t('close')" size="medium" variant="tertiary" accent="brand" :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'" @click="emit('close')" />
+        <UiButtonIcon
+          v-tooltip="t('close')"
+          size="medium"
+          variant="tertiary"
+          accent="brand"
+          :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
+          @click="emit('close')"
+        />
       </div>
     </template>
     <template #default>
       <StorageRepositoryInfosCard :sr />
+      <StorageRepositorySpaceCard :sr />
       <!--
  <BackupJobSchedulesCard :backup-job-schedules />
       <BackupJobLogsCard v-if="lastThreeLogs.length > 0" :backup-logs="lastThreeLogs" />
@@ -22,20 +30,12 @@
 
 <script setup lang="ts">
 import StorageRepositoryInfosCard from '@/components/storage-repositories/panel/cards/StorageRepositoryInfosCard.vue'
-import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection.ts'
-import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection.ts'
-import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection'
-import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
-import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
-import type { XoBackupRepository } from '@/types/xo/br.type.ts'
-import type { XoPool } from '@/types/xo/pool.type'
+import StorageRepositorySpaceCard from '@/components/storage-repositories/panel/cards/StorageRepositorySpaceCard.vue'
 import type { XoSr } from '@/types/xo/sr.type.ts'
-import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { sr } = defineProps<{
@@ -48,40 +48,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-
-const { getSrsByIds } = useXoSrCollection()
-const { getBackupRepositoriesByIds } = useXoBackupRepositoryCollection()
-const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
-const { schedulesByJobId } = useXoScheduleCollection()
-const { getPoolsByIds } = useXoPoolCollection()
-
-const backupJobSchedules = computed(() => schedulesByJobId.value.get(backupJob.id) ?? [])
-
-const lastThreeLogs = computed(() => getLastNBackupLogsByJobId(backupJob.id))
-
-const backedUpPools = computed(() => {
-  if (backupJob.type !== 'metadataBackup' || backupJob.pools === undefined) {
-    return []
-  }
-
-  return getPoolsByIds(extractIdsFromSimplePattern(backupJob.pools) as XoPool['id'][])
-})
-
-const backupRepositoryTargets = computed(() =>
-  getBackupRepositoriesByIds(extractIdsFromSimplePattern(backupJob.remotes) as XoBackupRepository['id'][])
-)
-
-const storageRepositoryTargets = computed(() => {
-  if (!(backupJob.type === 'backup' && backupJob.srs)) {
-    return []
-  }
-
-  return getSrsByIds(extractIdsFromSimplePattern(backupJob.srs) as XoSr['id'][])
-})
-
-const hasSettings = computed(
-  () => backupJob.compression !== undefined || backupJob.proxy !== undefined || backupJob.settings[''] !== undefined
-)
 </script>
 
 <style scoped lang="postcss">
