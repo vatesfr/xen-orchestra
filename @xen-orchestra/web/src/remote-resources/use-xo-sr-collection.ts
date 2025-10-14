@@ -7,7 +7,7 @@ import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
 export const useXoSrCollection = defineRemoteResource({
-  url: '/rest/v0/srs?fields=id,name_label,name_description,$pool,content_type,physical_usage,usage,size,SR_type,VDIs,type,shared,sm_config,other_config,tags,allocationStrategy',
+  url: '/rest/v0/srs?fields=id,name_label,name_description,$pool,content_type,physical_usage,usage,size,SR_type,VDIs,type,shared,sm_config,other_config,tags,allocationStrategy,$PBDs',
   initialData: () => [] as XoSr[],
   state: (rawSrs, context) => {
     const srs = useSorted(rawSrs, (sr1, sr2) => sortByNameLabel(sr1, sr2))
