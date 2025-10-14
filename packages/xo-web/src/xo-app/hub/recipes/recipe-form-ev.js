@@ -319,6 +319,20 @@ export default decorate([
           />
         </FormGrid.Row>
       )}
+      {value.productName === 'dcNetScope' && (
+        <FormGrid.Row>
+          <label>{_('easyVirtPassword')}</label>
+          <input
+            className='form-control'
+            name='easyVirtPassword'
+            onChange={effects.onChangeValue}
+            placeholder={formatMessage(messages.easyVirtPassword)}
+            required
+            type='password'
+            value={value.easyVirtPassword}
+          />
+        </FormGrid.Row>
+      )}
       <FormGrid.Row>
         <label>{_('recipeUserEmail')}</label>
         <input
