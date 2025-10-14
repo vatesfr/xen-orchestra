@@ -15,15 +15,7 @@
     <template #default>
       <StorageRepositoryInfosCard :sr />
       <StorageRepositorySpaceCard :sr />
-      <!--
- <BackupJobSchedulesCard :backup-job-schedules />
-      <BackupJobLogsCard v-if="lastThreeLogs.length > 0" :backup-logs="lastThreeLogs" />
-      <BackupJobsBackedUpVmsCard v-if="backupJob.type === 'backup' && backupJob.vms" :backed-up-vms="backupJob.vms" />
-      <BackupJobsBackedUpPoolsCard v-if="backedUpPools.length > 0" :backed-up-pools />
-      <BackupSourceRepositoryCard v-if="backupJob.type === 'mirrorBackup'" :mirror-backup-job="backupJob" />
-      <BackupJobsTargetsCard :storage-repository-targets :backup-repository-targets />
-      <BackupJobSettingsCard v-if="hasSettings" :backup-job /> 
--->
+      <StorageRepositoryVdisCard v-if="vdis.length > 0" :vdis />
     </template>
   </UiPanel>
 </template>
@@ -31,6 +23,8 @@
 <script setup lang="ts">
 import StorageRepositoryInfosCard from '@/components/storage-repositories/panel/cards/StorageRepositoryInfosCard.vue'
 import StorageRepositorySpaceCard from '@/components/storage-repositories/panel/cards/StorageRepositorySpaceCard.vue'
+import StorageRepositoryVdisCard from '@/components/storage-repositories/panel/cards/StorageRepositoryVdisCard.vue'
+import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection'
 import type { XoSr } from '@/types/xo/sr.type.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
@@ -48,6 +42,10 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
+
+const { useGetVdisByIds } = useXoVdiCollection()
+
+const vdis = useGetVdisByIds(() => sr.VDIs)
 </script>
 
 <style scoped lang="postcss">
