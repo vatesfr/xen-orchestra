@@ -24,17 +24,17 @@ export default class Toggle extends Component {
     iconSize: 2,
   }
 
-  _toggle = () => {
+  _toggle = async () => {
     const { props } = this
 
     if (!props.disabled) {
-     try {
-       await props.onChange(!props.value)
-     } catch (err) {
-       if (err !== undefined) {
-         throw err
-       }
-     }
+      try {
+        await props.onChange(!props.value)
+      } catch (err) {
+        if (err !== undefined) {
+          throw err
+        }
+      }
     }
   }
 
