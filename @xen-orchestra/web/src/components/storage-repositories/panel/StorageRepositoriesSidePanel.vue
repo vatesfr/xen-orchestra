@@ -16,11 +16,14 @@
       <StorageRepositoryInfosCard :sr />
       <StorageRepositorySpaceCard :sr />
       <StorageRepositoryVdisCard v-if="vdis.length > 0" :vdis />
+      <!-- <StorageRepositoryHostsCard v-if="hosts.length > 0" :hosts /> -->
+      <StorageRepositoryCustomFieldsCard :custom-fields />
     </template>
   </UiPanel>
 </template>
 
 <script setup lang="ts">
+import StorageRepositoryCustomFieldsCard from '@/components/storage-repositories/panel/cards/StorageRepositoryCustomFieldsCard.vue'
 import StorageRepositoryInfosCard from '@/components/storage-repositories/panel/cards/StorageRepositoryInfosCard.vue'
 import StorageRepositorySpaceCard from '@/components/storage-repositories/panel/cards/StorageRepositorySpaceCard.vue'
 import StorageRepositoryVdisCard from '@/components/storage-repositories/panel/cards/StorageRepositoryVdisCard.vue'
@@ -30,6 +33,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { sr } = defineProps<{
@@ -44,8 +48,13 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { useGetVdisByIds } = useXoVdiCollection()
+// const { useGetHostsByIds } = useXoHostCollection()
 
 const vdis = useGetVdisByIds(() => sr.VDIs)
+
+// const hosts = useGetHostsByIds(() => sr.$pool)
+
+const customFields = computed(() => ({ ...sr.other_config, ...sr.sm_config }))
 </script>
 
 <style scoped lang="postcss">
