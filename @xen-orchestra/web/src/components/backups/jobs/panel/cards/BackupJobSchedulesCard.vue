@@ -7,7 +7,7 @@
     <div class="content">
       <template v-for="(schedule, index) in backupJobSchedules" :key="schedule.id">
         <VtsDivider v-if="index > 0" class="divider" type="stretch" />
-        <UiLabelValue :label="t('name')">
+        <UiLabelValue :label="t('name')" :copy-value="schedule.name">
           <template #value>
             <UiLink
               v-if="schedule.name"
@@ -18,25 +18,14 @@
               {{ schedule.name }}
             </UiLink>
           </template>
-          <template v-if="schedule.name" #actions>
-            <VtsCopyButton :value="schedule.name" />
-          </template>
         </UiLabelValue>
-        <UiLabelValue :label="t('id')" :value="schedule.id">
-          <template #actions>
-            <VtsCopyButton :value="schedule.id" />
-          </template>
-        </UiLabelValue>
+        <UiLabelValue :label="t('id')" :value="schedule.id" :copy-value="schedule.id" />
         <UiLabelValue :label="t('status')">
           <template #value>
             <VtsEnabledState :enabled="schedule.enabled" />
           </template>
         </UiLabelValue>
-        <UiLabelValue :label="t('cron-pattern')" :value="schedule.cron">
-          <template #actions>
-            <VtsCopyButton :value="schedule.cron" />
-          </template>
-        </UiLabelValue>
+        <UiLabelValue :label="t('cron-pattern')" :value="schedule.cron" :copy-value="schedule.cron" />
       </template>
     </div>
   </UiCard>
@@ -44,7 +33,6 @@
 
 <script lang="ts" setup>
 import type { XoSchedule } from '@/types/xo/schedule.type.ts'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

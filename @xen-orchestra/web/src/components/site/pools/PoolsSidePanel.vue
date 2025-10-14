@@ -44,7 +44,7 @@
         </UiCardTitle>
         <div class="content">
           <!-- Pool -->
-          <UiLabelValue :label="t('pool')">
+          <UiLabelValue :label="t('pool')" :copy-value="server.poolId">
             <template #value>
               <UiLink
                 v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
@@ -55,28 +55,17 @@
                 {{ server.poolNameLabel }}
               </UiLink>
             </template>
-            <template v-if="server.poolId !== undefined" #actions>
-              <VtsCopyButton :value="server.poolId" />
-            </template>
           </UiLabelValue>
           <!-- ID -->
-          <UiLabelValue :label="t('id')" :value="server.id">
-            <template #actions>
-              <VtsCopyButton :value="server.id" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('id')" :value="server.id" :copy-value="server.id" />
           <!-- Description -->
-          <UiLabelValue :label="t('description')" :value="server.poolNameDescription">
-            <template v-if="server.poolNameDescription !== undefined" #actions>
-              <VtsCopyButton :value="server.poolNameDescription" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue
+            :label="t('description')"
+            :value="server.poolNameDescription"
+            :copy-value="server.poolNameDescription"
+          />
           <!-- tag -->
-          <UiLabelValue :label="t('tags')" :value="pool ? String(pool.tags.length) : undefined">
-            <template v-if="pool !== undefined && pool.tags.length > 0" #actions>
-              <VtsCopyButton :value="pool.tags.join(', ')" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('tags')" :value="pool?.tags" :copy-value="pool?.tags" />
         </div>
       </UiCard>
       <UiAlert v-else accent="danger">
@@ -98,34 +87,19 @@
           </template>
         </UiLabelValue>
         <!-- primary-host -->
-        <UiLabelValue :label="t('master')">
+        <UiLabelValue :label="t('master')" :copy-value="primaryHost?.id">
           <template #value>
             <UiLink v-if="primaryHost !== undefined" icon="fa:server" size="small" :to="`/host/${primaryHost.id}/`">
               {{ primaryHost.name_label }}
             </UiLink>
           </template>
-          <template v-if="primaryHost !== undefined" #actions>
-            <VtsCopyButton :value="primaryHost.id" />
-          </template>
         </UiLabelValue>
         <!-- ip-address -->
-        <UiLabelValue :label="t('ip-address')" :value="server.host">
-          <template #actions>
-            <VtsCopyButton :value="server.host" />
-          </template>
-        </UiLabelValue>
+        <UiLabelValue :label="t('ip-address')" :value="server.host" :copy-value="server.host" />
         <!-- proxy-url -->
-        <UiLabelValue :label="t('proxy-url')" :value="server.httpProxy">
-          <template v-if="server.httpProxy !== undefined" #actions>
-            <VtsCopyButton :value="server.httpProxy" />
-          </template>
-        </UiLabelValue>
+        <UiLabelValue :label="t('proxy-url')" :value="server.httpProxy" :copy-value="server.httpProxy" />
         <!-- username -->
-        <UiLabelValue :label="t('username')" :value="server.username">
-          <template #actions>
-            <VtsCopyButton :value="server.username" />
-          </template>
-        </UiLabelValue>
+        <UiLabelValue :label="t('username')" :value="server.username" :copy-value="server.username" />
         <!-- read-only -->
         <UiLabelValue :label="t('read-only')">
           <template #value>
@@ -172,7 +146,6 @@
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import type { XoServer } from '@/types/xo/server.type'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'

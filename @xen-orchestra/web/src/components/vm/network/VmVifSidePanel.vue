@@ -41,16 +41,9 @@
         <UiCardTitle>{{ t('vif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <UiLabelValue :label="t('uuid')" :value="vif.id">
-            <template #actions>
-              <VtsCopyButton :value="vif.id" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('uuid')" :value="vif.id" :copy-value="vif.id" />
           <!-- NETWORK -->
-          <UiLabelValue :label="t('network')" :value="network?.name_label">
-            <template #key>
-              {{ t('network') }}
-            </template>
+          <UiLabelValue :label="t('network')" :value="network?.name_label" :copy-value="network?.name_label">
             <!-- TODO Remove the span when the link works and the icon is fixed -->
             <!--
               <UiComplexIcon size="medium">
@@ -59,9 +52,6 @@
               </UiComplexIcon>
               <a href="">{{ networkNameLabel }}</a>
               -->
-            <template v-if="network?.name_label" #actions>
-              <VtsCopyButton :value="network.name_label" />
-            </template>
           </UiLabelValue>
           <!-- DEVICE -->
           <UiLabelValue :label="t('device')" :value="t('vif-device', { device: vif.device })" />
@@ -72,11 +62,7 @@
             </template>
           </UiLabelValue>
           <!-- MTU -->
-          <UiLabelValue :label="t('mtu')" :value="String(vif.MTU)">
-            <template #actions>
-              <VtsCopyButton :value="String(vif.MTU)" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('mtu')" :value="String(vif.MTU)" :copy-value="String(vif.MTU)" />
           <!-- LOCKING MODE -->
           <UiLabelValue :label="t('locking-mode')" :value="vif.lockingMode" />
           <!-- TX CHECK SUMMING -->
@@ -93,10 +79,13 @@
         <div class="content">
           <!-- IP ADDRESSES -->
           <template v-if="ipAddresses.length">
-            <UiLabelValue v-for="(ip, index) in ipAddresses" :key="ip" :label="t('ip-addresses')" :value="ip">
-              <template #actions>
-                <VtsCopyButton :value="ip" />
-              </template>
+            <UiLabelValue
+              v-for="(ip, index) in ipAddresses"
+              :key="ip"
+              :label="t('ip-addresses')"
+              :value="ip"
+              :copy-value="ip"
+            >
               <template #addons>
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
@@ -111,11 +100,7 @@
           </template>
           <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" />
           <!-- MAC ADDRESSES -->
-          <UiLabelValue :label="t('mac-address')" :value="vif.MAC">
-            <template #actions>
-              <VtsCopyButton :value="vif.MAC" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('mac-address')" :value="vif.MAC" :copy-value="vif.MAC" />
         </div>
       </UiCard>
     </template>
@@ -127,7 +112,6 @@ import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collec
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoVif } from '@/types/xo/vif.type'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'

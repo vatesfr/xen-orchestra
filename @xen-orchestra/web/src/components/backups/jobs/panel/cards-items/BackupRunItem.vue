@@ -1,19 +1,12 @@
 <template>
-  <UiLabelValue :label="t('run')">
+  <UiLabelValue :label="t('run')" :copy-value="backupRun.id">
     <template #value>
       <UiLink v-if="backupRun.id" size="small" icon="object:backup-log">
         {{ backupRun.id }}
       </UiLink>
     </template>
-    <template #actions>
-      <VtsCopyButton :value="backupRun.id" />
-    </template>
   </UiLabelValue>
-  <UiLabelValue :label="t('date')" :value="formattedRunDate">
-    <template #actions>
-      <VtsCopyButton :value="formattedRunDate" />
-    </template>
-  </UiLabelValue>
+  <UiLabelValue :label="t('date')" :value="formattedRunDate" :copy-value="formattedRunDate" />
   <UiLabelValue :label="t('status')">
     <template #value>
       <VtsBackupState :state="backupRun.status" />
@@ -39,7 +32,6 @@
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
 import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import VtsBackupState from '@core/components/backup-state/VtsBackupState.vue'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'

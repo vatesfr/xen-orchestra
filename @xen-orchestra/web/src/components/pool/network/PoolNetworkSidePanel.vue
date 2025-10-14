@@ -43,35 +43,20 @@
         </UiCardTitle>
         <div class="content">
           <!-- ID -->
-          <UiLabelValue :label="t('id')" :value="network.id">
-            <template #actions>
-              <VtsCopyButton :value="network.id" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('id')" :value="network.id" :copy-value="network.id" />
           <!-- DESCRIPTION -->
-          <UiLabelValue :label="t('description')" :value="network.name_description" wrap>
-            <template v-if="network.name_description" #actions>
-              <VtsCopyButton :value="network.name_description" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue
+            :label="t('description')"
+            :value="network.name_description"
+            wrap
+            :copy-value="network.name_description"
+          />
           <!-- VLAN -->
-          <UiLabelValue v-if="networkVlan" :label="t('vlan')" :value="networkVlan">
-            <template #actions>
-              <VtsCopyButton :value="String(networkVlan)" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue v-if="networkVlan" :label="t('vlan')" :value="networkVlan" :copy-value="networkVlan" />
           <!-- MTU -->
-          <UiLabelValue :label="t('mtu')" :value="String(network.MTU)">
-            <template #actions>
-              <VtsCopyButton :value="String(network.MTU)" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('mtu')" :value="String(network.MTU)" :copy-value="String(network.MTU)" />
           <!-- NBD -->
-          <UiLabelValue :label="t('network-block-device')" :value="networkNbd">
-            <template #actions>
-              <VtsCopyButton :value="networkNbd" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('network-block-device')" :value="networkNbd" :copy-value="networkNbd" />
           <!-- DEFAULT LOCKING MODE -->
           <UiLabelValue :label="t('locking-mode-default')" :value="networkDefaultLockingMode" />
         </div>
@@ -109,7 +94,6 @@
 import PifRow from '@/components/pif/PifRow.vue'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

@@ -6,16 +6,8 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <UiLabelValue :label="t('id')" :value="backupJob.id">
-        <template #actions>
-          <VtsCopyButton :value="backupJob.id" />
-        </template>
-      </UiLabelValue>
-      <UiLabelValue :label="t('mode')" :value="backupJobModes">
-        <template v-if="backupJobModes !== undefined" #actions>
-          <VtsCopyButton :value="backupJobModes.join(', ')" />
-        </template>
-      </UiLabelValue>
+      <UiLabelValue :label="t('id')" :value="backupJob.id" :copy-value="backupJob.id" />
+      <UiLabelValue :label="t('mode')" :value="backupJobModes" :copy-value="backupJobModes" />
     </div>
   </UiCard>
 </template>
@@ -23,7 +15,6 @@
 <script lang="ts" setup>
 import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'

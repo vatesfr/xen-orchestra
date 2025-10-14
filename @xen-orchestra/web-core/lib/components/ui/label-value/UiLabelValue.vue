@@ -25,9 +25,14 @@
           </div>
         </div>
 
-        <div v-if="slots.actions || (copyElement && copyable)" class="actions">
-          {{ slots.actions }}
-          <VtsCopyButton v-if="copyElement && copyable" :value="copyElement" />
+        <div
+          v-if="slots.actions || (copyValue != undefined && (Array.isArray(copyValue) ? copyValue.length > 0 : true))"
+          class="actions"
+        >
+          <VtsCopyButton
+            v-if="copyValue != undefined && !slots.actions"
+            :value="Array.isArray(copyValue) ? copyValue.join(', ') : copyValue"
+          />
           <slot name="actions" />
         </div>
       </div>
@@ -38,7 +43,6 @@
 <script lang="ts" setup>
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { computed } from 'vue'
 import UiTag from '../tag/UiTag.vue'
 import UiTagsList from '../tag/UiTagsList.vue'
 
@@ -46,7 +50,7 @@ const { value } = defineProps<{
   label: string
   value?: string | string[]
   wrap?: boolean
-  copyable?: boolean
+  copyValue?: string | string[] | undefined
 }>()
 
 const slots = defineSlots<{
@@ -54,18 +58,6 @@ const slots = defineSlots<{
   addons?(): any
   actions?(): any
 }>()
-
-const copyElement = computed(() => {
-  if (!value) {
-    return
-  }
-
-  if (Array.isArray(value)) {
-    return value.join(', ')
-  }
-
-  return value
-})
 </script>
 
 <style lang="postcss" scoped>

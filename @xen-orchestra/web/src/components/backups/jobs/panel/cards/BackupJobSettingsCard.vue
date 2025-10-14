@@ -60,16 +60,9 @@
         </template>
       </UiLabelValue>
       <UiLabelValue v-if="settings.timezone" :label="t('timezone')" :value="settings.timezone" />
-      <template v-if="settings.reportRecipients && settings.reportRecipients.length > 0">
-        <UiLabelValue
-          v-for="(recipient, index) in settings.reportRecipients"
-          :key="index"
-          :label="t('report-recipients')"
-          :value="recipient"
-        >
-          <!-- TODO: use UiCollapsibleList when VtsCardRowKeyValue is updated -->
-        </UiLabelValue>
-      </template>
+      <UiLabelValue :label="t('report-recipients')" :value="settings.reportRecipients">
+        <!-- TODO: use UiCollapsibleList when VtsCardRowKeyValue is updated -->
+      </UiLabelValue>
       <UiLabelValue v-if="formattedTimeout !== undefined" :label="t('timeout')">
         <template #value>{{ formattedTimeout }}</template>
       </UiLabelValue>

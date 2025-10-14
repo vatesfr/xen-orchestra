@@ -43,35 +43,15 @@
         </UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <UiLabelValue :label="t('uuid')" :value="network.uuid">
-            <template #actions>
-              <VtsCopyButton :value="network.uuid" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('uuid')" :value="network.uuid" :copy-value="network.uuid" />
           <!-- DESCRIPTION -->
-          <UiLabelValue :label="t('description')" :value="network.name_description">
-            <template v-if="network.name_description" #actions>
-              <VtsCopyButton :value="network.name_description" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('description')" :value="network.name_description" :copy-value="network.uuid" />
           <!-- VLAN -->
-          <UiLabelValue v-if="networkVlan" :label="t('vlan')" :value="networkVlan">
-            <template #actions>
-              <VtsCopyButton :value="String(networkVlan)" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue v-if="networkVlan" :label="t('vlan')" :value="networkVlan" :copy-value="String(networkVlan)" />
           <!-- MTU -->
-          <UiLabelValue :label="t('mtu')" :value="String(network.MTU)">
-            <template #actions>
-              <VtsCopyButton :value="String(network.MTU)" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('mtu')" :value="String(network.MTU)" :copy-value="String(network.MTU)" />
           <!-- NBD -->
-          <UiLabelValue :label="t('network-block-device')" :value="networkNbd">
-            <template #actions>
-              <VtsCopyButton :value="networkNbd" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue :label="t('network-block-device')" :value="networkNbd" :copy-value="networkNbd" />
           <!-- DEFAULT LOCKING MODE -->
           <UiLabelValue :label="t('locking-mode-default')" :value="networkDefaultLockingMode" />
         </div>
@@ -109,7 +89,6 @@
 import PifRow from '@/components/pif/PifRow.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePifStore } from '@/stores/xen-api/pif.store'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

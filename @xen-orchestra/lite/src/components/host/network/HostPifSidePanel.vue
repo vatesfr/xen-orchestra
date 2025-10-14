@@ -72,11 +72,11 @@
             </template>
           </UiLabelValue>
           <!-- VLAN -->
-          <UiLabelValue :label="t('vlan')" :value="pif.VLAN === -1 ? t('none') : String(pif.VLAN)">
-            <template v-if="pif.VLAN !== -1" #actions>
-              <VtsCopyButton :value="String(pif.VLAN)" />
-            </template>
-          </UiLabelValue>
+          <UiLabelValue
+            :label="t('vlan')"
+            :value="pif.VLAN === -1 ? t('none') : String(pif.VLAN)"
+            :copy-value="pif.VLAN === -1 ? t('none') : String(pif.VLAN)"
+          />
           <!-- TAGS -->
           <UiLabelValue :label="t('tags')" :value="network?.tags" />
         </div>
@@ -87,7 +87,13 @@
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
-            <UiLabelValue v-for="(ip, index) in ipAddresses" :key="ip" :label="t('ip-addresses')" :value="ip" copyable>
+            <UiLabelValue
+              v-for="(ip, index) in ipAddresses"
+              :key="ip"
+              :label="t('ip-addresses')"
+              :value="ip"
+              :copy-value="ip"
+            >
               <template #addons>
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
@@ -101,13 +107,13 @@
             </UiLabelValue>
           </div>
           <!-- MAC ADDRESSES -->
-          <UiLabelValue :label="t('mac-address')" :value="pif.MAC" copyable />
+          <UiLabelValue :label="t('mac-address')" :value="pif.MAC" :copy-value="pif.MAC" />
           <!-- NETMASK -->
-          <UiLabelValue :label="t('netmask')" :value="pif.netmask" copyable />
+          <UiLabelValue :label="t('netmask')" :value="pif.netmask" :copy-value="pif.netmask" />
           <!-- DNS -->
-          <UiLabelValue :label="t('dns')" :value="pif.DNS" copyable />
+          <UiLabelValue :label="t('dns')" :value="pif.DNS" :copy-value="pif.DNS" />
           <!-- GATEWAY -->
-          <UiLabelValue :label="t('gateway')" :value="pif.gateway" copyable />
+          <UiLabelValue :label="t('gateway')" :value="pif.gateway" :copy-value="pif.gateway" />
           <!-- IP CONFIGURATION MODE -->
           <UiLabelValue :label="t('ip-mode')" :value="ipConfigurationMode" />
           <!-- BOND DEVICES -->
@@ -117,7 +123,7 @@
               :key="device"
               :label="t('bond-devices')"
               :value="device"
-              copyable
+              :copy-value="device"
             >
               <template v-if="device" #addons>
                 <UiButtonIcon
@@ -138,11 +144,15 @@
         <UiCardTitle>{{ t('properties') }}</UiCardTitle>
         <div class="content">
           <!-- MTU -->
-          <UiLabelValue :label="t('mtu')" :value="pif.MTU === -1 ? t('none') : String(pif.MTU)" copyable />
+          <UiLabelValue
+            :label="t('mtu')"
+            :value="pif.MTU === -1 ? t('none') : String(pif.MTU)"
+            :copy-value="String(pif.MTU)"
+          />
           <!-- SPEED -->
           <UiLabelValue :label="t('speed')" :value="speed" />
           <!-- NETWORK BLOCK DEVICE -->
-          <UiLabelValue :label="t('network-block-device')" :value="networkPurpose" copyable />
+          <UiLabelValue :label="t('network-block-device')" :value="networkPurpose" :copy-value="networkPurpose" />
         </div>
       </UiCard>
     </template>
@@ -155,7 +165,6 @@ import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
