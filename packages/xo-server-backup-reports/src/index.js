@@ -166,9 +166,7 @@ class BackupReportsXoPlugin {
     throw new Error(`Unknown backup job type: ${job.type}`)
   }
 
-  async _metadataHandler(log, job, schedule) {
-    const jobName = job.name
-    const settings = job.settings
+  async _metadataHandler(log, { name: jobName, settings }, schedule) {
     const xo = this._xo
 
     const formatDate = createDateFormatter(schedule?.timezone)
