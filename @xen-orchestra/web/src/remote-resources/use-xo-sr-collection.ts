@@ -2,12 +2,16 @@ import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-c
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { AnyXoVdi, XoSr, XoVdi } from '@vates/types'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
+import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
 export const useXoSrCollection = defineRemoteResource({
-  url: '/rest/v0/srs?fields=id,name_label,name_description,$pool,content_type,physical_usage,size,SR_type,VDIs,type',
+  url: '/rest/v0/srs?fields=id,name_label,name_description,$pool,content_type,physical_usage,usage,size,SR_type,VDIs,type,shared,sm_config,other_config,tags,allocationStrategy',
   initialData: () => [] as XoSr[],
-  state: (srs, context) => {
+  state: (rawSrs, context) => {
+    const srs = useSorted(rawSrs, (sr1, sr2) => sortByNameLabel(sr1, sr2))
+
     const { getVdiById } = useXoVdiCollection(context)
 
     const state = useXoCollectionState(srs, {
@@ -49,9 +53,26 @@ export const useXoSrCollection = defineRemoteResource({
       return groupedVDIs
     })
 
+    const srsByPool = computed(() => {
+      const srsByPoolMap = new Map<XoPool['id'], XoSr[]>()
+
+      srs.value.forEach(sr => {
+        const poolId = sr.$pool
+
+        if (!srsByPoolMap.has(poolId)) {
+          srsByPoolMap.set(poolId, [])
+        }
+
+        srsByPoolMap.get(poolId)!.push(sr)
+      })
+
+      return srsByPoolMap
+    })
+
     return {
       ...state,
       vdiIsosBySrName,
+      srsByPool,
     }
   },
 })
