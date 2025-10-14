@@ -7,6 +7,7 @@ import type {
   XenApiHostWrapped,
   XenApiMessage,
   XenApiNetworkWrapped,
+  XenApiPbdWrapped,
   XenApiPciWrapped,
   XenApiPgpuWrapped,
   XenApiPifWrapped,
@@ -47,6 +48,7 @@ type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
   message: XenApiMessage
   network: XenApiNetworkWrapped
+  PBD: XenApiPbdWrapped
   PCI: XenApiPciWrapped
   PGPU: XenApiPgpuWrapped
   PIF: XenApiPifWrapped
