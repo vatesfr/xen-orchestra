@@ -50,7 +50,7 @@ const { value } = defineProps<{
   label: string
   value?: string | string[]
   wrap?: boolean
-  copyValue?: string | string[] | undefined
+  copyValue?: string | string[]
 }>()
 
 const slots = defineSlots<{
