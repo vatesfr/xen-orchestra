@@ -11,7 +11,11 @@
         {{ t('runs') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('configuration') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/configuration`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('configuration') }}
+      </TabItem>
+    </RouterLink>
     <TabItem disabled>{{ t('backed-up-vms') }}</TabItem>
     <TabItem disabled>{{ t('backup-targets') }}</TabItem>
   </TabList>
