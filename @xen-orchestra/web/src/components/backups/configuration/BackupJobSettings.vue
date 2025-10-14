@@ -100,7 +100,7 @@ const reportWhenValueTranslation = useMapper<ReportWhen, string>(
 
 const nbdConcurrency = computed(() => getNbdConcurrency(backupJob))
 const exportRate = computed(() => getExportRate(settings.value.maxExportRate))
-const formattedTimeout = computed(() => getFormattedTimeout(settings.value.timeout as number | undefined))
+const formattedTimeout = computed(() => getFormattedTimeout(settings.value.timeout))
 const compressionLabel = computed(() => getCompressionLabel(settings.value.compression))
 const proxy = getProxy(backupJob)
 </script>

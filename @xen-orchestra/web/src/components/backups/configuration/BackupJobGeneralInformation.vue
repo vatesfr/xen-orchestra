@@ -41,6 +41,8 @@ const { backupJob } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
 const { getModeLabels } = useXoBackupUtils()
+
 const ModeLabels = computed(() => getModeLabels(backupJob))
 </script>
