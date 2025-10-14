@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="sr.name_label" size="small" icon="object:sr:muted">
+      <UiLink v-if="sr.name_label" size="small" icon="object:sr:muted" :href="`/#/srs/${sr.id}/general`">
         {{ sr.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -78,7 +78,7 @@ const { t } = useI18n()
 
 // TODO: compute connection status
 
-const isSrSharedI18nValue = computed(() => sr.shared ? t('shared') : t('unshared'))
+const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('unshared')))
 
 const provisioning = computed(() => {
   return sr.allocationStrategy ?? t('unknown')

@@ -59,7 +59,7 @@
                 size="small"
               />
               <div v-else-if="column.id === 'name'">
-                <UiLink size="medium" icon="object:sr:muted" @click.stop>
+                <UiLink size="medium" icon="object:sr:muted" :href="`/#/srs/${column.value}/general`" @click.stop>
                   {{ column.value }}
                 </UiLink>
               </div>
