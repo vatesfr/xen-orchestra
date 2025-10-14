@@ -7,15 +7,17 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 
 export abstract class XoController<T extends NonXapiXoRecord> extends BaseController<T, false> {
-  abstract getAllCollectionObjects(): Promise<T[]>
+  abstract getAllCollectionObjects(opts: Record<string, unknown>): Promise<T[]>
   abstract getCollectionObject(id: T['id']): Promise<T>
 
   constructor(@inject(RestApi) restApi: RestApi) {
     super(restApi)
   }
 
-  async getObjects(opts: { filter?: string; limit?: number } = {}): Promise<Record<T['id'], T>> {
-    let objects = await this.getAllCollectionObjects()
+  async getObjects(
+    opts: { filter?: string; limit?: number; [key: string]: unknown } = {}
+  ): Promise<Record<T['id'], T>> {
+    let objects = await this.getAllCollectionObjects(opts)
 
     objects = limitAndFilterArray(objects, opts)
 
