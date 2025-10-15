@@ -80,6 +80,17 @@ export const configurationSchema = {
             },
           },
 
+          affinityTags: {
+            type: 'array',
+            title: 'Affinity tags',
+            description: 'list of VM tags to force place VMs on same hosts',
+
+            items: {
+              type: 'string',
+              $type: 'Tag',
+            },
+          },
+
           antiAffinityTags: {
             type: 'array',
             title: 'Anti-affinity tags',
