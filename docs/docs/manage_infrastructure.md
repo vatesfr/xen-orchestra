@@ -391,7 +391,16 @@ If you’re automating things or working with scripts, you can also control VIF 
 
 ### VM high availability (HA)
 
-If you pool supports HA (must have shared storage), you can activate "HA". Read our blog post for more details on [VM high availability with XCP-ng/XenServer](https://xen-orchestra.com/blog/xenserver-and-vm-high-availability/).
+If your pool supports HA (must have shared storage), you can activate "HA". Read the XCP-ng documentation for more details on [High Availability with XCP-ng](https://docs.xcp-ng.org/management/ha/).
+In the VM advanced tab, you can choose between three HA modes:
+- Restart: a protected VM cannot be immediately restarted after a server failure, HA will attempt to restart the VM when additional capacity becomes available in the pool.
+- Best-Effort: for VMs configured with best-effort, HA will try to restart them on another host if their original host goes offline. This attempt occurs only after all VMs set to the "restart" mode have been successfully restarted. HA will make only one attempt to restart a best-effort VM; if it fails, no further attempts will be made.
+- Disabled: if an unprotected VM or its host is stopped, HA does not attempt to restart the VM.
+
+:::tip
+In Xen Orchestra you can filter to see which VM are in which mode:
+`high_availability:restart` or `high_availability:best-effort`
+:::
 
 #### Docker management
 
