@@ -17,6 +17,7 @@ export default class DensityPlan extends Plan {
   }
 
   async execute() {
+    await this._processAffinity()
     await this._processAntiAffinity()
 
     const hosts = this._getHosts()
@@ -117,6 +118,10 @@ export default class DensityPlan extends Plan {
         // - All VMs, hosts and stats must be fetched at one place.
         // - It's necessary to maintain a dictionary of tags for each host.
         // - ...
+        if (this._affinityTags.includes(tag)) {
+          debug(`VM (${vm.id}) of Host (${hostId}) cannot be migrated. It contains affinity tag '${tag}'.`)
+          return
+        }
         if (this._antiAffinityTags.includes(tag)) {
           debug(`VM (${vm.id}) of Host (${hostId}) cannot be migrated. It contains anti-affinity tag '${tag}'.`)
           return
