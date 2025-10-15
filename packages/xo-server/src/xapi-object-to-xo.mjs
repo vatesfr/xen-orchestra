@@ -482,6 +482,7 @@ const TRANSFORMS = {
       })(),
       // deprecated, use isNestedVirtEnabled instead
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
+      haRestartPriority: obj['ha-restart-priority'],
       isNestedVirtEnabled: semver.satisfies(String(obj.$pool.$master.software_version.platform_version), '>=3.4')
         ? obj.platform['nested-virt'] === 'true'
         : obj.platform['exp-nested-hvm'] === 'true',
