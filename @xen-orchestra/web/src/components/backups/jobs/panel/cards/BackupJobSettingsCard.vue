@@ -60,9 +60,15 @@
         </template>
       </UiLabelValue>
       <UiLabelValue v-if="settings.timezone" :label="t('timezone')" :value="settings.timezone" />
-      <UiLabelValue :label="t('report-recipients')" :value="settings.reportRecipients">
-        <!-- TODO: use UiCollapsibleList when VtsCardRowKeyValue is updated -->
-      </UiLabelValue>
+      <template v-if="settings.reportRecipients && settings.reportRecipients.length > 0">
+        <VtsCardRowKeyValue v-for="(recipient, index) in settings.reportRecipients" :key="index">
+          <template #key>
+            <template v-if="index === 0">{{ t('report-recipients') }}</template>
+          </template>
+          <!-- TODO: use UiCollapsibleList when VtsCardRowKeyValue is updated -->
+          <template #value>{{ recipient }}</template>
+        </VtsCardRowKeyValue>
+      </template>
       <UiLabelValue v-if="formattedTimeout !== undefined" :label="t('timeout')">
         <template #value>{{ formattedTimeout }}</template>
       </UiLabelValue>
@@ -81,6 +87,7 @@
 <script lang="ts" setup>
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoProxyCollection } from '@/remote-resources/use-xo-proxy-collection.ts'
+import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

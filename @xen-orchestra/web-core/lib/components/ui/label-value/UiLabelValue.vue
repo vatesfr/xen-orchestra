@@ -1,7 +1,6 @@
 <!-- v3 -->
 <template>
   <div class="ui-label-value typo-body-regular">
-    <!-- <div class="label-value"> -->
     <div class="label">
       {{ label }}
     </div>

@@ -78,14 +78,15 @@
         <div class="content">
           <!-- IP ADDRESSES -->
           <div v-if="ipAddresses.length">
-            <UiLabelValue
-              v-for="(ip, index) in ipAddresses"
-              :key="ip"
-              :label="t('ip-addresses')"
-              :value="ip"
-              :copy-value="ip"
-            >
+            <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
+              <template #key>
+                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
+              </template>
+              <template #value>
+                <span v-tooltip class="text-ellipsis">{{ ip }}</span>
+              </template>
               <template #addons>
+                <VtsCopyButton :value="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="t('coming-soon')"
@@ -95,7 +96,7 @@
                   accent="brand"
                 />
               </template>
-            </UiLabelValue>
+            </VtsCardRowKeyValue>
           </div>
           <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" />
           <!-- MAC ADDRESSES -->
@@ -111,7 +112,9 @@ import type { XenApiVif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

@@ -80,7 +80,7 @@
           <UiLabelValue
             :label="t('vlan')"
             :value="pif.vlan === -1 ? t('none') : String(pif.vlan)"
-            :copy-value="pif.vlan === -1 ? t('none') : String(pif.vlan)"
+            :copy-value="pif.vlan === -1 ? undefined : String(pif.vlan)"
           />
           <!-- TAGS -->
           <UiLabelValue :label="t('tags')" :value="network?.tags" />
@@ -92,14 +92,15 @@
         <div class="content">
           <!-- IP ADDRESSES -->
           <template v-if="ipAddresses.length">
-            <UiLabelValue
-              v-for="(ip, index) in ipAddresses"
-              :key="ip"
-              :label="t('ip-addresses')"
-              :value="ip"
-              :copy-value="ip"
-            >
+            <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
+              <template #key>
+                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
+              </template>
+              <template #value>
+                <span class="text-ellipsis">{{ ip }}</span>
+              </template>
               <template #addons>
+                <VtsCopyButton :value="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
                   v-tooltip="t('coming-soon')"
@@ -109,7 +110,7 @@
                   accent="brand"
                 />
               </template>
-            </UiLabelValue>
+            </VtsCardRowKeyValue>
           </template>
           <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" />
           <!-- MAC ADDRESSES -->
@@ -124,14 +125,15 @@
           <UiLabelValue :label="t('ip-mode')" :value="ipConfigurationMode" />
           <!-- BOND DEVICES -->
           <div>
-            <UiLabelValue
-              v-for="(device, index) in bondDevices"
-              :key="device"
-              :label="t('bond-devices')"
-              :value="device"
-              :copy-value="device"
-            >
+            <VtsCardRowKeyValue v-for="(device, index) in bondDevices" :key="device">
+              <template #key>
+                <div v-if="index === 0">{{ t('bond-devices') }}</div>
+              </template>
+              <template #value>
+                <span v-tooltip class="text-ellipsis">{{ device }}</span>
+              </template>
               <template #addons>
+                <VtsCopyButton :value="device" />
                 <UiButtonIcon
                   v-if="index === 0 && bondDevices.length > 1"
                   v-tooltip="t('coming-soon')"
@@ -141,7 +143,7 @@
                   accent="brand"
                 />
               </template>
-            </UiLabelValue>
+            </VtsCardRowKeyValue>
           </div>
         </div>
       </UiCard>
@@ -153,7 +155,7 @@
           <UiLabelValue
             :label="t('mtu')"
             :value="pif.mtu === -1 ? t('none') : String(pif.mtu)"
-            :copy-value="pif.mtu === -1 ? t('none') : String(pif.mtu)"
+            :copy-value="pif.mtu === -1 ? undefined : String(pif.mtu)"
           />
           <!-- SPEED -->
           <UiLabelValue :label="t('speed')" :value="speed" />
@@ -169,7 +171,9 @@
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoPif } from '@/types/xo/pif.type.ts'
+import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
