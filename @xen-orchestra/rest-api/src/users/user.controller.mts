@@ -1,6 +1,7 @@
 import {
   Body,
   Delete,
+  Deprecated,
   Example,
   Get,
   Middlewares,
@@ -15,6 +16,7 @@ import {
   SuccessResponse,
   Tags,
 } from 'tsoa'
+import { createLogger } from '@xen-orchestra/log'
 import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
@@ -23,6 +25,7 @@ import type { XoAuthenticationToken, XoGroup, XoTask, XoUser } from '@vates/type
 import {
   createdResp,
   forbiddenOperationResp,
+  internalServerErrorResp,
   invalidParameters,
   noContentResp,
   notFoundResp,
@@ -31,7 +34,14 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
-import { partialUsers, user, authenticationTokens, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import {
+  partialUsers,
+  user,
+  authenticationTokens,
+  userId,
+  userIds,
+  authenticationToken,
+} from '../open-api/oa-examples/user.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
@@ -41,6 +51,9 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import { redirectMeAlias } from './user.middleware.mjs'
+import { ApiError } from '../helpers/error.helper.mjs'
+
+const log = createLogger('xo:rest-api:user-controller')
 
 @Route('users')
 @Security('*')
@@ -236,5 +249,72 @@ export class UserController extends XoController<XoUser> {
     const tasks = await this.getTasksForObject(id as XoUser['id'], { filter, limit })
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (10-13-2026)--------------------
+  /**
+   * @example body {"client": {"id": "my-fav-client"}, "description": "token for CLI usage", "expiresIn": "1 hour"}
+   */
+  @Example(authenticationToken)
+  @Deprecated()
+  @Post('authentication_tokens')
+  @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async postDeprecatedAuthenticationTokens(
+    @Body()
+    body: {
+      client?: {
+        id?: string
+      }
+      description?: string
+      expiresIn?: string | number
+    }
+  ): Promise<{ token: Unbrand<XoAuthenticationToken> }> {
+    log.warn(
+      'You are calling a deprecated route. It will be removed in the futur. Please use `/rest/v0/users/:id/authentication_tokens` or `/rest/v0/users/me/authentication_tokens` instead'
+    )
+    const user = this.restApi.getCurrentUser()
+
+    const token = await this.restApi.xoApp.createAuthenticationToken({
+      ...body,
+      userId: user.id,
+    })
+
+    return { token }
+  }
+  // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (10-13-2026)--------------------
+
+  /**
+   * @example id "me"
+   * @example body {"client": {"id": "my-fav-client"}, "description": "token for CLI usage", "expiresIn": "1 hour"}
+   */
+  @Example(authenticationToken)
+  @Post('{id}/authentication_tokens')
+  @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async postAuthenticationTokens(
+    @Body()
+    body: {
+      client?: {
+        id?: 'string'
+      }
+      description?: string
+      expiresIn?: string | number
+    },
+    @Path() id: string
+  ): Promise<{ token: Unbrand<XoAuthenticationToken> }> {
+    const user = this.restApi.getCurrentUser()
+    if (user.id !== id) {
+      throw new ApiError('You can only create tokens for yourself', 403)
+    }
+
+    const token = await this.restApi.xoApp.createAuthenticationToken({
+      ...body,
+      userId: user.id,
+    })
+
+    return { token }
   }
 }
