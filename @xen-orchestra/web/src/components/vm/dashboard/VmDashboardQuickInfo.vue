@@ -69,7 +69,7 @@
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
+import { useXoUserCollection } from '@/remote-resources/use-xo-user.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { HOST_POWER_STATE } from '@/types/xo/host.type.ts'
 import { VM_POWER_STATE, type XoVm } from '@/types/xo/vm.type.ts'
@@ -99,7 +99,9 @@ const { t, locale } = useI18n()
 const { areVmsReady, getVmHost } = useXoVmCollection()
 const { isMasterHost } = useXoHostCollection()
 const { useGetPoolById } = useXoPoolCollection()
-const { user } = useXoUserResource({}, () => vm.creation?.user)
+const { useGetUserById } = useXoUserCollection()
+
+const user = useGetUserById(() => vm.creation?.user)
 
 const host = computed(() => getVmHost(vm))
 
