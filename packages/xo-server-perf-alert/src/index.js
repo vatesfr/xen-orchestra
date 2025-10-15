@@ -3,6 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { filter, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 import assert from 'node:assert'
+import { XapiPerfmon } from './xapiPerfmon'
 const logger = createLogger('xo:xo-server-perf-alert')
 
 logger.debug('DEBUG ENABLED')
@@ -402,6 +403,7 @@ class PerfAlertXoPlugin {
   #running = false
   constructor(xo) {
     this._xo = xo
+
   }
   async #watchMonitors() {
     if (this.#running) {
@@ -433,6 +435,10 @@ class PerfAlertXoPlugin {
   }
 
   load() {
+
+    const perfmon = new XapiPerfmon(this._xo, this._configuration)
+    perfmon.init().then(console.log, console.error)
+    console.log('CONF', this._configuration)
     this.#watchMonitors().catch(logger.warn)
   }
 
