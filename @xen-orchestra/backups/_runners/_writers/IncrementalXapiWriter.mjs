@@ -10,6 +10,7 @@ import { AbstractIncrementalWriter } from './_AbstractIncrementalWriter.mjs'
 import { MixinXapiWriter } from './_MixinXapiWriter.mjs'
 import { listReplicatedVms } from './_listReplicatedVms.mjs'
 import { COPY_OF, setVmOtherConfig, BASE_DELTA_VDI } from '../../_otherConfig.mjs'
+import assert from 'node:assert'
 
 export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
@@ -118,11 +119,15 @@ export class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWr
     Object.values(backup.vdis).forEach(vdi => {
       vdi.other_config[COPY_OF] = vdi.uuid
       if (sourceVdiUuids.length > 0) {
-        const baseReplicatedTo = replicatedVdis.find(
+        const baseReplicatedTo = replicatedVdis.filter(
           replicatedVdi => replicatedVdi.other_config[COPY_OF] === vdi.other_config[BASE_DELTA_VDI]
         )
+        assert.ok(
+          baseReplicatedTo.length <= 1,
+          `Target of a replication must be unique, got ${baseReplicatedTo.length} candidates`
+        )
         // baseReplicatedTo can be undefined if a new disk is added and other are already replicated
-        vdi.baseVdi = baseReplicatedTo
+        vdi.baseVdi = baseReplicatedTo[0]
       } else {
         // first replication of this disk
         vdi.baseVdi = undefined
