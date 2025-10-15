@@ -1,3 +1,4 @@
+import type { XoPbd } from '@/types/xo/pbd.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoVdi } from '@/types/xo/vdi.type'
 import type { Branded } from '@core/types/utility.type'
@@ -19,5 +20,5 @@ export type XoSr = {
   other_config: Record<string, string>
   tags: string[]
   allocationStrategy?: 'thin' | 'thick' | 'unknown'
-  // PBDs?: string[]
+  $PBDs: XoPbd['id'][]
 }

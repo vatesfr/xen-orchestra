@@ -5,6 +5,7 @@ import type { XoHost } from '@/types/xo/host.type.ts'
 import type { XoMetadataBackupJob } from '@/types/xo/metadata-backup-job.type.ts'
 import type { XoMirrorBackupJob } from '@/types/xo/mirror-backup-job.type.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
+import type { XoPbd } from '@/types/xo/pbd.type'
 import type { XoPci } from '@/types/xo/pci.type.ts'
 import type { XoPgpu } from '@/types/xo/pgpu.type.ts'
 import type { XoPif } from '@/types/xo/pif.type.ts'
@@ -48,3 +49,4 @@ export type XoRecord =
   | XoUser
   | XoProxy
   | XoBackupRepository
+  | XoPbd
