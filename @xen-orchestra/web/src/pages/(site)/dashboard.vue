@@ -36,26 +36,14 @@ import Repositories from '@/components/site/dashboard/Repositories.vue'
 import ResourcesOverview from '@/components/site/dashboard/ResourcesOverview.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 import { useXoAlarmCollection } from '@/remote-resources/use-xo-alarm-collection.ts'
-import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
 import { useXoSiteDashboard } from '@/remote-resources/use-xo-site-dashboard.ts'
-import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
-import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection'
-import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { logicAnd } from '@vueuse/math'
 
 const uiStore = useUiStore()
 
 const { dashboard, backupRepositories, storageRepositories, hasError } = useXoSiteDashboard()
 
-const { areHostsReady } = useXoHostCollection()
-const { areVmsReady } = useXoVmCollection()
-const { areVmControllersReady } = useXoVmControllerCollection()
-const { areSrsReady } = useXoSrCollection()
-
-const areAlarmsReady = logicAnd(areHostsReady, areVmsReady, areVmControllersReady, areSrsReady)
-
-const { alarms, hasAlarmFetchError } = useXoAlarmCollection()
+const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
 </script>
 
 <style lang="postcss" scoped>
