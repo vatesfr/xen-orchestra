@@ -7,6 +7,7 @@ import type {
   XenApiHostWrapped,
   XenApiMessage,
   XenApiNetworkWrapped,
+  XenApiPbdWrapped,
   XenApiPciWrapped,
   XenApiPgpuWrapped,
   XenApiPifWrapped,
@@ -47,6 +48,7 @@ type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
   message: XenApiMessage
   network: XenApiNetworkWrapped
+  PBD: XenApiPbdWrapped
   PCI: XenApiPciWrapped
   PGPU: XenApiPgpuWrapped
   PIF: XenApiPifWrapped
@@ -96,6 +98,15 @@ export type XoApp = {
   checkFeatureAuthorization(featureCode: string): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
+  createAuthenticationToken(opts: {
+    client?: {
+      id?: string
+      [key: string]: unknown
+    }
+    description?: string
+    expiresIn?: string | number
+    userId: XoUser['id']
+  }): Promise<XoAuthenticationToken>
   createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
   deleteGroup(id: XoGroup['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
@@ -164,7 +175,7 @@ export type XoApp = {
   rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: VatesTask }): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
   runJob(job: XoJob, schedule: XoSchedule): void
-  runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
+  runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
   updateUser(

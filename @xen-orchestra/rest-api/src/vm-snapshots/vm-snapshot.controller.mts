@@ -1,4 +1,4 @@
-import { Delete, Example, Get, Path, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { Readable } from 'node:stream'
@@ -212,5 +212,29 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
     const tasks = await this.getTasksForObject(id as XoVmSnapshot['id'], { filter, limit })
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putVmSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vmSnapshot = this.getXapiObject(id as XoVmSnapshot['id'])
+    await vmSnapshot.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteVmSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vmSnapshot = this.getXapiObject(id as XoVmSnapshot['id'])
+    await vmSnapshot.$call('remove_tags', tag)
   }
 }

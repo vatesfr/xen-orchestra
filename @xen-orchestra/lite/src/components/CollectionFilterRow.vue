@@ -1,15 +1,19 @@
 <template>
   <div class="collection-filter-row">
     <span class="or">{{ t('or') }}</span>
-    <UiInput v-if="newFilter.isAdvanced" v-model="filterContent" accent="brand" />
-    <template v-else>
-      <VtsSelect :id="builderPropertySelectId" accent="brand" :icon="currentFilterIcon" />
-      <VtsSelect v-if="hasComparisonSelect" :id="builderComparisonSelectId" accent="brand" />
-      <VtsSelect v-if="currentFilter?.type === 'enum'" :id="builderValueSelectId" accent="brand" />
-      <UiInput v-else-if="hasValueInput" v-model="newFilter.builder.value" accent="brand" />
-    </template>
-    <UiActionButton v-if="!newFilter.isAdvanced" icon="fa:pencil" @click="enableAdvancedMode" />
-    <UiActionButton icon="fa:remove" @click="emit('remove', newFilter.id)" />
+    <div class="inputs">
+      <UiInput v-if="newFilter.isAdvanced" v-model="filterContent" accent="brand" class="advanced-input" />
+      <template v-else>
+        <VtsSelect :id="builderPropertySelectId" accent="brand" :icon="currentFilterIcon" />
+        <VtsSelect v-if="hasComparisonSelect" :id="builderComparisonSelectId" accent="brand" />
+        <VtsSelect v-if="currentFilter?.type === 'enum'" :id="builderValueSelectId" accent="brand" />
+        <UiInput v-else-if="hasValueInput" v-model="newFilter.builder.value" accent="brand" />
+      </template>
+    </div>
+    <div class="buttons">
+      <UiActionButton v-if="!newFilter.isAdvanced" icon="fa:pencil" @click="enableAdvancedMode" />
+      <UiActionButton icon="fa:remove" @click="emit('remove', newFilter.id)" />
+    </div>
   </div>
 </template>
 
@@ -24,7 +28,7 @@ import { useFormSelect } from '@core/packages/form-select'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { availableFilters } = defineProps<{
   availableFilters: Filters
 }>()
 
@@ -95,10 +99,10 @@ function getDefaultComparisonType(property: string) {
     enum: 'enumIs',
   }
 
-  return defaultTypes[props.availableFilters[property].type]
+  return defaultTypes[availableFilters[property].type]
 }
 
-const currentFilter = computed<Filter | undefined>(() => props.availableFilters[builderProperty.value])
+const currentFilter = computed<Filter | undefined>(() => availableFilters[builderProperty.value])
 
 const currentFilterIcon = computed(() => getFilterIcon(currentFilter.value))
 
@@ -113,7 +117,7 @@ const enumChoices = computed(() => {
     return []
   }
 
-  const availableFilter = props.availableFilters[builderProperty.value]
+  const availableFilter = availableFilters[builderProperty.value]
 
   if (availableFilter.type !== 'enum') {
     return []
@@ -195,7 +199,7 @@ const comparisons = computed<FilterComparisons>(() => {
 
 // BUILDER PROPERTY SELECT
 
-const { id: builderPropertySelectId } = useFormSelect(Object.entries(props.availableFilters), {
+const { id: builderPropertySelectId } = useFormSelect(Object.entries(availableFilters), {
   model: builderProperty,
   placeholder: `- ${t('property')} -`,
   option: {
@@ -250,9 +254,24 @@ const { id: builderValueSelectId } = useFormSelect(
   &:first-child .or {
     visibility: hidden;
   }
-}
 
-.ui-action-button:first-of-type {
-  margin-left: auto;
+  .inputs,
+  .buttons {
+    display: flex;
+    gap: 1rem;
+
+    @media (--mobile) {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+
+  .inputs {
+    flex: 1;
+  }
+
+  .buttons {
+    margin-left: auto;
+  }
 }
 </style>

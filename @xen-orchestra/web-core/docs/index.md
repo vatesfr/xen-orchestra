@@ -6,6 +6,7 @@
 - [Icons](./icons.md)
 - [Stores](./stores.md)
 - [Subscribable stores](./subscribable-stores.md)
+- [Modals](./modals.md)
 
 # Composables
 
@@ -27,3 +28,4 @@
 
 - [Job System](../lib/packages/job/README.md)
 - [Menu System](../lib/packages/menu/README.md)
+- [Modal System](../lib/packages/modal/README.md)

@@ -62,3 +62,15 @@ export const authenticationTokens = [
   },
 ]
 
+export const authenticationToken = {
+  token: {
+    client: {
+      id: 'my-fav-client',
+    },
+    created_at: 1760346600297,
+    description: 'token for CLI usage',
+    id: 'fhIUz8AtMLndzMd3ksfoTpHb0tWyKHmT6-M3o_hUbRg',
+    user_id: '722d17b9-699b-49d2-8193-be1ac573d3de',
+    expiration: 1760350200297,
+  },
+}
