@@ -49,7 +49,8 @@ export default class PerformancePlan extends Plan {
       console.error(error)
     }
 
-    // Step 1 : anti-affinity
+    // Step 1 : affinity and anti-affinity
+    await this._processAffinity()
     await this._processAntiAffinity()
 
     // Step 2 : optimize host that exceed CPU threshold
@@ -202,6 +203,10 @@ export default class PerformancePlan extends Plan {
         // - All VMs, hosts and stats must be fetched at one place.
         // - It's necessary to maintain a dictionary of tags for each host.
         // - ...
+        if (this._affinityTags.includes(tag)) {
+          debug(`VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains affinity tag '${tag}'.`)
+          continue
+        }
         if (this._antiAffinityTags.includes(tag)) {
           debug(
             `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag '${tag}'.`
