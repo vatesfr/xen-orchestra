@@ -69,6 +69,9 @@
 
 - [Plugins/SAML] Add two fields to configure assertions and responses signatures (PR [#9093](https://github.com/vatesfr/xen-orchestra/pull/9093))
 
+- **XO 6:**
+  - [Collections] Implement virtual lists for tasks and alarms to improve performance (PR [#9077](https://github.com/vatesfr/xen-orchestra/pull/9077))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
