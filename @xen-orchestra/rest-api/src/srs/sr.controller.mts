@@ -24,6 +24,7 @@ import { BASE_URL } from '../index.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
+  badRequestResp,
   createdResp,
   noContentResp,
   notFoundResp,
@@ -40,6 +41,7 @@ import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.m
 
 @Route('srs')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('srs')
 @provide(SrController)

@@ -3,7 +3,7 @@ import { provide } from 'inversify-binding-decorators'
 import { Request as ExRequest } from 'express'
 import type { XoBackupRepository } from '@vates/types'
 
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import {
   backupRepositoryIds,
   partialBackupRepositories,
@@ -14,6 +14,7 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('backup-repositories')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('backup-repositories')
 @provide(BackupRepositoryController)

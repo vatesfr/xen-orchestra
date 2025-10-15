@@ -23,6 +23,7 @@ import type { XoGroup, XoTask, XoUser } from '@vates/types'
 
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 import {
+  badRequestResp,
   createdResp,
   forbiddenOperationResp,
   invalidParameters,
@@ -44,6 +45,7 @@ import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.m
 
 @Route('groups')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('groups')
 @provide(GroupController)

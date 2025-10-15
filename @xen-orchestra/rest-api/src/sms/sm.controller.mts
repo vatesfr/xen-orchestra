@@ -4,7 +4,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoSm } from '@vates/types'
 
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialSms, sm, smIds } from '../open-api/oa-examples/sm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -12,6 +12,7 @@ import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
 @Route('sms')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('sms')
 @provide(SmController)

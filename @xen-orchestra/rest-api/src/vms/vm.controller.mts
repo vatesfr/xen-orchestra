@@ -36,6 +36,7 @@ import { Readable } from 'node:stream'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import {
   asynchronousActionResp,
+  badRequestResp,
   createdResp,
   forbiddenOperationResp,
   incorrectStateResp,
@@ -63,6 +64,7 @@ const IGNORED_VDIS_TAG = '[NOSNAP]'
 
 @Route('vms')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('vms')
 // the `provide` decorator is mandatory on class that injects/receives dependencies.

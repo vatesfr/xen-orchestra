@@ -9,11 +9,12 @@ import { backupLog, backupLogIds, partialBackupLogs } from '../open-api/oa-examp
 import { BackupLogService } from './backup-log.service.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
-import { unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('backup-logs')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('backup-logs')
 @provide(BackupLogController)

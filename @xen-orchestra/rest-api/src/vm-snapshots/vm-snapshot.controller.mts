@@ -8,6 +8,7 @@ import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/util
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import {
+  badRequestResp,
   forbiddenOperationResp,
   incorrectStateResp,
   noContentResp,
@@ -31,6 +32,7 @@ import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-
 
 @Route('vm-snapshots')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('vms')
 @provide(VmSnapshotController)

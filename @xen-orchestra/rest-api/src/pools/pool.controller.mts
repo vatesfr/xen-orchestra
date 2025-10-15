@@ -24,6 +24,7 @@ import type { VatesTask } from '@vates/types/lib/vates/task'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import {
   asynchronousActionResp,
+  badRequestResp,
   createdResp,
   featureUnauthorized,
   internalServerErrorResp,
@@ -79,6 +80,7 @@ import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-
 
 @Route('pools')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('pools')
 @provide(PoolController)
@@ -461,7 +463,7 @@ export class PoolController extends XapiXoController<XoPool> {
     await pool.$call('remove_tags', tag)
   }
 
-  /** 
+  /**
    * @example fields "id,status,properties"
    * @example filter "status:failure"
    * @example limit 42

@@ -2,7 +2,20 @@ import * as CM from 'complex-matcher'
 import type { Request as ExRequest } from 'express'
 import type { XoTask } from '@vates/types'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
-import { Get, Path, Query, Request, Route, Security, Tags, Response, Example, Delete, Post, SuccessResponse } from 'tsoa'
+import {
+  Get,
+  Path,
+  Query,
+  Request,
+  Route,
+  Security,
+  Tags,
+  Response,
+  Example,
+  Delete,
+  Post,
+  SuccessResponse,
+} from 'tsoa'
 import { SendObjects } from '../helpers/helper.type.mjs'
 import {
   asynchronousActionResp,
@@ -21,6 +34,7 @@ import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 
 @Route('tasks')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('tasks')
 @provide(TaskController)

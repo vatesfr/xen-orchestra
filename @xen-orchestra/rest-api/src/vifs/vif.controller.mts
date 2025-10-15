@@ -6,7 +6,7 @@ import type { XoAlarm, XoMessage, XoTask, XoVif } from '@vates/types'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { partialVifs, vif, vifIds } from '../open-api/oa-examples/vif.oa-example.mjs'
@@ -19,6 +19,7 @@ type UnbrandedXoVif = Unbrand<XoVif>
 
 @Route('vifs')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('vifs')
 @provide(VifController)

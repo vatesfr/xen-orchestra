@@ -9,7 +9,7 @@ import type { XoMessage } from '@vates/types'
 import { alarmPredicate } from '../alarms/alarm.service.mjs'
 import { message, messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 
@@ -17,6 +17,7 @@ type UnbrandedXoMessage = Unbrand<XoMessage>
 
 @Route('messages')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('messages')
 @provide(MessageController)

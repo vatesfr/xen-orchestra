@@ -29,7 +29,7 @@ import { provide } from 'inversify-binding-decorators'
 
 import { backupLog, backupLogIds, partialBackupLogs } from '../open-api/oa-examples/backup-log.oa-example.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
-import { notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type {
@@ -57,6 +57,7 @@ const log = createLogger('xo:rest-api:backupJob-controller')
 
 @Route('backup-jobs')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('backup-jobs')
 @provide(BackupJobController)
@@ -111,6 +112,7 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
 // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (09-12-2026)--------------------
 @Route('backup')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Middlewares((_req, _res, next) => {
   log.warn(

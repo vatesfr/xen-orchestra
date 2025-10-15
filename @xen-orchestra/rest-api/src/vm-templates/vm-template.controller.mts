@@ -9,6 +9,7 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import {
+  badRequestResp,
   forbiddenOperationResp,
   incorrectStateResp,
   noContentResp,
@@ -32,6 +33,7 @@ import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.m
 
 @Route('vm-templates')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('vms')
 @provide(VmTemplateController)
