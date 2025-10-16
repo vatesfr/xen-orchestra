@@ -30,5 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
+- xo-web minor
 <!--packages-end-->
