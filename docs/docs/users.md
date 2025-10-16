@@ -223,7 +223,7 @@ Since 5.111.1 version, you need to configure signature for Document **and** Asse
 
 - **Keycloak:** In Client Settings, Signature and Encryption, check "Sign Documents" and "Sign Assertion".
 - **Azure:** In SAML Signing Certificate options, select "Sign SAML response and assertion".
-- **Google Workspace:** To indicate that your service provider requires the entire SAML authentication response to be signed, check the Signed response box. If this is unchecked (the default), only the assertion within the response is signed.
+- **Google Workspace:** In the Service Provider details, check the "Signed response" box.
   :::
 
 #### Vendor specific
