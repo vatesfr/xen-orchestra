@@ -392,7 +392,7 @@ If you’re automating things or working with scripts, you can also control VIF 
 ### VM high availability (HA)
 
 If your pool supports HA (must have shared storage), you can activate "HA". Read the XCP-ng documentation for more details on [High Availability with XCP-ng](https://docs.xcp-ng.org/management/ha/).
-In the VM advanced tab, you can choose between three HA modes:
+In the VM's Advanced tab, you can choose between three HA modes:
 - Restart: a protected VM cannot be immediately restarted after a server failure, HA will attempt to restart the VM when additional capacity becomes available in the pool.
 - Best-Effort: for VMs configured with best-effort, HA will try to restart them on another host if their original host goes offline. This attempt occurs only after all VMs set to the "restart" mode have been successfully restarted. HA will make only one attempt to restart a best-effort VM; if it fails, no further attempts will be made.
 - Disabled: if an unprotected VM or its host is stopped, HA does not attempt to restart the VM.
