@@ -84,6 +84,7 @@
 
 - **XO 6**:
   - [Site/Backups] Fix an issue properties of undefined in backups tab (PR [#9064](https://github.com/vatesfr/xen-orchestra/pull/9064))
+  - [User Menu] Fix display user menu in front of tree structure (PR [#9115](https://github.com/vatesfr/xen-orchestra/pull/9115))
 
 ### Packages to release
 
