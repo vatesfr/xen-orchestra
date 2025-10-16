@@ -1,9 +1,10 @@
 import crypto from 'node:crypto'
-import { Branded } from '@vates/types'
+import { Branded, XapiXoRecord } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import type { Response } from 'express'
 
 import { ApiError } from '../helpers/error.helper.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 
 type SseConnectionId = Branded<'SSE'>
 
@@ -18,11 +19,24 @@ export class EventService {
     }
   > = new Map()
 
-  constructor() {
+  constructor(restApi: RestApi) {
     process.on('SIGTERM', () => {
       log.debug(`SIGTERM received, close all SSE clients (nb: ${this.#clients.size})`)
       this.#clients.forEach((_, id) => this.#removeSseClient(id))
     })
+
+    const handleXapiEvent =
+      (event: 'add' | 'update' | 'remove') => (objects: Record<XapiXoRecord['id'], XapiXoRecord | undefined>) => {
+        for (const key in objects) {
+          const data = event === 'remove' ? { id: key } : objects[key]
+          this.sendDataForAllClient({ event, data })
+        }
+      }
+
+    const object = restApi.xoApp.objects
+    object.on('add', handleXapiEvent('add'))
+    object.on('remove', handleXapiEvent('remove'))
+    object.on('update', handleXapiEvent('update'))
   }
 
   createSseClient(res: Response): SseConnectionId {
@@ -50,7 +64,10 @@ export class EventService {
     return id
   }
 
-  sendData(id: SseConnectionId, { event, data }: { event: string; data: object }): void {
+  sendData(
+    id: SseConnectionId,
+    { event, data }: { event: 'init' | 'ping' | 'add' | 'update' | 'remove'; data: object }
+  ): void {
     const connection = this.#clients.get(id)?.connection
     if (connection === undefined) {
       throw new ApiError(`no connection found with ID: ${id}`, 404)
@@ -58,6 +75,12 @@ export class EventService {
 
     connection.write(`event:${event}\n`)
     connection.write(`data:${JSON.stringify(data)}\n\n`)
+  }
+
+  sendDataForAllClient({ event, data }): void {
+    this.#clients.forEach((_, id) => {
+      this.sendData(id, { event, data })
+    })
   }
 
   #removeSseClient(id: SseConnectionId) {
