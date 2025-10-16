@@ -398,7 +398,7 @@ In the VM's Advanced tab, you can choose between three HA modes:
 - Disabled: if an unprotected VM or its host is stopped, HA does not attempt to restart the VM.
 
 :::tip
-In Xen Orchestra you can filter to see which VM are in which mode:
+In Xen Orchestra, you can filter to see which VMs are in which mode:
 `high_availability:restart` or `high_availability:best-effort`
 :::
 
