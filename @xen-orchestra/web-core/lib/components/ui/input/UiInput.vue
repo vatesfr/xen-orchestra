@@ -1,7 +1,8 @@
 <!-- v5 -->
 <template>
   <div :class="toVariants({ accent, disabled })" class="ui-input" @click.self="focus()">
-    <VtsIcon :name="icon" size="medium" class="left-icon" />
+    <UiLoader v-if="isSearching" />
+    <VtsIcon v-else :name="icon" size="medium" class="left-icon" />
     <input
       :id="wrapperController?.id ?? id"
       ref="inputRef"
@@ -30,6 +31,7 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { LabelAccent } from '@core/components/ui/label/UiLabel.vue'
+import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util'
@@ -57,6 +59,7 @@ const {
   icon?: IconName
   rightIcon?: IconName
   clearable?: boolean
+  isSearching?: boolean
 }>()
 
 const modelValue = defineModel<string | number>({ required: true })

@@ -3,9 +3,11 @@
     <UiInput
       v-model="search"
       :aria-label="t('sidebar.search-tree-view')"
-      icon="fa:magnifying-glass"
+      :icon="!isSearching ? 'fa:magnifying-glass' : undefined"
       :placeholder="t('sidebar.search-tree-view')"
       accent="brand"
+      clearable
+      :is-searching
     />
   </div>
 </template>
@@ -13,6 +15,8 @@
 <script lang="ts" setup>
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import { useI18n } from 'vue-i18n'
+
+defineProps<{ isSearching?: boolean }>()
 
 const search = defineModel<string>({ default: '' })
 
