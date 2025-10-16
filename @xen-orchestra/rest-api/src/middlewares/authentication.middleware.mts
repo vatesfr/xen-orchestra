@@ -29,7 +29,6 @@ export async function expressAuthentication(req: AuthenticatedRequest, securityN
     throw unauthorized()
   }
 
-  await restApi.runWithApiContext(user, noop)
   return user
 }
 
