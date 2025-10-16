@@ -466,7 +466,8 @@ export class Size extends Editable {
   _saveIfUnfocused = () => {
     this._focused = false
     setTimeout(() => {
-      !this._focused && this._save()
+      // checking state.saving to avoid saving twice when unfocusing and pressing Enter
+      !this._focused && !this.state.saving && this._save()
     }, 10)
   }
 
