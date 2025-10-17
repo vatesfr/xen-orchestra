@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Middlewares,
   Path,
@@ -59,5 +60,13 @@ export class EventController extends Controller {
     return {
       id: subscribtionId,
     }
+  }
+
+  /**
+   * Remove a subscription in the SSE connection
+   */
+  @Delete('{id}/subscription/{subscriptionId}')
+  removeSubscription(@Path() id: string, @Path() subscriptionId: string): void {
+    this.#eventService.unsubscribe(id as SseConnectionId, subscriptionId as SseSubscriptionId)
   }
 }

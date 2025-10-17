@@ -101,13 +101,19 @@ export class EventService {
     ee.on('update', handleUpdate)
     ee.on('remove', handleRemove)
 
+    const subscriptionId = crypto.randomUUID() as SseSubscriptionId
+
     const unsubscribe = () => {
       ee.removeListener('add', handleAdd)
       ee.removeListener('update', handleUpdate)
       ee.removeListener('remove', handleRemove)
+      const _client = this.#clients.get(id)
+      if (_client === undefined) {
+        return
+      }
+      delete _client.subscriptions[subscriptionId]
+      this.#clients.set(id, _client)
     }
-
-    const subscriptionId = crypto.randomUUID() as SseSubscriptionId
 
     client.subscriptions[subscriptionId] = {
       collection,
@@ -116,6 +122,15 @@ export class EventService {
     this.#clients.set(id, client)
 
     return subscriptionId
+  }
+
+  unsubscribe(clientId: SseConnectionId, subId: SseSubscriptionId): void {
+    const client = this.#clients.get(clientId)
+    if (client === undefined) {
+      throw new ApiError(`no SSE client found for ID: ${clientId}`, 404)
+    }
+
+    client.subscriptions[subId]?.unsubscribe()
   }
 
   sendData(
