@@ -1,11 +1,11 @@
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
 import {
   faBuilding,
+  faCopy,
   faFile,
   faFolderClosed,
   faFolderOpen,
   faSquareCheck,
-  faCopy,
 } from '@fortawesome/free-regular-svg-icons'
 import {
   faAlignLeft,
@@ -54,6 +54,7 @@ import {
   faExclamation,
   faExclamationCircle,
   faExternalLink,
+  faEye,
   faEyeSlash,
   faFileCsv,
   faFileExport,
@@ -154,6 +155,7 @@ export const faIcons = defineIconPack({
   exclamation: { icon: faExclamation },
   'exclamation-circle': { icon: faExclamationCircle },
   'external-link': { icon: faExternalLink },
+  eye: { icon: faEye },
   'eye-slash': { icon: faEyeSlash },
   file: { icon: faFile },
   'file-csv': { icon: faFileCsv },
