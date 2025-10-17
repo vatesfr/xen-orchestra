@@ -71,6 +71,7 @@
 
 - **XO 6:**
   - [Collections] Implement virtual lists for tasks and alarms to improve performance (PR [#9077](https://github.com/vatesfr/xen-orchestra/pull/9077))
+  - [User Menu] Added new links in the user menu and customized it (PR [#9126](https://github.com/vatesfr/xen-orchestra/pull/9126))
 
 ### Bug fixes
 
