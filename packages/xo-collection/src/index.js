@@ -1,10 +1,10 @@
 import iteratee from 'lodash/iteratee'
+import { EventEmitter } from 'node:events'
 
 import clearObject from './clear-object'
 import isEmpty from './is-empty'
 import NotImplemented from './not-implemented'
 import { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
-
 // ===================================================================
 
 export class Index {
@@ -15,6 +15,7 @@ export class Index {
 
     this._itemsByHash = Object.create(null)
     this._keysToHash = Object.create(null)
+    this._eeByType = Object.create(null)
 
     // Bound versions of listeners.
     this._onAdd = this._onAdd.bind(this)
@@ -30,10 +31,11 @@ export class Index {
 
   // Remove empty items lists.
   sweep() {
-    const { _itemsByHash: itemsByHash } = this
+    const { _itemsByHash: itemsByHash, _eeByType } = this
     for (const hash in itemsByHash) {
       if (isEmpty(itemsByHash[hash])) {
         delete itemsByHash[hash]
+        delete _eeByType[hash]
       }
     }
   }
@@ -42,6 +44,19 @@ export class Index {
 
   get items() {
     return this._itemsByHash
+  }
+
+  getEventEmitterByType(type) {
+    if (type === undefined) {
+      throw new Error('type is required')
+    }
+
+    if (this._eeByType[type] === undefined) {
+      // TODO: set max listener to 3*nb users
+      this._eeByType[type] = new EventEmitter()
+    }
+
+    return this._eeByType[type]
   }
 
   // -----------------------------------------------------------------
@@ -85,6 +100,7 @@ export class Index {
           (itemsByHash[hash] = {}))[key] = value
 
         keysToHash[key] = hash
+        this.getEventEmitterByType(hash)?.emit('add', value)
       }
     }
   }
@@ -108,6 +124,7 @@ export class Index {
           (itemsByHash[hash] = {}))[key] = value
 
         keysToHash[key] = hash
+        this.getEventEmitterByType(hash)?.emit('update', value)
       } else {
         delete keysToHash[key]
       }
@@ -120,6 +137,7 @@ export class Index {
     for (const key in items) {
       const prev = keysToHash[key]
       if (prev != null) {
+        this.getEventEmitterByType(prev)?.emit('remove', itemsByHash[prev][key])
         delete itemsByHash[prev][key]
         delete keysToHash[key]
       }
