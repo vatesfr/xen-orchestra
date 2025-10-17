@@ -14,6 +14,7 @@
     </template>
     <template #default>
       <HostDefaultCard :host />
+      <HostNetworkCard :host />
     </template>
   </UiPanel>
 </template>
@@ -25,6 +26,7 @@ import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { useI18n } from 'vue-i18n'
 import HostDefaultCard from './card/HostDefaultCard.vue'
+import HostNetworkCard from './card/HostNetworkCard.vue'
 
 const { host } = defineProps<{
   host: XoHost

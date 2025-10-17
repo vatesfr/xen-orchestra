@@ -142,8 +142,9 @@ const { hosts } = defineProps<{
 const hostsId = computed(() => hosts.map(host => host.id))
 
 const { t } = useI18n()
-const { pifsByHost, arePifsReady } = useXoPifCollection()
 const selectedHostId = useRouteQuery('id')
+
+const { pifsByHost, arePifsReady } = useXoPifCollection()
 const { selected, areAllSelected } = useMultiSelect(hostsId)
 
 const toggleSelect = () => {
