@@ -1,6 +1,6 @@
 # REST API
 
-We originally developed [our existing API](architecture.md#api) to be used between the Web UI `xo-web` and the server backend, `xo-server`. That's why it's a JSON-RPC API connected via websockets, allowing us to update objects live in the browser. This is perfect for our usage, but a bit complicated for others.
+We originally developed [our existing API](../xen-orchestra/architecture#api) to be used between the Web UI `xo-web` and the server backend, `xo-server`. That's why it's a JSON-RPC API connected via websockets, allowing us to update objects live in the browser. This is perfect for our usage, but a bit complicated for others.
 
 Also, this API wasn't meant to be public, but over the years some users have expressed a desire to be able to use it for their own purposes. This led us to add more tooling around it, like `xo-cli` and to answer specific requests.
 
@@ -413,7 +413,7 @@ $ curl \
 
 As part of our continuous efforts to improve the developer experience, we’ve begun documenting the Xen Orchestra REST API using the OpenAPI (Swagger) standard:
 
-![VM getID enpoints documented in Swagger](./assets/swagger-example.png)
+![VM getID enpoints documented in Swagger](../assets/swagger-example.png)
 
 :::tip
 

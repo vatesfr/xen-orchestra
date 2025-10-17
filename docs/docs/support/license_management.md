@@ -8,11 +8,11 @@ This section will cover the license management system for commercial editions of
 
 2. All the licenses available and not bind already will be displayed here with a green `activate license` button
 
-![](./assets/activate-license.png)
+![](../assets/activate-license.png)
 
 3. By clicking on the activate license option, you will be required to confirm your choice.
 
-![](./assets/activate-confirm.png)
+![](../assets/activate-confirm.png)
 
 ## Rebind XO license
 
@@ -22,10 +22,10 @@ A license can only be bind to a single appliance at the same time, rebind your l
 
 To rebind your Xen Orchestra appliance, you simply need to connect on the **appliance on which you want to bind the license** and click on the rebind option (Move license to this XOA button) in the license section
 
-![](./assets/rebind-screen.png)
+![](../assets/rebind-screen.png)
 
 You will then have a confirmation screen
 
-![](./assets/confirm-rebind.png)
+![](../assets/confirm-rebind.png)
 
 Once it's done, you simply need to proceed to an upgrade on your freshly binded appliance to download the correct edition packages.
