@@ -578,6 +578,7 @@
   "snapshot": "Snapshot",
   "snapshot-mode": "Snapshot mode",
   "sockets-with-cores-per-socket": "{nSockets} sockets × {nCores} cores/socket",
+  "software": "Software",
   "software-tooling": "Software & tooling",
   "sort-by": "Sort by",
   "source-backup-repository": "Source backup repository",
