@@ -108,6 +108,7 @@
 - @xen-orchestra/disk-transform minor
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
