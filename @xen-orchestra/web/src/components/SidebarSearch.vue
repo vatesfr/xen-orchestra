@@ -3,7 +3,7 @@
     <UiInput
       v-model="search"
       :aria-label="t('sidebar.search-tree-view')"
-      :icon="!isSearching ? 'fa:magnifying-glass' : undefined"
+      icon="fa:magnifying-glass"
       :placeholder="t('sidebar.search-tree-view')"
       accent="brand"
       clearable
