@@ -112,6 +112,7 @@ export class Index {
       const value = items[key]
 
       const prev = keysToHash[key]
+      const previousObj = itemsByHash[prev]?.[key]
       const hash = computeHash(value, key)
 
       // Removes item from the previous hash's list if any.
@@ -124,7 +125,7 @@ export class Index {
           (itemsByHash[hash] = {}))[key] = value
 
         keysToHash[key] = hash
-        this.getEventEmitterByType(hash)?.emit('update', value)
+        this.getEventEmitterByType(hash)?.emit('update', value, previousObj)
       } else {
         delete keysToHash[key]
       }
@@ -137,7 +138,7 @@ export class Index {
     for (const key in items) {
       const prev = keysToHash[key]
       if (prev != null) {
-        this.getEventEmitterByType(prev)?.emit('remove', itemsByHash[prev][key])
+        this.getEventEmitterByType(prev)?.emit('remove', undefined, itemsByHash[prev][key])
         delete itemsByHash[prev][key]
         delete keysToHash[key]
       }

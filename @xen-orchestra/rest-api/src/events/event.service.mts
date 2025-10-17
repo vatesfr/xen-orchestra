@@ -1,4 +1,6 @@
 import crypto from 'node:crypto'
+import isEqual from 'lodash/isEqual.js'
+import pick from 'lodash/pick.js'
 import { Branded, XapiXoRecord, XoAlarm } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import type { Response } from 'express'
@@ -25,6 +27,7 @@ export class EventService {
         {
           collection: XapiXoRecord['type'] | 'alarm'
           unsubscribe(): void
+          fields: string
         }
       >
     }
@@ -67,7 +70,10 @@ export class EventService {
     return id
   }
 
-  subscribeXapiCollection(id: SseConnectionId, collection: XapiXoRecord['type'] | 'alarm') {
+  subscribeXapiCollection(
+    id: SseConnectionId,
+    { collection, fields = '*' }: { collection: XapiXoRecord['type'] | 'alarm'; fields?: string }
+  ) {
     const xapiType = collection === 'alarm' ? 'message' : collection
     const client = this.#clients.get(id)
     if (client === undefined) {
@@ -85,14 +91,38 @@ export class EventService {
     }
 
     // Exclude XoAlarm as Alarm are parsed XoMessage (XoAlarm doesn't exist at the XAPI level)
-    const handleXapiEvent = (event: 'add' | 'remove' | 'update') => (object: Exclude<XapiXoRecord, XoAlarm>) => {
-      let _object: XapiXoRecord = object
-      if (collection === 'alarm' && object.type === 'message' && this.#alarmService.isAlarm(object)) {
-        _object = this.#alarmService.parseAlarm(object)
-      }
+    const handleXapiEvent =
+      (event: 'add' | 'remove' | 'update') =>
+      <T extends Exclude<XapiXoRecord, XoAlarm>>(object: T | undefined, previousObj?: T) => {
+        let _object: Partial<XapiXoRecord> | undefined = object
+        let _prevObject: Partial<XapiXoRecord> | undefined = previousObj
 
-      this.sendData(id, { event, data: _object })
-    }
+        if (collection === 'alarm') {
+          if (object?.type === 'message' && this.#alarmService.isAlarm(object)) {
+            _object = this.#alarmService.parseAlarm(object)
+          }
+          if (previousObj?.type === 'message' && this.#alarmService.isAlarm(previousObj)) {
+            _prevObject = this.#alarmService.parseAlarm(previousObj)
+          }
+        }
+
+        if (fields.trim() === '') {
+          fields = '*'
+        }
+
+        if (fields !== '*') {
+          _object = pick(_object, fields.split(','))
+          _prevObject = pick(_prevObject, fields.split(','))
+        }
+
+        if (event === 'update' && isEqual(_object, _prevObject)) {
+          // if no changes from user perspective, don't send update
+          return
+        }
+
+        const data = event === 'remove' ? _prevObject! : _object!
+        this.sendData(id, { event, data })
+      }
 
     const handleAdd = handleXapiEvent('add')
     const handleUpdate = handleXapiEvent('update')
@@ -118,6 +148,7 @@ export class EventService {
     client.subscriptions[subscriptionId] = {
       collection,
       unsubscribe,
+      fields,
     }
     this.#clients.set(id, client)
 

@@ -54,9 +54,9 @@ export class EventController extends Controller {
   @SuccessResponse(createdResp.status, createdResp.description)
   subscribeCollection(
     @Path() id: string,
-    @Body() body: { collection: XapiXoRecord['type'] | 'alarm' }
+    @Body() body: { collection: XapiXoRecord['type'] | 'alarm'; fields?: string }
   ): { id: Unbrand<SseSubscriptionId> } {
-    const subscribtionId = this.#eventService.subscribeXapiCollection(id as SseConnectionId, body.collection)
+    const subscribtionId = this.#eventService.subscribeXapiCollection(id as SseConnectionId, body)
     return {
       id: subscribtionId,
     }
