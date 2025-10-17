@@ -13,10 +13,12 @@
       </div>
     </template>
     <template #default>
-      <HostDefaultCard :host />
+      <HostGeneralCard :host />
       <HostNetworkCard :host />
       <!-- host licensing -->
       <HostSoftwareCard :host />
+      <HostHardwareSpecificationsCard :host />
+      <!-- host hardware health -->
     </template>
   </UiPanel>
 </template>
@@ -27,7 +29,8 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { useI18n } from 'vue-i18n'
-import HostDefaultCard from './card/HostDefaultCard.vue'
+import HostGeneralCard from './card/HostGeneralCard.vue'
+import HostHardwareSpecificationsCard from './card/HostHardwareSpecificationsCard.vue'
 import HostNetworkCard from './card/HostNetworkCard.vue'
 import HostSoftwareCard from './card/HostSoftwareCard.vue'
 
