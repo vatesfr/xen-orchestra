@@ -88,7 +88,6 @@ const open = (event: MouseEvent) => {
 .menu-list {
   display: inline-flex;
   flex-direction: column;
-  padding: 0.4rem;
   cursor: default;
   color: var(--color-neutral-txt-primary);
   border-radius: 0.4rem;

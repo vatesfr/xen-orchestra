@@ -28,7 +28,6 @@ defineProps<{
   padding-right: 1.5rem;
   padding-left: 1.5rem;
   white-space: nowrap;
-  border-radius: 0.8rem;
   gap: 1rem;
   background-color: var(--color-neutral-background-primary);
 
@@ -40,12 +39,12 @@ defineProps<{
     cursor: pointer;
 
     &:hover {
-      background-color: var(--color-brand-background-selected);
+      background-color: var(--color-brand-background-hover);
     }
 
     &:active,
     &.active {
-      background-color: var(--color-brand-background-hover);
+      background-color: var(--color-brand-background-active);
     }
   }
 }
