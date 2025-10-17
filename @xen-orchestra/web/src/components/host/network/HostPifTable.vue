@@ -93,7 +93,7 @@
                 disabled
                 size="small"
               />
-              <div v-else-if="column.id === 'status'" v-tooltip>
+              <div v-else-if="column.id === 'status'">
                 <VtsStatus :status="column.value" />
               </div>
               <div v-else-if="column.id === 'network'" class="network">

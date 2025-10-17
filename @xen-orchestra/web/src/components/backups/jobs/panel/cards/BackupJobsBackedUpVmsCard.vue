@@ -11,7 +11,7 @@
           {{ t('smart-mode') }}
         </template>
         <template #value>
-          <VtsStatus :status="isSmartModeEnabled ? 'enabled' : 'disabled'" />
+          <VtsStatus :status="isSmartModeEnabled" />
         </template>
       </VtsCardRowKeyValue>
       <template v-if="isSmartModeEnabled">

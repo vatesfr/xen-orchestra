@@ -2,8 +2,6 @@
 
 ## **next**
 
-- [VtsState] Created `VtsState` as a unified replacement for `VtsConnectionStatus`, `VtsEnabledState` and `VtsBackupState` components (PR [#9052](https://github.com/vatesfr/xen-orchestra/pull/9052))
-
 ## **0.15.0** (2025-09-30)
 
 - [settigns] fix key-value alignement and refactor page (PR [#8981](https://github.com/vatesfr/xen-orchestra/pull/8981))

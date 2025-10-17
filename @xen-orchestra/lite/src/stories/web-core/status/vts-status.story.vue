@@ -8,6 +8,7 @@
         .type('Status')
         .preset(true)
         .widget(),
+      prop('iconOnly').bool().widget(),
     ]"
   >
     <VtsStatus v-bind="properties" />
