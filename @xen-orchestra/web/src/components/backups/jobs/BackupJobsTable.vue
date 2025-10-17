@@ -132,7 +132,7 @@ const { backupJobs } = defineProps<{
   hasError: boolean
 }>()
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 
 const { schedulesByJobId } = useXoScheduleCollection()
 const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
@@ -167,7 +167,7 @@ const getRunStatusIcon = createMapper<XoBackupLog['status'], IconName>(
 
 const getRunInfo = (backupLog: XoBackupLog, index: number) => ({
   icon: getRunStatusIcon(backupLog.status),
-  tooltip: `${t('last-run-number', { n: index + 1 })}: ${new Date(backupLog.end ?? backupLog.start).toLocaleString()}, ${t(backupLog.status)}`,
+  tooltip: `${t('last-run-number', { n: index + 1 })}: ${d(backupLog.end ?? backupLog.start, 'datetime_short')}, ${t(backupLog.status)}`,
 })
 
 const getLastThreeRunsStatuses = (backupJob: XoBackupJob) =>
