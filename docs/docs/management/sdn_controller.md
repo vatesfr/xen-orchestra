@@ -10,7 +10,7 @@ The SDN Controller enables a user to **create pool-wide and cross-pool private n
 
 Interconnect your VMs and hosts within a dedicated and secured private network, even across different pools all around the world. This is a great way to protect "private links" (eg between applications and databases, management networks etc.) without any complicated deployment.
 
-![](./assets/gpn.png)
+![](../assets/gpn.png)
 
 ### How does it work?
 
@@ -36,7 +36,7 @@ In the network creation view:
 - Create the network
 - Have fun! ☺
 
-![](./assets/sdn-controller.png)
+![](../assets/sdn-controller.png)
 
 :::tip
 
@@ -47,7 +47,7 @@ In the network creation view:
 
 ### Configuration
 
-Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](architecture#plugins).
+Like all other xo-server plugins, it can be configured directly via the web interface, see [the plugin documentation](../xen-orchestra/architecture#plugins).
 
 The plugin's configuration contains:
 
@@ -103,8 +103,8 @@ In the VM network tab a new column has been added: _Network rules_.
 - The _Show rules_ button allow to display all rules for a VIF.
 - When the rules are display a button to delete a rule is available.
 
-![](./assets/add-rule.png)
-![](./assets/show-rules.png)
+![](../assets/add-rule.png)
+![](../assets/show-rules.png)
 
 ### XAPI Plugin
 
@@ -112,7 +112,7 @@ In the VM network tab a new column has been added: _Network rules_.
 Two caveats:
 
 - At this time, there is no UI in Xen Orchestra for network-wide rules. The rules can be created through `xo-cli`.
-- This is not enabled by default, and requires a configuration change for `xo-server`. See [the configuration page](configuration#sdn-controller-mode) to know more.
+- This is not enabled by default, and requires a configuration change for `xo-server`. See [the configuration page](../xen-orchestra/configuration#sdn-controller-mode) to know more.
   :::
 
 - Works on any network:
@@ -124,7 +124,7 @@ Two caveats:
 
 To setup a per-VIF rule using the UI, follow the [openflow instructions](#openflow-protocol) above, as the UI is the same and only the backend changes.
 
-Here, we describe how to use `xo-cli` to configure rules. First, make sure to register xo-cli to your XOA instance as documented in [it's documentation](architecture#register-your-xo-instance).
+Here, we describe how to use `xo-cli` to configure rules. First, make sure to register xo-cli to your XOA instance as documented in [it's documentation](../xen-orchestra/architecture#register-your-xo-instance).
 
 - Add per-VIF rules: `xo-cli sdnController.addRule vifId=<VIF_UUID> <parameters>`
 - Delete per-VIF rules: `xo-cli sdnController.deleteRule vifId=<VIF_UUID> <parameters`

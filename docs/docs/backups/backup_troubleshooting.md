@@ -6,7 +6,7 @@ This section is dedicated to help you if you have problems with XO Backups.
 
 While a backup job is running, you should see activity in the "Tasks" view (Menu/Tasks), like this:
 
-![](./assets/export_task.png)
+![](../assets/export_task.png)
 
 Another good way to check if there is activity is the XOA VM stats view (on the Network graph).
 
@@ -16,7 +16,7 @@ _Incremental Backup_ and _Incremental Replication_ usually produce delta exports
 
 Nevertheless, there may be some reasons for XO to trigger a key (full) export instead:
 
-- the configured [_Full backup interval_](incremental_backups#key-backup-interval) advanced setting has been reached for this VM
+- the configured [_Full backup interval_](../backups/incremental_backups#key-backup-interval) advanced setting has been reached for this VM
 - the _Force full backup_ is enabled for the current schedule
 - a new disk has been added to the VM (only this disk is completely exported)
 - the reference snapshot for this backup job on the source VM is missing
@@ -57,7 +57,7 @@ As a last resort, migrating the VM (more specifically, its disks) to a new stora
 
 ## Parse Error
 
-This is most likely due to running a backup job that uses Delta functionality (eg: delta backups, or continuous replication) on a version of XenServer older than 6.5. To use delta functionality you must run [XenServer 6.5 or later](/supported_hosts#xenserver-formerly-citrix-hypervisor).
+This is most likely due to running a backup job that uses Delta functionality (eg: delta backups, or continuous replication) on a version of XenServer older than 6.5. To use delta functionality you must run [XenServer 6.5 or later](../xen-orchestra/supported_hosts#xenserver-formerly-citrix-hypervisor).
 
 ## SR_BACKEND_FAILURE_44
 

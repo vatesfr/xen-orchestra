@@ -56,7 +56,7 @@ This setup is compatible with any syslog server, such as [Rsyslog](https://www.r
 
 Each backups' job execution is identified by a `runId`. You can find this `runId` in its detailed log.
 
-![](./assets/log-runId.png)
+![](../assets/log-runId.png)
 
 ## Backup Encryption
 
@@ -137,7 +137,7 @@ A list of backup jobs will be displayed.
 This will open the backup job details screen.
 3. In the **Schedules** section of the details screen, you'll find the list of schedules for that backup job:
 
-    ![](./assets/backup-schedule-list.png)
+    ![](../assets/backup-schedule-list.png)
 
 ### Creating a schedule
 
@@ -146,7 +146,7 @@ To set up a schedule for a backup job:
 1. Navigate to the details page of your backup job (refer to the previous section, "Viewing Schedules for a Backup Job").
 2. In the **Schedules** section of your backup job, click the **Add a schedule** button, represented by a ➕ icon.\
     A form for creating a schedule will appear:
-    ![](./assets/create-backup-schedule.png)
+    ![](../assets/create-backup-schedule.png)
 
 
 3. Use the form to configure your schedule.\
@@ -266,11 +266,11 @@ Snapshots of Windows VMs can be quiesced (especially MS SQL or Exchange services
 
 To see if you have quiesced snapshots for a VM, just go into its snapshot tab, then the "info" icon means it is a quiesced snapshot:
 
-![](./assets/quiesced1.png)
+![](../assets/quiesced1.png)
 
 The tooltip confirms this:
 
-![](./assets/quiesced2.png)
+![](../assets/quiesced2.png)
 
 ## Remotes
 
@@ -310,7 +310,7 @@ Also, read the UI twice when you add an SMB store. If you have:
 
 You'll have to fill it like this:
 
-![](./assets/smb_fill.png)
+![](../assets/smb_fill.png)
 
 :::warning
 PATH TO BACKUP is only needed if you have subfolders in your share.
@@ -338,7 +338,7 @@ Xen Orchestra supports Amazon S3 storage and other S3-compatible providers, so y
 - Losing your encryption key means your backups will be permanently inaccessible. If you enable encryption, make sure your key is stored securely, and outside of the backed up infrastructure, as there's no way to recover your data without it.
 :::
 
-![](./assets/XO-Amazon-S3-remote.png)
+![](../assets/XO-Amazon-S3-remote.png)
 
 ## Restore a backup
 
@@ -386,7 +386,7 @@ A pop-up window with a drop-down list appears.
 More parameters appear, including a drop-down list for your destination Storage Repository (SR).
 4. From that drop-down list, choose your destination SR.
 5. Activate the switch called **Use differential restore**:
-![](./assets/use-differential-restore.png)
+![](../assets/use-differential-restore.png)
 6. Click **OK** to start the restore.
 
 ## File level restore
@@ -394,7 +394,7 @@ More parameters appear, including a drop-down list for your destination Storage 
 You can also restore specific files and directories inside a VM. It works with all your existing delta backups.
 
 :::warning
-- File level restore **is only possible on incremental backups**. Also, due of some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](/incremental_backups/#key-backup-interval) to set this correctly.
+- File level restore **is only possible on incremental backups**. Also, due of some technical limitations, you won't be able to do file level restore if you have a chain longer than 99 (ie retention longer than 99 records without any full between). Take a look at the [key backup interval section](../backups/incremental_backups#key-backup-interval) to set this correctly.
 - File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups that span multiple VDIs.
 - The following Microsoft solutions are **not supported**:
    - [Data Deduplication](https://learn.microsoft.com/en-us/windows-server/storage/data-deduplication/overview)
@@ -408,7 +408,7 @@ You can also restore specific files and directories inside a VM. It works with a
    ![](https://xen-orchestra.com/blog/content/images/2016/12/filelevelrestore1.png)
 2. Choose the VM whose files you want to restore and click the **Restore** icon at the corresponding line.
 3. Follow the instructions as shown below:
-   ![](../static/img/vm-files-restore.png)
+   ![](../../static/img/vm-files-restore.png)
 
 That's it! Your chosen file will be restored.
 
@@ -454,8 +454,8 @@ This way, without modifying your previous scheduled snapshot, they will be writt
 
 Replicated VMs HA are taken into account by XCP-ng. To avoid the resultant troubles, HA will be disabled from the replicated VMs and a tag indicating this change will be added.
 
-![](./assets/disabled-dr-ha-tag.png)
-![](./assets/disabled-cr-ha-tag.png)
+![](../assets/disabled-dr-ha-tag.png)
+![](../assets/disabled-cr-ha-tag.png)
 
 :::tip
 The tag won't be automatically removed by XO on the replicated VMs, even if HA is re-enabled.
@@ -647,7 +647,7 @@ An example in bash is shown in `@xen-orchestra/backups/docs/healthcheck example/
 
 Go to backup > restore and click on the tick to launch a health check.
 
-![](./assets/restorehealthcheck.png)
+![](../assets/restorehealthcheck.png)
 
 Then, you will select the backup to be checked and a destination SR, which must have enough space for the full restore.
 
@@ -657,7 +657,7 @@ Go to Backup > overview > edit.
 
 Then edit the schedule and check the healthcheck box.
 
-![](./assets/scheduled_healthcheck.png)
+![](../assets/scheduled_healthcheck.png)
 
 You will then need to select the SR used, which must have enough space to restore the VMs. Healthcheck will be done after each VM backup, before starting the next one.
 

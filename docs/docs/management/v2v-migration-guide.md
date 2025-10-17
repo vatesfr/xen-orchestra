@@ -49,7 +49,7 @@ Performance gains can be significant, though results depend on the environment:
 
 Make sure your Xen Orchestra instance is up to date. The import page now includes an automatic check that highlights errors and warnings before migration. Errors must be resolved, and warnings should be addressed when possible.
 
-![](./assets/import-prerequisite-check.png)
+![](../assets/import-prerequisite-check.png)
 
 ### Dependencies
 
@@ -70,17 +70,17 @@ To install `nbdinfo` on Debian:
 
 1. Go to the **Import → VM → From VMware** section.
 2. Click the button called **install nbdinfo (debian based system)**:
-![](./assets/install_nbdinfo.png)
+![](../assets/install_nbdinfo.png)
 This starts the install.
 3. Keep an eye on the current page to make sure the install goes as planned.
     - The **install nbdinfo** button will update to show the installation progress, and the page will display any warnings in real time as they appear:
-    ![The Import screen shows that the installation task is currently running, with warnings](./assets/nbdinfo_progress_1.png)
+    ![The Import screen shows that the installation task is currently running, with warnings](../assets/nbdinfo_progress_1.png)
     - Additionally, the **Task** screen shows the `nbdinfo` install task, with its name, start date, start time and status indicator:
-    ![The Task screens shows the nbdinfo install task, with a status indicator](./assets/nbdinfo_progress_2.png)
+    ![The Task screens shows the nbdinfo install task, with a status indicator](../assets/nbdinfo_progress_2.png)
     Thes task will be removed from the list upon completion.
 
 4. Once the installation finishes, the `nbdinfo` install screen updates automatically. It lets you know if everything was completed successfully and flags any warnings that came up during the process:
-    ![The Import screen showing a completed nbdinfo install, with warnings](./assets/nbdinfo_install_complete.png)
+    ![The Import screen showing a completed nbdinfo install, with warnings](../assets/nbdinfo_install_complete.png)
 
     :::tip
     `nbdkit` and the `nbdkit-plugin-vddk` are installed using the same approach.
@@ -97,13 +97,13 @@ You can compile `nbdkit` and `libnbd` from source on GitLab, but the correct dep
 
 1. Download the VMware Virtual Disk Development Kit (VDDK) from the [Broadcom developer portal](https://developer.broadcom.com/sdks/vmware-virtual-disk-development-kit-vddk/9.0?ref=xen-orchestra.com). 
 2. Select the *tar.gz* archive, then drag and drop it directly into the Xen Orchestra interface:
-![Import screen showing a VDDK import dialog](./assets/upload_vddk.png)
+![Import screen showing a VDDK import dialog](../assets/upload_vddk.png)
 An **install button** will appear.
 3. Click the button: 
-![Button to confirm the installation of an uploaded VDDK archive](./assets/install_vddk_button.png)
+![Button to confirm the installation of an uploaded VDDK archive](../assets/install_vddk_button.png)
 The installation should take just a few seconds.
 Once the installation is done, a **transfer form** will appear.:
-![Form for transfering a VM from VMware to Xen Orchestra](./assets/vddk_transfer_form.png)
+![Form for transfering a VM from VMware to Xen Orchestra](../assets/vddk_transfer_form.png)
 :::warning
 Filling in this form and clicking the **Connect** button will start the VM import. However, make sure your VMware environment is ready! 
 

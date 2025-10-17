@@ -1,7 +1,7 @@
 # Users
 
 :::tip
-For system users (in XOA), please refer to [XOA section](xoa.md). Here, we are only talking about users in Xen Orchestra application
+For system users (in XOA), please refer to [XOA section](../support/xoa). Here, we are only talking about users in Xen Orchestra application
 :::
 
 There are 2 types of XO users:
@@ -25,7 +25,7 @@ This is the default method. Creating a user is very simple:
 1. Go into the Settings view, select "Users"
 2. You can create a _user_ or an _admin_, with their password (or generate one)
 
-![](./assets/usercreation.png)
+![](../assets/usercreation.png)
 
 By default, a _user_ won't have any permissions. At the opposite, an _admin_ will have all rights.
 
@@ -38,7 +38,7 @@ XO currently supports connections to LDAP directories, like _Open LDAP_ or _Acti
    2. Locate the **auth-ldap plugin** by scrolling or using the search bar.
 2. **Configure LDAP Settings**:
    1. Click **+** button for the LDAP plugin.\
-      A list of settings appears: ![LDAP plugin settings](./assets/ldapconfig.png)
+      A list of settings appears: ![LDAP plugin settings](../assets/ldapconfig.png)
    2. Fill in the required fields based on your LDAP server details.
 3. **Save and Activate**:
    1. Click **Save configuration**.
@@ -69,7 +69,7 @@ The LDAP plugin allows for the synchronization of user groups.
       A list of text fields appear.
    3. Fill out the fields according to the picture below:
 
-   ![LDAP plugin group settings](./assets/ldapgroupconfig.png)
+   ![LDAP plugin group settings](../assets/ldapgroupconfig.png)
 
 2. **Basic group settings**:
    - **Base** and **Filter**: Similar to the user configuration. The plugin needs an entry point in the directory and a filter to find the groups.
@@ -170,7 +170,7 @@ In this section, you'll learn:
 
 On the Xen Orchestra login page, click **Sign in with OpenID Connect**
 
-![OpenID Connect sign in](./assets/openid-connect-signin-button.png)
+![OpenID Connect sign in](../assets/openid-connect-signin-button.png)
 
 You’ll be redirected to the login page of your internal portal. Once authenticated on it, you will be redirected to the Xen Orchestra home page.
 
@@ -184,7 +184,7 @@ You can set up the `auth-oidc` plugin directly in Xen Orchestra:
 2. Find the `auth-oidc` plugin in the list.
 3. Click **+** next to the plugin name to expand the configuration options.
 
-![OpenID Connect plugin settings](./assets/auth-oidc-plugin-configuration.png)
+![OpenID Connect plugin settings](../assets/auth-oidc-plugin-configuration.png)
 
 ##### Required Configuration
 
@@ -214,7 +214,7 @@ The first time a user signs in, XO will create a new XO user with the same ident
 
 In the "Settings" then "Plugins" view, expand the SAML plugin configuration. Then provide the needed fields:
 
-![](./assets/samlconfig.png)
+![](../assets/samlconfig.png)
 
 Save the configuration and then activate the plugin (button on top).
 
@@ -243,10 +243,10 @@ Use the screenshots below as a reference as how to setup SAML with Google Worksp
 
 The first login will create the user inside XO, as a non-privileged user. An administrator then has to promote the user to the appropriate group. (XO: Settings/Users).
 
-![](./assets/saml-googleworkspace1.png)
+![](../assets/saml-googleworkspace1.png)
 
 Also make sure to adjust the SAML attribute mapping in the Google Workspace configuration. (Primary email -> email)
-![](./assets/saml-googleworkspace2.png)
+![](../assets/saml-googleworkspace2.png)
 
 ### GitHub
 
@@ -260,15 +260,15 @@ First you need to configure a new app in your GitHub account. Go to your GitHub 
 2. Enter your Xen Orchestra URL (or IP) under "Homepage URL"
 3. Add your "Authorization callback URL" (for example, https://homepageUrl/signin/github/callback)
 
-![](./assets/auth-github-form.png)
+![](../assets/auth-github-form.png)
 
 When you get your Client ID and your Client secret, you can configure them in the GitHub Plugin inside the "Settings/Plugins" view of Xen Orchestra.
 
-![](./assets/auth-github-secret.png)
+![](../assets/auth-github-secret.png)
 
 Be sure to activate the plugin after you save the configuration (button on top). When it's done, you'll see a link in the login view, this is where you'll go to authenticate:
 
-![](./assets/githubconfig.png)
+![](../assets/githubconfig.png)
 
 ### Google
 
@@ -280,22 +280,22 @@ The first time a user signs in, XO will create a new XO user with the same ident
 
 Go to Google's [Credentials page](https://console.developers.google.com/apis/credentials) and create a new project:
 
-![](./assets/auth-google-create-project.png)
+![](../assets/auth-google-create-project.png)
 
 Configure an OAuth consent screen if requested then create OAuth 2.0 credentials:
 
-![](./assets/auth-google-create-oauth.png)
-![](./assets/auth-google-create-oauth-form.png)
+![](../assets/auth-google-create-oauth.png)
+![](../assets/auth-google-create-oauth-form.png)
 
 Get your client ID and client secret:
 
-![](./assets/auth-google-client-id-secret.png)
+![](../assets/auth-google-client-id-secret.png)
 
 #### Configure the XO plugin
 
 In Settings, then Plugins, expand the Google plugin details and configure it with the information from the Google Console:
 
-![](./assets/auth-google-plugin-config.png)
+![](../assets/auth-google-plugin-config.png)
 
 Be sure to activate the plugin after you save the configuration (button on top).
 
@@ -320,7 +320,7 @@ The ACLs view can be accessed in the **Setting** panel.
 3. Choose the role for this ACL
 4. Click the **Create** button.
 
-![](./assets/createacl.png)
+![](../assets/createacl.png)
 
 :::tip
 You can click to add multiple objects at the same time!
@@ -328,7 +328,7 @@ You can click to add multiple objects at the same time!
 
 Your ACL is now available in the right list:
 
-![](./assets/acllist.png)
+![](../assets/acllist.png)
 
 You can edit or remove existing ACLs here.
 
@@ -392,7 +392,7 @@ The self-service feature allows users to create new VMs. This is different from 
 
 To create a new set of resources to delegate, go to the "Self Service" section in the main menu:
 
-![](./assets/selfservice_menu.png)
+![](../assets/selfservice_menu.png)
 
 #### Create a set
 
@@ -410,7 +410,7 @@ In this example below, we'll create a set called **"sandbox"** with:
 - "SSD NFS" is the only SR where they can create VMs
 - "Pool-wide network with eth0" is the only available network for them
 
-![](./assets/selfserviceset.png)
+![](../assets/selfserviceset.png)
 
 As you can see, only compatible hosts are shown and can be used for this resource set (hosts in another pool aren't shown). This way, you can be sure to have resources free for tasks other than self-service.
 
@@ -436,21 +436,21 @@ A snapshot of a Self Service VM will use as much resources as a VM would. You ca
 
 When you click on create, you can see the resource set and remove or edit it:
 
-![](./assets/selfservice_recap_quotas.png)
+![](../assets/selfservice_recap_quotas.png)
 
 ### Usage (user side)
 
 As soon as a user is granted a resource set, it displays a new button in their main view: "new".
 
-![](./assets/selfservice_new_vm.png)
+![](../assets/selfservice_new_vm.png)
 
 Now, the user can create a VM with only the resources granted in the set:
 
-![](./assets/selfservice_create_vm.png)
+![](../assets/selfservice_create_vm.png)
 
 And the recap before creation:
 
-![](./assets/selfservice_summary_quotas.png)
+![](../assets/selfservice_summary_quotas.png)
 
 If the "Create" button is disabled, it means the user requested more resources than available.
 
@@ -492,7 +492,7 @@ The recording of the users' actions is disabled by default. To enable it:
 2. expand the `audit` configuration
 3. toggle active and save the configuration
 
-![](./assets/audit_log_configuration.png)
+![](../assets/audit_log_configuration.png)
 
 Now, the audit plugin will record users' actions and upload the last record in the chain every day at **06:00 AM (UTC)**.
 

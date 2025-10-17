@@ -8,17 +8,17 @@ The home view is what you see when you access your Xen Orchestra URL. It display
 
 If you don't have any servers connected, you'll see a panel telling you to add a server:
 
-![](./assets/xo5noserver.png)
+![](../assets/xo5noserver.png)
 
 ### Add a host
 
 Just click on "Add server", enter the IP of a XCP-ng/XenServer host (ideally the pool master if in a pool):
 
-![](./assets/xo5addserver.png)
+![](../assets/xo5addserver.png)
 
 After clicking on connect, the server is displayed as connected:
 
-![](./assets/xo5connectedserver.png)
+![](../assets/xo5connectedserver.png)
 
 Now go back to the Home view (or click on the "Xen Orchestra" title on the top left of the screen), you'll see the default home view of VM objects.
 
@@ -26,13 +26,13 @@ Now go back to the Home view (or click on the "Xen Orchestra" title on the top l
 
 By default, this view groups all **running VMs** on your connected server and everyday administration tasks:
 
-![](./assets/xo5homevms.png)
+![](../assets/xo5homevms.png)
 
 Let's take a quick tour:
 
-- the global menu is on the left, you can collapse it by clicking on the icon ![](./assets/xo5collapsemenu.png)
+- the global menu is on the left, you can collapse it by clicking on the icon ![](../assets/xo5collapsemenu.png)
 - the home view has a header with a type selector (VMs, hosts or pools), a filter zone and a button to create new VMs
-- the VM list also has a header (number of filtered VMs and total VMs) and assisted filters (by pool, host and tags) and a sort menu (by name, memory etc.). You can also expand all VMs details here with the icon ![](./assets/xo5expandhome.png)
+- the VM list also has a header (number of filtered VMs and total VMs) and assisted filters (by pool, host and tags) and a sort menu (by name, memory etc.). You can also expand all VMs details here with the icon ![](../assets/xo5expandhome.png)
 
 :::tip
 You can edit a VM name, description and even current host by long clicking on the field
@@ -44,7 +44,7 @@ You can select multiple objects (eg VMs) at once to perform a bulk action. The m
 
 After selecting one or more object, an action bar is displayed:
 
-![](./assets/xo5bulk.png)
+![](../assets/xo5bulk.png)
 
 This will execute the action for all selected objects!
 
@@ -52,7 +52,7 @@ This will execute the action for all selected objects!
 
 All host objects are displayed:
 
-![](./assets/xo5host.png)
+![](../assets/xo5host.png)
 
 You have power status, name, description, number of CPU cores, total memory, management IP and pool name displayed. You can also edit these by long clicking.
 
@@ -64,7 +64,7 @@ If hosts have missing patches, you'll see a red dot with the total patches missi
 
 All your pools are displayed here:
 
-![](./assets/xo5pool.png)
+![](../assets/xo5pool.png)
 
 You can also see missing patches in red.
 
@@ -89,15 +89,15 @@ Pro Tip: the URL of Xen Orchestra contains the search string, eg `home?s=power_s
 
 We include some predefined filters in the dropdown "Filters":
 
-![](./assets/xo5presetfilter.png)
+![](../assets/xo5presetfilter.png)
 
 You can use custom filters here:
 
-![](./assets/xo5presetfilter2.png)
+![](../assets/xo5presetfilter2.png)
 
 ### Save your search
 
-If you want to record your filter, just click on the "Save" icon ![](./assets/xo5savefilter.png)
+If you want to record your filter, just click on the "Save" icon ![](../assets/xo5savefilter.png)
 
 After giving a name to your filter, you will be able to find it in the dropdown filter menu.
 
@@ -105,7 +105,7 @@ After giving a name to your filter, you will be able to find it in the dropdown 
 
 Just go into your user panel (bottom of main left menu):
 
-![](./assets/xo5usericon.png)
+![](../assets/xo5usericon.png)
 
 There, you can edit or remove any filter/search you've created!
 
@@ -213,11 +213,11 @@ Example: to search by the Xen Tools status:
 
 A new VM can be created via the "New" button in the main menu (bottom):
 
-![](./assets/xo5vmcreatemenu.png)
+![](../assets/xo5vmcreatemenu.png)
 
 Or in the home view:
 
-![](./assets/xo5newvmbutton.png)
+![](../assets/xo5newvmbutton.png)
 
 ### Wizard
 
@@ -225,7 +225,7 @@ Or in the home view:
 
 Because Xen Orchestra can be connected to multiple pools, you must select which one you want to create your VMs on:
 
-![](./assets/xo5createonpool.png)
+![](../assets/xo5createonpool.png)
 
 On which **host** the VM will actually run on will depend of various settings (local SR or not, RAM available etc.)
 
@@ -235,7 +235,7 @@ On which **host** the VM will actually run on will depend of various settings (l
 
 The next step is to select a template:
 
-![](./assets/xo5createwithtemplate.png)
+![](../assets/xo5createwithtemplate.png)
 
 :::tip
 What is a XCP-ng/XenServer template? It can be 2 things: first an "empty" template, meaning it contains only the configuration for your future VM, such as example settings (minimum disk size, RAM and CPU, BIOS settings if HVM etc.) Or it could be a previous VM you converted into a template: in this case, creating a VM will clone the existing disks.
@@ -251,7 +251,7 @@ You can create multiple VMs at once by toggling the _Multiple VMs_ option. The `
 
 Click on the refresh icon to see the change:
 
-![](./assets/xo5multiplevms.png)
+![](../assets/xo5multiplevms.png)
 
 #### Performance
 
@@ -275,7 +275,7 @@ Depending of your template type (with existing disks or not, PV vs HVM) this pan
 
 You can choose to boot from an ISO or using PXE:
 
-![](./assets/xo5installsettings.png)
+![](../assets/xo5installsettings.png)
 
 ##### PV templates
 
@@ -305,11 +305,11 @@ Pro tip: avoid using large disks for your VMs. Want to store a lot of files? Use
 
 Any object with a dotted underline can be edited with a mouse click: VM title, description, CPU and memory.
 
-![](./assets/xo5editvm.png)
+![](../assets/xo5editvm.png)
 
 In the advanced tab, you have extra options:
 
-![](./assets/xo5vmadvanced.png)
+![](../assets/xo5vmadvanced.png)
 
 ### XCP-ng/Citrix Hypervisor limitations
 
@@ -327,7 +327,7 @@ Thanks to Xen Storage Motion, it's easy to move a VM disk from one storage locat
 
 To do so: Access the Xen Orchestra page for your running VM, then enter the Disk tab. Long click on the current SR of the disk, and a drop down menu will be displayed with all compatible destinations. Just select one, that's all: the migration will start live!
 
-![](./assets/xo5diskmigrate.png)
+![](../assets/xo5diskmigrate.png)
 
 #### Offline VDI migration
 
@@ -337,7 +337,7 @@ Even though it's not currently supported in XCP-ng/XenServer, we can do it in Xe
 
 In the advanced tab, use the "Recovery Start" button:
 
-![](./assets/xo5recovery.png)
+![](../assets/xo5recovery.png)
 
 This button will allow you to boot directly from the CD drive, ignoring your current disks. Note that it works for all virtualization modes: HVM or PV.
 
@@ -369,25 +369,25 @@ However, if you add restricted IPs, the VIF becomes locked, meaning only the spe
 To add a restricted IP address:
 
 1. Go to the **VM view** and open the **Network** tab. You will see a column called **Allowed IPs**:
-   ![](./assets/allowed-ip-column.png)
+   ![](../assets/allowed-ip-column.png)
 1. Click the **+** icon to add authorized IP addresses:
-   ![](./assets/add-allowed-ip.png)
+   ![](../assets/add-allowed-ip.png)
 
 #### How do I enable VIF locking mode?
 
 1. Select the VM.
 1. Head over to the **Network** tab to see each VIF along with its current locking mode status:
-   ![](./assets/vif-locking-status.png)
+   ![](../assets/vif-locking-status.png)
 1. To change the locking mode status:
    1. Click the pencil icon (with the **Edit locking mode** label). A dropdown menu appears.
    1. Choose your desired mode from that menu:
-      ![](./assets/choose-vif-locking-mode.png)
+      ![](../assets/choose-vif-locking-mode.png)
     
 If Xen Orchestra knows the VM’s IP address — either through the guest agent or DHCP — it will automatically apply IP-level locking when the mode is enabled.
 
 #### How do I automate VIF locking mode?
 
-If you’re automating things or working with scripts, you can also control VIF locking mode through the XO [command-line interface](architecture#xo-cli-cli). 
+If you’re automating things or working with scripts, you can also control VIF locking mode through the XO [command-line interface](../xen-orchestra/architecture#xo-cli-cli). 
 
 ### VM high availability (HA)
 
@@ -405,7 +405,7 @@ In Xen Orchestra, you can filter to see which VMs are in which mode:
 #### Docker management
 
 :::tip
-Please [read the dedicated section](manage_infrastructure.md#docker-support) to install a Docker Ready VM.
+Please [read the dedicated section](../management/manage_infrastructure.md#docker-management) to install a Docker Ready VM.
 :::
 
 ### VM CPU priority
@@ -452,7 +452,7 @@ We support OVA import from VirtualBox. Feel free to report issues with OVA from 
 
 To import an XVA file, just go to the New/Import menu:
 
-![](./assets/xoa5import.png)
+![](../assets/xoa5import.png)
 
 Select the target pool and SR where the VM will be imported. Then, drag and drop your file and click on the import button.
 
@@ -543,7 +543,7 @@ Maintenance mode will trigger two actions internally:
 
 It's perfect if you want to shutdown the host for hardware replacement, or if you want to do some other operations without disrupting your production.
 
-![](./assets/maintenancemode.png)
+![](../assets/maintenancemode.png)
 
 Note that maintenance mode will be **automatically exited after a host reboot**.
 
@@ -551,7 +551,7 @@ Note that maintenance mode will be **automatically exited after a host reboot**.
 
 You can easily adjust the control domain memory under the Advanced tab of a host. Enable the maintenance mode on the host and click on the pen icon to edit the value:
 
-![](./assets/dom0memory.png)
+![](../assets/dom0memory.png)
 
 There is more information about Dom0 memory management in the [XCP-ng Documentation](https://docs.xcp-ng.org/guides/dom0-memory/)
 
@@ -567,13 +567,13 @@ Updates can be called both "patches" or "updates", it doesn't matter. Updates ar
 
 You'll be notified by Xen Orchestra directly in the main XO menu (on the left), with a yellow triangle:
 
-![](./assets/availableupdates.png)
+![](../assets/availableupdates.png)
 
 If you hover on it, it will explain that updates/patches are available.
 
 You can also see how many updates to do in the Home/Pool view for your pools, and Home/Host view for your hosts, with a red pill. In this following screenshot, "Test Pool1" got 88 updates available:
 
-![](./assets/updatesvisible.png)
+![](../assets/updatesvisible.png)
 
 You can also see the available updates in the Dashboard view.
 
@@ -589,7 +589,7 @@ Xen Orchestra will request a plugin, bundled and hosted within your XCP-ng hosts
 
 Also known as RPU, **this is the advised way to update your pool**. By just clicking on one button, Xen Orchestra will automatically move VMs around, apply updates and reboot the hosts, without any service interruption. The following button is available in the **Pool** view of the **Patches** tab:
 
-![](./assets/rpubutton.png)
+![](../assets/rpubutton.png)
 
 :::tip
 This powerful and fully automated mechanism requires some prerequisites: all your VMs disks must be on a one (or more) shared storage. Also, high-availability will be automatically disabled, as the XO load balancer plugin and backup jobs. Everything will be enabled back when it's done!
@@ -604,7 +604,7 @@ restartHostTimeout = '40 minutes'
 ```
 :::
 
-![](./assets/rpu1.png)
+![](../assets/rpu1.png)
 
 ##### Scheduling a RPU
 
@@ -615,16 +615,16 @@ Of course, schedule the updates outside production hours. Although RPUs are desi
 :::
 
 1. **Create a job**: Navigate to the **Jobs** screen and create a new job, using the `pool.rollingUpdate` method. Determine which pools you want to include in the update: 
-   ![](./assets/create-rpu.png)
+   ![](../assets/create-rpu.png)
 1. **Set the schedule**: Assign a schedule to the job (e.g., every Sunday at 3 AM) and apply it to your new job:
-   ![](./assets/schedule-rpu.png)
+   ![](../assets/schedule-rpu.png)
 1. **Monitor the process**: Once scheduled, the RPU will run automatically at the set time, applying updates and rebooting hosts as necessary.
 
 #### Pool updates
 
 If you can't use RPU (Rolling Pool Updates), you can still use "Install pool patches" button. This will simply install updates on all hosts on your pool and restart the toolstack, **without doing any host reboot**:
 
-![](./assets/installpoolpatches.png)
+![](../assets/installpoolpatches.png)
 
 :::tip
 Restarting the toolstack won't have any impact on your running VMs. However, **most updates will require a reboot** to be applied, that you should execute during a scheduled maintenance.
@@ -632,7 +632,7 @@ Restarting the toolstack won't have any impact on your running VMs. However, **m
 
 You can see hosts that will require a reboot via a small blue triangle:
 
-![](./assets/xo5patching.png)
+![](../assets/xo5patching.png)
 
 #### Host updates
 
@@ -660,7 +660,7 @@ When you click on "Install all patches", XOA will do all of the following automa
 You can see [more screenshots here](https://xen-orchestra.com/blog/hotfix-xs70e004-for-xenserver-7-0).
 
 :::tip
-If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](configuration.md#proxy-for-updates-and-patches).
+If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](../xen-orchestra/configuration#proxy-for-updates-and-patches).
 :::
 
 #### Host updates
@@ -703,7 +703,7 @@ Don't add pool slaves to your XOA server list! XOA will automatically find them 
 
 To remove one host from a pool, you can go to the "Advanced" tab of the host page for the host you wish to remove, and click on "Detach"
 
-![](./assets/detach-host.png)
+![](../assets/detach-host.png)
 
 :::warning
 - Detaching a host will remove all the VM disks stored on the Local Storage of this host, and reboot the host.
@@ -745,14 +745,14 @@ Xen Orchestra supports the following bond types:
 1. Navigate to **New → Network** to open the **Create Network** page.  
 2. Choose the pool where you want the bond to be created.
 3. Enable the **Bonded network** toggle:
-    ![Bond creation interface](./assets/bond0.png)
+    ![Bond creation interface](../assets/bond0.png)
 4. In the **Interface** dropdown, select two or more physical interfaces (PIFs) to include in the bond.  
 5. Provide a **name** and a **description** for the bond.
 6. Set the **Bond mode** to **LACP**.
 7. Leave the **MTU** field blank. This will work as-is in most cases.
 8. Click **Create network**.
     XO will then create the bond on the host(s):
-    ![Newly-created bond](./assets/bond1.png)
+    ![Newly-created bond](../assets/bond1.png)
 
 :::tip
 - If applied to a pool, the bond is created across all pool members, so make sure all your pool members are cabled and configured on the switch side for LACP!
@@ -766,7 +766,7 @@ Once a bond (e.g., `bond0`) is created, you can build VLANs over it:
 1. Go again to **New → Network** screen.  
 2. Select the new bond interface (e.g., `bond0`) in the **Interface** dropdown.  
 3. Provide a **name**, **description**, and specify the **VLAN** ID (for instance, `20`):
-    ![Setting up a VLAN on top of a new network bond](./assets/bond2.png)
+    ![Setting up a VLAN on top of a new network bond](../assets/bond2.png)
 4. Validate the VLAN network creation.\
     This creates a virtual network on top of the bond, using the name and ID you've specified, available for VM attachment.
 
@@ -776,7 +776,7 @@ This process is the same whether you're adding a VLAN on top of a LACP network b
 
 ## Storage Management
 
-![](./assets/xo5storageadvanced.png)
+![](../assets/xo5storageadvanced.png)
 
 ### Maintenance mode
 
@@ -786,7 +786,7 @@ Maintenance mode will trigger two actions internally:
 - shutdown related VMs
 - disconnect the storage from your hosts
 
-![](./assets/SR-maintenance-mode.png)
+![](../assets/SR-maintenance-mode.png)
 
 This way, you can do whatever is needed on the storage, and when done, re-enable it: all the hosts will be reconnected to it. No manual process to find all VMs related to this SR, shut them down, then disconnect all the PBDs.
 
@@ -794,7 +794,7 @@ This way, you can do whatever is needed on the storage, and when done, re-enable
 
 If your SAN supports it, Xen Orchestra can instruct your XCP-ng host to send a trim command to perform some cleaning.
 
-![](./assets/xo5reclaimfree.png)
+![](../assets/xo5reclaimfree.png)
 
 ## Visualizations
 
@@ -808,7 +808,7 @@ Visualizations can help you to understand your XCP-ng/XenServer infrastructure, 
 
 The dashboard view gathers information on all your connected pools/hosts.
 
-![](./assets/visualizationdashboard.png)
+![](../assets/visualizationdashboard.png)
 
 :::tip
 You can also update all your hosts (install missing patches) from this page.
@@ -818,7 +818,7 @@ You can also update all your hosts (install missing patches) from this page.
 
 A Parallel Coordinates visualization helps to detect proportions in a hierarchical environment. In a XCP-ng/XenServer environment, it's especially useful if you want to see useful information from a large amount of data.
 
-![](./assets/parralelcoordinates.png)
+![](../assets/parralelcoordinates.png)
 
 ## Health
 
@@ -835,10 +835,10 @@ Declaring a default storage repository for each pool is good practice to avoid u
 ### Pools with no default SR
 
 To select a default SR, go to the Home tab and click on 'Pools'. Select the pool you are working with and click on the storage icon:
-![](./assets/storageicon.png)
+![](../assets/storageicon.png)
 
 Hover over the storage you want to select and click on the disk icon to set it as the default SR:
-![](./assets/diskicon.png)
+![](../assets/diskicon.png)
 
 ### Unhealthy VDIs
 
@@ -876,7 +876,7 @@ This sections details the alerts coming from XCP-ng/XenServer hosts. More inform
 
 A heatmap allows its reader to understand when your VMs or hosts are stressed. Values are relative, thus it's easy to detect trends or spikes.
 
-[![](./assets/heatmap.png)](https://xen-orchestra.com/blog/xen-orchestra-4-4/#heatmapforinfrastructurehealth).
+[![](../assets/heatmap.png)](https://xen-orchestra.com/blog/xen-orchestra-4-4/#heatmapforinfrastructurehealth).
 
 ### Event correlation
 
@@ -894,7 +894,7 @@ To receive reports, you first need to enable the **usage-report** plugin:
 2. From the list, look for the **usage-report** plugin (you can scroll through the list or search for it by name).
 3. Enable the plugin by switching on the toggle next to the plugin name. 
 4. Click the **+** icon to open the plugin settings:
-    ![](./assets/usage-report-plugin.png)
+    ![](../assets/usage-report-plugin.png)
 5. In the **emails** section, click **Add**. A new text field will appear.
 6. Enter the email address where you want to receive the reports. Repeat steps 5–6 to add more addresses.  
 7. Turn on the **all** toggle to include stats for all resources in your report, including: 
@@ -947,10 +947,10 @@ Xen Orchestra allows you to monitor the health of your software RAID arrays dire
 
 To check the status reported by `mdadm`, go to the **Host → Advanced** section. You'll get a clear, real-time view of your RAID array’s condition:
 
-![](./assets/mdadm-status.png)
+![](../assets/mdadm-status.png)
 
 #### RAID status alerts
 
 If a host has a degraded software RAID array, a red warning triangle will appear in the host view. Clicking on it will display detailed information about the issue, so you can quickly identify and address critical problems:
 
-![](./assets/raid-status-alert.png)
+![](../assets/raid-status-alert.png)

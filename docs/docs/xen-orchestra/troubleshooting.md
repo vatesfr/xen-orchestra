@@ -3,7 +3,7 @@
 This page recaps the actions you can perform if you have any problems with your XOA.
 
 :::warning
-If you have issues with XO installed from GitHub (not XOA), [please go to the dedicated section first!](community.md).
+If you have issues with XO installed from GitHub (not XOA), [please go to the dedicated section first!](../support/community).
 :::
 
 ## Recommendation
@@ -31,7 +31,7 @@ You can also check the system logs, [as explained here](#cli).
 
 ## Backup issues
 
-If you're having issues with your backups, check out the [Backup troubleshooting](backup_troubleshooting) page.
+If you're having issues with your backups, check out the [Backup troubleshooting](../backups/backup_troubleshooting) page.
 
 ## Didn't find a solution?
 
@@ -62,7 +62,7 @@ You can now login through SSH with the `xoa` username and password you defined i
 
 ## Recover web login password
 
-If you have lost your password to log in to the XOA webpage, you can reset it. From the XOA CLI (for login/access info for the CLI, [see here](xoa.md#first-console-connection)), use the following command and insert the email/account you wish to recover:
+If you have lost your password to log in to the XOA webpage, you can reset it. From the XOA CLI (for login/access info for the CLI, [see here](../support/xoa#first-console-connection), use the following command and insert the email/account you wish to recover:
 
 ```sh
 sudo xo-server-recover-account youremail@here.com

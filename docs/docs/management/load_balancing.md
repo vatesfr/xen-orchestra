@@ -12,7 +12,7 @@ In the case of virtualization, you have multiple physical hosts, which run your 
 You may have heard about VMWare DRS (Distributed Resource Scheduler). That's the same principle here, but for XCP-ng.
 :::
 
-The first goal is to adapt your VM placement in real time —without service interruption— depending of the load. Since Xen Orchestra is connected to [multiple pools](./architecture#xo-server-server) and XCP-ng supports live storage motion, we can perform load balancing on a **whole XCP-ng infrastructure**, even between remote datacenters. 
+The first goal is to adapt your VM placement in real time —without service interruption— depending of the load. Since Xen Orchestra is connected to [multiple pools](../xen-orchestra/architecture#xo-server-server) and XCP-ng supports live storage motion, we can perform load balancing on a **whole XCP-ng infrastructure**, even between remote datacenters. 
 
 :::tip
 A load balancing policy is called a **plan**.
@@ -20,17 +20,17 @@ A load balancing policy is called a **plan**.
 
 Here's a simple example, with 2 hosts running 6 VMs:
 
-![](./assets/loadbalance1.png)
+![](../assets/loadbalance1.png)
 
 Let's say both hosts are using only 5% of all their CPUs. Suddenly, one of your VM starts to have a very high CPU load (in yellow): performance of other VMs on this same host could be impacted negatively (in pink):
 
-![](./assets/loadbalance3.png)
+![](../assets/loadbalance3.png)
 
 `Host 1` still using 5% of its CPUs, but `Host 2` is now at 95%.
 
 We can detect that and now move others VM to the other host, like this:
 
-![](./assets/loadbalance4.png)
+![](../assets/loadbalance4.png)
 
 `Host 1` has a slightly higher load, but `Host 2` can fully handle the “problematic” VM without disrupting the other VMs.  
 
@@ -68,17 +68,17 @@ To create a new plan:
 1. From the navigation bar, go to the **Settings → Plugin** section.
 2. Open the **load-balancer** plugin and click the **+** button to show the **Configuration** menu:
 
-    ![The default configuration form for load balancing plans](./assets/load_balancing_configuration.png)
+    ![The default configuration form for load balancing plans](../assets/load_balancing_configuration.png)
 
     Here, you can create a new load balancing plan or edit an existing one.
 
 3. In **Configuration → Plans**, check the box called **Fill information (optional)**:
-    ![The check box that lets you add a new load balancing plan](./assets/load_balancing_fill_information.png)\
+    ![The check box that lets you add a new load balancing plan](../assets/load_balancing_fill_information.png)\
     The **Add** button will appear.
 4. Click **Add**:
-    ![The load balancing form, with an emphasis on the checkbox and button to click in order to create a new load balancing plan](./assets/load_balancing_add.png)
+    ![The load balancing form, with an emphasis on the checkbox and button to click in order to create a new load balancing plan](../assets/load_balancing_add.png)
     A new form will open, where you can set up your plan:
-    ![A form to set up a new load balancing plan](./assets/load_balancing_new_plan.png)
+    ![A form to set up a new load balancing plan](../assets/load_balancing_new_plan.png)
 
 5. Enter a **Name** for your plan. 
 6. Select a **Mode**.  
@@ -101,7 +101,7 @@ To configure thresholds for your plan:
 4. Check the **Fill information (optional)** box.\
     New fields will appear where you can set your thresholds:
 
-![A form to set up load balancing performance thresholds](./assets/load_balancing_thresholds.png)
+![A form to set up load balancing performance thresholds](../assets/load_balancing_thresholds.png)
 
 :::warning
 If the CPU threshold is set to 90%, the load balancer will only trigger if the **average CPU usage on a host** exceeds 90%.  
@@ -141,14 +141,14 @@ To do this:
 
 This option lets you define the maximum number of migrations that can run at the same time. Limiting concurrent migrations can help maintain the overall performance of your environment.
 
-![The Maximum concurrent migrations option from the Advanced settings form](./assets/max_concurrent_migrations.png)
+![The Maximum concurrent migrations option from the Advanced settings form](../assets/max_concurrent_migrations.png)
 
 ### Performance plan behavior
 
 With a performance plan, you can enable a performance sub-mode that adds extra features on top of the plan’s default behavior.  
 These features are complementary and do not replace the default behavior.
 
-![Dropdown list that shows 3 options for performance plan behavior](./assets/load_balancing_performance_plan_behavior.png)
+![Dropdown list that shows 3 options for performance plan behavior](../assets/load_balancing_performance_plan_behavior.png)
 
 #### Conservative (default)
 
@@ -172,7 +172,7 @@ For example, imagine you have several VMs running MySQL and PostgreSQL with high
 Naturally, you don’t want both replicated databases to be placed on the same physical host.  
 To prevent that, set up your plan like this:
 
-![](./assets/antiaffinity.png)
+![](../assets/antiaffinity.png)
 
 - **Simple plan:** no active load balancing mechanism is used.  
 - **Anti-affinity**: we added two tags, meaning any VMs with one of these tags will not run on the same host as another VM that has the same tag (whenever possible).

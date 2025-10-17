@@ -14,11 +14,11 @@ This is the easiest way to try Xen Orchestra quickly.
 
 Your XOA is connected to all your hosts, or the pool master only if you are using Pools in XCP-ng/Citrix Hypervisor:
 
-![](./assets/partner2.jpg)
+![](../assets/partner2.jpg)
 
 ## Xen Orchestra (XO)
 
-![](./assets/xo-arch.jpg)
+![](../assets/xo-arch.jpg)
 
 Xen Orchestra itself is built as a modular solution. Each part has its role.
 
@@ -36,27 +36,27 @@ As a daemon, XO-Server is always up. Because of this, it can listen and record e
 
 Contrary to XenCenter, each Xen Orchestra's client is connected to one XO-Server, and not all the Xen servers. With a traditional architecture:
 
-![](./assets/without-xo.jpg)
+![](../assets/without-xo.jpg)
 
 You can see how we avoid a lot of resource and bandwidth waste with a central point:
 
-![](./assets/with-xo.jpg)
+![](../assets/with-xo.jpg)
 
 ### Events
 
 Legacy interfaces use the "pull" model, requesting data every "x" seconds:
 
-![](./assets/noevent.jpg)
+![](../assets/noevent.jpg)
 
 It's **not scalable** and **slow**.
 
 Previously with XO < 3.4, we used events in the following way:
 
-![](./assets/semievent.jpg)
+![](../assets/semievent.jpg)
 
 But the interface was still lagging behind the server. With XO 3.4 and beyond, we now have a full event system, allowing instant display of what's happening on your infrastructure:
 
-![](./assets/fullevent.jpg)
+![](../assets/fullevent.jpg)
 
 ### A proxy for your hosts
 
@@ -112,15 +112,15 @@ The web interface is "[xo-web](https://github.com/vatesfr/xen-orchestra/tree/mas
 
 This is probably the first part of Xen Orchestra you'll see. The Web interface allows you to interact with your virtual infrastructure. As a module of XO-Web it facilitates everyday Xen administrator work, but also provides a solution to delegate parts of your infrastructure to other people.
 
-![](./assets/visualizationdashboard.png)
+![](../assets/visualizationdashboard.png)
 
-[Read the manage section](./manage.md) to discover what you can do in XO-web.
+[Read the manage section](../management/manage) to discover what you can do in XO-web.
 
 ### ReactJS
 
 We stay consistent from the back-end to the front-end with one main language: [ReactJS](https://reactjs.org/)
 
-![](./assets/react_js.png)
+![](../assets/react_js.png)
 
 ## xo-cli (CLI)
 
@@ -352,7 +352,7 @@ xo-cli vm.import sr=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 Our web UI (`xo-web`) and CLI (`xo-cli`) both talk to `xo-server` via the same API. This API works in a kind of "connected mode", using JSON-RPC through websockets, in a way where we can subscribe to any events to always stay up-to-date on the client side.
 
 :::warning
-However, this API was initially meant to only be private. Also, as it's JSON-RPC inside websockets, it's not trivial to use. If you want to make calls in an easy fashion, you should take a look at our [REST API](restapi.md).
+However, this API was initially meant to only be private. Also, as it's JSON-RPC inside websockets, it's not trivial to use. If you want to make calls in an easy fashion, you should take a look at our [REST API](../management/restapi).
 :::
 
 If you need assistance on how to use it:
@@ -367,11 +367,11 @@ Xen Orchestra plugins allow you to extend features without rewriting the core of
 
 You can see your installed plugins in "Settings" then the "Plugins" page:
 
-![](./assets/xo5pluginsmenu.png)
+![](../assets/xo5pluginsmenu.png)
 
 All plugin configuration should be done in the web interface:
 
-![](./assets/xo5pluginspage.png)
+![](../assets/xo5pluginspage.png)
 
 A plugin can be:
 
