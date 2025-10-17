@@ -2,6 +2,7 @@ import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
 import { defineIcon } from '@core/packages/icon/define-icon.ts'
 import { createMapper } from '@core/packages/mapper/create-mapper.ts'
 import {
+  faBan,
   faCheck,
   faCircle,
   faCircleInfo,
@@ -87,4 +88,15 @@ export const legacyIcons = defineIconPack({
     icon: faMoon,
     color: 'var(--color-info-item-base)',
   },
+  disabled: defineIcon([
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-border)',
+    },
+    {
+      icon: faBan,
+      color: 'var(--color-neutral-txt-secondary)',
+      size: 12,
+    },
+  ]),
 })
