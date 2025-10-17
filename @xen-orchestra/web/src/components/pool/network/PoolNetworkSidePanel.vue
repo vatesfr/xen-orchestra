@@ -43,60 +43,22 @@
         </UiCardTitle>
         <div class="content">
           <!-- ID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('id') }}
-            </template>
-            <template #value>{{ network.id }}</template>
-            <template #addons>
-              <VtsCopyButton :value="network.id" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('id')" :value="network.id" :copy-value="network.id" />
           <!-- DESCRIPTION -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('description') }}</template>
-            <template #value>
-              <span v-tooltip class="value text-ellipsis">
-                {{ network.name_description }}
-              </span>
-            </template>
-            <template v-if="network.name_description" #addons>
-              <VtsCopyButton :value="network.name_description" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue
+            :label="t('description')"
+            :value="network.name_description"
+            wrap
+            :copy-value="network.name_description"
+          />
           <!-- VLAN -->
-          <VtsCardRowKeyValue v-if="networkVlan">
-            <template #key>{{ t('vlan') }}</template>
-            <template #value>{{ networkVlan }}</template>
-            <template #addons>
-              <VtsCopyButton :value="String(networkVlan)" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue v-if="networkVlan" :label="t('vlan')" :value="networkVlan" :copy-value="networkVlan" />
           <!-- MTU -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('mtu') }}</template>
-            <template #value>
-              <span>
-                {{ network.MTU }}
-              </span>
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="String(network.MTU)" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('mtu')" :value="String(network.MTU)" :copy-value="String(network.MTU)" />
           <!-- NBD -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('network-block-device') }}</template>
-            <template #value>{{ networkNbd }}</template>
-            <template #addons>
-              <VtsCopyButton :value="networkNbd" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('network-block-device')" :value="networkNbd" :copy-value="networkNbd" />
           <!-- DEFAULT LOCKING MODE -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('locking-mode-default') }}</template>
-            <template #value>{{ networkDefaultLockingMode }}</template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('locking-mode-default')" :value="networkDefaultLockingMode" />
         </div>
       </UiCard>
       <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
@@ -132,13 +94,12 @@
 import PifRow from '@/components/pif/PifRow.vue'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'

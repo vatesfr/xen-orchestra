@@ -41,81 +41,34 @@
         <UiCardTitle>{{ t('vif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
-            <template #value>
-              {{ vif.uuid }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="vif.uuid" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('uuid')" :value="vif.uuid" :copy-value="vif.uuid" />
           <!-- NETWORK -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('network') }}
-            </template>
-            <template #value>
-              <div class="network">
-                <!-- TODO Remove the span when the link works and the icon is fixed -->
-                <!--
+          <UiLabelValue :label="t('network')" :value="network?.name_label" :copy-value="network?.name_label">
+            <!-- TODO Remove the span when the link works and the icon is fixed -->
+            <!--
                 <UiComplexIcon size="medium">
                   <VtsIcon icon="fa:network-wired" accent="current" />
                   <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                 </UiComplexIcon>
                 <a href="">{{ networkNameLabel }}</a>
                 -->
-                <span v-tooltip class="text-ellipsis value">{{ network?.name_label }}</span>
-              </div>
-            </template>
-            <template v-if="network?.name_label" #addons>
-              <VtsCopyButton :value="network.name_label" />
-            </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
           <!-- DEVICE -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('device') }}
-            </template>
-            <template #value>
-              {{ t('vif-device', { device: vif.device }) }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="vif.device" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue
+            :label="t('device')"
+            :value="t('vif-device', { device: vif.device })"
+            :copy-value="vif.device"
+          />
           <!-- VIF STATUS -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('vif-status') }}
-            </template>
+          <UiLabelValue :label="t('vif-status')">
             <template #value>
               <VtsConnectionStatus :status />
             </template>
-          </VtsCardRowKeyValue>
+          </UiLabelValue>
           <!-- MTU -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('mtu') }}
-            </template>
-            <template #value>
-              {{ vif.MTU }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="String(vif.MTU)" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('mtu')" :value="String(vif.MTU)" :copy-value="String(vif.MTU)" />
           <!-- LOCKING MODE -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('locking-mode') }}
-            </template>
-            <template #value>
-              {{ vif.locking_mode }}
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('locking-mode')" :value="vif.locking_mode" />
           <!-- TODO Need to add TX Checksumming -->
         </div>
       </UiCard>
@@ -145,26 +98,9 @@
               </template>
             </VtsCardRowKeyValue>
           </div>
-          <VtsCardRowKeyValue v-else>
-            <template #key>
-              {{ t('ip-addresses') }}
-            </template>
-            <template #value>
-              <span class="value" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" />
           <!-- MAC ADDRESSES -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('mac-address') }}
-            </template>
-            <template #value>
-              {{ vif.MAC }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="vif.MAC" />
-            </template>
-          </VtsCardRowKeyValue>
+          <UiLabelValue :label="t('mac-address')" :value="vif.MAC" :copy-value="vif.MAC" />
         </div>
       </UiCard>
     </template>
@@ -183,6 +119,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'
