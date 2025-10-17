@@ -65,13 +65,13 @@ const { backupRun } = defineProps<{
   backupRun: XoBackupLog
 }>()
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 
 const { schedules } = useXoScheduleCollection()
 
 const runDate = computed(() => backupRun.end ?? backupRun.start)
 
-const formattedRunDate = computed(() => new Date(runDate.value).toLocaleString())
+const formattedRunDate = computed(() => d(runDate.value, 'datetime_short'))
 
 const logContent = computed(() => {
   if (backupRun.status !== 'success' && backupRun.status !== 'pending' && backupRun.tasks && backupRun.tasks[0]) {
