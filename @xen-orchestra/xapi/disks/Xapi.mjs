@@ -107,7 +107,8 @@ export class XapiDiskSource extends DiskPassthrough {
         }
         return streamSource
       }
-      await source?.close() // this will close source and stream source
+      // init probaby failed, so nothing to close , but better safe than sorry
+      await source?.close().catch(warn)
       throw err
     }
     this.#useNbd = true
@@ -140,7 +141,8 @@ export class XapiDiskSource extends DiskPassthrough {
       await source.init()
       source = new TimeoutDisk(source, this.#timeout)
     } catch (error) {
-      await source?.close()
+      // init probaby failed, so nothing to close , but better safe than sorry
+      await source?.close().catch(warn)
       if (baseRef !== undefined) {
         warn(`can't compute delta ${vdiRef} from ${baseRef}, fallBack to a full`, { error })
         this.#baseRef = undefined
@@ -180,7 +182,9 @@ export class XapiDiskSource extends DiskPassthrough {
       return readAhead
     } catch (error) {
       info('Error in openNbdCBT', error)
-      await source.close()
+      // init probaby failed, so nothing to close , but better safe than sorry
+      await source?.close().catch(warn)
+
       // A lot of things can go wrong with CBT:
       // Not enabled on the baseRef,
       // Not enabled on the VDI,
