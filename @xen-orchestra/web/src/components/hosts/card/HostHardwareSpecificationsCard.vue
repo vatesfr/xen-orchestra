@@ -1,14 +1,23 @@
 <template>
   <UiCard>
     <UiCardTitle>
-      {{ t('software') }}
+      {{ t('hardware-specifications') }}
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
-        <template #key>{{ t('version') }}</template>
-        <template #value>{{ host.version }}</template>
+        <template #key>{{ t('manufacturer-info') }}</template>
+        <template v-if="manufacturerInfo" #value>
+          {{ manufacturerInfo }}
+        </template>
+        <template v-if="manufacturerInfo" #addons>
+          <VtsCopyButton :value="manufacturerInfo" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('core-socket') }}</template>
+        <template #value>{{ `${host.cpus.cores} (${host.cpus.sockets})` }}</template>
         <template #addons>
-          <VtsCopyButton :value="host.version" />
+          <VtsCopyButton :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -21,6 +30,7 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -28,6 +38,11 @@ const { host } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const manufacturerInfo = computed(() =>
+  // #FIXME to check
+  [host.bios_strings['system-manufacturer'], host.bios_strings['system-product-name']].join(' ')
+)
 </script>
 
 <style scoped lang="postcss">
