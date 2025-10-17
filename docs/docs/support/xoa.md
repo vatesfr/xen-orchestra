@@ -54,7 +54,7 @@ For use on huge infrastructure (more than 500+ VMs), feel free to increase the R
 
 ## Alternative install
 
-Please only use this if you have issues with [the default way to deploy XOA](installation#xoa).
+Please only use this if you have issues with [the default way to deploy XOA](../xen-orchestra/installation#xoa).
 
 ### Via a bash script
 
@@ -277,10 +277,10 @@ If you still use the first XOA (which was not the "unified" version), you can ea
 
 To do so, go into "Settings/Config" of your old XOA. Export the configuration: you'll download a `config.json` file.
 
-![](./assets/xo5_export.png)
+![](../assets/xo5_export.png)
 
 Now go to your new unified XOA, "Settings/Config" and import the `config.json` file you downloaded previously, by doing a drag and drop:
 
-![](./assets/xo5_import.png)
+![](../assets/xo5_import.png)
 
 That's it!
