@@ -14,13 +14,13 @@ import {
   Tags,
 } from 'tsoa'
 
-import { badRequestResp, createdResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, createdResp, unauthorizedResp } from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { inject } from 'inversify'
-import { EventService, SseConnectionId, SseSubscriptionId } from './event.service.mjs'
+import { EventService } from './event.service.mjs'
 import { AuthenticatedRequest } from '../helpers/helper.type.mjs'
-import { XapiXoRecord } from '@vates/types'
 import { json } from 'express'
+import type { SubscriberId, XapiXoListenerType } from './event.type.mjs'
 
 @Route('events')
 @Security('*')
@@ -40,10 +40,8 @@ export class EventController extends Controller {
    * Open an SSE connection
    */
   @Get('')
-  openSseConnection(@Request() req: AuthenticatedRequest): void {
-    const evService = this.#eventService
-    const clientId = evService.createSseClient(req.res)
-    evService.sendData(clientId, { event: 'init', data: { id: clientId } })
+  openSseConnection(@Request() req: AuthenticatedRequest) {
+    this.#eventService.createSseSubscriber(req.res)
   }
 
   /**
@@ -54,19 +52,17 @@ export class EventController extends Controller {
   @SuccessResponse(createdResp.status, createdResp.description)
   subscribeCollection(
     @Path() id: string,
-    @Body() body: { collection: XapiXoRecord['type'] | 'alarm'; fields?: string }
-  ): { id: Unbrand<SseSubscriptionId> } {
-    const subscribtionId = this.#eventService.subscribeXapiCollection(id as SseConnectionId, body)
-    return {
-      id: subscribtionId,
-    }
+    @Body() body: { collection: XapiXoListenerType; fields?: string }
+  ): { id: string } {
+    this.#eventService.addXapiXoListenerFor(id as SubscriberId, body)
+    return { id: body.collection }
   }
 
   /**
    * Remove a subscription in the SSE connection
    */
   @Delete('{id}/subscription/{subscriptionId}')
-  removeSubscription(@Path() id: string, @Path() subscriptionId: string): void {
-    this.#eventService.unsubscribe(id as SseConnectionId, subscriptionId as SseSubscriptionId)
+  removeSubscription(@Path() id: string, @Path() subscriptionId: XapiXoListenerType): void {
+    this.#eventService.removeListenerFor(id as SubscriberId, subscriptionId)
   }
 }

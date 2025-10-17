@@ -77,7 +77,7 @@ export type XoApp = {
   objects: EventEmitter & {
     allIndexes: {
       type: {
-        getEventEmitterByType(type: Exclude<XapiXoRecord['type'], 'alarm'>): EventEmitter | undefined
+        getEventEmitterByType(type: XapiXoRecord['type']): EventEmitter
       }
     }
   }

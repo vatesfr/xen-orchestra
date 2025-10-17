@@ -52,7 +52,6 @@ export class Index {
     }
 
     if (this._eeByType[type] === undefined) {
-      // TODO: set max listener to 3*nb users
       this._eeByType[type] = new EventEmitter()
     }
 
