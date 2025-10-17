@@ -13,7 +13,7 @@
       <VtsStateHero v-else-if="tasks.length === 0" format="table" type="no-data" size="small">
         {{ t('no-tasks-detected') }}
       </VtsStateHero>
-      <UiTaskList v-else :tasks="tasksRecords" />
+      <UiTaskList v-else :tasks="tasksRecords" @select="id => (selectedTaskId = id)" />
       <VtsStateHero v-if="searchQuery && filteredTasks.length === 0" format="table" type="no-result" size="small">
         {{ t('no-result') }}
       </VtsStateHero>
@@ -31,7 +31,8 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
-import { usePagination } from '@core/composables/pagination.composable'
+import { usePagination } from '@core/composables/pagination.composable.ts'
+import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -42,7 +43,7 @@ const { tasks } = defineProps<{
 
 const { t } = useI18n()
 
-// const selectedTaskId = useRouteQuery('id')
+const selectedTaskId = useRouteQuery('id')
 
 const searchQuery = ref('')
 
