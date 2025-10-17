@@ -4,6 +4,7 @@ import { filter, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 import assert from 'node:assert'
 import { XapiPerfmon } from './xapiPerfmon'
+import fs from 'node:fs/promises'
 const logger = createLogger('xo:xo-server-perf-alert')
 
 logger.debug('DEBUG ENABLED')
@@ -854,6 +855,8 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
     }
     // reuse an existing/in flight query
     const json = await hostCache.get(host.uuid)
+    await fs.writeFile('./rrd.json', JSON.stringify(json, null, 2))
+    console.log('WRITTEN')
     const results = {
       meta: { ...json.meta, legend: [] },
       data: [],

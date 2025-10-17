@@ -15,7 +15,7 @@ function isSrWritable(sr) {
 } 
 
 
-class AlertDefinition{
+export class AlertDefinition{
 
     /**
      * @type {'>' | '<'}
@@ -105,7 +105,6 @@ class AlertDefinition{
 export class AlertDefinitions {
     #definitions = new Set()
     constructor(configuration){
-
         for(const definition of configuration.hostMonitors){
             const alert = new AlertDefinition({...definition, objectType: 'host'})
             this.#definitions.add(alert)
