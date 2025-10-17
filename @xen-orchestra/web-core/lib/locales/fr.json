@@ -560,6 +560,7 @@
   "smart-mode": "Mode intelligent",
   "snapshot": "Instantané",
   "sockets-with-cores-per-socket": "{nSockets} sockets × {nCores} cœurs/socket",
+  "software": "Software",
   "software-tooling": "Logiciels et outils",
   "sort-by": "Trier par",
   "source-backup-repository": "Dépôt de sauvegarde source",

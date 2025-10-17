@@ -560,6 +560,7 @@
   "smart-mode": "Smart mode",
   "snapshot": "Snapshot",
   "sockets-with-cores-per-socket": "{nSockets} sockets × {nCores} cores/socket",
+  "software": "Software",
   "software-tooling": "Software & tooling",
   "sort-by": "Sort by",
   "source-backup-repository": "Source backup repository",
