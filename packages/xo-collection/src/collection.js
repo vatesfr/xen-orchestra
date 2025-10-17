@@ -110,6 +110,10 @@ export class Collection extends EventEmitter {
     return this._size
   }
 
+  get allIndexes() {
+    return this._indexes
+  }
+
   // -----------------------------------------------------------------
   // Manipulation
   // -----------------------------------------------------------------
