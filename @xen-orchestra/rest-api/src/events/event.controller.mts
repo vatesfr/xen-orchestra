@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Example,
+  Delete,
   Get,
   Middlewares,
   Path,
@@ -14,7 +15,13 @@ import {
   Tags,
 } from 'tsoa'
 
-import { badRequestResp, createdResp, notFoundResp, unauthorizedResp } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  createdResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+} from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import { inject } from 'inversify'
 import { EventService } from './event.service.mjs'
@@ -63,5 +70,18 @@ export class EventController extends Controller {
   ): { id: string } {
     this.#eventService.addListenerFor(id as SubscriberId, { ...body, type: body.collection })
     return { id: body.collection }
+  }
+
+  /**
+   * Remove a subscription
+   *
+   * @example id "0d8b28c6-e9bf-4c9d-a382-3c9e0d7cfbff"
+   * @example subscriptionId: "VM"
+   */
+  @Delete('{id}/subscription/{subscriptionId}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  removeSubscription(@Path() id: string, @Path() subscriptionId: XapiXoListenerType): void {
+    this.#eventService.removeListenerFor(id as SubscriberId, subscriptionId)
   }
 }

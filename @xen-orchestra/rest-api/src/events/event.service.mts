@@ -59,4 +59,11 @@ export class EventService {
 
     listener.addSubscriber(subscriber, fields)
   }
+
+  removeListenerFor(id: SubscriberId, type: ListenerType): void {
+    const subscriber = this.#subscriberManager.getSubscriber(id)
+    const listener = this.#getListener(type)
+
+    listener.removeSubscriber(subscriber.id)
+  }
 }
