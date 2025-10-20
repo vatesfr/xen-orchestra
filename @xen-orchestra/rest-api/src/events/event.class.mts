@@ -3,9 +3,9 @@ import isEqual from 'lodash/isEqual.js'
 import { createLogger } from '@xen-orchestra/log'
 import type { Response } from 'express'
 import { EventEmitter } from 'node:events'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { Listener } from '../abstract-classes/listener.mjs'
-import { ApiError } from '../helpers/error.helper.mjs'
 import type { CollectionEventType, EventType, SubscriberId, XapiXoListenerType } from './event.type.mjs'
 import type { XapiXoRecord, XoAlarm } from '@vates/types'
 import type { AlarmService } from '../alarms/alarm.service.mjs'
@@ -140,7 +140,7 @@ export class SubscriberManager {
   getSubscriber(id: SubscriberId) {
     const subscriber = this.#subscribers.get(id)
     if (subscriber === undefined) {
-      throw new ApiError(`no SSE subscriber for ID: ${id}`, 404)
+      throw noSuchObject(id, 'event')
     }
 
     return subscriber
