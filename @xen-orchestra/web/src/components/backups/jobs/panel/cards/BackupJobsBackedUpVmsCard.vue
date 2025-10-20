@@ -11,7 +11,7 @@
           {{ t('smart-mode') }}
         </template>
         <template #value>
-          <VtsEnabledState :enabled="isSmartModeEnabled" />
+          <VtsStatus :status="isSmartModeEnabled" />
         </template>
       </VtsCardRowKeyValue>
       <template v-if="isSmartModeEnabled">
@@ -74,8 +74,8 @@ import { type XoVm } from '@/types/xo/vm.type.ts'
 import { destructSmartPattern, extractIdsFromSimplePattern } from '@/utils/pattern.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'

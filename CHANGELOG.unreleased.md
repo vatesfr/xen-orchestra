@@ -80,10 +80,13 @@
 - [Copy to clipboard] Fix button sometimes disappearing when trying to reach it (PR [#9059](https://github.com/vatesfr/xen-orchestra/pull/9059))
 - [Plugins/SAML] Fix SAML authentication with audience matching (PR [#9093](https://github.com/vatesfr/xen-orchestra/pull/9093))
 - [Backup/immutabiltiy] Fix double delete file that can block immutability lifting (PR [#9104](https://github.com/vatesfr/xen-orchestra/pull/9104))
+- [Backups] Fix VDI_NO_MANAGED error during replication (PR [#9117](https://github.com/vatesfr/xen-orchestra/pull/9117))
 - [VM/advanced] Fix error while changing running VM memory limit (PR [#9121](https://github.com/vatesfr/xen-orchestra/pull/9121))
 
 - **XO 6**:
   - [Site/Backups] Fix an issue properties of undefined in backups tab (PR [#9064](https://github.com/vatesfr/xen-orchestra/pull/9064))
+  - [User Menu] Fix display user menu in front of tree structure (PR [#9115](https://github.com/vatesfr/xen-orchestra/pull/9115))
+  - [Site/Backups] Fixed an issue related to date formatting and language switching (PR [#9124](https://github.com/vatesfr/xen-orchestra/pull/9124))
 
 ### Packages to release
 
@@ -101,11 +104,17 @@
 
 <!--packages-start-->
 
+- @vates/generator-toolbox minor
 - @vates/types minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/disk-transform minor
 - @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
+- vhd-lib patch
 - xo-server minor
 - xo-server-auth-saml minor
 - xo-web patch
