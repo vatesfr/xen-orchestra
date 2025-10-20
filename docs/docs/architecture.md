@@ -283,7 +283,7 @@ $ xo-cli register http://xo.my-company.net admin@admin.net admin
 Successfully logged with admin@admin.net
 ```
 
-Note: only a token will be saved in the configuration file.
+Note: only a token will be saved in the configuration file (`/etc/xo-server/config.toml`).
 
 #### List available objects
 
