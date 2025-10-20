@@ -53,7 +53,7 @@ export class EventService {
     return subscriber.id
   }
 
-  addListenerFor(id: SubscriberId, { fields, type }: { fields?: string; type: ListenerType }) {
+  addListenerFor(id: SubscriberId, { fields, type }: { fields?: '*' | string[]; type: ListenerType }) {
     const subscriber = this.#subscriberManager.getSubscriber(id)
     const listener = this.#getListener(type)
 

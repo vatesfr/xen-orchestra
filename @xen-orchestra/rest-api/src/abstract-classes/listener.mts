@@ -3,7 +3,7 @@ import type { Subscriber } from '../events/event.class.mjs'
 import type { EventType } from '../events/event.type.mjs'
 
 export abstract class Listener {
-  #subscribers: Map<Subscriber['id'], { fields: string; subscriber: Subscriber }> = new Map()
+  #subscribers: Map<Subscriber['id'], { fields: '*' | string[]; subscriber: Subscriber }> = new Map()
   #eventEmitter: EventEmitter
   #eventCallbacks: Map<string, (...args: unknown[]) => void> = new Map()
   #watchedEvent: EventType[]
@@ -21,12 +21,7 @@ export abstract class Listener {
     return this.#eventEmitter
   }
 
-  addSubscriber(subscriber: Subscriber, fields = '*') {
-    fields = fields.trim()
-    if (fields === '') {
-      fields = '*'
-    }
-
+  addSubscriber(subscriber: Subscriber, fields: '*' | string[] = '*') {
     this.#subscribers.set(subscriber.id, { fields, subscriber })
 
     if (this.#subscribers.size === 1) {
@@ -80,7 +75,7 @@ export abstract class Listener {
   }
 
   abstract handleData(
-    conf: { fields: string; subscriber: Subscriber; event: EventType },
+    conf: { fields: '*' | string[]; subscriber: Subscriber; event: EventType },
     ...args: unknown[]
   ): object | undefined
 }

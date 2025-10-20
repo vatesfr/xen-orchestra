@@ -57,7 +57,7 @@ export class EventController extends Controller {
    * Add a subscription
    *
    * @example id "0d8b28c6-e9bf-4c9d-a382-3c9e0d7cfbff"
-   * @example body {"collection": "VM", "fields": "id,name_label"}
+   * @example body {"collection": "VM", "fields": ["id", "name_label"]}
    */
   @Example(addSubscription)
   @Post('{id}/subscription')
@@ -66,7 +66,7 @@ export class EventController extends Controller {
   @Response(notFoundResp.status, notFoundResp.description)
   addSubscription(
     @Path() id: string,
-    @Body() body: { collection: XapiXoListenerType; fields?: string }
+    @Body() body: { collection: XapiXoListenerType; fields?: '*' | string[] }
   ): { id: string } {
     this.#eventService.addListenerFor(id as SubscriberId, { ...body, type: body.collection })
     return { id: body.collection }
