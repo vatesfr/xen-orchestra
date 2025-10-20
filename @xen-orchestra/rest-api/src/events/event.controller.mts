@@ -45,7 +45,29 @@ export class EventController extends Controller {
   }
 
   /**
-   * Open an SSE connection
+   * Opens an SSE (Server-Sent Events) connection.
+   *
+   * By default, there are no active subscriptions in the stream.
+   * To add subscriptions, use the following endpoint:
+   *
+   *    POST /rest/v0/events/:id/subscription
+   *
+   *
+   * Events you will receive:
+   * - **init**: The first event you will receive.
+   *   Data: the connection ID.
+   *
+   * - **ping**: A simple event used to keep the connection alive between the server and the client.
+   *   Data: the event timestamp.
+   *
+   * - **add**: Triggered when an object has been added.
+   *   Data: the added object.
+   *
+   * - **update**: Triggered when an object has been updated.
+   *   Data: the updated object.
+   *
+   * - **remove**: Triggered when an object has been removed.
+   *   Data: the removed object.
    */
   @Get('')
   @SuccessResponse(200, 'Ok')
