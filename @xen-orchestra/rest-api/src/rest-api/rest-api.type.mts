@@ -76,6 +76,15 @@ export type XoApp = {
   config: {
     getOptionalDuration(path: string): number | undefined
   }
+
+  objects: EventEmitter & {
+    allIndexes: {
+      type: {
+        getEventEmitterByType(type: XapiXoRecord['type']): EventEmitter
+      }
+    }
+  }
+
   tasks: EventEmitter & {
     abort(id: XoTask['id'], reason?: string): Promise<void>
     clearLogs(): Promise<void>

@@ -1,7 +1,11 @@
-import type { Branded } from '@vates/types'
+import type { Branded, XapiXoRecord } from '@vates/types'
 
 export type SubscriberId = Branded<'Subscriber'>
 
-export type ListenerType = 'ping'
+export type XapiXoListenerType = XapiXoRecord['type'] | 'alarm'
 
-export type EventType = 'init' | 'ping'
+export type ListenerType = XapiXoListenerType | 'ping'
+
+export type CollectionEventType = 'add' | 'update' | 'remove'
+
+export type EventType = CollectionEventType | 'ping'

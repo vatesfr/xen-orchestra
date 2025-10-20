@@ -1,13 +1,14 @@
 import type { EventEmitter } from 'node:events'
 import type { Subscriber } from '../events/event.class.mjs'
+import type { EventType } from '../events/event.type.mjs'
 
 export abstract class Listener {
-  #subscribers: Map<Subscriber['id'], Subscriber> = new Map()
+  #subscribers: Map<Subscriber['id'], { fields: string; subscriber: Subscriber }> = new Map()
   #eventEmitter: EventEmitter
   #eventCallbacks: Map<string, (...args: unknown[]) => void> = new Map()
-  #watchedEvent: 'ping'[]
+  #watchedEvent: EventType[]
 
-  constructor(eventEmitter: EventEmitter, watchedEvent: 'ping'[]) {
+  constructor(eventEmitter: EventEmitter, watchedEvent: EventType[]) {
     this.#eventEmitter = eventEmitter
     this.#watchedEvent = watchedEvent
   }
@@ -20,8 +21,13 @@ export abstract class Listener {
     return this.#eventEmitter
   }
 
-  addSubscriber(subscriber: Subscriber) {
-    this.#subscribers.set(subscriber.id, subscriber)
+  addSubscriber(subscriber: Subscriber, fields = '*') {
+    fields = fields.trim()
+    if (fields === '') {
+      fields = '*'
+    }
+
+    this.#subscribers.set(subscriber.id, { fields, subscriber })
 
     if (this.#subscribers.size === 1) {
       this.#watchedEvent.forEach(event => this.#addEventListener(event))
@@ -49,29 +55,32 @@ export abstract class Listener {
     this.#watchedEvent = []
   }
 
-  #addEventListener(event: 'ping') {
+  #addEventListener(event: EventType) {
     if (this.#eventCallbacks.has(event)) {
       return
     }
 
     const broadcastAllSubscriber = (...args: unknown[]) => {
-      this.#subscribers.forEach(subscriber => {
-        if (!subscriber.isAlive) {
-          this.removeSubscriber(subscriber.id)
+      this.#subscribers.forEach(conf => {
+        if (!conf.subscriber.isAlive) {
+          this.removeSubscriber(conf.subscriber.id)
           return
         }
 
-        const data = this.handleData({ subscriber, event }, ...args)
+        const data = this.handleData({ ...conf, event }, ...args)
         if (data === undefined) {
           return
         }
 
-        subscriber.broadcast(event, data)
+        conf.subscriber.broadcast(event, data)
       })
     }
     this.#eventCallbacks.set(event, broadcastAllSubscriber)
     this.#eventEmitter.on(event, broadcastAllSubscriber)
   }
 
-  abstract handleData(conf: { subscriber: Subscriber; event: 'ping' }, ...args: unknown[]): object | undefined
+  abstract handleData(
+    conf: { fields: string; subscriber: Subscriber; event: EventType },
+    ...args: unknown[]
+  ): object | undefined
 }
