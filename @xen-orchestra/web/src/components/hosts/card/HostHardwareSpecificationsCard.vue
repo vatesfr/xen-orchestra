@@ -6,9 +6,7 @@
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('manufacturer-info') }}</template>
-        <template v-if="manufacturerInfo" #value>
-          {{ manufacturerInfo }}
-        </template>
+        <template v-if="manufacturerInfo" #value>{{ manufacturerInfo }}</template>
         <template v-if="manufacturerInfo" #addons>
           <VtsCopyButton :value="manufacturerInfo" />
         </template>
@@ -39,9 +37,10 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const manufacturerInfo = computed(() =>
-  // #FIXME to check
-  [host.bios_strings['system-manufacturer'], host.bios_strings['system-product-name']].join(' ')
+const manufacturerInfo = computed(
+  () =>
+    (host.bios_strings['system-manufacturer'] ?? '') +
+    (host.bios_strings['system-product-name'] ? ` (${host.bios_strings['system-product-name']})` : '')
 )
 </script>
 
