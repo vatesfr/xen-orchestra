@@ -103,8 +103,9 @@ export function setupContainer(xoApp: XoApp) {
 
   iocContainer
     .bind(EventService)
-    .toDynamicValue(() => {
-      return new EventService()
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new EventService(restApi)
     })
     .inSingletonScope()
 }

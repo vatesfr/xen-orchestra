@@ -1,10 +1,14 @@
+import pick from 'lodash/pick.js'
+import isEqual from 'lodash/isEqual.js'
 import { createLogger } from '@xen-orchestra/log'
 import type { Response } from 'express'
 import { EventEmitter } from 'node:events'
 
 import { Listener } from '../abstract-classes/listener.mjs'
 import { ApiError } from '../helpers/error.helper.mjs'
-import type { EventType, SubscriberId } from './event.type.mjs'
+import type { CollectionEventType, EventType, SubscriberId, XapiXoListenerType } from './event.type.mjs'
+import type { XapiXoRecord, XoAlarm } from '@vates/types'
+import type { AlarmService } from '../alarms/alarm.service.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
 
@@ -44,7 +48,7 @@ export class Subscriber {
     this.#isAlive = true
   }
 
-  broadcast(event: EventType, data: object) {
+  broadcast(event: EventType | 'init', data: object) {
     if (!this.#isAlive) {
       log.warn('broadcast called on a subscriber that is not alive, but still in memory! Force clear and do nothing')
       this.clear()
@@ -59,6 +63,54 @@ export class Subscriber {
     this.#manager.removeSubscriber(this.id)
   }
 }
+
+export class XapiXoListener extends Listener {
+  #type: XapiXoListenerType
+  #alarmService?: AlarmService
+
+  constructor(type: XapiXoListenerType, eventEmitter: EventEmitter, alarmService?: AlarmService) {
+    super(eventEmitter, ['add', 'update', 'remove'])
+    this.#type = type
+    this.#alarmService = alarmService
+  }
+
+  handleData<T extends Exclude<XapiXoRecord, XoAlarm>>(
+    { fields, event }: { fields: string; subscriber: Subscriber; event: CollectionEventType },
+    object: T | undefined,
+    previousObj?: T
+  ): Partial<XapiXoRecord> | undefined {
+    let _object: Partial<XapiXoRecord> | undefined = object
+    let _prevObject: Partial<XapiXoRecord> | undefined = previousObj
+
+    if (this.#type === 'alarm') {
+      if (object?.type === 'message' && this.#alarmService?.isAlarm(object)) {
+        _object = this.#alarmService.parseAlarm(object)
+      }
+      if (previousObj?.type === 'message' && this.#alarmService?.isAlarm(previousObj)) {
+        _prevObject = this.#alarmService.parseAlarm(previousObj)
+      }
+    }
+
+    if (fields !== '*') {
+      const _fields = fields.split(',')
+      if (_object !== undefined) {
+        _object = pick(_object, _fields)
+      }
+      if (_prevObject !== undefined) {
+        _prevObject = pick(_prevObject, _fields)
+      }
+    }
+
+    if (event === 'update' && fields !== '*' && isEqual(_object, _prevObject)) {
+      // if no changes from user perspective, don't send update
+      return
+    }
+
+    // if _object === undefined, this means we are on a remove event, so _prevObject will not be undefined
+    return _object ?? _prevObject!
+  }
+}
+
 export class PingListener extends Listener {
   #intervalId: NodeJS.Timeout
   constructor() {
