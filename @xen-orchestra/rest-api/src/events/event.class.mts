@@ -75,7 +75,7 @@ export class XapiXoListener extends Listener {
   }
 
   handleData<T extends Exclude<XapiXoRecord, XoAlarm>>(
-    { fields, event }: { fields: string; subscriber: Subscriber; event: CollectionEventType },
+    { fields, event }: { fields: '*' | string[]; subscriber: Subscriber; event: CollectionEventType },
     object: T | undefined,
     previousObj?: T
   ): Partial<XapiXoRecord> | undefined {
@@ -92,12 +92,11 @@ export class XapiXoListener extends Listener {
     }
 
     if (fields !== '*') {
-      const _fields = fields.split(',')
       if (_object !== undefined) {
-        _object = pick(_object, _fields)
+        _object = pick(_object, fields)
       }
       if (_prevObject !== undefined) {
-        _prevObject = pick(_prevObject, _fields)
+        _prevObject = pick(_prevObject, fields)
       }
     }
 
