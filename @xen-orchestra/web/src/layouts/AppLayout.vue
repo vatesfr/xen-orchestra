@@ -19,7 +19,7 @@
       <AccountMenu />
     </template>
     <template #sidebar-header>
-      <SidebarSearch v-model="filter" />
+      <SidebarSearch v-model="filter" :is-searching />
     </template>
     <template #sidebar-content>
       <VtsTreeList v-if="!isReady">
@@ -55,7 +55,7 @@ defineSlots<{
 
 const uiStore = useUiStore()
 
-const { sites, isReady, filter } = useSiteTree()
+const { sites, isReady, filter, isSearching } = useSiteTree()
 </script>
 
 <style lang="postcss" scoped>
