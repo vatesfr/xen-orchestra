@@ -391,7 +391,16 @@ If you’re automating things or working with scripts, you can also control VIF 
 
 ### VM high availability (HA)
 
-If you pool supports HA (must have shared storage), you can activate "HA". Read our blog post for more details on [VM high availability with XCP-ng/XenServer](https://xen-orchestra.com/blog/xenserver-and-vm-high-availability/).
+If your pool supports HA (must have shared storage), you can activate "HA". Read the XCP-ng documentation for more details on [High Availability with XCP-ng](https://docs.xcp-ng.org/management/ha/).
+In the VM's Advanced tab, you can choose between three HA modes:
+- Restart: a protected VM cannot be immediately restarted after a server failure. HA will attempt to restart the VM when additional capacity becomes available in the pool.
+- Best-Effort: for VMs configured with best-effort, HA will try to restart them on another host if their original host goes offline. This attempt occurs only after all VMs set to the "restart" mode have been successfully restarted. HA will make only one attempt to restart a best-effort VM; if it fails, no further attempts will be made.
+- Disabled: if an unprotected VM or its host is stopped, HA does not attempt to restart the VM.
+
+:::tip
+In Xen Orchestra, you can filter to see which VMs are in which mode:
+`high_availability:restart` or `high_availability:best-effort`
+:::
 
 #### Docker management
 
@@ -945,70 +954,3 @@ To check the status reported by `mdadm`, go to the **Host → Advanced** section
 If a host has a degraded software RAID array, a red warning triangle will appear in the host view. Clicking on it will display detailed information about the issue, so you can quickly identify and address critical problems:
 
 ![](./assets/raid-status-alert.png)
-
-## Docker support
-
-This allows you to enjoy Docker containers displayed directly in Xen Orchestra.
-
-### Prerequisites
-
-- XenServer 6.5 or higher
-- Plugin installation (for Citrix Hypervisor, it's included in XCP-ng)
-
-### Docker plugin installation
-
-This first step is needed until Docker is supported natively in the XCP-ng/XenServer API (XAPI).
-
-:::tip
-The plugin should be installed on every host you will be using, even if they are on the same pool.
-:::
-
-#### For XenServer 6.5
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/10343/XenServer-6.5.0-SP1-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-6.5.0-SP1-xscontainer.iso`
-
-#### For XenServer 7.0
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11621/XenServer-7.0.0-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-7.0.0-xscontainer.iso`
-
-#### For XenServer 7.1
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11993/XenServer-7.1.0-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-7.1.0-xscontainer.iso`
-
-#### For XenServer 7.2
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/12641/XenServer-7.2.0-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-7.2.0-xscontainer.iso`
-
-That's it! You can now enjoy Docker support!
-
-### Docker managed VMs
-
-You can also use the XSContainer plugin to "transform" an existing VM into a "Docker" managed VM.
-
-You need to have the following installed inside the VM:
-
-- Docker
-- openssh-server
-- ncat
-
-For Debian/Ubuntu like distro: `apt-get install docker.io openssh-server nmap`. For RHEL and derived (CentOS...): `yum install docker openssh-server nmap-ncat`.
-
-To run Docker as non-root, please add the user you want inside the "Docker" group.
-
-Now you need to access your host (Dom0) and use the following command:
-
-```sh
-xscontainer-prepare-vm -v <VM_UUID> -u <username>
-```
-
-:::tip
-Because "prepare-vm" is not exposed outside of the Dom0 (yet?), we can't use Xen Orchestra to give you a one-click solution as of now.
-:::

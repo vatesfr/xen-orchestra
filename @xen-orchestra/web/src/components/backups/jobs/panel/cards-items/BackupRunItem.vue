@@ -28,7 +28,7 @@
       {{ t('status') }}
     </template>
     <template #value>
-      <VtsBackupState :state="backupRun.status" />
+      <VtsStatus :status="backupRun.status" />
     </template>
   </VtsCardRowKeyValue>
   <VtsCardRowKeyValue>
@@ -53,9 +53,9 @@
 <script lang="ts" setup>
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
 import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
-import VtsBackupState from '@core/components/backup-state/VtsBackupState.vue'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { computed } from 'vue'
@@ -65,13 +65,13 @@ const { backupRun } = defineProps<{
   backupRun: XoBackupLog
 }>()
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 
 const { schedules } = useXoScheduleCollection()
 
 const runDate = computed(() => backupRun.end ?? backupRun.start)
 
-const formattedRunDate = computed(() => new Date(runDate.value).toLocaleString())
+const formattedRunDate = computed(() => d(runDate.value, 'datetime_short'))
 
 const logContent = computed(() => {
   if (backupRun.status !== 'success' && backupRun.status !== 'pending' && backupRun.tasks && backupRun.tasks[0]) {

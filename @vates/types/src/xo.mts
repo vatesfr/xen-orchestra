@@ -289,7 +289,19 @@ export type XoNetwork = BaseXapiXo & {
 }
 
 export type XoPbd = BaseXapiXo & {
+  attached: boolean
+  device_config:
+    | { device: string }
+    | { location: string }
+    | { path: string; location: string; legacy_mode: string }
+    | { provisioning: string; redundancy: string; 'group-name': string }
+    | { server: string; serverpath: string }
+    | { type: string; location: string }
+    | Record<string, string>
+  host: XoHost['id']
   id: Branded<'PBD'>
+  otherConfig: Record<string, string>
+  SR: XoSr['id']
   type: 'PBD'
 }
 
@@ -741,6 +753,7 @@ export type XapiXoRecord =
   | XoHost
   | XoMessage
   | XoNetwork
+  | XoPbd
   | XoPci
   | XoPgpu
   | XoPif

@@ -149,7 +149,7 @@
         <VtsCardRowKeyValue>
           <template #key>{{ t('read-only') }}</template>
           <template #value>
-            <VtsEnabledState :enabled="server.readOnly" />
+            <VtsStatus :status="server.readOnly" />
           </template>
         </VtsCardRowKeyValue>
         <!-- self-signed-certificates -->
@@ -157,7 +157,7 @@
           <template #key>{{ t('self-signed-certificates') }}</template>
           <template #value>
             <!-- todo add information button. waiting modal -->
-            <VtsEnabledState :enabled="server.allowUnauthorized" />
+            <VtsStatus :status="server.allowUnauthorized" />
           </template>
         </VtsCardRowKeyValue>
       </UiCard>
@@ -195,9 +195,9 @@ import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.t
 import type { XoServer } from '@/types/xo/server.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
