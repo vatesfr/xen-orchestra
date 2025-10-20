@@ -5,6 +5,7 @@ import type { Request as ExRequest } from 'express'
 
 import {
   asynchronousActionResp,
+  badRequestResp,
   featureUnauthorized,
   internalServerErrorResp,
   noContentResp,
@@ -19,6 +20,7 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('schedules')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('schedules')
 @provide(ScheduleController)

@@ -7,7 +7,7 @@ import type { XoAlarm, XoMessage, XoPif, XoTask } from '@vates/types'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialPifs, pif, pifIds } from '../open-api/oa-examples/pif.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
@@ -19,6 +19,7 @@ type UnbrandedXoPif = Unbrand<XoPif>
 
 @Route('pifs')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('pifs')
 @provide(PifController)
