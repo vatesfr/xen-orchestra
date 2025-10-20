@@ -105,6 +105,7 @@
 
 <!--packages-start-->
 
+- @vates/fatfs patch
 - @vates/generator-toolbox minor
 - @vates/types minor
 - @xen-orchestra/backups minor
