@@ -8,6 +8,7 @@
     </div>
     <VtsDataTable
       :no-data-message="hosts.length === 0 ? t('no-hosts-available') : undefined"
+      :has-error
       :is-ready="arePifsReady && hostReady"
     >
       <template #thead>
@@ -55,28 +56,19 @@
               size="small"
             />
             <div v-else-if="column.id === 'host'">
-              <UiLink
-                v-if="column.value !== undefined"
-                v-tooltip
-                size="medium"
-                :to="`/host/${column.value.id}/`"
-                :icon="`object:host:${isHostRunning(column.value.state)}`"
-                class="link text-ellipsis"
-                @click.stop
-              >
+              <UiObjectLink :route="`/host/${column.value.id}/`">
+                <template #icon>
+                  <VtsObjectIcon size="medium" :state="isHostRunning(column.value.state)" type="host" />
+                </template>
                 {{ column.value.label }}
-              </UiLink>
+              </UiObjectLink>
             </div>
-
             <span v-else-if="column.id === 'description'">
               {{ column.value }}
             </span>
-
             <span
               v-else-if="column.id === 'ipv4-address'"
-              v-tooltip="
-                `${column.value.masterIp}${column.value.pif.length > 0 ? ', ' : ''}${column.value.pif.join(', ')}`
-              "
+              v-tooltip="[column.value.masterIp, ...column.value.pif].filter(Boolean).join(', ')"
               class="text-ellipsis"
             >
               <span class="text-ellipsis">{{ column.value.masterIp }}</span>
@@ -84,7 +76,6 @@
                 {{ ` +${column.value.pif.length}` }}
               </span>
             </span>
-
             <span v-else-if="column.id === 'tags'">
               <template v-if="column.value.length > 0">
                 <UiTagsList class="value">
@@ -115,10 +106,11 @@ import type { XoHost } from '@/types/xo/host.type'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
@@ -137,13 +129,13 @@ import { useI18n } from 'vue-i18n'
 const { hosts } = defineProps<{
   hosts: XoHost[]
   hostReady: boolean
+  hasError: boolean
 }>()
 
 const hostsId = computed(() => hosts.map(host => host.id))
 
 const { t } = useI18n()
 const selectedHostId = useRouteQuery('id')
-
 const { pifsByHost, arePifsReady } = useXoPifCollection()
 const { selected, areAllSelected } = useMultiSelect(hostsId)
 
@@ -195,7 +187,7 @@ const { pageRecords: spacesRecords, paginationBindings } = usePagination('hosts'
 type HostHeader = 'host' | 'description' | 'ipv4-address' | 'tags'
 
 const headerIcon: Record<HostHeader, IconName> = {
-  host: 'fa:a',
+  host: 'fa:object',
   description: 'fa:align-left',
   'ipv4-address': 'fa:align-left',
   tags: 'fa:square-caret-down',
@@ -222,7 +214,6 @@ const isHostRunning = (host: HOST_POWER_STATE) => {
 .host-table {
   gap: 2.4rem;
 
-  .container,
   .table-actions {
     gap: 0.8rem;
   }
@@ -230,10 +221,6 @@ const isHostRunning = (host: HOST_POWER_STATE) => {
   .checkbox,
   .more {
     width: 4.8rem;
-  }
-
-  .link {
-    width: 100%;
   }
 
   .checkbox {

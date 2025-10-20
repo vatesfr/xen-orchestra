@@ -41,6 +41,22 @@ const { host } = defineProps<{
 const emit = defineEmits<{
   close: []
 }>()
+
 const { t } = useI18n()
+
 const uiStore = useUiStore()
 </script>
+
+<style scoped lang="postcss">
+.mobile-drawer {
+  position: fixed;
+  inset: 0;
+
+  .action-buttons-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+}
+</style>

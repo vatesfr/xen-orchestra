@@ -1,6 +1,6 @@
 <template>
   <VtsStateHero v-if="!arePifsReady" format="card" busy size="medium" />
-  <UiCard v-if="arePifsReady">
+  <UiCard v-else>
     <UiCardTitle>
       {{ t('network') }}
     </UiCardTitle>
@@ -29,7 +29,6 @@
       <VtsCardRowKeyValue v-else>
         <template #key>{{ t('management-ip', masterIp.length) }}</template>
       </VtsCardRowKeyValue>
-
       <template v-if="ipV4Addresses.length">
         <VtsCardRowKeyValue v-for="(ip, index) in ipV4Addresses" :key="ip">
           <template #key>
@@ -54,7 +53,6 @@
       <VtsCardRowKeyValue v-else>
         <template #key>{{ t('ipv4-address', ipV4Addresses.length) }}</template>
       </VtsCardRowKeyValue>
-
       <template v-if="ipV6Addresses.length">
         <VtsCardRowKeyValue v-for="(ip, index) in ipV6Addresses" :key="ip">
           <template #key>

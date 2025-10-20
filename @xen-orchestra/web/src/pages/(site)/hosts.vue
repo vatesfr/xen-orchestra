@@ -2,11 +2,12 @@
   <div class="host" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
       <UiTitle>{{ t('hosts') }}</UiTitle>
-      <HostsTable :hosts :host-ready="areHostsReady" />
+      <HostsTable :hosts :host-ready="areHostsReady" :has-error="hasHostFetchError" />
     </UiCard>
-    <HostsSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
+    <HostsSidePanel v-if="selectedHost && areHostsReady" :host="selectedHost" @close="selectedHost = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
-      <VtsStateHero format="panel" type="no-selection" size="medium">
+      <VtsStateHero v-if="!areHostsReady" format="panel" busy size="medium" />
+      <VtsStateHero v-else format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>
     </UiPanel>
@@ -26,9 +27,11 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
-const { hosts, getHostById, areHostsReady } = useXoHostCollection()
 const uiStore = useUiStore()
+
+const { hosts, getHostById, areHostsReady, hasHostFetchError } = useXoHostCollection()
+
+const { t } = useI18n()
 
 const selectedHost = useRouteQuery<XoHost | undefined>('id', {
   toData: id => getHostById(id as XoHost['id']),
