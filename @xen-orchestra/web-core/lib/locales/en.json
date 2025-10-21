@@ -485,7 +485,6 @@
   "patches-up-to-date": "Patches up to date",
   "pause": "Pause",
   "pbd-details": "Physical Block Device (PBD) details",
-  "pbd-number": "PBD #{n}",
   "pending": "Pending",
   "physical-interface-status": "Physical interface status",
   "pick-template": "Pick template",
