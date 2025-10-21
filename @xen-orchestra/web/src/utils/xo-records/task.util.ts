@@ -5,7 +5,7 @@ export type BackupLogResult = { message: string; stack: unknown }
 export function getTasksResultsRecursively(task: XoTask, rawType: 'failure' | 'warning' | 'info'): BackupLogResult[] {
   const data: BackupLogResult[] = []
 
-  const type = rawType === 'failure' ? 'failure' : (`${rawType}s` as 'warning' | 'infos')
+  const type = rawType === 'failure' ? 'failure' : (`${rawType}s` as 'warnings' | 'infos')
 
   if (type === 'failure') {
     if (task.status === 'failure' && task.result !== undefined) {

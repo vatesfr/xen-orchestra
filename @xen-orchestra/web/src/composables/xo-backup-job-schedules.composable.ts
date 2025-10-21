@@ -6,8 +6,8 @@ import type { IconName } from '@core/icons'
 import { createMapper } from '@core/packages/mapper'
 import { useI18n } from 'vue-i18n'
 
-export function useXoBackupJobSchedules() {
-  const { t } = useI18n()
+export function useXoBackupJobSchedulesUtils() {
+  const { t, d } = useI18n()
 
   const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
   const { schedulesByJobId } = useXoScheduleCollection()
@@ -25,7 +25,7 @@ export function useXoBackupJobSchedules() {
 
   const getRunInfo = (backupLog: XoBackupLog, index: number) => ({
     icon: getRunStatusIcon(backupLog.status),
-    tooltip: `${t('last-run-number', { n: index + 1 })}: ${new Date(backupLog.end ?? backupLog.start).toLocaleString()}, ${t(backupLog.status)}`,
+    tooltip: `${t('last-run-number', { n: index + 1 })}: ${d(backupLog.end ?? backupLog.start, 'datetime_short')}, ${t(backupLog.status)}`,
   })
 
   function getLastThreeRunsStatuses(backupJob: XoBackupJob | undefined) {

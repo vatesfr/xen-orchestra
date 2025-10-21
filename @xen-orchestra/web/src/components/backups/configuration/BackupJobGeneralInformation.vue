@@ -1,6 +1,6 @@
 <template>
-  <UiCard class="backup-jobs-information">
-    <UiTitle> {{ t('general-information') }} </UiTitle>
+  <UiCard class="backup-job-general-information">
+    <UiTitle>{{ t('general-information') }}</UiTitle>
     <VtsColumns>
       <VtsColumn>
         <VtsQuickInfoRow :label="t('name')" :value="backupJob.name" />
@@ -10,9 +10,9 @@
       </VtsColumn>
       <VtsColumn>
         <VtsQuickInfoRow :label="t('mode')">
-          <template v-if="ModeLabels.length > 0" #value>
+          <template v-if="modeLabels.length > 0" #value>
             <UiTagsList>
-              <UiTag v-for="label in ModeLabels" :key="label" variant="secondary" accent="info">
+              <UiTag v-for="label in getModeLabels(backupJob)" :key="label" variant="secondary" accent="info">
                 {{ label }}
               </UiTag>
             </UiTagsList>
@@ -44,5 +44,5 @@ const { t } = useI18n()
 
 const { getModeLabels } = useXoBackupUtils()
 
-const ModeLabels = computed(() => getModeLabels(backupJob))
+const modeLabels = computed(() => getModeLabels(backupJob))
 </script>

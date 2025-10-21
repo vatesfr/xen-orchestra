@@ -1,8 +1,8 @@
 <template>
-  <div class="backup-jobs-configuration">
+  <div class="backup-job-configuration">
     <BackupJobGeneralInformation :backup-job />
     <BackupJobSettings :backup-job />
-    <BackupJobSchedules :backup-jobs-schedules />
+    <BackupJobSchedules :backup-job-schedules :has-error="hasScheduleFetchError" />
   </div>
 </template>
 
@@ -18,13 +18,13 @@ const { backupJob } = defineProps<{
   backupJob: XoVmBackupJob
 }>()
 
-const { schedulesByJobId } = useXoScheduleCollection()
+const { schedulesByJobId, hasScheduleFetchError } = useXoScheduleCollection()
 
-const backupJobsSchedules = computed(() => schedulesByJobId.value.get(backupJob.id) ?? [])
+const backupJobSchedules = computed(() => schedulesByJobId.value.get(backupJob.id) ?? [])
 </script>
 
 <style lang="postcss" scoped>
-.backup-jobs-configuration {
+.backup-job-configuration {
   margin: 0.8rem;
   display: flex;
   flex-direction: column;

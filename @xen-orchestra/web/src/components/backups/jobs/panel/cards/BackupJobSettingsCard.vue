@@ -39,9 +39,9 @@
           <VtsStatus :status="cbtDestroySnapshotData" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="exportRate !== undefined">
+      <VtsCardRowKeyValue v-if="maxExportRate !== undefined">
         <template #key>{{ t('speed-limit') }}</template>
-        <template #value>{{ `${exportRate.value} ${exportRate.prefix}` }}</template>
+        <template #value>{{ `${maxExportRate.value} ${maxExportRate.prefix}` }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.checkpointSnapshot !== undefined">
         <template #key>{{ t('checkpoint-snapshot') }}</template>
@@ -53,9 +53,9 @@
         <template #key>{{ t('vm-backup-failure-number-of-retries') }}</template>
         <template #value>{{ settings.nRetriesVmBackupFailures }}</template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="compressionLabel !== undefined">
+      <VtsCardRowKeyValue v-if="compression !== undefined">
         <template #key>{{ t('compression') }}</template>
-        <template #value>{{ compressionLabel }}</template>
+        <template #value>{{ compression }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue v-if="settings.offlineBackup !== undefined">
         <template #key>{{ t('offline-backup') }}</template>
@@ -106,15 +106,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupJob } from '@/composables/xo-backup-job.composable'
+import { useXoBackupJobSettingsUtils } from '@/composables/xo-backup-job-settings.composable'
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
-import { useMapper } from '@core/packages/mapper'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
@@ -124,36 +122,15 @@ const { backupJob } = defineProps<{
 const { t } = useI18n()
 
 const {
-  getExportRate,
-  getNbdConcurrency,
-  getCbtDestroySnapshotData,
-  getFormattedTimeout,
-  getCompressionLabel,
-  getProxy,
-  getsettings,
-} = useXoBackupJob()
-
-const settings = computed(() => getsettings(backupJob))
-
-type ReportWhen = 'always' | 'failure' | 'error' | 'never'
-
-const reportWhenValueTranslation = useMapper<ReportWhen, string>(
-  () => settings.value.reportWhen as ReportWhen | undefined,
-  {
-    always: t('report-when.always'),
-    failure: t('report-when.skipped-and-failure'),
-    error: t('report-when.error'),
-    never: t('report-when.never'),
-  },
-  'never'
-)
-
-const nbdConcurrency = computed(() => getNbdConcurrency(backupJob))
-const exportRate = computed(() => getExportRate(settings.value.maxExportRate))
-const cbtDestroySnapshotData = computed(() => getCbtDestroySnapshotData(backupJob))
-const formattedTimeout = computed(() => getFormattedTimeout(settings.value.timeout as number | undefined))
-const compressionLabel = computed(() => getCompressionLabel(settings.value.compression))
-const proxy = getProxy(backupJob)
+  cbtDestroySnapshotData,
+  compression,
+  formattedTimeout,
+  maxExportRate,
+  nbdConcurrency,
+  proxy,
+  reportWhenValueTranslation,
+  settings,
+} = useXoBackupJobSettingsUtils(backupJob)
 </script>
 
 <style scoped lang="postcss">
