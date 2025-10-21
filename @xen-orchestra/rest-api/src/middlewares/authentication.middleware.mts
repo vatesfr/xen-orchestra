@@ -10,12 +10,16 @@ import { ApiError } from '../helpers/error.helper.mjs'
 
 const log = createLogger('xo:rest-api:authentication')
 
-export type SecurityName = '*' | 'token' | 'basic'
+export type SecurityName = '*' | 'token' | 'basic' | 'none'
 
 // TODO: correctly handle ACL/Resource set users
 // for now only support "xoa-admin"
 // TSOA spec require this function to be async
 export async function expressAuthentication(req: AuthenticatedRequest, securityName: SecurityName) {
+  if (securityName === 'none') {
+    return undefined
+  }
+
   const restApi = iocContainer.get(RestApi)
   const user = restApi.getCurrentUser()
   const authType = req.res.locals.authType
