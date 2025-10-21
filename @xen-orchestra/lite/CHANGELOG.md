@@ -2,6 +2,8 @@
 
 ## **next**
 
+- [VM/New] Fix the default topology by setting the platform:cores-per-socket value correctly (PR [#9136](https://github.com/vatesfr/xen-orchestra/pull/9136))
+
 ## **0.15.0** (2025-09-30)
 
 - [settigns] fix key-value alignement and refactor page (PR [#8981](https://github.com/vatesfr/xen-orchestra/pull/8981))
