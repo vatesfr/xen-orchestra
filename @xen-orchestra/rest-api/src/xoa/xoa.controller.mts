@@ -4,7 +4,7 @@ import { PassThrough } from 'node:stream'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 
-import type { PingResponse, XoaDashboard } from './xoa.type.mjs'
+import type { PingResponse, XoaDashboard, XoGuiRoutes } from './xoa.type.mjs'
 
 import { pingResponse } from '../open-api/oa-examples/ping.oa-example.mjs'
 import { badRequestResp, unauthorizedResp } from '../open-api/common/response.common.mjs'
@@ -53,6 +53,15 @@ export class XoaController extends Controller {
     return {
       result: 'pong',
       timestamp: Date.now(),
+    }
+  }
+
+  @Get('xo-versions')
+  async getXoVersions(): Promise<XoGuiRoutes> {
+    return {
+      xo5: '/v5',
+      xo6: '/v6',
+      default: 'xo5',
     }
   }
 }

@@ -85,3 +85,9 @@ export type PingResponse = {
   result: 'pong'
   timestamp: number
 }
+
+export type XoGuiRoutes = {
+  xo5: string | null
+  xo6: string | null
+  default: 'xo5' | 'xo6'
+}
