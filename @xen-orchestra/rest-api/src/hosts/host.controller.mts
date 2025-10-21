@@ -29,6 +29,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import {
+  badRequestResp,
   featureUnauthorized,
   internalServerErrorResp,
   noContentResp,
@@ -42,6 +43,7 @@ import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.m
 
 @Route('hosts')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('hosts')
 @provide(HostController)

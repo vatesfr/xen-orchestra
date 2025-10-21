@@ -201,7 +201,7 @@ And to download the patches, we need access to `https://fileservice.citrix.com/d
 
 To do that behind a corporate proxy, just add the `httpProxy` variable to match your current proxy configuration.
 
-You can add this at the end of your config file:
+You can add this at the end of your config file (`/etc/xo-server/config.toml`):
 
 ```toml
 # HTTP proxy configuration used by xo-server to fetch resources on the Internet.

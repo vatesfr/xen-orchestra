@@ -7,13 +7,14 @@ import type { Request as ExRequest, Response as ExResponse } from 'express'
 import type { PingResponse, XoaDashboard } from './xoa.type.mjs'
 
 import { pingResponse } from '../open-api/oa-examples/ping.oa-example.mjs'
-import { unauthorizedResp } from '../open-api/common/response.common.mjs'
+import { badRequestResp, unauthorizedResp } from '../open-api/common/response.common.mjs'
 import { xoaDashboard } from '../open-api/oa-examples/xoa.oa-example.mjs'
 import { XoaService } from './xoa.service.mjs'
 import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 
 @Route('')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Tags('xoa')
 @provide(XoaController)
 export class XoaController extends Controller {

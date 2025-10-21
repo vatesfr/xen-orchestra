@@ -3,13 +3,14 @@ import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
 import type { XoProxy } from '@vates/types'
 
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import { partialProxies, proxy, proxyIds } from '../open-api/oa-examples/proxy.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('proxies')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('proxies')
 @provide(ProxyController)

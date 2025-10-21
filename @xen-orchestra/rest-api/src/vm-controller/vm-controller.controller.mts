@@ -8,7 +8,13 @@ import { Request as ExRequest } from 'express'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { noContentResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  badRequestResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import {
@@ -23,6 +29,7 @@ import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.m
 
 @Route('vm-controllers')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('vms')
 @provide(VmControllerController)
