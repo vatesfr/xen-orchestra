@@ -88,6 +88,8 @@
 - [Backups] Fix VDI_NO_MANAGED error during replication (PR [#9117](https://github.com/vatesfr/xen-orchestra/pull/9117))
 - [VM/advanced] Fix error while changing running VM memory limit (PR [#9121](https://github.com/vatesfr/xen-orchestra/pull/9121))
 - [Plugins/load balancer] Avoid migrating VMs tagged with anti-affinity when balancing performance (PR [#9139](https://github.com/vatesfr/xen-orchestra/pull/9139))
+- [VM] Set a default `cores-per-socket` value for all new VM [#9111](https://github.com/vatesfr/xen-orchestra/issues/9111) (PR [#9136](https://github.com/vatesfr/xen-orchestra/pull/9136))
+- [VM] Update invalid `platform.cores-per-socket` for all existing VM with invalid value [#9111](https://github.com/vatesfr/xen-orchestra/issues/9111) (PR [#9136](https://github.com/vatesfr/xen-orchestra/pull/9136))
 
 - **XO 6**:
   - [Site/Backups] Fix an issue properties of undefined in backups tab (PR [#9064](https://github.com/vatesfr/xen-orchestra/pull/9064))
