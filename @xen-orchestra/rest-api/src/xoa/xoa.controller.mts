@@ -13,6 +13,7 @@ import { XoaService } from './xoa.service.mjs'
 import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 
 @Route('')
+@Security('*')
 @Tags('xoa')
 @provide(XoaController)
 export class XoaController extends Controller {
@@ -23,7 +24,6 @@ export class XoaController extends Controller {
     this.#xoaService = xoaService
   }
 
-  @Security('*')
   @Example(xoaDashboard)
   @Get('dashboard')
   @Response(unauthorizedResp.status, unauthorizedResp.description)
