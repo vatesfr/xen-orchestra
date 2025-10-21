@@ -56,12 +56,9 @@ export class XoaController extends Controller {
     }
   }
 
-  @Get('xo-versions')
-  async getXoVersions(): Promise<XoGuiRoutes> {
-    return {
-      xo5: '/v5',
-      xo6: '/v6',
-      default: 'xo5',
-    }
+  @Security('none')
+  @Get('gui-routes')
+  async getGuiRoutes(): Promise<XoGuiRoutes> {
+    return this.#xoaService.getGuiRoutes()
   }
 }

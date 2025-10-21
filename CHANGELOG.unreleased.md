@@ -13,6 +13,7 @@
 
 - [REST API] Expose `GET /rest/v0/ping` (PR [#9129](https://github.com/vatesfr/xen-orchestra/pull/9129))
 - [Backups] Add `Merge backups synchronously` to mirror backup (PR [#9118](https://github.com/vatesfr/xen-orchestra/pull/9118))
+- [REST API] Expose `GET /rest/v0/gui-routes` (PR [#9133](https://github.com/vatesfr/xen-orchestra/pull/9133))
 
 ### Bug fixes
 
