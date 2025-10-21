@@ -80,3 +80,9 @@ export type XoaDashboard = {
     unknown: number
   }
 }
+
+export type XoVersions = {
+  xo5: string | null
+  xo6: string | null
+  default: 'xo5' | 'xo6'
+}
