@@ -1,6 +1,6 @@
 export const pingResponse = [
   {
-    status: 'health check OK',
+    result: 'pong',
     timestamp: 1760955186850,
   },
 ]
