@@ -82,7 +82,7 @@ export type XoaDashboard = {
 }
 
 export type XoVersions = {
-  xo5: string | null
-  xo6: string | null
+  xo5: '/v5'
+  xo6: '/v6'
   default: 'xo5' | 'xo6'
 }
