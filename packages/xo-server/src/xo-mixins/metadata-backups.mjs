@@ -204,7 +204,7 @@ export default class metadataBackup {
    * scheduleId: string,
    * scheduleName?: string,
    * timestamp: number
-   * type: "xo-config-backups"
+   * type: "xo-config-backup"
    * }[]}
    */
   async _listXoMetadataBackups(remoteId) {
@@ -231,7 +231,7 @@ export default class metadataBackup {
     backups.forEach(backup => {
       backup.id = `${remoteId}${backup.id}`
       backup.backupRepository = remoteId
-      backup.type = 'xo-config-backups'
+      backup.type = 'xo-config-backup'
     })
 
     return backups
@@ -249,7 +249,7 @@ export default class metadataBackup {
    * scheduleId: string,
    * scheduleName?: string,
    * timestamp: number,
-   * type: "xo-pool-metadata-backups"
+   * type: "xo-pool-metadata-backup"
    * pool: object
    * poolMaster: object
    * }[]>}
@@ -281,7 +281,7 @@ export default class metadataBackup {
       backups.forEach(backup => {
         backup.id = `${remoteId}${backup.id}`
         backup.backupRepository = remoteId
-        backup.type = 'xo-pool-metadata-backups'
+        backup.type = 'xo-pool-metadata-backup'
       })
     )
 

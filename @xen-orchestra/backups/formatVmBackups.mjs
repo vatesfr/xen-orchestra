@@ -18,7 +18,7 @@ function formatVmBackup(backup) {
     }
   }
   return {
-    type: 'xo-vm-backups',
+    type: 'xo-vm-backup',
     backupRepository: backup.backupRepositoryId,
     disks:
       backup.vhds === undefined

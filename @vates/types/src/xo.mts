@@ -147,7 +147,7 @@ export type XoRestoreLog = BaseXoLog & {
 }
 export type XoVmBackupArchive = {
   id: Branded<'vm-backup-archive'>
-  type: 'xo-vm-backups'
+  type: 'xo-vm-backup'
   backupRepository: XoBackupRepository['id']
   disks: { id: string; name: string; uuid: XoVdiSnapshot['uuid'] }[]
   isImmutable?: boolean
@@ -178,14 +178,14 @@ type XoMetadataBackupArchive = {
 export type XoConfigBackupArchive = XoMetadataBackupArchive & {
   id: Branded<'config-backup-archive'>
   data: string
-  type: 'xo-config-backups'
+  type: 'xo-config-backup'
 }
 
 export type XoPoolBackupArchive = XoMetadataBackupArchive & {
   id: Branded<'pool-backup-archive'>
   pool: XenApiPool
   poolMaster: XenApiPool
-  type: 'xo-pool-metadata-backups'
+  type: 'xo-pool-metadata-backup'
 }
 
 export type XoBackupRepository = {
