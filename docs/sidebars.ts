@@ -89,6 +89,7 @@ export default {
         'incremental_replication',
         'mirror_backup',
         'metadata_backup',
+        'immutability',
         'backup_reports',
         'backup_troubleshooting',
       ],
