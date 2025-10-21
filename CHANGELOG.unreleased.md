@@ -68,6 +68,7 @@
 - [REST API] Expose `/rest/v0/pbds` and `/rest/v0/pbds/:id` (PR [#9106](https://github.com/vatesfr/xen-orchestra/pull/9106))
 
 - [Plugins/SAML] Add two fields to configure assertions and responses signatures (PR [#9093](https://github.com/vatesfr/xen-orchestra/pull/9093))
+- [Backups] Add `Merge backups synchronously` to mirror backup (PR [#9118](https://github.com/vatesfr/xen-orchestra/pull/9118))
 
 - **XO 6:**
   - [Collections] Implement virtual lists for tasks and alarms to improve performance (PR [#9077](https://github.com/vatesfr/xen-orchestra/pull/9077))
@@ -120,6 +121,6 @@
 - vhd-lib patch
 - xo-server minor
 - xo-server-auth-saml minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
