@@ -36,7 +36,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
+import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable'
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'

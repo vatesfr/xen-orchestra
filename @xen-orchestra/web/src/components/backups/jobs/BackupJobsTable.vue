@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupJobSchedules } from '@/composables/xo-backup-job-schedules.composable'
+import { useXoBackupJobSchedulesUtils } from '@/composables/xo-backup-job-schedules.composable'
 import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import type { IconName } from '@core/icons'
@@ -129,7 +129,7 @@ const { backupJobs } = defineProps<{
 const { t, d } = useI18n()
 
 const { getModeLabels } = useXoBackupUtils()
-const { getLastThreeRunsStatuses, getTotalSchedules } = useXoBackupJobSchedules()
+const { getLastThreeRunsStatuses, getTotalSchedules } = useXoBackupJobSchedulesUtils()
 const selectedBackupJobId = useRouteQuery('id')
 
 const searchQuery = ref('')

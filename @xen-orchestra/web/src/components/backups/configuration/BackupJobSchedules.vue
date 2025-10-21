@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="backup-jobs-schedules">
+  <UiCard class="backup-job-schedules">
     <UiTitle> {{ t('schedules') }} </UiTitle>
     <div class="container">
       <div class="table-actions">
@@ -8,16 +8,20 @@
           <UiTablePagination v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
-      <VtsDataTable is-ready :no-data-message="backupJobsSchedules.length === 0 ? t('no-backup-available') : undefined">
+      <VtsDataTable
+        is-ready
+        :has-error
+        :no-data-message="backupJobSchedules.length === 0 ? t('no-backup-available') : undefined"
+      >
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'">
+              <th v-if="column.id === 'checkbox'" class="checkbox">
                 <div v-tooltip="t('coming-soon')">
                   <UiCheckbox disabled accent="brand" />
                 </div>
               </th>
-              <th v-else-if="column.id === 'more'">
+              <th v-else-if="column.id === 'more'" class="more">
                 <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
@@ -30,8 +34,12 @@
           </tr>
         </template>
         <template #tbody>
-          <tr v-for="row of backupJobsRecords" :key="row.id" :class="{ selected: selectedBackupJobId === row.id }">
-            <td v-for="column of row.visibleColumns" :key="column.id">
+          <tr
+            v-for="row of backupJobsSchedulesRecords"
+            :key="row.id"
+            :class="{ selected: selectedBackupJobId === row.id }"
+          >
+            <td v-for="column of row.visibleColumns" :key="column.id" :class="{ checkbox: column.id === 'checkbox' }">
               <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
                 <UiCheckbox disabled accent="brand" :value="row.id" />
               </div>
@@ -66,6 +74,14 @@
           </tr>
         </template>
       </VtsDataTable>
+      <VtsStateHero
+        v-if="searchQuery && filteredBackupJobsSchedules.length === 0"
+        format="table"
+        type="no-result"
+        size="small"
+      >
+        {{ t('no-result') }}
+      </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-bind="paginationBindings" />
       </UiTopBottomTable>
@@ -74,14 +90,14 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupJobSchedules } from '@/composables/xo-backup-job-schedules.composable'
+import { useXoBackupJobSchedulesUtils } from '@/composables/xo-backup-job-schedules.composable'
 import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
 import type { XoSchedule } from '@/types/xo/schedule.type'
 import type { IconName } from '@core/icons'
-import type { Branded } from '@core/types/utility.type'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -98,41 +114,33 @@ import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupJobsSchedules } = defineProps<{
-  backupJobsSchedules: XoSchedule[]
+const { backupJobSchedules } = defineProps<{
+  backupJobSchedules: XoSchedule[]
+  hasError: boolean
 }>()
 
 const { t } = useI18n()
 
 const { useGetBackupJobById } = useXoBackupJobCollection()
-const { getLastThreeRunsStatuses } = useXoBackupJobSchedules()
+const { getLastThreeRunsStatuses } = useXoBackupJobSchedulesUtils()
 
 const selectedBackupJobId = useRouteQuery('id')
 
 const searchQuery = ref('')
 
-const filteredBackupJobs = computed(() => {
+const filteredBackupJobsSchedules = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
-  let filteredSchedules: XoSchedule[]
   if (!searchTerm) {
-    filteredSchedules = backupJobsSchedules
+    return backupJobSchedules
   }
 
-  filteredSchedules = backupJobsSchedules.filter(schedules =>
+  return backupJobSchedules.filter(schedules =>
     Object.values(schedules).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
-
-  return filteredSchedules
 })
 
-function GetBackupJobById(
-  id: Branded<'vm-backup-job'> | Branded<'metadata-backup-job'> | Branded<'mirror-backup-job'>
-) {
-  return useGetBackupJobById(id).value
-}
-
-const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
+const { visibleColumns, rows } = useTable('backup-job-schedules', filteredBackupJobsSchedules, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
@@ -140,7 +148,7 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
     define('id', record => record.id, { label: t('id') }),
     define('status', record => record.enabled, { label: t('status') }),
     define('cron-pattern', record => record.cron, { label: t('cron-pattern') }),
-    define('last-runs', record => getLastThreeRunsStatuses(GetBackupJobById(record.jobId)), {
+    define('last-runs', record => getLastThreeRunsStatuses(useGetBackupJobById(record.jobId).value), {
       label: t('last-n-runs', { n: 3 }),
     }),
     // define('next-run', () => 'comming soon', { label: t('next-run') }), // #TODO bad data
@@ -148,7 +156,7 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
   ],
 })
 
-const { pageRecords: backupJobsRecords, paginationBindings } = usePagination('backups-jobs', rows)
+const { pageRecords: backupJobsSchedulesRecords, paginationBindings } = usePagination('backup-job-schedules', rows)
 
 type BackupJobHeader = 'schedule' | 'id' | 'status' | 'cron-pattern' | 'last-runs'
 
@@ -163,14 +171,14 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
 </script>
 
 <style lang="postcss" scoped>
-.backup-jobs-schedules,
+.backup-job-schedules,
 .table-actions,
 .container {
   display: flex;
   flex-direction: column;
 }
 
-.backup-jobs-schedules {
+.backup-job-schedules {
   gap: 2.4rem;
 
   .container,
@@ -178,10 +186,15 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
     gap: 0.8rem;
   }
 
+  .checkbox,
   .more {
     width: 4.8rem;
   }
 
+  .checkbox {
+    text-align: center;
+    line-height: 1;
+  }
   .last-three-runs {
     display: flex;
     gap: 0.8rem;
