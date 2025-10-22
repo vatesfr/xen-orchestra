@@ -1,4 +1,4 @@
-import { defineIconPack } from '@core/packages/icon'
+import { defineIconPack, type IconSingleConfig } from '@core/packages/icon'
 import {
   faSquare as checkboxEmpty,
   faCircle as circleEmpty,
@@ -26,7 +26,7 @@ import {
   faUserAstronaut,
 } from '@fortawesome/free-solid-svg-icons'
 
-function constructIcon(icon: IconDefinition): any {
+function constructIcon(icon: IconDefinition): IconSingleConfig {
   return {
     icon,
     color: 'var(--color-neutral-txt-primary)',
@@ -49,9 +49,9 @@ export const dsStatusIcons = defineIconPack({
     },
   ],
 
-  pause: constructIcon(faPause),
+  paused: constructIcon(faPause),
 
-  'pause-circle': [
+  'paused-circle': [
     {
       icon: faCircle,
       color: 'var(--color-brand-item-base)',
@@ -101,7 +101,6 @@ export const dsStatusIcons = defineIconPack({
       icon: faBan,
       color: 'var(--color-neutral-txt-secondary)',
       size: 13,
-      // increase bold for match with Figma
     },
   ],
 
@@ -131,7 +130,6 @@ export const dsStatusIcons = defineIconPack({
     {
       icon: faCheck,
       color: 'var(--color-success-txt-item)',
-      // increase bold for match with Figma
       size: 10,
     },
   ],
@@ -157,7 +155,6 @@ export const dsStatusIcons = defineIconPack({
       icon: faCircle,
       color: 'var(--color-danger-item-base)',
     },
-    // not enough boldered
     {
       icon: faClose,
       color: 'var(--color-danger-txt-item)',

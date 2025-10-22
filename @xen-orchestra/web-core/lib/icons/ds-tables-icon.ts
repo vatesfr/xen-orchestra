@@ -1,4 +1,4 @@
-import { defineIconPack } from '@core/packages/icon'
+import { defineIconPack, type IconSingleConfig } from '@core/packages/icon'
 import {
   faA,
   faAlignLeft,
@@ -25,7 +25,7 @@ import {
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 
-function constructIcon(icon: IconDefinition): any {
+function constructIcon(icon: IconDefinition): IconSingleConfig {
   return {
     icon,
     color: 'var(--color-neutral-txt-primary)',
