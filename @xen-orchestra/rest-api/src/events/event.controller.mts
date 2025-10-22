@@ -50,7 +50,7 @@ export class EventController extends Controller {
    * By default, there are no active subscriptions in the stream.
    * To add subscriptions, use the following endpoint:
    *
-   *    POST /rest/v0/events/:id/subscription
+   *    POST /rest/v0/events/:id/subscriptions
    *
    *
    * Events you will receive:
@@ -82,7 +82,7 @@ export class EventController extends Controller {
    * @example body {"collection": "VM", "fields": ["id", "name_label"]}
    */
   @Example(addSubscription)
-  @Post('{id}/subscription')
+  @Post('{id}/subscriptions')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -100,7 +100,7 @@ export class EventController extends Controller {
    * @example id "0d8b28c6-e9bf-4c9d-a382-3c9e0d7cfbff"
    * @example subscriptionId: "VM"
    */
-  @Delete('{id}/subscription/{subscriptionId}')
+  @Delete('{id}/subscriptions/{subscriptionId}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   removeSubscription(@Path() id: string, @Path() subscriptionId: XapiXoListenerType): void {
