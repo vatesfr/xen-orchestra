@@ -1,9 +1,10 @@
 import { dsStatusIcons } from '@core/icons/ds-status-icon'
-import { defineIcon } from '@core/packages/icon'
+import { defineIcon, type IconSingleConfig } from '@core/packages/icon'
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
 import {
   faArchive,
   faArrowLeft,
+  faBarsProgress,
   faBoxesStacked,
   faCircle,
   faCity,
@@ -13,6 +14,7 @@ import {
   faHdd,
   faNetworkWired,
   faPlay,
+  faPuzzlePiece,
   faSatellite,
   faServer,
   faSlash,
@@ -21,8 +23,7 @@ import {
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 
-// type this
-function CircleStatus(status: keyof typeof dsStatusIcons): any {
+function constructCircleStatus(status: keyof typeof dsStatusIcons): any {
   return [
     {
       icon: faCircle,
@@ -38,7 +39,7 @@ function CircleStatus(status: keyof typeof dsStatusIcons): any {
   ]
 }
 
-function constructIcon(icon: IconDefinition): any {
+function constructIcon(icon: IconDefinition): IconSingleConfig {
   return {
     icon,
     color: 'var(--color-neutral-txt-primary)',
@@ -145,13 +146,13 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'host-running': [constructIcon(faServer), ...CircleStatus('running-circle')],
+  'host-running': [constructIcon(faServer), ...constructCircleStatus('running-circle')],
 
-  'host-disabled': [constructIcon(faServer), ...CircleStatus('host-disabled-circle')],
+  'host-disabled': [constructIcon(faServer), ...constructCircleStatus('host-disabled-circle')],
 
-  'host-warning': [constructIcon(faServer), ...CircleStatus('warning-circle')],
+  'host-warning': [constructIcon(faServer), ...constructCircleStatus('warning-circle')],
 
-  'host-halted': [constructIcon(faServer), ...CircleStatus('halted-circle')],
+  'host-halted': [constructIcon(faServer), ...constructCircleStatus('halted-circle')],
 
   vm: constructIcon(faDesktop),
 
@@ -165,15 +166,15 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'vm-running': [constructIcon(faDesktop), ...CircleStatus('running-circle')],
+  'vm-running': [constructIcon(faDesktop), ...constructCircleStatus('running-circle')],
 
-  'vm-paused': [constructIcon(faDesktop), ...CircleStatus('pause-circle')],
+  'vm-paused': [constructIcon(faDesktop), ...constructCircleStatus('paused-circle')],
 
-  'vm-suspended': [constructIcon(faDesktop), ...CircleStatus('suspended-circle')],
+  'vm-suspended': [constructIcon(faDesktop), ...constructCircleStatus('suspended-circle')],
 
-  'vm-warning': [constructIcon(faDesktop), ...CircleStatus('warning-circle')],
+  'vm-warning': [constructIcon(faDesktop), ...constructCircleStatus('warning-circle')],
 
-  'vm-halted': [constructIcon(faDesktop), ...CircleStatus('halted-circle')],
+  'vm-halted': [constructIcon(faDesktop), ...constructCircleStatus('halted-circle')],
 
   sr: constructIcon(faDatabase),
 
@@ -187,13 +188,13 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'sr-connected': [constructIcon(faDatabase), ...CircleStatus('success-circle')],
+  'sr-connected': [constructIcon(faDatabase), ...constructCircleStatus('success-circle')],
 
-  'sr-disabled': [constructIcon(faDatabase), ...CircleStatus('disabled')],
+  'sr-disabled': [constructIcon(faDatabase), ...constructCircleStatus('disabled')],
 
-  'sr-partially-connected': [constructIcon(faDatabase), ...CircleStatus('warning-circle')],
+  'sr-partially-connected': [constructIcon(faDatabase), ...constructCircleStatus('warning-circle')],
 
-  'sr-disconnected': [constructIcon(faDatabase), ...CircleStatus('danger-circle')],
+  'sr-disconnected': [constructIcon(faDatabase), ...constructCircleStatus('danger-circle')],
 
   vdi: constructIcon(faHdd),
 
@@ -207,13 +208,13 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'vdi-attached': [constructIcon(faHdd), ...CircleStatus('success-circle')],
+  'vdi-attached': [constructIcon(faHdd), ...constructCircleStatus('success-circle')],
 
-  'vdi-disabled': [constructIcon(faHdd), ...CircleStatus('disabled')],
+  'vdi-disabled': [constructIcon(faHdd), ...constructCircleStatus('disabled')],
 
-  'vdi-warning': [constructIcon(faHdd), ...CircleStatus('warning-circle')],
+  'vdi-warning': [constructIcon(faHdd), ...constructCircleStatus('warning-circle')],
 
-  'vdi-detached': [constructIcon(faHdd), ...CircleStatus('danger-circle')],
+  'vdi-detached': [constructIcon(faHdd), ...constructCircleStatus('danger-circle')],
 
   network: constructIcon(faNetworkWired),
 
@@ -227,11 +228,11 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'network-connected': [constructIcon(faNetworkWired), ...CircleStatus('success-circle')],
+  'network-connected': [constructIcon(faNetworkWired), ...constructCircleStatus('success-circle')],
 
-  'network-warning': [constructIcon(faNetworkWired), ...CircleStatus('warning-circle')],
+  'network-warning': [constructIcon(faNetworkWired), ...constructCircleStatus('warning-circle')],
 
-  'network-detached': [constructIcon(faNetworkWired), ...CircleStatus('danger-circle')],
+  'network-disconnected': [constructIcon(faNetworkWired), ...constructCircleStatus('danger-circle')],
 
   br: constructIcon(faBoxesStacked),
 
@@ -245,13 +246,13 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
-  'br-connected': [constructIcon(faBoxesStacked), ...CircleStatus('success-circle')],
+  'br-connected': [constructIcon(faBoxesStacked), ...constructCircleStatus('success-circle')],
 
-  'br-disabled': [constructIcon(faBoxesStacked), ...CircleStatus('host-disabled-circle')],
+  'br-disabled': [constructIcon(faBoxesStacked), ...constructCircleStatus('disabled')],
 
-  'br-warning': [constructIcon(faBoxesStacked), ...CircleStatus('warning-circle')],
+  'br-warning': [constructIcon(faBoxesStacked), ...constructCircleStatus('warning-circle')],
 
-  'br-detached': [constructIcon(faBoxesStacked), ...CircleStatus('danger-circle')],
+  'br-disconnected': [constructIcon(faBoxesStacked), ...constructCircleStatus('danger-circle')],
 
   backup: constructIcon(faArchive),
 
@@ -274,10 +275,14 @@ export const dsObjectsIcons = defineIconPack({
     },
   ],
 
+  task: constructIcon(faBarsProgress),
+
+  template: constructIcon(faPuzzlePiece),
+
   // #TODO user logo is not compatible with actual icon system
 
   account: constructIcon(faUserCircle),
 
-  // update lib for acces to new faUsers icon
+  // on our version of fa, faUsers icon is reversed compared to the version of fa on fa website
   organization: constructIcon(faUsers),
 })

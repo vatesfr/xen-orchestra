@@ -1,4 +1,4 @@
-import { defineIconPack } from '@core/packages/icon'
+import { defineIconPack, type IconSingleConfig } from '@core/packages/icon'
 import { faSquare as checkboxEmpty, type IconDefinition } from '@fortawesome/free-regular-svg-icons'
 import {
   faAdd,
@@ -23,6 +23,7 @@ import {
   faHeart,
   faLightbulb,
   faLink,
+  faLinkSlash,
   faMinus,
   faPowerOff,
   faRefresh,
@@ -34,7 +35,7 @@ import {
   faUpRightAndDownLeftFromCenter,
 } from '@fortawesome/free-solid-svg-icons'
 
-function constructIcon(icon: IconDefinition): any {
+function constructIcon(icon: IconDefinition): IconSingleConfig {
   return {
     icon,
     color: 'var(--color-neutral-txt-primary)',
@@ -49,7 +50,7 @@ export const dsActionIcons = defineIconPack({
   'pin-panel-hide': constructIcon(faThumbTackSlash),
 
   resize: [
-    // bad arrow
+    // The icon used in the design system is not available in Font Awesome, so we have to build it manually but is not exact same arrow (empty arrow hear and fulfeld arrow in figma)
     constructIcon(faArrowsLeftRight),
     {
       icon: faMinus,
@@ -147,6 +148,8 @@ export const dsActionIcons = defineIconPack({
   copy: constructIcon(faCopy),
 
   connect: constructIcon(faLink),
+
+  disconnect: constructIcon(faLinkSlash),
 
   forget: constructIcon(faEraser),
 

@@ -1,16 +1,17 @@
-import { dsActionIcons } from '@core/icons/ds-action-icon'
-import { dsStatusIcons } from '@core/icons/ds-status-icon'
-import { dsTableIcons } from '@core/icons/ds-tables-icon'
-import { faIcons } from '@core/icons/fa-icons.ts'
-import { legacyIcons } from '@core/icons/legacy-icons.ts'
-import { objectIcons } from '@core/icons/object-icons.ts'
-import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
-import type { ICON_SYMBOL } from '@core/packages/icon/types.ts'
+import { defineIconPack, ICON_SYMBOL } from '@core/packages/icon'
+import { dsActionIcons } from './ds-action-icon'
+import { dsObjectsIcons } from './ds-object-icon'
+import { dsStatusIcons } from './ds-status-icon'
+import { dsTableIcons } from './ds-tables-icon'
+import { faIcons } from './fa-icons'
+import { legacyIcons } from './legacy-icons'
+import { objectIcons } from './object-icons'
 
 export const icons = defineIconPack({
   fa: faIcons,
   legacy: legacyIcons,
   object: objectIcons,
+  dsObject: dsObjectsIcons,
   dsStatus: dsStatusIcons,
   dsAction: dsActionIcons,
   dsTable: dsTableIcons,
