@@ -856,7 +856,6 @@ export default class Plan {
   }
 
   // TODO: handle tag "coalitions" : if a VM has two different affinity tags, they should be considered as the same tag (as the only solution is to regroup all VMs on the same host)
-  // TODO: if the main host is overloaded, change the source to the next host to create another host with several VMs with that tag
   _processAffinityTag({ tag, vmsAverages, hostsAverages, taggedHosts, idToHost }) {
     const promises = []
 
@@ -866,7 +865,7 @@ export default class Plan {
       .filter(host => host.tags[tag] > 0)
       .sort((hostA, hostB) => hostA.tags[tag] - hostB.tags[tag])
 
-    const destinationHost = sortedHosts.pop()
+    let destinationHost = sortedHosts.pop()
 
     // 2. Migrate tagged VMs from every other host
     for (const sourceHost of sortedHosts) {
@@ -879,43 +878,49 @@ export default class Plan {
         if (!vm.xenTools) {
           continue
         }
-        if (hostsAverages[destinationHost.id].memoryFree <= vmsAverages[vm.id].memory) {
-          // TODO: migrate other VMs to try to free some memory
-          warn(`affinity: Can't migrate VM ${vm.id} to host ${destinationHost.id}: not enough memory`)
-        } else {
-          // 3. Update tags and averages
-          const source = idToHost[sourceHost.id]
-          const destination = idToHost[destinationHost.id]
-          debugAffinity(
-            `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destinationHost.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
-          )
+        while (hostsAverages[destinationHost.id].memoryFree <= vmsAverages[vm.id].memory) {
+          // TODO: A) migrate other VMs to try to free some memory
 
-          for (const tag of vm.tags) {
-            if (this._affinityTags.includes(tag)) {
-              sourceHost.tags[tag]--
-              destinationHost.tags[tag]++
-            }
+          // B) if we can't do A), change the source to the next host to create another host with several VMs with that tag
+          debugAffinity(`Host ${sourceHost.id} does not have enough memory to get all "${tag}" tagged VMs`)
+          if (sourceHost === sortedHosts[sortedHosts.length - 1]) {
+            warn(`affinity: Can't satisfy ${tag} affinity constraints`)
+            return promises
           }
-
-          const destinationAverages = hostsAverages[destinationHost.id]
-          const vmAverages = vmsAverages[vm.id]
-
-          destinationAverages.cpu += vmAverages.cpu
-          destinationAverages.memoryFree -= vmAverages.memory
-
-          delete sourceHost.vms[vm.id]
-
-          // 4. Migrate.
-          promises.push(
-            this._concurrentMigrationLimiter.call(
-              this.xo.getXapi(source),
-              'migrateVm',
-              vm._xapiId,
-              this.xo.getXapi(destination),
-              destination._xapiId
-            )
-          )
+          destinationHost = sortedHosts.pop()
         }
+        // 3. Update tags and averages
+        const source = idToHost[sourceHost.id]
+        const destination = idToHost[destinationHost.id]
+        debugAffinity(
+          `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destinationHost.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
+        )
+
+        for (const tag of vm.tags) {
+          if (this._affinityTags.includes(tag)) {
+            sourceHost.tags[tag]--
+            destinationHost.tags[tag]++
+          }
+        }
+
+        const destinationAverages = hostsAverages[destinationHost.id]
+        const vmAverages = vmsAverages[vm.id]
+
+        destinationAverages.cpu += vmAverages.cpu
+        destinationAverages.memoryFree -= vmAverages.memory
+
+        delete sourceHost.vms[vm.id]
+
+        // 4. Migrate.
+        promises.push(
+          this._concurrentMigrationLimiter.call(
+            this.xo.getXapi(source),
+            'migrateVm',
+            vm._xapiId,
+            this.xo.getXapi(destination),
+            destination._xapiId
+          )
+        )
       }
     }
     return promises
