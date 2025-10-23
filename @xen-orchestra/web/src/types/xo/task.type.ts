@@ -1,14 +1,24 @@
 import type { Branded } from '@core/types/utility.type'
 
 export type XoTask = {
+  abortionRequestedAt?: number
+  end?: number
   id: Branded<'task'>
-  type: 'task'
-  start: number
-  end: number | undefined
+  infos?: { data: unknown; message: string }[]
   properties: {
-    type: string
-    name: string
+    method?: string
+    name?: string
+    objectId?: string
+    params?: Record<string, unknown>
+    progress?: number
+    type?: string
+    userId?: string
+    [key: string]: unknown | undefined
   }
-  status: 'pending' | 'success' | 'failure' | 'interrupted'
+  result: Record<string, unknown>
+  start: number
+  status: 'failure' | 'interrupted' | 'pending' | 'success'
   tasks?: XoTask[]
+  updatedAt?: number
+  warning?: { data: unknown; message: string }[]
 }
