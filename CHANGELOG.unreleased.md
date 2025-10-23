@@ -74,6 +74,7 @@
   - [Treeview search] Add loader when search is triggered and ability to clear search (PR [#9122](https://github.com/vatesfr/xen-orchestra/pull/9122))
   - [Core/Guidelines] Update logical properties section in CSS guidelines (PR [#9132](https://github.com/vatesfr/xen-orchestra/pull/9132))
   - [Pool] Add Storage Repositories page to display all SRs in the pool (PR [#9134](https://github.com/vatesfr/xen-orchestra/pull/9134))
+  - [Host] Add Storage Repositories page to display all SRs in the host (PR [#9137](https://github.com/vatesfr/xen-orchestra/pull/9137))
 
 ### Bug fixes
 
