@@ -33,6 +33,8 @@ export class EventService {
         this.#listeners.set(type, new PingListener())
       } else {
         const isAlarm = type === 'alarm'
+        // alarm is purely XO-related; it doesn't exist at the XAPI level.
+        // alarm is a message with parsed values. So, in the case of an alarm listener, it listens for message collection.
         const ee = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(isAlarm ? 'message' : type)
         this.#listeners.set(type, new XapiXoListener(type, ee, isAlarm ? this.#alarmService : undefined))
       }
