@@ -19,13 +19,14 @@
       <AccountMenu />
     </template>
     <template #sidebar-header>
-      <SidebarSearch v-model="filter" :is-searching />
+      <SidebarSearch v-model="filter" />
     </template>
     <template #sidebar-content>
       <VtsTreeList v-if="!isReady">
         <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="fa:city" />
       </VtsTreeList>
       <NoResults v-else-if="sites.length === 0" />
+      <VtsStateHero v-else-if="isSearching" format="card" busy size="medium" class="loader" />
       <SiteTreeList v-else :branches="sites" />
     </template>
     <template #content>
@@ -42,6 +43,7 @@ import SidebarSearch from '@/components/SidebarSearch.vue'
 import QuickTaskButton from '@/components/task/QuickTaskButton.vue'
 import SiteTreeList from '@/components/tree/SiteTreeList.vue'
 import { useSiteTree } from '@/composables/pool-tree.composable'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -67,5 +69,9 @@ const { sites, isReady, filter, isSearching } = useSiteTree()
 
 .logo {
   height: 1.6rem;
+}
+
+.loader {
+  padding-top: 4rem;
 }
 </style>
