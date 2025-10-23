@@ -84,6 +84,7 @@
 - [Backup/immutabiltiy] Fix double delete file that can block immutability lifting (PR [#9104](https://github.com/vatesfr/xen-orchestra/pull/9104))
 - [Backups] Fix VDI_NO_MANAGED error during replication (PR [#9117](https://github.com/vatesfr/xen-orchestra/pull/9117))
 - [VM/advanced] Fix error while changing running VM memory limit (PR [#9121](https://github.com/vatesfr/xen-orchestra/pull/9121))
+- [Plugins/load balancer] Avoid migrating VMs tagged with anti-affinity when balancing performance (PR [#9139](https://github.com/vatesfr/xen-orchestra/pull/9139))
 
 - **XO 6**:
   - [Site/Backups] Fix an issue properties of undefined in backups tab (PR [#9064](https://github.com/vatesfr/xen-orchestra/pull/9064))
@@ -120,6 +121,7 @@
 - vhd-lib patch
 - xo-server minor
 - xo-server-auth-saml minor
+- xo-server-load-balancer patch
 - xo-web patch
 
 <!--packages-end-->
