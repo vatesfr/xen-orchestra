@@ -4,7 +4,7 @@ import { PassThrough } from 'node:stream'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 
-import type { XoaDashboard } from './xoa.type.mjs'
+import type { XoaDashboard, XoVersions } from './xoa.type.mjs'
 
 import { badRequestResp, unauthorizedResp } from '../open-api/common/response.common.mjs'
 import { xoaDashboard } from '../open-api/oa-examples/xoa.oa-example.mjs'
@@ -42,6 +42,15 @@ export class XoaController extends Controller {
       stream.end()
     } else {
       return dashboard
+    }
+  }
+
+  @Get('xo-versions')
+  async getXoVersions(): Promise<XoVersions> {
+    return {
+      xo5: '/v5',
+      xo6: '/v6',
+      default: 'xo5',
     }
   }
 }
