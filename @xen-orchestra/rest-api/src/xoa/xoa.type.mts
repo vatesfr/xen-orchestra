@@ -80,3 +80,8 @@ export type XoaDashboard = {
     unknown: number
   }
 }
+
+export type PingResponse = {
+  result: 'pong'
+  timestamp: number
+}
