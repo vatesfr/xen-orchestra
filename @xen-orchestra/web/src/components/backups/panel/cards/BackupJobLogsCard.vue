@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import BackupRunItem from '@/components/backups/jobs/panel/cards-items/BackupRunItem.vue'
+import BackupRunItem from '@/components/backups/panel/card-items/BackupRunItem.vue'
 import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

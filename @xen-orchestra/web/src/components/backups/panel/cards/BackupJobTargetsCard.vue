@@ -4,13 +4,13 @@
       {{ t('backup-targets') }}
       <UiCounter :value="backupTargetsCount" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
-    <BackupJobsTargetsSection
+    <BackupJobTargetsSection
       v-if="backupRepositoryTargets.length > 0"
       :targets="backupRepositoryTargets"
       :label="t('backup-repositories')"
     />
     <VtsDivider v-if="storageRepositoryTargets.length > 0 && backupRepositoryTargets.length > 0" type="stretch" />
-    <BackupJobsTargetsSection
+    <BackupJobTargetsSection
       v-if="storageRepositoryTargets.length > 0"
       :targets="storageRepositoryTargets"
       :label="t('storage-repositories')"
@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts" setup>
-import BackupJobsTargetsSection from '@/components/backups/jobs/panel/cards-items/BackupJobsTargetsSection.vue'
+import BackupJobTargetsSection from '@/components/backups/panel/card-items/BackupJobTargetsSection.vue'
 import type { XoBackupRepository } from '@/types/xo/br.type.ts'
 import type { XoSr } from '@/types/xo/sr.type.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'

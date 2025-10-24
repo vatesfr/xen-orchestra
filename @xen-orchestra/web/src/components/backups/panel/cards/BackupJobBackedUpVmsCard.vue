@@ -29,13 +29,13 @@
           </VtsCardRowKeyValue>
           <!-- Pools -->
           <template v-if="smartModePools !== undefined">
-            <BackupJobsSmartModePools
+            <BackupJobSmartModePools
               v-for="(pool, index) in smartModePools.included"
               :key="pool.id"
               :pool
               :label="index === 0 ? t('resident-on') : undefined"
             />
-            <BackupJobsSmartModePools
+            <BackupJobSmartModePools
               v-for="(pool, index) in smartModePools.excluded"
               :key="pool.id"
               :pool
@@ -44,8 +44,8 @@
           </template>
           <!-- Tags -->
           <template v-if="smartModeTags !== undefined">
-            <BackupJobsSmartModeTags :tags="smartModeTags.included ?? []" :label="t('vms-tags')" />
-            <BackupJobsSmartModeTags :tags="smartModeTags.excluded ?? []" :label="t('excluded-vms-tags')" />
+            <BackupJobSmartModeTags :tags="smartModeTags.included ?? []" :label="t('vms-tags')" />
+            <BackupJobSmartModeTags :tags="smartModeTags.excluded ?? []" :label="t('excluded-vms-tags')" />
           </template>
         </div>
       </template>
@@ -65,8 +65,8 @@
 </template>
 
 <script lang="ts" setup>
-import BackupJobsSmartModePools from '@/components/backups/jobs/panel/cards-items/BackupJobsSmartModePools.vue'
-import BackupJobsSmartModeTags from '@/components/backups/jobs/panel/cards-items/BackupJobsSmartModeTags.vue'
+import BackupJobSmartModePools from '@/components/backups/panel/card-items/BackupJobSmartModePools.vue'
+import BackupJobSmartModeTags from '@/components/backups/panel/card-items/BackupJobSmartModeTags.vue'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { VmsSmartModeDisabled, VmsSmartModeEnabled, XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
