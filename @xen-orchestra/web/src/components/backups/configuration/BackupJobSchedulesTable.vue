@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="backup-job-schedules">
+  <UiCard class="backup-job-schedules-table">
     <UiTitle> {{ t('schedules') }} </UiTitle>
     <div class="container">
       <div class="table-actions">
