@@ -35,7 +35,7 @@
         </template>
         <template #tbody>
           <tr
-            v-for="row of backupJobsSchedulesRecords"
+            v-for="row of backupJobSchedulesRecords"
             :key="row.id"
             :class="{ selected: selectedBackupJobId === row.id }"
           >
@@ -156,15 +156,15 @@ const { visibleColumns, rows } = useTable('backup-job-schedules', filteredBackup
   ],
 })
 
-const { pageRecords: backupJobsSchedulesRecords, paginationBindings } = usePagination('backup-job-schedules', rows)
+const { pageRecords: backupJobSchedulesRecords, paginationBindings } = usePagination('backup-job-schedules', rows)
 
 type BackupJobHeader = 'schedule' | 'id' | 'status' | 'cron-pattern' | 'last-runs'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
-  id: 'fa:hashtag',
   schedule: 'fa:object',
-  'cron-pattern': 'fa:clock',
+  id: 'fa:hashtag',
   status: 'fa:square-caret-down',
+  'cron-pattern': 'fa:clock',
   'last-runs': 'fa:square-caret-down',
   // 'next-run': 'fa:calendar',
 }
@@ -195,6 +195,7 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
     text-align: center;
     line-height: 1;
   }
+
   .last-three-runs {
     display: flex;
     gap: 0.8rem;
