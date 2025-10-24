@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import BackupJobGeneralInformation from '@/components/backups/configuration/BackupJobGeneralInformation.vue'
-import BackupJobSchedules from '@/components/backups/configuration/BackupJobSchedules.vue'
+import BackupJobSchedules from '@/components/backups/configuration/BackupJobSchedulesTable.vue'
 import BackupJobSettings from '@/components/backups/configuration/BackupJobSettings.vue'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection'
 import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'

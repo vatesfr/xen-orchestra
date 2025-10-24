@@ -1,5 +1,5 @@
 <template>
-  <UiCard class="backup-job-general-information">
+  <UiCard>
     <UiTitle>{{ t('general-information') }}</UiTitle>
     <VtsColumns>
       <VtsColumn>
@@ -12,7 +12,7 @@
         <VtsQuickInfoRow :label="t('mode')">
           <template v-if="modeLabels.length > 0" #value>
             <UiTagsList>
-              <UiTag v-for="label in getModeLabels(backupJob)" :key="label" variant="secondary" accent="info">
+              <UiTag v-for="label in modeLabels" :key="label" variant="secondary" accent="info">
                 {{ label }}
               </UiTag>
             </UiTagsList>
