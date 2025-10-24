@@ -2,9 +2,6 @@
   <div class="backup-jobs-table">
     <UiTitle>
       {{ t('backup-jobs') }}
-      <template #actions>
-        <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
-      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
@@ -63,7 +60,7 @@
                 size="small"
               />
               <div v-else-if="column.id === 'job-name'">
-                <UiLink size="medium" icon="object:backup-job" @click.stop>
+                <UiLink size="medium" icon="object:backup-job" :to="`/backup/${row.id}/runs`" @click.stop>
                   {{ column.value }}
                 </UiLink>
               </div>
@@ -132,7 +129,7 @@ const { backupJobs } = defineProps<{
   hasError: boolean
 }>()
 
-const { t } = useI18n()
+const { t, d } = useI18n()
 
 const { schedulesByJobId } = useXoScheduleCollection()
 const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
@@ -167,7 +164,7 @@ const getRunStatusIcon = createMapper<XoBackupLog['status'], IconName>(
 
 const getRunInfo = (backupLog: XoBackupLog, index: number) => ({
   icon: getRunStatusIcon(backupLog.status),
-  tooltip: `${t('last-run-number', { n: index + 1 })}: ${new Date(backupLog.end ?? backupLog.start).toLocaleString()}, ${t(backupLog.status)}`,
+  tooltip: `${t('last-run-number', { n: index + 1 })}: ${d(backupLog.end ?? backupLog.start, 'datetime_short')}, ${t(backupLog.status)}`,
 })
 
 const getLastThreeRunsStatuses = (backupJob: XoBackupJob) =>

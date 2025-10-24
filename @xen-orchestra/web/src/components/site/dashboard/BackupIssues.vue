@@ -36,7 +36,7 @@
                 </div>
               </div>
               <div v-else-if="column.value">
-                <VtsBackupState :state="column.value" />
+                <VtsStatus :status="column.value" />
               </div>
             </td>
           </tr>
@@ -49,10 +49,10 @@
 <script lang="ts" setup>
 import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import type { IconName } from '@core/icons'
-import VtsBackupState from '@core/components/backup-state/VtsBackupState.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'

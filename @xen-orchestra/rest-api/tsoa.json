@@ -11,6 +11,10 @@
         "type": "apiKey",
         "name": "authenticationToken",
         "in": "cookie"
+      },
+      "basic": {
+        "type": "http",
+        "scheme": "basic"
       }
     },
     "specMerging": "recursive",

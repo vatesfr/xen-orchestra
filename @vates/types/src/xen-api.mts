@@ -933,6 +933,7 @@ export interface XenApiPbd {
   SR: XenApiSr['$ref']
   uuid: string
 }
+export type XenApiPbdWrapped = WrapperXenApi<XenApiPbd, 'PBD'>
 
 /** @deprecated */
 export interface XenApiCrashdump {
@@ -1369,6 +1370,7 @@ export type XenApiRecord =
 export type WrappedXenApiRecord =
   | XenApiHostWrapped
   | XenApiNetworkWrapped
+  | XenApiPbdWrapped
   | XenApiPifWrapped
   | XenApiPoolWrapped
   | XenApiSrWrapped

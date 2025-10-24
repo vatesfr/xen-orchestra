@@ -3,7 +3,7 @@
     <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
     <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
     <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
-    <Alarms class="alarms" :alarms />
+    <DashboardAlarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
     <Patches
       class="patches"
       :missing-patches="dashboard.missingPatches"
@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts" setup>
-import Alarms from '@/components/site/dashboard/Alarms.vue'
+import DashboardAlarms from '@/components/alarms/DashboardAlarms.vue'
 import BackupIssues from '@/components/site/dashboard/BackupIssues.vue'
 import Backups from '@/components/site/dashboard/Backups.vue'
 import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
@@ -43,7 +43,7 @@ const uiStore = useUiStore()
 
 const { dashboard, backupRepositories, storageRepositories, hasError } = useXoSiteDashboard()
 
-const { alarms } = useXoAlarmCollection()
+const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
 </script>
 
 <style lang="postcss" scoped>
@@ -86,6 +86,7 @@ const { alarms } = useXoAlarmCollection()
 
   .alarms {
     grid-area: alarms;
+    max-height: 40.6rem;
   }
 
   .patches {

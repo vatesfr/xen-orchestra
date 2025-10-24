@@ -5,7 +5,7 @@
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
  */
 
-import { DiskLargerBlock, DiskPassthrough, ReadAhead } from '@xen-orchestra/disk-transform'
+import { DiskLargerBlock, DiskPassthrough, ReadAhead, TimeoutDisk } from '@xen-orchestra/disk-transform'
 import { createLogger } from '@xen-orchestra/log'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiStreamNbdSource } from './XapiStreamNbd.mjs'
@@ -42,6 +42,8 @@ export class XapiDiskSource extends DiskPassthrough {
   #blockSize
   #useNbd = false
   #useCbt = false
+  /** @type {number} */
+  #timeout
 
   /**
    * @param {Object} params
@@ -51,13 +53,23 @@ export class XapiDiskSource extends DiskPassthrough {
    * @param {boolean} [params.preferNbd=true]
    * @param {number} [params.nbdConcurrency=2]
    * @param {number} [params.blockSize=2*1024*1024]
+   * @param {number} [params.timeout=20*60*1000]
    */
-  constructor({ xapi, vdiRef, baseRef, preferNbd = xapi._preferNbd, nbdConcurrency = 2, blockSize = 2 * 1024 * 1024 }) {
+  constructor({
+    xapi,
+    vdiRef,
+    baseRef,
+    preferNbd = xapi._preferNbd,
+    nbdConcurrency = 2,
+    blockSize = 2 * 1024 * 1024,
+    timeout = 20 * 60 * 1000,
+  }) {
     super(undefined)
     this.#baseRef = baseRef
     this.#blockSize = blockSize
     this.#nbdConcurrency = nbdConcurrency
     this.#preferNbd = preferNbd
+    this.#timeout = timeout
     this.#vdiRef = vdiRef
     this.#xapi = xapi
   }
@@ -84,7 +96,6 @@ export class XapiDiskSource extends DiskPassthrough {
       }
       source = new XapiStreamNbdSource(streamSource, { vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
       await source.init()
-
       if (source.getBlockSize() < this.#blockSize) {
         source = new DiskLargerBlock(source, this.#blockSize)
       }
@@ -96,11 +107,13 @@ export class XapiDiskSource extends DiskPassthrough {
         }
         return streamSource
       }
-      await source?.close() // this will close source and stream source
+      // init probaby failed, so nothing to close , but better safe than sorry
+      await source?.close().catch(warn)
       throw err
     }
     this.#useNbd = true
     const readAhead = new ReadAhead(source)
+    source = new TimeoutDisk(source, this.#timeout)
     const label = await xapi.getField('VDI', vdiRef, 'name_label')
     readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD`)
     return readAhead
@@ -110,7 +123,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * Create a disk source using stream export.
    * On failure, fall back to a full export.
    *
-   * @returns {Promise<XapiVhdStreamSource|XapiQcow2StreamSource | ReadAhead>}
+   * @returns {Promise<Disk>}
    */
   async #openExportStream() {
     const xapi = this.#xapi
@@ -126,8 +139,10 @@ export class XapiDiskSource extends DiskPassthrough {
         source = new XapiQcow2StreamSource({ vdiRef, baseRef, xapi })
       }
       await source.init()
+      source = new TimeoutDisk(source, this.#timeout)
     } catch (error) {
-      await source?.close()
+      // init probaby failed, so nothing to close , but better safe than sorry
+      await source?.close().catch(warn)
       if (baseRef !== undefined) {
         warn(`can't compute delta ${vdiRef} from ${baseRef}, fallBack to a full`, { error })
         this.#baseRef = undefined
@@ -158,7 +173,7 @@ export class XapiDiskSource extends DiskPassthrough {
       this.#useNbd = true
       this.#useCbt = true
       const readAhead = new ReadAhead(source)
-
+      source = new TimeoutDisk(source, this.#timeout)
       if (source.getBlockSize() < this.#blockSize) {
         source = new DiskLargerBlock(source, this.#blockSize)
       }
@@ -167,7 +182,9 @@ export class XapiDiskSource extends DiskPassthrough {
       return readAhead
     } catch (error) {
       info('Error in openNbdCBT', error)
-      await source.close()
+      // init probaby failed, so nothing to close , but better safe than sorry
+      await source?.close().catch(warn)
+
       // A lot of things can go wrong with CBT:
       // Not enabled on the baseRef,
       // Not enabled on the VDI,

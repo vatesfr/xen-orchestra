@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs/promises'
 import * as Directory from './directory.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import { listOlderTargets } from './fileIndex.mjs'
@@ -10,9 +9,8 @@ import loadConfig from './_loadConfig.mjs'
 const { info, warn } = createLogger('xen-orchestra:immutable-backups:liftProtection')
 
 async function liftRemoteImmutability(immutabilityCachePath, immutabilityDuration) {
-  for await (const { index, target } of listOlderTargets(immutabilityCachePath, immutabilityDuration)) {
+  for await (const { target } of listOlderTargets(immutabilityCachePath, immutabilityDuration)) {
     await Directory.liftImmutability(target, immutabilityCachePath)
-    await fs.unlink(index)
     await cleanXoCache(target)
   }
 }
