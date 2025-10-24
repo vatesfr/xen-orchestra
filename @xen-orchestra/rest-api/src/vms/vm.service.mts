@@ -4,8 +4,11 @@ import { Task } from '@vates/task'
 import {
   AnyXoVm,
   VM_POWER_STATE,
+  XoBackupLog,
+  XoSr,
   XoVbd,
   XoVdiSnapshot,
+  XoVmBackupJob,
   XoVmController,
   XoVmSnapshot,
   type XenApiVdiWrapped,
@@ -15,17 +18,26 @@ import {
   type XoVmTemplate,
 } from '@vates/types'
 import { Response as ExResponse } from 'express'
-import { Readable } from 'node:stream'
+import { Readable, Writable } from 'node:stream'
 
 import type { CreateVmAfterCreateParams, CreateVmParams } from '../pools/pool.type.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
+import { escapeUnsafeComplexMatcher, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
+import { parseDateTime } from '@xen-orchestra/xapi'
+import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
+import groupBy from 'lodash/groupBy.js'
 
 const log = createLogger('xo:rest-api:vm-service')
 
 export class VmService {
   #restApi: RestApi
+  #alarmService: AlarmService
+  #backupJobService: BackupJobService
   constructor(restApi: RestApi) {
     this.#restApi = restApi
+    this.#alarmService = restApi.ioc.get(AlarmService)
+    this.#backupJobService = restApi.ioc.get(BackupJobService)
   }
 
   async #create(
@@ -166,5 +178,170 @@ export class VmService {
     }
 
     return stream
+  }
+
+  getVmAlarms(id: XoVm['id'], { filter, limit }: { filter?: string; limit?: number } = {}) {
+    const vm = this.#restApi.getObject<XoVm>(id, 'VM')
+
+    const alarms = this.#alarmService.getAlarms({
+      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vm.id}`,
+      limit,
+    })
+
+    return alarms
+  }
+
+  #getDashboardQuickInfo(id: XoVm['id']) {
+    const vm = this.#restApi.getObject<XoVm>(id, 'VM')
+
+    return {
+      id: vm.id,
+      state: vm.power_state,
+      uuid: vm.uuid,
+      description: vm.name_description,
+      vcpu: vm.CPUs.number,
+      ipAddress: vm.mainIpAddress,
+      osName: vm.os_version?.name,
+      ram: vm.memory.size,
+      createdOn: vm.creation.date,
+      pool: vm.$pool,
+      virtualisationType: vm.virtualizationMode,
+      tags: vm.tags,
+      createdBy: vm.creation.user,
+      host: vm.$container,
+      guestTools: {
+        detected: vm.pvDriversDetected ?? false,
+        version: vm.pvDriversVersion,
+        upToDate: vm.pvDriversUpToDate,
+      },
+      started: vm.startTime,
+    }
+  }
+
+  #getLastReplication(id: XoVm['id']): undefined | { id: XoVm['id']; date: number; sr: XoSr['id'] | undefined } {
+    const vm = this.#restApi.getObject<XoVm>(id, 'VM')
+    const replicatedVms = this.#restApi.getObjectsByType<XoVm>('VM', {
+      filter: obj => obj.other['xo:backup:vm'] === vm.id,
+    })
+
+    let lastTimestamp: number | undefined
+    let lastReplica: XoVm | undefined
+    for (const id in replicatedVms) {
+      const replica = replicatedVms[id as XoVm['id']]
+      const timestamp = parseDateTime(replica.other['xo:backup:datetime'])
+
+      if (lastTimestamp === undefined || lastTimestamp < timestamp) {
+        lastTimestamp = timestamp
+        lastReplica = replica
+      }
+    }
+
+    if (lastReplica === undefined) {
+      return
+    }
+
+    const vdis = this.getVmVdis(id, 'VM')
+    let sr: XoSr['id'] | undefined = undefined
+    for (const vdi of vdis) {
+      if (sr === undefined) {
+        sr = vdi.$SR
+        continue
+      }
+
+      if (sr !== vdi.$SR) {
+        // if the VM has VDIs on multiple SRs, set the sr as undefined
+        sr = undefined
+        break
+      }
+    }
+
+    return {
+      id: lastReplica.id,
+      date: lastTimestamp! * 1000,
+      sr,
+    }
+  }
+
+  async #getBackupsInfo(id: XoVm['id']): Promise<{
+    lastRun: { backupJobId: XoVmBackupJob['id']; timestamp: number; status: string }[]
+    vmProtected: boolean
+  }> {
+    const vm = this.#restApi.getObject<XoVm>(id, 'VM')
+
+    const allBackupJobs = await this.#restApi.xoApp.getAllJobs('backup')
+
+    const relevantJobIds: XoVmBackupJob['id'][] = []
+    const relevantJobsWithSchedule: XoVmBackupJob[] = []
+
+    for (const backupJob of allBackupJobs) {
+      if (await this.#backupJobService.isVmInBackupJob(backupJob.id, vm.id)) {
+        relevantJobIds.push(backupJob.id)
+
+        if (await this.#backupJobService.backupJobHasAtLeastOneScheduleEnabled(backupJob.id)) {
+          relevantJobsWithSchedule.push(backupJob)
+        }
+      }
+    }
+
+    const backupLogs = (await this.#restApi.xoApp.getBackupNgLogsSorted({
+      filter: log => log.message === 'backup' && relevantJobIds.includes(log.jobId as XoVmBackupJob['id']),
+    })) as XoBackupLog[]
+
+    const lastBackupRun = backupLogs
+      .slice(-3)
+      .reverse()
+      .map(log => ({
+        backupJobId: log.jobId,
+        timestamp: log.end,
+        status: log.status,
+      })) as { backupJobId: XoVmBackupJob['id']; timestamp: number; status: string }[]
+
+    let isProtected = false
+    if (!vmContainsNoBakTag(vm)) {
+      const backupLogsByJob = groupBy(backupLogs, 'jobId')
+
+      for (const backupJob of relevantJobsWithSchedule) {
+        if (isProtected) {
+          break
+        }
+        // can be undefined if the backup did run for now
+        const jobLogs: XoBackupLog[] | undefined = backupLogsByJob[backupJob.id]
+          ?.filter(log => log.status !== 'pending')
+          .slice(-3)
+
+        if (jobLogs !== undefined) {
+          isProtected = jobLogs.every(log => {
+            if (log.status === 'success') {
+              return true
+            }
+
+            const backupTask = (log.tasks as { data: { id: XoVm['id'] }; status: string }[]).find(
+              task => task.data.id === vm.id
+            )
+            return backupTask?.status === 'success'
+          })
+        }
+      }
+    }
+
+    return { lastRun: lastBackupRun, vmProtected: isProtected }
+  }
+
+  async getVmDashboard(id: XoVm['id'], { stream }: { stream?: Writable } = {}) {
+    const [quickInfo, alarms, lastReplication, backupsInfo] = await Promise.all([
+      promiseWriteInStream({ maybePromise: this.#getDashboardQuickInfo(id), path: 'quickInfo', stream }),
+      promiseWriteInStream({ maybePromise: Object.keys(this.getVmAlarms(id)), path: 'alarms', stream }),
+      promiseWriteInStream({ maybePromise: this.#getLastReplication(id), path: 'lastReplication', stream }),
+      promiseWriteInStream({ maybePromise: this.#getBackupsInfo(id), path: 'backupsInfo', stream }),
+    ])
+
+    // last backup archives
+
+    return {
+      quickInfo,
+      alarms,
+      lastReplication,
+      backupsInfo,
+    }
   }
 }

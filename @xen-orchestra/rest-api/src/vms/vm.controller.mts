@@ -31,9 +31,8 @@ import type {
   XoVmSnapshot,
   XoMessage,
 } from '@vates/types'
-import { Readable } from 'node:stream'
+import { PassThrough, Readable } from 'node:stream'
 
-import { AlarmService } from '../alarms/alarm.service.mjs'
 import {
   asynchronousActionResp,
   badRequestResp,
@@ -47,12 +46,12 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { BASE_URL } from '../index.mjs'
-import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { limitAndFilterArray, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
 import { partialVms, vm, vmIds, vmStatsExample, vmVdis } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
-import type { SendObjects } from '../helpers/helper.type.mjs'
+import type { AuthenticatedRequest, SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { VmService } from './vm.service.mjs'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
@@ -71,18 +70,15 @@ const IGNORED_VDIS_TAG = '[NOSNAP]'
 // It automatically bind the class to the IOC container that handles dependency injection
 @provide(VmController)
 export class VmController extends XapiXoController<XoVm> {
-  #alarmService: AlarmService
   #vmService: VmService
   #backupJobService: BackupJobService
 
   constructor(
     @inject(RestApi) restApi: RestApi,
-    @inject(AlarmService) alarmService: AlarmService,
     @inject(VmService) vmService: VmService,
     @inject(BackupJobService) backupJobService: BackupJobService
   ) {
     super('VM', restApi)
-    this.#alarmService = alarmService
     this.#vmService = vmService
     this.#backupJobService = backupJobService
   }
@@ -525,11 +521,7 @@ export class VmController extends XapiXoController<XoVm> {
     @Query() filter?: string,
     @Query() limit?: number
   ): SendObjects<Partial<Unbrand<XoAlarm>>> {
-    const vm = this.getObject(id as XoVm['id'])
-    const alarms = this.#alarmService.getAlarms({
-      filter: `${escapeUnsafeComplexMatcher(filter) ?? ''} object:uuid:${vm.uuid}`,
-      limit,
-    })
+    const alarms = this.#vmService.getVmAlarms(id as XoVm['id'], { filter, limit })
 
     return this.sendObjects(Object.values(alarms), req, 'alarms')
   }
@@ -657,5 +649,25 @@ export class VmController extends XapiXoController<XoVm> {
   async deleteVmTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const vm = this.getXapiObject(id as XoVm['id'])
     await vm.$call('remove_tags', tag)
+  }
+
+  @Get('{id}/dashboard')
+  async getVmDashboard(@Request() req: AuthenticatedRequest, @Path() id: string, @Query() ndjson?: boolean) {
+    const stream = ndjson ? new PassThrough() : undefined
+    const isStream = stream !== undefined
+
+    if (isStream) {
+      const res = req.res
+      res.setHeader('Content-Type', NDJSON_CONTENT_TYPE)
+      stream.pipe(res)
+    }
+
+    const dashboard = await this.#vmService.getVmDashboard(id as XoVm['id'], { stream })
+
+    if (isStream) {
+      stream.end()
+    } else {
+      return dashboard
+    }
   }
 }
