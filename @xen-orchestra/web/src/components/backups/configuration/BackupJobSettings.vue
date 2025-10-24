@@ -1,6 +1,6 @@
 <template>
   <UiCard>
-    <UiTitle> {{ t('settings') }} </UiTitle>
+    <UiTitle>{{ t('settings') }}</UiTitle>
     <VtsColumns>
       <VtsColumn>
         <VtsQuickInfoRow :label="t('proxy')" :value="proxy?.name" />
