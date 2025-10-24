@@ -537,7 +537,7 @@ export default class Plan {
       return
     }
 
-    const allHosts = await this._getHosts()
+    const allHosts = this._getHosts()
     if (allHosts.length <= 1) {
       return
     }
@@ -811,7 +811,7 @@ export default class Plan {
       return
     }
 
-    const allHosts = await this._getHosts()
+    const allHosts = this._getHosts()
     if (allHosts.length <= 1) {
       return
     }
