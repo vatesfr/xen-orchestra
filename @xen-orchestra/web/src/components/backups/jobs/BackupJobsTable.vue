@@ -126,7 +126,7 @@ const { backupJobs } = defineProps<{
   hasError: boolean
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { getModeLabels } = useXoBackupUtils()
 const { getLastThreeRunsStatuses, getTotalSchedules } = useXoBackupJobSchedulesUtils()
