@@ -19,7 +19,7 @@ import type {
   VM_POWER_STATE,
 } from './common.mjs'
 import type * as CMType from './lib/complex-matcher.mjs'
-import type { XenApiPool } from './xen-api.mjs'
+import type { XenApiHost, XenApiPool } from './xen-api.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -184,7 +184,7 @@ export type XoConfigBackupArchive = XoMetadataBackupArchive & {
 export type XoPoolBackupArchive = XoMetadataBackupArchive & {
   id: Branded<'pool-backup-archive'>
   pool: XenApiPool
-  poolMaster: XenApiPool
+  poolMaster: XenApiHost
   type: 'xo-pool-metadata-backup'
 }
 

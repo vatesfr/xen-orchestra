@@ -52,7 +52,7 @@ export class BackupArchiveController extends XoController<XoVmBackupArchive> {
       throw noSuchObject(id, 'backup-archive')
     }
 
-    const [, brId, vmId] = match as [XoVmBackupArchive['id'], XoBackupRepository['id'], XoVm['id'], number]
+    const [, brId, vmId] = match as [XoVmBackupArchive['id'], XoBackupRepository['id'], XoVm['id'], string]
 
     const backupArchive = (await this.restApi.xoApp.listVmBackupsNg([brId]))[brId]?.[vmId]?.find(ba => ba.id === id)
     if (backupArchive === undefined) {

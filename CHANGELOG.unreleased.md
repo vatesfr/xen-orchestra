@@ -61,6 +61,8 @@
   - `PUT /rest/v0/vdis/<vdi-id>.(vhd|raw)` (PR [#9038](https://github.com/vatesfr/xen-orchestra/pull/9038))
   - **removed** `PUT /rest/v0/vdi-snapshots/<vdi-snapshot-id>.(vhd|raw)` (PR [#9038](https://github.com/vatesfr/xen-orchestra/pull/9038))
 
+- [REST API] Expose `GET /rest/v0/backup-archives` and `GET /rest/v0/backup-archives/:id` (PR [#8982](https://github.com/vatesfr/xen-orchestra/pull/8982))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -88,6 +90,8 @@
 <!--packages-start-->
 
 - @vates/types minor
+- @xen-orchestra/backups patch
+- @xen-orchestra/proxy patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
