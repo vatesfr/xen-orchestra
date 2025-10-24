@@ -1,7 +1,7 @@
 <template>
   <div class="backups" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <BackupLogsTable :backup-logs :has-error="hasBackupLogFetchError" />
+      <BackupLogsTable :backup-logs :has-error="hasBackupLogFetchError" :is-ready="areBackupLogsReady" />
     </UiCard>
     <BackupLogsSidePanel
       v-if="selectedBackupLog"
@@ -36,7 +36,7 @@ const { backupJob } = defineProps<{
 
 const uiStore = useUiStore()
 
-const { backupLogsByJobId, hasBackupLogFetchError } = useXoBackupLogCollection()
+const { backupLogsByJobId, hasBackupLogFetchError, areBackupLogsReady } = useXoBackupLogCollection()
 
 const backupLogs = computed(() => backupLogsByJobId.value.get(backupJob.id) ?? [])
 

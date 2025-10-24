@@ -14,7 +14,8 @@
           </template>
         </VtsCardRowKeyValue>
         <UiLogEntryViewer
-          :label="t('api-error-details')"
+          v-if="result.stack"
+          :label="cardMetadata.logEntryTitle"
           size="small"
           :accent="cardMetadata.accent"
           :content="JSON.stringify(result.stack, null, 2)"
@@ -52,14 +53,17 @@ const cardMetadata = useMapper(
   {
     info: {
       title: t('info', 2),
+      logEntryTitle: t('api-info-details'),
       accent: 'info',
     },
     warning: {
       title: t('warning', 2),
+      logEntryTitle: t('api-warning-details'),
       accent: 'warning',
     },
     error: {
       title: t('error', 2),
+      logEntryTitle: t('api-error-details'),
       accent: 'danger',
     },
   },

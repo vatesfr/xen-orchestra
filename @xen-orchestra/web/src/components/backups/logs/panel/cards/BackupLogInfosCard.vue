@@ -37,13 +37,20 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('status') }}</template>
         <template #value>
-          <VtsBackupState :state="backupLog.status" />
+          <VtsStatus :status="backupLog.status" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('transfer-size') }}</template>
         <template v-if="transferSize !== undefined" #value>{{ transferSize.value }} {{ transferSize.prefix }}</template>
         <template v-else #value />
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue v-if="backupLog.tasks !== undefined && backupLog.tasks.length > 0">
+        <template #key>{{ t('task') }}</template>
+        <template #value>
+          <!-- TODO: add link to task when Tasks page will be available -->
+          <UiLink size="small">{{ backupLog.tasks[0].id }}</UiLink>
+        </template>
       </VtsCardRowKeyValue>
     </div>
   </UiCard>
@@ -52,9 +59,9 @@
 <script lang="ts" setup>
 import { useXoBackupLogsUtils } from '@/composables/xo-backup-log-utils.composable'
 import type { XoBackupLog } from '@/types/xo/backup-log.type'
-import VtsBackupState from '@core/components/backup-state/VtsBackupState.vue'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'

@@ -14,7 +14,7 @@
         </UiTopBottomTable>
       </div>
       <VtsDataTable
-        is-ready
+        :is-ready
         :has-error
         :no-data-message="backupLogs.length === 0 ? t('no-backup-run-available') : undefined"
       >
@@ -66,7 +66,7 @@
                 {{ column.value }}
               </div>
               <template v-else-if="column.id === 'status'">
-                <VtsBackupState :state="column.value" />
+                <VtsStatus :status="column.value" />
               </template>
               <div v-else-if="column.id === 'transfer-size'" class="number">
                 {{ column.value?.value }} {{ column.value?.prefix }}
@@ -89,10 +89,10 @@
 import { useXoBackupLogsUtils } from '@/composables/xo-backup-log-utils.composable'
 import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import type { IconName } from '@core/icons'
-import VtsBackupState from '@core/components/backup-state/VtsBackupState.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -111,6 +111,7 @@ import { useI18n } from 'vue-i18n'
 const { backupLogs } = defineProps<{
   backupLogs: XoBackupLog[]
   hasError: boolean
+  isReady: boolean
 }>()
 
 const { t } = useI18n()
