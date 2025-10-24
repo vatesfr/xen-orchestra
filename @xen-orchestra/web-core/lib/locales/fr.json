@@ -593,7 +593,7 @@
   "start-delay": "Départ différé",
   "start-host": "Démarrez l’hôte pour reprendre les opérations, ou revenez plus tard une fois qu’il sera allumé.",
   "start-on-host": "Démarrer sur un hôte spécifique",
-  "start-vm": "Démarrez-la  pour accéder à sa console et à ses paramètres de configuration.",
+  "start-vm": "Démarrez-la pour accéder à sa console et à ses paramètres de configuration.",
   "started": "Démarré",
   "state": "État",
   "static": "Statique",
