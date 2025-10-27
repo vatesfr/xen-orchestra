@@ -20,7 +20,7 @@
   - [Site/Backups] Add backed-up VMs view (PR [#9018](https://github.com/vatesfr/xen-orchestra/pull/9018))
 
 - **XO 6:**
-  - [Treeview] Change location loader of search input to treeview when search is triggered (PR [#9142](https://github.com/vatesfr/xen-orchestra/pull/9142))
+  - [Treeview] Move search loader from input to Treeview (PR [#9142](https://github.com/vatesfr/xen-orchestra/pull/9142))
 
 ### Bug fixes
 
