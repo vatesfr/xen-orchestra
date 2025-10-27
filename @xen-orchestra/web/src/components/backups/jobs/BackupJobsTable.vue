@@ -17,7 +17,6 @@ import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useBackupJobsTable } from '@core/tables/use-backup-jobs-table'
@@ -30,7 +29,7 @@ const { backupJobs } = defineProps<{
   hasError: boolean
 }>()
 
-const { t, d } = useI18n()
+const { t } = useI18n()
 
 const { schedulesByJobId, areSchedulesReady, hasScheduleFetchError } = useXoScheduleCollection()
 const { getLastNBackupLogsByJobId, areBackupLogsReady, hasBackupLogFetchError } = useXoBackupLogCollection()
