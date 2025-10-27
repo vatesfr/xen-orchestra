@@ -1,5 +1,9 @@
 ---
 slug: /
+title: Introduction
+sidebar_position: 1
+---
+
 ---
 
 # Xen Orchestra in a nutshell

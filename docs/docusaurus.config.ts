@@ -35,27 +35,27 @@ const config: Config = {
       {
         redirects: [
           {
-            to: '/manage_infrastructure#vms',
+            to: '/management/manage_infrastructure#vms',
             from: '/administration',
           },
           {
-            to: '/users#acls',
+            to: '/management/users#acls',
             from: '/acls',
           },
           {
-            to: '/incremental_replication',
+            to: '/backups/incremental_replication',
             from: '/continuous_replication',
           },
           {
-            to: '/advanced#alerts',
+            to: '/management/advanced#alerts',
             from: '/alerts',
           },
           {
-            to: '/architecture#plugins',
+            to: '/xen-orchestra/architecture#plugins',
             from: '/plugins',
           },
           {
-            to: '/troubleshooting',
+            to: '/xen-orchestra/troubleshooting',
             from: '/general-troubleshooting',
           },
         ],
@@ -112,7 +112,7 @@ const config: Config = {
             },
             {
               label: 'Installation',
-              href: '/installation',
+              href: '/xen-orchestra/installation',
             },
           ],
         },
