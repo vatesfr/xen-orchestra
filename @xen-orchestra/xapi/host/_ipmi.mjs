@@ -34,6 +34,17 @@ export const IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME = {
     [IPMI_SENSOR_DATA_TYPE.inletTemp]: /^inlet temp$/i,
     [IPMI_SENSOR_DATA_TYPE.ip]: /^ip address$/i,
   },
+  lenovo: {
+    [IPMI_SENSOR_DATA_TYPE.fanSpeed]: /^fan\s*\d+(?:\s+(?:front|rear))?\s+tach$/i,
+    [IPMI_SENSOR_DATA_TYPE.outletTemp]: /^exhaust temp$/i,
+    [IPMI_SENSOR_DATA_TYPE.psuPower]: /^psu\s*\d+\s+(ac in pwr|dc out pwr)$/i,
+    [IPMI_SENSOR_DATA_TYPE.psuStatus]:
+      /^(psu\s*\d+(?:\s+(?:failure|pf failure|in failure|i2c dc fai))?|power supply\s*\d+)$/i,
+    [IPMI_SENSOR_DATA_TYPE.cpuTemp]: /^cpu\s*\d+\s*temp$/i,
+    [IPMI_SENSOR_DATA_TYPE.totalPower]: /^(sys power|system power|power consumption)$/i,
+    [IPMI_SENSOR_DATA_TYPE.inletTemp]: /^(ambient temp|inlet temp)$/i,
+    [IPMI_SENSOR_DATA_TYPE.ip]: /^ip address$/i,
+  },
 }
 export const IPMI_SENSOR_CUSTOM_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME = {
   dell: {
@@ -43,6 +54,17 @@ export const IPMI_SENSOR_CUSTOM_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME = {
       value: '0x00',
     }),
     [IPMI_SENSOR_DATA_TYPE.fanStatus]: ipmiSensorsByDataType => ipmiSensorsByDataType[IPMI_SENSOR_DATA_TYPE.fanSpeed],
+  },
+  lenovo: {
+    [IPMI_SENSOR_DATA_TYPE.bmcStatus]: d => ({
+      event: Object.keys(d).length > 0 ? 'ok' : 'ko',
+      name: 'bmc status',
+      value: '0x00',
+    }),
+    [IPMI_SENSOR_DATA_TYPE.fanStatus]: d =>
+      (d[IPMI_SENSOR_DATA_TYPE.fanSpeed] ?? [])
+        .filter(s => s?.event === 'ok' && /\d+\s*rpm/i.test(s.value))
+        .map(s => ({ ...s, rpm: parseInt(s.value, 10) })),
   },
 }
 
