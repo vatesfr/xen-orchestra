@@ -448,50 +448,50 @@ async function handleGetSystemStatuses(_req, res, { xapi, pool }) {
   const pipelinePromise = fromCallback(pipeline, pack, res)
 
   try {
-    // Download from each host in parallel (with concurrency limit to avoid resource exhaustion)
-    await asyncMap(
-      hosts,
-      async host => {
-        // Build system-status URL
-        // Use host.address (the target host IP), not server.host (the XAPI server)
-        const url = new URL(`http://${host.address}/system-status`)
-        url.protocol = xapi._url.protocol // Use same protocol as XAPI connection
-        url.searchParams.set('output', 'tar.bz2') // XCP-ng requires output format parameter
+    // Download from each host sequentially to ensure safe tar creation
+    for (const host of hosts) {
+      // Build system-status URL
+      // Use host.address (the target host IP), not server.host (the XAPI server)
+      const url = new URL(`http://${host.address}/system-status`)
+      url.protocol = xapi._url.protocol // Use same protocol as XAPI connection
+      url.searchParams.set('output', 'tar.bz2') // XCP-ng requires output format parameter
 
-        // Setup HTTP Basic Auth
-        const opts = {
-          headers: {
-            Authorization: `Basic ${Buffer.from(`${server.username}:${server.password}`).toString('base64')}`,
-          },
-          rejectUnauthorized: !server.allowUnauthorized,
-          timeout: 0, // No timeout for large downloads
+      // Setup HTTP Basic Auth
+      const opts = {
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${server.username}:${server.password}`).toString('base64')}`,
+        },
+        rejectUnauthorized: !server.allowUnauthorized,
+        timeout: 0, // No timeout for large downloads
+      }
+
+      // Download and add to tar archive
+      const response = await this.httpRequest(url, opts)
+      const filename = `${host.name_label}-system-status.tar.bz2`
+
+      // Get the size from Content-Length header if available
+      const size = response.headers['content-length']
+        ? Number.parseInt(response.headers['content-length'], 10)
+        : undefined
+
+      if (size === undefined) {
+        throw new Error(`Missing Content-Length header for host ${host.name_label} system status download`)
+      }
+
+      const entry = pack.entry({ name: filename, size }, err => {
+        if (err) {
+          log.error('Failed to create tar entry', {
+            hostName: host.name_label,
+            filename,
+            error: err,
+          })
+          // Destroy pack with error to propagate to pipelinePromise
+          pack.destroy(err)
         }
+      })
 
-        // Download and add to tar archive
-        const response = await this.httpRequest(url, opts)
-        const filename = `${host.name_label}-system-status.tar.bz2`
-
-        // Get the size from Content-Length header if available
-        const size = response.headers['content-length']
-          ? Number.parseInt(response.headers['content-length'], 10)
-          : undefined
-
-        const entry = pack.entry({ name: filename, size }, err => {
-          if (err) {
-            log.error('Failed to create tar entry', {
-              hostName: host.name_label,
-              filename,
-              error: err,
-            })
-            // Destroy pack with error to propagate to pipelinePromise
-            pack.destroy(err)
-          }
-        })
-
-        await fromCallback(pipeline, response, entry)
-      },
-      { concurrency: 5 } // Limit concurrent downloads to avoid overwhelming the network/hosts
-    )
+      await fromCallback(pipeline, response, entry)
+    }
 
     // Finalize archive after all downloads complete
     pack.finalize()
