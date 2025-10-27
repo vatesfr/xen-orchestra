@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [V2V] support import of disk bigger than 2TB toward qcow enabled SR (PR [#9148](https://github.com/vatesfr/xen-orchestra/pull/9148))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,4 +33,5 @@
 
 <!--packages-start-->
 
+- xo-server minor
 <!--packages-end-->
