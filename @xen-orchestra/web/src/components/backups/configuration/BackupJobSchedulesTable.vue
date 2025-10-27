@@ -171,14 +171,14 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
 </script>
 
 <style lang="postcss" scoped>
-.backup-job-schedules,
+.backup-job-schedules-table,
 .table-actions,
 .container {
   display: flex;
   flex-direction: column;
 }
 
-.backup-job-schedules {
+.backup-job-schedules-table {
   gap: 2.4rem;
 
   .container,
