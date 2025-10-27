@@ -14,7 +14,6 @@ import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 
 @Route('')
 @Security('*')
-@Response(badRequestResp.status, badRequestResp.description)
 @Tags('xoa')
 @provide(XoaController)
 export class XoaController extends Controller {
@@ -27,6 +26,7 @@ export class XoaController extends Controller {
 
   @Example(xoaDashboard)
   @Get('dashboard')
+  @Response(badRequestResp.status, badRequestResp.description)
   @Response(unauthorizedResp.status, unauthorizedResp.description)
   async getDashboard(@Request() req: ExRequest, @Query() ndjson?: boolean): Promise<XoaDashboard | undefined> {
     const stream = ndjson ? new PassThrough() : undefined
