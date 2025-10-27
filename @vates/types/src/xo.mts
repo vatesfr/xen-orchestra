@@ -19,6 +19,7 @@ import type {
   VM_POWER_STATE,
 } from './common.mjs'
 import type * as CMType from './lib/complex-matcher.mjs'
+import type { XenApiHost, XenApiPool } from './xen-api.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -143,6 +144,48 @@ export type XoBackupLog = BaseXoLog & {
 }
 export type XoRestoreLog = BaseXoLog & {
   message: 'restore'
+}
+export type XoVmBackupArchive = {
+  id: Branded<'vm-backup-archive'>
+  type: 'xo-vm-backup'
+  backupRepository: XoBackupRepository['id']
+  disks: { id: string; name: string; uuid: XoVdiSnapshot['uuid'] }[]
+  isImmutable?: boolean
+  jobId: XoVmBackupJob['id']
+  mode: XoVmBackupJob['mode']
+  scheduleId: XoSchedule['id']
+  size: number
+  timestamp: number
+  vm: {
+    uuid: XoVm['uuid']
+    name_description: string
+    name_label: string
+  }
+  differencingVhds?: number
+  dynamicVhds?: number
+  withMemory: boolean
+}
+
+type XoMetadataBackupArchive = {
+  id: Branded<'metadata-backup-archive'>
+  backupRepository: XoBackupRepository['id']
+  jobId: XoVmBackupJob['id']
+  jobName: XoVmBackupJob['name']
+  scheduleId: XoSchedule['id']
+  scheduleName: XoSchedule['name']
+  timestamp: number
+}
+export type XoConfigBackupArchive = XoMetadataBackupArchive & {
+  id: Branded<'config-backup-archive'>
+  data: string
+  type: 'xo-config-backup'
+}
+
+export type XoPoolBackupArchive = XoMetadataBackupArchive & {
+  id: Branded<'pool-backup-archive'>
+  pool: XenApiPool
+  poolMaster: XenApiHost
+  type: 'xo-pool-metadata-backup'
 }
 
 export type XoBackupRepository = {
@@ -774,10 +817,14 @@ export type XapiXoRecord =
   | XoSm
 
 export type NonXapiXoRecord =
+  | AnyXoBackupArchive
   | AnyXoJob
   | AnyXoLog
   | XoGroup
   | XoProxy
+  | XoGroup
+  | XoProxy
+  | XoJob
   | XoBackupRepository
   | XoSchedule
   | XoServer
@@ -795,3 +842,5 @@ export type AnyXoJob = XoJob | AnyXoBackupJob
 export type AnyXoBackupJob = XoVmBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
 
 export type AnyXoLog = XoBackupLog | XoRestoreLog
+
+export type AnyXoBackupArchive = XoVmBackupArchive | XoConfigBackupArchive | XoPoolBackupArchive

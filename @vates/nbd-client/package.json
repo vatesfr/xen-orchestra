@@ -22,7 +22,7 @@
     "@vates/async-each": "^1.0.1",
     "@vates/read-chunk": "^1.2.1",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/disk-transform": "^1.0.1",
+    "@xen-orchestra/disk-transform": "^1.2.0",
     "@xen-orchestra/log": "^0.7.1",
     "promise-toolbox": "^0.21.0",
     "xen-api": "^4.7.4"

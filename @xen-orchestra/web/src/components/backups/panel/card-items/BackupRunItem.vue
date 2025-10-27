@@ -4,7 +4,12 @@
       {{ t('run') }}
     </template>
     <template #value>
-      <UiLink v-if="backupRun.id" size="small" icon="object:backup-log">
+      <UiLink
+        v-if="backupRun.id"
+        size="small"
+        icon="object:backup-log"
+        :to="`/backup/${backupRun.jobId}/runs?id=${backupRun.id}`"
+      >
         {{ backupRun.id }}
       </UiLink>
     </template>

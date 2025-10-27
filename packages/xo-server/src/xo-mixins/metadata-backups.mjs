@@ -192,15 +192,21 @@ export default class metadataBackup {
     ])
   }
 
-  // xoBackups
-  // [{
-  //   id: `${remoteId}/folderPath`,
-  //   jobId,
-  //   jobName,
-  //   scheduleId,
-  //   scheduleName,
-  //   timestamp
-  // }]
+  /**
+   * xoBackups
+   *
+   * @param {string} remoteId
+   * @returns {{
+   * id: string,
+   * backupRepository: string,
+   * jobId: string,
+   * jobName?: string,
+   * scheduleId: string,
+   * scheduleName?: string,
+   * timestamp: number
+   * type: "xo-config-backup"
+   * }[]}
+   */
   async _listXoMetadataBackups(remoteId) {
     const app = this._app
     const remote = await app.getRemoteWithCredentials(remoteId)
@@ -220,26 +226,34 @@ export default class metadataBackup {
     }
 
     // inject the remote id on the backup which is needed for restoreMetadataBackup()
+    // inject the remote id on the backup to easily retrieve a remote from a backup object
+    // inject the backup type on the backup to easily retrieve a backup from a backup object
     backups.forEach(backup => {
       backup.id = `${remoteId}${backup.id}`
+      backup.backupRepository = remoteId
+      backup.type = 'xo-config-backup'
     })
 
     return backups
   }
 
-  // poolBackups
-  // {
-  //   [<Pool ID>]: [{
-  //     id: `${remoteId}/folderPath`,
-  //     jobId,
-  //     jobName,
-  //     scheduleId,
-  //     scheduleName,
-  //     timestamp,
-  //     pool,
-  //     poolMaster,
-  //   }]
-  // }
+  /**
+   * poolBackups
+   *
+   * @param {string} remoteId
+   * @returns {Record<string, {
+   * backupRepository: string
+   * id: string,
+   * jobId: string,
+   * jobName?: string,
+   * scheduleId: string,
+   * scheduleName?: string,
+   * timestamp: number,
+   * type: "xo-pool-metadata-backup"
+   * pool: object
+   * poolMaster: object
+   * }[]>}
+   */
   async _listPoolMetadataBackups(remoteId) {
     const app = this._app
     const remote = await app.getRemoteWithCredentials(remoteId)
@@ -261,9 +275,13 @@ export default class metadataBackup {
     }
 
     // inject the remote id on the backup which is needed for restoreMetadataBackup()
+    // inject the remote id on the backup to easily retrieve a remote from a backup object
+    // inject the backup type on the backup to easily retrieve a backup from a backup object
     Object.values(backupsByPool).forEach(backups =>
       backups.forEach(backup => {
         backup.id = `${remoteId}${backup.id}`
+        backup.backupRepository = remoteId
+        backup.type = 'xo-pool-metadata-backup'
       })
     )
 

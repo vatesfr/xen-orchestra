@@ -1,4 +1,4 @@
-import filter from 'lodash/filter.js'
+import { filter, intersection } from 'lodash'
 
 import Plan from './plan'
 import { debug as debugP } from './utils'
@@ -196,18 +196,17 @@ export default class PerformancePlan extends Plan {
         continue
       }
 
-      for (const tag of vm.tags) {
-        // TODO: Improve this piece of code. We could compute variance to check if the VM
-        // is migratable. But the code must be rewritten:
-        // - All VMs, hosts and stats must be fetched at one place.
-        // - It's necessary to maintain a dictionary of tags for each host.
-        // - ...
-        if (this._antiAffinityTags.includes(tag)) {
-          debug(
-            `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag '${tag}'.`
-          )
-          continue
-        }
+      // TODO: Improve this piece of code. We could compute variance to check if the VM
+      // is migratable. But the code must be rewritten:
+      // - All VMs, hosts and stats must be fetched at one place.
+      // - It's necessary to maintain a dictionary of tags for each host.
+      // - ...
+      const blockingTags = intersection(vm.tags, this._antiAffinityTags)
+      if (blockingTags.length > 0) {
+        debug(
+          `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag(s): ${blockingTags}.`
+        )
+        continue
       }
 
       hosts.sort((a, b) => {
