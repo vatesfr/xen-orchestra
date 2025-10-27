@@ -59,9 +59,11 @@
         <template #value>
           <div v-if="host" class="host-name">
             <VtsObjectIcon type="host" :state="hostPowerState" size="small" />
-            <UiLink :to="`/host/${host.id}/dashboard`" size="small">
-              {{ host.name_label }}
-            </UiLink>
+            <div v-tooltip class="text-ellipsis">
+              <UiLink :to="`/host/${host.id}/dashboard`" size="small">
+                {{ host.name_label }}
+              </UiLink>
+            </div>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="legacy:primary" size="small" />
           </div>
         </template>
@@ -175,6 +177,8 @@ const { powerState, host, isMaster, hostPowerState, installDateFormatted, relati
 
 <style scoped lang="postcss">
 .card-container {
+  display: flex;
+  flex-direction: column;
   gap: 1.6rem;
 
   .content {
