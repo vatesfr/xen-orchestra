@@ -3,12 +3,12 @@
     <UiTitle>
       {{ t('vm-management') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('high-availability')">
+    <UiLabelValue :label="t('high-availability')">
       <template #value>
         <VtsEnabledState :enabled="vm.high_availability !== ''" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('affinity-host')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('affinity-host')">
       <template #value>
         <UiLink v-if="vm.affinityHost" icon="fa:server" :to="`/host/${vm.affinityHost}`" size="small">
           {{ affinityHostName }}
@@ -17,23 +17,23 @@
           {{ t('none') }}
         </template>
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('protect-from-accidental-deletion')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('protect-from-accidental-deletion')">
       <template #value>
         <VtsEnabledState :enabled="vm.blockedOperations.destroy !== undefined" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('protect-from-accidental-shutdown')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('protect-from-accidental-shutdown')">
       <template #value>
         <VtsEnabledState :enabled="isProtectedFromAccidentalShutdown" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('auto-power')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('auto-power')">
       <template #value>
         <VtsEnabledState :enabled="vm.auto_poweron" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('start-delay')" :value="formattedStartDelay" />
+    </UiLabelValue>
+    <UiLabelValue :label="t('start-delay')" :value="formattedStartDelay" />
   </UiCard>
 </template>
 
@@ -41,8 +41,8 @@
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { VM_OPERATION, type XoVm } from '@/types/xo/vm.type'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useArraySome } from '@vueuse/shared'

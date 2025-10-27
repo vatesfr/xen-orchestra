@@ -5,7 +5,7 @@
     </UiTitle>
     <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
     <template v-else>
-      <VtsQuickInfoRow :label="t('master')">
+      <UiLabelValue :label="t('master')">
         <template #value>
           <UiLink v-if="masterHost" icon="fa:server" :to="`/host/${masterHost.uuid}/`" size="medium">
             {{ masterHost.name_label }}
@@ -14,22 +14,22 @@
             {{ t('none') }}
           </template>
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('auto-power')">
+      </UiLabelValue>
+      <UiLabelValue :label="t('auto-power')">
         <template #value>
           <VtsEnabledState :enabled="pool.other_config.auto_poweron === 'true'" />
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('high-availability')">
+      </UiLabelValue>
+      <UiLabelValue :label="t('high-availability')">
         <template #value>
           <VtsEnabledState :enabled="Boolean(pool.ha_enabled)" />
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('migration-compression')">
+      </UiLabelValue>
+      <UiLabelValue :label="t('migration-compression')">
         <template #value>
           <VtsEnabledState :enabled="pool.migration_compression ?? false" />
         </template>
-      </VtsQuickInfoRow>
+      </UiLabelValue>
     </template>
   </UiCard>
 </template>
@@ -38,9 +38,9 @@
 import type { XenApiPool } from '@/libs/xen-api/xen-api.types'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'

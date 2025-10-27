@@ -3,28 +3,28 @@
     <UiTitle>
       {{ t('virtualization-boot-settings') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('virtualization-mode')" :value="virtualizationMode" />
-    <VtsQuickInfoRow :label="t('secure-boot')">
+    <UiLabelValue :label="t('virtualization-mode')" :value="virtualizationMode" />
+    <UiLabelValue :label="t('secure-boot')">
       <template #value>
         <VtsEnabledState :enabled="vm.platform.secureboot === 'true'" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : t('none')" />
-    <VtsQuickInfoRow :label="t('viridian')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : t('none')" />
+    <UiLabelValue :label="t('viridian')">
       <template #value>
         <VtsEnabledState :enabled="vm.platform.viridian === 'true'" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('manage-citrix-pv-drivers-via-windows-update')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('manage-citrix-pv-drivers-via-windows-update')">
       <template #value>
         <VtsEnabledState :enabled="vm.has_vendor_device" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('nested-virtualization')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('nested-virtualization')">
       <template #value>
         <VtsEnabledState :enabled="isNestedVirtualizationEnabled" />
       </template>
-    </VtsQuickInfoRow>
+    </UiLabelValue>
   </UiCard>
 </template>
 
@@ -33,8 +33,8 @@ import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { satisfies } from 'semver'
 import { computed } from 'vue'

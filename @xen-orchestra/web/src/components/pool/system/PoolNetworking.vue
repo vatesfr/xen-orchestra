@@ -5,7 +5,7 @@
     </UiTitle>
     <VtsStateHero v-if="!areNetworksReady" format="card" busy size="medium" />
     <template v-else>
-      <VtsQuickInfoRow :label="t('backup-network')">
+      <UiLabelValue :label="t('backup-network')">
         <template #value>
           <UiLink
             v-if="backupNetwork !== undefined"
@@ -19,7 +19,7 @@
             {{ t('none') }}
           </template>
         </template>
-      </VtsQuickInfoRow>
+      </UiLabelValue>
     </template>
   </UiCard>
 </template>
@@ -28,9 +28,9 @@
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import type { XoNetwork } from '@/types/xo/network.type'
 import type { XoPool } from '@/types/xo/pool.type'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'

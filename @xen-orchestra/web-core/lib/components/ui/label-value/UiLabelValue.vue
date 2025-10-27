@@ -68,7 +68,7 @@ const slots = defineSlots<{
   container-type: inline-size;
   container-name: card;
 
-  @container card (max-width: 42rem) {
+  @container card (max-width: 32rem) {
     .label {
       grid-column: 1;
       grid-row: 1;
@@ -81,7 +81,7 @@ const slots = defineSlots<{
     }
   }
 
-  @container card (min-width: 42rem) {
+  @container card (min-width: 32rem) {
     .label {
       grid-column: 1;
       grid-row: 1;

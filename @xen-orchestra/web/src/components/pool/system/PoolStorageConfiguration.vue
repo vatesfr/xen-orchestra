@@ -5,7 +5,7 @@
     </UiTitle>
     <VtsStateHero v-if="!areSrsReady" format="card" busy size="medium" />
     <template v-else>
-      <VtsQuickInfoRow :label="t('default-storage-repository')">
+      <UiLabelValue :label="t('default-storage-repository')">
         <template #value>
           <template v-if="defaultSr">
             <VtsIcon name="fa:database" size="medium" />
@@ -15,8 +15,8 @@
             {{ t('none') }}
           </template>
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('suspend-storage-repository')">
+      </UiLabelValue>
+      <UiLabelValue :label="t('suspend-storage-repository')">
         <template #value>
           <template v-if="suspendSr">
             <VtsIcon name="fa:database" size="medium" />
@@ -26,8 +26,8 @@
             {{ t('none') }}
           </template>
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('crash-dump-storage-repository')">
+      </UiLabelValue>
+      <UiLabelValue :label="t('crash-dump-storage-repository')">
         <template #value>
           <template v-if="crashDumpSr">
             <VtsIcon name="fa:database" size="medium" />
@@ -37,8 +37,8 @@
             {{ t('none') }}
           </template>
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('heartbeat-storage-repository')">
+      </UiLabelValue>
+      <UiLabelValue :label="t('heartbeat-storage-repository')">
         <template #value>
           <ul v-if="haSrs.length > 0">
             <li v-for="haSr in haSrs" :key="haSr.id">
@@ -50,7 +50,7 @@
             {{ t('none') }}
           </template>
         </template>
-      </VtsQuickInfoRow>
+      </UiLabelValue>
     </template>
   </UiCard>
 </template>
@@ -59,9 +59,9 @@
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useI18n } from 'vue-i18n'
 
