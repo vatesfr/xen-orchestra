@@ -1,3 +1,7 @@
+---
+sidebar_position: 13
+---
+
 # Backup troubleshooting
 
 This section is dedicated to help you if you have problems with XO Backups.

@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # Backup strategy guide
 
 This guide explains how to design and implement a backup strategy in Xen Orchestra.  
@@ -11,14 +15,14 @@ Instead of a simple list of questions and answers, it walks you through **key de
 This part explains the terminology of backup types and features.
 
 - **Backup sequence**: A feature that allows you to chain multiple backup jobs to run one after the other, automatically. 
-- [**File restore**](/backups#restore-a-file): A feature that allows you to restore individual files from a VM backup without restoring the full VM.
+- [**File restore**](./backup_concepts#restore-a-file): A feature that allows you to restore individual files from a VM backup without restoring the full VM.
 - [**Full backup**](./full_backups): Copies the entire VM to  backup repositories each time, regardless of previous backups. 
 - [**Full replication**](./full_replication): Creates a replica of a VM on other storage repositories (on the same pool or on another) by copying it completly on each run.
 - [**Incremental backup**](./incremental_backups): Transfer and stores only the changes since the last backup to a backup repositories , reducing storage and network needs. The first transfer transfers the VM completly.
 - [**Incremental replication**](./incremental_replication): Transfer and stores only the changes since the last backup to a stroage repositories (on the same pool or on another), reducing network needs. The first transfer transfers the VM completly.
-- [**Long-term retention**](/backups#long-term-backup-retention-with-gfs-strategy): Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.
+- [**Long-term retention**](./backup_concepts#long-term-backup-retention-with-gfs-strategy): Keeps backups over extended periods (weeks, months, or years) for compliance or archival purposes.
 - [**Mirror backup**](./mirror_backup): Mirror a backup repository to another. Retention and encryption of source and destination can be different.
-- [**Remote**](/backups#remotes): A storage location for backups. For instance: 
+- [**Remote**](./backup_concepts#remotes): A storage location for backups. For instance: 
     - Local storage (not recommended)
     - NFS
     - SMB

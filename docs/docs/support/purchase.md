@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # Purchase
 
 With a subscription, you'll have both Pro Support and XOA Appliance with various features (depending on XOA Edition).

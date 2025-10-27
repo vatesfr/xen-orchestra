@@ -1,3 +1,7 @@
+---
+sidebar_position: 8
+---
+
 # Full Replication
 
 > **_NOTE:_** Formerly known as Disaster recovery

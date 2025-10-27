@@ -1,3 +1,7 @@
+---
+sidebar_position: 10
+---
+
 # REST API
 
 We originally developed [our existing API](../xen-orchestra/architecture#api) to be used between the Web UI `xo-web` and the server backend, `xo-server`. That's why it's a JSON-RPC API connected via websockets, allowing us to update objects live in the browser. This is perfect for our usage, but a bit complicated for others.

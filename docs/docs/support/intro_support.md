@@ -1,5 +1,6 @@
 ---
 slug: support
+sidebar_position: 1
 ---
 
 # Introduction to Support

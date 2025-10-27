@@ -1,3 +1,7 @@
+---
+sidebar_position: 8
+---
+
 # Load balancing
 
 ## Basic notions

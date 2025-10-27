@@ -1,3 +1,7 @@
+---
+sidebar_position: 7
+---
+
 # Architecture
 
 Xen Orchestra (XO) is software built with a server and clients, such as the web client `xo-web`, but also a CLI capable client, called `xo-cli`.

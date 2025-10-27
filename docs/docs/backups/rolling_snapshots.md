@@ -1,3 +1,7 @@
+---
+sidebar_position: 5
+---
+
 # Rolling snapshots
 
 :::warning

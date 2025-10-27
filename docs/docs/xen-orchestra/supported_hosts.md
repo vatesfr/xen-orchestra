@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # Host Compatibility List
 
 This section lists all supported hosts where Xen Orchestra can connect to.

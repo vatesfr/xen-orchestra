@@ -1,3 +1,7 @@
+---
+sidebar_position: 5
+---
+
 # Migrate to new XOA
 
 ### Deploy new appliance

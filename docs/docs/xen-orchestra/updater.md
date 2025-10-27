@@ -1,3 +1,7 @@
+---
+sidebar_position: 6
+---
+
 # Updates
 
 All updates are pushed through the updater, which is the central piece that keeps your XO Appliance running the latest Xen Orchestra code.

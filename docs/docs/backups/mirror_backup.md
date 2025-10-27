@@ -1,3 +1,7 @@
+---
+sidebar_position: 10
+---
+
 # Mirror Backups
 
 The goal is to replicate a backup from one remote to another. For instance, you make your backup to in-house NFS storage, and then replicate to bigger, slower and cheaper storage with a longer retention.

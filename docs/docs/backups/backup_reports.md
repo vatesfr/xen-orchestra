@@ -1,3 +1,7 @@
+---
+sidebar_position: 12
+---
+
 # Backup reports
 
 At the end of a backup job, you can configure Xen Orchestra to send backup reports directly by email, Slack or in Mattermost. It's up to you.

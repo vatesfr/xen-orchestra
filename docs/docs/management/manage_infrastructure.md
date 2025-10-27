@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # Infrastructure management
 
 This section is related on how to manage your XCP-ng/Citrix Hypervisor infrastructure.

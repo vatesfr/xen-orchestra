@@ -1,5 +1,6 @@
 ---
 slug: project
+sidebar_position: 1
 ---
 
 # About the Xen Orchestra project

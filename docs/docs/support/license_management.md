@@ -1,3 +1,7 @@
+---
+sidebar_position: 4
+---
+
 # License management
 
 This section will cover the license management system for commercial editions of our products.

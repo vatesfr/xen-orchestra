@@ -1,3 +1,7 @@
+---
+sidebar_position: 7
+---
+
 # Incremental Backups
 
 > **_NOTE:_** Formerly known as Continuous Delta backups

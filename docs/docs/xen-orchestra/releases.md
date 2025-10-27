@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Releases
 
 Xen Orchestra is distributed in 2 ways:

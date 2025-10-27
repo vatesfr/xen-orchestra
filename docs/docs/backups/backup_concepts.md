@@ -1,4 +1,9 @@
-# Concepts
+---
+sidebar_position: 2
+title: Concepts
+---
+
+# Backup concepts
 
 This section is dedicated to all general concepts about Xen Orchestra backups.
 

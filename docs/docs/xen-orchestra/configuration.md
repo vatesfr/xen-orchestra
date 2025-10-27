@@ -1,3 +1,7 @@
+---
+sidebar_position: 4
+---
+
 # Configuration
 
 Once Xen Orchestra is installed, you can configure some parameters in the configuration file. Let's see how to do that.

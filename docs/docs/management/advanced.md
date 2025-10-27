@@ -1,3 +1,7 @@
+---
+sidebar_position: 7
+---
+
 # Advanced features
 
 This section is dedicated to all others Xen Orchestra "advanced features".

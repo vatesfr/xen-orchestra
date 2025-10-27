@@ -1,3 +1,7 @@
+---
+sidebar_position: 4
+---
+
 # Backup Proxy
 
 A Xen Orchestra proxy is an architecture component you can deploy in your infrastructure in order to locally handle the data streams of your backup jobs.

@@ -1,3 +1,7 @@
+---
+sidebar_position: 2
+---
+
 # XOA Support
 
 This is the section dedicated to all XOA details and how to get support on it.

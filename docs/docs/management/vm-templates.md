@@ -1,3 +1,7 @@
+---
+sidebar_position: 6
+---
+
 # VM Templates
 
 Virtual machine templates in Xen Orchestra make it easy to deploy new VMs by providing a ready-to-use configuration with predefined hardware specs and settings. Instead of manually setting up each VM from scratch, you can use templates to speed up deployment and keep things consistent.
