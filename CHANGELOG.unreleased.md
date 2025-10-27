@@ -33,6 +33,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra minor
+- @xen-orchestra/rest-api minor
 
 <!--packages-end-->
