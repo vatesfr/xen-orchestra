@@ -22,7 +22,7 @@ import { parse } from 'xo-remote-parser'
 import { Writable } from 'node:stream'
 
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
-import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
+import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard, XoGuiRoutes } from './xoa.type.mjs'
 import { isReplicaVm, isSrWritableOrIso, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 import type { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
@@ -601,6 +601,19 @@ export class XoaService {
       backups,
       hostsStatus,
       vmsStatus,
+    }
+  }
+
+  getGuiRoutes(): XoGuiRoutes {
+    const mounts = this.#restApi.xoApp.config.getOptional('http.mounts') ?? {}
+
+    const xo5Mount = Object.keys(mounts).find(key => mounts[key].includes('xo-web/dist'))
+
+    const xo6Mount = Object.keys(mounts).find(key => mounts[key].includes('@xen-orchestra/web/dist'))
+
+    return {
+      xo5: xo5Mount,
+      xo6: xo6Mount,
     }
   }
 }
