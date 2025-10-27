@@ -17,7 +17,7 @@ export class EventService {
 
   constructor(restApi: RestApi) {
     process.on('SIGTERM', () => {
-      log.debug(`SIGTERM received, close all SSE subscriber (nb: ${this.#subscriberManager.subscribers.size})`)
+      log.debug(`SIGTERM received, close all SSE subscribers (nb: ${this.#subscriberManager.subscribers.size})`)
       this.#subscriberManager.clear()
       this.#listeners.forEach(l => l.clear())
       this.#listeners.clear()

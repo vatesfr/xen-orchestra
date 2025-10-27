@@ -70,7 +70,7 @@ export class EventController extends Controller {
    *   Data: the removed object.
    */
   @Get('')
-  @SuccessResponse(200, 'Ok')
+  @SuccessResponse(200, 'OK')
   openSseConnection(@Request() req: AuthenticatedRequest) {
     this.#eventService.createSseSubscriber(req.res)
   }
