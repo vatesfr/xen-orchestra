@@ -8,13 +8,13 @@
       <div class="valueActionWrapper">
         <div class="valueAddonWraper">
           <slot name="value">
-            <div v-if="value && !Array.isArray(value)" v-tooltip="wrap" :class="{ 'text-ellipsis': wrap }">
+            <div v-if="value && !Array.isArray(value)" v-tooltip="ellipsis" :class="{ 'text-ellipsis': ellipsis }">
               {{ value }}
             </div>
             <UiTagsList
               v-else-if="Array.isArray(value) && value.length > 0"
-              v-tooltip="wrap"
-              :class="{ 'text-ellipsis': wrap }"
+              v-tooltip="ellipsis"
+              :class="{ 'text-ellipsis': ellipsis }"
             >
               <UiTag v-for="tag in value" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
             </UiTagsList>
@@ -48,7 +48,7 @@ import UiTagsList from '../tag/UiTagsList.vue'
 const { value } = defineProps<{
   label: string
   value?: string | string[]
-  wrap?: boolean
+  ellipsis?: boolean
   copyValue?: string | string[]
 }>()
 
@@ -100,7 +100,7 @@ const slots = defineSlots<{
   }
 
   .value {
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     min-width: 0;
     color: var(--color-neutral-txt-primary);
     display: flex;
