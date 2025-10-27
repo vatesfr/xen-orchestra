@@ -43,8 +43,14 @@ defineSlots<{
   display: flex;
   min-width: 0;
   align-items: center;
+  color: var(--color-neutral-txt-secondary);
   color: var(--color-brand-txt-base);
   gap: 1rem;
+
+  &:not(.is-link) {
+    color: var(--color-neutral-txt-secondary);
+    text-decoration: none;
+  }
 
   &.disabled {
     color: var(--color-neutral-txt-secondary);
