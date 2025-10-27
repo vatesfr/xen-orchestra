@@ -1,47 +1,53 @@
 import iteratee from 'lodash/iteratee'
+import { EventEmitter } from 'node:events'
 
 import clearObject from './clear-object'
-import isEmpty from './is-empty'
-import NotImplemented from './not-implemented'
 import { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
 
 // ===================================================================
 
 export class Index {
-  constructor(computeHash) {
-    if (computeHash) {
-      this.computeHash = iteratee(computeHash)
+  #indexType
+
+  constructor(indexType) {
+    if (indexType === undefined) {
+      throw new Error('indexType must be passed')
     }
 
-    this._itemsByHash = Object.create(null)
-    this._keysToHash = Object.create(null)
+    this.#indexType = typeof indexType === 'function' ? indexType : iteratee(indexType)
+
+    this._itemsByType = Object.create(null)
+    this._keysToType = Object.create(null)
+    this._eeByType = Object.create(null)
 
     // Bound versions of listeners.
     this._onAdd = this._onAdd.bind(this)
     this._onUpdate = this._onUpdate.bind(this)
     this._onRemove = this._onRemove.bind(this)
+
+    this.getIndexType = this.getIndexType.bind(this)
   }
 
-  // This method is used to compute the hash under which an item must
-  // be saved.
-  computeHash(value, key) {
-    throw new NotImplemented('this method must be overridden')
-  }
-
-  // Remove empty items lists.
-  sweep() {
-    const { _itemsByHash: itemsByHash } = this
-    for (const hash in itemsByHash) {
-      if (isEmpty(itemsByHash[hash])) {
-        delete itemsByHash[hash]
-      }
-    }
+  getIndexType(object) {
+    return this.#indexType(object)
   }
 
   // -----------------------------------------------------------------
 
   get items() {
-    return this._itemsByHash
+    return this._itemsByType
+  }
+
+  getEventEmitterByType(type) {
+    if (type === undefined) {
+      throw new Error('type is required')
+    }
+
+    if (this._eeByType[type] === undefined) {
+      this._eeByType[type] = new EventEmitter()
+    }
+
+    return this._eeByType[type]
   }
 
   // -----------------------------------------------------------------
@@ -63,65 +69,69 @@ export class Index {
     collection.removeListener(ACTION_UPDATE, this._onUpdate)
     collection.removeListener(ACTION_REMOVE, this._onRemove)
 
-    clearObject(this._itemsByHash)
-    clearObject(this._keysToHash)
+    clearObject(this._itemsByType)
+    clearObject(this._keysToType)
   }
 
   // -----------------------------------------------------------------
 
   _onAdd(items) {
-    const { computeHash, _itemsByHash: itemsByHash, _keysToHash: keysToHash } = this
+    const { getIndexType, _itemsByType: itemsByType, _keysToType: keysToType } = this
 
     for (const key in items) {
       const value = items[key]
 
-      const hash = computeHash(value, key)
+      const type = getIndexType(value)
 
-      if (hash != null) {
-        ;(itemsByHash[hash] ||
+      if (type != null) {
+        ;(itemsByType[type] ||
           // FIXME: We do not use objects without prototype for now
           // because it breaks Angular in xo-web, change it back when
           // this is fixed.
-          (itemsByHash[hash] = {}))[key] = value
+          (itemsByType[type] = {}))[key] = value
 
-        keysToHash[key] = hash
+        keysToType[key] = type
+        this.getEventEmitterByType(type)?.emit('add', value)
       }
     }
   }
 
   _onUpdate(items) {
-    const { computeHash, _itemsByHash: itemsByHash, _keysToHash: keysToHash } = this
+    const { getIndexType, _itemsByType: itemsByType, _keysToType: keysToType } = this
 
     for (const key in items) {
       const value = items[key]
 
-      const prev = keysToHash[key]
-      const hash = computeHash(value, key)
+      const prevType = keysToType[key]
+      const previousObj = itemsByType[prevType]?.[key]
+      const type = getIndexType(value)
 
-      // Removes item from the previous hash's list if any.
-      if (prev != null) delete itemsByHash[prev][key]
+      // Removes item from the previous type's list if any.
+      if (prevType != null) delete itemsByType[prevType][key]
 
-      // Inserts item into the new hash's list if any.
-      if (hash != null) {
-        ;(itemsByHash[hash] ||
+      // Inserts item into the new type's list if any.
+      if (type != null) {
+        ;(itemsByType[type] ||
           // FIXME: idem: change back to Object.create(null)
-          (itemsByHash[hash] = {}))[key] = value
+          (itemsByType[type] = {}))[key] = value
 
-        keysToHash[key] = hash
+        keysToType[key] = type
+        this.getEventEmitterByType(type)?.emit('update', value, previousObj)
       } else {
-        delete keysToHash[key]
+        delete keysToType[key]
       }
     }
   }
 
   _onRemove(items) {
-    const { _itemsByHash: itemsByHash, _keysToHash: keysToHash } = this
+    const { _itemsByType: itemsByType, _keysToType: keysToType } = this
 
     for (const key in items) {
-      const prev = keysToHash[key]
+      const prev = keysToType[key]
       if (prev != null) {
-        delete itemsByHash[prev][key]
-        delete keysToHash[key]
+        this.getEventEmitterByType(prev)?.emit('remove', undefined, itemsByType[prev][key])
+        delete itemsByType[prev][key]
+        delete keysToType[key]
       }
     }
   }
