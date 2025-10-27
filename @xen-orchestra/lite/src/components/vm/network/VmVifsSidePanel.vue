@@ -41,9 +41,9 @@
         <UiCardTitle>{{ t('vif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <UiLabelValue :label="t('uuid')" :value="vif.uuid" :copy-value="vif.uuid" />
+          <UiLabelValue :label="t('uuid')" :value="vif.uuid" :copy-value="vif.uuid" ellipsis />
           <!-- NETWORK -->
-          <UiLabelValue :label="t('network')" :value="network?.name_label" :copy-value="network?.name_label">
+          <UiLabelValue :label="t('network')" :value="network?.name_label" :copy-value="network?.name_label" ellipsis>
             <!-- TODO Remove the span when the link works and the icon is fixed -->
             <!--
                 <UiComplexIcon size="medium">
@@ -58,17 +58,18 @@
             :label="t('device')"
             :value="t('vif-device', { device: vif.device })"
             :copy-value="vif.device"
+            ellipsis
           />
           <!-- VIF STATUS -->
-          <UiLabelValue :label="t('vif-status')">
+          <UiLabelValue :label="t('vif-status')" ellipsis>
             <template #value>
               <VtsConnectionStatus :status />
             </template>
           </UiLabelValue>
           <!-- MTU -->
-          <UiLabelValue :label="t('mtu')" :value="String(vif.MTU)" :copy-value="String(vif.MTU)" />
+          <UiLabelValue :label="t('mtu')" :value="String(vif.MTU)" :copy-value="String(vif.MTU)" ellipsis />
           <!-- LOCKING MODE -->
-          <UiLabelValue :label="t('locking-mode')" :value="vif.locking_mode" />
+          <UiLabelValue :label="t('locking-mode')" :value="vif.locking_mode" ellipsis />
           <!-- TODO Need to add TX Checksumming -->
         </div>
       </UiCard>
@@ -98,9 +99,9 @@
               </template>
             </VtsCardRowKeyValue>
           </div>
-          <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" />
+          <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" ellipsis />
           <!-- MAC ADDRESSES -->
-          <UiLabelValue :label="t('mac-address')" :value="vif.MAC" :copy-value="vif.MAC" />
+          <UiLabelValue :label="t('mac-address')" :value="vif.MAC" :copy-value="vif.MAC" ellipsis />
         </div>
       </UiCard>
     </template>

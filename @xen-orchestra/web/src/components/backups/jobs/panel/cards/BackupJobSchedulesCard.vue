@@ -7,7 +7,7 @@
     <div class="content">
       <template v-for="(schedule, index) in backupJobSchedules" :key="schedule.id">
         <VtsDivider v-if="index > 0" class="divider" type="stretch" />
-        <UiLabelValue :label="t('name')" :copy-value="schedule.name">
+        <UiLabelValue :label="t('name')" :copy-value="schedule.name" ellipsis>
           <template #value>
             <UiLink
               v-if="schedule.name"
@@ -19,13 +19,13 @@
             </UiLink>
           </template>
         </UiLabelValue>
-        <UiLabelValue :label="t('id')" :value="schedule.id" :copy-value="schedule.id" />
-        <UiLabelValue :label="t('status')">
+        <UiLabelValue :label="t('id')" :value="schedule.id" :copy-value="schedule.id" ellipsis />
+        <UiLabelValue :label="t('status')" ellipsis>
           <template #value>
             <VtsEnabledState :enabled="schedule.enabled" />
           </template>
         </UiLabelValue>
-        <UiLabelValue :label="t('cron-pattern')" :value="schedule.cron" :copy-value="schedule.cron" />
+        <UiLabelValue :label="t('cron-pattern')" :value="schedule.cron" :copy-value="schedule.cron" ellipsis />
       </template>
     </div>
   </UiCard>

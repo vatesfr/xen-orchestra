@@ -41,13 +41,13 @@
         <UiCardTitle>{{ isBond ? t('bond') : t('pif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <UiLabelValue :label="t('uuid')" :value="pif.uuid" copyable>
+          <UiLabelValue :label="t('uuid')" :value="pif.uuid" copyable ellipsis>
             <template #addons>
               <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
             </template>
           </UiLabelValue>
           <!-- NETWORK -->
-          <UiLabelValue :label="t('network')" copyable />
+          <UiLabelValue :label="t('network')" copyable ellipsis />
           <!-- TODO Remove the span when the link works and the icon is fixed -->
           <!--
                 <UiComplexIcon size="medium">
@@ -58,15 +58,15 @@
                 -->
 
           <!-- DEVICE -->
-          <UiLabelValue :label="t('device')" :value="pif.device" copyable />
+          <UiLabelValue :label="t('device')" :value="pif.device" copyable ellipsis />
           <!-- PIF STATUS -->
-          <UiLabelValue :label="isBond ? t('bond-status') : t('pif-status')">
+          <UiLabelValue :label="isBond ? t('bond-status') : t('pif-status')" ellipsis>
             <template #value>
               <VtsConnectionStatus :status />
             </template>
           </UiLabelValue>
           <!-- PHYSICAL INTERFACE STATUS -->
-          <UiLabelValue :label="t('physical-interface-status')">
+          <UiLabelValue :label="t('physical-interface-status')" ellipsis>
             <template #value>
               <VtsConnectionStatus :status="physicalInterfaceStatus" />
             </template>
@@ -78,7 +78,7 @@
             :copy-value="pif.VLAN === -1 ? undefined : String(pif.VLAN)"
           />
           <!-- TAGS -->
-          <UiLabelValue :label="t('tags')" :value="network?.tags" />
+          <UiLabelValue :label="t('tags')" :value="network?.tags" ellipsis />
         </div>
       </UiCard>
       <!-- NETWORK INFORMATION -->
@@ -108,15 +108,15 @@
             </VtsCardRowKeyValue>
           </div>
           <!-- MAC ADDRESSES -->
-          <UiLabelValue :label="t('mac-address')" :value="pif.MAC" :copy-value="pif.MAC" />
+          <UiLabelValue :label="t('mac-address')" :value="pif.MAC" :copy-value="pif.MAC" ellipsis />
           <!-- NETMASK -->
-          <UiLabelValue :label="t('netmask')" :value="pif.netmask" :copy-value="pif.netmask" />
+          <UiLabelValue :label="t('netmask')" :value="pif.netmask" :copy-value="pif.netmask" ellipsis />
           <!-- DNS -->
-          <UiLabelValue :label="t('dns')" :value="pif.DNS" :copy-value="pif.DNS" />
+          <UiLabelValue :label="t('dns')" :value="pif.DNS" :copy-value="pif.DNS" ellipsis />
           <!-- GATEWAY -->
-          <UiLabelValue :label="t('gateway')" :value="pif.gateway" :copy-value="pif.gateway" />
+          <UiLabelValue :label="t('gateway')" :value="pif.gateway" :copy-value="pif.gateway" ellipsis />
           <!-- IP CONFIGURATION MODE -->
-          <UiLabelValue :label="t('ip-mode')" :value="ipConfigurationMode" />
+          <UiLabelValue :label="t('ip-mode')" :value="ipConfigurationMode" ellipsis />
           <!-- BOND DEVICES -->
           <div>
             <VtsCardRowKeyValue v-for="(device, index) in bondDevices" :key="device">
@@ -152,9 +152,14 @@
             :copy-value="pif.MTU === -1 ? undefined : String(pif.MTU)"
           />
           <!-- SPEED -->
-          <UiLabelValue :label="t('speed')" :value="speed" />
+          <UiLabelValue :label="t('speed')" :value="speed" ellipsis />
           <!-- NETWORK BLOCK DEVICE -->
-          <UiLabelValue :label="t('network-block-device')" :value="networkPurpose" :copy-value="networkPurpose" />
+          <UiLabelValue
+            :label="t('network-block-device')"
+            :value="networkPurpose"
+            :copy-value="networkPurpose"
+            ellipsis
+          />
         </div>
       </UiCard>
     </template>

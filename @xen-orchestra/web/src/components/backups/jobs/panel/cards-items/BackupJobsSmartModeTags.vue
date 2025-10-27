@@ -1,5 +1,5 @@
 <template>
-  <UiLabelValue :label :value="tags" />
+  <UiLabelValue :label :value="tags" ellipsis />
 </template>
 
 <script lang="ts" setup>

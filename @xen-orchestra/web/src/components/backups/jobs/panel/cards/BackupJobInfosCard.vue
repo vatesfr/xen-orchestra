@@ -6,8 +6,8 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <UiLabelValue :label="t('id')" :value="backupJob.id" :copy-value="backupJob.id" />
-      <UiLabelValue :label="t('mode')" :value="backupJobModes" :copy-value="backupJobModes" />
+      <UiLabelValue :label="t('id')" :value="backupJob.id" :copy-value="backupJob.id" ellipsis />
+      <UiLabelValue :label="t('mode')" :value="backupJobModes" :copy-value="backupJobModes" ellipsis />
     </div>
   </UiCard>
 </template>

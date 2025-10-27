@@ -43,22 +43,22 @@
         </UiCardTitle>
         <div class="content">
           <!-- ID -->
-          <UiLabelValue :label="t('id')" :value="network.id" :copy-value="network.id" />
+          <UiLabelValue :label="t('id')" :value="network.id" :copy-value="network.id" ellipsis />
           <!-- DESCRIPTION -->
           <UiLabelValue
             :label="t('description')"
             :value="network.name_description"
-            wrap
             :copy-value="network.name_description"
+            ellipsis
           />
           <!-- VLAN -->
-          <UiLabelValue v-if="networkVlan" :label="t('vlan')" :value="networkVlan" :copy-value="networkVlan" />
+          <UiLabelValue v-if="networkVlan" :label="t('vlan')" :value="networkVlan" :copy-value="networkVlan" ellipsis />
           <!-- MTU -->
-          <UiLabelValue :label="t('mtu')" :value="String(network.MTU)" :copy-value="String(network.MTU)" />
+          <UiLabelValue :label="t('mtu')" :value="String(network.MTU)" :copy-value="String(network.MTU)" ellipsis />
           <!-- NBD -->
-          <UiLabelValue :label="t('network-block-device')" :value="networkNbd" :copy-value="networkNbd" />
+          <UiLabelValue :label="t('network-block-device')" :value="networkNbd" :copy-value="networkNbd" ellipsis />
           <!-- DEFAULT LOCKING MODE -->
-          <UiLabelValue :label="t('locking-mode-default')" :value="networkDefaultLockingMode" />
+          <UiLabelValue :label="t('locking-mode-default')" :value="networkDefaultLockingMode" ellipsis />
         </div>
       </UiCard>
       <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">

@@ -5,25 +5,36 @@
     </UiCardTitle>
     <div class="content">
       <!-- Known settings -->
-      <UiLabelValue v-if="proxy !== undefined" :label="t('proxy')" :value="proxy.name" />
+      <UiLabelValue v-if="proxy !== undefined" :label="t('proxy')" :value="proxy.name" ellipsis />
       <UiLabelValue
         v-if="settings.reportWhen !== undefined"
         :label="t('report-when')"
         :value="reportWhenValueTranslation"
+        ellipsis
       />
-      <UiLabelValue v-if="settings.backupReportTpl !== undefined" :label="t('shorter-backup-reports')">
+      <UiLabelValue v-if="settings.backupReportTpl !== undefined" :label="t('shorter-backup-reports')" ellipsis>
         <template #value>
           <VtsEnabledState :enabled="settings.backupReportTpl === 'compactMjml'" />
         </template>
       </UiLabelValue>
-      <UiLabelValue v-if="settings.hideSuccessfulItems !== undefined" :label="t('hide-successful-items')">
+      <UiLabelValue v-if="settings.hideSuccessfulItems !== undefined" :label="t('hide-successful-items')" ellipsis>
         <template #value>
           <VtsEnabledState :enabled="!!settings.hideSuccessfulItems" />
         </template>
       </UiLabelValue>
-      <UiLabelValue v-if="settings.concurrency !== undefined" :label="t('concurrency')" :value="settings.concurrency" />
-      <UiLabelValue v-if="nbdConcurrency !== undefined" :label="t('nbd-concurrency')" :value="nbdConcurrency" />
-      <UiLabelValue v-if="cbtDestroySnapshotData !== undefined" :label="t('cbt-destroy-snapshot-data')">
+      <UiLabelValue
+        v-if="settings.concurrency !== undefined"
+        :label="t('concurrency')"
+        :value="settings.concurrency"
+        ellipsis
+      />
+      <UiLabelValue
+        v-if="nbdConcurrency !== undefined"
+        :label="t('nbd-concurrency')"
+        :value="nbdConcurrency"
+        ellipsis
+      />
+      <UiLabelValue v-if="cbtDestroySnapshotData !== undefined" :label="t('cbt-destroy-snapshot-data')" ellipsis>
         <template #value>
           <VtsEnabledState :enabled="cbtDestroySnapshotData" />
         </template>
@@ -32,8 +43,9 @@
         v-if="maxExportRate !== undefined"
         :label="t('speed-limit')"
         :value="`${maxExportRate.value} ${maxExportRate.prefix}`"
+        ellipsis
       />
-      <UiLabelValue v-if="settings.checkpointSnapshot !== undefined" :label="t('checkpoint-snapshot')">
+      <UiLabelValue v-if="settings.checkpointSnapshot !== undefined" :label="t('checkpoint-snapshot')" ellipsis>
         <template #value>
           <VtsEnabledState :enabled="!!settings.checkpointSnapshot" />
         </template>
@@ -42,24 +54,29 @@
         v-if="settings.nRetriesVmBackupFailures !== undefined"
         :label="t('vm-backup-failure-number-of-retries')"
         :value="settings.nRetriesVmBackupFailures"
+        ellipsis
       />
-      <UiLabelValue v-if="compression !== undefined" :label="t('compression')" :value="compression" />
-      <UiLabelValue v-if="settings.offlineBackup !== undefined" :label="t('offline-backup')">
+      <UiLabelValue v-if="compression !== undefined" :label="t('compression')" :value="compression" ellipsis />
+      <UiLabelValue v-if="settings.offlineBackup !== undefined" :label="t('offline-backup')" ellipsis>
         <template #value>
           <VtsEnabledState :enabled="!!settings.offlineBackup" />
         </template>
       </UiLabelValue>
-      <UiLabelValue v-if="settings.offlineSnapshot !== undefined" :label="t('offline-snapshot')">
+      <UiLabelValue v-if="settings.offlineSnapshot !== undefined" :label="t('offline-snapshot')" ellipsis>
         <template #value>
           <VtsEnabledState :enabled="!!settings.offlineSnapshot" />
         </template>
       </UiLabelValue>
-      <UiLabelValue v-if="settings.mergeBackupsSynchronously !== undefined" :label="t('merge-backups-synchronously')">
+      <UiLabelValue
+        v-if="settings.mergeBackupsSynchronously !== undefined"
+        :label="t('merge-backups-synchronously')"
+        ellipsis
+      >
         <template #value>
           <VtsEnabledState :enabled="!!settings.mergeBackupsSynchronously" />
         </template>
       </UiLabelValue>
-      <UiLabelValue v-if="settings.timezone" :label="t('timezone')" :value="settings.timezone" />
+      <UiLabelValue v-if="settings.timezone" :label="t('timezone')" :value="settings.timezone" ellipsis />
       <template v-if="settings.reportRecipients && settings.reportRecipients.length > 0">
         <VtsCardRowKeyValue v-for="(recipient, index) in settings.reportRecipients" :key="index">
           <template #key>
@@ -69,7 +86,7 @@
           <template #value>{{ recipient }}</template>
         </VtsCardRowKeyValue>
       </template>
-      <UiLabelValue v-if="formattedTimeout !== undefined" :label="t('timeout')">
+      <UiLabelValue v-if="formattedTimeout !== undefined" :label="t('timeout')" ellipsis>
         <template #value>{{ formattedTimeout }}</template>
       </UiLabelValue>
       <!-- Settings rest -->

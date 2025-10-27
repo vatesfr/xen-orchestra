@@ -6,7 +6,7 @@
     </UiCardTitle>
     <div>
       <!-- Smart mode state -->
-      <UiLabelValue :label="t('smart-mode')">
+      <UiLabelValue :label="t('smart-mode')" ellipsis>
         <template #value>
           <VtsEnabledState :enabled="isSmartModeEnabled" />
         </template>
@@ -15,7 +15,7 @@
         <VtsDivider class="divider" type="stretch" />
         <div class="content">
           <!-- Power state -->
-          <UiLabelValue v-if="smartModePowerState !== undefined" :label="t('power-state')">
+          <UiLabelValue v-if="smartModePowerState !== undefined" :label="t('power-state')" ellipsis>
             <template #value>
               <VtsIcon size="small" :name="`legacy:${toLower(smartModePowerState)}`" />
               {{ smartModePowerState }}

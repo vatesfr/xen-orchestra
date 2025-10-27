@@ -41,13 +41,13 @@
         <UiCardTitle>{{ pif.isBondMaster ? t('bond') : t('pif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <UiLabelValue :label="t('uuid')" :value="pif.id" wrap :copy-value="pif.id">
+          <UiLabelValue :label="t('uuid')" :value="pif.id" wrap :copy-value="pif.id" ellipsis>
             <template #addons>
               <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
             </template>
           </UiLabelValue>
           <!-- NETWORK -->
-          <UiLabelValue :label="t('network')" :value="network?.name_label" :copy-value="network?.name_label">
+          <UiLabelValue :label="t('network')" :value="network?.name_label" :copy-value="network?.name_label" ellipsis>
             <!--
  <template #value>
               TODO Remove the span when the link works and the icon is fixed
@@ -63,15 +63,15 @@
 -->
           </UiLabelValue>
           <!-- DEVICE -->
-          <UiLabelValue :label="t('device')" :value="pif.device" :copy-value="pif.device" />
+          <UiLabelValue :label="t('device')" :value="pif.device" :copy-value="pif.device" ellipsis />
           <!-- PIF STATUS -->
-          <UiLabelValue :label="pif.isBondMaster ? t('bond-status') : t('pif-status')">
+          <UiLabelValue :label="pif.isBondMaster ? t('bond-status') : t('pif-status')" ellipsis>
             <template #value>
               <VtsConnectionStatus :status />
             </template>
           </UiLabelValue>
           <!-- PHYSICAL INTERFACE STATUS -->
-          <UiLabelValue :label="t('physical-interface-status')">
+          <UiLabelValue :label="t('physical-interface-status')" ellipsis>
             <template #value>
               <VtsConnectionStatus :status="physicalInterfaceStatus" />
             </template>
@@ -81,9 +81,10 @@
             :label="t('vlan')"
             :value="pif.vlan === -1 ? t('none') : String(pif.vlan)"
             :copy-value="pif.vlan === -1 ? undefined : String(pif.vlan)"
+            ellipsis
           />
           <!-- TAGS -->
-          <UiLabelValue :label="t('tags')" :value="network?.tags" />
+          <UiLabelValue :label="t('tags')" :value="network?.tags" ellipsis />
         </div>
       </UiCard>
       <!-- NETWORK INFORMATION -->
@@ -112,17 +113,17 @@
               </template>
             </VtsCardRowKeyValue>
           </template>
-          <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" />
+          <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" ellipsis />
           <!-- MAC ADDRESSES -->
-          <UiLabelValue :label="t('mac-address')" :value="pif.mac" :copy-value="pif.mac" />
+          <UiLabelValue :label="t('mac-address')" :value="pif.mac" :copy-value="pif.mac" ellipsis />
           <!-- NETMASK -->
-          <UiLabelValue :label="t('netmask')" :value="pif.netmask" :copy-value="pif.netmask" />
+          <UiLabelValue :label="t('netmask')" :value="pif.netmask" :copy-value="pif.netmask" ellipsis />
           <!-- DNS -->
-          <UiLabelValue :label="t('dns')" :value="pif.dns" :copy-value="pif.dns" />
+          <UiLabelValue :label="t('dns')" :value="pif.dns" :copy-value="pif.dns" ellipsis />
           <!-- GATEWAY -->
-          <UiLabelValue :label="t('gateway')" :value="pif.gateway" :copy-value="pif.gateway" />
+          <UiLabelValue :label="t('gateway')" :value="pif.gateway" :copy-value="pif.gateway" ellipsis />
           <!-- IP CONFIGURATION MODE -->
-          <UiLabelValue :label="t('ip-mode')" :value="ipConfigurationMode" />
+          <UiLabelValue :label="t('ip-mode')" :value="ipConfigurationMode" ellipsis />
           <!-- BOND DEVICES -->
           <div>
             <VtsCardRowKeyValue v-for="(device, index) in bondDevices" :key="device">
@@ -156,11 +157,12 @@
             :label="t('mtu')"
             :value="pif.mtu === -1 ? t('none') : String(pif.mtu)"
             :copy-value="pif.mtu === -1 ? undefined : String(pif.mtu)"
+            ellipsis
           />
           <!-- SPEED -->
-          <UiLabelValue :label="t('speed')" :value="speed" />
+          <UiLabelValue :label="t('speed')" :value="speed" ellipsis />
           <!-- NETWORK BLOCK DEVICE -->
-          <UiLabelValue :label="t('network-block-device')" :value="networkNbd" :copy-value="networkNbd" />
+          <UiLabelValue :label="t('network-block-device')" :value="networkNbd" :copy-value="networkNbd" ellipsis />
         </div>
       </UiCard>
     </template>

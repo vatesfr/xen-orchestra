@@ -44,7 +44,7 @@
         </UiCardTitle>
         <div class="content">
           <!-- Pool -->
-          <UiLabelValue :label="t('pool')" :copy-value="server.poolId">
+          <UiLabelValue :label="t('pool')" :copy-value="server.poolId" ellipsis>
             <template #value>
               <UiLink
                 v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
@@ -57,15 +57,16 @@
             </template>
           </UiLabelValue>
           <!-- ID -->
-          <UiLabelValue :label="t('id')" :value="server.id" :copy-value="server.id" />
+          <UiLabelValue :label="t('id')" :value="server.id" :copy-value="server.id" ellipsis />
           <!-- Description -->
           <UiLabelValue
             :label="t('description')"
             :value="server.poolNameDescription"
             :copy-value="server.poolNameDescription"
+            ellipsis
           />
           <!-- tag -->
-          <UiLabelValue :label="t('tags')" :value="pool?.tags" :copy-value="pool?.tags" />
+          <UiLabelValue :label="t('tags')" :value="pool?.tags" :copy-value="pool?.tags" ellipsis />
         </div>
       </UiCard>
       <UiAlert v-else accent="danger">
@@ -79,7 +80,7 @@
           {{ t('connection') }}
         </UiCardTitle>
         <!-- status -->
-        <UiLabelValue :label="t('status')">
+        <UiLabelValue :label="t('status')" ellipsis>
           <template #value>
             <UiInfo :accent="connectionStatus.accent">
               {{ connectionStatus.text }}
@@ -87,7 +88,7 @@
           </template>
         </UiLabelValue>
         <!-- primary-host -->
-        <UiLabelValue :label="t('master')" :copy-value="primaryHost?.id">
+        <UiLabelValue :label="t('master')" :copy-value="primaryHost?.id" ellipsis>
           <template #value>
             <UiLink v-if="primaryHost !== undefined" icon="fa:server" size="small" :to="`/host/${primaryHost.id}/`">
               {{ primaryHost.name_label }}
@@ -95,19 +96,19 @@
           </template>
         </UiLabelValue>
         <!-- ip-address -->
-        <UiLabelValue :label="t('ip-address')" :value="server.host" :copy-value="server.host" />
+        <UiLabelValue :label="t('ip-address')" :value="server.host" :copy-value="server.host" ellipsis />
         <!-- proxy-url -->
-        <UiLabelValue :label="t('proxy-url')" :value="server.httpProxy" :copy-value="server.httpProxy" />
+        <UiLabelValue :label="t('proxy-url')" :value="server.httpProxy" :copy-value="server.httpProxy" ellipsis />
         <!-- username -->
-        <UiLabelValue :label="t('username')" :value="server.username" :copy-value="server.username" />
+        <UiLabelValue :label="t('username')" :value="server.username" :copy-value="server.username" ellipsis />
         <!-- read-only -->
-        <UiLabelValue :label="t('read-only')">
+        <UiLabelValue :label="t('read-only')" ellipsis>
           <template #value>
             <VtsEnabledState :enabled="server.readOnly" />
           </template>
         </UiLabelValue>
         <!-- self-signed-certificates -->
-        <UiLabelValue :label="t('self-signed-certificates')">
+        <UiLabelValue :label="t('self-signed-certificates')" ellipsis>
           <template #value>
             <!-- todo add information button. waiting modal -->
             <VtsEnabledState :enabled="server.allowUnauthorized" />

@@ -4,7 +4,7 @@
     :params="[
       prop('label').str().widget().preset('label'),
       prop('value').type('string | string[]').required().preset('value'),
-      prop('wrap').bool().widget(),
+      prop('ellipsis').bool().widget(),
       prop('copyValue').type('string | string[]'),
       slot(),
       slot('value').help('Use a complex value'),

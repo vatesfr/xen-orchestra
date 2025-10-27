@@ -41,9 +41,9 @@
         <UiCardTitle>{{ t('vif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <UiLabelValue :label="t('uuid')" :value="vif.id" :copy-value="vif.id" />
+          <UiLabelValue :label="t('uuid')" :value="vif.id" :copy-value="vif.id" ellipsis />
           <!-- NETWORK -->
-          <UiLabelValue :label="t('network')" :value="network?.name_label" :copy-value="network?.name_label" wrap>
+          <UiLabelValue :label="t('network')" :value="network?.name_label" :copy-value="network?.name_label" ellipsis>
             <!-- TODO Remove the span when the link works and the icon is fixed -->
             <!--
               <UiComplexIcon size="medium">
@@ -58,19 +58,20 @@
             :label="t('device')"
             :value="t('vif-device', { device: vif.device })"
             :copy-value="vif.device"
+            ellipsis
           />
           <!-- VIF STATUS -->
-          <UiLabelValue :label="t('vif-status')">
+          <UiLabelValue :label="t('vif-status')" ellipsis>
             <template #value>
               <VtsConnectionStatus :status />
             </template>
           </UiLabelValue>
           <!-- MTU -->
-          <UiLabelValue :label="t('mtu')" :value="String(vif.MTU)" :copy-value="String(vif.MTU)" />
+          <UiLabelValue :label="t('mtu')" :value="String(vif.MTU)" :copy-value="String(vif.MTU)" ellipsis />
           <!-- LOCKING MODE -->
-          <UiLabelValue :label="t('locking-mode')" :value="vif.lockingMode" />
+          <UiLabelValue :label="t('locking-mode')" :value="vif.lockingMode" ellipsis />
           <!-- TX CHECK SUMMING -->
-          <UiLabelValue :label="t('check-summing')" :value="String(vif.txChecksumming)" />
+          <UiLabelValue :label="t('check-summing')" :value="String(vif.txChecksumming)" ellipsis />
         </div>
       </UiCard>
       <!-- NETWORK INFORMATION -->
@@ -99,9 +100,9 @@
               </template>
             </VtsCardRowKeyValue>
           </template>
-          <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" />
+          <UiLabelValue v-else :label="t('ip-addresses')" :value="ipAddresses" ellipsis />
           <!-- MAC ADDRESSES -->
-          <UiLabelValue :label="t('mac-address')" :value="vif.MAC" :copy-value="vif.MAC" />
+          <UiLabelValue :label="t('mac-address')" :value="vif.MAC" :copy-value="vif.MAC" ellipsis />
         </div>
       </UiCard>
     </template>
