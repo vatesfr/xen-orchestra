@@ -1,0 +1,53 @@
+<template>
+  <UiCard>
+    <UiCardTitle>
+      {{ t('hardware-specifications') }}
+    </UiCardTitle>
+    <div class="content">
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('manufacturer-info') }}</template>
+        <template v-if="manufacturerInfo" #value>{{ manufacturerInfo }}</template>
+        <template v-if="manufacturerInfo" #addons>
+          <VtsCopyButton :value="manufacturerInfo" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('core-socket') }}</template>
+        <template #value>{{ `${host.cpus.cores} (${host.cpus.sockets})` }}</template>
+        <template #addons>
+          <VtsCopyButton :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
+        </template>
+      </VtsCardRowKeyValue>
+    </div>
+  </UiCard>
+</template>
+
+<script lang="ts" setup>
+import type { XoHost } from '@/types/xo/host.type'
+import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { host } = defineProps<{
+  host: XoHost
+}>()
+
+const { t } = useI18n()
+
+const manufacturerInfo = computed(
+  () =>
+    (host.bios_strings['system-manufacturer'] ?? '') +
+    (host.bios_strings['system-product-name'] ? ` (${host.bios_strings['system-product-name']})` : '')
+)
+</script>
+
+<style scoped lang="postcss">
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+</style>
