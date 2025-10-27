@@ -34,15 +34,22 @@ export class VmService {
       CreateVmAfterCreateParams & {
         pool: XoPool['id']
         template: XoVmTemplate['uuid']
+        bootFirmware?: 'bios' | 'uefi'
       }
   ): Promise<XoVm['id']> {
-    const { pool, template, cloud_config, boot, destroy_cloud_config_vdi, network_config, ...rest } = params
+    const { pool, template, cloud_config, boot, destroy_cloud_config_vdi, network_config, bootFirmware, ...rest } =
+      params
     const xoApp = this.#restApi.xoApp
     const xapi = xoApp.getXapi(pool)
     const currentUser = this.#restApi.getCurrentUser()
 
     const xapiVm = await xapi.createVm(template, rest, undefined, currentUser.id)
     $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref))
+
+    if (bootFirmware !== undefined) {
+      await xapi.call('VM.set_HVM_boot_params', xapiVm.$ref, { firmware: bootFirmware })
+    }
+
     const xoVm = this.#restApi.getObject<XoVm>(xapiVm.uuid as XoVm['id'], 'VM')
 
     let cloudConfigVdi: XenApiVdiWrapped | undefined
