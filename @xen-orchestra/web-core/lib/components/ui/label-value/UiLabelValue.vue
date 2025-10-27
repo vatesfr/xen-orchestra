@@ -63,7 +63,7 @@ const slots = defineSlots<{
 .ui-label-value {
   display: grid;
   column-gap: 1.6rem;
-  grid-template-columns: 20rem;
+  grid-template-columns: minmax(auto, 20rem) 20rem;
   row-gap: 0.8rem;
   container-type: inline-size;
   container-name: card;
@@ -85,7 +85,6 @@ const slots = defineSlots<{
     .label {
       grid-column: 1;
       grid-row: 1;
-      width: 20rem;
     }
     .value {
       grid-column: 2;
