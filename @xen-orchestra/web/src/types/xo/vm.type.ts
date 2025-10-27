@@ -3,8 +3,10 @@ import type { XoPool } from '@/types/xo/pool.type'
 import type { XoSr } from '@/types/xo/sr.type'
 import type { XoUser } from '@/types/xo/user.type.ts'
 import type { XoVbd } from '@/types/xo/vbd.type'
+import type { XoVif } from '@/types/xo/vif.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type.ts'
 import type { Branded } from '@core/types/utility.type'
+import type { XoVmSnapshot } from '@vates/types'
 
 export enum VM_POWER_STATE {
   HALTED = 'Halted',
@@ -36,7 +38,7 @@ export type XoVm = {
   power_state: VM_POWER_STATE
   addresses: Record<string, string>
   mainIpAddress?: string
-  other: { disable_pv_vnc: string }
+  other: { disable_pv_vnc: string; base_template_name: string }
   CPUs: {
     max: number
     number: number
@@ -58,7 +60,9 @@ export type XoVm = {
     static: [number, number]
     size: number
   }
+  snapshots: XoVmSnapshot['id']
   VGPUs: Array<string>
+  VIFs: XoVif['id']
   high_availability: 'best-effort' | 'restart' | ''
   auto_poweron: boolean
   startDelay: number
