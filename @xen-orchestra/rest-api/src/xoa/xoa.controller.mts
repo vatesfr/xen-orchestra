@@ -49,7 +49,7 @@ export class XoaController extends Controller {
   @Security('none')
   @Example(pingResponse)
   @Get('ping')
-  async ping(): Promise<PingResponse> {
+  ping(): Promise<PingResponse> {
     return {
       result: 'pong',
       timestamp: Date.now(),
