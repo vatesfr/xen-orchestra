@@ -1,20 +1,21 @@
 <template>
   <UiCard class="backupTarget">
-    <BackupRepositorTable :backup-repository-targets="backupRepositoryTargets" />
-    <StorageRepositoryTable :storage-repository-targets="storageRepositoryTargets" />
+    <StorageRepositoriesTable :storage-repositories-targets />
+    <BackupRepositoriesTable :backup-repositories-targets />
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import BackupRepositorTable from '@/components/backups/target/BackupRepositoryTable.vue'
-import StorageRepositoryTable from '@/components/backups/target/StorageRepositoryTable.vue'
+import BackupRepositoriesTable from '@/components/backups/target/BackupRepositoriesTable.vue'
+import StorageRepositoriesTable from '@/components/backups/target/StorageRepositoriesTable.vue'
+import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection'
 import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import type { XoBackupRepository } from '@/types/xo/br.type'
 import type { XoSr } from '@/types/xo/sr.type'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import type { XoBackupJob } from '@vates/types'
+
 import { computed } from 'vue'
 
 const { backupJob } = defineProps<{
@@ -24,11 +25,11 @@ const { backupJob } = defineProps<{
 const { getSrsByIds } = useXoSrCollection()
 const { getBackupRepositoriesByIds } = useXoBackupRepositoryCollection()
 
-const backupRepositoryTargets = computed(() =>
+const backupRepositoriesTargets = computed(() =>
   getBackupRepositoriesByIds(extractIdsFromSimplePattern(backupJob.remotes) as XoBackupRepository['id'][])
 )
 
-const storageRepositoryTargets = computed(() => {
+const storageRepositoriesTargets = computed(() => {
   if (!(backupJob.type === 'backup' && backupJob.srs)) {
     return []
   }

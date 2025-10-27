@@ -26,7 +26,6 @@ declare module 'vue-router/auto-routes' {
     '/backup/[id]': RouteRecordInfo<'/backup/[id]', '/backup/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/backup/[id]/backed-up-vms': RouteRecordInfo<'/backup/[id]/backed-up-vms', '/backup/:id/backed-up-vms', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/backup/[id]/backupTargets': RouteRecordInfo<'/backup/[id]/backupTargets', '/backup/:id/backupTargets', { id: ParamValue<true> }, { id: ParamValue<false> }>,
-    '/backup/[id]/configuration': RouteRecordInfo<'/backup/[id]/configuration', '/backup/:id/configuration', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/backup/[id]/runs': RouteRecordInfo<'/backup/[id]/runs', '/backup/:id/runs', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/dev/': RouteRecordInfo<'/dev/', '/dev', Record<never, never>, Record<never, never>>,
     '/dev/colors': RouteRecordInfo<'/dev/colors', '/dev/colors', Record<never, never>, Record<never, never>>,

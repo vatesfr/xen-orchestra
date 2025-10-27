@@ -1,7 +1,7 @@
 <template>
-  <div class="storage-repository-table">
+  <div class="storage-repositories-table">
     <UiTitle>
-      {{ t('storage-repository') }}
+      {{ t('storage-repositories') }}
     </UiTitle>
     <div class="table-actions">
       <UiQuerySearchBar @search="value => (searchQuery = value)" />
@@ -11,24 +11,47 @@
     </div>
     <VtsDataTable
       is-ready
-      :no-data-message="filteredStorageRepository.length === 0 ? t('no-backup-available') : undefined"
+      :no-data-message="filteredStorageRepository.length === 0 ? t('no-storage-repositories-detected') : undefined"
     >
       <template #thead>
         <tr>
           <template v-for="column of visibleColumns" :key="column.id">
-            <th>
+            <th v-if="column.id === 'checkbox'" class="checkbox">
+              <div v-tooltip="t('coming-soon')">
+                <UiCheckbox disabled accent="brand" />
+              </div>
+            </th>
+            <th v-else-if="column.id === 'more'" class="more">
+              <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
+            </th>
+            <th v-else>
               <div v-tooltip class="text-ellipsis">
-                <VtsIcon size="medium" :name="headerIcon[column.id]">
-                  {{ column.label }}
-                </VtsIcon>
+                <VtsIcon size="medium" :name="headerIcon[column.id]" />
+                {{ column.label }}
               </div>
             </th>
           </template>
         </tr>
       </template>
       <template #tbody>
-        <tr v-for="row of spacesRecords" :key="row.id" class="typo-body-regular-small">
-          <td v-for="column of row.visibleColumns" :key="column.id">
+        <tr v-for="row of storageRecords" :key="row.id" class="typo-body-regular-small">
+          <td
+            v-for="column of row.visibleColumns"
+            :key="column.id"
+            class="typo-body-regular-small"
+            :class="{ checkbox: column.id === 'checkbox' }"
+          >
+            <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
+              <UiCheckbox disabled accent="brand" :value="row.id" />
+            </div>
+            <UiButtonIcon
+              v-else-if="column.id === 'more'"
+              v-tooltip="t('coming-soon')"
+              icon="fa:ellipsis"
+              accent="brand"
+              disabled
+              size="small"
+            />
             <UiLink v-if="column.id == 'title'" size="medium" :to="column.value.link" icon="fa:database">
               {{ column.value.label }}
             </UiLink>
@@ -39,11 +62,9 @@
         </tr>
       </template>
     </VtsDataTable>
-    <div class="table-actions">
-      <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-bind="paginationBindings" />
-      </UiTopBottomTable>
-    </div>
+    <UiTopBottomTable :selected-items="0" :total-items="0">
+      <UiTablePagination v-bind="paginationBindings" />
+    </UiTopBottomTable>
   </div>
 </template>
 
@@ -52,6 +73,8 @@ import type { XoSr } from '@/types/xo/sr.type'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
@@ -59,12 +82,14 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useTable } from '@core/composables/table.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { formatSizeRaw } from '@core/utils/size.util'
+import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { storageRepositoryTargets } = defineProps<{
-  storageRepositoryTargets: XoSr[]
+const { storageRepositoriesTargets: storageRepositoryTargets } = defineProps<{
+  storageRepositoriesTargets: XoSr[]
 }>()
 
 const { t } = useI18n()
@@ -83,31 +108,33 @@ const filteredStorageRepository = computed(() => {
   )
 })
 
-const { visibleColumns, rows } = useTable('backup-jobs', filteredStorageRepository, {
+const { visibleColumns, rows } = useTable('storage-repositories', filteredStorageRepository, {
   rowId: record => record.id,
   columns: define => [
+    define('checkbox', noop, { label: '', isHideable: false }),
     define(
       'title',
       record => ({
         label: record.name_label,
         id: record.id,
-        link: storageRepositoryTargets ? `/srs/${record.id}` : '',
+        link: `/srs/${record.id}`,
       }),
-      { label: storageRepositoryTargets ? t('storage-repository') : t('backup-repository') }
+      { label: t('storage-repository') }
     ),
     define('used-space', record => formatSizeRaw(record.physical_usage, 2), { label: t('used-space') }),
     define('remaning-space', record => formatSizeRaw(record.size - record.physical_usage, 2), {
       label: t('remaning-space'),
     }),
     define('total-capacity', record => formatSizeRaw(record.size, 2), { label: t('total-capacity') }),
+    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
-const { pageRecords: spacesRecords, paginationBindings } = usePagination('backups-jobs', rows)
+const { pageRecords: storageRecords, paginationBindings } = usePagination('storage-repositories', rows)
 
-type BackupJobHeader = 'used-space' | 'remaning-space' | 'total-capacity' | 'title'
+type StorageRepositoryHeader = 'used-space' | 'remaning-space' | 'total-capacity' | 'title'
 
-const headerIcon: Record<BackupJobHeader, IconName> = {
+const headerIcon: Record<StorageRepositoryHeader, IconName> = {
   title: 'fa:object',
   'used-space': 'fa:hashtag',
   'remaning-space': 'fa:hashtag',
@@ -116,9 +143,23 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
 </script>
 
 <style lang="postcss" scoped>
-.storage-repository-table {
+.storage-repositories-table {
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
+
+  .table-actions {
+    gap: 0.8rem;
+  }
+
+  .checkbox,
+  .more {
+    width: 4.8rem;
+  }
+
+  .checkbox {
+    text-align: center;
+    line-height: 1;
+  }
 }
 </style>
