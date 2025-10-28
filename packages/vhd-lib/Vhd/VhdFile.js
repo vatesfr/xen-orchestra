@@ -97,7 +97,7 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
       await vhd.readHeaderAndFooter(checkSecondFooter)
     } catch (err) {
       await vhd.dispose()
-      err.size = await handler.getSizeOnDisk().catch(() => -1)
+      err.size = (await handler.getSizeOnDisk(fd)).catch(() => -1)
       throw err
     }
     return {
