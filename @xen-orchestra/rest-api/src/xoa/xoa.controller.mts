@@ -4,8 +4,9 @@ import { PassThrough } from 'node:stream'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 
-import type { XoaDashboard } from './xoa.type.mjs'
+import type { PingResponse, XoaDashboard } from './xoa.type.mjs'
 
+import { pingResponse } from '../open-api/oa-examples/ping.oa-example.mjs'
 import { badRequestResp, unauthorizedResp } from '../open-api/common/response.common.mjs'
 import { xoaDashboard } from '../open-api/oa-examples/xoa.oa-example.mjs'
 import { XoaService } from './xoa.service.mjs'
@@ -13,8 +14,6 @@ import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 
 @Route('')
 @Security('*')
-@Response(badRequestResp.status, badRequestResp.description)
-@Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('xoa')
 @provide(XoaController)
 export class XoaController extends Controller {
@@ -27,6 +26,8 @@ export class XoaController extends Controller {
 
   @Example(xoaDashboard)
   @Get('dashboard')
+  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(unauthorizedResp.status, unauthorizedResp.description)
   async getDashboard(@Request() req: ExRequest, @Query() ndjson?: boolean): Promise<XoaDashboard | undefined> {
     const stream = ndjson ? new PassThrough() : undefined
     const isStream = ndjson && stream !== undefined
@@ -42,6 +43,16 @@ export class XoaController extends Controller {
       stream.end()
     } else {
       return dashboard
+    }
+  }
+
+  @Security('none')
+  @Example(pingResponse)
+  @Get('ping')
+  ping(): PingResponse {
+    return {
+      result: 'pong',
+      timestamp: Date.now(),
     }
   }
 }
