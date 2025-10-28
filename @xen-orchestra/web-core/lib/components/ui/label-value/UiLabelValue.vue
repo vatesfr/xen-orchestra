@@ -34,7 +34,12 @@
           class="actions"
         >
           <VtsCopyButton
-            v-if="copyValue != undefined && !slots.actions"
+            v-if="
+              copyValue !== undefined &&
+              copyValue !== '' &&
+              !slots.actions &&
+              (Array.isArray(copyValue) ? copyValue.length > 0 : true)
+            "
             :value="Array.isArray(copyValue) ? copyValue.join(', ') : copyValue"
           />
           <slot name="actions" />
@@ -50,7 +55,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import UiTag from '../tag/UiTag.vue'
 import UiTagsList from '../tag/UiTagsList.vue'
 
-const { value } = defineProps<{
+const { value, copyValue } = defineProps<{
   label: string
   value?: string | string[]
   ellipsis?: boolean
@@ -68,72 +73,72 @@ const slots = defineSlots<{
 .ui-label-value {
   container-type: inline-size;
   container-name: card;
-}
 
-.ui-label-value-grid-container {
-  display: grid;
-}
-
-@container card (max-width: 32rem) {
   .ui-label-value-grid-container {
-    grid-template-columns: 1fr;
+    display: grid;
   }
 
-  .label {
-    grid-column: 1;
-    grid-row: 1;
-    width: 100cqi;
-  }
+  @container card (max-width: 32rem) {
+    .ui-label-value-grid-container {
+      grid-template-columns: 1fr;
 
-  .value {
-    grid-column: 1;
-    grid-row: 2;
-    width: 100cqi;
-    border: 1px solid lime;
-  }
-}
+      .label {
+        grid-column: 1;
+        grid-row: 1;
+      }
 
-@container card (min-width: 32rem) {
-  .ui-label-value-grid-container {
-    grid-template-columns: 20rem calc(100% - 20rem);
-  }
-
-  .label {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .value {
-    grid-column: 2;
-    grid-row: 1;
-    align-items: left;
-    border: 1px solid red;
-    width: 100%;
-  }
-}
-
-.ui-label-value-grid-container {
-  .value {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    .valueText {
-      width: 100%;
-      .text-wrap {
-        text-wrap: wrap;
-        overflow-wrap: anywhere;
+      .value {
+        grid-column: 1;
+        grid-row: 2;
+        width: 100cqi;
       }
     }
   }
-}
 
-.valueAddonWraper {
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  white-space: nowrap;
-}
+  @container card (min-width: 32rem) {
+    .ui-label-value-grid-container {
+      grid-template-columns: 20rem calc(100% - 20rem);
 
-.valueAddonWraper:empty::before {
-  content: '-';
+      .label {
+        grid-column: 1;
+        grid-row: 1;
+      }
+
+      .value {
+        grid-column: 2;
+        grid-row: 1;
+        align-items: left;
+        width: 100%;
+      }
+    }
+  }
+
+  .ui-label-value-grid-container {
+    .value {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+
+      .valueAddonWraper {
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        white-space: nowrap;
+
+        .valueText {
+          width: 100%;
+
+          .text-wrap {
+            text-wrap: wrap;
+            overflow-wrap: anywhere;
+          }
+        }
+      }
+
+      .valueAddonWraper:empty::before {
+        content: '-';
+      }
+    }
+  }
 }
 </style>
