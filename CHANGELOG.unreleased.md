@@ -9,7 +9,9 @@
 
 ### Enhancements
 
-- [Host/General] Display additional hardware data for Lenovo server (PR [#8861](https://github.com/vatesfr/xen-orchestra/pull/9149))
+> Users must be able to say: “Nice enhancement, I'm eager to test it”
+
+- [Host/General] Display additional hardware data for Lenovo server (PR [#9149](https://github.com/vatesfr/xen-orchestra/pull/9149))
 
 ### Bug fixes
 
