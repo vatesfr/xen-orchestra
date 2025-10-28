@@ -279,7 +279,7 @@ const NewMirrorBackup = decorate([
       inputBackupReportTplId: generateId,
       inputHideSuccessfulItemsId: generateId,
       inputMirrorAllId: generateId,
-      inputMergeBackupsSynchronousl: generateId,
+      inputMergeBackupsSynchronously: generateId,
       isBackupInvalid: state =>
         state.isMissingName ||
         state.isMissingBackupMode ||
