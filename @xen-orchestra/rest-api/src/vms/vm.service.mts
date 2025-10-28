@@ -43,7 +43,6 @@ export class VmService {
 
     const xapiVm = await xapi.createVm(template, rest, undefined, currentUser.id)
     $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref))
-
     const xoVm = this.#restApi.getObject<XoVm>(xapiVm.uuid as XoVm['id'], 'VM')
 
     let cloudConfigVdi: XenApiVdiWrapped | undefined
