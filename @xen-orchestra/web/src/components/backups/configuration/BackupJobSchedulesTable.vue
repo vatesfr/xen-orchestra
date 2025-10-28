@@ -161,7 +161,7 @@ const { pageRecords: backupJobSchedulesRecords, paginationBindings } = usePagina
 type BackupJobHeader = 'schedule' | 'id' | 'status' | 'cron-pattern' | 'last-runs'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
-  schedule: 'fa:object',
+  schedule: 'fa:a',
   id: 'fa:hashtag',
   status: 'fa:square-caret-down',
   'cron-pattern': 'fa:clock',
