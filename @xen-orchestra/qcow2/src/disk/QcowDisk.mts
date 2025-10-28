@@ -90,7 +90,7 @@ export abstract class QcowDisk extends RandomAccessDisk {
     }
 
     assert.ok(this.header.l1_table_offset < Number.MAX_SAFE_INTEGER)
-    const extendedL2 = this.header.version == 3 && this.header.incompatible_features & 0x10
+    const extendedL2 = this.header.version === 3 && (this.header.incompatible_features & BigInt(0x10)) !== 0n
     const l1TableBuffer = await this.readBuffer(Number(this.header.l1_table_offset), this.header.l1_size * 8)
     const nbClustersInFile = Math.ceil(this.getVirtualSize() / this.getBlockSize())
     let nbClusterPerL2Table = this.getBlockSize() / 8
