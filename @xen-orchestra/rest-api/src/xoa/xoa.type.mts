@@ -87,6 +87,6 @@ export type PingResponse = {
 }
 
 export type XoGuiRoutes = {
-  xo5: string | null
-  xo6: string | null
+  xo5: string | undefined
+  xo6: string | undefined
 }
