@@ -607,9 +607,16 @@ export class XoaService {
   getGuiRoutes(): XoGuiRoutes {
     const mounts = this.#restApi.xoApp.config.getOptional('http.mounts') ?? {}
 
-    const xo5Mount = Object.keys(mounts).find(key => mounts[key].includes('xo-web/dist'))
+    let xo5Mount: string | undefined
+    let xo6Mount: string | undefined
 
-    const xo6Mount = Object.keys(mounts).find(key => mounts[key].includes('@xen-orchestra/web/dist'))
+    for (const [key, value] of Object.entries(mounts)) {
+      if (value.includes('xo-web/dist')) {
+        xo5Mount = key
+      } else if (value.includes('@xen-orchestra/web/dist')) {
+        xo6Mount = key
+      }
+    }
 
     return {
       xo5: xo5Mount,
