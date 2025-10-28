@@ -74,6 +74,7 @@ type XapiRecordByXapiXoRecord = {
 
 export type XoApp = {
   config: {
+    getOptional(path: string): unknown
     getOptionalDuration(path: string): number | undefined
   }
   tasks: EventEmitter & {
