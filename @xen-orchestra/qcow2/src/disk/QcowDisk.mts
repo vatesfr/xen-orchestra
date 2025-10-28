@@ -16,6 +16,11 @@ interface Qcow2Header {
   refcount_table_clusters: number
   nb_snapshots: number
   snapshots_offset: bigint
+  incompatible_features: bigint
+  compatible_features: bigint
+  autoclear_features: bigint
+  refcount_order: number
+  header_length: number
 }
 
 export abstract class QcowDisk extends RandomAccessDisk {
@@ -78,27 +83,40 @@ export abstract class QcowDisk extends RandomAccessDisk {
       refcount_table_clusters: buffer.readUInt32BE(56),
       nb_snapshots: buffer.readUInt32BE(60),
       snapshots_offset: buffer.readBigUInt64BE(64),
+      incompatible_features: buffer.readBigUInt64BE(72),
+      compatible_features: buffer.readBigUInt64BE(80),
+      autoclear_features: buffer.readBigUInt64BE(88),
+      refcount_order: buffer.readUInt32BE(96),
+      header_length: buffer.readUInt32BE(100),
     }
 
     assert.ok(this.header.l1_table_offset < Number.MAX_SAFE_INTEGER)
+    const extendedL2 = this.header.version == 3 && this.header.incompatible_features & 0x10
     const l1TableBuffer = await this.readBuffer(Number(this.header.l1_table_offset), this.header.l1_size * 8)
     const nbClustersInFile = Math.ceil(this.getVirtualSize() / this.getBlockSize())
-    const nbClusterPerL2Table = this.getBlockSize() / 8
+    let nbClusterPerL2Table = this.getBlockSize() / 8
+    if (extendedL2) {
+        nbClusterPerL2Table = this.getBlockSize() / 16
+    }
 
     const clusters = this.#dataClustersIndex
     clusters.clear()
 
+    let l2Increment = 8
+    if (extendedL2) {
+      l2Increment = 16
+    }
     for (let i = 0; i < l1TableBuffer.length; i += 8) {
       const l2TableIndex = i / 8
-      const l2Offset = Number(l1TableBuffer.readBigUInt64BE(i) & 0x00fffffffffff8n)
+      const l2Offset = Number(l1TableBuffer.readBigUInt64BE(i) & 0x00ffffffffffe0n)
       if (l2Offset !== 0) {
         // the last table may be smaller
         const nbClusterInTable = Math.min(nbClusterPerL2Table, nbClustersInFile - l2TableIndex * nbClusterPerL2Table)
-        const l2TableBuffer = await this.readBuffer(l2Offset, nbClusterInTable * 8)
-        for (let j = 0; j < l2TableBuffer.length; j += 8) {
-          const clusterOffset = Number(l2TableBuffer.readBigUInt64BE(j) & 0x00fffffffffff8n)
+        const l2TableBuffer = await this.readBuffer(l2Offset, nbClusterInTable * l2Increment)
+        for (let j = 0; j < l2TableBuffer.length; j += l2Increment) {
+          const clusterOffset = Number(l2TableBuffer.readBigUInt64BE(j) & 0x00ffffffffffe0n)
           if (clusterOffset !== 0) {
-            clusters.set(l2TableIndex * nbClusterPerL2Table + j / 8, clusterOffset)
+            clusters.set(l2TableIndex * nbClusterPerL2Table + j / l2Increment, clusterOffset)
           }
         }
       }
