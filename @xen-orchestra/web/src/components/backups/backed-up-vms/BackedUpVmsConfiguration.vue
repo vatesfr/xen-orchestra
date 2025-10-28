@@ -51,7 +51,7 @@
           </template>
         </VtsQuickInfoRow>
       </VtsColumn>
-      <VtsColumn>
+      <VtsColumn class="column">
         <VtsQuickInfoRow :label="t('not-resident-on')">
           <template v-if="smartModePools !== undefined" #value>
             <UiLink

@@ -394,7 +394,6 @@
   "n-percent": "{n} %",
   "n-vms": "1 VM | {n} VMs",
   "name": "Nom",
-  "nb-of-backup": "Nombre de sauvegardes",
   "nbd-concurrency": "Concurrence NBD",
   "nested-virtualization": "Virtualisation imbriquée",
   "netmask": "Masque réseau",

@@ -1,6 +1,6 @@
 <template>
   <UiCard class="backed-up-vms-table">
-    <UiTitle> {{ t('backed-up-vms') }} </UiTitle>
+    <UiTitle>{{ t('backed-up-vms') }}</UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
@@ -8,7 +8,11 @@
           <UiTablePagination v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
-      <VtsDataTable is-ready :no-data-message="backedUpVms.length === 0 ? t('no-backed-up-vms-detected') : undefined">
+      <VtsDataTable
+        :is-ready
+        :has-error
+        :no-data-message="backedUpVms.length === 0 ? t('no-backed-up-vms-detected') : undefined"
+      >
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -45,6 +49,9 @@
           </tr>
         </template>
       </VtsDataTable>
+      <VtsStateHero v-if="searchQuery && filteredBackedUpVms.length === 0" format="table" type="no-result" size="small">
+        {{ t('no-result') }}
+      </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-bind="paginationBindings" />
       </UiTopBottomTable>
@@ -61,6 +68,7 @@ import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -78,6 +86,8 @@ import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
   backupJob: XoVmBackupJob
+  isReady: boolean
+  hasError: boolean
 }>()
 
 const { t } = useI18n()
@@ -102,8 +112,8 @@ const filteredBackedUpVms = computed(() => {
     return backedUpVms.value
   }
 
-  return backedUpVms.value.filter(backupJob =>
-    Object.values(backupJob).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
+  return backedUpVms.value.filter(backedUpVm =>
+    Object.values(backedUpVm).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
