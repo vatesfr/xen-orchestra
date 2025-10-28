@@ -33,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 
 <!--packages-end-->
