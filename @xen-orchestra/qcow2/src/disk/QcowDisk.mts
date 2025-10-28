@@ -1,6 +1,6 @@
-import { Disk, DiskBlock, RandomAccessDisk  } from '@xen-orchestra/disk-transform'
- 
-import assert from 'node:assert' 
+import { Disk, DiskBlock, RandomAccessDisk } from '@xen-orchestra/disk-transform'
+
+import assert from 'node:assert'
 
 interface Qcow2Header {
   magic: number
@@ -54,19 +54,18 @@ export abstract class QcowDisk extends RandomAccessDisk {
 
   abstract readBuffer(offset: number, length: number): Promise<Buffer>
 
-
   async readBlock(index: number): Promise<DiskBlock> {
     const offset = this.dataClustersIndex.get(index)
-    if(offset === undefined){
-        throw new Error(`Can't read unallocated block, index:${index}`)
+    if (offset === undefined) {
+      throw new Error(`Can't read unallocated block, index:${index}`)
     }
     const data = await this.readBuffer(offset, this.getBlockSize())
     return {
-        index,
-        data
+      index,
+      data,
     }
   }
-  
+
   async init(): Promise<void> {
     const buffer = await this.readBuffer(0, 1024)
     this.#qcowHeader = {
@@ -91,12 +90,12 @@ export abstract class QcowDisk extends RandomAccessDisk {
     }
 
     assert.ok(this.header.l1_table_offset < Number.MAX_SAFE_INTEGER)
-    const extendedL2 = this.header.version == 3 && this.header.incompatible_features & 0x10
+    const extendedL2 = this.header.version === 3 && (this.header.incompatible_features & BigInt(0x10)) !== 0n
     const l1TableBuffer = await this.readBuffer(Number(this.header.l1_table_offset), this.header.l1_size * 8)
     const nbClustersInFile = Math.ceil(this.getVirtualSize() / this.getBlockSize())
     let nbClusterPerL2Table = this.getBlockSize() / 8
     if (extendedL2) {
-        nbClusterPerL2Table = this.getBlockSize() / 16
+      nbClusterPerL2Table = this.getBlockSize() / 16
     }
 
     const clusters = this.#dataClustersIndex
@@ -122,7 +121,7 @@ export abstract class QcowDisk extends RandomAccessDisk {
       }
     }
   }
-  
+
   getBlockIndexes(): Array<number> {
     return [...this.#dataClustersIndex.keys()]
   }
