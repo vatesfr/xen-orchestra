@@ -17,10 +17,8 @@
 
 - **XO 6:**
   - [User Menu] Added new links in the user menu and customized it (PR [#9126](https://github.com/vatesfr/xen-orchestra/pull/9126))
-  - [Site/Backups] Add backed-up VMs view (PR [#9018](https://github.com/vatesfr/xen-orchestra/pull/9018))
-
-- **XO 6:**
   - [Treeview] Move search loader from input to Treeview (PR [#9142](https://github.com/vatesfr/xen-orchestra/pull/9142))
+  - [Site/Backups] Add backed-up VMs view (PR [#9018](https://github.com/vatesfr/xen-orchestra/pull/9018))
 
 ### Bug fixes
 
@@ -42,7 +40,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web minor
 - @xen-orchestra/qcow2 minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
