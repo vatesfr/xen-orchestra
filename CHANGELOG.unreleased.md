@@ -33,5 +33,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - xo-server minor
 <!--packages-end-->
