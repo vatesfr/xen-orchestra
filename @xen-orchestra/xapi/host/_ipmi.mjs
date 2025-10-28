@@ -63,7 +63,7 @@ export const IPMI_SENSOR_CUSTOM_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME = {
     }),
     [IPMI_SENSOR_DATA_TYPE.fanStatus]: d =>
       (d[IPMI_SENSOR_DATA_TYPE.fanSpeed] ?? [])
-        .filter(s => s?.event === 'ok' && /\d+\s*rpm/i.test(s.value))
+        .filter(s => s.event === 'ok' && /\d+\s*rpm/i.test(s.value))
         .map(s => ({ ...s, rpm: parseInt(s.value, 10) })),
   },
 }
