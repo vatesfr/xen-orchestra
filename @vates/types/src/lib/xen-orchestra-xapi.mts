@@ -130,6 +130,7 @@ export interface Xapi {
     metadataVm: {
       affinityHost?: XoHost['id']
       autoPoweron?: boolean
+      bootFirmware?: 'uefi' | 'bios'
       memory?: number
       name_description?: string
       name_label: string
