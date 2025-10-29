@@ -690,6 +690,7 @@ const messages = {
   mirrorFullBackup: 'Mirror full backup',
   mirrorIncrementalBackup: 'Mirror incremental backup',
   runBackupJob: 'Run backup job once',
+  backupJobWarningVmView: 'Enabling or disabling a backup job here will affect all VMs within that job.',
   speedLimit: 'Speed limit (in MiB/s)',
   sourceRemote: 'Source remote',
   targetRemotes: 'Target remotes',
