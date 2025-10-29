@@ -134,7 +134,7 @@ export class XapiDiskSource extends DiskPassthrough {
       const size = await xapi.getField('VDI', vdiRef, 'virtual_size')
       const sm_config = await xapi.getField('VDI', vdiRef, 'sm_config')
       const snaphotRef = await xapi.getField('VDI', vdiRef, 'snapshot_of')
-      const sm_config_source = await xapi.getField('VDI', snaphotRef, 'sm_config')
+      const sm_config_source = snaphotRef && (await xapi.getField('VDI', snaphotRef, 'sm_config'))
 
       // there is a bug in sm that does not apply the image format to snapshot
       // but a disk chain will always have the same image-format
