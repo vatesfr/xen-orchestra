@@ -60,7 +60,7 @@ export class XoaController extends Controller {
   @Security('none')
   @Example(guiRoutes)
   @Get('gui-routes')
-  async getGuiRoutes(): Promise<XoGuiRoutes> {
+  getGuiRoutes(): XoGuiRoutes {
     return this.#xoaService.getGuiRoutes()
   }
 }
