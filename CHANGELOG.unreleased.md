@@ -81,6 +81,7 @@
 - [Plugins/SAML] Fix SAML authentication with audience matching (PR [#9093](https://github.com/vatesfr/xen-orchestra/pull/9093))
 - [Backup/immutabiltiy] Fix double delete file that can block immutability lifting (PR [#9104](https://github.com/vatesfr/xen-orchestra/pull/9104))
 - [Backups] Fix VDI_NO_MANAGED error during replication (PR [#9117](https://github.com/vatesfr/xen-orchestra/pull/9117))
+- [Hub/EasyVirt] Fix the EasyVirt deployment form to allow static network configuration and password for DC Netscope web interface (PR [#9107](https://github.com/vatesfr/xen-orchestra/pull/9107))
 
 - **XO 6**:
   - [Site/Backups] Fix an issue properties of undefined in backups tab (PR [#9064](https://github.com/vatesfr/xen-orchestra/pull/9064))
@@ -115,6 +116,6 @@
 - vhd-lib patch
 - xo-server minor
 - xo-server-auth-saml minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
