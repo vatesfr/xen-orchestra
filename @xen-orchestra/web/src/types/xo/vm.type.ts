@@ -28,7 +28,7 @@ export type XoVm = {
   type: 'VM'
   $container: XoPool['id'] | XoHost['id']
   $pool: XoPool['id']
-  $VBDs: XoVbd['id']
+  $VBDs: XoVbd['id'][]
   _xapiRef: string
   current_operations: Record<string, VM_OPERATION>
   name_label: string

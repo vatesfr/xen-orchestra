@@ -34,13 +34,12 @@ const { backupJob } = defineProps<{
   backupJob: XoBackupJob
 }>()
 
+const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { backupLogsByJobId, hasBackupLogFetchError, areBackupLogsReady } = useXoBackupLogCollection()
 
 const backupLogs = computed(() => backupLogsByJobId.value.get(backupJob.id) ?? [])
-
-const { t } = useI18n()
 
 const selectedBackupLog = useRouteQuery<XoBackupLog | undefined>('id', {
   toData: id => backupLogs.value.find(backupLog => backupLog.id === id),

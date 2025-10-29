@@ -11,9 +11,21 @@
         {{ t('runs') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('configuration') }}</TabItem>
-    <TabItem disabled>{{ t('backed-up-vms') }}</TabItem>
-    <TabItem disabled>{{ t('backup-targets') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/configuration`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('configuration') }}
+      </TabItem>
+    </RouterLink>
+    <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/backed-up-vms`" custom>
+      <TabItem :active="isActive" :href tag="a" :disabled="backupJob.type !== 'backup'">
+        {{ t('backed-up-vms') }}
+      </TabItem>
+    </RouterLink>
+    <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/targets`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('backup-targets') }}
+      </TabItem>
+    </RouterLink>
   </TabList>
 </template>
 

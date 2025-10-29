@@ -67,11 +67,8 @@
 <script lang="ts" setup>
 import BackupJobSmartModePools from '@/components/backups/panel/card-items/BackupJobSmartModePools.vue'
 import BackupJobSmartModeTags from '@/components/backups/panel/card-items/BackupJobSmartModeTags.vue'
-import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { VmsSmartModeDisabled, VmsSmartModeEnabled, XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
-import { type XoVm } from '@/types/xo/vm.type.ts'
-import { destructSmartPattern, extractIdsFromSimplePattern } from '@/utils/pattern.util.ts'
+import { useXoBackedUpVmsUtils } from '@/composables/xo-backed-up-vms-utils.composable'
+import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -82,8 +79,6 @@ import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibl
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { toLower } from 'lodash-es'
-import * as ValueMatcher from 'value-matcher'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backedUpVms: rawBackedUpVms } = defineProps<{
@@ -92,70 +87,8 @@ const { backedUpVms: rawBackedUpVms } = defineProps<{
 
 const { t } = useI18n()
 
-const { getPoolsByIds } = useXoPoolCollection()
-const { getVmsByIds, vms } = useXoVmCollection()
-
-const isSmartModeEnabled = computed(() => checkSmartModeEnabled(rawBackedUpVms))
-
-function checkSmartModeEnabled(
-  value: VmsSmartModeEnabled | VmsSmartModeDisabled | undefined
-): value is VmsSmartModeEnabled {
-  if (value === undefined || typeof value !== 'object' || value === null) {
-    return false
-  }
-
-  return !('id' in value)
-}
-
-const backedUpVms = computed(() => {
-  if (checkSmartModeEnabled(rawBackedUpVms)) {
-    const predicate = ValueMatcher.createPredicate(rawBackedUpVms)
-
-    return vms.value.filter(vm => predicate(vm) && !vm.tags?.includes('xo:no-bak'))
-  }
-
-  return getVmsByIds(extractIdsFromSimplePattern(rawBackedUpVms) as XoVm['id'][])
-})
-
-const backedUpVmsCount = computed(() => backedUpVms.value.length)
-
-const smartModePools = computed(() => {
-  if (!checkSmartModeEnabled(rawBackedUpVms) || rawBackedUpVms.$pool === undefined) {
-    return undefined
-  }
-
-  const poolIds = destructSmartPattern(rawBackedUpVms.$pool)
-
-  if (!poolIds) {
-    return undefined
-  }
-
-  return {
-    included: getPoolsByIds(poolIds.values),
-    excluded: getPoolsByIds(poolIds.notValues),
-  }
-})
-
-const smartModeTags = computed(() => {
-  if (!checkSmartModeEnabled(rawBackedUpVms) || rawBackedUpVms.tags === undefined) {
-    return undefined
-  }
-
-  const tags = destructSmartPattern(rawBackedUpVms.tags)
-
-  return {
-    included: tags.values?.flat(),
-    excluded: [...tags.notValues?.flat(), 'xo:no-bak'],
-  }
-})
-
-const smartModePowerState = computed(() => {
-  if (!checkSmartModeEnabled(rawBackedUpVms) || rawBackedUpVms.power_state === undefined) {
-    return undefined
-  }
-
-  return rawBackedUpVms.power_state
-})
+const { backedUpVms, backedUpVmsCount, smartModePools, smartModePowerState, smartModeTags, isSmartModeEnabled } =
+  useXoBackedUpVmsUtils(() => rawBackedUpVms)
 </script>
 
 <style scoped lang="postcss">

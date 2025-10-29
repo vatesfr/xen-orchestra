@@ -22,6 +22,7 @@ import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
 import type { XoVmController } from '@/types/xo/vm-controller.type.ts'
 import type { XoVmTemplate } from '@/types/xo/vm-template.type.ts'
 import type { XoVm } from '@/types/xo/vm.type.ts'
+import type { XoVmBackupArchive } from '@vates/types'
 
 export type XoRecord =
   | XoAlarm
@@ -48,3 +49,4 @@ export type XoRecord =
   | XoUser
   | XoProxy
   | XoBackupRepository
+  | XoVmBackupArchive
