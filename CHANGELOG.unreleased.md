@@ -21,6 +21,7 @@
   - [Treeview] Move search loader from input to Treeview (PR [#9142](https://github.com/vatesfr/xen-orchestra/pull/9142))
   - [Site/Backups] Add backed-up VMs view (PR [#9018](https://github.com/vatesfr/xen-orchestra/pull/9018))
   - [Site/Backups] Add backup job configuration view (PR [#9008](https://github.com/vatesfr/xen-orchestra/pull/9008))
+  - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
 
 ### Bug fixes
 
