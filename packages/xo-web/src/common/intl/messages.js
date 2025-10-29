@@ -2823,7 +2823,7 @@ const messages = {
   easyVirtDescription: 'Creates a DC Scope or a DC NetScope VM with parameters and application inside',
   xoPassword: 'Xen Orchestra Password',
   xoUsername: 'Xen Orchestra Username',
-  easyVirtPassword: 'Password for EasyVirt web interface',
+  dcNetscopePassword: 'Password for DC Netscope web interface',
   xoFqdn: 'Xen Orchestra FQDN / IP',
   dcScopeVm: 'DC Scope VM',
   dcNetScopeVm: 'DC NetScope VM',

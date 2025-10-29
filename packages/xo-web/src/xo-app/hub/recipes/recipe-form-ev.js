@@ -305,12 +305,12 @@ export default decorate([
       )}
       {value.productName === 'dcNetScope' && (
         <FormGrid.Row>
-          <label>{_('easyVirtPassword')}</label>
+          <label>{_('dcNetscopePassword')}</label>
           <input
             className='form-control'
             name='easyVirtPassword'
             onChange={effects.onChangeValue}
-            placeholder={formatMessage(messages.easyVirtPassword)}
+            placeholder={formatMessage(messages.dcNetscopePassword)}
             required
             type='password'
             value={value.easyVirtPassword}
