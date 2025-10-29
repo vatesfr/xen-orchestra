@@ -16,6 +16,7 @@
 - [V2V] support import of disk bigger than 2TB toward qcow enabled SR (PR [#9148](https://github.com/vatesfr/xen-orchestra/pull/9148))
 - [Host/General] Display additional hardware data for Lenovo server (PR [#9149](https://github.com/vatesfr/xen-orchestra/pull/9149))
 - [REST API] Expose `GET /rest/v0/gui-routes` (PR [#9133](https://github.com/vatesfr/xen-orchestra/pull/9133))
+- [Netbox] Support Netbox v4.4.x (PR [#9153](https://github.com/vatesfr/xen-orchestra/pull/9153))
 
 - **XO 6:**
   - [User Menu] Added new links in the user menu and customized it (PR [#9126](https://github.com/vatesfr/xen-orchestra/pull/9126))
@@ -51,6 +52,7 @@
 - @xen-orchestra/xapi minor
 - vhd-lib patch
 - xo-server minor
+- xo-server-netbox minor
 - xo-web minor
 
 <!--packages-end-->
