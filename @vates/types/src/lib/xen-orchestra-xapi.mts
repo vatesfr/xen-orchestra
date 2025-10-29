@@ -130,7 +130,6 @@ export interface Xapi {
     metadataVm: {
       affinityHost?: XoHost['id']
       autoPoweron?: boolean
-      bootFirmware?: 'uefi' | 'bios'
       memory?: number
       name_description?: string
       name_label: string
@@ -172,6 +171,7 @@ export interface Xapi {
       vgpuType?: XoVgpuType['id']
       gpuGroup?: XoGpuGroup['id']
       copyHostBiosStrings?: boolean
+      hvmBootFirmware?: 'uefi' | 'bios'
     },
     checkLimits?: boolean,
     creatorId?: XoUser['id'],
