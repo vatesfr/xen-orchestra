@@ -28,7 +28,7 @@
           </tr>
         </template>
         <template #tbody>
-          <tr v-for="row of backupsRecords" :key="row.id" class="typo-body-regular-small">
+          <tr v-for="row of backupRepositoriesRecords" :key="row.id" class="typo-body-regular-small">
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
               <UiLink
                 v-if="column.id == 'backup-repository'"
@@ -111,7 +111,7 @@ const { visibleColumns, rows } = useTable('backup-repositories', filteredBackupR
   ],
 })
 
-const { pageRecords: backupsRecords, paginationBindings } = usePagination('backups-jobs', rows)
+const { pageRecords: backupRepositoriesRecords, paginationBindings } = usePagination('backup-repositories', rows)
 
 type BackupRepositoryHeader = 'backup-repository'
 

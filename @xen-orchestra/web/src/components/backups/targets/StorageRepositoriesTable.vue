@@ -28,7 +28,7 @@
           </tr>
         </template>
         <template #tbody>
-          <tr v-for="row of storageRecords" :key="row.id" class="typo-body-regular-small">
+          <tr v-for="row of storageRepositoriesRecords" :key="row.id" class="typo-body-regular-small">
             <td
               v-for="column of row.visibleColumns"
               :key="column.id"
@@ -112,7 +112,7 @@ const { visibleColumns, rows } = useTable('storage-repositories', filteredStorag
   ],
 })
 
-const { pageRecords: storageRecords, paginationBindings } = usePagination('storage-repositories', rows)
+const { pageRecords: storageRepositoriesRecords, paginationBindings } = usePagination('storage-repositories', rows)
 
 type StorageRepositoryHeader = 'storage-repository' | 'used-space' | 'remaining-space' | 'total-capacity'
 
