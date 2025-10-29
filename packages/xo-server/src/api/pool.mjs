@@ -505,16 +505,6 @@ async function handleGetSystemStatuses(_req, res, { xapi, pool }) {
   }
 }
 
-export async function getSystemStatuses({ pool }) {
-  return {
-    $getFrom: await this.registerHttpRequest(
-      handleGetSystemStatuses,
-      { xapi: this.getXapi(pool), pool },
-      { suffix: `/${encodeURIComponent(pool.name_label)}-system-statuses.tar` }
-    ),
-  }
-}
-
 /**
  * Download system status (bug report) from all hosts in a pool
  *
@@ -527,6 +517,16 @@ export async function getSystemStatuses({ pool }) {
  * @param {string} id - Pool UUID
  * @returns {object} TAR archive download via $getFrom
  */
+export async function getSystemStatuses({ pool }) {
+  return {
+    $getFrom: await this.registerHttpRequest(
+      handleGetSystemStatuses,
+      { xapi: this.getXapi(pool), pool },
+      { suffix: `/${encodeURIComponent(pool.name_label)}-system-statuses.tar` }
+    ),
+  }
+}
+
 getSystemStatuses.description = 'Download system status (bug report) from all hosts in a pool'
 
 getSystemStatuses.params = {

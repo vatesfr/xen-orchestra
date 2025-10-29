@@ -723,16 +723,6 @@ async function handleGetSystemStatus(req, res, { xapi, host }) {
   return fromCallback(pipeline, response, res)
 }
 
-export async function getSystemStatus({ host }) {
-  return {
-    $getFrom: await this.registerHttpRequest(
-      handleGetSystemStatus,
-      { xapi: this.getXapi(host), host },
-      { suffix: `/${encodeURIComponent(host.name_label)}-system-status.tar.bz2` }
-    ),
-  }
-}
-
 /**
  * Download system status (bug report) from a host
  *
@@ -743,6 +733,16 @@ export async function getSystemStatus({ host }) {
  * @param {string} id - Host UUID
  * @returns {object} File download via $getFrom
  */
+export async function getSystemStatus({ host }) {
+  return {
+    $getFrom: await this.registerHttpRequest(
+      handleGetSystemStatus,
+      { xapi: this.getXapi(host), host },
+      { suffix: `/${encodeURIComponent(host.name_label)}-system-status.tar.bz2` }
+    ),
+  }
+}
+
 getSystemStatus.description = 'Download system status (bug report) from a host'
 
 getSystemStatus.params = {
