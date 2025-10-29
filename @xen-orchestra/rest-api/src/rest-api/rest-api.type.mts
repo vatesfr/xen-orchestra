@@ -74,6 +74,7 @@ type XapiRecordByXapiXoRecord = {
 
 export type XoApp = {
   config: {
+    getOptional(path: string): Record<string, string> | undefined
     getOptionalDuration(path: string): number | undefined
   }
   tasks: EventEmitter & {
@@ -172,9 +173,7 @@ export type XoApp = {
   getXenServer(id: XoServer['id']): Promise<XoServer>
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
-  listMetadataBackups(
-    backupRepositoryIds: XoBackupRepository['id'][]
-  ): Promise<{
+  listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
     xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
     pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
   }>

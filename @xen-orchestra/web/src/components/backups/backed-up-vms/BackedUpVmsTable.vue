@@ -138,7 +138,7 @@ const { visibleColumns, rows } = useTable('backed-up-vms', filteredBackedUpVms, 
 type BackupJobHeader = 'vm' | 'disk-size'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
-  vm: 'fa:object',
+  vm: 'fa:a',
   'disk-size': 'fa:hashtag',
 }
 
