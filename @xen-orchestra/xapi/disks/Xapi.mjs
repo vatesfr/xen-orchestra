@@ -12,7 +12,7 @@ import { XapiStreamNbdSource } from './XapiStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
 import { XapiProgressHandler } from './XapiProgress.mjs'
 import { XapiQcow2StreamSource } from './XapiQcow2StreamSource.mjs'
-import { VHD_MAX_SIZE } from '../index.mjs'
+import { VDI_FORMAT_QCOW2, VHD_MAX_SIZE } from '../index.mjs'
 
 // @todo how to type this ?
 const { info, warn } = createLogger('xo:xapi:xapi-disks')
@@ -132,10 +132,18 @@ export class XapiDiskSource extends DiskPassthrough {
     let source
     try {
       const size = await xapi.getField('VDI', vdiRef, 'virtual_size')
-      if (size < VHD_MAX_SIZE) {
-        source = new XapiVhdStreamSource({ vdiRef, baseRef, xapi })
-      } else {
+      const sm_config = await xapi.getField('VDI', vdiRef, 'sm_config')
+      const snaphotRef = await xapi.getField('VDI', vdiRef, 'snapshot_of')
+      const sm_config_source = await xapi.getField('VDI', snaphotRef, 'sm_config')
+
+      // there is a bug in sm that does not apply the image format to snapshot
+      // but a disk chain will always have the same image-format
+      const format = sm_config['image-format'] ?? sm_config_source?.['image-format']
+      // as a fallback ensure we don't try to export a disk bigger than the max vhd size
+      if (format === VDI_FORMAT_QCOW2 || size > VHD_MAX_SIZE) {
         source = new XapiQcow2StreamSource({ vdiRef, baseRef, xapi })
+      } else {
+        source = new XapiVhdStreamSource({ vdiRef, baseRef, xapi })
       }
       await source.init()
       source = new TimeoutDisk(source, this.#timeout)
