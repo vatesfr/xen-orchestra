@@ -31,6 +31,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [XO5/VM] Fix format qcow2 not showing (PR [#9157](https://github.com/vatesfr/xen-orchestra/pull/9157))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
