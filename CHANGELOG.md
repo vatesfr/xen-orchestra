@@ -5,17 +5,31 @@
 ### Enhancements
 
 - [Plugins/SAML] Add two fields to configure assertions and responses signatures (PR [#9093](https://github.com/vatesfr/xen-orchestra/pull/9093))
+- [Backups] Add `Merge backups synchronously` to mirror backup (PR [#9118](https://github.com/vatesfr/xen-orchestra/pull/9118))
+- [V2V] support import of disk bigger than 2TB toward qcow enabled SR (PR [#9148](https://github.com/vatesfr/xen-orchestra/pull/9148))
+- [Host/General] Display additional hardware data for Lenovo server (PR [#9149](https://github.com/vatesfr/xen-orchestra/pull/9149))
+- [Netbox] Support Netbox v4.4.x (PR [#9153](https://github.com/vatesfr/xen-orchestra/pull/9153))
 - [REST API] `/rest/v0` redirect now to `/rest/v0/docs` and the swagger is now available for unauthenticated users (PR [#9101](https://github.com/vatesfr/xen-orchestra/pull/9101))
 - [REST API] Expose `/rest/v0/users/:id/authentication_tokens` (PR [#9102](https://github.com/vatesfr/xen-orchestra/pull/9102))
 - [REST API] Possibility to use `Basic Auth` for authenticated endpoints (PR [#9102](https://github.com/vatesfr/xen-orchestra/pull/9102))
 - [REST API] Expose `/rest/v0/pbds` and `/rest/v0/pbds/:id` (PR [#9106](https://github.com/vatesfr/xen-orchestra/pull/9106))
 - [REST API] Expose `GET /rest/v0/backup-archives` and `GET /rest/v0/backup-archives/:id` (PR [#8982](https://github.com/vatesfr/xen-orchestra/pull/8982))
+- [REST API] Expose `GET /rest/v0/ping` (PR [#9129](https://github.com/vatesfr/xen-orchestra/pull/9129))
+- [REST API] Expose `GET /rest/v0/gui-routes` (PR [#9133](https://github.com/vatesfr/xen-orchestra/pull/9133))
+- [REST API] Add boot firmware for VM creation (PR [#9147](https://github.com/vatesfr/xen-orchestra/pull/9147))
 
 - **XO 6:**
   - [Collections] Implement virtual lists for tasks and alarms to improve performance (PR [#9077](https://github.com/vatesfr/xen-orchestra/pull/9077))
   - [Treeview search] Add loader when search is triggered and ability to clear search (PR [#9122](https://github.com/vatesfr/xen-orchestra/pull/9122))
   - [Core/Guidelines] Update logical properties section in CSS guidelines (PR [#9132](https://github.com/vatesfr/xen-orchestra/pull/9132))
   - [Site/Backups] Add backup runs view (PR [#9007](https://github.com/vatesfr/xen-orchestra/pull/9007))
+  - [User Menu] Added new links in the user menu and customized it (PR [#9126](https://github.com/vatesfr/xen-orchestra/pull/9126))
+  - [Treeview] Move search loader from input to Treeview (PR [#9142](https://github.com/vatesfr/xen-orchestra/pull/9142))
+  - [Site/Backups] Add backed-up VMs view (PR [#9018](https://github.com/vatesfr/xen-orchestra/pull/9018))
+  - [Site/Backups] Add backup job configuration view (PR [#9008](https://github.com/vatesfr/xen-orchestra/pull/9008))
+  - [Site/Backups] Add backup targets view (PR [#9048](https://github.com/vatesfr/xen-orchestra/pull/9048))
+  - [Site/Backups] Update head bar to use breadcrumb component for better navigation (PR [#9159](https://github.com/vatesfr/xen-orchestra/pull/9159))
+  - [i18n] Update Czech, German, Spanish, Italian, Dutch, Portuguese (Brazil), Russian, Swedish and Ukrainian translations (PR [#9095](https://github.com/vatesfr/xen-orchestra/pull/9095))
 
 - **Migrated REST API endpoints**:
   - `GET /rest/v0/pifs/<pif-id>/messages` (PR [#9021](https://github.com/vatesfr/xen-orchestra/pull/9021))
@@ -79,6 +93,7 @@
 - [Plugins/load balancer] Avoid migrating VMs tagged with anti-affinity when balancing performance (PR [#9139](https://github.com/vatesfr/xen-orchestra/pull/9139))
 - [VM] Set a default `cores-per-socket` value for all new VM [#9111](https://github.com/vatesfr/xen-orchestra/issues/9111) (PR [#9136](https://github.com/vatesfr/xen-orchestra/pull/9136))
 - [VM] Update invalid `platform.cores-per-socket` for all existing VM with invalid value [#9111](https://github.com/vatesfr/xen-orchestra/issues/9111) (PR [#9136](https://github.com/vatesfr/xen-orchestra/pull/9136))
+- [XO5/VM] Fix format qcow2 not showing (PR [#9157](https://github.com/vatesfr/xen-orchestra/pull/9157))
 
 - **XO 6**:
   - [Site/Backups] Fix an issue properties of undefined in backups tab (PR [#9064](https://github.com/vatesfr/xen-orchestra/pull/9064))
@@ -88,23 +103,25 @@
 ### Released packages
 
 - @vates/fatfs 0.11.1
-- vhd-lib 4.14.2
 - @vates/generator-toolbox 1.1.0
 - @xen-orchestra/disk-transform 1.2.0
-- @vates/types 1.13.0
-- @xen-orchestra/xapi 8.4.2
-- @xen-orchestra/backups 0.65.0
-- @xen-orchestra/backups-cli 1.1.4
-- @xen-orchestra/immutable-backups 1.0.25
-- @xen-orchestra/web-core 0.32.0
-- @xen-orchestra/proxy 0.29.33
-- @xen-orchestra/rest-api 0.19.0
 - @xen-orchestra/vmware-explorer 0.10.4
-- @xen-orchestra/web 0.31.0
-- xo-server 5.191.0
 - xo-server-auth-saml 0.12.0
 - xo-server-load-balancer 0.10.4
-- xo-web 5.187.1
+- vhd-lib 4.14.3
+- @vates/types 1.14.0
+- @xen-orchestra/qcow2 1.1.0
+- @xen-orchestra/xapi 8.5.0
+- @xen-orchestra/backups 0.66.0
+- @xen-orchestra/backups-cli 1.1.5
+- @xen-orchestra/immutable-backups 1.0.26
+- @xen-orchestra/web-core 0.33.0
+- @xen-orchestra/proxy 0.29.34
+- @xen-orchestra/rest-api 0.20.0
+- @xen-orchestra/web 0.32.0
+- xo-server 5.192.0
+- xo-server-netbox 1.10.0
+- xo-web 5.188.0
 
 ## **5.111.1** (2025-10-06)
 
