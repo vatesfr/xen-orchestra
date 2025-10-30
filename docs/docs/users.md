@@ -222,7 +222,8 @@ Save the configuration and then activate the plugin (button on top).
 Since 5.111.1 version, you need to configure signature for Document **and** Assertion in your SAML Identity Provider.
 
 - **Keycloak:** In Client Settings, Signature and Encryption, check "Sign Documents" and "Sign Assertion".
-- **Azure and Google Workspace:** In SAML Signing Certificate options, select "Sign SAML response and assertion".
+- **Azure:** In SAML Signing Certificate options, select **Sign SAML response and assertion**.
+- **Google Workspace:** In the Service Provider details, check the **Signed response** box.
   :::
 
 #### Vendor specific
