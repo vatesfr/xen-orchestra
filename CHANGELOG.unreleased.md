@@ -26,6 +26,7 @@
   - [Site/Backups] Add backup job configuration view (PR [#9008](https://github.com/vatesfr/xen-orchestra/pull/9008))
   - [Site/Backups] Add backup targets view (PR [#9048](https://github.com/vatesfr/xen-orchestra/pull/9048))
   - [Site/Backups] Update head bar to use breadcrumb component for better navigation (PR [#9159](https://github.com/vatesfr/xen-orchestra/pull/9159))
+  - [i18n] Update Czech, German, Spanish, Italian, Dutch, Portuguese (Brazil), Russian, Swedish and Ukrainian translations (PR [#9095](https://github.com/vatesfr/xen-orchestra/pull/9095))
 
 ### Bug fixes
 
