@@ -1,6 +1,6 @@
 <template>
   <UiHeadBar icon="fa:satellite">
-    Xen Orchestra Appliance
+    {{ XOA_NAME }}
     <template #actions>
       <UiLink to="/pool/connect" size="medium" icon="fa:plus">
         {{ t('connect-pool') }}
@@ -28,6 +28,7 @@
 </template>
 
 <script lang="ts" setup>
+import { XOA_NAME } from '@/constants'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'

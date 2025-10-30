@@ -1,7 +1,7 @@
 <template>
   <div class="breadcrumb-container">
     <UiBreadcrumb :size>
-      <UiLink :size to="/dashboard" icon="fa:satellite">Xen Orchestra Appliance</UiLink>
+      <UiLink :size to="/dashboard" icon="fa:satellite">{{ XOA_NAME }}</UiLink>
       <UiLink :size to="/backups">{{ t('backups') }}</UiLink>
       <span class="backup-job-name">
         <VtsIcon name="object:backup-job" size="current" />
@@ -35,6 +35,7 @@
 </template>
 
 <script lang="ts" setup>
+import { XOA_NAME } from '@/constants'
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'

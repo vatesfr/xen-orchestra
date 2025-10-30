@@ -1,3 +1,4 @@
+import { XOA_NAME } from '@/constants.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
@@ -17,7 +18,7 @@ export function useSiteTree() {
   const site: XoSite = {
     id: useId(),
     type: 'site',
-    name_label: 'Xen Orchestra Appliance',
+    name_label: XOA_NAME,
   }
 
   const sites = computed(() => [site])
