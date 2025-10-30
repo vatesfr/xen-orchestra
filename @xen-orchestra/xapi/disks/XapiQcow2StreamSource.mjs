@@ -52,6 +52,9 @@ export class XapiQcow2StreamSource extends RandomDiskPassthrough {
     return disk
   }
 
+  isDifferencing() {
+    return !!this.#baseRef
+  }
   async close() {
     this.#stream?.on('error', () => {})
     this.#stream?.destroy()
