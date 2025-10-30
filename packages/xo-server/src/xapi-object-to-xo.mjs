@@ -545,6 +545,7 @@ const TRANSFORMS = {
       startDelay: +obj.start_delay,
       startTime: metrics && toTimestamp(metrics.start_time),
       secureBoot: obj.platform.secureboot === 'true',
+      hvmBootFirmware: obj.HVM_boot_params?.firmware ?? obj.platform?.firmware ?? 'bios',
       suspendSr: link(obj, 'suspend_SR'),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),

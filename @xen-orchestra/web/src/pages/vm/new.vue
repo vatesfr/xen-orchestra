@@ -97,31 +97,27 @@
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
                 <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" :label=" t('tags')" /> -->
-                <!--              <VtsInputWrapper :label="t('boot-firmware')"> -->
-                <!--                <FormSelect v-model="vmState.boot_firmware"> -->
-                <!--                  <option v-for="boot in bootFirmwares" :key="boot" :value="boot"> -->
-                <!--                    {{ boot === undefined ? t('bios-default') : boot }} -->
-                <!--                  </option> -->
-                <!--                </FormSelect> -->
-                <!--              </VtsInputWrapper> -->
-                <!--              <div -->
-                <!--                v-tooltip=" -->
-                <!--                  vmState.boot_firmware === 'uefi' || templateHasBiosStrings -->
-                <!--                    ? { -->
-                <!--                        placement: 'top-start', -->
-                <!--                        content: vmState.boot_firmware !== 'uefi' ? t('boot-firmware-bios') : t('boot-firmware-uefi'), -->
-                <!--                      } -->
-                <!--                    : undefined -->
-                <!--                " -->
-                <!--              > -->
-                <!--                <UiCheckbox -->
-                <!--                  v-model="copyHostBiosStrings" -->
-                <!--                  accent="brand" -->
-                <!--                  :disabled="vmState.boot_firmware === 'uefi' || templateHasBiosStrings" -->
-                <!--                > -->
-                <!--                  {{ t('copy-host') }} -->
-                <!--                </UiCheckbox> -->
-                <!--              </div> -->
+                <VtsInputWrapper :label="t('boot-firmware')">
+                  <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
+                </VtsInputWrapper>
+                <div
+                  v-tooltip="
+                    vmState.boot_firmware === 'uefi' || getCopyHostBiosStrings
+                      ? {
+                          placement: 'top-start',
+                          content: vmState.boot_firmware !== 'uefi' ? t('boot-firmware-bios') : t('boot-firmware-uefi'),
+                        }
+                      : undefined
+                  "
+                >
+                  <UiCheckbox
+                    v-model="getCopyHostBiosStrings"
+                    accent="brand"
+                    :disabled="vmState.boot_firmware === 'uefi' || getCopyHostBiosStrings"
+                  >
+                    {{ t('copy-host') }}
+                  </UiCheckbox>
+                </div>
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
@@ -213,7 +209,6 @@
                     <VtsIcon name="fa:align-left" size="medium" />
                     {{ t('description') }}
                   </th>
-                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -489,20 +484,19 @@ const isDiskTemplate = computed(() => {
     vmState.new_vm_template.name_label !== 'Other install media'
   )
 })
-// Todo: implement when the API will support
-// const getBootFirmwares = computed(() => {
-//   return [
-//     ...new Set(vmsTemplates.value.map(vmsTemplate => vmsTemplate.boot.firmware).filter(firmware => firmware != null)),
-//   ]
-// })
 
-// Todo: implement when the API will support
-// const getCopyHostBiosStrings = computed({
-//   get: () => vmState.boot_firmware !== 'uefi',
-//   set: value => {
-//     vmState.boot_firmware = value ? 'bios' : 'uefi'
-//   },
-// })
+const getBootFirmwares = computed(() => {
+  return [
+    ...new Set(vmsTemplates.value.map(vmsTemplate => vmsTemplate.boot.firmware).filter(firmware => firmware != null)),
+  ]
+})
+
+const getCopyHostBiosStrings = computed({
+  get: () => vmState.boot_firmware !== 'uefi',
+  set: value => {
+    vmState.boot_firmware = value ? 'bios' : 'uefi'
+  },
+})
 
 const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
@@ -768,7 +762,8 @@ const vmData = computed(() => {
         method: vmState.installMode,
         repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
       },
-    }
+    },
+    vmState.boot_firmware ? { hvmBootFirmware: vmState.boot_firmware } : {}
     // TODO: uncomment when radio will be implemented
     // ...(vmState.installMode === 'custom_config' && {
     //   ...(vmState.cloudConfig && { cloud_config: vmState.cloudConfig }),
@@ -920,6 +915,12 @@ watch(
   },
   { immediate: true }
 )
+
+// BOOT FIRMWARE SELECTOR
+
+const { id: bootFirmwareSelectId } = useFormSelect(getBootFirmwares, {
+  model: toRef(vmState, 'boot_firmware'),
+})
 </script>
 
 <style scoped lang="postcss">
