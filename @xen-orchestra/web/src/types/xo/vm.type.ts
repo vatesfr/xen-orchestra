@@ -78,4 +78,5 @@ export type XoVm = {
   suspendSr?: XoSr['id']
   blockedOperations: Record<string, string>
   hasVendorDevice: boolean
+  hvmBootFirmware: 'bios' | 'uefi'
 }

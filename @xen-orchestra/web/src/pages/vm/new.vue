@@ -209,7 +209,6 @@
                     <VtsIcon name="fa:align-left" size="medium" />
                     {{ t('description') }}
                   </th>
-                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -764,7 +763,7 @@ const vmData = computed(() => {
         repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
       },
     },
-    vmState.boot_firmware && { bootFirmware: vmState.boot_firmware }
+    vmState.boot_firmware ? { hvmBootFirmware: vmState.boot_firmware } : {}
     // TODO: uncomment when radio will be implemented
     // ...(vmState.installMode === 'custom_config' && {
     //   ...(vmState.cloudConfig && { cloud_config: vmState.cloudConfig }),
