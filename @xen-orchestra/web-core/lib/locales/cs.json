@@ -34,6 +34,7 @@
   "api-info-details": "Podrobnosti o informaci z API",
   "api-warning-details": "Podrobnosti o varování z API",
   "appearance": "Vzhled",
+  "aria.breadcrumb.label": "Drobečková navigace",
   "ascending": "vzestupně",
   "auto-generated": "Automaticky vytvořeno",
   "auto-power": "Automatické zapínání",
