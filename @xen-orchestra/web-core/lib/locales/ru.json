@@ -25,7 +25,7 @@
   "alarm-type.sr_io_throughput_total_per_host": "Общая пропускная способность SR IO на один хост превышает @:n-percent",
   "alarm-type.unknown": "Неизвестный тип оповещения",
   "alarms": "Тревога",
-  "all-done": "Выполнено!",
+  "all-done": "Все готово!",
   "all-good": "Все в порядке!",
   "all-quiet-launchpad": "На стартовой площадке все спокойно",
   "allow-self-signed-ssl": "Возможно, вам потребуется разрешить самоподписанные SSL-сертификаты в вашем браузере",
