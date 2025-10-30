@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.16.0** (2025-10-30)
 
 - [VM/New] Fix the default topology by setting the platform:cores-per-socket value correctly (PR [#9136](https://github.com/vatesfr/xen-orchestra/pull/9136))
 
