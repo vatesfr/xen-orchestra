@@ -5,9 +5,11 @@ import {
   AnyXoVm,
   VM_POWER_STATE,
   XoBackupLog,
+  XoBackupRepository,
   XoSr,
   XoVbd,
   XoVdiSnapshot,
+  XoVmBackupArchive,
   XoVmBackupJob,
   XoVmController,
   XoVmSnapshot,
@@ -327,21 +329,48 @@ export class VmService {
     return { lastRun: lastBackupRun, vmProtected: isProtected }
   }
 
+  async #getLastVmBackupArchives(id: XoVm['id']): Promise<
+    {
+      id: XoVmBackupArchive['id']
+      date: number
+      backupRepository: XoBackupRepository['id']
+      size: number
+    }[]
+  > {
+    const vm = this.#restApi.getObject<XoVm>(id, 'VM')
+
+    const brIds = (await this.#restApi.xoApp.getAllRemotes()).map(br => br.id)
+    const backupArchivesByVmByBr = await this.#restApi.xoApp.listVmBackupsNg(brIds, { vmId: vm.id })
+
+    return Object.values(backupArchivesByVmByBr)
+      .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id])
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .splice(0, 3)
+      .map(ba => ({ id: ba.id, date: ba.timestamp, backupRepository: ba.backupRepository, size: ba.size }))
+  }
+
   async getVmDashboard(id: XoVm['id'], { stream }: { stream?: Writable } = {}) {
-    const [quickInfo, alarms, lastReplication, backupsInfo] = await Promise.all([
+    const [quickInfo, alarms, lastReplication, { lastRun, vmProtected }, lastBackupArchives] = await Promise.all([
       promiseWriteInStream({ maybePromise: this.#getDashboardQuickInfo(id), path: 'quickInfo', stream }),
       promiseWriteInStream({ maybePromise: Object.keys(this.getVmAlarms(id)), path: 'alarms', stream }),
-      promiseWriteInStream({ maybePromise: this.#getLastReplication(id), path: 'lastReplication', stream }),
+      promiseWriteInStream({ maybePromise: this.#getLastReplication(id), path: 'backupsInfo.replication', stream }),
       promiseWriteInStream({ maybePromise: this.#getBackupsInfo(id), path: 'backupsInfo', stream }),
+      promiseWriteInStream({
+        maybePromise: this.#getLastVmBackupArchives(id),
+        path: 'backupsInfo.backupArchives',
+        stream,
+      }),
     ])
-
-    // last backup archives
 
     return {
       quickInfo,
       alarms,
-      lastReplication,
-      backupsInfo,
+      backupsInfo: {
+        lastRun,
+        vmProtected,
+        replication: lastReplication,
+        backupArchives: lastBackupArchives,
+      },
     }
   }
 }
