@@ -4,12 +4,12 @@ import { Task } from '@vates/task'
 import {
   AnyXoVm,
   VM_POWER_STATE,
+  XoAlarm,
   XoBackupLog,
-  XoBackupRepository,
+  XoHost,
   XoSr,
   XoVbd,
   XoVdiSnapshot,
-  XoVmBackupArchive,
   XoVmBackupJob,
   XoVmController,
   XoVmSnapshot,
@@ -29,6 +29,7 @@ import { AlarmService } from '../alarms/alarm.service.mjs'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import groupBy from 'lodash/groupBy.js'
+import { VmDashboard } from './vm.type.mjs'
 
 const log = createLogger('xo:rest-api:vm-service')
 
@@ -182,7 +183,10 @@ export class VmService {
     return stream
   }
 
-  getVmAlarms(id: XoVm['id'], { filter, limit }: { filter?: string; limit?: number } = {}) {
+  getVmAlarms(
+    id: XoVm['id'],
+    { filter, limit }: { filter?: string; limit?: number } = {}
+  ): Record<XoAlarm['id'], XoAlarm> {
     const vm = this.#restApi.getObject<XoVm>(id, 'VM')
 
     const alarms = this.#alarmService.getAlarms({
@@ -193,34 +197,57 @@ export class VmService {
     return alarms
   }
 
-  #getDashboardQuickInfo(id: XoVm['id']) {
-    const vm = this.#restApi.getObject<XoVm>(id, 'VM')
+  #getDashboardQuickInfo(id: XoVm['id']): VmDashboard['quickInfo'] {
+    const {
+      power_state,
+      uuid,
+      name_description,
+      CPUs,
+      mainIpAddress,
+      os_version,
+      memory,
+      creation,
+      $pool,
+      virtualizationMode,
+      tags,
+      $container,
+      startTime,
+      pvDriversDetected,
+      pvDriversVersion,
+      pvDriversUpToDate,
+    } = this.#restApi.getObject<XoVm>(id, 'VM')
 
     return {
-      id: vm.id,
-      state: vm.power_state,
-      uuid: vm.uuid,
-      description: vm.name_description,
-      vcpu: vm.CPUs.number,
-      ipAddress: vm.mainIpAddress,
-      osName: vm.os_version?.name,
-      ram: vm.memory.size,
-      createdOn: vm.creation.date,
-      pool: vm.$pool,
-      virtualisationType: vm.virtualizationMode,
-      tags: vm.tags,
-      createdBy: vm.creation.user,
-      host: vm.$container,
-      guestTools: {
-        detected: vm.pvDriversDetected ?? false,
-        version: vm.pvDriversVersion,
-        upToDate: vm.pvDriversUpToDate,
+      id,
+      power_state,
+      uuid,
+      name_description,
+      CPUs: {
+        number: CPUs.number,
       },
-      started: vm.startTime,
+      mainIpAddress,
+      os_version: {
+        name: os_version?.name,
+      },
+      memory: {
+        size: memory.size,
+      },
+      creation: {
+        date: creation.date,
+        user: creation.user,
+      },
+      $pool,
+      virtualizationMode,
+      tags,
+      host: $container === $pool ? undefined : ($container as XoHost['id']),
+      pvDriversDetected: pvDriversDetected ?? false,
+      pvDriversVersion,
+      pvDriversUpToDate,
+      startTime,
     }
   }
 
-  #getLastReplication(id: XoVm['id']): undefined | { id: XoVm['id']; date: number; sr: XoSr['id'] | undefined } {
+  #getLastReplication(id: XoVm['id']): VmDashboard['backupsInfo']['replication'] {
     const vm = this.#restApi.getObject<XoVm>(id, 'VM')
     const replicatedVms = this.#restApi.getObjectsByType<XoVm>('VM', {
       filter: obj => obj.other['xo:backup:vm'] === vm.id,
@@ -259,15 +286,12 @@ export class VmService {
 
     return {
       id: lastReplica.id,
-      date: lastTimestamp! * 1000,
+      timestamp: lastTimestamp! * 1000,
       sr,
     }
   }
 
-  async #getBackupsInfo(id: XoVm['id']): Promise<{
-    lastRun: { backupJobId: XoVmBackupJob['id']; timestamp: number; status: string }[]
-    vmProtected: boolean
-  }> {
+  async #getBackupsInfo(id: XoVm['id']): Promise<Pick<VmDashboard['backupsInfo'], 'vmProtected' | 'lastRun'>> {
     const vm = this.#restApi.getObject<XoVm>(id, 'VM')
 
     const allBackupJobs = await this.#restApi.xoApp.getAllJobs('backup')
@@ -329,14 +353,7 @@ export class VmService {
     return { lastRun: lastBackupRun, vmProtected: isProtected }
   }
 
-  async #getLastVmBackupArchives(id: XoVm['id']): Promise<
-    {
-      id: XoVmBackupArchive['id']
-      date: number
-      backupRepository: XoBackupRepository['id']
-      size: number
-    }[]
-  > {
+  async #getLastVmBackupArchives(id: XoVm['id']): Promise<VmDashboard['backupsInfo']['backupArchives']> {
     const vm = this.#restApi.getObject<XoVm>(id, 'VM')
 
     const brIds = (await this.#restApi.xoApp.getAllRemotes()).map(br => br.id)
@@ -346,10 +363,10 @@ export class VmService {
       .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id])
       .sort((a, b) => b.timestamp - a.timestamp)
       .splice(0, 3)
-      .map(ba => ({ id: ba.id, date: ba.timestamp, backupRepository: ba.backupRepository, size: ba.size }))
+      .map(ba => ({ id: ba.id, timestamp: ba.timestamp, backupRepository: ba.backupRepository, size: ba.size }))
   }
 
-  async getVmDashboard(id: XoVm['id'], { stream }: { stream?: Writable } = {}) {
+  async getVmDashboard(id: XoVm['id'], { stream }: { stream?: Writable } = {}): Promise<VmDashboard> {
     const [quickInfo, alarms, lastReplication, { lastRun, vmProtected }, lastBackupArchives] = await Promise.all([
       promiseWriteInStream({ maybePromise: this.#getDashboardQuickInfo(id), path: 'quickInfo', stream }),
       promiseWriteInStream({ maybePromise: Object.keys(this.getVmAlarms(id)), path: 'alarms', stream }),
@@ -364,7 +381,7 @@ export class VmService {
 
     return {
       quickInfo,
-      alarms,
+      alarms: alarms as XoAlarm['id'][],
       backupsInfo: {
         lastRun,
         vmProtected,

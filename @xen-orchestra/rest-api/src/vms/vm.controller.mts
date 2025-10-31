@@ -48,7 +48,7 @@ import {
 import { BASE_URL } from '../index.mjs'
 import { limitAndFilterArray, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { partialVms, vm, vmIds, vmStatsExample, vmVdis } from '../open-api/oa-examples/vm.oa-example.mjs'
+import { partialVms, vm, vmDashboard, vmIds, vmStatsExample, vmVdis } from '../open-api/oa-examples/vm.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { AuthenticatedRequest, SendObjects } from '../helpers/helper.type.mjs'
@@ -58,6 +58,7 @@ import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import type { UnbrandXoVmBackupJob } from '../backup-jobs/backup-job.type.mjs'
 import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
+import { VmDashboard } from './vm.type.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -651,8 +652,16 @@ export class VmController extends XapiXoController<XoVm> {
     await vm.$call('remove_tags', tag)
   }
 
+  /**
+   * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
+   */
+  @Example(vmDashboard)
   @Get('{id}/dashboard')
-  async getVmDashboard(@Request() req: AuthenticatedRequest, @Path() id: string, @Query() ndjson?: boolean) {
+  async getVmDashboard(
+    @Request() req: AuthenticatedRequest,
+    @Path() id: string,
+    @Query() ndjson?: boolean
+  ): Promise<Unbrand<VmDashboard> | undefined> {
     const stream = ndjson ? new PassThrough() : undefined
     const isStream = stream !== undefined
 

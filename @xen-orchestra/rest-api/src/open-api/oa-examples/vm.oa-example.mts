@@ -262,3 +262,78 @@ export const vmVdis = [
     href: '/rest/v0/vdis/0eb73d40-e5f8-443d-b611-a52e03858a6a',
   },
 ]
+
+export const vmDashboard = {
+  quickInfo: {
+    id: '613f541c-4bed-fc77-7ca8-2db6b68f079c',
+    power_state: 'Halted',
+    uuid: '613f541c-4bed-fc77-7ca8-2db6b68f079c',
+    name_description: 'root:vateslab',
+    CPUs: {
+      number: 1,
+    },
+    mainIpAddress: '10.1.6.166',
+    os_version: {
+      name: 'Alpine Linux v3.21',
+    },
+    memory: {
+      size: 536870912,
+    },
+    creation: {
+      date: '2025-10-23T14:12:05.689Z',
+      user: 'e531b8c9-3876-4ed9-8fd2-0476d5f825c9',
+    },
+    $pool: 'b7569d99-30f8-178a-7d94-801de3e29b5b',
+    virtualizationMode: 'hvm',
+    tags: [],
+    host: 'b61a5c92-700e-4966-a13b-00633f03eea8',
+    pvDriversDetected: false,
+    startTime: null,
+  },
+  alarms: [],
+  backupsInfo: {
+    lastRun: [
+      {
+        backupJobId: '399f368a-a550-4cdf-9c5b-84b68912b748',
+        timestamp: 1762124447136,
+        status: 'success',
+      },
+      {
+        backupJobId: '399f368a-a550-4cdf-9c5b-84b68912b748',
+        timestamp: 1762038039074,
+        status: 'success',
+      },
+      {
+        backupJobId: '399f368a-a550-4cdf-9c5b-84b68912b748',
+        timestamp: 1761951645862,
+        status: 'success',
+      },
+    ],
+    vmProtected: true,
+    replication: {
+      id: '8c2b7a25-70b9-4a1c-d6e0-9cce86d3171a',
+      timestamp: 1761302770000,
+      sr: '4cb0d74e-a7c1-0b7d-46e3-09382c012abb',
+    },
+    backupArchives: [
+      {
+        id: '1af95910-01b4-4e87-9c2f-d895cafe0776//xo-vm-backups/613f541c-4bed-fc77-7ca8-2db6b68f079c/20251102T230026Z.json',
+        timestamp: 1762124426346,
+        backupRepository: '1af95910-01b4-4e87-9c2f-d895cafe0776',
+        size: 0,
+      },
+      {
+        id: '1af95910-01b4-4e87-9c2f-d895cafe0776//xo-vm-backups/613f541c-4bed-fc77-7ca8-2db6b68f079c/20251101T230026Z.json',
+        timestamp: 1762038026319,
+        backupRepository: '1af95910-01b4-4e87-9c2f-d895cafe0776',
+        size: 0,
+      },
+      {
+        id: '1af95910-01b4-4e87-9c2f-d895cafe0776//xo-vm-backups/613f541c-4bed-fc77-7ca8-2db6b68f079c/20251031T230025Z.json',
+        timestamp: 1761951625256,
+        backupRepository: '1af95910-01b4-4e87-9c2f-d895cafe0776',
+        size: 0,
+      },
+    ],
+  },
+}
