@@ -45,7 +45,7 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoSr, XoPool, XoBackupRepository, AnyXoBackupJob } from '@vates/types'
+import type { AnyXoBackupJob, XoBackupRepository, XoPool, XoSr } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

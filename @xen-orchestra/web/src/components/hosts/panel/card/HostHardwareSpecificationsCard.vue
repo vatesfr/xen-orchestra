@@ -6,16 +6,16 @@
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('manufacturer-info') }}</template>
-        <template v-if="manufacturerInfo" #value>{{ manufacturerInfo }}</template>
-        <template v-if="manufacturerInfo" #addons>
+        <template #value>{{ manufacturerInfo }}</template>
+        <template #addons>
           <VtsCopyButton :value="manufacturerInfo" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('core-socket') }}</template>
-        <template #value>{{ `${host.cpus.cores} (${host.cpus.sockets})` }}</template>
+        <template #value>{{ coreSocketInfo }}</template>
         <template #addons>
-          <VtsCopyButton :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
+          <VtsCopyButton :value="coreSocketInfo" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -42,6 +42,13 @@ const manufacturerInfo = computed(
     (host.bios_strings['system-manufacturer'] ?? '') +
     (host.bios_strings['system-product-name'] ? ` (${host.bios_strings['system-product-name']})` : '')
 )
+
+const coreSocketInfo = computed(() => {
+  const cores = host.cpus.cores
+  const sockets = host.cpus.sockets
+
+  return `${cores} (${sockets})`
+})
 </script>
 
 <style scoped lang="postcss">

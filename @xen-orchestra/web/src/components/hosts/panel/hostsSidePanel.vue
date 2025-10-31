@@ -13,7 +13,7 @@
       </div>
     </template>
     <template #default>
-      <HostGeneralCard :host />
+      <HostInfoCard :host />
       <HostNetworkCard :host />
       <!-- host licensing -->
       <HostSoftwareCard :host />
@@ -24,17 +24,18 @@
 </template>
 
 <script setup lang="ts">
+import HostHardwareSpecificationsCard from '@/components/hosts/panel/card/HostHardwareSpecificationsCard.vue'
+import HostInfoCard from '@/components/hosts/panel/card/HostInfoCard.vue'
+import HostNetworkCard from '@/components/hosts/panel/card/HostNetworkCard.vue'
+import HostSoftwareCard from '@/components/hosts/panel/card/HostSoftwareCard.vue'
 import type { XoHost } from '@/types/xo/host.type'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { useI18n } from 'vue-i18n'
-import HostGeneralCard from './card/HostGeneralCard.vue'
-import HostHardwareSpecificationsCard from './card/HostHardwareSpecificationsCard.vue'
-import HostNetworkCard from './card/HostNetworkCard.vue'
-import HostSoftwareCard from './card/HostSoftwareCard.vue'
 
-const { host } = defineProps<{
+defineProps<{
   host: XoHost
 }>()
 
