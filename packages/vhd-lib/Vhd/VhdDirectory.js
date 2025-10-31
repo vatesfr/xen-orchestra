@@ -302,7 +302,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     assert.strictEqual(
       block.buffer.length,
       this.fullBlockSize,
-      `partial read of a block , expecting ${this.fullBlockSize}, got ${block.buffer.length}`
+      `partial block can't be written , expecting ${this.fullBlockSize}, got ${block.buffer.length}`
     )
     await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)
