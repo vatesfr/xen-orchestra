@@ -45,6 +45,16 @@ export const IPMI_SENSOR_REGEX_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME = {
     [IPMI_SENSOR_DATA_TYPE.inletTemp]: /^(ambient temp|inlet temp)$/i,
     [IPMI_SENSOR_DATA_TYPE.ip]: /^ip address$/i,
   },
+  supermicro: {
+    [IPMI_SENSOR_DATA_TYPE.fanSpeed]: /^fan(?:\s*\d+|[a-z])$/i,
+    [IPMI_SENSOR_DATA_TYPE.psuPower]: /^ps\s*\d+\s+(input|output)$/i,
+    [IPMI_SENSOR_DATA_TYPE.psuStatus]: /^(power supply\s*\d+|ps\s*\d+\s*status)$/i,
+    [IPMI_SENSOR_DATA_TYPE.cpuTemp]: /^(cpu\s*\d*\s*temp|.*cpu\s*\d*\s*pkgtmp)$/i,
+    [IPMI_SENSOR_DATA_TYPE.totalPower]: /^power meter$/i,
+    [IPMI_SENSOR_DATA_TYPE.inletTemp]: /(inlet ambient|board inlet)/i,
+    [IPMI_SENSOR_DATA_TYPE.outletTemp]: /^sys exhaust \d+$/i,
+    [IPMI_SENSOR_DATA_TYPE.ip]: /^ip address$/i,
+  },
 }
 export const IPMI_SENSOR_CUSTOM_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME = {
   dell: {
@@ -61,6 +71,18 @@ export const IPMI_SENSOR_CUSTOM_BY_DATA_TYPE_BY_SUPPORTED_PRODUCT_NAME = {
       name: 'bmc status',
       value: '0x00',
     }),
+    [IPMI_SENSOR_DATA_TYPE.fanStatus]: d =>
+      (d[IPMI_SENSOR_DATA_TYPE.fanSpeed] ?? [])
+        .filter(s => s.event === 'ok' && /\d+\s*rpm/i.test(s.value))
+        .map(s => ({ ...s, rpm: parseInt(s.value, 10) })),
+  },
+  supermicro: {
+    [IPMI_SENSOR_DATA_TYPE.bmcStatus]: d => ({
+      event: Object.keys(d).length > 0 ? 'ok' : 'ko',
+      name: 'bmc status',
+      value: '0x00',
+    }),
+    // Only keep installed fans with a real RPM reading
     [IPMI_SENSOR_DATA_TYPE.fanStatus]: d =>
       (d[IPMI_SENSOR_DATA_TYPE.fanSpeed] ?? [])
         .filter(s => s.event === 'ok' && /\d+\s*rpm/i.test(s.value))
