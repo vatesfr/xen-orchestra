@@ -41,6 +41,7 @@
 
 - @xen-orchestra/web patch
 - @xen-orchestra/xapi minor
+- vhd-lib patch
 - xo-web minor
 
 <!--packages-end-->
