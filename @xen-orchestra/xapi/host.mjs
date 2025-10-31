@@ -160,6 +160,11 @@ class Host {
       productName = 'lenovo'
     }
 
+    // Olivier.L request: consider all SuperMicro servers in the same way
+    if (biosStrings['system-manufacturer']?.toLowerCase().includes('supermicro')) {
+      productName = 'supermicro'
+    }
+
     const callIpmiPlugin = fn => this.call(cache, 'host.call_plugin', ref, 'ipmitool.py', fn, {})
 
     if (
