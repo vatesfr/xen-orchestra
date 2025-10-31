@@ -694,6 +694,8 @@ const methods = {
     return task.run(async () => {
       await callPluginOnAllHost('updater.py', 'update', { packages: 'xcp-ng-xapi-plugins' })
       await callPluginOnAllHost('updater.py', 'update', { packages: 'xcp-ng-linstor' })
+      await callPluginOnAllHost('updater.py', 'update', { packages: 'linstor-satellite' })
+      await callPluginOnAllHost('updater.py', 'update', { packages: 'linstor-controller' })
       await callPluginOnAllHost('service.py', 'stop_service', { service: 'linstor-controller' })
       await callPluginOnAllHost('service.py', 'restart_service', { service: 'linstor-satellite' })
       task.set('progress', 100)
