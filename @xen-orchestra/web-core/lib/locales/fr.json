@@ -86,6 +86,7 @@
   "bytes.gi": "Gio",
   "bytes.ki": "Kio",
   "bytes.mi": "Mio",
+  "by": "Par",
   "cancel": "Annuler",
   "cbt-destroy-snapshot-data": "Supprimer les données de l'instantané quand CBT est utilisé",
   "change-state": "Changer l'état",
