@@ -88,7 +88,7 @@
   - [Site/Backups] Fix an issue properties of undefined in backups tab (PR [#9064](https://github.com/vatesfr/xen-orchestra/pull/9064))
   - [User Menu] Fix display user menu in front of tree structure (PR [#9115](https://github.com/vatesfr/xen-orchestra/pull/9115))
   - [Site/Backups] Fixed an issue related to date formatting and language switching (PR [#9124](https://github.com/vatesfr/xen-orchestra/pull/9124))
-  - [Site/Hosts] implement host tab for see all hosts of site (PR [#9128](https://github.com/vatesfr/xen-orchestra/pull/9128))
+  - [Site/Hosts] Implement host view and side panel information (PR [#9128](https://github.com/vatesfr/xen-orchestra/pull/9128))
 
 ### Packages to release
 

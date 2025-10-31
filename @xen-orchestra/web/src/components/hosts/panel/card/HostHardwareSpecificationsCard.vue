@@ -6,9 +6,9 @@
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('manufacturer-info') }}</template>
-        <template v-if="manufacturerInfo" #value>{{ manufacturerInfo }}</template>
-        <template v-if="manufacturerInfo" #addons>
-          <VtsCopyButton :value="manufacturerInfo" />
+        <template #value>{{ coreSocketInfo }}</template>
+        <template #addons>
+          <VtsCopyButton :value="coreSocketInfo" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -37,11 +37,12 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const manufacturerInfo = computed(
-  () =>
-    (host.bios_strings['system-manufacturer'] ?? '') +
-    (host.bios_strings['system-product-name'] ? ` (${host.bios_strings['system-product-name']})` : '')
-)
+const coreSocketInfo = computed(() => {
+  const cores = host.cpus.cores
+  const sockets = host.cpus.sockets
+
+  return `${cores} (${sockets})`
+})
 </script>
 
 <style scoped lang="postcss">

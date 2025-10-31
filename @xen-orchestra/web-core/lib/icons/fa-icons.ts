@@ -181,7 +181,7 @@ export const faIcons = defineIconPack({
   minus: { icon: faMinus },
   moon: { icon: faMoon },
   'network-wired': { icon: faNetworkWired },
-  object: { icon: faA },
+  a: { icon: faA },
   pause: { icon: faPause },
   pencil: { icon: faPencil },
   play: { icon: faPlay },
