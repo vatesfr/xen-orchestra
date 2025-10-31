@@ -272,7 +272,7 @@ deleteVmBackups.params = {
 }
 
 export function listVmBackups({ remotes, _forceRefresh }) {
-  return this.listVmBackupsNg(remotes, _forceRefresh)
+  return this.listVmBackupsNg(remotes, { _forceRefresh })
 }
 
 listVmBackups.permission = 'admin'

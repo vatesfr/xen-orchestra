@@ -38,6 +38,7 @@
     "@vates/types": "^1.14.0",
     "@xen-orchestra/backups": "^0.66.0",
     "@xen-orchestra/log": "^0.7.1",
+    "@xen-orchestra/xapi": "^8.4.1",
     "complex-matcher": "^1.0.0",
     "golike-defer": "^0.5.1",
     "inversify": "^6.2.2",
