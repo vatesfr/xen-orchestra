@@ -130,7 +130,7 @@ const {
   proxy,
   reportWhenValueTranslation,
   settings,
-} = useXoBackupJobSettingsUtils(backupJob)
+} = useXoBackupJobSettingsUtils(() => backupJob)
 </script>
 
 <style scoped lang="postcss">

@@ -91,5 +91,5 @@ const {
   settings,
   reportWhenValueTranslation,
   snapshotModeTranslation,
-} = useXoBackupJobSettingsUtils(backupJob)
+} = useXoBackupJobSettingsUtils(() => backupJob)
 </script>
