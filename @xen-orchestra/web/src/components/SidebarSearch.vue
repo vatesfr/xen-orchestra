@@ -6,6 +6,7 @@
       icon="fa:magnifying-glass"
       :placeholder="t('sidebar.search-tree-view')"
       accent="brand"
+      clearable
     />
   </div>
 </template>

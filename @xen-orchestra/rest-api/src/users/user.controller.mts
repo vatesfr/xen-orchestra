@@ -23,6 +23,7 @@ import { provide } from 'inversify-binding-decorators'
 import type { XoAuthenticationToken, XoGroup, XoTask, XoUser } from '@vates/types'
 
 import {
+  badRequestResp,
   createdResp,
   forbiddenOperationResp,
   internalServerErrorResp,
@@ -58,6 +59,7 @@ const log = createLogger('xo:rest-api:user-controller')
 @Route('users')
 @Security('*')
 @Middlewares(redirectMeAlias)
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('users')
 @provide(UserController)
@@ -293,6 +295,7 @@ export class UserController extends XoController<XoUser> {
   @Post('{id}/authentication_tokens')
   @Middlewares(json())
   @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async postAuthenticationTokens(
     @Body()
@@ -307,7 +310,7 @@ export class UserController extends XoController<XoUser> {
   ): Promise<{ token: Unbrand<XoAuthenticationToken> }> {
     const user = this.restApi.getCurrentUser()
     if (user.id !== id) {
-      throw new ApiError('You can only create tokens for yourself', 403)
+      throw forbiddenOperation('create authentication token', 'you can only create token for yourself')
     }
 
     const token = await this.restApi.xoApp.createAuthenticationToken({

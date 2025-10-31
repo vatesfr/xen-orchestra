@@ -2,9 +2,6 @@
   <div class="backup-jobs-table">
     <UiTitle>
       {{ t('backup-jobs') }}
-      <template #actions>
-        <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
-      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
@@ -63,7 +60,7 @@
                 size="small"
               />
               <div v-else-if="column.id === 'job-name'">
-                <UiLink size="medium" icon="object:backup-job" @click.stop>
+                <UiLink size="medium" icon="object:backup-job" :to="`/backup/${row.id}/runs`" @click.stop>
                   {{ column.value }}
                 </UiLink>
               </div>
@@ -100,11 +97,9 @@
 </template>
 
 <script setup lang="ts">
+import { useXoBackupJobSchedulesUtils } from '@/composables/xo-backup-job-schedules.composable'
 import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
-import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection.ts'
-import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
-import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -122,7 +117,6 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { createMapper } from '@core/packages/mapper'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -134,10 +128,8 @@ const { backupJobs } = defineProps<{
 
 const { t } = useI18n()
 
-const { schedulesByJobId } = useXoScheduleCollection()
-const { getLastNBackupLogsByJobId } = useXoBackupLogCollection()
 const { getModeLabels } = useXoBackupUtils()
-
+const { getLastThreeRunsStatuses, getTotalSchedules } = useXoBackupJobSchedulesUtils()
 const selectedBackupJobId = useRouteQuery('id')
 
 const searchQuery = ref('')
@@ -153,27 +145,6 @@ const filteredBackupJobs = computed(() => {
     Object.values(backupJob).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
-
-const getRunStatusIcon = createMapper<XoBackupLog['status'], IconName>(
-  {
-    success: 'legacy:status:success',
-    skipped: 'legacy:status:warning',
-    interrupted: 'legacy:status:danger',
-    failure: 'legacy:status:danger',
-    pending: 'legacy:status:info',
-  },
-  'failure'
-)
-
-const getRunInfo = (backupLog: XoBackupLog, index: number) => ({
-  icon: getRunStatusIcon(backupLog.status),
-  tooltip: `${t('last-run-number', { n: index + 1 })}: ${new Date(backupLog.end ?? backupLog.start).toLocaleString()}, ${t(backupLog.status)}`,
-})
-
-const getLastThreeRunsStatuses = (backupJob: XoBackupJob) =>
-  getLastNBackupLogsByJobId(backupJob.id).map((backupLog, index) => getRunInfo(backupLog, index))
-
-const getTotalSchedules = (backupJob: XoBackupJob) => schedulesByJobId.value.get(backupJob.id)?.length ?? 0
 
 const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
   rowId: record => record.id,

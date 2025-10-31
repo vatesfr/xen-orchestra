@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.187.0",
+  "version": "5.188.0",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -120,7 +120,7 @@
     "redux-thunk": "^2.0.1",
     "relative-luminance": "^2.0.1",
     "reselect": "^2.5.4",
-    "rimraf": "^5.0.1",
+    "rimraf": "^6.0.1",
     "sanitize-html": "^2.11.0",
     "sass": "^1.38.1",
     "semver": "^6.0.0",

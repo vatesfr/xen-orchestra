@@ -22,6 +22,7 @@ import type { InsertableXoServer } from './server.type.mjs'
 
 import {
   asynchronousActionResp,
+  badRequestResp,
   createdResp,
   invalidParameters,
   noContentResp,
@@ -37,6 +38,7 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('servers')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('servers')
 @provide(ServerController)

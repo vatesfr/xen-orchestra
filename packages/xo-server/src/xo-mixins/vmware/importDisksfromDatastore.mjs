@@ -1,10 +1,11 @@
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
-import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
+import { VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_MAX_SIZE } from '@xen-orchestra/xapi'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import NbdClient from '@vates/nbd-client'
+import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
 const { warn } = createLogger('xo:importdiskfromdatastore')
 
@@ -96,8 +97,16 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
       })
       Task.info(`vbd created `, diskPath)
     }
-    const stream = await toVhdStream(vmdk)
-    await existingVdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+    let stream
+    let format
+    if (vmdk.getVirtualSize() > VHD_MAX_SIZE) {
+      stream = await toQcow2Stream(vmdk)
+      format = VDI_FORMAT_QCOW2
+    } else {
+      stream = await toVhdStream(vmdk)
+      format = VDI_FORMAT_VHD
+    }
+    await existingVdi.$importContent(stream, { format })
     Task.info(`import of ${diskPath} content done`, { datastoreName, diskPath, sourceVmId: vmId })
     const transfered = Math.round((vmdk.getNbGeneratedBlock() * vmdk.getBlockSize()) / 1024 / 1024)
     const duration = Math.round((Date.now() - start) / 1000)

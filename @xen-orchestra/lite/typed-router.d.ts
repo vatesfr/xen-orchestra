@@ -80,6 +80,7 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/alarm-item/ui-alarm-item': RouteRecordInfo<'/story/web-core/ui/alarm-item/ui-alarm-item', '/story/web-core/ui/alarm-item/ui-alarm-item', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/alarm-list/ui-alarm-list': RouteRecordInfo<'/story/web-core/ui/alarm-list/ui-alarm-list', '/story/web-core/ui/alarm-list/ui-alarm-list', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/alert/ui-alert': RouteRecordInfo<'/story/web-core/ui/alert/ui-alert', '/story/web-core/ui/alert/ui-alert', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/breadcrumb/ui-breadcrumb': RouteRecordInfo<'/story/web-core/ui/breadcrumb/ui-breadcrumb', '/story/web-core/ui/breadcrumb/ui-breadcrumb', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/button/ui-button': RouteRecordInfo<'/story/web-core/ui/button/ui-button', '/story/web-core/ui/button/ui-button', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/button-icon/ui-button-icon': RouteRecordInfo<'/story/web-core/ui/button-icon/ui-button-icon', '/story/web-core/ui/button-icon/ui-button-icon', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/card/ui-card': RouteRecordInfo<'/story/web-core/ui/card/ui-card', '/story/web-core/ui/card/ui-card', Record<never, never>, Record<never, never>>,

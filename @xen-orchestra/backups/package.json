@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.64.3",
+  "version": "0.66.0",
   "engines": {
     "node": ">=14.18"
   },
@@ -25,14 +25,14 @@
     "@vates/decorate-with": "^2.1.0",
     "@vates/disposable": "^0.1.6",
     "@vates/fuse-vhd": "^2.1.2",
-    "@vates/generator-toolbox": "^1.0.4",
+    "@vates/generator-toolbox": "^1.1.0",
     "@vates/nbd-client": "^3.2.1",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/disk-transform": "^1.1.0",
+    "@xen-orchestra/disk-transform": "^1.2.0",
     "@xen-orchestra/fs": "^4.6.4",
     "@xen-orchestra/log": "^0.7.1",
-    "@xen-orchestra/qcow2": "^1.0.0",
+    "@xen-orchestra/qcow2": "^1.1.0",
     "@xen-orchestra/template": "^0.1.0",
     "app-conf": "^3.0.0",
     "compare-versions": "^6.0.0",
@@ -51,18 +51,18 @@
     "tar": "^6.1.15",
     "uuid": "^9.0.0",
     "value-matcher": "^0.2.0",
-    "vhd-lib": "^4.14.1",
+    "vhd-lib": "^4.14.3",
     "xen-api": "^4.7.4",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
     "fs-extra": "^11.1.0",
-    "rimraf": "^5.0.1",
+    "rimraf": "^6.0.1",
     "sinon": "^18.0.0",
     "tmp": "^0.2.1"
   },
   "peerDependencies": {
-    "@xen-orchestra/xapi": "^8.4.1"
+    "@xen-orchestra/xapi": "^8.5.0"
   },
   "license": "AGPL-3.0-or-later",
   "author": {

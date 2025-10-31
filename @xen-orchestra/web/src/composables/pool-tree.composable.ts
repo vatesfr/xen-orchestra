@@ -1,3 +1,4 @@
+import { XOA_NAME } from '@/constants.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
@@ -12,12 +13,12 @@ export function useSiteTree() {
   const { pools, arePoolsReady } = useXoPoolCollection()
   const { hostsByPool, areHostsReady } = useXoHostCollection()
   const { vmsByHost, hostLessVmsByPool, areVmsReady } = useXoVmCollection()
-  const { filter, predicate } = useTreeFilter()
+  const { filter, predicate, isSearching } = useTreeFilter()
 
   const site: XoSite = {
     id: useId(),
     type: 'site',
-    name_label: 'Xen Orchestra Appliance',
+    name_label: XOA_NAME,
   }
 
   const sites = computed(() => [site])
@@ -68,5 +69,6 @@ export function useSiteTree() {
     isReady,
     sites: nodes,
     filter,
+    isSearching,
   }
 }
