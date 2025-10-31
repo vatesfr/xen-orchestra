@@ -171,10 +171,22 @@ export default decorate([
             className='form-control'
             name='vmIpAddress'
             onChange={effects.onChangeValue}
-            placeholder={formatMessage(messages.staticIp)}
+            placeholder='192.168.1.5'
             required
             type='text'
             value={value.vmIpAddress}
+          />
+        </FormGrid.Row>,
+        <FormGrid.Row key='netmaskRow'>
+          <label>{_('netmask')}</label>
+          <input
+            className='form-control'
+            name='netmask'
+            onChange={effects.onChangeValue}
+            placeholder='255.255.0.0'
+            required
+            type='text'
+            value={value.netmask}
           />
         </FormGrid.Row>,
         <FormGrid.Row key='gatewayRow'>
@@ -183,10 +195,22 @@ export default decorate([
             className='form-control'
             name='gatewayIpAddress'
             onChange={effects.onChangeValue}
-            placeholder={formatMessage(messages.recipeGatewayIpAddress)}
+            placeholder='192.168.1.254'
             required
             type='text'
             value={value.gatewayIpAddress}
+          />
+        </FormGrid.Row>,
+        <FormGrid.Row key='nameserverRow'>
+          <label>{_('dns')}</label>
+          <input
+            className='form-control'
+            name='nameserverAddress'
+            onChange={effects.onChangeValue}
+            placeholder='192.168.1.1'
+            required
+            type='text'
+            value={value.nameserverAddress}
           />
         </FormGrid.Row>,
       ]}
@@ -276,6 +300,20 @@ export default decorate([
             options={PERF_CONFIG}
             required
             value={value.performanceIndex}
+          />
+        </FormGrid.Row>
+      )}
+      {value.productName === 'dcNetScope' && (
+        <FormGrid.Row>
+          <label>{_('dcNetscopePassword')}</label>
+          <input
+            className='form-control'
+            name='easyVirtPassword'
+            onChange={effects.onChangeValue}
+            placeholder={formatMessage(messages.dcNetscopePassword)}
+            required
+            type='password'
+            value={value.easyVirtPassword}
           />
         </FormGrid.Row>
       )}
