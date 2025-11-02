@@ -7,22 +7,24 @@ import pw from 'pw'
 import Xo from './xo.mjs'
 import { generateToken } from './utils.mjs'
 
-execPromise(async ([name]) => {
-  if (name === undefined || name === '--help' || name === '-h') {
+execPromise(async args => {
+  if (args.length === 0 || args.length > 2 || args[0] === '-h' || args[0] === '--help') {
     return `
-xo-server-recover-account <user name or email>
+    Usage: xo-server-recover-account <user name or email> [<user password>]
 
-    If the user does not exist, it is created, if it exists, updates
+    If the user does not exist, it is created; if it exists, updates
     its password, remove any configured OTP and resets its permission to Admin.
 `
   }
 
-  const support = name === '-s'
-  if (support) {
-    name = 'xoa-support'
-  }
+  let name, password
 
-  let password = support
+  const support = args[0] === '-s'
+  name = support ? 'xoa-support' : args[0]
+
+  password = args.length === 2
+    ? args[1] 
+    : support
     ? ''
     : await new Promise(resolve => {
         process.stdout.write('Password (leave empty for random): ')
