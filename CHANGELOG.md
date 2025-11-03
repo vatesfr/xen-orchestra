@@ -1,5 +1,24 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Hub/EasyVirt] Fix the EasyVirt deployment form to allow static network configuration and password for DC Netscope web interface (PR [#9107](https://github.com/vatesfr/xen-orchestra/pull/9107))
+- [Backup] use qcow2 export for qcow2 disks backup and replication (PR [#9170](https://github.com/vatesfr/xen-orchestra/pull/9170))
+
+- **XO 6:**
+  - [Site/Backups/Settings] Fix a reactivity issue in displayed settings when the backup job object changes (PR [#9169](https://github.com/vatesfr/xen-orchestra/pull/9169))
+
+### Released packages
+
+- vhd-lib 4.14.4
+- @xen-orchestra/xapi 8.6.0
+- @xen-orchestra/proxy 0.29.35
+- @xen-orchestra/web 0.32.1
+- xo-server 5.192.1
+- xo-web 5.189.0
+
 ## **5.112.0** (2025-10-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
