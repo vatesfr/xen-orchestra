@@ -10,6 +10,15 @@
 - **XO 6:**
   - [Site/Backups/Settings] Fix a reactivity issue in displayed settings when the backup job object changes (PR [#9169](https://github.com/vatesfr/xen-orchestra/pull/9169))
 
+### Released packages
+
+- vhd-lib 4.14.4
+- @xen-orchestra/xapi 8.6.0
+- @xen-orchestra/proxy 0.29.35
+- @xen-orchestra/web 0.32.1
+- xo-server 5.192.1
+- xo-web 5.189.0
+
 ## **5.112.0** (2025-10-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

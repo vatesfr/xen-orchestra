@@ -33,10 +33,4 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web patch
-- @xen-orchestra/xapi minor
-- vhd-lib patch
-- xo-server patch
-- xo-web minor
-
 <!--packages-end-->
