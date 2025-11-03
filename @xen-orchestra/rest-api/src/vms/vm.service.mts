@@ -8,6 +8,7 @@ import {
   XoBackupLog,
   XoHost,
   XoSr,
+  XoUser,
   XoVbd,
   XoVdiSnapshot,
   XoVmBackupJob,
@@ -234,7 +235,7 @@ export class VmService {
       },
       creation: {
         date: creation.date,
-        user: creation.user,
+        user: creation.user as XoUser['id'],
       },
       $pool,
       virtualizationMode,

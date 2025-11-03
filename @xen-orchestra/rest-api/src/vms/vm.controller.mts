@@ -58,7 +58,7 @@ import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import type { UnbrandXoVmBackupJob } from '../backup-jobs/backup-job.type.mjs'
 import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import { VmDashboard } from './vm.type.mjs'
+import type { UnbrandedVmDashboard } from './vm.type.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -661,7 +661,7 @@ export class VmController extends XapiXoController<XoVm> {
     @Request() req: AuthenticatedRequest,
     @Path() id: string,
     @Query() ndjson?: boolean
-  ): Promise<Unbrand<VmDashboard> | undefined> {
+  ): Promise<UnbrandedVmDashboard | undefined> {
     const stream = ndjson ? new PassThrough() : undefined
     const isStream = stream !== undefined
 
