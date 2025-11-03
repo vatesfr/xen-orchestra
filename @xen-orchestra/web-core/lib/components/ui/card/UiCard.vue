@@ -18,7 +18,7 @@ defineSlots<{
 <style lang="postcss" scoped>
 .ui-card {
   display: flex;
-  gap: 2.4rem;
+  gap: 1.6rem;
   padding: 2.4rem;
   flex-direction: column;
   background-color: var(--color-neutral-background-primary);
