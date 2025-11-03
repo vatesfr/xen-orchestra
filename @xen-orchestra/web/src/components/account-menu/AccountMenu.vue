@@ -47,9 +47,9 @@ type MenuLink = {
 
 const links: MenuLink[] = [
   {
-    icon: 'fa:circle-user',
-    label: t('account'),
-    href: '/#/user',
+    icon: 'fa:gear',
+    label: t('settings'),
+    href: '/#/settings',
   },
   {
     icon: 'fa:satellite',
