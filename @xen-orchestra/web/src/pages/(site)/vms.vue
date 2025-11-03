@@ -1,7 +1,7 @@
 <template>
   <div class="vms" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <VmsTable :vms />
+      <VmsTable :vms :is-ready="areVmsReady" :has-error="hasVmFetchError" />
     </UiCard>
     <VmsSidePanel v-if="selectedVm" :vm="selectedVm" @close="selectedVm = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -24,7 +24,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
 import { useI18n } from 'vue-i18n'
 
-const { vms, getVmById } = useXoVmCollection()
+const { vms, getVmById, areVmsReady, hasVmFetchError } = useXoVmCollection()
 const uiStore = useUiStore()
 
 const selectedVm = useRouteQuery<XoVm | undefined>('id', {

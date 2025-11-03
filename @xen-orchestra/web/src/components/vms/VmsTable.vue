@@ -10,14 +10,10 @@
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
         <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-          <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
+          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
-      <VtsDataTable
-        :is-ready="areVmsReady"
-        :has-error="hasVmFetchError"
-        :no-data-message="vms.length === 0 ? t('no-vm-detected') : undefined"
-      >
+      <VtsDataTable :is-ready :has-error :no-data-message="vms.length === 0 ? t('no-vm-detected') : undefined">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -73,7 +69,7 @@
                 class="ip-addresses"
               >
                 <span class="text-ellipsis">{{ column.value[0] }}</span>
-                <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
+                <span v-if="column.value.length > 1" class="typo-body-regular-small more-info">
                   {{ `+${column.value.length - 1}` }}
                 </span>
               </div>
@@ -83,12 +79,17 @@
               >
                 {{ column.id === 'CPUs' ? column.value : `${column.value?.value} ${column.value?.prefix}` }}
               </div>
-              <div v-else-if="column.id === 'tags'">
-                <UiTagsList v-if="column.value.length > 0">
-                  <UiTag v-for="tag in column.value" :key="tag" accent="info" variant="secondary">
-                    {{ tag }}
-                  </UiTag>
-                </UiTagsList>
+              <div v-else-if="column.id === 'tags'" v-tooltip="[column.value].filter(Boolean).join(', ')" class="tags">
+                <div v-if="column.value.length > 0" class="text-ellipsis">
+                  <UiTagsList nowrap>
+                    <UiTag v-for="tag in column.value.slice(0, 2)" :key="tag" accent="info" variant="secondary">
+                      {{ tag }}
+                    </UiTag>
+                  </UiTagsList>
+                </div>
+                <div v-if="column.value.length > 2" class="typo-body-regular-small more-info">
+                  {{ `+${column.value.length - 2}` }}
+                </div>
               </div>
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
@@ -101,7 +102,7 @@
         {{ t('no-result') }}
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-        <UiTablePagination v-if="areVmsReady" v-bind="paginationBindings" />
+        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
   </div>
@@ -109,7 +110,6 @@
 
 <script setup lang="ts">
 import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
-import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoVm } from '@/types/xo/vm.type.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -135,13 +135,13 @@ import { useI18n } from 'vue-i18n'
 
 const { vms } = defineProps<{
   vms: XoVm[]
+  isReady: boolean
+  hasError: boolean
 }>()
 
 const { t } = useI18n()
 
 const { getRam, getIpAddresses, getDiskSpace } = useXoVmUtils()
-
-const { areVmsReady, hasVmFetchError } = useXoVmCollection()
 
 const selectedVmId = useRouteQuery('id')
 
@@ -209,12 +209,13 @@ const headerIcon: Record<VmHeader, IconName> = {
     gap: 0.8rem;
   }
 
-  .ip-addresses {
+  .ip-addresses,
+  .tags {
     display: flex;
     justify-content: space-between;
     align-items: center;
 
-    .more-ips {
+    .more-info {
       color: var(--color-neutral-txt-secondary);
     }
   }
