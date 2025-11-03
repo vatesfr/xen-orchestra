@@ -142,7 +142,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoVmInfoUtils } from '@/composables/xo-vm-info-utils.composable.ts'
+import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
 import { type XoVm } from '@/types/xo/vm.type.ts'
@@ -172,7 +172,7 @@ const { user } = useXoUserResource({}, () => vm.creation?.user)
 const pool = useGetPoolById(vm.$pool)
 
 const { powerState, host, isMaster, hostPowerState, installDateFormatted, relativeStartTime, guestToolsDisplay } =
-  useXoVmInfoUtils(vm)
+  useXoVmUtils(() => vm)
 </script>
 
 <style scoped lang="postcss">

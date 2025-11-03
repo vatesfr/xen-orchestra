@@ -67,11 +67,11 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoVmInfoUtils } from '@/composables/xo-vm-info-utils.composable.ts'
 import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
+import { getRam } from '@/utils/xo-records/vm.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
@@ -94,8 +94,7 @@ const { t } = useI18n()
 const { areVmsReady } = useXoVmCollection()
 const { useGetPoolById } = useXoPoolCollection()
 
-const { powerState, host, isMaster, hostPowerState, installDateFormatted, relativeStartTime } = useXoVmInfoUtils(vm)
-const { getRam } = useXoVmUtils()
+const { powerState, host, isMaster, hostPowerState, installDateFormatted, relativeStartTime } = useXoVmUtils(() => vm)
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 

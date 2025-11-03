@@ -1,11 +1,11 @@
 <template>
-  <UiCard>
+  <UiCard class="card-container">
     <UiCardTitle>
       {{ t('resources') }}
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
-        <template #key>{{ t('cpus') }}</template>
+        <template #key>{{ t('vcpus') }}</template>
         <template #value>{{ vm.CPUs.number }}</template>
         <template #addons>
           <VtsCopyButton :value="String(vm.CPUs.number)" />
@@ -44,14 +44,16 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
 import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
+import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import type { XoVbd } from '@/types/xo/vbd.type.ts'
 import type { XoVm } from '@/types/xo/vm.type.ts'
+import { getRam } from '@/utils/xo-records/vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -62,8 +64,7 @@ const { vm } = defineProps<{
 const { t } = useI18n()
 
 const { getVbdById } = useXoVbdCollection()
-
-const { getRam, getDiskSpace } = useXoVmUtils()
+const { getVdiById } = useXoVdiCollection()
 
 const ram = computed(() => {
   const ramValue = getRam(vm)
@@ -71,19 +72,27 @@ const ram = computed(() => {
   return `${ramValue?.value} ${ramValue?.prefix}`
 })
 
+const vdis = computed(() => [...vm.$VBDs].map(vbdId => getVbdById(vbdId as XoVbd['id'])?.VDI))
+
 const diskSpace = computed(() => {
-  const diskSpaceValue = getDiskSpace(vm)
+  const totalSize = vdis.value.map(vdiId => getVdiById(vdiId)?.size || 0).reduce((sum, size) => sum + size, 0)
+
+  const diskSpaceValue = formatSizeRaw(totalSize, 1)
 
   return `${diskSpaceValue?.value} ${diskSpaceValue?.prefix}`
 })
-
-const vdis = computed(() => [...vm.$VBDs].map(vbdId => getVbdById(vbdId as XoVbd['id'])?.VDI))
 </script>
 
 <style scoped lang="postcss">
-.content {
+.card-container {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 1.6rem;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
 }
 </style>

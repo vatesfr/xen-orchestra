@@ -1,6 +1,5 @@
 <template>
-  <VtsStateHero v-if="!areVmsReady" format="panel" busy size="medium" />
-  <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
+  <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
@@ -25,9 +24,7 @@
 import VmInfoCard from '@/components/vms/panel/cards/VmInfoCard.vue'
 import VmNetworkCard from '@/components/vms/panel/cards/VmNetworkCard.vue'
 import VmResourcesCard from '@/components/vms/panel/cards/VmResourcesCard.vue'
-import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoVm } from '@/types/xo/vm.type.ts'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
@@ -45,23 +42,9 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const uiStore = useUiStore()
-
-const { areVmsReady } = useXoVmCollection()
 </script>
 
 <style scoped lang="postcss">
-.card-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
-
-  .content {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-}
-
 .mobile-drawer {
   position: fixed;
   inset: 0;
@@ -72,10 +55,5 @@ const { areVmsReady } = useXoVmCollection()
     align-items: center;
     width: 100%;
   }
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
 }
 </style>

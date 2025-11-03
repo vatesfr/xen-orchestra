@@ -1,13 +1,13 @@
 <template>
-  <UiCard>
+  <UiCard class="card-container">
     <UiCardTitle>
       {{ t('network') }}
-      <UiLink size="medium" :to="`/vm/${vm.id}/networks`">
+      <UiLink v-if="ipAddresses.length > 0" size="medium" :to="`/vm/${vm.id}/networks`">
         {{ t('see-all') }}
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <template v-if="ipAddresses.length">
+      <template v-if="ipAddresses.length > 0">
         <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
           {{ ip }}
           <template #key>
@@ -29,13 +29,16 @@
           </template>
         </VtsCardRowKeyValue>
       </template>
+      <VtsCardRowKeyValue v-else>
+        <template #key>{{ t('ip-addresses') }}</template>
+      </VtsCardRowKeyValue>
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
 import type { XoVm } from '@/types/xo/vm.type.ts'
+import { getIpAddresses } from '@/utils/xo-records/vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -52,15 +55,19 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { getIpAddresses } = useXoVmUtils()
-
 const ipAddresses = computed(() => getIpAddresses(vm))
 </script>
 
 <style scoped lang="postcss">
-.content {
+.card-container {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 1.6rem;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
 }
 </style>
