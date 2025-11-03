@@ -17,12 +17,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Hub/EasyVirt] Fix the EasyVirt deployment form to allow static network configuration and password for DC Netscope web interface (PR [#9107](https://github.com/vatesfr/xen-orchestra/pull/9107))
-- [Backup] use qcow2 export for qcow2 disks backup and replication (PR [#9170](https://github.com/vatesfr/xen-orchestra/pull/9170))
-
-- **XO 6:**
-  - [Site/Backups/Settings] Fix a reactivity issue in displayed settings when the backup job object changes (PR [#9169](https://github.com/vatesfr/xen-orchestra/pull/9169))
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
