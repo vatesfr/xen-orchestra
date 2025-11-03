@@ -64,7 +64,7 @@
                 </UiLink>
               </div>
               <div
-                v-else-if="column.id === 'addresses'"
+                v-else-if="column.id === 'ip-addresses'"
                 v-tooltip="[column.value].filter(Boolean).join(', ')"
                 class="ip-addresses"
               >
@@ -91,9 +91,6 @@
                   {{ `+${column.value.length - 2}` }}
                 </div>
               </div>
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                {{ column.value }}
-              </div>
             </td>
           </tr>
         </template>
@@ -109,8 +106,11 @@
 </template>
 
 <script setup lang="ts">
-import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
-import type { XoVm } from '@/types/xo/vm.type.ts'
+import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
+import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
+import type { XoVbd } from '@/types/xo/vbd.type.ts'
+import { type XoVm } from '@/types/xo/vm.type.ts'
+import { getIpAddresses, getRam } from '@/utils/xo-records/vm.util.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -129,6 +129,7 @@ import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { type IconName } from '@core/icons'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -139,9 +140,10 @@ const { vms } = defineProps<{
   hasError: boolean
 }>()
 
-const { t } = useI18n()
+const { getVbdById } = useXoVbdCollection()
+const { getVdiById } = useXoVdiCollection()
 
-const { getRam, getIpAddresses, getDiskSpace } = useXoVmUtils()
+const { t } = useI18n()
 
 const selectedVmId = useRouteQuery('id')
 
@@ -165,27 +167,35 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? vmIds.value : []
 }
 
+const getDiskSpace = (vm: XoVm) => {
+  const vdis = [...vm.$VBDs].map(vbdId => getVbdById(vbdId as XoVbd['id'])?.VDI)
+
+  const totalSize = vdis.map(vdiId => getVdiById(vdiId)?.size || 0).reduce((sum, size) => sum + size, 0)
+
+  return formatSizeRaw(totalSize, 1)
+}
+
 const { visibleColumns, rows } = useTable('vms', filteredVms, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', record => record.name_label, { label: t('vm') }),
-    define('addresses', record => getIpAddresses(record), { label: t('ip-addresses') }),
-    define('CPUs', record => record.CPUs.number, { label: t('cpus') }),
+    define('ip-addresses', record => getIpAddresses(record), { label: t('ip-addresses') }),
+    define('CPUs', record => record.CPUs.number, { label: t('vcpus') }),
     define('memory', record => getRam(record), { label: t('ram') }),
     define('disk-space', record => getDiskSpace(record), { label: t('disk-space') }),
-    define('tags', { label: t('tags') }),
+    define('tags', record => record.tags, { label: t('tags') }),
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
 const { pageRecords: vmsRecords, paginationBindings } = usePagination('vms', rows)
 
-type VmHeader = 'name_label' | 'addresses' | 'CPUs' | 'memory' | 'disk-space' | 'tags'
+type VmHeader = 'name_label' | 'ip-addresses' | 'CPUs' | 'memory' | 'disk-space' | 'tags'
 
 const headerIcon: Record<VmHeader, IconName> = {
-  name_label: 'fa:align-left',
-  addresses: 'fa:at',
+  name_label: 'fa:a',
+  'ip-addresses': 'fa:at',
   CPUs: 'fa:hashtag',
   memory: 'fa:hashtag',
   'disk-space': 'fa:hashtag',
@@ -214,6 +224,7 @@ const headerIcon: Record<VmHeader, IconName> = {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 0.8rem;
 
     .more-info {
       color: var(--color-neutral-txt-secondary);
