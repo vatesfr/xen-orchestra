@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.112.1** (2025-11-03)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
@@ -20,8 +22,6 @@
 - xo-web 5.189.0
 
 ## **5.112.0** (2025-10-30)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
