@@ -4,18 +4,22 @@
       {{ t('hosts') }}
       <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
-    <UiCollapsibleList tag="ul" :total-items="hosts.length">
+    <UiCollapsibleList v-if="hosts.length > 0" tag="ul" :total-items="hosts.length">
       <li v-for="host in hosts" :key="host.id">
         <UiLink size="small" icon="fa:server" :to="`/host/${host.id}`">
           {{ host.name_label }}
         </UiLink>
       </li>
     </UiCollapsibleList>
+    <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
+      {{ t('no-hosts-attached') }}
+    </VtsStateHero>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import type { XoHost } from '@/types/xo/host.type'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'

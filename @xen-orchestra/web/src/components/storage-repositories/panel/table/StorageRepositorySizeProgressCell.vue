@@ -1,6 +1,6 @@
 <template>
   <div class="progress-cell">
-    <VtsProgressBar :current :total label="" noruler class="progress" />
+    <VtsProgressBar :current :total noruler class="progress" />
     <span>{{ n(percentage / 100, { maximumFractionDigits: 0, style: 'percent' }) }}</span>
   </div>
 </template>

@@ -15,9 +15,9 @@
     <template #default>
       <StorageRepositoryInfosCard :sr />
       <StorageRepositorySpaceCard :sr />
-      <StorageRepositoryVdisCard v-if="vdis.length > 0" :vdis />
-      <StorageRepositoryHostsCard v-if="hosts.length > 0" :hosts />
-      <StorageRepositoryPbdsCard v-if="pbds.length > 0" :pbds />
+      <StorageRepositoryVdisCard :vdis />
+      <StorageRepositoryHostsCard :hosts />
+      <StorageRepositoryPbdsCard :pbds />
       <StorageRepositoryCustomFieldsCard :custom-fields="sr.other_config" />
     </template>
   </UiPanel>

@@ -13,7 +13,7 @@
           <UiTablePagination v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
-      <VtsDataTable is-ready :has-error :no-data-message="srs.length === 0 ? t('no-backup-available') : undefined">
+      <VtsDataTable :is-ready :has-error :no-data-message="srs.length === 0 ? t('no-backup-available') : undefined">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -63,12 +63,8 @@
                   {{ column.value.name }}
                 </UiLink>
               </div>
-              <template v-else-if="column.id === 'size'">
-                <StorageRepositorySizeProgressCell
-                  v-if="column.value.total > 0"
-                  :current="column.value.used"
-                  :total="column.value.total"
-                />
+              <template v-else-if="column.id === 'space'">
+                <StorageRepositorySizeProgressCell :current="column.value.used" :total="column.value.total" />
               </template>
               <div v-else :class="{ shared: column.id === 'shared' }">
                 {{ column.value }}
@@ -112,6 +108,7 @@ import { useI18n } from 'vue-i18n'
 const { srs } = defineProps<{
   srs: XoSr[]
   hasError: boolean
+  isReady: boolean
 }>()
 
 const { t } = useI18n()
@@ -138,25 +135,21 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredSrs, {
     define('description', record => record.name_description, { label: t('description') }),
     define('storage-format', record => record.SR_type, { label: t('storage-format') }),
     define('shared', record => record.shared, { label: t('shared') }),
-    define('size', record => ({ used: record.physical_usage, total: record.size }), { label: t('size') }),
-    // define('mode', record => getModeLabels(record), { label: t('mode') }),
-    // define('last-runs', record => getLastThreeRunsStatuses(record), {
-    //   label: t('last-n-runs', { n: 3 }),
-    // }),
+    define('space', record => ({ used: record.physical_usage, total: record.size }), { label: t('space') }),
     define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
 const { pageRecords: srsRecords, paginationBindings } = usePagination('srs', rows)
 
-type BackupJobHeader = 'name' | 'description' | 'storage-format' | 'shared' | 'size'
+type BackupJobHeader = 'name' | 'description' | 'storage-format' | 'shared' | 'space'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
-  name: 'fa:align-left',
+  name: 'fa:a',
   description: 'fa:align-left',
   'storage-format': 'fa:square-caret-down',
   shared: 'fa:square-caret-down',
-  size: 'fa:hashtag',
+  space: 'fa:a',
 }
 </script>
 

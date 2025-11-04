@@ -1,7 +1,7 @@
 <template>
   <div class="storage" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <StorageRepositoriesTable :srs :has-error="hasSrFetchError" />
+      <StorageRepositoriesTable :srs :has-error="hasSrFetchError" :is-ready="areSrsReady" />
     </UiCard>
     <StorageRepositoriesSidePanel v-if="selectedSr" :sr="selectedSr" @close="selectedSr = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -32,7 +32,7 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { srsByPool, hasSrFetchError, getSrById } = useXoSrCollection()
+const { srsByPool, hasSrFetchError, getSrById, areSrsReady } = useXoSrCollection()
 const uiStore = useUiStore()
 
 const srs = computed(() => srsByPool.value.get(pool.id) ?? [])

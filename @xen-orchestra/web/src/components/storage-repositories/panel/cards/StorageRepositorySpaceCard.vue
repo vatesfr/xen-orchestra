@@ -77,7 +77,7 @@ const freeSpace = computed(() => formatSize(sr.size - sr.physical_usage, 2))
 .content {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.4rem;
 
   .progress {
     margin-block-end: 1.6rem;
