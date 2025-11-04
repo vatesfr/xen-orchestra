@@ -21,6 +21,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- **XO 6:**
+  - [core] Add tooltip on tag component if the text cut (PR [#9184](https://github.com/vatesfr/xen-orchestra/pull/9184))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
