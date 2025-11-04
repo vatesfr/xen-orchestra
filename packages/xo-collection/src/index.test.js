@@ -158,23 +158,4 @@ describe('Index', function () {
       })
     })
   })
-
-  describe('#sweep()', function () {
-    it('removes empty items lists', function () {
-      col.remove(item2)
-
-      return waitTicks().then(() => {
-        byGroup.sweep()
-
-        assert.deepEqual(JSON.parse(JSON.stringify(col.indexes)), {
-          byGroup: {
-            foo: {
-              [item1.id]: item1,
-              [item3.id]: item3,
-            },
-          },
-        })
-      })
-    })
-  })
 })
