@@ -15,6 +15,8 @@
 - [REST API] Expose `POST /rest/v0/events/:id/subscriptions` to add a subscription in the SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
 - [REST API] Expose `DELETE /rest/v0/events/:id/subscriptions` to remove a subscription in the SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
 
+- **XO 6:**
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”

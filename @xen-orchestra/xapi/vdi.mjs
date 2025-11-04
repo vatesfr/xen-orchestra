@@ -233,7 +233,7 @@ class Vdi {
     const stream = (
       await this.getResource(cancelToken, '/export_raw_vdi/', {
         query,
-        task: await this.task_create(`Exporting content of VDI  ${label} as VHD stream`),
+        task: await this.task_create(`Exporting content of VDI  ${label} as ${format} stream`),
       })
     ).body
 

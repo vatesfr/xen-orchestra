@@ -1,13 +1,14 @@
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
 import {
   faBuilding,
+  faCopy,
   faFile,
   faFolderClosed,
   faFolderOpen,
   faSquareCheck,
-  faCopy,
 } from '@fortawesome/free-regular-svg-icons'
 import {
+  faA,
   faAlignLeft,
   faAngleDoubleLeft,
   faAngleDoubleRight,
@@ -37,6 +38,7 @@ import {
   faCircleMinus,
   faCircleNotch,
   faCirclePlay,
+  faCircleUser,
   faCircleXmark,
   faCity,
   faClock,
@@ -75,6 +77,7 @@ import {
   faLockOpen,
   faMagnifyingGlass,
   faMemory,
+  faMessage,
   faMicrochip,
   faMinus,
   faMoon,
@@ -108,6 +111,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 export const faIcons = defineIconPack({
+  a: { icon: faA },
   'align-left': { icon: faAlignLeft },
   'angle-double-left': { icon: faAngleDoubleLeft },
   'angle-double-right': { icon: faAngleDoubleRight },
@@ -126,6 +130,7 @@ export const faIcons = defineIconPack({
   book: { icon: faBook },
   building: { icon: faBuilding },
   camera: { icon: faCamera },
+  calendar: { icon: faCalendar },
   'caret-down': { icon: faCaretDown },
   'caret-up': { icon: faCaretUp },
   check: { icon: faCheck },
@@ -137,9 +142,11 @@ export const faIcons = defineIconPack({
   'circle-minus': { icon: faCircleMinus },
   'circle-notch': { icon: faCircleNotch },
   'circle-play': { icon: faCirclePlay },
+  'circle-user': { icon: faCircleUser },
   'circle-xmark': { icon: faCircleXmark },
   city: { icon: faCity },
   close: { icon: faClose },
+  clock: { icon: faClock },
   code: { icon: faCode },
   comments: { icon: faComments },
   copy: { icon: faCopy },
@@ -179,6 +186,7 @@ export const faIcons = defineIconPack({
   'lock-open': { icon: faLockOpen },
   'magnifying-glass': { icon: faMagnifyingGlass },
   memory: { icon: faMemory },
+  message: { icon: faMessage },
   microchip: { icon: faMicrochip },
   minus: { icon: faMinus },
   moon: { icon: faMoon },
