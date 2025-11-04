@@ -1,8 +1,9 @@
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
+import type { XapiXoRecord } from '@vates/types/'
 import { type MaybeRef, noop, useTimeoutPoll } from '@vueuse/core'
-import { merge } from 'lodash-es'
+import { merge, remove } from 'lodash-es'
 import readNDJSONStream from 'ndjson-readablestream'
 import {
   computed,
@@ -18,6 +19,7 @@ import {
   toValue,
   watch,
 } from 'vue'
+import { watchRemoteResource } from './watch-remote-resource'
 
 const DEFAULT_CACHE_DURATION_MS = 10_000
 
@@ -48,6 +50,26 @@ export function defineRemoteResource<TData, TState extends object, TArgs extends
 
 export function defineRemoteResource<
   TData,
+  TCollectionType extends XapiXoRecord['type'],
+  TState extends object = { data: Ref<TData> },
+  TArgs extends any[] = [],
+>(config: {
+  url: string | ((...args: TArgs) => string)
+  initialData: () => TData
+  state?: (data: Ref<NoInfer<TData>>, context: ResourceContext<TArgs>) => TState
+  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: Extract<XapiXoRecord, { type: TCollectionType }>) => void
+  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: Extract<XapiXoRecord, { type: TCollectionType }>) => void
+  cacheDurationMs?: number
+  stream?: boolean
+  watchCollection: {
+    type: TCollectionType
+    fields: (keyof Extract<XapiXoRecord, { type: TCollectionType }>)[]
+  }
+}): UseRemoteResource<TState, TArgs>
+
+export function defineRemoteResource<
+  TData,
+  TCollectionType extends XapiXoRecord['type'],
   TState extends object = { data: Ref<TData> },
   TArgs extends any[] = [],
 >(config: {
@@ -55,9 +77,14 @@ export function defineRemoteResource<
   initialData?: () => TData
   state?: (data: Ref<TData>, context: ResourceContext<TArgs>) => TState
   onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
   cacheDurationMs?: number
   pollingIntervalMs?: number
   stream?: boolean
+  watchCollection?: {
+    type: TCollectionType // reactivity only on XAPI XO record for now
+    fields: (keyof Extract<XapiXoRecord, { type: TCollectionType }>)[]
+  }
 }) {
   const cache = new Map<
     string,
@@ -83,20 +110,47 @@ export function defineRemoteResource<
 
   const pollingInterval = config.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS
 
+  const removeData = (data: TData[], dataToRemove: any) => {
+    remove(data, d => {
+      if (typeof d === 'object') {
+        if ('id' in d!) {
+          return d.id === dataToRemove.id
+        }
+
+        return JSON.stringify(d) === JSON.stringify(dataToRemove)
+      }
+
+      return d === dataToRemove
+    })
+  }
+
   const onDataReceived =
     config.onDataReceived ??
     ((data: Ref<TData>, receivedData: any) => {
-      if (!config.stream || data.value === undefined) {
+      if (data.value === undefined || (Array.isArray(data.value) && Array.isArray(receivedData))) {
         data.value = receivedData
         return
       }
 
-      if (Array.isArray(data.value) && Array.isArray(receivedData)) {
-        data.value.push(...receivedData)
+      if (Array.isArray(data.value)) {
+        removeData(data.value, receivedData)
+        data.value.push(receivedData)
         return
       }
 
       merge(data.value, receivedData)
+    })
+
+  const onDataRemoved =
+    config.onDataRemoved ??
+    ((data: Ref<TData>, receivedData: any) => {
+      // for now only support `onDataRemoved` when watching XapiXoRecord collection
+      if (Array.isArray(data.value) && !Array.isArray(receivedData)) {
+        removeData(data.value, receivedData)
+        return
+      }
+
+      console.warn('onDataRemoved received but unhandled for:', receivedData)
     })
 
   function subscribeToUrl(url: string) {
@@ -182,7 +236,19 @@ export function defineRemoteResource<
     let pause: VoidFunction = noop
     let resume: VoidFunction = execute
 
-    if (pollingInterval > 0) {
+    if (config.watchCollection !== undefined) {
+      const { fields, type } = config.watchCollection
+      const { start: startWatching, stop: stopWatching } = watchRemoteResource(type, fields)
+
+      pause = stopWatching
+      resume = async function () {
+        await execute()
+        await startWatching({
+          onDataReceived: receivedData => onDataReceived(data, receivedData),
+          onDataRemoved: receivedData => onDataRemoved(data, receivedData),
+        })
+      }
+    } else if (pollingInterval > 0) {
       const timeoutPoll = useTimeoutPoll(execute, pollingInterval, {
         immediateCallback: true,
         immediate: false,

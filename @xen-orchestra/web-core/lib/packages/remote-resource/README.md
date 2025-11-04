@@ -113,3 +113,35 @@ const useMyResource = defineRemoteResource({
   cacheDurationMs: 5 * 60_000, // Cache for 5 minutes
 })
 ```
+
+## Watching a collection
+
+You can enable real-time synchronization with a remote collection by using the `watchCollection` option.
+When this option is set, the resource will first fetch the complete dataset once, then listen for any changes on the collection (such as additions, updates, or removals) and automatically update the shared store accordingly.
+
+```typescript
+const useMyResource = defineRemoteResource({
+  url: '/api/path/to/resource?fields=id,name,status',
+  watchCollection: {
+    type: 'resource',
+    fields: ['id', 'name', 'status'],
+  },
+  // Optional
+  onDataReceived: (currentData, receivedData) => {
+    // Called when new or updated data is received
+    mergeCollection(currentData.value, receivedData)
+  },
+  // Optional
+  onDataRemoved: (currentData, removedData) => {
+    // Called when data is removed from the collection
+    removeFromCollection(currentData.value, removedData)
+  },
+})
+```
+
+When a collection is being watched:
+
+- The initial fetch retrieves the entire dataset.
+- Any subsequent changes (additions, updates, deletions) are automatically reflected in the resource’s data.
+- You can customize how incoming or removed data is handled using the onDataReceived and onDataRemoved callbacks.
+- The subscription to collection changes automatically stops when there are no more active component subscribers.
