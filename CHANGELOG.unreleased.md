@@ -11,6 +11,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] Expose `GET /rest/v0/events` to open an SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
+- [REST API] Expose `POST /rest/v0/events/:id/subscriptions` to add a subscription in the SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
+- [REST API] Expose `DELETE /rest/v0/events/:id/subscriptions` to remove a subscription in the SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
+
 - **XO 6:**
 
 ### Bug fixes
@@ -32,5 +36,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/rest-api minor
+- xo-collection minor
 
 <!--packages-end-->
