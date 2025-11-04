@@ -12,6 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **XO 6:**
+  - [XO routes] fetch xo gui routes (PR [#9138](https://github.com/vatesfr/xen-orchestra/pull/9138))
 
 ### Bug fixes
 
