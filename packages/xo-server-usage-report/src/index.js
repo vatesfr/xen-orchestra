@@ -1,11 +1,11 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import Handlebars from 'handlebars'
-import humanFormat from 'human-format'
-import { stringify } from 'csv-stringify'
-import { createLogger } from '@xen-orchestra/log'
 import { createSchedule } from '@xen-orchestra/cron'
-import { join } from 'path'
+import { createLogger } from '@xen-orchestra/log'
+import { stringify } from 'csv-stringify'
+import { readFile, writeFile } from 'fs'
+import Handlebars from 'handlebars'
 import { minify } from 'html-minifier'
+import humanFormat from 'human-format'
 import {
   concat,
   differenceBy,
@@ -20,8 +20,8 @@ import {
   values,
   zipObject,
 } from 'lodash'
+import { join } from 'path'
 import { ignoreErrors, promisify } from 'promise-toolbox'
-import { readFile, writeFile } from 'fs'
 
 // ===================================================================
 
@@ -335,6 +335,7 @@ async function getVmsStats({ runningVms, periodicity, xo }) {
           uuid: vm.uuid,
           name: vm.name_label,
           addresses: Object.values(vm.addresses),
+          osVersion: vm.os_version || null,
           cpu: METRICS_MEAN.cpu(stats.cpus),
           ram: METRICS_MEAN.ram(getMemoryUsedMetric(stats)),
           diskRead: METRICS_MEAN.disk(stats.xvds?.r),
@@ -446,6 +447,31 @@ function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
     name: vm.name,
   }))
 
+  // Calculate OS statistics
+  const osStats = {}
+  vmsStats.forEach(vm => {
+    if (vm.osVersion && vm.osVersion.name) {
+      const osName = vm.osVersion.name
+      osStats[osName] = (osStats[osName] || 0) + 1
+    } else if (vm.osVersion && vm.osVersion.distro) {
+      let osName = vm.osVersion.distro
+      const major = vm.osVersion.major
+      const minor = vm.osVersion.minor
+
+      if (major && minor) {
+        osName += ` ${major}.${minor}`
+      } else if (major) {
+        osName += ` ${major}`
+      } else if (minor) {
+        osName += ` ${minor}`
+      }
+
+      osStats[osName] = (osStats[osName] || 0) + 1
+    } else {
+      osStats.Unknown = (osStats.Unknown || 0) + 1
+    }
+  })
+
   haltedVms.forEach(vm => {
     const isReplication =
       'start' in vm.blockedOperations &&
@@ -457,6 +483,8 @@ function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
         uuid: vm.uuid,
         name: vm.name_label,
       })
+      // Count halted VMs as Unknown OS since we don't have their OS info
+      osStats.Unknown = (osStats.Unknown || 0) + 1
     }
   })
 
@@ -465,6 +493,7 @@ function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
     {
       number: vmsStats.length + haltedVms.length,
       allVms,
+      osDistribution: osStats,
     }
   )
 }
@@ -755,6 +784,10 @@ const CSV_COLUMNS = {
     key: 'evolution.netTransmission',
     header: 'Network TX evolution (%)',
   },
+  osName: { key: 'osVersion.name', header: 'Operating System' },
+  osDistro: { key: 'osVersion.distro', header: 'OS Distribution' },
+  osMajorVersion: { key: 'osVersion.major', header: 'OS Major Version' },
+  osMinorVersion: { key: 'osVersion.minor', header: 'OS Minor Version' },
   ram: { key: 'ram', header: 'RAM (GiB)' },
   ramEvolution: { key: 'evolution.ram', header: 'RAM evolution (%)' },
   spaceFree: { key: 'freeSpace', header: 'Free space (GiB)' },
@@ -844,6 +877,10 @@ class UsageReportPlugin {
             columns: [
               CSV_COLUMNS.uuid,
               CSV_COLUMNS.name,
+              CSV_COLUMNS.osName,
+              CSV_COLUMNS.osDistro,
+              CSV_COLUMNS.osMajorVersion,
+              CSV_COLUMNS.osMinorVersion,
               CSV_COLUMNS.addresses,
               CSV_COLUMNS.cpu,
               CSV_COLUMNS.cpuEvolution,
