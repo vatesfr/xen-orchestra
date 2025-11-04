@@ -33,4 +33,6 @@
 
 <!--packages-start-->
 
+- @vates/types patch
+
 <!--packages-end-->
