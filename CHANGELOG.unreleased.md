@@ -17,7 +17,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backups] use older record for Long Term Retention nstead of newer
+- [Backups] use the oldest record for Long Term Retention instead of newest (PR [#9180](https://github.com/vatesfr/xen-orchestra/pull/9180))
 
 ### Packages to release
 
