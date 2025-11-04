@@ -11,7 +11,6 @@
         choice({ label: 'Search', value: 'fa:magnifying-glass' }, { label: 'AngleDown', value: 'fa:angle-down' })
       ),
       prop('clearable').bool().widget(),
-      prop('isSearching').bool().widget(),
       prop('disabled').bool().widget().help('Not defined as component prop'),
       slot('rightIcon').help('Can be used in place of rightIcon prop'),
     ]"
