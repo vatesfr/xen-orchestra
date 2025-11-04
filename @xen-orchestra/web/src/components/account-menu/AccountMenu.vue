@@ -10,7 +10,7 @@
     </template>
 
     <MenuItem v-for="link in links" :key="link.href" class="icon" :icon="link.icon">
-      <UiLink size="small" class="link typo-body-bold-small" :href="link.href">
+      <UiLink size="small" class="link typo-body-bold-small" :href="link.href" :target="link.target">
         {{ link.label }}
       </UiLink>
     </MenuItem>
@@ -43,6 +43,7 @@ type MenuLink = {
   icon: IconName
   label: string
   href: string
+  target: '_self' | '_blank'
 }
 
 const links: MenuLink[] = [
@@ -50,36 +51,43 @@ const links: MenuLink[] = [
     icon: 'fa:gear',
     label: t('settings'),
     href: '/#/settings',
+    target: '_self',
   },
   {
     icon: 'fa:satellite',
     label: t('license-name', { name: 'XOA' }),
     href: '/#/xoa/licenses',
+    target: '_blank',
   },
   {
     icon: 'fa:book',
     label: t('documentation-name', { name: 'XO' }),
     href: 'https://docs.xen-orchestra.com',
+    target: '_blank',
   },
   {
     icon: 'fa:book',
     label: t('documentation-name', { name: 'XCP-ng' }),
     href: 'https://docs.xcp-ng.org?utm_campaign=xo6&utm_term=xcpdoc',
+    target: '_blank',
   },
   {
     icon: 'fa:headset',
     label: t('professional-support'),
     href: 'https://vates.tech/pricing-and-support?utm_campaign=xo6&utm_term=pricing',
+    target: '_blank',
   },
   {
     icon: 'fa:code',
     label: t('documentation-name', { name: 'REST API' }),
     href: '/rest/v0/docs/#/',
+    target: '_blank',
   },
   {
     icon: 'fa:message',
     label: t('send-us-feedback'),
     href: 'https://xcp-ng.org/forum/category/12/xen-orchestra',
+    target: '_blank',
   },
 ]
 </script>
