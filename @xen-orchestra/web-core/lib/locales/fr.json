@@ -485,6 +485,7 @@
   "patches-up-to-date": "Patches à jour",
   "pause": "Pause",
   "pbd-details": "Détails du périphérique de bloc physique (PBD)",
+  "pbd-number": "PBD #{n}",
   "pending": "En cours",
   "physical-interface-status": "Statut de l'interface physique",
   "pick-template": "Choisir un modèle",
