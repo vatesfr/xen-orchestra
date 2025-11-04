@@ -55,6 +55,7 @@ export class AlertDefinition{
      */
     variableName
 
+    /** */
     constructor({alarmTriggerLevel, alarmTriggerPeriod, excludeUuids, comparator, objectType , smartMode,uuids, variableName}){
         this.triggerLevel = alarmTriggerLevel
         this.triggerPeriod = alarmTriggerPeriod
@@ -76,7 +77,6 @@ export class AlertDefinition{
 
         if(this.smartMode || this.excludeUuids){
             if(xoObject.type !== this.objectType){
-                console.log('not the right tyep ', xoObject.type , this.objectType)
                 return false
             }
             if(xoObject.type === 'SR' && !isSrWritable(xoObject)){
@@ -98,16 +98,33 @@ export class AlertDefinition{
 
         return true
     }
+
+    /**
+     * 
+     * @param {number} value 
+     */
+    isTriggeredBy(value){
+        switch(this.comparator){
+            case '<':
+                return value < this.triggerLevel
+            case '>':
+                return value > this.triggerLevel
+        }
+    }
 }
 
 
 
 export class AlertDefinitions {
-    #definitions = new Set()
+    definitions = new Set()
     constructor(configuration){
         for(const definition of configuration.hostMonitors){
             const alert = new AlertDefinition({...definition, objectType: 'host'})
-            this.#definitions.add(alert)
+            this.definitions.add(alert)
+        }
+        for(const definition of configuration.vmMonitors){
+            const alert = new AlertDefinition({...definition, objectType: 'VM'})
+            this.definitions.add(alert)
         }
     }
 
@@ -118,13 +135,43 @@ export class AlertDefinitions {
      */
     getObjectAlerts(xoObject){
         const definitions = []
-        for(const definition of this.#definitions){
-            console.log({definition})
+        for(const definition of this.definitions){
             if(definition.isObjectAffected(xoObject)){
                 definitions.push(definition)
             }
         }
         return definitions
-    }
+    } 
 
+}
+
+
+export class Alarm{
+    /**
+     * @type {AlertDefinition}
+     */
+    alert
+
+    /**
+     * @type {number}
+     */
+    value
+
+    /**
+     * @type {XoHost|XoSr|XoVm}
+     */
+    target
+
+    /**
+     * 
+     * @param {object} alarmDefinition Defition of the alarm
+     * @param {AlertDefinition} alarmDefinition.alert 
+     * @param {XoHost|XoSr|XoVm} alarmDefinition.target 
+     * @param {number} alarmDefinition.value 
+     */
+    constructor({alert,  target,value}){
+        this.alert = alert
+        this.target = target
+        this.value = value
+    }
 }

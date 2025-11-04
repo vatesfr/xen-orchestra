@@ -7,33 +7,35 @@
 import { AlertDefinition } from "./definitions"
 
 
+
 export class Alarm{
     /**
      * @type {AlertDefinition}
      */
-    definition
+    alert
+
+    /**
+     * @type {number}
+     */
+    value
 
     /**
      * @type {XoHost|XoSr|XoVm}
      */
     target
-    /**
-     * @type {number}
-     */
-    level
 
     /**
-     * @type {DateTime}
+     * 
+     * @param {object} alarmDefinition Defition of the alarm
+     * @param {AlertDefinition} alarmDefinition.alert 
+     * @param {XoHost|XoSr|XoVm} alarmDefinition.target 
+     * @param {number} alarmDefinition.value 
      */
-    since 
-
-    constructor(definition, target, level, since = new Date()){
-        this.definition = definition
+    constructor({alert,  target,value}){
+        this.alert = alert
         this.target = target
-        this.level = level
-        this.since = since
+        this.value = value
     }
-
 }
 
 
