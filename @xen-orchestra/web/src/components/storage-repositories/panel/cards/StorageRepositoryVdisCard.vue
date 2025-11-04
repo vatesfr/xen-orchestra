@@ -1,21 +1,25 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('vdis') }}
+      {{ t('vdis', { n: vdis.length }) }}
       <UiCounter :value="vdis.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
-    <UiCollapsibleList tag="ul" :total-items="vdis.length">
+    <UiCollapsibleList v-if="vdis.length > 0" tag="ul" :total-items="vdis.length">
       <li v-for="vdi in vdis" :key="vdi.id">
         <UiLink size="small" icon="fa:hard-drive" :href="`/#/srs/${vdi.$SR}/disks?s=1_0_asc-${vdi.id}`">
           {{ vdi.name_label }}
         </UiLink>
       </li>
     </UiCollapsibleList>
+    <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
+      {{ t('no-vdis-attached') }}
+    </VtsStateHero>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import type { XoVdi } from '@/types/xo/vdi.type'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'

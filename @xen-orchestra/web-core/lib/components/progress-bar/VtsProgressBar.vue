@@ -28,7 +28,7 @@ const {
 } = defineProps<{
   current: number
   total: number
-  label: string
+  label?: string
   legendType?: ProgressBarLegendType
   thresholds?: ProgressBarThresholdConfig
   noruler?: boolean
