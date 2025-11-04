@@ -27,6 +27,7 @@
 - [REST API] **Breaking changes** Async actions now return `application/json` (PR [#9209](https://github.com/vatesfr/xen-orchestra/pull/9209))
 
 - **XO 6:**
+  - [XO routes] fetch xo gui routes (PR [#9138](https://github.com/vatesfr/xen-orchestra/pull/9138))
   - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
   - [Site/Hosts] Implement hosts view and side panel information (PR [#9128](https://github.com/vatesfr/xen-orchestra/pull/9128))
   - [Backups] Update wordings for backup jobs' modes to match XO documentation (PR [#9199](https://github.com/vatesfr/xen-orchestra/pull/9199))
