@@ -464,6 +464,7 @@ type XoBackupJobGeneralSettings = {
   reportWhen?: 'always' | 'error' | 'failure' | 'never'
   reportRecipients?: string[]
   hideSuccessfulItems?: boolean
+  [key: string]: unknown
 }
 
 export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
@@ -494,6 +495,7 @@ export type XoVmBackupJobScheduleSettings = {
   snapshotRetention?: number
   cbtDestroySnapshotData?: boolean
   healthCheckSr?: XoSr['id']
+  [key: string]: unknown
 }
 export type XoVmBackupJob = BaseXoJob & {
   compression?: 'native' | 'zstd' | ''
