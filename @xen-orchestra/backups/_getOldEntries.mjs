@@ -97,21 +97,20 @@ export function getOldEntries(minRetentionCount, entries, { longTermRetention = 
       remaining: retention,
       lastMatchingBucket: null,
       formatter: LTR_DEFINITIONS[duration].makeDateFormatter({ ...settings, dateCreator }),
+      entries: {}, // bucket => entry id
     }
   }
   const nb = entries.length
-  const oldEntries = []
-
+  const minDurationEntries = []
   for (let i = nb - 1; i >= 0; i--) {
     const entry = entries[i]
     const entryDate = dateCreator(entry.timestamp)
-    let shouldBeKept = false
     for (const [duration, { remaining, lastMatchingBucket, formatter }] of Object.entries(dateBuckets)) {
-      if (remaining === 0) {
-        continue
-      }
       const bucket = formatter(entryDate)
       if (lastMatchingBucket !== bucket) {
+        if (remaining === 0) {
+          continue
+        }
         if (lastMatchingBucket !== null) {
           assert.strictEqual(
             lastMatchingBucket > bucket,
@@ -119,18 +118,25 @@ export function getOldEntries(minRetentionCount, entries, { longTermRetention = 
             `entries must be sorted in asc order ${lastMatchingBucket} ${bucket}`
           )
         }
-        shouldBeKept = true
-        dateBuckets[duration].remaining -= 1
         dateBuckets[duration].lastMatchingBucket = bucket
+        dateBuckets[duration].remaining -= 1
       }
+      // we want to keep the older one on each bucket
+      dateBuckets[duration].entries[bucket] = entry.id
     }
     if (i >= nb - minRetentionCount) {
-      shouldBeKept = true
-    }
-    if (!shouldBeKept) {
-      oldEntries.push(entry)
+      minDurationEntries.push(entry.id)
     }
   }
-  // we expect the entries to be in the right order
-  return oldEntries.reverse()
+  const kept = new Set(minDurationEntries)
+  for (const { entries } of Object.values(dateBuckets)) {
+    for (const id of Object.values(entries)) {
+      kept.add(id)
+    }
+  }
+  const oldEntries = entries.filter(({ id }) => {
+    return !kept.has(id)
+  })
+
+  return oldEntries
 }

@@ -1,36 +1,39 @@
 import iteratee from 'lodash/iteratee'
 
 import clearObject from './clear-object'
-import NotImplemented from './not-implemented'
 import { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
 
 // ===================================================================
 
 export class UniqueIndex {
-  constructor(computeHash) {
-    if (computeHash) {
-      this.computeHash = iteratee(computeHash)
+  #indexRef
+
+  constructor(indexRef) {
+    if (indexRef === undefined) {
+      throw new Error('indexRef must be passed')
     }
 
-    this._itemByHash = Object.create(null)
-    this._keysToHash = Object.create(null)
+    this.#indexRef = typeof indexRef === 'function' ? indexRef : iteratee(indexRef)
+
+    this._itemByRef = Object.create(null)
+    this._keysToRef = Object.create(null)
 
     // Bound versions of listeners.
     this._onAdd = this._onAdd.bind(this)
     this._onUpdate = this._onUpdate.bind(this)
     this._onRemove = this._onRemove.bind(this)
+
+    this.getIndexRef = this.getIndexRef.bind(this)
   }
 
-  // This method is used to compute the hash under which an item must
-  // be saved.
-  computeHash(value, key) {
-    throw new NotImplemented('this method must be overridden')
+  getIndexRef(object) {
+    return this.#indexRef(object)
   }
 
   // -----------------------------------------------------------------
 
   get items() {
-    return this._itemByHash
+    return this._itemByRef
   }
 
   // -----------------------------------------------------------------
@@ -52,57 +55,57 @@ export class UniqueIndex {
     collection.removeListener(ACTION_UPDATE, this._onUpdate)
     collection.removeListener(ACTION_REMOVE, this._onRemove)
 
-    clearObject(this._itemByHash)
-    clearObject(this._keysToHash)
+    clearObject(this._itemByRef)
+    clearObject(this._keysToRef)
   }
 
   // -----------------------------------------------------------------
 
   _onAdd(items) {
-    const { computeHash, _itemByHash: itemByHash, _keysToHash: keysToHash } = this
+    const { getIndexRef, _itemByRef: itemByRef, _keysToRef: keysToRef } = this
 
     for (const key in items) {
       const value = items[key]
 
-      const hash = computeHash(value, key)
+      const ref = getIndexRef(value)
 
-      if (hash != null) {
-        itemByHash[hash] = value
-        keysToHash[key] = hash
+      if (ref != null) {
+        itemByRef[ref] = value
+        keysToRef[key] = ref
       }
     }
   }
 
   _onUpdate(items) {
-    const { computeHash, _itemByHash: itemByHash, _keysToHash: keysToHash } = this
+    const { getIndexRef, _itemByRef: itemByRef, _keysToRef: keysToRef } = this
 
     for (const key in items) {
       const value = items[key]
 
-      const prev = keysToHash[key]
-      const hash = computeHash(value, key)
+      const prevRef = keysToRef[key]
+      const ref = getIndexRef(value)
 
-      // Removes item from the previous hash's list if any.
-      if (prev != null) delete itemByHash[prev]
+      // Removes item from the previous ref's list if any.
+      if (prevRef != null) delete itemByRef[prevRef]
 
-      // Inserts item into the new hash's list if any.
-      if (hash != null) {
-        itemByHash[hash] = value
-        keysToHash[key] = hash
+      // Inserts item into the new ref's list if any.
+      if (ref != null) {
+        itemByRef[ref] = value
+        keysToRef[key] = ref
       } else {
-        delete keysToHash[key]
+        delete keysToRef[key]
       }
     }
   }
 
   _onRemove(items) {
-    const { _itemByHash: itemByHash, _keysToHash: keysToHash } = this
+    const { _itemByRef: itemByRef, _keysToRef: keysToRef } = this
 
     for (const key in items) {
-      const prev = keysToHash[key]
-      if (prev != null) {
-        delete itemByHash[prev]
-        delete keysToHash[key]
+      const prevRef = keysToRef[key]
+      if (prevRef != null) {
+        delete itemByRef[prevRef]
+        delete keysToRef[key]
       }
     }
   }
