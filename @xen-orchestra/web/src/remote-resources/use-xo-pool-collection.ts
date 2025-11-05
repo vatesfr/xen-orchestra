@@ -4,8 +4,27 @@ import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoPool } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 
+const poolFields: (keyof XoPool)[] = [
+  'id',
+  'name_label',
+  'master',
+  'default_SR',
+  'tags',
+  'otherConfig',
+  'auto_poweron',
+  'HA_enabled',
+  'migrationCompression',
+  'suspendSr',
+  'crashDumpSr',
+  'haSrs',
+] as const
+
 export const useXoPoolCollection = defineRemoteResource({
-  url: '/rest/v0/pools?fields=id,name_label,master,default_SR,tags,otherConfig,auto_poweron,HA_enabled,migrationCompression,suspendSr,crashDumpSr,haSrs',
+  url: '/rest/v0/pools?fields='.concat(poolFields.toString()),
+  watchCollection: {
+    type: 'pool',
+    fields: poolFields,
+  },
   initialData: () => [] as XoPool[],
   state: (rawPools, context) => {
     const pools = useSorted(rawPools, sortByNameLabel)
