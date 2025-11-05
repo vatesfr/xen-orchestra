@@ -17,6 +17,8 @@
 - [REST API] Expose `DELETE /rest/v0/events/:id/subscriptions` to remove a subscription in the SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
 - [Backup] Add warning message: enabling/disabling backup job from VM > Backup affects all VMs in the job (PR [#9155](https://github.com/vatesfr/xen-orchestra/pull/9155))
 - [Plugins/Usage Report] Add operating system information to reports - displays OS distribution statistics and includes OS details (name, distribution, version) in both HTML reports and CSV exports (PR [#9179](https://github.com/vatesfr/xen-orchestra/pull/9179))
+- [Backups/File level restore] ignore swap partition (PR #9182)
+- [Backups/File level restore] Better handling of LVM on GPT partition (PR #9182)
 - **XO 6:**
 
 ### Bug fixes
@@ -47,5 +49,7 @@
 - xo-collection minor
 - xo-server-usage-report minor
 - xo-web minor
+- @xen-orchestra/backups minor
+- xo-server-usage-report minor
 
 <!--packages-end-->
