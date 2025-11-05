@@ -8,8 +8,57 @@ import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
+// TODO: use type from @vates/types
+const vmFields: (keyof XoVm)[] = [
+  'id',
+  'name_label',
+  'name_description',
+  'power_state',
+  '$container',
+  '$pool',
+  'other',
+  'current_operations',
+  'creation',
+  'CPUs',
+  'addresses',
+  'tags',
+  'os_version',
+  'virtualizationMode',
+  'secureBoot',
+  'VTPMs',
+  'viridian',
+  'isNestedVirtEnabled',
+  'memory',
+  'VGPUs',
+  'high_availability',
+  'auto_poweron',
+  'startDelay',
+  'vga',
+  'videoram',
+  'pvDriversVersion',
+  'cpuWeight',
+  'cpuCap',
+  'cpuMask',
+  'coresPerSocket',
+  'mainIpAddress',
+  'nicType',
+  'affinityHost',
+  'suspendSr',
+  'blockedOperations',
+  'hasVendorDevice',
+  'startTime',
+  'installTime',
+  'pvDriversDetected',
+  'managementAgentDetected',
+  'type',
+] as const
+
 export const useXoVmCollection = defineRemoteResource({
-  url: '/rest/v0/vms?fields=id,name_label,name_description,power_state,$container,$pool,other,current_operations,creation,CPUs,addresses,tags,os_version,virtualizationMode,secureBoot,VTPMs,viridian,isNestedVirtEnabled,memory,VGPUs,high_availability,auto_poweron,startDelay,vga,videoram,pvDriversVersion,cpuWeight,cpuCap,cpuMask,coresPerSocket,mainIpAddress,nicType,affinityHost,suspendSr,blockedOperations,hasVendorDevice,startTime,installTime,pvDriversDetected,managementAgentDetected,type',
+  url: '/rest/v0/vms?fields='.concat(vmFields.toString()),
+  watchCollection: {
+    type: 'VM',
+    fields: vmFields,
+  },
   initialData: () => [] as XoVm[],
   state: (rawVms, context) => {
     const { getHostById } = useXoHostCollection(context)
