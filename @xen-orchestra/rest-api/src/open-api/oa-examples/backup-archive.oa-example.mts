@@ -55,6 +55,7 @@ export const backupArchive = {
     uuid: '7cf6150f-a978-09e6-6b41-0d1d41967bdc',
     name_description: 'root:vateslab',
     name_label: 'mra_vtp_test',
+    tags: ['tag_1'],
   },
   differencingVhds: 1,
   dynamicVhds: 0,

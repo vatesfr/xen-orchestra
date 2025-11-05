@@ -43,6 +43,7 @@ function formatVmBackup(backup) {
       uuid: backup.vm.uuid,
       name_description: backup.vm.name_description,
       name_label: backup.vm.name_label,
+      tags: backup.vm.tags,
     },
 
     differencingVhds,
