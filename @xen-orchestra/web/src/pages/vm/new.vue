@@ -793,8 +793,8 @@ const createNewVM = async () => {
       throw new Error('Template UUID and Pool ID are required')
     }
 
-    await createVM(vmData.value, vmState.pool.id)
-    redirectToPool(vmState.pool.id)
+    const vmId = await createVM(vmData.value, vmState.pool.id)
+    router.push({ name: '/vm/[id]/dashboard', params: { id: vmId } })
   } catch (error) {
     isOpen.value = true
 
