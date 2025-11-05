@@ -524,7 +524,7 @@ When a backup job is configured using Normal snapshot mode, it's possible to use
 
 - **xo-offline-backup** to apply offline snapshotting mode (VM will be shut down prior to snapshot)
 - **xo-memory-backup** to apply RAM-enabled snapshotting
-- **xo-backup-healthcheck-xenstore** to use a script during [backup healthcheck](#backup-health-check)
+- **xo-backup-health-check-xenstore** to use a script during [backup healthcheck](#backup-health-check)
 - **xo:no-health-check** ignore this VM during [backup healthcheck](#backup-health-check)
 
 For example, you could have a regular backup job with 10 VMs configured with Normal snapshotting, including two which are database servers. Since database servers are generally more sensitive to being restored from snapshots, you could apply the **xo-memory-backup** tag to those two VMs and only those will be backed up in RAM-enabled mode. This will avoid the need to manage a separate backup job and schedule.
@@ -626,7 +626,7 @@ The restored VM is then deleted.
 
 #### Execute a script
 
-If a VM has the tag **xo-backup-healthcheck-xenstore** during a backup health check, then XO will wait for a script to change the value of the xenstore `vm-data/xo-backup-health-check` key to be either `success` or `failure`.
+If a VM has the tag **xo-backup-health-check-xenstore** during a backup health check, then XO will wait for a script to change the value of the xenstore `vm-data/xo-backup-health-check` key to be either `success` or `failure`.
 
 In case of `failure`, it will mark the health check as failed, and will show the (optional) message contained in `vm-data/xo-backup-health-check-error`
 
