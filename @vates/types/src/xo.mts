@@ -228,7 +228,7 @@ export type XoHost = BaseXapiXo & {
 
   address: string
   agentStartTime: null | number
-  bios_string: Record<string, string>
+  bios_strings: Record<string, string>
   build: string
   certificates?: {
     fingerprint: string
