@@ -1,6 +1,8 @@
 <template>
-  <VtsLoadingHero v-if="!isReady" type="page" />
-  <VtsObjectNotFoundHero v-else-if="!vm" :id="route.params.id" type="page" />
+  <VtsStateHero v-if="!areVmsReady" format="page" busy size="large" />
+  <VtsStateHero v-else-if="!vm" format="page" type="not-found" size="large">
+    {{ t('object-not-found', { id: route.params.id }) }}
+  </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
     <VmHeader v-if="uiStore.hasUi" :vm />
     <component :is="Component" :vm />
@@ -9,18 +11,22 @@
 
 <script lang="ts" setup>
 import VmHeader from '@/components/vm/VmHeader.vue'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoVm } from '@/types/xo/vm.type'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
-import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+
+useDefaultTab('/vm/[id]', 'dashboard')
 
 const route = useRoute<'/vm/[id]'>()
 
-const { isReady, get: getVm } = useVmStore().subscribe()
+const { t } = useI18n()
+
+const { areVmsReady, useGetVmById } = useXoVmCollection()
 const uiStore = useUiStore()
 
-const vm = computed(() => getVm(route.params.id as XoVm['id']))
+const vm = useGetVmById(() => route.params.id as XoVm['id'])
 </script>

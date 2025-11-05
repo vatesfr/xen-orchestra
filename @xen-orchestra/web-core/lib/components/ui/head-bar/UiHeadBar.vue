@@ -2,11 +2,9 @@
 <template>
   <div class="ui-head-bar">
     <div class="label-wrapper">
-      <span v-if="slots.icon || icon" class="icon">
-        <slot name="icon">
-          <VtsIcon :icon accent="current" />
-        </slot>
-      </span>
+      <slot name="icon">
+        <VtsIcon :name="icon" size="medium" />
+      </slot>
       <h4 v-tooltip class="typo-h4 label text-ellipsis">
         <slot />
       </h4>
@@ -23,10 +21,10 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
 
 defineProps<{
-  icon?: IconDefinition
+  icon?: IconName
 }>()
 
 const slots = defineSlots<{
@@ -39,6 +37,7 @@ const slots = defineSlots<{
 
 <style lang="postcss" scoped>
 .ui-head-bar {
+  min-height: 5.6rem;
   padding: 0.8rem 1.6rem;
   display: flex;
   gap: 1.6rem;
@@ -55,10 +54,6 @@ const slots = defineSlots<{
 
   .label {
     color: var(--color-neutral-txt-primary);
-  }
-
-  .icon {
-    font-size: 2.4rem;
   }
 
   .status {

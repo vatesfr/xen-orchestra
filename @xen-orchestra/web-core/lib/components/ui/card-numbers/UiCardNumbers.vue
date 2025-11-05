@@ -4,7 +4,7 @@
     <span class="label typo-caption-small">{{ label }}</span>
     <div class="values" :class="fontClass">
       <span v-if="percentValue !== undefined">
-        {{ $n(percentValue, 'percent') }}
+        {{ n(percentValue, 'percent') }}
       </span>
       <span>
         {{ `${value ?? '-'} ${unit ?? ''}` }}
@@ -16,6 +16,7 @@
 <script setup lang="ts">
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { size, value, max } = defineProps<{
   label: string
@@ -24,6 +25,8 @@ const { size, value, max } = defineProps<{
   unit?: string
   max?: number
 }>()
+
+const { n } = useI18n()
 
 const className = computed(() => toVariants({ size }))
 const fontClass = computed(() => (size === 'medium' ? 'typo-h3' : 'typo-caption-small'))

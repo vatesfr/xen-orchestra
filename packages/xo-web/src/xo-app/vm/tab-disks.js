@@ -133,7 +133,11 @@ const COLUMNS_VM_PV = [
   {
     itemRenderer: ({ vdi }) => <Size value={defined(vdi.size, null)} onChange={size => editVdi(vdi, { size })} />,
     name: _('vdiSize'),
-    sortCriteria: 'vdi.size',
+  },
+  {
+    name: _('vdiImageFormat'),
+    itemRenderer:  ({ vdi }) => defined(vdi.image_format, 'VHD'),
+    sortCriteria:  ({ vdi }) => vdi.image_format,
   },
   {
     itemRenderer: ({ vdi }) => <Toggle value={vdi.cbt_enabled} onChange={cbt => setCbt(vdi, cbt)} />,

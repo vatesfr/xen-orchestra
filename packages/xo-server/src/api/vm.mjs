@@ -1359,7 +1359,8 @@ async function import_({ data, sr, type = 'xva', url }) {
       throw invalidParameters('URL import is only compatible with XVA')
     }
 
-    const ref = await xapi.VM_import(await hrp(url), sr._xapiRef)
+    const timeout = this.config.getOptionalDuration('jsonrpc-api.xvaImportFromUrlTimeout') ?? 6e3
+    const ref = await xapi.VM_import(await hrp(url, { timeout }), sr._xapiRef)
     return xapi.call('VM.get_uuid', ref)
   }
 
@@ -1438,7 +1439,6 @@ export async function importFromEsxi({
     template,
     user,
     vms: [vm],
-    workDirRemote,
   })
 }
 
@@ -1469,29 +1469,13 @@ export async function importMultipleFromEsxi({
   sslVerify,
   stopSource,
   stopOnError,
-  thin,
   template,
   user,
   vms,
-  workDirRemote,
 }) {
   const task = await this.tasks.create({ name: `importing vms ${vms.join(',')}` })
   let done = 0
   return task.run(async () => {
-    const PREFIX = '[vmware]'
-    const handlers = await Promise.all(
-      (await this.getAllRemotes())
-        .filter(({ name, enabled }) => enabled && name.toLocaleLowerCase().startsWith(PREFIX))
-        .map(remote => this.getRemoteHandler(remote))
-    )
-    const workDirRemoteHandler = workDirRemote ? await this.getRemoteHandler(workDirRemote) : undefined
-    const dataStoreToHandlers = {}
-    handlers.forEach(handler => {
-      const name = handler._remote.name
-      const dataStoreName = name.substring(PREFIX.length).trim()
-      dataStoreToHandlers[dataStoreName] = handler
-    })
-
     Task.set('total', vms.length)
     Task.set('done', 0)
     Task.set('progress', 0)
@@ -1507,14 +1491,11 @@ export async function importMultipleFromEsxi({
                 user,
                 password,
                 sslVerify,
-                thin,
                 vm,
                 sr,
                 network,
                 stopSource,
                 template,
-                dataStoreToHandlers,
-                workDirRemote: workDirRemoteHandler,
               })
               result[vm] = vmUuid
             } finally {
@@ -1865,5 +1846,31 @@ coalesceLeaf.params = {
   id: { type: 'string' },
 }
 coalesceLeaf.resolve = {
+  vm: ['id', 'VM', 'administrate'],
+}
+
+export async function addDataSource({ vm, dataSource }) {
+  await this.getXapi(vm).call('VM.record_data_source', vm._xapiRef, dataSource)
+}
+
+addDataSource.params = {
+  id: { type: 'string' },
+  dataSource: { type: 'string' },
+}
+
+addDataSource.resolve = {
+  vm: ['id', 'VM', 'administrate'],
+}
+
+export async function removeDataSource({ vm, dataSource }) {
+  await this.getXapi(vm).call('VM.forget_data_source_archives', vm._xapiRef, dataSource)
+}
+
+removeDataSource.params = {
+  id: { type: 'string' },
+  dataSource: { type: 'string' },
+}
+
+removeDataSource.resolve = {
   vm: ['id', 'VM', 'administrate'],
 }

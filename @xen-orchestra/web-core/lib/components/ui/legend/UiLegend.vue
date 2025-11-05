@@ -1,9 +1,9 @@
 <!-- v3 -->
 <template>
   <li :class="classNames" class="ui-legend">
-    <VtsIcon :icon="faCircle" accent="current" class="circle-icon" />
+    <VtsIcon name="fa:circle" size="medium" class="circle-icon" />
     <span class="label typo-body-regular-small"><slot /></span>
-    <VtsIcon v-if="tooltip" v-tooltip="tooltip" :icon="faCircleInfo" class="tooltip-icon" accent="info" />
+    <VtsIcon v-if="tooltip" v-tooltip="tooltip" name="fa:info-circle" size="medium" class="tooltip-icon" />
     <span v-if="valueLabel" class="value-and-unit typo-caption-small">{{ valueLabel }}</span>
   </li>
 </template>
@@ -12,27 +12,26 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { toVariants } from '@core/utils/to-variants.util'
-import { faCircle, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 
 export type LegendItemAccent = 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'muted'
 
 export type LegendItemProps = {
   accent: LegendItemAccent
-  value?: number
+  value?: number | string
   unit?: string
   tooltip?: string
 }
 
-const props = defineProps<LegendItemProps>()
+const { value, unit, accent } = defineProps<LegendItemProps>()
 
 defineSlots<{
-  default(): void
+  default(): any
 }>()
 
-const valueLabel = computed(() => [props.value, props.unit].join(' ').trim())
+const valueLabel = computed(() => [value, unit].join(' ').trim())
 
-const classNames = computed(() => toVariants({ accent: props.accent }))
+const classNames = computed(() => toVariants({ accent }))
 </script>
 
 <style lang="postcss" scoped>
@@ -47,6 +46,7 @@ const classNames = computed(() => toVariants({ accent: props.accent }))
 
   .tooltip-icon {
     font-size: 1.2rem;
+    color: var(--color-info-item-base);
   }
 
   .label {

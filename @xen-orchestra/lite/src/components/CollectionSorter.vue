@@ -7,28 +7,28 @@
       @remove="emit('removeSort', property)"
     >
       <span class="property">
-        <UiIcon :icon="isAscending ? faCaretUp : faCaretDown" />
+        <VtsIcon :name="isAscending ? 'fa:caret-up' : 'fa:caret-down'" size="medium" />
         {{ property }}
       </span>
     </UiFilter>
 
-    <UiActionButton :icon="faPlus" class="add-sort" @click="openModal()">
-      {{ $t('add-sort') }}
+    <UiActionButton icon="fa:plus" class="add-sort" @click="openFormModal()">
+      {{ t('add-sort') }}
     </UiActionButton>
   </UiFilterGroup>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import UiActionButton from '@/components/ui/UiActionButton.vue'
 import UiFilter from '@/components/ui/UiFilter.vue'
 import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
-import { useModal } from '@/composables/modal.composable'
-import type { ActiveSorts, NewSort, Sorts } from '@/types/sort'
-import { faCaretDown, faCaretUp, faPlus } from '@fortawesome/free-solid-svg-icons'
+import type { ActiveSorts, Sorts } from '@/types/sort'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { availableSorts } = defineProps<{
   availableSorts: Sorts
   activeSorts: ActiveSorts<Record<string, any>>
 }>()
@@ -39,13 +39,13 @@ const emit = defineEmits<{
   removeSort: [property: string]
 }>()
 
-const openModal = () => {
-  const { onApprove } = useModal<NewSort>(() => import('@/components/modals/CollectionSorterModal.vue'), {
-    availableSorts: computed(() => props.availableSorts),
-  })
+const { t } = useI18n()
 
-  onApprove(({ property, isAscending }) => emit('addSort', property, isAscending))
-}
+const openFormModal = useModal({
+  component: import('@/components/modals/CollectionSorterModal.vue'),
+  props: { availableSorts: computed(() => availableSorts) },
+  onConfirm: ({ property, isAscending }) => emit('addSort', property, isAscending),
+})
 </script>
 
 <style lang="postcss" scoped>

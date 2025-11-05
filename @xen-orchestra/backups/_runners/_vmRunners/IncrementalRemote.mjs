@@ -10,7 +10,7 @@ import { IncrementalRemoteWriter } from '../_writers/IncrementalRemoteWriter.mjs
 import { Disposable } from 'promise-toolbox'
 import { openVhd } from 'vhd-lib'
 import { getVmBackupDir } from '../../_getVmBackupDir.mjs'
-import { SynchronizedDisk } from '@xen-orchestra/disk-transform'
+import { SynchronizedDisk, ThrottledDisk } from '@xen-orchestra/disk-transform'
 
 const { warn } = createLogger('xo:backups:Incrementalremote')
 class IncrementalRemoteVmBackupRunner extends AbstractRemote {
@@ -71,8 +71,9 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       const isVhdDifferencing = {}
 
       for (const key in incrementalExport.disks) {
-        const disk = incrementalExport.disks[key]
+        let disk = incrementalExport.disks[key]
         isVhdDifferencing[key] = disk.isDifferencing()
+        disk = new ThrottledDisk(disk, this._throttleGenerator)
         incrementalExport.disks[key] = new SynchronizedDisk(disk)
       }
 
@@ -115,6 +116,7 @@ class IncrementalRemoteVmBackupRunner extends AbstractRemote {
       // for healthcheck
       this._tags = metadata.vm.tags
     }
+    this._hasTransferredData = transferList.length > 0
   }
 }
 

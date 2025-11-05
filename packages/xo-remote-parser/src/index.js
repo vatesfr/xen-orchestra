@@ -77,6 +77,28 @@ export const parse = string => {
     object.username = decodeURIComponent(parsed.username)
     object.password = decodeURIComponent(parsed.password)
     object = { ...parseOptionList(parsed.query), ...object }
+  } else if (type === 'azure' || type === 'azurite' || type === 'azurite+http') {
+    const parsed = urlParser(string, false)
+
+    // default https for azure and azurite.
+    // If the user wants azurite in http (not possible for azure),
+    // he will need to type "azurite+http:"
+    if (parsed.protocol === 'azure:' || parsed.protocol === 'azurite:') {
+      object.protocol = 'https'
+    } else {
+      object.protocol = 'http'
+    }
+    if (parsed.protocol === 'azure:') {
+      object.type = 'azure'
+    } else {
+      object.type = 'azurite'
+    }
+    object.host = parsed.host
+    object.port = parsed.port
+    object.path = parsed.pathname
+    object.username = decodeURIComponent(parsed.username)
+    object.password = decodeURIComponent(parsed.password)
+    object = { ...parseOptionList(parsed.query), ...object }
   }
   return object
 }
@@ -92,6 +114,14 @@ export const format = ({ type, host, path, port, username, password, domain, pro
   }
   if (type === 's3') {
     string = protocol === 'https' ? 's3://' : 's3+http://'
+    string += `${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
+  }
+  if (type === 'azure' || type === 'azurite') {
+    if (type === 'azure') {
+      string = 'azure://'
+    } else if (type === 'azurite') {
+      string = protocol === 'https' ? 'azurite://' : 'azurite+http://'
+    }
     string += `${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}`
   }
   path = sanitizePath(path)

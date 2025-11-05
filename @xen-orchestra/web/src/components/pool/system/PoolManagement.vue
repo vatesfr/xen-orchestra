@@ -1,33 +1,33 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('pool-management') }}
+      {{ t('pool-management') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsStateHero v-if="!areHostsReady" format="card" busy size="medium" />
     <template v-else>
-      <VtsQuickInfoRow :label="$t('master')">
+      <VtsQuickInfoRow :label="t('master')">
         <template #value>
-          <UiLink v-if="primaryHost" :icon="faServer" :to="`/host/${pool.master}/`" size="medium">
+          <UiLink v-if="primaryHost" icon="fa:server" :to="`/host/${pool.master}/`" size="medium">
             {{ primaryHost.name_label }}
           </UiLink>
           <template v-else>
-            {{ $t('none') }}
+            {{ t('none') }}
           </template>
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('auto-power')">
+      <VtsQuickInfoRow :label="t('auto-power')">
         <template #value>
-          <VtsEnabledState :enabled="pool.auto_poweron" />
+          <VtsStatus :status="pool.auto_poweron" />
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('high-availability')">
+      <VtsQuickInfoRow :label="t('high-availability')">
         <template #value>
-          <VtsEnabledState :enabled="pool.HA_enabled" />
+          <VtsStatus :status="pool.HA_enabled" />
         </template>
       </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="$t('migration-compression')">
+      <VtsQuickInfoRow :label="t('migration-compression')">
         <template #value>
-          <VtsEnabledState :enabled="pool.migrationCompression ?? false" />
+          <VtsStatus :status="pool.migrationCompression ?? false" />
         </template>
       </VtsQuickInfoRow>
     </template>
@@ -35,22 +35,23 @@
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
-import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
   pool: XoPool
 }>()
 
-const { get: getHostById, isReady } = useHostStore().subscribe()
+const { t } = useI18n()
 
-const primaryHost = computed(() => getHostById(pool.master))
+const { useGetHostById, areHostsReady } = useXoHostCollection()
+
+const primaryHost = useGetHostById(() => pool.master)
 </script>

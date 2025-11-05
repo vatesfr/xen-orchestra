@@ -1,7 +1,7 @@
 import { filter, groupBy, includes, isEmpty, keyBy, map as mapToArray, maxBy, minBy, size, sortBy } from 'lodash'
 import { inspect } from 'util'
 
-import { EXECUTION_DELAY, debug } from './utils'
+import { EXECUTION_DELAY, debug, warn } from './utils'
 
 const MINUTES_OF_HISTORICAL_DATA = 30
 
@@ -144,7 +144,7 @@ export default class Plan {
     this._antiAffinityTags = antiAffinityTags
     // balanceVcpus variable name was kept for compatibility with past configuration schema
     this._performanceSubmode =
-      balanceVcpus === false ? 'conservative' : balanceVcpus === true ? 'vCpuPrepositionning' : balanceVcpus
+      balanceVcpus === false ? 'conservative' : balanceVcpus === true ? 'vCpuPrepositioning' : balanceVcpus
     this._globalOptions = globalOptions
     this._concurrentMigrationLimiter = concurrentMigrationLimiter
 
@@ -311,16 +311,30 @@ export default class Plan {
   // vCPU pre-positioning helpers
   // ===================================================================
 
-  async _processVcpuPrepositionning(hosts) {
+  async _processVcpuPrepositioning(hosts) {
     const promises = []
 
-    const idToHost = keyBy(hosts, 'id')
+    // removing hosts which have incorrect cpu count value to avoid mass migration on rrd malfunction
+    const sanitizedHostList = hosts.filter(host => host.cpus.cores > 0)
+    if (sanitizedHostList.length < hosts.length) {
+      const unhealthyHosts = hosts.filter(host => host.cpus.cores === undefined || host.cpus.cores === 0)
+      for (const unhealthyHost of unhealthyHosts) {
+        warn(
+          `vCPU balancing: host ${unhealthyHost.id} has unexpected CPU value: ${inspect(unhealthyHost.cpus, { depth: null })}`
+        )
+      }
+      if (sanitizedHostList.length < 2) {
+        // need at least 2 hosts
+        return
+      }
+    }
+    const idToHost = keyBy(sanitizedHostList, 'id')
     const allVms = filter(this._getAllRunningVms(), vm => vm.$container in idToHost)
-    const hostList = this._getVCPUHosts(hosts, allVms)
+    const hostList = this._getVCPUHosts(sanitizedHostList, allVms)
     const idealVcpuPerCpuRatio =
       hostList.reduce((sum, host) => sum + host.vcpuCount, 0) / hostList.reduce((sum, host) => sum + host.cpuCount, 0)
 
-    debugVcpuBalancing('Trying to apply vCPU prepositionning.')
+    debugVcpuBalancing('Trying to apply vCPU prepositioning.')
     debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
     debugVcpuBalancing(`Average vCPUs per CPU: ${idealVcpuPerCpuRatio}`)
 
@@ -336,7 +350,7 @@ export default class Plan {
     const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts })
     const poolAverageCpu = computeAverageCpu(hostsAverages)
     if (poolAverageCpu > THRESHOLD_POOL_CPU) {
-      debugVcpuBalancing(`Pool too much loaded for vCPU prepositionning: ${poolAverageCpu}% CPU used`)
+      debugVcpuBalancing(`Pool too much loaded for vCPU prepositioning: ${poolAverageCpu}% CPU used`)
       return
     }
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)

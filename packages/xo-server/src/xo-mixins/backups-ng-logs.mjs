@@ -181,7 +181,7 @@ export default {
 
       if (runId !== undefined) {
         if (consolidated[runId] === undefined) {
-          /* throw */ noSuchObject(runId, 'backup-ng-log')
+          throw noSuchObject(runId, 'backup-ng-log')
         }
         return consolidated[runId]
       }

@@ -26,3 +26,51 @@ export const user = {
   preferences: {},
   id: '722d17b9-699b-49d2-8193-be1ac573d3de',
 }
+
+export const userId = { id: '722d17b9-699b-49d2-8193-be1ac573d3de' }
+
+export const authenticationTokens = [
+  {
+    client: {
+      id: 'w574r066b5',
+    },
+    created_at: 1754383334192,
+    description: 'xo-cli@0.32.2 - fedora-2.home - Linux x86_64',
+    user_id: '722d17b9-699b-49d2-8193-be1ac573d3de',
+    expiration: 1756975334192,
+    last_uses: {
+      '::1': {
+        timestamp: 1754383346794,
+      },
+    },
+    id: 'LB_DqCNhcmAoyiioNnajySHIYHrWfsIhYSYn3n8FfJA',
+  },
+  {
+    client: {
+      id: 'nemyw6m3dx',
+    },
+    created_at: 1754471974241,
+    description: 'Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0',
+    user_id: '722d17b9-699b-49d2-8193-be1ac573d3de',
+    expiration: 1754507974241,
+    last_uses: {
+      '::ffff:127.0.0.1': {
+        timestamp: 1754475904704,
+      },
+    },
+    id: 'ktdlq-BX_GdS5N8MR0v7QIuoSymBw4Ys4EOxsOdqpnE',
+  },
+]
+
+export const authenticationToken = {
+  token: {
+    client: {
+      id: 'my-fav-client',
+    },
+    created_at: 1760346600297,
+    description: 'token for CLI usage',
+    id: 'fhIUz8AtMLndzMd3ksfoTpHb0tWyKHmT6-M3o_hUbRg',
+    user_id: '722d17b9-699b-49d2-8193-be1ac573d3de',
+    expiration: 1760350200297,
+  },
+}

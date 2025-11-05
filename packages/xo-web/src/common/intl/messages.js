@@ -7,6 +7,10 @@ const messages = {
   alpha: 'Alpha',
   alerts: 'Alerts',
   connected: 'Connected',
+  dcScope: 'DC Scope',
+  deployDcScope: 'Deploy DC Scope',
+  dcNetScope: 'DC NetScope',
+  deployDcNetScope: 'Deploy DC NetScope',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   disable: 'Disable',
@@ -17,6 +21,25 @@ const messages = {
   hostIp: 'Host IP',
   interfaces: 'Interfaces',
   keyValue: '{key}: {value}',
+  esxiLibraryInfo: 'The V2V tool needs the vddk library, provided by Broadcom. Please download it from their website',
+  esxiLibraryLink: 'Download link',
+
+  esxiVddkLibrary: 'Drop the tar.gz file of the vddk library (linux)',
+  esxiVddkLibraryImport: 'Import and install the Vddk library. VDDK9 need nbdkit 1.42+',
+  esxiLibraryManualInstall:
+    'For other systems, you can install manually from https://gitlab.com/nbdkit/ . For reference the list of packages need for a debian 13 is **git dh-autoreconf pkg-config make libxml2-dev ocaml libc-bin**',
+  esxiLibraryAutoInstall: 'install {library} (debian based system)',
+  esxiLibraryInstalling:
+    "Installing {library} can take a few minutes. You can check the progress in the XO tasks screen while it's running.",
+  esxiProgressLinkText: 'Track progress',
+
+  esxiLibraryOutdated:
+    '{library} library is outdated expecting {expectedVersion}, got {version}. Please uninstall it and install the required version.',
+  esxiCheckingPrerequisite: 'Checking prerequisite on XO',
+  esxiCheckedPrerequisite: 'Result of the prerequisite check on XO',
+
+  esxiCheckingPrerequisiteError: 'Must be corrected before importing VM',
+  esxiCheckedPrerequisiteVersion: 'expected version {expectedVersion} , {version} installed',
   esxiImportSslCertificate: 'Skip SSL check',
   esxiImportThin: 'Thin mode',
   esxiImportThinDescription:
@@ -167,6 +190,7 @@ const messages = {
   // ----- Filters -----
   onError: 'On error',
   successful: 'Successful',
+  filterKeepFailed: 'Keep only failed',
   filterOutShortTasks: 'Hide short tasks',
   filterOnlyManaged: 'Managed disks',
   filterOnlyOrphaned: 'Orphaned disks',
@@ -257,7 +281,7 @@ const messages = {
   customJob: 'Custom Job',
   userPage: 'User',
   xoa: 'XOA',
-
+  restApiDoc: 'REST API doc',
   // ----- Support -----
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
@@ -618,13 +642,12 @@ const messages = {
     'Delete old backups before backing up the VMs. If the new backup fails, you will lose your old backups.',
   customTag: 'Custom tag',
   editJobNotFound: "The job you're trying to edit wasn't found",
-  preferNbd: 'Use NBD + CBT to transfer disk if available',
-  preferNbdInformation:
-    'A network accessible by XO or the proxy must have NBD enabled. Storage must support Change Block Tracking (CBT) to use it in a backup',
+  preferNbd: 'Use NBD to transfer disk if available',
+  preferNbdInformation: 'A network accessible by XO or the proxy must have NBD enabled.',
   nbdConcurrency: 'Number of NBD connection per disk',
-  cbtDestroySnapshotData: 'Purge snapshot data when using CBT',
+  cbtDestroySnapshotData: 'Purge snapshot data when using CBT.',
   cbtDestroySnapshotDataInformation:
-    "The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback nor differential restores",
+    "This will automatically enable Change Block Tracking (CBT) on the disks. The snapshot won't use any notable space on the SR, won't be shown in the UI and won't be usable to do a rollback nor differential restores",
   cbtDestroySnapshotDataDisabledInformation:
     'Snapshot data can be purged only when NBD is enabled and rolling snapshot is not used',
   shorterBackupReports: 'Shorter backup reports',
@@ -633,6 +656,7 @@ const messages = {
   numberOfWeeklyBackupsKept: 'Number of weekly backups kept',
   numberOfMonthlyBackupsKept: 'Number of monthly backups kept',
   numberOfYearlyBackupsKept: 'Number of yearly backups kept',
+  hideSuccessfulItems: 'Hide successful items in failure reports',
 
   // ------ New Remote -----
   newRemote: 'New file system remote',
@@ -640,6 +664,8 @@ const messages = {
   remoteTypeNfs: 'NFS',
   remoteTypeSmb: 'SMB',
   remoteTypeS3: 'Amazon Web Services S3',
+  remoteTypeAzure: 'Azure',
+  remoteTypeAzurite: 'Azurite',
   remoteType: 'Type',
   remoteSmbWarningMessage:
     'SMB remotes are meant to work with Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.',
@@ -653,6 +679,8 @@ const messages = {
   remoteTestNameFailure: 'Remote name already exists!',
   remoteTestSuccessMessage: 'The remote appears to work correctly',
   remoteConnectionFailed: 'Connection failed',
+  remoteContainer: 'Container',
+  remoteAccountName: 'Account name',
 
   // ------ Backup job -----
 
@@ -662,6 +690,7 @@ const messages = {
   mirrorFullBackup: 'Mirror full backup',
   mirrorIncrementalBackup: 'Mirror incremental backup',
   runBackupJob: 'Run backup job once',
+  backupJobWarningVmView: 'Enabling or disabling a backup job here will affect all VMs within that job.',
   speedLimit: 'Speed limit (in MiB/s)',
   sourceRemote: 'Source remote',
   targetRemotes: 'Target remotes',
@@ -702,6 +731,17 @@ const messages = {
   remoteS3Region: 'Region, leave blank for default',
   remoteS3TooltipProtocol: 'Uncheck if you want HTTP instead of HTTPS',
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
+  remoteAzureLabelUseHttps: 'Use HTTPS',
+  remoteAzureLabelAllowInsecure: 'Allow unauthorized',
+  remoteAzurePlaceHolderEndpoint: 'Azure endpoint (ex: username.blob.core.windows.net)',
+  remoteAzurePlaceHolderContainer: 'Azure container name',
+  remoteAzurePlaceHolderDirectory: 'Directory',
+  remoteAzurePlaceHolderAccessKeyID: 'Access key ID',
+  remoteAzurePlaceHolderSecret: 'Paste secret here to change it',
+  remoteAzurePlaceHolderEncryptionKey: 'Enter your encryption key here (32 characters)',
+  remoteAzureRegion: 'Region, leave blank for default',
+  remoteAzureTooltipProtocol: 'Uncheck if you want HTTP instead of HTTPS',
+  remoteAzureTooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
   remoteUseVhdDirectory:
     'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up GB but allows faster merge)',
@@ -892,6 +932,7 @@ const messages = {
   // ----- SR advanced tab -----
 
   provisioning: 'Provisioning',
+  supportedImageFormats: 'Supported image formats',
   srUnhealthyVdiDepth: 'Depth',
   srUnhealthyVdiNameLabel: 'Name',
   srUnhealthyVdiSize: 'Size',
@@ -1355,6 +1396,7 @@ const messages = {
   vdiTags: 'Tags',
   vdiTasks: 'VDI tasks',
   vdiSize: 'Size',
+  vdiImageFormat: 'Image format',
   vdiSr: 'SR',
   vdiVms: 'VMs',
   vdiMigrate: 'Migrate VDI',
@@ -1394,6 +1436,7 @@ const messages = {
   warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
   removeSelectedVdisFromVm: 'Remove selected VDIs from this VM',
   removeVdiFromVm: 'Remove VDI from this VM',
+  qcow2: 'QCOW2',
   vhd: 'VHD',
   vmdk: 'VMDK',
   raw: 'RAW',
@@ -1785,6 +1828,7 @@ const messages = {
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
+  templateSshInfo: 'SSH key corresponding to the SSH title',
   templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
   coreOsDefaultTemplateError: 'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
@@ -1874,9 +1918,6 @@ const messages = {
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
   vmsToImport: 'VM{nVms, plural, one {} other {s}} to import',
-  warningVsanImport:
-    '<div>VM running from non file based datastore (like VSAN) will be migrated in a three steps process<ul><li>Stop the VM</li><li>Export the VM disks to a remote of Xen Orchestra</li><li>Load these disks in XCP-ng</li></ul>This process will be slower than migrating the VM to VMFS / NFS datastore and then migrating them to XCP-ng</div>',
-  workDirLabel: 'Remote used to store temporary disk files(VSAN migration)',
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',
@@ -2024,6 +2065,7 @@ const messages = {
   // ----- Modals -----
   bypassBackupHostModalMessage: 'There may be ongoing backups on the host. Are you sure you want to continue?',
   bypassBackupPoolModalMessage: 'There may be ongoing backups on the pool. Are you sure you want to continue?',
+  bypassBackupStorageModalMessage: 'There may be ongoing backups on the storage. Are you sure you want to continue?',
   bypassBlockedMigrationsModalTitle: 'Bypass blocked migrations',
   bypassBlockedMigrationsModalMessage: 'This will allow migration on these VMs: {vms}',
   emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
@@ -2753,6 +2795,8 @@ const messages = {
   templatesLabel: 'Templates',
   recipesLabel: 'Recipes',
   network: 'Network',
+
+  // Recipe Kubernetes
   recipeSelectK8sVersion: 'Select Kubernetes version',
   recipeClusterNameLabel: 'Cluster name',
   recipeNumberOfNodesLabel: 'Number of worker nodes',
@@ -2769,9 +2813,33 @@ const messages = {
   recipeWorkerIpAddress: 'Worker node { i, number } IP address/subnet mask',
   recipeGatewayIpAddress: 'Gateway IP address',
   recipeNameserverAddresses: 'Nameserver IP addresses',
+  recipeStaticIpAddress: 'Static IP Address',
   recipeNameserverAddressesExample: '192.168.1.0,172.16.1.0',
   recipeSearches: 'Search domains',
   recipeSearchesExample: 'domain.com,search.org',
+
+  // Recipe DC Scope
+  vmNameCompleteLabel: 'VM Name',
+  easyVirtVmLabel: 'EasyVirt VM',
+  easyVirtDescription: 'Creates a DC Scope or a DC NetScope VM with parameters and application inside',
+  xoPassword: 'Xen Orchestra Password',
+  xoUsername: 'Xen Orchestra Username',
+  dcNetscopePassword: 'Password for DC Netscope web interface',
+  xoFqdn: 'Xen Orchestra FQDN / IP',
+  dcScopeVm: 'DC Scope VM',
+  dcNetScopeVm: 'DC NetScope VM',
+  recipeEasyVirt: 'EasyVirt VM to deploy',
+  recipeUserCompany: 'Company',
+  gdprCompliance: 'I agree that the data in this form may be shared exclusively between Vates and EasyVirt',
+  recipeUserEmail: 'Email for EasyVirt',
+  performanceConfigDcScope: 'Performance for VM DC Scope',
+  dcScopeTest: 'Test config (10 VM): CPU(2), RAM(4), Disk(10GB)',
+  dcScopeVerySmall: 'Very small config (<1000 VM): CPU(2), RAM(12), Disk(250GB)',
+  dcScopeSmall: 'Small config (1000-2500 VM): CPU(2), RAM(24), Disk(550GB)',
+  dcScopeMedium: 'Medium config (2500-5000 VM): CPU(4), RAM(48), Disk(750GB)',
+  dcScopeBig: 'Big config (5000-7500 VM): CPU(4), RAM(64), Disk(1.2TB)',
+  dcScopeVeryBig: 'Very big config (7500-10000 VM: CPU(8), RAM(96), Disk(1.5TB)',
+  dcScopeHuge: 'Huge config (>10000 VM): CPU(8), RAM(128), Disk(2TB)',
 
   // Audit
   auditActionEvent: 'Action/Event',

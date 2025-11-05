@@ -1,72 +1,71 @@
 <template>
-  <MenuItem :busy="areVmsBusyToStart" :disabled="!areVmsHalted" :icon="faPlay" @click="xenApi.vm.start(vmRefs)">
-    {{ $t('start') }}
+  <MenuItem :busy="areVmsBusyToStart" :disabled="!areVmsHalted" icon="fa:play" @click="xenApi.vm.start(vmRefs)">
+    {{ t('start') }}
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" :icon="faServer">
-    {{ $t('start-on-host') }}
+  <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="fa:server">
+    {{ t('start-on-host') }}
     <template #submenu>
-      <MenuItem v-for="host in hosts" :key="host.$ref" :icon="faServer" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
+      <MenuItem v-for="host in hosts" :key="host.$ref" icon="fa:server" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
         <div class="wrapper">
           {{ host.name_label }}
           <div>
-            <UiIcon :icon="host.$ref === pool?.master ? faStar : undefined" class="star" />
+            <VtsIcon v-if="host.$ref === pool?.master" name="legacy:primary" size="medium" class="star" />
             <PowerStateIcon :state="getHostState(host)" />
           </div>
         </div>
       </MenuItem>
     </template>
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToPause" :disabled="!areVmsRunning" :icon="faPause" @click="xenApi.vm.pause(vmRefs)">
-    {{ $t('pause') }}
+  <MenuItem :busy="areVmsBusyToPause" :disabled="!areVmsRunning" icon="fa:pause" @click="xenApi.vm.pause(vmRefs)">
+    {{ t('pause') }}
   </MenuItem>
-  <MenuItem :busy="areVmsBusyToSuspend" :disabled="!areVmsRunning" :icon="faMoon" @click="xenApi.vm.suspend(vmRefs)">
-    {{ $t('suspend') }}
+  <MenuItem :busy="areVmsBusyToSuspend" :disabled="!areVmsRunning" icon="fa:moon" @click="xenApi.vm.suspend(vmRefs)">
+    {{ t('suspend') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToResume"
     :disabled="!areVmsSuspended && !areVmsPaused"
-    :icon="faCirclePlay"
+    icon="fa:circle-play"
     @click="xenApi.vm.resume(vmRefsWithPowerState)"
   >
-    {{ $t('resume') }}
+    {{ t('resume') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToReboot"
     :disabled="!areVmsRunning"
-    :icon="faRotateLeft"
+    icon="fa:rotate-left"
     @click="xenApi.vm.reboot(vmRefs)"
   >
-    {{ $t('reboot') }}
+    {{ t('reboot') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToForceReboot"
     :disabled="!areVmsRunning && !areVmsPaused"
-    :icon="faRepeat"
+    icon="fa:repeat"
     @click="xenApi.vm.reboot(vmRefs, true)"
   >
-    {{ $t('force-reboot') }}
+    {{ t('force-reboot') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToShutdown"
     :disabled="!areVmsRunning"
-    :icon="faPowerOff"
+    icon="fa:power-off"
     @click="xenApi.vm.shutdown(vmRefs)"
   >
-    {{ $t('shutdown') }}
+    {{ t('shutdown') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToForceShutdown"
     :disabled="!areVmsRunning && !areVmsSuspended && !areVmsPaused"
-    :icon="faPlug"
+    icon="fa:plug"
     @click="xenApi.vm.shutdown(vmRefs, true)"
   >
-    {{ $t('force-shutdown') }}
+    {{ t('force-shutdown') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
 import PowerStateIcon from '@/components/PowerStateIcon.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { isVmOperationPending } from '@/libs/vm'
 import { VM_OPERATION, VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiHost, XenApiVm } from '@/libs/xen-api/xen-api.types'
@@ -75,24 +74,16 @@ import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import {
-  faCirclePlay,
-  faMoon,
-  faPause,
-  faPlay,
-  faPlug,
-  faPowerOff,
-  faRepeat,
-  faRotateLeft,
-  faServer,
-  faStar,
-} from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   vmRefs: XenApiVm['$ref'][]
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef: getVm } = useVmStore().subscribe()
 const { records: hosts } = useHostStore().subscribe()
@@ -134,6 +125,5 @@ const getHostState = (host: XenApiHost) => (isHostRunning(host) ? VM_POWER_STATE
 
 .star {
   margin: 0 1rem;
-  color: var(--color-warning-item-base);
 }
 </style>

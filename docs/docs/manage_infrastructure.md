@@ -24,7 +24,7 @@ Now go back to the Home view (or click on the "Xen Orchestra" title on the top l
 
 ### VMs
 
-By default, this view groups all **running VMs** on your connected server:
+By default, this view groups all **running VMs** on your connected server and everyday administration tasks:
 
 ![](./assets/xo5homevms.png)
 
@@ -391,12 +391,23 @@ If you’re automating things or working with scripts, you can also control VIF 
 
 ### VM high availability (HA)
 
-If you pool supports HA (must have shared storage), you can activate "HA". Read our blog post for more details on [VM high availability with XCP-ng/XenServer](https://xen-orchestra.com/blog/xenserver-and-vm-high-availability/).
-
-#### Docker management
+If your pool supports HA (must have shared storage), you can activate "HA". Read the XCP-ng documentation for more details on [High Availability with XCP-ng](https://docs.xcp-ng.org/management/ha/).
+In the VM's Advanced tab, you can choose between three HA modes:
+- Restart: a protected VM cannot be immediately restarted after a server failure. HA will attempt to restart the VM when additional capacity becomes available in the pool.
+- Best-Effort: for VMs configured with best-effort, HA will try to restart them on another host if their original host goes offline. This attempt occurs only after all VMs set to the "restart" mode have been successfully restarted. HA will make only one attempt to restart a best-effort VM; if it fails, no further attempts will be made.
+- Disabled: if an unprotected VM or its host is stopped, HA does not attempt to restart the VM.
 
 :::tip
-Please [read the dedicated section](manage_infrastructure.md#docker-support) to install a Docker Ready VM.
+In Xen Orchestra, you can filter to see which VMs are in which mode:
+`high_availability:restart` or `high_availability:best-effort`
+:::
+
+#### Container management
+
+You can use containers (such as Docker) inside your VMs. To know more on installing Docker inside a VM, check out the official [Docker documentation](https://docs.docker.com/).
+
+:::tip
+You can also run containers using Kubernetes, using the dedicated [Kubernetes recipe](https://docs.vates.tech/devops-tools/kubernetes). 
 :::
 
 ### VM CPU priority
@@ -701,6 +712,70 @@ To remove one host from a pool, you can go to the "Advanced" tab of the host pag
 - The host you want to remove must be a slave, not the master!
 :::
 
+### Network bonding
+
+#### Definition
+
+Network bonding, also known as link aggregation, involves combining two or more physical network interfaces into a single logical interface.
+
+The primary goals are to improve redundancy —so that a single cable or interface failure does not interrupt connectivity— and, depending on the bonding mode, to increase throughput by distributing traffic across multiple links.
+
+#### Supported bond types
+
+Xen Orchestra supports the following bond types:
+
+- **Active / Active (Balance-SLB)**  
+  - Does **not** require switch awareness (no LACP needed)
+  - Balances traffic across all bond members
+  - Automatically shifts traffic to remaining members if one link fails
+  - May have compatibility issues with some low-end switches
+  - Unlike LACP, Active/Active bonds can span ports on different switches
+
+- **Active / Backup**  
+  - Does **not** require switch awareness
+  - Uses one primary interface for traffic, switching to backup only upon link failure
+  - Unlike LACP, Active/Backup bonds can span ports on different switches
+
+- **LACP**  
+  - Requires the switch to support and be configured for LACP
+  - Offers rapid failover and can detect mid-span link failures even if the physical link stays up
+  - Balances traffic across all bond members during normal operations
+  - All participating ports must be on the same physical switch, or on switches that operate together as a single logical switch
+
+#### Creating a LACP bond
+
+1. Navigate to **New → Network** to open the **Create Network** page.  
+2. Choose the pool where you want the bond to be created.
+3. Enable the **Bonded network** toggle:
+    ![Bond creation interface](./assets/bond0.png)
+4. In the **Interface** dropdown, select two or more physical interfaces (PIFs) to include in the bond.  
+5. Provide a **name** and a **description** for the bond.
+6. Set the **Bond mode** to **LACP**.
+7. Leave the **MTU** field blank. This will work as-is in most cases.
+8. Click **Create network**.
+    XO will then create the bond on the host(s):
+    ![Newly-created bond](./assets/bond1.png)
+
+:::tip
+- If applied to a pool, the bond is created across all pool members, so make sure all your pool members are cabled and configured on the switch side for LACP!
+- If the host’s management interface resides on one of the selected interfaces, XO will **automatically migrate the management interface** on top of the new bond (e.g., if management was on `eth0` and the bond consists of `eth0` + `eth1`).
+:::
+
+#### Adding VLANs on top of bonds
+
+Once a bond (e.g., `bond0`) is created, you can build VLANs over it:
+
+1. Go again to **New → Network** screen.  
+2. Select the new bond interface (e.g., `bond0`) in the **Interface** dropdown.  
+3. Provide a **name**, **description**, and specify the **VLAN** ID (for instance, `20`):
+    ![Setting up a VLAN on top of a new network bond](./assets/bond2.png)
+4. Validate the VLAN network creation.\
+    This creates a virtual network on top of the bond, using the name and ID you've specified, available for VM attachment.
+
+:::tip
+This process is the same whether you're adding a VLAN on top of a LACP network bond, or a bond in another mode (such as Active/Active or Active/Backup).
+:::
+
 ## Storage Management
 
 ![](./assets/xo5storageadvanced.png)
@@ -813,20 +888,27 @@ This is the place to compare metrics on comparable objects (VMs to VMs, hosts to
 
 ### Usage reports
 
-Xen Orchestra allows you to monitor the usage of some or all of your resources, by sending you regular reports via email.
+Xen Orchestra lets you monitor the usage of some or all of your resources by sending regular reports via email.
 
-To receive reports, you need to enable the **usage-report** plugin.
+To receive reports, you first need to enable the **usage-report** plugin:
 
-1. Navigate to the **Settings → Plugin** menu. A list of plugins appears.
-1. From the list, look for the **usage-report** plugin. You can scroll through the list or type the plugin name in the search bar.
-1. Enable the plugin by activating the toggle switch next to the plugin name.
-1. Click the **+** icon to reveal the plugin settings:
+1. Go to **Settings → Plugin**. A list of plugins will appear.
+2. From the list, look for the **usage-report** plugin (you can scroll through the list or search for it by name).
+3. Enable the plugin by switching on the toggle next to the plugin name. 
+4. Click the **+** icon to open the plugin settings:
     ![](./assets/usage-report-plugin.png)
-1. In the **emails** section, click **Add**. This will display a new text field.
-1. In that field, enter the email address where you wish to receive the usage reports. Repeat steps 5 and 6 to add more email addresses.
-1. Activate the toggle switch called **all** to include stats for all resources in your report.
-1. In the dropdown menu called **periodicity**, choose whether you want to receive **daily**, **weekly** or **monthly reports**.
-1. Click **Save configuration**. Your reports will be sent to the email addresses you've entered, at your desired frequency.
+5. In the **emails** section, click **Add**. A new text field will appear.
+6. Enter the email address where you want to receive the reports. Repeat steps 5–6 to add more addresses.  
+7. Turn on the **all** toggle to include stats for all resources in your report, including: 
+    - VMs
+    - Hosts
+    - Storage repositories
+
+:::tip
+To include these stats in your reports, the plugin must have saved them at least once.  
+:::
+8. In the **periodicity** dropdown, choose whether you want to receive reports **daily**, **weekly**, or **monthly**.  
+9. Click **Save configuration**. Reports will be sent to the email addresses you entered at the frequency you selected. 
 
 ## Software RAID
 
@@ -874,70 +956,3 @@ To check the status reported by `mdadm`, go to the **Host → Advanced** section
 If a host has a degraded software RAID array, a red warning triangle will appear in the host view. Clicking on it will display detailed information about the issue, so you can quickly identify and address critical problems:
 
 ![](./assets/raid-status-alert.png)
-
-## Docker support
-
-This allows you to enjoy Docker containers displayed directly in Xen Orchestra.
-
-### Prerequisites
-
-- XenServer 6.5 or higher
-- Plugin installation (for Citrix Hypervisor, it's included in XCP-ng)
-
-### Docker plugin installation
-
-This first step is needed until Docker is supported natively in the XCP-ng/XenServer API (XAPI).
-
-:::tip
-The plugin should be installed on every host you will be using, even if they are on the same pool.
-:::
-
-#### For XenServer 6.5
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/10343/XenServer-6.5.0-SP1-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-6.5.0-SP1-xscontainer.iso`
-
-#### For XenServer 7.0
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11621/XenServer-7.0.0-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-7.0.0-xscontainer.iso`
-
-#### For XenServer 7.1
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/11993/XenServer-7.1.0-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-7.1.0-xscontainer.iso`
-
-#### For XenServer 7.2
-
-1. SSH to your XenServer
-1. Download the plugin: `wget http://downloadns.citrix.com.edgesuite.net/12641/XenServer-7.2.0-xscontainer.iso`
-1. Install it: `xe-install-supplemental-pack XenServer-7.2.0-xscontainer.iso`
-
-That's it! You can now enjoy Docker support!
-
-### Docker managed VMs
-
-You can also use the XSContainer plugin to "transform" an existing VM into a "Docker" managed VM.
-
-You need to have the following installed inside the VM:
-
-- Docker
-- openssh-server
-- ncat
-
-For Debian/Ubuntu like distro: `apt-get install docker.io openssh-server nmap`. For RHEL and derived (CentOS...): `yum install docker openssh-server nmap-ncat`.
-
-To run Docker as non-root, please add the user you want inside the "Docker" group.
-
-Now you need to access your host (Dom0) and use the following command:
-
-```sh
-xscontainer-prepare-vm -v <VM_UUID> -u <username>
-```
-
-:::tip
-Because "prepare-vm" is not exposed outside of the Dom0 (yet?), we can't use Xen Orchestra to give you a one-click solution as of now.
-:::

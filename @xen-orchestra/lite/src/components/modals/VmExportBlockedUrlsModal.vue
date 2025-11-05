@@ -1,13 +1,13 @@
 <template>
-  <UiModal>
-    <FormModalLayout :icon="faDisplay">
-      <template #title>
-        {{ $t('export-n-vms-manually', { n: labelWithUrl.length }) }}
-      </template>
-
-      <p>
-        {{ $t('export-vms-manually-information') }}
+  <VtsModal accent="info" icon="fa:display">
+    <template #title>
+      {{ t('export-n-vms-manually', { n: labelWithUrl.length }) }}
+    </template>
+    <template #content>
+      <p class="export-information">
+        {{ t('export-vms-manually-information') }}
       </p>
+
       <ul class="list">
         <li v-for="({ url, label }, index) in labelWithUrl" :key="index">
           <a :href="url.href" rel="noopener noreferrer" target="_blank">
@@ -15,31 +15,32 @@
           </a>
         </li>
       </ul>
+    </template>
 
-      <template #buttons>
-        <ModalDeclineButton />
-      </template>
-    </FormModalLayout>
-  </UiModal>
+    <template #buttons>
+      <VtsModalConfirmButton>{{ t('close') }}</VtsModalConfirmButton>
+    </template>
+  </VtsModal>
 </template>
 
 <script lang="ts" setup>
-import FormModalLayout from '@/components/ui/modals/layouts/FormModalLayout.vue'
-import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
-import UiModal from '@/components/ui/modals/UiModal.vue'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
-import { faDisplay } from '@fortawesome/free-solid-svg-icons'
+import VtsModal from '@core/components/modal/VtsModal.vue'
+import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { blockedUrls } = defineProps<{
   blockedUrls: URL[]
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef } = useVmStore().subscribe()
 
 const labelWithUrl = computed(() =>
-  props.blockedUrls.map(url => {
+  blockedUrls.map(url => {
     const ref = url.searchParams.get('ref') as XenApiVm['$ref']
     return {
       url,
@@ -50,7 +51,8 @@ const labelWithUrl = computed(() =>
 </script>
 
 <style lang="postcss" scoped>
-.list {
-  margin-top: 2rem;
+.export-information {
+  max-width: 60rem;
+  line-height: 2;
 }
 </style>

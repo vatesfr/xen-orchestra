@@ -5,7 +5,8 @@
     "strict": true,
     "module": "ESNext",
     "target": "ES2022",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"] // Only use types from Node.js and packages that are explicitly imported
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

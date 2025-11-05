@@ -64,7 +64,6 @@ The LDAP plugin allows for the synchronization of user groups.
 1. **Access group synchronization settings**
 
    To configure the synchronization:
-
    1. Go to the **Synchronize groups** section.
    2. Check the box called **Fill information (optional)**.\
       A list of text fields appear.
@@ -219,6 +218,13 @@ In the "Settings" then "Plugins" view, expand the SAML plugin configuration. The
 
 Save the configuration and then activate the plugin (button on top).
 
+:::warning
+Since 5.111.1 version, you need to configure signature for Document **and** Assertion in your SAML Identity Provider.
+
+- **Keycloak:** In Client Settings, Signature and Encryption, check "Sign Documents" and "Sign Assertion".
+- **Azure and Google Workspace:** In SAML Signing Certificate options, select "Sign SAML response and assertion".
+  :::
+
 #### Vendor specific
 
 ##### Google Workspace - SAML [support.google.com](https://support.google.com/a/answer/6087519?hl=en#zippy=)
@@ -297,16 +303,22 @@ You can now connect with your Google account in the login page.
 
 ## ACLs
 
-:::tip
-ACLs are permissions that apply to preexisting objects. Only a super admin (XO administrator) can create objects.
-:::
+### Definition
 
-ACLs are the permissions for your users or groups. The ACLs view can be accessed in the "Settings" panel.
+ACLs are permissions that apply to preexisting objects, like users and groups.
+
+### Who can manage ACLs?
+
+Only a super admin (XO administrator) can manage ACLs.
+
+### How can I view and edit ACLs?
+
+The ACLs view can be accessed in the **Setting** panel.
 
 1. Select the user or group you want to apply permissions on
 2. Select the object on which the permission will apply
 3. Choose the role for this ACL
-4. Click on "Create"
+4. Click the **Create** button.
 
 ![](./assets/createacl.png)
 
@@ -318,7 +330,7 @@ Your ACL is now available in the right list:
 
 ![](./assets/acllist.png)
 
-You can edit/remove existing ACLs here.
+You can edit or remove existing ACLs here.
 
 ### Roles
 
@@ -345,7 +357,7 @@ An object admin can do everything on it, even destroy it. E.g with its admin VM:
 
 #### Operator
 
-An operator can make everyday operations on assigned objects. E.g on a VM:
+An operator can make everyday operations on assigned objects. For example, on a VM:
 
 - eject a CD
 - insert a CD (if he can view the ISO storage repository)

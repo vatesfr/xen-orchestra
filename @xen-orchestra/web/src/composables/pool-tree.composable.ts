@@ -1,46 +1,64 @@
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { usePoolStore } from '@/stores/xo-rest-api/pool.store'
-import { useVmStore } from '@/stores/xo-rest-api/vm.store'
+import { XOA_NAME } from '@/constants.ts'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
+import type { XoSite } from '@/types/xo/site.type.ts'
 import { defineTree } from '@core/composables/tree/define-tree'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
 import { useTree } from '@core/composables/tree.composable'
 import { logicAnd } from '@vueuse/math'
-import { computed } from 'vue'
+import { computed, useId } from 'vue'
 
-export function usePoolTree() {
-  const { records: pools, isReady: isPoolReady } = usePoolStore().subscribe()
-  const { hostsByPool, isReady: isHostReady } = useHostStore().subscribe()
-  const { vmsByHost, hostLessVmsByPool, isReady: isVmReady } = useVmStore().subscribe()
-  const { filter, predicate } = useTreeFilter()
+export function useSiteTree() {
+  const { pools, arePoolsReady } = useXoPoolCollection()
+  const { hostsByPool, areHostsReady } = useXoHostCollection()
+  const { vmsByHost, hostLessVmsByPool, areVmsReady } = useXoVmCollection()
+  const { filter, predicate, isSearching } = useTreeFilter()
 
-  const isReady = logicAnd(isPoolReady, isHostReady, isVmReady)
+  const site: XoSite = {
+    id: useId(),
+    type: 'site',
+    name_label: XOA_NAME,
+  }
+
+  const sites = computed(() => [site])
+
+  const isReady = logicAnd(arePoolsReady, areHostsReady, areVmsReady)
 
   const definitions = computed(() =>
     defineTree(
-      pools.value,
+      sites.value,
       {
         getLabel: 'name_label',
-        predicate,
       },
-      pool => [
+      () => [
         ...defineTree(
-          hostsByPool.value.get(pool.id) ?? [],
+          pools.value,
           {
             getLabel: 'name_label',
             predicate,
-            discriminator: 'host',
           },
-          host =>
-            defineTree(vmsByHost.value.get(host.id) ?? [], {
+          pool => [
+            ...defineTree(
+              hostsByPool.value.get(pool.id) ?? [],
+              {
+                getLabel: 'name_label',
+                predicate,
+                discriminator: 'host',
+              },
+              host =>
+                defineTree(vmsByHost.value.get(host.id) ?? [], {
+                  getLabel: 'name_label',
+                  predicate,
+                })
+            ),
+            ...defineTree(hostLessVmsByPool.value.get(pool.id) ?? [], {
               getLabel: 'name_label',
               predicate,
-            })
+              discriminator: 'vm',
+            }),
+          ]
         ),
-        ...defineTree(hostLessVmsByPool.value.get(pool.id) ?? [], {
-          getLabel: 'name_label',
-          predicate,
-          discriminator: 'vm',
-        }),
       ]
     )
   )
@@ -49,7 +67,8 @@ export function usePoolTree() {
 
   return {
     isReady,
-    pools: nodes,
+    sites: nodes,
     filter,
+    isSearching,
   }
 }

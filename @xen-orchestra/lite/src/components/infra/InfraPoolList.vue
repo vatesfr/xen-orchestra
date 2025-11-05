@@ -2,13 +2,13 @@
   <VtsTreeList class="infra-pool-list">
     <VtsTreeItem :expanded="isExpanded">
       <VtsTreeItemError v-if="hasError">
-        {{ $t('error-no-data') }}
+        {{ t('error-no-data') }}
       </VtsTreeItemError>
-      <VtsTreeLoadingItem v-else-if="!isReady || pool === undefined" :icon="faCity" />
+      <VtsTreeLoadingItem v-else-if="!isReady || pool === undefined" icon="fa:city" />
       <UiTreeItemLabel
         v-else
-        :icon="faCity"
-        :route="{ name: 'pool.dashboard', params: { uuid: pool.uuid } }"
+        :route="{ name: '/pool/[uuid]', params: { uuid: pool.uuid } }"
+        icon="fa:city"
         @toggle="toggle()"
       >
         {{ pool.name_label || '(Pool)' }}
@@ -32,8 +32,10 @@ import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
-import { faCity } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/shared'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { isReady, hasError, pool } = usePoolStore().subscribe()
 

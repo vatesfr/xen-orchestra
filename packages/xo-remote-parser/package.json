@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-remote-parser",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "license": "AGPL-3.0-or-later",
   "description": "Parse and format XO remote URLs",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-remote-parser",
@@ -30,7 +30,7 @@
     "@babel/preset-env": "^7.0.0",
     "cross-env": "^7.0.2",
     "deep-freeze": "^0.0.1",
-    "rimraf": "^5.0.1"
+    "rimraf": "^6.0.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",

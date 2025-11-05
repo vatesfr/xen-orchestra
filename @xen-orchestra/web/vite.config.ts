@@ -12,7 +12,9 @@ export default defineConfig(({ mode }) => {
     base: './',
     plugins: [
       vueRouter({
-        exclude: mode !== 'development' ? ['src/pages/dev/**'] : [],
+        // Temp fix to make prod build work
+        // TODO: uncomment when links in /dev pages are correctly handled
+        // exclude: mode !== 'development' ? ['src/pages/dev/**'] : [],
       }),
       vue(),
       vueI18n({
@@ -35,6 +37,14 @@ export default defineConfig(({ mode }) => {
           target: `http://${VITE_XO_REST_HOST}`,
         },
       },
+    },
+    build: {
+      commonjsOptions: {
+        include: [/value-matcher/, /node_modules/],
+      },
+    },
+    optimizeDeps: {
+      include: ['value-matcher'],
     },
   }
 })

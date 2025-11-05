@@ -15,7 +15,7 @@ import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
-import { forEach, map, values } from 'lodash'
+import { forEach, isEmpty, map, values } from 'lodash'
 import { SelectSr } from 'select-objects'
 import { Text, XoSelect } from 'editable'
 import { Toggle } from 'form'
@@ -230,7 +230,7 @@ class EnableHaModal extends Component {
           multi
           value={this.state.srs}
           onChange={srs => this.setState({ srs: srs.map(sr => sr.id) })}
-          predicate={sr => sr.shared && isSrWritable(sr)}
+          predicate={sr => sr.shared && isSrWritable(sr) && sr.$poolId === this.props.pool.id}
         />
       </div>
     )
@@ -246,7 +246,7 @@ class ToggleHa extends Component {
   _onChange = async value => {
     if (value) {
       const haSrs = await confirm({
-        body: <EnableHaModal srs={this.props.pool.haSrs ?? []} />,
+        body: <EnableHaModal srs={this.props.pool.haSrs ?? []} pool={this.props.pool} />,
         title: _('poolEnableHa'),
         icon: 'pool',
       })
@@ -287,6 +287,8 @@ class ToggleHa extends Component {
     .sort()
   return {
     backupNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:backupNetwork']),
+    dcScopeVms: createGetObjectsOfType('VM').filter([vm => vm.other['xo:dcscope:installTime'] !== undefined]),
+    dcNetScopeVms: createGetObjectsOfType('VM').filter([vm => vm.other['xo:dcnetscope:installTime'] !== undefined]),
     hosts: getHosts,
     hostsByMultipathing: createGroupBy(
       getHosts,
@@ -321,6 +323,33 @@ export default class TabAdvanced extends Component {
       )
     ),
     networkIds => network => networkIds.has(network.id)
+  )
+
+  _getLatestVmIp = (vms, product) => {
+    if (isEmpty(vms)) {
+      return
+    }
+
+    const getInstallTime = vm => vm.other[`xo:${product}:installTime`]
+
+    let latestVm
+    Object.values(vms).forEach(vm => {
+      if (vm.mainIpAddress !== undefined && (latestVm === undefined || getInstallTime(vm) > getInstallTime(latestVm))) {
+        latestVm = vm
+      }
+    })
+
+    return latestVm && latestVm.mainIpAddress
+  }
+
+  _getDcScopeIp = createSelector(
+    () => this.props.dcScopeVms,
+    dcScopeVms => this._getLatestVmIp(dcScopeVms, 'dcscope')
+  )
+
+  _getDcNetScopeIp = createSelector(
+    () => this.props.dcNetScopeVms,
+    dcNetScopeVms => this._getLatestVmIp(dcNetScopeVms, 'dcnetscope')
   )
 
   _isNetboxPluginLoaded = createSelector(
@@ -364,11 +393,46 @@ export default class TabAdvanced extends Component {
     const isEnterprisePlan = getXoaPlan().value >= ENTERPRISE.value
     const isMigrationCompressionAvailable = pool.migrationCompression !== undefined
 
+    const dcScopeIp = this._getDcScopeIp()
+    const dcNetScopeIp = this._getDcNetScopeIp()
+
     return (
       <div>
         <Container>
           <Row>
             <Col className='text-xs-right'>
+              {dcScopeIp === undefined ? (
+                <TabButton
+                  btnStyle='warning'
+                  icon='deploy'
+                  handler={() => {}}
+                  labelId='deployDcScope'
+                  redirectOnSuccess='/hub/recipes'
+                />
+              ) : (
+                <TabButton
+                  btnStyle='success'
+                  handler={() => window.open(`https://${dcScopeIp}`)}
+                  icon='telemetry'
+                  labelId='dcScope'
+                />
+              )}
+              {dcNetScopeIp === undefined ? (
+                <TabButton
+                  btnStyle='warning'
+                  icon='deploy'
+                  handler={() => {}}
+                  labelId='deployDcNetScope'
+                  redirectOnSuccess='/hub/recipes'
+                />
+              ) : (
+                <TabButton
+                  btnStyle='success'
+                  handler={() => window.open(`https://${dcNetScopeIp}`)}
+                  icon='telemetry'
+                  labelId='dcNetScope'
+                />
+              )}
               <TabButton
                 btnStyle='warning'
                 handler={rollingPoolReboot}

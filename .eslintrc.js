@@ -171,7 +171,6 @@ module.exports = {
         'vue/no-empty-component-block': 'error',
         'vue/no-multiple-objects-in-class': 'error',
         'vue/no-ref-object-reactivity-loss': 'error',
-        'vue/no-required-prop-with-default': 'error',
         'vue/no-static-inline-styles': 'error',
         'vue/no-template-target-blank': 'error',
         'vue/no-undef-components': ['error', { ignorePatterns: ['RouterLink', 'RouterView', 'I18nT'] }],
@@ -217,7 +216,16 @@ module.exports = {
         '@intlify/vue-i18n/no-raw-text': [
           'error',
           {
-            ignoreText: ['Xen Orchestra Lite', 'Xen Orchestra', 'XO Lite', 'XCP-ng', 'XO 5', '404', '⚠️'],
+            ignoreText: [
+              'Xen Orchestra Lite',
+              'Xen Orchestra',
+              'Xen Orchestra Appliance',
+              'XO Lite',
+              'XCP-ng',
+              'XO 5',
+              '404',
+              '⚠️',
+            ],
           },
         ],
         '@intlify/vue-i18n/no-v-html': 'error',
@@ -225,7 +233,7 @@ module.exports = {
         '@intlify/vue-i18n/no-duplicate-keys-in-locale': 'error',
         '@intlify/vue-i18n/no-missing-keys-in-other-locales': [
           'error',
-          { ignoreLocales: ['de', 'fa', 'cs', 'es', 'sv', 'it', 'ru', 'uk', 'nl'] },
+          { ignoreLocales: ['de', 'fa', 'cs', 'es', 'sv', 'it', 'ru', 'uk', 'nl', 'pt_BR'] },
         ],
       },
     },

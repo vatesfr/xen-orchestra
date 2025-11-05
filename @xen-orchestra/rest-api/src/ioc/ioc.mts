@@ -3,7 +3,17 @@ import { Container, decorate, injectable } from 'inversify'
 import { Controller } from 'tsoa'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
+import { VmService } from '../vms/vm.service.mjs'
 import type { XoApp } from '../rest-api/rest-api.type.mjs'
+import { XoaService } from '../xoa/xoa.service.mjs'
+import { HostService } from '../hosts/host.service.mjs'
+import { PoolService } from '../pools/pool.service.mjs'
+import { AlarmService } from '../alarms/alarm.service.mjs'
+import { VdiService } from '../vdis/vdi.service.mjs'
+import { UserService } from '../users/user.service.mjs'
+import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
+import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
+import { EventService } from '../events/event.service.mjs'
 
 const iocContainer = new Container()
 
@@ -17,7 +27,86 @@ export function setupContainer(xoApp: XoApp) {
 
   iocContainer
     .bind(RestApi)
-    .toDynamicValue(() => new RestApi(xoApp))
+    .toDynamicValue(() => new RestApi(xoApp, iocContainer))
+    .inSingletonScope()
+
+  iocContainer
+    .bind(XoaService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new XoaService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(VmService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new VmService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(PoolService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new PoolService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(HostService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new HostService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(AlarmService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new AlarmService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(VdiService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new VdiService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(UserService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new UserService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(BackupJobService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new BackupJobService(restApi)
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(BackupLogService)
+    .toDynamicValue(() => {
+      return new BackupLogService()
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(EventService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new EventService(restApi)
+    })
     .inSingletonScope()
 }
 

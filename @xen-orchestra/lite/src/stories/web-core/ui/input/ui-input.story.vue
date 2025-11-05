@@ -9,9 +9,10 @@
       prop('type').enum('text', 'number', 'password', 'search').preset('text').widget(),
       iconProp(),
       prop('rightIcon').widget(
-        choice({ label: 'Search', value: faMagnifyingGlass }, { label: 'AngleDown', value: faAngleDown })
+        choice({ label: 'Search', value: 'fa:magnifying-glass' }, { label: 'AngleDown', value: 'fa:angle-down' })
       ),
       prop('clearable').bool().widget(),
+      prop('isSearching').bool().widget(),
       prop('disabled').bool().widget().help('Not defined as component prop'),
       slot('rightIcon').help('Can be used in place of rightIcon prop'),
     ]"
@@ -25,5 +26,4 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { iconProp, model, prop, slot } from '@/libs/story/story-param'
 import { choice } from '@/libs/story/story-widget.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
-import { faAngleDown, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 </script>

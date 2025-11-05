@@ -1,50 +1,51 @@
 <template>
-  <UiCard>
-    <UiCardTitle>{{ $t('hosts-status') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+  <UiCard :has-error>
+    <UiCardTitle>{{ t('hosts-status') }}</UiCardTitle>
+    <VtsStateHero v-if="!areHostsStatusReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
+      {{ t('error-no-data') }}
+    </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend :icon="faServer" :segments />
-      <UiCardNumbers :label="t('total')" :value="hosts.length" class="total" size="small" />
+      <VtsDonutChartWithLegend icon="fa:server" :segments />
+      <UiCardNumbers :label="t('total')" :value="status?.total" class="total" size="small" />
     </template>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { HOST_POWER_STATE } from '@/types/xo/host.type'
+import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import type { DonutChartWithLegendProps } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsDonutChartWithLegend from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { useItemCounter } from '@core/composables/item-counter.composable'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { t } = useI18n()
-const { records: hosts, isReady } = useHostStore().subscribe()
+const { status } = defineProps<{
+  status: XoDashboard['hostsStatus'] | undefined
+  hasError?: boolean
+}>()
 
-const hostsCount = useItemCounter(hosts, {
-  running: host => host.power_state === HOST_POWER_STATE.RUNNING,
-  halted: host => host.power_state === HOST_POWER_STATE.HALTED,
-})
+const { t } = useI18n()
+
+const areHostsStatusReady = computed(() => status !== undefined)
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('hosts-status.running'),
-    value: hostsCount.value.running,
+    value: status?.running ?? 0,
     accent: 'success',
   },
   {
     label: t('hosts-status.halted'),
-    value: hostsCount.value.halted,
+    value: status?.halted ?? 0,
     accent: 'warning',
   },
   {
     label: t('hosts-status.unknown'),
-    value: hostsCount.value.$other,
+    value: status?.unknown ?? 0,
     accent: 'muted',
     tooltip: t('hosts-status.unknown.tooltip'),
   },

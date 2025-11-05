@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "vhd-lib",
-  "version": "4.12.0",
+  "version": "4.14.4",
   "license": "AGPL-3.0-or-later",
   "description": "Primitives for VHD file handling",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/vhd-lib",
@@ -15,12 +15,12 @@
     "node": ">=16"
   },
   "dependencies": {
-    "@vates/async-each": "^1.0.0",
+    "@vates/async-each": "^1.0.1",
     "@vates/diff": "^0.1.0",
-    "@vates/read-chunk": "^1.2.0",
+    "@vates/read-chunk": "^1.2.1",
     "@vates/stream-reader": "^0.1.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/fs": "^4.5.1",
+    "@xen-orchestra/fs": "^4.6.4",
     "@xen-orchestra/log": "^0.7.1",
     "async-iterator-to-stream": "^1.0.2",
     "decorator-synchronized": "^0.6.0",
@@ -33,10 +33,10 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@xen-orchestra/fs": "^4.5.1",
+    "@xen-orchestra/fs": "^4.6.4",
     "execa": "^5.0.0",
     "get-stream": "^6.0.0",
-    "rimraf": "^5.0.1",
+    "rimraf": "^6.0.1",
     "tmp": "^0.2.1"
   },
   "scripts": {

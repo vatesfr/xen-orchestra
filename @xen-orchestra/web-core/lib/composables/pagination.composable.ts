@@ -1,11 +1,14 @@
+import type { TablePaginationSize } from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useUiStore } from '@core/stores/ui.store.ts'
+import { toComputed } from '@core/utils/to-computed.util'
 import { clamp, useLocalStorage } from '@vueuse/core'
-import { computed, type MaybeRefOrGetter, toValue } from 'vue'
+import { computed, type MaybeRefOrGetter } from 'vue'
 
 export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>) {
-  const records = computed(() => toValue(_records))
+  const records = toComputed(_records)
 
-  const showBy = useLocalStorage(`${id}.per-page`, 50)
+  const showBy = useLocalStorage(`${id}.per-page`, 24)
 
   const pageSize = computed({
     get: () => (showBy.value === -1 ? Number.MAX_SAFE_INTEGER : showBy.value),
@@ -60,7 +63,10 @@ export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>) {
     startIndex.value = records.value.length - 1
   }
 
+  const uiStore = useUiStore()
+
   const paginationBindings = computed(() => ({
+    size: (uiStore.isMobile ? 'small' : 'medium') as TablePaginationSize,
     showBy: showBy.value,
     'onUpdate:showBy': (value: number) => (showBy.value = value),
     from: Math.max(0, startIndex.value + 1),

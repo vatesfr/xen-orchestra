@@ -20,6 +20,8 @@ const remoteTypes = {
   nfs: 'remoteTypeNfs',
   smb: 'remoteTypeSmb',
   s3: 'remoteTypeS3',
+  azure: 'remoteTypeAzure',
+  azurite: 'remoteTypeAzurite',
 }
 
 export default decorate([
@@ -40,6 +42,8 @@ export default decorate([
       username: undefined,
       directory: undefined,
       bucket: undefined,
+      container: undefined,
+      pathInContainer: undefined,
       protocol: undefined,
       region: undefined,
       allowUnauthorized: undefined,
@@ -63,7 +67,7 @@ export default decorate([
             host = remote.host,
             name,
             options = remote.options || '',
-            password = remote.password,
+            password = remote.password, // FIXME: remote.password is obfuscated, don't use it!
             port = remote.port,
             proxyId = remote.proxy,
             type = remote.type,
@@ -87,6 +91,16 @@ export default decorate([
             path = bucket + '/' + directory
             useVhdDirectory = true // always on for s3
           }
+          if (type === 'azure' || type === 'azurite') {
+            const {
+              parsedPath,
+              container = parsedPath.split('/')[0],
+              pathInContainer = parsedPath.indexOf('/') === -1 ? '/' : parsedPath.slice(parsedPath.indexOf('/')),
+            } = state
+            path = container + '/' + pathInContainer
+            useVhdDirectory = true // always on for Azure
+          }
+
           return editRemote(remote, {
             name,
             url: format({
@@ -146,9 +160,16 @@ export default decorate([
             const { allowUnauthorized, bucket, directory, protocol = 'https', region } = state
             urlParams.path = bucket + '/' + directory
             urlParams.allowUnauthorized = allowUnauthorized
-            urlParams.protocol = protocol
             urlParams.useVhdDirectory = true // always on for s3
             urlParams.region = region
+            urlParams.protocol = protocol
+          }
+          if (type === 'azure' || type === 'azurite') {
+            const { allowUnauthorized, protocol = 'https', container, pathInContainer } = state
+            urlParams.path = container + '/' + pathInContainer
+            urlParams.allowUnauthorized = allowUnauthorized
+            urlParams.protocol = protocol
+            urlParams.useVhdDirectory = true // always on for Azure
           }
           username && (urlParams.username = username)
           password && (urlParams.password = password)
@@ -199,6 +220,12 @@ export default decorate([
       parsedPath,
       path = parsedPath || '',
       parsedBucket = parsedPath != null && parsedPath.split('/')[0],
+      container = parsedPath != null ? parsedPath.split('/')[0] : '',
+      pathInContainer = parsedPath != null
+        ? parsedPath.indexOf('/') === -1
+          ? '/'
+          : parsedPath.slice(parsedPath.indexOf('/'))
+        : '',
       bucket = parsedBucket || '',
       parsedDirectory = parsedPath != null && parsedPath.split('/')[1],
       directory = parsedDirectory || '',
@@ -476,6 +503,82 @@ export default decorate([
               </div>
             </fieldset>
           )}
+          {(type === 'azure' || type === 'azurite') && (
+            <fieldset className='form-group form-group'>
+              {type === 'azurite' && (
+                <div className='input-group form-group'>
+                  <span className='align-middle'>
+                    {_('remoteAzureLabelUseHttps')}{' '}
+                    <Tooltip content={_('remoteAzureTooltipProtocol')}>
+                      <Icon icon='info' size='lg' />
+                    </Tooltip>
+                  </span>
+                  <Toggle
+                    className='align-middle pull-right'
+                    onChange={effects.setInsecure}
+                    value={protocol === 'https'}
+                  />
+                </div>
+              )}
+              <div className='input-group form-group'>
+                <input
+                  className='form-control'
+                  name='host'
+                  onChange={effects.linkState}
+                  placeholder={`Host (e.g. ${type === 'azure' ? '<username>.blob.core.windows.net' : '127.0.0.1:10000'})`}
+                  required
+                  type='text'
+                  value={host}
+                />
+              </div>
+              <div className='input-group form-group'>
+                <input
+                  className='form-control'
+                  name='username'
+                  onChange={effects.linkState}
+                  placeholder={formatMessage(messages.remoteAccountName)}
+                  pattern='^[^A-Z]+$'
+                  required
+                  type='text'
+                  value={username}
+                />
+              </div>
+              <div className='input-group form-group'>
+                <Password
+                  name='password'
+                  onChange={effects.linkState}
+                  placeholder={formatMessage(messages.key)}
+                  required
+                  value={password}
+                />
+              </div>
+              <div className='input-group form-group'>
+                <input
+                  className='form-control'
+                  name='container'
+                  onChange={effects.linkState}
+                  placeholder={formatMessage(messages.remoteContainer)}
+                  pattern='^(?!.*--)(?!-)[a-z0-9]+(-[a-z0-9]+)*$'
+                  minLength={3}
+                  maxLength={63}
+                  required
+                  type='text'
+                  value={container}
+                />
+              </div>
+              <div className='input-group form-group'>
+                <input
+                  className='form-control'
+                  name='pathInContainer'
+                  onChange={effects.linkState}
+                  placeholder='/path/to/backup'
+                  required
+                  type='text'
+                  value={pathInContainer}
+                />
+              </div>
+            </fieldset>
+          )}
           <div className='form-group'>
             <label>{_('remoteEncryptionKey')}</label>
             {isEncrypted && !useVhdDirectory && (
@@ -499,7 +602,7 @@ export default decorate([
               value={encryptionKey}
             />
           </div>
-          {type !== 's3' && (
+          {type !== 's3' && type !== 'azure' && type !== 'azurite' && (
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>
                 <span className='align-middle'>

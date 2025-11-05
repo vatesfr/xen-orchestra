@@ -1,14 +1,23 @@
 <template>
   <header class="app-header">
-    <UiIcon v-if="uiStore.isMobile" ref="navigationTrigger" :icon="faBars" class="toggle-navigation" />
-    <RouterLink :to="{ name: 'home' }">
-      <img v-if="uiStore.isMobile" alt="XO Lite" src="../assets/logo.svg" />
-      <TextLogo v-else />
-    </RouterLink>
+    <div class="left">
+      <UiButtonIcon
+        v-if="!uiStore.isDesktopLarge"
+        ref="navigationTrigger"
+        :class="{ 'menu-to-right': !uiStore.isMobile }"
+        accent="brand"
+        icon="fa:bars"
+        size="medium"
+      />
+      <RouterLink :to="logoRoute" class="logo-container">
+        <img v-if="uiStore.isMobile" alt="XO Lite" src="../assets/logo.svg" />
+        <TextLogo v-else />
+      </RouterLink>
+    </div>
     <slot />
     <div class="right">
       <PoolOverrideWarning as-tooltip />
-      <XoaButton v-if="uiStore.isDesktop" />
+      <XoaButton v-if="!uiStore.isMobile" />
       <AccountMenu />
     </div>
   </header>
@@ -18,17 +27,29 @@
 import AccountMenu from '@/components/account-menu/AccountMenu.vue'
 import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
 import TextLogo from '@/components/TextLogo.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import XoaButton from '@/components/XoaButton.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
+import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
+import type { RouteLocationRaw } from 'vue-router'
 
 const uiStore = useUiStore()
+const { pool } = usePoolStore().getContext()
 
 const navigationStore = useNavigationStore()
 const { trigger: navigationTrigger } = storeToRefs(navigationStore)
+
+const logoRoute = computed<RouteLocationRaw>(() =>
+  pool.value
+    ? {
+        name: '/pool/[uuid]/dashboard',
+        params: { uuid: pool.value.uuid },
+      }
+    : { name: '/' }
+)
 </script>
 
 <style lang="postcss" scoped>
@@ -52,6 +73,27 @@ const { trigger: navigationTrigger } = storeToRefs(navigationStore)
 
   .warning-not-current-pool {
     font-size: 2.4rem;
+  }
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+
+  @media (max-width: 1023px) {
+    flex: 1;
+  }
+}
+
+.menu-to-right {
+  order: 1;
+}
+
+.logo-container {
+  @media (max-width: 1023px) {
+    flex: 1;
+    text-align: center;
   }
 }
 

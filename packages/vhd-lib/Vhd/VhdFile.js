@@ -16,7 +16,7 @@ const { VhdAbstract } = require('./VhdAbstract')
 const assert = require('assert')
 const getFirstAndLastBlocks = require('../_getFirstAndLastBlocks')
 
-const { debug } = createLogger('vhd-lib:VhdFile')
+const { debug, info } = createLogger('vhd-lib:VhdFile')
 
 // ===================================================================
 //
@@ -57,6 +57,8 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
   #header
   footer
 
+  #closed = false
+  #closedBy
   get #blockTable() {
     assert.notStrictEqual(this.#uncheckedBlockTable, undefined, 'Block table must be initialized before access')
     return this.#uncheckedBlockTable
@@ -94,11 +96,12 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
       // can throw if handler is encrypted or remote is broken
       await vhd.readHeaderAndFooter(checkSecondFooter)
     } catch (err) {
-      await handler.closeFile(fd)
+      await vhd.dispose()
+      err.size = await handler.getSizeOnDisk(fd).catch(() => -1)
       throw err
     }
     return {
-      dispose: () => handler.closeFile(fd),
+      dispose: () => vhd.dispose(),
       value: vhd,
     }
   }
@@ -118,6 +121,19 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
     this._path = path
   }
 
+  async dispose() {
+    if (this.#closed) {
+      info('double close', {
+        path: this._path,
+        firstClosedBy: this.#closedBy,
+        closedAgainBy: new Error().stack,
+      })
+      return
+    }
+    this.#closed = true
+    this.#closedBy = new Error().stack
+    this._path?.fd && (await this._handler.closeFile(this._path))
+  }
   // =================================================================
   // Read functions.
   // =================================================================
@@ -192,7 +208,11 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
 
     if (checkSecondFooter) {
       const size = await this._handler.getSize(this._path)
-      assert(bufFooter.equals(await this._read(size - FOOTER_SIZE, FOOTER_SIZE)), 'footer1 !== footer2')
+      const endFooter = await this._read(size - FOOTER_SIZE, FOOTER_SIZE)
+      assert(
+        bufFooter.equals(endFooter),
+        `footer1 !== footer2 ${bufFooter.toString('base64')} !== ${endFooter.toString('base64')}`
+      )
     }
 
     this.footer = footer

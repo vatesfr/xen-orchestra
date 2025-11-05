@@ -1,29 +1,31 @@
 <template>
-  <UiCard>
+  <UiCard :has-error="error">
     <UiCardTitle>
-      {{ $t('cpu-usage') }}
-      <template #description>{{ $t('last-week') }}</template>
+      {{ t('cpu-usage') }}
+      <template #description>{{ t('last-week') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="loading || data === null" type="card" />
-    <VtsErrorNoDataHero v-else-if="error" type="card" />
+    <VtsStateHero v-if="loading || data === null" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="error" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
+    <VtsStateHero v-else-if="cpuUsage.length === 0" format="card" type="no-data" size="medium">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <VtsLinearChart v-else :data="cpuUsage" :max-value :value-formatter class="chart" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import type { XoHostStats } from '@/types/xo/host-stats.type.ts'
 import type { LinearChartData, ValueFormatter } from '@core/types/chart.ts'
-import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import type { XapiHostStats } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
-  data: XoHostStats | null
+  data: XapiHostStats | null
   loading: boolean
-  error?: string
+  error?: boolean
 }>()
 
 const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linear-chart/VtsLinearChart.vue'))
@@ -41,7 +43,7 @@ const cpuUsage = computed<LinearChartData>(() => {
 
   for (let hourIndex = 0; hourIndex < cpus[0].length; hourIndex++) {
     const timestamp = (timestampStart + hourIndex * data.interval) * 1000
-    const cpuUsageSum = cpus.reduce((total, cpu) => total + cpu[hourIndex], 0)
+    const cpuUsageSum = cpus.reduce((total, cpu) => total + (cpu[hourIndex] ?? NaN), 0)
 
     result.set(timestamp, {
       timestamp,
@@ -58,7 +60,8 @@ const cpuUsage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = cpuUsage.value[0]?.data.map(item => item.value) ?? []
+  const values = cpuUsage.value[0]?.data.map(item => item.value || 0) ?? []
+
   if (values.length === 0) {
     return 100
   }
@@ -68,5 +71,11 @@ const maxValue = computed(() => {
   return Math.ceil(maxCpuUsage / 100) * 100
 })
 
-const valueFormatter: ValueFormatter = value => n(value / 100, 'percent')
+const valueFormatter: ValueFormatter = value => {
+  if (value === null) {
+    return ''
+  }
+
+  return n(value / 100, 'percent')
+}
 </script>

@@ -1,44 +1,52 @@
 <template>
-  <div class="networks">
+  <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
       <VmVifsTable :vifs />
     </UiCard>
-    <VmVifSidePanel v-if="selectedVif" :vif="selectedVif" />
-    <UiPanel v-else>
-      <VtsNoSelectionHero type="panel" />
+    <VmVifSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
+    <UiPanel v-else-if="!uiStore.isMobile">
+      <VtsStateHero format="panel" type="no-selection" size="medium">
+        {{ t('select-to-see-details') }}
+      </VtsStateHero>
     </UiPanel>
   </div>
 </template>
 
 <script setup lang="ts">
-import VmVifSidePanel from '@/components/vm/VmVifSidePanel.vue'
-import VmVifsTable from '@/components/vm/VmVifsTable.vue'
-import { useVifStore } from '@/stores/xo-rest-api/vif.store.ts'
+import VmVifSidePanel from '@/components/vm/network/VmVifSidePanel.vue'
+import VmVifsTable from '@/components/vm/network/VmVifsTable.vue'
+import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import type { XoVif } from '@/types/xo/vif.type.ts'
-import VtsNoSelectionHero from '@core/components/state-hero/VtsNoSelectionHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useUiStore } from '@core/stores/ui.store.ts'
 import { useArrayFilter } from '@vueuse/shared'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router/auto'
 
-const { records } = useVifStore().subscribe()
+const { vifs: rawVifs, getVifById } = useXoVifCollection()
+const uiStore = useUiStore()
+
+const { t } = useI18n()
 
 const route = useRoute<'/vm/[id]'>()
 
-const vifs = useArrayFilter(records, vif => vif.$VM === route.params.id)
+const vifs = useArrayFilter(rawVifs, vif => vif.$VM === route.params.id)
 
 const selectedVif = useRouteQuery<XoVif | undefined>('id', {
-  toData: id => vifs.value.find(vif => vif.id === id),
+  toData: id => getVifById(id as XoVif['id']),
   toQuery: vif => vif?.id ?? '',
 })
 </script>
 
 <style scoped lang="postcss">
 .networks {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 40rem;
-  height: 100%;
+  &:not(.mobile) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40rem;
+  }
 
   .container {
     height: fit-content;

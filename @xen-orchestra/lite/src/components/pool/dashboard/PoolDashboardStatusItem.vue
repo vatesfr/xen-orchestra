@@ -14,7 +14,7 @@
         <div class="count">{{ inactive }}</div>
       </div>
       <div class="total typo-caption-small">
-        {{ $t('total') }} <span>{{ total }}</span>
+        {{ t('total') }} <span>{{ total }}</span>
       </div>
     </div>
   </div>
@@ -23,6 +23,7 @@
 <script lang="ts" setup>
 import ProgressCircle from '@/components/ProgressCircle.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   label: string
@@ -31,6 +32,8 @@ const props = defineProps<{
   activeLabel: string
   inactiveLabel: string
 }>()
+
+const { t } = useI18n()
 
 const inactive = computed(() => props.total - props.active)
 </script>

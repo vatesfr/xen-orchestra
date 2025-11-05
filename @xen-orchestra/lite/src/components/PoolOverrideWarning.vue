@@ -5,8 +5,8 @@
       asTooltip && {
         placement: 'right',
         content: `
-      ${$t('you-are-currently-on', [masterSessionStorage])}.
-      ${$t('click-to-return-default-pool')}
+      ${t('you-are-currently-on', [masterSessionStorage])}.
+      ${t('click-to-return-default-pool')}
       `,
       }
     "
@@ -14,28 +14,30 @@
     @click="xenApi.resetPoolMasterIp"
   >
     <div class="wrapper">
-      <UiIcon :icon="faWarning" />
+      <VtsIcon name="fa:triangle-exclamation" size="medium" />
       <p v-if="!asTooltip">
         <I18nT keypath="you-are-currently-on">
           <strong>{{ masterSessionStorage }}</strong>
         </I18nT>
         <br />
-        {{ $t('click-to-return-default-pool') }}
+        {{ t('click-to-return-default-pool') }}
       </p>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import { useXenApiStore } from '@/stores/xen-api.store'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faWarning } from '@fortawesome/free-solid-svg-icons'
 import { useSessionStorage } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   asTooltip?: boolean
 }>()
+
+const { t } = useI18n()
 
 const xenApi = useXenApiStore()
 const masterSessionStorage = useSessionStorage('master', null)

@@ -1,20 +1,16 @@
 <template>
   <VtsTreeItem v-if="host !== undefined" :expanded="isExpanded" class="infra-host-item">
-    <UiTreeItemLabel
-      :icon="faServer"
-      :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
-      @toggle="toggle()"
-    >
+    <UiTreeItemLabel :route="{ name: '/host/[uuid]', params: { uuid: host.uuid } }" icon="fa:server" @toggle="toggle()">
       {{ host.name_label || '(Host)' }}
       <template #addons>
-        <VtsIcon v-if="isPoolMaster" v-tooltip="$t('master')" accent="info" :icon="faCircle" :overlay-icon="faStar" />
+        <VtsIcon v-if="isPoolMaster" v-tooltip="t('master')" name="legacy:primary" size="medium" />
         <UiCounter
           v-if="isReady"
-          v-tooltip="$t('running-vm', { count: vmCount })"
+          v-tooltip="t('running-vm', { count: vmCount })"
           :value="vmCount"
           accent="brand"
-          variant="secondary"
           size="small"
+          variant="secondary"
         />
       </template>
     </UiTreeItemLabel>
@@ -38,13 +34,15 @@ import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faCircle, faServer, faStar } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/shared'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { hostOpaqueRef } = defineProps<{
   hostOpaqueRef: XenApiHost['$ref']
 }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef } = useHostStore().subscribe()
 const host = computed(() => getByOpaqueRef(hostOpaqueRef))

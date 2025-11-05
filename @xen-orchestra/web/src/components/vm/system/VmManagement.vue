@@ -1,51 +1,50 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('vm-management') }}
+      {{ t('vm-management') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('high-availability')">
+    <VtsQuickInfoRow :label="t('high-availability')">
       <template #value>
-        <VtsEnabledState :enabled="vm.high_availability !== ''" />
+        <VtsStatus :status="vm.high_availability !== ''" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('affinity-host')">
+    <VtsQuickInfoRow :label="t('affinity-host')">
       <template #value>
-        <UiLink v-if="vm.affinityHost" :icon="faServer" :to="`/host/${vm.affinityHost}`" size="small">
+        <UiLink v-if="vm.affinityHost" icon="fa:server" :to="`/host/${vm.affinityHost}`" size="small">
           {{ affinityHostName }}
         </UiLink>
         <template v-else>
-          {{ $t('none') }}
+          {{ t('none') }}
         </template>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('protect-from-accidental-deletion')">
+    <VtsQuickInfoRow :label="t('protect-from-accidental-deletion')">
       <template #value>
-        <VtsEnabledState :enabled="vm.blockedOperations.destroy !== undefined" />
+        <VtsStatus :status="vm.blockedOperations.destroy !== undefined" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('protect-from-accidental-shutdown')">
+    <VtsQuickInfoRow :label="t('protect-from-accidental-shutdown')">
       <template #value>
-        <VtsEnabledState :enabled="isProtectedFromAccidentalShutdown" />
+        <VtsStatus :status="isProtectedFromAccidentalShutdown" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('auto-power')">
+    <VtsQuickInfoRow :label="t('auto-power')">
       <template #value>
-        <VtsEnabledState :enabled="vm.auto_poweron" />
+        <VtsStatus :status="vm.auto_poweron" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('start-delay')" :value="formattedStartDelay" />
+    <VtsQuickInfoRow :label="t('start-delay')" :value="formattedStartDelay" />
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { VM_OPERATION, type XoVm } from '@/types/xo/vm.type'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { faServer } from '@fortawesome/free-solid-svg-icons'
 import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -53,7 +52,7 @@ import { useI18n } from 'vue-i18n'
 const { vm } = defineProps<{ vm: XoVm }>()
 const { t } = useI18n()
 
-const { get: getHostById } = useHostStore().subscribe()
+const { getHostById } = useXoHostCollection()
 
 const affinityHostName = computed(() => (vm.affinityHost ? getHostById(vm.affinityHost)?.name_label : ''))
 const protectedOperations = [

@@ -1,22 +1,22 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('networking') }}
+      {{ t('networking') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" :title="$t('networking')" />
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
     <template v-else>
-      <VtsQuickInfoRow :label="$t('backup-network')">
+      <VtsQuickInfoRow :label="t('backup-network')">
         <template #value>
           <UiLink
             v-if="backupNetwork !== undefined"
             :to="`/pool/${pool.uuid}/network?id=${backupNetwork.uuid}`"
-            :icon="faNetworkWired"
+            icon="fa:network-wired"
             size="medium"
           >
             {{ backupNetwork.name_label }}
           </UiLink>
           <template v-else>
-            {{ $t('none') }}
+            {{ t('none') }}
           </template>
         </template>
       </VtsQuickInfoRow>
@@ -28,16 +28,18 @@
 import type { XenApiNetwork, XenApiPool } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { faNetworkWired } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
   pool: XenApiPool
 }>()
+
+const { t } = useI18n()
 
 const { getByUuid, isReady } = useNetworkStore().subscribe()
 

@@ -1,62 +1,64 @@
 <template>
   <div class="host-pif-table">
     <UiTitle>
-      {{ $t('pifs') }}
+      {{ t('pifs') }}
       <template #actions>
         <UiButton
-          v-tooltip="$t('coming-soon')"
+          v-tooltip="t('coming-soon')"
           disabled
-          :left-icon="faPlus"
+          left-icon="fa:plus"
           variant="secondary"
           accent="brand"
           size="medium"
         >
-          {{ $t('scan-pifs') }}
+          {{ t('scan-pifs') }}
         </UiButton>
       </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions :title="$t('table-actions')">
+        <UiTableActions :title="t('table-actions')">
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faEdit"
+            left-icon="fa:edit"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ $t('edit') }}
+            {{ t('edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faTrash"
+            left-icon="fa:trash"
             variant="tertiary"
             accent="danger"
             size="medium"
           >
-            {{ $t('delete') }}
+            {{ t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" />
+        <UiTopBottomTable :selected-items="0" :total-items="0">
+          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+        </UiTopBottomTable>
       </div>
-      <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? $t('no-pif-detected') : undefined">
+      <VtsDataTable :is-ready :has-error :no-data-message="pifs.length === 0 ? t('no-pif-detected') : undefined">
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="$t('coming-soon')">
+                <div v-tooltip="t('coming-soon')">
                   <UiCheckbox disabled :v-model="areAllSelected" accent="brand" />
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
-                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
                 </div>
               </th>
@@ -65,7 +67,7 @@
         </template>
         <template #tbody>
           <tr
-            v-for="row of rows"
+            v-for="row of pifsRecords"
             :key="row.id"
             :class="{ selected: selectedPifId === row.id }"
             @click="selectedPifId = row.id"
@@ -76,25 +78,25 @@
               class="typo-body-regular-small"
               :class="{ checkbox: column.id === 'checkbox' }"
             >
-              <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
+              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
                 <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
-                v-tooltip="$t('coming-soon')"
-                :icon="faEllipsis"
+                v-tooltip="t('coming-soon')"
+                icon="fa:ellipsis"
                 accent="brand"
                 disabled
                 size="small"
               />
-              <div v-else-if="column.id === 'status'" v-tooltip>
-                <VtsConnectionStatus :status="column.value" />
+              <div v-else-if="column.id === 'status'">
+                <VtsStatus :status="column.value" />
               </div>
               <div v-else-if="column.id === 'network'" class="network">
                 <!-- TODO Remove the span when the link works and the icon is fixed -->
                 <!--
                   <UiComplexIcon size="medium" class="icon">
-                    <VtsIcon :icon="faNetworkWired" accent="current" />
+                    <VtsIcon icon="fa:network-wired" accent="current" />
                     <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
                   </UiComplexIcon>
                   <a v-tooltip href="" class="text-ellipsis">{{ column.value.name }}</a>
@@ -102,10 +104,9 @@
                 <span v-tooltip class="text-ellipsis">{{ column.value.name }}</span>
                 <VtsIcon
                   v-if="column.value.management"
-                  v-tooltip="$t('management')"
-                  accent="info"
-                  :icon="faCircle"
-                  :overlay-icon="faStar"
+                  v-tooltip="t('management')"
+                  name="legacy:primary"
+                  size="medium"
                 />
               </div>
               <div v-else-if="column.id === 'IP'" class="ip-addresses">
@@ -121,10 +122,12 @@
           </tr>
         </template>
       </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" type="table" image="no-result">
-        <div>{{ $t('no-result') }}</div>
+      <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" format="table" type="no-result" size="small">
+        <div>{{ t('no-result') }}</div>
       </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0" />
+      <UiTopBottomTable :selected-items="0" :total-items="0">
+        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      </UiTopBottomTable>
     </div>
   </div>
 </template>
@@ -134,33 +137,23 @@ import useMultiSelect from '@/composables/multi-select.composable'
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
+import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import {
-  faAlignLeft,
-  faAt,
-  faCaretDown,
-  faCircle,
-  faEdit,
-  faEllipsis,
-  faPlus,
-  faPowerOff,
-  faStar,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -181,7 +174,7 @@ const pifsUuids = computed(() => pifs.map(pif => pif.uuid))
 
 const { selected, areAllSelected } = useMultiSelect(pifsUuids)
 
-const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getByOpaqueRef(networkRef)?.name_label
+const getNetworkName = (networkRef: XenApiNetwork['$ref']) => getByOpaqueRef(networkRef)?.name_label ?? ''
 
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
 
@@ -238,16 +231,18 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   ],
 })
 
+const { pageRecords: pifsRecords, paginationBindings } = usePagination('pifs', rows)
+
 type PifHeader = 'network' | 'device' | 'status' | 'VLAN' | 'IP' | 'MAC' | 'ip_configuration_mode'
 
-const headerIcon: Record<PifHeader, IconDefinition> = {
-  network: faAlignLeft,
-  device: faAlignLeft,
-  status: faPowerOff,
-  VLAN: faAlignLeft,
-  IP: faAt,
-  MAC: faAt,
-  ip_configuration_mode: faCaretDown,
+const headerIcon: Record<PifHeader, IconName> = {
+  network: 'fa:align-left',
+  device: 'fa:align-left',
+  status: 'fa:power-off',
+  VLAN: 'fa:align-left',
+  IP: 'fa:at',
+  MAC: 'fa:at',
+  ip_configuration_mode: 'fa:caret-down',
 }
 </script>
 

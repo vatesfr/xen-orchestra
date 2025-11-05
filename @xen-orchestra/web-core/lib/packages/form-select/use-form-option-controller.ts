@@ -1,5 +1,6 @@
-import { unrefElement, useEventListener, whenever } from '@vueuse/core'
-import { computed, inject, type MaybeRefOrGetter, ref, toValue } from 'vue'
+import { toComputed } from '@core/utils/to-computed.util.ts'
+import { unrefElement, useEventListener } from '@vueuse/core'
+import { inject, type MaybeRefOrGetter, ref, watchEffect } from 'vue'
 import { type FormOption, IK_FORM_SELECT_CONTROLLER } from './types.ts'
 
 export function useFormOptionController<TOption extends FormOption>(_option: MaybeRefOrGetter<TOption>) {
@@ -9,16 +10,15 @@ export function useFormOptionController<TOption extends FormOption>(_option: May
     throw new Error('useFormOption needs a FormSelectController to be injected')
   }
 
-  const option = computed(() => toValue(_option))
+  const option = toComputed(_option)
 
   const elementRef = ref<HTMLDivElement>()
 
-  whenever(
-    () => option.value.flags.active,
-    () => {
+  watchEffect(() => {
+    if (controller.isOpen && option.value.flags.active) {
       unrefElement(elementRef)?.scrollIntoView({ block: 'nearest' })
     }
-  )
+  })
 
   useEventListener(elementRef, 'click', event => {
     if (controller.isDisabled) {

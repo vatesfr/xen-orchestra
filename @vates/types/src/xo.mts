@@ -8,6 +8,7 @@ import type {
   IP_CONFIGURATION_MODE,
   IPV6_CONFIGURATION_MODE,
   NETWORK_OPERATIONS,
+  PGPU_DOM0_ACCESS,
   POOL_ALLOWED_OPERATIONS,
   PRIMARY_ADDRESS_TYPE,
   STORAGE_OPERATIONS,
@@ -17,6 +18,8 @@ import type {
   VM_OPERATIONS,
   VM_POWER_STATE,
 } from './common.mjs'
+import type * as CMType from './lib/complex-matcher.mjs'
+import type { XenApiHost, XenApiPool } from './xen-api.mjs'
 
 type BaseXapiXo = {
   $pool: XoPool['id']
@@ -73,7 +76,7 @@ type BaseXoVm = BaseXapiXo & {
   isNestedVirtEnabled: boolean
   hasVendorDevice: boolean
   high_availability: string
-  installTime?: number
+  installTime?: number | null
   isFirmwareSupported: boolean
   memory: {
     dynamic: number[]
@@ -99,7 +102,7 @@ type BaseXoVm = BaseXapiXo & {
   secureBoot: boolean
   snapshots: XoVmSnapshot['id'][]
   startDelay: number
-  startTime?: number
+  startTime?: number | null
   suspendSr?: XoSr['id']
   tags: string[]
   vga?: string
@@ -121,7 +124,7 @@ type BaseXoVm = BaseXapiXo & {
 
 export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
   body: {
-    value: string
+    value?: string
     name: string
   }
   object: {
@@ -129,6 +132,76 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
     uuid: XapiXoRecord['uuid']
     href?: string
   }
+}
+
+// TODO: to be typed when Bastien.N has finished working on the XO task
+type BaseXoLog = {
+  id: Branded<'xo-log'>
+  [key: string]: unknown
+}
+export type XoBackupLog = BaseXoLog & {
+  message: 'backup' | 'metadata'
+}
+export type XoRestoreLog = BaseXoLog & {
+  message: 'restore'
+}
+export type XoVmBackupArchive = {
+  id: Branded<'vm-backup-archive'>
+  type: 'xo-vm-backup'
+  backupRepository: XoBackupRepository['id']
+  disks: { id: string; name: string; uuid: XoVdiSnapshot['uuid'] }[]
+  isImmutable?: boolean
+  jobId: XoVmBackupJob['id']
+  mode: XoVmBackupJob['mode']
+  scheduleId: XoSchedule['id']
+  size: number
+  timestamp: number
+  vm: {
+    uuid: XoVm['uuid']
+    name_description: string
+    name_label: string
+  }
+  differencingVhds?: number
+  dynamicVhds?: number
+  withMemory: boolean
+}
+
+type XoMetadataBackupArchive = {
+  id: Branded<'metadata-backup-archive'>
+  backupRepository: XoBackupRepository['id']
+  jobId: XoVmBackupJob['id']
+  jobName: XoVmBackupJob['name']
+  scheduleId: XoSchedule['id']
+  scheduleName: XoSchedule['name']
+  timestamp: number
+}
+export type XoConfigBackupArchive = XoMetadataBackupArchive & {
+  id: Branded<'config-backup-archive'>
+  data: string
+  type: 'xo-config-backup'
+}
+
+export type XoPoolBackupArchive = XoMetadataBackupArchive & {
+  id: Branded<'pool-backup-archive'>
+  pool: XenApiPool
+  poolMaster: XenApiHost
+  type: 'xo-pool-metadata-backup'
+}
+
+export type XoBackupRepository = {
+  benchmarks?: { readRate: number; timestamp: number; writeRate: number }[]
+  enabled: boolean
+  error?: Record<string, unknown>
+  id: Branded<'backup-repository'>
+  name: string
+  options?: string
+  proxy?: XoProxy['id']
+  url: string
+}
+
+export type XoGpuGroup = BaseXapiXo & {
+  id: Branded<'gpu-group'>
+  type: 'gpuGroup'
 }
 
 export type XoGroup = {
@@ -259,18 +332,51 @@ export type XoNetwork = BaseXapiXo & {
 }
 
 export type XoPbd = BaseXapiXo & {
+  attached: boolean
+  device_config:
+    | { device: string }
+    | { location: string }
+    | { path: string; location: string; legacy_mode: string }
+    | { provisioning: string; redundancy: string; 'group-name': string }
+    | { server: string; serverpath: string }
+    | { type: string; location: string }
+    | Record<string, string>
+  host: XoHost['id']
   id: Branded<'PBD'>
+  otherConfig: Record<string, string>
+  SR: XoSr['id']
   type: 'PBD'
 }
 
 export type XoPci = BaseXapiXo & {
+  $host?: XoHost['id']
+
+  class_name: string
+  device_name: string
   id: Branded<'PCI'>
+  pci_id: string
   type: 'PCI'
 }
 
 export type XoPgpu = BaseXapiXo & {
+  $host: XoHost['id']
+  $vgpus: XoVgpu['id'][]
+
+  dom0Access: PGPU_DOM0_ACCESS
+  enabledVgpuTypes: XoVgpuType['id'][]
+  gpuGroup?: XoGpuGroup['id']
+  host: XoHost['id']
   id: Branded<'PGPU'>
+  isSystemDisplayDevice: boolean
+  pci?: XoPci['id']
+  // it seems that supportedVgpuMaxCapcities always return undefined (See: xapi-objet-to-xo)
+  /**
+   * @deprecated
+   */
+  supportedVgpuMaxCapcities?: never
+  supportedVgpuTypes: XoVgpuType['id'][]
   type: 'PGPU'
+  vgpus: XoVgpu['id'][]
 }
 
 export type XoPif = BaseXapiXo & {
@@ -330,15 +436,124 @@ export type XoPool = BaseXapiXo & {
   zstdSupported: boolean
 }
 
-export type XoJob = {
+export type XoProxy = {
+  id: Branded<'proxy'>
+  url: string
+  version?: string
+  name: string
+} & (
+  | { address?: undefined; vmUuid: XoVm['id'] }
+  | { address: string; vmUuid?: undefined }
+  | { address: string; vmUuid: XoVm['id'] }
+)
+
+type BaseXoJob = {
   id: Branded<'job'>
+  name?: string
 }
+
+type XoBackupJobGeneralSettings = {
+  backupReportTpl?: 'compactMjml' | 'mjml'
+  reportWhen?: 'always' | 'error' | 'failure' | 'never'
+  hideSuccessfulItems?: boolean
+  [key: string]: unknown
+}
+
+export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
+  cbtDestroySnapshotData?: boolean
+  concurrency?: number
+  longTermRetention?: {
+    daily?: { retention: number; settings: Record<string, unknown> }
+    weekly?: { retention: number; settings: Record<string, unknown> }
+    monthly?: { retention: number; settings: Record<string, unknown> }
+    yearly?: { retention: number; settings: Record<string, unknown> }
+  }
+  maxExportRate?: number
+  nbdConcurrency?: number
+  nRetriesVmBackupFailures?: number
+  preferNbd?: boolean
+  timezone?: string
+  mergeBackupsSynchronously?: boolean
+  offlineBackup?: boolean
+  timeout?: number
+  [key: string]: unknown
+}
+export type XoVmBackupJobScheduleSettings = {
+  exportRetention?: number
+  healthCheckVmsWithTags?: XoVm['tags']
+  fullInterval?: number
+  copyRetention?: number
+  snapshotRetention?: number
+  cbtDestroySnapshotData?: boolean
+  healthCheckSr?: XoSr['id']
+  [key: string]: unknown
+}
+export type XoVmBackupJob = BaseXoJob & {
+  compression?: 'native' | 'zstd' | ''
+  proxy?: XoProxy['id']
+  mode: 'full' | 'delta'
+  remotes?: CMType.IdOr<XoBackupRepository['id']>
+  vms: CMType.IdOr<XoVm['id']> | Record<string, unknown>
+  srs?: CMType.IdOr<XoSr['id']>
+  type: 'backup'
+  settings: {
+    '': XoVmBackupJobGeneralSettings
+    [key: XoSchedule['id']]: XoVmBackupJobScheduleSettings | undefined
+  }
+}
+
+export type XoMetadataBackupJobGeneralSettings = XoBackupJobGeneralSettings
+export type XoMetadataBackupJobScheduleSettings = {
+  retentionPoolMetadata?: number
+  retentionXoMetadata?: number
+  [key: string]: unknown
+}
+export type XoMetadataBackupJob = BaseXoJob & {
+  type: 'metadataBackup'
+  pools?: CMType.IdOr<XoPool['id']>
+  remotes: CMType.IdOr<XoBackupRepository['id']>
+  settings: {
+    ''?: XoMetadataBackupJobGeneralSettings
+    [scheduleId: XoSchedule['id']]: XoMetadataBackupJobScheduleSettings | undefined
+  }
+  xoMetadata?: boolean
+  userId: XoUser['id']
+  proxy?: XoProxy['id']
+}
+
+export type XoMirrorBackupGeneralSettings = XoBackupJobGeneralSettings & {
+  concurrency?: number
+  nRetriesVmBackupFailures?: number
+  timeout?: number
+  maxExportRate?: number
+  backupReportTpl?: 'compactMjml'
+  reportWhen: 'failure'
+  [key: string]: unknown
+}
+export type XoMirrorBackupScheduleSettings = {
+  exportRetention?: number
+  healthCheckVmsWithTags?: XoVm['tags']
+  healthCheckSr?: XoSr['id']
+  [key: string]: unknown
+}
+export type XoMirrorBackupJob = BaseXoJob & {
+  type: 'mirrorBackup'
+  mode: 'full' | 'delta'
+  sourceRemote: XoBackupRepository['id']
+  remotes: CMType.IdOr<XoBackupRepository['id']>
+  settings: {
+    '': XoMirrorBackupGeneralSettings
+    [scheduleId: XoSchedule['id']]: XoMirrorBackupScheduleSettings | undefined
+  }
+}
+
+export type XoJob = BaseXoJob & {}
 
 export type XoSchedule = {
   cron: string
-  enable: boolean
+  enabled: boolean
   id: Branded<'schedule'>
-  jobId: XoJob['id']
+  jobId: AnyXoJob['id']
   name?: string
   timezone?: string
 }
@@ -365,9 +580,9 @@ export type XoSr = BaseXapiXo & {
 
   $container: XoPool['id'] | XoHost['id']
 
-  VDIs: XoVdi['id'][]
+  VDIs: AnyXoVdi['id'][]
 
-  allocationStrategy: 'thin' | 'thick' | 'unknown'
+  allocationStrategy?: 'thin' | 'thick' | 'unknown'
   content_type: string
   current_operations: Record<string, STORAGE_OPERATIONS>
   id: Branded<'SR'>
@@ -375,14 +590,51 @@ export type XoSr = BaseXapiXo & {
   name_description: string
   name_label: string
   other_config: Record<string, string>
-  physical_usage: number | null
+  physical_usage: number
   shared: boolean
-  size: number | null
+  size: number
   sm_config: Record<string, string>
   SR_type: string
   tags: string[]
   type: 'SR'
   usage: number
+}
+
+export type XoSm = BaseXapiXo & {
+  id: Branded<'SM'>
+
+  SM_type: string
+  vendor: string
+  name_label: string
+  name_description: string
+  configuration: Record<string, string>
+  features: Record<string, number>
+  driver_filename: string
+  required_cluster_stack: string[]
+  supported_image_formats: string[]
+  type: 'SM'
+}
+
+export type XoTask = {
+  abortionRequestedAt?: number
+  end?: number
+  id: Branded<'task'>
+  infos?: { data: unknown; message: string }[]
+  properties: {
+    method?: string
+    name?: string
+    objectId?: string
+    params?: Record<string, unknown>
+    type?: string
+    userId?: string
+    [key: string]: unknown | undefined
+  }
+  result: Record<string, unknown>
+  start: number
+  status: 'failure' | 'interrupted' | 'pending' | 'success'
+  tasks?: XoTask[]
+  updatedAt?: number
+  warnings?: { data: unknown; message: string }[]
 }
 
 export type XoUser = {
@@ -396,6 +648,19 @@ export type XoUser = {
   preferences: Record<string, string>
 }
 
+export type XoAuthenticationToken = {
+  client?: {
+    id: string
+    [key: string]: unknown
+  }
+  created_at?: number
+  description?: string
+  user_id: XoUser['id']
+  expiration: number
+  last_uses?: Record<string, { timestamp: number }>
+  id: Branded<'authentication-token'>
+}
+
 export type XoVbd = BaseXapiXo & {
   attached: boolean
   bootable: boolean
@@ -405,8 +670,8 @@ export type XoVbd = BaseXapiXo & {
   position: string
   read_only: boolean
   type: 'VBD'
-  VDI: XoVdi['id']
-  VM: XoVm['id']
+  VDI?: XoVdi['id'] | XoVdiSnapshot['id']
+  VM: AnyXoVm['id']
 }
 
 type BaseXoVdi = BaseXapiXo & {
@@ -422,6 +687,7 @@ type BaseXoVdi = BaseXapiXo & {
   name_label: string
   other_config: Record<string, string>
   parent?: XoVdiUnmanaged['id']
+  image_format?: string
   size: number
   snapshots: XoVdiSnapshot['id'][]
   tags: string[]
@@ -440,14 +706,24 @@ export type XoVdiSnapshot = BaseXoVdi & {
   type: 'VDI-snapshot'
 }
 
-export type XoVdiUnmanaged = BaseXoVdi & {
+export type XoVdiUnmanaged = Omit<BaseXoVdi, '$VBDs'> & {
   id: Branded<'VDI-unmanaged'>
   type: 'VDI-unmanaged'
+
+  /**
+   * Unmanaged VDI have no VBDs
+   */
+  $VBDs: never[]
 }
 
 export type XoVgpu = BaseXapiXo & {
   id: Branded<'VGPU'>
-  type: 'VGPU'
+  type: 'vgpu'
+}
+
+export type XoVgpuType = BaseXapiXo & {
+  id: Branded<'vgpu-type'>
+  type: 'vgpuType'
 }
 
 export type XoVif = BaseXapiXo & {
@@ -516,9 +792,13 @@ export type XoVtpm = BaseXapiXo & {
 
 export type XapiXoRecord =
   | XoAlarm
+  | XoGpuGroup
   | XoHost
   | XoMessage
   | XoNetwork
+  | XoPbd
+  | XoPci
+  | XoPgpu
   | XoPif
   | XoPool
   | XoSr
@@ -527,13 +807,40 @@ export type XapiXoRecord =
   | XoVdiSnapshot
   | XoVdiUnmanaged
   | XoVgpu
+  | XoVgpuType
   | XoVif
   | XoVm
   | XoVmController
   | XoVmSnapshot
   | XoVmTemplate
   | XoVtpm
+  | XoSm
 
-export type NonXapiXoRecord = XoGroup | XoJob | XoSchedule | XoServer | XoUser
+export type NonXapiXoRecord =
+  | AnyXoBackupArchive
+  | AnyXoJob
+  | AnyXoLog
+  | XoGroup
+  | XoProxy
+  | XoGroup
+  | XoProxy
+  | XoJob
+  | XoBackupRepository
+  | XoSchedule
+  | XoServer
+  | XoTask
+  | XoUser
 
 export type XoRecord = XapiXoRecord | NonXapiXoRecord
+
+export type AnyXoVm = XoVm | XoVmSnapshot | XoVmTemplate | XoVmController
+
+export type AnyXoVdi = XoVdi | XoVdiSnapshot | XoVdiUnmanaged
+
+export type AnyXoJob = XoJob | AnyXoBackupJob
+
+export type AnyXoBackupJob = XoVmBackupJob | XoMetadataBackupJob | XoMirrorBackupJob
+
+export type AnyXoLog = XoBackupLog | XoRestoreLog
+
+export type AnyXoBackupArchive = XoVmBackupArchive | XoConfigBackupArchive | XoPoolBackupArchive

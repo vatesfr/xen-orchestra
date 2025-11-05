@@ -629,7 +629,7 @@ export const subscribeXoTasks = (() => {
     while (true) {
       try {
         // starts watching collection
-        const resWatch = await fetch(basePath + '&ndjson&watch', { signal: abortController.signal })
+        const resWatch = await fetch(basePath + '&ndjson=true&watch=true', { signal: abortController.signal })
 
         // fetches existing objects
         const response = await fetch(basePath, { signal: abortController.signal })
@@ -1883,6 +1883,8 @@ export const editVmNotes = async vm => {
 
 export const createKubernetesCluster = params => _call('xoa.recipe.createKubernetesCluster', params)
 
+export const createEasyVirtVm = params => _call('xoa.recipe.createEasyVirtVm', params)
+
 export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
@@ -2786,6 +2788,8 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
     name_label: nameLabel,
   })
 
+export const getSmFromSr = sr => _call('sm.getFromSr', { sr: resolveId(sr) })
+
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
 export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))
 
@@ -2837,6 +2841,17 @@ export const reclaimSrSpace = async sr => {
   } catch (err) {
     if (err?.data?.message?.includes('Operation not supported')) {
       throw new Error('Space reclaim not supported. Only supported on block based/LVM based SRs.')
+    }
+    if (backupIsRunning(err, sr.$pool)) {
+      await confirm({
+        body: (
+          <p className='text-warning'>
+            <Icon icon='alarm' /> {_('bypassBackupStorageModalMessage')}
+          </p>
+        ),
+        title: _('srReclaimSpace'),
+      })
+      return _call('sr.reclaimSpace', { id: resolveId(sr), bypassBackupCheck: true })
     }
     throw err
   }
@@ -3461,11 +3476,6 @@ export const deleteApiLogs = logs =>
 export const addAcl = ({ subject, object, action }) =>
   _call('acl.add', resolveIds({ subject, object, action }))::tap(subscribeAcls.forceRefresh, err =>
     error('Add ACL', err.message || String(err))
-  )
-
-export const removeAcl = ({ subject, object, action }) =>
-  _call('acl.remove', resolveIds({ subject, object, action }))::tap(subscribeAcls.forceRefresh, err =>
-    error('Remove ACL', err.message || String(err))
   )
 
 export const removeAcls = acls =>
@@ -4302,8 +4312,41 @@ export const synchronizeNetbox = pools =>
 export const esxiListVms = (host, user, password, sslVerify) =>
   _call('esxi.listVms', { host, user, password, sslVerify })
 
+export const esxiCheckInstall = () => _call('esxi.checkInstall')
 export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
 
+export const importVddkLib = file => {
+  return _call('esxi.installVddkLib').then(({ $sendTo }) => {
+    return post($sendTo, file.file)
+      .then(res => {
+        if (res.status !== 200) {
+          throw res.status
+        }
+        success('lib successfully installed')
+      })
+      .catch(err => {
+        error('fail to install vddk lib', err)
+      })
+  })
+}
+export const installNbdInfo = file => {
+  return _call('esxi.installNbdInfoFromSource')
+    .then(() => {
+      success('nbdInfo successfullly installed successfully installed')
+    })
+    .catch(err => {
+      error('fail to install nbdInfo', err)
+    })
+}
+export const installNbdKit = file => {
+  return _call('esxi.installNbdKitFromSource')
+    .then(() => {
+      success('nbdkit successfullly installed successfully installed')
+    })
+    .catch(err => {
+      error('fail to install nbdkit', err)
+    })
+}
 // GitHub API ---------------------------------------------------------------
 const _callGithubApi = async (endpoint = '') => {
   const url = new URL('https://api.github.com/repos/vatesfr/xen-orchestra')

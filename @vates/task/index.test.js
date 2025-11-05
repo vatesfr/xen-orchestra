@@ -29,7 +29,7 @@ function createTask(opts) {
 }
 
 describe('Task', function () {
-  describe('contructor', function () {
+  describe('constructor', function () {
     it('data properties are passed to the start event', async function () {
       const properties = { foo: 0, bar: 1 }
       const task = createTask({ properties })
@@ -265,7 +265,7 @@ describe('Task', function () {
       assert.throws(() => task.set(name, value), { message: /^task has not started yet\b/ })
     })
 
-    it(`emits an property message`, async function () {
+    it(`emits a property message`, async function () {
       const task = createTask()
       await task.run(async () => {
         await Task.run(() => {
@@ -339,7 +339,7 @@ describe('Task', function () {
       Task.warning('foo')
     })
 
-    it('emits an warning message when run inside a task', async function () {
+    it('emits a warning message when run inside a task', async function () {
       const task = createTask()
       await task.run(() => {
         Task.warning('foo')

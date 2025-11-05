@@ -473,7 +473,7 @@ const openAdvancedSettingsModal = async vif => {
 
 // -----------------------------------------------------------------------------
 
-const USABLE_PORT_PROTOCOL = ['TCP', 'ICMP', 'UDP']
+const USABLE_PORT_PROTOCOL = ['TCP', 'UDP']
 class NewAclRuleForm extends BaseComponent {
   state = {
     allow: true,
@@ -689,7 +689,7 @@ const COLUMNS = [
   {
     itemRenderer: vif => `VIF #${vif.device}`,
     name: _('vifDeviceLabel'),
-    sortCriteria: 'device',
+    sortCriteria: vif => +vif.device,
   },
   {
     itemRenderer: vif => (

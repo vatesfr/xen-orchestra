@@ -29,6 +29,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     settings,
     srs,
     throttleGenerator,
+    throttleStream,
     vm,
   }) {
     super()
@@ -63,6 +64,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     this._jobId = job.id
     this._jobSnapshotVdis = undefined
     this._throttleGenerator = throttleGenerator
+    this._throttleStream = throttleStream
     this._xapi = vm.$xapi
 
     // Base VM for the export
@@ -141,14 +143,14 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     const settings = this._settings
 
-    if (this._mustDoSnapshot()) {
+    if (await this._mustDoSnapshot()) {
       await Task.run({ name: 'snapshot' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }
-        if (settings.preferNbd) {
+        if (settings.cbtDestroySnapshotData) {
           try {
-            // enable CBT on all disks if possible
+            // enable CBT on all disks if we want to be able to purge snapshot data
             const diskRefs = await xapi.VM_getDisks(vm.$ref)
             await Promise.all(diskRefs.map(diskRef => xapi.callAsync('VDI.enable_cbt', diskRef)))
           } catch (error) {
@@ -324,7 +326,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     throw new Error('Not implemented')
   }
 
-  _mustDoSnapshot() {
+  async _mustDoSnapshot() {
     throw new Error('Not implemented')
   }
 

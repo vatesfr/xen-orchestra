@@ -64,6 +64,19 @@ You shouldn't have to change this. It's the path where `xo-web` files are served
 '/' = '../xo-web/dist/'
 ```
 
+## SDN Controller mode
+
+The SDN Controller plugin has 2 modes for the OpenFlow rule management. The default mode uses a direct channel to talk through the OpenFlow protocol. The other mode uses a XAPI plugin on XCP-ng side.
+
+:::tip
+For this kind of setting, we recommend using something like `/etc/xo-server/config.sdncontroller.toml` and not to modify the main configuration file.
+:::
+
+```
+[plugins.sdn-controller]
+useDirectChannel = false
+```
+
 ## Custom certificate authority
 
 If you use certificates signed by an in-house CA for your XCP-ng or XenServer hosts, and want to have Xen Orchestra connect to them without rejection, you can use the [`NODE_EXTRA_CA_CERTS`](https://nodejs.org/api/cli.html#cli_node_extra_ca_certs_file) environment variable.
@@ -83,6 +96,90 @@ systemctl restart xo-server.service
 ```
 
 > For XO Proxy, the process is almost the same except the file to create is `/etc/systemd/system/xo-proxy.service.d/ca.conf` and the service to restart is `xo-proxy.service`.
+
+### Let's Encrypt support
+
+#### What's Let's Encrypt?
+
+[Let's Encrypt](https://letsencrypt.org/?ref=xen-orchestra.com) is a Certificate Authority developed by the Internet Security Research Group. It provides free TLS certificates and makes it easy for websites to enable HTTPS encryption and create a more secure Internet for everyone.
+
+:::tip
+
+Although Let's Encrypt is the most popular free public certificate authority (CA), XOA supports other CAs as well.
+
+:::
+
+#### What can it do for me?
+
+Xen Orchestra Appliance (XOA) can **automatically request and renew HTTPS certificates from Let's Encrypt**. This lets you use a free, publicly trusted certificate instead of manually installing your own or relying on self-signed ones.
+
+:::tip
+
+Let's Encrypt will automatically renew your certificate **30 days** before expiration. And unlike "normal" certificates, no need to restart `xo-server` to enjoy your renewed certificate!
+
+:::
+
+#### Prerequisites
+
+In order for XOA to work with Let's Encrypt, follow these prerequisites:
+
+- Make sure your server is listening on HTTP on **port 80** and on **HTTPS 443**.
+
+- In `xo-server`, to prevent HTTP access, enable the redirection to HTTPs:
+
+```
+[http]
+redirectToHttps = true
+```
+
+- Your server must be reachable using the configured domain by the certificate provider (e.g., Let's Encrypt). This typically means it needs to be publicly accessible.
+- Add the following entries to your HTTPS configuration:
+
+```
+# Must be set to true for this feature
+autoCert = true
+
+# These entries are required and indicates where the certificate and the
+# private key will be saved.
+cert = 'path/to/cert.pem'
+key = 'path/to/key.pem'
+
+# ACME (e.g. Let's Encrypt, ZeroSSL) CA directory
+#
+# Specifies the URL to the ACME CA's directory.
+#
+# A identifier `provider/directory` can be passed instead of a URL, see the
+# list of supported directories here: https://www.npmjs.com/package/acme-client#directory-urls
+#
+# Note that the application cannot detect that this value has changed.
+#
+# In that case delete the certificate and the key files, and restart the
+# application to generate new ones.
+#
+# Default is 'letsencrypt/production'
+acmeCa = 'zerossl/production'
+
+# Domain for which the certificate should be created.
+#
+# This entry is required.
+acmeDomain = 'my.domain.net'
+
+# Optional email address which will be used for the certificate creation.
+#
+# It will be notified of any issues.
+acmeEmail = 'admin@my.domain.net'
+```
+
+#### How do I use Let's Encrypt?
+
+To configure your XOA with Let's Encrypt:
+
+1. In the HTTPS section of your XO configuration file, add the following entry:
+   - `autoCert = true`
+   - `acmeDomain = example.org`
+2. Add an entry following this pattern: `acmeDomain = EXAMPLE`, where EXAMPLE is a [fully qualified domain name](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) (FQDN) that points to your XOA environment.
+3. Load the FQDN in your browser.\
+   After a few seconds, the certificate will be automatically generated and installed.
 
 ## Redis server
 
@@ -117,7 +214,7 @@ And to download the patches, we need access to `https://fileservice.citrix.com/d
 
 To do that behind a corporate proxy, just add the `httpProxy` variable to match your current proxy configuration.
 
-You can add this at the end of your config file:
+You can add this at the end of your config file (`/etc/xo-server/config.toml`):
 
 ```toml
 # HTTP proxy configuration used by xo-server to fetch resources on the Internet.

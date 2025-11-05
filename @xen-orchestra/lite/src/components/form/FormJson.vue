@@ -1,11 +1,10 @@
 <template>
-  <FormInput :before="faCode" :model-value="jsonValue" readonly @click="openModal()" />
+  <FormInput before="fa:code" :model-value="jsonValue" readonly @click="openJsonModal()" />
 </template>
 
 <script lang="ts" setup>
 import FormInput from '@/components/form/FormInput.vue'
-import { useModal } from '@/composables/modal.composable'
-import { faCode } from '@fortawesome/free-solid-svg-icons'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useVModel } from '@vueuse/core'
 import { computed } from 'vue'
 
@@ -21,11 +20,11 @@ const model = useVModel(props, 'modelValue', emit)
 
 const jsonValue = computed(() => JSON.stringify(model.value, undefined, 2))
 
-const openModal = () => {
-  const { onApprove } = useModal<string>(() => import('@/components/modals/JsonEditorModal.vue'), {
-    initialValue: jsonValue.value,
-  })
-
-  onApprove(newValue => (model.value = JSON.parse(newValue)))
-}
+const openJsonModal = useModal({
+  component: import('@/components/modals/JsonEditorModal.vue'),
+  props: { initialValue: computed(() => jsonValue.value) },
+  onConfirm: newValue => {
+    model.value = JSON.parse(newValue)
+  },
+})
 </script>

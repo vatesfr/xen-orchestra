@@ -1,6 +1,6 @@
 {
   "name": "xo-server-perf-alert",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "license": "AGPL-3.0-or-later",
   "description": "Sends alerts based on performance criteria",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-perf-alert",
@@ -27,7 +27,7 @@
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "cross-env": "^7.0.2",
-    "rimraf": "^5.0.1"
+    "rimraf": "^6.0.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",

@@ -1,8 +1,50 @@
 # ChangeLog
 
-## **next**
+## **0.16.0** (2025-10-30)
 
+- [VM/New] Fix the default topology by setting the platform:cores-per-socket value correctly (PR [#9136](https://github.com/vatesfr/xen-orchestra/pull/9136))
+
+## **0.15.0** (2025-09-30)
+
+- [settigns] fix key-value alignement and refactor page (PR [#8981](https://github.com/vatesfr/xen-orchestra/pull/8981))
+- [Settings] Add icon for external links on settings page (PR [#8980](https://github.com/vatesfr/xen-orchestra/pull/8980))
+- [VM/dashboard] Update QuickInfo card in dashboard to show more information (PR [#8952](https://github.com/vatesfr/xen-orchestra/pull/8952))
+- [StateHero] Update VtsStateHero component and modify usages in every component (PR [#8910](https://github.com/vatesfr/pull/8910))
+
+## **0.14.1** (2025-09-04)
+
+- [VM/System] Correctly display enable/disable for secure boot (PR [#8925](https://github.com/vatesfr/xen-orchestra/pull/8925))
+
+## **0.14.0** (2025-08-28)
+
+- [Pool,Host,VM/Dashboard] Remember the last visited tab per object type (Pool/Host/VM) when navigating (PR [#8872](https://github.com/vatesfr/xen-orchestra/pull/8872))
+- Replace native `select` with a new custom component (PR [#8681](https://github.com/vatesfr/xen-orchestra/pull/8681))
+- Add i18n engage link on the settings page [Issue#8603](https://github.com/vatesfr/xen-orchestra/issues/8603) (PR [#8884](https://github.com/vatesfr/xen-orchestra/pull/8884))
+- Migrate progress bar usages to Web Core components and remove old Lite components (PR [#8899](https://github.com/vatesfr/xen-orchestra/pull/8899))
+
+## **0.13.1** (2025-08-06)
+
+- [Pool,Host/Dashboard] CPU provisioning considers all VMs instead of just running VMs (PR [#8858](https://github.com/vatesfr/xen-orchestra/pull/8858))
+
+## **0.13.0** (2025-07-31)
+
+- [Host/VM/Dashboard] Fix display error due to inversion of upload and download (PR [#8793](https://github.com/vatesfr/xen-orchestra/pull/8793))
+- [Sidebar] Updated sidebar to auto close when the screen is small (PR [#8760](https://github.com/vatesfr/xen-orchestra/pull/8760))
+- [SearchBar] Updated query search bar to work in responsive (PR [#8761](https://github.com/vatesfr/xen-orchestra/pull/8761))
+
+## **0.12.1**
+
+- [Charts] Fix tooltip overflow when too close to the edge [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9/2) (PR [#8779](https://github.com/vatesfr/xen-orchestra/pull/8779))
+- [Host/VM/Dashboard] Fix timestamp on some charts [Forum#11012](https://xcp-ng.org/forum/topic/11012/graph-in-v0.12.0-48bf9) (PR [#8778](https://github.com/vatesfr/xen-orchestra/pull/8778))
+
+## **0.12.0** (2025-06-30)
+
+- [Host/Dashboard] Fix color of tag list (PR [#8731](https://github.com/vatesfr/xen-orchestra/pull/8731))
+- [Table] add pagination on table (PR [#8573](https://github.com/vatesfr/xen-orchestra/pull/8573))
 - [Pool/system] Display pool information in pool/system tab (PR [#8660](https://github.com/vatesfr/xen-orchestra/pull/8660))
+- [VM/Dashboard] Display VM information in dashboard tab (PR [#8529](https://github.com/vatesfr/xen-orchestra/pull/8529))
+- [Tab/Network] Updated side panel in tab network behavior for mobile view (PR [#8688](https://github.com/vatesfr/xen-orchestra/pull/8688))
+- [Stats] Fix graphs that were sometimes not displayed or displayed incorrectly (PR [#8722](https://github.com/vatesfr/xen-orchestra/pull/8722))
 
 ## **0.11.0** (2025-05-27)
 

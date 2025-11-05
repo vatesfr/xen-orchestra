@@ -7,7 +7,7 @@
     <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea" />
     <UiCharacterLimit v-if="maxCharacters" :count="model.trim().length" :max="maxCharacters" />
     <UiInfo v-if="isExceedingMaxCharacters" accent="danger">
-      {{ $t('core.textarea.exceeds-max-characters', { max: maxCharacters }) }}
+      {{ t('core.textarea.exceeds-max-characters', { max: maxCharacters }) }}
     </UiInfo>
     <UiInfo v-if="slots.info" :accent="accent === 'brand' ? 'info' : accent">
       <slot name="info" />
@@ -19,10 +19,11 @@
 import UiCharacterLimit from '@core/components/ui/character-limit/UiCharacterLimit.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
+import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
 import { useFocus } from '@vueuse/core'
 import { computed, useAttrs, useId, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 defineOptions({
   inheritAttrs: false,
@@ -38,7 +39,7 @@ const {
   maxCharacters?: number
   disabled?: boolean
   href?: string
-  icon?: IconDefinition
+  icon?: IconName
   required?: boolean
 }>()
 
@@ -48,6 +49,8 @@ const slots = defineSlots<{
   default?(): any
   info?(): any
 }>()
+
+const { t } = useI18n()
 
 const attrs = useAttrs()
 

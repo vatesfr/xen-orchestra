@@ -1,28 +1,28 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('virtualization-boot-settings') }}
+      {{ t('virtualization-boot-settings') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('virtualization-mode')" :value="virtualizationMode" />
-    <VtsQuickInfoRow :label="$t('secure-boot')">
+    <VtsQuickInfoRow :label="t('virtualization-mode')" :value="virtualizationMode" />
+    <VtsQuickInfoRow :label="t('secure-boot')">
       <template #value>
-        <VtsEnabledState :enabled="vm.platform.secureBoot !== undefined" />
+        <VtsStatus :status="vm.platform.secureboot === 'true'" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : $t('none')" />
-    <VtsQuickInfoRow :label="$t('viridian')">
+    <VtsQuickInfoRow :label="t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : t('none')" />
+    <VtsQuickInfoRow :label="t('viridian')">
       <template #value>
-        <VtsEnabledState :enabled="vm.platform.viridian === 'true'" />
+        <VtsStatus :status="vm.platform.viridian === 'true'" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('manage-citrix-pv-drivers-via-windows-update')">
+    <VtsQuickInfoRow :label="t('manage-citrix-pv-drivers-via-windows-update')">
       <template #value>
-        <VtsEnabledState :enabled="vm.has_vendor_device" />
+        <VtsStatus :status="vm.has_vendor_device" />
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('nested-virtualization')">
+    <VtsQuickInfoRow :label="t('nested-virtualization')">
       <template #value>
-        <VtsEnabledState :enabled="isNestedVirtualizationEnabled" />
+        <VtsStatus :status="isNestedVirtualizationEnabled" />
       </template>
     </VtsQuickInfoRow>
   </UiCard>
@@ -32,14 +32,17 @@
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { satisfies } from 'semver'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{ vm: XenApiVm }>()
+
+const { t } = useI18n()
 
 const { pool } = usePoolStore().subscribe()
 const { getByOpaqueRef } = useHostStore().subscribe()

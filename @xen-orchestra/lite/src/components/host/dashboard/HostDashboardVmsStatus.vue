@@ -1,10 +1,10 @@
 <template>
   <UiCard class="host-dashboard-vms-status">
-    <UiCardTitle>{{ $t('vms-status') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
     <template v-else>
       <VtsDonutChartWithLegend :segments />
-      <UiCardNumbers class="total" :label="$t('total')" :value="total" size="small" />
+      <UiCardNumbers class="total" :label="t('total')" :value="total" size="small" />
     </template>
   </UiCard>
 </template>
@@ -16,7 +16,7 @@ import { useVmStore } from '@/stores/xen-api/vm.store.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

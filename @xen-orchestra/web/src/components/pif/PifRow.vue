@@ -2,50 +2,52 @@
   <tr class="pif-row" :class="{ clickable: pifHost }" @click="pifHost?.redirect()">
     <td v-tooltip class="typo-body-regular-small text-ellipsis host-container">
       <div v-if="pifHost" class="host">
-        <UiObjectIcon :state="pifHost.powerState" type="host" size="small" />
+        <VtsObjectIcon :state="pifHost.powerState" type="host" size="small" />
         <span v-tooltip class="typo-body-regular-small text-ellipsis host-name">
           {{ pifHost.label }}
         </span>
       </div>
       <div v-else>
-        <span>{{ $t('host-unknown') }}</span>
+        <span>{{ t('host-unknown') }}</span>
       </div>
     </td>
     <td v-tooltip class="typo-body-regular-small text-ellipsis device">{{ pif.device }}</td>
     <td v-tooltip class="typo-body-regular-small status">
-      <VtsConnectionStatus :status />
+      <VtsStatus :status />
     </td>
     <td>
-      <UiButtonIcon size="small" accent="brand" :icon="faAngleRight" :disabled="!pifHost" />
+      <UiButtonIcon size="small" accent="brand" icon="fa:angle-right" :disabled="!pifHost" />
     </td>
   </tr>
 </template>
 
 <script setup lang="ts">
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
-import { usePifStore } from '@/stores/xo-rest-api/pif.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { HOST_POWER_STATE } from '@/types/xo/host.type'
 import type { XoPif } from '@/types/xo/pif.type'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
+import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 const { pif } = defineProps<{
   pif: XoPif
 }>()
-const { get } = useHostStore().subscribe()
-const { getPifStatus } = usePifStore().subscribe()
+
+const { t } = useI18n()
+
+const { getHostById } = useXoHostCollection()
 
 const router = useRouter()
 
 const status = computed(() => getPifStatus(pif))
 
 const pifHost = computed(() => {
-  const host = get(pif.$host)
+  const host = getHostById(pif.$host)
 
   if (!host) {
     return
@@ -80,7 +82,6 @@ const pifHost = computed(() => {
   }
 
   .host-container {
-    width: 14rem;
     max-width: 14rem;
 
     .host {
@@ -93,6 +94,7 @@ const pifHost = computed(() => {
       color: var(--color-brand-txt-base);
     }
   }
+
   .device {
     width: 8rem;
     max-width: 8rem;

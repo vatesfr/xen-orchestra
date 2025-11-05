@@ -20,6 +20,7 @@ import {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } from './constants.mjs'
+import { spawn } from 'node:child_process'
 
 const { warn } = createLogger('vates:nbd-client')
 
@@ -356,6 +357,42 @@ export default class NbdClient {
         warn('will retry reading block ', index, err)
         await this.reconnect()
       },
+    })
+  }
+
+  /**
+   *  returns the map of the file with holes, zeros and data, useful to handle efficiently sparse source
+   * to implement this internally: use structure response if the server supports it, and then ask for BLOCK_STATUS   *
+   *
+   * @returns {Promise<{ offset: number, length: number, type: number }[]>}
+   * A promise that resolves to an array where each object represents a segment:
+   * - `offset` — The byte offset from the start.
+   * - `length` — The size of the segment in bytes.
+   * - `type` — A numeric code indicating the segment type ( 0 means no data).
+   */
+  /* async */ getMap() {
+    return new Promise((resolve, reject) => {
+      const process = spawn('nbdinfo', [
+        '--json',
+        '--map',
+        `nbd://${this.#serverAddress}:${this.#serverPort}/${encodeURIComponent(this.#exportName)}`,
+      ])
+      let text = ''
+      let errText = ''
+      process.stdout.on('data', data => (text += data))
+      process.stderr.on('data', data => (errText += data))
+      process.on('error', reject)
+      process.on('close', code => {
+        if (code !== 0) {
+          return reject(new Error(`Error during getMap (code: ${code}): ${errText}`))
+        }
+        try {
+          const json = JSON.parse(text)
+          resolve(json)
+        } catch (error) {
+          reject(new Error(`${error} ${text}`))
+        }
+      })
     })
   }
 }

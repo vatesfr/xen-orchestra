@@ -1,21 +1,21 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('general-information') }}
+      {{ t('general-information') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('name')" :value="vm.name_label" />
-    <VtsQuickInfoRow :label="$t('id')" :value="vm.uuid" />
-    <VtsQuickInfoRow :label="$t('description')" :value="vm.name_description" />
-    <VtsQuickInfoRow :label="$t('tags')">
+    <VtsQuickInfoRow :label="t('name')" :value="vm.name_label" />
+    <VtsQuickInfoRow :label="t('id')" :value="vm.uuid" />
+    <VtsQuickInfoRow :label="t('description')" :value="vm.name_description" />
+    <VtsQuickInfoRow :label="t('tags')">
       <template v-if="vm.tags.length > 0" #value>
         <UiTagsList>
           <UiTag v-for="tag in vm.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
         </UiTagsList>
       </template>
     </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="$t('os-name')" :value="guestMetrics?.os_version.name" />
-    <VtsQuickInfoRow :label="$t('os-kernel')" :value="guestMetrics?.os_version.uname" />
-    <VtsQuickInfoRow :label="$t('management-agent-version')" :value="pvVersion" />
+    <VtsQuickInfoRow :label="t('os-name')" :value="guestMetrics?.os_version.name" />
+    <VtsQuickInfoRow :label="t('os-kernel')" :value="guestMetrics?.os_version.uname" />
+    <VtsQuickInfoRow :label="t('management-agent-version')" :value="pvVersion" />
   </UiCard>
 </template>
 
@@ -28,8 +28,11 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{ vm: XenApiVm }>()
+
+const { t } = useI18n()
 
 const { getByOpaqueRef } = useVmGuestMetricsStore().subscribe()
 

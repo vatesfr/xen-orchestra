@@ -45,7 +45,7 @@ import {
   coalesceLeafVm,
   pauseVm,
   recoveryStartVm,
-  removeAcl,
+  removeAcls,
   restartVm,
   shareVm,
   startVm,
@@ -460,11 +460,13 @@ const Acls = decorate([
       removeAcl:
         (_, { currentTarget: { dataset } }) =>
         (_, { vm: object }) =>
-          removeAcl({
-            action: dataset.action,
-            object,
-            subject: dataset.subject,
-          }),
+          removeAcls([
+            {
+              action: dataset.action,
+              object,
+              subject: dataset.subject,
+            },
+          ]),
     },
     computed: {
       rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),
@@ -1234,7 +1236,7 @@ export default class TabAdvanced extends Component {
                     </Tooltip>
                     <a
                       className='text-muted'
-                      href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
+                      href='https://docs.xcp-ng.org/guides/guest-UEFI-Secure-Boot/'
                       rel='noreferrer'
                       style={{ display: 'block' }}
                       target='_blank'

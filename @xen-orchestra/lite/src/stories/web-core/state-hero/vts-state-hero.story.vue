@@ -2,9 +2,24 @@
   <ComponentStory
     v-slot="{ properties, settings }"
     :params="[
-      prop('type').required().enum('page', 'card', 'panel', 'table').preset('card').widget(),
+      prop('format').required().enum('page', 'card', 'panel', 'table').preset('card').widget(),
       prop('busy').bool().widget(),
-      prop('image').enum('no-result', 'under-construction', 'no-selection', 'error', 'no-data').widget(),
+      prop('horizontal').bool().widget(),
+      prop('imageSize').enum('small', 'medium', 'large').preset('medium').widget(),
+      prop('type')
+        .enum(
+          'no-result',
+          'under-construction',
+          'no-data',
+          'no-selection',
+          'error',
+          'not-found',
+          'offline',
+          'all-good',
+          'all-done'
+        )
+        .widget(),
+      prop('noBackground').bool().widget(),
       slot(),
       setting('defaultSlot').preset('Some text').widget(),
     ]"

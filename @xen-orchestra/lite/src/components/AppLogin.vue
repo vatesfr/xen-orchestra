@@ -1,52 +1,54 @@
 <template>
   <div class="app-login form-container">
-    <form @submit.prevent="handleSubmit">
+    <div class="card">
       <img alt="XO Lite" src="../assets/logo-title.svg" />
       <PoolOverrideWarning />
       <p v-if="isHostIsSlaveErr(error)" class="error">
-        <UiIcon :icon="faExclamationCircle" />
-        {{ $t('login-only-on-master') }}
+        <VtsIcon name="fa:exclamation-circle" size="medium" />
+        {{ t('login-only-on-master') }}
         <a :href="masterUrl.href">{{ masterUrl.hostname }}</a>
       </p>
-      <template v-else>
-        <FormInputWrapper>
+      <form v-else class="form" @submit.prevent="handleSubmit">
+        <VtsInputWrapper :label="t('login')">
           <FormInput v-model="login" name="login" readonly type="text" />
-        </FormInputWrapper>
-        <FormInput
-          ref="passwordRef"
-          v-model="password"
-          name="password"
-          type="password"
-          :class="{ error: isInvalidPassword }"
-          :placeholder="$t('password')"
-          :readonly="isConnecting"
-          required
-        />
+        </VtsInputWrapper>
+
+        <VtsInputWrapper :label="$t('password')">
+          <FormInput
+            ref="passwordRef"
+            v-model="password"
+            name="password"
+            type="password"
+            :class="{ error: isInvalidPassword }"
+            :placeholder="t('password')"
+            :readonly="isConnecting"
+            required
+          />
+        </VtsInputWrapper>
         <LoginError :error />
-        <label class="remember-me-label">
-          <FormCheckbox v-model="rememberMe" />
-          {{ $t('keep-me-logged') }}
-        </label>
+
+        <UiCheckbox v-model="rememberMe" accent="brand">
+          {{ t('keep-me-logged') }}
+        </UiCheckbox>
         <UiButton size="medium" accent="brand" variant="primary" type="submit" :busy="isConnecting">
-          {{ $t('login') }}
+          {{ t('login') }}
         </UiButton>
-      </template>
-    </form>
+      </form>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import FormCheckbox from '@/components/form/FormCheckbox.vue'
 import FormInput from '@/components/form/FormInput.vue'
-import FormInputWrapper from '@/components/form/FormInputWrapper.vue'
 import LoginError from '@/components/LoginError.vue'
 import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
 import type { XenApiError } from '@/libs/xen-api/xen-api.types'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useXenApiStore } from '@/stores/xen-api.store'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import { faExclamationCircle } from '@fortawesome/free-solid-svg-icons'
+import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import { useLocalStorage, whenever } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, watch } from 'vue'
@@ -102,17 +104,6 @@ async function handleSubmit() {
 </script>
 
 <style lang="postcss" scoped>
-.remember-me-label {
-  cursor: pointer;
-  display: flex;
-  margin: 1rem;
-  width: fit-content;
-
-  & .form-checkbox {
-    margin: auto 1rem auto auto;
-  }
-}
-
 .form-container {
   display: flex;
   align-items: center;
@@ -123,7 +114,7 @@ async function handleSubmit() {
   background-color: var(--color-neutral-background-primary);
 }
 
-form {
+.card {
   display: flex;
   font-size: 2rem;
   min-width: 30em;
@@ -137,6 +128,12 @@ form {
   .error {
     color: var(--color-danger-txt-base);
   }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
 }
 
 h1 {

@@ -26,7 +26,7 @@
             v-tooltip="`[Model] Can be used with ${param.getVModelDirective()}`"
             class="v-model-indicator"
           >
-            <UiIcon :icon="faRepeat" />
+            <VtsIcon name="fa:repeat" size="medium" />
           </sup>
           <sup
             v-if="param.isUsingContext()"
@@ -42,10 +42,11 @@
           <CodeHighlight :code="param.getTypeLabel()" />
         </td>
         <td class="reset-param">
-          <UiIcon
+          <VtsIcon
             v-if="param.hasWidget() && !param.isRequired() && model[param.name] !== undefined"
-            :icon="faClose"
             class="reset-icon"
+            name="fa:close"
+            size="medium"
             @click="model[param.name] = undefined"
           />
         </td>
@@ -82,12 +83,11 @@
 import CodeHighlight from '@/components/CodeHighlight.vue'
 import StoryParamsTable from '@/components/component-story/StoryParamsTable.vue'
 import StoryWidget from '@/components/component-story/StoryWidget.vue'
-import UiIcon from '@/components/ui/icon/UiIcon.vue'
-import { useModal } from '@/composables/modal.composable'
 import useSortedCollection from '@/composables/sorted-collection.composable'
 import type { PropParam } from '@/libs/story/story-param'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faClose, faRepeat } from '@fortawesome/free-solid-svg-icons'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { useVModel } from '@vueuse/core'
 import { toRef } from 'vue'
 
@@ -111,10 +111,10 @@ const params = useSortedCollection(toRef(props, 'params'), (p1, p2) => {
 
 const model = useVModel(props, 'modelValue', emit)
 
-const openRawValueModal = (code: string) =>
-  useModal(() => import('@/components/modals/CodeHighlightModal.vue'), {
-    code,
-  })
+const openRawValueModal = useModal((code: string) => ({
+  component: import('@/components/modals/CodeHighlightModal.vue'),
+  props: { code },
+}))
 </script>
 
 <style lang="postcss" scoped>

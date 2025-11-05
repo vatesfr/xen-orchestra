@@ -1,9 +1,9 @@
 <template>
   <VtsTreeItem v-if="vm !== undefined" ref="rootElement" expanded class="infra-vm-item">
-    <UiTreeItemLabel v-if="isVisible" :route="{ name: 'vm.default', params: { uuid: vm.uuid } }" no-indent>
+    <UiTreeItemLabel v-if="isVisible" :route="{ name: '/vm/[uuid]', params: { uuid: vm.uuid } }" no-indent>
       {{ vm.name_label || '(VM)' }}
       <template #icon>
-        <UiObjectIcon size="medium" :state="vmPowerState!" type="vm" />
+        <VtsObjectIcon size="medium" :state="vmPowerState!" type="vm" />
       </template>
     </UiTreeItemLabel>
   </VtsTreeItem>
@@ -13,18 +13,18 @@
 import type { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
-import UiObjectIcon from '@core/components/ui/object-icon/UiObjectIcon.vue'
 import UiTreeItemLabel from '@core/components/ui/tree-item-label/UiTreeItemLabel.vue'
 import { useIntersectionObserver } from '@vueuse/core'
 import { computed, ref } from 'vue'
 
-const props = defineProps<{
+const { vmOpaqueRef } = defineProps<{
   vmOpaqueRef: XenApiVm['$ref']
 }>()
 
 const { getByOpaqueRef } = useVmStore().subscribe()
-const vm = computed(() => getByOpaqueRef(props.vmOpaqueRef))
+const vm = computed(() => getByOpaqueRef(vmOpaqueRef))
 const rootElement = ref()
 const isVisible = ref(false)
 

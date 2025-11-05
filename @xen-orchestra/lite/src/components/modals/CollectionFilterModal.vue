@@ -1,60 +1,62 @@
 <template>
-  <UiModal @submit.prevent="modal.approve(generatedFilter)">
-    <ConfirmModalLayout>
-      <template #default>
-        <div class="rows">
-          <CollectionFilterRow
-            v-for="(newFilter, index) in newFilters"
-            :key="newFilter.id"
-            v-model="newFilters[index]"
-            :available-filters="availableFilters"
-            @remove="removeNewFilter($event)"
-          />
+  <VtsModal accent="info" dismissible @confirm="emit('confirm', generatedFilter)">
+    <template #content>
+      <div class="rows">
+        <CollectionFilterRow
+          v-for="(newFilter, index) in newFilters"
+          :key="newFilter.id"
+          v-model="newFilters[index]"
+          :available-filters="availableFilters"
+          @remove="removeNewFilter($event)"
+        />
+        <div>
+          <VtsModalButton variant="tertiary" @click="addNewFilter()">
+            {{ t('add-or') }}
+          </VtsModalButton>
         </div>
-
-        <div v-if="newFilters.some(filter => filter.isAdvanced)" class="available-properties">
-          {{ $t('available-properties-for-advanced-filter') }}
-          <div class="properties typo-body-regular">
-            <UiBadge v-for="(filter, property) in availableFilters" :key="property" :icon="getFilterIcon(filter)">
-              {{ property }}
-            </UiBadge>
-          </div>
+      </div>
+      <div v-if="newFilters.some(filter => filter.isAdvanced)" class="available-properties">
+        {{ t('available-properties-for-advanced-filter') }}
+        <div class="properties typo-body-regular">
+          <UiBadge v-for="(filter, property) in availableFilters" :key="property" :icon="getFilterIcon(filter)">
+            {{ property }}
+          </UiBadge>
         </div>
-      </template>
-
-      <template #buttons>
-        <UiButton size="medium" accent="brand" variant="tertiary" @click="addNewFilter()">
-          {{ $t('add-or') }}
-        </UiButton>
-        <ModalDeclineButton />
-        <ModalApproveButton :disabled="!isFilterValid">
-          {{ $t(editedFilter ? 'update' : 'add') }}
-        </ModalApproveButton>
-      </template>
-    </ConfirmModalLayout>
-  </UiModal>
+      </div>
+    </template>
+    <template #buttons>
+      <VtsModalCancelButton />
+      <VtsModalConfirmButton :disabled="!isFilterValid">
+        {{ editedFilter ? t('update') : t('add') }}
+      </VtsModalConfirmButton>
+    </template>
+  </VtsModal>
 </template>
 
 <script lang="ts" setup>
 import CollectionFilterRow from '@/components/CollectionFilterRow.vue'
-import ConfirmModalLayout from '@/components/ui/modals/layouts/ConfirmModalLayout.vue'
-import ModalApproveButton from '@/components/ui/modals/ModalApproveButton.vue'
-import ModalDeclineButton from '@/components/ui/modals/ModalDeclineButton.vue'
-import UiModal from '@/components/ui/modals/UiModal.vue'
 import UiBadge from '@/components/ui/UiBadge.vue'
 import { getFilterIcon } from '@/libs/utils'
 import type { Filters, NewFilter } from '@/types/filter'
-import { IK_MODAL } from '@/types/injection-keys'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import VtsModal from '@core/components/modal/VtsModal.vue'
+import VtsModalButton from '@core/components/modal/VtsModalButton.vue'
+import VtsModalCancelButton from '@core/components/modal/VtsModalCancelButton.vue'
+import VtsModalConfirmButton from '@core/components/modal/VtsModalConfirmButton.vue'
 import { Or, parse } from 'complex-matcher'
-import { computed, inject, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { editedFilter } = defineProps<{
   availableFilters: Filters
   editedFilter?: string
 }>()
 
-const modal = inject(IK_MODAL)!
+const emit = defineEmits<{
+  confirm: [filter: string]
+}>()
+
+const { t } = useI18n()
+
 const newFilters = ref<NewFilter[]>([])
 let newFilterId = 0
 
@@ -90,12 +92,12 @@ const generatedFilter = computed(() => {
 const isFilterValid = computed(() => generatedFilter.value !== '')
 
 onMounted(() => {
-  if (props.editedFilter === undefined) {
+  if (editedFilter === undefined) {
     addNewFilter()
     return
   }
 
-  const parsedFilter = parse(props.editedFilter)
+  const parsedFilter = parse(editedFilter)
 
   const nodes = parsedFilter instanceof Or ? parsedFilter.children : [parsedFilter]
 
@@ -139,5 +141,10 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  max-width: 100%;
+
+  @media (--mobile) {
+    gap: 2.4rem;
+  }
 }
 </style>

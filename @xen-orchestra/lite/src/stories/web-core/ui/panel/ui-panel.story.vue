@@ -24,12 +24,12 @@
     <UiSidePanel v-bind="properties" :error="properties.error">
       <template #header>
         <UiButton variant="tertiary" size="medium" accent="brand" @click="toggle()">Toggle</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="brand" :left-icon="faEdit"> {{ settings.action1 }}</UiButton>
-        <UiButton variant="tertiary" size="medium" accent="danger" :left-icon="faTrash">
+        <UiButton variant="tertiary" size="medium" accent="brand" left-icon="fa:edit"> {{ settings.action1 }}</UiButton>
+        <UiButton variant="tertiary" size="medium" accent="danger" left-icon="fa:trash">
           {{ settings.action2 }}
         </UiButton>
       </template>
-      <VtsLoadingHero v-if="!isReady" type="card" />
+      <VtsStateHero v-if="!isReady" format="card" busy />
       <UiCard v-else-if="!properties.error">
         <div>Content 1</div>
         <div>Content 1</div>
@@ -43,11 +43,10 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiSidePanel from '@core/components/ui/panel/UiPanel.vue'
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
 

@@ -1,7 +1,7 @@
 <template>
   <UiCard class="pool-dashboard-alarms">
     <UiCardTitle>
-      {{ $t('alarms') }}
+      {{ t('alarms') }}
       <template v-if="isReady && alarms.length > 0" #right>
         <UiCounter :value="alarms.length" accent="danger" variant="primary" size="small" />
       </template>
@@ -9,23 +9,21 @@
     <div v-if="!isStarted" class="pre-start">
       <div>
         <p class="text typo-h4">
-          {{ $t('click-to-display-alarms') }}
+          {{ t('click-to-display-alarms') }}
         </p>
-        <UiButton size="medium" accent="brand" variant="primary" @click="start">{{ $t('load-now') }}</UiButton>
+        <UiButton size="medium" accent="brand" variant="primary" @click="start">{{ t('load-now') }}</UiButton>
       </div>
       <div>
         <img alt="" src="@/assets/server-status.svg" />
       </div>
     </div>
     <NoDataError v-else-if="hasError" />
-    <div v-else-if="!isReady">
-      <UiCardSpinner />
-    </div>
+    <VtsStateHero v-else-if="!isReady" format="card" busy size="medium" />
     <div v-else-if="alarms.length === 0" class="no-alarm">
       <div>
         <img alt="" src="@/assets/server-status.svg" />
       </div>
-      <p class="text typo-h4">{{ $t('all-good') }}<br />{{ $t('no-alarm-triggered') }}</p>
+      <p class="text typo-h4">{{ t('all-good') }}<br />{{ t('no-alarm-triggered') }}</p>
     </div>
     <div v-else class="table-container">
       <UiTable>
@@ -41,12 +39,15 @@
 import NoDataError from '@/components/NoDataError.vue'
 import AlarmRow from '@/components/pool/dashboard/alarm/AlarmRow.vue'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiTable from '@/components/ui/UiTable.vue'
 import { useAlarmStore } from '@/stores/xen-api/alarm.store'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { records: alarms, start, isStarted, isReady, hasError } = useAlarmStore().subscribe({ defer: true })
 </script>

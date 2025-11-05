@@ -32,7 +32,7 @@ export type InstallMode = 'no-config' | 'ssh-key' | 'custom_config' | 'cdrom' | 
 
 export interface VmState {
   affinity_host?: XoHost['id']
-  auto_poweron: boolean
+  autoPoweron: boolean
   installMode?: InstallMode
   boot_firmware: string
   boot_vm: boolean

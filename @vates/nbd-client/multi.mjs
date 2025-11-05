@@ -70,7 +70,9 @@ export default class MultiNbdClient {
       await _connect()
     }
     if (this.#clients.length === 0) {
-      throw new Error(`Fail to connect to any Nbd client`)
+      const error = new Error(`Fail to connect to any Nbd client`, { nbdInfos: this.#settings })
+      error.code = 'NO_NBD_AVAILABLE'
+      throw error
     }
     if (this.#clients.length < this.#nbdConcurrency) {
       warn(
@@ -126,5 +128,18 @@ export default class MultiNbdClient {
     while (readAhead.length > 0) {
       yield readAhead.shift()
     }
+  }
+  /**
+   *  returns the map of the file with holes, zeros and data, useful to handle efficiently sparse source   *
+   *
+   * @returns {Promise<{ offset: number, length: number, type: number }[]>}
+   * A promise that resolves to an array where each object represents a segment:
+   * - `offset` — The byte offset from the start.
+   * - `length` — The size of the segment in bytes.
+   * - `type` — A numeric code indicating the segment type (0 means no data).
+   */
+  async getMap() {
+    // ask the map from one of the connected client
+    return this.#clients[Math.floor(this.#clients.length * Math.random())].getMap()
   }
 }

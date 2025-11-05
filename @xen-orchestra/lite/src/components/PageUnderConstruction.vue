@@ -1,25 +1,25 @@
 <template>
-  <UiStatusPanel
-    :image-source="underConstruction"
-    :subtitle="$t('new-features-are-coming')"
-    :title="$t('xo-lite-under-construction')"
-  >
+  <VtsStateHero format="page" type="under-construction" size="large">
+    <span>{{ t('xo-lite-under-construction') }}</span>
+    <span class="typo-h3">{{ t('new-features-are-coming') }}</span>
     <p class="contact typo-body-regular">
-      {{ $t('do-you-have-needs') }}
+      {{ t('do-you-have-needs') }}
       <a
         href="https://xcp-ng.org/forum/topic/5018/xo-lite-building-an-embedded-ui-in-xcp-ng"
         rel="noopener noreferrer"
         target="_blank"
       >
-        {{ `${$t('here')} →` }}
+        {{ `${t('here')} →` }}
       </a>
     </p>
-  </UiStatusPanel>
+  </VtsStateHero>
 </template>
 
 <script lang="ts" setup>
-import underConstruction from '@/assets/under-construction.svg'
-import UiStatusPanel from '@/components/ui/UiStatusPanel.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

@@ -1,6 +1,6 @@
+import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { Filter } from '@/types/filter'
-import { faSquareCheck } from '@fortawesome/free-regular-svg-icons'
-import { faFont, faHashtag, faList } from '@fortawesome/free-solid-svg-icons'
+import type { IconName } from '@core/icons'
 import { utcParse } from 'd3-time-format'
 import format from 'human-format'
 import { find, forEach, round, size, sum } from 'lodash-es'
@@ -9,11 +9,11 @@ export function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-const iconsByType = {
-  string: faFont,
-  number: faHashtag,
-  boolean: faSquareCheck,
-  enum: faList,
+const iconsByType: Record<string, IconName> = {
+  string: 'fa:font',
+  number: 'fa:hashtag',
+  boolean: 'fa:square-check',
+  enum: 'fa:list',
 }
 
 export function formatSize(bytes: number) {
@@ -82,22 +82,22 @@ export function parseRamUsage(
     memory,
     memoryFree,
   }: {
-    memory: number[]
-    memoryFree?: number[]
-  },
+    memory?: (number | null)[]
+    memoryFree?: (number | null)[]
+  } = {},
   { nSequence = 4 } = {}
 ) {
-  const _nSequence = Math.min(memory.length, nSequence)
+  const _nSequence = Math.min(memory?.length ?? 0, nSequence)
 
   let total = 0
   let used = 0
 
-  memory = memory.slice(memory.length - _nSequence)
+  memory = memory?.slice(memory.length - _nSequence)
   memoryFree = memoryFree?.slice(memoryFree.length - _nSequence)
 
-  memory.forEach((ram, key) => {
-    total += ram
-    used += ram - (memoryFree?.[key] ?? 0)
+  memory?.forEach((ram, key) => {
+    total += ram ?? NaN
+    used += (ram ?? NaN) - (memoryFree?.[key] ?? NaN)
   })
 
   const percentUsed = percent(used, total)
@@ -119,3 +119,5 @@ export function isIpv6(ip: string) {
 export function ipToHostname(ip: string) {
   return isIpv6(ip) ? `[${ip}]` : ip
 }
+
+export const ACTIVE_STATES = new Set([VM_POWER_STATE.RUNNING, VM_POWER_STATE.PAUSED])

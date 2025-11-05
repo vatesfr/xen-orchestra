@@ -10,8 +10,10 @@ import {
   objectAlreadyExists,
   unauthorized,
 } from 'xo-common/api-errors.js'
+import type { HttpStatusCodeLiteral } from 'tsoa'
 import { NextFunction, Request, Response } from 'express'
 
+import { ApiError } from '../helpers/error.helper.mjs'
 import type { XoError } from '../helpers/helper.type.mjs'
 
 const log = createLogger('xo:rest-api:error-handler')
@@ -25,34 +27,43 @@ export default function genericErrorHandler(error: unknown, req: Request, res: R
     return
   }
 
-  const responseError: { error: string; data?: Record<string, unknown>; info?: string } = { error: error.message }
-  if (noSuchObject.is(error)) {
-    res.status(404)
+  const responseError: { error: string; data?: Record<string, unknown>; info?: string } = {
+    error: error.message,
+    data: 'data' in error ? (error.data as XoError['data']) : undefined,
+  }
+  let statusCode: HttpStatusCodeLiteral
+
+  if (error instanceof ApiError) {
+    statusCode = error.status
+  } else if (noSuchObject.is(error)) {
+    statusCode = 404
   } else if (unauthorized.is(error) || forbiddenOperation.is(error)) {
-    res.status(403)
+    statusCode = 403
   } else if (featureUnauthorized.is(error)) {
-    res.status(403)
-    responseError.data = (error as XoError).data
+    statusCode = 403
   } else if (invalidCredentials.is(error)) {
-    res.status(401)
+    statusCode = 401
   } else if (objectAlreadyExists.is(error)) {
-    res.status(409)
+    statusCode = 409
   } else if (invalidParameters.is(error)) {
-    res.status(422)
+    statusCode = 422
   } else if (notImplemented.is(error)) {
-    res.status(501)
+    statusCode = 501
   } else if (incorrectState.is(error)) {
-    res.status(409)
-    responseError.data = (error as XoError).data
+    statusCode = 409
   } else {
     if (error.name === 'XapiError') {
       responseError.info = 'This is a XenServer/XCP-ng error, not an XO error'
     }
-    res.status(500)
+    statusCode = 500
     log.error(error)
   }
 
-  log.info(`[${req.method}] ${req.path} (${res.statusCode})`)
+  log.info(`[${req.method}] ${req.path} (${statusCode})`)
 
-  res.json(responseError)
+  if (res.headersSent) {
+    return
+  }
+
+  res.status(statusCode).json(responseError)
 }

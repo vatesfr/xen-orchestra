@@ -1,10 +1,10 @@
 <template>
   <div class="pool-networks-table">
     <UiTitle>
-      {{ $t('networks') }}
+      {{ t('networks') }}
       <template #actions>
-        <UiDropdownButton v-tooltip="$t('coming-soon')" disabled>
-          {{ $t('new') }}
+        <UiDropdownButton v-tooltip="t('coming-soon')" disabled>
+          {{ t('new') }}
         </UiDropdownButton>
       </template>
     </UiTitle>
@@ -13,57 +13,59 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
         <UiTableActions :title="t('table-actions')">
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faEdit"
+            left-icon="fa:edit"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ $t('edit') }}
+            {{ t('edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faCopy"
+            left-icon="fa:copy"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ $t('copy-info-json') }}
+            {{ t('copy-info-json') }}
           </UiButton>
           <UiButton
-            v-tooltip="$t('coming-soon')"
+            v-tooltip="t('coming-soon')"
             disabled
-            :left-icon="faTrash"
+            left-icon="fa:trash"
             variant="tertiary"
             accent="danger"
             size="medium"
           >
-            {{ $t('delete') }}
+            {{ t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+          <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+        </UiTopBottomTable>
       </div>
       <VtsDataTable
         :is-ready
         :has-error
-        :no-data-message="networks.length === 0 ? $t('no-network-detected') : undefined"
+        :no-data-message="networks.length === 0 ? t('no-network-detected') : undefined"
       >
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
               <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="$t('coming-soon')">
+                <div v-tooltip="t('coming-soon')">
                   <UiCheckbox disabled :v-model="areAllSelected" accent="brand" @update:model-value="toggleSelect" />
                 </div>
               </th>
               <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="$t('coming-soon')" :icon="faEllipsis" accent="brand" disabled size="small" />
+                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
               </th>
               <th v-else>
                 <div v-tooltip class="text-ellipsis">
-                  <VtsIcon accent="brand" :icon="headerIcon[column.id]" />
+                  <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
                 </div>
               </th>
@@ -72,7 +74,7 @@
         </template>
         <template #tbody>
           <tr
-            v-for="row of rows"
+            v-for="row of networksRecords"
             :key="row.id"
             :class="{ selected: selectedNetworkId === row.id }"
             @click="selectedNetworkId = row.id"
@@ -83,18 +85,18 @@
               class="typo-body-regular-small"
               :class="{ checkbox: column.id === 'checkbox' }"
             >
-              <div v-if="column.id === 'checkbox'" v-tooltip="$t('coming-soon')">
+              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
                 <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
               </div>
               <UiButtonIcon
                 v-else-if="column.id === 'more'"
-                v-tooltip="$t('coming-soon')"
-                :icon="faEllipsis"
+                v-tooltip="t('coming-soon')"
+                icon="fa:ellipsis"
                 accent="brand"
                 disabled
                 size="small"
               />
-              <VtsConnectionStatus v-else-if="column.id === 'status'" :status="column.value" />
+              <VtsStatus v-else-if="column.id === 'status'" :status="column.value" />
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
               </div>
@@ -102,10 +104,12 @@
           </tr>
         </template>
       </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
-        <div>{{ $t('no-result') }}</div>
+      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" format="table" type="no-result" size="small">
+        <div>{{ t('no-result') }}</div>
       </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect" />
+      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+        <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
+      </UiTopBottomTable>
     </div>
   </div>
 </template>
@@ -116,32 +120,24 @@ import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifMetricsStore } from '@/stores/xen-api/pif-metrics.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
+import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import {
-  faAlignLeft,
-  faCaretDown,
-  faCopy,
-  faEdit,
-  faEllipsis,
-  faHashtag,
-  faPowerOff,
-  faTrash,
-} from '@fortawesome/free-solid-svg-icons'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -225,15 +221,17 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   ],
 })
 
+const { pageRecords: networksRecords, paginationBindings } = usePagination('networks', rows)
+
 type NetworkHeader = 'name_label' | 'name_description' | 'status' | 'vlan' | 'MTU' | 'default_locking_mode'
 
-const headerIcon: Record<NetworkHeader, IconDefinition> = {
-  name_label: faAlignLeft,
-  name_description: faAlignLeft,
-  status: faPowerOff,
-  vlan: faAlignLeft,
-  MTU: faHashtag,
-  default_locking_mode: faCaretDown,
+const headerIcon: Record<NetworkHeader, IconName> = {
+  name_label: 'fa:align-left',
+  name_description: 'fa:align-left',
+  status: 'fa:power-off',
+  vlan: 'fa:align-left',
+  MTU: 'fa:hashtag',
+  default_locking_mode: 'fa:caret-down',
 }
 </script>
 

@@ -1,20 +1,25 @@
 <template>
   <UiCard class="host-dashboard-ram-provisioning">
-    <UiCardTitle>{{ $t('ram-provisioning') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
     <template v-else>
-      <UiProgressBar :value="memory?.usage ?? 0" :max="memory?.size" :legend="host.name_label" />
+      <VtsProgressBar
+        :current="memory?.usage ?? 0"
+        :label="host.name_label"
+        :total="memory?.size ?? 0"
+        legend-type="percent"
+      />
       <div class="total">
         <UiCardNumbers
-          :label="$t('total-assigned')"
-          :unit="ramUsage.used?.prefix"
-          :value="ramUsage.used?.value"
+          :label="t('total-assigned')"
+          :unit="ramUsage.used.prefix"
+          :value="ramUsage.used.value"
           size="medium"
         />
         <UiCardNumbers
-          :label="$t('total-free')"
-          :unit="ramUsage.free?.prefix"
-          :value="ramUsage.free?.value"
+          :label="t('total-free')"
+          :unit="ramUsage.free.prefix"
+          :value="ramUsage.free.value"
           size="medium"
         />
       </div>
@@ -26,18 +31,21 @@
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiProgressBar from '@core/components/ui/progress-bar/UiProgressBar.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
   host: XenApiHost
 }>()
+
+const { t } = useI18n()
 
 const { isReady: isHostReady } = useHostStore().subscribe()
 const { getHostMemory, isReady: isHostMetricsReady } = useHostMetricsStore().subscribe()

@@ -1,7 +1,9 @@
 import _ from 'intl'
+import decorate from 'apply-decorators'
 import Copiable from 'copiable'
 import defined from '@xen-orchestra/defined'
 import React from 'react'
+import { injectState, provideState } from 'reaclette'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
 import { addSubscriptions, connectStore, formatSize } from 'utils'
@@ -9,7 +11,13 @@ import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { createGetObjectsOfType } from 'selectors'
 import { createSelector } from 'reselect'
-import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr, reclaimSrSpace, toggleSrMaintenanceMode } from 'xo'
+import {
+  createSrUnhealthyVdiChainsLengthSubscription,
+  deleteSr,
+  reclaimSrSpace,
+  toggleSrMaintenanceMode,
+  getSmFromSr,
+} from 'xo'
 import { flowRight, isEmpty, keys } from 'lodash'
 
 // ===================================================================
@@ -54,59 +62,71 @@ const UnhealthyVdiChains = flowRight(
   )
 )
 
-export default ({ sr }) => (
-  <Container>
-    <Row>
-      <Col className='text-xs-right'>
-        <TabButton
-          btnStyle='primary'
-          handler={reclaimSrSpace}
-          handlerParam={sr}
-          icon='sr-reclaim-space'
-          labelId='srReclaimSpace'
-        />
-        {sr.inMaintenanceMode ? (
+export default decorate([
+  provideState({
+    computed: {
+      sm: (_, { sr }) => getSmFromSr(sr),
+    },
+  }),
+  injectState,
+  ({ sr, state: { sm } }) => (
+    <Container>
+      <Row>
+        <Col className='text-xs-right'>
           <TabButton
-            btnStyle='warning'
-            handler={toggleSrMaintenanceMode}
+            btnStyle='primary'
+            handler={reclaimSrSpace}
             handlerParam={sr}
-            icon='sr-disable'
-            labelId='disableMaintenanceMode'
+            icon='sr-reclaim-space'
+            labelId='srReclaimSpace'
           />
-        ) : (
-          <TabButton
-            btnStyle='warning'
-            handler={toggleSrMaintenanceMode}
-            handlerParam={sr}
-            icon='sr-enable'
-            labelId='enableMaintenanceMode'
-          />
-        )}
-        <TabButton btnStyle='danger' handler={deleteSr} handlerParam={sr} icon='sr-remove' labelId='srRemoveButton' />
-      </Col>
-    </Row>
-    <Row>
-      <Col>
-        <table className='table'>
-          <tbody>
-            <tr>
-              <th>{_('provisioning')}</th>
-              <td>{defined(sr.allocationStrategy, _('unknown'))}</td>
-            </tr>
-            <tr>
-              <th>{_('customFields')}</th>
-              <td>
-                <CustomFields object={sr.id} />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </Col>
-    </Row>
-    <Row>
-      <Col>
-        <UnhealthyVdiChains sr={sr} />
-      </Col>
-    </Row>
-  </Container>
-)
+          {sr.inMaintenanceMode ? (
+            <TabButton
+              btnStyle='warning'
+              handler={toggleSrMaintenanceMode}
+              handlerParam={sr}
+              icon='sr-disable'
+              labelId='disableMaintenanceMode'
+            />
+          ) : (
+            <TabButton
+              btnStyle='warning'
+              handler={toggleSrMaintenanceMode}
+              handlerParam={sr}
+              icon='sr-enable'
+              labelId='enableMaintenanceMode'
+            />
+          )}
+          <TabButton btnStyle='danger' handler={deleteSr} handlerParam={sr} icon='sr-remove' labelId='srRemoveButton' />
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <table className='table'>
+            <tbody>
+              <tr>
+                <th>{_('provisioning')}</th>
+                <td>{defined(sr.allocationStrategy, _('unknown'))}</td>
+              </tr>
+              <tr>
+                <th>{_('supportedImageFormats')}</th>
+                <td>{defined(sm?.supported_image_formats?.toString().toUpperCase(), 'VHD')}</td>
+              </tr>
+              <tr>
+                <th>{_('customFields')}</th>
+                <td>
+                  <CustomFields object={sr.id} />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <UnhealthyVdiChains sr={sr} />
+        </Col>
+      </Row>
+    </Container>
+  ),
+])

@@ -1,0 +1,45 @@
+<template>
+  <VtsStateHero v-if="host === undefined" format="page" type="not-found" size="large">
+    {{ t('object-not-found', { id }) }}
+  </VtsStateHero>
+  <VtsColumns v-else>
+    <VtsColumn>
+      <HostSystemGeneralInformation :host />
+      <HostSystemNetworking :host />
+      <HostSystemResourceManagement :host />
+    </VtsColumn>
+    <VtsColumn>
+      <!--    Todo: wait for the licenses availability -->
+      <!--    <HostSystemLicensing /> -->
+      <HostSystemSoftwareTooling :host />
+      <HostSystemHardwareSpecifications :host />
+    </VtsColumn>
+  </VtsColumns>
+</template>
+
+<script lang="ts" setup>
+import HostSystemGeneralInformation from '@/components/host/system/HostSystemGeneralInformation.vue'
+import HostSystemHardwareSpecifications from '@/components/host/system/HostSystemHardwareSpecifications.vue'
+// import HostSystemLicensing from '@/components/host/system/HostSystemLicensing.vue'
+import HostSystemNetworking from '@/components/host/system/HostSystemNetworking.vue'
+import HostSystemResourceManagement from '@/components/host/system/HostSystemResourceManagement.vue'
+import HostSystemSoftwareTooling from '@/components/host/system/HostSystemSoftwareTooling.vue'
+import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
+import { useHostStore } from '@/stores/xen-api/host.store.ts'
+import VtsColumn from '@core/components/column/VtsColumn.vue'
+import VtsColumns from '@core/components/columns/VtsColumns.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
+
+const route = useRoute<'/host/[uuid]/system'>()
+
+const { t } = useI18n()
+
+const id = computed(() => route.params.uuid as XenApiHost['uuid'])
+
+const { getByUuid } = useHostStore().subscribe()
+
+const host = computed(() => getByUuid(id.value))
+</script>

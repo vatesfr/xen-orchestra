@@ -1,15 +1,13 @@
 <!-- v2 -->
 <template>
-  <div class="ui-progress-bar" :class="className">
+  <div :class="className" class="ui-progress-bar">
     <div class="progress-bar">
-      <div class="fill" :style="{ width: `${fillWidth}%` }" />
+      <div :style="{ width: fillWidth }" class="fill" />
     </div>
-    <div v-if="shouldShowSteps" class="steps typo-body-regular-small">
-      <span>{{ $n(0, 'percent') }}</span>
-      <span v-for="step in steps" :key="step">{{ $n(step, 'percent') }}</span>
-    </div>
-    <VtsLegendList class="legend">
-      <UiLegend :accent :value="Math.round(percentage)" unit="%">{{ legend }}</UiLegend>
+    <VtsLegendList v-if="legend" class="legend">
+      <UiLegend :accent :value="legend.value">
+        {{ legend.label }}
+      </UiLegend>
     </VtsLegendList>
   </div>
 </template>
@@ -18,41 +16,19 @@
 import VtsLegendList from '@core/components/legend-list/VtsLegendList.vue'
 import UiLegend from '@core/components/ui/legend/UiLegend.vue'
 import { toVariants } from '@core/utils/to-variants.util'
-import { useClamp, useMax } from '@vueuse/math'
 import { computed } from 'vue'
 
-const {
-  value: _value,
-  max = 100,
-  showSteps,
-} = defineProps<{
-  legend: string
-  value: number
-  max?: number
-  showSteps?: boolean
+export type ProgressBarAccent = 'info' | 'warning' | 'danger'
+
+export type ProgressBarLegend = { label: string; value?: string | number }
+
+const { accent, legend } = defineProps<{
+  accent: ProgressBarAccent
+  fillWidth: string
+  legend?: ProgressBarLegend
 }>()
 
-const value = useMax(0, () => _value)
-
-const percentage = computed(() => (max <= 0 ? 0 : (value.value / max) * 100))
-const maxPercentage = computed(() => Math.ceil(percentage.value / 100) * 100)
-const fillWidth = useClamp(() => (percentage.value / maxPercentage.value) * 100 || 0, 0, 100)
-const shouldShowSteps = computed(() => showSteps || percentage.value > 100)
-const steps = useMax(1, () => Math.floor(maxPercentage.value / 100))
-
-const accent = computed(() => {
-  if (percentage.value >= 90) {
-    return 'danger'
-  }
-
-  if (percentage.value >= 80) {
-    return 'warning'
-  }
-
-  return 'info'
-})
-
-const className = computed(() => toVariants({ accent: accent.value }))
+const className = computed(() => toVariants({ accent }))
 </script>
 
 <style lang="postcss" scoped>
@@ -63,22 +39,15 @@ const className = computed(() => toVariants({ accent: accent.value }))
 
   .progress-bar {
     width: 100%;
-    height: 1.2rem;
     border-radius: 0.4rem;
     overflow: hidden;
     background-color: var(--color-neutral-background-disabled);
 
     .fill {
       width: 0;
-      height: 100%;
+      height: 1.2rem;
       transition: width 0.25s ease-in-out;
     }
-  }
-
-  .steps {
-    color: var(--color-neutral-txt-secondary);
-    display: flex;
-    justify-content: space-between;
   }
 
   .legend {
@@ -86,7 +55,6 @@ const className = computed(() => toVariants({ accent: accent.value }))
   }
 
   /* ACCENT */
-
   &.accent--info {
     .fill {
       background-color: var(--color-info-item-base);

@@ -1,29 +1,31 @@
 <template>
-  <UiCard>
+  <UiCard :has-error="error">
     <UiCardTitle>
-      {{ $t('load-average') }}
-      <template #description>{{ $t('last-week') }}</template>
+      {{ t('load-average') }}
+      <template #description>{{ t('last-week') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="loading || data === null" type="card" />
-    <VtsErrorNoDataHero v-else-if="error" type="card" />
+    <VtsStateHero v-if="loading || data === null" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="error" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
+    <VtsStateHero v-else-if="loadAverage.length === 0" format="card" type="no-data" size="medium">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <VtsLinearChart v-else :data="loadAverage" :max-value />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import type { XoHostStats } from '@/types/xo/host-stats.type.ts'
 import type { LinearChartData } from '@core/types/chart.ts'
-import VtsErrorNoDataHero from '@core/components/state-hero/VtsErrorNoDataHero.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import type { XapiHostStats } from '@vates/types/common'
 import { computed, defineAsyncComponent } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { data } = defineProps<{
-  data: XoHostStats | null
+  data: XapiHostStats | null
   loading: boolean
-  error?: string
+  error?: boolean
 }>()
 
 const VtsLinearChart = defineAsyncComponent(() => import('@core/components/linear-chart/VtsLinearChart.vue'))
@@ -45,7 +47,7 @@ const loadAverage = computed<LinearChartData>(() => {
 
     result.set(timestamp, {
       timestamp,
-      value: Number(load.toFixed(2)),
+      value: Number(load?.toFixed(2)),
     })
   }
 
@@ -58,7 +60,7 @@ const loadAverage = computed<LinearChartData>(() => {
 })
 
 const maxValue = computed(() => {
-  const values = loadAverage.value[0]?.data.map(item => item.value) ?? []
+  const values = loadAverage.value[0]?.data.map(item => item.value || 0) ?? []
   if (values.length === 0) {
     return 10
   }

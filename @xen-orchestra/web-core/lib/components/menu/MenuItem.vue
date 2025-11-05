@@ -15,7 +15,7 @@
       <template #trigger="{ open, isOpen }">
         <MenuTrigger :active="isOpen" :busy="isBusy" :disabled="isDisabled" :icon @click="open">
           <slot />
-          <VtsIcon :fixed-width="false" :icon="submenuIcon" accent="current" class="submenu-icon" />
+          <VtsIcon :name="submenuIcon" size="medium" class="submenu-icon" />
         </MenuTrigger>
       </template>
       <slot name="submenu" />
@@ -28,13 +28,12 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import MenuTrigger from '@core/components/menu/MenuTrigger.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
+import type { IconName } from '@core/icons'
 import { IK_CLOSE_MENU, IK_MENU_HORIZONTAL } from '@core/utils/injection-keys.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faAngleDown, faAngleRight } from '@fortawesome/free-solid-svg-icons'
 import { computed, inject, ref } from 'vue'
 
 const props = defineProps<{
-  icon?: IconDefinition
+  icon?: IconName
   onClick?: () => any
   disabled?: boolean
   busy?: boolean
@@ -46,7 +45,7 @@ const isParentHorizontal = inject(
 )
 const isDisabled = useDisabled(() => props.disabled)
 
-const submenuIcon = computed(() => (isParentHorizontal.value ? faAngleDown : faAngleRight))
+const submenuIcon = computed((): IconName => (isParentHorizontal.value ? 'fa:angle-down' : 'fa:angle-right'))
 
 const isHandlingClick = ref(false)
 const isBusy = computed(() => isHandlingClick.value || props.busy === true)

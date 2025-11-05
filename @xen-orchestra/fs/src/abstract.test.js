@@ -10,17 +10,37 @@ import AbstractHandler from './abstract'
 import fs from 'fs-extra'
 import tmp from 'tmp'
 
-const TIMEOUT = 10e3
+const TIMEOUT = 12e5
 
 class TestHandler extends AbstractHandler {
-  constructor(impl) {
-    super({ url: 'test://' }, { timeout: TIMEOUT })
+  constructor() {
+    const options = { timeout: TIMEOUT, withRetry: [] }
+    super({ url: 'test://' }, options)
     Object.defineProperty(this, 'isEncrypted', {
       get: () => false, // encryption is tested separately
     })
-    Object.keys(impl).forEach(method => {
-      this[`_${method}`] = impl[method]
-    })
+  }
+
+  async _closeFile() {
+    Promise(() => {})
+  }
+  async _getInfo() {
+    Promise(() => {})
+  }
+  async _getSize() {
+    Promise(() => {})
+  }
+  async _list() {
+    Promise(() => {})
+  }
+  async _openFile() {
+    Promise(() => {})
+  }
+  async _rename() {
+    Promise(() => {})
+  }
+  async _rmdir() {
+    Promise(() => {})
   }
 }
 
@@ -30,85 +50,71 @@ const clock = sinon.useFakeTimers()
 
 describe('closeFile()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      closeFile: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.closeFile({ fd: undefined, path: '' })
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
 describe('getInfo()', () => {
   it('throws in case of timeout', async () => {
-    const testHandler = new TestHandler({
-      getInfo: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.getInfo()
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
 describe('getSize()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      getSize: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.getSize('')
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
 describe('list()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      list: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.list('.')
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
 describe('openFile()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      openFile: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.openFile('path')
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
 describe('rename()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      rename: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.rename('oldPath', 'newPath')
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 
 describe('rmdir()', () => {
   it(`throws in case of timeout`, async () => {
-    const testHandler = new TestHandler({
-      rmdir: () => new Promise(() => {}),
-    })
+    const testHandler = new TestHandler()
 
     const promise = testHandler.rmdir('dir')
     clock.tick(TIMEOUT)
-    await assert.rejects(promise, TimeoutError)
+    await assert.rejects(promise, new TimeoutError())
   })
 })
 

@@ -1,7 +1,10 @@
 <template>
-  <UiCard>
-    <UiCardTitle>{{ $t('patches') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+  <UiCard :has-error>
+    <UiCardTitle>{{ t('patches') }}</UiCardTitle>
+    <VtsStateHero v-if="!arePatchesReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend :segments="poolsSegments" :title="poolsTitle" />
       <VtsDivider type="stretch" />
@@ -11,28 +14,41 @@
 </template>
 
 <script lang="ts" setup>
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const {
+  missingPatches,
+  nPools = 0,
+  nHosts = 0,
+  nHostsEol = 0,
+} = defineProps<{
+  missingPatches: XoDashboard['missingPatches'] | undefined
+  nPools: XoDashboard['nPools'] | undefined
+  nHosts: XoDashboard['nHosts'] | undefined
+  nHostsEol: XoDashboard['nHostsEol'] | undefined
+  hasError?: boolean
+}>()
+
 const { t } = useI18n()
 
-const { record, isReady } = useDashboardStore().subscribe()
+const arePatchesReady = computed(() => missingPatches !== undefined)
 
 const poolsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() => ({
   label: t('pools'),
 }))
 
 const poolsSegments: ComputedRef<DonutChartWithLegendProps['segments']> = computed(() => {
-  const nPoolsWithMissingPatches = record.value?.missingPatches?.nPoolsWithMissingPatches ?? 0
-  const nPools = record.value?.nPools ?? 0
+  // @TODO: See with Clémence if `hasAuthorization === false`
+  const nPoolsWithMissingPatches = missingPatches?.hasAuthorization ? missingPatches.nPoolsWithMissingPatches : 0
 
   const nUpToDatePools = nPools - nPoolsWithMissingPatches
 
@@ -47,11 +63,9 @@ const hostsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() 
 }))
 
 const hostsSegments = computed(() => {
-  const nHostsWithMissingPatches = record.value?.missingPatches?.nHostsWithMissingPatches ?? 0
-  const nHostsEol = record.value?.nHostsEol
-  const nHosts = record.value?.nHosts
-
-  const nUpToDateHosts = (nHosts ?? 0) - (nHostsWithMissingPatches + (nHostsEol ?? 0))
+  // @TODO: See with Clémence if `hasAuthorization === false`
+  const nHostsWithMissingPatches = missingPatches?.hasAuthorization ? missingPatches.nHostsWithMissingPatches : 0
+  const nUpToDateHosts = nHosts - (nHostsWithMissingPatches + nHostsEol)
 
   const segments: DonutChartWithLegendProps['segments'] = [
     { value: nUpToDateHosts, accent: 'success', label: t('up-to-date') },

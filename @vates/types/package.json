@@ -1,7 +1,7 @@
 {
   "name": "@vates/types",
   "private": false,
-  "version": "1.4.1",
+  "version": "1.14.0",
   "main": "./dist/index.mjs",
   "exports": {
     ".": {
@@ -17,6 +17,14 @@
     "./lib/vates/*": {
       "default": "./dist/lib/vates-*.mjs",
       "type": "./dist/lib/vates-*.d.mts"
+    },
+    "./lib/xen-orchestra/*": {
+      "default": "./dist/lib/xen-orchestra-*.mjs",
+      "type": "./dist/lib/xen-orchestra-*.d.mts"
+    },
+    "./lib/complex-matcher": {
+      "default": "./dist/lib/complex-matcher.mjs",
+      "type": "./dist/lib/complex-matcher.d.mts"
     }
   },
   "type": "module",

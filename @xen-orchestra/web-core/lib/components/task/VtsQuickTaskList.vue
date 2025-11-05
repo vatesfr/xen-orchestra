@@ -1,27 +1,42 @@
 <template>
-  <ul :class="{ sublist }" class="vts-quick-task-list">
+  <DynamicScroller
+    v-if="!loading && tasks.length > 0"
+    :items="tasks"
+    :min-item-size="83"
+    class="vts-quick-task-list"
+    list-tag="ul"
+    item-tag="li"
+  >
+    <template #default="{ item: task, active }">
+      <DynamicScrollerItem :item="task" :active :size-dependencies="[task.subtasks]">
+        <UiQuickTaskItem :task />
+      </DynamicScrollerItem>
+    </template>
+  </DynamicScroller>
+  <ul v-else class="vts-quick-task-list">
     <li v-if="loading">
       <div class="loading">
         <UiLoader />
-        <div>{{ $t('loading-in-progress') }}</div>
+        <div>{{ t('loading') }}</div>
       </div>
     </li>
-    <template v-else>
-      <li v-if="tasks.length === 0" class="typo-body-bold">{{ $t('tasks.no-tasks') }}</li>
-      <UiQuickTaskItem v-for="task of tasks" :key="task.id" :task />
-    </template>
+    <li v-else-if="tasks.length === 0" class="typo-body-bold">{{ t('tasks.no-tasks') }}</li>
   </ul>
 </template>
 
 <script lang="ts" setup>
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import UiQuickTaskItem, { type Task } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
+import { useI18n } from 'vue-i18n'
+import { DynamicScroller, DynamicScrollerItem } from 'vue-virtual-scroller'
 
 defineProps<{
   tasks: Task[]
   sublist?: boolean
   loading?: boolean
 }>()
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

@@ -3,19 +3,19 @@
     v-tooltip="
       selectedRefs.length > 0 &&
       !isMigratable &&
-      $t(isSingleAction ? 'this-vm-cant-be-migrated' : 'no-selected-vm-can-be-migrated')
+      t(isSingleAction ? 'this-vm-cant-be-migrated' : 'no-selected-vm-can-be-migrated')
     "
     :busy="isMigrating"
     :disabled="isDisabled"
-    :icon="faRoute"
-    @click="openModal()"
+    icon="fa:route"
+    @click="openMigrateModal()"
   >
-    {{ $t('migrate') }}
+    {{ t('migrate') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { useModal } from '@/composables/modal.composable'
+import { useVmMigration } from '@/composables/vm-migration.composable.ts'
 import { areSomeVmOperationAllowed, isVmOperationPending } from '@/libs/vm'
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
@@ -23,32 +23,50 @@ import { useVmStore } from '@/stores/xen-api/vm.store'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faRoute } from '@fortawesome/free-solid-svg-icons'
+import { ABORT_MODAL } from '@core/packages/modal/types.ts'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { selectedRefs } = defineProps<{
   selectedRefs: XenApiVm['$ref'][]
   isSingleAction?: boolean
 }>()
 
+const { t } = useI18n()
+
 const { getByOpaqueRefs } = useVmStore().subscribe()
 
 const isMigratable = computed(() =>
-  getByOpaqueRefs(props.selectedRefs).some(vm =>
+  getByOpaqueRefs(selectedRefs).some(vm =>
     areSomeVmOperationAllowed(vm, [VM_OPERATION.POOL_MIGRATE, VM_OPERATION.MIGRATE_SEND])
   )
 )
 
 const isMigrating = computed(() =>
-  getByOpaqueRefs(props.selectedRefs).some(vm =>
+  getByOpaqueRefs(selectedRefs).some(vm =>
     isVmOperationPending(vm, [VM_OPERATION.POOL_MIGRATE, VM_OPERATION.MIGRATE_SEND])
   )
 )
 
 const isDisabled = useDisabled(() => !isMigratable.value)
 
-const openModal = () =>
-  useModal(() => import('@/components/modals/VmMigrateModal.vue'), {
-    vmRefs: props.selectedRefs,
-  })
+const { selectedHost, availableHosts, isValid, migrate } = useVmMigration(() => selectedRefs)
+
+const openMigrateModal = useModal({
+  component: import('@/components/modals/VmMigrateModal.vue'),
+  props: {
+    count: computed(() => selectedRefs.length),
+    availableHosts,
+  },
+  onConfirm: async host => {
+    selectedHost.value = host
+
+    if (!isValid.value) {
+      return ABORT_MODAL
+    }
+
+    await migrate()
+  },
+})
 </script>

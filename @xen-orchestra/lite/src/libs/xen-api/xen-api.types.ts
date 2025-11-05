@@ -183,7 +183,7 @@ export interface XenApiPbd extends XenApiRecord<'pbd'> {
 }
 
 export interface XenApiVm extends XenApiRecord<'vm'> {
-  HVM_boot_params: Record<string, string>
+  HVM_boot_params: Record<string, string | undefined>
   HVM_boot_policy: string
   HVM_shadow_multiplier: number
   NVRAM: Record<string, string>
@@ -428,6 +428,8 @@ export interface XenApiHostMetrics extends XenApiRecord<'host_metrics'> {
 
 export interface XenApiVmMetrics extends XenApiRecord<'vm_metrics'> {
   VCPUs_number: number
+  start_time: string | undefined
+  install_time: string
 }
 
 export const TRISTATE_TYPE = {

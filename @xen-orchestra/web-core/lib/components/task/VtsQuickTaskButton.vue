@@ -1,16 +1,17 @@
 <template>
   <UiButtonIcon
     ref="buttonRef"
-    v-tooltip="{ content: $t('tasks.quick-view'), placement: 'bottom-end' }"
+    v-tooltip="{ content: t('tasks.quick-view'), placement: 'bottom-end' }"
     accent="brand"
     :dot="hasNewTask"
-    :icon="faBarsProgress"
+    icon="fa:bars-progress"
     size="large"
     @click="isPanelOpen = true"
   />
   <Teleport v-if="isPanelOpen" to="body">
-    <VtsBackdrop @click="isPanelOpen = false" />
-    <UiQuickTaskPanel ref="panelRef" :loading :tasks />
+    <VtsBackdrop @click.self="isPanelOpen = false">
+      <UiQuickTaskPanel ref="panelRef" :loading :tasks />
+    </VtsBackdrop>
   </Teleport>
 </template>
 
@@ -20,15 +21,17 @@ import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { Task } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
 import UiQuickTaskPanel from '@core/components/ui/quick-task-panel/UiQuickTaskPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { faBarsProgress } from '@fortawesome/free-solid-svg-icons'
 import { unrefElement, watchArray, whenever } from '@vueuse/core'
 import placementJs from 'placement.js'
 import { computed, nextTick, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   tasks: Task[]
   loading?: boolean
 }>()
+
+const { t } = useI18n()
 
 const ids = computed(() => props.tasks.map(task => task.id))
 

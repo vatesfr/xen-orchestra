@@ -2,10 +2,13 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
-      prop('legend').preset('Legend').required().widget(),
-      prop('value').preset(25).required().widget(),
-      prop('max').num().widget(),
-      prop('showSteps').bool().help('Meant to display steps values under the progress bar. See Presets.').widget(),
+      prop('accent').type('ProgressBarAccent').enum('info', 'warning', 'danger').preset('info').required().widget(),
+      prop('fill-width').str().preset('25%').required().widget(),
+      prop('legend')
+        .obj('ProgressBarLegend')
+        .widget()
+        .preset({ label: 'Foo', value: '12 / 48' })
+        .help('{ label: string; value?: string | number }'),
     ]"
     :presets
   >
@@ -23,12 +26,14 @@ const presets = {
     props: {
       legend: 'Ram usage',
       value: 80,
+      displayMode: 'percent',
     },
   },
   'Danger >= 90%': {
     props: {
       legend: 'Ram usage',
       value: 95,
+      displayMode: 'percent',
     },
   },
   'With steps': {
@@ -36,6 +41,7 @@ const presets = {
       legend: 'Ram usage',
       value: 250,
       max: 200,
+      displayMode: 'value',
     },
   },
 }

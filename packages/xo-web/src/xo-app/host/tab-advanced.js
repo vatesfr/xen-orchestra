@@ -381,7 +381,7 @@ export default class extends Component {
       ),
     }).then(() => editHost(this.props.host, { iscsiIqn }), noop)
 
-  _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value)
+  _setRemoteSyslogHost = value => setRemoteSyslogHost(this.props.host, value === '' ? null : value)
 
   _setControlDomainMemory = () =>
     form({

@@ -1,22 +1,22 @@
 <template>
   <UiCard class="pool-dashboard-status" :color="hasError ? 'error' : undefined">
-    <UiCardTitle>{{ $t('status') }}</UiCardTitle>
-    <NoDataError v-if="hasError" />
-    <UiCardSpinner v-else-if="!isReady" />
+    <UiCardTitle>{{ t('status') }}</UiCardTitle>
+    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
     <template v-else>
       <PoolDashboardStatusItem
         :active="activeHostsCount"
-        :label="$t('hosts')"
-        :active-label="$t('host.active', activeHostsCount)"
-        :inactive-label="$t('host.inactive', totalHostsCount - activeHostsCount)"
+        :label="t('hosts')"
+        :active-label="t('host.active', activeHostsCount)"
+        :inactive-label="t('host.inactive', totalHostsCount - activeHostsCount)"
         :total="totalHostsCount"
       />
       <UiSeparator />
       <PoolDashboardStatusItem
         :active="activeVmsCount"
-        :label="$t('vms')"
-        :active-label="$t('vm.active', activeVmsCount)"
-        :inactive-label="$t('vm.inactive', totalVmsCount - activeVmsCount)"
+        :label="t('vms', 2)"
+        :active-label="t('vm.active', activeVmsCount)"
+        :inactive-label="t('vm.inactive', totalVmsCount - activeVmsCount)"
         :total="totalVmsCount"
       />
     </template>
@@ -24,15 +24,17 @@
 </template>
 
 <script lang="ts" setup>
-import NoDataError from '@/components/NoDataError.vue'
 import PoolDashboardStatusItem from '@/components/pool/dashboard/PoolDashboardStatusItem.vue'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import UiSeparator from '@/components/ui/UiSeparator.vue'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store'
 import { useVmStore } from '@/stores/xen-api/vm.store'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { isReady: isVmReady, records: vms, hasError: hasVmError } = useVmStore().subscribe()
 

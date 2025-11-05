@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('resource-management') }}
+      {{ t('resource-management') }}
     </UiTitle>
     <VtsQuickInfoRow v-for="{ label, value } of resources" :key="label" :label :value />
   </UiCard>
@@ -57,19 +57,19 @@ const resources = computed(() => {
     },
     {
       label: t('minimum-static-memory'),
-      value: `${staticMinMemoryFormated.value?.value} ${staticMinMemoryFormated.value?.prefix}`,
+      value: `${staticMinMemoryFormated.value.value} ${staticMinMemoryFormated.value.prefix}`,
     },
     {
       label: t('maximum-static-memory'),
-      value: `${staticMaxMemoryFormated.value?.value} ${staticMaxMemoryFormated.value?.prefix}`,
+      value: `${staticMaxMemoryFormated.value.value} ${staticMaxMemoryFormated.value.prefix}`,
     },
     {
       label: t('minimum-dynamic-memory'),
-      value: `${dynamicMinMemoryFormated.value?.value} ${dynamicMinMemoryFormated.value?.prefix}`,
+      value: `${dynamicMinMemoryFormated.value.value} ${dynamicMinMemoryFormated.value.prefix}`,
     },
     {
       label: t('maximum-dynamic-memory'),
-      value: `${dynamicMaxMemoryFormated.value?.value} ${dynamicMaxMemoryFormated.value?.prefix}`,
+      value: `${dynamicMaxMemoryFormated.value.value} ${dynamicMaxMemoryFormated.value.prefix}`,
     },
     {
       label: t('gpus'),

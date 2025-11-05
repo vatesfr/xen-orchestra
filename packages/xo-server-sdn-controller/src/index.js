@@ -9,10 +9,10 @@ import { fromCallback, promisify } from 'promise-toolbox'
 import { join } from 'path'
 import { v4 as uuidv4 } from 'uuid'
 
-import { OpenFlowChannel } from './protocol/openflow-channel'
 import { OvsdbClient } from './protocol/ovsdb-client'
 import { PrivateNetwork } from './private-network/private-network'
 import { TlsHelper } from './utils/tls-helper'
+import { instantiateController } from './openflow-controller'
 
 // =============================================================================
 
@@ -251,6 +251,7 @@ function isControllerNeeded(xapi) {
 // =============================================================================
 
 class SDNController extends EventEmitter {
+  #staticConfig
   /*
   Attributes on created networks:
   - `other_config`:
@@ -272,9 +273,9 @@ class SDNController extends EventEmitter {
     - `xo:sdn-controller:of-rules`: A list of openflow entries to apply to this VIF
   */
 
-  constructor({ xo, getDataDir }) {
+  constructor({ xo, getDataDir, staticConfig }) {
     super()
-
+    this.#staticConfig = staticConfig
     this._xo = xo
     this._getDataDir = getDataDir
 
@@ -379,9 +380,9 @@ class SDNController extends EventEmitter {
     addRule.params = {
       allow: { type: 'boolean' },
       direction: { type: 'string' },
-      ipRange: { type: 'string', optional: true },
+      ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
-      protocol: { type: 'string', optional: true },
+      protocol: { type: 'string' },
       vifId: { type: 'string' },
     }
     addRule.permission = 'admin'
@@ -390,12 +391,35 @@ class SDNController extends EventEmitter {
     deleteRule.description = 'Delete an ACL rule from a VIF'
     deleteRule.params = {
       direction: { type: 'string' },
-      ipRange: { type: 'string', optional: true },
+      ipRange: { type: 'string' },
       port: { type: 'integer', optional: true },
-      protocol: { type: 'string', optional: true },
+      protocol: { type: 'string' },
       vifId: { type: 'string' },
     }
     deleteRule.permission = 'admin'
+
+    const addNetworkRule = params => this._addNetworkRule(params)
+    addNetworkRule.description = 'Add an ACL rule to a network'
+    addNetworkRule.params = {
+      allow: { type: 'boolean' },
+      direction: { type: 'string' },
+      ipRange: { type: 'string' },
+      port: { type: 'integer', optional: true },
+      protocol: { type: 'string' },
+      networkId: { type: 'string' },
+    }
+    addNetworkRule.permission = 'admin'
+
+    const deleteNetworkRule = params => this._deleteNetworkOfRule(params)
+    deleteNetworkRule.description = 'Delete an ACL rule from a network'
+    deleteNetworkRule.params = {
+      direction: { type: 'string' },
+      ipRange: { type: 'string' },
+      port: { type: 'integer', optional: true },
+      protocol: { type: 'string' },
+      networkId: { type: 'string' },
+    }
+    deleteNetworkRule.permission = 'admin'
 
     // -------------------------------------------------------------------------
 
@@ -405,6 +429,9 @@ class SDNController extends EventEmitter {
 
         addRule,
         deleteRule,
+
+        addNetworkRule,
+        deleteNetworkRule,
       },
     })
 
@@ -467,7 +494,7 @@ class SDNController extends EventEmitter {
       const hosts = filter(xapi.objects.all, { $type: 'host' })
       for (const host of hosts) {
         this._getOrCreateOvsdbClient(host)
-        this._getOrCreateOfChannel(host)
+        await this._getOrCreateOfChannel(host)
       }
 
       // Add already existing private networks
@@ -582,9 +609,9 @@ class SDNController extends EventEmitter {
       await this._setPoolControllerIfNeeded(vif.$pool)
 
       const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
-      const channel = this._getOrCreateOfChannel(vif.$VM.$resident_on)
+      const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
       const ofport = await client.getOfPortForVif(vif)
-      await channel.addRule(vif, allow, protocol, port, ipRange, direction, ofport)
+      await channel.addRule({ vif, allow, protocol, port, ipRange, direction, ofport })
       const vifRules = vif.other_config['xo:sdn-controller:of-rules']
       const newVifRules = vifRules !== undefined ? JSON.parse(vifRules) : []
       const stringRule = JSON.stringify({
@@ -602,7 +629,40 @@ class SDNController extends EventEmitter {
       log.error('Error while adding OF rule', {
         error,
         vif: vif.uuid,
-        host: vif.$VM.$resident_on.uuid,
+        host: vif.$VM.$resident_on?.uuid,
+        allow,
+        protocol,
+        port,
+        ipRange,
+        direction,
+      })
+    }
+  }
+
+  async _addNetworkRule({ networkId, allow, direction, ipRange = '', port, protocol }) {
+    try {
+      const network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
+      assert(network.$PIFs.length > 0, 'Network needs to be plugged to add a rule')
+      const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
+      const channel = await this._getOrCreateOfChannel(host)
+      await channel.addNetworkRule({ network, allow, protocol, port, ipRange, direction })
+      const networkRules = network.other_config['xo:sdn-controller:of-rules']
+      const newNetworkRules = networkRules !== undefined ? JSON.parse(networkRules) : []
+      const stringRule = JSON.stringify({
+        allow,
+        protocol,
+        port,
+        ipRange,
+        direction,
+      })
+      if (!newNetworkRules.includes(stringRule)) {
+        newNetworkRules.push(stringRule)
+        await network.update_other_config('xo:sdn-controller:of-rules', JSON.stringify(newNetworkRules))
+      }
+    } catch (error) {
+      log.error('Error while adding Network OF rule', {
+        error,
+        networkId,
         allow,
         protocol,
         port,
@@ -618,9 +678,9 @@ class SDNController extends EventEmitter {
       await this._setPoolControllerIfNeeded(vif.$pool)
 
       const client = this._getOrCreateOvsdbClient(vif.$VM.$resident_on)
-      const channel = this._getOrCreateOfChannel(vif.$VM.$resident_on)
+      const channel = await this._getOrCreateOfChannel(vif.$VM.$resident_on)
       const ofport = await client.getOfPortForVif(vif)
-      await channel.deleteRule(vif, protocol, port, ipRange, direction, ofport)
+      await channel.deleteRule({ vif, protocol, port, ipRange, direction, ofport })
       if (!updateOtherConfig) {
         return
       }
@@ -651,7 +711,53 @@ class SDNController extends EventEmitter {
       log.error('Error while adding OF rule', {
         error,
         vif: vif.uuid,
-        host: vif.$VM.$resident_on.uuid,
+        host: vif.$VM.$resident_on?.uuid,
+        protocol,
+        port,
+        ipRange,
+        direction,
+      })
+    }
+  }
+
+  async _deleteNetworkOfRule({ direction, ipRange = '', port, protocol, networkId }, updateOtherConfig = true) {
+    try {
+      let network = this._xo.getXapiObject(this._xo.getObject(networkId, 'network'))
+      assert(network.$PIFs.length > 0, 'Network needs to be plugged to delete a rule')
+
+      const host = this._xo.getXapiObject(this._xo.getObject(network.$PIFs[0].host, 'host'))
+      const channel = await this._getOrCreateOfChannel(host)
+      await channel.deleteNetworkRule({ network, protocol, port, ipRange, direction })
+      if (!updateOtherConfig) {
+        return
+      }
+
+      const networkRules = network.other_config['xo:sdn-controller:of-rules']
+      if (networkRules === undefined) {
+        // Nothing to do
+        return
+      }
+
+      const newNetworkRules = JSON.parse(networkRules).filter(networkRule => {
+        const rule = JSON.parse(networkRule)
+        return (
+          rule.protocol !== protocol || rule.port !== port || rule.ipRange !== ipRange || rule.direction !== direction
+        )
+      })
+
+      await network.update_other_config(
+        'xo:sdn-controller:of-rules',
+        Object.keys(newNetworkRules).length === 0 ? null : JSON.stringify(newNetworkRules)
+      )
+
+      network = await network.$xapi.barrier(network.$ref)
+
+      // Put back rules that could have been wrongfully deleted because delete rule too general
+      await this._applyNetworkOfRules(network)
+    } catch (error) {
+      log.error('Error while adding Network OF rule', {
+        error,
+        networkId,
         protocol,
         port,
         ipRange,
@@ -726,7 +832,7 @@ class SDNController extends EventEmitter {
         const hostPif = host.$PIFs.find(_pif => _pif.network === pif.network)
         await createTunnel(host, createdNetwork, hostPif)
         this._getOrCreateOvsdbClient(host)
-        this._getOrCreateOfChannel(host)
+        await this._getOrCreateOfChannel(host)
       })
       await this._setPoolControllerIfNeeded(pool)
 
@@ -776,7 +882,7 @@ class SDNController extends EventEmitter {
           this._newHosts.push(object)
         }
         this._getOrCreateOvsdbClient(object)
-        this._getOrCreateOfChannel(object)
+        await this._getOrCreateOfChannel(object)
       } else if ($type === 'PIF') {
         log.debug('New PIF', {
           device: object.device,
@@ -818,8 +924,8 @@ class SDNController extends EventEmitter {
   _objectsRemoved(xapi, objects) {
     forOwn(objects, async (object, id) => {
       try {
-        this.ovsdbClients = omitBy(this.ovsdbClients, client => client.host.$id === id)
-        this.ofChannels = omitBy(this.ofChannels, channel => channel.host.$id === id)
+        this.ovsdbClients = omitBy(this.ovsdbClients, client => client.host?.$id === id)
+        this.ofChannels = omitBy(this.ofChannels, channel => channel.host?.$id === id)
 
         // If a Star center host is removed: re-elect a new center where needed
         const starCenterRef = this._starCenters.get(id)
@@ -973,7 +1079,7 @@ class SDNController extends EventEmitter {
         value === 'hard_shutdown' ||
         value === 'clean_shutdown'
       ) {
-        await this._cleanOfRules(vm)
+        await this._cleanOfVmRules(vm)
       }
 
       await vm.$xapi.watchTask(key).catch(noop)
@@ -1215,7 +1321,16 @@ class SDNController extends EventEmitter {
     }
   }
 
-  async _cleanOfRules(vm) {
+  async _applyNetworkOfRules(network) {
+    const networkRules = network.other_config['xo:sdn-controller:of-rules']
+    const parsedRules = networkRules !== undefined ? JSON.parse(networkRules) : []
+    for (const stringRule of parsedRules) {
+      const rule = JSON.parse(stringRule)
+      await this._addNetworkRule({ ...rule, networkId: network.$id })
+    }
+  }
+
+  async _cleanOfVmRules(vm) {
     for (const vif of vm.$VIFs) {
       await this._cleanVifOfRules(vif)
     }
@@ -1239,13 +1354,15 @@ class SDNController extends EventEmitter {
     return client
   }
 
-  _getOrCreateOfChannel(host) {
+  async _getOrCreateOfChannel(host) {
     let channel = this.ofChannels[host.$ref]
     if (channel === undefined) {
-      channel = new OpenFlowChannel(host, this._tlsHelper)
-      this.ofChannels[host.$ref] = channel
+      // this ensure only one channel is create in parallel
+      channel = this.ofChannels[host.$ref] = instantiateController(host, this._tlsHelper, this.#staticConfig)
     }
-
+    if (this.ofChannels[host.$ref].then) {
+      this.ofChannels[host.$ref] = await this.ofChannels[host.$ref]
+    }
     return channel
   }
 }

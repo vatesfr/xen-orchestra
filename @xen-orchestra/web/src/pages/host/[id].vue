@@ -1,6 +1,8 @@
 <template>
-  <VtsLoadingHero v-if="!isReady" type="page" />
-  <VtsObjectNotFoundHero v-else-if="!host" :id="route.params.id" type="page" />
+  <VtsStateHero v-if="!areHostsReady" format="page" busy size="large" />
+  <VtsStateHero v-else-if="!host" format="page" type="not-found" size="large">
+    {{ t('object-not-found', { id: route.params.id }) }}
+  </VtsStateHero>
   <RouterView v-else v-slot="{ Component }">
     <HostHeader v-if="uiStore.hasUi" :host />
     <component :is="Component" :host />
@@ -9,18 +11,22 @@
 
 <script lang="ts" setup>
 import HostHeader from '@/components/host/HostHeader.vue'
-import { useHostStore } from '@/stores/xo-rest-api/host.store'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import type { XoHost } from '@/types/xo/host.type'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsObjectNotFoundHero from '@core/components/state-hero/VtsObjectNotFoundHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
-import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router/auto'
+
+useDefaultTab('/host/[id]', 'dashboard')
 
 const route = useRoute<'/host/[id]'>()
 
-const { isReady, get } = useHostStore().subscribe()
+const { areHostsReady, useGetHostById } = useXoHostCollection()
+const { t } = useI18n()
+
 const uiStore = useUiStore()
 
-const host = computed(() => get(route.params.id as XoHost['id']))
+const host = useGetHostById(() => route.params.id as XoHost['id'])
 </script>

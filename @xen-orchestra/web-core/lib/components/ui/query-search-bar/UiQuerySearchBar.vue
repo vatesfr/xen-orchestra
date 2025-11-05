@@ -1,35 +1,39 @@
 <!-- v3 -->
 <template>
   <form class="ui-query-search-bar" @submit.prevent="emit('search', value)">
-    <label v-if="uiStore.isDesktop" :for="id" class="typo-body-regular-small label">
-      {{ $t('core.query-search-bar.label') }}
+    <label v-if="uiStore.isDesktopLarge" :for="id" class="typo-body-regular-small label">
+      {{ t('core.query-search-bar.label') }}
     </label>
     <UiInput
       :id
       v-model="value"
       type="text"
       accent="brand"
-      :aria-label="uiStore.isMobile ? $t('core.query-search-bar.label') : undefined"
-      :icon="uiStore.isDesktop ? faMagnifyingGlass : undefined"
-      :placeholder="$t('core.query-search-bar.placeholder')"
+      :aria-label="uiStore.isMobile ? t('core.query-search-bar.label') : undefined"
+      :icon="!uiStore.isMobile ? 'fa:magnifying-glass' : undefined"
+      :placeholder="t('core.query-search-bar.placeholder')"
     />
-    <template v-if="uiStore.isDesktop">
-      <UiButton size="medium" accent="brand" variant="primary" type="submit">{{ $t('core.search') }}</UiButton>
+    <template v-if="!uiStore.isMobile">
+      <UiButton size="medium" accent="brand" variant="primary" type="submit" class="action-button">
+        {{ t('core.search') }}
+      </UiButton>
       <VtsDivider type="stretch" />
       <UiButton
-        v-tooltip="$t('coming-soon')"
+        v-tooltip="t('coming-soon')"
         size="medium"
         accent="brand"
         variant="secondary"
-        :left-icon="faFilter"
         disabled
+        class="action-button"
       >
-        {{ $t('core.query-search-bar.use-query-builder') }}
+        {{ t('core.query-search-bar.use-query-builder') }}
       </UiButton>
     </template>
+
+    <!-- Mobile icons: search + filter -->
     <template v-else>
-      <UiButtonIcon accent="brand" size="medium" type="submit" :icon="faMagnifyingGlass" />
-      <UiButtonIcon accent="brand" size="medium" disabled :icon="faFilter" />
+      <UiButtonIcon accent="brand" size="medium" type="submit" icon="fa:magnifying-glass" class="action-button" />
+      <UiButtonIcon accent="brand" size="medium" disabled icon="fa:filter" class="action-button" />
     </template>
   </form>
 </template>
@@ -42,12 +46,14 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
 import { uniqueId } from '@core/utils/unique-id.util'
-import { faFilter, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
   search: [value: string]
 }>()
+
+const { t } = useI18n()
 
 const id = uniqueId('search-input-')
 
@@ -59,11 +65,21 @@ const value = ref<string>('')
 <style lang="postcss" scoped>
 .ui-query-search-bar {
   display: flex;
-  gap: 1.6rem;
+  flex-wrap: nowrap;
   align-items: center;
+  gap: 1.6rem;
+  overflow-x: auto;
+  width: 100%;
+}
 
-  .label {
-    color: var(--color-neutral-txt-secondary);
-  }
+.label {
+  color: var(--color-neutral-txt-secondary);
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.action-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 </style>

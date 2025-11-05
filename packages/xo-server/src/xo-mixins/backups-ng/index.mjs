@@ -10,7 +10,7 @@ import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.mjs'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.mjs'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.mjs'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
-import { invalidParameters } from 'xo-common/api-errors.js'
+import { invalidParameters, noMatchingVm } from 'xo-common/api-errors.js'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.mjs'
 import { Task } from '@xen-orchestra/backups/Task.mjs'
 
@@ -136,7 +136,7 @@ export default class BackupNg {
               })
             )
             if (vmIds.length === 0) {
-              throw new Error('no VMs match this pattern')
+              throw noMatchingVm({ runJobId, jobId: job.id, scheduleId: schedule.id })
             }
           }
 
@@ -584,7 +584,7 @@ export default class BackupNg {
         }))
       } else {
         backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter =>
-          formatVmBackups(await adapter.listAllVmBackups())
+          formatVmBackups(await adapter.listAllVmBackups(), remote.id)
         )
       }
 

@@ -10,8 +10,9 @@ import { Task } from './Task.mjs'
 import pick from 'lodash/pick.js'
 import { BASE_DELTA_VDI, COPY_OF, VM_UUID } from './_otherConfig.mjs'
 
-import { XapiDiskSource } from '@xen-orchestra/xapi'
+import { VHD_MAX_SIZE, XapiDiskSource } from '@xen-orchestra/xapi'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
+import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
@@ -92,11 +93,13 @@ export async function exportIncrementalVm(
     }
   })
 
+  // Get a fresh list of VM's VTPM to avoid `vm.VTPMs: [undefined]`
+  const vmVtpms = await vm.$xapi.getField('VM', vm.$ref, 'VTPMs')
   const vtpms = await Promise.all(
-    vm.$VTPMs.map(async vtpm => {
+    vmVtpms.map(async vtpmRef => {
       let content
       try {
-        content = await vm.$xapi.call('VTPM.get_contents', vtpm.$ref)
+        content = await vm.$xapi.call('VTPM.get_contents', vtpmRef)
       } catch (err) {
         console.error(err)
       }
@@ -235,8 +238,18 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
           continue
         }
         await xapi.setField('VDI', vdi.$ref, 'name_label', `[Importing] ${vdiRecords[id].name_label}`)
-        const stream = await toVhdStream({ disk })
-        await vdi.$importContent(stream, { cancelToken, format: 'vhd' })
+
+        let stream, format
+        if (vdi.virtual_size > VHD_MAX_SIZE) {
+          stream = await toQcow2Stream(disk)
+          format = 'qcow2'
+        } else {
+          stream = await toVhdStream(disk)
+          format = 'vhd'
+        }
+
+        await vdi.$importContent(stream, { cancelToken, format })
+
         await xapi.setField('VDI', vdi.$ref, 'name_label', vdiRecords[id].name_label)
       }
     }),

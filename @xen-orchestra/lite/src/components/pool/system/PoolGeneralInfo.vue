@@ -1,12 +1,12 @@
 <template>
   <UiCard>
     <UiTitle>
-      {{ $t('general-information') }}
+      {{ t('general-information') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="$t('name')" :value="pool.name_label" />
-    <VtsQuickInfoRow :label="$t('uuid')" :value="pool.uuid" />
-    <VtsQuickInfoRow :label="$t('description')" :value="pool.name_description" />
-    <VtsQuickInfoRow :label="$t('tags')">
+    <VtsQuickInfoRow :label="t('name')" :value="pool.name_label" />
+    <VtsQuickInfoRow :label="t('uuid')" :value="pool.uuid" />
+    <VtsQuickInfoRow :label="t('description')" :value="pool.name_description" />
+    <VtsQuickInfoRow :label="t('tags')">
       <template v-if="pool.tags.length > 0" #value>
         <UiTagsList>
           <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="secondary">
@@ -25,8 +25,11 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   pool: XenApiPool
 }>()
+
+const { t } = useI18n()
 </script>

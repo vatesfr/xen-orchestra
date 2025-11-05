@@ -1,7 +1,7 @@
 <!-- v5 -->
 <template>
   <div :class="toVariants({ accent, disabled })" class="ui-input" @click.self="focus()">
-    <VtsIcon :icon accent="current" class="left-icon" />
+    <VtsIcon :name="icon" size="medium" class="left-icon" />
     <input
       :id="wrapperController?.id ?? id"
       ref="inputRef"
@@ -14,14 +14,14 @@
     />
     <UiButtonIcon
       v-if="!disabled && modelValue && clearable"
-      :icon="faXmark"
+      icon="fa:xmark"
       :target-scale="1.6"
       accent="brand"
       size="small"
       @click="clear()"
     />
     <slot v-if="slots['right-icon'] || rightIcon" name="right-icon">
-      <VtsIcon :icon="rightIcon" accent="current" class="right-icon" />
+      <VtsIcon :name="rightIcon" size="medium" class="right-icon" />
     </slot>
   </div>
 </template>
@@ -30,11 +30,10 @@
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import type { LabelAccent } from '@core/components/ui/label/UiLabel.vue'
+import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util'
 import { toVariants } from '@core/utils/to-variants.util'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
-import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import { inject, ref, useAttrs, watchEffect } from 'vue'
 
 type InputAccent = 'brand' | 'warning' | 'danger'
@@ -55,8 +54,8 @@ const {
   required?: boolean
   disabled?: boolean
   type?: InputType
-  icon?: IconDefinition
-  rightIcon?: IconDefinition
+  icon?: IconName
+  rightIcon?: IconName
   clearable?: boolean
 }>()
 
@@ -112,6 +111,7 @@ defineExpose({ focus })
   color: var(--color-neutral-txt-primary);
   height: 4rem;
   width: 100%;
+  min-width: 15rem;
   padding-inline: 1.6rem;
 
   .left-icon,

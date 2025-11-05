@@ -209,6 +209,11 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       throw new Error(`reading 'bitmap of block' ${blockId} in a VhdDirectory is not implemented`)
     }
     const { buffer } = await this._readChunk(this.#getBlockPath(blockId))
+    assert.strictEqual(
+      buffer.length,
+      this.fullBlockSize,
+      `partial read of a block , expecting ${this.fullBlockSize}, got ${buffer.length}`
+    )
     return {
       id: blockId,
       bitmap: buffer.slice(0, this.bitmapSize),
@@ -294,6 +299,11 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   async writeEntireBlock(block) {
+    assert.strictEqual(
+      block.buffer.length,
+      this.fullBlockSize,
+      `partial block can't be written , expecting ${this.fullBlockSize}, got ${block.buffer.length}`
+    )
     await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)
   }

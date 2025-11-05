@@ -1,15 +1,20 @@
 <template>
   <div class="page-not-found">
-    <VtsPageNotFoundHero type="page" />
+    <VtsStateHero format="page" type="not-found" size="large">
+      {{ t('page-not-found') }}
+    </VtsStateHero>
     <UiLink to="/" size="medium">
-      {{ $t('back-site-dashboard') }}
+      {{ t('back-site-dashboard') }}
     </UiLink>
   </div>
 </template>
 
 <script setup lang="ts">
-import VtsPageNotFoundHero from '@core/components/state-hero/VtsPageNotFoundHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

@@ -1,24 +1,24 @@
 <template>
   <MenuList
     :disabled="selectedRefs.length === 0"
-    :horizontal="uiStore.isDesktop"
-    :no-border="uiStore.isDesktop"
+    :horizontal="!uiStore.isMobile"
+    :no-border="!uiStore.isMobile"
     class="vms-actions-bar"
     placement="bottom-end"
   >
     <template v-if="uiStore.isMobile" #trigger="{ isOpen, open }">
-      <UiButtonIcon accent="brand" size="medium" :selected="isOpen" :icon="faEllipsis" @click="open" />
+      <UiButtonIcon accent="brand" size="medium" :selected="isOpen" icon="fa:ellipsis" @click="open" />
     </template>
-    <MenuItem :icon="faPowerOff">
-      {{ $t('change-state') }}
+    <MenuItem icon="fa:power-off">
+      {{ t('change-state') }}
       <template #submenu>
         <VmActionPowerStateItems :vm-refs="selectedRefs" />
       </template>
     </MenuItem>
     <VmActionMigrateItem :selected-refs="selectedRefs" />
     <VmActionCopyItem :selected-refs="selectedRefs" />
-    <MenuItem v-tooltip="$t('coming-soon')" :icon="faEdit">
-      {{ $t('edit-config') }}
+    <MenuItem v-tooltip="t('coming-soon')" icon="fa:edit">
+      {{ t('edit-config') }}
     </MenuItem>
     <VmActionSnapshotItem :vm-refs="selectedRefs" />
     <VmActionExportItems :vm-refs="selectedRefs" />
@@ -39,12 +39,14 @@ import MenuList from '@core/components/menu/MenuList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
-import { faEdit, faEllipsis, faPowerOff } from '@fortawesome/free-solid-svg-icons'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   disabled?: boolean
   selectedRefs: XenApiVm['$ref'][]
 }>()
+
+const { t } = useI18n()
 
 const uiStore = useUiStore()
 </script>

@@ -276,7 +276,7 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 
 - `>= 2.10`
 - `3.x`
-- `< 4.4`
+- `< 4.5`
 
 :::tip
 For safety, XO will not synchronize your pools if it detects a Netbox version that is not supported. If you wish to change that behavior, edit you `xo-server` configuration like so:
@@ -364,6 +364,14 @@ If you get a `403 Forbidden` error when testing the plugin, make sure you correc
 
 ## Recipes
 
+### What are recipes?
+
+In Xen Orchestra, recipes are ready-to-use automation templates that make it easy to deploy complex infrastructures. You don’t need to configure each virtual machine manually. 
+
+With just a few clicks, you can launch a complete multi-VM environment, where all nodes are automatically set up and connected.
+
 :::tip
-TODO: this section is still a work in progress!
+Currently, the only available recipe is for Kubernetes clusters. [This guide](https://docs.vates.tech/devops-tools/kubernetes/) will walk you through creating one.
+
+Coming soon: We’ll expand the Recipes feature to include EasyVirt DC Scope deployment.
 :::

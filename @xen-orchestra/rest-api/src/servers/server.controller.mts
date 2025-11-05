@@ -1,5 +1,6 @@
 import {
   Body,
+  Delete,
   Example,
   Get,
   Middlewares,
@@ -15,12 +16,13 @@ import {
 } from 'tsoa'
 import { type Request as ExRequest, json } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoServer } from '@vates/types'
+import type { XoServer, XoTask } from '@vates/types'
 
 import type { InsertableXoServer } from './server.type.mjs'
 
 import {
   asynchronousActionResp,
+  badRequestResp,
   createdResp,
   invalidParameters,
   noContentResp,
@@ -30,12 +32,13 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { partialServers, server, serverId, serverIds } from '../open-api/oa-examples/server.oa-example.mjs'
-import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
+import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
 
 @Route('servers')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('servers')
 @provide(ServerController)
@@ -74,6 +77,16 @@ export class ServerController extends XoController<XoServer> {
   @Response(notFoundResp.status, notFoundResp.description)
   getServer(@Path() id: string): Promise<Unbrand<XoServer>> {
     return this.getObject(id as XoServer['id'])
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteServer(@Path() id: string) {
+    await this.restApi.xoApp.unregisterXenServer(id as XoServer['id'])
   }
 
   /**
@@ -138,5 +151,29 @@ export class ServerController extends XoController<XoServer> {
       sync,
       taskProperties: { name: 'disconnect server', objectId: serverId },
     })
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getServerTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoServer['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
 }

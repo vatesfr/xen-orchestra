@@ -1,13 +1,15 @@
 import TTLCache from '@isaacs/ttlcache'
-import semver from 'semver'
 import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
-import { incorrectState } from 'xo-common/api-errors.js'
 import { X509Certificate } from 'node:crypto'
+import { pipeline } from 'node:stream'
+import semver from 'semver'
+import { incorrectState } from 'xo-common/api-errors.js'
 
-import backupGuard from './_backupGuard.mjs'
 import { asyncEach } from '@vates/async-each'
+import { fromCallback } from 'promise-toolbox'
+import backupGuard from './_backupGuard.mjs'
 
 import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
@@ -289,7 +291,7 @@ export function setRemoteSyslogHost({ host, syslogDestination }) {
 
 setRemoteSyslogHost.params = {
   id: { type: 'string' },
-  syslogDestination: { type: 'string' },
+  syslogDestination: { type: ['null', 'string'] },
 }
 
 setRemoteSyslogHost.resolve = {
@@ -679,5 +681,74 @@ getBiosInfo.params = {
   id: { type: 'string' },
 }
 getBiosInfo.resolve = {
+  host: ['id', 'host', 'administrate'],
+}
+
+// ===================================================================
+
+/**
+ * Download system status (bug report) from a host via HTTPS
+ * @param {object} req HTTP request object
+ * @param {object} res HTTP response object
+ * @param {object} data Handler data { xapi, host, format }
+ */
+async function handleGetSystemStatus(req, res, { xapi, host }) {
+  // Get server credentials using the host object which has $pool property
+  const serverId = this.getXenServerIdByObject(host)
+  const server = await this.getXenServerWithCredentials(serverId)
+
+  // Build URL
+  // Use host.address (the target host IP), not server.host (the XAPI server)
+  const url = new URL(`http://${host.address}/system-status`)
+  url.protocol = xapi._url.protocol // Use same protocol as XAPI connection
+  url.searchParams.set('output', 'tar.bz2') // XCP-ng requires output format parameter
+
+  // Setup HTTP Basic Auth headers
+  const opts = {
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${server.username}:${server.password}`).toString('base64')}`,
+    },
+    rejectUnauthorized: !server.allowUnauthorized,
+    timeout: 0, // No timeout for large downloads
+  }
+
+  // Set response headers
+  res.set({
+    'content-type': 'application/x-bzip2',
+    'content-disposition': `attachment; filename="${host.name_label}-system-status.tar-bz2"`,
+  })
+
+  // Download and stream to client
+  const response = await this.httpRequest(url, opts)
+  return fromCallback(pipeline, response, res)
+}
+
+/**
+ * Download system status (bug report) from a host
+ *
+ * @description Connects to the host via HTTPS and downloads the system status
+ *              (detailed diagnostic information) in tar.bz2 format.
+ *              Authentication uses the same credentials as the XAPI connection.
+ *
+ * @param {string} id - Host UUID
+ * @returns {object} File download via $getFrom
+ */
+export async function getSystemStatus({ host }) {
+  return {
+    $getFrom: await this.registerHttpRequest(
+      handleGetSystemStatus,
+      { xapi: this.getXapi(host), host },
+      { suffix: `/${encodeURIComponent(host.name_label)}-system-status.tar.bz2` }
+    ),
+  }
+}
+
+getSystemStatus.description = 'Download system status (bug report) from a host'
+
+getSystemStatus.params = {
+  id: { type: 'string' },
+}
+
+getSystemStatus.resolve = {
   host: ['id', 'host', 'administrate'],
 }

@@ -4,16 +4,16 @@
  -->
 <template>
   <div class="dropdown-title">
-    <VtsIcon :icon accent="current" />
+    <VtsIcon :name="icon" size="medium" />
     <div class="label c3 semi-bold">
       <slot />
     </div>
     <div v-if="onToggleSelectAll" class="buttons">
       <span v-if="selected !== 'all'" @click="emit('toggleSelectAll', true)">
-        {{ $t('core.select.all') }}
+        {{ t('core.select.all') }}
       </span>
       <span v-if="selected !== 'none'" @click="emit('toggleSelectAll', false)">
-        {{ $t('core.select.none') }}
+        {{ t('core.select.none') }}
       </span>
     </div>
   </div>
@@ -21,11 +21,12 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import type { IconDefinition } from '@fortawesome/fontawesome-common-types'
+import type { IconName } from '@core/icons'
+import { useI18n } from 'vue-i18n'
 
 withDefaults(
   defineProps<{
-    icon?: IconDefinition
+    icon?: IconName
     selected?: 'all' | 'some' | 'none'
     onToggleSelectAll?: (value: boolean) => void
   }>(),
@@ -35,6 +36,8 @@ withDefaults(
 const emit = defineEmits<{
   toggleSelectAll: [value: boolean]
 }>()
+
+const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>

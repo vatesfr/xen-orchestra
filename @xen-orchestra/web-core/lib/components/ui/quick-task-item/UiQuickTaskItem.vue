@@ -1,8 +1,8 @@
 <!-- WIP -->
 <template>
-  <li class="ui-quick-task-item">
+  <div class="ui-quick-task-item">
     <div v-if="hasSubTasks" class="toggle" @click="toggleExpand()">
-      <UiButtonIcon accent="brand" :icon="isExpanded ? faAngleDown : faAngleRight" size="small" />
+      <UiButtonIcon accent="brand" :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'" size="small" />
     </div>
     <div class="content">
       <div class="typo-body-bold">
@@ -12,21 +12,21 @@
         <div class="line-1">
           <UiTag v-if="task.tag" accent="neutral" variant="primary">{{ task.tag }}</UiTag>
           <div v-if="hasSubTasks" class="subtasks">
-            <VtsIcon :icon="faCircleNotch" accent="current" />
-            <span class="typo-body-regular-small">{{ $t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
+            <VtsIcon name="fa:circle-notch" size="medium" />
+            <span class="typo-body-regular-small">{{ t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
           </div>
         </div>
         <div v-if="task.start" class="line-2 typo-body-regular-small">
-          {{ $d(task.start, 'datetime_short') }}
+          {{ d(task.start, 'datetime_short') }}
           <template v-if="task.end">
-            <VtsIcon :icon="faArrowRight" accent="current" />
-            {{ $d(new Date(task.end), 'datetime_short') }}
+            <VtsIcon name="fa:arrow-right" size="medium" />
+            {{ d(new Date(task.end), 'datetime_short') }}
           </template>
         </div>
       </div>
       <VtsQuickTaskList v-if="hasSubTasks && isExpanded" :tasks="subTasks" sublist />
     </div>
-  </li>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -34,9 +34,9 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
-import { faAngleDown, faAngleRight, faArrowRight, faCircleNotch } from '@fortawesome/free-solid-svg-icons'
 import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type TaskStatus = 'pending' | 'success' | 'failure'
 
@@ -53,6 +53,8 @@ export type Task = {
 const props = defineProps<{
   task: Task
 }>()
+
+const { t, d } = useI18n()
 
 const [isExpanded, toggleExpand] = useToggle()
 

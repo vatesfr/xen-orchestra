@@ -1,26 +1,30 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined" class="linear-chart">
-    <UiCardTitle>{{ $t('pool-cpu-usage') }}</UiCardTitle>
+    <UiCardTitle>{{ t('pool-cpu-usage') }}</UiCardTitle>
     <UiCardTitle :level="UiCardTitleLevel.Subtitle">
-      {{ $t('last-week') }}
+      {{ t('last-week') }}
     </UiCardTitle>
-    <NoDataError v-if="hasError" />
-    <UiCardSpinner v-else-if="isLoading" />
+    <VtsStateHero v-if="isLoading" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="data.length === 0" format="card" type="no-data" size="medium">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <VtsLinearChart v-else :data :max-value="customMaxValue" :value-formatter="customValueFormatter" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import NoDataError from '@/components/NoDataError.vue'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import type { HostStats } from '@/libs/xapi-stats'
 import { RRD_STEP_FROM_STRING } from '@/libs/xapi-stats'
 import { useHostStore } from '@/stores/xen-api/host.store'
 import { UiCardTitleLevel } from '@/types/enums'
 import { IK_HOST_LAST_WEEK_STATS } from '@/types/injection-keys'
 import type { LinearChartData, ValueFormatter } from '@core/types/chart'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import type { XapiHostStatsRaw } from '@vates/types/common'
 import { sumBy } from 'lodash-es'
 import { computed, defineAsyncComponent, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -44,13 +48,13 @@ const data = computed<LinearChartData>(() => {
 
   const result = new Map<number, { timestamp: number; value: number }>()
 
-  const addResult = (stats: HostStats) => {
-    const cpus = Object.values(stats.cpus)
+  const addResult = (stats: XapiHostStatsRaw) => {
+    const cpus = Object.values(stats.cpus ?? {})
 
     for (let hourIndex = 0; hourIndex < cpus[0].length; hourIndex++) {
       const timestamp = (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000
 
-      const cpuUsageSum = cpus.reduce((total, cpu) => total + cpu[hourIndex], 0)
+      const cpuUsageSum = cpus.reduce((total, cpu) => total + (cpu[hourIndex] ?? NaN), 0)
 
       result.set(timestamp, {
         timestamp,
@@ -82,11 +86,17 @@ const isStatFetched = computed(() => {
 
   return stats.every(host => {
     const hostStats = host.stats
-    return hostStats != null && Object.values(hostStats.cpus)[0].length === data.value[0].data.length
+    return hostStats != null && Object.values(hostStats.cpus ?? {})[0].length === data.value[0].data.length
   })
 })
 
 const isLoading = computed(() => isFetching.value || !isStatFetched.value)
 
-const customValueFormatter: ValueFormatter = value => n(value / 100, 'percent')
+const customValueFormatter: ValueFormatter = value => {
+  if (value === null) {
+    return ''
+  }
+
+  return n(value / 100, 'percent')
+}
 </script>

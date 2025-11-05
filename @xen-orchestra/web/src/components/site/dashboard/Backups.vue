@@ -1,11 +1,16 @@
 <template>
-  <UiCard>
-    <UiCardTitle>{{ $t('backups') }}</UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
-    <VtsNoDataHero v-else-if="record?.backups === undefined" type="card" />
+  <UiCard :has-error>
+    <UiCardTitle>{{ t('backups') }}</UiCardTitle>
+    <VtsStateHero v-if="!areBackupsReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="!backups" format="card" type="no-data" horizontal size="medium">
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend :segments="jobsSegments" :title="jobsTitle" />
-      <UiCardNumbers :label="t('total')" :value="record.backups.jobs.total" size="small" />
+      <UiCardNumbers :label="t('total')" :value="backups.jobs.total" size="small" />
       <VtsDivider type="stretch" />
       <VtsDonutChartWithLegend :segments="vmsProtectionSegments" :title="vmsProtectionTitle" />
     </template>
@@ -13,49 +18,52 @@
 </template>
 
 <script lang="ts" setup>
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { record, isReady } = useDashboardStore().subscribe()
+const { backups } = defineProps<{
+  backups: XoDashboard['backups'] | undefined
+  hasError?: boolean
+}>()
+
+const areBackupsReady = computed(() => backups?.jobs !== undefined && backups?.vmsProtection !== undefined)
 
 const { t } = useI18n()
 
 const jobsTitle = computed<DonutChartWithLegendProps['title']>(() => ({
   label: t('backups.jobs'),
   iconTooltip: t('backups.jobs.based-on-last-three'),
-  icon: faCircleInfo,
+  icon: 'fa:info-circle',
 }))
 
 const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('backups.jobs.running-good'),
-    value: record.value?.backups?.jobs.successful ?? 0,
+    value: backups?.jobs.successful ?? 0,
     accent: 'success',
   },
   {
     label: t('backups.jobs.at-least-one-skipped'),
-    value: record.value?.backups?.jobs.skipped ?? 0,
+    value: backups?.jobs.skipped ?? 0,
     accent: 'info',
   },
   {
     label: t('backups.jobs.looks-like-issue'),
-    value: record.value?.backups?.jobs.failed ?? 0,
+    value: backups?.jobs.failed ?? 0,
     accent: 'danger',
   },
   {
     label: t('backups.jobs.disabled'),
-    value: record.value?.backups?.jobs.disabled ?? 0,
+    value: backups?.jobs.disabled ?? 0,
     accent: 'muted',
   },
 ])
@@ -63,23 +71,23 @@ const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
 const vmsProtectionTitle = computed<DonutChartWithLegendProps['title']>(() => ({
   label: t('backups.vms-protection'),
   iconTooltip: t('backups.vms-protection.tooltip'),
-  icon: faCircleInfo,
+  icon: 'fa:info-circle',
 }))
 
 const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('backups.vms-protection.protected'),
-    value: record.value?.backups?.vmsProtection.protected ?? 0,
+    value: backups?.vmsProtection.protected ?? 0,
     accent: 'success',
   },
   {
     label: t('backups.vms-protection.unprotected'),
-    value: record.value?.backups?.vmsProtection.unprotected ?? 0,
+    value: backups?.vmsProtection.unprotected ?? 0,
     accent: 'warning',
   },
   {
     label: t('backups.vms-protection.no-job'),
-    value: record.value?.backups?.vmsProtection.notInJob ?? 0,
+    value: backups?.vmsProtection.notInJob ?? 0,
     accent: 'danger',
   },
 ])

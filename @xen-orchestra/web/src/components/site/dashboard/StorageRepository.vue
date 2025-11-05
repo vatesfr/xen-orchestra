@@ -1,29 +1,29 @@
 <template>
   <div class="storage-repository">
     <UiCardTitle>
-      {{ $t('storage-repository') }}
-      <template #description>{{ $t('for-replication') }}</template>
+      {{ t('storage-repository') }}
+      <template #description>{{ t('for-replication') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!isReady" type="card" />
+    <VtsStateHero v-if="!areStorageRepositoriesReady" format="card" busy size="medium" />
     <template v-else>
       <VtsStackedBarWithLegend :max-value="maxValue" :segments />
       <div class="numbers">
         <UiCardNumbers
-          :value="storageRepositories.used?.value"
-          :unit="storageRepositories.used?.prefix"
-          :label="$t('used')"
+          :value="repositories?.used?.value"
+          :unit="repositories?.used?.prefix"
+          :label="t('used')"
           size="medium"
         />
         <UiCardNumbers
-          :value="storageRepositories.available?.value"
-          :unit="storageRepositories.available?.prefix"
-          :label="$t('available')"
+          :value="repositories?.available?.value"
+          :unit="repositories?.available?.prefix"
+          :label="t('available')"
           size="medium"
         />
         <UiCardNumbers
-          :value="storageRepositories.total?.value"
-          :unit="storageRepositories.total?.prefix"
-          :label="$t('total')"
+          :value="repositories?.total?.value"
+          :unit="repositories?.total?.prefix"
+          :label="t('total')"
           size="medium"
         />
       </div>
@@ -32,38 +32,42 @@
 </template>
 
 <script setup lang="ts">
-import { useDashboardStore } from '@/stores/xo-rest-api/dashboard.store'
+import type { StorageRepositories } from '@/remote-resources/use-xo-site-dashboard.ts'
 import VtsStackedBarWithLegend, {
   type StackedBarWithLegendProps,
 } from '@core/components/stacked-bar-with-legend/VtsStackedBarWithLegend.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+const { repositories } = defineProps<{
+  repositories: StorageRepositories | undefined
+}>()
+
 const { t } = useI18n()
 
-const { storageRepositories, isReady } = useDashboardStore().subscribe()
+const areStorageRepositoriesReady = computed(() => repositories !== undefined)
 
 const segments: ComputedRef<StackedBarWithLegendProps['segments']> = computed(() => [
   {
     label: t('xo-replications'),
-    value: storageRepositories.value.replicated?.value ?? 0,
+    value: repositories?.replicated?.value ?? 0,
     accent: 'info',
-    unit: storageRepositories.value.replicated?.prefix,
+    unit: repositories?.replicated?.prefix,
   },
   {
     label: t('other'),
-    value: storageRepositories.value.other?.value ?? 0,
+    value: repositories?.other?.value ?? 0,
     accent: 'warning',
-    unit: storageRepositories.value.other?.prefix,
+    unit: repositories?.other?.prefix,
   },
 ])
 
 const maxValue = computed(() => ({
-  value: storageRepositories.value.total?.value,
-  unit: storageRepositories.value.total?.prefix,
+  value: repositories?.total?.value,
+  unit: repositories?.total?.prefix,
 }))
 </script>
 

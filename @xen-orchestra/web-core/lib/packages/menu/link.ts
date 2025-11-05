@@ -1,5 +1,6 @@
 import { BaseItem, type Menu, type MenuLike, parseConfigHolder } from '@core/packages/menu'
-import { computed, type MaybeRefOrGetter, reactive, toValue } from 'vue'
+import { toComputed } from '@core/utils/to-computed.util'
+import { type MaybeRefOrGetter, reactive } from 'vue'
 
 export interface MenuLinkConfig {
   href: MaybeRefOrGetter<string>
@@ -34,9 +35,9 @@ export class MenuLink extends BaseItem {
       as: 'a',
       onMouseenter: () => this.activate(),
       onClick: () => this.deactivate(),
-      href: computed(() => toValue(this.config.href)),
-      rel: computed(() => toValue(this.config.rel) ?? 'noreferrer noopener'),
-      target: computed(() => toValue(this.config.target) ?? '_blank'),
+      href: toComputed(this.config.href),
+      rel: toComputed(this.config.rel, 'noreferrer noopener'),
+      target: toComputed(this.config.target, '_blank'),
       'data-menu-id': this.menu.context.id,
     })
   }

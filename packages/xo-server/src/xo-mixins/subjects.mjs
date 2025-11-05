@@ -3,7 +3,7 @@ import filter from 'lodash/filter.js'
 import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
-import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
+import { invalidCredentials, noSuchObject, objectAlreadyExists } from 'xo-common/api-errors.js'
 
 import * as XenStore from '../_XenStore.mjs'
 import { Groups } from '../models/group.mjs'
@@ -194,7 +194,18 @@ export default class {
     user.email = user.name
     delete user.name
 
-    await this._users.update(user)
+    try {
+      await this._users.update(user)
+    } catch (error) {
+      if (error.message === `the user ${user.email} already exists`) {
+        const existingUser = await this._users.first({ email: user.email })
+        throw objectAlreadyExists({
+          objectId: existingUser.id,
+          objectType: 'user',
+        })
+      }
+      throw error
+    }
   }
 
   // Merge this method in getUser() when plain objects.
@@ -220,7 +231,16 @@ export default class {
   }
 
   async getAllUsers() {
-    return this._users.get()
+    const users = await this._users.get()
+
+    // TODO: remove when the email property has been
+    // completely eradicated.
+    return users.map(user => {
+      if (!('name' in user)) {
+        user.name = user.email
+      }
+      return user
+    })
   }
 
   async getUserByName(username, returnNullIfMissing) {
@@ -336,8 +356,19 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  createGroup({ name, provider, providerGroupId }) {
-    return this._groups.add({ name, provider, providerGroupId })
+  async createGroup({ name, provider, providerGroupId }) {
+    try {
+      return await this._groups.add({ name, provider, providerGroupId })
+    } catch (error) {
+      if (error.message === `the group ${name} already exists`) {
+        const existingGroup = await this._groups.first({ name })
+        throw objectAlreadyExists({
+          objectId: existingGroup.id,
+          objectType: 'group',
+        })
+      }
+      throw error
+    }
   }
 
   async deleteGroup(id) {
@@ -365,7 +396,18 @@ export default class {
 
     if (name) group.name = name
 
-    await this._groups.update(group)
+    try {
+      await this._groups.update(group)
+    } catch (error) {
+      if (error.message === `the group ${name} already exists`) {
+        const existingGroup = await this._groups.get({ name })
+        throw objectAlreadyExists({
+          objectId: existingGroup.id,
+          objectType: 'group',
+        })
+      }
+      throw error
+    }
   }
 
   async getGroup(id) {

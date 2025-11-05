@@ -206,7 +206,7 @@ Usage:
     filter=<filter>
       List only objects that match the filter
 
-      Syntax: https://xen-orchestra.com/docs/manage_infrastructure.html#filter-syntax
+      Syntax: https://docs.xen-orchestra.com/manage_infrastructure#filter-syntax
 
     limit=<limit>
       Maximum number of objects to list, e.g. `limit=10`
@@ -283,7 +283,7 @@ $ xo-cli register http://xo.my-company.net admin@admin.net admin
 Successfully logged with admin@admin.net
 ```
 
-Note: only a token will be saved in the configuration file.
+Note: only a token will be saved in the configuration file (`/etc/xo-server/config.toml`).
 
 #### List available objects
 
