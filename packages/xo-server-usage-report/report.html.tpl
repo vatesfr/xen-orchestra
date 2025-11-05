@@ -397,6 +397,25 @@
               {{/if}}
           </table>
           <table>
+            <caption>Operating Systems Distribution</caption>
+            <tr>
+              <th>Operating System</th>
+              <th>Count</th>
+            </tr>
+            {{#if global.vms.osDistribution}}
+              {{#each global.vms.osDistribution}}
+                <tr>
+                  <td>{{@key}}</td>
+                  <td>{{this}}</td>
+                </tr>
+              {{/each}}
+            {{else}}
+              <tr>
+                <td colspan="2">No OS information available</td>
+              </tr>
+            {{/if}}
+          </table>
+          <table>
             <caption>Added Users</caption>
             <tr>
               <th>Email</th>
@@ -520,6 +539,7 @@
             <tr>
               <th>UUID</th>
               <th>Name</th>
+              <th>Operating System</th>
               <th>IP addresses</th>
               <th>CPU</th>
               <th>RAM (GiB)</th>
@@ -535,6 +555,7 @@
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
+                <td>{{#if this.osVersion}}{{#if this.osVersion.name}}{{this.osVersion.name}}{{else}}{{this.osVersion.distro}} {{this.osVersion.major}}.{{this.osVersion.minor}}{{/if}}{{else}}Unknown{{/if}}</td>
                 <td>{{formatAddresses this.addresses}}</td>
                 <td>{{normaliseValue this.cpu}} % {{normaliseEvolution this.evolution.cpu}}</td>
                 <td>{{normaliseValue this.ram}} {{normaliseEvolution this.evolution.ram}}</td>
