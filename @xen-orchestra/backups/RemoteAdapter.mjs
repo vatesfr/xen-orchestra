@@ -40,7 +40,7 @@ export const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 
 export const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 
-const IMMUTABILTY_METADATA_FILENAME = '/immutability.json'
+const IMMUTABILITY_METADATA_FILENAME = '/immutability.json'
 
 const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
 
@@ -312,8 +312,8 @@ export class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const metadatas = await asyncMap(files, file => this.readVmBackupMetadata(file))
-    const { delta, full, ...others } = groupBy(metadatas, 'mode')
+    const metadata = await asyncMap(files, file => this.readVmBackupMetadata(file))
+    const { delta, full, ...others } = groupBy(metadata, 'mode')
 
     const unsupportedModes = Object.keys(others)
     if (unsupportedModes.length !== 0) {
@@ -575,7 +575,7 @@ export class RemoteAdapter {
     }
   }
 
-  async #getCachabledDataListVmBackups(dir) {
+  async #getCacheableDataListVmBackups(dir) {
     debug('generating cache', { path: dir })
 
     const handler = this._handler
@@ -622,7 +622,7 @@ export class RemoteAdapter {
     }
 
     // nothing cached, or cache unreadable => regenerate it
-    const backups = await this.#getCachabledDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
+    const backups = await this.#getCacheableDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
     if (backups === undefined) {
       return
     }
@@ -779,7 +779,7 @@ export class RemoteAdapter {
     // if the remote is immutable, check if this metadata is also immutable
     try {
       // this file is not encrypted
-      await this._handler._readFile(IMMUTABILTY_METADATA_FILENAME)
+      await this._handler._readFile(IMMUTABILITY_METADATA_FILENAME)
       remoteIsImmutable = true
     } catch (error) {
       if (error.code !== 'ENOENT') {

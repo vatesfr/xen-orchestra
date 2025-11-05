@@ -38,6 +38,8 @@
 
 <!--packages-start-->
 
+- @vates/types minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
 - xo-collection minor
 - xo-web minor

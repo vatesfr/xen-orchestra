@@ -29,10 +29,10 @@ export class ImportVmBackup {
     metadata,
     srUuid,
     xapi,
-    settings: { additionnalVmTag, newMacAddresses, mapVdisSrs = {}, useDifferentialRestore = false } = {},
+    settings: { additionalVmTag, newMacAddresses, mapVdisSrs = {}, useDifferentialRestore = false } = {},
   }) {
     this._adapter = adapter
-    this._importIncrementalVmSettings = { additionnalVmTag, newMacAddresses, mapVdisSrs, useDifferentialRestore }
+    this._importIncrementalVmSettings = { additionalVmTag, newMacAddresses, mapVdisSrs, useDifferentialRestore }
     this._metadata = metadata
     this._srUuid = srUuid
     this._xapi = xapi
@@ -61,11 +61,11 @@ export class ImportVmBackup {
     const { mapVdisSrs } = this._importIncrementalVmSettings
     const { vbds, vhds, vifs, vm, vmSnapshot, vtpms } = metadata
     const disks = {}
-    const metdataDir = dirname(metadata._filename)
+    const metadataDir = dirname(metadata._filename)
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
 
     for (const [vdiRef, vdi] of Object.entries(vdis)) {
-      const vhdPath = join(metdataDir, vhds[vdiRef])
+      const vhdPath = join(metadataDir, vhds[vdiRef])
 
       let xapiDisk
       try {
@@ -77,7 +77,7 @@ export class ImportVmBackup {
 
       let snapshotCandidate, backupCandidate
       if (xapiDisk !== undefined) {
-        debug('found disks, wlll search its snapshots', { snapshots: xapiDisk.snapshots })
+        debug('found disks, will search its snapshots', { snapshots: xapiDisk.snapshots })
         for (const snapshotRef of xapiDisk.snapshots) {
           const snapshot = await this._xapi.getRecord('VDI', snapshotRef)
 
@@ -96,7 +96,7 @@ export class ImportVmBackup {
           // have a corresponding backup more recent than metadata ?
           const pathToSnapshotData = await this.#getPathOfVdiSnapshot(snapshot.uuid)
           if (pathToSnapshotData === undefined) {
-            debug('no backup linked to this snaphot')
+            debug('no backup linked to this snapshot')
             continue
           }
           if (snapshot.$SR.uuid !== (mapVdisSrs[vdi.$snapshot_of$uuid] ?? this._srUuid)) {
@@ -112,7 +112,7 @@ export class ImportVmBackup {
       }
 
       let disk
-      const backupWithSnapshotPath = join(metdataDir, backupCandidate ?? '')
+      const backupWithSnapshotPath = join(metadataDir, backupCandidate ?? '')
       if (vhdPath === backupWithSnapshotPath) {
         // all the data are already on the host
         debug('direct reuse of a snapshot')
@@ -194,7 +194,7 @@ export class ImportVmBackup {
   }
 
   async #decorateIncrementalVmMetadata() {
-    const { additionnalVmTag, mapVdisSrs, useDifferentialRestore } = this._importIncrementalVmSettings
+    const { additionalVmTag, mapVdisSrs, useDifferentialRestore } = this._importIncrementalVmSettings
 
     const ignoredVdis = new Set(
       Object.entries(mapVdisSrs)
@@ -211,8 +211,8 @@ export class ImportVmBackup {
 
     const cache = new Map()
     const mapVdisSrRefs = {}
-    if (additionnalVmTag !== undefined) {
-      backup.vm.tags.push(additionnalVmTag)
+    if (additionalVmTag !== undefined) {
+      backup.vm.tags.push(additionalVmTag)
     }
     for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
       mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')

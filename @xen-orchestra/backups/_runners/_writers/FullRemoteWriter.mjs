@@ -33,7 +33,7 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
     let metadata = await this._isAlreadyTransferred(timestamp)
     if (metadata !== undefined) {
       // @todo : should skip backup while being vigilant to not stuck the forked stream
-      Task.info('This backup has already been transfered')
+      Task.info('This backup has already been transferred')
     }
 
     const oldBackups = getOldEntries(
