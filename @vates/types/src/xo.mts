@@ -228,7 +228,7 @@ export type XoHost = BaseXapiXo & {
 
   address: string
   agentStartTime: null | number
-  bios_string: Record<string, string>
+  bios_strings: Record<string, string>
   build: string
   certificates?: {
     fingerprint: string
@@ -385,7 +385,7 @@ export type XoPif = BaseXapiXo & {
 
   attached: boolean
   bondMaster?: XoPif['id']
-  bondSalves?: XoPif['id'][]
+  bondSlaves?: XoPif['id'][]
   carrier: boolean
   device: string
   deviceName?: string
@@ -418,7 +418,7 @@ export type XoPool = BaseXapiXo & {
   }
   crashDumpSr?: XoSr['id']
   current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
-  defaultSr?: XoSr['id']
+  default_SR?: XoSr['id']
   HA_enabled: boolean
   haSrs: XoSr['id'][]
   id: Branded<'pool'>

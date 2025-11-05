@@ -3,7 +3,7 @@ import type { Branded } from '@core/types/utility.type'
 
 export type XoNetwork = {
   $pool: XoPool['id']
-  default_locking_mode: string
+  defaultIsLocked: boolean
   id: Branded<'network'>
   name_label: string
   name_description: string
