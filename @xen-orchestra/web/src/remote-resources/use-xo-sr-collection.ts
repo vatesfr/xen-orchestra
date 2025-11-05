@@ -5,8 +5,25 @@ import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { computed } from 'vue'
 
+const srFields: (keyof XoSr)[] = [
+  'id',
+  'name_label',
+  'name_description',
+  '$pool',
+  'content_type',
+  'physical_usage',
+  'size',
+  'SR_type',
+  'VDIs',
+  'type',
+] as const
+
 export const useXoSrCollection = defineRemoteResource({
-  url: '/rest/v0/srs?fields=id,name_label,name_description,$pool,content_type,physical_usage,size,SR_type,VDIs,type',
+  url: '/rest/v0/srs?fields='.concat(srFields.toString()),
+  watchCollection: {
+    type: 'SR',
+    fields: srFields,
+  },
   initialData: () => [] as XoSr[],
   state: (srs, context) => {
     const { getVdiById } = useXoVdiCollection(context)
