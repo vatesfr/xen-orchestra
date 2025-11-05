@@ -385,7 +385,7 @@ export type XoPif = BaseXapiXo & {
 
   attached: boolean
   bondMaster?: XoPif['id']
-  bondSalves?: XoPif['id'][]
+  bondSlaves?: XoPif['id'][]
   carrier: boolean
   device: string
   deviceName?: string
