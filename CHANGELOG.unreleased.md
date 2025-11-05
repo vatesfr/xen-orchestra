@@ -22,6 +22,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- **XO 6:**
+  - [core] Remove secondary cancel button on some search input (PR [#9189](https://github.com/vatesfr/xen-orchestra/pull/9189))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
