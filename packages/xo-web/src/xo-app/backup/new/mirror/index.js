@@ -237,6 +237,8 @@ const NewMirrorBackup = decorate([
       onChangeVmBackups: (_, vmBackups) => () => ({
         vmsToMirror: vmBackups.map(({ value: vmUuid }) => vmUuid),
       }),
+      setMergeBackupsSynchronously: ({ setAdvancedSettings }, mergeBackupsSynchronously) =>
+        setAdvancedSettings({ mergeBackupsSynchronously }),
     },
     computed: {
       vmBackupOptions: async state => {
@@ -277,6 +279,7 @@ const NewMirrorBackup = decorate([
       inputBackupReportTplId: generateId,
       inputHideSuccessfulItemsId: generateId,
       inputMirrorAllId: generateId,
+      inputMergeBackupsSynchronously: generateId,
       isBackupInvalid: state =>
         state.isMissingName ||
         state.isMissingBackupMode ||
@@ -317,6 +320,7 @@ const NewMirrorBackup = decorate([
       backupReportTpl = 'mjml',
       hideSuccessfulItems,
       nRetriesVmBackupFailures = 0,
+      mergeBackupsSynchronously,
     } = state.advancedSettings
     return (
       <form id={state.formId}>
@@ -456,6 +460,21 @@ const NewMirrorBackup = decorate([
                           id={state.inputHideSuccessfulItemsId}
                           value={hideSuccessfulItems}
                           onChange={effects.setHideSuccessfulItems}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputMergeBackupsSynchronously}>
+                          <strong>{_('mergeBackupsSynchronously')}</strong>
+                        </label>{' '}
+                        <Tooltip content={_('mergeBackupsSynchronouslyTooltip')}>
+                          <Icon icon='info' />
+                        </Tooltip>
+                        <Toggle
+                          className='pull-right'
+                          id={state.inputMergeBackupsSynchronously}
+                          name='mergeBackupsSynchronously'
+                          value={mergeBackupsSynchronously}
+                          onChange={effects.setMergeBackupsSynchronously}
                         />
                       </FormGroup>
                     </div>

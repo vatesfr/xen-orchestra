@@ -17,6 +17,7 @@ export const VDI_FORMAT_RAW = 'raw'
 export const VDI_FORMAT_VHD = 'vhd'
 export const VDI_FORMAT_QCOW2 = 'qcow2'
 export const SUPPORTED_VDI_FORMAT = [VDI_FORMAT_RAW, VDI_FORMAT_VHD, VDI_FORMAT_QCOW2]
+export const VHD_MAX_SIZE = 2 * 1024 * 1024 * 1024 * 1024 /* 2TB */ - 8 * 1024 /* metadata */
 
 // Format a date (pseudo ISO 8601) from one XenServer get by
 // xapi.call('host.get_servertime', host.$ref) for example

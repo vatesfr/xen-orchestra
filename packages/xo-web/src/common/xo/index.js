@@ -1883,6 +1883,8 @@ export const editVmNotes = async vm => {
 
 export const createKubernetesCluster = params => _call('xoa.recipe.createKubernetesCluster', params)
 
+export const createEasyVirtVm = params => _call('xoa.recipe.createEasyVirtVm', params)
+
 export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
@@ -2839,6 +2841,17 @@ export const reclaimSrSpace = async sr => {
   } catch (err) {
     if (err?.data?.message?.includes('Operation not supported')) {
       throw new Error('Space reclaim not supported. Only supported on block based/LVM based SRs.')
+    }
+    if (backupIsRunning(err, sr.$pool)) {
+      await confirm({
+        body: (
+          <p className='text-warning'>
+            <Icon icon='alarm' /> {_('bypassBackupStorageModalMessage')}
+          </p>
+        ),
+        title: _('srReclaimSpace'),
+      })
+      return _call('sr.reclaimSpace', { id: resolveId(sr), bypassBackupCheck: true })
     }
     throw err
   }

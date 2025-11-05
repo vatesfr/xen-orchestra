@@ -180,7 +180,7 @@ As a rule of thumb, we use features that are _newly available_ in [Baseline](htt
 
 So be sure to check the [MDN documentation](https://developer.mozilla.org) and [Can I Use](https://caniuse.com) for the compatibility of the feature you want to use.
 
-## CSS logical properties CAN be used to future-proof layouts
+## CSS logical properties SHOULD be used to future-proof layouts
 
 CSS logical properties ensure that direction-based properties (such as `margin`, `padding`, etc.) are handled correctly when the writing mode changes (e.g., from LTR to RTL).
 

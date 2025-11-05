@@ -64,6 +64,19 @@ You shouldn't have to change this. It's the path where `xo-web` files are served
 '/' = '../xo-web/dist/'
 ```
 
+## SDN Controller mode
+
+The SDN Controller plugin has 2 modes for the OpenFlow rule management. The default mode uses a direct channel to talk through the OpenFlow protocol. The other mode uses a XAPI plugin on XCP-ng side.
+
+:::tip
+For this kind of setting, we recommend using something like `/etc/xo-server/config.sdncontroller.toml` and not to modify the main configuration file.
+:::
+
+```
+[plugins.sdn-controller]
+useDirectChannel = false
+```
+
 ## Custom certificate authority
 
 If you use certificates signed by an in-house CA for your XCP-ng or XenServer hosts, and want to have Xen Orchestra connect to them without rejection, you can use the [`NODE_EXTRA_CA_CERTS`](https://nodejs.org/api/cli.html#cli_node_extra_ca_certs_file) environment variable.
@@ -162,11 +175,11 @@ acmeEmail = 'admin@my.domain.net'
 To configure your XOA with Let's Encrypt:
 
 1. In the HTTPS section of your XO configuration file, add the following entry:
-    - `autoCert = true`
-    - `acmeDomain = example.org`
+   - `autoCert = true`
+   - `acmeDomain = example.org`
 2. Add an entry following this pattern: `acmeDomain = EXAMPLE`, where EXAMPLE is a [fully qualified domain name](https://en.wikipedia.org/wiki/Fully_qualified_domain_name) (FQDN) that points to your XOA environment.
 3. Load the FQDN in your browser.\
-After a few seconds, the certificate will be automatically generated and installed
+   After a few seconds, the certificate will be automatically generated and installed.
 
 ## Redis server
 
@@ -201,7 +214,7 @@ And to download the patches, we need access to `https://fileservice.citrix.com/d
 
 To do that behind a corporate proxy, just add the `httpProxy` variable to match your current proxy configuration.
 
-You can add this at the end of your config file:
+You can add this at the end of your config file (`/etc/xo-server/config.toml`):
 
 ```toml
 # HTTP proxy configuration used by xo-server to fetch resources on the Internet.

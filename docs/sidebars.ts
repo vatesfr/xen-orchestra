@@ -62,6 +62,8 @@ export default {
       items: [
         'manage',
         'manage_infrastructure',
+        'object-storage-support',
+        'v2v-migration-guide',
         'users',
         'vm-templates',
         'advanced',
@@ -78,6 +80,7 @@ export default {
       items: [
         'intro_backup',
         'backups',
+        'backup_howto',
         'proxy',
         'rolling_snapshots',
         'full_backups',
@@ -86,6 +89,7 @@ export default {
         'incremental_replication',
         'mirror_backup',
         'metadata_backup',
+        'immutability',
         'backup_reports',
         'backup_troubleshooting',
       ],

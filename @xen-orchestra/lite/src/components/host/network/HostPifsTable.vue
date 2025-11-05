@@ -89,8 +89,8 @@
                 disabled
                 size="small"
               />
-              <div v-else-if="column.id === 'status'" v-tooltip>
-                <VtsConnectionStatus :status="column.value" />
+              <div v-else-if="column.id === 'status'">
+                <VtsStatus :status="column.value" />
               </div>
               <div v-else-if="column.id === 'network'" class="network">
                 <!-- TODO Remove the span when the link works and the icon is fixed -->
@@ -122,7 +122,7 @@
           </tr>
         </template>
       </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" type="table" image="no-result">
+      <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" format="table" type="no-result" size="small">
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
@@ -138,10 +138,10 @@ import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import type { IconName } from '@core/icons'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'

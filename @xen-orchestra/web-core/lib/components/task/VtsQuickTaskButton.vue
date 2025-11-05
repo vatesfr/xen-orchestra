@@ -9,8 +9,9 @@
     @click="isPanelOpen = true"
   />
   <Teleport v-if="isPanelOpen" to="body">
-    <VtsBackdrop @click="isPanelOpen = false" />
-    <UiQuickTaskPanel ref="panelRef" :loading :tasks />
+    <VtsBackdrop @click.self="isPanelOpen = false">
+      <UiQuickTaskPanel ref="panelRef" :loading :tasks />
+    </VtsBackdrop>
   </Teleport>
 </template>
 

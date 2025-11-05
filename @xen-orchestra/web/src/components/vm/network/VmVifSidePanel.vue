@@ -90,7 +90,7 @@
               {{ t('vif-status') }}
             </template>
             <template #value>
-              <VtsConnectionStatus :status />
+              <VtsStatus :status />
             </template>
           </VtsCardRowKeyValue>
           <!-- MTU -->
@@ -182,8 +182,8 @@ import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collec
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoVif } from '@/types/xo/vif.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

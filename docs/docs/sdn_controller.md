@@ -1,5 +1,9 @@
 # SDN Controller
 
+:::tip
+Be sure to enable the plugin on only one XOA instance.
+:::
+
 The SDN Controller enables a user to **create pool-wide and cross-pool private networks** and more. It's available as a Xen Orchestra plugin (included in XOA Premium).
 
 ## Global Private Networks
@@ -35,10 +39,11 @@ In the network creation view:
 ![](./assets/sdn-controller.png)
 
 :::tip
+
 - All hosts in a private network must be able to reach the other hosts' management interface and all hosts must be able to reach one another on the interface selected for private networks creation.
   > The term ‘management interface’ is used to indicate the IP-enabled NIC that carries the management traffic.
 - Only 1 encrypted GRE network and 1 encrypted VxLAN network per pool can exist at a time due to Open vSwitch limitation.
-:::
+  :::
 
 ### Configuration
 
@@ -65,11 +70,27 @@ The plugin's configuration contains:
 
 ## OpenFlow rules
 
-> Warning: only works for VIFs attached to the physical host's management network (no bond nor VLAN).
+There are currently two implementations:
+
+- One where the SDN Controller plugin talks directly to Open vSwitch through the OpenFlow protocol
+- A newer one using a XAPI plugin on XCP-ng side that directly configures Open vSwitch
+
+At this time, the two options are covered until we can fully deprecate the older, direct OpenFlow implementation.
+
+### OpenFlow Protocol
+
+:::warning
+This feature requires opening the OpenFlow port (TCP 6653). This is done automatically by XAPI.
+:::
+
+Limitations:
+
+- Only on the physical host's management network (neither bond nor VLAN)
+- Only supports per-VIF rules
+
+For now, this is the default mode in Xen Orchestra.
 
 Please see the [devblog about OpenFlow rules](https://xen-orchestra.com/blog/vms-vif-network-traffic-control/).
-
-This feature requires the OpenFlow port to be opened
 
 In the VM network tab a new column has been added: _Network rules_.
 
@@ -85,10 +106,53 @@ In the VM network tab a new column has been added: _Network rules_.
 ![](./assets/add-rule.png)
 ![](./assets/show-rules.png)
 
-:::tip
-- This feature requires the OpenFlow port (TCP 6653) to be opened. (See [the requirements](#openflow))
-:::
+### XAPI Plugin
 
-### Requirements
+:::warning
+Two caveats:
 
-### Openflow
+- At this time, there is no UI in Xen Orchestra for network-wide rules. The rules can be created through `xo-cli`.
+- This is not enabled by default, and requires a configuration change for `xo-server`. See [the configuration page](configuration#sdn-controller-mode) to know more.
+  :::
+
+- Works on any network:
+  - Networks bound to physical interface as well as bonds
+  - VLAN on top of any network
+  - Private networks and cross-pool private networks
+- Per VIF rules
+- Network-wide rules
+
+To setup a per-VIF rule using the UI, follow the [openflow instructions](#openflow-protocol) above, as the UI is the same and only the backend changes.
+
+Here, we describe how to use `xo-cli` to configure rules. First, make sure to register xo-cli to your XOA instance as documented in [it's documentation](architecture#register-your-xo-instance).
+
+- Add per-VIF rules: `xo-cli sdnController.addRule vifId=<VIF_UUID> <parameters>`
+- Delete per-VIF rules: `xo-cli sdnController.deleteRule vifId=<VIF_UUID> <parameters`
+- Add new network-wide rules: `xo-cli sdnController.addNetworkRule networkId=<NETWORK_UUID> <parameters`
+- Delete network-wide rules: `xo-cli sdnController.deleteNetworkRule networkId=<NETWORK_UUID> <parameters`
+
+Parameters:
+
+- _ipRange_: An IP or range of IPs in CIDR notation (for example `192.168.1.0/24`). An IP does not need `/32`.
+- _direction_:
+  - _to_: means the parameters for **port** and **ipRange** are to be used as destination.
+  - _from_: means they will be used as source.
+  - _from/to_ or _to/from_: 2 rules will be created (one per direction).
+- _protocol_: IP, TCP, UDP, ICMP or ARP (case-insensitive).
+- _port_: required for TCP/UDP protocol. Use `json:22` so the number is passed as an integer.
+- _allow_: true or false. If set to false the packets are dropped.
+
+Some examples:
+
+```
+# Per-VIF rules:
+xo-cli sdnController.addRule vifId=15f1a9ec-4348-0cca-d2b8-e536db043298 direction=from ipRange=1.1.1.3 protocol=tcp port=json:4242 allow=false
+xo-cli sdnController.deleteRule vifId=15f1a9ec-4348-0cca-d2b8-e536db043298 direction=from ipRange=1.1.1.3 protocol=tcp port=json:4242
+xo-cli sdnController.addRule vifId=e9a7914a-9518-82e2-7052-42cb16cc9724 direction=to ipRange=1.1.1.2 protocol=icmp allow=false
+xo-cli sdnController.deleteRule vifId=e9a7914a-9518-82e2-7052-42cb16cc9724 direction=to ipRange=1.1.1.2 protocol=icmp
+# Network-wide rules:
+xo-cli sdnController.addNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=to ipRange=1.1.1.2 protocol=icmp allow=false
+xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=to ipRange=1.1.1.2 protocol=icmp
+xo-cli sdnController.addNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=from ipRange=1.1.1.2 protocol=tcp allow=false port=json:4242
+xo-cli sdnController.deleteNetworkRule networkId=9334aa83-6960-62e5-a463-5acc05295af4 direction=from ipRange=1.1.1.2 protocol=tcp port=json:4242
+```

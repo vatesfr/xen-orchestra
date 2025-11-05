@@ -2,11 +2,14 @@ import TTLCache from '@isaacs/ttlcache'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
 import { format } from 'json-rpc-peer'
+import { pipeline } from 'node:stream'
+import tarStream from 'tar-stream'
 import { Ref } from 'xen-api'
 import { incorrectState } from 'xo-common/api-errors.js'
 
 import backupGuard from './_backupGuard.mjs'
 
+import { fromCallback } from 'promise-toolbox'
 import { moveFirst } from '../_moveFirst.mjs'
 
 const log = createLogger('xo:api:pool')
@@ -239,7 +242,7 @@ installPatches.description = 'Install patches on hosts'
 export const rollingUpdate = async function ({ bypassBackupCheck = false, pool, rebootVm }) {
   const poolId = pool.id
   if (bypassBackupCheck) {
-    log.warn('pool.rollingUpdate update with argument "bypassBackupCheck" set to true', { poolId })
+    log.warn('pool.rollingUpdate with argument "bypassBackupCheck" set to true', { poolId })
   } else {
     await backupGuard.call(this, poolId)
   }
@@ -268,7 +271,7 @@ rollingUpdate.resolve = {
 export async function rollingReboot({ bypassBackupCheck, pool }) {
   const poolId = pool.id
   if (bypassBackupCheck) {
-    log.warn('pool.rollingReboot update with argument "bypassBackupCheck" set to true', { poolId })
+    log.warn('pool.rollingReboot with argument "bypassBackupCheck" set to true', { poolId })
   } else {
     await backupGuard.call(this, poolId)
   }
@@ -413,4 +416,123 @@ listPoolsMatchingCriteria.params = {
   minHostVersion: { type: 'string', optional: true },
   poolNameRegExp: { type: 'string', optional: true },
   srNameRegExp: { type: 'string', optional: true },
+}
+
+// ===================================================================
+
+/**
+ * Download system status (bug report) from all hosts in a pool via HTTPS
+ * @param {object} req HTTP request object
+ * @param {object} res HTTP response object
+ * @param {object} data Handler data { xapi, pool, format }
+ */
+async function handleGetSystemStatuses(_req, res, { xapi, pool }) {
+  // Get all hosts in pool
+  const hosts = Object.values(xapi.objects.indexes.type.host)
+
+  // Get server credentials using the pool object which has $pool property
+  const serverId = this.getXenServerIdByObject(pool)
+  const server = await this.getXenServerWithCredentials(serverId)
+
+  // Create tar pack stream for archive
+  const pack = tarStream.pack()
+
+  // Set response headers
+  res.set({
+    'content-type': 'application/x-tar',
+    'content-disposition': `attachment; filename="${pool.name_label}-system-statuses.tar"`,
+  })
+
+  // Stream tar to response and handle downloads
+  // Create promise to track pipeline completion and catch errors
+  const pipelinePromise = fromCallback(pipeline, pack, res)
+
+  try {
+    // Download from each host sequentially to ensure safe tar creation
+    for (const host of hosts) {
+      // Build system-status URL
+      // Use host.address (the target host IP), not server.host (the XAPI server)
+      const url = new URL(`http://${host.address}/system-status`)
+      url.protocol = xapi._url.protocol // Use same protocol as XAPI connection
+      url.searchParams.set('output', 'tar.bz2') // XCP-ng requires output format parameter
+
+      // Setup HTTP Basic Auth
+      const opts = {
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${server.username}:${server.password}`).toString('base64')}`,
+        },
+        rejectUnauthorized: !server.allowUnauthorized,
+        timeout: 0, // No timeout for large downloads
+      }
+
+      // Download and add to tar archive
+      const response = await this.httpRequest(url, opts)
+      const filename = `${host.name_label}-system-status.tar.bz2`
+
+      // Get the size from Content-Length header if available
+      const size = response.headers['content-length']
+        ? Number.parseInt(response.headers['content-length'], 10)
+        : undefined
+
+      if (size === undefined) {
+        throw new Error(`Missing Content-Length header for host ${host.name_label} system status download`)
+      }
+
+      const entry = pack.entry({ name: filename, size }, err => {
+        if (err) {
+          log.error('Failed to create tar entry', {
+            hostName: host.name_label,
+            filename,
+            error: err,
+          })
+          // Destroy pack with error to propagate to pipelinePromise
+          pack.destroy(err)
+        }
+      })
+
+      await fromCallback(pipeline, response, entry)
+    }
+
+    // Finalize archive after all downloads complete
+    pack.finalize()
+
+    // Wait for pipeline to complete - ensures errors are properly caught
+    await pipelinePromise
+  } catch (err) {
+    log.warn('Failed to download system-statuses', { error: err })
+    pack.destroy()
+    throw err
+  }
+}
+
+/**
+ * Download system status (bug report) from all hosts in a pool
+ *
+ * @description Connects to all hosts in the pool via HTTPS and downloads their
+ *              system status (detailed diagnostic information) in tar.bz2 format.
+ *              All host status files are packaged in a single TAR archive.
+ *              Downloads happen in parallel (max 5 concurrent) for performance.
+ *              If any host fails, the entire operation fails (fail-fast).
+ *
+ * @param {string} id - Pool UUID
+ * @returns {object} TAR archive download via $getFrom
+ */
+export async function getSystemStatuses({ pool }) {
+  return {
+    $getFrom: await this.registerHttpRequest(
+      handleGetSystemStatuses,
+      { xapi: this.getXapi(pool), pool },
+      { suffix: `/${encodeURIComponent(pool.name_label)}-system-statuses.tar` }
+    ),
+  }
+}
+
+getSystemStatuses.description = 'Download system status (bug report) from all hosts in a pool'
+
+getSystemStatuses.params = {
+  id: { type: 'string' },
+}
+
+getSystemStatuses.resolve = {
+  pool: ['id', 'pool', 'administrate'],
 }

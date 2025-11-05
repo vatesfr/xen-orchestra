@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('pool-management') }}
     </UiTitle>
-    <VtsLoadingHero v-if="!areHostsReady" type="card" />
+    <VtsStateHero v-if="!areHostsReady" format="card" busy size="medium" />
     <template v-else>
       <VtsQuickInfoRow :label="t('master')">
         <template #value>
@@ -17,17 +17,17 @@
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('auto-power')">
         <template #value>
-          <VtsEnabledState :enabled="pool.auto_poweron" />
+          <VtsStatus :status="pool.auto_poweron" />
         </template>
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('high-availability')">
         <template #value>
-          <VtsEnabledState :enabled="pool.HA_enabled" />
+          <VtsStatus :status="pool.HA_enabled" />
         </template>
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('migration-compression')">
         <template #value>
-          <VtsEnabledState :enabled="pool.migrationCompression ?? false" />
+          <VtsStatus :status="pool.migrationCompression ?? false" />
         </template>
       </VtsQuickInfoRow>
     </template>
@@ -37,9 +37,9 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

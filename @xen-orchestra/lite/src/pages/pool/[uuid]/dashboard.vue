@@ -12,7 +12,7 @@
       </UiCardGroup>
       <UiCardGroup>
         <PoolDashboardRamUsage />
-        <PoolDashboardRamUsageChart />
+        <PoolRamUsageChart />
       </UiCardGroup>
       <UiCardGroup>
         <PoolDashboardCpuProvisioning />
@@ -37,7 +37,7 @@ import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamU
 import PoolDashboardStatus from '@/components/pool/dashboard/PoolDashboardStatus.vue'
 import PoolDashboardStorageUsage from '@/components/pool/dashboard/PoolDashboardStorageUsage.vue'
 import PoolDashboardTasks from '@/components/pool/dashboard/PoolDashboardTasks.vue'
-import PoolDashboardRamUsageChart from '@/components/pool/dashboard/ramUsage/PoolRamUsage.vue'
+import PoolRamUsageChart from '@/components/pool/dashboard/ramUsage/PoolRamUsageChart.vue'
 import UiCardGroup from '@/components/ui/UiCardGroup.vue'
 import useFetchStats from '@/composables/fetch-stats.composable'
 import { GRANULARITY } from '@/libs/xapi-stats'

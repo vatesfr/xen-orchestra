@@ -9,7 +9,7 @@ import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
 export const useXoVmCollection = defineRemoteResource({
-  url: '/rest/v0/vms?fields=id,name_label,name_description,power_state,$container,$pool,other,current_operations,CPUs,addresses,tags,os_version,virtualizationMode,secureBoot,VTPMs,viridian,isNestedVirtEnabled,memory,VGPUs,high_availability,auto_poweron,startDelay,vga,videoram,pvDriversVersion,cpuWeight,cpuCap,cpuMask,coresPerSocket,mainIpAddress,nicType,affinityHost,suspendSr,blockedOperations,hasVendorDevice,startTime,installTime,pvDriversDetected',
+  url: '/rest/v0/vms?fields=id,name_label,name_description,power_state,$container,$pool,other,current_operations,creation,CPUs,addresses,tags,os_version,virtualizationMode,secureBoot,VTPMs,viridian,isNestedVirtEnabled,memory,VGPUs,high_availability,auto_poweron,startDelay,vga,videoram,pvDriversVersion,cpuWeight,cpuCap,cpuMask,coresPerSocket,mainIpAddress,nicType,affinityHost,suspendSr,blockedOperations,hasVendorDevice,startTime,installTime,pvDriversDetected,managementAgentDetected,type',
   initialData: () => [] as XoVm[],
   state: (rawVms, context) => {
     const { getHostById } = useXoHostCollection(context)

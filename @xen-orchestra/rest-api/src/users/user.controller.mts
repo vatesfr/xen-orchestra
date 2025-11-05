@@ -1,6 +1,7 @@
 import {
   Body,
   Delete,
+  Deprecated,
   Example,
   Get,
   Middlewares,
@@ -15,14 +16,17 @@ import {
   SuccessResponse,
   Tags,
 } from 'tsoa'
+import { createLogger } from '@xen-orchestra/log'
 import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoGroup, XoUser } from '@vates/types'
+import type { XoAuthenticationToken, XoGroup, XoTask, XoUser } from '@vates/types'
 
 import {
+  badRequestResp,
   createdResp,
   forbiddenOperationResp,
+  internalServerErrorResp,
   invalidParameters,
   noContentResp,
   notFoundResp,
@@ -31,17 +35,31 @@ import {
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
 import { forbiddenOperation } from 'xo-common/api-errors.js'
-import { partialUsers, user, userId, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import {
+  partialUsers,
+  user,
+  authenticationTokens,
+  userId,
+  userIds,
+  authenticationToken,
+} from '../open-api/oa-examples/user.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
+import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import type { UpdateUserRequestBody } from './user.type.mjs'
 import { UserService } from './user.service.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
-import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
+import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { redirectMeAlias } from './user.middleware.mjs'
+import { ApiError } from '../helpers/error.helper.mjs'
+
+const log = createLogger('xo:rest-api:user-controller')
 
 @Route('users')
 @Security('*')
+@Middlewares(redirectMeAlias)
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('users')
 @provide(UserController)
@@ -182,5 +200,124 @@ export class UserController extends XoController<XoUser> {
     const groups = await Promise.all(user.groups.map(group => this.restApi.xoApp.getGroup(group)))
 
     return this.sendObjects(limitAndFilterArray(groups, { filter, limit }), req, 'groups')
+  }
+
+  /**
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * @example filter "expiration:>1757371582496"
+   * @example limit 42
+   */
+  @Example(authenticationTokens)
+  @Get('{id}/authentication_tokens')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  async getAuthenticationTokens(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<Unbrand<XoAuthenticationToken>[]> {
+    const user = await this.getObject(id as XoUser['id'])
+
+    const me = this.restApi.getCurrentUser()
+    if (me.id !== user.id) {
+      throw forbiddenOperation('get authentication tokens', 'can only see own authentication tokens')
+    }
+
+    const tokens = await this.restApi.xoApp.getAuthenticationTokensForUser(user.id)
+
+    return limitAndFilterArray(tokens, { filter, limit })
+  }
+
+  /**
+   * @example id "722d17b9-699b-49d2-8193-be1ac573d3de"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getUserTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoUser['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (10-13-2026)--------------------
+  /**
+   * @example body {"client": {"id": "my-fav-client"}, "description": "token for CLI usage", "expiresIn": "1 hour"}
+   */
+  @Example(authenticationToken)
+  @Deprecated()
+  @Post('authentication_tokens')
+  @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async postDeprecatedAuthenticationTokens(
+    @Body()
+    body: {
+      client?: {
+        id?: string
+      }
+      description?: string
+      expiresIn?: string | number
+    }
+  ): Promise<{ token: Unbrand<XoAuthenticationToken> }> {
+    log.warn(
+      'You are calling a deprecated route. It will be removed in the futur. Please use `/rest/v0/users/:id/authentication_tokens` or `/rest/v0/users/me/authentication_tokens` instead'
+    )
+    const user = this.restApi.getCurrentUser()
+
+    const token = await this.restApi.xoApp.createAuthenticationToken({
+      ...body,
+      userId: user.id,
+    })
+
+    return { token }
+  }
+  // ----------- DEPRECATED TO BE REMOVED IN ONE YEAR  (10-13-2026)--------------------
+
+  /**
+   * @example id "me"
+   * @example body {"client": {"id": "my-fav-client"}, "description": "token for CLI usage", "expiresIn": "1 hour"}
+   */
+  @Example(authenticationToken)
+  @Post('{id}/authentication_tokens')
+  @Middlewares(json())
+  @SuccessResponse(createdResp.status, createdResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  async postAuthenticationTokens(
+    @Body()
+    body: {
+      client?: {
+        id?: 'string'
+      }
+      description?: string
+      expiresIn?: string | number
+    },
+    @Path() id: string
+  ): Promise<{ token: Unbrand<XoAuthenticationToken> }> {
+    const user = this.restApi.getCurrentUser()
+    if (user.id !== id) {
+      throw forbiddenOperation('create authentication token', 'you can only create token for yourself')
+    }
+
+    const token = await this.restApi.xoApp.createAuthenticationToken({
+      ...body,
+      userId: user.id,
+    })
+
+    return { token }
   }
 }

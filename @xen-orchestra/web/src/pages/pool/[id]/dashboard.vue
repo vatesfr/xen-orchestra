@@ -1,23 +1,23 @@
 <template>
   <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
     <div class="row first-row">
-      <PoolDashboardStatus class="status" :pool-dashboard />
-      <PoolDashboardAlarms class="alarms" :pool-dashboard />
-      <PoolDashboardHostsPatches class="patches" :pool-dashboard />
+      <PoolDashboardStatus class="status" :pool-dashboard :has-error />
+      <DashboardAlarms class="alarms" :alarms :is-ready :has-error="hasAlarmFetchError" />
+      <PoolDashboardHostsPatches class="patches" :pool-dashboard :has-error />
     </div>
 
     <div class="row second-row">
       <div class="column first-column">
-        <PoolDashboardStoragesUsage class="storage-usage" :pool-dashboard />
+        <PoolDashboardStoragesUsage class="storage-usage" :pool-dashboard :has-error />
         <PoolDashboardNetworkChart class="network-chart" :data :loading="isFetching" :error />
       </div>
       <div class="column second-column">
-        <PoolDashboardRamUsage class="ram-usage" :pool-dashboard />
+        <PoolDashboardRamUsage class="ram-usage" :pool-dashboard :has-error />
         <PoolDashboardRamChart class="ram-chart" :data :loading="isFetching" :error />
       </div>
       <div class="column third-column">
-        <PoolDashboardCpuProvisioning class="cpu-provisioning" :pool-dashboard />
-        <PoolDashboardCpuUsage class="cpu-usage" :pool-dashboard />
+        <PoolDashboardCpuProvisioning class="cpu-provisioning" :pool-dashboard :has-error />
+        <PoolDashboardCpuUsage class="cpu-usage" :pool-dashboard :has-error />
         <PoolDashboardCpuChart class="cpu-chart" :data :loading="isFetching" :error />
       </div>
     </div>
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import PoolDashboardAlarms from '@/components/pool/dashboard/alarms/PoolDashboardAlarms.vue'
+import DashboardAlarms from '@/components/alarms/DashboardAlarms.vue'
 import PoolDashboardCpuChart from '@/components/pool/dashboard/chart-usage/PoolDashboardCpuChart.vue'
 import PoolDashboardNetworkChart from '@/components/pool/dashboard/chart-usage/PoolDashboardNetworkChart.vue'
 import PoolDashboardRamChart from '@/components/pool/dashboard/chart-usage/PoolDashboardRamChart.vue'
@@ -36,16 +36,32 @@ import PoolDashboardRamUsage from '@/components/pool/dashboard/PoolDashboardRamU
 import PoolDashboardStatus from '@/components/pool/dashboard/PoolDashboardStatus.vue'
 import PoolDashboardStoragesUsage from '@/components/pool/dashboard/PoolDashboardStoragesUsage.vue'
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
+import { useXoAlarmCollection } from '@/remote-resources/use-xo-alarm-collection.ts'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolDashboard } from '@/remote-resources/use-xo-pool-dashboard.ts'
+import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { logicAnd } from '@vueuse/math'
 
 const { pool } = defineProps<{ pool: XoPool }>()
 
 const { data, isFetching, error } = useFetchStats('pool', () => pool.id, GRANULARITY.Hours)
 
-const { poolDashboard } = useXoPoolDashboard({}, () => pool.id)
+const { poolDashboard, hasError } = useXoPoolDashboard({}, () => pool.id)
+
+const { useGetAlarmsByIds, areAlarmsReady, hasAlarmFetchError } = useXoAlarmCollection()
+const { areHostsReady } = useXoHostCollection()
+const { areVmsReady } = useXoVmCollection()
+const { areVmControllersReady } = useXoVmControllerCollection()
+const { areSrsReady } = useXoSrCollection()
+
+const isReady = logicAnd(areAlarmsReady, areHostsReady, areVmsReady, areVmControllersReady, areSrsReady)
+
+const alarms = useGetAlarmsByIds(() => poolDashboard.value?.alarms ?? [])
 
 const uiStore = useUiStore()
 </script>
@@ -75,6 +91,7 @@ const uiStore = useUiStore()
 
   .alarms {
     grid-area: alarms;
+    height: 46.2rem;
   }
 
   .patches {

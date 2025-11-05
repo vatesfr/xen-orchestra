@@ -28,7 +28,7 @@
           </div>
         </template>
         <UiDropdown v-if="isLoading || options.length === 0" accent="normal" disabled>
-          {{ isLoading ? t('loading-in-progress') : t('no-results') }}
+          {{ isLoading ? t('loading') : t('no-results') }}
         </UiDropdown>
         <template v-for="option of options" :key="option.id">
           <slot :option="option as FormSelectIdToOption<TSelectId>">

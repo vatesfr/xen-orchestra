@@ -702,7 +702,7 @@ const vmCreationParams = computed(() => ({
   bootAfterCreate: vmState.boot_vm,
   copyHostBiosStrings: vmState.boot_firmware !== 'uefi' && !templateHasBiosStrings.value && vmState.copyHostBiosStrings,
   hvmBootFirmware: vmState.boot_firmware ?? 'bios',
-  coresPerSocket: vmState.topology,
+  coresPerSocket: vmState.topology ?? vmState.vCPU,
   tags: vmState.tags,
   cloudConfig: '',
 }))
@@ -980,6 +980,8 @@ watch(
       affinity,
     } = template
 
+    const topology = Number(platform['cores-per-socket'])
+
     Object.assign(vmState, {
       name: name_label,
       description: other_config.default_template === 'true' ? '' : name_description,
@@ -988,7 +990,7 @@ watch(
       ram: memory_dynamic_max,
       vdis: getVdis(template),
       tags,
-      topology: platform['cores-per-socket'] ?? null,
+      topology: isNaN(topology) ? null : topology,
       affinity_host: affinity,
       existingVdis: getExistingVdis(template),
       networkInterfaces: getExistingInterface(template),

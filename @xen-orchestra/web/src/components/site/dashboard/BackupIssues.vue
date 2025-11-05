@@ -1,12 +1,14 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('backup-issues') }}
       <UiCounter :value="nBackupIssues" accent="danger" size="medium" variant="primary" />
       <template #description>{{ t('in-last-three-jobs') }}</template>
     </UiCardTitle>
-    <VtsLoadingHero v-if="!areBackupIssuesReady" type="card" />
-    <VtsNoDataHero v-else-if="!hasBackupIssues" type="card" />
+    <VtsStateHero v-if="!areBackupIssuesReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="!hasBackupIssues" format="card" type="no-data" size="small" horizontal>
+      {{ t('no-data-to-calculate') }}
+    </VtsStateHero>
     <div v-else class="backup-items">
       <VtsDataTable is-ready>
         <template #thead>
@@ -34,7 +36,7 @@
                 </div>
               </div>
               <div v-else-if="column.value">
-                <VtsBackupState :state="column.value" />
+                <VtsStatus :status="column.value" />
               </div>
             </td>
           </tr>
@@ -47,11 +49,10 @@
 <script lang="ts" setup>
 import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import type { IconName } from '@core/icons'
-import VtsBackupState from '@core/components/backup-state/VtsBackupState.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
@@ -62,6 +63,7 @@ import { useI18n } from 'vue-i18n'
 
 const { issues } = defineProps<{
   issues: NonNullable<XoDashboard['backups']>['issues'] | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

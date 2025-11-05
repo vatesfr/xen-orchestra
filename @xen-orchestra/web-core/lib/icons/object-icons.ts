@@ -3,9 +3,12 @@ import { defineIcon } from '@core/packages/icon/define-icon.ts'
 import type { IconTransforms } from '@core/packages/icon/types.ts'
 import { createMapper } from '@core/packages/mapper/create-mapper.ts'
 import {
+  faArrowLeft,
   faBan,
+  faBoxArchive,
   faCheck,
   faCircle,
+  faClock,
   faDatabase,
   faDesktop,
   faMinus,
@@ -17,7 +20,6 @@ import {
   faServer,
   faStop,
   faTriangleExclamation,
-  faWarehouse,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 
@@ -148,6 +150,32 @@ function getMainColor(state: string) {
     : 'var(--color-neutral-txt-primary)'
 }
 
+const backupIcon = defineIcon({ icon: faBoxArchive })
+
+const backupRepository = defineIcon([
+  { icon: backupIcon, translate: [0, -4], borderColor: defaultTransforms.borderColor, size: 10 },
+  { icon: backupIcon, translate: [-4, 4], borderColor: defaultTransforms.borderColor, size: 10 },
+  { icon: backupIcon, translate: [4, 4], borderColor: defaultTransforms.borderColor, size: 10 },
+])
+
+const backupJob = defineIcon([
+  { icon: backupIcon, borderColor: defaultTransforms.borderColor },
+  { icon: faCircle, translate: [6, 6], borderColor: defaultTransforms.borderColor, size: 12 },
+  { icon: faArrowLeft, translate: [6, 6], color: 'var(--color-neutral-background-primary)', size: 8 },
+])
+
+const backupSchedule = defineIcon([
+  { icon: backupIcon, borderColor: defaultTransforms.borderColor },
+  { icon: faCircle, translate: [6, 6], size: 12, color: 'var(--color-neutral-background-primary)' },
+  { icon: faClock, translate: [6, 6], size: 11 },
+])
+
+const backupLog = defineIcon([
+  { icon: backupIcon, borderColor: defaultTransforms.borderColor },
+  { icon: faCircle, translate: [6, 6], borderColor: defaultTransforms.borderColor, size: 12 },
+  { icon: faPlay, translate: [6.5, 6], color: 'var(--color-neutral-background-primary)', size: 6 },
+])
+
 export const objectIcons = defineIconPack({
   vm: defineIcon([['running', 'halted', 'suspended', 'paused', 'muted']], state => [
     {
@@ -179,9 +207,12 @@ export const objectIcons = defineIconPack({
   ]),
   'backup-repository': defineIcon([['connected', 'disconnected']], state => [
     {
-      icon: faWarehouse,
+      icon: backupRepository,
       color: getMainColor(state),
     },
     { icon: getStatusIcon(state) },
   ]),
+  'backup-job': backupJob,
+  'backup-schedule': backupSchedule,
+  'backup-log': backupLog,
 })

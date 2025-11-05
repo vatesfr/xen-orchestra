@@ -40,7 +40,7 @@ Here's an example:
 
 You can send all your XO logs to an external syslog server.
 
-To enable syslog, add this to your configuration file: 
+To enable syslog, add this to your configuration file (`/etc/xo-server/config.toml`): 
 
 ```
 [logs.transport.syslog]

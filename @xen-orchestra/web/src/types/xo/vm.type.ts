@@ -1,7 +1,9 @@
 import type { XoHost } from '@/types/xo/host.type'
 import type { XoPool } from '@/types/xo/pool.type'
 import type { XoSr } from '@/types/xo/sr.type'
+import type { XoUser } from '@/types/xo/user.type.ts'
 import type { XoVbd } from '@/types/xo/vbd.type'
+import type { XoVmTemplate } from '@/types/xo/vm-template.type.ts'
 import type { Branded } from '@core/types/utility.type'
 
 export enum VM_POWER_STATE {
@@ -26,7 +28,7 @@ export type XoVm = {
   type: 'VM'
   $container: XoPool['id'] | XoHost['id']
   $pool: XoPool['id']
-  $VBDs: XoVbd['id']
+  $VBDs: XoVbd['id'][]
   _xapiRef: string
   current_operations: Record<string, VM_OPERATION>
   name_label: string
@@ -38,6 +40,11 @@ export type XoVm = {
   CPUs: {
     max: number
     number: number
+  }
+  creation: {
+    date: string
+    template: XoVmTemplate['id']
+    user: XoUser['id']
   }
   tags: Array<string>
   os_version: Record<string, string> | null
@@ -58,6 +65,7 @@ export type XoVm = {
   startTime?: number | null
   installTime?: number | null
   pvDriversDetected?: boolean
+  managementAgentDetected?: boolean
   vga: 'std' | 'cirrus'
   videoram?: number
   pvDriversVersion?: string
