@@ -13,6 +13,7 @@ import { VdiService } from '../vdis/vdi.service.mjs'
 import { UserService } from '../users/user.service.mjs'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
+import { EventService } from '../events/event.service.mjs'
 
 const iocContainer = new Container()
 
@@ -97,6 +98,14 @@ export function setupContainer(xoApp: XoApp) {
     .bind(BackupLogService)
     .toDynamicValue(() => {
       return new BackupLogService()
+    })
+    .inSingletonScope()
+
+  iocContainer
+    .bind(EventService)
+    .toDynamicValue(ctx => {
+      const restApi = ctx.container.get(RestApi)
+      return new EventService(restApi)
     })
     .inSingletonScope()
 }
