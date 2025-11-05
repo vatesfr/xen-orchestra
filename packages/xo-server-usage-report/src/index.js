@@ -450,10 +450,10 @@ function computeGlobalVmsStats({ haltedVms, vmsStats, xo }) {
   // Calculate OS statistics
   const osStats = {}
   vmsStats.forEach(vm => {
-    if (vm.osVersion && vm.osVersion.name) {
+    if (vm.osVersion?.name) {
       const osName = vm.osVersion.name
       osStats[osName] = (osStats[osName] || 0) + 1
-    } else if (vm.osVersion && vm.osVersion.distro) {
+    } else if (vm.osVersion?.distro) {
       let osName = vm.osVersion.distro
       const major = vm.osVersion.major
       const minor = vm.osVersion.minor
