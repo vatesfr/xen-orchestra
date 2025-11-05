@@ -418,7 +418,7 @@ export type XoPool = BaseXapiXo & {
   }
   crashDumpSr?: XoSr['id']
   current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
-  defaultSr?: XoSr['id']
+  default_SR?: XoSr['id']
   HA_enabled: boolean
   haSrs: XoSr['id'][]
   id: Branded<'pool'>
