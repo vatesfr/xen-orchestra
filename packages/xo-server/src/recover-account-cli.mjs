@@ -17,19 +17,18 @@ execPromise(async args => {
 `
   }
 
-  let name, password
-
   const support = args[0] === '-s'
-  name = support ? 'xoa-support' : args[0]
+  const name = support ? 'xoa-support' : args[0]
 
-  password = args.length === 2
-    ? args[1] 
-    : support
-    ? ''
-    : await new Promise(resolve => {
-        process.stdout.write('Password (leave empty for random): ')
-        pw(resolve)
-      })
+  let password =
+    args.length === 2
+      ? args[1]
+      : support
+        ? ''
+        : await new Promise(resolve => {
+            process.stdout.write('Password (leave empty for random): ')
+            pw(resolve)
+          })
 
   if (password === '') {
     password = await generateToken(10)
