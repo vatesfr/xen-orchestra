@@ -1,9 +1,10 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { AnyXoVdi, XoSr, XoVdi } from '@vates/types'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
-import { useSorted } from '@vueuse/core'
+import { reactify, useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
 export const useXoSrCollection = defineRemoteResource({
@@ -13,6 +14,7 @@ export const useXoSrCollection = defineRemoteResource({
     const srs = useSorted(rawSrs, (sr1, sr2) => sortByNameLabel(sr1, sr2))
 
     const { getVdiById } = useXoVdiCollection(context)
+    const { getPoolById } = useXoPoolCollection()
 
     const state = useXoCollectionState(srs, {
       context,
@@ -69,10 +71,20 @@ export const useXoSrCollection = defineRemoteResource({
       return srsByPoolMap
     })
 
+    const isDefaultSr = (sr: XoSr) => getPoolById(sr.$pool)?.default_SR === sr.id
+
+    const isHighAvailabilitySr = reactify((sr: XoSr) => {
+      const srPool = getPoolById(sr.$pool)
+
+      return srPool?.haSrs?.includes(sr.id) ?? false
+    })
+
     return {
       ...state,
       vdiIsosBySrName,
       srsByPool,
+      isDefaultSr,
+      isHighAvailabilitySr,
     }
   },
 })
