@@ -4,13 +4,23 @@
       {{ t('custom-fields') }}
     </UiCardTitle>
     <div class="content">
-      <VtsLabelValueList :fields="customFields" />
+      <VtsStateHero
+        v-if="Object.keys(customFields).length === 0"
+        type="no-data"
+        format="card"
+        horizontal
+        size="extra-small"
+      >
+        {{ t('no-custom-fields-detected') }}
+      </VtsStateHero>
+      <VtsLabelValueList v-else :fields="customFields" />
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import VtsLabelValueList from '@core/components/label-value-list/VtsLabelValueList.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useI18n } from 'vue-i18n'

@@ -18,7 +18,7 @@
       <StorageRepositoryVdisCard :vdis />
       <StorageRepositoryHostsCard :hosts />
       <StorageRepositoryPbdsCard :pbds />
-      <StorageRepositoryCustomFieldsCard :custom-fields="sr.other_config" />
+      <StorageRepositoryCustomFieldsCard :custom-fields />
     </template>
   </UiPanel>
 </template>
@@ -74,6 +74,18 @@ const hosts = computed(() => {
 })
 
 const pbds = computed(() => rawPbds.value.filter(pbd => pbd.SR === sr.id))
+
+const customFields = computed(() => {
+  const prefix = 'XenCenter.CustomFields.'
+
+  return Object.entries(sr.other_config).reduce<Record<string, unknown>>((acc, [key, value]) => {
+    if (key.startsWith(prefix)) {
+      acc[key.slice(prefix.length)] = value
+    }
+
+    return acc
+  }, {})
+})
 </script>
 
 <style scoped lang="postcss">

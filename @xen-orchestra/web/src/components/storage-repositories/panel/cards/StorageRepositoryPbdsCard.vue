@@ -2,40 +2,42 @@
   <UiCard class="card-container">
     <UiCardTitle>
       {{ t('pbd-details') }}
-      <UiCounter :value="pbds.length" accent="neutral" size="small" variant="primary" />
+      <UiCounter v-if="areSomePbdsDisconnected" :value="pbds.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
     <div class="content">
-      <template v-if="pbds.length > 0">
-        <template v-for="(pbd, index) in pbds" :key="pbd.id">
-          <VtsDivider v-if="index > 0" class="divider" type="stretch" />
-          <span class="typo-body-bold-small">{{ t('pbd-number', { n: index + 1 }) }}</span>
-          <StorageRepositoryPbdHost :pbd />
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('current-attach') }}
-            </template>
-            <template #value>
-              <VtsStatus :status="pbd.attached ? 'connected' : 'disconnected'" />
-            </template>
-          </VtsCardRowKeyValue>
-          <UiLogEntryViewer
-            v-if="pbd.device_config"
-            :content="pbd.device_config"
-            :label="t('device-config')"
-            size="small"
-            accent="info"
-          />
-        </template>
-      </template>
-      <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
-        {{ t('no-pbds-attached') }}
-      </VtsStateHero>
+      <VtsStatus :status="allPbdsConnectionStatus" />
     </div>
+    <div v-if="areSomePbdsDisconnected" class="content">
+      <template v-for="(pbd, index) in disconnectedPbds" :key="pbd.id">
+        <VtsDivider v-if="index > 0" class="divider" type="stretch" />
+        <span class="typo-body-bold-small subtitle">{{ t('disconnected-pbd-number', { n: index + 1 }) }}</span>
+        <StorageRepositoryPbdHost :pbd />
+        <VtsCardRowKeyValue>
+          <template #key>
+            {{ t('current-attach') }}
+          </template>
+          <template #value>
+            <VtsStatus :status="pbd.attached ? 'connected' : 'disconnected'" />
+          </template>
+        </VtsCardRowKeyValue>
+        <UiLogEntryViewer
+          v-if="pbd.device_config"
+          :content="pbd.device_config"
+          :label="t('device-config')"
+          size="small"
+          accent="info"
+        />
+      </template>
+    </div>
+    <VtsStateHero v-if="pbds.length === 0" type="no-data" format="card" horizontal size="extra-small">
+      {{ t('no-pbds-attached') }}
+    </VtsStateHero>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import StorageRepositoryPbdHost from '@/components/storage-repositories/panel/card-items/StorageRepositoryPbdHost.vue'
+import { useXoPbdUtils } from '@/composables/xo-pbd-utils.composable'
 import type { XoPbd } from '@/types/xo/pbd.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
@@ -52,6 +54,8 @@ const { pbds } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { areSomePbdsDisconnected, allPbdsConnectionStatus, disconnectedPbds } = useXoPbdUtils(() => pbds)
 </script>
 
 <style scoped lang="postcss">
@@ -64,6 +68,10 @@ const { t } = useI18n()
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+
+    .subtitle {
+      margin-block-end: 0.4rem;
+    }
 
     .divider {
       margin-block: 1.6rem;

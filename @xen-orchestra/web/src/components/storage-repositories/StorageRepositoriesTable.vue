@@ -58,15 +58,24 @@
                 disabled
                 size="small"
               />
-              <div v-else-if="column.id === 'name'">
+              <div v-else-if="column.id === 'name'" class="name">
                 <UiLink size="medium" icon="object:sr:muted" :href="`/#/srs/${column.value.id}/general`" @click.stop>
                   {{ column.value.name }}
                 </UiLink>
+                <VtsIcon
+                  v-if="column.value.isDefaultSr"
+                  v-tooltip="t('default-storage-repository')"
+                  name="legacy:primary"
+                  size="current"
+                />
               </div>
               <template v-else-if="column.id === 'space'">
                 <StorageRepositorySizeProgressCell :current="column.value.used" :total="column.value.total" />
               </template>
-              <div v-else :class="{ shared: column.id === 'shared' }">
+              <div v-else-if="column.id === 'description'" v-tooltip class="text-ellipsis">
+                {{ column.value }}
+              </div>
+              <div v-else>
                 {{ column.value }}
               </div>
             </td>
@@ -84,7 +93,8 @@
 </template>
 
 <script setup lang="ts">
-import StorageRepositorySizeProgressCell from '@/components/storage-repositories/panel/table/StorageRepositorySizeProgressCell.vue'
+import StorageRepositorySizeProgressCell from '@/components/storage-repositories/table/StorageRepositorySizeProgressCell.vue'
+import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import type { XoSr } from '@/types/xo/sr.type'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -100,7 +110,7 @@ import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTa
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -114,6 +124,8 @@ const { srs } = defineProps<{
 const { t } = useI18n()
 
 const selectedSrId = useRouteQuery('id')
+
+const { isDefaultSr } = useXoSrCollection()
 
 const searchQuery = ref('')
 
@@ -131,10 +143,12 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredSrs, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
-    define('name', record => ({ name: record.name_label, id: record.id }), { label: t('storage-repository') }),
+    define('name', record => ({ name: record.name_label, id: record.id, isDefaultSr: isDefaultSr(record) }), {
+      label: t('storage-repository'),
+    }),
     define('description', record => record.name_description, { label: t('description') }),
     define('storage-format', record => record.SR_type, { label: t('storage-format') }),
-    define('shared', record => record.shared, { label: t('shared') }),
+    define('access-mode', record => (record.shared ? t('shared') : t('local')), { label: t('access-mode') }),
     define('space', record => ({ used: record.physical_usage, total: record.size }), { label: t('space') }),
     define('more', noop, { label: '', isHideable: false }),
   ],
@@ -142,13 +156,13 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredSrs, {
 
 const { pageRecords: srsRecords, paginationBindings } = usePagination('srs', rows)
 
-type BackupJobHeader = 'name' | 'description' | 'storage-format' | 'shared' | 'space'
+type BackupJobHeader = 'name' | 'description' | 'storage-format' | 'access-mode' | 'space'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
   name: 'fa:a',
   description: 'fa:align-left',
   'storage-format': 'fa:square-caret-down',
-  shared: 'fa:square-caret-down',
+  'access-mode': 'fa:square-caret-down',
   space: 'fa:a',
 }
 </script>
@@ -179,8 +193,10 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
     line-height: 1;
   }
 
-  .shared {
-    text-transform: capitalize;
+  .name {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
   }
 }
 </style>

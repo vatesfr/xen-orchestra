@@ -5,7 +5,7 @@
       <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
     <UiCollapsibleList v-if="hosts.length > 0" tag="ul" :total-items="hosts.length">
-      <li v-for="host in hosts" :key="host.id">
+      <li v-for="host in hosts" :key="host.id" v-tooltip class="text-ellipsis">
         <UiLink size="small" icon="fa:server" :to="`/host/${host.id}`">
           {{ host.name_label }}
         </UiLink>
@@ -25,6 +25,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useI18n } from 'vue-i18n'
 
 const { hosts } = defineProps<{

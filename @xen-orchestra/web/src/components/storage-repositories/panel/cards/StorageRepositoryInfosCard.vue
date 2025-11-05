@@ -7,6 +7,12 @@
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
+        <template #key>{{ t('status') }}</template>
+        <template #value>
+          <VtsStatus :status="allPbdsConnectionStatus" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
         <template #key>{{ t('id') }}</template>
         <template #value>{{ sr.id }}</template>
         <template #addons>
@@ -54,14 +60,22 @@
           <VtsCopyButton :value="provisioning" />
         </template>
       </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('high-availability') }}</template>
+        <template #value><VtsStatus :status="isHaSr" /></template>
+      </VtsCardRowKeyValue>
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
+import { useXoPbdUtils } from '@/composables/xo-pbd-utils.composable'
+import { useXoPbdCollection } from '@/remote-resources/use-xo-pbd-collection'
+import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import type { XoSr } from '@/types/xo/sr.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -76,13 +90,18 @@ const { sr } = defineProps<{
 
 const { t } = useI18n()
 
-// TODO: compute connection status
+const { getPbdsByIds } = useXoPbdCollection()
+const { isHighAvailabilitySr } = useXoSrCollection()
 
-const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('unshared')))
+const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
+
+const isSrSharedI18nValue = computed(() => (sr.shared ? t('shared') : t('local')))
 
 const provisioning = computed(() => {
   return sr.allocationStrategy ?? t('unknown')
 })
+
+const isHaSr = isHighAvailabilitySr(() => sr)
 </script>
 
 <style scoped lang="postcss">

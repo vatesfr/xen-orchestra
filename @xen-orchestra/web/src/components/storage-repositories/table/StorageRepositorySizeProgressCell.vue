@@ -7,7 +7,7 @@
 
 <script setup lang="ts">
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
-import { useProgress } from '@core/packages/progress/use-progress'
+import { useProgress } from '@core/packages/progress/use-progress.ts'
 import { useI18n } from 'vue-i18n'
 
 const { current, total } = defineProps<{
