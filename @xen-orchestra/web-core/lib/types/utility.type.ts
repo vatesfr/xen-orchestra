@@ -1,3 +1,5 @@
+import type { XapiXoRecord, XoAlarm } from '@vates/types/'
+
 export type MaybeArray<T> = T | T[]
 
 export type VoidFunction = () => void
@@ -18,3 +20,7 @@ export type KeyOfByValue<T, TValue> =
     : never
 
 export type ArrayFilterPredicate<T> = (value: T, index: number, array: T[]) => boolean
+
+export type GetRecordByType<TType extends XapiXoRecord['type'] | 'alarm'> = TType extends 'alarm'
+  ? XoAlarm
+  : Extract<XapiXoRecord, { type: TType }>
