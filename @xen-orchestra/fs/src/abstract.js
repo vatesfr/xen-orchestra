@@ -165,7 +165,10 @@ export default class RemoteHandlerAbstract {
   }
 
   #conditionRetry(error) {
-    return !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'SystemInUse', 'ERR_ASSERTION'].includes(error?.code)
+    return (
+      !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'SystemInUse', 'ERR_ASSERTION'].includes(error?.code) &&
+      ![401, 403, 404, 405].includes(error?.$metadata?.httpStatusCode)
+    )
   }
 
   #applySafeGuards(options) {
