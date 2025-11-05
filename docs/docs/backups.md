@@ -24,7 +24,7 @@ Logs are not "live" tasks. If you restart XOA during a backup, the log associate
 
 ##### About syslog
 
-Syslog is a standard protocol used for logging system messages in a network. It allows devices such as servers, routers, firewalls and applications to send log or event messages to a centralized log server, called a **syslog server** or syslog daemon. 
+Syslog is a standard protocol used for logging system messages in a network. It allows devices such as servers, routers, firewalls and applications to send log or event messages to a centralized log server, called a **syslog server** or syslog daemon.
 
 This protocol simplifies log analysis and eliminates the need to connect to each machine individually. It's particularly useful for identifying common patterns and correlations among events, greatly aiding in debugging issues. Additionally, since logs are sent to a remote location, they remain intact on the destination machine even if deleted locally, which is beneficial in the event of intrusions.
 
@@ -40,13 +40,13 @@ Here's an example:
 
 You can send all your XO logs to an external syslog server.
 
-To enable syslog, add this to your configuration file (`/etc/xo-server/config.toml`): 
+To enable syslog, add this to your configuration file (`/etc/xo-server/config.toml`):
 
 ```
 [logs.transport.syslog]
 target = 'tcp://syslog.example.org:514'
 ```
-All logs viewable from `journalctl -u xo-server` will now be sent to your central syslog server. 
+All logs viewable from `journalctl -u xo-server` will now be sent to your central syslog server.
 
 ##### Compatibility
 
@@ -92,7 +92,7 @@ Backup repositories that were encrypted with `AES-256-GCM` will remain accessibl
 
 #### What is AES-256-GCM?
 
-Currently, backups use the [`AES-256-GCM`](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with incremental backups, as the data is split into smaller blocks, making it fully compatible with any remote (S3-compatible or file-based). 
+Currently, backups use the [`AES-256-GCM`](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard) encryption algorithm. While this is a highly secure option, it does have a file size limitation of 64 GiB. This isn't an issue when working with incremental backups, as the data is split into smaller blocks, making it fully compatible with any remote (S3-compatible or file-based).
 
 Full backups create one file per backup with all the data, that can go over 64 GB, even when using XCP-ng zstd encryption.
 
@@ -102,7 +102,7 @@ The `AES-256-GCM` algorithm is fully compliant with [ANSSI guidelines (in French
 
 ### Switching to the new encryption algorithm
 
-If you see an exclamation mark next to the encryption icon on a remote, it means the encryption algorithm isn't the recommended one. 
+If you see an exclamation mark next to the encryption icon on a remote, it means the encryption algorithm isn't the recommended one.
 
 To switch to `ChaCha20-Poly1305`, follow these steps:
 
@@ -601,7 +601,7 @@ The section called **Long-term retention of backups** appears.
 - **Daily backups**: The number of daily backups to keep.
 - **Weekly backups** (Son): The number of weekly backups to keep.
 - **Monthly backups** (Father): The number of monthly backups to keep.
-- **Yearly backups** (Grandfather): The number of monthly backups to keep.
+- **Yearly backups** (Grandfather): The number of yearly backups to keep.
 5. Click the **Save** button.
 
 During each backup run, Xen Orchestra evaluates existing backups and removes any excess backups based on the configured policy.
