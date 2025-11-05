@@ -16,6 +16,7 @@
 - [REST API] Expose `DELETE /rest/v0/events/:id/subscriptions` to remove a subscription in the SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
 
 - **XO 6:**
+  - Implement reactivity for VMs, VM templates, VM controllers, VIFs, VDIs, VBDs, SRs, pools, PIFs, PGPUs, PCIs, networks, alarms, and hosts (PR [#9183](https://github.com/vatesfr/xen-orchestra/pull/9183))
 
 ### Bug fixes
 
@@ -37,7 +38,10 @@
 
 <!--packages-start-->
 
+- @vates/types patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - xo-collection minor
 
 <!--packages-end-->
