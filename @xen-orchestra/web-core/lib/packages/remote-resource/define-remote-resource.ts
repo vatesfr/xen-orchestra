@@ -1,5 +1,5 @@
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
-import type { VoidFunction } from '@core/types/utility.type.ts'
+import type { GetRecordByType, VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
 import type { XapiXoRecord } from '@vates/types/'
 import { type MaybeRef, noop, useTimeoutPoll } from '@vueuse/core'
@@ -50,20 +50,20 @@ export function defineRemoteResource<TData, TState extends object, TArgs extends
 
 export function defineRemoteResource<
   TData,
-  TCollectionType extends XapiXoRecord['type'],
+  TCollectionType extends XapiXoRecord['type'] | 'alarm',
   TState extends object = { data: Ref<TData> },
   TArgs extends any[] = [],
 >(config: {
   url: string | ((...args: TArgs) => string)
   initialData: () => TData
   state?: (data: Ref<NoInfer<TData>>, context: ResourceContext<TArgs>) => TState
-  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: Extract<XapiXoRecord, { type: TCollectionType }>) => void
-  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: Extract<XapiXoRecord, { type: TCollectionType }>) => void
+  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: GetRecordByType<TCollectionType>) => void
+  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: GetRecordByType<TCollectionType>) => void
   cacheDurationMs?: number
   stream?: boolean
   watchCollection: {
     type: TCollectionType
-    fields: (keyof Extract<XapiXoRecord, { type: TCollectionType }>)[]
+    fields: (keyof GetRecordByType<TCollectionType>)[]
   }
 }): UseRemoteResource<TState, TArgs>
 
@@ -83,7 +83,7 @@ export function defineRemoteResource<
   stream?: boolean
   watchCollection?: {
     type: TCollectionType // reactivity only on XAPI XO record for now
-    fields: (keyof Extract<XapiXoRecord, { type: TCollectionType }>)[]
+    fields: (keyof GetRecordByType<TCollectionType>)[]
   }
 }) {
   const cache = new Map<

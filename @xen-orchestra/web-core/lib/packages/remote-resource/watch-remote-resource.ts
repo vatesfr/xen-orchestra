@@ -1,3 +1,4 @@
+import type { GetRecordByType } from '@core/types/utility.type'
 import type { XapiXoRecord } from '@vates/types/'
 import { useEventSource } from '@vueuse/core'
 import { ref, watch, watchEffect } from 'vue'
@@ -6,7 +7,7 @@ type EventFn = (object: XapiXoRecord) => void
 
 const sse = ref<{ id?: string; isWatching: boolean }>({ isWatching: false, id: undefined })
 const configByType: Map<
-  XapiXoRecord['type'],
+  XapiXoRecord['type'] | 'alarm',
   {
     events: {
       add: EventFn
@@ -17,9 +18,9 @@ const configByType: Map<
   }
 > = new Map()
 
-export function watchRemoteResource<TResourceType extends XapiXoRecord['type']>(
+export function watchRemoteResource<TResourceType extends XapiXoRecord['type'] | 'alarm'>(
   resource?: TResourceType,
-  fields?: (keyof Extract<XapiXoRecord, { type: TResourceType }>)[]
+  fields?: (keyof GetRecordByType<TResourceType>)[]
 ) {
   function initializeWatcher() {
     return new Promise((resolve, reject) => {
