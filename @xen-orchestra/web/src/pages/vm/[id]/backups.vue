@@ -19,14 +19,13 @@
 <script setup lang="ts">
 import BackupJobsTable from '@/components/backups/jobs/BackupJobsTable.vue'
 import BackupJobsSidePanel from '@/components/backups/jobs/panel/BackupJobsSidePanel.vue'
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection'
 import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
-import type { XoVm } from '@/types/xo/vm.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
+import type { AnyXoBackupJob, XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
@@ -35,11 +34,14 @@ const { vm } = defineProps<{
 
 const uiStore = useUiStore()
 
-const { backupJobs: vmBackupJobs, hasBackupJobFetchError: hasVmBackupJobFetchError } = useXoBackupJobCollection({}, () => vm.id)
+const { backupJobs: vmBackupJobs, hasBackupJobFetchError: hasVmBackupJobFetchError } = useXoBackupJobCollection(
+  {},
+  () => vm.id
+)
 
 const { t } = useI18n()
 
-const selectedBackupJob = useRouteQuery<XoBackupJob | undefined>('id', {
+const selectedBackupJob = useRouteQuery<AnyXoBackupJob | undefined>('id', {
   toData: id => vmBackupJobs.value.find(backupJob => backupJob.id === id),
   toQuery: backupJob => backupJob?.id ?? '',
 })

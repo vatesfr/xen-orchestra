@@ -39,7 +39,7 @@
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('started')">
-      <template v-if="host.power_state === HOST_POWER_STATE.RUNNING" #value>
+      <template v-if="host.power_state === HOST_POWER_STATE.RUNNING && host.startTime" #value>
         <VtsRelativeTime :date="host.startTime * 1000" />
       </template>
     </VtsQuickInfoRow>

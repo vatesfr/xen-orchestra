@@ -1,68 +1,35 @@
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection'
+import { getMetadataBackupJobSettings } from '@/composables/xo-backup-job/get-metadata-backup-job-settings'
+import { getMirrorBackupJobSettings } from '@/composables/xo-backup-job/get-mirror-backup-job-settings'
+import { getVmBackupJobSettings } from '@/composables/xo-backup-job/get-vm-backup-job-settings'
+import type { ReportWhen } from '@/composables/xo-backup-job/types.ts'
 import { useXoProxyCollection } from '@/remote-resources/use-xo-proxy-collection'
 import { useMapper } from '@core/packages/mapper'
 import { formatSpeedRaw } from '@core/utils/speed.util'
 import { formatTimeout } from '@core/utils/time.util'
 import { toComputed } from '@core/utils/to-computed.util'
+import type { AnyXoBackupJob } from '@vates/types'
 import { reactiveComputed } from '@vueuse/shared'
 import type { Info } from 'human-format'
 import type humanFormat from 'human-format'
 import { computed, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-type ReportWhen = 'always' | 'failure' | 'error' | 'never'
-
-export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<XoBackupJob>) {
+export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<AnyXoBackupJob>) {
   const { locale, t } = useI18n()
   const { useGetProxyById } = useXoProxyCollection()
 
   const backupJob = toComputed(rawBackupJob)
 
   const settings = reactiveComputed(() => {
-    if (!backupJob.value.settings['']) {
-      return {}
-    }
-
-    const {
-      preferNbd,
-      cbtDestroySnapshotData,
-      concurrency,
-      nbdConcurrency,
-      maxExportRate,
-      nRetriesVmBackupFailures,
-      hideSuccessfulItems,
-      backupReportTpl,
-      reportWhen,
-      timeout,
-      checkpointSnapshot,
-      offlineBackup,
-      offlineSnapshot,
-      mergeBackupsSynchronously,
-      timezone,
-      reportRecipients,
-      ...other
-    } = backupJob.value.settings['']
-
-    return {
-      compression: backupJob.value.compression,
-      proxy: backupJob.value.proxy,
-      preferNbd,
-      cbtDestroySnapshotData,
-      concurrency,
-      nbdConcurrency,
-      maxExportRate,
-      nRetriesVmBackupFailures,
-      hideSuccessfulItems,
-      backupReportTpl,
-      reportWhen,
-      timeout,
-      checkpointSnapshot,
-      offlineBackup,
-      offlineSnapshot,
-      mergeBackupsSynchronously,
-      timezone,
-      reportRecipients: reportRecipients as string[],
-      other,
+    switch (backupJob.value.type) {
+      case 'backup':
+        return getVmBackupJobSettings(backupJob.value)
+      case 'metadataBackup':
+        return getMetadataBackupJobSettings(backupJob.value)
+      case 'mirrorBackup':
+        return getMirrorBackupJobSettings(backupJob.value)
+      default:
+        throw new Error(`Unsupported backup job type: ${(backupJob.value as AnyXoBackupJob).type}`)
     }
   })
 
@@ -81,15 +48,14 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<XoBac
   )
 
   const compression = computed(() => {
-    if (backupJob.value.compression === undefined) {
-      return undefined
+    switch (settings.compression) {
+      case undefined:
+        return undefined
+      case 'native':
+        return 'GZIP'
+      default:
+        return settings.compression
     }
-
-    if (backupJob.value.compression === 'native') {
-      return 'GZIP'
-    }
-
-    return backupJob.value.compression
   })
 
   const proxy = useGetProxyById(() => backupJob.value.proxy)

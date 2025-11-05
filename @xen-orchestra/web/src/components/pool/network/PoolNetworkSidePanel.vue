@@ -170,9 +170,7 @@ const networkVlan = computed(() => {
 
 const networkNbd = computed(() => (network.nbd ? t('on') : t('off')))
 
-const networkDefaultLockingMode = computed(() =>
-  network.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
-)
+const networkDefaultLockingMode = computed(() => (network.defaultIsLocked ? t('disabled') : t('unlocked')))
 
 const pifsCount = computed(() => pifs.value.length)
 </script>

@@ -336,7 +336,7 @@ import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
-import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type.ts'
+import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
@@ -521,7 +521,7 @@ const getExistingVdis = (template: XoVmTemplate) => {
       return acc
     }
 
-    const vdi = getVdiById(vbd.VDI)
+    const vdi = getVdiById(vbd.VDI as XoVdi['id'])
 
     if (vdi === undefined) {
       console.error('VDI not found')

@@ -92,11 +92,19 @@ const powerState = computed(() => {
   }
 })
 
-const date = computed(() => new Date(parseDateTime(host.startTime * 1000)))
+const date = computed(() => (host.startTime === null ? undefined : new Date(parseDateTime(host.startTime * 1000))))
+
 const now = useNow({ interval: 1000 })
-const relativeStartTime = useRelativeTime(date, now)
+
+const baseRelativeStartTime = useRelativeTime(
+  computed(() => (date.value === undefined ? now.value : date.value)),
+  now
+)
+
+const relativeStartTime = computed(() => (date.value === undefined ? undefined : baseRelativeStartTime.value))
 
 const isMaster = computed(() => isMasterHost(host.id))
+
 const masterHost = computed(() => getMasterHostByPoolId(host.$pool))
 
 const ram = computed(() => formatSizeRaw(host.memory.size, 1))

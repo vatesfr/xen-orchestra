@@ -51,7 +51,11 @@ export const useXoPifCollection = defineRemoteResource({
     })
 
     function getBondsDevices(pif: XoPif) {
-      return pif.isBondMaster ? pif.bondSlaves.flatMap(slaveId => state.getPifById(slaveId)?.device ?? []) : []
+      if (!pif.isBondMaster || !pif.bondSlaves) {
+        return []
+      }
+
+      return pif.bondSlaves.flatMap(slaveId => state.getPifById(slaveId)?.device ?? [])
     }
 
     return {

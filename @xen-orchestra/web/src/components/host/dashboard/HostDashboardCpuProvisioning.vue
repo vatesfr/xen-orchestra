@@ -5,7 +5,7 @@
     <template v-else>
       <VtsProgressBar
         :label="t('vcpus')"
-        :total="cpusCount"
+        :total="cpusCount ?? vCpusCount"
         :thresholds="cpuProgressThresholds(t('cpu-provisioning-warning'))"
         :current="vCpusCount"
         legend-type="percent"

@@ -1,5 +1,5 @@
-import type { XoBackupLog } from '@/types/xo/backup-log.type'
 import { formatSizeRaw } from '@core/utils/size.util'
+import type { XoBackupLog } from '@vates/types'
 import type { Info, Scale } from 'human-format'
 import { useI18n } from 'vue-i18n'
 

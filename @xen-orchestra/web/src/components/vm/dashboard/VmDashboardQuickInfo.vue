@@ -85,7 +85,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { parseDateTime } from '@core/utils/time.util.ts'
-import { VM_POWER_STATE, type XoVm } from '@vates/types'
+import { HOST_POWER_STATE, VM_POWER_STATE, type XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

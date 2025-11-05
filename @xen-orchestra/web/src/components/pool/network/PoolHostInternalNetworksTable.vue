@@ -165,7 +165,7 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? networkIds.value : []
 }
 
-const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
+const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unlocked'))
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.id,
@@ -174,7 +174,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
     define('name_label', { label: t('name') }),
     define('name_description', { label: t('description') }),
     define('MTU', { label: t('mtu') }),
-    define('default_locking_mode', record => getLockingMode(record.default_locking_mode), {
+    define('default_locking_mode', record => getLockingMode(record.defaultIsLocked), {
       label: t('default-locking-mode'),
     }),
     define('more', noop, { label: '', isHideable: false }),

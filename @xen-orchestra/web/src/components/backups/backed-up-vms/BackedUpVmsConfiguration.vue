@@ -78,7 +78,6 @@
 
 <script lang="ts" setup>
 import { useXoBackedUpVmsUtils } from '@/composables/xo-backed-up-vms-utils.composable'
-import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -89,6 +88,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XoVmBackupJob } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 
