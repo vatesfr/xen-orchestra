@@ -124,7 +124,7 @@ describe('_getOldEntries() should succeed', () => {
         0,
         [
           { timestamp: +new Date('2024-08-31 09:01:00'), id: 1 }, // 4th day too old
-          { timestamp: +new Date('2024-09-01 00:10:00'), id: 2 }, // thisd day
+          { timestamp: +new Date('2024-09-01 00:10:00'), id: 2 }, // third day
           { timestamp: +new Date('2024-09-01 14:20:00'), id: 3 }, // second day, oldest
           { timestamp: +new Date('2024-09-02 00:22:00'), id: 4 }, // second day
           { timestamp: +new Date('2024-09-03 14:00:00'), id: 5 }, // same day oldest
