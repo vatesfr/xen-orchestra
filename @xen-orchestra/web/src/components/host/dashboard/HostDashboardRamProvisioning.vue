@@ -29,13 +29,13 @@
 
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import type { XoHost } from '@/types/xo/host.type'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
+import type { XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

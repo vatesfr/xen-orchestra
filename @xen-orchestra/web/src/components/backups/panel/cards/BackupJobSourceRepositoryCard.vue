@@ -11,10 +11,10 @@
 
 <script lang="ts" setup>
 import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection.ts'
-import type { XoMirrorBackupJob } from '@/types/xo/mirror-backup-job.type.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import type { XoMirrorBackupJob } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

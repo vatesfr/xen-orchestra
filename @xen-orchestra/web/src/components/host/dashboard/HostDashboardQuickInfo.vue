@@ -51,7 +51,6 @@
 
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { HOST_POWER_STATE, type XoHost } from '@/types/xo/host.type'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
@@ -64,6 +63,7 @@ import useRelativeTime from '@core/composables/relative-time.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util'
+import { HOST_POWER_STATE, type XoHost } from '@vates/types'
 import { useNow } from '@vueuse/core'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
@@ -92,11 +92,19 @@ const powerState = computed(() => {
   }
 })
 
-const date = computed(() => new Date(parseDateTime(host.startTime * 1000)))
+const date = computed(() => (host.startTime === null ? undefined : new Date(parseDateTime(host.startTime * 1000))))
+
 const now = useNow({ interval: 1000 })
-const relativeStartTime = useRelativeTime(date, now)
+
+const baseRelativeStartTime = useRelativeTime(
+  computed(() => (date.value === undefined ? now.value : date.value)),
+  now
+)
+
+const relativeStartTime = computed(() => (date.value === undefined ? undefined : baseRelativeStartTime.value))
 
 const isMaster = computed(() => isMasterHost(host.id))
+
 const masterHost = computed(() => getMasterHostByPoolId(host.$pool))
 
 const ram = computed(() => formatSizeRaw(host.memory.size, 1))

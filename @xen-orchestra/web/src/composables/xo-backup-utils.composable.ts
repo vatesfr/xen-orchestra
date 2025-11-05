@@ -1,7 +1,4 @@
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
-import type { XoMetadataBackupJob } from '@/types/xo/metadata-backup-job.type.ts'
-import type { XoMirrorBackupJob } from '@/types/xo/mirror-backup-job.type.ts'
-import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
+import type { AnyXoBackupJob, XoMetadataBackupJob, XoMirrorBackupJob, XoVmBackupJob } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export function useXoBackupUtils() {
@@ -10,7 +7,8 @@ export function useXoBackupUtils() {
   const hasSnapshotRetention = (backupJob: XoVmBackupJob) =>
     Object.values(backupJob.settings).some(
       settingsGroup =>
-        settingsGroup.snapshotRetention &&
+        settingsGroup &&
+        'snapshotRetention' in settingsGroup &&
         typeof settingsGroup.snapshotRetention === 'number' &&
         settingsGroup.snapshotRetention > 0
     )
@@ -74,7 +72,7 @@ export function useXoBackupUtils() {
     return modes
   }
 
-  function getModeLabels(backupJob: XoBackupJob): string[] {
+  function getModeLabels(backupJob: AnyXoBackupJob): string[] {
     switch (backupJob.type) {
       case 'mirrorBackup':
         return getMirrorBackupModes(backupJob)

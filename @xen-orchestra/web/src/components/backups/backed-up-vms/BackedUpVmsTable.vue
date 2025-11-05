@@ -62,8 +62,6 @@
 <script setup lang="ts">
 import { useXoBackedUpVmsUtils } from '@/composables/xo-backed-up-vms-utils.composable'
 import { useXoVmBackupArchiveCollection } from '@/remote-resources/use-xo-vm-backup-archive-collection'
-import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
-import { VM_POWER_STATE, type XoVm } from '@/types/xo/vm.type.ts'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -80,7 +78,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { formatSizeRaw } from '@core/utils/size.util'
-import type { XoBackupRepository } from '@vates/types'
+import { VM_POWER_STATE, type XoVm, type XoVmBackupJob, type XoBackupRepository } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

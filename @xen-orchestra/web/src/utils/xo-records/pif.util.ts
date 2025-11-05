@@ -1,5 +1,5 @@
-import type { XoPif } from '@/types/xo/pif.type.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
+import type { XoPif } from '@vates/types'
 
 export function getPifStatus(pif: XoPif): Status {
   if (!pif.attached) {

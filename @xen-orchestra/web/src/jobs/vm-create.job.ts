@@ -1,4 +1,4 @@
-import type { XoPool } from '@/types/xo/pool.type.ts'
+import type { XoPool } from '@vates/types'
 import { useFetch } from '@vueuse/core'
 
 export async function createVM(payload: Record<string, any>, poolId: XoPool['id']) {

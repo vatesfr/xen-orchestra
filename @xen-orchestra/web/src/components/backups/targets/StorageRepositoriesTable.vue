@@ -61,7 +61,6 @@
 </template>
 
 <script setup lang="ts">
-import type { XoSr } from '@/types/xo/sr.type'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -75,6 +74,7 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { formatSizeRaw } from '@core/utils/size.util'
+import type { XoSr } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

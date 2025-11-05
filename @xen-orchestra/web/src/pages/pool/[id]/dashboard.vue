@@ -42,9 +42,9 @@ import { useXoPoolDashboard } from '@/remote-resources/use-xo-pool-dashboard.ts'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection.ts'
-import type { XoPool } from '@/types/xo/pool.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoPool } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 
 const { pool } = defineProps<{ pool: XoPool }>()

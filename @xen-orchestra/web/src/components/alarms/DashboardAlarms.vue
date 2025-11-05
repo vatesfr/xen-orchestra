@@ -36,7 +36,6 @@
 
 <script setup lang="ts">
 import AlarmLink from '@/components/alarms/AlarmLink.vue'
-import type { XoAlarm } from '@/types/xo/alarm.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlarmItem from '@core/components/ui/alarm-item/UiAlarmItem.vue'
 import UiAlarmList from '@core/components/ui/alarm-list/UiAlarmList.vue'
@@ -44,6 +43,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoAlarm } from '@vates/types'
 import { useVirtualList } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

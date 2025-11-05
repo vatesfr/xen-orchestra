@@ -7,8 +7,8 @@
 </template>
 
 <script setup lang="ts">
-import type { XoBackupRepository } from '@/types/xo/br.type.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import type { XoBackupRepository } from '@vates/types'
 import { computed } from 'vue'
 
 const { br } = defineProps<{

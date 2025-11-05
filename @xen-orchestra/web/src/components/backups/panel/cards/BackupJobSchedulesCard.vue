@@ -61,7 +61,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoSchedule } from '@/types/xo/schedule.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
@@ -70,6 +69,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import type { XoSchedule } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { backupJobSchedules } = defineProps<{

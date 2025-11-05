@@ -11,13 +11,9 @@ import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.t
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection.ts'
-import type { XoHost } from '@/types/xo/host.type.ts'
-import type { XoSr } from '@/types/xo/sr.type.ts'
-import type { XoVmController } from '@/types/xo/vm-controller.type.ts'
-import type { XoVm } from '@/types/xo/vm.type.ts'
 import type { IconName } from '@core/icons'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XapiXoRecord } from '@vates/types'
+import type { XapiXoRecord, XoHost, XoSr, XoVm, XoVmController } from '@vates/types'
 import { computed } from 'vue'
 
 const { type, uuid } = defineProps<{

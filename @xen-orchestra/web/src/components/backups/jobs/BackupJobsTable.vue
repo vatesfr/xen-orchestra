@@ -99,7 +99,6 @@
 <script setup lang="ts">
 import { useXoBackupJobSchedulesUtils } from '@/composables/xo-backup-job-schedules.composable'
 import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -117,12 +116,13 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import type { AnyXoBackupJob } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJobs } = defineProps<{
-  backupJobs: XoBackupJob[]
+  backupJobs: AnyXoBackupJob[]
   hasError: boolean
 }>()
 

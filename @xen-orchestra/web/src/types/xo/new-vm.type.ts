@@ -1,10 +1,4 @@
-import type { XoHost } from '@/types/xo/host.type.ts'
-import type { XoNetwork } from '@/types/xo/network.type.ts'
-import type { XoPool } from '@/types/xo/pool.type'
-import type { XoSr } from '@/types/xo/sr.type.ts'
-import type { XoVdi } from '@/types/xo/vdi.type.ts'
-import type { XoVif } from '@/types/xo/vif.type.ts'
-import type { XoVmTemplate } from '@/types/xo/vm-template.type'
+import type { XoHost, XoNetwork, XoPool, XoSr, XoVdi, XoVif, XoVmTemplate } from '@vates/types'
 
 export interface Vdi {
   name_label: string
