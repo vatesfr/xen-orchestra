@@ -46,7 +46,7 @@ describe('_getOldEntries() should succeed', () => {
         [
           { timestamp: +new Date('2024-08-30 00:01:00'), id: 1 }, // week n-3 too old
           { timestamp: +new Date('2024-08-31 00:00:00'), id: 2 }, // week n-3 too old
-          { timestamp: +new Date('2024-09-03 00:09:00'), id: 3 }, // week n-2
+          { timestamp: +new Date('2024-09-03 00:09:00'), id: 3 }, // week n-2, oldest
           { timestamp: +new Date('2024-09-04 00:09:00'), id: 4 }, // week n-2
           { timestamp: +new Date('2024-09-05 00:09:00'), id: 5 }, // week n-2
           { timestamp: +new Date('2024-09-06 00:09:00'), id: 6 }, // week n-2
