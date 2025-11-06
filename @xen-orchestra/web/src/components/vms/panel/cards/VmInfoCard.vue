@@ -205,8 +205,6 @@ const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay }
 
 <style scoped lang="postcss">
 .card-container {
-  display: flex;
-  flex-direction: column;
   gap: 1.6rem;
 
   .content {
