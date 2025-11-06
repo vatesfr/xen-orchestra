@@ -22,6 +22,7 @@
 
 - **XO 6:**
   - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
+  - [Site/VMs] Implement VMs view and side panel information (PR [#9145](https://github.com/vatesfr/xen-orchestra/pull/9145))
 
 ### Bug fixes
 
