@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="vm.name_label !== undefined" size="medium" icon="fa:desktop" :to="`/vm/${vm.id}`">
+      <UiLink v-if="vm.name_label !== undefined" size="medium" icon="fa:desktop" :to="`/vm/${vm.id}/dashboard`">
         {{ vm.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -45,7 +45,7 @@
         <template #value>
           <div v-if="pool" class="pool-name">
             <VtsIcon name="fa:city" size="small" />
-            <UiLink :to="`/pool/${pool.id}`" size="small">
+            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -60,7 +60,7 @@
           <div v-if="host" class="host-name">
             <VtsObjectIcon type="host" :state="hostPowerState" size="small" />
             <div v-tooltip class="text-ellipsis">
-              <UiLink :to="`/host/${host.id}`" size="small">
+              <UiLink :to="`/host/${host.id}/dashboard`" size="small">
                 {{ host.name_label }}
               </UiLink>
             </div>
@@ -177,8 +177,6 @@ const { powerState, host, isMaster, hostPowerState, installDateFormatted, relati
 
 <style scoped lang="postcss">
 .card-container {
-  display: flex;
-  flex-direction: column;
   gap: 1.6rem;
 
   .content {
