@@ -25,7 +25,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vm.name_description }}</template>
-        <template #addons>
+        <template v-if="vm.name_description" #addons>
           <VtsCopyButton :value="vm.name_description" />
         </template>
       </VtsCardRowKeyValue>
