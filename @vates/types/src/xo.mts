@@ -140,7 +140,12 @@ type BaseXoLog = {
   [key: string]: unknown
 }
 export type XoBackupLog = BaseXoLog & {
+  status: 'success' | 'skipped' | 'interrupted' | 'failure' | 'pending'
   message: 'backup' | 'metadata'
+  start: number
+  end?: number
+  tasks?: XoTask[]
+  jobId?: AnyXoBackupJob['id']
 }
 export type XoRestoreLog = BaseXoLog & {
   message: 'restore'
@@ -228,7 +233,7 @@ export type XoHost = BaseXapiXo & {
 
   address: string
   agentStartTime: null | number
-  bios_string: Record<string, string>
+  bios_strings: Record<string, string>
   build: string
   certificates?: {
     fingerprint: string
@@ -237,7 +242,7 @@ export type XoHost = BaseXapiXo & {
   chipset_info: {
     iommu?: boolean
   }
-  controlDomain?: XoVm['id']
+  controlDomain?: XoVmController['id']
   cpus: {
     cores?: number
     sockets?: number
@@ -385,7 +390,7 @@ export type XoPif = BaseXapiXo & {
 
   attached: boolean
   bondMaster?: XoPif['id']
-  bondSalves?: XoPif['id'][]
+  bondSlaves?: XoPif['id'][]
   carrier: boolean
   device: string
   deviceName?: string
@@ -418,7 +423,7 @@ export type XoPool = BaseXapiXo & {
   }
   crashDumpSr?: XoSr['id']
   current_operations: Record<string, POOL_ALLOWED_OPERATIONS>
-  defaultSr?: XoSr['id']
+  default_SR?: XoSr['id']
   HA_enabled: boolean
   haSrs: XoSr['id'][]
   id: Branded<'pool'>
@@ -455,6 +460,7 @@ type BaseXoJob = {
 type XoBackupJobGeneralSettings = {
   backupReportTpl?: 'compactMjml' | 'mjml'
   reportWhen?: 'always' | 'error' | 'failure' | 'never'
+  reportRecipients?: string[]
   hideSuccessfulItems?: boolean
   [key: string]: unknown
 }
@@ -468,6 +474,8 @@ export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
     monthly?: { retention: number; settings: Record<string, unknown> }
     yearly?: { retention: number; settings: Record<string, unknown> }
   }
+  checkpointSnapshot?: boolean
+  offlineSnapshot?: boolean
   maxExportRate?: number
   nbdConcurrency?: number
   nRetriesVmBackupFailures?: number
@@ -476,7 +484,6 @@ export type XoVmBackupJobGeneralSettings = XoBackupJobGeneralSettings & {
   mergeBackupsSynchronously?: boolean
   offlineBackup?: boolean
   timeout?: number
-  [key: string]: unknown
 }
 export type XoVmBackupJobScheduleSettings = {
   exportRetention?: number
@@ -524,11 +531,11 @@ export type XoMetadataBackupJob = BaseXoJob & {
 export type XoMirrorBackupGeneralSettings = XoBackupJobGeneralSettings & {
   concurrency?: number
   nRetriesVmBackupFailures?: number
+  mergeBackupsSynchronously?: boolean
   timeout?: number
   maxExportRate?: number
   backupReportTpl?: 'compactMjml'
   reportWhen: 'failure'
-  [key: string]: unknown
 }
 export type XoMirrorBackupScheduleSettings = {
   exportRetention?: number
@@ -541,6 +548,7 @@ export type XoMirrorBackupJob = BaseXoJob & {
   mode: 'full' | 'delta'
   sourceRemote: XoBackupRepository['id']
   remotes: CMType.IdOr<XoBackupRepository['id']>
+  proxy?: XoProxy['id']
   settings: {
     '': XoMirrorBackupGeneralSettings
     [scheduleId: XoSchedule['id']]: XoMirrorBackupScheduleSettings | undefined
