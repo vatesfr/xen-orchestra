@@ -48,7 +48,26 @@
       <VtsQuickInfoRow :label="t('description')" :value="vm.name_description" />
       <VtsQuickInfoRow :label="t('os-name')" :value="vm.os_version?.name" />
       <VtsQuickInfoRow :label="t('virtualization-type')" :value="virtualizationType" />
-      <VtsQuickInfoRow :label="t('guest-tools')" :value="vm.managementAgentDetected ? vm.pvDriversVersion : ''" />
+      <VtsQuickInfoRow :label="t('guest-tools')">
+        <template #value>
+          <div class="guest-tools">
+            <VtsIcon
+              v-if="guestToolsDisplay.value !== '-'"
+              v-tooltip="guestToolsDisplay.tooltip"
+              :name="guestToolsDisplay.type === 'link' ? 'legacy:halted' : 'legacy:checked'"
+              size="medium"
+            />
+            <template v-if="guestToolsDisplay.type === 'link'">
+              <UiLink size="small" href="https://docs.xcp-ng.org/vms/#guest-tools">
+                {{ guestToolsDisplay.value }}
+              </UiLink>
+            </template>
+            <template v-else>
+              {{ guestToolsDisplay.value }}
+            </template>
+          </div>
+        </template>
+      </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('vcpus')" :value="String(vm.CPUs.number)" />
@@ -94,7 +113,8 @@ const { t } = useI18n()
 const { areVmsReady } = useXoVmCollection()
 const { useGetPoolById } = useXoPoolCollection()
 
-const { powerState, host, isMaster, hostPowerState, installDateFormatted, relativeStartTime } = useXoVmUtils(() => vm)
+const { powerState, host, isMaster, hostPowerState, installDateFormatted, relativeStartTime, guestToolsDisplay } =
+  useXoVmUtils(() => vm)
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 
@@ -111,10 +131,11 @@ const virtualizationType = computed(() =>
 .vm-dashboard-quick-info {
   .power-state,
   .host-name,
-  .pool-name {
+  .pool-name,
+  .guest-tools {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.8rem;
   }
 }
 </style>
