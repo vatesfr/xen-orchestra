@@ -60,8 +60,6 @@ const ipAddresses = computed(() => getIpAddresses(vm))
 
 <style scoped lang="postcss">
 .card-container {
-  display: flex;
-  flex-direction: column;
   gap: 1.6rem;
 
   .content {

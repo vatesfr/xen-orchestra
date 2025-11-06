@@ -17,15 +17,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" @update:model-value="toggleSelect" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
+              <th>
                 <div v-tooltip class="text-ellipsis">
                   <VtsIcon accent="brand" size="medium" :name="headerIcon[column.id]" />
                   {{ column.label }}
@@ -41,34 +33,18 @@
             :class="{ selected: selectedVmId === row.id }"
             @click="selectedVmId = row.id"
           >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox disabled accent="brand" :value="row.id" />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="column.id === 'name_label'" v-tooltip class="text-ellipsis">
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
+              <div v-if="column.id === 'name_label'" v-tooltip class="text-ellipsis">
                 <UiLink size="medium" icon="fa:desktop" :to="`/vm/${row.id}`" @click.stop>
                   {{ column.value }}
                 </UiLink>
               </div>
               <div
                 v-else-if="column.id === 'ip-addresses'"
-                v-tooltip="[column.value].filter(Boolean).join(', ')"
+                v-tooltip="column.value.length > 1 ? column.value.join(', ') : undefined"
                 class="ip-addresses"
               >
-                <span class="text-ellipsis">{{ column.value[0] }}</span>
+                <span v-tooltip="column.value.length === 1" class="text-ellipsis">{{ column.value[0] }}</span>
                 <span v-if="column.value.length > 1" class="typo-body-regular-small more-info">
                   {{ `+${column.value.length - 1}` }}
                 </span>
@@ -114,8 +90,6 @@ import { getIpAddresses, getRam } from '@/utils/xo-records/vm.util.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
@@ -130,7 +104,6 @@ import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { type IconName } from '@core/icons'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -161,7 +134,7 @@ const filteredVms = computed(() => {
 
 const vmIds = computed(() => vms.map(vm => vm.id))
 
-const { selected, areAllSelected } = useMultiSelect(vmIds)
+const { selected } = useMultiSelect(vmIds)
 
 const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? vmIds.value : []
@@ -178,14 +151,12 @@ const getDiskSpace = (vm: XoVm) => {
 const { visibleColumns, rows } = useTable('vms', filteredVms, {
   rowId: record => record.id,
   columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', record => record.name_label, { label: t('vm') }),
     define('ip-addresses', record => getIpAddresses(record), { label: t('ip-addresses') }),
     define('CPUs', record => record.CPUs.number, { label: t('vcpus') }),
     define('memory', record => getRam(record), { label: t('ram') }),
     define('disk-space', record => getDiskSpace(record), { label: t('disk-space') }),
     define('tags', record => record.tags, { label: t('tags') }),
-    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
@@ -229,16 +200,6 @@ const headerIcon: Record<VmHeader, IconName> = {
     .more-info {
       color: var(--color-neutral-txt-secondary);
     }
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 
   .number {
