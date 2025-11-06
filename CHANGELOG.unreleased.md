@@ -43,6 +43,7 @@
 - @vates/types minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/xapi patch
 - xo-collection minor
 - xo-server minor
 - xo-server-usage-report minor
