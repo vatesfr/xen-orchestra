@@ -6,6 +6,7 @@
       <UiTitle>{{ t('about') }}</UiTitle>
       <VtsColumns class="columns">
         <VtsQuickInfoColumn>
+        <!-- TODO Update all h6 title when component is updated -->
           <div class="typo-h6">{{ t('xen-orchestra') }}</div>
           <VtsQuickInfoRow :label="t('version')">
             <template #value />
