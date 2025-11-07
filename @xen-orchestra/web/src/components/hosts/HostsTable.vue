@@ -8,11 +8,7 @@
           <UiTablePagination v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
-      <VtsDataTable
-        :no-data-message="hosts.length === 0 ? t('no-host-detected') : undefined"
-        :has-error
-        :is-ready="!tableReady"
-      >
+      <VtsDataTable :no-data-message="hosts.length === 0 ? t('no-hosts-detected') : undefined" :has-error :is-ready>
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
@@ -58,9 +54,9 @@
                 size="small"
               />
               <div v-else-if="column.id === 'host'">
-                <UiObjectLink :route="`/host/${column.value.id}/`" @click.stop>
+                <UiObjectLink :route="`/host/${row.id}/`" @click.stop>
                   <template #icon>
-                    <VtsObjectIcon size="medium" :state="isHostRunning(column.value.state)" type="host" />
+                    <VtsObjectIcon size="medium" :state="getHostState(column.value.state)" type="host" />
                   </template>
                   {{ column.value.label }}
                 </UiObjectLink>
@@ -68,7 +64,7 @@
               <span v-else-if="column.id === 'description'" v-tooltip class="text-ellipsis">
                 {{ column.value }}
               </span>
-              <span
+              <div
                 v-else-if="column.id === 'ip-addresses'"
                 v-tooltip="[column.value].join(', ')"
                 class="text-ellipsis ip-addresses"
@@ -77,16 +73,25 @@
                 <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
                   {{ `+${column.value.length - 1}` }}
                 </span>
-              </span>
-              <span v-else-if="column.id === 'tags'">
-                <template v-if="column.value.length > 0">
-                  <UiTagsList>
-                    <UiTag v-for="tag in column.value" :key="tag" accent="info" variant="secondary">
+              </div>
+              <div v-else-if="column.id === 'tags'" v-tooltip="[column.value].filter(Boolean).join(', ')" class="tags">
+                <div v-if="column.value.length > 0" class="text-ellipsis">
+                  <UiTagsList nowrap>
+                    <UiTag
+                      v-for="tag in column.value.slice(0, 2)"
+                      :key="tag"
+                      v-tooltip="false"
+                      accent="info"
+                      variant="secondary"
+                    >
                       {{ tag }}
                     </UiTag>
                   </UiTagsList>
-                </template>
-              </span>
+                </div>
+                <div v-if="column.value.length > 2" class="typo-body-regular-small more-info">
+                  {{ `+${column.value.length - 2}` }}
+                </div>
+              </div>
             </td>
           </tr>
         </template>
@@ -102,6 +107,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoHostUtils } from '@/composables/xo-host.composable'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection'
 import type { XoHost } from '@/types/xo/host.type'
 import type { IconName } from '@core/icons'
@@ -123,15 +129,12 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { HOST_POWER_STATE } from '@vates/types'
-import { logicAnd } from '@vueuse/math'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { hosts, hostReady } = defineProps<{
+const { hosts } = defineProps<{
   hosts: XoHost[]
-  hostReady: boolean
   hasError: boolean
 }>()
 
@@ -142,10 +145,9 @@ const { t } = useI18n()
 const searchQuery = ref('')
 
 const selectedHostId = useRouteQuery('id')
-const { pifsByHost, arePifsReady } = useXoPifCollection()
+const { pifsByHost, arePifsReady: isReady } = useXoPifCollection()
 const { selected, areAllSelected } = useMultiSelect(hostsId)
-
-const tableReady = logicAnd(arePifsReady, hostReady)
+const { getHostState } = useXoHostUtils()
 
 const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? hostsId.value : []
@@ -184,8 +186,8 @@ const { visibleColumns, rows } = useTable('hosts', filteredHosts, {
   rowId: record => record.id,
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
-    define('host', record => ({ label: record.name_label, id: record.id, state: record.power_state }), {
-      label: t('name'),
+    define('host', record => ({ label: record.name_label, state: record.power_state }), {
+      label: t('host'),
     }),
     define('description', record => record.name_description, { label: t('description') }),
     define('ip-addresses', record => getIpAddresses(record), { label: t('ip-addresses') }),
@@ -204,16 +206,6 @@ const headerIcon: Record<HostHeader, IconName> = {
   'ip-addresses': 'fa:align-left',
   tags: 'fa:square-caret-down',
 }
-
-const isHostRunning = (host: HOST_POWER_STATE) => {
-  if (host === HOST_POWER_STATE.RUNNING) {
-    return 'running'
-  } else if (host === HOST_POWER_STATE.HALTED) {
-    return 'halted'
-  } else {
-    return 'unknown'
-  }
-}
 </script>
 
 <style scoped lang="postcss">
@@ -227,6 +219,7 @@ const isHostRunning = (host: HOST_POWER_STATE) => {
 .hosts-table {
   gap: 2.4rem;
 
+  .container,
   .table-actions {
     gap: 0.8rem;
   }
@@ -241,6 +234,11 @@ const isHostRunning = (host: HOST_POWER_STATE) => {
     }
   }
 
+  .tags {
+    display: flex;
+  }
+
+  .checkbox,
   .more {
     width: 4.8rem;
   }

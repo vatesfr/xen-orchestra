@@ -68,7 +68,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('master') }}</template>
         <template #value>
-          <div v-if="getIsMaster(host.id)" class="primary-host">
+          <div v-if="isMaster" class="primary-host">
             <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
             {{ t('this-host') }}
           </div>
@@ -94,14 +94,14 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('patches') }}</template>
-        <template v-if="!missingPatch.length" #value>
+        <template v-if="noMissingPatches" #value>
           <UiInfo accent="success">{{ t('patches-up-to-date') }}</UiInfo>
         </template>
         <template v-else #value>
-          <UiInfo accent="warning">{{ t('n-missing', missingPatch.length) }}</UiInfo>
+          <UiInfo accent="warning">{{ t('n-missing', nMissingPatches) }}</UiInfo>
         </template>
         <template #addons>
-          <VtsCopyButton :value="missingPatch.length ? t('n-missing', missingPatch.length) : t('patches-up-to-date')" />
+          <VtsCopyButton :value="noMissingPatches ? t('patches-up-to-date') : t('n-missing', nMissingPatches)" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -110,7 +110,9 @@
 
 <script lang="ts" setup>
 import { useXoHostUtils } from '@/composables/xo-host.composable'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
 import { useXoHostMissingPatchesCollection } from '@/remote-resources/use-xo-host-missing-patches-collection'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection'
 import type { XoHost } from '@/types/xo/host.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -134,15 +136,23 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { getHostState, getIsMaster, getMasterHostFromPoolId, getPool, getPowerState, getRelativeStartTime } =
-  useXoHostUtils()
+const { getHostState, getPowerState, getRelativeStartTime } = useXoHostUtils()
+const { useGetPoolById } = useXoPoolCollection()
+const { getMasterHostByPoolId, isMasterHost } = useXoHostCollection()
+const { hostMissingPatches: missingPatches } = useXoHostMissingPatchesCollection({}, () => host.id)
 
-const { hostMissingPatches: missingPatch } = useXoHostMissingPatchesCollection({}, () => host.id)
+const pool = useGetPoolById(() => host.$pool)
 
-const pool = getPool(host.$pool)
+const isMaster = computed(() => isMasterHost(host.id))
+
+const masterHost = computed(() => getMasterHostByPoolId(host.$pool))
+
+const nMissingPatches = computed(() => missingPatches.value.length)
+
+const noMissingPatches = computed(() => nMissingPatches.value === 0)
+
 const relativeStartTime = getRelativeStartTime(host.startTime)
 
-const masterHost = computed(() => getMasterHostFromPoolId(host.$pool))
 const powerState = computed(() => getPowerState(host.power_state))
 </script>
 

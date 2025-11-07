@@ -4,17 +4,12 @@
       {{ t('network') }}
     </UiCardTitle>
     <div class="content">
-      <template v-if="host.address">
-        <VtsCardRowKeyValue>
-          <template #key>{{ t('management-ip') }}</template>
-          <template #value>{{ host.address }}</template>
-          <template #addons>
-            <VtsCopyButton :value="host.address" />
-          </template>
-        </VtsCardRowKeyValue>
-      </template>
-      <VtsCardRowKeyValue v-else>
-        <template #key>{{ t('management-ip', host.address) }}</template>
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('management-ip') }}</template>
+        <template v-if="host.address" #value>{{ host.address }}</template>
+        <template v-if="host.address" #addons>
+          <VtsCopyButton :value="host.address" />
+        </template>
       </VtsCardRowKeyValue>
       <template v-if="ipV4Addresses.length > 0">
         <VtsCardRowKeyValue v-for="(ip, index) in ipV4Addresses" :key="ip">

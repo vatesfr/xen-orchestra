@@ -44,8 +44,8 @@ const manufacturerInfo = computed(
 )
 
 const coreSocketInfo = computed(() => {
-  const cores = host.cpus.cores
-  const sockets = host.cpus.sockets
+  const cores = host.cpus.cores ?? 0
+  const sockets = host.cpus.sockets ?? 0
 
   return `${cores} (${sockets})`
 })

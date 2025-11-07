@@ -1,7 +1,7 @@
 <template>
   <div class="hosts" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <HostsTable :hosts :host-ready="areHostsReady" :has-error="hasHostFetchError" />
+      <HostsTable :hosts :has-error="hasHostFetchError" />
     </UiCard>
     <HostsSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -13,8 +13,8 @@
 </template>
 
 <script setup lang="ts">
-import HostsTable from '@/components/hosts/hostsTable.vue'
-import HostsSidePanel from '@/components/hosts/panel/hostsSidePanel.vue'
+import HostsTable from '@/components/hosts/HostsTable.vue'
+import HostsSidePanel from '@/components/hosts/panel/HostsSidePanel.vue'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
 import type { XoHost } from '@/types/xo/host.type'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -26,7 +26,7 @@ import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 
-const { hosts, getHostById, areHostsReady, hasHostFetchError } = useXoHostCollection()
+const { hosts, getHostById, hasHostFetchError } = useXoHostCollection()
 
 const { t } = useI18n()
 

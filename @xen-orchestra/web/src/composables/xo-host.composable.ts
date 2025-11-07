@@ -1,8 +1,5 @@
-import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
-import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection'
-import { HOST_POWER_STATE, type XoHost } from '@/types/xo/host.type'
+import { HOST_POWER_STATE } from '@/types/xo/host.type'
 import type { IconName } from '@core/icons'
-import type { Branded } from '@core/types/utility.type'
 import useRelativeTime from '@core/composables/relative-time.composable'
 import { parseDateTime } from '@core/utils/time.util'
 import { useNow } from '@vueuse/core'
@@ -12,9 +9,6 @@ import { useI18n } from 'vue-i18n'
 
 export function useXoHostUtils() {
   const { t } = useI18n()
-
-  const { getMasterHostByPoolId, isMasterHost } = useXoHostCollection()
-  const { useGetPoolById } = useXoPoolCollection()
 
   const powerStateConfig: Record<Lowercase<HOST_POWER_STATE>, IconName | undefined> = {
     running: 'legacy:running',
@@ -30,18 +24,6 @@ export function useXoHostUtils() {
     } else {
       return 'unknown'
     }
-  }
-
-  function getIsMaster(hostId: XoHost['id']) {
-    return isMasterHost(hostId)
-  }
-
-  function getMasterHostFromPoolId(poolId: Branded<'pool'>) {
-    return getMasterHostByPoolId(poolId)
-  }
-
-  function getPool(poolId: Branded<'pool'>) {
-    return useGetPoolById(() => poolId)
   }
 
   function getPowerState(powerState: HOST_POWER_STATE) {
@@ -61,9 +43,6 @@ export function useXoHostUtils() {
 
   return {
     getHostState,
-    getIsMaster,
-    getMasterHostFromPoolId,
-    getPool,
     getPowerState,
     getRelativeStartTime,
   }
