@@ -17,6 +17,7 @@
 - [Backup] Add warning message: enabling/disabling backup job from VM > Backup affects all VMs in the job (PR [#9155](https://github.com/vatesfr/xen-orchestra/pull/9155))
 - [Plugins/Usage Report] Add operating system information to reports - displays OS distribution statistics and includes OS details (name, distribution, version) in both HTML reports and CSV exports (PR [#9179](https://github.com/vatesfr/xen-orchestra/pull/9179))
 - **XO 6:**
+  - [XO routes] fetch xo gui routes (PR [#9138](https://github.com/vatesfr/xen-orchestra/pull/9138))
 
 ### Bug fixes
 
