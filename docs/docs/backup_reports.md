@@ -6,7 +6,7 @@ At the end of a backup job, you can configure Xen Orchestra to send backup repor
 
 ### Step-by-step
 
-1. In the **Settings → Plugins** enable and configure the **Backup-reports** plugin.
+1. In the **Settings → Plugins** view, enable and configure the **Backup-reports** plugin.
    ![](./assets/backup-reports-plugin.png)
 
 2. Configure also the `transport-email` plugin (see detailed configuration below).
