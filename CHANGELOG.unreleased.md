@@ -24,6 +24,9 @@
 
 - [Backups] use the oldest record for Long Term Retention instead of newest (PR [#9180](https://github.com/vatesfr/xen-orchestra/pull/9180))
 
+- **XO 6:**
+  - [host/HostSystemResourceManagement] Fix text value if control domain is not defined (PR [#9197](https://github.com/vatesfr/xen-orchestra/pull/9197/))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
