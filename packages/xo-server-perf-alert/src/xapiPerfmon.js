@@ -143,12 +143,12 @@ export class XapiPerfmon{
     /**
      * @returns {Promise<Array<XoAlarm>>}
      */
-    async getActiveAlarms(){ 
+    async computeActiveAlarms(){ 
         return []
     }
 
     async clearAlarms(){
-        const alarms = await this.getActiveAlarms()
+        const alarms = await this.computeActiveAlarms()
         asyncEach(alarms, async alarm =>{
 
         })

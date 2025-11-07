@@ -55,6 +55,13 @@ export class AlarmRule{
      */
     variableName
 
+
+    /**
+     * @returns {string}
+     */
+    get id(){
+        return  `${this.objectType.toLocaleLowerCase()}|${this.variableName}|${this.triggerLevel}`
+    }
     /** */
     constructor({alarmTriggerLevel, alarmTriggerPeriod, excludeUuids, comparator, objectType , smartMode,uuids, variableName}){
         this.triggerLevel = alarmTriggerLevel

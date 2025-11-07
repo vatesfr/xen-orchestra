@@ -1,0 +1,9 @@
+ {{#each byRules}}
+ 
+## {{alarms.0.rule.objectType}} {{alarms.0.rule.variableName}}  {{alarms.0.rule.comparator}} {{alarms.0.rule.triggerLevel}} 
+
+{{#each alarms}}
+  * \[{{target.name_label}} - {{target.id}}\]\({{url}}\) : {{ value}}
+{{/each}} 
+{{/each}}
+---

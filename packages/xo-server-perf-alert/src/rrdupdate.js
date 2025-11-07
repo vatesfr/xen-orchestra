@@ -27,7 +27,6 @@ const logger = createLogger('xo:xo-server-perf-alert:rrdStrategy')
  */
 async function getServerTimestamp(xapi, host) {
   const serverLocalTime = await xapi.call('host.get_servertime', host._xapiRef)
-  console.log('SUCCESS')
   const date = utcParse('%Y%m%dT%H:%M:%SZ')(serverLocalTime)
   if (date === null) {
     throw new Error(`Can't parse server time, got  ${serverLocalTime} `)
@@ -95,11 +94,8 @@ export class RRdUpdateStrategy extends MonitorStrategy {
    * @returns 
    */
   async #getHostStats(xoHost, secondsAgo, withHostData) {
-    console.log('getHostStats ')
     const xapi = this.#xo.getXapi(xoHost.uuid)
-    console.log('got xapi ')
     const serverTimestamp = await getServerTimestamp(xapi, xoHost)
-    console.log({serverTimestamp})
     const payload = {
           host: xoHost,
           query: {
@@ -109,11 +105,8 @@ export class RRdUpdateStrategy extends MonitorStrategy {
             start: serverTimestamp - secondsAgo,
           },
         }
-    console.log(payload)
     const rrdResponse = await xapi.getResource('/rrd_updates', payload)
-    console.log({rrdResponse})
     const rrdText = await rrdResponse.body.text()
-    console.log({rrdText})
     /**
      * @type {JSON}
      */
@@ -125,14 +118,12 @@ export class RRdUpdateStrategy extends MonitorStrategy {
       logger.debug('fallback JSON5')
       rrd = JSON5.parse(rrdText)
     }
-    console.log(rrd)
     const hostStats = {
       stats: {},
       vms: {}
     }
     const data = rrd.data 
     rrd.meta.legend.forEach((legend, index) => {
-      console.log({index, legend})
       const matches = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(legend)
       if (matches === null) {
         logger.debug(`Can't parse legend ${legend}`)
@@ -172,10 +163,10 @@ export class RRdUpdateStrategy extends MonitorStrategy {
    */
   #computeHostAlarm(xoHost, hostStat, rules){
     const hostAlarms = []
-    for (const definition of rules) {
+    for (const rule of rules) {
       // compare value to data extracted from rrd
       let value
-      switch(definition.variableName){
+      switch(rule.variableName){
         case 'cpuUsage':
           value = xapiAverage(hostStat.stats.cpu_avg)
           break
@@ -185,11 +176,11 @@ export class RRdUpdateStrategy extends MonitorStrategy {
           value =  Math.round(100*(total-free)/total)
           break
         default: 
-          throw new Error(`Can't compute alert of type ${definition.variableName} for host`)
+          throw new Error(`Can't compute alert of type ${rule.variableName} for host`)
       }
 
-      if(definition.isTriggeredBy(value)){
-        hostAlarms.push(new Alarm({alert:definition, target: xoHost, value}))
+      if(rule.isTriggeredBy(value)){
+        hostAlarms.push(new Alarm({rule, target: xoHost, value}))
       }
     }
     return hostAlarms
@@ -203,26 +194,26 @@ export class RRdUpdateStrategy extends MonitorStrategy {
    * @returns 
    */
   #computeVmAlarm(xoVm, vmStats, rules){
-    console.log('vm alarm ', vmStats)
     const vmAlarm = []
-    for (const definition of rules) {
+    for (const rule of rules) {
       // compare value to data extracted from rrd
       let value
-      switch(definition.variableName){
+      switch(rule.variableName){
         case 'cpuUsage':
           value = xapiAverage(vmStats.cpu_usage)
           break
         case 'memoryUsage':
           const total = xapiAverage(vmStats.memory)
-          const free = xapiAverage(vmStats.memory_internal_free)
+          // memory_internal_free is in bytes memory is in kilobytee
+          const free = 1024 * xapiAverage(vmStats.memory_internal_free)
           value =  Math.round(100*(total-free)/total)
           break
         default: 
-          throw new Error(`Can't compute alert of type ${definition.variableName} for VM`)
+          throw new Error(`Can't compute alert of type ${rule.variableName} for VM`)
       }
 
-      if(definition.isTriggeredBy(value)){
-        vmAlarm.push(new Alarm({alert:definition, target: xoVm, value}))
+      if(rule.isTriggeredBy(value)){
+        vmAlarm.push(new Alarm({rule, target: xoVm, value}))
       }
     }
     return vmAlarm
@@ -245,8 +236,6 @@ export class RRdUpdateStrategy extends MonitorStrategy {
           this.#computeVmAlarm(xoVm, vmStats, this.#rules.getObjectAlerts(xoVm)))
 
     }
-
-    console.log(alarms)
     return alarms
   }
 
@@ -255,15 +244,14 @@ export class RRdUpdateStrategy extends MonitorStrategy {
    * @returns {Promise<Array<Alarm>>}
    */
 
-  async getActiveAlarms() {
+  async computeActiveAlarms() {
 
     // make queries host by host, that way we don't need to cache RRD 
     /**
      * @type {Array<XoHost>}
      */
 
-    const hosts = Object.values(this.#xo.objects.indexes.type.host)
-    console.log('GOT HOST ') 
+    const hosts = Object.values(this.#xo.objects.indexes.type.host ?? {})
     // @todo : compute host list to call rrd only on related host
       // if they are watched
       // or if at least one of their running VM is watched
@@ -284,11 +272,10 @@ export class RRdUpdateStrategy extends MonitorStrategy {
         }
 
         const hostStats = await this.#getHostStats(host, 60, needHost)
-        console.log('got stats', hostStats)
         alarmsByObjects.push(this.#computeAlarms(host, hostStats))
       }
     )
-    return [].concat(alarmsByObjects)
+    return [].concat(...alarmsByObjects)
   }
 
 }

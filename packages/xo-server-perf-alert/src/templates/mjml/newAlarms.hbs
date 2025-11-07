@@ -1,0 +1,40 @@
+<mjml>
+  {{>mjmlHeaders}}
+  <mj-body background-color="#1A1B38">
+    <mj-wrapper background-color="#1A1B38">
+      <mj-section padding="0 0 10px 0"> </mj-section>
+      <mj-section padding="0px">
+        <mj-column width="100%">
+          <mj-text align="center" font-size="32px" font-weight="500" padding="0px" font-size="18px" line-height="24px"
+            >New Alarms</mj-text
+          >
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0px">
+        <mj-column width="80%">
+          <mj-divider border-width="2px" padding-top="25px"></mj-divider>
+        </mj-column>
+      </mj-section>
+      {{#each byRules}}
+
+      <mj-section padding="0px">
+        <mj-column width="100%">
+          <mj-text font-size="16px" font-weight="300" line-height="24px">
+            <h1>Global status : {{alarms.0.rule.objectType}} {{alarms.0.rule.variableName}}  {{alarms.0.rule.comparator}} {{alarms.0.rule.triggerLevel}} </h1>
+            <ul> 
+
+      {{#each alarms}}
+        <li>
+          <a href="{{url}}">{{target.name_label}} - {{target.id}}</a> : {{ value}}
+        </li>
+      {{/each}}
+            </ul>
+          </mj-text>
+        </mj-column>
+      </mj-section> 
+      {{/each}}
+
+    {{>mjmlFooter}}
+    </mj-wrapper>
+  </mj-body>
+</mjml>
