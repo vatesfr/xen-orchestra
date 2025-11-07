@@ -19,8 +19,11 @@
         {{ t('console') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('alarms') }}</TabItem>
-    <TabItem disabled>{{ t('stats') }}</TabItem>
+    <TabItem tag="a">
+      <UiLink :href="`/#/hosts/${host.id}/stats`" size="medium">
+        {{ t('stats') }}
+      </UiLink>
+    </TabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/system`" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('system') }}
@@ -49,6 +52,7 @@ import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'

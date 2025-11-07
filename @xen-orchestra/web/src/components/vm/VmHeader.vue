@@ -4,6 +4,11 @@
     <template #icon>
       <VtsObjectIcon size="medium" :state="vm.power_state.toLocaleLowerCase() as VmState" type="vm" />
     </template>
+    <template #actions>
+      <UiLink :href="`/#/vms/${vm.id}/general`" size="medium">
+        {{ t('manage-vm-lifecycle-in-xo-5') }}
+      </UiLink>
+    </template>
   </UiHeadBar>
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/dashboard`" custom>
@@ -21,8 +26,11 @@
         {{ t('backups') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('alarms') }}</TabItem>
-    <TabItem disabled>{{ t('stats') }}</TabItem>
+    <TabItem tag="a">
+      <UiLink :href="`/#/vms/${vm.id}/stats`" size="medium">
+        {{ t('stats') }}
+      </UiLink>
+    </TabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/system`" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('system') }}
@@ -45,6 +53,7 @@ import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{ vm: XoVm }>()
