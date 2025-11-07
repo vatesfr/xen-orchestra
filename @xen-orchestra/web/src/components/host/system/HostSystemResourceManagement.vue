@@ -3,10 +3,7 @@
     <UiTitle>
       {{ t('resource-management') }}
     </UiTitle>
-    <VtsQuickInfoRow
-      :label="t('control-domain-memory')"
-      :value="`${controllerMemory?.value} ${controllerMemory?.prefix}`"
-    />
+    <VtsQuickInfoRow :label="t('control-domain-memory')" :value="controllerMemory" />
   </UiCard>
 </template>
 
@@ -39,6 +36,8 @@ const controllerMemory = computed(() => {
     return
   }
 
-  return formatSizeRaw(controllerDomain.memory.size, 2)
+  const controlDomainMemory = formatSizeRaw(controllerDomain.memory.size, 2)
+
+  return `${controlDomainMemory.value} ${controlDomainMemory.prefix}`
 })
 </script>
