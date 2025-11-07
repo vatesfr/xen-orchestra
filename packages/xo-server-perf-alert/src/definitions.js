@@ -15,7 +15,7 @@ function isSrWritable(sr) {
 } 
 
 
-export class AlertDefinition{
+export class AlarmRule{
 
     /**
      * @type {'>' | '<'}
@@ -115,15 +115,15 @@ export class AlertDefinition{
 
 
 
-export class AlertDefinitions {
+export class AlarmRuleSet {
     definitions = new Set()
     constructor(configuration){
         for(const definition of configuration.hostMonitors){
-            const alert = new AlertDefinition({...definition, objectType: 'host'})
+            const alert = new AlarmRule({...definition, objectType: 'host'})
             this.definitions.add(alert)
         }
         for(const definition of configuration.vmMonitors){
-            const alert = new AlertDefinition({...definition, objectType: 'VM'})
+            const alert = new AlarmRule({...definition, objectType: 'VM'})
             this.definitions.add(alert)
         }
     }
@@ -131,7 +131,7 @@ export class AlertDefinitions {
     /**
      * 
      * @param {XoVm|XoHost|XoSr} xoObject 
-     * @returns {Array<AlertDefinition>}
+     * @returns {Array<AlarmRule>}
      */
     getObjectAlerts(xoObject){
         const definitions = []
@@ -143,35 +143,4 @@ export class AlertDefinitions {
         return definitions
     } 
 
-}
-
-
-export class Alarm{
-    /**
-     * @type {AlertDefinition}
-     */
-    alert
-
-    /**
-     * @type {number}
-     */
-    value
-
-    /**
-     * @type {XoHost|XoSr|XoVm}
-     */
-    target
-
-    /**
-     * 
-     * @param {object} alarmDefinition Defition of the alarm
-     * @param {AlertDefinition} alarmDefinition.alert 
-     * @param {XoHost|XoSr|XoVm} alarmDefinition.target 
-     * @param {number} alarmDefinition.value 
-     */
-    constructor({alert,  target,value}){
-        this.alert = alert
-        this.target = target
-        this.value = value
-    }
 }

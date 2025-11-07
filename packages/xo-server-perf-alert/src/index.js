@@ -3,10 +3,9 @@ import { createLogger } from '@xen-orchestra/log'
 import { filter, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 import assert from 'node:assert'
-import { XapiPerfmon } from './xapiPerfmon'
 import fs from 'node:fs/promises'
 import { RRdUpdateStrategy } from './rrdupdate'
-import { AlertDefinitions } from './definitions.js'
+import { AlarmRuleSet } from './definitions.js'
 const logger = createLogger('xo:xo-server-perf-alert')
 
 logger.debug('DEBUG ENABLED')
@@ -438,14 +437,14 @@ class PerfAlertXoPlugin {
   }
 
   async load() {
-    const alertDefinitions  =new AlertDefinitions(this._configuration)
+    const alertDefinitions  =new AlarmRuleSet(this._configuration)
     const strategy = new RRdUpdateStrategy(this._xo,alertDefinitions)
     console.log(await strategy.getActiveAlarms())
 /*
     const perfmon = new XapiPerfmon(this._xo, this._configuration)
     perfmon.init().then(console.log, console.error)
     console.log('CONF', this._configuration)
-    this.#watchMonitors().catch(logger.warn)*/
+    this.#watchMonitors().catch(logger.warn) */
   }
 
   unload() { 

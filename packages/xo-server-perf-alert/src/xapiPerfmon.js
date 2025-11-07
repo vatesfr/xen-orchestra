@@ -1,8 +1,7 @@
 // @ts-check
 
-import { AlertDefinitions } from "./definitions"
-
-const { asyncEach } = require("@vates/async-each")
+import { asyncEach } from "@vates/async-each"
+import { AlarmRuleSet } from "./definitions"
 
  
 /**
@@ -17,7 +16,7 @@ const OTHER_PROPERTY_NAME = {
 export class XapiPerfmon{
     #xo
     /**
-     * @type {AlertDefinitions}
+     * @type {AlarmRuleSet}
      */
     #definitions
 
@@ -30,14 +29,14 @@ export class XapiPerfmon{
     constructor(xo, alertDefinitions){
         console.log({alertDefinitions})
         this.#xo = xo
-        this.#definitions = new AlertDefinitions(alertDefinitions) 
+        this.#definitions = new AlarmRuleSet(alertDefinitions) 
         console.log(this.#definitions)
     }
 
     async init(){
       //  this.watchCollection().catch(console.error)
         await asyncEach( Object.values(this.#xo.getObjects()), async xoObject=>{
-            if(xoObject.type !== 'host' /*&& xoObject.type !=='SR' && xoObject.type !== 'VM'*/){
+            if(xoObject.type !== 'host' /* && xoObject.type !=='SR' && xoObject.type !== 'VM' */){
                 return
             }
             await this.updateObjectPerfmon(xoObject)
@@ -84,7 +83,7 @@ export class XapiPerfmon{
             console.log({name, definition})
 
 
-            //host don't have rule with memory_usage, but the memory size should be quite stable and 
+            // host don't have rule with memory_usage, but the memory size should be quite stable and 
             // it should be recomputed on host change 
             if(definition.variableName === 'memoryUsage' && xoObject.type === 'host') {
                 name = 'memory_free_kib' 

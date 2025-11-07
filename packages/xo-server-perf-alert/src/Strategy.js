@@ -2,17 +2,14 @@
 
 /**
  * @import {XoHost, XoSr, XoVm} from "@vates/types"
+ * @import {AlarmRule} from "./definitions"
  */
-
-import { AlertDefinition } from "./definitions"
-
-
 
 export class Alarm{
     /**
-     * @type {AlertDefinition}
+     * @type {AlarmRule}
      */
-    alert
+    rule
 
     /**
      * @type {number}
@@ -27,12 +24,12 @@ export class Alarm{
     /**
      * 
      * @param {object} alarmDefinition Defition of the alarm
-     * @param {AlertDefinition} alarmDefinition.alert 
+     * @param {AlarmRule} alarmDefinition.rule 
      * @param {XoHost|XoSr|XoVm} alarmDefinition.target 
      * @param {number} alarmDefinition.value 
      */
-    constructor({alert,  target,value}){
-        this.alert = alert
+    constructor({ rule,  target,value}){
+        this.rule = rule
         this.target = target
         this.value = value
     }
@@ -46,15 +43,15 @@ export class MonitorStrategy {
      * @returns {Promise<Array<Alarm>>}
      */
     getActiveAlarms(){
-        return Promise.reject('Not Implemented')
+        return Promise.reject(new Error('Not Implemented'))
     }
 
     start(){
-        return Promise.reject('Not Implemented')
+        return Promise.reject(new Error('Not Implemented'))
     }
 
     stop(){
-        return Promise.reject('Not Implemented')
+        return Promise.reject(new Error('Not Implemented'))
     }
 
 }

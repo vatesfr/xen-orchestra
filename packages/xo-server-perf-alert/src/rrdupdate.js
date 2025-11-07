@@ -2,8 +2,8 @@
 
 /**
  * @import {XoHost, XoVm} from "@vates/types"
+ * @import {AlarmRule, AlarmRuleSet} from "./definitions.js"
  */
-import { AlertDefinition, AlertDefinitions } from "./definitions.js";
 import { Alarm, MonitorStrategy } from "./Strategy.js";
 import { createLogger } from '@xen-orchestra/log'
 
@@ -71,18 +71,18 @@ export class RRdUpdateStrategy extends MonitorStrategy {
   #xo
 
   /**
-   * @type {AlertDefinitions}
+   * @type {AlarmRuleSet}
    */
-  #definitions
+  #rules
 
   /**
    * 
    * @param {*} xo 
-   * @param {AlertDefinitions} definitions 
+   * @param {AlarmRuleSet} rules 
    */
-  constructor(xo, definitions) {
+  constructor(xo, rules) {
     super()
-    this.#definitions = definitions
+    this.#rules = rules
     this.#xo = xo
   }
 
@@ -167,12 +167,12 @@ export class RRdUpdateStrategy extends MonitorStrategy {
    * 
    * @param {XoHost} xoHost 
    * @param {JSON} hostStat 
-   * @param {Array<AlertDefinition>} definitions 
+   * @param {Array<AlarmRule>} rules 
    * @returns 
    */
-  #computeHostAlarm(xoHost, hostStat, definitions){
+  #computeHostAlarm(xoHost, hostStat, rules){
     const hostAlarms = []
-    for (const definition of definitions) {
+    for (const definition of rules) {
       // compare value to data extracted from rrd
       let value
       switch(definition.variableName){
@@ -199,13 +199,13 @@ export class RRdUpdateStrategy extends MonitorStrategy {
    * 
    * @param {XoVm} xoVm 
    * @param {JSON} hostStat 
-   * @param {Array<AlertDefinition>} definitions 
+   * @param {Array<AlarmRule>} rules 
    * @returns 
    */
-  #computeVmAlarm(xoVm, vmStats, definitions){
+  #computeVmAlarm(xoVm, vmStats, rules){
     console.log('vm alarm ', vmStats)
     const vmAlarm = []
-    for (const definition of definitions) {
+    for (const definition of rules) {
       // compare value to data extracted from rrd
       let value
       switch(definition.variableName){
@@ -238,12 +238,11 @@ export class RRdUpdateStrategy extends MonitorStrategy {
      * @type {Array<Alarm>}
      */
     
-    let alarms = this.#computeHostAlarm(xoHost, hostStat, this.#definitions.getObjectAlerts(xoHost))
-    console.log('HOST', alarms)
+    let alarms = this.#computeHostAlarm(xoHost, hostStat, this.#rules.getObjectAlerts(xoHost))
     for(const [vmUid, vmStats] of Object.entries(hostStat.vms)){
       const xoVm = this.#xo.getObject(vmUid)
       alarms = alarms.concat(
-          this.#computeVmAlarm(xoVm, vmStats, this.#definitions.getObjectAlerts(xoVm)))
+          this.#computeVmAlarm(xoVm, vmStats, this.#rules.getObjectAlerts(xoVm)))
 
     }
 
@@ -280,7 +279,7 @@ export class RRdUpdateStrategy extends MonitorStrategy {
           return
         }
         let needHost = false
-        if (this.#definitions.getObjectAlerts(host).length > 0) {
+        if (this.#rules.getObjectAlerts(host).length > 0) {
           needHost = true
         }
 

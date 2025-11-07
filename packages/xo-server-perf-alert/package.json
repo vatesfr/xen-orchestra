@@ -13,9 +13,10 @@
   "preferGlobal": true,
   "main": "dist/",
   "engines": {
-    "node": ">=6"
+    "node": ">=22"
   },
   "dependencies": {
+    "@vates/async-each": "^1.0.1",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/log": "^0.7.1",
     "d3-time-format": "^3.0.0",
