@@ -22,6 +22,7 @@
 
 - **XO 6:**
   - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
+  - [Backups] Update wordings for backup jobs' modes to match XO documentation (PR [#9199](https://github.com/vatesfr/xen-orchestra/pull/9199))
 
 ### Bug fixes
 
