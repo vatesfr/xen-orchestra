@@ -1576,6 +1576,7 @@ export const attachDisk = defer(async function ($defer, { vm, vdi, position, mod
     userdevice: position,
     VDI: vdi._xapiRef,
     VM: vm._xapiRef,
+    throwVbdPlug: true,
   })
 })
 
