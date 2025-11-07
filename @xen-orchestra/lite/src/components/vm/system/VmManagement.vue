@@ -3,35 +3,37 @@
     <UiTitle>
       {{ t('vm-management') }}
     </UiTitle>
-    <VtsQuickInfoRow :label="t('high-availability')">
+    <UiLabelValue :label="t('high-availability')">
       <template #value>
         <VtsStatus :status="vm.ha_restart_priority !== ''" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('affinity-host')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('affinity-host')">
       <template v-if="affinityHost?.uuid" #value>
-        <UiLink icon="fa:server" :to="`/host/${affinityHost.uuid}`" size="medium">
-          {{ affinityHost.name_label }}
+        <UiLink icon="fa:server" :to="`/host/${affinityHost.uuid}`" size="medium" class="link">
+          <div v-tooltip class="text-ellipsis">
+            {{ affinityHost.name_label }}
+          </div>
         </UiLink>
       </template>
       <template v-else #value>{{ t('none') }}</template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('protect-from-accidental-deletion')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('protect-from-accidental-deletion')">
       <template #value>
         <VtsStatus :status="vm.blocked_operations?.destroy === 'true'" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('protect-from-accidental-shutdown')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('protect-from-accidental-shutdown')">
       <template #value>
         <VtsStatus :status="isProtectedFromAccidentalShutdown" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('auto-power')">
+    </UiLabelValue>
+    <UiLabelValue :label="t('auto-power')">
       <template #value>
         <VtsStatus :status="vm.other_config.auto_poweron === 'true'" />
       </template>
-    </VtsQuickInfoRow>
-    <VtsQuickInfoRow :label="t('start-delay')" :value="formattedStartDelay" />
+    </UiLabelValue>
+    <UiLabelValue :label="t('start-delay')" :value="formattedStartDelay" />
   </UiCard>
 </template>
 
@@ -39,11 +41,12 @@
 import { VM_OPERATION } from '@/libs/xen-api/xen-api.enums'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useArraySome } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -96,3 +99,9 @@ const formattedStartDelay = computed(() => {
   return parts.join(' ')
 })
 </script>
+
+<style lang="postcss" scoped>
+.link {
+  width: 100%;
+}
+</style>

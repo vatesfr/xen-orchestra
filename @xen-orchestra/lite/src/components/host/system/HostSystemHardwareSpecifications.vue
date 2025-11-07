@@ -3,17 +3,17 @@
     <UiTitle>
       {{ t('hardware-specifications') }}
     </UiTitle>
-    <VtsQuickInfoRow
+    <UiLabelValue
       :label="t('manufacturer-info')"
       :value="`${host.bios_strings['system-manufacturer']} (${host.bios_strings['system-product-name']})`"
     />
-    <VtsQuickInfoRow
+    <UiLabelValue
       :label="t('bios-info')"
       :value="`${host.bios_strings['bios-vendor']} (${host.bios_strings['bios-version']})`"
     />
-    <VtsQuickInfoRow :label="t('cpu-model')" :value="host.cpu_info.modelname" />
-    <VtsQuickInfoRow :label="t('core-socket')" :value="`${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`" />
-    <VtsQuickInfoRow :label="t('gpus')">
+    <UiLabelValue :label="t('cpu-model')" :value="host.cpu_info.modelname" />
+    <UiLabelValue :label="t('core-socket')" :value="`${host.cpu_info.cpu_count} (${host.cpu_info.socket_count})`" />
+    <UiLabelValue :label="t('gpus')">
       <template v-if="isReady" #value>
         <template v-if="devicesNames">
           {{ devicesNames }}
@@ -22,7 +22,7 @@
           {{ t('none') }}
         </template>
       </template>
-    </VtsQuickInfoRow>
+    </UiLabelValue>
   </UiCard>
 </template>
 
@@ -30,8 +30,8 @@
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { usePciStore } from '@/stores/xen-api/pci.store.ts'
 import { usePgpuStore } from '@/stores/xen-api/pgpu.store.ts'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { logicAnd } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'

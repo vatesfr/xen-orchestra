@@ -5,94 +5,88 @@
     </UiCardTitle>
     <div class="content">
       <!-- Known settings -->
-      <VtsCardRowKeyValue v-if="proxy !== undefined">
-        <template #key>{{ t('proxy') }}</template>
-        <template #value>{{ proxy.name }}</template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.reportWhen !== undefined">
-        <template #key>{{ t('report-when') }}</template>
-        <template #value>{{ reportWhenValueTranslation }}</template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.backupReportTpl !== undefined">
-        <template #key>{{ t('shorter-backup-reports') }}</template>
+      <UiLabelValue v-if="proxy !== undefined" :label="t('proxy')" :value="proxy.name" ellipsis />
+      <UiLabelValue
+        v-if="settings.reportWhen !== undefined"
+        :label="t('report-when')"
+        :value="reportWhenValueTranslation"
+        ellipsis
+      />
+      <UiLabelValue v-if="settings.backupReportTpl !== undefined" :label="t('shorter-backup-reports')" ellipsis>
         <template #value>
           <VtsStatus :status="settings.backupReportTpl === 'compactMjml'" />
         </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.hideSuccessfulItems !== undefined">
-        <template #key>{{ t('hide-successful-items') }}</template>
+      </UiLabelValue>
+      <UiLabelValue v-if="settings.hideSuccessfulItems !== undefined" :label="t('hide-successful-items')" ellipsis>
         <template #value>
           <VtsStatus :status="!!settings.hideSuccessfulItems" />
         </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.concurrency !== undefined">
-        <template #key>{{ t('concurrency') }}</template>
-        <template #value>{{ settings.concurrency }}</template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="nbdConcurrency !== undefined">
-        <template #key>{{ t('nbd-concurrency') }}</template>
-        <template #value>{{ nbdConcurrency }}</template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="cbtDestroySnapshotData !== undefined">
-        <template #key>{{ t('cbt-destroy-snapshot-data') }}</template>
+      </UiLabelValue>
+      <UiLabelValue
+        v-if="settings.concurrency !== undefined"
+        :label="t('concurrency')"
+        :value="String(settings.concurrency)"
+      />
+      <UiLabelValue v-if="nbdConcurrency !== undefined" :label="t('nbd-concurrency')" :value="String(nbdConcurrency)" />
+      <UiLabelValue v-if="cbtDestroySnapshotData !== undefined" :label="t('cbt-destroy-snapshot-data')">
         <template #value>
           <VtsStatus :status="cbtDestroySnapshotData" />
         </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="maxExportRate !== undefined">
-        <template #key>{{ t('speed-limit') }}</template>
-        <template #value>{{ `${maxExportRate.value} ${maxExportRate.prefix}` }}</template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.checkpointSnapshot !== undefined">
-        <template #key>{{ t('checkpoint-snapshot') }}</template>
+      </UiLabelValue>
+      <UiLabelValue
+        v-if="maxExportRate !== undefined"
+        :label="t('speed-limit')"
+        :value="`${maxExportRate.value} ${maxExportRate.prefix}`"
+        ellipsis
+      />
+      <UiLabelValue v-if="settings.checkpointSnapshot !== undefined" :label="t('checkpoint-snapshot')" ellipsis>
         <template #value>
           <VtsStatus :status="!!settings.checkpointSnapshot" />
         </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.nRetriesVmBackupFailures !== undefined">
-        <template #key>{{ t('vm-backup-failure-number-of-retries') }}</template>
-        <template #value>{{ settings.nRetriesVmBackupFailures }}</template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="compression !== undefined">
-        <template #key>{{ t('compression') }}</template>
-        <template #value>{{ compression }}</template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.offlineBackup !== undefined">
-        <template #key>{{ t('offline-backup') }}</template>
+      </UiLabelValue>
+      <UiLabelValue
+        v-if="settings.nRetriesVmBackupFailures !== undefined"
+        :label="t('vm-backup-failure-number-of-retries')"
+        :value="String(settings.nRetriesVmBackupFailures)"
+      />
+      <UiLabelValue v-if="compression !== undefined" :label="t('compression')" :value="compression" ellipsis />
+      <UiLabelValue v-if="settings.offlineBackup !== undefined" :label="t('offline-backup')" ellipsis>
         <template #value>
           <VtsStatus :status="!!settings.offlineBackup" />
         </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.offlineSnapshot !== undefined">
-        <template #key>{{ t('offline-snapshot') }}</template>
+      </UiLabelValue>
+      <UiLabelValue v-if="settings.offlineSnapshot !== undefined" :label="t('offline-snapshot')" ellipsis>
         <template #value>
           <VtsStatus :status="!!settings.offlineSnapshot" />
         </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.mergeBackupsSynchronously !== undefined">
-        <template #key>{{ t('merge-backups-synchronously') }}</template>
+      </UiLabelValue>
+      <UiLabelValue
+        v-if="settings.mergeBackupsSynchronously !== undefined"
+        :label="t('merge-backups-synchronously')"
+        ellipsis
+      >
         <template #value>
           <VtsStatus :status="!!settings.mergeBackupsSynchronously" />
         </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue v-if="settings.timezone">
-        <template #key>{{ t('timezone') }}</template>
-        <template #value>{{ settings.timezone }}</template>
-      </VtsCardRowKeyValue>
+      </UiLabelValue>
+      <UiLabelValue v-if="settings.timezone" :label="t('timezone')" :value="settings.timezone" ellipsis />
       <template v-if="settings.reportRecipients && settings.reportRecipients.length > 0">
-        <VtsCardRowKeyValue v-for="(recipient, index) in settings.reportRecipients" :key="index">
-          <template #key>
-            <template v-if="index === 0">{{ t('report-recipients') }}</template>
-          </template>
+        <UiLabelValue :label="t('report-recipients')">
           <!-- TODO: use UiCollapsibleList when VtsCardRowKeyValue is updated -->
-          <template #value>{{ recipient }}</template>
-        </VtsCardRowKeyValue>
+          <template #value>
+            <div class="report-recipients">
+              <div v-for="recipient in settings.reportRecipients" :key="recipient" class="recipient">
+                <span v-tooltip class="text-ellipsis">
+                  {{ recipient }}
+                </span>
+              </div>
+            </div>
+          </template>
+        </UiLabelValue>
       </template>
-      <VtsCardRowKeyValue v-if="formattedTimeout !== undefined">
-        <template #key>{{ t('timeout') }}</template>
+      <UiLabelValue v-if="formattedTimeout !== undefined" :label="t('timeout')" ellipsis>
         <template #value>{{ formattedTimeout }}</template>
-      </VtsCardRowKeyValue>
-
+      </UiLabelValue>
       <!-- Settings rest -->
       <UiLogEntryViewer
         v-if="settings.other && Object.keys(settings.other).length > 0"
@@ -108,10 +102,10 @@
 <script lang="ts" setup>
 import { useXoBackupJobSettingsUtils } from '@/composables/xo-backup-job-settings.composable'
 import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
-import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import { useI18n } from 'vue-i18n'
 
@@ -138,5 +132,16 @@ const {
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
+
+  .report-recipients {
+    width: 100%;
+
+    .recipient {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      width: 100%;
+    }
+  }
 }
 </style>

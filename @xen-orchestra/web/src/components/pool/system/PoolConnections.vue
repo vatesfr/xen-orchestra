@@ -5,19 +5,19 @@
     </UiTitle>
     <VtsStateHero v-if="!areServersReady" format="card" busy size="medium" />
     <template v-else>
-      <VtsQuickInfoRow :label="t('ip-address')" :value="server?.host" />
-      <VtsQuickInfoRow :label="t('proxy-url')" :value="server?.httpProxy" />
-      <VtsQuickInfoRow :label="t('username')" :value="server?.username" />
-      <VtsQuickInfoRow :label="t('read-only')">
+      <UiLabelValue :label="t('ip-address')" :value="server?.host" />
+      <UiLabelValue :label="t('proxy-url')" :value="server?.httpProxy" />
+      <UiLabelValue :label="t('username')" :value="server?.username" />
+      <UiLabelValue :label="t('read-only')">
         <template #value>
           <VtsStatus :status="server?.readOnly ?? false" />
         </template>
-      </VtsQuickInfoRow>
-      <VtsQuickInfoRow :label="t('self-signed-certificates')">
+      </UiLabelValue>
+      <UiLabelValue :label="t('self-signed-certificates')">
         <template #value>
           <VtsStatus :status="server?.allowUnauthorized ?? false" />
         </template>
-      </VtsQuickInfoRow>
+      </UiLabelValue>
     </template>
   </UiCard>
 </template>
@@ -25,10 +25,10 @@
 <script setup lang="ts">
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
 import type { XoPool } from '@/types/xo/pool.type'
-import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLabelValue from '@core/components/ui/label-value/UiLabelValue.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
