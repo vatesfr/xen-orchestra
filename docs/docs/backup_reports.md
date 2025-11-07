@@ -6,10 +6,10 @@ At the end of a backup job, you can configure Xen Orchestra to send backup repor
 
 ### Step-by-step
 
-1. On the "settings/plugins" view you have to activate and configure the "Backup-reports" plugin.
+1. In the **Settings → Plugins** enable and configure the **Backup-reports** plugin.
    ![](./assets/backup-reports-plugin.png)
 
-2. Still in the plugins view, you also have to configure the "transport-email" plugin (see detailed configuration below).
+2. Configure also the `transport-email` plugin (see detailed configuration below).
    ![](./assets/transport-email-plugin.png)
 
 3. Once it's done, you can now create your backup job. In the "report" selection you can choose the situation in wish you want to receive an email (always, never or failure).
@@ -21,12 +21,13 @@ You can also modify existing backup jobs and change the behaviour of the report 
 
 ### Email Provider Configuration
 
-:::warning
-**Important Authentication Changes**
+:::info
+**Authentication Requirements**
 
-- **Gmail**: Requires App Passwords with 2FA
-- **Microsoft 365**: Basic auth will be disabled soon
-  :::
+- **Gmail**: Standard passwords no longer work - App Passwords with 2FA are required
+- **Microsoft 365**: Basic authentication still works but will be disabled in March 2026
+
+:::
 
 #### Gmail Configuration
 
@@ -34,7 +35,7 @@ Gmail users must use App Passwords for SMTP authentication.
 
 **Prerequisites:**
 
-- 2-Factor Authentication enabled on your Google account
+- Enable 2-Factor Authentication on your Google account.
 
 **Steps:**
 
@@ -48,7 +49,7 @@ Gmail users must use App Passwords for SMTP authentication.
    - Password: The 16-character App Password (no spaces)
 
 :::tip
-App Passwords are more secure than regular passwords as they require 2FA and can be revoked individually.
+App Passwords are more secure than regular passwords, as they require 2FA and can be revoked individually.
 :::
 
 #### Microsoft 365 Configuration
@@ -61,8 +62,8 @@ App Passwords are more secure than regular passwords as they require 2FA and can
 - Username: Your Office 365 email
 - Password: Your Office 365 password
 
-:::danger
-Microsoft will permanently disable basic authentication soon.
+:::warning
+Microsoft will permanently disable basic authentication between March 1 and April 30, 2026. After this date, your email notifications will stop working
 :::
 
 #### Other SMTP Providers
@@ -85,7 +86,7 @@ The transport-email plugin requires outbound access to:
 
 **Gmail "Authentication failed":**
 
-- Ensure you're using an App Password, not your regular password
+- Ensure you're using an App Password, not your regular password.
 - Verify 2FA is enabled
 
 **Microsoft 365 "Authentication unsuccessful":**
