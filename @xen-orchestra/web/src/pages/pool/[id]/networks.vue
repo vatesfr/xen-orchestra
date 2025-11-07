@@ -1,8 +1,8 @@
 <template>
   <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <PoolNetworksTable :networks />
-      <PoolHostInternalNetworksTable :networks="internalNetworks" />
+      <PoolNetworksTable :pool :networks />
+      <PoolHostInternalNetworksTable :pool :networks="internalNetworks" />
     </UiCard>
     <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">

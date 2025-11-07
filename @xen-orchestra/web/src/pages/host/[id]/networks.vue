@@ -1,7 +1,7 @@
 <template>
   <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <HostPifTable :pifs />
+      <HostPifTable :host :pifs />
     </UiCard>
     <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" @close="selectedPif = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -25,15 +25,17 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router/auto'
+
+const { host } = defineProps<{
+  host: XoHost
+}>()
 
 const { pifsByHost } = useXoPifCollection()
 const uiStore = useUiStore()
-const route = useRoute<'/host/[id]'>()
 
 const { t } = useI18n()
 
-const pifs = computed(() => pifsByHost.value.get(route.params.id as XoHost['id']) ?? [])
+const pifs = computed(() => pifsByHost.value.get(host.id) ?? [])
 
 const selectedPif = useRouteQuery<XoPif | undefined>('id', {
   toData: id => pifs.value.find(pif => pif.id === id),
