@@ -18,17 +18,15 @@
           <VtsCopyButton :value="backupJob.id" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('mode') }}</template>
-        <template #value>
-          <UiTagsList>
-            <UiTag v-for="(mode, index) in backupJobModes" :key="index" accent="info" variant="secondary">
-              {{ mode }}
-            </UiTag>
-          </UiTagsList>
+      <VtsCardRowKeyValue v-for="(mode, index) in backupJobModes" :key="mode">
+        <template #key>
+          <template v-if="index === 0">{{ t('mode', backupJobModes.length) }}</template>
         </template>
-        <template v-if="backupJobModes !== undefined" #addons>
-          <VtsCopyButton :value="backupJobModes.join(', ')" />
+        <template #value>
+          <span class="text-ellipsis">{{ mode }}</span>
+        </template>
+        <template #addons>
+          <VtsCopyButton :value="mode" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -42,8 +40,6 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import type { AnyXoBackupJob } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
