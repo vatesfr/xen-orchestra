@@ -8,7 +8,7 @@
       :required="wrapperController.required"
       class="label"
     >
-      <slot name="label">{{ label }}</slot>
+      {{ label }}
     </UiLabel>
     <slot />
     <UiInfo v-for="{ content, accent } of messages" :key="content" :accent>
