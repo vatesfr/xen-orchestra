@@ -4,30 +4,28 @@
     <!-- ABOUT -->
     <div class="container">
       <UiTitle>{{ t('about') }}</UiTitle>
-      <VtsColumns class="columns">
+      <VtsColumns class="columns" :class="{ 'mobile-about': uiStore.isMobile }">
         <VtsQuickInfoColumn>
           <div class="typo-h6">{{ t('xen-orchestra') }}</div>
-          <VtsQuickInfoRow :label="t('version')">
-            <template #value />
-          </VtsQuickInfoRow>
+          <VtsQuickInfoRow :label="t('version')" />
           <VtsQuickInfoRow :label="t('news')">
             <template #value>
-              <UiLink size="medium" href="https://xen-orchestra.com/blog/">
-                {{ t('news-name', { name: 'Xen Orchestra' }) }}
+              <UiLink size="medium" :href="XO_LINKS.BLOG">
+                {{ t('news-name', { name: t('xen-orchestra') }) }}
               </UiLink>
             </template>
           </VtsQuickInfoRow>
           <VtsQuickInfoRow :label="t('community')">
             <template #value>
-              <UiLink size="medium" href="https://xcp-ng.org/forum/category/12/xen-orchestra">
-                {{ t('community-name', { name: 'Xen Orchestra' }) }}
+              <UiLink size="medium" :href="XO_LINKS.COMMUNITY">
+                {{ t('community-name', { name: t('xen-orchestra') }) }}
               </UiLink>
             </template>
           </VtsQuickInfoRow>
           <VtsQuickInfoRow :label="t('documentation')">
             <template #value>
-              <UiLink size="medium" href="https://docs.xen-orchestra.com">
-                {{ t('documentation-name', { name: 'Xen Orchestra' }) }}
+              <UiLink size="medium" :href="XO_LINKS.DOC">
+                {{ t('documentation-name', { name: t('xen-orchestra') }) }}
               </UiLink>
             </template>
           </VtsQuickInfoRow>
@@ -37,29 +35,29 @@
           <VtsQuickInfoColumn>
             <VtsQuickInfoRow :label="t('news')">
               <template #value>
-                <UiLink size="medium" href="https://xcp-ng.org/blog/">
-                  {{ t('news-name', { name: 'XCP-ng' }) }}
+                <UiLink size="medium" :href="XCP_LINKS.BLOG">
+                  {{ t('news-name', { name: t('xcp-ng') }) }}
                 </UiLink>
               </template>
             </VtsQuickInfoRow>
             <VtsQuickInfoRow :label="t('community')">
               <template #value>
-                <UiLink size="medium" href="https://xcp-ng.org/forum">
-                  {{ t('community-name', { name: 'XCP-ng' }) }}
+                <UiLink size="medium" :href="XCP_LINKS.COMMUNITY">
+                  {{ t('community-name', { name: t('xcp-ng') }) }}
                 </UiLink>
               </template>
             </VtsQuickInfoRow>
             <VtsQuickInfoRow :label="t('documentation')">
               <template #value>
-                <UiLink size="medium" href="https://xcp-ng.org/docs/">
-                  {{ t('documentation-name', { name: 'XCP-ng' }) }}
+                <UiLink size="medium" :href="XCP_LINKS.DOC">
+                  {{ t('documentation-name', { name: t('xcp-ng') }) }}
                 </UiLink>
               </template>
             </VtsQuickInfoRow>
             <VtsQuickInfoRow :label="t('support')">
               <template #value>
-                <UiLink size="medium" href="https://xcp-ng.com/">
-                  {{ t('pro-support', { name: 'XCP-ng' }) }}
+                <UiLink size="medium" :href="XCP_LINKS.SUPPORT">
+                  {{ t('pro-support', { name: t('xcp-ng') }) }}
                 </UiLink>
               </template>
             </VtsQuickInfoRow>
@@ -84,14 +82,14 @@
             <img
               v-if="colorModeOption === 'light'"
               src="../assets/color-mode-light.svg"
-              :alt="t('dark-mode.disable')"
+              :alt="t('light-mode.enable')"
             />
             <img
               v-else-if="colorModeOption === 'dark'"
               src="../assets/color-mode-dark.svg"
               :alt="t('dark-mode.enable')"
             />
-            <img v-else src="../assets/color-mode-auto.svg" :alt="t('dark-mode.auto')" />
+            <img v-else src="../assets/color-mode-auto.svg" :alt="t('color-mode.auto')" />
             <span>
               <VtsIcon v-if="uiStore.colorMode === colorModeOption" name="fa:check" size="medium" />
               {{ t(`theme-${colorModeOption}`) }}
@@ -103,9 +101,9 @@
     <!-- LANGUAGE -->
     <div class="container">
       <UiTitle>{{ t('language-preferences') }}</UiTitle>
-      <VtsColumns class="columns">
+      <VtsColumns class="columns" :class="{ 'mobile-language': uiStore.isMobile }">
         <VtsQuickInfoColumn class="language">
-          <VtsInputWrapper v-if="!uiStore.isMobile" :label="t('language')">
+          <VtsInputWrapper :label="t('language')">
             <VtsSelect :id="localeSelectId" accent="brand" />
             <UiInfo accent="info" wrap>{{ t('untranslated-text-helper') }}</UiInfo>
           </VtsInputWrapper>
@@ -113,7 +111,7 @@
         <VtsQuickInfoColumn>
           <VtsQuickInfoRow :label="t('translation-tool')">
             <template #value>
-              <UiLink size="medium" href="https://translate.vates.tech/engage/xen-orchestra/">
+              <UiLink size="medium" :href="XO_LINKS.TRANSLATION">
                 {{ t('weblate') }}
               </UiLink>
             </template>
@@ -125,6 +123,7 @@
 </template>
 
 <script setup lang="ts">
+import { XCP_LINKS, XO_LINKS } from '@/constants.ts'
 import VtsColumns from '@core/components/column/VtsColumn.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -177,6 +176,13 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr));
     gap: 8rem;
+
+    &.mobile-about {
+      gap: 2.4rem;
+    }
+    &.mobile-language {
+      gap: 4rem;
+    }
   }
 
   .color-modes {
