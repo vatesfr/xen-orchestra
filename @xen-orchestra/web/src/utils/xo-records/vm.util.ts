@@ -9,11 +9,11 @@ export function isVmOperatingPending(vm: XoVm, operations: VM_OPERATIONS[] | VM_
   return castArray(operations).some(operation => currentOperations.includes(operation))
 }
 
-export function getRam(vm: XoVm): Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>> | undefined {
+export function getVmRam(vm: XoVm): Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>> | undefined {
   return formatSizeRaw(vm.memory.size, 1)
 }
 
-export function getIpAddresses(vm: XoVm) {
+export function getVmIpAddresses(vm: XoVm) {
   const addresses = vm.addresses
 
   return addresses ? [...Object.values(addresses).sort()] : []

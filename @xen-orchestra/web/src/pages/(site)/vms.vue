@@ -24,15 +24,16 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
 import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
+
 const { vms, getVmById, areVmsReady, hasVmFetchError } = useXoVmCollection()
+
 const uiStore = useUiStore()
 
 const selectedVm = useRouteQuery<XoVm | undefined>('id', {
   toData: id => getVmById(id as XoVm['id']),
   toQuery: vm => vm?.id ?? '',
 })
-
-const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">

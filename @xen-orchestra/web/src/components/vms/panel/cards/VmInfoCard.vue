@@ -59,11 +59,9 @@
         <template #value>
           <div v-if="host" class="host-name">
             <VtsObjectIcon type="host" :state="hostPowerState" size="small" />
-            <div v-tooltip class="text-ellipsis">
-              <UiLink :to="`/host/${host.id}/dashboard`" size="small">
-                {{ host.name_label }}
-              </UiLink>
-            </div>
+            <UiLink :to="`/host/${host.id}/dashboard`" size="small">
+              {{ host.name_label }}
+            </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="legacy:primary" size="small" />
           </div>
         </template>
@@ -169,7 +167,7 @@ const { useGetPoolById } = useXoPoolCollection()
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 
-const pool = useGetPoolById(vm.$pool)
+const pool = useGetPoolById(() => vm.$pool)
 
 const { powerState, host, isMaster, hostPowerState, installDateFormatted, relativeStartTime, guestToolsDisplay } =
   useXoVmUtils(() => vm)

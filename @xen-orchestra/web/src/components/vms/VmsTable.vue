@@ -35,7 +35,7 @@
           >
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
               <div v-if="column.id === 'name_label'" v-tooltip class="text-ellipsis">
-                <UiLink size="medium" icon="fa:desktop" :to="`/vm/${row.id}`" @click.stop>
+                <UiLink size="medium" icon="fa:desktop" :to="`/vm/${row.id}/dashboard`" @click.stop>
                   {{ column.value }}
                 </UiLink>
               </div>
@@ -86,7 +86,7 @@ import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import type { XoVbd } from '@/types/xo/vbd.type.ts'
 import { type XoVm } from '@/types/xo/vm.type.ts'
-import { getIpAddresses, getRam } from '@/utils/xo-records/vm.util.ts'
+import { getVmIpAddresses, getVmRam } from '@/utils/xo-records/vm.util.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -152,9 +152,9 @@ const { visibleColumns, rows } = useTable('vms', filteredVms, {
   rowId: record => record.id,
   columns: define => [
     define('name_label', record => record.name_label, { label: t('vm') }),
-    define('ip-addresses', record => getIpAddresses(record), { label: t('ip-addresses') }),
+    define('ip-addresses', record => getVmIpAddresses(record), { label: t('ip-addresses') }),
     define('CPUs', record => record.CPUs.number, { label: t('vcpus') }),
-    define('memory', record => getRam(record), { label: t('ram') }),
+    define('memory', record => getVmRam(record), { label: t('ram') }),
     define('disk-space', record => getDiskSpace(record), { label: t('disk-space') }),
     define('tags', record => record.tags, { label: t('tags') }),
   ],

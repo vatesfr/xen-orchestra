@@ -31,7 +31,7 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import { useI18n } from 'vue-i18n'
 
-const { vm } = defineProps<{
+defineProps<{
   vm: XoVm
 }>()
 

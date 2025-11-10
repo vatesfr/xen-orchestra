@@ -48,7 +48,7 @@ import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import type { XoVbd } from '@/types/xo/vbd.type.ts'
 import type { XoVm } from '@/types/xo/vm.type.ts'
-import { getRam } from '@/utils/xo-records/vm.util.ts'
+import { getVmRam } from '@/utils/xo-records/vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -67,7 +67,7 @@ const { getVbdById } = useXoVbdCollection()
 const { getVdiById } = useXoVdiCollection()
 
 const ram = computed(() => {
-  const ramValue = getRam(vm)
+  const ramValue = getVmRam(vm)
 
   return `${ramValue?.value} ${ramValue?.prefix}`
 })
