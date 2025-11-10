@@ -65,8 +65,13 @@ function xapiAverage(array){
     .map(parseNumber)
     .reduce((acc, current)=>acc+current) /array.length
 }
- 
-export class RRdUpdateStrategy extends MonitorStrategy {
+
+
+/**
+ * @description Query the rrd of the hosts to get the stat values
+ * 
+ */
+export class RrdHostVm extends MonitorStrategy {
   #xo
 
   /**
@@ -131,23 +136,18 @@ export class RRdUpdateStrategy extends MonitorStrategy {
       }
       const [, type, uuidInStat, metricType] = matches
       switch (type) {
-        case 'host':
-          if (['cpu_avg', 'memory_free_kib', 'memory_total_kib'].includes(metricType)) {
-            hostStats.stats[metricType] = []
-            data.forEach(({values})=>{
-              hostStats.stats[metricType].push(values[index])
-            }) 
-          }
+        case 'host': 
+          hostStats.stats[metricType] = []
+          data.forEach(({values})=>{
+            hostStats.stats[metricType].push(values[index])
+          })  
           break;
         case 'vm':
-          if (['cpu_usage', 'memory', 'memory_internal_free'].includes(metricType)) { 
-            hostStats.vms[uuidInStat] = hostStats.vms[uuidInStat] ?? {}
-            hostStats.vms[uuidInStat][metricType] = []
-            hostStats.stats[metricType] = []
-            data.forEach(({values})=>{
-              hostStats.vms[uuidInStat][metricType].push(values[index])
-            }) 
-          }
+          hostStats.vms[uuidInStat] = hostStats.vms[uuidInStat] ?? {}
+          hostStats.vms[uuidInStat][metricType] = []
+          data.forEach(({values})=>{
+            hostStats.vms[uuidInStat][metricType].push(values[index])
+          }) 
           break;
       }
     }) 
@@ -170,11 +170,18 @@ export class RRdUpdateStrategy extends MonitorStrategy {
         case 'cpuUsage':
           value = xapiAverage(hostStat.stats.cpu_avg)
           break
-        case 'memoryUsage':
+        case 'memoryUsage':{
           const total = xapiAverage(hostStat.stats.memory_total_kib)
           const free = xapiAverage(hostStat.stats.memory_free_kib)
           value =  Math.round(100*(total-free)/total)
           break
+        }
+        case 'storage':{
+          const total = xapiAverage(hostStat.stats.memory_total_kib)
+          const free = xapiAverage(hostStat.stats.memory_free_kib)
+          value =  Math.round(100*(total-free)/total)
+          break
+        }
         default: 
           throw new Error(`Can't compute alert of type ${rule.variableName} for host`)
       }
@@ -202,12 +209,13 @@ export class RRdUpdateStrategy extends MonitorStrategy {
         case 'cpuUsage':
           value = xapiAverage(vmStats.cpu_usage)
           break
-        case 'memoryUsage':
+        case 'memoryUsage':{
           const total = xapiAverage(vmStats.memory)
-          // memory_internal_free is in bytes memory is in kilobytee
+          // memory_internal_free is in bytes, memory is in kilobytee
           const free = 1024 * xapiAverage(vmStats.memory_internal_free)
           value =  Math.round(100*(total-free)/total)
           break
+        }
         default: 
           throw new Error(`Can't compute alert of type ${rule.variableName} for VM`)
       }
@@ -253,11 +261,8 @@ export class RRdUpdateStrategy extends MonitorStrategy {
 
     const hosts = Object.values(this.#xo.objects.indexes.type.host ?? {})
     // @todo : compute host list to call rrd only on related host
-      // if they are watched
-      // or if at least one of their running VM is watched
-
-    // @todo randomize by pool to ensure that the query are not on the same
-    // pool master in parallel 
+    // if they are watched
+    // or if at least one of their running VM is watched
 
     const alarmsByObjects = []
     await asyncEach(
@@ -273,7 +278,8 @@ export class RRdUpdateStrategy extends MonitorStrategy {
 
         const hostStats = await this.#getHostStats(host, 60, needHost)
         alarmsByObjects.push(this.#computeAlarms(host, hostStats))
-      }
+      },
+      {concurrency: 5}
     )
     return [].concat(...alarmsByObjects)
   }

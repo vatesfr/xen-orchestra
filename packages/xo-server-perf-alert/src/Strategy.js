@@ -21,7 +21,7 @@ export class Alarm{
      */
     target
 
-    /**@returns {string} */
+    /** @returns {string} */
     get id(){
         return `${this.rule.id}|${this.target.id}`
     }
@@ -40,26 +40,21 @@ export class Alarm{
 }
 
 
-export class MonitorStrategy {
+export /* Abstract */class MonitorStrategy {
     /**
      * @type {Map<Alarm['id'],Alarm>}
      */
     #activeAlarm = new Map()
+
     /**
      * 
      * @returns {Promise<Array<Alarm>>}
      */
+
     computeActiveAlarms(){
         return Promise.reject(new Error('Not Implemented'))
     }
 
-    start(){
-        return Promise.reject(new Error('Not Implemented'))
-    }
-
-    stop(){
-        return Promise.reject(new Error('Not Implemented'))
-    }
 
     /**
      * Computes changes between current and previous alarms.
@@ -90,7 +85,7 @@ export class MonitorStrategy {
             if(!previous.has(alarm.id)){
                 newAlarms.set(alarm.id, alarm)
             }
-            //mark this alarm as handled
+            // mark this alarm as handled
             previous.delete(alarm.id)
         }
 

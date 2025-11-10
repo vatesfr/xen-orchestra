@@ -81,7 +81,6 @@ export class AlarmRule{
      * @returns {boolean}
      */
     isObjectAffected(xoObject){
-
         if(this.smartMode || this.excludeUuids){
             if(xoObject.type !== this.objectType){
                 return false
@@ -126,12 +125,16 @@ export class AlarmRuleSet {
     definitions = new Set()
     constructor(configuration){
         for(const definition of configuration.hostMonitors){
-            const alert = new AlarmRule({...definition, objectType: 'host'})
-            this.definitions.add(alert)
+            const alarmRule = new AlarmRule({...definition, objectType: 'host'})
+            this.definitions.add(alarmRule)
         }
         for(const definition of configuration.vmMonitors){
-            const alert = new AlarmRule({...definition, objectType: 'VM'})
-            this.definitions.add(alert)
+            const alarmRule = new AlarmRule({...definition, objectType: 'VM'})
+            this.definitions.add(alarmRule)
+        }
+        for(const definition of configuration.srMonitors){
+            const alarmRule = new AlarmRule({...definition, objectType: 'SR'})
+            this.definitions.add(alarmRule)
         }
     }
 
