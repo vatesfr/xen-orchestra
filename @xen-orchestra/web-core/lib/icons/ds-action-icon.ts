@@ -50,7 +50,7 @@ export const dsActionIcons = defineIconPack({
   'pin-panel-hide': constructIcon(faThumbTackSlash),
 
   resize: [
-    // The icon used in the design system is not available in Font Awesome, so we have to build it manually but is not exact same arrow (empty arrow hear and fulfeld arrow in figma)
+    // The icon used in the design system is not available in Font Awesome, so we have to build it manually but is not exact same arrow (empty arrow hear and fulfilled arrow in figma)
     constructIcon(faArrowsLeftRight),
     {
       icon: faMinus,
