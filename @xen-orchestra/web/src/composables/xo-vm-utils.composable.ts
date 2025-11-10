@@ -75,7 +75,7 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
       return {
         type: 'link',
         value: t('install-guest-tools'),
-        tooltip: !vm.value.managementAgentDetected ? t('management-agent-not-detected') : t('no-tools-detected'),
+        tooltip: !vm.value.managementAgentDetected ? t('management-agent-not-detected') : t('no-xen-tools-detected'),
       }
     }
 

@@ -38,7 +38,7 @@
 
 <script lang="ts" setup>
 import type { XoVm } from '@/types/xo/vm.type.ts'
-import { getIpAddresses } from '@/utils/xo-records/vm.util.ts'
+import { getVmIpAddresses } from '@/utils/xo-records/vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -55,7 +55,7 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const ipAddresses = computed(() => getIpAddresses(vm))
+const ipAddresses = computed(() => getVmIpAddresses(vm))
 </script>
 
 <style scoped lang="postcss">

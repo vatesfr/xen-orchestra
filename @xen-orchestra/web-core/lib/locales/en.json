@@ -296,7 +296,7 @@
   "install-settings": "Install settings",
   "installed": "Installed",
   "management-agent-not-detected": "Management agent not detected",
-  "no-tools-detected": "No Xen tools detected",
+  "no-xen-tools-detected": "No Xen tools detected",
   "resources": "Resources",
   "install-guest-tools": "Install guest tools",
   "interfaces": "Interface | Interface | Interfaces",
