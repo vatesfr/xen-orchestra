@@ -5,7 +5,7 @@ const { Strategy } = require('passport-openidconnect')
 
 // ===================================================================
 
-const DISCOVERABLE_SETTINGS = ['authorizationURL', 'issuer', 'userInfoURL', 'tokenURL']
+const DISCOVERABLE_SETTINGS = ['authorizationURL', 'issuer', 'tokenURL']
 
 exports.configurationSchema = {
   type: 'object',
@@ -118,22 +118,50 @@ class AuthOidc {
     }
 
     this.#unregisterPassportStrategy = xo.registerPassportStrategy(
-      new Strategy(conf, async (issuer, profile, done) => {
+      new Strategy(conf, async (issuer, profile, context, idToken, accessToken, refreshToken, params, done) => {
         try {
+          const claims = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString())
+          const groups = claims.groups
+
           // See https://github.com/jaredhanson/passport-openidconnect/blob/master/lib/profile.js
           const { id } = profile
-          done(
-            null,
-            await xo.registerUser2('oidc:' + issuer, {
-              user: { id, name: usernameField === 'email' ? profile.emails[0].value : profile[usernameField] },
-            })
-          )
+          const user = await xo.registerUser2('oidc:' + issuer, {
+            user: { id, name: usernameField === 'email' ? profile.emails[0].value : profile[usernameField] },
+          })
+
+          await this._synchronizeGroups(user, groups)
+
+          done(null, user)
         } catch (error) {
           done(error.message)
         }
       }),
       { label: 'OpenID Connect', name: 'oidc' }
     )
+  }
+
+  // Synchronize user's groups.
+  async _synchronizeGroups(user, oidcGroups) {
+    if (Array.isArray(oidcGroups) && oidcGroups.length > 0) {
+      const xoGroups = await this.#xo.getAllGroups()
+
+      for (const oidcGroupName of oidcGroups) {
+        // Try to find the OIDC group in the XO groups by name.
+        let xoGroup = xoGroups.find(group => group.name === oidcGroupName)
+        if (xoGroup === undefined) {
+          // If the OIDC group does not exist we create it.
+          xoGroup = await this.#xo.createGroup({
+            name: oidcGroupName,
+            provider: 'oidc',
+          })
+        }
+
+        // If the user is not part of the group, add him.
+        if (xoGroup.users.find(xoGroupUser => xoGroupUser === user.id) === undefined) {
+          await this.#xo.addUserToGroup(user.id, xoGroup.id)
+        }
+      }
+    }
   }
 
   unload() {
