@@ -17,7 +17,7 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+        <UiTopBottomTable :selected-items="0" :total-items="0">
           <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
@@ -57,7 +57,7 @@
       <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" format="table" type="no-result" size="small">
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+      <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
@@ -81,7 +81,6 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed, ref } from 'vue'
@@ -113,14 +112,6 @@ const filteredNetworks = computed(() => {
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
-
-const networkIds = computed(() => networks.map(network => network.id))
-
-const { selected } = useMultiSelect(networkIds)
-
-const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? networkIds.value : []
-}
 
 const getNetworkVlan = (network: XoNetwork) => {
   const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))

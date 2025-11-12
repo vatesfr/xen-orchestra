@@ -547,7 +547,7 @@
   "s3-backup-repository": "S3 backup repository",
   "save": "Save",
   "scan-pifs": "Scan PIFs",
-  "scan-pifs-in-xo-5": "Scan PIFs in XO-5",
+  "scan-pifs-in-xo-5": "@:scan-pifs in XO-5",
   "schedule": "Schedule",
   "schedule-name": "Schedule name",
   "scheduler-granularity": "Scheduler granularity",

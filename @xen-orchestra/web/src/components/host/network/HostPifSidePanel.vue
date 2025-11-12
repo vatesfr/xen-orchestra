@@ -1,13 +1,13 @@
 <template>
   <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
-    <template v-if="uiStore.isMobile" #header>
+    <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
           v-tooltip="t('close')"
           size="medium"
           variant="tertiary"
           accent="brand"
-          icon="fa:angle-left"
+          :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
           @click="emit('close')"
         />
       </div>

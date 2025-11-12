@@ -19,7 +19,7 @@
         {{ t('console') }}
       </TabItem>
     </RouterLink>
-    <TabItem tag="a">
+    <TabItem>
       <UiLink :href="`/#/hosts/${host.id}/stats`" size="medium">
         {{ t('stats') }}
       </UiLink>

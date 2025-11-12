@@ -1,6 +1,6 @@
 <!-- v2 -->
 <template>
-  <div class="ui-top-bottom-table" :class="{ 'no-content': totalItems == 0 }">
+  <div class="ui-top-bottom-table" :class="{ 'no-content': totalItems === 0 }">
     <div v-if="totalItems > 0" class="content">
       <span class="typo-body-regular-small label">
         {{ t('core.select.n-selected-of', { count: selectedItems, total: totalItems }) }}

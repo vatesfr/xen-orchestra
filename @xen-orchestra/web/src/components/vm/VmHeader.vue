@@ -26,7 +26,7 @@
         {{ t('backups') }}
       </TabItem>
     </RouterLink>
-    <TabItem tag="a">
+    <TabItem>
       <UiLink :href="`/#/vms/${vm.id}/stats`" size="medium">
         {{ t('stats') }}
       </UiLink>

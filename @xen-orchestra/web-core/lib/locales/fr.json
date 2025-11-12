@@ -547,7 +547,7 @@
   "s3-backup-repository": "Dépot de sauvegarde S3",
   "save": "Enregistrer",
   "scan-pifs": "Scan PIFs",
-  "scan-pifs-in-xo-5": "Scan PIFs dans XO-5",
+  "scan-pifs-in-xo-5": "@:scan-pifs dans XO-5",
   "schedule": "Planification",
   "schedule-name": "Nom de la planification",
   "scheduler-granularity": "Granularité de la planification",

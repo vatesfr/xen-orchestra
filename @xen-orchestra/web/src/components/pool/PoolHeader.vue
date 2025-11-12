@@ -13,7 +13,7 @@
         {{ t('dashboard') }}
       </TabItem>
     </RouterLink>
-    <TabItem tag="a">
+    <TabItem>
       <UiLink :href="`/#/pool/${pool.id}/stats`" size="medium">
         {{ t('stats') }}
       </UiLink>

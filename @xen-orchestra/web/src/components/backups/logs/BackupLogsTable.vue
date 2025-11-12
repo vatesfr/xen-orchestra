@@ -21,15 +21,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled accent="brand" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
+              <th>
                 <div v-tooltip class="text-ellipsis">
                   <VtsIcon size="medium" :name="headerIcon[column.id]" />
                   {{ column.label }}
@@ -45,24 +37,8 @@
             :class="{ selected: selectedBackupLogId === row.id }"
             @click="selectedBackupLogId = row.id"
           >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox disabled accent="brand" :value="row.id" />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="['start-date', 'end-date', 'duration'].includes(column.id)" class="number">
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
+              <div v-if="['start-date', 'end-date', 'duration'].includes(column.id)" class="number">
                 {{ column.value }}
               </div>
               <template v-else-if="column.id === 'status'">
@@ -93,8 +69,6 @@ import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
@@ -104,7 +78,6 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -137,13 +110,11 @@ const { getBackupLogDate, getBackupLogDuration, getTransferSize } = useXoBackupL
 const { visibleColumns, rows } = useTable('backup-logs', filteredBackupLogs, {
   rowId: record => record.id,
   columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
     define('start-date', record => getBackupLogDate(record.start), { label: t('start-date') }),
     define('end-date', record => getBackupLogDate(record.end), { label: t('end-date') }),
     define('duration', record => getBackupLogDuration(record), { label: t('duration') }),
     define('status', record => record.status, { label: t('status') }),
     define('transfer-size', record => getTransferSize(record), { label: t('transfer-size') }),
-    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
@@ -174,16 +145,6 @@ const headerIcon: Record<BackupLogHeader, IconName> = {
   .container,
   .table-actions {
     gap: 0.8rem;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 
   .number {
