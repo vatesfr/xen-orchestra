@@ -1,12 +1,9 @@
 <template>
-  <UiCard>
+  <UiCard class="card-container">
     <UiCardTitle>
-      <UiObjectLink :route="`/host/${host.id}/`">
-        <template #icon>
-          <VtsObjectIcon size="medium" :state="getHostState(host.power_state)" type="host" />
-        </template>
+      <UiLink :to="`/host/${host.id}/dashboard`" size="medium" :icon="`object:host:${getHostState(host.power_state)}`">
         {{ host.name_label }}
-      </UiObjectLink>
+      </UiLink>
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
@@ -28,7 +25,7 @@
       <VtsCardRowKeyValue wrap>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ host.name_description }}</template>
-        <template #addons>
+        <template v-if="host.name_description" #addons>
           <VtsCopyButton :value="host.name_description" />
         </template>
       </VtsCardRowKeyValue>
@@ -55,8 +52,7 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="pool-name">
-            <VtsIcon name="fa:city" size="medium" />
-            <UiLink :to="`/pool/${pool.id}`" size="small">
+            <UiLink :to="`/pool/${pool.id}/dashboard`" icon="object:pool" size="medium">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -73,12 +69,13 @@
             {{ t('this-host') }}
           </div>
           <div v-else-if="masterHost !== undefined" class="primary-host">
-            <UiObjectLink :route="`/host/${masterHost.id}/`">
-              <template #icon>
-                <VtsObjectIcon size="medium" :state="getHostState(masterHost.power_state)" type="host" />
-              </template>
+            <UiLink
+              :to="`/host/${masterHost.id}/dashboard`"
+              size="medium"
+              :icon="`object:host:${getHostState(masterHost.power_state)}`"
+            >
               {{ masterHost.id }}
-            </UiObjectLink>
+            </UiLink>
           </div>
         </template>
         <template v-if="masterHost !== undefined" #addons>
@@ -118,12 +115,10 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
@@ -137,37 +132,40 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const { getHostState, getPowerState, getRelativeStartTime } = useXoHostUtils()
+
 const { useGetPoolById } = useXoPoolCollection()
+
 const { getMasterHostByPoolId, isMasterHost } = useXoHostCollection()
+
 const { hostMissingPatches: missingPatches } = useXoHostMissingPatchesCollection({}, () => host.id)
 
 const pool = useGetPoolById(() => host.$pool)
 
 const isMaster = computed(() => isMasterHost(host.id))
-
 const masterHost = computed(() => getMasterHostByPoolId(host.$pool))
-
 const nMissingPatches = computed(() => missingPatches.value.length)
-
 const noMissingPatches = computed(() => nMissingPatches.value === 0)
+const powerState = computed(() => getPowerState(host.power_state))
 
 const relativeStartTime = getRelativeStartTime(host.startTime)
-
-const powerState = computed(() => getPowerState(host.power_state))
 </script>
 
 <style scoped lang="postcss">
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+.card-container {
+  gap: 1.6rem;
 
-  .power-state,
-  .pool-name,
-  .primary-host {
+  .content {
     display: flex;
-    align-items: center;
-    gap: 0.8rem;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    .power-state,
+    .pool-name,
+    .primary-host {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
   }
 }
 </style>

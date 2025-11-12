@@ -8,6 +8,7 @@ import {
   faBoxArchive,
   faCheck,
   faCircle,
+  faCity,
   faClock,
   faDatabase,
   faDesktop,
@@ -215,4 +216,8 @@ export const objectIcons = defineIconPack({
   'backup-job': backupJob,
   'backup-schedule': backupSchedule,
   'backup-log': backupLog,
+  pool: {
+    icon: faCity,
+    color: 'var(--color-neutral-txt-primary)',
+  },
 })

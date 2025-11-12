@@ -12,15 +12,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" @update:model-value="toggleSelect" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
+              <th>
                 <div v-tooltip class="text-ellipsis">
                   <VtsIcon accent="brand" size="medium" :name="headerIcon[column.id]" />
                   {{ column.label }}
@@ -36,41 +28,22 @@
             :class="{ selected: selectedHostId === row.id }"
             @click="selectedHostId = row.id"
           >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="column.id === 'host'">
-                <UiObjectLink :route="`/host/${row.id}/`" @click.stop>
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
+              <div v-if="column.id === 'host'">
+                <UiObjectLink :route="`/host/${row.id}/dashboard`" @click.stop>
                   <template #icon>
                     <VtsObjectIcon size="medium" :state="getHostState(column.value.state)" type="host" />
                   </template>
                   {{ column.value.label }}
                 </UiObjectLink>
               </div>
-              <span v-else-if="column.id === 'description'" v-tooltip class="text-ellipsis">
-                {{ column.value }}
-              </span>
               <div
                 v-else-if="column.id === 'ip-addresses'"
                 v-tooltip="[column.value].join(', ')"
                 class="text-ellipsis ip-addresses"
               >
                 <span class="text-ellipsis">{{ column.value[0] }}</span>
-                <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
+                <span v-if="column.value.length > 1" class="typo-body-regular-small more-info">
                   {{ `+${column.value.length - 1}` }}
                 </span>
               </div>
@@ -91,6 +64,9 @@
                 <div v-if="column.value.length > 2" class="typo-body-regular-small more-info">
                   {{ `+${column.value.length - 2}` }}
                 </div>
+              </div>
+              <div v-else v-tooltip class="text-ellipsis">
+                {{ column.value }}
               </div>
             </td>
           </tr>
@@ -115,8 +91,6 @@ import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
@@ -126,32 +100,29 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { noop } from '@vueuse/shared'
+import { logicAnd } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { hosts } = defineProps<{
+const { hostReady, hosts } = defineProps<{
   hosts: XoHost[]
   hasError: boolean
+  hostReady: boolean
 }>()
-
-const hostsId = computed(() => hosts.map(host => host.id))
 
 const { t } = useI18n()
 
 const searchQuery = ref('')
 
 const selectedHostId = useRouteQuery('id')
-const { pifsByHost, arePifsReady: isReady } = useXoPifCollection()
-const { selected, areAllSelected } = useMultiSelect(hostsId)
-const { getHostState } = useXoHostUtils()
 
-const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? hostsId.value : []
-}
+const { pifsByHost, arePifsReady } = useXoPifCollection()
+
+const isReady = logicAnd(arePifsReady, hostReady)
+
+const { getHostState } = useXoHostUtils()
 
 const filteredHosts = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
@@ -185,14 +156,12 @@ const getIpAddresses = (host: XoHost) => {
 const { visibleColumns, rows } = useTable('hosts', filteredHosts, {
   rowId: record => record.id,
   columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
     define('host', record => ({ label: record.name_label, state: record.power_state }), {
       label: t('host'),
     }),
     define('description', record => record.name_description, { label: t('description') }),
     define('ip-addresses', record => getIpAddresses(record), { label: t('ip-addresses') }),
     define('tags', record => record.tags, { label: t('tags') }),
-    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
@@ -224,28 +193,15 @@ const headerIcon: Record<HostHeader, IconName> = {
     gap: 0.8rem;
   }
 
+  .tags,
   .ip-addresses {
     display: flex;
     justify-content: space-between;
     align-items: center;
 
-    .more-ips {
+    .more-info {
       color: var(--color-neutral-txt-secondary);
     }
-  }
-
-  .tags {
-    display: flex;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 }
 </style>

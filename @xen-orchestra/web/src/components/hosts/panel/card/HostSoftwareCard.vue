@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard class="card-container">
     <UiCardTitle>
       {{ t('software') }}
     </UiCardTitle>
@@ -31,9 +31,13 @@ const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+.card-container {
+  gap: 1.6rem;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
 }
 </style>
