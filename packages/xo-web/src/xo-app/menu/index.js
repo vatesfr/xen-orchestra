@@ -216,6 +216,7 @@ export default class Menu extends Component {
     const res = await fetch('./rest/v0/gui-routes')
     if (!res.ok) {
       console.error(await res.text())
+      return
     }
 
     this.setState({ guiRoutes: await res.json() })
