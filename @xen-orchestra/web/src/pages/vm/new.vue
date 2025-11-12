@@ -6,6 +6,12 @@
         <VtsSelect :id="poolSelectId" accent="brand" />
       </template>
     </UiHeadBar>
+    <UiAlert v-if="vmState.pool" accent="info">
+      {{ t('new-vm.feature-not-supported') }}
+      <UiLink :href="xo5Link" size="medium">
+        {{ t('xo-5') }}
+      </UiLink>
+    </UiAlert>
     <div class="card-container">
       <form @submit.prevent="createNewVM()">
         <UiCard v-if="vmState.pool">
@@ -343,6 +349,7 @@ import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -350,6 +357,7 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -358,6 +366,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useFormSelect } from '@core/packages/form-select'
 import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
 
+import { useFetch } from '@vueuse/core'
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -917,6 +926,16 @@ watch(
   },
   { immediate: true }
 )
+
+const { data: guiRoutes } = useFetch('./rest/v0/gui-routes').json()
+
+const xo5Link = computed(() => {
+  if (!vmState.pool?.id || !guiRoutes.value?.xo5) {
+    return '#'
+  }
+  const base = guiRoutes.value.xo5.replace(/\/$/, '')
+  return `${base}/#/vms/new?pool=${vmState.pool.id}`
+})
 </script>
 
 <style scoped lang="postcss">
