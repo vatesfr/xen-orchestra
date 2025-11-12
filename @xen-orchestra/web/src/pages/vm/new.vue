@@ -109,22 +109,13 @@
                 <VtsInputWrapper :label="t('boot-firmware')">
                   <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
-                <div
-                  v-tooltip="
-                    vmState.boot_firmware === 'uefi' || getCopyHostBiosStrings
-                      ? {
-                          placement: 'top-start',
-                          content: vmState.boot_firmware !== 'uefi' ? t('boot-firmware-bios') : t('boot-firmware-uefi'),
-                        }
-                      : undefined
-                  "
-                >
+                <div v-tooltip="{ placement: 'top-start', content: copyHostBiosStringsTooltipContent }">
                   <UiCheckbox
-                    v-model="getCopyHostBiosStrings"
+                    v-model="vmState.copyHostBiosStrings"
                     accent="brand"
-                    :disabled="vmState.boot_firmware === 'uefi' || getCopyHostBiosStrings"
+                    :disabled="isCopyHostBiosStringsCheckboxDisabled"
                   >
-                    {{ t('copy-host') }}
+                    {{ t('copy-host-bios-strings') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -362,6 +353,7 @@ import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
 import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
 
@@ -395,7 +387,7 @@ const vmState = reactive<VmState>({
   description: '',
   installMode: undefined,
   affinity_host: undefined,
-  boot_firmware: '',
+  bootFirmware: undefined,
   new_vm_template: undefined,
   boot_vm: true,
   autoPoweron: false,
@@ -494,17 +486,24 @@ const isDiskTemplate = computed(() => {
   )
 })
 
-const getBootFirmwares = computed(() => {
-  return [
-    ...new Set(vmsTemplates.value.map(vmsTemplate => vmsTemplate.boot.firmware).filter(firmware => firmware != null)),
-  ]
-})
+const selectedTemplateHasBiosStrings = computed(
+  () => vmState.new_vm_template !== undefined && Object.keys(vmState.new_vm_template.bios_strings).length !== 0
+)
 
-const getCopyHostBiosStrings = computed({
-  get: () => vmState.boot_firmware !== 'uefi',
-  set: value => {
-    vmState.boot_firmware = value ? 'bios' : 'uefi'
-  },
+const isCopyHostBiosStringsCheckboxDisabled = computed(
+  () => vmState.bootFirmware === 'uefi' || selectedTemplateHasBiosStrings.value
+)
+
+const copyHostBiosStringsTooltipContent = computed(() => {
+  if (vmState.bootFirmware === 'uefi') {
+    return t('boot-firmware-uefi')
+  }
+
+  if (selectedTemplateHasBiosStrings.value) {
+    return t('boot-firmware-bios')
+  }
+
+  return undefined
 })
 
 const filteredSrs = computed(() => {
@@ -771,8 +770,7 @@ const vmData = computed(() => {
         method: vmState.installMode,
         repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
       },
-    },
-    vmState.boot_firmware ? { hvmBootFirmware: vmState.boot_firmware } : {}
+    }
     // TODO: uncomment when radio will be implemented
     // ...(vmState.installMode === 'custom_config' && {
     //   ...(vmState.cloudConfig && { cloud_config: vmState.cloudConfig }),
@@ -788,6 +786,8 @@ const vmData = computed(() => {
     name_description: vmState.description,
     name_label: vmState.name,
     template: vmState.new_vm_template?.uuid,
+    hvmBootFirmware: vmState.bootFirmware,
+    copyHostBiosStrings: vmState.copyHostBiosStrings,
     ...optionalFields,
   }
 })
@@ -856,6 +856,7 @@ watch(
       vifs: getExistingVifs(template),
       selectedVdi: undefined,
       installMode: undefined,
+      bootFirmware: template.boot.firmware !== undefined ? template.boot.firmware : 'bios',
     } satisfies Partial<VmState>)
   }
 )
