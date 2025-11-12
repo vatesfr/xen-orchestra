@@ -122,6 +122,7 @@
   "copy": "Copy",
   "copy-all": "Copy all",
   "copy-host": "Copy host",
+  "copy-host-bios-strings": "Copy host BIOS strings",
   "copy-info-json": "Copy information into JSON",
   "core-socket": "Core (socket)",
   "core.character-limit": "{count}/{max} character | {count}/{max} characters",

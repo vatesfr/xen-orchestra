@@ -16,7 +16,7 @@ export type XoVmTemplate = {
   $pool: XoPool['id']
   CPUs: { max: number; number: number }
   VIFs: XoVif['id'][]
-  boot: { firmware: string; order: string }
+  boot: { firmware: 'bios' | 'uefi' | undefined; order: string }
   id: Branded<'vm-template'>
   uuid: Branded<'vm-template'>
   isDefaultTemplate: boolean
@@ -25,4 +25,5 @@ export type XoVmTemplate = {
   name_label: string
   tags: string[]
   template_info: { disks: Disk[]; install_methods: string[] }
+  bios_strings: Record<string, string>
 }

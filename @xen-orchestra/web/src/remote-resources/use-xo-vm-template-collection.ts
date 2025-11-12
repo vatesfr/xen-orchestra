@@ -7,7 +7,7 @@ import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
 export const useXoVmTemplateCollection = defineRemoteResource({
-  url: '/rest/v0/vm-templates?fields=id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate',
+  url: '/rest/v0/vm-templates?fields=id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate,bios_strings',
   initialData: () => [] as XoVmTemplate[],
   state: (rawTemplates, context) => {
     const templates = useSorted(rawTemplates, sortByNameLabel)
