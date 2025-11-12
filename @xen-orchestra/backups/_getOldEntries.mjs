@@ -102,40 +102,53 @@ export function getOldEntries(minRetentionCount, entries, { longTermRetention = 
   }
   const nb = entries.length
   const minDurationEntries = []
+  let previousTimestamp = -1
   for (let i = nb - 1; i >= 0; i--) {
     const entry = entries[i]
-    const entryDate = dateCreator(entry.timestamp)
-    for (const [duration, { remaining, lastMatchingBucket, formatter }] of Object.entries(dateBuckets)) {
-      const bucket = formatter(entryDate)
-      if (lastMatchingBucket !== bucket) {
-        if (remaining === 0) {
-          continue
+    if (entry.timestamp !== undefined) {
+      // we go through the entries from the last (most recent) to the first (oldest)
+      assert.ok(
+        previousTimestamp === -1 || entry.timestamp < previousTimestamp,
+        `entries must be sorted in desc order ${new Date(entry.timestamp)} , previous :  > ${new Date(previousTimestamp)} `
+      )
+      previousTimestamp = entry.timestamp
+      const entryDate = dateCreator(entry.timestamp)
+      for (const [duration, { remaining, lastMatchingBucket, formatter }] of Object.entries(dateBuckets)) {
+        const bucket = formatter(entryDate)
+        if (lastMatchingBucket !== bucket) {
+          if (remaining === 0) {
+            continue
+          }
+          dateBuckets[duration].lastMatchingBucket = bucket
+          dateBuckets[duration].remaining -= 1
         }
-        if (lastMatchingBucket !== null) {
-          assert.strictEqual(
-            lastMatchingBucket > bucket,
-            true,
-            `entries must be sorted in asc order ${lastMatchingBucket} ${bucket}`
-          )
-        }
-        dateBuckets[duration].lastMatchingBucket = bucket
-        dateBuckets[duration].remaining -= 1
+        dateBuckets[duration].entries[bucket] = entry
       }
-      // we want to keep the older one on each bucket
-      dateBuckets[duration].entries[bucket] = entry.id
+    } else {
+      // replicated VM entries or snapshot retention don't have a timestamp
+      // but also can't have LTR
+      assert.deepStrictEqual(
+        longTermRetention,
+        {},
+        "Can't compute long term retentionif entries don't have a timestamp"
+      )
     }
+
+    // also keep it on retention
     if (i >= nb - minRetentionCount) {
-      minDurationEntries.push(entry.id)
+      minDurationEntries.push(entry)
     }
   }
   const kept = new Set(minDurationEntries)
   for (const { entries } of Object.values(dateBuckets)) {
-    for (const id of Object.values(entries)) {
-      kept.add(id)
+    for (const entry of Object.values(entries)) {
+      kept.add(entry)
     }
   }
-  const oldEntries = entries.filter(({ id }) => {
-    return !kept.has(id)
+
+  // ensure order is the same as the source
+  const oldEntries = entries.filter(entry => {
+    return !kept.has(entry)
   })
 
   return oldEntries
