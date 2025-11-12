@@ -18,7 +18,7 @@ describe('_getOldEntries() should succeed', () => {
       testLabel: 'should  handle number based retention ',
     },
     {
-      args: [3, [{ id: 1 }, 4, new Date(), 'watever']],
+      args: [3, [{ id: 1 }, 4, new Date(), 'whatever']],
       expectedIds: [1],
       testLabel: 'should  handle number based retention without timestamp  ',
     },
@@ -295,7 +295,7 @@ describe('_getOldEntries() should fail when called incorrectly', () => {
           timezone: 'Europe/Paris',
         },
       ],
-      testLabel: 'should fails if LTR without timestamp   ',
+      testLabel: 'should fail if LTR without timestamp',
     },
   ]
 
