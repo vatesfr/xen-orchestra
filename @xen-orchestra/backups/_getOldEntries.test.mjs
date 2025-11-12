@@ -17,6 +17,11 @@ describe('_getOldEntries() should succeed', () => {
       expectedIds: [1, 2],
       testLabel: 'should  handle number based retention ',
     },
+    {
+      args: [3, [{ id: 1 }, 4, new Date(), 'watever']],
+      expectedIds: [1],
+      testLabel: 'should  handle number based retention without timestamp  ',
+    },
 
     {
       args: [
@@ -278,6 +283,19 @@ describe('_getOldEntries() should fail when called incorrectly', () => {
         },
       ],
       testLabel: 'broken date ',
+    },
+    {
+      args: [
+        1,
+        [{ obj: 1 }, 'toto', Date.now()],
+        {
+          longTermRetention: {
+            daily: { retention: 5 },
+          },
+          timezone: 'Europe/Paris',
+        },
+      ],
+      testLabel: 'should fails if LTR without timestamp   ',
     },
   ]
 
