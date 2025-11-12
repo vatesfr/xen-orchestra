@@ -130,7 +130,7 @@ export function getOldEntries(minRetentionCount, entries, { longTermRetention = 
       assert.deepStrictEqual(
         longTermRetention,
         {},
-        "Can't compute long term retentionif entries don't have a timestamp"
+        "Can't compute long term retention if entries don't have a timestamp"
       )
     }
 
