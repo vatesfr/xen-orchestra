@@ -31,6 +31,7 @@ import { parseDateTime } from '@xen-orchestra/xapi'
 import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import groupBy from 'lodash/groupBy.js'
 import { VmDashboard } from './vm.type.mjs'
+import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 
 const log = createLogger('xo:rest-api:vm-service')
 
@@ -38,10 +39,12 @@ export class VmService {
   #restApi: RestApi
   #alarmService: AlarmService
   #backupJobService: BackupJobService
+  #backupLogService: BackupLogService
   constructor(restApi: RestApi) {
     this.#restApi = restApi
     this.#alarmService = restApi.ioc.get(AlarmService)
     this.#backupJobService = restApi.ioc.get(BackupJobService)
+    this.#backupLogService = restApi.ioc.get(BackupLogService)
   }
 
   async #create(
@@ -311,17 +314,30 @@ export class VmService {
     }
 
     const backupLogs = (await this.#restApi.xoApp.getBackupNgLogsSorted({
-      filter: log => log.message === 'backup' && relevantJobIds.includes(log.jobId as XoVmBackupJob['id']),
+      filter: log =>
+        this.#backupLogService.isBackupLog(log) &&
+        relevantJobIds.includes(log.jobId as XoVmBackupJob['id']) &&
+        this.#backupLogService.isVmInBackupLog(log, id),
     })) as XoBackupLog[]
 
     const lastBackupRuns = backupLogs
       .slice(-3)
       .reverse()
-      .map(log => ({
-        backupJobId: log.jobId,
-        timestamp: log.end,
-        status: log.status,
-      })) as { backupJobId: XoVmBackupJob['id']; timestamp: number; status: string }[]
+      .map(log => {
+        let status: XoBackupLog['status']
+        if (log.status === 'success') {
+          status = log.status
+        } else {
+          const vmTaskLog = this.#backupLogService.getVmBackupTaskLog(log, id)
+          status = vmTaskLog!.status
+        }
+
+        return {
+          backupJobId: log.jobId,
+          timestamp: log.end,
+          status,
+        }
+      }) as { backupJobId: XoVmBackupJob['id']; timestamp: number; status: string }[]
 
     let isProtected = false
     if (!vmContainsNoBakTag(vm)) {
@@ -342,10 +358,8 @@ export class VmService {
               return true
             }
 
-            const backupTask = (log.tasks as { data: { id: XoVm['id'] }; status: string }[]).find(
-              task => task.data.id === vm.id
-            )
-            return backupTask?.status === 'success'
+            const vmTaskLog = this.#backupLogService.getVmBackupTaskLog(log, id)
+            return vmTaskLog?.status === 'success'
           })
         }
       }

@@ -137,11 +137,12 @@ export type XoAlarm = Omit<XoMessage, '$object' | 'body'> & {
 // TODO: to be typed when Bastien.N has finished working on the XO task
 type BaseXoLog = {
   id: Branded<'xo-log'>
+  infos?: { data: unknown; message: string }[]
   [key: string]: unknown
 }
 export type XoBackupLog = BaseXoLog & {
   status: 'success' | 'skipped' | 'interrupted' | 'failure' | 'pending'
-  message: 'backup' | 'metadata'
+  message: 'backup'
   start: number
   end?: number
   tasks?: XoTask[]
@@ -626,6 +627,7 @@ export type XoSm = BaseXapiXo & {
 
 export type XoTask = {
   abortionRequestedAt?: number
+  data?: Record<string, string>
   end?: number
   id: Branded<'task'>
   infos?: { data: unknown; message: string }[]

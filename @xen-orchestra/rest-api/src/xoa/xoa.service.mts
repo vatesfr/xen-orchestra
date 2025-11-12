@@ -28,6 +28,7 @@ import type { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
+import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -44,6 +45,7 @@ export class XoaService {
     AsyncCacheEntry<DashboardAsyncCache[keyof DashboardAsyncCache]>
   >()
   #dashboardCacheOpts: { timeout?: number; expiresIn?: number }
+  #backupLogService: BackupLogService
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
@@ -52,6 +54,7 @@ export class XoaService {
       timeout: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheTimeout') ?? 60000,
       expiresIn: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
     }
+    this.#backupLogService = this.#restApi.ioc.get(BackupLogService)
   }
 
   async #getBackupRepositoriesSizeInfo(): Promise<
@@ -397,7 +400,7 @@ export class XoaService {
       async () => {
         const [logs, jobs] = await Promise.all([
           xoApp.getBackupNgLogsSorted({
-            filter: log => log.message === 'backup' || log.message === 'metadata',
+            filter: log => this.#backupLogService.isBackupLog(log),
           }),
           Promise.all([
             xoApp.getAllJobs('backup'),
