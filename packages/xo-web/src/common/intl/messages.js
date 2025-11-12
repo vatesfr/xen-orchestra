@@ -282,6 +282,7 @@ const messages = {
   userPage: 'User',
   xoa: 'XOA',
   restApiDoc: 'REST API doc',
+  tryXo6: 'Try XO 6',
   // ----- Support -----
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
