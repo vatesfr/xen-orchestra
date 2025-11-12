@@ -1,7 +1,7 @@
 <template>
-  <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
+  <div class="dashboard" :class="{ mobile: isMobile }">
     <HostDashboardQuickInfo class="quick-info" :host />
-    <div v-if="!data" class="offline-hero-container">
+    <div v-if="!isHostRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
         <span>
           {{ t('engines-off') }}
@@ -24,10 +24,12 @@
       <HostDashboardVmsStatus class="vms-status" :host />
       <HostDashboardCpuProvisioning class="cpu-provisioning" :host />
       <HostDashboardRamProvisioning class="ram-provisioning" :host />
-      <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :loading="isFetching" :error />
-      <HostDashboardRamUsageChart class="ram-usage-chart" :data :loading="isFetching" :error />
-      <HostDashboardNetworkUsageChart class="network-usage-chart" :data :loading="isFetching" :error />
-      <HostDashboardLoadAverageChart class="load-average-chart" :data :loading="isFetching" :error />
+      <template v-if="data">
+        <HostDashboardCpuUsageChart class="cpu-usage-chart" :data :loading="isFetching" :error />
+        <HostDashboardRamUsageChart class="ram-usage-chart" :data :loading="isFetching" :error />
+        <HostDashboardNetworkUsageChart class="network-usage-chart" :data :loading="isFetching" :error />
+        <HostDashboardLoadAverageChart class="load-average-chart" :data :loading="isFetching" :error />
+      </template>
     </template>
   </div>
 </template>
@@ -49,6 +51,7 @@ import { type XoHost } from '@/types/xo/host.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
@@ -61,7 +64,9 @@ const { data, isFetching, error } = useFetchStats('host', () => host.id, GRANULA
 
 const { hostAlarms, areHostAlarmsReady, hasHostAlarmFetchError } = useXoHostAlarmsCollection({}, () => host.id)
 
-const uiStore = useUiStore()
+const isHostRunning = computed(() => host.power_state === 'Running')
+
+const { isMobile } = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
