@@ -10,8 +10,8 @@ describe('_getOldEntries() should succeed', () => {
         1,
         [
           { timestamp: 1, id: 1 },
-          { timestamp: 3, id: 2 },
-          { timestamp: 2, id: 3 },
+          { timestamp: 2, id: 2 },
+          { timestamp: 3, id: 3 },
         ],
       ],
       expectedIds: [1, 2],
@@ -22,8 +22,8 @@ describe('_getOldEntries() should succeed', () => {
       args: [
         0,
         [
-          { timestamp: +new Date('2024-09-01 00:01:00'), id: 1 }, // too old
-          { timestamp: +new Date('2024-09-01 00:00:00'), id: 2 }, // too old
+          { timestamp: +new Date('2024-09-01 00:00:00'), id: 1 }, // too old
+          { timestamp: +new Date('2024-09-01 00:01:00'), id: 2 }, // too old
           { timestamp: +new Date('2024-09-02 00:09:00'), id: 3 }, // oldest in same day
           { timestamp: +new Date('2024-09-02 00:10:00'), id: 4 },
           { timestamp: +new Date('2024-09-03 00:09:00'), id: 5 },
