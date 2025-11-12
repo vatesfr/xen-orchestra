@@ -165,6 +165,7 @@ export type XoVmBackupArchive = {
     uuid: XoVm['uuid']
     name_description: string
     name_label: string
+    tags: XoVm['tags']
   }
   differencingVhds?: number
   dynamicVhds?: number
