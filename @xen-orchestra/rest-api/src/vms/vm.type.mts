@@ -42,7 +42,7 @@ export type VmDashboard = {
   }
   alarms: XoAlarm['id'][]
   backupsInfo: {
-    lastRun: VmDashboardRun[]
+    lastRuns: VmDashboardRun[]
     vmProtected: boolean
     replication?: { id: XoVm['id']; timestamp: number; sr?: XoSr['id'] }
     backupArchives: VmDashboardBackupArchive[]
@@ -55,7 +55,7 @@ export type UnbrandedVmDashboard = {
   }
   alarms: Unbrand<XoAlarm>['id'][]
   backupsInfo: {
-    lastRun: Unbrand<VmDashboardRun>[]
+    lastRuns: Unbrand<VmDashboardRun>[]
     vmProtected: boolean
     replication?: Unbrand<VmDashboard['backupsInfo']['replication']>
     backupArchives: Unbrand<VmDashboardBackupArchive>[]

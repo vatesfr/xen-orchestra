@@ -268,7 +268,7 @@ export const vmDashboard = {
     id: '613f541c-4bed-fc77-7ca8-2db6b68f079c',
     power_state: 'Halted',
     uuid: '613f541c-4bed-fc77-7ca8-2db6b68f079c',
-    name_description: 'root:vateslab',
+    name_description: 'some-random-description',
     CPUs: {
       number: 1,
     },

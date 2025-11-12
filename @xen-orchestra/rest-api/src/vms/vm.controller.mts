@@ -671,12 +671,14 @@ export class VmController extends XapiXoController<XoVm> {
       stream.pipe(res)
     }
 
-    const dashboard = await this.#vmService.getVmDashboard(id as XoVm['id'], { stream })
+    try {
+      const dashboard = await this.#vmService.getVmDashboard(id as XoVm['id'], { stream })
 
-    if (isStream) {
-      stream.end()
-    } else {
-      return dashboard
+      if (!isStream) {
+        return dashboard
+      }
+    } finally {
+      stream?.end()
     }
   }
 }

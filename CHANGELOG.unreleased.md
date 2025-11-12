@@ -18,6 +18,7 @@
 - [Plugins/Usage Report] Add operating system information to reports - displays OS distribution statistics and includes OS details (name, distribution, version) in both HTML reports and CSV exports (PR [#9179](https://github.com/vatesfr/xen-orchestra/pull/9179))
 - [Backup archives] Add `vm.tags` to `backups archives` (PR [#9190](https://github.com/vatesfr/xen-orchestra/pull/9190))
 - [Menu] Add link from XO 5 to XO 6 (PR [#9187](https://github.com/vatesfr/xen-orchestra/pull/9187))
+- [REST API] Expose VM dashboard endpoint `GET /rest/v0/vms/:vm-id/dashboard` (PR [#9143](https://github.com/vatesfr/xen-orchestra/pull/9143))
 
 - **XO 6:**
   - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))

@@ -292,7 +292,7 @@ export class VmService {
     }
   }
 
-  async #getBackupsInfo(id: XoVm['id']): Promise<Pick<VmDashboard['backupsInfo'], 'vmProtected' | 'lastRun'>> {
+  async #getBackupsInfo(id: XoVm['id']): Promise<Pick<VmDashboard['backupsInfo'], 'vmProtected' | 'lastRuns'>> {
     const vm = this.#restApi.getObject<XoVm>(id, 'VM')
 
     const allBackupJobs = await this.#restApi.xoApp.getAllJobs('backup')
@@ -314,7 +314,7 @@ export class VmService {
       filter: log => log.message === 'backup' && relevantJobIds.includes(log.jobId as XoVmBackupJob['id']),
     })) as XoBackupLog[]
 
-    const lastBackupRun = backupLogs
+    const lastBackupRuns = backupLogs
       .slice(-3)
       .reverse()
       .map(log => ({
@@ -351,7 +351,7 @@ export class VmService {
       }
     }
 
-    return { lastRun: lastBackupRun, vmProtected: isProtected }
+    return { lastRuns: lastBackupRuns, vmProtected: isProtected }
   }
 
   async #getLastVmBackupArchives(id: XoVm['id']): Promise<VmDashboard['backupsInfo']['backupArchives']> {
@@ -368,7 +368,7 @@ export class VmService {
   }
 
   async getVmDashboard(id: XoVm['id'], { stream }: { stream?: Writable } = {}): Promise<VmDashboard> {
-    const [quickInfo, alarms, lastReplication, { lastRun, vmProtected }, lastBackupArchives] = await Promise.all([
+    const [quickInfo, alarms, lastReplication, { lastRuns, vmProtected }, lastBackupArchives] = await Promise.all([
       promiseWriteInStream({ maybePromise: this.#getDashboardQuickInfo(id), path: 'quickInfo', stream }),
       promiseWriteInStream({ maybePromise: Object.keys(this.getVmAlarms(id)), path: 'alarms', stream }),
       promiseWriteInStream({ maybePromise: this.#getLastReplication(id), path: 'backupsInfo.replication', stream }),
@@ -384,7 +384,7 @@ export class VmService {
       quickInfo,
       alarms: alarms as XoAlarm['id'][],
       backupsInfo: {
-        lastRun,
+        lastRuns,
         vmProtected,
         replication: lastReplication,
         backupArchives: lastBackupArchives,
