@@ -1,10 +1,10 @@
 import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
-import type { XoVmBackupJob, XoVm } from '@vates/types'
+import { noSuchObject } from 'xo-common/api-errors.js'
+import type { XoVmBackupJob, XoVm, XoSchedule } from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
-
-const NO_BAK_TAG = 'xo:no-bak'
+import { vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 
 export class BackupJobService {
   #restApi: RestApi
@@ -17,7 +17,7 @@ export class BackupJobService {
     const backupJob = await this.#restApi.xoApp.getJob<XoVmBackupJob>(backupJobId)
     const vm = this.#restApi.getObject<XoVm>(vmId, 'VM')
 
-    if (vm.tags.includes(NO_BAK_TAG)) {
+    if (vmContainsNoBakTag(vm)) {
       return false
     }
 
@@ -29,5 +29,28 @@ export class BackupJobService {
       const predicate = createPredicate(backupJob.vms)
       return predicate(vm)
     }
+  }
+
+  async backupJobHasAtLeastOneScheduleEnabled(id: XoVmBackupJob['id']): Promise<boolean> {
+    const backupJob = await this.#restApi.xoApp.getJob<XoVmBackupJob>(id)
+
+    for (const maybeScheduleId in backupJob.settings) {
+      if (maybeScheduleId === '') {
+        continue
+      }
+
+      try {
+        const schedule = await this.#restApi.xoApp.getSchedule(maybeScheduleId as XoSchedule['id'])
+        if (schedule.enabled) {
+          return true
+        }
+      } catch (error) {
+        if (!noSuchObject.is(error, { id: maybeScheduleId, type: 'schedule' })) {
+          console.error(error)
+        }
+        continue
+      }
+    }
+    return false
   }
 }

@@ -567,7 +567,7 @@ export default class BackupNg {
       return [this, remoteId]
     }
   )
-  async _listVmBackupsOnRemote(remoteId) {
+  async _listVmBackupsOnRemote(remoteId, { vmId } = {}) {
     const app = this._app
     try {
       const remote = await app.getRemoteWithCredentials(remoteId)
@@ -581,11 +581,19 @@ export default class BackupNg {
               options: remote.options,
             },
           },
+          vmId,
         }))
       } else {
-        backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter =>
-          formatVmBackups(await adapter.listAllVmBackups(), remote.id)
-        )
+        backupsByVm = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
+          let vmBackups
+          if (vmId !== undefined) {
+            vmBackups = { [vmId]: await adapter.listVmBackups(vmId) }
+          } else {
+            vmBackups = await adapter.listAllVmBackups()
+          }
+
+          return formatVmBackups(vmBackups, remote.id)
+        })
       }
 
       // inject the remote id on the backup which is needed for importVmBackupNg()
@@ -600,7 +608,7 @@ export default class BackupNg {
     }
   }
 
-  async listVmBackupsNg(remotes, _forceRefresh = false) {
+  async listVmBackupsNg(remotes, { _forceRefresh = false, vmId } = {}) {
     const backupsByVmByRemote = {}
 
     await Promise.all(
@@ -609,7 +617,7 @@ export default class BackupNg {
           this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
         }
 
-        backupsByVmByRemote[remoteId] = await this._listVmBackupsOnRemote(remoteId)
+        backupsByVmByRemote[remoteId] = await this._listVmBackupsOnRemote(remoteId, { vmId })
       })
     )
 
