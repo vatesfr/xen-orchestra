@@ -14,6 +14,7 @@ export type DashboardBackupsInfo = {
   jobs: {
     disabled: number
     failed: number
+    noRecentRun: number
     skipped: number
     successful: number
     total: number
