@@ -147,7 +147,7 @@ ayncPromise.catch(() => {}) // erro is forcibly silenced
 - name method and variable explicitly, especially on non typed code. For example, set/edit method should only be used on a typed object. Avoid generic code like for (const object of objects){}
 - method parameter are readonly and explicit. They are typed.
 - function name are readonly and explicit.
-- limit number of parameters or use oject parameter
+- limit number of parameters or use object parameter
 
 ```ts
 // ✅
