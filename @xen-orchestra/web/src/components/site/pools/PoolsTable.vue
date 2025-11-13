@@ -6,39 +6,7 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:square-caret-down"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('change-state') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:eraser"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('forget') }}
-          </UiButton>
-        </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+        <UiTopBottomTable :selected-items="0" :total-items="0">
           <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
@@ -50,15 +18,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" @update:model-value="toggleSelect" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
+              <th>
                 <div v-tooltip class="text-ellipsis">
                   <VtsIcon accent="brand" size="medium" :name="headerIcon[column.id]" />
                   {{ column.label }}
@@ -74,24 +34,8 @@
             :class="{ selected: selectedServerId === row.id }"
             @click="selectedServerId = row.id"
           >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="column.id === 'label' || column.id === 'primary-host'">
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
+              <div v-if="column.id === 'label' || column.id === 'primary-host'">
                 <UiLink
                   v-if="column.value !== undefined"
                   size="medium"
@@ -115,7 +59,7 @@
       <VtsStateHero v-if="searchQuery && filteredServers.length === 0" format="table" type="no-result" size="medium">
         {{ t('no-result') }}
       </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+      <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
@@ -129,24 +73,18 @@ import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { icon, type IconName } from '@core/icons'
 import { createMapper } from '@core/packages/mapper'
-import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -173,14 +111,6 @@ const filteredServers = computed(() => {
     Object.values(server).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
-
-const serverIds = computed(() => servers.map(server => server.id))
-
-const { selected, areAllSelected } = useMultiSelect(serverIds)
-
-const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? serverIds.value : []
-}
 
 const getStatusInfo = createMapper(
   {
@@ -223,12 +153,10 @@ const getPrimaryHost = (server: XoServer) => {
 const { visibleColumns, rows } = useTable('servers', filteredServers, {
   rowId: record => record.id,
   columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
     define('label', record => getPoolInfo(record), { label: t('pool') }),
     define('host', { label: t('ip-address') }),
     define('status', record => getStatusInfo(record.error ? 'error' : record.status), { label: t('status') }),
     define('primary-host', record => getPrimaryHost(record), { label: t('master') }),
-    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
@@ -258,16 +186,6 @@ const headerIcon: Record<ServerHeader, IconName> = {
   .container,
   .table-actions {
     gap: 0.8rem;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 }
 </style>

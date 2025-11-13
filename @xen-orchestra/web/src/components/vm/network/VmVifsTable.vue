@@ -3,54 +3,14 @@
     <UiTitle>
       {{ t('vifs') }}
       <template #actions>
-        <UiButton
-          v-tooltip="t('coming-soon')"
-          disabled
-          size="medium"
-          variant="secondary"
-          accent="brand"
-          left-icon="fa:plus"
-        >
-          {{ t('new-vif') }}
-        </UiButton>
+        <UiLink :href="`/#/vms/${vm.id}/network`" icon="fa:plus" variant="secondary" accent="brand" size="medium">
+          {{ t('add-vifs-in-xo-5') }}
+        </UiLink>
       </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:power-off"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('change-state') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('delete') }}
-          </UiButton>
-        </UiTableActions>
-
         <UiTopBottomTable :selected-items="0" :total-items="0">
           <UiTablePagination v-if="areVifsReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
@@ -63,13 +23,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')" class="checkbox">
-                <UiCheckbox :v-model="areAllSelected" accent="brand" disabled />
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
+              <th>
                 <div v-tooltip class="text-ellipsis">
                   <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
@@ -85,35 +39,11 @@
             :class="{ selected: selectedVifId === row.id }"
             @click="selectedVifId = row.id"
           >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox v-model="selected" accent="brand" :value="row.id" disabled />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="column.id === 'status'" v-tooltip>
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
+              <div v-if="column.id === 'status'" v-tooltip>
                 <VtsStatus :status="column.value" />
               </div>
               <div v-else-if="column.id === 'network'" class="network">
-                <!-- TODO Remove the span when the link works and the icon is fixed -->
-                <!--
-                  <UiComplexIcon size="medium" class="icon">
-                    <VtsIcon :icon="faNetworkWired" accent="current" />
-                    <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                  </UiComplexIcon>
-                  <a v-tooltip href="" class="text-ellipsis">{{ column.value.name }}</a>
-                 -->
                 <span v-tooltip class="text-ellipsis">{{ column.value }}</span>
               </div>
               <div v-else-if="column.id === 'ip'" class="ip-addresses">
@@ -144,29 +74,26 @@ import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collec
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { XoVif } from '@/types/xo/vif.type'
+import type { XoVm } from '@/types/xo/vm.type.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vifs } = defineProps<{
+  vm: XoVm
   vifs: XoVif[]
 }>()
 
@@ -199,14 +126,9 @@ const getIpAddresses = (vif: XoVif) => {
   return addresses ? [...new Set(Object.values(addresses).sort())] : []
 }
 
-const vifsIds = computed(() => vifs.map(vif => vif.id))
-
-const { selected, areAllSelected } = useMultiSelect(vifsIds)
-
 const { visibleColumns, rows } = useTable('vifs', filteredVifs, {
   rowId: record => record.id,
   columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
     define('network', record => getNetworkName(record), { label: t('network') }),
     define('device', record => t('vif-device', { device: record.device }), { label: t('device') }),
     define('status', record => (record.attached ? 'connected' : 'disconnected'), { label: t('status') }),
@@ -214,7 +136,6 @@ const { visibleColumns, rows } = useTable('vifs', filteredVifs, {
     define('MAC', record => record.MAC, { label: t('mac-addresses') }),
     define('MTU', { label: t('mtu') }),
     define('lockingMode', { label: t('locking-mode') }),
-    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
@@ -261,16 +182,6 @@ const headerIcon: Record<VifHeader, IconName> = {
     .more-ips {
       color: var(--color-neutral-txt-secondary);
     }
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 }
 </style>
