@@ -218,7 +218,7 @@ const data = {} // Untyped
 function parse(input: any) {} // Leaky abstraction
 ```
 
-Node 23 is around the corner and support a subset of typescript. It doesn't support enums, namespaces and parameters properties. Also is need to use the `type` keywork when importing type. If a module don't need this feature, it will be able to skip the compilation phase at build and keep the type checking in developpment mode
+Node 23 supports a subset of typescript. It doesn't support enums, namespaces and parameters properties. Also is need to use the `type` keywork when importing type. If a module don't need this feature, it will be able to skip the compilation phase at build and keep the type checking in developpment mode
 
 Any new module released after Node24 reach LTS should be configured to run natively and use tsconfig to check types during development.
 
