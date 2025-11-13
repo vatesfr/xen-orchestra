@@ -76,6 +76,7 @@ export type XoaDashboard = {
   }
   poolsStatus: {
     connected: number
+    disconnected: number
     unreachable: number
     unknown: number
   }
