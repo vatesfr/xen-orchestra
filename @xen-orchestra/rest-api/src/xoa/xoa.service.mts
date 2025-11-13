@@ -5,7 +5,6 @@ import {
   AnyXoVdi,
   AnyXoVm,
   BACKUP_TYPE,
-  VM_POWER_STATE,
   XoVmBackupJob,
   XoHost,
   XoPool,
@@ -29,6 +28,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
+import { VmService } from '../vms/vm.service.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -46,6 +46,7 @@ export class XoaService {
   >()
   #dashboardCacheOpts: { timeout?: number; expiresIn?: number }
   #backupLogService: BackupLogService
+  #vmService: VmService
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
@@ -55,6 +56,7 @@ export class XoaService {
       expiresIn: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
     }
     this.#backupLogService = this.#restApi.ioc.get(BackupLogService)
+    this.#vmService = this.#restApi.ioc.get(VmService)
   }
 
   async #getBackupRepositoriesSizeInfo(): Promise<
@@ -510,35 +512,7 @@ export class XoaService {
   }
 
   #getVmsStatus(): XoaDashboard['vmsStatus'] {
-    const vms = this.#restApi.getObjectsByType<XoVm>('VM')
-    let nActive = 0
-    let nInactive = 0
-    let nUnknown = 0
-    let total = 0
-    for (const id in vms) {
-      total++
-      const vm = vms[id as XoVm['id']]
-      switch (vm.power_state) {
-        case VM_POWER_STATE.RUNNING:
-        case VM_POWER_STATE.PAUSED:
-          nActive++
-          break
-        case VM_POWER_STATE.HALTED:
-        case VM_POWER_STATE.SUSPENDED:
-          nInactive++
-          break
-        default:
-          nUnknown++
-          break
-      }
-    }
-
-    return {
-      active: nActive,
-      inactive: nInactive,
-      unknown: nUnknown,
-      total,
-    }
+    return this.#vmService.getVmsStatus()
   }
 
   async getDashboard({ stream }: { stream?: Writable } = {}): Promise<XoaDashboard> {

@@ -44,7 +44,11 @@ export type XoaDashboard = {
   }
   vmsStatus: {
     active: number
+    halted: number
     inactive: number
+    paused: number
+    running: number
+    suspended: number
     unknown: number
     total: number
   }
