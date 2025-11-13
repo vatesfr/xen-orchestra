@@ -197,6 +197,8 @@ export class XoaService {
     let nConnectedServers = 0
     let nUnreachableServers = 0
     let nUnknownServers = 0
+    let nDisconnectedServers = 0
+
     servers.forEach(server => {
       // it may happen that some servers are marked as "connected", but no pool matches "server.pool"
       // so they are counted as `nUnknownServers`
@@ -215,6 +217,7 @@ export class XoaService {
       }
 
       if (server.status === 'disconnected') {
+        nDisconnectedServers++
         return
       }
 
@@ -223,8 +226,10 @@ export class XoaService {
 
     return {
       connected: nConnectedServers,
+      disconnected: nDisconnectedServers,
       unreachable: nUnreachableServers,
       unknown: nUnknownServers,
+      total: servers.length,
     }
   }
 
