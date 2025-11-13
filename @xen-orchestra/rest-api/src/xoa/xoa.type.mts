@@ -84,6 +84,7 @@ export type XoaDashboard = {
     disconnected: number
     unreachable: number
     unknown: number
+    total: number
   }
 }
 

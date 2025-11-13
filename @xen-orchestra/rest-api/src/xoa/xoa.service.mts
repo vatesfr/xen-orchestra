@@ -231,6 +231,7 @@ export class XoaService {
       disconnected: nDisconnectedServers,
       unreachable: nUnreachableServers,
       unknown: nUnknownServers,
+      total: servers.length,
     }
   }
 
