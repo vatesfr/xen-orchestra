@@ -202,7 +202,9 @@ assert(result) // No error message
 
 ### Typing
 
-Zero `any`; JSDoc/TypeScript everywhere.
+- Zero `any`; JSDoc/TypeScript everywhere.
+- XO specific : any property change in `packages/xo-server/src/xapi-object-to-xo.mjs` must be reflected in `@vates/types`
+
 
 ```ts
 // ✅
