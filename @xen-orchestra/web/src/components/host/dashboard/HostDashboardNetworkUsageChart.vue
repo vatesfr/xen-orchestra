@@ -45,7 +45,7 @@ const networkUsage = computed<LinearChartData>(() => {
 
   const rxSeries = [
     {
-      label: t('network-upload'),
+      label: t('network-download'),
       data: timestamps.map((timestamp, index) => ({
         timestamp,
         value: Object.values(data.stats.pifs?.rx ?? {}).reduce((sum, values) => sum + (values[index] ?? NaN), 0),

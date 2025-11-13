@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard" :class="{ mobile: isMobile }">
     <VmDashboardQuickInfo class="quick-info" :vm />
-    <div v-if="!data" class="offline-hero-container">
+    <div v-if="!isVmRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
         <span>
           {{ t('all-quiet-launchpad') }}
@@ -20,10 +20,12 @@
         :is-ready="areVmAlarmsReady"
         :has-ready="hasVmAlarmFetchError"
       />
-      <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
-      <VmDashboardRamUsageChart class="ram-usage-chart" :data :error :loading="isFetching" />
-      <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error :loading="isFetching" />
-      <VmDashboardVdiUsageChart class="vdi-usage-chart" :data :error :loading="isFetching" />
+      <template v-if="data">
+        <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
+        <VmDashboardRamUsageChart class="ram-usage-chart" :data :error :loading="isFetching" />
+        <VmDashboardNetworkUsageChart class="network-usage-chart" :data :error :loading="isFetching" />
+        <VmDashboardVdiUsageChart class="vdi-usage-chart" :data :error :loading="isFetching" />
+      </template>
     </template>
   </div>
 </template>
@@ -37,10 +39,12 @@ import VmDashboardRamUsageChart from '@/components/vm/dashboard/VmDashboardRamUs
 import VmDashboardVdiUsageChart from '@/components/vm/dashboard/VmDashboardVdiUsageChart.vue'
 import { useFetchStats } from '@/composables/fetch-stats.composable.ts'
 import { useXoVmAlarmsCollection } from '@/remote-resources/use-xo-vm-alarms-collection.ts'
-import { type XoVm } from '@/types/xo/vm.type'
+import type { XoVm } from '@/types/xo/vm.type.ts'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { VM_POWER_STATE } from '@vates/types'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
@@ -50,6 +54,8 @@ const { vm } = defineProps<{
 const { data, isFetching, error } = useFetchStats('vm', () => vm.id, GRANULARITY.Hours)
 
 const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollection({}, () => vm.id)
+
+const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
 const { isMobile } = useUiStore()
 
