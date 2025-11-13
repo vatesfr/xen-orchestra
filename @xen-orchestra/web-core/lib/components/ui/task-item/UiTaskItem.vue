@@ -1,3 +1,4 @@
+<!-- v10 -->
 <template>
   <li class="ui-task-item" :data-depth="depth">
     <div class="container">
@@ -22,36 +23,28 @@
           </UiLink>
         </div>
 
-        <UiTag v-if="task?.type" accent="info" variant="secondary">
-          {{ task.type }}
-        </UiTag>
-        <UiInfo v-if="isError" accent="danger" />
-        <UiInfo v-if="task.warning?.length" accent="warning" />
-        <UiInfo v-if="task.infos?.length" accent="info" />
-        <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="muted" variant="primary" size="small" />
+        <div class="info">
+          <div class="counter">
+            <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="muted" variant="primary" size="small" />
+          </div>
+          <UiInfo v-if="task.infos?.length" accent="info" />
+          <UiInfo v-if="task.warning?.length" accent="warning" />
+          <UiInfo v-if="isError" accent="danger" />
+        </div>
       </div>
       <div class="content typo-body-regular-small">
-        <div v-if="task?.userName" class="user">
-          {{ t('by') }}
-          <UiAccountMenuButton size="small" />
-          {{ task.userName }}
-        </div>
-
-        <span v-if="task.start" class="start-time">
-          {{ `${t('task.started')} ${started}` }}
-        </span>
-        <span v-if="task.end" class="end-time">
-          {{ `${t('task.estimated-end')} ${end}` }}
+        <span v-if="task.end">
+          {{ `${t('task.ended')} ${end}` }}
         </span>
         <div class="progress">
           <UiCircleProgressBar v-if="task.progress" :accent="progressAccent" size="small" :value="task.progress" />
         </div>
         <div class="actions">
+          <!-- TODO add link to open side panel with task details -->
+          <UiButtonIcon icon="fa:eye" size="medium" accent="brand" />
           <div class="cancel">
             <UiButtonIcon v-if="task.status === 'pending'" icon="fa:close" size="medium" accent="danger" />
           </div>
-          <!-- TODO add link to open side panel with task details -->
-          <UiButtonIcon icon="fa:eye" size="medium" accent="brand" />
         </div>
       </div>
     </div>
@@ -62,10 +55,8 @@
 </template>
 
 <script lang="ts" setup>
-import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useTimeAgo } from '@vueuse/core'
@@ -80,9 +71,6 @@ export type Task = {
   infos?: { data: unknown; message: string }[]
   name?: string
   progress?: number
-  type?: string
-  userName?: string
-  start: number
   end?: number
   status: 'failure' | 'interrupted' | 'pending' | 'success'
   tasks?: Task[]
@@ -111,7 +99,6 @@ const isError = computed(() => task.status === 'failure' || task.status === 'int
 
 const progressAccent = computed(() => (isError.value ? 'danger' : task.warning?.length ? 'warning' : 'info'))
 
-const started = useTimeAgo(() => task.start)
 const end = useTimeAgo(() => task.end ?? 0)
 </script>
 
@@ -141,6 +128,15 @@ const end = useTimeAgo(() => task.end ?? 0)
       gap: 1.6rem;
       padding: 0.4rem 1.6rem;
       color: var(--color-neutral-txt-secondary);
+
+      .info {
+        display: flex;
+        align-items: center;
+
+        .counter {
+          margin-right: 0.8rem;
+        }
+      }
     }
 
     .tree-line {
@@ -159,21 +155,6 @@ const end = useTimeAgo(() => task.end ?? 0)
 
     .h-space {
       width: 1.8rem;
-    }
-
-    .user {
-      display: flex;
-      align-items: center;
-    }
-
-    .user::after {
-      content: '•';
-      margin-inline-start: 1.6rem;
-    }
-
-    .start-time + .end-time::before {
-      content: '•';
-      margin-inline-end: 1.6rem;
     }
 
     .progress {
