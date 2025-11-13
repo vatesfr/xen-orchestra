@@ -51,6 +51,7 @@ import { type XoHost } from '@/types/xo/host.type'
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { HOST_POWER_STATE } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -64,7 +65,7 @@ const { data, isFetching, error } = useFetchStats('host', () => host.id, GRANULA
 
 const { hostAlarms, areHostAlarmsReady, hasHostAlarmFetchError } = useXoHostAlarmsCollection({}, () => host.id)
 
-const isHostRunning = computed(() => host.power_state === 'Running')
+const isHostRunning = computed(() => host.power_state === HOST_POWER_STATE.RUNNING)
 
 const { isMobile } = useUiStore()
 </script>
