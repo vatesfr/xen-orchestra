@@ -36,6 +36,7 @@ export type XoaDashboard = {
   nHosts: number
   nHostsEol?: number | PromiseWriteInStreamError
   hostsStatus: {
+    disabled: number
     running: number
     halted: number
     unknown: number

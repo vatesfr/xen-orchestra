@@ -498,9 +498,10 @@ export class XoaService {
   }
 
   #getHostsStatus(): XoaDashboard['hostsStatus'] {
-    const { running, halted, total, unknown } = this.#hostService.getHostsStatus()
+    const { disabled, running, halted, total, unknown } = this.#hostService.getHostsStatus()
 
     return {
+      disabled,
       running,
       halted,
       unknown,
