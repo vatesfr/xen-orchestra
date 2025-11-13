@@ -566,7 +566,7 @@ export default class Esxi extends EventEmitter {
 
         nbdKitProcess.on('close', code => {
           if (code !== 0) {
-            warn(`nbdkit server process exited with code ${code}`)
+            warn(`nbdkit server process exited with code ${code} ,detailed logs are in ${tmpDir}/stderr `)
           }
         })
         // @todo find a better to wait for server ready
