@@ -33,6 +33,9 @@
 - **XO 6:**
   - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
 
+- **XO 6:**
+  - [host/HostSystemResourceManagement] Fix text value if control domain is not defined (PR [#9197](https://github.com/vatesfr/xen-orchestra/pull/9197/))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
