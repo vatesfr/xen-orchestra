@@ -16,7 +16,7 @@ import fs from 'node:fs/promises'
 
 const { info, warn } = createLogger('xo:vmware-explorer:esxi')
 
-export const VDDK_LIB_DIR = '/usr/local/lib/vddk/'
+export const VDDK_LIB_DIR = '/usr/local/lib/vddk'
 export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
 let nbdPort = 11000
 export default class Esxi extends EventEmitter {
@@ -550,6 +550,10 @@ export default class Esxi extends EventEmitter {
       try {
         const nbdKitProcess = spawn('nbdkit', args, {
           cwd: tmpDir,
+          env: {
+            ...process.env,
+            LD_LIBRARY_PATH: `${VDDK_LIB_PATH}/lib64`,
+          },
         })
         nbdKitProcess.stdout.pipe(outFile)
         nbdKitProcess.stderr.pipe(errFile)
