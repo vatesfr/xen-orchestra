@@ -55,6 +55,8 @@ _Stability > Perfection | Clarity > Cleverness | Incremental Improvement > Rewri
 
 - any asynchonous code must be awaited
 - consider the use of a timeout handler
+- if the method returns a Promise , it does not need to be declared as async. Remember to use jsdoc to declare the return type as Promise <type> 
+
 
 ```ts
 // ✅
