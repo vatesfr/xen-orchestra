@@ -5,7 +5,7 @@ const { Strategy } = require('passport-openidconnect')
 
 // ===================================================================
 
-const DISCOVERABLE_SETTINGS = ['authorizationURL', 'issuer', 'tokenURL']
+const DISCOVERABLE_SETTINGS = ['authorizationURL', 'issuer', 'userInfoURL', 'tokenURL']
 
 exports.configurationSchema = {
   type: 'object',
