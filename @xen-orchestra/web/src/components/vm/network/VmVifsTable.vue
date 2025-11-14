@@ -3,53 +3,14 @@
     <UiTitle>
       {{ t('vifs') }}
       <template #actions>
-        <UiButton
-          v-tooltip="t('coming-soon')"
-          disabled
-          size="medium"
-          variant="secondary"
-          accent="brand"
-          left-icon="fa:plus"
-        >
-          {{ t('new-vif') }}
-        </UiButton>
+        <UiLink :href="`/#/vms/${vm.id}/network`" icon="fa:plus" variant="secondary" accent="brand" size="medium">
+          {{ t('add-vifs-in-xo-5') }}
+        </UiLink>
       </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:power-off"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('change-state') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('delete') }}
-          </UiButton>
-        </UiTableActions>
       </div>
 
       <VtsTable :state :pagination-bindings sticky="right">
@@ -74,21 +35,20 @@ import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns'
-import type { XoVif } from '@vates/types'
+import type { XoVm, XoVif } from '@vates/types'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vifs: rawVifs } = defineProps<{
+  vm: XoVm
   vifs: XoVif[]
 }>()
 

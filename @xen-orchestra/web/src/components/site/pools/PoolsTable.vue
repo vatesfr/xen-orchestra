@@ -6,38 +6,6 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:square-caret-down"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('change-state') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:eraser"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('forget') }}
-          </UiButton>
-        </UiTableActions>
       </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>

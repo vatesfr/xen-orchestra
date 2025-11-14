@@ -13,8 +13,11 @@
         {{ t('dashboard') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('alarms') }}</TabItem>
-    <TabItem disabled>{{ t('stats') }}</TabItem>
+    <TabItem>
+      <UiLink :href="`/#/pool/${pool.id}/stats`" size="medium">
+        {{ t('stats') }}
+      </UiLink>
+    </TabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/system`" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('system') }}
