@@ -35,6 +35,7 @@ import { partialServers, server, serverId, serverIds } from '../open-api/oa-exam
 import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('servers')
 @Security('*')
@@ -118,7 +119,7 @@ export class ServerController extends XoController<XoServer> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already connected')
-  connectServer(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  connectServer(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const serverId = id as XoServer['id']
     const action = async () => {
       await this.restApi.xoApp.connectXenServer(serverId)
@@ -140,7 +141,7 @@ export class ServerController extends XoController<XoServer> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already disconnected')
-  disconnectServer(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  disconnectServer(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const serverId = id as XoServer['id']
     const action = async () => {
       await this.restApi.xoApp.disconnectXenServer(serverId)
