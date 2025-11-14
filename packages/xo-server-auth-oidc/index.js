@@ -151,7 +151,7 @@ class AuthOidc {
    * @param {XoUser} user
    * @param {string[]} oidcGroups
    *
-   * @returns {void}
+   * @returns {Promise<void>}
    */
   async _synchronizeGroups(user, oidcGroups) {
     if (oidcGroups.length > 0) {
