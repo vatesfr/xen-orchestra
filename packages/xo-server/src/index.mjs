@@ -188,10 +188,23 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       } else {
         errorMsg = req.flash('error')[0]
       }
+
+      // TODO:
+      // The login page uses certain files from the xo-web package (css,svg)
+      // remove once XO5 is no more used and update `signin.pug` to use `public/logo.svg`, ...
+      const mounts = xo.config.getOptional('http.mounts') ?? {}
+      let xo5Mount
+      for (const [key, value] of Object.entries(mounts)) {
+        if (value.includes('xo-web/dist')) {
+          xo5Mount = key.endsWith('/') ? key : key + '/'
+          break
+        }
+      }
       res.send(
         signInPage({
           error: errorMsg,
           strategies,
+          xo5Mount,
         })
       )
     } catch (error) {
