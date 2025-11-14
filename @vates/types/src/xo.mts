@@ -557,7 +557,9 @@ export type XoMirrorBackupJob = BaseXoJob & {
   }
 }
 
-export type XoJob = BaseXoJob & {}
+export type XoJob = BaseXoJob & {
+  type: 'call'
+}
 
 export type XoSchedule = {
   cron: string
