@@ -22,6 +22,7 @@
 
 - **XO 6:**
   - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
+  - [Site/Hosts] Implement hosts view and side panel information (PR [#9128](https://github.com/vatesfr/xen-orchestra/pull/9128))
 
 ### Bug fixes
 
