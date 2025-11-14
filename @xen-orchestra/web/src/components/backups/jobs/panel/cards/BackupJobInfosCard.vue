@@ -6,6 +6,7 @@
         size="small"
         icon="object:backup-job"
         :to="`/backup/${backupJob.id}/runs`"
+        wrap
       >
         {{ backupJob.name }}
       </UiLink>

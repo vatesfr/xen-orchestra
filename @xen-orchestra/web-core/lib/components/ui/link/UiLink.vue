@@ -2,7 +2,10 @@
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
     <VtsIcon :name="icon" size="medium" />
-    <slot />
+    <span v-if="wrap == undefined || wrap == false" v-tooltip class="text-ellipsis">
+      <slot />
+    </span>
+    <slot v-else />
     <VtsIcon v-if="attributes.target === '_blank'" name="fa:up-right-from-square" size="medium" class="external-icon" />
   </component>
 </template>
@@ -10,6 +13,7 @@
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import { type LinkOptions, useLinkComponent } from '@core/composables/link-component.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import type { IconName } from '@core/icons'
 import { computed } from 'vue'
 
@@ -17,6 +21,7 @@ const props = defineProps<
   LinkOptions & {
     size: 'small' | 'medium'
     icon?: IconName
+    wrap?: boolean
   }
 >()
 
@@ -33,9 +38,11 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
 <style lang="postcss" scoped>
 .ui-link {
   display: inline-flex;
-  align-items: center;
+  align-items: start;
   gap: 0.8rem;
   color: var(--color-brand-txt-base);
+  min-width: 0;
+  max-width: 100%;
 
   &:hover {
     color: var(--color-brand-txt-hover);
