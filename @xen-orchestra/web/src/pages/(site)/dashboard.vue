@@ -7,7 +7,7 @@
       <ResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" :has-error />
     </div>
     <div class="row second-row">
-      <Alarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
+      <DashboardAlarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
       <Patches
         class="patches"
         :missing-patches="dashboard.missingPatches"
@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts" setup>
-import Alarms from '@/components/site/dashboard/Alarms.vue'
+import DashboardAlarms from '@/components/alarms/DashboardAlarms.vue'
 import BackupIssues from '@/components/site/dashboard/BackupIssues.vue'
 import BackupJobsStatus from '@/components/site/dashboard/BackupJobsStatus.vue'
 import BackupRepository from '@/components/site/dashboard/BackupRepository.vue'
@@ -40,14 +40,26 @@ import StorageRepository from '@/components/site/dashboard/StorageRepository.vue
 import VmsProtection from '@/components/site/dashboard/VmsProtection.vue'
 import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 import { useXoAlarmCollection } from '@/remote-resources/use-xo-alarm-collection.ts'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoSiteDashboard } from '@/remote-resources/use-xo-site-dashboard.ts'
+import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { logicAnd } from '@vueuse/math'
 
 const uiStore = useUiStore()
 
 const { dashboard, backupRepositories, storageRepositories, hasError } = useXoSiteDashboard()
 
-const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
+const { alarms, hasAlarmFetchError } = useXoAlarmCollection()
+
+const { areHostsReady } = useXoHostCollection()
+const { areVmsReady } = useXoVmCollection()
+const { areVmControllersReady } = useXoVmControllerCollection()
+const { areSrsReady } = useXoSrCollection()
+
+const areAlarmsReady = logicAnd(areHostsReady, areVmsReady, areVmControllersReady, areSrsReady)
 </script>
 
 <style lang="postcss" scoped>
