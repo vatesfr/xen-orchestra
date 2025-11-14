@@ -28,11 +28,11 @@ import HostHardwareSpecificationsCard from '@/components/hosts/panel/card/HostHa
 import HostInfoCard from '@/components/hosts/panel/card/HostInfoCard.vue'
 import HostNetworkCard from '@/components/hosts/panel/card/HostNetworkCard.vue'
 import HostSoftwareCard from '@/components/hosts/panel/card/HostSoftwareCard.vue'
-import type { XoHost } from '@/types/xo/host.type'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

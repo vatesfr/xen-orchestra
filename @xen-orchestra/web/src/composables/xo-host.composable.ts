@@ -1,7 +1,7 @@
-import { HOST_POWER_STATE } from '@/types/xo/host.type'
 import type { IconName } from '@core/icons'
 import useRelativeTime from '@core/composables/relative-time.composable'
 import { parseDateTime } from '@core/utils/time.util'
+import { HOST_POWER_STATE } from '@vates/types'
 import { useNow } from '@vueuse/core'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'

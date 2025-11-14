@@ -16,11 +16,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoHost } from '@/types/xo/host.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import type { XoHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

@@ -61,13 +61,13 @@
 
 <script lang="ts" setup>
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection'
-import type { XoHost } from '@/types/xo/host.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

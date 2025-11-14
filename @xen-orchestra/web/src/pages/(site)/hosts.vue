@@ -13,15 +13,15 @@
 </template>
 
 <script setup lang="ts">
-import HostsTable from '@/components/hosts/HostsTable.vue'
-import HostsSidePanel from '@/components/hosts/panel/HostsSidePanel.vue'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
-import type { XoHost } from '@/types/xo/host.type'
+import HostsTable from '@xen-orchestra/web/src/components/hosts/HostsTable.vue'
+import HostsSidePanel from '@xen-orchestra/web/src/components/hosts/panel/HostsSidePanel.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()

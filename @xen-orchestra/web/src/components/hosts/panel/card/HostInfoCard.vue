@@ -86,7 +86,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('started') }}</template>
         <template #value>{{ relativeStartTime }}</template>
-        <template #addons>
+        <template v-if="relativeStartTime !== undefined" #addons>
           <VtsCopyButton :value="relativeStartTime" />
         </template>
       </VtsCardRowKeyValue>
@@ -111,7 +111,6 @@ import { useXoHostUtils } from '@/composables/xo-host.composable'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
 import { useXoHostMissingPatchesCollection } from '@/remote-resources/use-xo-host-missing-patches-collection'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection'
-import type { XoHost } from '@/types/xo/host.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
@@ -123,6 +122,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -148,7 +148,7 @@ const nMissingPatches = computed(() => missingPatches.value.length)
 const noMissingPatches = computed(() => nMissingPatches.value === 0)
 const powerState = computed(() => getPowerState(host.power_state))
 
-const relativeStartTime = getRelativeStartTime(host.startTime)
+const relativeStartTime = host.startTime ? getRelativeStartTime(host.startTime) : undefined
 </script>
 
 <style scoped lang="postcss">

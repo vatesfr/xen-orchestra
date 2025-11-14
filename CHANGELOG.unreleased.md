@@ -22,6 +22,7 @@
 
 - **XO 6:**
   - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
+  - [site/hosts] Add hosts list view (PR [#9008](https://github.com/vatesfr/xen-orchestra/pull/9008))
 
 ### Bug fixes
 
@@ -31,7 +32,7 @@
 - [Backups] fix infinite chain of snapshot and replication [Forum#11540](https://xcp-ng.org/forum/topic/11540) [Forum#11539](https://xcp-ng.org/forum/topic/11539) (PR [#9202](https://github.com/vatesfr/xen-orchestra/pull/9202))
 
 - **XO 6:**
-  - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
+  - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9128](https://github.com/vatesfr/xen-orchestra/pull/9128))
 
 ### Packages to release
 
