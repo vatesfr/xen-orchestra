@@ -39,12 +39,20 @@ import SiteDashboardResourcesOverview from '@/modules/site/components/dashboard/
 import SiteDashboardVmsStatus from '@/modules/site/components/dashboard/SiteDashboardVmsStatus.vue'
 import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { logicAnd } from '@vueuse/math'
 
 const uiStore = useUiStore()
 
 const { dashboard, backupRepositories, storageRepositories, hasError } = useXoSiteDashboard()
 
-const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
+const { alarms, hasAlarmFetchError } = useXoAlarmCollection()
+
+const { areHostsReady } = useXoHostCollection()
+const { areVmsReady } = useXoVmCollection()
+const { areVmControllersReady } = useXoVmControllerCollection()
+const { areSrsReady } = useXoSrCollection()
+
+const areAlarmsReady = logicAnd(areHostsReady, areVmsReady, areVmControllersReady, areSrsReady)
 </script>
 
 <style lang="postcss" scoped>
