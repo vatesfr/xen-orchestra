@@ -82,8 +82,13 @@ export default class Esxi extends EventEmitter {
   }
 
   #findDatacenter(dataStore) {
-    notStrictEqual(this.#dcPaths, undefined)
-    notStrictEqual(this.#dcPaths[dataStore], undefined)
+    try {
+      notStrictEqual(this.#dcPaths, undefined)
+      notStrictEqual(this.#dcPaths[dataStore], undefined)
+    } catch (error) {
+      warn("can't find datacenter for datastore", { datacenters: this.#dcPaths, dataStore })
+      throw error
+    }
     return this.#dcPaths[dataStore]
   }
 
