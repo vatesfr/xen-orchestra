@@ -18,7 +18,12 @@
       <VtsQuickInfoRow :label="t('uuid')" :value="vm.id" />
       <VtsQuickInfoRow :label="t('pool')">
         <template #value>
-          <UiLink v-if="pool" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="medium" icon="object:pool">
+          <UiLink
+            v-if="pool"
+            :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
+            size="medium"
+            icon="object:pool"
+          >
             {{ pool.name_label }}
           </UiLink>
           <span v-else>
@@ -29,7 +34,11 @@
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
           <template v-if="host">
-            <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="medium" :icon="`object:host:${hostPowerState}`">
+            <UiLink
+              :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+              size="medium"
+              :icon="`object:host:${hostPowerState}`"
+            >
               {{ host.name_label }}
             </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
@@ -136,7 +145,10 @@ const hostPowerState = computed(() =>
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
-  .value {
+  .power-state,
+  .host-name,
+  .pool-name {
+    width: 100%;
     display: flex;
     align-items: center;
     gap: 0.8rem;
