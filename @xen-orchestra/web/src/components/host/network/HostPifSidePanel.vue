@@ -3,36 +3,13 @@
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
-          v-if="uiStore.isMobile"
           v-tooltip="t('close')"
           size="small"
           variant="tertiary"
           accent="brand"
-          icon="fa:angle-left"
+          :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
           @click="emit('close')"
         />
-        <div class="action-buttons">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="brand"
-            left-icon="fa:edit"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="danger"
-            left-icon="fa:trash"
-          >
-            {{ t('delete') }}
-          </UiButton>
-        </div>
       </div>
     </template>
     <template #default>
@@ -59,14 +36,6 @@
               {{ t('network') }}
             </template>
             <template #value>
-              <!-- TODO Remove the span when the link works and the icon is fixed -->
-              <!--
-              <UiComplexIcon size="medium">
-                <VtsIcon :icon="faNetworkWired" accent="current" />
-                <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-              </UiComplexIcon>
-              <a href="">{{ networkNameLabel }}</a>
-              -->
               <span v-tooltip class="value text-ellipsis">{{ network?.name_label }}</span>
             </template>
             <template v-if="network?.name_label" #addons>
@@ -299,7 +268,6 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -387,10 +355,5 @@ const speed = computed(() => {
     align-items: center;
     width: 100%;
   }
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
 }
 </style>

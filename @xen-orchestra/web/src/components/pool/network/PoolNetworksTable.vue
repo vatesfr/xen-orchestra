@@ -6,38 +6,6 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:copy"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('copy-info-json') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('delete') }}
-          </UiButton>
-        </UiTableActions>
       </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -60,14 +28,10 @@ import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { icon, objectIcon } from '@core/icons'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns'
 import type { XoNetwork } from '@vates/types'
