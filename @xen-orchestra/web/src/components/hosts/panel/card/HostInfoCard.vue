@@ -160,6 +160,7 @@ const relativeStartTime = host.startTime ? getRelativeStartTime(host.startTime) 
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+    
     .power-state,
     .pool-name,
     .primary-host {
