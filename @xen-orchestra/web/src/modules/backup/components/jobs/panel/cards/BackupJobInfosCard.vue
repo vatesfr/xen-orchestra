@@ -6,6 +6,7 @@
         size="small"
         icon="object:backup-job"
         :to="{ name: '/backup/[id]/runs', params: { id: backupJob.id } }"
+        wrap
       >
         {{ backupJob.name }}
       </UiLink>
