@@ -46,14 +46,13 @@
 <script lang="ts" setup>
 import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
-import type { XoVbd } from '@/types/xo/vbd.type.ts'
-import type { XoVm } from '@/types/xo/vm.type.ts'
 import { getVmRam } from '@/utils/xo-records/vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
+import type { XoVbd, XoVdi, XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -75,7 +74,9 @@ const ram = computed(() => {
 const vdis = computed(() => [...vm.$VBDs].map(vbdId => getVbdById(vbdId as XoVbd['id'])?.VDI))
 
 const diskSpace = computed(() => {
-  const totalSize = vdis.value.map(vdiId => getVdiById(vdiId)?.size || 0).reduce((sum, size) => sum + size, 0)
+  const totalSize = vdis.value
+    .map(vdiId => getVdiById(vdiId as XoVdi['id'])?.size || 0)
+    .reduce((sum, size) => sum + size, 0)
 
   const diskSpaceValue = formatSizeRaw(totalSize, 1)
 

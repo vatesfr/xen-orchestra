@@ -143,7 +143,6 @@
 import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
-import { type XoVm } from '@/types/xo/vm.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -155,6 +154,7 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{

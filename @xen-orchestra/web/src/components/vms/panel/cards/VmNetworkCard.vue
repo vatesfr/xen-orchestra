@@ -37,7 +37,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoVm } from '@/types/xo/vm.type.ts'
 import { getVmIpAddresses } from '@/utils/xo-records/vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -46,6 +45,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
