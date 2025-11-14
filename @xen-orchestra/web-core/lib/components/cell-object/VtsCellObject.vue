@@ -2,7 +2,9 @@
 <template>
   <td class="vts-cell-object">
     <div class="data">
-      <slot />
+      <span v-tooltip class="data-slot">
+        <slot />
+      </span>
       <template v-if="id !== undefined">
         <span v-tooltip class="id typo-form-info text-ellipsis">
           {{ id }}
@@ -44,13 +46,22 @@ const { isSupported, copy, copied } = useClipboard()
   border: 0.1rem solid var(--color-neutral-border);
 
   .data {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1.6rem;
     align-items: center;
   }
 
+  .data-slot {
+    max-width: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .id {
     color: var(--color-neutral-txt-secondary);
+    width: 100%;
   }
 }
 </style>
