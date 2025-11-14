@@ -31,6 +31,7 @@ import pDefer from 'promise-toolbox/defer'
 import { ApiError } from '../helpers/error.helper.mjs'
 import { Transform } from 'node:stream'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
+import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('tasks')
 @Security('*')
@@ -161,14 +162,14 @@ export class TaskController extends XoController<XoTask> {
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  async abortTask(@Path() id: string, @Query() sync?: boolean): Promise<string | void> {
+  async abortTask(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const taskId = id as XoTask['id']
 
     const action = async () => {
       await this.restApi.tasks.abort(taskId)
     }
 
-    return this.createAction(action, {
+    return this.createAction<void>(action, {
       sync,
       statusCode: noContentResp.status,
       taskProperties: {
