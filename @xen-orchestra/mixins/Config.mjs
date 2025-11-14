@@ -90,4 +90,24 @@ export default class Config {
   watchDuration(path, cb) {
     return this.watch(path, cb, parseDuration)
   }
+
+  getGuiRoutes() {
+    const mounts = this.getOptional('http.mounts') ?? {}
+
+    let xo5Mount
+    let xo6Mount
+
+    for (const [key, value] of Object.entries(mounts)) {
+      if (value.includes('xo-web/dist')) {
+        xo5Mount = key
+      } else if (value.includes('@xen-orchestra/web/dist')) {
+        xo6Mount = key
+      }
+    }
+
+    return {
+      xo5: xo5Mount,
+      xo6: xo6Mount,
+    }
+  }
 }
