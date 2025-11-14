@@ -27,6 +27,14 @@
         </template>
         <template #addons>
           <VtsCopyButton :value="mode" />
+          <UiButtonIcon
+            v-if="index === 0 && backupJobModes.length > 1"
+            v-tooltip="t('coming-soon')"
+            disabled
+            icon="fa:ellipsis"
+            size="medium"
+            accent="brand"
+          />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -37,9 +45,11 @@
 import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import type { AnyXoBackupJob } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
