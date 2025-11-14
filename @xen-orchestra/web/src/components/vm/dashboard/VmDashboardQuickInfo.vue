@@ -21,7 +21,7 @@
           <span v-if="pool" class="pool-name">
             <VtsIcon name="fa:city" size="medium" />
             <UiLink :to="`/pool/${pool.id}`" size="medium">
-              {{ pool.name_label }}
+              {{ pool.name_label + pool.name_label + pool.name_label + pool.name_label }}
             </UiLink>
           </span>
           <span v-else>

@@ -16,16 +16,13 @@
       <tbody>
         <tr v-for="host in hostsRecords" :key="host.id">
           <VtsCellObject :id="host.data.id">
-            <UiObjectLink :route="`/host/${host.data.id}`">
-              <template #icon>
-                <VtsObjectIcon
-                  size="medium"
-                  type="host"
-                  :state="host.data.power_state.toLocaleLowerCase() as HostState"
-                />
-              </template>
+            <UiLink
+              :to="`/host/${host.data.id}`"
+              size="medium"
+              :icon="`object:host:${host.data.power_state.toLocaleLowerCase() as HostState}`"
+            >
               {{ host.data.name_label }}
-            </UiObjectLink>
+            </UiLink>
           </VtsCellObject>
           <VtsCellText>{{ host.data.name_description }}</VtsCellText>
         </tr>
@@ -45,12 +42,11 @@ import type { XoPool } from '@/types/xo/pool.type'
 import type { HostState } from '@core/types/object-icon.type'
 import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
 import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import ColumnTitle from '@core/components/table/ColumnTitle.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { defineTree } from '@core/composables/tree/define-tree'
