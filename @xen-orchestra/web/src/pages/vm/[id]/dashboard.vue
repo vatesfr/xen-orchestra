@@ -42,7 +42,7 @@ import { useXoVmAlarmsCollection } from '@/remote-resources/use-xo-vm-alarms-col
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { VM_POWER_STATE, XoVm } from '@vates/types'
+import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

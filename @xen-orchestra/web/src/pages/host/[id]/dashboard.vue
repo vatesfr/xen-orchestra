@@ -50,7 +50,7 @@ import { useXoHostAlarmsCollection } from '@/remote-resources/use-xo-host-alarms
 import { GRANULARITY } from '@/utils/rest-api-stats.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { HOST_POWER_STATE, XoHost } from '@vates/types'
+import { HOST_POWER_STATE, type XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
