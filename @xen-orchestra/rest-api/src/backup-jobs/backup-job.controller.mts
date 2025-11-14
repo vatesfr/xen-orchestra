@@ -64,13 +64,13 @@ const log = createLogger('xo:rest-api:backupJob-controller')
 export class BackupJobController extends XoController<AnyXoBackupJob> {
   async getAllCollectionObjects(): Promise<AnyXoBackupJob[]> {
     const allJobs = await this.restApi.xoApp.getAllJobs()
-    const backupJobs = allJobs.filter(job => 'type' in job && job.type !== 'call')
+    const backupJobs = allJobs.filter(job => job.type !== 'call')
     return backupJobs
   }
 
   async getCollectionObject(id: AnyXoBackupJob['id']): Promise<AnyXoBackupJob> {
     const job = await this.restApi.xoApp.getJob(id)
-    if (!('type' in job) || job.type === 'call') {
+    if (job.type === 'call') {
       // not a backup job
       throw noSuchObject(id, 'backup-job')
     }
@@ -131,12 +131,12 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
 
   async getAllCollectionObjects(): Promise<AnyXoBackupJob[]> {
     const backupJobs = await this.restApi.xoApp.getAllJobs()
-    return backupJobs.filter(job => 'type' in job && job.type !== 'call')
+    return backupJobs.filter(job => job.type !== 'call')
   }
 
   async getCollectionObject(id: AnyXoBackupJob['id']): Promise<AnyXoBackupJob> {
     const backupJob = await this.restApi.xoApp.getJob(id)
-    if (!('type' in backupJob) || backupJob.type === 'call') {
+    if (backupJob.type === 'call') {
       throw noSuchObject(id, 'backup-job')
     }
 
