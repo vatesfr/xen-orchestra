@@ -2,7 +2,7 @@
 
 /**
  * @import {XoHost, XoVm} from "@vates/types"
- * @import {AlarmRule, AlarmRuleSet} from "./definitions.js"
+ * @import {AlarmRule, AlarmRuleSet} from "./rules.js"
  */
 import { Alarm, MonitorStrategy } from "./Strategy.js";
 import { createLogger } from '@xen-orchestra/log'
@@ -18,6 +18,8 @@ const HOST_POWER_STATE = {
   HALTED: 'Halted',
   UNKNOWN: 'Unknown',
 } 
+
+
 const logger = createLogger('xo:xo-server-perf-alert:rrdStrategy')
 /**
  * 
@@ -105,11 +107,14 @@ export class RrdHostVm extends MonitorStrategy {
           host: xoHost,
           query: {
             cf: 'AVERAGE',
-            host: withHostData ? 'true' : false,
+            host: withHostData ? 'true' : 'false',
             json: 'true',
+            interval: 60,
             start: serverTimestamp - secondsAgo,
+        //    vm_uuid: '8cd89dd3-5c99-0e6b-6f4e-798877230146'
           },
         }
+      
     const rrdResponse = await xapi.getResource('/rrd_updates', payload)
     const rrdText = await rrdResponse.body.text()
     /**
@@ -274,9 +279,8 @@ export class RrdHostVm extends MonitorStrategy {
         let needHost = false
         if (this.#rules.getObjectAlerts(host).length > 0) {
           needHost = true
-        }
-
-        const hostStats = await this.#getHostStats(host, 60, needHost)
+        } 
+        const hostStats = await this.#getHostStats(host, this.#rules.getMaxPeriod(), needHost)
         alarmsByObjects.push(this.#computeAlarms(host, hostStats))
       },
       {concurrency: 5}

@@ -63,7 +63,7 @@ export class AlarmRule{
         return  `${this.objectType.toLocaleLowerCase()}|${this.variableName}|${this.triggerLevel}`
     }
     /** */
-    constructor({alarmTriggerLevel, alarmTriggerPeriod, excludeUuids, comparator, objectType , smartMode,uuids, variableName}){
+    constructor({alarmTriggerLevel, alarmTriggerPeriod = 60, excludeUuids, comparator, objectType , smartMode,uuids, variableName}){
         this.triggerLevel = alarmTriggerLevel
         this.triggerPeriod = alarmTriggerPeriod
         this.excludeUuids = excludeUuids
@@ -122,19 +122,19 @@ export class AlarmRule{
 
 
 export class AlarmRuleSet {
-    definitions = new Set()
+    rules = new Set()
     constructor(configuration){
         for(const definition of configuration.hostMonitors){
             const alarmRule = new AlarmRule({...definition, objectType: 'host'})
-            this.definitions.add(alarmRule)
+            this.rules.add(alarmRule)
         }
         for(const definition of configuration.vmMonitors){
             const alarmRule = new AlarmRule({...definition, objectType: 'VM'})
-            this.definitions.add(alarmRule)
+            this.rules.add(alarmRule)
         }
         for(const definition of configuration.srMonitors){
             const alarmRule = new AlarmRule({...definition, objectType: 'SR'})
-            this.definitions.add(alarmRule)
+            this.rules.add(alarmRule)
         }
     }
 
@@ -145,12 +145,24 @@ export class AlarmRuleSet {
      */
     getObjectAlerts(xoObject){
         const definitions = []
-        for(const definition of this.definitions){
+        for(const definition of this.rules){
             if(definition.isObjectAffected(xoObject)){
                 definitions.push(definition)
             }
         }
         return definitions
     } 
+
+    /**
+     * @returns {number}
+     */
+    getMaxPeriod(){
+        let max = 60
+        
+        this.rules.forEach(rule =>{
+            max = Math.max(max , rule.triggerPeriod )
+        })
+        return max
+    }
 
 }

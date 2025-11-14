@@ -2,7 +2,7 @@
 
 /**
  * @import {XoHost, XoSr, XoVm} from "@vates/types"
- * @import {AlarmRule} from "./definitions"
+ * @import {AlarmRule} from "./rules"
  */
 
 export class Alarm{
