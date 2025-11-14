@@ -16,12 +16,12 @@
 import VmsSidePanel from '@/components/vms/panel/VmsSidePanel.vue'
 import VmsTable from '@/components/vms/VmsTable.vue'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { XoVm } from '@/types/xo/vm.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()

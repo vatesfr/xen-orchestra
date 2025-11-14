@@ -24,11 +24,11 @@
 import VmInfoCard from '@/components/vms/panel/cards/VmInfoCard.vue'
 import VmNetworkCard from '@/components/vms/panel/cards/VmNetworkCard.vue'
 import VmResourcesCard from '@/components/vms/panel/cards/VmResourcesCard.vue'
-import type { XoVm } from '@/types/xo/vm.type.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
