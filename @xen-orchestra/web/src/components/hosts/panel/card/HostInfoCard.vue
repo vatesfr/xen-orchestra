@@ -10,7 +10,7 @@
         <template #key>{{ t('state') }}</template>
         <template #value>
           <span class="power-state">
-            <VtsIcon :name="powerState.icon" size="small" />
+            <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
         </template>
@@ -53,7 +53,7 @@
         <template #value>
           <div v-if="pool" class="pool-name">
             <VtsIcon name="fa:city" size="medium" />
-            <UiLink :to="`/pool/${pool.id}`" size="small">
+            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -66,7 +66,7 @@
         <template #key>{{ t('master') }}</template>
         <template #value>
           <div v-if="isMaster" class="primary-host">
-            <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="small" />
+            <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
             {{ t('this-host') }}
           </div>
           <div v-else-if="masterHost !== undefined" class="primary-host">
@@ -75,8 +75,9 @@
               size="small"
               :icon="`object:host:${getHostState(masterHost.power_state)}`"
             >
-              {{ masterHost.id }}
+              {{ masterHost.name_label }}
             </UiLink>
+            <VtsIcon v-if="masterHost" v-tooltip="t('master')" name="legacy:primary" size="medium" />
           </div>
         </template>
         <template v-if="masterHost !== undefined" #addons>
@@ -159,8 +160,8 @@ const relativeStartTime = host.startTime ? getRelativeStartTime(host.startTime) 
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-
     .power-state,
+    .pool-name,
     .primary-host {
       display: flex;
       align-items: center;

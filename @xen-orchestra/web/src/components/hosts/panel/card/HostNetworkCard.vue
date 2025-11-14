@@ -24,7 +24,7 @@
               v-tooltip="t('coming-soon')"
               disabled
               icon="fa:ellipsis"
-              size="small"
+              size="medium"
               accent="brand"
             />
           </template>
@@ -46,7 +46,7 @@
               v-tooltip="t('coming-soon')"
               disabled
               icon="fa:ellipsis"
-              size="small"
+              size="medium"
               accent="brand"
             />
           </template>
