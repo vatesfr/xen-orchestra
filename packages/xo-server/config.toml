@@ -161,8 +161,8 @@ requestTimeout = 0
 
 # These mount points are exposed only when authenticated.
 [http.mounts]
-'/' = '../xo-web/dist/'
-'/v6' = '../../@xen-orchestra/web/dist/'
+'/' = '../../@xen-orchestra/web/dist/'
+'/v5' = '../xo-web/dist/'
 
 [logs]
 # Display all logs matching this filter, regardless of their level
