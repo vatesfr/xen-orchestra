@@ -29,7 +29,7 @@
 
 - [Backups] use the oldest record for Long Term Retention instead of newest (PR [#9180](https://github.com/vatesfr/xen-orchestra/pull/9180))
 - [Backups] fix infinite chain of snapshot and replication [Forum#11540](https://xcp-ng.org/forum/topic/11540) [Forum#11539](https://xcp-ng.org/forum/topic/11539) (PR [#9202](https://github.com/vatesfr/xen-orchestra/pull/9202))
-- [REST API] Fix `/rest/v0/backup-jobs` return non backup-jobs
+- [REST API] Fix `/rest/v0/backup-jobs` return non backup-jobs (PR [#9210](https://github.com/vatesfr/xen-orchestra/pull/9210))
 - **XO 6:**
   - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
 
