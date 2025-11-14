@@ -23,6 +23,7 @@
 - **XO 6:**
   - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
   - [Site/Hosts] Implement hosts view and side panel information (PR [#9128](https://github.com/vatesfr/xen-orchestra/pull/9128))
+  - [Pool] Add Storage Repositories page to display all SRs in the pool (PR [#9134](https://github.com/vatesfr/xen-orchestra/pull/9134))
 
 ### Bug fixes
 
