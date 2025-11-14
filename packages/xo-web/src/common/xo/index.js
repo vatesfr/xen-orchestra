@@ -2557,9 +2557,7 @@ export const setCbt = (vdi, cbt) =>
 
 // VBD ---------------------------------------------------------------
 
-export const connectVbd = vbd => _call('vbd.connect', { id: resolveId(vbd) })
-
-export const disconnectVbd = vbd => _call('vbd.disconnect', { id: resolveId(vbd) })
+export const connectVbds = vbds => Promise.all(map(vbds, vbd => _call('vbd.connect', { id: resolveId(vbd) })))
 
 export const disconnectVbds = vbds =>
   confirm({
