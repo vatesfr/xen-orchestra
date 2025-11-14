@@ -81,7 +81,7 @@
             <template #key>{{ t('tags') }}</template>
             <template #value>
               <UiTagsList v-if="pool !== undefined && pool.tags.length > 0">
-                <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="primary">{{ tag }}</UiTag>
+                <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
               </UiTagsList>
             </template>
             <template v-if="pool !== undefined && pool.tags.length > 0" #addons>

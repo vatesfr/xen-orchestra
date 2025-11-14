@@ -5,7 +5,9 @@
     <slot name="icon">
       <VtsIcon :name="icon" size="medium" />
     </slot>
-    <span class="text-ellipsis"><slot /></span>
+    <span class="text-ellipsis">
+      <slot />
+    </span>
   </span>
 </template>
 
