@@ -51,7 +51,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -63,6 +62,7 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { createMapper } from '@core/packages/mapper'
+import type { XoBackupLog } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
