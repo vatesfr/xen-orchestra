@@ -40,8 +40,6 @@
   "backup-jobs": "Tarefas de backup",
   "backup-repository": "Repositório de backup (local, NFS, SMB)",
   "backup-targets": "Destinos de backup",
-  "backup.continuous-replication": "Replicação contínua",
-  "backup.disaster-recovery": "Recuperação de desastres",
   "backup.full": "Backup completo",
   "backup.incremental": "Backup incremental",
   "backup.xo-config": "Configuração XO",
