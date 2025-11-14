@@ -22,7 +22,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ sr.name_description }}</template>
-        <template #addons>
+        <template v-if="sr.name_description" #addons>
           <VtsCopyButton :value="sr.name_description" />
         </template>
       </VtsCardRowKeyValue>
@@ -106,8 +106,6 @@ const isHaSr = isHighAvailabilitySr(() => sr)
 
 <style scoped lang="postcss">
 .card-container {
-  display: flex;
-  flex-direction: column;
   gap: 1.6rem;
 
   .content {

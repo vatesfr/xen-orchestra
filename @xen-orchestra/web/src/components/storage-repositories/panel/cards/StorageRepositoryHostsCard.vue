@@ -6,7 +6,7 @@
     </UiCardTitle>
     <UiCollapsibleList v-if="hosts.length > 0" tag="ul" :total-items="hosts.length">
       <li v-for="host in hosts" :key="host.id" v-tooltip class="text-ellipsis">
-        <UiLink size="small" icon="fa:server" :to="`/host/${host.id}`">
+        <UiLink size="small" icon="fa:server" :to="`/host/${host.id}/dashboard`">
           {{ host.name_label }}
         </UiLink>
       </li>
@@ -28,7 +28,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XoHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-const { hosts } = defineProps<{
+defineProps<{
   hosts: XoHost[]
 }>()
 
