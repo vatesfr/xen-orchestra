@@ -39,6 +39,7 @@ const slots = defineSlots<{
     align-items: center;
     gap: 1.6rem;
     color: var(--color-neutral-txt-primary);
+    max-width: 100%;
   }
 
   .info {
