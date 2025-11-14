@@ -3,47 +3,21 @@
     <UiTitle>
       {{ t('networks') }}
       <template #actions>
-        <UiDropdownButton v-tooltip="t('coming-soon')" disabled>
-          {{ t('new') }}
-        </UiDropdownButton>
+        <UiLink
+          :href="`/#/new/network?pool=${pool.id}`"
+          icon="fa:plus"
+          variant="secondary"
+          accent="brand"
+          size="medium"
+        >
+          {{ t('add-network-in-xo-5') }}
+        </UiLink>
       </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:copy"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('copy-info-json') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('delete') }}
-          </UiButton>
-        </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+        <UiTopBottomTable :selected-items="0" :total-items="0">
           <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
@@ -55,15 +29,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" @update:model-value="toggleSelect" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
+              <th>
                 <div v-tooltip class="text-ellipsis">
                   <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
@@ -79,24 +45,13 @@
             :class="{ selected: selectedNetworkId === row.id }"
             @click="selectedNetworkId = row.id"
           >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
+              <VtsStatus v-if="column.id === 'status'" :status="column.value" />
+              <div v-else-if="column.id === 'name_label'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
+                <UiLink size="medium" :href="`/#/pools/${pool.id}/network?s=1_0_asc-${row.id}`" @click.stop>
+                  {{ column.value }}
+                </UiLink>
               </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <VtsStatus v-else-if="column.id === 'status'" :status="column.value" />
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
               </div>
@@ -107,7 +62,7 @@
       <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" format="table" type="no-result" size="small">
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+      <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
@@ -122,26 +77,21 @@ import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { XoNetwork } from '@vates/types'
-import { noop } from '@vueuse/shared'
+import type { XoPool, XoNetwork } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { networks } = defineProps<{
+  pool: XoPool
   networks: XoNetwork[]
 }>()
 
@@ -166,14 +116,6 @@ const filteredNetworks = computed(() => {
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
-
-const networkIds = computed(() => networks.map(network => network.id))
-
-const { selected, areAllSelected } = useMultiSelect(networkIds)
-
-const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? networkIds.value : []
-}
 
 const getNetworkVlan = (network: XoNetwork) => {
   const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))
@@ -206,7 +148,6 @@ const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unl
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.id,
   columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
     define('name_label', { label: t('name') }),
     define('name_description', {
       label: t('description'),
@@ -217,7 +158,6 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
     define('default_locking_mode', record => getLockingMode(record.defaultIsLocked), {
       label: t('default-locking-mode'),
     }),
-    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
@@ -249,16 +189,6 @@ const headerIcon: Record<NetworkHeader, IconName> = {
   .container,
   .table-actions {
     gap: 0.8rem;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 }
 </style>
