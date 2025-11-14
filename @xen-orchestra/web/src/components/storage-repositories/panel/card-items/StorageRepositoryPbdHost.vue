@@ -13,9 +13,9 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
-import type { XoPbd } from '@/types/xo/pbd.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import type { XoPbd } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { pbd } = defineProps<{
