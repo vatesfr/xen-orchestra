@@ -23,10 +23,10 @@ import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.t
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
-import type { XoPool } from '@/types/xo/pool.type'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import type { XoPool } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 
 defineProps<{ pool: XoPool }>()

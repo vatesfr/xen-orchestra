@@ -58,7 +58,6 @@
 </template>
 
 <script setup lang="ts">
-import type { XoBackupRepository } from '@/types/xo/br.type'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -71,6 +70,7 @@ import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTa
 import { usePagination } from '@core/composables/pagination.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XoBackupRepository } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 

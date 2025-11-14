@@ -1,8 +1,8 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import type { XoNetwork } from '@/types/xo/network.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
+import type { XoNetwork } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 

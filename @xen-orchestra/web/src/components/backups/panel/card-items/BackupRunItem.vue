@@ -57,12 +57,12 @@
 
 <script lang="ts" setup>
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
-import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import type { XoBackupLog } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

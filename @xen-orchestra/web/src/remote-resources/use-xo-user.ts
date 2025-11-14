@@ -1,5 +1,5 @@
-import type { XoUser } from '@/types/xo/user.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import type { XoUser } from '@vates/types'
 
 export const useXoUserResource = defineRemoteResource({
   url: (userId: string) => `/rest/v0/users/${userId}`,

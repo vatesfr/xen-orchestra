@@ -13,9 +13,8 @@
 <script setup lang="ts">
 import BackupJobTargetBrItem from '@/components/backups/panel/card-items/BackupJobTargetsBrItem.vue'
 import BackupJobTargetSrItem from '@/components/backups/panel/card-items/BackupJobTargetsSrItem.vue'
-import type { XoBackupRepository } from '@/types/xo/br.type.ts'
-import type { XoSr } from '@/types/xo/sr.type.ts'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
+import type { XoBackupRepository, XoSr } from '@vates/types'
 
 const { targets } = defineProps<{
   targets: XoSr[] | XoBackupRepository[]

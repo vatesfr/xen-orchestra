@@ -18,8 +18,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoVm } from '@/types/xo/vm.type'
-import { VM_OPERATION } from '@/types/xo/vm.type'
 import { isVmOperatingPending } from '@/utils/xo-records/vm.util.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
@@ -27,6 +25,7 @@ import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'
 import VtsRemoteConsole from '@core/components/console/VtsRemoteConsole.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import { VM_OPERATIONS, type XoVm } from '@vates/types'
 import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -37,13 +36,13 @@ const props = defineProps<{
 const { t } = useI18n()
 
 const STOP_OPERATIONS = [
-  VM_OPERATION.SHUTDOWN,
-  VM_OPERATION.CLEAN_SHUTDOWN,
-  VM_OPERATION.HARD_SHUTDOWN,
-  VM_OPERATION.CLEAN_REBOOT,
-  VM_OPERATION.HARD_REBOOT,
-  VM_OPERATION.PAUSE,
-  VM_OPERATION.SUSPEND,
+  VM_OPERATIONS.SHUTDOWN,
+  VM_OPERATIONS.CLEAN_SHUTDOWN,
+  VM_OPERATIONS.HARD_SHUTDOWN,
+  VM_OPERATIONS.CLEAN_REBOOT,
+  VM_OPERATIONS.HARD_REBOOT,
+  VM_OPERATIONS.PAUSE,
+  VM_OPERATIONS.SUSPEND,
 ]
 
 const url = computed(() => new URL(`/api/consoles/${props.vm.id}`, window.location.origin.replace(/^http/, 'ws')))

@@ -117,7 +117,6 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import type { XoNetwork } from '@/types/xo/network.type.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -137,6 +136,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import type { XoNetwork } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -201,7 +201,7 @@ const getNetworkStatus = (network: XoNetwork) => {
   return 'disconnected'
 }
 
-const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
+const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unlocked'))
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.id,
@@ -214,7 +214,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
     define('status', record => getNetworkStatus(record), { label: t('pifs-status') }),
     define('vlan', record => getNetworkVlan(record), { label: t('vlan') }),
     define('MTU', { label: t('mtu') }),
-    define('default_locking_mode', record => getLockingMode(record.default_locking_mode), {
+    define('default_locking_mode', record => getLockingMode(record.defaultIsLocked), {
       label: t('default-locking-mode'),
     }),
     define('more', noop, { label: '', isHideable: false }),

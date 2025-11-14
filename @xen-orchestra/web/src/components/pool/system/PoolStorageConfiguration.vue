@@ -57,12 +57,12 @@
 
 <script lang="ts" setup>
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
-import type { XoPool } from '@/types/xo/pool.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XoPool } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{

@@ -1,6 +1,6 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
-import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import type { XoBackupLog } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 

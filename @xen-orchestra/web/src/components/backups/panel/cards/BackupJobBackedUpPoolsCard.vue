@@ -17,12 +17,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoPool } from '@/types/xo/pool.type.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import type { XoPool } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { backedUpPools } = defineProps<{

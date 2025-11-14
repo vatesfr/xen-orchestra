@@ -1,8 +1,7 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
-import type { XoSr } from '@/types/xo/sr.type.ts'
-import type { XoVdi } from '@/types/xo/vdi.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import type { AnyXoVdi, XoSr, XoVdi } from '@vates/types'
 import { computed } from 'vue'
 
 export const useXoSrCollection = defineRemoteResource({
@@ -25,24 +24,26 @@ export const useXoSrCollection = defineRemoteResource({
         }
 
         return acc
-      }, new Set<XoVdi['id']>())
+      }, new Set<AnyXoVdi['id']>())
     )
 
     const vdiIsosBySrName = computed(() => {
       const groupedVDIs: Record<string, XoVdi[]> = {}
 
       isoVdiIds.value.forEach(vdiId => {
-        const vdi = getVdiById(vdiId)
+        const vdi = getVdiById(vdiId as XoVdi['id'])
 
-        if (vdi) {
-          const srName = state.getSrById(vdi.$SR)?.name_label ?? 'Unknown SR'
-
-          if (!groupedVDIs[srName]) {
-            groupedVDIs[srName] = []
-          }
-
-          groupedVDIs[srName].push(vdi)
+        if (!vdi) {
+          return
         }
+
+        const srName = state.getSrById(vdi.$SR)?.name_label ?? 'Unknown SR'
+
+        if (!groupedVDIs[srName]) {
+          groupedVDIs[srName] = []
+        }
+
+        groupedVDIs[srName].push(vdi)
       })
 
       return groupedVDIs
