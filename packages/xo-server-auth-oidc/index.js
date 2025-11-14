@@ -1,5 +1,9 @@
 'use strict'
 
+/**
+ * @typedef {import('@vates/types').XoUser} XoUser
+ */
+
 const { join } = require('node:path/posix')
 const { Strategy } = require('passport-openidconnect')
 
@@ -118,10 +122,10 @@ class AuthOidc {
     }
 
     this.#unregisterPassportStrategy = xo.registerPassportStrategy(
-      new Strategy(conf, async (issuer, profile, context, idToken, accessToken, refreshToken, params, done) => {
+      new Strategy(conf, async (issuer, profile, context, idToken, done) => {
         try {
           const claims = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString())
-          const groups = claims.groups
+          const groups = claims.groups ? claims.groups : []
 
           // See https://github.com/jaredhanson/passport-openidconnect/blob/master/lib/profile.js
           const { id } = profile
@@ -140,9 +144,17 @@ class AuthOidc {
     )
   }
 
-  // Synchronize user's groups.
+  /**
+   * Synchronize user's groups.
+   * Not private in order to be testable, but should be private.
+   *
+   * @param {XoUser} user
+   * @param {string[]} oidcGroups
+   *
+   * @returns {void}
+   */
   async _synchronizeGroups(user, oidcGroups) {
-    if (Array.isArray(oidcGroups) && oidcGroups.length > 0) {
+    if (oidcGroups.length > 0) {
       const xoGroups = await this.#xo.getAllGroups()
 
       for (const oidcGroupName of oidcGroups) {

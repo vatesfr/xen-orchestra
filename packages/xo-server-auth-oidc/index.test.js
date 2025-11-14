@@ -28,7 +28,7 @@ beforeEach(() => {
 })
 
 describe('AuthOidc._synchronizeGroups', () => {
-  it('_synchronizeGroups should create the user groups and add the user', async () => {
+  it('synchronizeGroups should create the user groups and add the user', async () => {
     mockData.xoGroups = []
     const mockUser = { id: 'id1' }
     const mockOidcGroups = ['group-1', 'group-2']
@@ -45,7 +45,7 @@ describe('AuthOidc._synchronizeGroups', () => {
     ])
   })
 
-  it('_synchronizeGroups should not recreate existing groups but still add the user', async () => {
+  it('synchronizeGroups should not recreate existing groups but still add the user', async () => {
     mockData.xoGroups = [
       { id: 1, users: [], name: 'group-1', provider: 'oidc' },
       { id: 2, users: [], name: 'group-2', provider: 'oidc' },
