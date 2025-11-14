@@ -1,5 +1,6 @@
 <template>
-  <UiPanel :class="{ 'mobile-drawer': uiStore.isMobile }">
+  <VtsStateHero v-if="!isReady" format="panel" busy size="medium" />
+  <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
@@ -33,11 +34,13 @@ import StorageRepositoryVdisCard from '@/components/storage-repositories/panel/c
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
 import { useXoPbdCollection } from '@/remote-resources/use-xo-pbd-collection'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoHost, XoSr, XoVdi } from '@vates/types'
+import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -52,16 +55,18 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const uiStore = useUiStore()
 
-const { useGetVdisByIds } = useXoVdiCollection()
-const { getHostById } = useXoHostCollection()
-const { pbds: rawPbds, getPbdsByIds } = useXoPbdCollection()
+const { useGetVdisByIds, areVdisReady } = useXoVdiCollection()
+const { getHostById, areHostsReady } = useXoHostCollection()
+const { pbdsBySr, arePbdsReady } = useXoPbdCollection()
+
+const isReady = logicAnd(areVdisReady, areHostsReady, arePbdsReady)
 
 const vdis = useGetVdisByIds(() => sr.VDIs as XoVdi['id'][])
 
-const hosts = computed(() => {
-  const pbds = getPbdsByIds(sr.$PBDs)
+const pbds = computed(() => pbdsBySr.value.get(sr.id) ?? [])
 
-  return pbds.reduce<XoHost[]>((acc, pbd) => {
+const hosts = computed(() =>
+  pbds.value.reduce<XoHost[]>((acc, pbd) => {
     const host = getHostById(pbd.host)
 
     if (host !== undefined) {
@@ -70,9 +75,7 @@ const hosts = computed(() => {
 
     return acc
   }, [])
-})
-
-const pbds = computed(() => rawPbds.value.filter(pbd => pbd.SR === sr.id))
+)
 
 const customFields = computed(() => {
   const prefix = 'XenCenter.CustomFields.'

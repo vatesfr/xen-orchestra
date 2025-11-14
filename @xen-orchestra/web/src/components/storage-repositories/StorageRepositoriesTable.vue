@@ -17,15 +17,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled accent="brand" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
+              <th>
                 <div v-tooltip class="text-ellipsis">
                   <VtsIcon size="medium" :name="headerIcon[column.id]" />
                   {{ column.label }}
@@ -41,25 +33,9 @@
             :class="{ selected: selectedSrId === row.id }"
             @click="selectedSrId = row.id"
           >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox disabled accent="brand" :value="row.id" />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="column.id === 'name'" class="name">
-                <UiLink size="medium" icon="object:sr:muted" :href="`/#/srs/${column.value.id}/general`" @click.stop>
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
+              <div v-if="column.id === 'name'" class="name">
+                <UiLink size="medium" icon="object:sr:muted" :href="`/#/srs/${row.id}/general`" @click.stop>
                   {{ column.value.name }}
                 </UiLink>
                 <VtsIcon
@@ -99,8 +75,6 @@ import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
@@ -111,7 +85,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XoSr } from '@vates/types'
-import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -142,15 +115,13 @@ const filteredSrs = computed(() => {
 const { visibleColumns, rows } = useTable('backup-jobs', filteredSrs, {
   rowId: record => record.id,
   columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
-    define('name', record => ({ name: record.name_label, id: record.id, isDefaultSr: isDefaultSr(record) }), {
+    define('name', record => ({ name: record.name_label, isDefaultSr: isDefaultSr(record) }), {
       label: t('storage-repository'),
     }),
     define('description', record => record.name_description, { label: t('description') }),
     define('storage-format', record => record.SR_type, { label: t('storage-format') }),
     define('access-mode', record => (record.shared ? t('shared') : t('local')), { label: t('access-mode') }),
     define('space', record => ({ used: record.physical_usage, total: record.size }), { label: t('space') }),
-    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 

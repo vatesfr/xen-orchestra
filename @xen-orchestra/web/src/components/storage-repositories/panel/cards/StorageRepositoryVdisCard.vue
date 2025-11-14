@@ -28,7 +28,7 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XoVdi } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-const { vdis } = defineProps<{
+defineProps<{
   vdis: XoVdi[]
 }>()
 

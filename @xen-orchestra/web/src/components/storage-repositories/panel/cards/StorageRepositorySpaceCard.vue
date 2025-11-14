@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard class="card-container">
     <UiCardTitle>
       {{ t('space') }}
     </UiCardTitle>
@@ -17,10 +17,10 @@
           {{ t('used-space') }}
         </template>
         <template #value>
-          {{ usedSpace }}
+          {{ usedSpace.formattedValue }}
         </template>
-        <template #addons>
-          <VtsCopyButton :value="usedSpace" />
+        <template v-if="usedSpace.rawValue > 0" #addons>
+          <VtsCopyButton :value="usedSpace.formattedValue" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -28,10 +28,10 @@
           {{ t('free-space') }}
         </template>
         <template #value>
-          {{ freeSpace }}
+          {{ freeSpace.formattedValue }}
         </template>
-        <template #addons>
-          <VtsCopyButton :value="freeSpace" />
+        <template v-if="freeSpace.rawValue > 0" #addons>
+          <VtsCopyButton :value="freeSpace.formattedValue" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -39,10 +39,10 @@
           {{ t('total-space') }}
         </template>
         <template #value>
-          {{ totalSpace }}
+          {{ totalSpace.formattedValue }}
         </template>
-        <template #addons>
-          <VtsCopyButton :value="totalSpace" />
+        <template v-if="totalSpace.rawValue > 0" #addons>
+          <VtsCopyButton :value="totalSpace.formattedValue" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -66,21 +66,38 @@ const { sr } = defineProps<{
 
 const { t } = useI18n()
 
-const usedSpace = computed(() => formatSize(sr.physical_usage, 2))
+const usedSpace = computed(() => ({
+  formattedValue: formatSize(sr.physical_usage, 2),
+  rawValue: sr.physical_usage,
+}))
 
-const totalSpace = computed(() => formatSize(sr.size, 2))
+const totalSpace = computed(() => ({
+  formattedValue: formatSize(sr.size, 2),
+  rawValue: sr.size,
+}))
 
-const freeSpace = computed(() => formatSize(sr.size - sr.physical_usage, 2))
+const freeSpace = computed(() => {
+  const rawFreeSpace = sr.size - sr.physical_usage
+
+  return {
+    formattedValue: formatSize(rawFreeSpace, 2),
+    rawValue: rawFreeSpace,
+  }
+})
 </script>
 
 <style scoped lang="postcss">
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+.card-container {
+  gap: 1.6rem;
 
-  .progress {
-    margin-block-end: 1.6rem;
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    .progress {
+      margin-block-end: 1.6rem;
+    }
   }
 }
 </style>
