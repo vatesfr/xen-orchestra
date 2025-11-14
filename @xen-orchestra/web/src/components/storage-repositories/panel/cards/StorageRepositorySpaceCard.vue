@@ -50,13 +50,13 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoSr } from '@/types/xo/sr.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { formatSize } from '@core/utils/size.util'
+import type { XoSr } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

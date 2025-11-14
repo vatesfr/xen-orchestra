@@ -33,12 +33,11 @@ import StorageRepositoryVdisCard from '@/components/storage-repositories/panel/c
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
 import { useXoPbdCollection } from '@/remote-resources/use-xo-pbd-collection'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection'
-import type { XoHost } from '@/types/xo/host.type'
-import type { XoSr } from '@/types/xo/sr.type.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoHost, XoSr, XoVdi } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -57,7 +56,7 @@ const { useGetVdisByIds } = useXoVdiCollection()
 const { getHostById } = useXoHostCollection()
 const { pbds: rawPbds, getPbdsByIds } = useXoPbdCollection()
 
-const vdis = useGetVdisByIds(() => sr.VDIs)
+const vdis = useGetVdisByIds(() => sr.VDIs as XoVdi['id'][])
 
 const hosts = computed(() => {
   const pbds = getPbdsByIds(sr.$PBDs)

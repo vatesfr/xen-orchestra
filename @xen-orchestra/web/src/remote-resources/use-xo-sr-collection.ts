@@ -2,8 +2,8 @@ import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-c
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
-import type { AnyXoVdi, XoSr, XoVdi } from '@vates/types'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
+import type { AnyXoVdi, XoPool, XoSr, XoVdi } from '@vates/types'
 import { reactify, useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 

@@ -18,7 +18,6 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoVdi } from '@/types/xo/vdi.type'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -26,6 +25,7 @@ import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibl
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XoVdi } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { vdis } = defineProps<{

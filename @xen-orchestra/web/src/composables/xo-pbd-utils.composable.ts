@@ -1,5 +1,5 @@
-import type { XoPbd } from '@/types/xo/pbd.type.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
+import type { XoPbd } from '@vates/types'
 import { useArrayEvery, useArrayFilter, useArraySome } from '@vueuse/shared'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
