@@ -2,7 +2,10 @@
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
     <VtsIcon :name="icon" size="medium" />
-    <slot />
+    <span v-if="wrap == undefined || wrap == false" v-tooltip class="text-ellipsis">
+      <slot />
+    </span>
+    <slot v-else />
     <VtsIcon v-if="attributes.target === '_blank'" name="action:open-in-new-tab" size="medium" class="external-icon" />
     <VtsIcon v-if="isPrimary" v-tooltip="primaryTooltip" name="status:primary-circle" size="medium" />
   </component>
@@ -21,6 +24,7 @@ const props = defineProps<
     icon?: IconName
     isPrimary?: boolean
     primaryTooltip?: string
+    wrap?: boolean
   }
 >()
 
@@ -37,9 +41,11 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
 <style lang="postcss" scoped>
 .ui-link {
   display: inline-flex;
-  align-items: center;
+  align-items: start;
   gap: 0.8rem;
   color: var(--color-brand-txt-base);
+  min-width: 0;
+  max-width: 100%;
 
   &:hover {
     color: var(--color-brand-txt-hover);

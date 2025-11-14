@@ -192,6 +192,7 @@ const mainIpAddress = computed(() => {
     display: flex;
     align-items: center;
     gap: 0.8rem;
+    max-width: 100%;
   }
 }
 </style>
