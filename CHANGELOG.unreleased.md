@@ -7,7 +7,7 @@
 
 > Security fixes and new features should go in this section
 
-- [Packages] Update xml2js dependency
+- [Packages] Update xml2js dependency (PR [#9216](https://github.com/vatesfr/xen-orchestra/pull/9216))
 
 ### Enhancements
 
