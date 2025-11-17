@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Plugins/transport-email] Update nodemailer
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
@@ -61,6 +63,7 @@
 - @xen-orchestra/xapi patch
 - xo-collection minor
 - xo-server minor
+- xo-server-transport-email patch
 - xo-server-usage-report minor
 - xo-web minor
 

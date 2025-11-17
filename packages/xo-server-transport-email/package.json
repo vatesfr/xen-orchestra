@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "marked": "^11.1.0",
-    "nodemailer": "^6.1.0",
+    "nodemailer": "^7.0.7",
     "promise-toolbox": "^0.21.0"
   },
   "devDependencies": {
