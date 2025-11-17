@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Proxy] Update cookie package
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
