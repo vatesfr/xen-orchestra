@@ -13,7 +13,7 @@ async function init() {
   if (import.meta.env.PROD) {
     // Expect an error for no admin users.
     // redirect to XO5 in that case
-    const { statusCode } = await useFetch('/rest/v0/users/me').json()
+    const { statusCode } = await useFetch('/rest/v0/users/me')
     if (statusCode.value === 403) {
       // voluntary not using `useXoRoutes` we need info BEFORE mounting anything from XO6 (UI,store, ...)
       const { data } = await useFetch<{ xo5: string; xo6: string }>('/rest/v0/gui-routes').json()
