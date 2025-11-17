@@ -387,7 +387,7 @@
   "minimum-dynamic-memory": "Dynamicky přidělované paměti nejméně",
   "minimum-static-memory": "Staticky přidělené paměti nejméně",
   "missing-patches": "Chybějící záplaty",
-  "mode": "Režim",
+  "mode": "Režim | Režimy",
   "more-actions": "Další akce",
   "mtu": "MTU",
   "multi-creation": "Vícenásobné vytvoření",
