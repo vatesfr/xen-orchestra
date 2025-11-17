@@ -9,7 +9,6 @@
     <div class="content">
       <template v-if="ipAddresses.length > 0">
         <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
-          {{ ip }}
           <template #key>
             <div v-if="index === 0">{{ t('ip-addresses') }}</div>
           </template>
@@ -65,7 +64,7 @@ const ipAddresses = computed(() => getVmIpAddresses(vm))
   .content {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.4rem;
   }
 }
 </style>

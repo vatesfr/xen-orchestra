@@ -13,16 +13,16 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('ram') }}</template>
-        <template #value>{{ ram }}</template>
+        <template #value>{{ formattedRam }}</template>
         <template #addons>
-          <VtsCopyButton :value="String(ram)" />
+          <VtsCopyButton :value="formattedRam" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('disk-space') }}</template>
-        <template #value>{{ diskSpace }}</template>
-        <template #addons>
-          <VtsCopyButton :value="String(diskSpace)" />
+        <template #value>{{ formattedDiskSpace }}</template>
+        <template v-if="formattedDiskSpace.length > 0" #addons>
+          <VtsCopyButton :value="formattedDiskSpace" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -34,7 +34,7 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('snapshots') }}</template>
-        <template v-if="vm.snapshots.length > 0" #value>{{ vm?.snapshots.length }}</template>
+        <template v-if="vm.snapshots.length > 0" #value>{{ vm.snapshots.length }}</template>
         <template v-if="vm.snapshots.length > 0" #addons>
           <VtsCopyButton :value="String(vm.snapshots.length)" />
         </template>
@@ -46,13 +46,12 @@
 <script lang="ts" setup>
 import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
-import { getVmRam } from '@/utils/xo-records/vm.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
-import type { XoVbd, XoVdi, XoVm } from '@vates/types'
+import { formatSize } from '@core/utils/size.util.ts'
+import type { XoVdi, XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -62,25 +61,19 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { getVbdById } = useXoVbdCollection()
+const { getVbdsByIds } = useXoVbdCollection()
 const { getVdiById } = useXoVdiCollection()
 
-const ram = computed(() => {
-  const ramValue = getVmRam(vm)
+const formattedRam = computed(() => formatSize(vm.memory.size, 1))
 
-  return `${ramValue?.value} ${ramValue?.prefix}`
-})
+const vdis = computed(() => getVbdsByIds(vm.$VBDs).map(vbd => vbd?.VDI))
 
-const vdis = computed(() => [...vm.$VBDs].map(vbdId => getVbdById(vbdId as XoVbd['id'])?.VDI))
-
-const diskSpace = computed(() => {
+const formattedDiskSpace = computed(() => {
   const totalSize = vdis.value
     .map(vdiId => getVdiById(vdiId as XoVdi['id'])?.size || 0)
     .reduce((sum, size) => sum + size, 0)
 
-  const diskSpaceValue = formatSizeRaw(totalSize, 1)
-
-  return `${diskSpaceValue?.value} ${diskSpaceValue?.prefix}`
+  return formatSize(totalSize, 1)
 })
 </script>
 
@@ -91,7 +84,7 @@ const diskSpace = computed(() => {
   .content {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.4rem;
   }
 }
 </style>

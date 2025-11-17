@@ -2,14 +2,11 @@
   <div class="vms-table">
     <UiTitle>
       {{ t('vms', 2) }}
-      <template #actions>
-        <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
-      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+        <UiTopBottomTable :selected-items="0" :total-items="0">
           <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
@@ -34,7 +31,7 @@
             @click="selectedVmId = row.id"
           >
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
-              <div v-if="column.id === 'name_label'" v-tooltip class="text-ellipsis">
+              <div v-if="column.id === 'name-label'" v-tooltip class="text-ellipsis">
                 <UiLink size="medium" icon="fa:desktop" :to="`/vm/${row.id}/dashboard`" @click.stop>
                   {{ column.value }}
                 </UiLink>
@@ -50,10 +47,10 @@
                 </span>
               </div>
               <div
-                v-else-if="column.id === 'CPUs' || column.id === 'memory' || column.id === 'disk-space'"
+                v-else-if="column.id === 'vcpus' || column.id === 'ram' || column.id === 'disk-space'"
                 class="number"
               >
-                {{ column.id === 'CPUs' ? column.value : `${column.value?.value} ${column.value?.prefix}` }}
+                {{ column.value }}
               </div>
               <div v-else-if="column.id === 'tags'" v-tooltip="[column.value].filter(Boolean).join(', ')" class="tags">
                 <div v-if="column.value.length > 0" class="text-ellipsis">
@@ -74,7 +71,7 @@
       <VtsStateHero v-if="searchQuery && filteredVms.length === 0" format="table" type="no-result" size="medium">
         {{ t('no-result') }}
       </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
+      <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-if="isReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
     </div>
@@ -84,7 +81,7 @@
 <script setup lang="ts">
 import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
-import { getVmIpAddresses, getVmRam } from '@/utils/xo-records/vm.util.ts'
+import { getVmIpAddresses } from '@/utils/xo-records/vm.util.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -97,12 +94,11 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { type IconName } from '@core/icons'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
-import type { XoVbd, XoVdi, XoVm } from '@vates/types'
+import { formatSize } from '@core/utils/size.util.ts'
+import type { XoVdi, XoVm } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -112,7 +108,7 @@ const { vms } = defineProps<{
   hasError: boolean
 }>()
 
-const { getVbdById } = useXoVbdCollection()
+const { getVbdsByIds } = useXoVbdCollection()
 const { getVdiById } = useXoVdiCollection()
 
 const { t } = useI18n()
@@ -131,29 +127,21 @@ const filteredVms = computed(() => {
   return vms.filter(vm => Object.values(vm).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
-const vmIds = computed(() => vms.map(vm => vm.id))
-
-const { selected } = useMultiSelect(vmIds)
-
-const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? vmIds.value : []
-}
-
 const getDiskSpace = (vm: XoVm) => {
-  const vdis = [...vm.$VBDs].map(vbdId => getVbdById(vbdId as XoVbd['id'])?.VDI)
+  const vdis = getVbdsByIds(vm.$VBDs).map(vbd => vbd?.VDI)
 
   const totalSize = vdis.map(vdiId => getVdiById(vdiId as XoVdi['id'])?.size || 0).reduce((sum, size) => sum + size, 0)
 
-  return formatSizeRaw(totalSize, 1)
+  return formatSize(totalSize, 1)
 }
 
 const { visibleColumns, rows } = useTable('vms', filteredVms, {
   rowId: record => record.id,
   columns: define => [
-    define('name_label', record => record.name_label, { label: t('vm') }),
+    define('name-label', record => record.name_label, { label: t('vm') }),
     define('ip-addresses', record => getVmIpAddresses(record), { label: t('ip-addresses') }),
-    define('CPUs', record => record.CPUs.number, { label: t('vcpus') }),
-    define('memory', record => getVmRam(record), { label: t('ram') }),
+    define('vcpus', record => record.CPUs.number, { label: t('vcpus') }),
+    define('ram', record => formatSize(record.memory.size, 1), { label: t('ram') }),
     define('disk-space', record => getDiskSpace(record), { label: t('disk-space') }),
     define('tags', record => record.tags, { label: t('tags') }),
   ],
@@ -161,13 +149,13 @@ const { visibleColumns, rows } = useTable('vms', filteredVms, {
 
 const { pageRecords: vmsRecords, paginationBindings } = usePagination('vms', rows)
 
-type VmHeader = 'name_label' | 'ip-addresses' | 'CPUs' | 'memory' | 'disk-space' | 'tags'
+type VmHeader = 'name-label' | 'ip-addresses' | 'vcpus' | 'ram' | 'disk-space' | 'tags'
 
 const headerIcon: Record<VmHeader, IconName> = {
-  name_label: 'fa:a',
+  'name-label': 'fa:a',
   'ip-addresses': 'fa:at',
-  CPUs: 'fa:hashtag',
-  memory: 'fa:hashtag',
+  vcpus: 'fa:hashtag',
+  ram: 'fa:hashtag',
   'disk-space': 'fa:hashtag',
   tags: 'fa:square-caret-down',
 }

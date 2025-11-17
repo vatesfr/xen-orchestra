@@ -71,7 +71,7 @@
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('vcpus')" :value="String(vm.CPUs.number)" />
-      <VtsQuickInfoRow :label="t('ram')" :value="`${ram?.value} ${ram?.prefix}`" />
+      <VtsQuickInfoRow :label="t('ram')" :value="ram" />
       <VtsQuickInfoRow :label="t('tags')">
         <template #value>
           <UiTagsList v-if="vm.tags.length > 0">
@@ -90,7 +90,6 @@ import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import { getVmRam } from '@/utils/xo-records/vm.util.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
@@ -100,6 +99,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { formatSize } from '@core/utils/size.util.ts'
 import { type XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -120,7 +120,7 @@ const { user } = useXoUserResource({}, () => vm.creation?.user)
 
 const pool = useGetPoolById(vm.$pool)
 
-const ram = computed(() => getVmRam(vm))
+const ram = computed(() => formatSize(vm.memory.size, 1))
 
 const virtualizationType = computed(() =>
   vm.virtualizationMode === 'hvm' && vm.pvDriversDetected ? 'pvhvm' : vm.virtualizationMode
