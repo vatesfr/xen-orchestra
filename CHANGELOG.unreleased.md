@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Packages] Update xml2js dependency
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
