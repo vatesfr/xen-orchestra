@@ -37,6 +37,7 @@
 
 - **XO 6:**
   - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
+  - Redirect non admin user to XO5 (PR [#9219](https://github.com/vatesfr/xen-orchestra/pull/9219))
 
 ### Packages to release
 
