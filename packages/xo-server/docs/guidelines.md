@@ -139,7 +139,7 @@ console.log(`${vm} started at ${new Date()}`) // Unstructured
 
 // ⚠️
 log.error(err) // No context like VM ID
-ayncPromise.catch(() => {}) // erro is forcibly silenced
+ayncPromise.catch(() => {}) // error is forcibly silenced
 ```
 
 ### Readability
