@@ -62,6 +62,7 @@
 - xo-collection minor
 - xo-server minor
 - xo-server-usage-report minor
+- xo-vmdk-to-vhd patch
 - xo-web minor
 
 <!--packages-end-->
