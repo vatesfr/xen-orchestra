@@ -35,21 +35,21 @@ const { host } = defineProps<{
 const { t } = useI18n()
 
 const { hasSrFetchError, getSrById, areSrsReady } = useXoSrCollection()
-const { pbds, arePbdsReady } = useXoPbdCollection()
+const { pbdsByHost, arePbdsReady } = useXoPbdCollection()
 
 const isReady = logicAnd(areSrsReady, arePbdsReady)
 
 const uiStore = useUiStore()
 
 const srs = computed(() => {
-  return pbds.value
-    .reduce<XoSr[]>((acc, pbd) => {
-      if (pbd.host === host.id) {
-        const sr = getSrById(pbd.SR)
+  const hostPbds = pbdsByHost.value.get(host.id) ?? []
 
-        if (sr !== undefined) {
-          acc.push(sr)
-        }
+  return hostPbds
+    .reduce<XoSr[]>((acc, pbd) => {
+      const sr = getSrById(pbd.SR)
+
+      if (sr !== undefined) {
+        acc.push(sr)
       }
 
       return acc
