@@ -115,7 +115,7 @@ export class ServerController extends XoController<XoServer> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/connect')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already connected')
@@ -137,7 +137,7 @@ export class ServerController extends XoController<XoServer> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/disconnect')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(409, 'The server is already disconnected')

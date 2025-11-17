@@ -146,7 +146,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Middlewares(json())
   @Tags('networks')
   @SuccessResponse(createdResp.status, createdResp.description)
-  @Response(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   createNetwork(
@@ -180,7 +180,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/emergency_shutdown')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -206,7 +206,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/rolling_reboot')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -233,7 +233,7 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/rolling_update')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
@@ -304,7 +304,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Middlewares(json())
   @Tags('vms')
   @SuccessResponse(createdResp.status, createdResp.description)
-  @Response(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVm(

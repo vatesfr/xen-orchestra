@@ -159,7 +159,7 @@ export class TaskController extends XoController<XoTask> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/abort')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   async abortTask(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {

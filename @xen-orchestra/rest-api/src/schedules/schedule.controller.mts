@@ -67,7 +67,7 @@ export class ScheduleController extends XoController<XoSchedule> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/run')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)

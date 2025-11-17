@@ -240,7 +240,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -271,7 +271,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/clean_shutdown')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -318,7 +318,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/hard_shutdown')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -343,7 +343,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/hard_reboot')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -370,7 +370,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/pause')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -397,7 +397,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/suspend')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -424,7 +424,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/resume')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -451,7 +451,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/unpause')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -477,7 +477,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/snapshot')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(createdResp.status, 'Snapshot created')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
