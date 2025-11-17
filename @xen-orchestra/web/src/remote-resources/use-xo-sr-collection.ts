@@ -1,14 +1,20 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
+import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
-import type { AnyXoVdi, XoSr, XoVdi } from '@vates/types'
+import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
+import type { AnyXoVdi, XoPool, XoSr, XoVdi } from '@vates/types'
+import { reactify, useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
 export const useXoSrCollection = defineRemoteResource({
-  url: '/rest/v0/srs?fields=id,name_label,name_description,$pool,content_type,physical_usage,size,SR_type,VDIs,type',
+  url: '/rest/v0/srs?fields=id,name_label,name_description,$pool,content_type,physical_usage,usage,size,SR_type,VDIs,type,shared,sm_config,other_config,tags,allocationStrategy,$PBDs',
   initialData: () => [] as XoSr[],
-  state: (srs, context) => {
+  state: (rawSrs, context) => {
+    const srs = useSorted(rawSrs, (sr1, sr2) => sortByNameLabel(sr1, sr2))
+
     const { getVdiById } = useXoVdiCollection(context)
+    const { getPoolById } = useXoPoolCollection()
 
     const state = useXoCollectionState(srs, {
       context,
@@ -49,9 +55,36 @@ export const useXoSrCollection = defineRemoteResource({
       return groupedVDIs
     })
 
+    const srsByPool = computed(() => {
+      const srsByPoolMap = new Map<XoPool['id'], XoSr[]>()
+
+      srs.value.forEach(sr => {
+        const poolId = sr.$pool
+
+        if (!srsByPoolMap.has(poolId)) {
+          srsByPoolMap.set(poolId, [])
+        }
+
+        srsByPoolMap.get(poolId)!.push(sr)
+      })
+
+      return srsByPoolMap
+    })
+
+    const isDefaultSr = (sr: XoSr) => getPoolById(sr.$pool)?.default_SR === sr.id
+
+    const isHighAvailabilitySr = reactify((sr: XoSr) => {
+      const srPool = getPoolById(sr.$pool)
+
+      return srPool?.haSrs?.includes(sr.id) ?? false
+    })
+
     return {
       ...state,
       vdiIsosBySrName,
+      srsByPool,
+      isDefaultSr,
+      isHighAvailabilitySr,
     }
   },
 })
