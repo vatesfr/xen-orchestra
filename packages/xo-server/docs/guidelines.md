@@ -202,7 +202,7 @@ assert(result) // No error message
 
 ### Typing
 
-- Zero `any`; JSDoc/TypeScript everywhere. https://jsdoc.app/about-getting-started  . JSDoc offer capabilties to define and import types, and `@implements` to handle interface  
+- Zero `any`; JSDoc/TypeScript everywhere. https://jsdoc.app/about-getting-started  . JSDoc offers capabilties to define and import types, and `@implements` to handle interface  
 - XO specific : any property change in `packages/xo-server/src/xapi-object-to-xo.mjs` must be reflected in `@vates/types`
 
 
