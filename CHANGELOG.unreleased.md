@@ -7,7 +7,7 @@
 
 > Security fixes and new features should go in this section
 
-- [Plugins/transport-email] Update nodemailer
+- [Plugins/transport-email] Update nodemailer (PR [#9217](https://github.com/vatesfr/xen-orchestra/pull/9217))
 
 ### Enhancements
 
