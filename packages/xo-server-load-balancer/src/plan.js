@@ -856,7 +856,7 @@ export default class Plan {
     }
 
     // 2. Check for tag coalitions: when a VM has multiple affinity tags, these tags should be considered as the same tag
-    const coalitions = this._computeCoalitions(allVms)
+    const coalitions = this._computeCoalitions(allVms, this._affinityTags)
     const coalitionExample = Object.values(coalitions).find(coalition => coalition.length > 1)
     if (coalitionExample !== undefined) {
       warn(`affinity: Some VMs have multiple affinity tags, this should be avoided: ${coalitionExample}`)
@@ -1076,13 +1076,13 @@ export default class Plan {
     )
   }
 
-  _computeCoalitions(vms) {
+  _computeCoalitions(vms, affinityTags) {
     const coalitions = {}
-    for (const tag of this._affinityTags) {
+    for (const tag of affinityTags) {
       coalitions[tag] = new Set([tag])
     }
     for (const vm of vms) {
-      const vmAffinityTags = intersection(vm.tags, this._affinityTags)
+      const vmAffinityTags = intersection(vm.tags, affinityTags)
       if (vmAffinityTags.length > 1) {
         // if VM has tag 'test' and 'prod', add both to 'test' coalition, and to 'prod' coalition
         for (const tag1 of vmAffinityTags) {
