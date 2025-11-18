@@ -25,7 +25,11 @@
         {{ t('network') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('storage') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/storage`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('storage') }}
+      </TabItem>
+    </RouterLink>
     <TabItem disabled>{{ t('tasks') }}</TabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/hosts`" custom>
       <TabItem :active="isActive" :href tag="a">

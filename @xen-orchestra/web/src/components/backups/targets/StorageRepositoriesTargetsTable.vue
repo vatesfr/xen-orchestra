@@ -1,5 +1,5 @@
 <template>
-  <div class="storage-repositories-table">
+  <div class="storage-repositories-targets-table">
     <UiTitle>
       {{ t('storage-repositories') }}
     </UiTitle>
@@ -28,7 +28,7 @@
           </tr>
         </template>
         <template #tbody>
-          <tr v-for="row of storageRepositoriesRecords" :key="row.id" class="typo-body-regular-small">
+          <tr v-for="row of storageRepositoriesTargetsRecords" :key="row.id" class="typo-body-regular-small">
             <td
               v-for="column of row.visibleColumns"
               :key="column.id"
@@ -88,7 +88,7 @@ const { t } = useI18n()
 
 const searchQuery = ref('')
 
-const filteredStorageRepositories = computed(() => {
+const filteredStorageTargetsRepositories = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
@@ -100,7 +100,7 @@ const filteredStorageRepositories = computed(() => {
   )
 })
 
-const { visibleColumns, rows } = useTable('storage-repositories', filteredStorageRepositories, {
+const { visibleColumns, rows } = useTable('storage-repositories-targets', filteredStorageTargetsRepositories, {
   rowId: record => record.id,
   columns: define => [
     define('storage-repository', record => record.name_label, { label: t('storage-repository') }),
@@ -112,7 +112,10 @@ const { visibleColumns, rows } = useTable('storage-repositories', filteredStorag
   ],
 })
 
-const { pageRecords: storageRepositoriesRecords, paginationBindings } = usePagination('storage-repositories', rows)
+const { pageRecords: storageRepositoriesTargetsRecords, paginationBindings } = usePagination(
+  'storage-repositories-targets',
+  rows
+)
 
 type StorageRepositoryHeader = 'storage-repository' | 'used-space' | 'remaining-space' | 'total-capacity'
 
@@ -125,14 +128,14 @@ const headerIcon: Record<StorageRepositoryHeader, IconName> = {
 </script>
 
 <style lang="postcss" scoped>
-.storage-repositories-table,
+.storage-repositories-targets-table,
 .table-actions,
 .container {
   display: flex;
   flex-direction: column;
 }
 
-.storage-repositories-table {
+.storage-repositories-targets-table {
   gap: 2.4rem;
 
   .container,
