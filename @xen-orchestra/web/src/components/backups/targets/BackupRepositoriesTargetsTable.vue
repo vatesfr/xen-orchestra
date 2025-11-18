@@ -1,5 +1,5 @@
 <template>
-  <div class="backup-repositories-table">
+  <div class="backup-repositories-targets-table">
     <UiTitle>
       {{ t('backup-repositories') }}
     </UiTitle>
@@ -28,7 +28,7 @@
           </tr>
         </template>
         <template #tbody>
-          <tr v-for="row of backupRepositoriesRecords" :key="row.id" class="typo-body-regular-small">
+          <tr v-for="row of backupRepositoriesTargetsRecords" :key="row.id" class="typo-body-regular-small">
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
               <UiLink
                 v-if="column.id == 'backup-repository'"
@@ -43,7 +43,7 @@
         </template>
       </VtsDataTable>
       <VtsStateHero
-        v-if="searchQuery && filteredBackupRepositories.length === 0"
+        v-if="searchQuery && filteredBackupTargetsRepositories.length === 0"
         format="table"
         type="no-result"
         size="small"
@@ -84,7 +84,7 @@ const { t } = useI18n()
 
 const searchQuery = ref('')
 
-const filteredBackupRepositories = computed(() => {
+const filteredBackupTargetsRepositories = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
@@ -96,7 +96,7 @@ const filteredBackupRepositories = computed(() => {
   )
 })
 
-const { visibleColumns, rows } = useTable('backup-repositories', filteredBackupRepositories, {
+const { visibleColumns, rows } = useTable('backup-repositories-targets', filteredBackupTargetsRepositories, {
   rowId: record => record.id,
   columns: define => [
     define(
@@ -111,7 +111,10 @@ const { visibleColumns, rows } = useTable('backup-repositories', filteredBackupR
   ],
 })
 
-const { pageRecords: backupRepositoriesRecords, paginationBindings } = usePagination('backup-repositories', rows)
+const { pageRecords: backupRepositoriesTargetsRecords, paginationBindings } = usePagination(
+  'backup-repositories-targets',
+  rows
+)
 
 type BackupRepositoryHeader = 'backup-repository'
 
@@ -125,14 +128,14 @@ function getBackupRepositoryIcon(backupRepository: XoBackupRepository): IconName
 </script>
 
 <style lang="postcss" scoped>
-.backup-repositories-table,
+.backup-repositories-targets-table,
 .table-actions,
 .container {
   display: flex;
   flex-direction: column;
 }
 
-.backup-repositories-table {
+.backup-repositories-targets-table {
   gap: 2.4rem;
 
   .container,

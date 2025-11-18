@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Packages] Update xml2js dependency (PR [#9216](https://github.com/vatesfr/xen-orchestra/pull/9216))
+- [Proxy] Update cookie package (PR [#9220](https://github.com/vatesfr/xen-orchestra/pull/9220))
 - [Plugins/transport-email] Update nodemailer (PR [#9217](https://github.com/vatesfr/xen-orchestra/pull/9217))
 
 ### Enhancements
@@ -26,6 +28,8 @@
   - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
   - [Site/Hosts] Implement hosts view and side panel information (PR [#9128](https://github.com/vatesfr/xen-orchestra/pull/9128))
   - [Backups] Update wordings for backup jobs' modes to match XO documentation (PR [#9199](https://github.com/vatesfr/xen-orchestra/pull/9199))
+  - [Pool] Add Storage Repositories page to display all SRs in the pool (PR [#9134](https://github.com/vatesfr/xen-orchestra/pull/9134))
+  - [Host] Add Storage Repositories page to display all SRs in the host (PR [#9137](https://github.com/vatesfr/xen-orchestra/pull/9137))
 
 ### Bug fixes
 
@@ -65,6 +69,7 @@
 - xo-server minor
 - xo-server-transport-email patch
 - xo-server-usage-report minor
+- xo-vmdk-to-vhd patch
 - xo-web minor
 
 <!--packages-end-->
