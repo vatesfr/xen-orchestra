@@ -1,6 +1,11 @@
+import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 
 import { diffItems } from '../utils.mjs'
+
+// ===================================================================
+
+const log = createLogger('xo:api:vif')
 
 // ===================================================================
 
@@ -112,7 +117,7 @@ export async function set({
         // Try VIF.move first (XenServer 7.1+)
         await xapi.moveVif(vif._xapiId, targetNetwork._xapiId)
 
-        this.log.info('VIF moved to new network using VIF.move', {
+        log.info('VIF moved to new network using VIF.move', {
           vifId: vif.id,
           oldNetworkId: vif.$network,
           newNetworkId: networkId,
@@ -135,12 +140,12 @@ export async function set({
       } catch (error) {
         // Fallback to delete+create for XenServer < 7.1 or if VIF.move fails
         if (error.code === 'MESSAGE_METHOD_UNKNOWN') {
-          this.log.warn('VIF.move not available, falling back to delete+create', {
+          log.warn('VIF.move not available, falling back to delete+create', {
             vifId: vif.id,
             xenServerVersion: 'pre-7.1',
           })
         } else {
-          this.log.warn('VIF.move failed, falling back to delete+create', {
+          log.warn('VIF.move failed, falling back to delete+create', {
             vifId: vif.id,
             error: error.message,
           })
