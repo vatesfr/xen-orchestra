@@ -111,11 +111,9 @@ export async function set({
     // If only the network is changing (not MAC), try to use VIF.move which is non-destructive
     // VIF.move was introduced in XenServer 7.1 and keeps the VIF UUID, avoiding network downtime
     if (isNetworkChanged && mac === undefined) {
-      const targetNetwork = xapi.getObject(networkId)
-
       try {
         // Try VIF.move first (XenServer 7.1+)
-        await xapi.moveVif(vif._xapiId, targetNetwork._xapiId)
+        await xapi.moveVif(vif._xapiId, networkId)
 
         log.info('VIF moved to new network using VIF.move', {
           vifId: vif.id,
