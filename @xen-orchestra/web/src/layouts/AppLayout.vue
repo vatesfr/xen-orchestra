@@ -11,7 +11,7 @@
         accent="brand"
         right-icon="fa:arrow-up-right-from-square"
         variant="tertiary"
-        @click="openUrl(rawRoutes.xo5, true)"
+        @click="openUrl(xo5Route, true)"
       >
         XO 5
       </UiButton>
@@ -52,6 +52,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { openUrl } from '@core/utils/open-url.utils'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineSlots<{
@@ -62,7 +63,8 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { sites, isReady, filter, isSearching } = useSiteTree()
-const { rawRoutes } = useXoRoutes()
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '')
 </script>
 
 <style lang="postcss" scoped>
