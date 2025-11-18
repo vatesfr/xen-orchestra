@@ -9,6 +9,7 @@
 
 - [Packages] Update xml2js dependency (PR [#9216](https://github.com/vatesfr/xen-orchestra/pull/9216))
 - [Proxy] Update cookie package (PR [#9220](https://github.com/vatesfr/xen-orchestra/pull/9220))
+- [Plugins/transport-email] Update nodemailer (PR [#9217](https://github.com/vatesfr/xen-orchestra/pull/9217))
 
 ### Enhancements
 
@@ -66,6 +67,7 @@
 - @xen-orchestra/xapi patch
 - xo-collection minor
 - xo-server minor
+- xo-server-transport-email patch
 - xo-server-usage-report minor
 - xo-vmdk-to-vhd patch
 - xo-web minor

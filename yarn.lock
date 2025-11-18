@@ -14595,10 +14595,10 @@ node-zone@^0.4.0:
   resolved "https://registry.yarnpkg.com/node-zone/-/node-zone-0.4.0.tgz#b058401a2e7c4bd34cb8cda8ee9d61360f620711"
   integrity sha512-JzQcDNvCdWF1wmHAvNN2U63+8K72u4hN40axkrpRWE6Yvhkuf2i72SMzWUHiP3rxdm2CbgaaOw8N5Gw2qN5pbA==
 
-nodemailer@^6.1.0:
-  version "6.10.1"
-  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.10.1.tgz#cbc434c54238f83a51c07eabd04e2b3e832da623"
-  integrity sha512-Z+iLaBGVaSjbIzQ4pX6XV41HrooLsQ10ZWPUehGmuantvzWoDVBnmsdUcOIDM1t+yPor5pDhVlDESgOMEGxhHA==
+nodemailer@^7.0.7:
+  version "7.0.10"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-7.0.10.tgz#540062dbbe574220b42e79d2d949956d3eac5a46"
+  integrity sha512-Us/Se1WtT0ylXgNFfyFSx4LElllVLJXQjWi2Xz17xWw7amDKO2MLtFnVp1WACy7GkVGs+oBlRopVNUzlrGSw1w==
 
 nopt@^7.0.0, nopt@^7.2.1:
   version "7.2.1"
