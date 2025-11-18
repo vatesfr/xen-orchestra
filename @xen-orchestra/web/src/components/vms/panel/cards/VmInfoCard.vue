@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="vm.name_label !== undefined" size="medium" icon="fa:desktop" :to="`/vm/${vm.id}/dashboard`">
+      <UiLink v-if="vm.name_label !== ''" size="medium" icon="fa:desktop" :to="`/vm/${vm.id}/dashboard`">
         {{ vm.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -9,7 +9,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
-          <div class="power-state">
+          <div class="value">
             <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </div>
@@ -43,7 +43,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('pool') }}</template>
         <template #value>
-          <div v-if="pool" class="pool-name">
+          <div v-if="pool" class="value">
             <VtsIcon name="fa:city" size="small" />
             <UiLink :to="`/pool/${pool.id}/dashboard`" size="small">
               {{ pool.name_label }}
@@ -57,7 +57,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('host') }}</template>
         <template #value>
-          <div v-if="host" class="host-name">
+          <div v-if="host" class="value">
             <VtsObjectIcon type="host" :state="hostPowerState" size="small" />
             <UiLink :to="`/host/${host.id}/dashboard`" size="small">
               {{ host.name_label }}
@@ -79,20 +79,22 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('guest-tools') }}</template>
         <template #value>
-          <div class="guest-tools">
+          <div class="value">
             <VtsIcon
               v-if="guestToolsDisplay.value !== '-'"
               v-tooltip="guestToolsDisplay.tooltip"
               :name="guestToolsDisplay.type === 'link' ? 'legacy:halted' : 'legacy:checked'"
               size="medium"
             />
-            <template v-if="guestToolsDisplay.type === 'link'">
-              <UiLink size="small" href="https://docs.xcp-ng.org/vms/#guest-tools">
-                {{ guestToolsDisplay.value }}
-              </UiLink>
-            </template>
-            <template v-else>
+            <UiLink
+              v-if="guestToolsDisplay.type === 'link'"
+              size="small"
+              href="https://docs.xcp-ng.org/vms/#guest-tools"
+            >
               {{ guestToolsDisplay.value }}
+            </UiLink>
+            <template v-else>
+              <span v-tooltip class="text-ellipsis"> {{ guestToolsDisplay.value }}</span>
             </template>
           </div>
         </template>
@@ -100,9 +102,12 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('template') }}</template>
         <template #value>
-          <div class="template">
+          <div class="value">
             <VtsIcon name="fa:template" size="medium" />
-            {{ vm.other.base_template_name }}
+            <UiLink v-if="template" size="small" :href="`/#/home?p=1&s=${template.id}&t=VM-template`">
+              {{ template.name_label }}
+            </UiLink>
+            <span v-else>{{ vm.other.base_template_name }}</span>
           </div>
         </template>
         <template v-if="vm.other.base_template_name" #addons>
@@ -119,13 +124,16 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('created-by') }}</template>
         <template #value>
-          <div class="user">
-            <UiUserLogo size="extra-small" />
-            {{ user?.email ?? t('unknown') }}
+          <div class="value">
+            <UiUserLogo size="extra-small" class="user-logo" />
+            <UiLink v-if="userLabel" size="small" :href="`/#/settings/users?s=1_0_asc-${user?.id}`">
+              {{ userLabel }}
+            </UiLink>
+            <span v-else>{{ t('unknown') }}</span>
           </div>
         </template>
-        <template v-if="user?.email" #addons>
-          <VtsCopyButton :value="user?.email" />
+        <template v-if="userLabel" #addons>
+          <VtsCopyButton :value="userLabel" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -140,9 +148,13 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoHostUtils } from '@/composables/xo-host.composable.ts'
 import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
+import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
+import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -154,7 +166,8 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import type { XoVm } from '@vates/types'
+import { type XoVm } from '@vates/types'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
@@ -164,13 +177,31 @@ const { vm } = defineProps<{
 const { t } = useI18n()
 
 const { useGetPoolById } = useXoPoolCollection()
+const { getVmHost } = useXoVmCollection()
+const { isMasterHost } = useXoHostCollection()
+const { getHostState } = useXoHostUtils()
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 
+const userLabel = computed(() => user.value?.name || user.value?.email)
+
+const { templates } = useXoVmTemplateCollection()
+
+const template = computed(() => {
+  return templates.value.find(template => template.uuid === vm.creation?.template && template.$pool === vm.$pool)
+})
+
 const pool = useGetPoolById(() => vm.$pool)
 
-const { powerState, host, isMaster, hostPowerState, installDateFormatted, relativeStartTime, guestToolsDisplay } =
-  useXoVmUtils(() => vm)
+const host = computed(() => getVmHost(vm))
+
+const isMaster = computed(() => (host.value !== undefined ? isMasterHost(host.value.id) : false))
+
+const hostPowerState = computed(() => {
+  return host?.value ? getHostState(host.value?.power_state) : 'unknown'
+})
+
+const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
 </script>
 
 <style scoped lang="postcss">
@@ -182,15 +213,14 @@ const { powerState, host, isMaster, hostPowerState, installDateFormatted, relati
     flex-direction: column;
     gap: 0.4rem;
 
-    .power-state,
-    .host-name,
-    .pool-name,
-    .guest-tools,
-    .user,
-    .template {
+    .value {
       display: flex;
       align-items: center;
       gap: 0.8rem;
+    }
+
+    .user-logo {
+      flex-shrink: 0;
     }
   }
 }

@@ -3,7 +3,7 @@
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
-          <span class="power-state">
+          <span class="value">
             <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
@@ -11,14 +11,14 @@
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('ip-address')" :value="vm.mainIpAddress" />
       <VtsQuickInfoRow :label="t('created-on')" :value="installDateFormatted" />
-      <VtsQuickInfoRow :label="t('created-by')" :value="user?.email ?? t('unknown')" />
+      <VtsQuickInfoRow :label="t('created-by')" :value="userLabel ?? t('unknown')" />
       <VtsQuickInfoRow :label="t('started')" :value="relativeStartTime" />
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('uuid')" :value="vm.id" />
       <VtsQuickInfoRow :label="t('pool')">
         <template #value>
-          <span v-if="pool" class="pool-name">
+          <span v-if="pool" class="value">
             <VtsIcon name="fa:city" size="medium" />
             <UiLink :to="`/pool/${pool.id}`" size="medium">
               {{ pool.name_label }}
@@ -31,7 +31,7 @@
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
-          <span v-if="host" class="host-name">
+          <span v-if="host" class="value">
             <VtsObjectIcon type="host" :state="hostPowerState" size="medium" />
             <UiLink :to="`/host/${host.id}`" size="medium">
               {{ host.name_label }}
@@ -50,20 +50,22 @@
       <VtsQuickInfoRow :label="t('virtualization-type')" :value="virtualizationType" />
       <VtsQuickInfoRow :label="t('guest-tools')">
         <template #value>
-          <div class="guest-tools">
+          <div class="value">
             <VtsIcon
               v-if="guestToolsDisplay.value !== '-'"
               v-tooltip="guestToolsDisplay.tooltip"
               :name="guestToolsDisplay.type === 'link' ? 'legacy:halted' : 'legacy:checked'"
               size="medium"
             />
-            <template v-if="guestToolsDisplay.type === 'link'">
-              <UiLink size="small" href="https://docs.xcp-ng.org/vms/#guest-tools">
-                {{ guestToolsDisplay.value }}
-              </UiLink>
-            </template>
-            <template v-else>
+            <UiLink
+              v-if="guestToolsDisplay.type === 'link'"
+              size="small"
+              href="https://docs.xcp-ng.org/vms/#guest-tools"
+            >
               {{ guestToolsDisplay.value }}
+            </UiLink>
+            <template v-else>
+              <span v-tooltip class="text-ellipsis"> {{ guestToolsDisplay.value }}</span>
             </template>
           </div>
         </template>
@@ -86,7 +88,9 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoHostUtils } from '@/composables/xo-host.composable.ts'
 import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
@@ -112,11 +116,15 @@ const { t } = useI18n()
 
 const { areVmsReady } = useXoVmCollection()
 const { useGetPoolById } = useXoPoolCollection()
+const { getVmHost } = useXoVmCollection()
+const { isMasterHost } = useXoHostCollection()
+const { getHostState } = useXoHostUtils()
 
-const { powerState, host, isMaster, hostPowerState, installDateFormatted, relativeStartTime, guestToolsDisplay } =
-  useXoVmUtils(() => vm)
+const { powerState, installDateFormatted, relativeStartTime, guestToolsDisplay } = useXoVmUtils(() => vm)
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
+
+const userLabel = computed(() => user.value?.name || user.value?.email)
 
 const pool = useGetPoolById(vm.$pool)
 
@@ -125,14 +133,19 @@ const ram = computed(() => formatSize(vm.memory.size, 1))
 const virtualizationType = computed(() =>
   vm.virtualizationMode === 'hvm' && vm.pvDriversDetected ? 'pvhvm' : vm.virtualizationMode
 )
+
+const host = computed(() => getVmHost(vm))
+
+const isMaster = computed(() => (host.value !== undefined ? isMasterHost(host.value.id) : false))
+
+const hostPowerState = computed(() => {
+  return host?.value ? getHostState(host.value?.power_state) : 'unknown'
+})
 </script>
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
-  .power-state,
-  .host-name,
-  .pool-name,
-  .guest-tools {
+  .value {
     display: flex;
     align-items: center;
     gap: 0.8rem;

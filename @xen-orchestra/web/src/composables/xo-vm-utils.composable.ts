@@ -1,11 +1,9 @@
-import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import type { IconName } from '@core/icons'
 import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { useMapper } from '@core/packages/mapper'
 import { parseDateTime } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import { HOST_POWER_STATE, VM_POWER_STATE, type XoVm } from '@vates/types'
+import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import type { MaybeRefOrGetter } from '@vueuse/shared'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -14,9 +12,6 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
   const { t, locale } = useI18n()
 
   const vm = toComputed(rawVm)
-
-  const { getVmHost } = useXoVmCollection()
-  const { isMasterHost } = useXoHostCollection()
 
   const powerState = useMapper<VM_POWER_STATE, { icon: IconName; text: string }>(
     () => vm.value.power_state,
@@ -28,24 +23,6 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
     },
     VM_POWER_STATE.RUNNING
   )
-
-  const host = computed(() => getVmHost(vm.value))
-
-  const isMaster = computed(() => {
-    if (host.value === undefined) {
-      return false
-    }
-
-    return isMasterHost(host.value.id)
-  })
-
-  const hostPowerState = computed(() => {
-    if (host.value === undefined) {
-      return 'unknown'
-    }
-
-    return host.value.power_state === HOST_POWER_STATE.RUNNING ? 'running' : 'halted'
-  })
 
   const vmTimeAgo = useTimeAgo(() => new Date(parseDateTime((vm.value.startTime ?? 0) * 1000)))
 
@@ -87,9 +64,6 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
 
   return {
     powerState,
-    host,
-    isMaster,
-    hostPowerState,
     installDateFormatted,
     relativeStartTime,
     guestToolsDisplay,
