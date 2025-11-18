@@ -20,7 +20,7 @@
         <template #value>
           <span v-if="pool" class="value">
             <VtsIcon name="fa:city" size="medium" />
-            <UiLink :to="`/pool/${pool.id}`" size="medium">
+            <UiLink :to="`/pool/${pool.id}/dashboard`" size="medium">
               {{ pool.name_label }}
             </UiLink>
           </span>
@@ -33,7 +33,7 @@
         <template #value>
           <span v-if="host" class="value">
             <VtsObjectIcon type="host" :state="hostPowerState" size="medium" />
-            <UiLink :to="`/host/${host.id}`" size="medium">
+            <UiLink :to="`/host/${host.id}/dashboard`" size="medium">
               {{ host.name_label }}
             </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="legacy:primary" size="medium" />
