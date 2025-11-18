@@ -7,6 +7,7 @@
 
 > Security fixes and new features should go in this section
 
+- [Packages] Update xml2js dependency (PR [#9216](https://github.com/vatesfr/xen-orchestra/pull/9216))
 - [Proxy] Update cookie package (PR [#9220](https://github.com/vatesfr/xen-orchestra/pull/9220))
 
 ### Enhancements
@@ -66,6 +67,7 @@
 - xo-collection minor
 - xo-server minor
 - xo-server-usage-report minor
+- xo-vmdk-to-vhd patch
 - xo-web minor
 
 <!--packages-end-->
