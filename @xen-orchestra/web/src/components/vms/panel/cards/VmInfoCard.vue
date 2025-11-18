@@ -86,11 +86,7 @@
               :name="guestToolsDisplay.type === 'link' ? 'legacy:halted' : 'legacy:checked'"
               size="medium"
             />
-            <UiLink
-              v-if="guestToolsDisplay.type === 'link'"
-              size="small"
-              href="https://docs.xcp-ng.org/vms/#guest-tools"
-            >
+            <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
               {{ guestToolsDisplay.value }}
             </UiLink>
             <template v-else>
@@ -150,6 +146,7 @@
 <script lang="ts" setup>
 import { useXoHostUtils } from '@/composables/xo-host.composable.ts'
 import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
+import { XCP_LINKS } from '@/constants.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
