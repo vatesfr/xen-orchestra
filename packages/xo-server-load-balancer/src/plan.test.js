@@ -4,7 +4,7 @@ import { strict as assert } from 'node:assert'
 import Plan from './plan.js'
 
 function createPlan() {
-  const plan = new Plan(undefined, undefined, undefined, [])
+  const plan = new Plan(undefined, undefined, undefined, {})
   return plan
 }
 
@@ -59,7 +59,7 @@ const tests = [
   },
 ]
 
-describe('plan', function () {
+describe('Plan', function () {
   const plan = createPlan()
 
   describe('computeCoalitions', function () {
