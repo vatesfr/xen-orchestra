@@ -59,9 +59,11 @@
         <template #value>
           <div v-if="host" class="value">
             <VtsObjectIcon type="host" :state="hostPowerState" size="small" />
-            <UiLink :to="`/host/${host.id}/dashboard`" size="small">
-              {{ host.name_label }}
-            </UiLink>
+            <div v-tooltip class="text-ellipsis">
+              <UiLink :to="`/host/${host.id}/dashboard`" size="small">
+                {{ host.name_label }}
+              </UiLink>
+            </div>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="legacy:primary" size="small" />
           </div>
         </template>
