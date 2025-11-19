@@ -19,7 +19,7 @@ const configByType: Map<
 > = new Map()
 
 export function watchRemoteResource<TResourceType extends XapiXoRecord['type'] | 'alarm'>(
-  resource?: TResourceType,
+  resource: TResourceType,
   fields?: (keyof GetRecordByType<TResourceType>)[]
 ) {
   function initializeWatcher() {
@@ -67,9 +67,6 @@ export function watchRemoteResource<TResourceType extends XapiXoRecord['type'] |
   }
 
   async function start(functions: { onDataReceived: EventFn; onDataRemoved: EventFn }) {
-    if (resource === undefined) {
-      throw new Error('Resource is missing')
-    }
     if (configByType.has(resource)) {
       throw new Error('Resource already watched')
     }
@@ -111,7 +108,7 @@ export function watchRemoteResource<TResourceType extends XapiXoRecord['type'] |
   }
 
   async function stop() {
-    if (sse.value.id === undefined || resource === undefined || !configByType.has(resource)) {
+    if (sse.value.id === undefined || !configByType.has(resource)) {
       return
     }
 

@@ -63,7 +63,7 @@ export function defineRemoteResource<
   stream?: boolean
   watchCollection: {
     type: TCollectionType
-    fields: (keyof GetRecordByType<TCollectionType>)[]
+    fields?: (keyof GetRecordByType<TCollectionType>)[]
   }
 }): UseRemoteResource<TState, TArgs>
 
@@ -83,7 +83,7 @@ export function defineRemoteResource<
   stream?: boolean
   watchCollection?: {
     type: TCollectionType // reactivity only on XAPI XO record for now
-    fields: (keyof GetRecordByType<TCollectionType>)[]
+    fields?: (keyof GetRecordByType<TCollectionType>)[]
   }
 }) {
   const cache = new Map<
