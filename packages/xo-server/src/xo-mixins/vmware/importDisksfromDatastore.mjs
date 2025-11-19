@@ -102,7 +102,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
           dataMap.push({
             offset: offset,
             length: 4096 * 512,
-            type: 1,
+            type: 0,
           })
         }
 
