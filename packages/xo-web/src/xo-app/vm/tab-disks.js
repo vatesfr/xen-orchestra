@@ -41,12 +41,12 @@ import { error } from 'notification'
 import {
   attachDiskToVm,
   createDisk,
-  connectVbd,
+  connectVbds,
   deleteVbd,
   deleteVbds,
   deleteVdi,
   deleteVdis,
-  disconnectVbd,
+  disconnectVbds,
   editVdi,
   exportVdi,
   importVdi,
@@ -164,13 +164,13 @@ const COLUMNS_VM_PV = [
     itemRenderer: (vbd, { vm }) => (
       <StateButton
         disabledLabel={_('vbdStatusDisconnected')}
-        disabledHandler={connectVbd}
+        disabledHandler={connectVbds}
         disabledTooltip={_('vbdConnect')}
         enabledLabel={_('vbdStatusConnected')}
-        enabledHandler={disconnectVbd}
+        enabledHandler={disconnectVbds}
         enabledTooltip={_('vbdDisconnect')}
         disabled={!(vbd.attached || isVmRunning(vm))}
-        handlerParam={vbd}
+        handlerParam={[vbd]}
         state={vbd.attached}
       />
     ),
