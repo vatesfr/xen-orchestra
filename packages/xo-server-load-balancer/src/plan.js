@@ -859,8 +859,8 @@ export default class Plan {
     const coalitions = this._computeCoalitions(allVms, this._affinityTags)
     const coalitionExample = Object.values(coalitions).find(coalition => coalition.length > 1)
     if (coalitionExample !== undefined) {
-      warn(`affinity: Some VMs have multiple affinity tags, this should be avoided: ${coalitionExample}`)
-      debugAffinity(`Tag coalitions: ${coalitions}`)
+      warn(`affinity: Some VMs have multiple affinity tags, this should be avoided: ${inspect(coalitionExample)}`)
+      debugAffinity(`Tag coalitions: ${inspect(coalitions, { depth: null })}`)
     }
 
     // 3. Migrate!
@@ -936,10 +936,12 @@ export default class Plan {
           continue
         }
         // if host can't receive all tagged VMs
+        let loopCountdown = sortedHosts.length // a theoretically unnecessary safety against infinite while
         while (
           hostsAverages[destinationHost.id].memoryFree - vmsAverages[vm.id].memory <
           this._thresholds.memoryFree.critical
         ) {
+          loopCountdown--
           debugAffinity(`Host ${sourceHost.id} is overcrowded`)
           // A) migrate other VMs to try to free some memory on destination host
           const { promises: otherMigrationPromises, success } = await this._migrateOtherVms({
@@ -962,6 +964,10 @@ export default class Plan {
               return promises
             }
             destinationHost = sortedHosts.pop()
+          }
+          if (loopCountdown < 0) {
+            warn(`affinity: Broke out of potential infinite loop. This should not have happened.`)
+            break
           }
         }
 
@@ -987,7 +993,10 @@ export default class Plan {
     const candidateVms = sortBy(
       filter(
         Object.values(crowdedHost.vms),
-        vm => vm.xenTools && intersection(vm.tags, this._affinityTags).length === 0
+        vm =>
+          vm.xenTools &&
+          intersection(vm.tags, this._affinityTags).length === 0 &&
+          intersection(vm.tags, this._antiAffinityTags).length === 0
       ),
       [vm => -vmsAverages[vm.id].memory] // try to migrate bigger VMs first to minimize the number of migrations
     )
@@ -998,33 +1007,33 @@ export default class Plan {
 
       const vmAverages = vmsAverages[vm.id]
 
-      const destinationId = sortBy(
-        Object.keys(hostsAverages),
-        [hostId => -hostsAverages[hostId].memoryFree, hostId => hostsAverages[hostId].cpu] // try to migrate to hosts with the most free space first
-      ).find(hostId => {
-        if (hostId === crowdedHost.id) {
+      const destinationHost = sortBy(
+        taggedHosts.hosts,
+        [host => -hostsAverages[host.id].memoryFree, host => hostsAverages[host.id].cpu] // try to migrate to hosts with the most free space first
+      ).find(host => {
+        if (host.id === crowdedHost.id) {
           return false
         }
-        const destinationAverages = hostsAverages[hostId]
+        const destinationAverages = hostsAverages[host.id]
         return (
           destinationAverages.cpu + vmAverages.cpu <= this._thresholds.cpu.critical &&
           destinationAverages.memoryFree - vmAverages.memory >= this._thresholds.memoryFree.critical
         )
       })
 
-      if (destinationId === undefined) {
+      if (destinationHost === undefined) {
         // no host can accept this VM, let's try another one
-        debug(`Cannot migrate VM (${vm.id}) to any Host.`)
+        debug(`Cannot migrate VM (${vm.id}) to any host. VM requires ${vmAverages.memory}MB, CPU: ${vmAverages.cpu}%`)
         continue
       }
 
       // destination found, now migrate and update tags & averages
       promises.push(
         this._migrateVmAndUpdateInfos({
-          destination: idToHost[destinationId],
+          destination: idToHost[destinationHost.id],
           source: idToHost[crowdedHost.id],
           sourceHost: crowdedHost,
-          destinationHost: taggedHosts[destinationId],
+          destinationHost,
           vm,
           hostsAverages,
           vmAverages,
@@ -1042,6 +1051,8 @@ export default class Plan {
   }
 
   _migrateVmAndUpdateInfos({ destination, source, sourceHost, destinationHost, vm, hostsAverages, vmAverages }) {
+    // TODO: add more checks with XAPI method assert_can_migrate
+
     // Update tags and averages
     debugAffinity(
       `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${source.id} "${source.name_label}").`
