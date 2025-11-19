@@ -6,8 +6,8 @@ html
     meta(name = 'viewport' content = 'width=device-width, initial-scale=1.0')
     title Xen Orchestra
     meta(name = 'author' content = 'Vates SAS')
-    link(rel = 'stylesheet' href = 'index.css')
-    link(rel = 'icon' href = 'assets/favicon.svg' type = 'image/svg+xml')
+    link(rel = 'stylesheet' href = `${xo5Mount}index.css`)
+    link(rel = 'icon' href = `${xo5Mount}assets/favicon.svg` type = 'image/svg+xml')
     style.
       body {
         color: #F8F8F8;
@@ -31,7 +31,7 @@ html
   body(style = 'display: flex; height: 100vh;')
     div(style = 'margin: auto; width: 20em;')
       div(style = 'display: flex;')
-        img(src = 'assets/logo.svg' style = 'margin: auto; max-width: 100%;')
+        img(src = `${xo5Mount}assets/logo.svg` style = 'margin: auto; max-width: 100%;')
       h2.text-xs-center.mb-2 Welcome to
         svg(viewbox='65 622 735 64' xmlns='http://www.w3.org/2000/svg' fill='currentColor')
           g

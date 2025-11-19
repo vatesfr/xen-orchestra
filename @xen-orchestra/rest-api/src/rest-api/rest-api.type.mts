@@ -76,6 +76,10 @@ export type XoApp = {
   config: {
     getOptional(path: string): Record<string, string> | undefined
     getOptionalDuration(path: string): number | undefined
+    getGuiRoutes(): {
+      xo5?: string,
+      xo6?: string
+    }
   }
 
   objects: EventEmitter & {
