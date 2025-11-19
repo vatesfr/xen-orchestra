@@ -1,5 +1,6 @@
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_MAX_SIZE } from '@xen-orchestra/xapi'
+import parseVmdk from '@xen-orchestra/vmware-explorer/parsers/vmdk.mjs'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
@@ -52,8 +53,83 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
         `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
       )
     } catch (error) {
+      const descriptorResponse = await esxi.download(datastoreName, diskPath, '0-512')
+      const descriptorBlob = await new Response(descriptorResponse.body).blob()
+      const descriptorArrayBuffer = await descriptorBlob.arrayBuffer()
+      const descriptorBytes = new Uint8Array(descriptorArrayBuffer).slice(0, 512)
+      const descriptorText = new TextDecoder('utf-8').decode(descriptorBytes)
+
+      const parsedDescriptor = parseVmdk(descriptorText)
+
+      const diskPathArray = diskPath.split('/')
+      const extentPath = diskPathArray.slice(0, -1).join('/') + '/' + parsedDescriptor.fileName
+
+      const extentHeaderResponse = await esxi.download(datastoreName, extentPath, `0-2048`)
+      const extentHeaderBlob = await new Response(extentHeaderResponse.body).blob()
+      const extentHeaderBuffer = Buffer.from(await extentHeaderBlob.arrayBuffer())
+
+      /* const extentMagicNumber = extentHeaderBuffer.subarray(0, 4).toString('ascii')
+      const extentVersion = extentHeaderBuffer.readUInt32LE(4)
+      const extentFlags = extentHeaderBuffer.readUInt32LE(8)
+      const extentsNumSectors = extentHeaderBuffer.readUInt32LE(12)
+      const extentGrainSize = extentHeaderBuffer.readUInt32LE(16)
+      const extentGdOffset = extentHeaderBuffer.readUInt32LE(20)
+      const extentNumGdEntries = extentHeaderBuffer.readUInt32LE(24)
+      const extentFreeSector = extentHeaderBuffer.readUInt32LE(28)
+      const extentSavedGeneration = extentHeaderBuffer.readUInt32LE(56)
+
+      console.log('extentMagicNumber', extentMagicNumber)
+      console.log('extentVersion', extentVersion)
+      console.log('extentFlags', extentFlags)
+      console.log('extentsNumSectors', extentsNumSectors)
+      console.log('extentGrainSize', extentGrainSize)
+      console.log('extentGdOffset', extentGdOffset)
+      console.log('extentNumGdEntries', extentNumGdEntries)
+      console.log('extentFreeSector', extentFreeSector)
+      console.log('extentSavedGeneration', extentSavedGeneration) */
+
+      const extentNumGdEntries = extentHeaderBuffer.readUInt32LE(24)
+
+      const extentGDResponse = await esxi.download(datastoreName, extentPath, `2048-${2048 + extentNumGdEntries * 4}`)
+      const extentGDBlob = await new Response(extentGDResponse.body).blob()
+      const extentGDBuffer = Buffer.from(await extentGDBlob.arrayBuffer())
+
+      dataMap = []
+      let offset = 0
+      for (let i = 0; i < extentNumGdEntries; i++) {
+        const extentGDE = extentGDBuffer.readUInt32LE(i * 4)
+        if (extentGDE !== 0) {
+          dataMap.push({
+            offset: offset,
+            length: 4096 * 512,
+            type: 1,
+          })
+        }
+
+        offset += 4096 * 512
+      }
+
+      // console.log(dataMap);
+
+      /* const extentGDE1 = extentGDBuffer.readUInt32LE(4)
+
+      console.log('extentGDE1', extentGDE1)
+
+      const extentGTResponse = await esxi.download(datastoreName, extentPath, `${extentGDE1 * 512}-${(extentGDE1 * 512) + (4096 * 4) - 1}`)
+      const extentGTBlob = await new Response(extentGTResponse.body).blob()
+      const extentGTBuffer = Buffer.from(await extentGTBlob.arrayBuffer())
+
+      const extentGTE0 = extentGTBuffer.readUInt32LE(0)
+
+      console.log('extentGTE0', extentGTE0)
+
+      const extentGrainResponse = await esxi.download(datastoreName, extentPath, `${extentGTE0 * 512}-${(extentGTE0 * 512) + 511}`)
+      const extentGrainBlob = await new Response(extentGrainResponse.body).blob()
+
+      console.log('await extentGrainBlob.arrayBuffer()', await extentGrainBlob.arrayBuffer()) */
+
       Task.warning('error while getting the map of a snapshot, fall back to a full import', error)
-      throw error
+      // throw error
     } finally {
       await nbdClient.disconnect()
       await esxi

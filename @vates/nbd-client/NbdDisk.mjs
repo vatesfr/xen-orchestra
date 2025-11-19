@@ -28,7 +28,7 @@ export class NbdDisk extends RandomAccessDisk {
 
   #processDatamap(rawDataMap) {
     return rawDataMap
-      .filter(({ type }) => type === 0)
+      .filter(({ type }) => type !== 0)
       .map(({ offset, length }) => ({ offset, length }))
       .sort(({ offset: offset1 }, { offset: offset2 }) => offset1 - offset2)
   }
