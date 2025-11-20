@@ -10,7 +10,9 @@ import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { SelectPool, SelectNetwork, SelectSr } from 'select-objects'
-import { Select } from 'form'
+import { Select, Toggle } from 'form'
+import Tooltip from 'tooltip'
+import Icon from 'icon'
 
 const logger = createLogger('kubernetes-recipe')
 
@@ -129,6 +131,21 @@ export default decorate([
           [name]: ev.target.checked,
         })
       },
+      setAllowUnauthorized(_, value) {
+        const { onChange, value: prevValue } = this.props
+        onChange({
+          ...prevValue,
+          useInsecureXoConnection: value,
+        })
+      },
+      toggleUseCustomClusterCIDR(__, ev) {
+        const { name } = ev.target
+        const { onChange, value: prevValue } = this.props
+        onChange({
+          ...prevValue,
+          [name]: ev.target.checked,
+        })
+      },
     },
     computed: {
       networkPredicate:
@@ -144,7 +161,7 @@ export default decorate([
         if (res.ok) {
           const rawList = await res.json()
           const versionList = rawList
-            .filter(version => !version.prerelease)
+            .filter(version => !version.prerelease && compareVersions(version.tag_name.slice(1), '1.28') > 0)
             .map(({ tag_name }) => ({
               label: tag_name,
               value: tag_name.slice(1),
@@ -225,6 +242,75 @@ export default decorate([
           value={value.faultTolerance}
         />
       </FormGrid.Row>
+      <FormGrid.Row>
+        <label>
+          {_('recipeXoFqdn')}{' '}
+          <Tooltip content={_('recipeXoFqdnTooltip')}>
+            <Icon icon='info' size='lg' />
+          </Tooltip>
+        </label>
+        <input
+          className='form-control'
+          name='xoUrl'
+          onChange={effects.onChangeValue}
+          placeholder='xoa.local'
+          required
+          type='text'
+          value={value.xoUrl}
+        />
+        <div className='input-group form-group'>
+          <span className='align-middle '>
+            {_('recipeLabelAllowInsecureXoConnection')}{' '}
+            <Tooltip content={_('recipeTooltipAcceptInsecureXoConnection')}>
+              <Icon icon='info' size='lg' />
+            </Tooltip>
+          </span>
+          <Toggle
+            className='align-middle pull-right'
+            name='useInsecureXoConnection'
+            onChange={effects.setAllowUnauthorized}
+            value={value.useInsecureXoConnection}
+          />
+        </div>
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>
+          <input
+            className='mt-1'
+            name='useCustomClusterCIDR'
+            onChange={effects.toggleUseCustomClusterCIDR}
+            type='checkbox'
+            value={value.useCustomClusterCIDR}
+          />
+          &nbsp;
+          {_('recipeUseCustomClusterCIDR')}
+        </label>
+      </FormGrid.Row>
+      {value.useCustomClusterCIDR && [
+        <FormGrid.Row key='clusterPodCIDRRow'>
+          <label>{_('recipeClusterPodCIDR')}</label>
+          <input
+            className='form-control'
+            name='customClusterPodCIDR'
+            onChange={effects.onChangeValue}
+            placeholder='10.1.0.0/16'
+            type='text'
+            value={value.customClusterPodCIDR}
+          />
+        </FormGrid.Row>,
+        <FormGrid.Row key='clusterServiceCIDRRow'>
+          <label>{_('recipeClusterServiceCIDR')}</label>
+          <input
+            className='form-control'
+            name='customClusterServiceCIDR'
+            onChange={effects.onChangeValue}
+            placeholder='10.152.183.0/24'
+            type='text'
+            value={value.customClusterServiceCIDR}
+          />
+        </FormGrid.Row>,
+      ]}
+
       <FormGrid.Row>
         <label>
           <input
