@@ -17,7 +17,7 @@ To quickly access the old UI without changing any configuration, `/v5` to your U
 
 ### Making XO 5 the default UI
 
-To permanently use XO 5 as the default interface, you need to modify the `config.toml` file used by `xo-server`.
+To permanently use XO 5 as the default interface, create a new config file (you can call it `config.mounts.toml`) to override the orignal `config.toml` file used by `xo-server`.
 
 In Xen Orchestra 6, the default mount configuration looks like this:
 
