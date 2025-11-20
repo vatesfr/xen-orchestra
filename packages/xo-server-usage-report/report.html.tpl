@@ -542,7 +542,9 @@
               <th>Operating System</th>
               <th>IP addresses</th>
               <th>CPU</th>
+              <th>CPU Allocated</th>
               <th>RAM (GiB)</th>
+              <th>RAM Allocated (GiB)</th>
               <th>Disk read (MiB)</th>
               <th>Disk write (MiB)</th>
               <th>IOPS read</th>
@@ -558,7 +560,9 @@
                 <td>{{#if this.osVersion}}{{#if this.osVersion.name}}{{this.osVersion.name}}{{else}}{{this.osVersion.distro}} {{this.osVersion.major}}.{{this.osVersion.minor}}{{/if}}{{else}}Unknown{{/if}}</td>
                 <td>{{formatAddresses this.addresses}}</td>
                 <td>{{normaliseValue this.cpu}} % {{normaliseEvolution this.evolution.cpu}}</td>
+                <td>{{this.cpuAllocated}}</td>
                 <td>{{normaliseValue this.ram}} {{normaliseEvolution this.evolution.ram}}</td>
+                <td>{{normaliseValue this.ramAllocated}}</td>
                 <td>{{normaliseValue this.diskRead}} {{normaliseEvolution this.evolution.diskRead}}</td>
                 <td>{{normaliseValue this.diskWrite}} {{normaliseEvolution this.evolution.diskWrite}}</td>
                 <td>{{formatIops this.iopsRead}} {{normaliseEvolution this.evolution.iopsRead}}</td>
