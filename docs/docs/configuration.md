@@ -8,6 +8,68 @@ The configuration file is located at `/etc/xo-server/config.toml`.
 
 If you need to do any configuration on the system itself (firewall, SSH…), check the [XOA dedicated section](xoa.md).
 
+## Using XO 5 as the Default Interface
+
+Starting with **Xen Orchestra 6**, the XO 6 UI becomes the default interface. That said, you can still switch back to XO 5, temporarily or by default.
+
+### Temporary Switch to XO 5
+To quickly access the old UI without changing any configuration, `/v5` to your URL (e.g., `https://xo.example.com/v5`).
+
+### Making XO 5 the default UI
+
+To permanently use XO 5 as the default interface, create a new config file (you can call it `config.mounts.toml`) to override the orignal `config.toml` file used by `xo-server`.
+
+In Xen Orchestra 6, the default mount configuration looks like this:
+
+```toml
+[http.mounts]
+'/' = '../../@xen-orchestra/web/dist/'
+'/v5' = '../xo-web/dist/'
+
+[http.proxies]
+'/v5/api' = 'ws://localhost:9000/api'
+'/v5/api/updater' = 'ws://localhost:9001'
+'/v5/rest' = 'http://localhost:9000/rest'
+```
+
+To make XO 5 the main interface and XO 6 accessible under `/v6`, replace the `[http.mounts]` block with:
+
+```toml
+[http.mounts]
+'/v6' = '../../@xen-orchestra/web/dist/'
+'/' = '../xo-web/dist/'
+```
+
+This configuration ensures:
+- Accessing `/` loads **XO 5**.
+- Accessing `/v6` loads **XO 6**.
+
+### Where to Place the Configuration File
+
+:::tip
+If changing a user-specific configuration, make sure the file belongs to the user that runs the XO server process.
+:::
+
+Place your `config.toml` (or any `config.*.toml` override) in one of the following:
+
+- **System-wide configuration**:  
+  `/etc/xo-server/config.toml`  
+  (or any file matching `config.<name>.toml`)
+
+- **User-specific configuration**:  
+  `~/.config/xo-server/config.toml`  
+
+### Apply the changes
+
+After updating the configuration, restart the XO server process:
+
+```sh
+sudo systemctl restart xo-server
+```
+
+XO 5 will now be served as the default UI.
+
+
 ## User to run XO-server as
 
 By default, XO-server runs as 'root'. You can change that by uncommenting these lines and choose whatever user/group you want:
