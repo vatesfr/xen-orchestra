@@ -368,7 +368,7 @@ export default class NbdClient {
    * A promise that resolves to an array where each object represents a segment:
    * - `offset` — The byte offset from the start.
    * - `length` — The size of the segment in bytes.
-   * - `type` — A numeric code indicating the segment type ( 0 means no data).
+   * - `type` — A numeric code indicating the segment type ( 0 means data).
    */
   /* async */ getMap() {
     return new Promise((resolve, reject) => {
