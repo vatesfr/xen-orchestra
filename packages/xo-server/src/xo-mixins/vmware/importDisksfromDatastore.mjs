@@ -68,26 +68,6 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
       const extentHeaderBlob = await new Response(extentHeaderResponse.body).blob()
       const extentHeaderBuffer = Buffer.from(await extentHeaderBlob.arrayBuffer())
 
-      /* const extentMagicNumber = extentHeaderBuffer.subarray(0, 4).toString('ascii')
-      const extentVersion = extentHeaderBuffer.readUInt32LE(4)
-      const extentFlags = extentHeaderBuffer.readUInt32LE(8)
-      const extentsNumSectors = extentHeaderBuffer.readUInt32LE(12)
-      const extentGrainSize = extentHeaderBuffer.readUInt32LE(16)
-      const extentGdOffset = extentHeaderBuffer.readUInt32LE(20)
-      const extentNumGdEntries = extentHeaderBuffer.readUInt32LE(24)
-      const extentFreeSector = extentHeaderBuffer.readUInt32LE(28)
-      const extentSavedGeneration = extentHeaderBuffer.readUInt32LE(56)
-
-      console.log('extentMagicNumber', extentMagicNumber)
-      console.log('extentVersion', extentVersion)
-      console.log('extentFlags', extentFlags)
-      console.log('extentsNumSectors', extentsNumSectors)
-      console.log('extentGrainSize', extentGrainSize)
-      console.log('extentGdOffset', extentGdOffset)
-      console.log('extentNumGdEntries', extentNumGdEntries)
-      console.log('extentFreeSector', extentFreeSector)
-      console.log('extentSavedGeneration', extentSavedGeneration) */
-
       const extentNumGdEntries = extentHeaderBuffer.readUInt32LE(24)
 
       const extentGDResponse = await esxi.download(datastoreName, extentPath, `2048-${2048 + extentNumGdEntries * 4}`)
@@ -108,25 +88,6 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
 
         offset += 4096 * 512
       }
-
-      // console.log(dataMap);
-
-      /* const extentGDE1 = extentGDBuffer.readUInt32LE(4)
-
-      console.log('extentGDE1', extentGDE1)
-
-      const extentGTResponse = await esxi.download(datastoreName, extentPath, `${extentGDE1 * 512}-${(extentGDE1 * 512) + (4096 * 4) - 1}`)
-      const extentGTBlob = await new Response(extentGTResponse.body).blob()
-      const extentGTBuffer = Buffer.from(await extentGTBlob.arrayBuffer())
-
-      const extentGTE0 = extentGTBuffer.readUInt32LE(0)
-
-      console.log('extentGTE0', extentGTE0)
-
-      const extentGrainResponse = await esxi.download(datastoreName, extentPath, `${extentGTE0 * 512}-${(extentGTE0 * 512) + 511}`)
-      const extentGrainBlob = await new Response(extentGrainResponse.body).blob()
-
-      console.log('await extentGrainBlob.arrayBuffer()', await extentGrainBlob.arrayBuffer()) */
 
       Task.warning('error while getting the map of a snapshot, fall back to a full import', error)
       // throw error
