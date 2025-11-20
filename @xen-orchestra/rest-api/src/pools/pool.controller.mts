@@ -77,7 +77,7 @@ import { VmService } from '../vms/vm.service.mjs'
 import { PoolService } from './pool.service.mjs'
 import { escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('pools')
 @Security('*')

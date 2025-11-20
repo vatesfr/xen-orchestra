@@ -31,7 +31,7 @@ import pDefer from 'promise-toolbox/defer'
 import { ApiError } from '../helpers/error.helper.mjs'
 import { Transform } from 'node:stream'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
-import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('tasks')
 @Security('*')

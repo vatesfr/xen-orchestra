@@ -59,7 +59,7 @@ import type { UnbrandXoVmBackupJob } from '../backup-jobs/backup-job.type.mjs'
 import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { UnbrandedVmDashboard } from './vm.type.mjs'
-import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 

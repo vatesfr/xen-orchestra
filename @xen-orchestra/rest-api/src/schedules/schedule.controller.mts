@@ -17,7 +17,7 @@ import { partialSchedules, schedule, scheduleIds } from '../open-api/oa-examples
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
-import { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('schedules')
 @Security('*')
