@@ -2,10 +2,9 @@
 <template>
   <component :is="component" :class="classes" class="ui-link" v-bind="attributes">
     <VtsIcon :name="icon" size="medium" />
-    <span v-if="wrap == undefined || wrap == false" v-tooltip class="text-ellipsis">
+    <span v-tooltip :class="wrap == true ? 'link-wrap' : 'text-ellipsis'">
       <slot />
     </span>
-    <slot v-else />
     <VtsIcon v-if="attributes.target === '_blank'" name="fa:up-right-from-square" size="medium" class="external-icon" />
   </component>
 </template>
@@ -38,7 +37,6 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
 <style lang="postcss" scoped>
 .ui-link {
   display: inline-flex;
-  align-items: start;
   gap: 0.8rem;
   color: var(--color-brand-txt-base);
   min-width: 0;
@@ -67,6 +65,11 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
   &.disabled {
     color: var(--color-neutral-txt-secondary);
     cursor: not-allowed;
+  }
+
+  .link-wrap {
+    text-wrap: wrap;
+    overflow-wrap: anywhere;
   }
 
   &:not([href]) {

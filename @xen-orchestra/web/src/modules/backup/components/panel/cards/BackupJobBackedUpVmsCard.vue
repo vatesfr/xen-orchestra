@@ -60,6 +60,7 @@
               size="small"
               :icon="`object:vm:${toLower(vm.power_state)}`"
               :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+              wrap
             >
               {{ vm.name_label }}
             </UiLink>
