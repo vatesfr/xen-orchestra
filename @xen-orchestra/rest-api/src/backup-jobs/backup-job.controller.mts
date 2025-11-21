@@ -52,6 +52,7 @@ import {
   vmBackupJobIds,
 } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { BASE_URL } from '../index.mjs'
+import { BackupJobService } from './backup-job.service.mjs'
 
 const log = createLogger('xo:rest-api:backupJob-controller')
 
@@ -62,16 +63,22 @@ const log = createLogger('xo:rest-api:backupJob-controller')
 @Tags('backup-jobs')
 @provide(BackupJobController)
 export class BackupJobController extends XoController<AnyXoBackupJob> {
+  #backupJobService: BackupJobService
+
+  constructor(@inject(RestApi) restApi: RestApi, @inject(BackupJobService) backupJobService: BackupJobService) {
+    super(restApi)
+    this.#backupJobService = backupJobService
+  }
+
   async getAllCollectionObjects(): Promise<AnyXoBackupJob[]> {
     const allJobs = await this.restApi.xoApp.getAllJobs()
-    const backupJobs = allJobs.filter(job => job.type !== 'call')
+    const backupJobs = allJobs.filter(job => this.#backupJobService.isBackupJob(job))
     return backupJobs
   }
 
   async getCollectionObject(id: AnyXoBackupJob['id']): Promise<AnyXoBackupJob> {
     const job = await this.restApi.xoApp.getJob(id)
-    if (job.type === 'call') {
-      // not a backup job
+    if (!this.#backupJobService.isBackupJob(job)) {
       throw noSuchObject(id, 'backup-job')
     }
 
@@ -123,20 +130,26 @@ export class BackupJobController extends XoController<AnyXoBackupJob> {
 @provide(DeprecatedBackupController)
 export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
   #backupLogService: BackupLogService
+  #backupJobService: BackupJobService
 
-  constructor(@inject(RestApi) restApi: RestApi, @inject(BackupLogService) backupLogService: BackupLogService) {
+  constructor(
+    @inject(RestApi) restApi: RestApi,
+    @inject(BackupLogService) backupLogService: BackupLogService,
+    @inject(BackupJobService) backupJobService: BackupJobService
+  ) {
     super(restApi)
     this.#backupLogService = backupLogService
+    this.#backupJobService = backupJobService
   }
 
   async getAllCollectionObjects(): Promise<AnyXoBackupJob[]> {
     const backupJobs = await this.restApi.xoApp.getAllJobs()
-    return backupJobs.filter(job => job.type !== 'call')
+    return backupJobs.filter(job => this.#backupJobService.isBackupJob(job))
   }
 
   async getCollectionObject(id: AnyXoBackupJob['id']): Promise<AnyXoBackupJob> {
     const backupJob = await this.restApi.xoApp.getJob(id)
-    if (backupJob.type === 'call') {
+    if (!this.#backupJobService.isBackupJob(backupJob)) {
       throw noSuchObject(id, 'backup-job')
     }
 
