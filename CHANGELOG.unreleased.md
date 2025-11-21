@@ -43,6 +43,7 @@
 
 - [Backups] use the oldest record for Long Term Retention instead of newest (PR [#9180](https://github.com/vatesfr/xen-orchestra/pull/9180))
 - [Backups] fix infinite chain of snapshot and replication [Forum#11540](https://xcp-ng.org/forum/topic/11540) [Forum#11539](https://xcp-ng.org/forum/topic/11539) (PR [#9202](https://github.com/vatesfr/xen-orchestra/pull/9202))
+- [Backups] Fix delta backups shutting down VM [Forum#11578](https://xcp-ng.org/forum/topic/11578) (PR [#9228](https://github.com/vatesfr/xen-orchestra/pull/9228))
 - [V2V] fix missing libssl.so.3 in path on debian 11 (PR [#9208](https://github.com/vatesfr/xen-orchestra/pull/9208))
 
 - **XO 6:**
