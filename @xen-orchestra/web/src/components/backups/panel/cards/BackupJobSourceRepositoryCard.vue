@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ t('source-backup-repository') }}
     </UiCardTitle>
-    <UiLink size="small" :icon="sourceBackupRepositoryIcon" :href>
+    <UiLink size="small" :icon="sourceBackupRepositoryIcon" :href wrap>
       {{ sourceBackupRepository.name }}
     </UiLink>
   </UiCard>

@@ -17,6 +17,7 @@
               size="small"
               icon="object:backup-schedule"
               :href="buildXo5Route(`/backup/${schedule.jobId}/edit`)"
+              wrap
             >
               {{ schedule.name }}
             </UiLink>
@@ -61,7 +62,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'

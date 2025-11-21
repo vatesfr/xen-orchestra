@@ -1,7 +1,12 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink :to="`/host/${host.id}/dashboard`" size="medium" :icon="`object:host:${getHostState(host.power_state)}`">
+      <UiLink
+        :to="`/host/${host.id}/dashboard`"
+        size="medium"
+        :icon="`object:host:${getHostState(host.power_state)}`"
+        wrap
+      >
         {{ host.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -53,7 +58,7 @@
         <template #value>
           <div v-if="pool" class="value">
             <VtsIcon name="fa:city" size="medium" />
-            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small">
+            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small" wrap>
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -74,6 +79,7 @@
               :to="`/host/${masterHost.id}/dashboard`"
               size="small"
               :icon="`object:host:${getHostState(masterHost.power_state)}`"
+              wrap
             >
               {{ masterHost.name_label }}
             </UiLink>
@@ -167,7 +173,6 @@ const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(
 
     .value {
       display: flex;
-      align-items: center;
       gap: 0.8rem;
     }
   }

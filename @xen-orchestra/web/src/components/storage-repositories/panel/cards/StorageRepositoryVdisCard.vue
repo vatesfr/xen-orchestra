@@ -6,7 +6,7 @@
     </UiCardTitle>
     <UiCollapsibleList v-if="vdis.length > 0" tag="ul" :total-items="vdis.length">
       <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
-        <UiLink size="small" icon="fa:hard-drive" :href="buildXo5Route(`/srs/${vdi.$SR}/disks?s=1_0_asc-${vdi.id}`)">
+        <UiLink size="small" icon="fa:hard-drive" :href="buildXo5Route(`/srs/${vdi.$SR}/disks?s=1_0_asc-${vdi.id}`)" wrap>
           {{ vdi.name_label }}
         </UiLink>
       </li>

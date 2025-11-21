@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="vm.name_label !== ''" size="medium" icon="fa:desktop" :to="`/vm/${vm.id}/dashboard`">
+      <UiLink v-if="vm.name_label !== ''" size="medium" icon="fa:desktop" :to="`/vm/${vm.id}/dashboard`" wrap>
         {{ vm.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -45,7 +45,7 @@
         <template #value>
           <div v-if="pool" class="value">
             <VtsIcon name="fa:city" size="small" />
-            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small">
+            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small" wrap>
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -60,7 +60,7 @@
           <div v-if="host" class="value">
             <VtsObjectIcon type="host" :state="hostPowerState" size="small" />
             <div v-tooltip class="text-ellipsis">
-              <UiLink :to="`/host/${host.id}/dashboard`" size="small">
+              <UiLink :to="`/host/${host.id}/dashboard`" size="small" wrap>
                 {{ host.name_label }}
               </UiLink>
             </div>
@@ -88,7 +88,7 @@
               :name="guestToolsDisplay.type === 'link' ? 'legacy:halted' : 'legacy:checked'"
               size="medium"
             />
-            <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
+            <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS" wrap>
               {{ guestToolsDisplay.value }}
             </UiLink>
             <template v-else>
@@ -102,7 +102,7 @@
         <template #value>
           <div class="value">
             <VtsIcon name="fa:template" size="medium" />
-            <UiLink v-if="template" size="small" :href="xo5VmTemplateHref">
+            <UiLink v-if="template" size="small" :href="xo5VmTemplateHref" wrap>
               {{ template.name_label }}
             </UiLink>
             <span v-else>{{ vm.other.base_template_name }}</span>
@@ -124,7 +124,7 @@
         <template #value>
           <div class="value">
             <UiUserLogo size="extra-small" class="user-logo" />
-            <UiLink v-if="userLabel" size="small" :href="xo5UserHref">
+            <UiLink v-if="userLabel" size="small" :href="xo5UserHref" wrap>
               {{ userLabel }}
             </UiLink>
             <span v-else>{{ t('unknown') }}</span>

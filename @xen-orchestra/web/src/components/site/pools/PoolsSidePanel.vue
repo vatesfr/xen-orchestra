@@ -28,6 +28,7 @@
                 icon="fa:city"
                 size="small"
                 :to="`/pool/${server.poolId}/dashboard`"
+                wrap
               >
                 {{ server.poolNameLabel }}
               </UiLink>
@@ -94,6 +95,7 @@
               icon="fa:server"
               size="small"
               :to="`/host/${primaryHost.id}/dashboard`"
+              wrap
             >
               {{ primaryHost.name_label }}
             </UiLink>
@@ -153,7 +155,7 @@
           {{ t('no-data') }}
         </VtsStateHero>
         <template v-else>
-          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/dashboard`" icon="fa:server" size="small">
+          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/dashboard`" icon="fa:server" size="small" wrap>
             {{ host.name_label }}
             <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="legacy:primary" size="medium" />
           </UiLink>
