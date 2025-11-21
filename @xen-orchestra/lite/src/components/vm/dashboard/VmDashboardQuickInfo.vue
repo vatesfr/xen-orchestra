@@ -3,7 +3,7 @@
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
-          <span class="power-state">
+          <span class="value">
             <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
@@ -185,12 +185,11 @@ const mainIpAddress = computed(() => {
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
-  .power-state,
-  .host-name {
+  .value {
+    min-width: 0;
     display: flex;
     align-items: center;
-    gap: 1rem;
-    max-width: 100%;
+    gap: 0.8rem;
   }
 }
 </style>
