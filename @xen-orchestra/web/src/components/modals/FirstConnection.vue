@@ -5,23 +5,24 @@
       <div class="pop-up-content">
         <p>
           {{ $t('popup-first-connection-introduction') }}<br />
-          {{ $t('popup-first-connection-default-interface') }}
+          <I18nT keypath="popup-first-connection-default-interface">
+            <template #documentationLink>
+              <!-- // TODO: add link when available -->
+              <UiLink href="#" size="medium" target="_blank" rel="noopener noreferrer">
+                {{ $t('popup-first-connection-follow-this-guide') }}
+              </UiLink>
+            </template>
+          </I18nT>
         </p>
         <p>
           {{ $t('popup-first-connection-early-release') }}
         </p>
         <p>
-          <I18nT keypath="popup-first-connection-feedback-and-guide" scope="global">
+          <I18nT keypath="popup-first-connection-feedback" scope="global" tag="p">
             <template #feedbackLink>
               <!-- // TODO: add link when available -->
               <UiLink href="#" size="medium" target="_blank" rel="noopener noreferrer">
                 {{ $t('popup-first-connection-feedback-and-impressions') }}
-              </UiLink>
-            </template>
-            <template #documentationLink>
-              <!-- // TODO: add link when available -->
-              <UiLink href="#" size="medium" target="_blank" rel="noopener noreferrer">
-                {{ $t('popup-first-connection-follow-this-guide') }}
               </UiLink>
             </template>
           </I18nT>
