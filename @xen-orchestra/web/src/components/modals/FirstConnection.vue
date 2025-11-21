@@ -8,7 +8,12 @@
           <I18nT keypath="popup-first-connection-default-interface">
             <template #documentationLink>
               <!-- // TODO: add link when available -->
-              <UiLink href="#" size="medium" target="_blank" rel="noopener noreferrer">
+              <UiLink
+                href="https://docs.xen-orchestra.com/configuration#using-xo-5-as-the-default-interface"
+                size="medium"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {{ $t('popup-first-connection-follow-this-guide') }}
               </UiLink>
             </template>
