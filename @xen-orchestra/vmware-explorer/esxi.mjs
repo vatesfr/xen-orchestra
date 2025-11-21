@@ -10,6 +10,7 @@ import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
 import xml2js from 'xml2js'
 import { exec, spawn } from 'node:child_process'
+import NbdClient from '@vates/nbd-client'
 
 import { tmpdir } from 'node:os'
 import fs from 'node:fs/promises'
@@ -588,6 +589,83 @@ export default class Esxi extends EventEmitter {
       warn(` process ${vmId}/${diskPath}/${singleLink} was already killed`)
     } else {
       this.#nbdServers.get(key).process.kill()
+    }
+  }
+
+  async #getDataMapFromVddk(nbdClient) {
+    const start = Date.now()
+
+    await nbdClient.connect()
+
+    info(`nbd client for data map connected`)
+
+    const dataMap = await nbdClient.getMap()
+
+    info(
+      `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
+    )
+
+    return dataMap
+  }
+
+  async #getDataMapFromCowd(datastoreName, diskPath) {
+    const descriptorResponse = await this.download(datastoreName, diskPath, '0-512')
+    const descriptorBlob = await new Response(descriptorResponse.body).blob()
+    const descriptorBytes = new Uint8Array(await descriptorBlob.arrayBuffer()).slice(0, 512)
+
+    const parsedDescriptor = parseVmdk(new TextDecoder('utf-8').decode(descriptorBytes))
+
+    const diskPathArray = diskPath.split('/')
+    const extentPath = diskPathArray.slice(0, -1).join('/') + '/' + parsedDescriptor.fileName
+
+    const extentHeaderResponse = await this.download(datastoreName, extentPath, `0-2048`)
+    const extentHeaderBlob = await new Response(extentHeaderResponse.body).blob()
+    const extentHeaderBuffer = Buffer.from(await extentHeaderBlob.arrayBuffer())
+
+    const extentNumGdEntries = extentHeaderBuffer.readUInt32LE(24)
+
+    const extentGDResponse = await this.download(datastoreName, extentPath, `2048-${2048 + extentNumGdEntries * 4}`)
+    const extentGDBlob = await new Response(extentGDResponse.body).blob()
+    const extentGDBuffer = Buffer.from(await extentGDBlob.arrayBuffer())
+
+    const dataMap = []
+    let offset = 0
+    for (let i = 0; i < extentNumGdEntries; i++) {
+      const extentGDE = extentGDBuffer.readUInt32LE(i * 4)
+      if (extentGDE !== 0) {
+        dataMap.push({
+          offset: offset,
+          length: 4096 * 512,
+          type: 0,
+        })
+      }
+
+      offset += 4096 * 512
+    }
+
+    return dataMap
+  }
+
+  async getDataMap(vmId, datastoreName, diskPath) {
+    let nbdClient
+    try {
+      const nbdInfoSpawn = await this.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
+        singleLink: true,
+      })
+
+      info(`nbd server for data map spawned`)
+
+      const nbdClient = new NbdClient(nbdInfoSpawn.nbdInfos)
+
+      return this.#getDataMapFromVddk(nbdClient)
+    } catch (error) {
+      warn('error while getting datamap from vddk, fall back to a full import', error)
+      return this.#getDataMapFromCowd(datastoreName, diskPath)
+    } finally {
+      await nbdClient.disconnect()
+      await this.killNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true }).catch(err =>
+        warn('error while stopping nbdkit server for the snapshot', err)
+      )
     }
   }
 }
