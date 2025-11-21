@@ -36,7 +36,6 @@ const uiStore = useUiStore()
 .vts-quick-info-row {
   display: flex;
   gap: 2.4rem;
-  max-width: 100%;
 
   &.mobile {
     flex-direction: column;
@@ -54,7 +53,6 @@ const uiStore = useUiStore()
     align-items: center;
     gap: 0.8rem;
     min-width: 0;
-    max-width: 100%;
 
     .value-prop:empty::before {
       content: '-';

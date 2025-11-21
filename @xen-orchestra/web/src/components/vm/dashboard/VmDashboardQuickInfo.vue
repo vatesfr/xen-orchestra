@@ -21,7 +21,7 @@
           <span v-if="pool" class="value">
             <VtsIcon name="fa:city" size="medium" />
             <UiLink :to="`/pool/${pool.id}/dashboard`" size="medium">
-              {{ pool.name_label + pool.name_label }}
+              {{ pool.name_label }}
             </UiLink>
           </span>
           <span v-else>
@@ -34,7 +34,7 @@
           <span v-if="host" class="value">
             <VtsObjectIcon type="host" :state="hostPowerState" size="medium" />
             <UiLink :to="`/host/${host.id}/dashboard`" size="medium">
-              {{ host.name_label + host.name_label }}
+              {{ host.name_label }}
             </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="legacy:primary" size="medium" />
           </span>
@@ -142,10 +142,8 @@ const hostPowerState = computed(() => {
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
-  .power-state,
-  .host-name,
-  .pool-name {
-    width: 100%;
+  .value {
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 0.8rem;

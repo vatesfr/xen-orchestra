@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="sr.name_label" size="small" icon="object:sr:muted" :href="`/#/srs/${sr.id}/general`">
+      <UiLink v-if="sr.name_label" size="small" icon="object:sr:muted" :href="`/#/srs/${sr.id}/general`" wrap>
         {{ sr.name_label }}
       </UiLink>
     </UiCardTitle>
