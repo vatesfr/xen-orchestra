@@ -24,6 +24,7 @@
   - Implement reactivity for VMs, VM templates, VM controllers, VIFs, VDIs, VBDs, SRs, pools, PIFs, PGPUs, PCIs, networks, alarms, and hosts (PR [#9183](https://github.com/vatesfr/xen-orchestra/pull/9183))
   - [Core] Add tooltip on tag component if the text is cut (PR [#9184](https://github.com/vatesfr/xen-orchestra/pull/9184))
   - [Pool/Hosts] Implement hosts view and side panel information (PR [#9218](https://github.com/vatesfr/xen-orchestra/pull/9218))
+  - [Vdis tab] Implement vdis tab for VM (PR [#9232](https://github.com/vatesfr/xen-orchestra/pull/9232))
 
 ### Bug fixes
 
