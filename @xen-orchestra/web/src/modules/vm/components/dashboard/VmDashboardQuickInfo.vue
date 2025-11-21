@@ -145,10 +145,8 @@ const hostPowerState = computed(() =>
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
-  .power-state,
-  .host-name,
-  .pool-name {
-    width: 100%;
+  .value {
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 0.8rem;

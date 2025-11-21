@@ -7,7 +7,7 @@
     <div>
       <UiCollapsibleList tag="ul" :total-items="backedUpPools.length">
         <li v-for="pool in backedUpPools" :key="pool.id">
-          <UiLink size="small" icon="object:pool" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }">
+          <UiLink size="small" icon="object:pool" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" wrap>
             {{ pool.name_label }}
           </UiLink>
         </li>
