@@ -6,9 +6,41 @@ import type { XoHost, XoPool } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
+const hostFields: (keyof XoHost)[] = [
+  'id',
+  'name_label',
+  'name_description',
+  'power_state',
+  'controlDomain',
+  'residentVms',
+  '$pool',
+  'current_operations',
+  'address',
+  'startTime',
+  'version',
+  'bios_strings',
+  'cpus',
+  'CPUs',
+  'memory',
+  'tags',
+  'iscsiIqn',
+  'powerOnMode',
+  'build',
+  'otherConfig',
+  'multipathing',
+  'logging',
+  'enabled',
+  'agentStartTime',
+  'PGPUs',
+] as const
+
 export const useXoHostCollection = defineRemoteResource({
-  url: '/rest/v0/hosts?fields=id,name_label,name_description,power_state,controlDomain,residentVms,$pool,current_operations,address,startTime,version,bios_strings,cpus,CPUs,memory,tags,iscsiIqn,powerOnMode,build,otherConfig,multipathing,logging,enabled,agentStartTime,PGPUs',
+  url: '/rest/v0/hosts?fields='.concat(hostFields.toString()),
   initialData: () => [] as XoHost[],
+  watchCollection: {
+    type: 'host',
+    fields: hostFields,
+  },
   state: (rawHosts, context) => {
     const hosts = useSorted(rawHosts, sortByNameLabel)
 

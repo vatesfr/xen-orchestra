@@ -4,9 +4,35 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoHost, XoNetwork, XoPif } from '@vates/types'
 import { computed } from 'vue'
 
+const pifFields: (keyof XoPif)[] = [
+  '$host',
+  '$network',
+  'attached',
+  'carrier',
+  'device',
+  'dns',
+  'gateway',
+  'id',
+  'ip',
+  'ipv6',
+  'mac',
+  'management',
+  'mode',
+  'mtu',
+  'netmask',
+  'speed',
+  'vlan',
+  'isBondMaster',
+  'bondSlaves',
+] as const
+
 export const useXoPifCollection = defineRemoteResource({
-  url: '/rest/v0/pifs?fields=$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,management,mode,mtu,netmask,speed,vlan,isBondMaster,bondSlaves',
+  url: '/rest/v0/pifs?fields='.concat(pifFields.toString()),
   initialData: () => [] as XoPif[],
+  watchCollection: {
+    type: 'PIF',
+    fields: pifFields,
+  },
   state: (pifs, context) => {
     const state = useXoCollectionState(pifs, {
       context,

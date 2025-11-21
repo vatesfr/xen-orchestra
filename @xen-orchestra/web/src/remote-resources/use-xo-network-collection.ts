@@ -6,8 +6,25 @@ import type { XoNetwork } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
+const networkFields: (keyof XoNetwork)[] = [
+  'id',
+  'defaultIsLocked',
+  'name_label',
+  'nbd',
+  'tags',
+  '$pool',
+  'name_description',
+  'MTU',
+  'PIFs',
+  'other_config',
+] as const
+
 export const useXoNetworkCollection = defineRemoteResource({
-  url: '/rest/v0/networks?fields=id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs,other_config',
+  url: '/rest/v0/networks?fields='.concat(networkFields.toString()),
+  watchCollection: {
+    type: 'network',
+    fields: networkFields,
+  },
   initialData: () => [] as XoNetwork[],
   state: (rawNetworks, context) => {
     const { hostMasterPifsByNetwork } = useXoPifCollection(context)

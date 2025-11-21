@@ -3,8 +3,14 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoAlarm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 
+const alarmFields: (keyof XoAlarm)[] = ['id', 'time', 'body', 'object'] as const
+
 export const useXoAlarmCollection = defineRemoteResource({
-  url: '/rest/v0/alarms?fields=id,time,body,object',
+  url: '/rest/v0/alarms?fields='.concat(alarmFields.toString()),
+  watchCollection: {
+    type: 'alarm',
+    fields: alarmFields,
+  },
   initialData: () => [] as XoAlarm[],
   state: (rawAlarms, context) => {
     const alarms = useSorted(rawAlarms, (alarm1, alarm2) => alarm2.time - alarm1.time)

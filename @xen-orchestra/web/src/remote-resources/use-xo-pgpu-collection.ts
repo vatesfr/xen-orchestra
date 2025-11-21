@@ -2,8 +2,14 @@ import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-c
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoPgpu } from '@vates/types'
 
+const pgpuFields: (keyof XoPgpu)[] = ['id', 'pci'] as const
+
 export const useXoPgpuCollection = defineRemoteResource({
-  url: '/rest/v0/pgpus?fields=id,pci',
+  url: '/rest/v0/pgpus?fields='.concat(pgpuFields.toString()),
+  watchCollection: {
+    type: 'PGPU',
+    fields: pgpuFields,
+  },
   initialData: () => [] as XoPgpu[],
   state: (pgpus, context) =>
     useXoCollectionState(pgpus, {

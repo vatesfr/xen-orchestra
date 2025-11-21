@@ -2,8 +2,14 @@ import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-c
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoPci } from '@vates/types'
 
+const pciFields: (keyof XoPci)[] = ['id', 'device_name'] as const
+
 export const useXoPciCollection = defineRemoteResource({
-  url: '/rest/v0/pcis?fields=id,device_name',
+  url: '/rest/v0/pcis?fields='.concat(pciFields.toString()),
+  watchCollection: {
+    type: 'PCI',
+    fields: pciFields,
+  },
   initialData: () => [] as XoPci[],
   state: (pcis, context) =>
     useXoCollectionState(pcis, {

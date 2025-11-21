@@ -5,8 +5,28 @@ import type { XoPool, XoVmTemplate } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
+const vmTemplateFields: (keyof XoVmTemplate)[] = [
+  'id',
+  'uuid',
+  'name_label',
+  'name_description',
+  '$pool',
+  'template_info',
+  'VIFs',
+  '$VBDs',
+  'boot',
+  'CPUs',
+  'memory',
+  'tags',
+  'isDefaultTemplate',
+] as const
+
 export const useXoVmTemplateCollection = defineRemoteResource({
-  url: '/rest/v0/vm-templates?fields=id,uuid,name_label,name_description,$pool,template_info,VIFs,$VBDs,boot,CPUs,memory,tags,isDefaultTemplate',
+  url: '/rest/v0/vm-templates?fields='.concat(vmTemplateFields.toString()),
+  watchCollection: {
+    type: 'VM-template',
+    fields: vmTemplateFields,
+  },
   initialData: () => [] as XoVmTemplate[],
   state: (rawTemplates, context) => {
     const templates = useSorted(rawTemplates, sortByNameLabel)
