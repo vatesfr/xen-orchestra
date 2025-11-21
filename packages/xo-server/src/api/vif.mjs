@@ -1,6 +1,11 @@
+import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
 
 import { diffItems } from '../utils.mjs'
+
+// ===================================================================
+
+const log = createLogger('xo:api:vif')
 
 // ===================================================================
 
@@ -87,7 +92,8 @@ export async function set({
     await this.checkPermissions([[network?.id ?? vif.$network, 'operate']])
   }
 
-  if (isNetworkChanged || mac) {
+  // Handle network and/or MAC address changes
+  if (isNetworkChanged || mac !== undefined) {
     const networkId = network?.id
     if (mac !== undefined && this.apiContext.permission !== 'admin') {
       await this.checkPermissions([[networkId ?? vif.$network, 'administrate']])
@@ -102,6 +108,55 @@ export async function set({
 
     const xapi = this.getXapi(vif)
 
+    // If only the network is changing (not MAC), try to use VIF.move which is non-destructive
+    // VIF.move was introduced in XenServer 7.1 and keeps the VIF UUID, avoiding network downtime
+    if (isNetworkChanged && mac === undefined) {
+      try {
+        // Try VIF.move first (XenServer 7.1+)
+        await xapi.callAsync('VIF.move', vif._xapiRef, network._xapiRef)
+
+        log.info('VIF moved to new network using VIF.move', {
+          vifId: vif.id,
+          oldNetworkId: vif.$network,
+          newNetworkId: networkId,
+        })
+
+        // Update IP addresses allocation
+        const [addAddresses, removeAddresses] = diffItems(newIpAddresses, oldIpAddresses)
+        await this.allocIpAddresses(vif.id, addAddresses, removeAddresses)
+
+        // Update other VIF properties if needed
+        await xapi.editVif(vif._xapiId, {
+          ipv4Allowed: newIpv4Addresses.length > 0 ? newIpv4Addresses : undefined,
+          ipv6Allowed: newIpv6Addresses.length > 0 ? newIpv6Addresses : undefined,
+          lockingMode: lockingMode ?? 'network_default',
+          rateLimit,
+          txChecksumming,
+        })
+
+        return vif.id // VIF ID is preserved with VIF.move
+      } catch (error) {
+        // Fallback to delete+create for XenServer < 7.1 or if VIF.move fails
+        if (error.code === 'MESSAGE_METHOD_UNKNOWN') {
+          log.warn('VIF.move not available, falling back to delete+create', {
+            vifId: vif.id,
+            xenServerVersion: 'pre-7.1',
+          })
+        } else {
+          log.warn('VIF.move failed, falling back to delete+create', {
+            vifId: vif.id,
+            error: error.message,
+          })
+        }
+        // Continue to delete+create fallback below
+      }
+    }
+
+    // Fallback: delete and recreate VIF
+    // This path is used when:
+    // 1. MAC address is changing (VIF.move doesn't support MAC changes)
+    // 2. VIF.move is not available (XenServer < 7.1)
+    // 3. VIF.move failed for some reason
     const vm = xapi.getObject(vif.$VM)
     mac == null && (mac = vif.MAC)
     network = xapi.getObject(networkId ?? vif.$network)
