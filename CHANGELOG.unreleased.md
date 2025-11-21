@@ -73,6 +73,7 @@
 - @xen-orchestra/xapi patch
 - xo-collection minor
 - xo-server minor
+- xo-server-perf-alert major
 - xo-server-transport-email patch
 - xo-server-usage-report minor
 - xo-vmdk-to-vhd patch
