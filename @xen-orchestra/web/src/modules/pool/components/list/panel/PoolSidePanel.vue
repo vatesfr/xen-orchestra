@@ -30,6 +30,7 @@
                 icon="object:pool"
                 size="small"
                 :to="{ name: '/pool/[id]/dashboard', params: { id: server.poolId } }"
+                wrap
               >
                 {{ server.poolNameLabel }}
               </UiLink>
@@ -88,6 +89,7 @@
               :icon="`object:host:${toLower(primaryHost.power_state)}`"
               size="small"
               :to="{ name: '/host/[id]/dashboard', params: { id: primaryHost.id } }"
+              wrap
             >
               {{ primaryHost.name_label }}
               <VtsIcon accent="info" name="status:primary-circle" size="medium" />
@@ -154,6 +156,7 @@
             :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
             :icon="`object:host:${toLower(host.power_state)}`"
             size="small"
+            wrap
           >
             {{ host.name_label }}
             <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="status:primary-circle" size="medium" />
