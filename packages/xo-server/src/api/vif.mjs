@@ -113,7 +113,7 @@ export async function set({
     if (isNetworkChanged && mac === undefined) {
       try {
         // Try VIF.move first (XenServer 7.1+)
-        await xapi.moveVif(vif._xapiId, networkId)
+        await xapi.callAsync('VIF.move', vif._xapiRef, network._xapiRef)
 
         log.info('VIF moved to new network using VIF.move', {
           vifId: vif.id,

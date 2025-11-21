@@ -23,21 +23,6 @@ export default {
   async disconnectVif(vifId) {
     await this._disconnectVif(this.getObject(vifId))
   },
-  /**
-   * Move a VIF to a different network (non-destructive)
-   * Requires XenServer 7.1+ / XCP-ng 7.1+
-   * Preserves VIF UUID and avoids network downtime
-   *
-   * @param {string} vifId - VIF UUID or opaque reference
-   * @param {string} networkId - Network UUID or opaque reference
-   * @returns {Promise<void>}
-   * @throws {Error} MESSAGE_METHOD_UNKNOWN if XenServer < 7.1
-   */
-  async moveVif(vifId, networkId) {
-    const vif = this.getObject(vifId)
-    const network = this.getObject(networkId)
-    await this.callAsync('VIF.move', vif.$ref, network.$ref)
-  },
   editVif: makeEditObject({
     ipv4Allowed: {
       get: true,
