@@ -4,7 +4,6 @@ import { ReadAhead } from '@xen-orchestra/disk-transform'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
 import { createLogger } from '@xen-orchestra/log'
-import NbdClient from '@vates/nbd-client'
 import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
 const { warn } = createLogger('xo:importdiskfromdatastore')
@@ -33,33 +32,13 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
         'vddk import does not support importing multiple snapshots. Coalesce the non imported snapshot into one or force a full import'
       )
     }
-    let nbdClient
-    try {
-      // get the changed blocks of the next snapshot
-      const existingDisk = chainByNode[previouslyImportedIndex]
-      existingVdi = diskIsAlreadyImported(existingVdis, existingDisk)
-      Task.info(`found a previous import`, { vdiRef: existingVdi.$ref })
-      const nbdInfoSpawn = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
-        singleLink: true,
-      })
-      Task.info(`nbd server for data map spawned`)
-      nbdClient = new NbdClient(nbdInfoSpawn.nbdInfos)
 
-      await nbdClient.connect()
-      Task.info(`nbd client for data map connected`)
-      dataMap = await nbdClient.getMap()
-      Task.info(
-        `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
-      )
-    } catch (error) {
-      Task.warning('error while getting the map of a snapshot, fall back to a full import', error)
-      throw error
-    } finally {
-      await nbdClient.disconnect()
-      await esxi
-        .killNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true })
-        .catch(err => Task.warning('error while stopping nbdkit server for the snapshot', err))
-    }
+    // get the changed blocks of the next snapshot
+    const existingDisk = chainByNode[previouslyImportedIndex]
+    existingVdi = diskIsAlreadyImported(existingVdis, existingDisk)
+    Task.info(`found a previous import`, { vdiRef: existingVdi.$ref })
+
+    dataMap = await esxi.getDataMap(vmId, datastoreName, diskPath)
   } else {
     Task.info(`no reference disk found, fall back a full import`)
   }
