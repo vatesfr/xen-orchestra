@@ -36,6 +36,7 @@
   - [Settings page] Create settings page accessible from user menu (PR [#9175](https://github.com/vatesfr/xen-orchestra/pull/9175))
   - [Pool/VMs] Implement VMs view and side panel information (PR [#9196](https://github.com/vatesfr/xen-orchestra/pull/9196))
   - [Host/VMs] Implement VMs view and side panel information (PR [#9193](https://github.com/vatesfr/xen-orchestra/pull/9193))
+  - [Vdis tab] Implement vdis tab for VM (PR [#9232](https://github.com/vatesfr/xen-orchestra/pull/9232))
 
 ### Bug fixes
 
