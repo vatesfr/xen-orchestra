@@ -3,7 +3,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoVbd } from '@vates/types'
 
 export const useXoVbdCollection = defineRemoteResource({
-  url: '/rest/v0/vbds?fields=id,name_label,name_description,VDI,is_cd_drive,position',
+  url: '/rest/v0/vbds?fields=id,name_label,name_description,VDI,is_cd_drive,position,attached,device',
   initialData: () => [] as XoVbd[],
   state: (vbds, context) =>
     useXoCollectionState(vbds, {
