@@ -6,6 +6,7 @@
         size="medium"
         :icon="`object:vm:${toLower(vm.power_state)}`"
         :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+        wrap
       >
         {{ vm.name_label }}
       </UiLink>
@@ -43,7 +44,12 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="small" icon="object:pool">
+            <UiLink
+              :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
+              size="small"
+              icon="object:pool"
+              wrap
+            >
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -62,6 +68,7 @@
               :icon="`object:host:${hostPowerState}`"
               :is-primary="isMaster"
               :primary-tooltip="t('master')"
+              wrap
             >
               {{ host.name_label }}
             </UiLink>
@@ -88,7 +95,7 @@
               :name="guestToolsDisplay.type === 'link' ? 'status:halted-circle' : 'status:success-circle'"
               size="medium"
             />
-            <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
+            <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS" wrap>
               {{ guestToolsDisplay.value }}
             </UiLink>
             <template v-else>
@@ -102,7 +109,7 @@
         <template #value>
           <div class="value">
             <VtsIcon name="fa:template" size="medium" />
-            <UiLink v-if="template" size="small" :href="xo5VmTemplateHref">
+            <UiLink v-if="template" size="small" :href="xo5VmTemplateHref" wrap>
               {{ template.name_label }}
             </UiLink>
             <span v-else>{{ vm.other.base_template_name }}</span>
@@ -124,7 +131,7 @@
         <template #value>
           <div class="value">
             <UiUserLogo size="extra-small" class="user-logo" />
-            <UiLink v-if="userLabel" size="small" :href="xo5UserHref">
+            <UiLink v-if="userLabel" size="small" :href="xo5UserHref" wrap>
               {{ userLabel }}
             </UiLink>
             <span v-else>{{ t('unknown') }}</span>

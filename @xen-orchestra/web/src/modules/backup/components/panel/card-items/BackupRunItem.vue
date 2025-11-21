@@ -9,6 +9,7 @@
         size="small"
         icon="object:backup-run"
         :to="{ name: '/backup/[id]/runs', params: { id: backupRun.jobId }, query: { id: backupRun.id } }"
+        wrap
       >
         {{ backupRun.id }}
       </UiLink>
@@ -41,7 +42,7 @@
       {{ t('schedule') }}
     </template>
     <template #value>
-      <UiLink size="small" icon="object:backup-schedule" :href>
+      <UiLink size="small" icon="object:backup-schedule" :href wrap>
         {{ scheduleName || backupRun.jobId }}
       </UiLink>
     </template>

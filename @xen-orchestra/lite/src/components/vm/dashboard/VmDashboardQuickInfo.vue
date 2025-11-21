@@ -3,7 +3,7 @@
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('state')">
         <template #value>
-          <span class="power-state">
+          <span class="value">
             <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
@@ -193,6 +193,7 @@ const mainIpAddress = computed(() => {
     align-items: center;
     gap: 0.8rem;
     max-width: 100%;
+    min-width: 0;
   }
 }
 </style>

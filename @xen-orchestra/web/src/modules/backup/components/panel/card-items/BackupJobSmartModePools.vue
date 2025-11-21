@@ -4,7 +4,7 @@
       {{ label }}
     </template>
     <template #value>
-      <UiLink size="small" icon="object:pool" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }">
+      <UiLink size="small" icon="object:pool" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" wrap>
         {{ pool.name_label }}
       </UiLink>
     </template>

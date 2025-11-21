@@ -5,6 +5,7 @@
         :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
         size="medium"
         :icon="`object:host:${toLower(host.power_state)}`"
+        wrap
       >
         {{ host.name_label }}
       </UiLink>
@@ -48,7 +49,12 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="small" icon="object:pool">
+            <UiLink
+              :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
+              size="small"
+              icon="object:pool"
+              wrap
+            >
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -71,6 +77,7 @@
               :icon="`object:host:${toLower(masterHost.power_state)}`"
               is-primary
               :primary-tooltip="t('master')"
+              wrap
             >
               {{ masterHost.name_label }}
             </UiLink>
@@ -164,7 +171,6 @@ const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(
 
     .value {
       display: flex;
-      align-items: center;
       gap: 0.8rem;
     }
   }
