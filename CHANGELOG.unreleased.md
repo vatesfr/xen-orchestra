@@ -45,6 +45,8 @@
 - [Backups] use the oldest record for Long Term Retention instead of newest (PR [#9180](https://github.com/vatesfr/xen-orchestra/pull/9180))
 - [Backups] fix infinite chain of snapshot and replication [Forum#11540](https://xcp-ng.org/forum/topic/11540) [Forum#11539](https://xcp-ng.org/forum/topic/11539) (PR [#9202](https://github.com/vatesfr/xen-orchestra/pull/9202))
 - [V2V] fix missing libssl.so.3 in path on debian 11 (PR [#9208](https://github.com/vatesfr/xen-orchestra/pull/9208))
+- [Backups/File level restore] ignore swap partition (PR [#9182](https://github.com/vatesfr/xen-orchestra/pull/9182))
+- [Backups/File level restore] Better handling of LVM on GPT partition (PR [#9182](https://github.com/vatesfr/xen-orchestra/pull/9182))
 
 - **XO 6:**
   - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
@@ -78,5 +80,7 @@
 - xo-server-usage-report minor
 - xo-vmdk-to-vhd patch
 - xo-web minor
+- @xen-orchestra/backups minor
+
 
 <!--packages-end-->
