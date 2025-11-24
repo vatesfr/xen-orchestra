@@ -31,6 +31,7 @@
 import EasyvirtLogo from '@/components/third-parties/easyvirt/EasyvirtLogo.vue'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
+import { formatIpToHostName, type IpAddress } from '@/utils/ip.utils'
 import VtsDropdownTitle from '@core/components/dropdown/VtsDropdownTitle.vue'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -71,11 +72,19 @@ function getLatestVmIp(vms: XoVm[], product: Product): string | undefined {
   return latestVm?.mainIpAddress
 }
 
+function getFormattedIp(ip: string | undefined): string | undefined {
+  if (ip === undefined) {
+    return
+  }
+
+  return formatIpToHostName(ip as IpAddress)
+}
+
 const dcScopeVms = computed(() => vms.value.filter(vm => vm.other['xo:dcscope:installTime'] !== undefined))
 const dcNetscopeVms = computed(() => vms.value.filter(vm => vm.other['xo:dcnetscope:installTime'] !== undefined))
 
-const dcScopeIp = computed(() => getLatestVmIp(dcScopeVms.value, 'dcscope'))
-const dcNetscopeIp = computed(() => getLatestVmIp(dcNetscopeVms.value, 'dcnetscope'))
+const dcScopeIp = computed(() => getFormattedIp(getLatestVmIp(dcScopeVms.value, 'dcscope')))
+const dcNetscopeIp = computed(() => getFormattedIp(getLatestVmIp(dcNetscopeVms.value, 'dcnetscope')))
 
 const hubLink = computed(() => `${routes.value?.xo5}#/hub/recipes`)
 </script>
