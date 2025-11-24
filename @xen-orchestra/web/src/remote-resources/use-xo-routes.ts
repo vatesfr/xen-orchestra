@@ -3,7 +3,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 
 export const useXoRoutes = defineRemoteResource({
   url: '/rest/v0/gui-routes',
-  cacheDurationMs: false,
+  cacheExpirationMs: false,
   pollingIntervalMs: false,
   initialData: () => undefined as XoRoutes | undefined,
   state: (routes, context) => {
