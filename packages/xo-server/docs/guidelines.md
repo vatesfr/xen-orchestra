@@ -1,6 +1,6 @@
 # Backend Project Guidelines
 
-Theses guidelines are not absolute rules, but expect to have to explain to the reviewer if the PR does not explicit why the guideline is not used.
+These guidelines are not absolute rules, but expect to have to explain to the reviewer if the PR does not explicitly state why the guideline is not used.
 
 _Stability > Perfection | Clarity > Cleverness | Incremental Improvement > Rewrites_
 
