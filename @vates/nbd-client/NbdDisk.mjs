@@ -49,13 +49,6 @@ export class NbdDisk extends RandomAccessDisk {
         throw new Error(`Block ${index} is not at the right size, expecting ${this.getBlockSize()}, got ${data.length}`)
       }
     }
-    if (
-      index === Math.floor(this.getVirtualSize() / this.getBlockSize() - 1) && // last block
-      data.length < this.getBlockSize() // truncated
-    ) {
-      // add zeros at the end
-      data = Buffer.concat([data], this.getBlockSize())
-    }
     return {
       index,
       data,
