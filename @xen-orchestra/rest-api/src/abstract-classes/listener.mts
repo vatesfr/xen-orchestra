@@ -41,11 +41,11 @@ export abstract class Listener {
     this.#eventCallbacks.forEach((cb, event) => {
       this.#eventEmitter.off(event, cb)
     })
+    this.#eventCallbacks.clear()
   }
 
   clear() {
     this.removeAllEventListeners()
-    this.#eventCallbacks.clear()
     this.#subscribers.clear()
     this.#watchedEvent = []
   }

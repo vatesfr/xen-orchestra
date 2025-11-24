@@ -22,7 +22,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('pool')">
       <template v-if="pool !== undefined" #value>
-        <UiLink size="medium" :to="`/pool/${pool.id}/`" icon="fa:city">
+        <UiLink size="medium" :to="`/pool/${pool.id}/dashboard`" icon="fa:city">
           {{ pool.name_label }}
         </UiLink>
       </template>

@@ -77,6 +77,7 @@ import { VmService } from '../vms/vm.service.mjs'
 import { PoolService } from './pool.service.mjs'
 import { escapeUnsafeComplexMatcher, NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('pools')
 @Security('*')
@@ -145,14 +146,14 @@ export class PoolController extends XapiXoController<XoPool> {
   @Middlewares(json())
   @Tags('networks')
   @SuccessResponse(createdResp.status, createdResp.description)
-  @Response(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   createNetwork(
     @Path() id: string,
     @Body() body: CreateNetworkBody,
     @Query() sync?: boolean
-  ): Promise<string | { id: Unbrand<XoNetwork>['id'] }> {
+  ): CreateActionReturnType<{ id: Unbrand<XoNetwork>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
       const { pif, ...rest } = body
@@ -179,11 +180,11 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/emergency_shutdown')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  emergencyShutdown(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  emergencyShutdown(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const poolId = id as XoPool['id']
     const action = async () => {
       await this.restApi.xoApp.checkFeatureAuthorization('POOL_EMERGENCY_SHUTDOWN')
@@ -205,11 +206,11 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/rolling_reboot')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  rollingReboot(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  rollingReboot(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const poolId = id as XoPool['id']
     const action = async (task: VatesTask) => {
       const pool = this.getObject(poolId)
@@ -232,11 +233,11 @@ export class PoolController extends XapiXoController<XoPool> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/rolling_update')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  rollingUpdate(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  rollingUpdate(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const poolId = id as XoPool['id']
     const action = async (task: VatesTask) => {
       const pool = this.getObject(poolId)
@@ -303,14 +304,14 @@ export class PoolController extends XapiXoController<XoPool> {
   @Middlewares(json())
   @Tags('vms')
   @SuccessResponse(createdResp.status, createdResp.description)
-  @Response(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVm(
     @Path() id: string,
     @Body() body: Unbrand<CreateVmBody>,
     @Query() sync?: boolean
-  ): Promise<string | { id: Unbrand<XoVm>['id'] }> {
+  ): CreateActionReturnType<{ id: Unbrand<XoVm>['id'] }> {
     const poolId = id as XoPool['id']
     const action = async () => {
       const { affinity, template, ...rest } = body
@@ -320,7 +321,7 @@ export class PoolController extends XapiXoController<XoPool> {
       return { id: vmId }
     }
 
-    return this.createAction<string | { id: XoVm['id'] }>(action, {
+    return this.createAction<{ id: XoVm['id'] }>(action, {
       sync,
       statusCode: createdResp.status,
       taskProperties: {
