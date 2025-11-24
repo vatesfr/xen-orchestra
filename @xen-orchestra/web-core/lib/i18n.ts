@@ -57,6 +57,10 @@ export const locales: Locales = {
     code: 'pt_BR',
     name: 'Português (Brasil)',
   },
+  da: {
+    code: 'da',
+    name: 'Danish',
+  },
 }
 
 export default createI18n({

@@ -52,8 +52,6 @@
   "backup-targets": "Destinos de backup",
   "backup.full": "Backup completo",
   "backup.incremental": "Backup incremental",
-  "backup.metadata": "Metadata backup",
-  "backup.mirror": "Espelhamento de backup",
   "backup.pool-metadata": "Metadata do pool",
   "backup.rolling-snapshot": "Snapshot contínuo",
   "backup.xo-config": "Configuração XO",
@@ -151,7 +149,7 @@
   "force-shutdown": "Forçar desligamento",
   "forget": "Esquecer",
   "fullscreen": "Tela cheia",
-  "fullscreen-leave": "Sair da tela cheia"
+  "fullscreen-leave": "Sair da tela cheia",
   "new-vm.feature-not-supported": "Este é o nosso novo formulário de criação de VM. A configuração do Cloud-init, as opções avançadas e a gestão de vTPM ainda não são suportadas. Uma versão atualizada estará disponível em breve, em 2026. Enquanto isso, todas as funcionalidades estão disponíveis aqui em {xo-5}",
-  "xo-5": "XO 5"
+  "xo-5": "XO-5"
 }
