@@ -42,7 +42,7 @@
     "@xen-orchestra/defined": "^0.0.2",
     "@xen-orchestra/log": "^0.7.1",
     "@xen-orchestra/template": "^0.1.0",
-    "ansi_up": "^4.0.3",
+    "ansi_up": "^5.0.0",
     "asap": "^2.0.6",
     "babel-plugin-dev": "^1.0.0",
     "babelify": "^10.0.0",

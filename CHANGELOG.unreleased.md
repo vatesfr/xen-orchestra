@@ -10,6 +10,7 @@
 - [Packages] Update xml2js dependency (PR [#9216](https://github.com/vatesfr/xen-orchestra/pull/9216))
 - [Proxy] Update cookie package (PR [#9220](https://github.com/vatesfr/xen-orchestra/pull/9220))
 - [Plugins/transport-email] Update nodemailer (PR [#9217](https://github.com/vatesfr/xen-orchestra/pull/9217))
+- Update dependency ansi_up (PR [#9226](https://github.com/vatesfr/xen-orchestra/pull/9226))
 
 ### Enhancements
 
