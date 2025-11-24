@@ -83,7 +83,5 @@
 - xo-server-usage-report minor
 - xo-vmdk-to-vhd patch
 - xo-web minor
-- @xen-orchestra/backups minor
-
 
 <!--packages-end-->
