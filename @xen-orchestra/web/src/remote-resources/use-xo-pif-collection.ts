@@ -1,5 +1,6 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { watchCollectionWrapper } from '@/utils/sse.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoHost, XoNetwork, XoPif } from '@vates/types'
 import { computed } from 'vue'
@@ -24,15 +25,13 @@ const pifFields: (keyof XoPif)[] = [
   'vlan',
   'isBondMaster',
   'bondSlaves',
+  'type',
 ] as const
 
 export const useXoPifCollection = defineRemoteResource({
   url: '/rest/v0/pifs?fields='.concat(pifFields.toString()),
   initialData: () => [] as XoPif[],
-  watchCollection: {
-    type: 'PIF',
-    fields: pifFields,
-  },
+  watchCollection: watchCollectionWrapper({ resource: 'PIF', fields: pifFields }),
   state: (pifs, context) => {
     const state = useXoCollectionState(pifs, {
       context,

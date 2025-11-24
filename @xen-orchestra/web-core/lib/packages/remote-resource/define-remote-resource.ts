@@ -1,7 +1,7 @@
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
-import type { GetRecordByType, VoidFunction } from '@core/types/utility.type.ts'
+import { useSseStore } from '@core/stores/sse.store'
+import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
-import type { XapiXoRecord } from '@vates/types/'
 import { type MaybeRef, noop, useTimeoutPoll } from '@vueuse/core'
 import { merge, remove } from 'lodash-es'
 import readNDJSONStream from 'ndjson-readablestream'
@@ -19,7 +19,6 @@ import {
   toValue,
   watch,
 } from 'vue'
-import { watchRemoteResource } from './watch-remote-resource'
 
 const DEFAULT_CACHE_DURATION_MS = 10_000
 
@@ -50,26 +49,39 @@ export function defineRemoteResource<TData, TState extends object, TArgs extends
 
 export function defineRemoteResource<
   TData,
-  TCollectionType extends XapiXoRecord['type'] | 'alarm',
   TState extends object = { data: Ref<TData> },
   TArgs extends any[] = [],
 >(config: {
   url: string | ((...args: TArgs) => string)
   initialData: () => TData
   state?: (data: Ref<NoInfer<TData>>, context: ResourceContext<TArgs>) => TState
-  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: GetRecordByType<TCollectionType>) => void
-  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: GetRecordByType<TCollectionType>) => void
+  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
   cacheDurationMs?: number
   stream?: boolean
   watchCollection: {
-    type: TCollectionType
-    fields?: (keyof GetRecordByType<TCollectionType>)[]
+    resource: string // reactivity only on XAPI XO record for now
+    getIdentifier: (obj: unknown) => string
+    handleDelete: (sseId: string, subscriptionId: string) => Promise<void>
+    handlePost: (sseId: string) => Promise<any>
+    handleWatching: (
+      updateSseId: (id: string) => void,
+      getConfigByResource: (resource: string) =>
+        | {
+            subscriptionId: string
+            events: {
+              add: (object: unknown) => void
+              update: (object: unknown) => void
+              remove: (object: unknown) => void
+            }
+          }
+        | undefined
+    ) => void
   }
 }): UseRemoteResource<TState, TArgs>
 
 export function defineRemoteResource<
   TData,
-  TCollectionType extends XapiXoRecord['type'],
   TState extends object = { data: Ref<TData> },
   TArgs extends any[] = [],
 >(config: {
@@ -82,8 +94,23 @@ export function defineRemoteResource<
   pollingIntervalMs?: number
   stream?: boolean
   watchCollection?: {
-    type: TCollectionType // reactivity only on XAPI XO record for now
-    fields?: (keyof GetRecordByType<TCollectionType>)[]
+    resource: string // reactivity only on XAPI XO record for now
+    getIdentifier: (obj: unknown) => string
+    handleDelete: (sseId: string, subscriptionId: string) => Promise<void>
+    handlePost: (sseId: string) => Promise<any>
+    handleWatching: (
+      updateSseId: (id: string) => void,
+      getConfigByResource: (resource: string) =>
+        | {
+            subscriptionId: string
+            events: {
+              add: (object: unknown) => void
+              update: (object: unknown) => void
+              remove: (object: unknown) => void
+            }
+          }
+        | undefined
+    ) => void
   }
 }) {
   const cache = new Map<
@@ -113,8 +140,8 @@ export function defineRemoteResource<
   const removeData = (data: TData[], dataToRemove: any) => {
     remove(data, d => {
       if (typeof d === 'object') {
-        if ('id' in d!) {
-          return d.id === dataToRemove.id
+        if (config.watchCollection?.getIdentifier !== undefined) {
+          return config.watchCollection.getIdentifier(d) === config.watchCollection.getIdentifier(dataToRemove)
         }
 
         return JSON.stringify(d) === JSON.stringify(dataToRemove)
@@ -237,13 +264,16 @@ export function defineRemoteResource<
     let resume: VoidFunction = execute
 
     if (config.watchCollection !== undefined) {
-      const { fields, type } = config.watchCollection
-      const { start: startWatching, stop: stopWatching } = watchRemoteResource(type, fields)
+      const { resource, handleDelete, handlePost, handleWatching } = config.watchCollection
+      const { watch, unwatch } = useSseStore()
 
-      pause = stopWatching
+      pause = () => unwatch({ resource, handleDelete })
       resume = async function () {
         await execute()
-        await startWatching({
+        await watch({
+          handleWatching,
+          handlePost,
+          resource,
           onDataReceived: receivedData => onDataReceived(data, receivedData),
           onDataRemoved: receivedData => onDataRemoved(data, receivedData),
         })

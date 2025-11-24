@@ -1,4 +1,5 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
+import { watchCollectionWrapper } from '@/utils/sse.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoPool } from '@vates/types'
@@ -17,14 +18,12 @@ const poolFields: (keyof XoPool)[] = [
   'suspendSr',
   'crashDumpSr',
   'haSrs',
+  'type',
 ] as const
 
 export const useXoPoolCollection = defineRemoteResource({
   url: '/rest/v0/pools?fields='.concat(poolFields.toString()),
-  watchCollection: {
-    type: 'pool',
-    fields: poolFields,
-  },
+  watchCollection: watchCollectionWrapper({ resource: 'pool', fields: poolFields }),
   initialData: () => [] as XoPool[],
   state: (rawPools, context) => {
     const pools = useSorted(rawPools, sortByNameLabel)
