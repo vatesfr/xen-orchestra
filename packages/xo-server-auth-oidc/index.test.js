@@ -94,6 +94,8 @@ describe('AuthOidc._synchronizeGroups', () => {
     mockData.xoGroups = [
       { id: 1, users: ['id1'], name: 'group-1', provider: 'oidc' },
       { id: 2, users: [], name: 'group-2', provider: 'oidc' },
+      { id: 3, users: [], name: 'group-3', provider: 'oidc' },
+      { id: 4, users: ['id1'], name: 'group-4', provider: 'ldap' },
     ]
     const mockUser = { id: 'id1' }
     const mockOidcGroups = ['group-2']
@@ -108,6 +110,8 @@ describe('AuthOidc._synchronizeGroups', () => {
     assert.deepEqual(mockData.xoGroups, [
       { id: 1, users: [], name: 'group-1', provider: 'oidc' },
       { id: 2, users: ['id1'], name: 'group-2', provider: 'oidc' },
+      { id: 3, users: [], name: 'group-3', provider: 'oidc' },
+      { id: 4, users: ['id1'], name: 'group-4', provider: 'ldap' },
     ])
   })
 })

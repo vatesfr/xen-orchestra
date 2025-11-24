@@ -158,7 +158,7 @@ class AuthOidc {
 
     for (const xoGroup of xoGroups) {
       // If the user is in a XO group that he is not a part of in OIDC, we remove him.
-      if (xoGroup.provider === 'oidc' && !oidcGroups.includes(xoGroup.name)) {
+      if (xoGroup.provider === 'oidc' && xoGroup.users.includes(user.id) && !oidcGroups.includes(xoGroup.name)) {
         await this.#xo.removeUserFromGroup(user.id, xoGroup.id)
       }
     }
