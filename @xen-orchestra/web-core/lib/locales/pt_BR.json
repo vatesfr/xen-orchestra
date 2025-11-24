@@ -91,5 +91,6 @@
   "core.select.all": "Selecionar todos",
   "core.select.n-object-of": "{from} - {to} de {total} objetos",
   "descending": "descendente",
-  "description": "Descrição"
+  "description": "Descrição",
+  "new-vm.feature-not-supported": "Este é o nosso novo formulário de criação de VM. A configuração do Cloud-init, as opções avançadas e a gestão de vTPM ainda não são suportadas. Uma versão atualizada estará disponível em breve, em 2026. Enquanto isso, todas as funcionalidades estão disponíveis aqui em {xo-5}"
 }

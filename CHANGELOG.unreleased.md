@@ -39,6 +39,7 @@
   - [Settings page] Create settings page accessible from user menu (PR [#9175](https://github.com/vatesfr/xen-orchestra/pull/9175))
   - [Pool/VMs] Implement VMs view and side panel information (PR [#9196](https://github.com/vatesfr/xen-orchestra/pull/9196))
   - [Host/VMs] Implement VMs view and side panel information (PR [#9193](https://github.com/vatesfr/xen-orchestra/pull/9193))
+  - [New/VM] Display unsupported features information message (PR [#9203](https://github.com/vatesfr/xen-orchestra/pull/9203))
 
 ### Bug fixes
 
