@@ -154,31 +154,29 @@ class AuthOidc {
    * @returns {Promise<void>}
    */
   async _synchronizeGroups(user, oidcGroups) {
-    if (oidcGroups.length > 0) {
-      const xoGroups = await this.#xo.getAllGroups()
+    const xoGroups = await this.#xo.getAllGroups()
 
-      for (const xoGroup of xoGroups) {
-        // If the user is in a XO group that he is not a part of in OIDC, we remove him.
-        if (!oidcGroups.includes(xoGroup.name)) {
-          await this.#xo.removeUserFromGroup(user.id, xoGroup.id)
-        }
+    for (const xoGroup of xoGroups) {
+      // If the user is in a XO group that he is not a part of in OIDC, we remove him.
+      if (xoGroup.provider === 'oidc' && !oidcGroups.includes(xoGroup.name)) {
+        await this.#xo.removeUserFromGroup(user.id, xoGroup.id)
+      }
+    }
+
+    for (const oidcGroupName of oidcGroups) {
+      // Try to find the OIDC group in the XO groups by name.
+      let xoGroup = xoGroups.find(group => group.provider === 'oidc' && group.name === oidcGroupName)
+      if (xoGroup === undefined) {
+        // If the OIDC group does not exist we create it.
+        xoGroup = await this.#xo.createGroup({
+          name: oidcGroupName,
+          provider: 'oidc',
+        })
       }
 
-      for (const oidcGroupName of oidcGroups) {
-        // Try to find the OIDC group in the XO groups by name.
-        let xoGroup = xoGroups.find(group => group.name === oidcGroupName)
-        if (xoGroup === undefined) {
-          // If the OIDC group does not exist we create it.
-          xoGroup = await this.#xo.createGroup({
-            name: oidcGroupName,
-            provider: 'oidc',
-          })
-        }
-
-        // If the user is not part of the group, add him.
-        if (xoGroup.users.find(xoGroupUser => xoGroupUser === user.id) === undefined) {
-          await this.#xo.addUserToGroup(user.id, xoGroup.id)
-        }
+      // If the user is not part of the group, add him.
+      if (xoGroup.users.find(xoGroupUser => xoGroupUser === user.id) === undefined) {
+        await this.#xo.addUserToGroup(user.id, xoGroup.id)
       }
     }
   }

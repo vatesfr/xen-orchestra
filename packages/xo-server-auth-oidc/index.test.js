@@ -72,6 +72,24 @@ describe('AuthOidc._synchronizeGroups', () => {
     ])
   })
 
+  it('synchronizeGroups should check the provider of the existing groups', async () => {
+    mockData.xoGroups = [{ id: 1, users: [], name: 'group-1', provider: 'ldap' }]
+    const mockUser = { id: 'id1' }
+    const mockOidcGroups = ['group-1']
+
+    await authOidc._synchronizeGroups(mockUser, mockOidcGroups)
+
+    // We created 1 group and added 1 user to it.
+    assert.equal(mockXo.createGroup.mock.calls.length, 1)
+    assert.equal(mockXo.addUserToGroup.mock.calls.length, 1)
+    assert.equal(mockXo.removeUserFromGroup.mock.calls.length, 0)
+
+    assert.deepEqual(mockData.xoGroups, [
+      { id: 1, users: [], name: 'group-1', provider: 'ldap' },
+      { id: 2, users: ['id1'], name: 'group-1', provider: 'oidc' },
+    ])
+  })
+
   it('synchronizeGroups should remove user from groups he is not a part of', async () => {
     mockData.xoGroups = [
       { id: 1, users: ['id1'], name: 'group-1', provider: 'oidc' },
