@@ -204,7 +204,7 @@
                 <div v-if="index === 0">{{ t('bond-devices') }}</div>
               </template>
               <template #value>
-                <span v-tooltip class="text-ellipsis">{{ device }}</span>
+                <span v-tooltip>{{ device }}</span>
               </template>
               <template #addons>
                 <VtsCopyButton :value="device" />
