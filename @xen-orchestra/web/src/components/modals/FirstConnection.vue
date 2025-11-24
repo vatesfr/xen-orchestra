@@ -24,8 +24,12 @@
         <p>
           <I18nT keypath="popup-first-connection-feedback" scope="global" tag="p">
             <template #feedbackLink>
-              <!-- // TODO: add link when available -->
-              <UiLink href="#" size="medium" target="_blank" rel="noopener noreferrer">
+              <UiLink
+                href="https://xcp-ng.org/forum/topic/11604/xo-6-dedicated-thread-for-all-your-feedback"
+                size="medium"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {{ $t('popup-first-connection-feedback-and-impressions') }}
               </UiLink>
             </template>
