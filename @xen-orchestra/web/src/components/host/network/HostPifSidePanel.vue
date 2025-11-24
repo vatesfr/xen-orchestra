@@ -26,7 +26,6 @@
               {{ pif.id }}
             </template>
             <template #addons>
-              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
               <VtsCopyButton :value="pif.id" />
             </template>
           </VtsCardRowKeyValue>
@@ -36,7 +35,10 @@
               {{ t('network') }}
             </template>
             <template #value>
-              <span v-tooltip class="value text-ellipsis">{{ network?.name_label }}</span>
+              <UiLink size="medium" :to="`/pool/${network?.$pool}/networks?id=${network?.id}`" @click.stop>
+                <VtsIcon name="fa:network-wired" size="medium" />
+                <span v-tooltip class="text-ellipsis">{{ network?.name_label }}</span>
+              </UiLink>
             </template>
             <template v-if="network?.name_label" #addons>
               <VtsCopyButton :value="network.name_label" />
@@ -49,6 +51,7 @@
             </template>
             <template #value>
               {{ pif.device }}
+              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
             </template>
             <template #addons>
               <VtsCopyButton :value="pif.device" />
@@ -271,6 +274,7 @@ import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'

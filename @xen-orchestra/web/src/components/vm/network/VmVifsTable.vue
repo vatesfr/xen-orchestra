@@ -46,10 +46,11 @@
               <div
                 v-else-if="column.id === 'network'"
                 v-tooltip="{ placement: 'bottom-end' }"
-                class="network text-ellipsis"
+                class="text-ellipsis network"
               >
-                <UiLink size="medium" :href="`/#/vms/${vm.id}/network?s=1_0_asc-${row.id}`" @click.stop>
-                  {{ column.value }}
+                <UiLink size="medium" :to="`/pool/${vm.$pool}/networks?id=${column.value.id}`" @click.stop>
+                  <VtsIcon name="fa:network-wired" size="medium" />
+                  <span v-tooltip>{{ column.value.name }}</span>
                 </UiLink>
               </div>
               <div v-else-if="column.id === 'ip'" class="ip-addresses">
@@ -134,7 +135,7 @@ const getIpAddresses = (vif: XoVif) => {
 const { visibleColumns, rows } = useTable('vifs', filteredVifs, {
   rowId: record => record.id,
   columns: define => [
-    define('network', record => getNetworkName(record), { label: t('network') }),
+    define('network', record => ({ id: record.$network, name: getNetworkName(record) }), { label: t('network') }),
     define('device', record => t('vif-device', { device: record.device }), { label: t('device') }),
     define('status', record => (record.attached ? 'connected' : 'disconnected'), { label: t('status') }),
     define('ip', record => getIpAddresses(record), { label: t('ip-addresses') }),

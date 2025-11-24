@@ -55,14 +55,9 @@
                 v-tooltip="{ placement: 'bottom-end' }"
                 class="text-ellipsis network"
               >
-                <UiLink size="medium" :href="`/#/hosts/${host.id}/network?s=1_0_asc-${row.id}`" @click.stop>
-                  <VtsIcon
-                    v-if="column.value.management"
-                    v-tooltip="t('management')"
-                    name="legacy:primary"
-                    size="medium"
-                  />
-                  <span v-tooltip class="text-ellipsis">{{ column.value.name }}</span>
+                <UiLink size="medium" :to="`/pool/${host.$pool}/networks?id=${column.value.id}`" @click.stop>
+                  <VtsIcon name="fa:network-wired" size="medium" />
+                  <span v-tooltip>{{ column.value.name }}</span>
                 </UiLink>
               </div>
               <div v-else-if="column.id === 'ip'" class="ip-addresses">
@@ -70,6 +65,15 @@
                 <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
                   {{ `+${column.value.length - 1}` }}
                 </span>
+              </div>
+              <div v-else-if="column.id === 'device'" class="device">
+                <span v-tooltip class="text-ellipsis">{{ column.value.name }}</span>
+                <VtsIcon
+                  v-if="column.value.management"
+                  v-tooltip="t('management')"
+                  name="legacy:primary"
+                  size="medium"
+                />
               </div>
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
@@ -153,15 +157,8 @@ const getIpConfigurationMode = (ipMode: string) => {
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.id,
   columns: define => [
-    define(
-      'network',
-      record => ({
-        name: getNetworkName(record),
-        management: record.management,
-      }),
-      { label: t('network') }
-    ),
-    define('device', { label: t('device') }),
+    define('network', record => ({ id: record.$network, name: getNetworkName(record) }), { label: t('network') }),
+    define('device', record => ({ name: record.device, management: record.management }), { label: t('device') }),
     define('status', record => getPifStatus(record), { label: t('status') }),
     define('vlan', record => getVlanData(record.vlan), { label: t('vlan') }),
     define('ip', record => getIpAddresses(record), { label: t('ip-addresses') }),
@@ -177,7 +174,7 @@ const { pageRecords: pifsRecords, paginationBindings } = usePagination('pifs', r
 type pifHeader = 'network' | 'device' | 'status' | 'vlan' | 'ip' | 'mac' | 'mode' | 'more'
 
 const headerIcon: Record<pifHeader, IconName> = {
-  network: 'fa:align-left',
+  network: 'fa:a',
   device: 'fa:align-left',
   status: 'fa:power-off',
   vlan: 'fa:align-left',
@@ -208,6 +205,12 @@ const headerIcon: Record<pifHeader, IconName> = {
     display: flex;
     align-items: center;
     gap: 1.8rem;
+  }
+
+  .device {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
   }
 
   .ip-addresses {
