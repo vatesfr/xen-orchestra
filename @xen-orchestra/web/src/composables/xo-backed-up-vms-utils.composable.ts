@@ -1,21 +1,25 @@
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { VmsSmartModeDisabled, VmsSmartModeEnabled, XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
-import type { XoVm } from '@/types/xo/vm.type.ts'
 import { extractIdsFromSimplePattern, destructSmartPattern } from '@/utils/pattern.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
+import type { XoVmBackupJob, XoVm, VM_POWER_STATE } from '@vates/types'
 import * as ValueMatcher from 'value-matcher'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
-export function useXoBackedUpVmsUtils(_rawBackedUpVms: MaybeRefOrGetter<XoVmBackupJob['vms']>) {
+export type VmsSmartModeEnabled = {
+  $pool?: Record<string, unknown>
+  power_state?: VM_POWER_STATE
+  tags?: Record<string, unknown>
+  type: 'VM'
+}
+
+export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<XoVmBackupJob['vms']>) {
   const { getPoolsByIds } = useXoPoolCollection()
   const { getVmsByIds, vms } = useXoVmCollection()
 
-  const rawBackedUpVms = toComputed(_rawBackedUpVms)
+  const backedUpVmsConfig = toComputed(rawBackedUpVmsConfig)
 
-  function checkSmartModeEnabled(
-    value: VmsSmartModeEnabled | VmsSmartModeDisabled | undefined
-  ): value is VmsSmartModeEnabled {
+  function checkSmartModeEnabled(value: XoVmBackupJob['vms'] | undefined): value is VmsSmartModeEnabled {
     if (value === undefined || typeof value !== 'object' || value === null) {
       return false
     }
@@ -23,26 +27,26 @@ export function useXoBackedUpVmsUtils(_rawBackedUpVms: MaybeRefOrGetter<XoVmBack
     return !('id' in value)
   }
 
-  const isSmartModeEnabled = computed(() => checkSmartModeEnabled(rawBackedUpVms.value))
+  const isSmartModeEnabled = computed(() => checkSmartModeEnabled(backedUpVmsConfig.value))
 
   const backedUpVms = computed(() => {
-    if (checkSmartModeEnabled(rawBackedUpVms.value)) {
-      const predicate = ValueMatcher.createPredicate(rawBackedUpVms.value)
+    if (checkSmartModeEnabled(backedUpVmsConfig.value)) {
+      const predicate = ValueMatcher.createPredicate(backedUpVmsConfig.value)
 
       return vms.value.filter(vm => predicate(vm) && !vm.tags?.includes('xo:no-bak'))
     }
 
-    return getVmsByIds(extractIdsFromSimplePattern(rawBackedUpVms.value) as XoVm['id'][])
+    return getVmsByIds(extractIdsFromSimplePattern(backedUpVmsConfig.value) as XoVm['id'][])
   })
 
   const backedUpVmsCount = computed(() => backedUpVms.value.length)
 
   const smartModePools = computed(() => {
-    if (!checkSmartModeEnabled(rawBackedUpVms.value) || rawBackedUpVms.value.$pool === undefined) {
+    if (!checkSmartModeEnabled(backedUpVmsConfig.value) || backedUpVmsConfig.value.$pool === undefined) {
       return undefined
     }
 
-    const poolIds = destructSmartPattern(rawBackedUpVms.value.$pool)
+    const poolIds = destructSmartPattern(backedUpVmsConfig.value.$pool)
 
     if (!poolIds) {
       return undefined
@@ -55,11 +59,11 @@ export function useXoBackedUpVmsUtils(_rawBackedUpVms: MaybeRefOrGetter<XoVmBack
   })
 
   const smartModeTags = computed(() => {
-    if (!checkSmartModeEnabled(rawBackedUpVms.value) || rawBackedUpVms.value.tags === undefined) {
+    if (!checkSmartModeEnabled(backedUpVmsConfig.value) || backedUpVmsConfig.value.tags === undefined) {
       return undefined
     }
 
-    const tags = destructSmartPattern(rawBackedUpVms.value.tags)
+    const tags = destructSmartPattern(backedUpVmsConfig.value.tags)
 
     return {
       included: tags.values?.flat(),
@@ -68,11 +72,11 @@ export function useXoBackedUpVmsUtils(_rawBackedUpVms: MaybeRefOrGetter<XoVmBack
   })
 
   const smartModePowerState = computed(() => {
-    if (!checkSmartModeEnabled(rawBackedUpVms.value) || rawBackedUpVms.value.power_state === undefined) {
+    if (!checkSmartModeEnabled(backedUpVmsConfig.value) || backedUpVmsConfig.value.power_state === undefined) {
       return undefined
     }
 
-    return rawBackedUpVms.value.power_state
+    return backedUpVmsConfig.value.power_state
   })
 
   return {

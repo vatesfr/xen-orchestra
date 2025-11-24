@@ -127,6 +127,10 @@ defineExpose({ focus })
     &::placeholder {
       color: var(--color-neutral-txt-secondary);
     }
+
+    &::-webkit-search-cancel-button {
+      -webkit-appearance: none;
+    }
   }
 
   /* VARIANT */

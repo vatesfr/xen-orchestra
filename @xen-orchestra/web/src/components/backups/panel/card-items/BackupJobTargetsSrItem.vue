@@ -7,8 +7,8 @@
 </template>
 
 <script setup lang="ts">
-import type { XoSr } from '@/types/xo/sr.type.ts'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import type { XoSr } from '@vates/types'
 
 const { sr } = defineProps<{
   sr: XoSr

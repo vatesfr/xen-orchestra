@@ -18,6 +18,8 @@ import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
 
+export type CreateActionReturnType<CbType> = Promise<{ taskId: string } | CbType>
+
 export abstract class BaseController<T extends XoRecord, IsSync extends boolean> extends Controller {
   abstract getObjects(): IsSync extends false ? Promise<Record<T['id'], T>> : Record<T['id'], T>
   abstract getObject(id: T['id']): IsSync extends false ? Promise<T> : T
@@ -92,7 +94,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       sync?: boolean
       taskProperties: { name: string; objectId: T['id']; params?: unknown; [key: string]: unknown }
     }
-  ): Promise<string | CbType> {
+  ): CreateActionReturnType<CbType> {
     taskProperties.name = 'REST API: ' + taskProperties.name
     taskProperties.type = 'xo:rest-api:action'
 
@@ -107,9 +109,9 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       const location = `${BASE_URL}/tasks/${task.id}`
       this.setStatus(202)
       this.setHeader('Location', location)
-      this.setHeader('Content-Type', 'text/plain')
+      this.setHeader('Content-Type', 'application/json')
 
-      return location
+      return { taskId: task.id }
     }
   }
 

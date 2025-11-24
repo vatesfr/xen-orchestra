@@ -34,25 +34,23 @@ import BackupJobLogsCard from '@/components/backups/panel/cards/BackupJobLogsCar
 import BackupJobSchedulesCard from '@/components/backups/panel/cards/BackupJobSchedulesCard.vue'
 import BackupJobSourceRepositoryCard from '@/components/backups/panel/cards/BackupJobSourceRepositoryCard.vue'
 import BackupJobTargetsCard from '@/components/backups/panel/cards/BackupJobTargetsCard.vue'
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
+import { useXoBackupJobSettingsUtils } from '@/composables/xo-backup-job/xo-backup-job-settings.composable'
 import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection.ts'
 import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
-import type { XoBackupRepository } from '@/types/xo/br.type.ts'
-import type { XoPool } from '@/types/xo/pool.type.ts'
-import type { XoSr } from '@/types/xo/sr.type.ts'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoSr, XoPool, XoBackupRepository, AnyXoBackupJob } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
-  backupJob: XoBackupJob
+  backupJob: AnyXoBackupJob
 }>()
 
 const emit = defineEmits<{
@@ -92,9 +90,9 @@ const storageRepositoryTargets = computed(() => {
   return getSrsByIds(extractIdsFromSimplePattern(backupJob.srs) as XoSr['id'][])
 })
 
-const hasSettings = computed(
-  () => backupJob.compression !== undefined || backupJob.proxy !== undefined || backupJob.settings[''] !== undefined
-)
+const { settings: backupJobSettings } = useXoBackupJobSettingsUtils(() => backupJob)
+
+const hasSettings = computed(() => Object.values(backupJobSettings).some(value => value !== undefined))
 </script>
 
 <style scoped lang="postcss">

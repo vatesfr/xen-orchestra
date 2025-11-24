@@ -1,7 +1,4 @@
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
-import type { XoMetadataBackupJob } from '@/types/xo/metadata-backup-job.type.ts'
-import type { XoMirrorBackupJob } from '@/types/xo/mirror-backup-job.type.ts'
-import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type.ts'
+import type { AnyXoBackupJob, XoMetadataBackupJob, XoMirrorBackupJob, XoVmBackupJob } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export function useXoBackupUtils() {
@@ -10,7 +7,8 @@ export function useXoBackupUtils() {
   const hasSnapshotRetention = (backupJob: XoVmBackupJob) =>
     Object.values(backupJob.settings).some(
       settingsGroup =>
-        settingsGroup.snapshotRetention &&
+        settingsGroup &&
+        'snapshotRetention' in settingsGroup &&
         typeof settingsGroup.snapshotRetention === 'number' &&
         settingsGroup.snapshotRetention > 0
     )
@@ -33,7 +31,7 @@ export function useXoBackupUtils() {
       }
 
       if (hasSrs) {
-        modes.push(t('backup.disaster-recovery'))
+        modes.push(t('backup.full-replication'))
       }
     } else if (backupJob.mode === 'delta') {
       if (hasRemotes) {
@@ -41,7 +39,7 @@ export function useXoBackupUtils() {
       }
 
       if (hasSrs) {
-        modes.push(t('backup.continuous-replication'))
+        modes.push(t('backup.incremental-replication'))
       }
     }
 
@@ -49,7 +47,7 @@ export function useXoBackupUtils() {
   }
 
   function getMetadataBackupModes(backupJob: XoMetadataBackupJob) {
-    const modes = [t('backup.metadata')]
+    const modes = []
 
     if (hasIds(backupJob.pools?.id)) {
       modes.push(t('backup.pool-metadata'))
@@ -63,18 +61,18 @@ export function useXoBackupUtils() {
   }
 
   function getMirrorBackupModes(backupJob: XoMirrorBackupJob): string[] {
-    const modes = [t('backup.mirror')]
+    const modes = []
 
     if (backupJob.mode === 'full') {
-      modes.push(t('backup.full'))
+      modes.push(t('backup.mirror.full'))
     } else if (backupJob.mode === 'delta') {
-      modes.push(t('backup.incremental'))
+      modes.push(t('backup.mirror.incremental'))
     }
 
     return modes
   }
 
-  function getModeLabels(backupJob: XoBackupJob): string[] {
+  function getModeLabels(backupJob: AnyXoBackupJob): string[] {
     switch (backupJob.type) {
       case 'mirrorBackup':
         return getMirrorBackupModes(backupJob)

@@ -1,7 +1,7 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
-import type { XoPool } from '@/types/xo/pool.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
+import type { XoPool } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 
 export const useXoPoolCollection = defineRemoteResource({

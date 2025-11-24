@@ -64,13 +64,16 @@
                   {{ column.value }}
                 </UiLink>
               </div>
-              <UiTagsList v-else-if="column.id === 'mode'">
-                <template v-for="(backupMode, index) in column.value" :key="index">
-                  <UiTag v-if="backupMode !== undefined" variant="secondary" accent="info" class="mode">
-                    {{ backupMode }}
-                  </UiTag>
-                </template>
-              </UiTagsList>
+              <div
+                v-else-if="column.id === 'modes'"
+                v-tooltip="column.value.length > 1 ? column.value.join(', ') : undefined"
+                class="modes"
+              >
+                <span v-tooltip="column.value.length === 1" class="text-ellipsis">{{ column.value[0] }}</span>
+                <span v-if="column.value.length > 1" class="typo-body-regular-small more-info">
+                  {{ `+${column.value.length - 1}` }}
+                </span>
+              </div>
               <template v-else-if="column.id === 'last-runs'">
                 <ul class="last-three-runs">
                   <li v-for="(status, index) in column.value" :key="index" v-tooltip="status.tooltip">
@@ -99,7 +102,6 @@
 <script setup lang="ts">
 import { useXoBackupJobSchedulesUtils } from '@/composables/xo-backup-job-schedules.composable'
 import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -109,20 +111,19 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import type { AnyXoBackupJob } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJobs } = defineProps<{
-  backupJobs: XoBackupJob[]
+  backupJobs: AnyXoBackupJob[]
   hasError: boolean
 }>()
 
@@ -151,7 +152,7 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
   columns: define => [
     define('checkbox', noop, { label: '', isHideable: false }),
     define('job-name', record => record.name, { label: t('job-name') }),
-    define('mode', record => getModeLabels(record), { label: t('mode') }),
+    define('modes', record => getModeLabels(record), { label: t('mode', 2) }),
     define('last-runs', record => getLastThreeRunsStatuses(record), {
       label: t('last-n-runs', { n: 3 }),
     }),
@@ -162,11 +163,11 @@ const { visibleColumns, rows } = useTable('backup-jobs', filteredBackupJobs, {
 
 const { pageRecords: backupJobsRecords, paginationBindings } = usePagination('backups-jobs', rows)
 
-type BackupJobHeader = 'job-name' | 'mode' | 'last-runs' | 'schedules'
+type BackupJobHeader = 'job-name' | 'modes' | 'last-runs' | 'schedules'
 
 const headerIcon: Record<BackupJobHeader, IconName> = {
   'job-name': 'fa:align-left',
-  mode: 'fa:square-caret-down',
+  modes: 'fa:square-caret-down',
   'last-runs': 'fa:square-caret-down',
   schedules: 'fa:hashtag',
 }
@@ -231,6 +232,17 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
     li:first-child {
       transform: scale(1.2);
       margin-inline-end: 0.3rem;
+    }
+  }
+
+  .modes {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+
+    .more-info {
+      color: var(--color-neutral-txt-secondary);
     }
   }
 

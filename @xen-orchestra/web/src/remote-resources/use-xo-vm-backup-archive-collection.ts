@@ -1,7 +1,6 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state'
-import type { XoBackupRepository } from '@/types/xo/br.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource'
-import type { XoVmBackupArchive } from '@vates/types'
+import type { XoBackupRepository, XoVmBackupArchive } from '@vates/types'
 
 export const useXoVmBackupArchiveCollection = defineRemoteResource({
   url: (backupRepositoriesIds: XoBackupRepository['id'][]) => {

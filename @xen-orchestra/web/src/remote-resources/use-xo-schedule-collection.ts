@@ -1,7 +1,6 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
-import type { XoSchedule } from '@/types/xo/schedule.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import type { AnyXoBackupJob, XoSchedule } from '@vates/types'
 import { computed } from 'vue'
 
 export const useXoScheduleCollection = defineRemoteResource({
@@ -14,7 +13,7 @@ export const useXoScheduleCollection = defineRemoteResource({
     })
 
     const schedulesByJobId = computed(() => {
-      const schedulesByJobIdMap = new Map<XoBackupJob['id'], XoSchedule[]>()
+      const schedulesByJobIdMap = new Map<AnyXoBackupJob['id'], XoSchedule[]>()
 
       schedules.value.forEach(schedule => {
         if (!schedulesByJobIdMap.has(schedule.jobId)) {

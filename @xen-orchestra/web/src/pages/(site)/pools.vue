@@ -16,12 +16,12 @@
 import PoolsSidePanel from '@/components/site/pools/PoolsSidePanel.vue'
 import PoolsTable from '@/components/site/pools/PoolsTable.vue'
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
-import type { XoServer } from '@/types/xo/server.type'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoServer } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { servers, getServerById } = useXoServerCollection()

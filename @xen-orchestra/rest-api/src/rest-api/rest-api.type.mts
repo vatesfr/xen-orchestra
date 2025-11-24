@@ -188,7 +188,7 @@ export type XoApp = {
   }>
   listVmBackupsNg(
     backupRepositoryIds: XoBackupRepository['id'][],
-    _forceRefresh?: boolean
+    opts?: { _forceRefresh?: boolean; vmId: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]>>>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(body: InsertableXoServer): Promise<XoServer>

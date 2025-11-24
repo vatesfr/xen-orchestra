@@ -36,17 +36,17 @@
 
 <script lang="ts" setup>
 import { XOA_NAME } from '@/constants'
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiBreadcrumb from '@core/components/ui/breadcrumb/UiBreadcrumb.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store'
+import type { AnyXoBackupJob } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ backupJob: XoBackupJob }>()
+defineProps<{ backupJob: AnyXoBackupJob }>()
 
 const { t } = useI18n()
 const uiStore = useUiStore()

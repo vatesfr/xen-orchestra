@@ -11,7 +11,7 @@ import BackupJobGeneralInformation from '@/components/backups/configuration/Back
 import BackupJobSchedulesTable from '@/components/backups/configuration/BackupJobSchedulesTable.vue'
 import BackupJobSettings from '@/components/backups/configuration/BackupJobSettings.vue'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection'
-import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
+import type { XoVmBackupJob } from '@vates/types'
 import { computed } from 'vue'
 
 const { backupJob } = defineProps<{

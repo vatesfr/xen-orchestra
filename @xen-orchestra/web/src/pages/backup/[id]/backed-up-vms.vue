@@ -9,7 +9,7 @@
 import BackedUpVmsConfiguration from '@/components/backups/backed-up-vms/BackedUpVmsConfiguration.vue'
 import BackedUpVmsTable from '@/components/backups/backed-up-vms/BackedUpVmsTable.vue'
 import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
-import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
+import type { XoVmBackupJob } from '@vates/types'
 
 const { backupJob } = defineProps<{
   backupJob: XoVmBackupJob

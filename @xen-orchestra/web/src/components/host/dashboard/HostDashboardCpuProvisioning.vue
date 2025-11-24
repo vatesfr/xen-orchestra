@@ -5,7 +5,7 @@
     <template v-else>
       <VtsProgressBar
         :label="t('vcpus')"
-        :total="cpusCount"
+        :total="cpusCount ?? vCpusCount"
         :thresholds="cpuProgressThresholds(t('cpu-provisioning-warning'))"
         :current="vCpusCount"
         legend-type="percent"
@@ -21,13 +21,13 @@
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { XoHost } from '@/types/xo/host.type'
 import VtsProgressBar from '@core/components/progress-bar/VtsProgressBar.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { cpuProgressThresholds } from '@core/utils/progress.util.ts'
+import type { XoHost } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
 import { computed } from 'vue'
@@ -47,7 +47,7 @@ const isReady = logicAnd(areHostsReady, areVmsReady)
 
 const hostVms = computed(() => vmsByHost.value.get(host.id) ?? [])
 
-const cpusCount = computed(() => host.cpus.cores)
+const cpusCount = computed(() => host.cpus.cores ?? 0)
 
 const vCpusCount = useArrayReduce(hostVms, (total, vm) => total + vm.CPUs.number, 0)
 </script>

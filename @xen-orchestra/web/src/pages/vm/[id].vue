@@ -12,10 +12,10 @@
 <script lang="ts" setup>
 import VmHeader from '@/components/vm/VmHeader.vue'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { XoVm } from '@/types/xo/vm.type'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 

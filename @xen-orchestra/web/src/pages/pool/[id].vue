@@ -12,9 +12,9 @@
 <script lang="ts" setup>
 import PoolHeader from '@/components/pool/PoolHeader.vue'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import type { XoPool } from '@/types/xo/pool.type'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
+import type { XoPool } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 

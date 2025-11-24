@@ -24,12 +24,12 @@
 
 <script setup lang="ts">
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
-import type { XoPool } from '@/types/xo/pool.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XoPool } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
