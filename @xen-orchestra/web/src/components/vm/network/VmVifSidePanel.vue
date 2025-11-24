@@ -35,7 +35,10 @@
               {{ t('network') }}
             </template>
             <template #value>
-              <span v-tooltip class="text-ellipsis value">{{ network?.name_label }}</span>
+              <UiLink size="medium" :to="`/pool/${network?.$pool}/networks?id=${network?.id}`" @click.stop>
+                <VtsIcon name="fa:network-wired" size="medium" />
+                <span v-tooltip class="text-ellipsis">{{ network?.name_label }}</span>
+              </UiLink>
             </template>
             <template v-if="network?.name_label" #addons>
               <VtsCopyButton :value="network.name_label" />
@@ -151,10 +154,12 @@ import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collec
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'
