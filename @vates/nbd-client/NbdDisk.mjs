@@ -40,7 +40,22 @@ export class NbdDisk extends RandomAccessDisk {
     if (!this.#nbdClient) {
       throw new Error("can't readBlock before init")
     }
-    const data = await this.#nbdClient.readBlock(index, this.getBlockSize())
+    let data = await this.#nbdClient.readBlock(index, this.getBlockSize())
+    if (data.length !== this.getBlockSize()) {
+      if (index === Math.floor(this.getVirtualSize() / this.getBlockSize()) - 1) {
+        // last block add zeros at the end
+        data = Buffer.concat([data], this.getBlockSize())
+      } else {
+        throw new Error(`Block ${index} is not at the right size, expecting ${this.getBlockSize()}, got ${data.length}`)
+      }
+    }
+    if (
+      index === Math.floor(this.getVirtualSize() / this.getBlockSize() - 1) && // last block
+      data.length < this.getBlockSize() // truncated
+    ) {
+      // add zeros at the end
+      data = Buffer.concat([data], this.getBlockSize())
+    }
     return {
       index,
       data,

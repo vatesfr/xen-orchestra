@@ -35,8 +35,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- xo-web minor
+- @vates/nbd-client patch
+- vhd-lib patch
 
 <!--packages-end-->
