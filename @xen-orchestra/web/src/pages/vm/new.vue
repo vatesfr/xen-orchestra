@@ -340,6 +340,7 @@ import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.t
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
@@ -369,7 +370,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useFormSelect } from '@core/packages/form-select'
 import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
 
-import { useFetch } from '@vueuse/core'
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -930,14 +930,14 @@ watch(
   { immediate: true }
 )
 
-const { data: guiRoutes } = useFetch('./rest/v0/gui-routes').json()
+const { routes } = useXoRoutes()
 
 const xo5Link = computed(() => {
-  if (!vmState.pool?.id || !guiRoutes.value?.xo5) {
+  if (!vmState.pool?.id || !routes.value) {
     return '#'
   }
-  const base = guiRoutes.value.xo5.replace(/\/$/, '')
-  return `${base}/#/vms/new?pool=${vmState.pool.id}`
+
+  return `${routes.value.xo5}#/vms/new?pool=${vmState.pool?.id}`
 })
 </script>
 
