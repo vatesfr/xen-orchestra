@@ -52,6 +52,7 @@
 - [Backups/File level restore] ignore swap partition (PR [#9182](https://github.com/vatesfr/xen-orchestra/pull/9182))
 - [Backups/File level restore] Better handling of LVM on GPT partition (PR [#9182](https://github.com/vatesfr/xen-orchestra/pull/9182))
 - [REST API] Fix `/rest/v0/backup-jobs` return non backup-jobs (PR [#9210](https://github.com/vatesfr/xen-orchestra/pull/9210))
+- [REST API] Fix `/rest/v0/backup-archives` return error 500 _Cannot convert undefined or null to object_
 
 - **XO 6:**
   - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
