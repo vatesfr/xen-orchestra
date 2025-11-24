@@ -110,11 +110,7 @@
                   <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
                 <div v-tooltip="{ placement: 'top-start', content: copyHostBiosStringsTooltipContent }">
-                  <UiCheckbox
-                    v-model="vmState.copyHostBiosStrings"
-                    accent="brand"
-                    :disabled="isCopyHostBiosStringsCheckboxDisabled"
-                  >
+                  <UiCheckbox v-model="vmState.copyHostBiosStrings" accent="brand" :disabled="!canCopyBiosStrings">
                     {{ t('copy-host-bios-strings') }}
                   </UiCheckbox>
                 </div>
@@ -490,9 +486,7 @@ const selectedTemplateHasBiosStrings = computed(
   () => vmState.new_vm_template !== undefined && Object.keys(vmState.new_vm_template.bios_strings).length !== 0
 )
 
-const isCopyHostBiosStringsCheckboxDisabled = computed(
-  () => vmState.bootFirmware === 'uefi' || selectedTemplateHasBiosStrings.value
-)
+const canCopyBiosStrings = computed(() => vmState.bootFirmware === 'uefi' || selectedTemplateHasBiosStrings.value)
 
 const copyHostBiosStringsTooltipContent = computed(() => {
   if (vmState.bootFirmware === 'uefi') {
@@ -856,7 +850,7 @@ watch(
       vifs: getExistingVifs(template),
       selectedVdi: undefined,
       installMode: undefined,
-      bootFirmware: template.boot.firmware !== undefined ? template.boot.firmware : 'bios',
+      bootFirmware: template.boot.firmware ?? 'bios',
     } satisfies Partial<VmState>)
   }
 )
