@@ -494,7 +494,7 @@ const copyHostBiosStringsTooltipContent = computed(() => {
   }
 
   if (selectedTemplateHasBiosStrings.value) {
-    return t('boot-firmware-bios')
+    return t('template-has-bios-strings')
   }
 
   return undefined
