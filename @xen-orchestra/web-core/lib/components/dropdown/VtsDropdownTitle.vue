@@ -3,9 +3,9 @@
  TODO: Replace `span` with `UiButton` when new version (with tertiary) is available
  -->
 <template>
-  <div class="dropdown-title">
+  <div class="vts-dropdown-title">
     <VtsIcon :name="icon" size="medium" />
-    <div class="label c3 semi-bold">
+    <div class="typo-caption-small">
       <slot />
     </div>
     <div v-if="onToggleSelectAll" class="buttons">
@@ -41,7 +41,7 @@ const { t } = useI18n()
 </script>
 
 <style lang="postcss" scoped>
-.dropdown-title {
+.vts-dropdown-title {
   display: flex;
   align-items: center;
   padding: 0.4rem 1.6rem;

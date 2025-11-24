@@ -1,7 +1,7 @@
 <template>
   <ComponentStory
     v-slot="{ properties }"
-    :params="[slot().help('This slot is meant to receive a list of <DropdownItem> and <DropdownTitle>')]"
+    :params="[slot().help('This slot is meant to receive a list of <DropdownItem> and <VtsDropdownTitle>')]"
   >
     <UiDropdownList v-bind="properties">
       <UiDropdown v-for="n in 5" :key="n" accent="brand">Item label</UiDropdown>
