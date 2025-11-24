@@ -14,6 +14,7 @@
 
 - [HUB Recipe] Support custom cluster CIDR and Xo CCM (Cloud Controller Manager) in Pyrgos recipe
 - [Disk] Add warning before disconnecting a VBD (PR [#9211](https://github.com/vatesfr/xen-orchestra/pull/9211))
+- [vhd-cli] **Breaking changes** Changed commands input to make plugin usable on encrypted remotes (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
 
 - **XO 6:**
   - [New/VM] Display unsupported features information message (PR [#9203](https://github.com/vatesfr/xen-orchestra/pull/9203))
@@ -39,6 +40,7 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
+- vhd-cli major
 - vhd-lib patch
 - xo-web minor
 
