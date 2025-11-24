@@ -42,6 +42,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VIF] Fix VIFs with device > 7 being destroyed when changing network - now uses non-destructive VIF.move API (XenServer 7.1+) that preserves VIF UUID and avoids network downtime (PR [#9221](https://github.com/vatesfr/xen-orchestra/pull/9221))
 - [Backups] use the oldest record for Long Term Retention instead of newest (PR [#9180](https://github.com/vatesfr/xen-orchestra/pull/9180))
 - [Backups] fix infinite chain of snapshot and replication [Forum#11540](https://xcp-ng.org/forum/topic/11540) [Forum#11539](https://xcp-ng.org/forum/topic/11539) (PR [#9202](https://github.com/vatesfr/xen-orchestra/pull/9202))
 - [V2V] fix missing libssl.so.3 in path on debian 11 (PR [#9208](https://github.com/vatesfr/xen-orchestra/pull/9208))
