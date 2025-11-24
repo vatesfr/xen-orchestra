@@ -42,7 +42,9 @@ export class NbdDisk extends RandomAccessDisk {
     }
     let data = await this.#nbdClient.readBlock(index, this.getBlockSize())
     if (data.length !== this.getBlockSize()) {
-      if (index === Math.floor(this.getVirtualSize() / this.getBlockSize()) - 1) {
+      // this condition only work on non aligned disks
+      // we won't accept truncated block from unaligned disks
+      if (index === Math.ceil(this.getVirtualSize() / this.getBlockSize()) - 1) {
         // last block add zeros at the end
         data = Buffer.concat([data], this.getBlockSize())
       } else {
