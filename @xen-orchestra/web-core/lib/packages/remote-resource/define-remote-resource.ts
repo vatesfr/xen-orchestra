@@ -1,5 +1,5 @@
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
-import { useSseStore } from '@core/stores/sse.store'
+import { useSseStore, type THandleDelete, type THandlePost, type THandleWatching } from '@core/stores/sse.store'
 import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
 import { type MaybeRef, noop, useTimeoutPoll } from '@vueuse/core'
@@ -62,21 +62,9 @@ export function defineRemoteResource<
   watchCollection: {
     resource: string // reactivity only on XAPI XO record for now
     getIdentifier: (obj: unknown) => string
-    handleDelete: (sseId: string, subscriptionId: string) => Promise<void>
-    handlePost: (sseId: string) => Promise<any>
-    handleWatching: (
-      updateSseId: (id: string) => void,
-      getConfigByResource: (resource: string) =>
-        | {
-            subscriptionId: string
-            events: {
-              add: (object: unknown) => void
-              update: (object: unknown) => void
-              remove: (object: unknown) => void
-            }
-          }
-        | undefined
-    ) => void
+    handleDelete: THandleDelete
+    handlePost: THandlePost
+    handleWatching: THandleWatching
   }
 }): UseRemoteResource<TState, TArgs>
 
@@ -96,21 +84,9 @@ export function defineRemoteResource<
   watchCollection?: {
     resource: string // reactivity only on XAPI XO record for now
     getIdentifier: (obj: unknown) => string
-    handleDelete: (sseId: string, subscriptionId: string) => Promise<void>
-    handlePost: (sseId: string) => Promise<any>
-    handleWatching: (
-      updateSseId: (id: string) => void,
-      getConfigByResource: (resource: string) =>
-        | {
-            subscriptionId: string
-            events: {
-              add: (object: unknown) => void
-              update: (object: unknown) => void
-              remove: (object: unknown) => void
-            }
-          }
-        | undefined
-    ) => void
+    handleDelete: THandleDelete
+    handlePost: THandlePost
+    handleWatching: THandleWatching
   }
 }) {
   const cache = new Map<

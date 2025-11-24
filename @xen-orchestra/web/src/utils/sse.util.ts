@@ -1,3 +1,4 @@
+import type { THandleDelete, THandlePost, THandleWatching } from '@core/stores/sse.store'
 import { useEventSource } from '@vueuse/core'
 import { watchEffect } from 'vue'
 
@@ -16,27 +17,15 @@ export function watchCollectionWrapper({
   fields?: string[]
   getIdentifier?: (obj: unknown) => string
   getType?: (obj: unknown) => string
-  handleDelete?: (sseId: string, subscriptionId: string) => Promise<void>
-  handlePost?: (sseId: string) => Promise<any>
-  handleWatching?: (
-    updateSseId: (id: string) => void,
-    getConfigByResource: (resource: string) =>
-      | {
-          subscriptionId: string
-          events: {
-            add: (object: unknown) => void
-            update: (object: unknown) => void
-            remove: (object: unknown) => void
-          }
-        }
-      | undefined
-  ) => void
+  handleDelete?: THandleDelete
+  handlePost?: THandlePost
+  handleWatching?: THandleWatching
 }) {
   const _getType: (obj: unknown) => string | undefined = getType ?? ((obj: any) => obj.type)
   const _getIdentifier: (obj: unknown) => string | undefined = getIdentifier ?? ((obj: any) => obj.id)
 
   if (handleDelete === undefined) {
-    handleDelete = async (sseId: string, subscriptionId: string) => {
+    handleDelete = async (sseId, subscriptionId) => {
       const resp = await fetch(`${EVENT_ENDPOINTS}/${sseId}/subscriptions/${subscriptionId}`, { method: 'DELETE' })
       if (!resp.ok) {
         throw new Error(
@@ -47,7 +36,7 @@ export function watchCollectionWrapper({
   }
 
   if (handlePost === undefined) {
-    handlePost = async (sseId: string) => {
+    handlePost = async sseId => {
       const resp = await fetch(`${EVENT_ENDPOINTS}/${sseId}/subscriptions`, {
         method: 'POST',
         headers: {
@@ -62,24 +51,12 @@ export function watchCollectionWrapper({
         throw new Error(`cannot start subscription: status: ${resp.status}, text: ${resp.statusText}`)
       }
       const json = await resp.json()
-      return json
+      return json.id
     }
   }
 
   if (handleWatching === undefined) {
-    handleWatching = (
-      updateSseId: (id: string) => void,
-      getConfigByResource: (resource: string) =>
-        | {
-            subscriptionId: string
-            events: {
-              add: (object: unknown) => void
-              update: (object: unknown) => void
-              remove: (object: unknown) => void
-            }
-          }
-        | undefined
-    ) => {
+    handleWatching = (updateSseId, getConfigByResource) => {
       const { data, event } = useEventSource(EVENT_ENDPOINTS, ['init', 'add', 'update', 'remove'], {
         serializer: {
           read: raw => (raw === undefined ? undefined : JSON.parse(raw)),

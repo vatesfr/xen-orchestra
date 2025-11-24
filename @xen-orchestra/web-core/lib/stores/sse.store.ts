@@ -2,6 +2,21 @@ import { defineStore } from 'pinia'
 import { ref, watch as watchVue } from 'vue'
 
 type EventFn = (object: unknown) => void
+export type THandlePost = (sseId: string) => Promise<string>
+export type THandleDelete = (sseId: string, subscriptionId: string) => Promise<void>
+export type THandleWatching = (
+  updateSseId: (id: string) => void,
+  getConfigByResource: (resource: string) =>
+    | {
+        subscriptionId: string
+        events: {
+          add: (object: unknown) => void
+          update: (object: unknown) => void
+          remove: (object: unknown) => void
+        }
+      }
+    | undefined
+) => void
 
 export const useSseStore = defineStore('sse', () => {
   const sse = ref<{ id?: string; isWatching: boolean }>({ isWatching: false })
@@ -25,7 +40,7 @@ export const useSseStore = defineStore('sse', () => {
     return configByResource.get(resource)
   }
 
-  function initializeWatcher(handleWatching: any) {
+  function initializeWatcher(handleWatching: THandleWatching) {
     return new Promise((resolve, reject) => {
       if (sse.value.id !== undefined) {
         return reject(new Error('SSE already initialized'))
@@ -58,17 +73,17 @@ export const useSseStore = defineStore('sse', () => {
     resource: string
     onDataReceived: EventFn
     onDataRemoved: EventFn
-    handlePost: any
-    handleWatching: any
+    handlePost: THandlePost
+    handleWatching: THandleWatching
   }) {
     if (sse.value.id === undefined) {
       await initializeWatcher(handleWatching)
     }
 
-    const json = await handlePost(sse.value.id)
+    const id = await handlePost(sse.value.id!)
 
     configByResource.set(resource, {
-      subscriptionId: json.id,
+      subscriptionId: id,
       events: {
         add: onDataReceived,
         update: onDataReceived,
@@ -77,7 +92,7 @@ export const useSseStore = defineStore('sse', () => {
     })
   }
 
-  async function unwatch({ resource, handleDelete }: { resource: string; handleDelete: any }) {
+  async function unwatch({ resource, handleDelete }: { resource: string; handleDelete: THandleDelete }) {
     if (sse.value.id === undefined || !configByResource.has(resource)) {
       return
     }
