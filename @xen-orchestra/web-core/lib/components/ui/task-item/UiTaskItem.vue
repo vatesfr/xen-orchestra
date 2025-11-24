@@ -2,9 +2,11 @@
 <template>
   <li class="ui-task-item" :data-depth="depth">
     <div class="container">
-      <div class="content">
-        <div v-for="index in depth - 1" :key="index" class="tree-line">
-          <div class="tree-line-vertical" />
+      <div class="tree-section">
+        <div class="tree-lines">
+          <div v-for="index in depth - 1" :key="index" class="tree-line">
+            <div class="tree-line-vertical" />
+          </div>
         </div>
         <UiButtonIcon
           v-if="hasSubTasks"
@@ -16,14 +18,13 @@
           @click="emit('expand')"
         />
         <div v-else class="h-space" />
+      </div>
 
-        <div v-if="task.name">
+      <div class="main-content">
+        <div v-if="task.name" class="content-left">
           <UiLink :to="`#task-${task.id}`" size="medium">
             {{ task.name }}
           </UiLink>
-        </div>
-
-        <div class="info">
           <div class="counter">
             <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="muted" variant="primary" size="small" />
           </div>
@@ -31,19 +32,19 @@
           <UiInfo v-if="task.warning?.length" accent="warning" />
           <UiInfo v-if="isError" accent="danger" />
         </div>
-      </div>
-      <div class="content typo-body-regular-small">
-        <span v-if="task.end">
-          {{ `${t('task.ended')} ${end}` }}
-        </span>
-        <div class="progress">
-          <UiCircleProgressBar v-if="task.progress" :accent="progressAccent" size="small" :value="task.progress" />
-        </div>
-        <div class="actions">
-          <!-- TODO add link to open side panel with task details -->
-          <UiButtonIcon icon="fa:eye" size="medium" accent="brand" />
-          <div class="cancel">
-            <UiButtonIcon v-if="task.status === 'pending'" icon="fa:close" size="medium" accent="danger" />
+
+        <div class="content-right typo-body-regular-small">
+          <span v-if="task.end">
+            {{ `${t('task.ended')} ${end}` }}
+          </span>
+          <div class="progress">
+            <UiCircleProgressBar v-if="task.progress" :accent="progressAccent" size="small" :value="task.progress" />
+          </div>
+          <div class="actions">
+            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" />
+            <div class="cancel">
+              <UiButtonIcon v-if="task.status === 'pending'" icon="fa:close" size="medium" accent="danger" />
+            </div>
           </div>
         </div>
       </div>
@@ -110,64 +111,109 @@ const end = useTimeAgo(() => task.end ?? 0)
 
   .container {
     display: flex;
-    justify-content: space-between;
-    height: 4.8rem;
+    min-height: 4.8rem;
+    position: relative;
 
     &::after {
       content: '';
       width: 100%;
-      height: 0.1rem;
-      background: var(--color-neutral-border);
       position: absolute;
       clip-path: inset(0 0 0 calc(4rem * v-bind(depth - 1)));
+      height: 0.1rem;
+      background: var(--color-neutral-border);
     }
 
-    .content {
+    .tree-section {
+      display: flex;
+      align-items: center;
+      padding-left: 1.6rem;
+      gap: 0.6rem;
+
+      .tree-lines {
+        display: flex;
+        align-self: stretch;
+      }
+
+      .tree-line {
+        flex: 0 0 2.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .tree-line-vertical {
+          width: 0.1rem;
+          background: var(--color-brand-txt-base);
+          height: 100%;
+        }
+      }
+
+      .h-space {
+        width: 1.8rem;
+      }
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: row;
+      flex: 1;
+      min-width: 0;
+      gap: 1.6rem;
+      padding: 0.4rem 1.6rem;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .content-left {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      flex-wrap: wrap;
+      color: var(--color-neutral-txt-secondary);
+      word-break: break-word;
+
+      .counter {
+        margin: 0 0.8rem;
+      }
+    }
+
+    .content-right {
       display: flex;
       align-items: center;
       gap: 1.6rem;
-      padding: 0.4rem 1.6rem;
       color: var(--color-neutral-txt-secondary);
+      flex-shrink: 0;
 
-      .info {
+      .progress {
         display: flex;
-        align-items: center;
+        width: 4rem;
+      }
 
-        .counter {
-          margin-right: 0.8rem;
+      .actions {
+        display: flex;
+        gap: 1.6rem;
+
+        .cancel {
+          width: calc(4rem - 1.6rem);
         }
       }
     }
+  }
 
-    .tree-line {
-      flex: 0 0 1em;
-      align-self: stretch;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      .tree-line-vertical {
-        width: 0.1rem;
-        background: var(--color-brand-txt-base);
-        height: calc(100% + 0.8rem);
+  @media (max-width: 768px) {
+    .container {
+      .main-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.8rem;
+        padding: 0.8rem;
       }
-    }
 
-    .h-space {
-      width: 1.8rem;
-    }
+      .content-right {
+        gap: 0.8rem;
 
-    .progress {
-      display: flex;
-      width: 4rem;
-    }
-
-    .actions {
-      display: flex;
-      gap: 1.6rem;
-
-      .cancel {
-        width: calc(4rem - 1.6rem);
+        .actions {
+          gap: 0.8rem;
+        }
       }
     }
   }
