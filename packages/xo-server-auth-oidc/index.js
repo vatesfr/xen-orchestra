@@ -157,6 +157,13 @@ class AuthOidc {
     if (oidcGroups.length > 0) {
       const xoGroups = await this.#xo.getAllGroups()
 
+      for (const xoGroup of xoGroups) {
+        // If the user is in a XO group that he is not a part of in OIDC, we remove him.
+        if (!oidcGroups.includes(xoGroup.name)) {
+          await this.#xo.removeUserFromGroup(user.id, xoGroup.id)
+        }
+      }
+
       for (const oidcGroupName of oidcGroups) {
         // Try to find the OIDC group in the XO groups by name.
         let xoGroup = xoGroups.find(group => group.name === oidcGroupName)
