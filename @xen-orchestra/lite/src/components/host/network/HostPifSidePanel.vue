@@ -61,14 +61,7 @@
             <template #value>
               <div class="network">
                 <!-- TODO Remove the span when the link works and the icon is fixed -->
-                <!--
-                <UiComplexIcon size="medium">
-                  <VtsIcon icon="fa:network-wired" accent="current" />
-                  <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                </UiComplexIcon>
-                <a href="">{{ networkNameLabel }}</a>
-                -->
-                <span v-tooltip class="value text-ellipsis">{{ network?.name_label }}</span>
+                <span v-tooltip class="value">{{ network?.name_label }}</span>
               </div>
             </template>
             <template v-if="network?.name_label" #addons>

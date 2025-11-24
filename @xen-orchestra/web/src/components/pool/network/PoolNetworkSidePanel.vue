@@ -14,7 +14,7 @@
     </template>
     <template #default>
       <UiCard class="card-container">
-        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold text-ellipsis">
+        <UiCardTitle v-tooltip="{ placement: 'bottom-end' }" class="typo-body-bold">
           {{ network.name_label }}
         </UiCardTitle>
         <div class="content">

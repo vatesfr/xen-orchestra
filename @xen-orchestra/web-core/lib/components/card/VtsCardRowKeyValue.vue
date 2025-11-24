@@ -3,7 +3,7 @@
     <div class="key">
       <slot name="key" />
     </div>
-    <div v-tooltip class="value text-ellipsis">
+    <div v-tooltip class="value">
       <slot name="value" />
     </div>
     <div v-if="slots.addons" class="addons">

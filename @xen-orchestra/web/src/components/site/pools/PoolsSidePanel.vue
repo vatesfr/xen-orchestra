@@ -73,7 +73,7 @@
         </template>
       </UiAlert>
       <UiCard class="card-container">
-        <UiCardTitle class="text-ellipsis">
+        <UiCardTitle>
           {{ t('connection') }}
         </UiCardTitle>
         <!-- status -->

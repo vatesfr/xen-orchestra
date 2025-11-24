@@ -22,9 +22,7 @@
         <template #key>
           <template v-if="index === 0">{{ t('mode', backupJobModes.length) }}</template>
         </template>
-        <template #value>
-          <span class="text-ellipsis">{{ mode }}</span>
-        </template>
+        <template #value> {{ mode }} </template>
         <template #addons>
           <VtsCopyButton :value="mode" />
           <UiButtonIcon
