@@ -6,11 +6,14 @@
         <VtsSelect :id="poolSelectId" accent="brand" />
       </template>
     </UiHeadBar>
-    <UiAlert v-if="vmState.pool" accent="info">
-      {{ t('new-vm.feature-not-supported') }}
-      <UiLink :href="xo5Link" size="medium">
-        {{ t('xo-5') }}
-      </UiLink>
+    <UiAlert v-if="vmState.pool" accent="info" class="card-container">
+      <I18nT keypath="new-vm.feature-not-supported">
+        <template #xo-5>
+          <UiLink :href="xo5Link" size="medium">
+            {{ t('xo-5') }}
+          </UiLink>
+        </template>
+      </I18nT>
     </UiAlert>
     <div class="card-container">
       <form @submit.prevent="createNewVM()">
