@@ -40,6 +40,7 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
+- @xen-orchestra/rest-api patch
 - vhd-lib patch
 - xo-server-auth-oidc minor
 - xo-web minor
