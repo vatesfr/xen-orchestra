@@ -65,6 +65,10 @@ export default decorate([
           sshKey,
           vipAddress,
           workerNodeIpAddresses,
+          xoUrl,
+          useInsecureXoConnection,
+          customClusterPodCIDR,
+          customClusterServiceCIDR,
         } = recipeParams
 
         markRecipeAsCreating(RECIPE_INFO.id)
@@ -83,6 +87,10 @@ export default decorate([
           sshKey,
           vipAddress,
           workerNodeIpAddresses,
+          xoUrl,
+          useInsecureXoConnection,
+          customClusterPodCIDR,
+          customClusterServiceCIDR,
         })
         markRecipeAsDone(RECIPE_INFO.id)
 
