@@ -1,4 +1,3 @@
-import * as CM from 'complex-matcher'
 import {
   AnyXoBackupJob,
   XoVmBackupJob,
@@ -31,7 +30,7 @@ import { backupLog, backupLogIds, partialBackupLogs } from '../open-api/oa-examp
 import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { limitAndFilterArray, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 import type {
   UnbrandAnyXoBackupJob,
   UnbrandXoMetadataBackupJob,
@@ -298,7 +297,7 @@ export class DeprecatedBackupController extends XoController<AnyXoBackupJob> {
     @Query() filter?: string,
     @Query() limit?: number
   ): Promise<SendObjects<Partial<Unbrand<XoBackupLog>>>> {
-    const userFilter = filter === undefined ? () => true : CM.parse(filter).createPredicate()
+    const userFilter = filter === undefined ? () => true : safeParseComplexMatcher(filter).createPredicate()
 
     const predicate = (log: AnyXoLog) => {
       if (!this.#backupLogService.isBackupLog(log)) {

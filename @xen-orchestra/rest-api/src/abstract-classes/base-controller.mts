@@ -1,4 +1,3 @@
-import * as CM from 'complex-matcher'
 import { Controller, HttpStatusCodeLiteral } from 'tsoa'
 import { createGzip } from 'node:zlib'
 import { pipeline } from 'node:stream/promises'
@@ -14,7 +13,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
-import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
+import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
 
@@ -64,7 +63,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
 
     let userFilter: (task: XoTask) => boolean = () => true
     if (filter !== undefined) {
-      userFilter = typeof filter === 'string' ? CM.parse(filter).createPredicate() : filter
+      userFilter = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate() : filter
     }
 
     for await (const task of this.restApi.tasks.list({ filter: objectFilter })) {

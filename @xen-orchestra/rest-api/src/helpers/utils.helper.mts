@@ -5,6 +5,7 @@ import { isPromise } from 'node:util/types'
 
 import { MaybePromise, PromiseWriteInStreamError } from './helper.type.mjs'
 import { Writable } from 'node:stream'
+import { ApiError } from './error.helper.mjs'
 export const NDJSON_CONTENT_TYPE = 'application/x-ndjson'
 
 const log = createLogger('xo:rest-api:utils-helper')
@@ -123,12 +124,28 @@ export function escapeUnsafeComplexMatcher(maybeString: string | undefined): str
   return `(${maybeString})`
 }
 
+export function safeParseComplexMatcher(string: string) {
+  try {
+    return CM.parse(string)
+  } catch (error) {
+    if (error instanceof Error) {
+      const apiError = new ApiError(error.message, 400, { data: { stringToParse: string } })
+      apiError.cause = error
+      apiError.stack = error.stack
+
+      throw apiError
+    }
+
+    throw error
+  }
+}
+
 export function limitAndFilterArray<T>(
   array: T[],
   { filter, limit = Infinity }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}
 ): T[] {
   if (filter !== undefined) {
-    const predicate = typeof filter === 'string' ? CM.parse(filter).createPredicate() : filter
+    const predicate = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate() : filter
     array = array.filter(predicate)
   }
 

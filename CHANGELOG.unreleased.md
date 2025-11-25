@@ -11,7 +11,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-
 - [HUB Recipe] Support custom cluster CIDR and Xo CCM (Cloud Controller Manager) in Pyrgos recipe
 - [Disk] Add warning before disconnecting a VBD (PR [#9211](https://github.com/vatesfr/xen-orchestra/pull/9211))
 
@@ -20,7 +19,9 @@
   - [i18n] Update Czech, German, French, Italian, Dutch, Portuguese (Brazil), and Ukrainian translations, and add Danish translation (PR [#9165](https://github.com/vatesfr/xen-orchestra/pull/9165))
 
 ### Bug fixes
+
 - [V2V] fix transfer failing at 99% for unaligned disk (PR [#9233](https://github.com/vatesfr/xen-orchestra/pull/9233))
+- [REST API] _parse error: expected end of input at position #_ when an invalid query parameter is provided, a 400 error is returned with more details
 
 ### Packages to release
 
@@ -39,6 +40,7 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
+- @xen-orchestra/rest-api patch
 - vhd-lib patch
 - xo-web minor
 
