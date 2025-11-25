@@ -10,7 +10,7 @@ function humanReadableRule(rule) {
   }
   const TYPE_TO_TEXT = {
     host: 'host',
-    SR: 'host',
+    SR: 'storage repository',
     VM: 'virtual machine',
   }
   const COMPARATOR_TO_TEXT = {

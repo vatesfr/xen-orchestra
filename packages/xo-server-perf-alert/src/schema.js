@@ -188,8 +188,8 @@ export const configurationSchema = {
             description: 'Metric to monitor',
             title: 'Alarm Type',
             type: 'string',
-            default: 'srUsage',
-            enum: ['srUsage'],
+            default: 'storageUsage',
+            enum: ['storageUsage'],
           },
           comparator: COMPARATOR_ENTRY,
           alarmTriggerLevel: {
