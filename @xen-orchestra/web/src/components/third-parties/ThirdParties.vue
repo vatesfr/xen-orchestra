@@ -7,21 +7,9 @@
       <EasyVirtLogo class="logo" />{{ t('provider-solutions', { provider: 'EasyVirt' }) }}
     </VtsDropdownTitle>
 
-    <MenuItem>
-      <UiLink v-if="dcScopeIp !== undefined" class="link" size="medium" :href="`https://${dcScopeIp}`">
-        {{ t('open-app', { name: 'DC Scope' }) }}
-      </UiLink>
-      <UiLink v-else class="link" size="medium" :href="hubLink">
-        {{ t('install-app', { name: 'DC Scope' }) }}
-      </UiLink>
-    </MenuItem>
-
-    <MenuItem>
-      <UiLink v-if="dcNetscopeIp !== undefined" class="link" size="medium" :href="`https://${dcNetscopeIp}`">
-        {{ t('open-app', { name: 'DC Netscope' }) }}
-      </UiLink>
-      <UiLink v-else class="link" size="medium" :href="hubLink">
-        {{ t('install-app', { name: 'DC Netscope' }) }}
+    <MenuItem v-for="(easyVirtSolution, index) in easyVirtSolutions" :key="index">
+      <UiLink class="link" size="medium" :href="easyVirtSolution.href">
+        {{ easyVirtSolution.label }}
       </UiLink>
     </MenuItem>
   </MenuList>
@@ -48,6 +36,31 @@ const { t } = useI18n()
 
 const { vms } = useXoVmCollection()
 const { routes } = useXoRoutes()
+
+const hubLink = computed(() => `${routes.value?.xo5}#/hub/recipes`)
+
+const dcScopeVms = computed(() => vms.value.filter(vm => vm.other['xo:dcscope:installTime'] !== undefined))
+const dcNetscopeVms = computed(() => vms.value.filter(vm => vm.other['xo:dcnetscope:installTime'] !== undefined))
+
+const dcScopeIp = computed(() => getFormattedIp(getLatestVmIp(dcScopeVms.value, 'dcscope')))
+const dcNetscopeIp = computed(() => getFormattedIp(getLatestVmIp(dcNetscopeVms.value, 'dcnetscope')))
+
+const dcScopeLabel = computed(() =>
+  dcScopeIp.value !== undefined ? t('open-app', { name: 'DC Scope' }) : t('install-app', { name: 'DC Scope' })
+)
+const dcNetscopeLabel = computed(() =>
+  dcNetscopeIp.value !== undefined ? t('open-app', { name: 'DC Netscope' }) : t('install-app', { name: 'DC Netscope' })
+)
+
+const dcScopeLink = computed(() => (dcScopeIp.value !== undefined ? `https://${dcScopeIp.value}` : hubLink.value))
+const dcNetscopeLink = computed(() =>
+  dcNetscopeIp.value !== undefined ? `https://${dcNetscopeIp.value}` : hubLink.value
+)
+
+const easyVirtSolutions = computed(() => [
+  { label: dcScopeLabel.value, href: dcScopeLink.value },
+  { label: dcNetscopeLabel.value, href: dcNetscopeLink.value },
+])
 
 function getInstallTime(vm: XoVm, product: Product): string | undefined {
   return vm.other[`xo:${product}:installTime`]
@@ -79,14 +92,6 @@ function getFormattedIp(ip: string | undefined): string | undefined {
 
   return formatIpToHostName(ip as IpAddress)
 }
-
-const dcScopeVms = computed(() => vms.value.filter(vm => vm.other['xo:dcscope:installTime'] !== undefined))
-const dcNetscopeVms = computed(() => vms.value.filter(vm => vm.other['xo:dcnetscope:installTime'] !== undefined))
-
-const dcScopeIp = computed(() => getFormattedIp(getLatestVmIp(dcScopeVms.value, 'dcscope')))
-const dcNetscopeIp = computed(() => getFormattedIp(getLatestVmIp(dcNetscopeVms.value, 'dcnetscope')))
-
-const hubLink = computed(() => `${routes.value?.xo5}#/hub/recipes`)
 </script>
 
 <style lang="postcss" scoped>
