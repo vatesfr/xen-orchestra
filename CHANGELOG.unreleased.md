@@ -15,6 +15,7 @@
 - [Disk] Add warning before disconnecting a VBD (PR [#9211](https://github.com/vatesfr/xen-orchestra/pull/9211))
 - [vhd-cli] **Breaking changes** Changed commands input to make plugin usable on encrypted remotes (PR [#9235](https://github.com/vatesfr/xen-orchestra/pull/9235))
 - [Plugins/OIDC] Import user groups from OIDC (PR [#9206](https://github.com/vatesfr/xen-orchestra/pull/9206))
+- [Plugins/Perf-alert] **Breaking changes** Improve performance of plugins, remove Alarm generation (PR [#9070](https://github.com/vatesfr/xen-orchestra/pull/9070))
 
 - **XO 6:**
   - [New/VM] Display unsupported features information message (PR [#9203](https://github.com/vatesfr/xen-orchestra/pull/9203))
@@ -67,6 +68,7 @@
 - vhd-lib patch
 - xo-server patch
 - xo-server-auth-oidc minor
+- xo-server-perf-alert major
 - xo-web minor
 
 <!--packages-end-->
