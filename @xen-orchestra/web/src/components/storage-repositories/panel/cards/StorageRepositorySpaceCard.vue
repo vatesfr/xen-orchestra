@@ -1,5 +1,10 @@
 <template>
-  <VtsSpaceCard :used="sr.physical_usage" :total="sr.size" :name="sr.name_label" :total-size-label="t('total-space')" />
+  <VtsSpaceCard
+    :used="sr.physical_usage"
+    :total="sr.size"
+    :label="sr.name_label"
+    :total-size-label="t('total-space')"
+  />
 </template>
 
 <script lang="ts" setup>

@@ -1,17 +1,16 @@
 <template>
   <UiCard class="card-container">
-    <div class="vdi-label typo-body-bold">
-      <VtsIcon size="medium" name="fa:hard-drive" />
+    <UiLink size="medium" :href="`${xo5Route}#/vms/${vm.id}/disks/s=1_6_asc-${vdi.id}`" icon="fa:hard-drive">
       {{ vdi.name_label }}
-    </div>
+    </UiLink>
     <div class="content">
       <VtsCardRowKeyValue>
         <template #key>{{ t('uuid') }}</template>
         <template #value>
-          {{ vdi.uuid }}
+          {{ vdi.id }}
         </template>
         <template #addons>
-          <VtsCopyButton :value="vdi.uuid" />
+          <VtsCopyButton :value="vdi.id" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -39,7 +38,7 @@
         <template #value>
           <VtsStatus :status="vbdsStatus" />
         </template>
-        <template v-if="vbdsStatus" #addons>
+        <template #addons>
           <VtsCopyButton :value="vbdsStatus" />
         </template>
       </VtsCardRowKeyValue>
@@ -55,12 +54,14 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoVmVbdsUtils } from '@/composables/vm/xo-vm-vbd.composable.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import type { XoVdi, XoVm } from '@vates/types'
@@ -95,9 +96,12 @@ const vbdsStatus = computed(() => {
   return 'disconnected'
 })
 
-const vmVbds = computed(() => (vm.$VBDs ? getVbdsByIds(vm.$VBDs).filter(vbd => !vbd.is_cd_drive) : []))
+const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
 
-const vdiDevice = computed(() => vmVbds.value?.find(vbd => vbd.VDI === vdi.id)?.device ?? '')
+const vdiDevice = computed(() => notCdDriveVbds.value.find(vbd => vbd.VDI === vdi.id)?.device ?? '')
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '')
 </script>
 
 <style scoped lang="postcss">
@@ -108,13 +112,6 @@ const vdiDevice = computed(() => vmVbds.value?.find(vbd => vbd.VDI === vdi.id)?.
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-  }
-
-  .vdi-label {
-    display: flex;
-    gap: 0.8rem;
-    align-items: center;
-    color: var(--color-neutral-txt-secondary);
   }
 }
 </style>

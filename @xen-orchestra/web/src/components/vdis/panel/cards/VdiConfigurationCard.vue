@@ -20,15 +20,15 @@
           {{ t('storage') }}
         </template>
         <template #value>
-          <div class="storage">
+          <div v-if="vdiSr" class="storage">
             <VtsObjectIcon type="sr" state="muted" size="medium" />
-            <UiLink v-if="vdiSrName" size="small" :href="`/#/srs/${vdiSrId}/general`">
-              {{ vdiSrName }}
+            <UiLink size="small" :href="`${xo5routes}#/srs/${vdiSr.id}/general`">
+              {{ vdiSr.name_label }}
             </UiLink>
           </div>
         </template>
-        <template v-if="vdiSrName" #addons>
-          <VtsCopyButton :value="vdiSrName" />
+        <template v-if="vdiSr" #addons>
+          <VtsCopyButton :value="vdiSr.name_label" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -47,7 +47,9 @@
 </template>
 
 <script setup lang="ts">
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
+import { getVdiFormat } from '@/utils/vdi-format.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
@@ -65,13 +67,14 @@ const { vdi } = defineProps<{
 
 const { t } = useI18n()
 
-const { srs } = useXoSrCollection()
+const { useGetSrById } = useXoSrCollection()
 
-const format = computed(() => vdi.image_format?.toUpperCase() ?? t('vhd'))
+const format = computed(() => getVdiFormat(vdi.image_format))
 
-const vdiSrName = computed(() => srs.value.find(sr => sr.id === vdi.$SR)?.name_label)
+const vdiSr = useGetSrById(() => vdi.$SR)
 
-const vdiSrId = computed(() => (srs.value.some(sr => sr.id === vdi.$SR) ? vdi.$SR : undefined))
+const { routes } = useXoRoutes()
+const xo5routes = computed(() => routes.value?.xo5 ?? '')
 </script>
 
 <style scoped lang="postcss">

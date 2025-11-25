@@ -32,18 +32,22 @@
           >
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
               <div v-if="column.id === 'name'" class="name">
-                <VtsIcon size="medium" name="fa:hard-drive" />
-                <div v-tooltip class="text-ellipsis">
+                <UiLink
+                  v-tooltip
+                  size="medium"
+                  icon="fa:hard-drive"
+                  :href="`${xo5routes}#/vms/${vm.id}/disks/s=1_6_asc-${row.id}`"
+                  class="text-ellipsis"
+                  @click.stop
+                >
                   {{ column.value }}
-                </div>
+                </UiLink>
               </div>
               <div v-else-if="column.id === 'used-space'">
                 <VtsSizeProgressCell :current="column.value.used" :total="column.value.total" />
               </div>
-              <div v-else-if="column.id === 'size'">
-                <div class="size">
-                  {{ column.value }}
-                </div>
+              <div v-else-if="column.id === 'size'" class="size">
+                {{ column.value }}
               </div>
               <div v-else v-tooltip class="text-ellipsis">
                 {{ column.value }}
@@ -63,11 +67,14 @@
 </template>
 
 <script setup lang="ts">
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
+import { getVdiFormat } from '@/utils/vdi-format.util.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsSizeProgressCell from '@core/components/size-progress-cell/VtsSizeProgressCell.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -77,7 +84,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { formatSize } from '@core/utils/size.util.ts'
-import type { XoVdi } from '@vates/types'
+import type { XoVdi, XoVm } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -85,6 +92,7 @@ const { vdis } = defineProps<{
   vdis: XoVdi[]
   hasError: boolean
   isReady: boolean
+  vm: XoVm
 }>()
 
 const { t } = useI18n()
@@ -103,8 +111,6 @@ const filteredVdis = computed(() => {
   return vdis.filter(vdi => Object.values(vdi).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
-const getFormat = (format: string | undefined) => (format ? format.toUpperCase() : t('vhd'))
-
 const { visibleColumns, rows } = useTable('vdis', filteredVdis, {
   rowId: record => record.id,
   columns: define => [
@@ -112,7 +118,9 @@ const { visibleColumns, rows } = useTable('vdis', filteredVdis, {
     define('description', record => record.name_description, { label: t('description') }),
     define('used-space', record => ({ used: record.usage, total: record.size }), { label: t('used-space') }),
     define('size', record => formatSize(record.size, 2), { label: t('size') }),
-    define('format', record => getFormat(record.image_format), { label: t('format') }),
+    define('format', record => getVdiFormat(record.image_format), {
+      label: t('format'),
+    }),
   ],
 })
 
@@ -127,6 +135,9 @@ const headerIcon: Record<VdiHeader, IconName> = {
   size: 'fa:hashtag',
   format: 'fa:square-caret-down',
 }
+
+const { routes } = useXoRoutes()
+const xo5routes = computed(() => routes.value?.xo5 ?? '')
 </script>
 
 <style scoped lang="postcss">

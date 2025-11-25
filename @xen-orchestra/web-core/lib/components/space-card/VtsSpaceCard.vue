@@ -5,11 +5,11 @@
     </UiCardTitle>
 
     <div class="content">
-      <VtsProgressBar noruler :current="used" :total="total" :label="name" legend-type="percent" class="progress" />
+      <VtsProgressBar noruler :current="used" :total :label legend-type="percent" class="progress" />
 
       <VtsCardRowKeyValue>
         <template #key>{{ t('used-space') }}</template>
-        <template #value> {{ usedSpace.formattedValue }} </template>
+        <template #value>{{ usedSpace.formattedValue }}</template>
         <template v-if="usedSpace.rawValue > 0" #addons>
           <VtsCopyButton :value="usedSpace.formattedValue" />
         </template>
@@ -26,7 +26,7 @@
       </VtsCardRowKeyValue>
 
       <VtsCardRowKeyValue>
-        <template #key>{{ totalSizeLabel }}</template>
+        <template #key>{{ totalSizeLabel ? totalSizeLabel : t('size') }}</template>
         <template #value>
           {{ totalSpace.formattedValue }}
         </template>
@@ -51,8 +51,8 @@ import { useI18n } from 'vue-i18n'
 const { used, total } = defineProps<{
   used: number
   total: number
-  name: string
-  totalSizeLabel: string
+  label: string
+  totalSizeLabel?: string
 }>()
 
 const { t } = useI18n()

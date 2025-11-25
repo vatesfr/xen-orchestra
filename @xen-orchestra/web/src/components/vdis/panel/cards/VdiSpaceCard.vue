@@ -1,5 +1,5 @@
 <template>
-  <VtsSpaceCard :used="vdi.usage" :total="vdi.size" :name="vdi.name_label" :total-size-label="t('size')" />
+  <VtsSpaceCard :used="vdi.usage" :total="vdi.size" :label="vdi.name_label" :total-size-label="t('size')" />
 </template>
 
 <script setup lang="ts">

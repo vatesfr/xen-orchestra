@@ -1,7 +1,7 @@
 <template>
   <div class="vdis" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <VmVdisTable :vdis="filteredVdisByCd" :has-error="hasVmVdiFetchError" :is-ready="areVmVdisReady" />
+      <VmVdisTable :vm :vdis="filteredVdisByNotCdVbd" :has-error="hasVmVdiFetchError" :is-ready="areVmVdisReady" />
     </UiCard>
     <VmVdiSidePanel v-if="selectedVdi" :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import VmVdiSidePanel from '@/components/vdis/panel/VmVdiSidePanel.vue'
 import VmVdisTable from '@/components/vdis/VmVdisTable.vue'
-import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
+import { useXoVmVbdsUtils } from '@/composables/vm/xo-vm-vbd.composable.ts'
 import { useXoVmVdisCollection } from '@/remote-resources/use-xo-vm-vdis-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -32,12 +32,13 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { vbds } = useXoVbdCollection()
-const { vmVdis: vdis, getVmVdiById, hasVmVdiFetchError, areVmVdisReady } = useXoVmVdisCollection({}, () => vm.id)
+const { vmVdis, getVmVdiById, hasVmVdiFetchError, areVmVdisReady } = useXoVmVdisCollection({}, () => vm.id)
 const uiStore = useUiStore()
 
-const filteredVdisByCd = computed(() =>
-  vdis.value.filter(vdi => vbds.value.some(vbd => vdi.$VBDs.includes(vbd.id) && !vbd.is_cd_drive))
+const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
+
+const filteredVdisByNotCdVbd = computed(() =>
+  vmVdis.value.filter(vdi => notCdDriveVbds.value.some(vbd => vdi.$VBDs.includes(vbd.id)))
 )
 
 const selectedVdi = useRouteQuery<XoVdi | undefined>('id', {
