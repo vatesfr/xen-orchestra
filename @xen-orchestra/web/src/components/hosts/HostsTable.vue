@@ -30,12 +30,14 @@
           >
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
               <div v-if="column.id === 'host'">
-                <UiObjectLink :route="`/host/${row.id}/dashboard`" @click.stop>
-                  <template #icon>
-                    <VtsObjectIcon size="medium" :state="getHostState(column.value.state)" type="host" />
-                  </template>
+                <UiLink
+                  size="medium"
+                  :icon="`object:host:${getHostState(column.value.state)}`"
+                  :to="`/host/${row.id}/dashboard`"
+                  @click.stop
+                >
                   {{ column.value.label }}
-                </UiObjectLink>
+                </UiLink>
               </div>
               <div
                 v-else-if="column.id === 'ip-addresses'"
@@ -88,9 +90,8 @@ import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
