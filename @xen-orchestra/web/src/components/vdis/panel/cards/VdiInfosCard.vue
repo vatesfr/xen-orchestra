@@ -10,7 +10,7 @@
         <template #value>
           {{ vdi.uuid }}
         </template>
-        <template v-if="vdi.uuid" #addons>
+        <template #addons>
           <VtsCopyButton :value="vdi.uuid" />
         </template>
       </VtsCardRowKeyValue>
@@ -72,38 +72,32 @@ const { vdi, vm } = defineProps<{
   vm: XoVm
 }>()
 
-const { vbds } = useXoVbdCollection()
-
 const { t } = useI18n()
 
-const vbdsStatus = computed(() => {
-  if (vdi.$VBDs.length === 0) {
-    return 'disconnected'
-  }
+const { getVbdsByIds } = useXoVbdCollection()
 
-  const vdiVbds = vbds.value.filter(vbd => vdi.$VBDs.includes(vbd.id))
+const vbdsStatus = computed(() => {
+  const vdiVbds = getVbdsByIds(vdi.$VBDs)
   if (vdiVbds.length === 0) {
     return 'disconnected'
   }
+
   const isAttached = vdiVbds.map(vbd => vbd.attached)
 
   if (isAttached.every(Boolean)) {
     return 'connected'
   }
+
   if (isAttached.some(Boolean)) {
     return 'partially-connected'
   }
+
   return 'disconnected'
 })
-const vmVbds = computed(() => {
-  if (!vm.$VBDs) {
-    return undefined
-  }
 
-  return vbds.value.filter(vbd => vm.$VBDs.includes(vbd.id) && !vbd.is_cd_drive)
-})
+const vmVbds = computed(() => (vm.$VBDs ? getVbdsByIds(vm.$VBDs).filter(vbd => !vbd.is_cd_drive) : []))
 
-const vdiDevice = computed(() => vmVbds.value?.find(vbd => vbd.VDI === vdi.id)?.device)
+const vdiDevice = computed(() => vmVbds.value?.find(vbd => vbd.VDI === vdi.id)?.device ?? '')
 </script>
 
 <style scoped lang="postcss">

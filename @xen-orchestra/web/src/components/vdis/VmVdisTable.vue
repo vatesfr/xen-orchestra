@@ -31,9 +31,11 @@
             @click="selectedVdiId = row.id"
           >
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
-              <div v-if="column.id === 'name'" v-tooltip class="name text-ellipsis">
+              <div v-if="column.id === 'name'" class="name">
                 <VtsIcon size="medium" name="fa:hard-drive" />
-                {{ column.value }}
+                <div v-tooltip class="text-ellipsis">
+                  {{ column.value }}
+                </div>
               </div>
               <div v-else-if="column.id === 'used-space'">
                 <VtsSizeProgressCell :current="column.value.used" :total="column.value.total" />
@@ -101,9 +103,7 @@ const filteredVdis = computed(() => {
   return vdis.filter(vdi => Object.values(vdi).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
-const getImageFormat = (imageFormat: string | undefined) => {
-  return imageFormat ? imageFormat.toUpperCase() : t('vhd')
-}
+const getFormat = (format: string | undefined) => (format ? format.toUpperCase() : t('vhd'))
 
 const { visibleColumns, rows } = useTable('vdis', filteredVdis, {
   rowId: record => record.id,
@@ -112,7 +112,7 @@ const { visibleColumns, rows } = useTable('vdis', filteredVdis, {
     define('description', record => record.name_description, { label: t('description') }),
     define('used-space', record => ({ used: record.usage, total: record.size }), { label: t('used-space') }),
     define('size', record => formatSize(record.size, 2), { label: t('size') }),
-    define('format', record => getImageFormat(record.image_format), { label: t('format') }),
+    define('format', record => getFormat(record.image_format), { label: t('format') }),
   ],
 })
 
@@ -136,6 +136,7 @@ const headerIcon: Record<VdiHeader, IconName> = {
   display: flex;
   flex-direction: column;
 }
+
 .vm-vdis-table {
   gap: 2.4rem;
 
@@ -149,6 +150,7 @@ const headerIcon: Record<VdiHeader, IconName> = {
     align-items: center;
     gap: 0.8rem;
   }
+
   .size {
     text-align: right;
   }

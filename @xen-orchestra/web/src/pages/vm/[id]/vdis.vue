@@ -36,13 +36,9 @@ const { vbds } = useXoVbdCollection()
 const { vmVdis: vdis, getVmVdiById, hasVmVdiFetchError, areVmVdisReady } = useXoVmVdisCollection({}, () => vm.id)
 const uiStore = useUiStore()
 
-const filteredVdisByCd = computed(() => {
-  return vdis.value.filter(vdi => {
-    const vdiVbds = vbds.value.filter(vbd => vdi.$VBDs.includes(vbd.id) && !vbd.is_cd_drive)
-
-    return vdiVbds.some(vbd => !vbd.is_cd_drive)
-  })
-})
+const filteredVdisByCd = computed(() =>
+  vdis.value.filter(vdi => vbds.value.some(vbd => vdi.$VBDs.includes(vbd.id) && !vbd.is_cd_drive))
+)
 
 const selectedVdi = useRouteQuery<XoVdi | undefined>('id', {
   toData: id => getVmVdiById(id as XoVdi['id']),

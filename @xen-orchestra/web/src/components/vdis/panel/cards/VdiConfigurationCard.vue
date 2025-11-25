@@ -9,10 +9,10 @@
           {{ t('format') }}
         </template>
         <template #value>
-          {{ imageFormat }}
+          {{ format }}
         </template>
         <template #addons>
-          <VtsCopyButton :value="imageFormat" />
+          <VtsCopyButton :value="format" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -67,25 +67,11 @@ const { t } = useI18n()
 
 const { srs } = useXoSrCollection()
 
-const imageFormat = computed(() => vdi.image_format?.toUpperCase() ?? t('vhd'))
+const format = computed(() => vdi.image_format?.toUpperCase() ?? t('vhd'))
 
-const vdiSrName = computed(() => {
-  if (!vdi.$SR) {
-    return undefined
-  }
+const vdiSrName = computed(() => srs.value.find(sr => sr.id === vdi.$SR)?.name_label)
 
-  return srs.value.find(sr => sr.id === vdi.$SR)?.name_label
-})
-
-const srId = computed(() => {
-  if (!vdi.$SR) {
-    return undefined
-  }
-
-  return srs.value.find(sr => sr.id === vdi.$SR)
-})
-
-const vdiSrId = computed(() => srId.value?.id)
+const vdiSrId = computed(() => (srs.value.some(sr => sr.id === vdi.$SR) ? vdi.$SR : undefined))
 </script>
 
 <style scoped lang="postcss">
