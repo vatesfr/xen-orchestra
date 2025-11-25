@@ -19,7 +19,7 @@ import {
   watch,
 } from 'vue'
 
-const DEFAULT_CACHE_DURATION_MS = 10_000
+const DEFAULT_CACHE_EXPIRATION_MS = 10_000
 
 const DEFAULT_POLLING_INTERVAL_MS = 30_000
 
@@ -32,8 +32,8 @@ export function defineRemoteResource<
   initialData: () => TData
   state?: (data: Ref<NoInfer<TData>>, context: ResourceContext<TArgs>) => TState
   onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
-  cacheDurationMs?: number
-  pollingIntervalMs?: number
+  cacheExpirationMs?: number | false
+  pollingIntervalMs?: number | false
   stream?: boolean
 }): UseRemoteResource<TState, TArgs>
 
@@ -41,8 +41,8 @@ export function defineRemoteResource<TData, TState extends object, TArgs extends
   url: string | ((...args: TArgs) => string)
   state?: (data: Ref<TData | undefined>, context: ResourceContext<TArgs>) => TState
   onDataReceived?: (data: Ref<TData | undefined>, receivedData: any) => void
-  cacheDurationMs?: number
-  pollingIntervalMs?: number
+  cacheExpirationMs?: number | false
+  pollingIntervalMs?: number | false
   stream?: boolean
 }): UseRemoteResource<TState, TArgs>
 
@@ -55,8 +55,8 @@ export function defineRemoteResource<
   initialData?: () => TData
   state?: (data: Ref<TData>, context: ResourceContext<TArgs>) => TState
   onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
-  cacheDurationMs?: number
-  pollingIntervalMs?: number
+  cacheExpirationMs?: number | false
+  pollingIntervalMs?: number | false
   stream?: boolean
 }) {
   const cache = new Map<
@@ -79,7 +79,7 @@ export function defineRemoteResource<
 
   const buildState = config.state ?? ((data: Ref<TData>) => ({ data }))
 
-  const cacheDuration = config.cacheDurationMs ?? DEFAULT_CACHE_DURATION_MS
+  const cacheExpiration = config.cacheExpirationMs ?? DEFAULT_CACHE_EXPIRATION_MS
 
   const pollingInterval = config.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS
 
@@ -128,9 +128,11 @@ export function defineRemoteResource<
 
     entry.pause()
 
-    setTimeout(() => {
-      cache.delete(url)
-    }, cacheDuration)
+    if (cacheExpiration !== false) {
+      setTimeout(() => {
+        cache.delete(url)
+      }, cacheExpiration)
+    }
   }
 
   function registerUrl(url: string, context: ResourceContext<TArgs>) {
@@ -182,7 +184,7 @@ export function defineRemoteResource<
     let pause: VoidFunction = noop
     let resume: VoidFunction = execute
 
-    if (pollingInterval > 0) {
+    if (pollingInterval !== false) {
       const timeoutPoll = useTimeoutPoll(execute, pollingInterval, {
         immediateCallback: true,
         immediate: false,

@@ -233,7 +233,7 @@ module.exports = {
         '@intlify/vue-i18n/no-duplicate-keys-in-locale': 'error',
         '@intlify/vue-i18n/no-missing-keys-in-other-locales': [
           'error',
-          { ignoreLocales: ['de', 'fa', 'cs', 'es', 'sv', 'it', 'ru', 'uk', 'nl', 'pt_BR'] },
+          { ignoreLocales: ['de', 'fa', 'cs', 'es', 'sv', 'it', 'ru', 'uk', 'nl', 'pt_BR', 'da'] },
         ],
       },
     },

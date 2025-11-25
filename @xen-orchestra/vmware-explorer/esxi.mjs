@@ -16,7 +16,7 @@ import fs from 'node:fs/promises'
 
 const { info, warn } = createLogger('xo:vmware-explorer:esxi')
 
-export const VDDK_LIB_DIR = '/usr/local/lib/vddk/'
+export const VDDK_LIB_DIR = '/usr/local/lib/vddk'
 export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
 let nbdPort = 11000
 export default class Esxi extends EventEmitter {
@@ -82,8 +82,13 @@ export default class Esxi extends EventEmitter {
   }
 
   #findDatacenter(dataStore) {
-    notStrictEqual(this.#dcPaths, undefined)
-    notStrictEqual(this.#dcPaths[dataStore], undefined)
+    try {
+      notStrictEqual(this.#dcPaths, undefined)
+      notStrictEqual(this.#dcPaths[dataStore], undefined)
+    } catch (error) {
+      warn("can't find datacenter for datastore", { datacenters: this.#dcPaths, dataStore })
+      throw error
+    }
     return this.#dcPaths[dataStore]
   }
 
@@ -550,6 +555,10 @@ export default class Esxi extends EventEmitter {
       try {
         const nbdKitProcess = spawn('nbdkit', args, {
           cwd: tmpDir,
+          env: {
+            ...process.env,
+            LD_LIBRARY_PATH: `${VDDK_LIB_PATH}/lib64`,
+          },
         })
         nbdKitProcess.stdout.pipe(outFile)
         nbdKitProcess.stderr.pipe(errFile)
@@ -562,7 +571,7 @@ export default class Esxi extends EventEmitter {
 
         nbdKitProcess.on('close', code => {
           if (code !== 0) {
-            warn(`nbdkit server process exited with code ${code}`)
+            warn(`nbdkit server process exited with code ${code} ,detailed logs are in ${tmpDir}/stderr `)
           }
         })
         // @todo find a better to wait for server ready
