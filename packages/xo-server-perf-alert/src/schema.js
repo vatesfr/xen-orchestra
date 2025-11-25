@@ -73,7 +73,7 @@ export const configurationSchema = {
             },
           },
           variableName: {
-            description: 'lol',
+            description: 'Metric to monitor',
             title: 'Alarm Type',
             type: 'string',
             default: 'cpuUsage',
@@ -129,7 +129,7 @@ export const configurationSchema = {
             },
           },
           variableName: {
-            description: 'lol',
+            description: 'Metric to monitor',
             title: 'Alarm Type',
             type: 'string',
             default: 'cpuUsage',
@@ -185,7 +185,7 @@ export const configurationSchema = {
             },
           },
           variableName: {
-            description: 'lol',
+            description: 'Metric to monitor',
             title: 'Alarm Type',
             type: 'string',
             default: 'srUsage',
