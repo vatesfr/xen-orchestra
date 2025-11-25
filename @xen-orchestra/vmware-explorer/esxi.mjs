@@ -592,20 +592,36 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  async #getDataMapFromVddk(nbdClient) {
-    const start = Date.now()
+  async #getDataMapFromVddk(vmId, datastoreName, diskPath) {
+    let nbdClient
+    try {
+      const start = Date.now()
 
-    await nbdClient.connect()
+      const nbdInfoSpawn = await this.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
+        singleLink: true,
+      })
 
-    info(`nbd client for data map connected`)
+      info(`nbd server for data map spawned`)
 
-    const dataMap = await nbdClient.getMap()
+      nbdClient = new NbdClient(nbdInfoSpawn.nbdInfos)
 
-    info(
-      `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
-    )
+      await nbdClient.connect()
 
-    return dataMap
+      info(`nbd client for data map connected`)
+
+      const dataMap = await nbdClient.getMap()
+
+      info(
+        `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
+      )
+
+      return dataMap
+    } finally {
+      await nbdClient.disconnect()
+      await this.killNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true }).catch(err =>
+        warn('error while stopping nbdkit server for the snapshot', err)
+      )
+    }
   }
 
   async #getDataMapFromCowd(datastoreName, diskPath) {
@@ -622,6 +638,8 @@ export default class Esxi extends EventEmitter {
     const extentHeaderBlob = await new Response(extentHeaderResponse.body).blob()
     const extentHeaderBuffer = Buffer.from(await extentHeaderBlob.arrayBuffer())
 
+    strictEqual(extentHeaderBuffer.subarray(0, 4).toString('ascii'), 'COWD')
+
     const extentNumGdEntries = extentHeaderBuffer.readUInt32LE(24)
 
     const extentGDResponse = await this.download(datastoreName, extentPath, `2048-${2048 + extentNumGdEntries * 4}`)
@@ -634,12 +652,13 @@ export default class Esxi extends EventEmitter {
       const extentGDE = extentGDBuffer.readUInt32LE(i * 4)
       if (extentGDE !== 0) {
         dataMap.push({
-          offset: offset,
+          offset,
           length: 4096 * 512,
           type: 0,
         })
       }
 
+      // Number of grains in a grain table * size of a grain.
       offset += 4096 * 512
     }
 
@@ -647,25 +666,12 @@ export default class Esxi extends EventEmitter {
   }
 
   async getDataMap(vmId, datastoreName, diskPath) {
-    let nbdClient
     try {
-      const nbdInfoSpawn = await this.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
-        singleLink: true,
-      })
-
-      info(`nbd server for data map spawned`)
-
-      const nbdClient = new NbdClient(nbdInfoSpawn.nbdInfos)
-
-      return this.#getDataMapFromVddk(nbdClient)
+      // We await the result of getDataMapFromVddk so we can catch errors and fallback to the direct metadata reading.
+      return await this.#getDataMapFromVddk(vmId, datastoreName, diskPath)
     } catch (error) {
-      warn('error while getting datamap from vddk, fall back to a full import', error)
+      warn('error while getting datamap from vddk, fall back to a direct metadata reading', error)
       return this.#getDataMapFromCowd(datastoreName, diskPath)
-    } finally {
-      await nbdClient.disconnect()
-      await this.killNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true }).catch(err =>
-        warn('error while stopping nbdkit server for the snapshot', err)
-      )
     }
   }
 }
