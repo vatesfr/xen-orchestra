@@ -11,15 +11,16 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-
 - [HUB Recipe] Support custom cluster CIDR and Xo CCM (Cloud Controller Manager) in Pyrgos recipe
 - [Disk] Add warning before disconnecting a VBD (PR [#9211](https://github.com/vatesfr/xen-orchestra/pull/9211))
+- [Plugins/OIDC] Import user groups from OIDC (PR [#9206](https://github.com/vatesfr/xen-orchestra/pull/9206))
 
 - **XO 6:**
   - [New/VM] Display unsupported features information message (PR [#9203](https://github.com/vatesfr/xen-orchestra/pull/9203))
   - [i18n] Update Czech, German, French, Italian, Dutch, Portuguese (Brazil), and Ukrainian translations, and add Danish translation (PR [#9165](https://github.com/vatesfr/xen-orchestra/pull/9165))
 
 ### Bug fixes
+
 - [V2V] fix transfer failing at 99% for unaligned disk (PR [#9233](https://github.com/vatesfr/xen-orchestra/pull/9233))
 
 ### Packages to release
@@ -40,6 +41,7 @@
 
 - @vates/nbd-client patch
 - vhd-lib patch
+- xo-server-auth-oidc minor
 - xo-web minor
 
 <!--packages-end-->
