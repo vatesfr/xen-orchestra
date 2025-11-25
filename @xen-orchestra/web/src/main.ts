@@ -17,7 +17,11 @@ async function init() {
     if (statusCode.value === 403) {
       // voluntary not using `useXoRoutes` we need info BEFORE mounting anything from XO6 (UI,store, ...)
       const { data } = await useFetch<{ xo5: string; xo6: string }>('/rest/v0/gui-routes').json()
-      window.location.pathname = data.value!.xo5
+      if (data.value !== undefined) {
+        window.location.pathname = data.value.xo5
+      } else {
+        console.error('Unexpected response from `gui-routes` endpoint')
+      }
     }
   }
 
