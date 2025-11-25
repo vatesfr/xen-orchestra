@@ -46,7 +46,7 @@ const { t } = useI18n()
   align-items: center;
   padding: 0.4rem 1.6rem;
   gap: 0.8rem;
-  height: 2.6rem;
+  height: 2.9rem;
   background: var(--color-neutral-background-secondary);
 }
 

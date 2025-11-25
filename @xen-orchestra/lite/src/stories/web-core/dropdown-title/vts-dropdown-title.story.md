@@ -1,20 +1,20 @@
 # Example
 
 ```vue-template
-<DropdownList>
-    <DropdownTitle icon="fa:rocket">Rockets</DropdownTitle>
-    <DropdownItem>Rocket 1</DropdownItem>
-    <DropdownItem>Rocket 2</DropdownItem>
-    <DropdownItem>Rocket 3</DropdownItem>
-    <DropdownTitle icon="fa:ship">Ships</DropdownTitle>
-    <DropdownItem>Ship 1</DropdownItem>
-    <DropdownItem>Ship 2</DropdownItem>
-    <DropdownItem>Ship 3</DropdownItem>
-</DropdownList>
+<UiDropdownList>
+    <VtsDropdownTitle icon="fa:rocket">Rockets</VtsDropdownTitle>
+    <UiDropdown>Rocket 1</UiDropdown>
+    <UiDropdown>Rocket 2</UiDropdown>
+    <UiDropdown>Rocket 3</UiDropdown>
+    <VtsDropdownTitle icon="fa:ship">Ships</VtsDropdownTitle>
+    <UiDropdown>Ship 1</UiDropdown>
+    <UiDropdown>Ship 2</UiDropdown>
+    <UiDropdown>Ship 3</UiDropdown>
+</UiDropdownList>
 ```
 
 ```vue-script
-import DropdownItem from '@core/components/dropdown/DropdownItem.vue'
-import DropdownList from '@core/components/dropdown/DropdownList.vue'
-import DropdownTitle from '@core/components/dropdown/DropdownTitle.vue'
+import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
+import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
+import VtsDropdownTitle from '@core/components/dropdown/VtsDropdownTitle.vue'
 ```

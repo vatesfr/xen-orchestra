@@ -4,7 +4,7 @@
       <UiDropdownButton @click="open($event)">{{ t('third-parties') }}</UiDropdownButton>
     </template>
     <VtsDropdownTitle>
-      <EasyvirtLogo class="logo" />{{ t('provider-solutions', { provider: 'EasyVirt' }) }}
+      <EasyVirtLogo class="logo" />{{ t('provider-solutions', { provider: 'EasyVirt' }) }}
     </VtsDropdownTitle>
 
     <MenuItem>
@@ -28,7 +28,7 @@
 </template>
 
 <script lang="ts" setup>
-import EasyvirtLogo from '@/components/third-parties/easyvirt/EasyvirtLogo.vue'
+import EasyVirtLogo from '@/components/third-parties/easyvirt/EasyVirtLogo.vue'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { formatIpToHostName, type IpAddress } from '@/utils/ip.utils'
