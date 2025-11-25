@@ -126,15 +126,15 @@ export class MonitorRule {
 export class MonitorRuleSet {
   rules = new Set()
   constructor(configuration) {
-    for (const definition of configuration.hostMonitors) {
+    for (const definition of configuration.hostMonitors ?? []) {
       const monitorRule = new MonitorRule({ ...definition, objectType: 'host' })
       this.rules.add(monitorRule)
     }
-    for (const definition of configuration.vmMonitors) {
+    for (const definition of configuration.vmMonitors ?? []) {
       const monitorRule = new MonitorRule({ ...definition, objectType: 'VM' })
       this.rules.add(monitorRule)
     }
-    for (const definition of configuration.srMonitors) {
+    for (const definition of configuration.srMonitors ?? []) {
       const monitorRule = new MonitorRule({ ...definition, objectType: 'SR' })
       this.rules.add(monitorRule)
     }

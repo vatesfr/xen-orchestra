@@ -5,7 +5,7 @@ import { MonitorStrategy } from './Strategy.js'
 
 /**
  * @import {XoAlarm, XoHost, XoSr, XoVm} from "@vates/types"
- * @import { AlarmRuleSet } from "./Rules.js"
+ * @import { MonitorRuleSet } from "./Rules.js"
  *
  */
 
@@ -17,7 +17,7 @@ const OTHER_PROPERTY_NAME = {
 export class XapiPerfmon extends MonitorStrategy {
   #xo
   /**
-   * @type {AlarmRuleSet}
+   * @type {MonitorRuleSet}
    */
   #rules
 
@@ -25,7 +25,7 @@ export class XapiPerfmon extends MonitorStrategy {
   /**
    *
    * @param {*} xo
-   * @param {AlarmRuleSet} rules
+   * @param {MonitorRuleSet} rules
    */
   constructor(xo, rules) {
     super()
