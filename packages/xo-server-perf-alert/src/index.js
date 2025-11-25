@@ -69,8 +69,7 @@ class PerfAlertXoPlugin {
         notificationType: 'closed',
       })
     })
-
-    const subject = newAlarms.lenght > 0 ? `Performance Alerts : new Alerts` : `Performance Alerts : end of all Alerts`
+    const subject = newAlarms.size > 0 ? `Performance Alerts : new Alerts` : `Performance Alerts : end of all Alerts`
     const { html } = await templates.mjml.transform(templates.mjml.$newAlarms({ byRules }))
     const text = await templates.markdown.$newAlarms({ byRules })
     return this._sendAlertEmail(subject, html, text)
