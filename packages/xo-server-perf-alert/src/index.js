@@ -4,7 +4,7 @@
  */
 
 import { createLogger } from '@xen-orchestra/log'
-import { AlarmRuleSet } from './Rules.js'
+import { MonitorRuleSet } from './Rules.js'
 
 import * as templates from '../src/templates/index.js'
 import { HybridStrategy } from './HybridStrategy.js'
@@ -16,9 +16,9 @@ logger.debug('DEBUG ENABLED')
 
 class PerfAlertXoPlugin {
   /**
-   * @type {AlarmRuleSet | undefined}
+   * @type {MonitorRuleSet | undefined}
    */
-  #alarmRuleSet
+  #monitorRuleSet
 
   #configuration
 
@@ -70,19 +70,18 @@ class PerfAlertXoPlugin {
       })
     })
 
-    if (newAlarms.size > 0) {
-      const { html } = await templates.mjml.transform(templates.mjml.$newAlarms({ byRules }))
-      const text = await templates.markdown.$newAlarms({ byRules })
-      return this._sendAlertEmail(`Peformance Alerts`, html, text)
-    }
+    const subject = newAlarms.lenght > 0 ? `Performance Alerts : new Alerts` : `Performance Alerts : end of all Alerts`
+    const { html } = await templates.mjml.transform(templates.mjml.$newAlarms({ byRules }))
+    const text = await templates.markdown.$newAlarms({ byRules })
+    return this._sendAlertEmail(subject, html, text)
   }
 
   async load() {
     if (this.#strategy) {
       return
     }
-    this.#alarmRuleSet = new AlarmRuleSet(this.#configuration)
-    this.#strategy = new HybridStrategy(this._xo, this.#alarmRuleSet)
+    this.#monitorRuleSet = new MonitorRuleSet(this.#configuration)
+    this.#strategy = new HybridStrategy(this._xo, this.#monitorRuleSet)
 
     this.#strategy.watch(changes => this.sendAlarmChange(changes), 60 * 1000).catch(console.error)
   }

@@ -1,6 +1,6 @@
 /**
  * @import {XoHost, XoVm} from "@vates/types"
- * @import {AlarmRule, AlarmRuleSet} from "./Rules.js"
+ * @import {MonitorRule, MonitorRuleSet} from "./Rules.js"
  */
 import JSON5 from 'json5'
 import { utcParse } from 'd3-time-format'
@@ -11,6 +11,8 @@ import { createLogger } from '@xen-orchestra/log'
 import { Alarm, MonitorStrategy } from './Strategy.js'
 
 const logger = createLogger('xo:xo-server-perf-alert:rrdStrategy')
+
+const USED_METRICS = ['cpu_usage', 'memory', 'memory_internal_free', 'cpu_avg', 'memory_total_kib', 'memory_free_kib']
 /**
  *
  * @param {*} xapi
@@ -64,7 +66,7 @@ export class RrdHostVm extends MonitorStrategy {
   #xo
 
   /**
-   * @type {AlarmRuleSet}
+   * @type {MonitorRuleSet}
    */
   #rules
 
@@ -78,17 +80,15 @@ export class RrdHostVm extends MonitorStrategy {
    */
   #lastChangeComputation
 
-  uid
   /**
    *
    * @param {*} xo
-   * @param {AlarmRuleSet} rules
+   * @param {MonitorRuleSet} rules
    */
   constructor(xo, rules) {
     super()
     this.#rules = rules
     this.#xo = xo
-    this.uid = Math.random()
   }
 
   #filterStats(rrd) {
@@ -104,6 +104,9 @@ export class RrdHostVm extends MonitorStrategy {
         return
       }
       const [, type, uuidInStat, metricType] = matches
+      if (!USED_METRICS.includes(metricType)) {
+        return
+      }
       switch (type) {
         case 'host':
           hostStats.stats[metricType] = []
@@ -169,7 +172,7 @@ export class RrdHostVm extends MonitorStrategy {
    *
    * @param {XoHost} xoHost
    * @param {JSON} hostStat
-   * @param {Array<AlarmRule>} rules
+   * @param {Array<MonitorRule>} rules
    * @returns
    */
   #computeHostAlarm(xoHost, hostStat, rules) {
@@ -182,12 +185,6 @@ export class RrdHostVm extends MonitorStrategy {
           value = xapiAverage(hostStat.stats.cpu_avg)
           break
         case 'memoryUsage': {
-          const total = xapiAverage(hostStat.stats.memory_total_kib)
-          const free = xapiAverage(hostStat.stats.memory_free_kib)
-          value = Math.round((100 * (total - free)) / total)
-          break
-        }
-        case 'storage': {
           const total = xapiAverage(hostStat.stats.memory_total_kib)
           const free = xapiAverage(hostStat.stats.memory_free_kib)
           value = Math.round((100 * (total - free)) / total)
@@ -208,7 +205,7 @@ export class RrdHostVm extends MonitorStrategy {
    *
    * @param {XoVm} xoVm
    * @param {JSON} hostStat
-   * @param {Array<AlarmRule>} rules
+   * @param {Array<MonitorRule>} rules
    * @returns
    */
   #computeVmAlarm(xoVm, vmStats, rules) {

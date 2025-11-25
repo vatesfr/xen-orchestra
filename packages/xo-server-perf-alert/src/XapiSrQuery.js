@@ -1,3 +1,7 @@
+/**
+ * @import { MonitorRuleSet} from "./Rules.js"
+ */
+
 import { Alarm, MonitorStrategy } from './Strategy.js'
 
 /**
@@ -10,14 +14,14 @@ export class XapiSrQuery extends MonitorStrategy {
   #xo
 
   /**
-   * @type {AlarmRuleSet}
+   * @type {MonitorRuleSet}
    */
   #rules
 
   /**
    *
    * @param {*} xo
-   * @param {AlarmRuleSet} rules
+   * @param {MonitorRuleSet} rules
    */
   constructor(xo, rules) {
     super()
