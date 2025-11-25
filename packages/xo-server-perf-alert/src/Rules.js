@@ -13,7 +13,7 @@ function isSrWritable(sr) {
   return sr !== undefined && sr.content_type !== 'iso' && sr.size > 0
 }
 
-export class AlarmRule {
+export class MonitorRule {
   /**
    * @type {'>' | '<'}
    */
@@ -29,7 +29,7 @@ export class AlarmRule {
   triggerLevel
 
   /**
-   * @type {SVGAnimatedNumberList}
+   * @type {number}
    */
   triggerPeriod
   /**
@@ -123,20 +123,20 @@ export class AlarmRule {
   }
 }
 
-export class AlarmRuleSet {
+export class MonitorRuleSet {
   rules = new Set()
   constructor(configuration) {
     for (const definition of configuration.hostMonitors) {
-      const alarmRule = new AlarmRule({ ...definition, objectType: 'host' })
-      this.rules.add(alarmRule)
+      const monitorRule = new MonitorRule({ ...definition, objectType: 'host' })
+      this.rules.add(monitorRule)
     }
     for (const definition of configuration.vmMonitors) {
-      const alarmRule = new AlarmRule({ ...definition, objectType: 'VM' })
-      this.rules.add(alarmRule)
+      const monitorRule = new MonitorRule({ ...definition, objectType: 'VM' })
+      this.rules.add(monitorRule)
     }
     for (const definition of configuration.srMonitors) {
-      const alarmRule = new AlarmRule({ ...definition, objectType: 'SR' })
-      this.rules.add(alarmRule)
+      const monitorRule = new MonitorRule({ ...definition, objectType: 'SR' })
+      this.rules.add(monitorRule)
     }
   }
 
@@ -157,7 +157,7 @@ export class AlarmRuleSet {
   /**
    *
    * @param {XoVm|XoHost|XoSr} xoObject
-   * @returns {Array<AlarmRule>}
+   * @returns {Array<MonitorRule>}
    */
   getObjectAlerts(xoObject) {
     const definitions = []

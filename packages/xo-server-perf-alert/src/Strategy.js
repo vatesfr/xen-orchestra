@@ -2,12 +2,12 @@
 
 /**
  * @import {XoHost, XoSr, XoVm} from "@vates/types"
- * @import {AlarmRule, AlarmRuleSet} from "./Rules.js"
+ * @import {MonitorRule, MonitorRuleSet} from "./Rules.js"
  */
 
 export class Alarm {
   /**
-   * @type {AlarmRule}
+   * @type {MonitorRule}
    */
   rule
 
@@ -28,7 +28,7 @@ export class Alarm {
   /**
    *
    * @param {object} alarmDefinition Defition of the alarm
-   * @param {AlarmRule} alarmDefinition.rule
+   * @param {MonitorRule} alarmDefinition.rule
    * @param {XoHost|XoSr|XoVm} alarmDefinition.target
    * @param {number} alarmDefinition.value
    */
