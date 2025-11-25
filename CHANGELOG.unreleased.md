@@ -22,6 +22,8 @@
 ### Bug fixes
 - [V2V] fix transfer failing at 99% for unaligned disk (PR [#9233](https://github.com/vatesfr/xen-orchestra/pull/9233))
 
+- [VM/Advanced] Fix vGPU support where multiple GPU groups have the same vGPU type [#5750](https://github.com/vatesfr/xen-orchestra/issues/5750)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
