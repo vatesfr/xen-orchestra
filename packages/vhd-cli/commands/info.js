@@ -1,6 +1,6 @@
 'use strict'
 
-const { Constants, VhdFile } = require('vhd-lib')
+const { Constants } = require('vhd-lib')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { openVhd } = require('vhd-lib/openVhd')
 const Disposable = require('promise-toolbox/Disposable')
@@ -36,41 +36,41 @@ function mapProperties(object, mapping) {
 }
 
 async function showDetails(handler, path) {
-  const vhd = new VhdFile(handler, path)
+  await Disposable.use(openVhd(handler, path), async vhd => {
+    try {
+      await vhd.readHeaderAndFooter()
+    } catch (error) {
+      console.warn(error)
+      await vhd.readHeaderAndFooter(false)
+    }
 
-  try {
-    await vhd.readHeaderAndFooter()
-  } catch (error) {
-    console.warn(error)
-    await vhd.readHeaderAndFooter(false)
-  }
+    console.log(
+      'footer:',
+      mapProperties(vhd.footer, {
+        currentSize: 'bytes',
+        diskType: 'diskType',
+        originalSize: 'bytes',
+        timestamp: 'date',
+        uuid: 'uuid',
+      })
+    )
 
-  console.log(
-    'footer:',
-    mapProperties(vhd.footer, {
-      currentSize: 'bytes',
-      diskType: 'diskType',
-      originalSize: 'bytes',
-      timestamp: 'date',
-      uuid: 'uuid',
-    })
-  )
-
-  console.log(
-    'header:',
-    mapProperties(vhd.header, {
-      blockSize: 'bytes',
-      parentTimestamp: 'date',
-      parentLocatorEntry: _ =>
-        _.filter(_ => _.platformCode !== PLATFORMS.NONE) // hide empty
-          .map(_ =>
-            mapProperties(_, {
-              platformCode: 'platform',
-            })
-          ),
-      parentUuid: 'uuid',
-    })
-  )
+    console.log(
+      'header:',
+      mapProperties(vhd.header, {
+        blockSize: 'bytes',
+        parentTimestamp: 'date',
+        parentLocatorEntry: _ =>
+          _.filter(_ => _.platformCode !== PLATFORMS.NONE) // hide empty
+            .map(_ =>
+              mapProperties(_, {
+                platformCode: 'platform',
+              })
+            ),
+        parentUuid: 'uuid',
+      })
+    )
+  })
 }
 
 async function showList(handler, paths) {
@@ -103,4 +103,3 @@ module.exports = async function info(args) {
     return showList(handler, args)
   })
 }
-// TODO: handle VHD directory
