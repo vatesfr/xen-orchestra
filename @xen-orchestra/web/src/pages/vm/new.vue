@@ -482,11 +482,16 @@ const isDiskTemplate = computed(() => {
   )
 })
 
+// BIOS strings customization (Copy-Host BIOS strings or User-Defined BIOS strings)
+// is only applicable when using BIOS firmware, not UEFI.
+// This allows installation of OEM/BIOS-locked operating systems.
+// See https://docs.xenserver.com/en-us/xencenter/current-release/vms-new-template.html
+
 const selectedTemplateHasBiosStrings = computed(
   () => vmState.new_vm_template !== undefined && Object.keys(vmState.new_vm_template.bios_strings).length !== 0
 )
 
-const canCopyBiosStrings = computed(() => vmState.bootFirmware === 'uefi' || selectedTemplateHasBiosStrings.value)
+const canCopyBiosStrings = computed(() => vmState.bootFirmware === 'bios')
 
 const copyHostBiosStringsTooltipContent = computed(() => {
   if (vmState.bootFirmware === 'uefi') {
