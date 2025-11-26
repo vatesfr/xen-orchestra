@@ -19,11 +19,13 @@ export function useXoHostUtils() {
   function getHostState(powerState: HOST_POWER_STATE) {
     if (powerState === HOST_POWER_STATE.RUNNING) {
       return 'running'
-    } else if (powerState === HOST_POWER_STATE.HALTED) {
-      return 'halted'
-    } else {
-      return 'unknown'
     }
+
+    if (powerState === HOST_POWER_STATE.HALTED) {
+      return 'halted'
+    }
+
+    return 'unknown'
   }
 
   function getPowerState(powerState: HOST_POWER_STATE) {

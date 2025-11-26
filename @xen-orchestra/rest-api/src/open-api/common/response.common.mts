@@ -21,7 +21,6 @@ export const createdResp = {
 export const asynchronousActionResp = {
   status: 202,
   description: 'Action executed asynchronously',
-  produce: 'text/plain',
 } as const
 
 export const unauthorizedResp = {

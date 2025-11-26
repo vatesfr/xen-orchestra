@@ -1,6 +1,6 @@
 {
   "name": "xo-server-load-balancer",
-  "version": "0.10.4",
+  "version": "0.11.0",
   "license": "AGPL-3.0-or-later",
   "description": "Load balancer for XO-Server",
   "keywords": [
@@ -40,7 +40,8 @@
   "scripts": {
     "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
     "dev": "NODE_DEV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "test": "cd dist && node --test"
   },
   "private": true
 }

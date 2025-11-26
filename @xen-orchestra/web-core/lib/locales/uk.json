@@ -308,7 +308,7 @@
   "ssh-password-confirm": "Підтвердіть пароль SSH",
   "static-ip": "Статична IP-адреса",
   "uuid": "UUID",
-  "vcpus": "vCPU |  vCPU |  vCPUs",
+  "vcpus": "vCPU | vCPU | vCPUs",
   "vdi-throughput": "Пропускна здатність VDI",
   "vdis": "VDI | VDI | VDIs",
   "vif": "VIF",

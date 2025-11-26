@@ -59,6 +59,7 @@ import type { UnbrandXoVmBackupJob } from '../backup-jobs/backup-job.type.mjs'
 import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 import type { UnbrandedVmDashboard } from './vm.type.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
 
@@ -239,17 +240,21 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/start')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async startVm(@Path() id: string, @Body() body?: { hostId?: string }, @Query() sync?: boolean) {
+  async startVm(
+    @Path() id: string,
+    @Body() body?: { hostId?: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
       await this.getXapi(vmId).startVm(vmId, { startOnly: true, hostId: body?.hostId as XoHost['id'] })
     }
 
-    return this.createAction(action, {
+    return this.createAction<void>(action, {
       sync,
       statusCode: noContentResp.status,
       taskProperties: {
@@ -266,17 +271,17 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/clean_shutdown')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async cleanShutdownVm(@Path() id: string, @Query() sync?: boolean): Promise<string | void> {
+  async cleanShutdownVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
       await this.getXapiObject(vmId).$callAsync('clean_shutdown')
     }
 
-    return this.createAction(action, {
+    return this.createAction<void>(action, {
       sync,
       statusCode: noContentResp.status,
       taskProperties: {
@@ -292,7 +297,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/clean_reboot')
-  async cleanRebootVm(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  async cleanRebootVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
       await this.getXapiObject(vmId).$callAsync('clean_reboot')
@@ -313,17 +318,17 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/hard_shutdown')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async hardShutdownVm(@Path() id: string, @Query() sync?: boolean): Promise<string | void> {
+  async hardShutdownVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
       await this.getXapiObject(vmId).$callAsync('hard_shutdown')
     }
 
-    return this.createAction(action, {
+    return this.createAction<void>(action, {
       sync,
       statusCode: noContentResp.status,
       taskProperties: {
@@ -338,11 +343,11 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/hard_reboot')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async hardRebootVm(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  async hardRebootVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
       await this.getXapiObject(vmId).$callAsync('hard_reboot')
@@ -365,11 +370,11 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/pause')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async pauseVm(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  async pauseVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
       await this.getXapiObject(vmId).$callAsync('pause')
@@ -392,11 +397,11 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/suspend')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async suspendVm(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  async suspendVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
       await this.getXapiObject(vmId).$callAsync('suspend')
@@ -419,11 +424,11 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/resume')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async resumeVm(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  async resumeVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
       await this.getXapi(vmId).resumeVm(vmId)
@@ -446,11 +451,11 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/unpause')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async unpauseVm(@Path() id: string, @Query() sync?: boolean): Promise<void | string> {
+  async unpauseVm(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const vmId = id as XoVm['id']
     const action = async () => {
       await this.getXapi(vmId).unpauseVm(vmId)
@@ -472,7 +477,7 @@ export class VmController extends XapiXoController<XoVm> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/snapshot')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(createdResp.status, 'Snapshot created')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -480,7 +485,7 @@ export class VmController extends XapiXoController<XoVm> {
     @Path() id: string,
     @Body() body?: { name_label?: XoVmSnapshot['name_label'] },
     @Query() sync?: boolean
-  ): Promise<string | { id: XenApiVm['uuid'] }> {
+  ): CreateActionReturnType<{ id: XenApiVm['uuid'] }> {
     const vmId = id as XoVm['id']
     const action = async () => {
       const xapiVm = this.getXapiObject(vmId)
@@ -494,7 +499,7 @@ export class VmController extends XapiXoController<XoVm> {
       return { id: snapshotId }
     }
 
-    return this.createAction<Promise<{ id: XenApiVm['uuid'] }>>(action, {
+    return this.createAction<{ id: XenApiVm['uuid'] }>(action, {
       sync,
       statusCode: createdResp.status,
       taskProperties: {

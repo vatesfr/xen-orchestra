@@ -11,19 +11,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Expose `GET /rest/v0/events` to open an SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
-- [REST API] Expose `POST /rest/v0/events/:id/subscriptions` to add a subscription in the SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
-- [REST API] Expose `DELETE /rest/v0/events/:id/subscriptions` to remove a subscription in the SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
-- [Backup] Add warning message: enabling/disabling backup job from VM > Backup affects all VMs in the job (PR [#9155](https://github.com/vatesfr/xen-orchestra/pull/9155))
-- [Plugins/Usage Report] Add operating system information to reports - displays OS distribution statistics and includes OS details (name, distribution, version) in both HTML reports and CSV exports (PR [#9179](https://github.com/vatesfr/xen-orchestra/pull/9179))
-- [Backup archives] Add `vm.tags` to `backups archives` (PR [#9190](https://github.com/vatesfr/xen-orchestra/pull/9190))
-- [Menu] Add link from XO 5 to XO 6 (PR [#9187](https://github.com/vatesfr/xen-orchestra/pull/9187))
-- [REST API] Expose VM dashboard endpoint `GET /rest/v0/vms/:vm-id/dashboard` (PR [#9143](https://github.com/vatesfr/xen-orchestra/pull/9143))
+- [HUB Recipe] Support custom cluster CIDR and Xo CCM (Cloud Controller Manager) in Pyrgos recipe
+- [Disk] Add warning before disconnecting a VBD (PR [#9211](https://github.com/vatesfr/xen-orchestra/pull/9211))
+- [vhd-cli] **Breaking changes** Changed commands input to make plugin usable on encrypted remotes (PR [#9235](https://github.com/vatesfr/xen-orchestra/pull/9235))
+- [Plugins/OIDC] Import user groups from OIDC (PR [#9206](https://github.com/vatesfr/xen-orchestra/pull/9206))
 
 - **XO 6:**
-  - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
-  - [Site/Hosts] Implement hosts view and side panel information (PR [#9128](https://github.com/vatesfr/xen-orchestra/pull/9128))
-  - [Backups] Update wordings for backup jobs' modes to match XO documentation (PR [#9199](https://github.com/vatesfr/xen-orchestra/pull/9199))
+  - [New/VM] Display unsupported features information message (PR [#9203](https://github.com/vatesfr/xen-orchestra/pull/9203))
+  - [i18n] Update Czech, German, French, Italian, Dutch, Portuguese (Brazil), and Ukrainian translations, and add Danish translation (PR [#9165](https://github.com/vatesfr/xen-orchestra/pull/9165))
+  - [Header] Add EasyVirt DC Scope and DC NetScope buttons to install and access EasyVirt solutions (PR [#9242](https://github.com/vatesfr/xen-orchestra/pull/9242))
 
 ### Bug fixes
 
@@ -36,6 +32,7 @@
 
 - **XO 6:**
   - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
+- [V2V] fix transfer failing at 99% for unaligned disk (PR [#9233](https://github.com/vatesfr/xen-orchestra/pull/9233))
 
 ### Packages to release
 
@@ -53,16 +50,12 @@
 
 <!--packages-start-->
 
-- @vates/types minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/rest-api minor
+- @vates/nbd-client patch
+- @xen-orchestra/rest-api patch
 - @xen-orchestra/vmware-explorer patch
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
-- @xen-orchestra/xapi patch
-- xo-collection minor
-- xo-server minor
-- xo-server-usage-report minor
+- vhd-cli major
+- vhd-lib patch
+- xo-server-auth-oidc minor
 - xo-web minor
 
 <!--packages-end-->
