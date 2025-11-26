@@ -28,11 +28,11 @@
 <script lang="ts" setup>
 import TaskPropertiesRecursive from '@/components/tasks/panel/cards/TaskPropertiesRecursive.vue'
 import { useTaskPropertiesUtils } from '@/composables/xo-task-properties-utils.composable.ts'
-import type { XoTask } from '@/types/xo/task.type.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { task } = defineProps<{
@@ -49,9 +49,5 @@ const { properties } = useTaskPropertiesUtils(task)
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-
-  .divider {
-    margin-block: 1.6rem;
-  }
 }
 </style>

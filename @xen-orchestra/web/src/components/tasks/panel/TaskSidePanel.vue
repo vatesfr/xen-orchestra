@@ -32,11 +32,11 @@ import TaskPropertiesCard from '@/components/tasks/panel/cards/TaskPropertiesCar
 import TaskQuickInfoCard from '@/components/tasks/panel/cards/TaskQuickInfoCard.vue'
 import TaskWarningsCard from '@/components/tasks/panel/cards/TaskWarningsCard.vue'
 import { useTaskPropertiesUtils } from '@/composables/xo-task-properties-utils.composable.ts'
-import type { XoTask } from '@/types/xo/task.type.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { task } = defineProps<{

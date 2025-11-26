@@ -1,4 +1,4 @@
-import type { XoTask } from '@/types/xo/task.type.ts'
+import type { XoTask } from '@vates/types'
 import { computed } from 'vue'
 
 export function useTaskPropertiesUtils(task: XoTask) {

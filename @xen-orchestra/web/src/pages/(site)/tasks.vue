@@ -24,8 +24,9 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
-import type { XoUser } from '@vates/types'
+import type { XoTask, XoUser } from '@vates/types'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 
