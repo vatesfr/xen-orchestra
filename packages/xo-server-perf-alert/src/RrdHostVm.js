@@ -182,7 +182,7 @@ export class RrdHostVm extends MonitorStrategy {
       let value
       switch (rule.variableName) {
         case 'cpuUsage':
-          value = xapiAverage(hostStat.stats.cpu_avg)
+          value = Math.round(100 * xapiAverage(hostStat.stats.cpu_avg))
           break
         case 'memoryUsage': {
           const total = xapiAverage(hostStat.stats.memory_total_kib)
@@ -215,7 +215,7 @@ export class RrdHostVm extends MonitorStrategy {
       let value
       switch (rule.variableName) {
         case 'cpuUsage':
-          value = xapiAverage(vmStats.cpu_usage)
+          value = Math.round(100 * xapiAverage(vmStats.cpu_usage))
           break
         case 'memoryUsage': {
           const total = xapiAverage(vmStats.memory)
