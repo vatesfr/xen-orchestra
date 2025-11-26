@@ -322,6 +322,8 @@ export class RrdHostVm extends MonitorStrategy {
           }, nextRun)
           this.#abortWaitController.signal.addEventListener('abort', () => {
             clearInterval(interval)
+            const error = new Error('Abort waiting')
+            error.code = 'ERR_ABORTED'
           })
         })
       }
@@ -332,6 +334,10 @@ export class RrdHostVm extends MonitorStrategy {
         return
       }
       await onChanges(changes)
+    } catch (error) {
+      if (error.code !== 'ERR_ABORTED') {
+        throw error
+      }
     } finally {
       if (!this.#abortWaitController.signal.aborted) {
         this.#poll(onChanges, delay)
