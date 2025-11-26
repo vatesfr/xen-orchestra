@@ -79,6 +79,8 @@ import { useServerColumns } from '@core/tables/column-sets/server-columns'
 import type { XoServer } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getHostInfo } from './get-host-info'
+import { getPoolInfo } from './get-pool-info'
 
 const { servers: rawServers } = defineProps<{
   servers: XoServer[]

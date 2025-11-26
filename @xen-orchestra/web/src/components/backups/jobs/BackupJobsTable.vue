@@ -25,7 +25,6 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupJobSchedulesUtils } from '@/composables/xo-backup-job-schedules.composable'
 import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
 import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection'
