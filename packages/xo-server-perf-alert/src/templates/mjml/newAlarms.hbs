@@ -1,0 +1,61 @@
+<mjml>
+  {{>mjmlHeaders}}
+  <mj-body background-color="#1A1B38">
+    <mj-wrapper background-color="#1A1B38">
+      <mj-section padding="0 0 10px 0"> </mj-section>
+      <mj-section padding="0px">
+        <mj-column width="100%">
+          <mj-text align="center" font-size="32px" font-weight="500" padding="0px" font-size="18px"
+            line-height="24px">Performance alerts </mj-text>
+        </mj-column>
+      </mj-section>
+      <mj-section padding="0px">
+        <mj-column width="80%">
+          <mj-divider border-width="2px" padding-top="25px"></mj-divider>
+        </mj-column>
+      </mj-section>
+      {{#each byRules}}
+
+      <mj-section padding="0px">
+        <mj-column width="100%">
+          <mj-text font-size="16px" font-weight="300" line-height="24px">
+             {{humanReadableRule alarms.0.rule}}  
+          </mj-text>
+            <mj-table>
+                <tr style="border-bottom:1px solid lightgray">
+                  <th align="left">
+                    label
+                  </th>
+                  <th>
+                    usage
+                  </th>
+                  <th>
+                    status
+                  </th>
+                  <th>
+                    link
+                  </th>
+                </tr>
+               {{#each alarms}}
+               <tr style="border-bottom:1px solid lightgray">
+                <td  >
+                  {{target.name_label}}
+                </td>
+                <td   align="center">
+                  {{value}}
+                </td>
+                <td  align="center">
+                  {{notificationType}}
+                </td>
+                <td  align="center"><a href="{{{url}}}">link</a> </td>
+              </tr> 
+              {{/each}}
+            </mj-table> 
+        </mj-column>
+      </mj-section>
+      {{/each}}
+
+      {{>mjmlFooter}}
+    </mj-wrapper>
+  </mj-body>
+</mjml>
