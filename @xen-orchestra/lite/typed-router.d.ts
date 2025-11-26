@@ -69,8 +69,6 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/tab/router-tab': RouteRecordInfo<'/story/web-core/tab/router-tab', '/story/web-core/tab/router-tab', Record<never, never>, Record<never, never>>,
     '/story/web-core/tab/tab-item': RouteRecordInfo<'/story/web-core/tab/tab-item', '/story/web-core/tab/tab-item', Record<never, never>, Record<never, never>>,
     '/story/web-core/tab/tab-list': RouteRecordInfo<'/story/web-core/tab/tab-list', '/story/web-core/tab/tab-list', Record<never, never>, Record<never, never>>,
-    '/story/web-core/table/column-title': RouteRecordInfo<'/story/web-core/table/column-title', '/story/web-core/table/column-title', Record<never, never>, Record<never, never>>,
-    '/story/web-core/table/vts-table': RouteRecordInfo<'/story/web-core/table/vts-table', '/story/web-core/table/vts-table', Record<never, never>, Record<never, never>>,
     '/story/web-core/tree/vts-tree-item': RouteRecordInfo<'/story/web-core/tree/vts-tree-item', '/story/web-core/tree/vts-tree-item', Record<never, never>, Record<never, never>>,
     '/story/web-core/tree/vts-tree-item-error': RouteRecordInfo<'/story/web-core/tree/vts-tree-item-error', '/story/web-core/tree/vts-tree-item-error', Record<never, never>, Record<never, never>>,
     '/story/web-core/tree/vts-tree-list': RouteRecordInfo<'/story/web-core/tree/vts-tree-list', '/story/web-core/tree/vts-tree-list', Record<never, never>, Record<never, never>>,
