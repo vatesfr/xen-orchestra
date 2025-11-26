@@ -12,7 +12,7 @@ import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-contro
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
+import { formatSize } from '@core/utils/size.util.ts'
 import type { XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -36,8 +36,6 @@ const controllerMemory = computed(() => {
     return
   }
 
-  const controlDomainMemory = formatSizeRaw(controllerDomain.memory.size, 2)
-
-  return `${controlDomainMemory.value} ${controlDomainMemory.prefix}`
+  return formatSize(controllerDomain.memory.size, 2)
 })
 </script>

@@ -2,7 +2,7 @@
 
 ## **next**
 
-- [host/HostSystemResourceManagement] Fix text value if control domain is not defined (PR [#9197](https://github.com/vatesfr/xen-orchestra/pull/9197/))
+- [Host/HostSystemResourceManagement] Fix display when control domain memory is undefined (PR [#9197](https://github.com/vatesfr/xen-orchestra/pull/9197))
 
 ## **0.16.0** (2025-10-30)
 
