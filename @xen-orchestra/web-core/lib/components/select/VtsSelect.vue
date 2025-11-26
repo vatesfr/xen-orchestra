@@ -65,7 +65,7 @@ const { accent, id } = defineProps<{
 }>()
 
 defineSlots<{
-  default(props: { option: FormSelectIdToOption<TSelectId> }): any
+  default?(props: { option: FormSelectIdToOption<TSelectId> }): any
 }>()
 
 const { t } = useI18n()

@@ -35,8 +35,9 @@ import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util'
 import { toVariants } from '@core/utils/to-variants.util'
 import { inject, ref, useAttrs, watchEffect } from 'vue'
 
-type InputAccent = 'brand' | 'warning' | 'danger'
-type InputType = 'text' | 'number' | 'password' | 'search'
+export type InputAccent = 'brand' | 'warning' | 'danger'
+
+export type InputType = 'text' | 'number' | 'password' | 'search'
 
 defineOptions({
   inheritAttrs: false,
