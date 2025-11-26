@@ -39,7 +39,7 @@ const hosts = computed(() => hostsByPool.value.get(pool.id) ?? [])
 
 const selectedHost = useRouteQuery<XoHost | undefined>('id', {
   toData: id => hosts.value.find(host => host.id === id),
-  toQuery: hosts => hosts?.id ?? '',
+  toQuery: host => host?.id ?? '',
 })
 </script>
 

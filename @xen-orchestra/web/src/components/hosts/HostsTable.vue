@@ -205,17 +205,17 @@ const headerIcon: Record<HostHeader, IconName> = {
   .tags,
   .ip-addresses {
     display: flex;
+    align-items: center;
     gap: 0.8rem;
-
-    .tags,
-    .ip-addresses {
-      justify-content: space-between;
-      align-items: center;
-    }
 
     .more-info {
       color: var(--color-neutral-txt-secondary);
     }
+  }
+
+  .tags,
+  .ip-addresses {
+    justify-content: space-between;
   }
 }
 </style>

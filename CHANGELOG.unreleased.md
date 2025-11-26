@@ -22,8 +22,6 @@
   - [Header] Add EasyVirt DC Scope and DC NetScope buttons to install and access EasyVirt solutions (PR [#9242](https://github.com/vatesfr/xen-orchestra/pull/9242))
   - Implement reactivity for VMs, VM templates, VM controllers, VIFs, VDIs, VBDs, SRs, pools, PIFs, PGPUs, PCIs, networks, alarms, and hosts (PR [#9183](https://github.com/vatesfr/xen-orchestra/pull/9183))
   - [Core] Add tooltip on tag component if the text is cut (PR [#9184](https://github.com/vatesfr/xen-orchestra/pull/9184))
-  - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
-  - [Site/Hosts] Implement hosts view and side panel information (PR [#9128](https://github.com/vatesfr/xen-orchestra/pull/9128))
   - [Pool/Hosts] Implement hosts view and side panel information (PR [#9218](https://github.com/vatesfr/xen-orchestra/pull/9218))
 
 ### Bug fixes
