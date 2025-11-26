@@ -20,6 +20,9 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
+  "scripts": {
+    "test": "node --test"
+  },
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"

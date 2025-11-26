@@ -1,14 +1,36 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
+import { watchCollectionWrapper } from '@/utils/sse.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
 import type { AnyXoVdi, XoPool, XoSr, XoVdi } from '@vates/types'
 import { reactify, useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
+const srFields: (keyof XoSr)[] = [
+  'id',
+  'name_label',
+  'name_description',
+  '$pool',
+  'content_type',
+  'physical_usage',
+  'usage',
+  'size',
+  'SR_type',
+  'VDIs',
+  'type',
+  'shared',
+  'sm_config',
+  'other_config',
+  'tags',
+  'allocationStrategy',
+  '$PBDs',
+] as const
+
 export const useXoSrCollection = defineRemoteResource({
-  url: '/rest/v0/srs?fields=id,name_label,name_description,$pool,content_type,physical_usage,usage,size,SR_type,VDIs,type,shared,sm_config,other_config,tags,allocationStrategy,$PBDs',
+  url: `/rest/v0/srs?fields=${srFields.join(',')}`,
+  watchCollection: watchCollectionWrapper({ resource: 'SR', fields: srFields }),
   initialData: () => [] as XoSr[],
   state: (rawSrs, context) => {
     const srs = useSorted(rawSrs, (sr1, sr2) => sortByNameLabel(sr1, sr2))
