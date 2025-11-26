@@ -2818,6 +2818,14 @@ const messages = {
   recipeNameserverAddressesExample: '192.168.1.0,172.16.1.0',
   recipeSearches: 'Search domains',
   recipeSearchesExample: 'domain.com,search.org',
+  recipeLabelAllowInsecureXoConnection: 'Allow insecure XO connection',
+  recipeTooltipAcceptInsecureXoConnection: 'Check if you want to accept self signed certificates',
+  recipeXoFqdn: 'Xen Orchestra FQDN / IP',
+  recipeXoFqdnTooltip:
+    'FQDN or IP address of the Xen Orchestra instance reachable by the Kubernetes cluster for the XO CCM',
+  recipeUseCustomClusterCIDR: 'Use a custom cluster CIDR',
+  recipeClusterPodCIDR: 'Cluster CIDR',
+  recipeClusterServiceCIDR: 'Service CIDR',
 
   // Recipe DC Scope
   vmNameCompleteLabel: 'VM Name',

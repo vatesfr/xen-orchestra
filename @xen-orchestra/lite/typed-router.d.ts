@@ -56,7 +56,7 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/columns/vts-columns': RouteRecordInfo<'/story/web-core/columns/vts-columns', '/story/web-core/columns/vts-columns', Record<never, never>, Record<never, never>>,
     '/story/web-core/copy-button/vts-copy-button': RouteRecordInfo<'/story/web-core/copy-button/vts-copy-button', '/story/web-core/copy-button/vts-copy-button', Record<never, never>, Record<never, never>>,
     '/story/web-core/donut-chart-with-legend/vts-donut-chart-with-legend': RouteRecordInfo<'/story/web-core/donut-chart-with-legend/vts-donut-chart-with-legend', '/story/web-core/donut-chart-with-legend/vts-donut-chart-with-legend', Record<never, never>, Record<never, never>>,
-    '/story/web-core/dropdown/dropdown-title': RouteRecordInfo<'/story/web-core/dropdown/dropdown-title', '/story/web-core/dropdown/dropdown-title', Record<never, never>, Record<never, never>>,
+    '/story/web-core/dropdown-title/vts-dropdown-title': RouteRecordInfo<'/story/web-core/dropdown-title/vts-dropdown-title', '/story/web-core/dropdown-title/vts-dropdown-title', Record<never, never>, Record<never, never>>,
     '/story/web-core/input-wrapper/vts-input-wrapper': RouteRecordInfo<'/story/web-core/input-wrapper/vts-input-wrapper', '/story/web-core/input-wrapper/vts-input-wrapper', Record<never, never>, Record<never, never>>,
     '/story/web-core/legend-group/vts-legend-group': RouteRecordInfo<'/story/web-core/legend-group/vts-legend-group', '/story/web-core/legend-group/vts-legend-group', Record<never, never>, Record<never, never>>,
     '/story/web-core/object-icon/vts-object-icon': RouteRecordInfo<'/story/web-core/object-icon/vts-object-icon', '/story/web-core/object-icon/vts-object-icon', Record<never, never>, Record<never, never>>,

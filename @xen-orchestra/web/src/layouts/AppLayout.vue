@@ -11,10 +11,11 @@
         accent="brand"
         right-icon="fa:arrow-up-right-from-square"
         variant="tertiary"
-        @click="openUrl('/', true)"
+        @click="openUrl(xo5Route, true)"
       >
         XO 5
       </UiButton>
+      <ThirdParties />
       <QuickTaskButton />
       <AccountMenu />
     </template>
@@ -42,8 +43,10 @@ import AccountMenu from '@/components/account-menu/AccountMenu.vue'
 import LogoTextOnly from '@/components/LogoTextOnly.vue'
 import SidebarSearch from '@/components/SidebarSearch.vue'
 import QuickTaskButton from '@/components/task/QuickTaskButton.vue'
+import ThirdParties from '@/components/third-parties/ThirdParties.vue'
 import SiteTreeList from '@/components/tree/SiteTreeList.vue'
 import { useSiteTree } from '@/composables/pool-tree.composable'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
@@ -51,6 +54,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { openUrl } from '@core/utils/open-url.utils'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineSlots<{
@@ -61,6 +65,8 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { sites, isReady, filter, isSearching } = useSiteTree()
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '')
 </script>
 
 <style lang="postcss" scoped>

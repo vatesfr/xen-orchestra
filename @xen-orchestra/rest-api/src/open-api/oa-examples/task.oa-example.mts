@@ -1,4 +1,4 @@
-export const taskLocation = '/rest/v0/tasks/0m7kl0j9l'
+export const taskLocation = { taskId: '0m7kl0j9l' }
 
 export const taskIds = ['/rest/v0/tasks/0mdd1basu', '/rest/v0/tasks/0mdd1t24g']
 

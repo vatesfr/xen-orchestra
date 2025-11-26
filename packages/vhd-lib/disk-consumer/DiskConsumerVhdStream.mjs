@@ -1,5 +1,6 @@
 import { Readable } from 'stream'
 import { BaseVhd, FULL_BLOCK_BITMAP } from './BaseVhd.mjs'
+import assert from 'node:assert'
 
 /**
  * @typedef {Readable & { length: number }} VhdStream
@@ -23,6 +24,7 @@ export class DiskConsumerVhdStream extends BaseVhd {
       yield header
       yield bat
       for await (const { data } of blockGenerator) {
+        assert.strictEqual(data.length, 2 * 1024 * 1024)
         yield Buffer.concat([FULL_BLOCK_BITMAP, data])
       }
       yield footer

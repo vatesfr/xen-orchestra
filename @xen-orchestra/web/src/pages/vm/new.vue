@@ -6,6 +6,15 @@
         <VtsSelect :id="poolSelectId" accent="brand" />
       </template>
     </UiHeadBar>
+    <UiAlert v-if="vmState.pool" accent="info" class="card-container">
+      <I18nT keypath="new-vm.feature-not-supported">
+        <template #xo-5>
+          <UiLink :href="xo5Link" size="medium">
+            {{ t('xo-5') }}
+          </UiLink>
+        </template>
+      </I18nT>
+    </UiAlert>
     <div class="card-container">
       <form @submit.prevent="createNewVM()">
         <UiCard v-if="vmState.pool">
@@ -331,6 +340,7 @@ import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.t
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
@@ -343,6 +353,7 @@ import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -350,6 +361,7 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -917,6 +929,16 @@ watch(
   },
   { immediate: true }
 )
+
+const { routes } = useXoRoutes()
+
+const xo5Link = computed(() => {
+  if (!vmState.pool?.id || !routes.value) {
+    return '#'
+  }
+
+  return `${routes.value.xo5}#/vms/new?pool=${vmState.pool?.id}`
+})
 </script>
 
 <style scoped lang="postcss">

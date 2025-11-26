@@ -6,7 +6,6 @@
       prop('accent').enum('brand', 'warning', 'danger').required().preset('brand').widget(),
       prop('disabled').bool().widget(),
       prop('href').str().widget(),
-      iconProp(),
       prop('max-characters').num().help('When used, it will display the character count under the input').widget(),
       prop('placeholder').str().widget(),
       prop('required').bool().widget(),
@@ -28,7 +27,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, model, prop, setting, slot } from '@/libs/story/story-param'
+import { model, prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
 import UiCharacterLimit from '@core/components/ui/character-limit/UiCharacterLimit.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'

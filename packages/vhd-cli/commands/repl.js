@@ -7,8 +7,13 @@ const { start: createRepl } = require('repl')
 const vhdLib = require('vhd-lib')
 
 module.exports = async function repl(args) {
+  if (args.some(_ => _ === '-h' || _ === '--help')) {
+    return `Starts REPL on given remote, or on remote at current path if no param is passed. (works only for unencrypted remotes)
+    Usage: ${this.command} <remote URL (optional)>`
+  }
   const cwd = process.cwd()
-  const handler = getHandler({ url: 'file://' + cwd })
+  const url = args.length === 0 ? 'file://' + cwd : args[0]
+  const handler = getHandler({ url })
   await handler.sync()
   try {
     const repl = createRepl({
