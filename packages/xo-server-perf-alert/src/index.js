@@ -65,6 +65,7 @@ class PerfAlertXoPlugin {
       byRules[alarm.rule.id] = byRules[alarm.rule.id] ?? { alarms: [] }
       byRules[alarm.rule.id].alarms.push({
         ...alarm,
+        value: '', // we don't want to show the old value for closed Alarms
         url: this._generateUrl(alarm.rule.objectType, alarm.target),
         notificationType: 'closed',
       })
