@@ -97,6 +97,11 @@ export class MonitorRule {
           return false
         }
       }
+      if (xoObject.type === 'VM') {
+        if (this.variableName === 'memoryUsage' && !xoObject.managementAgentDetected) {
+          return false
+        }
+      }
       if (this.excludeUuids && this.uuids.includes(xoObject.uuid)) {
         return false
       }
