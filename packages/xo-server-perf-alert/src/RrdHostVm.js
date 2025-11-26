@@ -248,7 +248,9 @@ export class RrdHostVm extends MonitorStrategy {
     let alarms = this.#computeHostAlarm(xoHost, hostStat, this.#rules.getObjectAlerts(xoHost))
     for (const [vmUid, vmStats] of Object.entries(hostStat.vms ?? {})) {
       const xoVm = this.#xo.getObject(vmUid)
-      alarms = alarms.concat(this.#computeVmAlarm(xoVm, vmStats, this.#rules.getObjectAlerts(xoVm)))
+      try {
+        alarms = alarms.concat(this.#computeVmAlarm(xoVm, vmStats, this.#rules.getObjectAlerts(xoVm)))
+      } catch (err) {}
     }
     return alarms
   }
