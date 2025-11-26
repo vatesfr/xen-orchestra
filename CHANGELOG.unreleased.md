@@ -32,6 +32,7 @@
 
 - **XO 6:**
   - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
+  - [Dashboards/Alarms] fix double scrollbar in Alarms lists due to incorrect height setting (PR [#9246](https://github.com/vatesfr/xen-orchestra/pull/9246))
 - [V2V] fix transfer failing at 99% for unaligned disk (PR [#9233](https://github.com/vatesfr/xen-orchestra/pull/9233))
 
 ### Packages to release
@@ -53,6 +54,7 @@
 - @vates/nbd-client patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/web patch
 - @xen-orchestra/web-core minor
 - vhd-cli major
 - vhd-lib patch
