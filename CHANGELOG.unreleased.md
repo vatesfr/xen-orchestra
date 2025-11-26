@@ -29,6 +29,7 @@
 - [Backups] fix infinite chain of snapshot and replication [Forum#11540](https://xcp-ng.org/forum/topic/11540) [Forum#11539](https://xcp-ng.org/forum/topic/11539) (PR [#9202](https://github.com/vatesfr/xen-orchestra/pull/9202))
 - [V2V] fix missing libssl.so.3 in path on debian 11 (PR [#9208](https://github.com/vatesfr/xen-orchestra/pull/9208))
 - [xo-server] imporve esxi 6 importing from wmware failure fallback by using COWD file (PR [#9223](https://github.com/vatesfr/xen-orchestra/pull/9223))
+- [REST API] Fix `/rest/v0/backup-archives` return error 500 _Cannot convert undefined or null to object_ (PR [#9240](https://github.com/vatesfr/xen-orchestra/pull/9240))
 
 - **XO 6:**
   - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
