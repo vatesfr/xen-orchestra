@@ -15,6 +15,7 @@
       >
         XO 5
       </UiButton>
+      <ThirdParties />
       <QuickTaskButton />
       <AccountMenu />
     </template>
@@ -42,6 +43,7 @@ import AccountMenu from '@/components/account-menu/AccountMenu.vue'
 import LogoTextOnly from '@/components/LogoTextOnly.vue'
 import SidebarSearch from '@/components/SidebarSearch.vue'
 import QuickTaskButton from '@/components/task/QuickTaskButton.vue'
+import ThirdParties from '@/components/third-parties/ThirdParties.vue'
 import SiteTreeList from '@/components/tree/SiteTreeList.vue'
 import { useSiteTree } from '@/composables/pool-tree.composable'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'

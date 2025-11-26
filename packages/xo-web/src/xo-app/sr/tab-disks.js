@@ -24,12 +24,12 @@ import { connectStore, formatSize, noop } from 'utils'
 import { concat, every, groupBy, isEmpty, map, mapValues, pick, some, sortBy } from 'lodash'
 import { createCollectionWrapper, createGetObjectsOfType, createSelector, getCheckPermissions } from 'selectors'
 import {
-  connectVbd,
+  connectVbds,
   createDisk,
   deleteVbd,
   deleteVdi,
   deleteVdis,
-  disconnectVbd,
+  disconnectVbds,
   editVdi,
   exportVdi,
   importVdi,
@@ -180,8 +180,8 @@ const COLUMNS = sr => [
                       {vbd.attached ? (
                         <ActionRowButton
                           btnStyle='danger'
-                          handler={disconnectVbd}
-                          handlerParam={vbd}
+                          handler={disconnectVbds}
+                          handlerParam={[vbd]}
                           icon='disconnect'
                           tooltip={_('vbdDisconnect')}
                         />
@@ -189,8 +189,8 @@ const COLUMNS = sr => [
                         <ActionRowButton
                           btnStyle='primary'
                           disabled={some(vbds, 'attached') || !isVmRunning(vm)}
-                          handler={connectVbd}
-                          handlerParam={vbd}
+                          handler={connectVbds}
+                          handlerParam={[vbd]}
                           icon='connect'
                           tooltip={_('vbdConnect')}
                         />

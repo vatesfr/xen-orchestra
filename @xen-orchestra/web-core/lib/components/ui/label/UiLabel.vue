@@ -1,18 +1,15 @@
-<!-- v1 -->
+<!-- v3 -->
 <template>
   <div :class="toVariants({ accent })" class="ui-label">
-    <VtsIcon :name="icon" size="medium" class="icon" />
-    <label :for="htmlFor" :class="{ required }" class="typo-caption label">
+    <label :for="htmlFor" :class="{ required }" class="typo-body-bold label">
       <slot />
     </label>
-    <UiLink v-if="href" class="learn-more-link" size="small" :href>{{ t('learn-more') }}</UiLink>
+    <UiLink v-if="href" size="small" :href>{{ t('learn-more') }}</UiLink>
   </div>
 </template>
 
 <script lang="ts" setup>
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 import { useI18n } from 'vue-i18n'
 
@@ -21,7 +18,6 @@ export type LabelAccent = 'neutral' | 'warning' | 'danger'
 const { for: htmlFor } = defineProps<{
   accent: LabelAccent
   for?: string
-  icon?: IconName
   required?: boolean
   href?: string
 }>()
@@ -33,10 +29,7 @@ const { t } = useI18n()
 .ui-label {
   display: flex;
   align-items: center;
-
-  .icon {
-    margin-right: 0.8rem;
-  }
+  justify-content: space-between;
 
   .label {
     &.required::after {
@@ -44,10 +37,6 @@ const { t } = useI18n()
       margin-left: 0.4rem;
       color: var(--color-info-txt-base);
     }
-  }
-
-  .learn-more-link {
-    margin-left: auto;
   }
 
   /* ACCENT VARIANTS */
