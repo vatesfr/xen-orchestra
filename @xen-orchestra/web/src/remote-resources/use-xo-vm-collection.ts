@@ -1,13 +1,62 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { watchCollectionWrapper } from '@/utils/sse.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { VM_POWER_STATE, type XoHost, type XoPool, type XoVm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
+const vmFields: (keyof XoVm)[] = [
+  'id',
+  'name_label',
+  'name_description',
+  'power_state',
+  '$container',
+  '$pool',
+  'other',
+  'current_operations',
+  'creation',
+  'CPUs',
+  'addresses',
+  'tags',
+  'os_version',
+  'virtualizationMode',
+  'secureBoot',
+  'VTPMs',
+  'VIFs',
+  'viridian',
+  'isNestedVirtEnabled',
+  'memory',
+  'VGPUs',
+  'high_availability',
+  'auto_poweron',
+  'startDelay',
+  'vga',
+  'videoram',
+  'pvDriversVersion',
+  'cpuWeight',
+  'cpuCap',
+  'cpuMask',
+  'coresPerSocket',
+  'mainIpAddress',
+  'nicType',
+  'affinityHost',
+  'suspendSr',
+  'blockedOperations',
+  'hasVendorDevice',
+  'startTime',
+  'installTime',
+  'pvDriversDetected',
+  'managementAgentDetected',
+  'type',
+  '$VBDs',
+  'snapshots',
+] as const
+
 export const useXoVmCollection = defineRemoteResource({
-  url: '/rest/v0/vms?fields=id,name_label,name_description,power_state,$container,$pool,other,current_operations,creation,CPUs,addresses,tags,os_version,virtualizationMode,secureBoot,VTPMs,VIFs,viridian,isNestedVirtEnabled,memory,VGPUs,high_availability,auto_poweron,startDelay,vga,videoram,pvDriversVersion,cpuWeight,cpuCap,cpuMask,coresPerSocket,mainIpAddress,nicType,affinityHost,suspendSr,blockedOperations,hasVendorDevice,startTime,installTime,pvDriversDetected,managementAgentDetected,type,$VBDs,snapshots',
+  url: `/rest/v0/vms?fields=${vmFields.join(',')}`,
+  watchCollection: watchCollectionWrapper({ resource: 'VM', fields: vmFields }),
   initialData: () => [] as XoVm[],
   state: (rawVms, context) => {
     const { getHostById } = useXoHostCollection(context)

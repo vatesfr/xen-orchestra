@@ -20,6 +20,7 @@
   - [New/VM] Display unsupported features information message (PR [#9203](https://github.com/vatesfr/xen-orchestra/pull/9203))
   - [i18n] Update Czech, German, French, Italian, Dutch, Portuguese (Brazil), and Ukrainian translations, and add Danish translation (PR [#9165](https://github.com/vatesfr/xen-orchestra/pull/9165))
   - [Header] Add EasyVirt DC Scope and DC NetScope buttons to install and access EasyVirt solutions (PR [#9242](https://github.com/vatesfr/xen-orchestra/pull/9242))
+  - Implement reactivity for VMs, VM templates, VM controllers, VIFs, VDIs, VBDs, SRs, pools, PIFs, PGPUs, PCIs, networks, alarms, and hosts (PR [#9183](https://github.com/vatesfr/xen-orchestra/pull/9183))
 
 ### Bug fixes
 
@@ -55,7 +56,7 @@
 - @vates/nbd-client patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/vmware-explorer patch
-- @xen-orchestra/web patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - vhd-cli major
 - vhd-lib patch
