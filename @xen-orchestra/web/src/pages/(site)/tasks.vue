@@ -10,17 +10,18 @@
 <script setup lang="ts">
 import TasksList from '@/components/site/tasks/TasksList.vue'
 import { useXoTaskCollection } from '@/remote-resources/use-xo-task-collection.ts'
-import { useXoUserCollection } from '@/remote-resources/use-xo-user.ts'
+import { useXoUserCollection } from '@/remote-resources/use-xo-user-collections.ts'
 import { convertTaskToCore } from '@/utils/convert-task-to-core.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoUser } from '@vates/types'
 import { computed } from 'vue'
 
 const uiStore = useUiStore()
 
 const { tasks, hasTaskFetchError, areTasksFetching } = useXoTaskCollection()
-const { useGetUserById } = useXoUserCollection()
+const { getUserById } = useXoUserCollection()
 
 const convertedTasks = computed(() =>
   tasks.value.map(task => {
@@ -30,10 +31,10 @@ const convertedTasks = computed(() =>
       return convertTaskToCore(task)
     }
 
-    const user = useGetUserById(() => userId)
+    const user = getUserById(userId as XoUser['id'])
 
     // TODO , just put username when it is available in endpoint
-    return convertTaskToCore(task, user.value?.name ? user.value?.name : user.value?.email)
+    return convertTaskToCore(task, user?.name ? user?.name : user?.email)
   })
 )
 </script>
