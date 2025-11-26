@@ -65,8 +65,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoUserCollection } from '@/remote-resources/use-xo-user.ts'
-import type { XoTask } from '@/types/xo/task.type.ts'
+import { useXoUserCollection } from '@/remote-resources/use-xo-user-collections.ts'
 import { getTaskAccent } from '@/utils/task-status.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -77,6 +76,7 @@ import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircl
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import type { XoTask, XoUser } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -86,9 +86,9 @@ const { task } = defineProps<{
 
 const { t, d } = useI18n()
 
-const { useGetUserById } = useXoUserCollection()
+const { getUserById } = useXoUserCollection()
 
-const user = useGetUserById(() => task.properties.userId)
+const user = getUserById(task.properties.userId as XoUser['id'])
 
 const progressStatus = computed(() => getTaskAccent(task.status, 'progress'))
 const taskStatus = computed(() => getTaskAccent(task.status, 'status'))

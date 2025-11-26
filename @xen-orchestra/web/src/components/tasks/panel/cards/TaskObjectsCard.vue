@@ -16,11 +16,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoTask } from '@/types/xo/task.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -35,9 +35,5 @@ const { t } = useI18n()
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-
-  .divider {
-    margin-block: 1.6rem;
-  }
 }
 </style>
