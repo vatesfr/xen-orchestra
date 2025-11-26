@@ -14,8 +14,8 @@ function humanReadableRule(rule) {
     VM: 'virtual machine',
   }
   const COMPARATOR_TO_TEXT = {
-    '<': 'less than',
-    '>': 'more than',
+    '<': 'less',
+    '>': 'more',
   }
   return `${VARIABLE_TO_TEXT[rule.variableName]}  of the ${TYPE_TO_TEXT[rule.objectType]} is  ${COMPARATOR_TO_TEXT[rule.comparator]} than ${rule.triggerLevel} % ot total `
 }
