@@ -141,130 +141,21 @@
             <!-- NETWORK SECTION -->
             <UiTitle>{{ t('network') }}</UiTitle>
             <div class="network-container">
-              <VtsTable vertical-border>
-                <thead>
-                  <tr>
-                    <th>
-                      <VtsIcon name="fa:network-wired" size="medium" />
-                      {{ t('interfaces') }}
-                    </th>
-                    <th>
-                      <VtsIcon name="fa:at" size="medium" />
-                      {{ t('mac-addresses') }}
-                    </th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(vif, index) in vmState.vifs" :key="index">
-                    <td>
-                      <NetworkSelect v-model="vif.network" :networks="filteredNetworks" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vif.mac" :placeholder="t('auto-generated')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiButtonIcon
-                        icon="fa:trash"
-                        size="medium"
-                        accent="brand"
-                        variant="secondary"
-                        @click="deleteItem(vmState.vifs, index)"
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="3">
-                      <UiButton left-icon="fa:plus" variant="tertiary" accent="brand" size="medium" @click="addVif()">
-                        {{ t('new') }}
-                      </UiButton>
-                    </td>
-                  </tr>
-                </tbody>
-              </VtsTable>
+              <NewVmNetworkTable
+                :networks="filteredNetworks"
+                :vm-state
+                @add="addVif()"
+                @remove="index => deleteItem(vmState.vifs, index)"
+              />
             </div>
             <!-- STORAGE SECTION -->
             <UiTitle>{{ t('storage') }}</UiTitle>
-            <VtsTable vertical-border>
-              <thead>
-                <tr>
-                  <th>
-                    <VtsIcon name="fa:database" size="medium" />
-                    {{ t('storage-repositories') }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:align-left" size="medium" />
-                    {{ t('disk-name') }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:memory" size="medium" />
-                    <!-- TODO remove (GB) when we can use new selector -->
-                    {{ `${t('size')} (GB)` }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:align-left" size="medium" />
-                    {{ t('description') }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
-                  <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
-                    <td>
-                      <SrSelect v-model="vdi.sr" :srs="filteredSrs" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.size" :placeholder="t('size')" accent="brand" disabled />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_description" :placeholder="t('description')" accent="brand" />
-                    </td>
-                    <td />
-                  </tr>
-                </template>
-                <template v-if="vmState.vdis && vmState.vdis.length > 0">
-                  <tr v-for="(vdi, index) in vmState.vdis" :key="index">
-                    <td>
-                      <SrSelect v-model="vdi.sr" :srs="filteredSrs" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.size" :placeholder="t('size')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_description" :placeholder="t('description')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiButtonIcon
-                        icon="fa:trash"
-                        size="medium"
-                        accent="brand"
-                        variant="secondary"
-                        @click="deleteItem(vmState.vdis, index)"
-                      />
-                    </td>
-                  </tr>
-                </template>
-                <tr>
-                  <td colspan="5">
-                    <UiButton
-                      left-icon="fa:plus"
-                      variant="tertiary"
-                      accent="brand"
-                      size="medium"
-                      @click="addStorageEntry()"
-                    >
-                      {{ t('new') }}
-                    </UiButton>
-                  </td>
-                </tr>
-              </tbody>
-            </VtsTable>
+            <NewVmSrTable
+              :srs="filteredSrs"
+              :vm-state
+              @add="addStorageEntry()"
+              @remove="index => deleteItem(vmState.vdis, index)"
+            />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand">
@@ -315,8 +206,8 @@
 </template>
 
 <script lang="ts" setup>
-import NetworkSelect from '@/components/select/NetworkSelect.vue'
-import SrSelect from '@/components/select/SrSelect.vue'
+import NewVmNetworkTable from '@/components/new-vm/NewVmNetworkTable.vue'
+import NewVmSrTable from '@/components/new-vm/NewVmSrTable.vue'
 import { createVM } from '@/jobs/vm-create.job.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
@@ -329,15 +220,12 @@ import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
 import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
@@ -1025,10 +913,6 @@ watch(
       gap: 10.8rem;
     }
 
-    thead tr th:last-child {
-      width: 4rem;
-    }
-
     .select {
       display: flex;
       flex-direction: column;
@@ -1041,49 +925,6 @@ watch(
     display: flex;
     justify-content: center;
     gap: 1.6rem;
-  }
-
-  /*Todo: Remove when we implement the new select component*!*/
-
-  .custom-select {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-  }
-
-  .custom-select {
-    select {
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-
-      width: 100%;
-      min-width: 20rem;
-      padding-block: 0.8rem;
-      padding-inline: 1.6rem;
-      outline: none;
-      font-size: 1.6rem;
-      background-color: var(--color-neutral-background-primary);
-      border-color: var(--color-neutral-border);
-      border-radius: 0.4rem;
-
-      &:hover {
-        border-color: var(--color-brand-item-hover);
-      }
-
-      &:focus {
-        border-color: transparent;
-        box-shadow: inset 0 0 0 2px var(--color-brand-item-base);
-      }
-    }
-
-    .icon {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
   }
 }
 </style>
