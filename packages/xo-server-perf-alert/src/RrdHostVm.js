@@ -318,7 +318,7 @@ export class RrdHostVm extends MonitorStrategy {
       // but handle gracefully long running computation
       if (this.#lastChangeComputation) {
         const nextRun = this.#lastChangeComputation + delay - Date.now()
-        await new Promise(resolve => {
+        await new Promise((resolve, reject) => {
           const interval = setTimeout(() => {
             resolve()
           }, nextRun)
@@ -326,6 +326,7 @@ export class RrdHostVm extends MonitorStrategy {
             clearInterval(interval)
             const error = new Error('Abort waiting')
             error.code = 'ERR_ABORTED'
+            reject(error)
           })
         })
       }
