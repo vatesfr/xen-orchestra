@@ -1,13 +1,13 @@
 import { XapiXoRecord, XoAlarm, XoMessage } from '@vates/types'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import * as CM from 'complex-matcher'
 import { BASE_URL } from '../index.mjs'
+import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 // E.g: 'value: 0.6\nconfig:\n<variable>\n<name value="cpu_usage"/>\n<alarm_trigger_level value="0.4"/>\n<alarm_trigger_period value ="60"/>\n</variable>';
 const ALARM_BODY_REGEX = /^value:\s*(Infinity|NaN|-Infinity|\d+(?:\.\d+)?)\s*config:\s*<variable>\s*<name value="(.*?)"/
 const ALARM_NAMES = ['ALARM', 'BOND_STATUS_CHANGED', 'MULTIPATH_PERIODIC_ALERT']
 export const RAW_ALARM_FILTER = `name:|(${ALARM_NAMES.join(' ')})`
-export const alarmPredicate = CM.parse(RAW_ALARM_FILTER).createPredicate()
+export const alarmPredicate = safeParseComplexMatcher(RAW_ALARM_FILTER).createPredicate()
 
 export class AlarmService {
   #restApi: RestApi
@@ -60,7 +60,7 @@ export class AlarmService {
 
     let userFilter: (obj: XoAlarm) => boolean = () => true
     if (filter !== undefined) {
-      userFilter = typeof filter === 'string' ? CM.parse(filter).createPredicate() : filter
+      userFilter = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate() : filter
     }
     const alarms: Record<XoAlarm['id'], XoAlarm> = {}
     for (const id in rawAlarms) {

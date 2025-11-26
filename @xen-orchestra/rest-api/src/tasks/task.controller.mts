@@ -1,4 +1,3 @@
-import * as CM from 'complex-matcher'
 import type { Request as ExRequest } from 'express'
 import type { XoTask } from '@vates/types'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
@@ -32,6 +31,7 @@ import { ApiError } from '../helpers/error.helper.mjs'
 import { Transform } from 'node:stream'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 @Route('tasks')
 @Security('*')
@@ -77,7 +77,7 @@ export class TaskController extends XoController<XoTask> {
         throw new ApiError('watch=true requires ndjson=true', 400)
       }
 
-      const userFilter = filter === undefined ? undefined : CM.parse(filter).createPredicate()
+      const userFilter = filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate()
       const stream = new Transform({
         objectMode: true,
         transform([event, object], encoding, callback) {
