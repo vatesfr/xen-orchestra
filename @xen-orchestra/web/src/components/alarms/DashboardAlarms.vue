@@ -64,7 +64,7 @@ const {
   wrapperProps,
 } = useVirtualList(
   computed(() => rawAlarms),
-  { itemHeight: () => (uiStore.isDesktopLarge ? 40 : 70) }
+  { itemHeight: () => (uiStore.isDesktopLarge ? 42 : 71) }
 )
 </script>
 
