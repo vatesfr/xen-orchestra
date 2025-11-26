@@ -2,7 +2,7 @@
 <template>
   <div class="ui-info">
     <VtsIcon class="icon" :name="icon" size="medium" />
-    <p v-tooltip="!wrap" class="typo-body-regular-small" :class="{ 'text-ellipsis': !wrap }">
+    <p v-tooltip="!wrap" class="typo-body-regular-small label" :class="{ 'text-ellipsis': !wrap }">
       <slot />
     </p>
   </div>
@@ -46,6 +46,10 @@ const icon = useMapper<InfoAccent, IconName>(
 
   .icon {
     font-size: 1.6rem;
+  }
+
+  .label:empty {
+    display: none;
   }
 }
 </style>

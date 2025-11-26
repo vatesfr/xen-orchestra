@@ -18,7 +18,7 @@ export type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
 export type ButtonAccent = 'brand' | 'warning' | 'danger'
 export type ButtonSize = 'small' | 'medium'
 
-const { accent, variant, size, disabled, busy, lockIcon } = defineProps<{
+export type ButtonProps = {
   variant: ButtonVariant
   accent: ButtonAccent
   size: ButtonSize
@@ -26,7 +26,9 @@ const { accent, variant, size, disabled, busy, lockIcon } = defineProps<{
   disabled?: boolean
   lockIcon?: boolean
   leftIcon?: IconName
-}>()
+}
+
+const { accent, variant, size, disabled, busy, lockIcon } = defineProps<ButtonProps>()
 
 defineSlots<{
   default(): any
