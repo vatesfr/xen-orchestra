@@ -4,7 +4,6 @@
     :params="[
       prop('label').str().preset('Some label').widget(),
       prop('learnMoreUrl').str().widget(),
-      iconProp(),
       prop('message').type('InputWrapperMessage').widget(object()).preset([]).help('See presets'),
       slot(),
       slot('label').help('Can be used in place of label prop'),
@@ -19,7 +18,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, prop, slot } from '@/libs/story/story-param.ts'
+import { prop, slot } from '@/libs/story/story-param.ts'
 import { object } from '@/libs/story/story-widget.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 

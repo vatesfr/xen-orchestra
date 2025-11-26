@@ -96,7 +96,7 @@
                 <VtsInputWrapper :label="t('new-vm.name')">
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
-                <VtsInputWrapper :label="t('tags')" icon="fa:tags">
+                <VtsInputWrapper :label="t('tags')">
                   <!-- TODO Change input text into select when Thierry's component is available -->
                   <UiInput v-model="vmState.tag" accent="brand" @keydown.enter.prevent="addTag" />
                 </VtsInputWrapper>

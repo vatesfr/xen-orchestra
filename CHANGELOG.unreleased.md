@@ -53,6 +53,7 @@
 - @vates/nbd-client patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/vmware-explorer patch
+- @xen-orchestra/web-core minor
 - vhd-cli major
 - vhd-lib patch
 - xo-server patch
