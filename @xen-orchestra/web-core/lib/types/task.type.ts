@@ -7,7 +7,7 @@ export type Task = {
   progress?: number
   tag?: string
   userName?: string
-  start: number
+  start?: number
   end?: number
   status: TaskStatus
   subtasks?: Task[]
