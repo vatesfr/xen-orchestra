@@ -13,7 +13,7 @@ import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN } from '@core/utils/in
 import { onBeforeMount, onBeforeUpdate, provide, ref, toRef, useSlots } from 'vue'
 
 const props = defineProps<{
-  nodeId: TreeNodeId
+  nodeId?: TreeNodeId
   expanded?: boolean
 }>()
 
