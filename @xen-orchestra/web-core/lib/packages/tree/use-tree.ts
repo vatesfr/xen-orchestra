@@ -7,6 +7,7 @@ import type {
   TreeNodeId,
   UseTreeOptions,
 } from '@core/packages/tree/types'
+import { useTimeoutFn } from '@vueuse/core'
 import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 
 export function useTree<
@@ -68,8 +69,70 @@ export function useTree<
 
   const expandedIds = computed(() => Array.from(nodesMap.value.keys()).filter(id => !collapsedIds.value.has(id)))
 
-  const expandedNodes = computed(() => expandedIds.value.map(id => getNode(id)).filter(node => node !== undefined))
+  const getPathToNode = (node: TreeNode | undefined) => {
+    const path: TreeNode[] = []
+    while (node) {
+      path.unshift(node)
+      node = node.parent
+    }
+    return path
+  }
 
+  function findNodeByObjectId(nodes: TreeNode[], objectId: string | number): TreeNode | undefined {
+    for (const node of nodes) {
+      if (node && node.data && (node.data.id === objectId || String(node.data.id) === String(objectId))) {
+        return node
+      }
+      if (node && node.isBranch && node.hasChildren) {
+        const found = findNodeByObjectId(node.rawChildren, objectId)
+        if (found) {
+          return found
+        }
+      }
+    }
+    return undefined
+  }
+
+  const scrollToNodeElement = async (id: string | number, options?: ScrollIntoViewOptions) => {
+    const node = findNodeByObjectId(nodes.value, id)
+    if (!node) {
+      if (id) {
+        useTimeoutFn(async () => {
+          await scrollToNodeElement(id, options)
+        }, 200)
+      }
+      return
+    }
+
+    getPathToNode(node).forEach(node => {
+      if (node.isBranch) {
+        node.toggleCollapse(false)
+      }
+    })
+
+    const nodeElement = document.querySelector<HTMLElement>(`[data-node-id="${node.data.id}"]`)
+    if (!nodeElement) {
+      useTimeoutFn(async () => {
+        await scrollToNodeElement(id, options)
+      }, 200)
+      return
+    }
+
+    const hasChildren = node.isBranch && node.hasChildren
+    const cfg: ScrollIntoViewOptions = options ?? { block: hasChildren ? 'start' : 'center', behavior: 'smooth' }
+
+    if (hasChildren) {
+      nodeElement.style.scrollMarginTop = '0.8rem'
+
+      useTimeoutFn(async () => {
+        nodeElement.style.scrollMarginTop = ''
+      }, 1000)
+    }
+
+    nodeElement.scrollIntoView(cfg)
+  }
+
+  const expandedNodes = computed(() => expandedIds.value.map(id => getNode(id)).filter(node => node !== undefined))
   const activeNode = computed(() => getNode(activeId.value))
 
   const selectedLabel = computed(() => {
@@ -94,5 +157,6 @@ export function useTree<
     expandedIds,
     expandedNodes,
     options,
+    scrollToNodeElement,
   }
 }
