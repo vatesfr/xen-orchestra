@@ -11,7 +11,7 @@
   >
     <UiDropdownList>
       <template v-for="x in 2" :key="x">
-        <DropdownTitle v-bind="properties">{{ settings.defaultSlotContent }}</DropdownTitle>
+        <VtsDropdownTitle v-bind="properties">{{ settings.defaultSlotContent }}</VtsDropdownTitle>
         <UiDropdown v-for="y in 3" :key="y" :selected="isSelected(y, properties as any)" accent="brand" checkbox>
           Item label
         </UiDropdown>
@@ -24,7 +24,7 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { event, iconProp, prop, setting, slot } from '@/libs/story/story-param'
 import { text } from '@/libs/story/story-widget'
-import DropdownTitle from '@core/components/dropdown/DropdownTitle.vue'
+import VtsDropdownTitle from '@core/components/dropdown/VtsDropdownTitle.vue'
 import UiDropdown from '@core/components/ui/dropdown/UiDropdown.vue'
 import UiDropdownList from '@core/components/ui/dropdown/UiDropdownList.vue'
 
