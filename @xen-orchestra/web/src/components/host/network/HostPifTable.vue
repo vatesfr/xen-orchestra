@@ -40,98 +40,20 @@
             {{ t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0">
-          <UiTablePagination v-if="arePifsReady" v-bind="paginationBindings" />
-        </UiTopBottomTable>
       </div>
-      <VtsDataTable
-        :is-ready="arePifsReady"
-        :has-error="hasPifFetchError"
-        :no-data-message="pifs.length === 0 ? t('no-pif-detected') : undefined"
-      >
-        <template #thead>
+
+      <VtsTableNew :busy="!arePifsReady" :error="hasPifFetchError" sticky="right" :pagination-bindings>
+        <thead>
           <tr>
-            <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
-                <div v-tooltip class="text-ellipsis">
-                  <VtsIcon :name="headerIcon[column.id]" size="medium" />
-                  {{ column.label }}
-                </div>
-              </th>
-            </template>
+            <HeadCells />
           </tr>
-        </template>
-        <template #tbody>
-          <tr
-            v-for="row of pifsRecords"
-            :key="row.id"
-            :class="{ selected: selectedPifId === row.id }"
-            @click="selectedPifId = row.id"
-          >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="column.id === 'status'">
-                <VtsStatus :status="column.value" />
-              </div>
-              <div v-else-if="column.id === 'network'" class="network">
-                <!-- TODO Remove the span when the link works and the icon is fixed -->
-                <!--
-                  <UiComplexIcon size="medium" class="icon">
-                    <VtsIcon :icon="faNetworkWired" accent="current" />
-                    <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                  </UiComplexIcon>
-                  <a v-tooltip href="" class="text-ellipsis">{{ column.value.name }}</a>
-                 -->
-                <span v-tooltip class="text-ellipsis">{{ column.value.name }}</span>
-                <VtsIcon
-                  v-if="column.value.management"
-                  v-tooltip="t('management')"
-                  name="legacy:primary"
-                  size="medium"
-                />
-              </div>
-              <div v-else-if="column.id === 'ip'" class="ip-addresses">
-                <span class="text-ellipsis">{{ column.value[0] }}</span>
-                <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
-                  {{ `+${column.value.length - 1}` }}
-                </span>
-              </div>
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                {{ column.value }}
-              </div>
-            </td>
-          </tr>
-        </template>
-      </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredPifs.length === 0" format="table" type="no-result" size="small">
-        {{ t('no-result') }}
-      </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-if="arePifsReady" v-bind="paginationBindings" />
-      </UiTopBottomTable>
+        </thead>
+        <tbody>
+          <VtsRow v-for="pif of paginatedPifs" :key="pif.id" :selected="selectedPifId === pif.id">
+            <BodyCells :item="pif" />
+          </VtsRow>
+        </tbody>
+      </VtsTableNew>
     </div>
   </div>
 </template>
@@ -140,30 +62,21 @@
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
-import type { IconName } from '@core/icons'
-import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTableNew from '@core/components/table/VtsTableNew.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
-import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
-import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { usePifColumns } from '@core/tables/column-sets/pif-columns'
 import type { XoPif } from '@vates/types'
-import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { pifs } = defineProps<{
+const { pifs: rawPifs } = defineProps<{
   pifs: XoPif[]
 }>()
 
@@ -179,15 +92,11 @@ const filteredPifs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return pifs
+    return rawPifs
   }
 
-  return pifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+  return rawPifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
-
-const pifsIds = computed(() => pifs.map(pif => pif.id))
-
-const { selected, areAllSelected } = useMultiSelect(pifsIds)
 
 const getNetworkName = (pif: XoPif) => getNetworkById(pif.$network)?.name_label ?? ''
 
@@ -206,44 +115,24 @@ const getIpConfigurationMode = (ipMode: string) => {
   }
 }
 
-const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
-  rowId: record => record.id,
-  columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
-    define(
-      'network',
-      record => ({
-        name: getNetworkName(record),
-        management: record.management,
+const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
+
+const { HeadCells, BodyCells } = usePifColumns({
+  body: (pif: XoPif) => ({
+    network: r =>
+      r({
+        label: getNetworkName(pif),
+        rightIcon: pif.management ? { icon: 'legacy:primary', tooltip: t('management') } : undefined,
       }),
-      { label: t('network') }
-    ),
-    define('device', { label: t('device') }),
-    define('status', record => getPifStatus(record), { label: t('status') }),
-    define('vlan', record => getVlanData(record.vlan), { label: t('vlan') }),
-    define('ip', record => getIpAddresses(record), { label: t('ip-addresses') }),
-    define('mac', { label: t('mac-addresses') }),
-    define('mode', record => getIpConfigurationMode(record.mode), {
-      label: t('ip-mode'),
-    }),
-    define('more', noop, { label: '', isHideable: false }),
-  ],
+    device: r => r(pif.device),
+    status: r => r(getPifStatus(pif)),
+    vlan: r => r(getVlanData(pif.vlan)),
+    ip: r => r(getIpAddresses(pif)),
+    mac: r => r(pif.mac),
+    mode: r => r(getIpConfigurationMode(pif.mode)),
+    selectId: r => r(() => (selectedPifId.value = pif.id)),
+  }),
 })
-
-const { pageRecords: pifsRecords, paginationBindings } = usePagination('pifs', rows)
-
-type pifHeader = 'network' | 'device' | 'status' | 'vlan' | 'ip' | 'mac' | 'mode' | 'more'
-
-const headerIcon: Record<pifHeader, IconName> = {
-  network: 'fa:align-left',
-  device: 'fa:align-left',
-  status: 'fa:power-off',
-  vlan: 'fa:align-left',
-  ip: 'fa:at',
-  mac: 'fa:at',
-  mode: 'fa:caret-down',
-  more: 'fa:ellipsis',
-}
 </script>
 
 <style scoped lang="postcss">
