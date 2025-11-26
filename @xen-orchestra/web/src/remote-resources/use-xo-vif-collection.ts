@@ -17,7 +17,7 @@ const vifFields: (keyof XoVif)[] = [
 ] as const
 
 export const useXoVifCollection = defineRemoteResource({
-  url: '/rest/v0/vifs?fields='.concat(vifFields.toString()),
+  url: `/rest/v0/vifs?fields=${vifFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'VIF', fields: vifFields }),
   initialData: () => [] as XoVif[],
   state: (vifs, context) =>

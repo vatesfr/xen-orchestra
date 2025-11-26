@@ -13,7 +13,7 @@ const vmControllerFields: (keyof XoVmController)[] = [
 ] as const
 
 export const useXoVmControllerCollection = defineRemoteResource({
-  url: '/rest/v0/vm-controllers?fields='.concat(vmControllerFields.toString()),
+  url: `/rest/v0/vm-controllers?fields=${vmControllerFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'VM-controller', fields: vmControllerFields }),
   initialData: () => [] as XoVmController[],
   state: (vmControllers, context) =>

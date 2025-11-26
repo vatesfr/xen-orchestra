@@ -7,7 +7,7 @@ import { computed } from 'vue'
 const pbdFields: (keyof XoPbd)[] = ['id', 'type', 'attached', 'host', 'SR', 'device_config', 'otherConfig', '$pool']
 
 export const useXoPbdCollection = defineRemoteResource({
-  url: '/rest/v0/pbds?fields='.concat(pbdFields.toString()),
+  url: `/rest/v0/pbds?fields=${pbdFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'PBD', fields: pbdFields }),
   initialData: () => [] as XoPbd[],
   state: (pbds, context) => {

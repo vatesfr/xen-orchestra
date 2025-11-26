@@ -15,7 +15,7 @@ const vdiFields: (keyof XoVdi)[] = [
 ] as const
 
 export const useXoVdiCollection = defineRemoteResource({
-  url: '/rest/v0/vdis?fields='.concat(vdiFields.toString()),
+  url: `/rest/v0/vdis?fields=${vdiFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'VDI', fields: vdiFields }),
   initialData: () => [] as XoVdi[],
   state: (vdis, context) =>

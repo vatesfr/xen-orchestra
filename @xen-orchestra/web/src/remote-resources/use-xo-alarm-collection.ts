@@ -7,7 +7,7 @@ import { useSorted } from '@vueuse/core'
 const alarmFields: (keyof XoAlarm)[] = ['id', 'time', 'body', 'object', 'type'] as const
 
 export const useXoAlarmCollection = defineRemoteResource({
-  url: '/rest/v0/alarms?fields='.concat(alarmFields.toString()),
+  url: `/rest/v0/alarms?fields=${alarmFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'alarm', fields: alarmFields }),
   initialData: () => [] as XoAlarm[],
   state: (rawAlarms, context) => {

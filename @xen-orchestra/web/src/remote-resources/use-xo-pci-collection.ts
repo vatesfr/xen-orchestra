@@ -6,7 +6,7 @@ import type { XoPci } from '@vates/types'
 const pciFields: (keyof XoPci)[] = ['id', 'device_name', 'type'] as const
 
 export const useXoPciCollection = defineRemoteResource({
-  url: '/rest/v0/pcis?fields='.concat(pciFields.toString()),
+  url: `/rest/v0/pcis?fields=${pciFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'PCI', fields: pciFields }),
   initialData: () => [] as XoPci[],
   state: (pcis, context) =>

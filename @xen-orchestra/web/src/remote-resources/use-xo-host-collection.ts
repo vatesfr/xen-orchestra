@@ -37,7 +37,7 @@ const hostFields: (keyof XoHost)[] = [
 ] as const
 
 export const useXoHostCollection = defineRemoteResource({
-  url: '/rest/v0/hosts?fields='.concat(hostFields.toString()),
+  url: `/rest/v0/hosts?fields=${hostFields.join(',')}`,
   initialData: () => [] as XoHost[],
   watchCollection: watchCollectionWrapper({ resource: 'host', fields: hostFields }),
   state: (rawHosts, context) => {

@@ -1,9 +1,11 @@
-import type { THandleDelete, THandlePost, THandleWatching } from '@core/stores/sse.store'
+import type { THandleDelete, THandlePost, THandleWatching } from '@core/packages/remote-resource/sse.store'
 import { useEventSource } from '@vueuse/core'
 import { watchEffect } from 'vue'
 
 const EVENT_ENDPOINTS = '/rest/v0/events'
 
+// TODO: move into a composable
+// https://github.com/vatesfr/xen-orchestra/pull/9183#discussion_r2561650429
 export function watchCollectionWrapper({
   resource,
   fields,

@@ -55,7 +55,7 @@ const vmFields: (keyof XoVm)[] = [
 ] as const
 
 export const useXoVmCollection = defineRemoteResource({
-  url: '/rest/v0/vms?fields='.concat(vmFields.toString()),
+  url: `/rest/v0/vms?fields=${vmFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'VM', fields: vmFields }),
   initialData: () => [] as XoVm[],
   state: (rawVms, context) => {

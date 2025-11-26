@@ -22,7 +22,7 @@ const networkFields: (keyof XoNetwork)[] = [
 ] as const
 
 export const useXoNetworkCollection = defineRemoteResource({
-  url: '/rest/v0/networks?fields='.concat(networkFields.toString()),
+  url: `/rest/v0/networks?fields=${networkFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'network', fields: networkFields }),
   initialData: () => [] as XoNetwork[],
   state: (rawNetworks, context) => {

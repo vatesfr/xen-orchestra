@@ -1,5 +1,10 @@
+import {
+  useSseStore,
+  type THandleDelete,
+  type THandlePost,
+  type THandleWatching,
+} from '@core/packages/remote-resource/sse.store'
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
-import { useSseStore, type THandleDelete, type THandlePost, type THandleWatching } from '@core/stores/sse.store'
 import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
 import { type MaybeRef, noop, useTimeoutPoll } from '@vueuse/core'
@@ -114,16 +119,14 @@ export function defineRemoteResource<
   const pollingInterval = config.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS
 
   const removeData = (data: TData[], dataToRemove: any) => {
-    remove(data, d => {
-      if (typeof d === 'object') {
-        if (config.watchCollection?.getIdentifier !== undefined) {
-          return config.watchCollection.getIdentifier(d) === config.watchCollection.getIdentifier(dataToRemove)
-        }
+    const getIdentifier = config.watchCollection?.getIdentifier ?? JSON.stringify
 
-        return JSON.stringify(d) === JSON.stringify(dataToRemove)
+    remove(data, item => {
+      if (typeof item === 'object') {
+        return getIdentifier(item) === getIdentifier(dataToRemove)
       }
 
-      return d === dataToRemove
+      return item === dataToRemove
     })
   }
 

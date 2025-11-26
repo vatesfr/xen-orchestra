@@ -29,7 +29,7 @@ const pifFields: (keyof XoPif)[] = [
 ] as const
 
 export const useXoPifCollection = defineRemoteResource({
-  url: '/rest/v0/pifs?fields='.concat(pifFields.toString()),
+  url: `/rest/v0/pifs?fields=${pifFields.join(',')}`,
   initialData: () => [] as XoPif[],
   watchCollection: watchCollectionWrapper({ resource: 'PIF', fields: pifFields }),
   state: (pifs, context) => {

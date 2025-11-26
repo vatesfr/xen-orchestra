@@ -29,7 +29,7 @@ const srFields: (keyof XoSr)[] = [
 ] as const
 
 export const useXoSrCollection = defineRemoteResource({
-  url: '/rest/v0/srs?fields='.concat(srFields.toString()),
+  url: `/rest/v0/srs?fields=${srFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'SR', fields: srFields }),
   initialData: () => [] as XoSr[],
   state: (rawSrs, context) => {

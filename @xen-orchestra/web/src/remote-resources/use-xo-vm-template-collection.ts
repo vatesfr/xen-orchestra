@@ -24,7 +24,7 @@ const vmTemplateFields: (keyof XoVmTemplate)[] = [
 ] as const
 
 export const useXoVmTemplateCollection = defineRemoteResource({
-  url: '/rest/v0/vm-templates?fields='.concat(vmTemplateFields.toString()),
+  url: `/rest/v0/vm-templates?fields=${vmTemplateFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'VM-template', fields: vmTemplateFields }),
   initialData: () => [] as XoVmTemplate[],
   state: (rawTemplates, context) => {

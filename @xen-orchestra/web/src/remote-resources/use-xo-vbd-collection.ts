@@ -6,7 +6,7 @@ import type { XoVbd } from '@vates/types'
 const vbdFields: (keyof XoVbd)[] = ['id', 'VDI', 'is_cd_drive', 'position', 'type'] as const
 
 export const useXoVbdCollection = defineRemoteResource({
-  url: '/rest/v0/vbds?fields='.concat(vbdFields.toString()),
+  url: `/rest/v0/vbds?fields=${vbdFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'VBD', fields: vbdFields }),
   initialData: () => [] as XoVbd[],
   state: (vbds, context) =>

@@ -22,7 +22,7 @@ const poolFields: (keyof XoPool)[] = [
 ] as const
 
 export const useXoPoolCollection = defineRemoteResource({
-  url: '/rest/v0/pools?fields='.concat(poolFields.toString()),
+  url: `/rest/v0/pools?fields=${poolFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'pool', fields: poolFields }),
   initialData: () => [] as XoPool[],
   state: (rawPools, context) => {
