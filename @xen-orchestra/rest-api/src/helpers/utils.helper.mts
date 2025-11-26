@@ -127,16 +127,14 @@ export function escapeUnsafeComplexMatcher(maybeString: string | undefined): str
 export function safeParseComplexMatcher(string: string) {
   try {
     return CM.parse(string)
-  } catch (error) {
-    if (error instanceof Error) {
-      const apiError = new ApiError(error.message, 400, { data: { stringToParse: string } })
-      apiError.cause = error
-      apiError.stack = error.stack
+  } catch (_error) {
+    // CM.parse only throw errors that are instances of Error
+    const error = _error as unknown as Error
+    const apiError = new ApiError(error.message, 400, { data: { stringToParse: string } })
+    apiError.cause = error
+    apiError.stack = error.stack
 
-      throw apiError
-    }
-
-    throw error
+    throw apiError
   }
 }
 
