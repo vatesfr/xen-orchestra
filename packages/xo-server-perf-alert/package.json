@@ -2,6 +2,8 @@
   "name": "xo-server-perf-alert",
   "version": "0.6.3",
   "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "sourceType": "module",
   "description": "Sends alerts based on performance criteria",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-perf-alert",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
@@ -11,7 +13,6 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "preferGlobal": true,
-  "main": "dist/",
   "engines": {
     "node": ">=20"
   },
@@ -30,14 +31,6 @@
     "@babel/preset-env": "^7.0.0",
     "cross-env": "^7.0.2",
     "rimraf": "^6.0.1"
-  },
-  "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "prebuild": "yarn run clean",
-    "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
   },
   "private": true,
   "author": {

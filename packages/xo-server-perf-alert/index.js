@@ -6,9 +6,9 @@
 import { createLogger } from '@xen-orchestra/log'
 import { MonitorRuleSet } from './Rules.js'
 
-import * as templates from '../src/templates/index.js'
+import * as templates from './templates/index.js'
 import { HybridStrategy } from './HybridStrategy.js'
-export { configurationSchema } from './schema.js'
+import { configurationSchema } from './schema.js'
 
 const logger = createLogger('xo:xo-server-perf-alert')
 
@@ -71,8 +71,8 @@ class PerfAlertXoPlugin {
       })
     })
     const subject = newAlarms.size > 0 ? `Performance Alerts : new Alerts` : `Performance Alerts : end of all Alerts`
-    const { html } = await templates.mjml.transform(templates.mjml.$newAlarms({ byRules }))
-    const text = await templates.markdown.$newAlarms({ byRules })
+    const { html } = await templates.mjml.transform(templates.mjml.template({ byRules }))
+    const text = await templates.markdown.template({ byRules })
     return this._sendAlertEmail(subject, html, text)
   }
 
@@ -140,6 +140,8 @@ class PerfAlertXoPlugin {
   }
 }
 
-exports.default = function ({ xo }) {
+const main = function ({ xo }) {
   return new PerfAlertXoPlugin(xo)
 }
+main.configurationSchema = configurationSchema
+export default main
