@@ -34,9 +34,7 @@
                   <template #icon>
                     <VtsObjectIcon size="medium" :state="getHostState(column.value.state)" type="host" />
                   </template>
-                  <template #default>
-                    {{ column.value.label }}
-                  </template>
+                  {{ column.value.label }}
                 </UiObjectLink>
                 <VtsIcon v-if="column.value.primary" v-tooltip="t('master')" name="legacy:primary" size="medium" />
               </div>
@@ -207,9 +205,14 @@ const headerIcon: Record<HostHeader, IconName> = {
   .tags,
   .ip-addresses {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     gap: 0.8rem;
+
+    .tags,
+    .ip-addresses {
+      justify-content: space-between;
+      align-items: center;
+    }
+
     .more-info {
       color: var(--color-neutral-txt-secondary);
     }
