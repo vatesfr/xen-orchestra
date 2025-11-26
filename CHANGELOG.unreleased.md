@@ -39,6 +39,9 @@
 - [V2V] fix transfer failing at 99% for unaligned disk (PR [#9233](https://github.com/vatesfr/xen-orchestra/pull/9233))
 - [REST API] _parse error: expected end of input at position #_ when an invalid query parameter is provided, a 400 error is returned with more details (PR [#9244](https://github.com/vatesfr/xen-orchestra/pull/9244))
 
+- **XO 6:**
+  - [Host/HostSystemResourceManagement] Fix display when control domain memory is undefined (PR [#9197](https://github.com/vatesfr/xen-orchestra/pull/9197))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
