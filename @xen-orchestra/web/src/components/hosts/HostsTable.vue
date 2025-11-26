@@ -29,13 +29,14 @@
             @click="selectedHostId = row.id"
           >
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
-              <div v-if="column.id === 'host'">
+              <div v-if="column.id === 'host'" class="host">
                 <UiObjectLink :route="`/host/${row.id}/dashboard`" @click.stop>
                   <template #icon>
                     <VtsObjectIcon size="medium" :state="getHostState(column.value.state)" type="host" />
                   </template>
                   {{ column.value.label }}
                 </UiObjectLink>
+                <VtsIcon v-if="column.value.primary" v-tooltip="t('master')" name="legacy:primary" size="medium" />
               </div>
               <div
                 v-else-if="column.id === 'ip-addresses'"
@@ -84,6 +85,7 @@
 
 <script setup lang="ts">
 import { useXoHostUtils } from '@/composables/xo-host.composable'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -119,6 +121,8 @@ const searchQuery = ref('')
 const selectedHostId = useRouteQuery('id')
 
 const { pifsByHost, arePifsReady } = useXoPifCollection()
+
+const { isMasterHost } = useXoHostCollection()
 
 const isReady = logicAnd(arePifsReady, hostReady)
 
@@ -156,9 +160,13 @@ const getIpAddresses = (host: XoHost) => {
 const { visibleColumns, rows } = useTable('hosts', filteredHosts, {
   rowId: record => record.id,
   columns: define => [
-    define('host', record => ({ label: record.name_label, state: record.power_state }), {
-      label: t('host'),
-    }),
+    define(
+      'host',
+      record => ({ label: record.name_label, state: record.power_state, primary: isMasterHost(record.id) }),
+      {
+        label: t('host'),
+      }
+    ),
     define('description', record => record.name_description, { label: t('description') }),
     define('ip-addresses', record => getIpAddresses(record), { label: t('ip-addresses') }),
     define('tags', record => record.tags, { label: t('tags') }),
@@ -193,15 +201,21 @@ const headerIcon: Record<HostHeader, IconName> = {
     gap: 0.8rem;
   }
 
+  .host,
   .tags,
   .ip-addresses {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 0.8rem;
 
     .more-info {
       color: var(--color-neutral-txt-secondary);
     }
+  }
+
+  .tags,
+  .ip-addresses {
+    justify-content: space-between;
   }
 }
 </style>
