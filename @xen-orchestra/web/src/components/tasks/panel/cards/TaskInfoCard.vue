@@ -26,13 +26,13 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoTask } from '@/types/xo/task.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
