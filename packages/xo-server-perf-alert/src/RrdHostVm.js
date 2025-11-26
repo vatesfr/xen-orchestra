@@ -321,13 +321,15 @@ export class RrdHostVm extends MonitorStrategy {
         await new Promise((resolve, reject) => {
           const interval = setTimeout(() => {
             resolve()
+            this.#abortWaitController.signal.removeEventListener('abort', onAbort)
           }, nextRun)
-          this.#abortWaitController.signal.addEventListener('abort', () => {
+          function onAbort() {
             clearInterval(interval)
             const error = new Error('Abort waiting')
             error.code = 'ERR_ABORTED'
             reject(error)
-          })
+          }
+          this.#abortWaitController.signal.addEventListener('abort', onAbort)
         })
       }
 
