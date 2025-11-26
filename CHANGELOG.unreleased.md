@@ -55,6 +55,7 @@
 - @xen-orchestra/vmware-explorer patch
 - vhd-cli major
 - vhd-lib patch
+- xo-server patch
 - xo-server-auth-oidc minor
 - xo-web minor
 
