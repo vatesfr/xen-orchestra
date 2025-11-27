@@ -16,15 +16,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled accent="brand" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
+              <th>
                 <div v-tooltip>
                   <VtsIcon size="medium" :name="headerIcon[column.id]" />
                   {{ column.label }}
@@ -39,19 +31,8 @@
             :key="row.id"
             :class="{ selected: selectedBackupJobId === row.id }"
           >
-            <td v-for="column of row.visibleColumns" :key="column.id" :class="{ checkbox: column.id === 'checkbox' }">
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox disabled accent="brand" :value="row.id" />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="column.id === 'schedule'">
+            <td v-for="column of row.visibleColumns" :key="column.id">
+              <div v-if="column.id === 'schedule'">
                 <UiLink size="medium" icon="object:backup-job" :href="`/#/backup/${column.value.jobId}/edit`">
                   {{ column.value.name }}
                 </UiLink>
@@ -97,9 +78,7 @@ import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
@@ -110,7 +89,6 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XoSchedule } from '@vates/types'
-import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -143,7 +121,6 @@ const filteredBackupJobsSchedules = computed(() => {
 const { visibleColumns, rows } = useTable('backup-job-schedules', filteredBackupJobsSchedules, {
   rowId: record => record.id,
   columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
     define('schedule', record => record, { label: t('schedule') }),
     define('id', record => record.id, { label: t('id') }),
     define('status', record => record.enabled, { label: t('status') }),
@@ -151,8 +128,6 @@ const { visibleColumns, rows } = useTable('backup-job-schedules', filteredBackup
     define('last-runs', record => getLastThreeRunsStatuses(useGetBackupJobById(record.jobId).value), {
       label: t('last-n-runs', { n: 3 }),
     }),
-    // define('next-run', () => 'comming soon', { label: t('next-run') }), // #TODO bad data
-    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
@@ -184,16 +159,6 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
   .container,
   .table-actions {
     gap: 0.8rem;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 
   .last-three-runs {
