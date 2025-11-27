@@ -125,6 +125,7 @@
   "copy": "Zkopírovat",
   "copy-all": "Zkopírovat vše",
   "copy-host": "Zkopírovat hostitele",
+  "copy-host-bios-strings": "Zkopírovat BIOS řetězce z hostitele do virt. stroje (pouze pro virt. stroje, používající BIOS).",
   "copy-info-json": "Zkopírovat informace do JSON",
   "core-socket": "Jádro (patice)",
   "core.character-limit": "{count}/{max} znak | {count}/{max} znaků",
