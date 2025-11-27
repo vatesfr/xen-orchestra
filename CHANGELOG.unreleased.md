@@ -35,7 +35,4 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/web-core patch
-- xo-server-perf-alert patch
-
 <!--packages-end-->

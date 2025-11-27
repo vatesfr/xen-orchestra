@@ -95,14 +95,14 @@
 - vhd-cli 1.0.0
 - vhd-lib 4.14.5
 - @vates/nbd-client 3.2.2
-- @xen-orchestra/web-core 0.35.0
 - @xen-orchestra/rest-api 0.21.1
 - @xen-orchestra/vmware-explorer 0.10.6
 - xo-server 5.193.1
 - xo-server-auth-oidc 0.4.0
 - xo-web 5.191.0
-- @xen-orchestra/web 0.34.1
-- xo-server-perf-alert 1.0.1
+- @xen-orchestra/web-core 0.35.1
+- @xen-orchestra/web 0.34.2
+- xo-server-perf-alert 1.0.2
 
 ## **5.112.1** (2025-11-03)
 
