@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('runs') }}
       <template #actions>
-        <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
+        <UiLink size="medium" :href="`${xo5Route}#/backup/new`">{{ t('configure-in-xo-5') }}</UiLink>
       </template>
     </UiTitle>
     <div class="container">
@@ -63,6 +63,7 @@
 
 <script setup lang="ts">
 import { useXoBackupLogsUtils } from '@/composables/xo-backup-log-utils.composable'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -88,6 +89,9 @@ const { backupLogs } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const selectedBackupLogId = useRouteQuery('id')
 
