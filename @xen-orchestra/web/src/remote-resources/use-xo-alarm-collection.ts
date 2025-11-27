@@ -4,7 +4,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoAlarm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 
-const alarmFields: (keyof XoAlarm)[] = ['id', 'time', 'body', 'object', 'type'] as const
+export const alarmFields: (keyof XoAlarm)[] = ['id', 'time', 'body', 'object', 'type'] as const
 
 export const useXoAlarmCollection = defineRemoteResource({
   url: `/rest/v0/alarms?fields=${alarmFields.join(',')}`,
