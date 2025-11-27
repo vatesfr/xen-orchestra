@@ -14,7 +14,7 @@
       </TabItem>
     </RouterLink>
     <TabItem>
-      <UiLink :href="`${xo5Route}#/pool/${pool.id}/stats`" size="medium">
+      <UiLink :href="`${xo5Route}#/pools/${pool.id}/stats`" size="medium">
         {{ t('stats') }}
       </UiLink>
     </TabItem>

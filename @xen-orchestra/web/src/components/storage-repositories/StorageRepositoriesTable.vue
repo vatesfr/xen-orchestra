@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('storage-repositories') }}
       <template #actions>
-        <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
+        <UiLink size="medium" :href="`${xo5Route}#/backup/new`">{{ t('configure-in-xo-5') }}</UiLink>
       </template>
     </UiTitle>
     <div class="container">

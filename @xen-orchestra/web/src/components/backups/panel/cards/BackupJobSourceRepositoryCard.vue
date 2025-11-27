@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ t('source-backup-repository') }}
     </UiCardTitle>
-    <UiLink size="small" :icon="sourceBackupRepositoryIcon" href="/#/settings/remotes">
+    <UiLink size="small" :icon="sourceBackupRepositoryIcon" :href="`${xo5Route}#/settings/remotes`">
       {{ sourceBackupRepository.name }}
     </UiLink>
   </UiCard>
@@ -11,6 +11,7 @@
 
 <script lang="ts" setup>
 import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -23,6 +24,9 @@ const { mirrorBackupJob } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const { useGetBackupRepositoryById } = useXoBackupRepositoryCollection()
 
