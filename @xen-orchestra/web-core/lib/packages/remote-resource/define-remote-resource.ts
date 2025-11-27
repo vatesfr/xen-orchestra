@@ -158,7 +158,7 @@ export function defineRemoteResource<
     config.onDataRemoved ??
     ((data: Ref<TData>, receivedData: any, args?: ResourceContext<TArgs>) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
-      if (!config.watchCollection?.predicate?.(receivedData, args)) {
+      if (config.watchCollection?.predicate?.(receivedData, args) === false) {
         return
       }
 
