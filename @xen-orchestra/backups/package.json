@@ -26,7 +26,7 @@
     "@vates/disposable": "^0.1.6",
     "@vates/fuse-vhd": "^2.1.2",
     "@vates/generator-toolbox": "^1.1.0",
-    "@vates/nbd-client": "^3.2.1",
+    "@vates/nbd-client": "^3.2.2",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/disk-transform": "^1.2.0",
