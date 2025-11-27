@@ -135,9 +135,9 @@ export function defineRemoteResource<
 
   const onDataReceived =
     config.onDataReceived ??
-    ((data: Ref<TData>, receivedData: any, args?: ResourceContext<TArgs>) => {
+    ((data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
-      if (config.watchCollection?.predicate?.(receivedData, args) === false) {
+      if (config.watchCollection?.predicate?.(receivedData, context) === false) {
         return
       }
       if (data.value === undefined || (Array.isArray(data.value) && Array.isArray(receivedData))) {
@@ -156,9 +156,9 @@ export function defineRemoteResource<
 
   const onDataRemoved =
     config.onDataRemoved ??
-    ((data: Ref<TData>, receivedData: any, args?: ResourceContext<TArgs>) => {
+    ((data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
       // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
-      if (!config.watchCollection?.predicate?.(receivedData, args)) {
+      if (config.watchCollection?.predicate?.(receivedData, context) === false) {
         return
       }
 
