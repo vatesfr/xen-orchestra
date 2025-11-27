@@ -14,10 +14,6 @@
 - [VIF] Fix VIFs with device > 7 being destroyed when changing network - now uses non-destructive VIF.move API (XenServer 7.1+) that preserves VIF UUID and avoids network downtime (PR [#9221](https://github.com/vatesfr/xen-orchestra/pull/9221))
 - [Plugins/load balancer] Add 'Affinity tag' option in plugin configuration (PR [#9116](https://github.com/vatesfr/xen-orchestra/pull/9116))
 - [Plugins/Usage Report] Add RAM and CPU allocation columns to reports to help identify over/under-provisioned VMs (PR [#9224](https://github.com/vatesfr/xen-orchestra/pull/9224))
-- [Packages] Update xml2js dependency (PR [#9216](https://github.com/vatesfr/xen-orchestra/pull/9216))
-- [Proxy] Update cookie package (PR [#9220](https://github.com/vatesfr/xen-orchestra/pull/9220))
-- [Plugins/transport-email] Update nodemailer (PR [#9217](https://github.com/vatesfr/xen-orchestra/pull/9217))
-- Update dependency ansi_up (PR [#9226](https://github.com/vatesfr/xen-orchestra/pull/9226))
 
 - **XO 6:**
   - [Dashboards/Alarms] fix double scrollbar in Alarms lists due to incorrect height setting (PR [#9246](https://github.com/vatesfr/xen-orchestra/pull/9246))
@@ -36,6 +32,11 @@
 ### Security
 
 > Security fixes and new features should go in this section
+
+- [Packages] Update xml2js dependency (PR [#9216](https://github.com/vatesfr/xen-orchestra/pull/9216))
+- [Proxy] Update cookie package (PR [#9220](https://github.com/vatesfr/xen-orchestra/pull/9220))
+- [Plugins/transport-email] Update nodemailer (PR [#9217](https://github.com/vatesfr/xen-orchestra/pull/9217))
+- Update dependency ansi_up (PR [#9226](https://github.com/vatesfr/xen-orchestra/pull/9226))
 
 ### Enhancements
 
