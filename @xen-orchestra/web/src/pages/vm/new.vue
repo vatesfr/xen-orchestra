@@ -383,7 +383,7 @@ const vmState = reactive<VmState>({
   description: '',
   installMode: undefined,
   affinity_host: undefined,
-  bootFirmware: undefined,
+  bootFirmware: '',
   new_vm_template: undefined,
   boot_vm: true,
   autoPoweron: false,
@@ -924,6 +924,16 @@ watch(
   },
   { immediate: true }
 )
+
+const { routes } = useXoRoutes()
+
+const xo5Link = computed(() => {
+  if (!vmState.pool?.id || !routes.value) {
+    return '#'
+  }
+
+  return `${routes.value.xo5}#/vms/new?pool=${vmState.pool?.id}`
+})
 
 // BOOT FIRMWARE SELECTOR
 
