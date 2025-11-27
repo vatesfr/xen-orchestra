@@ -211,25 +211,29 @@ export class RrdHostVm extends MonitorStrategy {
   #computeVmAlarm(xoVm, vmStats, rules) {
     const vmAlarm = []
     for (const rule of rules) {
-      // compare value to data extracted from rrd
-      let value
-      switch (rule.variableName) {
-        case 'cpuUsage':
-          value = Math.round(100 * xapiAverage(vmStats.cpu_usage))
-          break
-        case 'memoryUsage': {
-          const total = xapiAverage(vmStats.memory)
-          // memory_internal_free is in bytes, memory is in kilobytes
-          const free = 1024 * xapiAverage(vmStats.memory_internal_free)
-          value = Math.round((100 * (total - free)) / total)
-          break
+      try {
+        // compare value to data extracted from rrd
+        let value
+        switch (rule.variableName) {
+          case 'cpuUsage':
+            value = Math.round(100 * xapiAverage(vmStats.cpu_usage))
+            break
+          case 'memoryUsage': {
+            const total = xapiAverage(vmStats.memory)
+            // memory_internal_free is in bytes, memory is in kilobytes
+            const free = 1024 * xapiAverage(vmStats.memory_internal_free)
+            value = Math.round((100 * (total - free)) / total)
+            break
+          }
+          default:
+            throw new Error(`Can't compute alert of type ${rule.variableName} for VM`)
         }
-        default:
-          throw new Error(`Can't compute alert of type ${rule.variableName} for VM`)
-      }
-
-      if (rule.isTriggeredBy(value)) {
-        vmAlarm.push(new Alarm({ rule, target: xoVm, value }))
+        if (rule.isTriggeredBy(value)) {
+          vmAlarm.push(new Alarm({ rule, target: xoVm, value }))
+        }
+      } catch (err) {
+        // value computation can fail if the VM didn't accumaulate values yes
+        // of if it's missing its tool
       }
     }
     return vmAlarm
