@@ -7,6 +7,10 @@ const messages = {
   alpha: 'Alpha',
   alerts: 'Alerts',
   connected: 'Connected',
+  dcScope: 'DC Scope',
+  deployDcScope: 'Deploy DC Scope',
+  dcNetScope: 'DC NetScope',
+  deployDcNetScope: 'Deploy DC NetScope',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   disable: 'Disable',
@@ -23,9 +27,11 @@ const messages = {
   esxiVddkLibrary: 'Drop the tar.gz file of the vddk library (linux)',
   esxiVddkLibraryImport: 'Import and install the Vddk library. VDDK9 need nbdkit 1.42+',
   esxiLibraryManualInstall:
-    'For other systems, you can install manually from https://gitlab.com/nbdkit/nbdkit . For reference the list of packages need for a debian 13 is **git dh-autoreconf pkg-config make libxml2-dev ocaml libc-bin**',
+    'For other systems, you can install manually from https://gitlab.com/nbdkit/ . For reference the list of packages need for a debian 13 is **git dh-autoreconf pkg-config make libxml2-dev ocaml libc-bin**',
   esxiLibraryAutoInstall: 'install {library} (debian based system)',
-  esxiLibraryNotInstalled: '{library} is not installed',
+  esxiLibraryInstalling:
+    "Installing {library} can take a few minutes. You can check the progress in the XO tasks screen while it's running.",
+  esxiProgressLinkText: 'Track progress',
 
   esxiLibraryOutdated:
     '{library} library is outdated expecting {expectedVersion}, got {version}. Please uninstall it and install the required version.',
@@ -276,6 +282,7 @@ const messages = {
   userPage: 'User',
   xoa: 'XOA',
   restApiDoc: 'REST API doc',
+  tryXo6: 'Try XO 6',
   // ----- Support -----
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
@@ -684,6 +691,7 @@ const messages = {
   mirrorFullBackup: 'Mirror full backup',
   mirrorIncrementalBackup: 'Mirror incremental backup',
   runBackupJob: 'Run backup job once',
+  backupJobWarningVmView: 'Enabling or disabling a backup job here will affect all VMs within that job.',
   speedLimit: 'Speed limit (in MiB/s)',
   sourceRemote: 'Source remote',
   targetRemotes: 'Target remotes',
@@ -1821,6 +1829,7 @@ const messages = {
   availableTemplateVarsTitle: 'Available template variables',
   templateNameInfo: 'the VM\'s name. It must not contain "_"',
   templateIndexInfo: "the VM's index, it will take 0 in case of single VM",
+  templateSshInfo: 'SSH key corresponding to the SSH title',
   templateEscape: 'Tip: escape any variable with a preceding backslash (\\)',
   coreOsDefaultTemplateError: 'Error on getting the default coreOS cloud template',
   newVmBootAfterCreate: 'Boot VM after creation',
@@ -2057,6 +2066,7 @@ const messages = {
   // ----- Modals -----
   bypassBackupHostModalMessage: 'There may be ongoing backups on the host. Are you sure you want to continue?',
   bypassBackupPoolModalMessage: 'There may be ongoing backups on the pool. Are you sure you want to continue?',
+  bypassBackupStorageModalMessage: 'There may be ongoing backups on the storage. Are you sure you want to continue?',
   bypassBlockedMigrationsModalTitle: 'Bypass blocked migrations',
   bypassBlockedMigrationsModalMessage: 'This will allow migration on these VMs: {vms}',
   emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
@@ -2786,6 +2796,8 @@ const messages = {
   templatesLabel: 'Templates',
   recipesLabel: 'Recipes',
   network: 'Network',
+
+  // Recipe Kubernetes
   recipeSelectK8sVersion: 'Select Kubernetes version',
   recipeClusterNameLabel: 'Cluster name',
   recipeNumberOfNodesLabel: 'Number of worker nodes',
@@ -2802,9 +2814,41 @@ const messages = {
   recipeWorkerIpAddress: 'Worker node { i, number } IP address/subnet mask',
   recipeGatewayIpAddress: 'Gateway IP address',
   recipeNameserverAddresses: 'Nameserver IP addresses',
+  recipeStaticIpAddress: 'Static IP Address',
   recipeNameserverAddressesExample: '192.168.1.0,172.16.1.0',
   recipeSearches: 'Search domains',
   recipeSearchesExample: 'domain.com,search.org',
+  recipeLabelAllowInsecureXoConnection: 'Allow insecure XO connection',
+  recipeTooltipAcceptInsecureXoConnection: 'Check if you want to accept self signed certificates',
+  recipeXoFqdn: 'Xen Orchestra FQDN / IP',
+  recipeXoFqdnTooltip:
+    'FQDN or IP address of the Xen Orchestra instance reachable by the Kubernetes cluster for the XO CCM',
+  recipeUseCustomClusterCIDR: 'Use a custom cluster CIDR',
+  recipeClusterPodCIDR: 'Cluster CIDR',
+  recipeClusterServiceCIDR: 'Service CIDR',
+
+  // Recipe DC Scope
+  vmNameCompleteLabel: 'VM Name',
+  easyVirtVmLabel: 'EasyVirt VM',
+  easyVirtDescription: 'Creates a DC Scope or a DC NetScope VM with parameters and application inside',
+  xoPassword: 'Xen Orchestra Password',
+  xoUsername: 'Xen Orchestra Username',
+  dcNetscopePassword: 'Password for DC Netscope web interface',
+  xoFqdn: 'Xen Orchestra FQDN / IP',
+  dcScopeVm: 'DC Scope VM',
+  dcNetScopeVm: 'DC NetScope VM',
+  recipeEasyVirt: 'EasyVirt VM to deploy',
+  recipeUserCompany: 'Company',
+  gdprCompliance: 'I agree that the data in this form may be shared exclusively between Vates and EasyVirt',
+  recipeUserEmail: 'Email for EasyVirt',
+  performanceConfigDcScope: 'Performance for VM DC Scope',
+  dcScopeTest: 'Test config (10 VM): CPU(2), RAM(4), Disk(10GB)',
+  dcScopeVerySmall: 'Very small config (<1000 VM): CPU(2), RAM(12), Disk(250GB)',
+  dcScopeSmall: 'Small config (1000-2500 VM): CPU(2), RAM(24), Disk(550GB)',
+  dcScopeMedium: 'Medium config (2500-5000 VM): CPU(4), RAM(48), Disk(750GB)',
+  dcScopeBig: 'Big config (5000-7500 VM): CPU(4), RAM(64), Disk(1.2TB)',
+  dcScopeVeryBig: 'Very big config (7500-10000 VM: CPU(8), RAM(96), Disk(1.5TB)',
+  dcScopeHuge: 'Huge config (>10000 VM): CPU(8), RAM(128), Disk(2TB)',
 
   // Audit
   auditActionEvent: 'Action/Event',

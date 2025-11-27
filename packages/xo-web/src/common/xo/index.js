@@ -1883,6 +1883,8 @@ export const editVmNotes = async vm => {
 
 export const createKubernetesCluster = params => _call('xoa.recipe.createKubernetesCluster', params)
 
+export const createEasyVirtVm = params => _call('xoa.recipe.createEasyVirtVm', params)
+
 export const deleteTemplates = templates =>
   confirm({
     title: _('templateDeleteModalTitle', { templates: templates.length }),
@@ -2555,9 +2557,7 @@ export const setCbt = (vdi, cbt) =>
 
 // VBD ---------------------------------------------------------------
 
-export const connectVbd = vbd => _call('vbd.connect', { id: resolveId(vbd) })
-
-export const disconnectVbd = vbd => _call('vbd.disconnect', { id: resolveId(vbd) })
+export const connectVbds = vbds => Promise.all(map(vbds, vbd => _call('vbd.connect', { id: resolveId(vbd) })))
 
 export const disconnectVbds = vbds =>
   confirm({
@@ -2839,6 +2839,17 @@ export const reclaimSrSpace = async sr => {
   } catch (err) {
     if (err?.data?.message?.includes('Operation not supported')) {
       throw new Error('Space reclaim not supported. Only supported on block based/LVM based SRs.')
+    }
+    if (backupIsRunning(err, sr.$pool)) {
+      await confirm({
+        body: (
+          <p className='text-warning'>
+            <Icon icon='alarm' /> {_('bypassBackupStorageModalMessage')}
+          </p>
+        ),
+        title: _('srReclaimSpace'),
+      })
+      return _call('sr.reclaimSpace', { id: resolveId(sr), bypassBackupCheck: true })
     }
     throw err
   }

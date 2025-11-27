@@ -287,12 +287,19 @@ export default class Backups {
           },
         ],
         listVmBackups: [
-          async ({ remotes }) => {
+          async ({ remotes, vmId }) => {
             const backups = {}
             await asyncMap(Object.keys(remotes), async remoteId => {
               try {
                 await Disposable.use(this.getAdapter(remotes[remoteId]), async adapter => {
-                  backups[remoteId] = formatVmBackups(await adapter.listAllVmBackups())
+                  let vmBackups
+                  if (vmId !== undefined) {
+                    vmBackups = { [vmId]: await adapter.listVmBackups(vmId) }
+                  } else {
+                    vmBackups = await adapter.listAllVmBackups()
+                  }
+
+                  backups[remoteId] = formatVmBackups(vmBackups, remoteId)
                 })
               } catch (error) {
                 warn('listVmBackups', { error, remote: remotes[remoteId] })

@@ -5,9 +5,8 @@
       <slot />
     </component>
     <div v-if="hasMoreItems" class="footer">
-      <span v-if="!isExpanded" class="typo-body-regular-small">{{ t('n-more', { n: remainingItems }) }}</span>
       <UiButton size="small" accent="brand" variant="tertiary" @click="isExpanded = !isExpanded">
-        {{ isExpanded ? t('see-less') : t('see-all') }}
+        {{ isExpanded ? t('see-less') : t('see-n-more', { n: remainingItems }) }}
       </UiButton>
     </div>
   </div>
@@ -61,6 +60,10 @@ useStyleTag(style)
     flex-direction: column;
     gap: 0.8rem;
     width: 100%;
+
+    :deep(li) {
+      line-height: 1;
+    }
   }
 
   .footer {

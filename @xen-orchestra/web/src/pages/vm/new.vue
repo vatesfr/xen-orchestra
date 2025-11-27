@@ -6,6 +6,15 @@
         <VtsSelect :id="poolSelectId" accent="brand" />
       </template>
     </UiHeadBar>
+    <UiAlert v-if="vmState.pool" accent="info" class="card-container">
+      <I18nT keypath="new-vm.feature-not-supported">
+        <template #xo-5>
+          <UiLink :href="xo5Link" size="medium">
+            {{ t('xo-5') }}
+          </UiLink>
+        </template>
+      </I18nT>
+    </UiAlert>
     <div class="card-container">
       <form @submit.prevent="createNewVM()">
         <UiCard v-if="vmState.pool">
@@ -278,7 +287,7 @@
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand">
               <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('boot-vm') }}</UiCheckbox>
-              <UiCheckbox v-model="vmState.auto_poweron" accent="brand">{{ t('auto-power') }}</UiCheckbox>
+              <UiCheckbox v-model="vmState.autoPoweron" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.clone" accent="brand">
                 {{ t('fast-clone') }}
               </UiCheckbox>
@@ -331,22 +340,20 @@ import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.t
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
-import type { XoNetwork } from '@/types/xo/network.type.ts'
 import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
-import type { XoPool } from '@/types/xo/pool.type.ts'
-import type { XoVdi } from '@/types/xo/vdi.type.ts'
-import type { XoVmTemplate } from '@/types/xo/vm-template.type'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -354,12 +361,14 @@ import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useFormSelect } from '@core/packages/form-select'
+import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
 
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -394,7 +403,7 @@ const vmState = reactive<VmState>({
   boot_firmware: '',
   new_vm_template: undefined,
   boot_vm: true,
-  auto_poweron: false,
+  autoPoweron: false,
   clone: true,
   ssh_key: '',
   selectedVdi: undefined,
@@ -524,7 +533,7 @@ const getExistingVdis = (template: XoVmTemplate) => {
       return acc
     }
 
-    const vdi = getVdiById(vbd.VDI)
+    const vdi = getVdiById(vbd.VDI as XoVdi['id'])
 
     if (vdi === undefined) {
       console.error('VDI not found')
@@ -777,7 +786,7 @@ const vmData = computed(() => {
   )
 
   return {
-    auto_poweron: vmState.auto_poweron,
+    autoPoweron: vmState.autoPoweron,
     boot: vmState.boot_vm,
     clone: vmState.clone,
     memory: vmState.ram,
@@ -796,8 +805,8 @@ const createNewVM = async () => {
       throw new Error('Template UUID and Pool ID are required')
     }
 
-    await createVM(vmData.value, vmState.pool.id)
-    redirectToPool(vmState.pool.id)
+    const vmId = await createVM(vmData.value, vmState.pool.id)
+    router.push({ name: '/vm/[id]/dashboard', params: { id: vmId } })
   } catch (error) {
     isOpen.value = true
 
@@ -920,6 +929,16 @@ watch(
   },
   { immediate: true }
 )
+
+const { routes } = useXoRoutes()
+
+const xo5Link = computed(() => {
+  if (!vmState.pool?.id || !routes.value) {
+    return '#'
+  }
+
+  return `${routes.value.xo5}#/vms/new?pool=${vmState.pool?.id}`
+})
 </script>
 
 <style scoped lang="postcss">

@@ -5,13 +5,14 @@ import type { Request as ExRequest } from 'express'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
-import { notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { partialPgpus, pgpu, pgpuIds } from '../open-api/oa-examples/pgpu.oa-example.mjs'
 
 @Route('pgpus')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('pgpus')
 @provide(PgpuController)

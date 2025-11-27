@@ -1,5 +1,5 @@
 <template>
-  <VtsLoadingHero v-if="!arePoolsReady" type="panel" />
+  <VtsStateHero v-if="!arePoolsReady" format="panel" busy size="medium" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
@@ -81,7 +81,7 @@
             <template #key>{{ t('tags') }}</template>
             <template #value>
               <UiTagsList v-if="pool !== undefined && pool.tags.length > 0">
-                <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="primary">{{ tag }}</UiTag>
+                <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
               </UiTagsList>
             </template>
             <template v-if="pool !== undefined && pool.tags.length > 0" #addons>
@@ -149,7 +149,7 @@
         <VtsCardRowKeyValue>
           <template #key>{{ t('read-only') }}</template>
           <template #value>
-            <VtsEnabledState :enabled="server.readOnly" />
+            <VtsStatus :status="server.readOnly" />
           </template>
         </VtsCardRowKeyValue>
         <!-- self-signed-certificates -->
@@ -157,7 +157,7 @@
           <template #key>{{ t('self-signed-certificates') }}</template>
           <template #value>
             <!-- todo add information button. waiting modal -->
-            <VtsEnabledState :enabled="server.allowUnauthorized" />
+            <VtsStatus :status="server.allowUnauthorized" />
           </template>
         </VtsCardRowKeyValue>
       </UiCard>
@@ -168,7 +168,9 @@
             <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
           </span>
         </UiCardTitle>
-        <VtsNoDataHero v-if="hosts.length === 0" type="panel" />
+        <VtsStateHero v-if="hosts.length === 0" format="card" type="no-data" size="small">
+          {{ t('no-data') }}
+        </VtsStateHero>
         <template v-else>
           <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" icon="fa:server" size="small">
             {{ host.name_label }}
@@ -190,13 +192,11 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import type { XoServer } from '@/types/xo/server.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsLoadingHero from '@core/components/state-hero/VtsLoadingHero.vue'
-import VtsNoDataHero from '@core/components/state-hero/VtsNoDataHero.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
@@ -212,6 +212,7 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoServer } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

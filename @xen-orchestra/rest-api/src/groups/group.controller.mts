@@ -16,12 +16,14 @@ import {
   SuccessResponse,
   Tags,
 } from 'tsoa'
+import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
 import { provide } from 'inversify-binding-decorators'
-import type { XoGroup, XoUser } from '@vates/types'
+import type { XoGroup, XoTask, XoUser } from '@vates/types'
 
 import { forbiddenOperation } from 'xo-common/api-errors.js'
 import {
+  badRequestResp,
   createdResp,
   forbiddenOperationResp,
   invalidParameters,
@@ -35,13 +37,26 @@ import { group, groupId, groupIds, partialGroups } from '../open-api/oa-examples
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import type { UpdateGroupRequestBody } from './group.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import { UserService } from '../users/user.service.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
+import { limitAndFilterArray } from '../helpers/utils.helper.mjs'
+import { partialUsers, userIds } from '../open-api/oa-examples/user.oa-example.mjs'
+import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('groups')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('groups')
 @provide(GroupController)
 export class GroupController extends XoController<XoGroup> {
+  #userService: UserService
+
+  constructor(@inject(RestApi) restApi: RestApi, @inject(UserService) userService: UserService) {
+    super(restApi)
+    this.#userService = userService
+  }
+
   // --- abstract methods
   getAllCollectionObjects(): Promise<XoGroup[]> {
     return this.restApi.xoApp.getAllGroups()
@@ -159,5 +174,53 @@ export class GroupController extends XoController<XoGroup> {
     }
 
     await this.restApi.xoApp.addUserToGroup(userId as XoUser['id'], group.id)
+  }
+
+  /**
+   * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
+   * @example fields "permission,name,id"
+   * @example filter "permission:none"
+   * @example limit 42
+   */
+  @Example(userIds)
+  @Example(partialUsers)
+  @Get('{id}/users')
+  @Tags('users')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getGroupUsers(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoUser>>>> {
+    const group = await this.getObject(id as XoGroup['id'])
+    const users = await Promise.all(group.users.map(id => this.#userService.getUser(id)))
+    return this.sendObjects(limitAndFilterArray(users, { filter, limit }), req, 'users')
+  }
+
+  /**
+   * @example id "6c81b5e1-afc1-43ea-8f8d-939ceb5f3f90"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getGroupTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoGroup['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
 }

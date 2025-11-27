@@ -25,6 +25,7 @@ export default class Vbd {
 
     empty = !Ref.isNotEmpty(VDI),
     mode = type === 'Disk' ? 'RW' : 'RO',
+    throwVbdPlug = false,
   }) {
     if (userdevice == null) {
       const allowed = await this.call('VM.get_allowed_VBD_devices', VM)
@@ -67,7 +68,14 @@ export default class Vbd {
     })
 
     if (isVmRunning(powerState)) {
-      this.callAsync('VBD.plug', vbdRef).catch(warn)
+      try {
+        await this.callAsync('VBD.plug', vbdRef)
+      } catch (error) {
+        if (throwVbdPlug) {
+          throw error
+        }
+        warn(error)
+      }
     }
 
     return vbdRef

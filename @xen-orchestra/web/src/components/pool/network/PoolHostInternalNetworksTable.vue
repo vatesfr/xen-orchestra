@@ -100,7 +100,7 @@
           </tr>
         </template>
       </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" type="table" image="no-result">
+      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" format="table" type="no-result" size="small">
         <div>{{ t('no-result') }}</div>
       </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
@@ -112,7 +112,6 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
-import type { XoNetwork } from '@/types/xo/network.type.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -130,6 +129,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import type { XoNetwork } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -165,7 +165,7 @@ const toggleSelect = () => {
   selected.value = selected.value.length === 0 ? networkIds.value : []
 }
 
-const getLockingMode = (lockingMode: string) => (lockingMode === 'disabled' ? t('disabled') : t('unlocked'))
+const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unlocked'))
 
 const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
   rowId: record => record.id,
@@ -174,7 +174,7 @@ const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
     define('name_label', { label: t('name') }),
     define('name_description', { label: t('description') }),
     define('MTU', { label: t('mtu') }),
-    define('default_locking_mode', record => getLockingMode(record.default_locking_mode), {
+    define('default_locking_mode', record => getLockingMode(record.defaultIsLocked), {
       label: t('default-locking-mode'),
     }),
     define('more', noop, { label: '', isHideable: false }),

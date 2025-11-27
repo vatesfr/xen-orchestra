@@ -1,9 +1,10 @@
 {
   "license": "ISC",
   "private": false,
-  "version": "0.10.1",
+  "version": "0.10.5",
   "name": "@xen-orchestra/vmware-explorer",
   "dependencies": {
+    "@vates/nbd-client": "^3.2.1",
     "@vates/node-vsphere-soap": "^2.1.2",
     "@vates/read-chunk": "^1.2.1",
     "@vates/task": "^0.6.2",
@@ -11,9 +12,9 @@
     "lodash": "^4.17.21",
     "semver": "^7.7.2",
     "undici": "^7.8.0",
-    "vhd-lib": "^4.14.1",
+    "vhd-lib": "^4.14.4",
     "xml2js": "^0.6.2",
-    "xo-vmdk-to-vhd": "^2.5.8"
+    "xo-vmdk-to-vhd": "^2.5.9"
   },
   "engines": {
     "node": ">=20.18.1"

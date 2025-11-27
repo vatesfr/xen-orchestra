@@ -4,7 +4,7 @@ import { pipeline } from 'node:stream/promises'
 import { Readable, type Transform } from 'node:stream'
 import { Request } from 'express'
 import type { VatesTask } from '@vates/types/lib/vates/task'
-import type { XapiXoRecord, XoRecord } from '@vates/types/xo'
+import type { XapiXoRecord, XoRecord, XoTask } from '@vates/types/xo'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
 
 import { BASE_URL } from '../index.mjs'
@@ -13,9 +13,11 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
-import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
+import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
+
+export type CreateActionReturnType<CbType> = Promise<{ taskId: string } | CbType>
 
 export abstract class BaseController<T extends XoRecord, IsSync extends boolean> extends Controller {
   abstract getObjects(): IsSync extends false ? Promise<Record<T['id'], T>> : Record<T['id'], T>
@@ -49,6 +51,34 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
     }
   }
 
+  async getTasksForObject(
+    id: T['id'],
+    { filter, limit = Infinity }: { filter?: string; limit?: number } = {}
+  ): Promise<Record<XoTask['id'], XoTask>> {
+    const tasks: Record<XoTask['id'], XoTask> = {}
+    const object = await Promise.resolve(this.getObject(id))
+
+    const objectFilter = (task: XoTask) =>
+      task.properties.objectId === object.id || task.properties.params?.id === object.id
+
+    let userFilter: (task: XoTask) => boolean = () => true
+    if (filter !== undefined) {
+      userFilter = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate() : filter
+    }
+
+    for await (const task of this.restApi.tasks.list({ filter: objectFilter })) {
+      if (limit === 0) {
+        break
+      }
+      if (userFilter(task)) {
+        tasks[task.id] = task
+        limit--
+      }
+    }
+
+    return tasks
+  }
+
   /**
    * statusCode must represent the status code in case of a synchronous request. Default 200
    */
@@ -63,7 +93,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       sync?: boolean
       taskProperties: { name: string; objectId: T['id']; params?: unknown; [key: string]: unknown }
     }
-  ): Promise<string | CbType> {
+  ): CreateActionReturnType<CbType> {
     taskProperties.name = 'REST API: ' + taskProperties.name
     taskProperties.type = 'xo:rest-api:action'
 
@@ -78,9 +108,9 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       const location = `${BASE_URL}/tasks/${task.id}`
       this.setStatus(202)
       this.setHeader('Location', location)
-      this.setHeader('Content-Type', 'text/plain')
+      this.setHeader('Content-Type', 'application/json')
 
-      return location
+      return { taskId: task.id }
     }
   }
 
@@ -91,8 +121,10 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
   maybeCompressResponse(req: Request, res: ExResponse): Transform | ExResponse {
     let transform: Transform | undefined
 
-    let acceptEncoding = req.headers['accept-encoding']
-    acceptEncoding = Array.isArray(acceptEncoding) ? acceptEncoding : acceptEncoding?.split(',')
+    const _acceptEncoding = req.headers['accept-encoding']
+    const acceptEncoding: string[] | undefined = Array.isArray(_acceptEncoding)
+      ? _acceptEncoding
+      : _acceptEncoding?.split(',')
     if (
       acceptEncoding !== undefined &&
       acceptEncoding.some(encoding => {

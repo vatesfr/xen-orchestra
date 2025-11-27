@@ -5,6 +5,7 @@ import type { Request as ExRequest } from 'express'
 
 import {
   asynchronousActionResp,
+  badRequestResp,
   featureUnauthorized,
   internalServerErrorResp,
   noContentResp,
@@ -16,9 +17,11 @@ import { partialSchedules, schedule, scheduleIds } from '../open-api/oa-examples
 import { taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 @Route('schedules')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('schedules')
 @provide(ScheduleController)
@@ -64,12 +67,12 @@ export class ScheduleController extends XoController<XoSchedule> {
    */
   @Example(taskLocation)
   @Post('{id}/actions/run')
-  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description, asynchronousActionResp.produce)
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(featureUnauthorized.status, featureUnauthorized.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async runSchedule(@Path() id: string, @Query() sync?: boolean) {
+  async runSchedule(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
     const scheduleId = id as XoSchedule['id']
     const action = async () => {
       const xoApp = this.restApi.xoApp
@@ -78,7 +81,7 @@ export class ScheduleController extends XoController<XoSchedule> {
       await xoApp.runJob(job, schedule)
     }
 
-    return this.createAction(action, {
+    return this.createAction<void>(action, {
       sync,
       statusCode: noContentResp.status,
       taskProperties: { name: 'run schedule', objectId: scheduleId },

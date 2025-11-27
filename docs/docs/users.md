@@ -64,7 +64,6 @@ The LDAP plugin allows for the synchronization of user groups.
 1. **Access group synchronization settings**
 
    To configure the synchronization:
-
    1. Go to the **Synchronize groups** section.
    2. Check the box called **Fill information (optional)**.\
       A list of text fields appear.
@@ -219,6 +218,14 @@ In the "Settings" then "Plugins" view, expand the SAML plugin configuration. The
 
 Save the configuration and then activate the plugin (button on top).
 
+:::warning
+Since 5.111.1 version, you need to configure signature for Document **and** Assertion in your SAML Identity Provider.
+
+- **Keycloak:** In Client Settings, Signature and Encryption, check "Sign Documents" and "Sign Assertion".
+- **Azure:** In SAML Signing Certificate options, select **Sign SAML response and assertion**.
+- **Google Workspace:** In the Service Provider details, check the **Signed response** box.
+  :::
+
 #### Vendor specific
 
 ##### Google Workspace - SAML [support.google.com](https://support.google.com/a/answer/6087519?hl=en#zippy=)
@@ -298,7 +305,8 @@ You can now connect with your Google account in the login page.
 ## ACLs
 
 ### Definition
-ACLs are permissions that apply to preexisting objects, like users and groups. 
+
+ACLs are permissions that apply to preexisting objects, like users and groups.
 
 ### Who can manage ACLs?
 

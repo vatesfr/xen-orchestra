@@ -5,7 +5,7 @@
     </UiTitle>
     <VtsQuickInfoRow :label="t('vga')">
       <template #value>
-        <VtsEnabledState :enabled="vm.vga === 'std'" />
+        <VtsStatus :status="vm.vga === 'std'" />
       </template>
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('video-ram')">
@@ -17,12 +17,12 @@
 </template>
 
 <script setup lang="ts">
-import type { XoVm } from '@/types/xo/vm.type'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { formatSizeRaw } from '@core/utils/size.util'
+import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

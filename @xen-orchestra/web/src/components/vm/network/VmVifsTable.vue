@@ -103,7 +103,7 @@
                 size="small"
               />
               <div v-else-if="column.id === 'status'" v-tooltip>
-                <VtsConnectionStatus :status="column.value" />
+                <VtsStatus :status="column.value" />
               </div>
               <div v-else-if="column.id === 'network'" class="network">
                 <!-- TODO Remove the span when the link works and the icon is fixed -->
@@ -129,6 +129,9 @@
           </tr>
         </template>
       </VtsDataTable>
+      <VtsStateHero v-if="searchQuery && filteredVifs.length === 0" format="table" type="no-result" size="small">
+        {{ t('no-result') }}
+      </VtsStateHero>
       <UiTopBottomTable :selected-items="0" :total-items="0">
         <UiTablePagination v-if="areVifsReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
@@ -140,11 +143,11 @@
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { XoVif } from '@/types/xo/vif.type'
 import type { IconName } from '@core/icons'
-import VtsConnectionStatus from '@core/components/connection-status/VtsConnectionStatus.vue'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -158,6 +161,7 @@ import { useRouteQuery } from '@core/composables/route-query.composable'
 import useMultiSelect from '@core/composables/table/multi-select.composable'
 import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XoVif } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

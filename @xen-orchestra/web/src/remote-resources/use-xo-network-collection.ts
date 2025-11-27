@@ -1,13 +1,29 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import type { XoNetwork } from '@/types/xo/network.type.ts'
+import { watchCollectionWrapper } from '@/utils/sse.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
+import type { XoNetwork } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
+const networkFields: (keyof XoNetwork)[] = [
+  'id',
+  'defaultIsLocked',
+  'name_label',
+  'nbd',
+  'tags',
+  '$pool',
+  'name_description',
+  'MTU',
+  'PIFs',
+  'other_config',
+  'type',
+] as const
+
 export const useXoNetworkCollection = defineRemoteResource({
-  url: '/rest/v0/networks?fields=id,defaultIsLocked,name_label,nbd,tags,$pool,name_description,MTU,PIFs,other_config',
+  url: `/rest/v0/networks?fields=${networkFields.join(',')}`,
+  watchCollection: watchCollectionWrapper({ resource: 'network', fields: networkFields }),
   initialData: () => [] as XoNetwork[],
   state: (rawNetworks, context) => {
     const { hostMasterPifsByNetwork } = useXoPifCollection(context)

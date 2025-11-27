@@ -6,7 +6,7 @@ import {
   AnyXoVm,
   BACKUP_TYPE,
   VM_POWER_STATE,
-  XoBackupJob,
+  XoVmBackupJob,
   XoHost,
   XoPool,
   XoSchedule,
@@ -22,12 +22,13 @@ import { parse } from 'xo-remote-parser'
 import { Writable } from 'node:stream'
 
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
-import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
+import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard, XoGuiRoutes } from './xoa.type.mjs'
 import { isReplicaVm, isSrWritableOrIso, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 import type { MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
+import { BackupLogService } from '../backup-logs/backup-log.service.mjs'
 
 const log = createLogger('xo:rest-api:xoa-service')
 
@@ -44,6 +45,7 @@ export class XoaService {
     AsyncCacheEntry<DashboardAsyncCache[keyof DashboardAsyncCache]>
   >()
   #dashboardCacheOpts: { timeout?: number; expiresIn?: number }
+  #backupLogService: BackupLogService
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
@@ -52,6 +54,7 @@ export class XoaService {
       timeout: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheTimeout') ?? 60000,
       expiresIn: this.#restApi.xoApp.config.getOptionalDuration('rest-api.dashboardCacheExpiresIn'),
     }
+    this.#backupLogService = this.#restApi.ioc.get(BackupLogService)
   }
 
   async #getBackupRepositoriesSizeInfo(): Promise<
@@ -333,7 +336,7 @@ export class XoaService {
     const nonReplicaVms = Object.values(this.#restApi.getObjectsByType<XoVm>('VM', { filter: vm => !isReplicaVm(vm) }))
     const restApi = this.#restApi
     const xoApp = restApi.xoApp
-    function _extractVmIdsFromBackupJob(job: XoBackupJob) {
+    function _extractVmIdsFromBackupJob(job: XoVmBackupJob) {
       let vmIds: XoVm['id'][]
       try {
         vmIds = extractIdsFromSimplePattern(job.vms)
@@ -344,7 +347,7 @@ export class XoaService {
       }
       return vmIds
     }
-    function _processVmsProtection(job: XoBackupJob, isProtected: boolean) {
+    function _processVmsProtection(job: XoVmBackupJob, isProtected: boolean) {
       if (job.type !== BACKUP_TYPE.backup) {
         return
       }
@@ -370,7 +373,7 @@ export class XoaService {
         vmIdsUnprotected.add(vmId)
       }
     }
-    async function _jobHasAtLeastOneScheduleEnabled(job: XoBackupJob) {
+    async function _jobHasAtLeastOneScheduleEnabled(job: XoVmBackupJob) {
       for (const maybeScheduleId in job.settings) {
         if (maybeScheduleId === '') {
           continue
@@ -397,13 +400,13 @@ export class XoaService {
       async () => {
         const [logs, jobs] = await Promise.all([
           xoApp.getBackupNgLogsSorted({
-            filter: log => log.message === 'backup' || log.message === 'metadata',
+            filter: log => this.#backupLogService.isBackupLog(log),
           }),
           Promise.all([
             xoApp.getAllJobs('backup'),
             xoApp.getAllJobs('mirrorBackup'),
             xoApp.getAllJobs('metadataBackup'),
-          ]).then(jobs => jobs.flat(1)) as Promise<XoBackupJob[]>,
+          ]).then(jobs => jobs.flat(1)) as Promise<XoVmBackupJob[]>,
         ])
         const logsByJob = groupBy(logs, 'jobId')
 
@@ -601,6 +604,26 @@ export class XoaService {
       backups,
       hostsStatus,
       vmsStatus,
+    }
+  }
+
+  getGuiRoutes(): XoGuiRoutes {
+    const mounts = this.#restApi.xoApp.config.getOptional('http.mounts') ?? {}
+
+    let xo5Mount: string | undefined
+    let xo6Mount: string | undefined
+
+    for (const [key, value] of Object.entries(mounts)) {
+      if (value.includes('xo-web/dist')) {
+        xo5Mount = key
+      } else if (value.includes('@xen-orchestra/web/dist')) {
+        xo6Mount = key
+      }
+    }
+
+    return {
+      xo5: xo5Mount,
+      xo6: xo6Mount,
     }
   }
 }

@@ -1,7 +1,6 @@
 <!-- v5 -->
 <template>
   <div :class="toVariants({ accent, disabled })" class="ui-input" @click.self="focus()">
-    <VtsIcon :name="icon" size="medium" class="left-icon" />
     <input
       :id="wrapperController?.id ?? id"
       ref="inputRef"
@@ -114,14 +113,9 @@ defineExpose({ focus })
   min-width: 15rem;
   padding-inline: 1.6rem;
 
-  .left-icon,
   .right-icon {
     pointer-events: none;
-    color: var(--color-neutral-txt-secondary);
-  }
-
-  &:not(.disabled) .right-icon {
-    color: var(--color-brand-item-base);
+    color: var(--color-brand-txt-base);
   }
 
   .input {
@@ -132,6 +126,10 @@ defineExpose({ focus })
 
     &::placeholder {
       color: var(--color-neutral-txt-secondary);
+    }
+
+    &::-webkit-search-cancel-button {
+      -webkit-appearance: none;
     }
   }
 

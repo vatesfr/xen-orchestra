@@ -1,11 +1,11 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
-import type { XoBackupLog } from '@/types/xo/backup-log.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import type { XoBackupLog } from '@vates/types'
 import { useSorted } from '@vueuse/core'
 import { computed } from 'vue'
 
 export const useXoBackupLogCollection = defineRemoteResource({
-  url: '/rest/v0/backup/logs/?fields=id,jobId,status,start,end',
+  url: '/rest/v0/backup-logs?fields=id,jobId,status,start,end,tasks',
   initialData: () => [] as XoBackupLog[],
   state: (rawBackupLogs, context) => {
     const backupLogs = useSorted(rawBackupLogs, (log1, log2) => log2.start - log1.start)

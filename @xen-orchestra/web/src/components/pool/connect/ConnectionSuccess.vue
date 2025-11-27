@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero class="connection-success" image="all-good" type="card">
+  <VtsStateHero class="connection-success" type="all-good" format="card" size="medium">
     <div class="container">
       <div v-if="server" class="typo-h1 title">{{ t('connected-to-ip', { ip: server.host }) }}</div>
       <div class="content" :class="{ mobile: uiStore.isMobile, desktop: !uiStore.isDesktopLarge }">
@@ -31,12 +31,12 @@
 
 <script setup lang="ts">
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
-import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoServer } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { serverId } = defineProps<{
@@ -65,6 +65,7 @@ const server = useGetServerById(() => serverId)
 
   .title {
     text-align: center;
+    color: var(--color-neutral-txt-primary);
   }
 
   .content {

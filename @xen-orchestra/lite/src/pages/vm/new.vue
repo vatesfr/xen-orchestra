@@ -96,7 +96,7 @@
                 <VtsInputWrapper :label="t('new-vm.name')">
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
-                <VtsInputWrapper :label="t('tags')" icon="fa:tags">
+                <VtsInputWrapper :label="t('tags')">
                   <!-- TODO Change input text into select when Thierry's component is available -->
                   <UiInput v-model="vmState.tag" accent="brand" @keydown.enter.prevent="addTag" />
                 </VtsInputWrapper>
@@ -702,7 +702,7 @@ const vmCreationParams = computed(() => ({
   bootAfterCreate: vmState.boot_vm,
   copyHostBiosStrings: vmState.boot_firmware !== 'uefi' && !templateHasBiosStrings.value && vmState.copyHostBiosStrings,
   hvmBootFirmware: vmState.boot_firmware ?? 'bios',
-  coresPerSocket: vmState.topology,
+  coresPerSocket: vmState.topology ?? vmState.vCPU,
   tags: vmState.tags,
   cloudConfig: '',
 }))
@@ -980,6 +980,8 @@ watch(
       affinity,
     } = template
 
+    const topology = Number(platform['cores-per-socket'])
+
     Object.assign(vmState, {
       name: name_label,
       description: other_config.default_template === 'true' ? '' : name_description,
@@ -988,7 +990,7 @@ watch(
       ram: memory_dynamic_max,
       vdis: getVdis(template),
       tags,
-      topology: platform['cores-per-socket'] ?? null,
+      topology: isNaN(topology) ? null : topology,
       affinity_host: affinity,
       existingVdis: getExistingVdis(template),
       networkInterfaces: getExistingInterface(template),

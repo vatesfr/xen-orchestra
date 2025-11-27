@@ -20,17 +20,11 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .menu-trigger {
-  font-size: 1.6rem;
-  font-weight: 400;
   display: flex;
   align-items: center;
-  height: 4.4rem;
-  padding-right: 1.5rem;
-  padding-left: 1.5rem;
-  white-space: nowrap;
-  border-radius: 0.8rem;
-  gap: 1rem;
-  background-color: var(--color-neutral-background-primary);
+  padding-inline: 1.6rem;
+  gap: 0.8rem;
+  height: 4.5rem;
 
   &.disabled {
     color: var(--color-neutral-txt-secondary);
@@ -40,12 +34,12 @@ defineProps<{
     cursor: pointer;
 
     &:hover {
-      background-color: var(--color-brand-background-selected);
+      background-color: var(--color-brand-background-hover);
     }
 
     &:active,
     &.active {
-      background-color: var(--color-brand-background-hover);
+      background-color: var(--color-brand-background-active);
     }
   }
 }

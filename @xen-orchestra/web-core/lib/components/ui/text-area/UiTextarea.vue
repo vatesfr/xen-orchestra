@@ -1,7 +1,7 @@
 <!-- v2 -->
 <template>
   <div class="ui-textarea" :class="toVariants({ accent: hasMaxCharactersError ? 'danger' : accent })">
-    <UiLabel v-if="slots.default" :accent="labelAccent" :required :icon :href :for="id">
+    <UiLabel v-if="slots.default" :accent="labelAccent" :required :href :for="id">
       <slot />
     </UiLabel>
     <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea" />
@@ -19,7 +19,6 @@
 import UiCharacterLimit from '@core/components/ui/character-limit/UiCharacterLimit.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLabel from '@core/components/ui/label/UiLabel.vue'
-import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 import { useFocus } from '@vueuse/core'
 import { computed, useAttrs, useId, useTemplateRef } from 'vue'
@@ -39,7 +38,6 @@ const {
   maxCharacters?: number
   disabled?: boolean
   href?: string
-  icon?: IconName
   required?: boolean
 }>()
 

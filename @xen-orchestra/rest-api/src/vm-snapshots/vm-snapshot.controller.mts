@@ -1,14 +1,24 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
+import { Readable } from 'node:stream'
 
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher, limitAndFilterArray } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import {
+  badRequestResp,
+  forbiddenOperationResp,
+  incorrectStateResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
-import { XoAlarm, XoVdiSnapshot, XoVmSnapshot } from '@vates/types'
+import type { XoAlarm, XoMessage, XoVdiSnapshot, XoTask, XoVmSnapshot } from '@vates/types'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { provide } from 'inversify-binding-decorators'
 import {
@@ -18,9 +28,11 @@ import {
   vmSnapshotVdis,
 } from '../open-api/oa-examples/vm-snapshot.oa-example.mjs'
 import { VmService } from '../vms/vm.service.mjs'
+import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
 
 @Route('vm-snapshots')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('vms')
 @provide(VmSnapshotController)
@@ -58,6 +70,33 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   }
 
   /**
+   *
+   * Export VM-snapshot. Compress is only used for XVA format
+   *
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   */
+  @Get('{id}.{format}')
+  @SuccessResponse(200, 'Download started', 'application/octet-stream')
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(422, 'Invalid format, Invalid compress')
+  async exportVmSnapshot(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Path() format: 'xva' | 'ova',
+    @Query() compress?: boolean
+  ): Promise<Readable> {
+    const stream = await this.#vmService.export(id as XoVmSnapshot['id'], 'VM-snapshot', {
+      compress,
+      format,
+      response: req.res,
+    })
+    process.on('SIGTERM', () => req.destroy())
+    req.on('close', () => stream.destroy())
+
+    return stream
+  }
+
+  /**
    * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
    */
   @Example(vmSnapshot)
@@ -65,6 +104,19 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   @Response(notFoundResp.status, notFoundResp.description)
   getVmSnapshot(@Path() id: string): Unbrand<XoVmSnapshot> {
     return this.getObject(id as XoVmSnapshot['id'])
+  }
+
+  /**
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  @Response(incorrectStateResp.status, incorrectStateResp.description)
+  async deleteVmSnapshot(@Path() id: string): Promise<void> {
+    const xapiVmSnapshot = this.getXapiObject(id as XoVmSnapshot['id'])
+    await xapiVmSnapshot.$xapi.VM_destroy(xapiVmSnapshot.$ref)
   }
 
   /**
@@ -114,5 +166,77 @@ export class VmSnapshotController extends XapiXoController<XoVmSnapshot> {
   ): SendObjects<Partial<Unbrand<XoVdiSnapshot>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmSnapshot['id'], 'VM-snapshot')
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
+  }
+
+  /**
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   * @example fields "name,id,$object"
+   * @example filter "name:VM_STARTED"
+   * @example limit 42
+   */
+  @Example(messageIds)
+  @Example(partialMessages)
+  @Get('{id}/messages')
+  @Tags('messages')
+  @Response(notFoundResp.status, notFoundResp.description)
+  getVmSnapshotsMessages(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): SendObjects<Partial<Unbrand<XoMessage>>> {
+    const messages = this.getMessagesForObject(id as XoVmSnapshot['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(messages), req, 'messages')
+  }
+
+  /**
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   * @example fields "id,status,properties"
+   * @example filter "status:failure"
+   * @example limit 42
+   */
+  @Example(taskIds)
+  @Example(partialTasks)
+  @Get('{id}/tasks')
+  @Tags('tasks')
+  @Response(notFoundResp.status, notFoundResp.description)
+  async getVmSnapshotTasks(
+    @Request() req: ExRequest,
+    @Path() id: string,
+    @Query() fields?: string,
+    @Query() ndjson?: boolean,
+    @Query() filter?: string,
+    @Query() limit?: number
+  ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
+    const tasks = await this.getTasksForObject(id as XoVmSnapshot['id'], { filter, limit })
+
+    return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   * @example tag "from-rest-api"
+   */
+  @Put('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async putVmSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vmSnapshot = this.getXapiObject(id as XoVmSnapshot['id'])
+    await vmSnapshot.$call('add_tags', tag)
+  }
+
+  /**
+   * @example id "d68fca2c-41e6-be87-d790-105c1642a090"
+   * @example tag "from-rest-api"
+   */
+  @Delete('{id}/tags/{tag}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteVmSnapshotTag(@Path() id: string, @Path() tag: string): Promise<void> {
+    const vmSnapshot = this.getXapiObject(id as XoVmSnapshot['id'])
+    await vmSnapshot.$call('remove_tags', tag)
   }
 }

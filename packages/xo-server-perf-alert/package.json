@@ -13,21 +13,23 @@
   "preferGlobal": true,
   "main": "dist/",
   "engines": {
-    "node": ">=6"
+    "node": ">=20"
   },
   "dependencies": {
+    "@vates/async-each": "^1.0.1",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/log": "^0.7.1",
     "d3-time-format": "^3.0.0",
+    "handlebars": "^4.7.8",
     "json5": "^2.0.1",
-    "lodash": "^4.17.4"
+    "mjml": "^4.15.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "cross-env": "^7.0.2",
-    "rimraf": "^5.0.1"
+    "rimraf": "^6.0.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",

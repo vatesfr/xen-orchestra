@@ -1359,7 +1359,8 @@ async function import_({ data, sr, type = 'xva', url }) {
       throw invalidParameters('URL import is only compatible with XVA')
     }
 
-    const ref = await xapi.VM_import(await hrp(url), sr._xapiRef)
+    const timeout = this.config.getOptionalDuration('jsonrpc-api.xvaImportFromUrlTimeout') ?? 6e3
+    const ref = await xapi.VM_import(await hrp(url, { timeout }), sr._xapiRef)
     return xapi.call('VM.get_uuid', ref)
   }
 
@@ -1575,6 +1576,7 @@ export const attachDisk = defer(async function ($defer, { vm, vdi, position, mod
     userdevice: position,
     VDI: vdi._xapiRef,
     VM: vm._xapiRef,
+    throwVbdPlug: true,
   })
 })
 

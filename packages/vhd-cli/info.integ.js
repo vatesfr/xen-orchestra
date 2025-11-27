@@ -24,5 +24,5 @@ afterEach(async () => {
 
 test('can run the command', async () => {
   await execa('qemu-img', ['create', '-fvpc', 'empty.vhd', '1G'])
-  await command(['empty.vhd'])
+  await command.call({ command: 'vhd-cli info' }, ['empty.vhd'])
 })

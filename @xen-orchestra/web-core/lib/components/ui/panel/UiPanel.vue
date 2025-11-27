@@ -35,7 +35,7 @@ const uiStore = useUiStore()
   background-color: var(--color-neutral-background-secondary);
 
   &:not(.mobile-drawer) {
-    height: calc(100dvh - 16rem);
+    min-height: calc(100dvh - 16rem);
   }
 
   .header {

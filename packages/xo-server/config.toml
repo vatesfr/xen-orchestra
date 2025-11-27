@@ -179,6 +179,9 @@ checkNetboxVersion = true
 [plugins]
 lookupPaths = ['./node_modules', '../', '/usr/local/lib/node_modules']
 
+[plugins.sdn-controller]
+useDirectChannel = true
+
 [remoteOptions]
 mountsDir = '/run/xo-server/mounts'
 
@@ -233,3 +236,7 @@ xoaUpgradeTimeout = '5 min'
 [rest-api]
 dashboardCacheTimeout = '1 min'
 dashboardCacheExpiresIn = '1 min'
+
+
+[jsonrpc-api]
+xvaImportFromUrlTimeout = '6s'

@@ -299,6 +299,11 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   async writeEntireBlock(block) {
+    assert.strictEqual(
+      block.buffer.length,
+      this.fullBlockSize,
+      `partial block can't be written , expecting ${this.fullBlockSize}, got ${block.buffer.length}`
+    )
     await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)
   }

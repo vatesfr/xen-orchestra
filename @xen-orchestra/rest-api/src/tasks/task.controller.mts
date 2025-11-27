@@ -1,19 +1,41 @@
-import * as CM from 'complex-matcher'
 import type { Request as ExRequest } from 'express'
 import type { XoTask } from '@vates/types'
 import { XoController } from '../abstract-classes/xo-controller.mjs'
-import { Get, Path, Query, Request, Route, Security, Tags, Response, Example } from 'tsoa'
+import {
+  Get,
+  Path,
+  Query,
+  Request,
+  Route,
+  Security,
+  Tags,
+  Response,
+  Example,
+  Delete,
+  Post,
+  SuccessResponse,
+} from 'tsoa'
 import { SendObjects } from '../helpers/helper.type.mjs'
-import { badRequestResp, notFoundResp, unauthorizedResp, Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  asynchronousActionResp,
+  badRequestResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
 import { provide } from 'inversify-binding-decorators'
-import { partialTasks, task, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { partialTasks, task, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 import pDefer from 'promise-toolbox/defer'
 import { ApiError } from '../helpers/error.helper.mjs'
 import { Transform } from 'node:stream'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
+import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 @Route('tasks')
 @Security('*')
+@Response(badRequestResp.status, badRequestResp.description)
 @Response(unauthorizedResp.status, unauthorizedResp.description)
 @Tags('tasks')
 @provide(TaskController)
@@ -55,7 +77,7 @@ export class TaskController extends XoController<XoTask> {
         throw new ApiError('watch=true requires ndjson=true', 400)
       }
 
-      const userFilter = filter === undefined ? undefined : CM.parse(filter).createPredicate()
+      const userFilter = filter === undefined ? undefined : safeParseComplexMatcher(filter).createPredicate()
       const stream = new Transform({
         objectMode: true,
         transform([event, object], encoding, callback) {
@@ -113,5 +135,47 @@ export class TaskController extends XoController<XoTask> {
     }
 
     return this.getObject(taskId)
+  }
+
+  @Delete('')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  async deleteTasks(): Promise<void> {
+    await this.restApi.tasks.clearLogs()
+  }
+
+  /**
+   * @example id "0mdd1basu"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteTask(@Path() id: string): Promise<void> {
+    const task = await this.getObject(id as XoTask['id'])
+    await this.restApi.tasks.deleteLog(task.id)
+  }
+
+  /**
+   * @example id "0mdd1basu"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/abort')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async abortTask(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const taskId = id as XoTask['id']
+
+    const action = async () => {
+      await this.restApi.tasks.abort(taskId)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'abort task',
+        objectId: taskId,
+      },
+    })
   }
 }

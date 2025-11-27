@@ -19,7 +19,7 @@ export class Throttle {
     } else {
       speed = this.#bytesPerSecond
     }
-    assert.ok(speed > 0, `speed must be greater than zero, ${speed} computed`)
+    assert.ok(speed >= 0, `speed must be positive, ${speed} computed`)
     return speed
   }
   constructor(speed: number | (() => number)) {
@@ -29,7 +29,9 @@ export class Throttle {
   getNextSlot(length: number): { timeout?: ReturnType<typeof setTimeout>; promise?: Promise<unknown> } {
     assert.notStrictEqual(length, undefined, `throttled stream need to expose a length property }`)
     assert.ok(length > 0, `throttled stream must expose a positive length property , ${length} given }`)
-
+    if (this.speed === 0) {
+      return {}
+    }
     const previous = this.#previousSlot
     const nextSlot = Math.round(previous + (length * 1000) / this.speed)
     if (nextSlot < Date.now()) {

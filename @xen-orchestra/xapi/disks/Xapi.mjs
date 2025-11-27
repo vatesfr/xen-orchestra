@@ -5,18 +5,17 @@
  * @typedef {import('@xen-orchestra/disk-transform').Disk} Disk
  */
 
-import { DiskLargerBlock, DiskPassthrough, ReadAhead } from '@xen-orchestra/disk-transform'
+import { DiskLargerBlock, DiskPassthrough, ReadAhead, TimeoutDisk } from '@xen-orchestra/disk-transform'
+import { createLogger } from '@xen-orchestra/log'
 import { XapiVhdCbtSource } from './XapiVhdCbt.mjs'
 import { XapiStreamNbdSource } from './XapiStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
-import { createLogger } from '@xen-orchestra/log'
 import { XapiProgressHandler } from './XapiProgress.mjs'
 import { XapiQcow2StreamSource } from './XapiQcow2StreamSource.mjs'
+import { VDI_FORMAT_QCOW2, VHD_MAX_SIZE } from '../index.mjs'
 
 // @todo how to type this ?
-const { info, warn } = createLogger('@xen-orchestra/xapi/disks/Xapi')
-
-export const VHD_MAX_SIZE = 2 * 1024 * 1024 * 1024 * 1024 /* 2TB */ - 8 * 1024 /* metadata */
+const { info, warn } = createLogger('xo:xapi:xapi-disks')
 
 /**
  * Meta class that handles the fallback logic when trying to export a disk from xapi.
@@ -42,6 +41,8 @@ export class XapiDiskSource extends DiskPassthrough {
   #blockSize
   #useNbd = false
   #useCbt = false
+  /** @type {number} */
+  #timeout
 
   /**
    * @param {Object} params
@@ -51,13 +52,23 @@ export class XapiDiskSource extends DiskPassthrough {
    * @param {boolean} [params.preferNbd=true]
    * @param {number} [params.nbdConcurrency=2]
    * @param {number} [params.blockSize=2*1024*1024]
+   * @param {number} [params.timeout=20*60*1000]
    */
-  constructor({ xapi, vdiRef, baseRef, preferNbd = xapi._preferNbd, nbdConcurrency = 2, blockSize = 2 * 1024 * 1024 }) {
+  constructor({
+    xapi,
+    vdiRef,
+    baseRef,
+    preferNbd = xapi._preferNbd,
+    nbdConcurrency = 2,
+    blockSize = 2 * 1024 * 1024,
+    timeout = 20 * 60 * 1000,
+  }) {
     super(undefined)
     this.#baseRef = baseRef
     this.#blockSize = blockSize
     this.#nbdConcurrency = nbdConcurrency
     this.#preferNbd = preferNbd
+    this.#timeout = timeout
     this.#vdiRef = vdiRef
     this.#xapi = xapi
   }
@@ -84,7 +95,6 @@ export class XapiDiskSource extends DiskPassthrough {
       }
       source = new XapiStreamNbdSource(streamSource, { vdiRef, baseRef, xapi, nbdConcurrency: this.#nbdConcurrency })
       await source.init()
-
       if (source.getBlockSize() < this.#blockSize) {
         source = new DiskLargerBlock(source, this.#blockSize)
       }
@@ -96,11 +106,13 @@ export class XapiDiskSource extends DiskPassthrough {
         }
         return streamSource
       }
-      await source?.close() // this will close source and stream source
+      // init probaby failed, so nothing to close , but better safe than sorry
+      await source?.close().catch(warn)
       throw err
     }
     this.#useNbd = true
     const readAhead = new ReadAhead(source)
+    source = new TimeoutDisk(source, this.#timeout)
     const label = await xapi.getField('VDI', vdiRef, 'name_label')
     readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD`)
     return readAhead
@@ -110,7 +122,7 @@ export class XapiDiskSource extends DiskPassthrough {
    * Create a disk source using stream export.
    * On failure, fall back to a full export.
    *
-   * @returns {Promise<XapiVhdStreamSource|XapiQcow2StreamSource | ReadAhead>}
+   * @returns {Promise<Disk>}
    */
   async #openExportStream() {
     const xapi = this.#xapi
@@ -120,14 +132,29 @@ export class XapiDiskSource extends DiskPassthrough {
     let source
     try {
       const size = await xapi.getField('VDI', vdiRef, 'virtual_size')
-      if (size < VHD_MAX_SIZE) {
-        source = new XapiVhdStreamSource({ vdiRef, baseRef, xapi })
-      } else {
+      const sm_config = await xapi.getField('VDI', vdiRef, 'sm_config')
+      const snaphotRef = await xapi.getField('VDI', vdiRef, 'snapshot_of')
+      const sm_config_source = snaphotRef && (await xapi.getField('VDI', snaphotRef, 'sm_config'))
+
+      // there is a bug in sm that does not apply the image format to snapshot
+      // but a disk chain will always have the same image-format
+      const format = sm_config['image-format'] ?? sm_config_source?.['image-format']
+      // as a fallback ensure we don't try to export a disk bigger than the max vhd size
+      if (format === VDI_FORMAT_QCOW2 || size > VHD_MAX_SIZE) {
+        info('export through qcow2')
         source = new XapiQcow2StreamSource({ vdiRef, baseRef, xapi })
+      } else {
+        info('export through vhd')
+        source = new XapiVhdStreamSource({ vdiRef, baseRef, xapi })
       }
       await source.init()
+      if (source.getBlockSize() < this.#blockSize) {
+        source = new DiskLargerBlock(source, this.#blockSize)
+      }
+      source = new TimeoutDisk(source, this.#timeout)
     } catch (error) {
-      await source?.close()
+      // init probaby failed, so nothing to close , but better safe than sorry
+      await source?.close().catch(warn)
       if (baseRef !== undefined) {
         warn(`can't compute delta ${vdiRef} from ${baseRef}, fallBack to a full`, { error })
         this.#baseRef = undefined
@@ -158,7 +185,7 @@ export class XapiDiskSource extends DiskPassthrough {
       this.#useNbd = true
       this.#useCbt = true
       const readAhead = new ReadAhead(source)
-
+      source = new TimeoutDisk(source, this.#timeout)
       if (source.getBlockSize() < this.#blockSize) {
         source = new DiskLargerBlock(source, this.#blockSize)
       }
@@ -166,8 +193,10 @@ export class XapiDiskSource extends DiskPassthrough {
       readAhead.progressHandler = new XapiProgressHandler(xapi, `Exporting content of VDI ${label} through NBD+CBT`)
       return readAhead
     } catch (error) {
-      info('openNbdCBT', error)
-      await source.close()
+      info('Error in openNbdCBT', error)
+      // init probaby failed, so nothing to close , but better safe than sorry
+      await source?.close().catch(warn)
+
       // A lot of things can go wrong with CBT:
       // Not enabled on the baseRef,
       // Not enabled on the VDI,

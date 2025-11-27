@@ -7,7 +7,6 @@
       prop('id').str().widget(),
       prop('required').bool().widget(),
       prop('type').enum('text', 'number', 'password', 'search').preset('text').widget(),
-      iconProp(),
       prop('rightIcon').widget(
         choice({ label: 'Search', value: 'fa:magnifying-glass' }, { label: 'AngleDown', value: 'fa:angle-down' })
       ),
@@ -22,7 +21,7 @@
 
 <script lang="ts" setup>
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
-import { iconProp, model, prop, slot } from '@/libs/story/story-param'
+import { model, prop, slot } from '@/libs/story/story-param'
 import { choice } from '@/libs/story/story-widget.ts'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 </script>

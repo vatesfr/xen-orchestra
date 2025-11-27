@@ -3,9 +3,10 @@
     <UiInput
       v-model="search"
       :aria-label="t('sidebar.search-tree-view')"
-      icon="fa:magnifying-glass"
+      right-icon="fa:magnifying-glass"
       :placeholder="t('sidebar.search-tree-view')"
       accent="brand"
+      clearable
     />
   </div>
 </template>

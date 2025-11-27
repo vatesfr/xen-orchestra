@@ -8,18 +8,18 @@
     <VtsQuickInfoRow :label="t('iscsi-iqn')" :value="host.iscsiIqn" />
     <VtsQuickInfoRow :label="t('multi-pathing')">
       <template #value>
-        <VtsEnabledState :enabled="host.multipathing" />
+        <VtsStatus :status="host.multipathing" />
       </template>
     </VtsQuickInfoRow>
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import type { XoHost } from '@/types/xo/host.type.ts'
-import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XoHost } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{

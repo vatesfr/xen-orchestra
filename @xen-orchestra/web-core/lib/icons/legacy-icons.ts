@@ -44,10 +44,17 @@ export const legacyIcons = defineIconPack({
       icon: accent === 'success' ? faCheck : faExclamation,
     },
   ]),
-  halted: {
-    icon: faStop,
-    color: 'var(--color-danger-item-base)',
-  },
+  halted: [
+    {
+      icon: faCircle,
+      color: 'var(--color-danger-item-base)',
+    },
+    {
+      icon: faStop,
+      color: 'var(--color-danger-txt-item)',
+      size: 8,
+    },
+  ],
   info: {
     icon: faCircleInfo,
     color: 'var(--color-info-item-base)',
@@ -68,10 +75,17 @@ export const legacyIcons = defineIconPack({
       size: 8,
     },
   ],
-  running: {
-    icon: faPlay,
-    color: 'var(--color-success-item-base)',
-  },
+  running: [
+    {
+      icon: faCircle,
+      color: 'var(--color-success-item-base)',
+    },
+    {
+      icon: faPlay,
+      color: 'var(--color-success-txt-item)',
+      size: 8,
+    },
+  ],
   status: defineIcon([['info', 'success', 'warning', 'danger', 'muted']], accent => [
     {
       icon: faCircle,
@@ -87,4 +101,15 @@ export const legacyIcons = defineIconPack({
     icon: faMoon,
     color: 'var(--color-info-item-base)',
   },
+  checked: [
+    {
+      icon: faCircle,
+      color: 'var(--color-success-item-base)',
+    },
+    {
+      icon: faCheck,
+      color: 'var(--color-success-txt-item)',
+      size: 8,
+    },
+  ],
 })

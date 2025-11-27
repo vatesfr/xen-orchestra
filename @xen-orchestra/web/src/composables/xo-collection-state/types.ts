@@ -1,4 +1,4 @@
-import type { XoRecord } from '@/types/xo'
+import type { XoRecord } from '@vates/types'
 import type { MaybeRefOrGetter } from '@vueuse/shared'
 import type { ComputedRef, Ref } from 'vue'
 

@@ -4,6 +4,7 @@ import type { XapiXoRecord, XoUser } from '@vates/types'
 
 import type { XoApp } from './rest-api.type.mjs'
 import type { Container } from 'inversify'
+import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const log = createLogger('xo:rest-api:error-handler')
 
@@ -52,12 +53,15 @@ export class RestApi {
 
   getObjectsByType<T extends XapiXoRecord>(
     type: T['type'],
-    opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
+    { filter, ...opts }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}
   ) {
-    return this.#xoApp.getObjectsByType(type, opts)
+    if (filter !== undefined && typeof filter === 'string') {
+      filter = safeParseComplexMatcher(filter).createPredicate()
+    }
+    return this.#xoApp.getObjectsByType(type, { filter, ...opts })
   }
 
-  getXapiObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) {
+  getXapiObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type'] | T['type'][]) {
     return this.#xoApp.getXapiObject<T>(maybeId, type)
   }
 

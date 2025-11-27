@@ -1,8 +1,14 @@
+import {
+  useSseStore,
+  type THandleDelete,
+  type THandlePost,
+  type THandleWatching,
+} from '@core/packages/remote-resource/sse.store'
 import type { ResourceContext, UseRemoteResource } from '@core/packages/remote-resource/types.ts'
 import type { VoidFunction } from '@core/types/utility.type.ts'
 import { ifElse } from '@core/utils/if-else.utils.ts'
 import { type MaybeRef, noop, useTimeoutPoll } from '@vueuse/core'
-import { merge } from 'lodash-es'
+import { merge, remove } from 'lodash-es'
 import readNDJSONStream from 'ndjson-readablestream'
 import {
   computed,
@@ -19,7 +25,7 @@ import {
   watch,
 } from 'vue'
 
-const DEFAULT_CACHE_DURATION_MS = 10_000
+const DEFAULT_CACHE_EXPIRATION_MS = 10_000
 
 const DEFAULT_POLLING_INTERVAL_MS = 30_000
 
@@ -32,8 +38,8 @@ export function defineRemoteResource<
   initialData: () => TData
   state?: (data: Ref<NoInfer<TData>>, context: ResourceContext<TArgs>) => TState
   onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
-  cacheDurationMs?: number
-  pollingIntervalMs?: number
+  cacheExpirationMs?: number | false
+  pollingIntervalMs?: number | false
   stream?: boolean
 }): UseRemoteResource<TState, TArgs>
 
@@ -41,9 +47,29 @@ export function defineRemoteResource<TData, TState extends object, TArgs extends
   url: string | ((...args: TArgs) => string)
   state?: (data: Ref<TData | undefined>, context: ResourceContext<TArgs>) => TState
   onDataReceived?: (data: Ref<TData | undefined>, receivedData: any) => void
-  cacheDurationMs?: number
-  pollingIntervalMs?: number
+  cacheExpirationMs?: number | false
+  pollingIntervalMs?: number | false
   stream?: boolean
+}): UseRemoteResource<TState, TArgs>
+
+export function defineRemoteResource<
+  TData,
+  TState extends object = { data: Ref<TData> },
+  TArgs extends any[] = [],
+>(config: {
+  url: string | ((...args: TArgs) => string)
+  initialData: () => TData
+  state?: (data: Ref<NoInfer<TData>>, context: ResourceContext<TArgs>) => TState
+  onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  stream?: boolean
+  watchCollection: {
+    resource: string // reactivity only on XAPI XO record for now
+    getIdentifier: (obj: unknown) => string
+    handleDelete: THandleDelete
+    handlePost: THandlePost
+    handleWatching: THandleWatching
+  }
 }): UseRemoteResource<TState, TArgs>
 
 export function defineRemoteResource<
@@ -55,9 +81,17 @@ export function defineRemoteResource<
   initialData?: () => TData
   state?: (data: Ref<TData>, context: ResourceContext<TArgs>) => TState
   onDataReceived?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
-  cacheDurationMs?: number
-  pollingIntervalMs?: number
+  onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
+  cacheExpirationMs?: number | false
+  pollingIntervalMs?: number | false
   stream?: boolean
+  watchCollection?: {
+    resource: string // reactivity only on XAPI XO record for now
+    getIdentifier: (obj: unknown) => string
+    handleDelete: THandleDelete
+    handlePost: THandlePost
+    handleWatching: THandleWatching
+  }
 }) {
   const cache = new Map<
     string,
@@ -79,24 +113,49 @@ export function defineRemoteResource<
 
   const buildState = config.state ?? ((data: Ref<TData>) => ({ data }))
 
-  const cacheDuration = config.cacheDurationMs ?? DEFAULT_CACHE_DURATION_MS
+  const cacheExpiration = config.cacheExpirationMs ?? DEFAULT_CACHE_EXPIRATION_MS
 
   const pollingInterval = config.pollingIntervalMs ?? DEFAULT_POLLING_INTERVAL_MS
+
+  const removeData = (data: TData[], dataToRemove: any) => {
+    const getIdentifier = config.watchCollection?.getIdentifier ?? JSON.stringify
+
+    remove(data, item => {
+      if (typeof item === 'object') {
+        return getIdentifier(item) === getIdentifier(dataToRemove)
+      }
+
+      return item === dataToRemove
+    })
+  }
 
   const onDataReceived =
     config.onDataReceived ??
     ((data: Ref<TData>, receivedData: any) => {
-      if (!config.stream || data.value === undefined) {
+      if (data.value === undefined || (Array.isArray(data.value) && Array.isArray(receivedData))) {
         data.value = receivedData
         return
       }
 
-      if (Array.isArray(data.value) && Array.isArray(receivedData)) {
-        data.value.push(...receivedData)
+      if (Array.isArray(data.value)) {
+        removeData(data.value, receivedData)
+        data.value.push(receivedData)
         return
       }
 
       merge(data.value, receivedData)
+    })
+
+  const onDataRemoved =
+    config.onDataRemoved ??
+    ((data: Ref<TData>, receivedData: any) => {
+      // for now only support `onDataRemoved` when watching XapiXoRecord collection
+      if (Array.isArray(data.value) && !Array.isArray(receivedData)) {
+        removeData(data.value, receivedData)
+        return
+      }
+
+      console.warn('onDataRemoved received but unhandled for:', receivedData)
     })
 
   function subscribeToUrl(url: string) {
@@ -128,9 +187,11 @@ export function defineRemoteResource<
 
     entry.pause()
 
-    setTimeout(() => {
-      cache.delete(url)
-    }, cacheDuration)
+    if (cacheExpiration !== false) {
+      setTimeout(() => {
+        cache.delete(url)
+      }, cacheExpiration)
+    }
   }
 
   function registerUrl(url: string, context: ResourceContext<TArgs>) {
@@ -182,7 +243,22 @@ export function defineRemoteResource<
     let pause: VoidFunction = noop
     let resume: VoidFunction = execute
 
-    if (pollingInterval > 0) {
+    if (config.watchCollection !== undefined) {
+      const { resource, handleDelete, handlePost, handleWatching } = config.watchCollection
+      const { watch, unwatch } = useSseStore()
+
+      pause = () => unwatch({ resource, handleDelete })
+      resume = async function () {
+        await execute()
+        await watch({
+          handleWatching,
+          handlePost,
+          resource,
+          onDataReceived: receivedData => onDataReceived(data, receivedData),
+          onDataRemoved: receivedData => onDataRemoved(data, receivedData),
+        })
+      }
+    } else if (pollingInterval !== false) {
       const timeoutPoll = useTimeoutPoll(execute, pollingInterval, {
         immediateCallback: true,
         immediate: false,

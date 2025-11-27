@@ -1,12 +1,13 @@
 import type { EventEmitter } from 'node:events'
 import type { VatesTask } from '@vates/types/lib/vates/task'
 import type { Xapi } from '@vates/types/lib/xen-orchestra/xapi'
-import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, BACKUP_TYPE, XapiPoolStats } from '@vates/types/common'
+import type { XapiHostStats, XapiVmStats, XapiStatsGranularity, XapiPoolStats } from '@vates/types/common'
 import type {
   XenApiGpuGroupWrapped,
   XenApiHostWrapped,
   XenApiMessage,
   XenApiNetworkWrapped,
+  XenApiPbdWrapped,
   XenApiPciWrapped,
   XenApiPgpuWrapped,
   XenApiPifWrapped,
@@ -22,7 +23,9 @@ import type {
   XenApiVtpmWrapped,
 } from '@vates/types/xen-api'
 import type {
+  AnyXoBackupJob,
   AnyXoJob,
+  AnyXoLog,
   XoBackupRepository,
   XoHost,
   XoServer,
@@ -30,11 +33,14 @@ import type {
   XapiXoRecord,
   XoVm,
   XoSchedule,
-  XoJob,
   XoGroup,
   XoPool,
   XoTask,
   XoProxy,
+  XoAuthenticationToken,
+  XoVmBackupArchive,
+  XoConfigBackupArchive,
+  XoPoolBackupArchive,
 } from '@vates/types/xo'
 
 import type { InsertableXoServer } from '../servers/server.type.mjs'
@@ -44,6 +50,7 @@ type XapiRecordByXapiXoRecord = {
   host: XenApiHostWrapped
   message: XenApiMessage
   network: XenApiNetworkWrapped
+  PBD: XenApiPbdWrapped
   PCI: XenApiPciWrapped
   PGPU: XenApiPgpuWrapped
   PIF: XenApiPifWrapped
@@ -66,10 +73,23 @@ type XapiRecordByXapiXoRecord = {
 
 export type XoApp = {
   config: {
+    getOptional(path: string): Record<string, string> | undefined
     getOptionalDuration(path: string): number | undefined
   }
+
+  objects: EventEmitter & {
+    allIndexes: {
+      type: {
+        getEventEmitterByType(type: XapiXoRecord['type']): EventEmitter
+      }
+    }
+  }
+
   tasks: EventEmitter & {
+    abort(id: XoTask['id'], reason?: string): Promise<void>
+    clearLogs(): Promise<void>
     create: (params: { name: string; objectId?: string; type?: string }) => VatesTask
+    deleteLog(id: XoTask['id']): Promise<void>
     get(id: XoTask['id']): Promise<XoTask>
     list(opts?: { filter?: string | ((obj: XoTask) => boolean); limit?: number }): AsyncGenerator<XoTask>
     watch(id: XoTask['id'], cb: (task: XoTask) => void): Promise<() => void>
@@ -90,6 +110,15 @@ export type XoApp = {
   checkFeatureAuthorization(featureCode: string): Promise<void>
   /* connect a server (XCP-ng/XenServer) */
   connectXenServer(id: XoServer['id']): Promise<void>
+  createAuthenticationToken(opts: {
+    client?: {
+      id?: string
+      [key: string]: unknown
+    }
+    description?: string
+    expiresIn?: string | number
+    userId: XoUser['id']
+  }): Promise<XoAuthenticationToken>
   createUser(params: { name?: string; password?: string; [key: string]: unknown }): Promise<XoUser>
   deleteGroup(id: XoGroup['id']): Promise<void>
   deleteUser(id: XoUser['id']): Promise<void>
@@ -98,7 +127,8 @@ export type XoApp = {
   disconnectXenServer(id: XoServer['id']): Promise<void>
   getAllGroups(): Promise<XoGroup[]>
   getAllProxies(): Promise<XoProxy[]>
-  getAllJobs(type?: BACKUP_TYPE): Promise<AnyXoJob[]>
+  getAllJobs<T extends AnyXoBackupJob['type']>(type: T): Promise<Extract<AnyXoBackupJob, { type: T }>[]>
+  getAllJobs(type?: string): Promise<AnyXoJob[]>
   getProxy(id: XoProxy['id']): Promise<XoProxy>
   getRemote(id: XoBackupRepository['id']): Promise<XoBackupRepository>
   getAllRemotes(): Promise<XoBackupRepository[]>
@@ -120,11 +150,18 @@ export type XoApp = {
   getAllSchedules(): Promise<XoSchedule[]>
   getAllUsers(): Promise<XoUser[]>
   getAllXenServers(): Promise<XoServer[]>
-  // @TODO: Correctly type this methods and XoLogs when migrate the endpoint "backup/logs"
-  getBackupNgLogsSorted(opts: { filter: (log: Record<string, string>) => boolean }): Promise<Record<string, string>[]>
+  getAuthenticationTokensForUser(userId: XoUser['id']): Promise<XoAuthenticationToken[]>
+  getBackupNgLogs(): Promise<Record<string, AnyXoLog>>
+  getBackupNgLogs(id: AnyXoLog['id']): Promise<AnyXoLog>
+  getBackupNgLogsSorted(opts: {
+    after?: number
+    before?: number
+    filter: (log: AnyXoLog) => boolean
+    limit?: number
+  }): Promise<AnyXoLog[]>
   getGroup(id: XoGroup['id']): Promise<XoGroup>
   getHVSupportedVersions: undefined | (() => Promise<{ [key: XoHost['productBrand']]: string }>)
-  getJob(id: XoJob['id']): Promise<XoJob>
+  getJob<T extends AnyXoJob>(id: T['id']): Promise<T>
   getObject: <T extends XapiXoRecord>(id: T['id'], type?: T['type'] | T['type'][]) => T
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],
@@ -135,19 +172,30 @@ export type XoApp = {
   getUser: (id: XoUser['id']) => Promise<XoUser>
   getXapi(maybeId: XapiXoRecord['id'] | XapiXoRecord): Xapi
   getXapiHostStats: (hostId: XoHost['id'], granularity?: XapiStatsGranularity) => Promise<XapiHostStats>
-  getXapiObject: <T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type']) => XapiRecordByXapiXoRecord[T['type']]
+  getXapiObject: <T extends XapiXoRecord>(
+    maybeId: T['id'] | T,
+    type: T['type'] | T['type'][]
+  ) => XapiRecordByXapiXoRecord[T['type']]
   getXapiPoolStats(poolId: XoPool['id'], granularity?: XapiStatsGranularity): Promise<XapiPoolStats>
   getXapiVmStats: (vmId: XoVm['id'], granularity?: XapiStatsGranularity) => Promise<XapiVmStats>
   getXenServer(id: XoServer['id']): Promise<XoServer>
   hasFeatureAuthorization(featureCode: string): Promise<boolean>
   hasObject<T extends XapiXoRecord>(id: T['id'], type: T['type']): boolean
+  listMetadataBackups(backupRepositoryIds: XoBackupRepository['id'][]): Promise<{
+    xo: Record<XoBackupRepository['id'], XoConfigBackupArchive[]>
+    pool: Record<XoBackupRepository['id'], Record<XoPool['id'], XoPoolBackupArchive[]>>
+  }>
+  listVmBackupsNg(
+    backupRepositoryIds: XoBackupRepository['id'][],
+    opts?: { _forceRefresh?: boolean; vmId: XoVm['id'] }
+  ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]>>>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(body: InsertableXoServer): Promise<XoServer>
   rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask }): Promise<void>
   rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: VatesTask }): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
-  runJob(job: XoJob, schedule: XoSchedule): void
-  runWithApiContext: (user: XoUser, fn: () => void) => Promise<unknown>
+  runJob(job: AnyXoJob, schedule: XoSchedule): void
+  runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>
   updateUser(

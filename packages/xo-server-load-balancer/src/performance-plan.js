@@ -1,4 +1,4 @@
-import filter from 'lodash/filter.js'
+import { filter, intersection } from 'lodash'
 
 import Plan from './plan'
 import { debug as debugP } from './utils'
@@ -49,7 +49,8 @@ export default class PerformancePlan extends Plan {
       console.error(error)
     }
 
-    // Step 1 : anti-affinity
+    // Step 1 : affinity and anti-affinity
+    await this._processAffinity()
     await this._processAntiAffinity()
 
     // Step 2 : optimize host that exceed CPU threshold
@@ -196,18 +197,24 @@ export default class PerformancePlan extends Plan {
         continue
       }
 
-      for (const tag of vm.tags) {
-        // TODO: Improve this piece of code. We could compute variance to check if the VM
-        // is migratable. But the code must be rewritten:
-        // - All VMs, hosts and stats must be fetched at one place.
-        // - It's necessary to maintain a dictionary of tags for each host.
-        // - ...
-        if (this._antiAffinityTags.includes(tag)) {
-          debug(
-            `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag '${tag}'.`
-          )
-          continue
-        }
+      // TODO: Improve this piece of code. We could compute variance to check if the VM
+      // is migratable. But the code must be rewritten:
+      // - All VMs, hosts and stats must be fetched at one place.
+      // - It's necessary to maintain a dictionary of tags for each host.
+      // - ...
+      const blockingAffinityTags = intersection(vm.tags, this._affinityTags)
+      if (blockingAffinityTags.length > 0) {
+        debug(
+          `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains affinity tag(s): ${blockingAffinityTags}.`
+        )
+        continue
+      }
+      const blockingAntiAffinityTags = intersection(vm.tags, this._antiAffinityTags)
+      if (blockingAntiAffinityTags.length > 0) {
+        debug(
+          `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag(s): ${blockingAntiAffinityTags}.`
+        )
+        continue
       }
 
       hosts.sort((a, b) => {

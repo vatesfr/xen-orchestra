@@ -771,12 +771,17 @@ export default class NewVm extends BaseComponent {
     namePattern => this._buildTemplate(namePattern)
   )
 
-  _buildTemplate = pattern =>
-    compileTemplate(pattern, {
+  _buildTemplate = pattern => {
+    const rules = {
       '{index}': (_, i) => i,
       '{name}': state => state.name_label || '',
       '%': (state, i) => (state.multipleVms ? i : '%'),
+    }
+    this.props.userSshKeys?.forEach(sshKey => {
+      rules[`{sshKey:${sshKey.title}}`] = sshKey.key
     })
+    return compileTemplate(pattern, rules)
+  }
 
   _templateHasBiosStrings = createSelector(
     () => this.props.template,

@@ -16,7 +16,7 @@ You can set a passphrase to encrypt the exported configuration.
 ### Import configuration
 
 Now it's time to import your configuration to the new appliance.
-Go to the **Settings** -> **Config** page of your new appliance. Here you have an **_import_** section where you can drag and drop your exported configuration file.
+Go to the **Settings** → **Config** page of your new appliance. Here, you have an **_import_** section where you can drag and drop your exported configuration file.
 
 ![](./assets/importModal.png)
 
@@ -24,4 +24,4 @@ When your configuration is loaded, click to import. A new modal will appear to a
 
 ### Advanced users
 
-If you made custom adjustments to the `/etc/xo-server` config file on your previous appliance, unfortunately you will have to recreate these modifications on the new appliance.
+If you made custom adjustments to the `/etc/xo-server/config.toml` config file on your previous appliance, unfortunately you will have to recreate these modifications on the new appliance.

@@ -3,20 +3,17 @@
     <UiTitle>
       {{ t('resource-management') }}
     </UiTitle>
-    <VtsQuickInfoRow
-      :label="t('control-domain-memory')"
-      :value="`${controllerMemory?.value} ${controllerMemory?.prefix}`"
-    />
+    <VtsQuickInfoRow :label="t('control-domain-memory')" :value="controllerMemory" />
   </UiCard>
 </template>
 
 <script setup lang="ts">
 import { useXoVmControllerCollection } from '@/remote-resources/use-xo-vm-controller-collection.ts'
-import type { XoHost } from '@/types/xo/host.type.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import { formatSizeRaw } from '@core/utils/size.util.ts'
+import { formatSize } from '@core/utils/size.util.ts'
+import type { XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -39,6 +36,6 @@ const controllerMemory = computed(() => {
     return
   }
 
-  return formatSizeRaw(controllerDomain.memory.size, 2)
+  return formatSize(controllerDomain.memory.size, 2)
 })
 </script>

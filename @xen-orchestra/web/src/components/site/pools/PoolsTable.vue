@@ -112,10 +112,9 @@
           </tr>
         </template>
       </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredServers.length === 0" type="table" image="no-result">
-        <div>{{ t('no-result') }}</div>
+      <VtsStateHero v-if="searchQuery && filteredServers.length === 0" format="table" type="no-result" size="medium">
+        {{ t('no-result') }}
       </VtsStateHero>
-      <VtsStateHero v-if="!servers.length" image="no-data" type="page" />
       <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
         <UiTablePagination v-if="areServersReady" v-bind="paginationBindings" />
       </UiTopBottomTable>
@@ -126,7 +125,6 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
-import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -147,6 +145,7 @@ import { useTable } from '@core/composables/table.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { icon, type IconName } from '@core/icons'
 import { createMapper } from '@core/packages/mapper'
+import type { XoServer } from '@vates/types'
 import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

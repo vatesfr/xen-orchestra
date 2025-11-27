@@ -14,7 +14,7 @@ import {
   setVmDeltaChainLength,
   markExportSuccessfull,
 } from '../../_otherConfig.mjs'
-import { SynchronizedDisk } from '@xen-orchestra/disk-transform'
+import { ThrottledDisk, SynchronizedDisk } from '@xen-orchestra/disk-transform'
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
@@ -43,10 +43,14 @@ export const IncrementalXapi = class IncrementalXapiVmBackupRunner extends Abstr
     const isVhdDifferencing = {}
     let useNbd = false
     for (const key in deltaExport.disks) {
-      const disk = deltaExport.disks[key]
+      let disk = deltaExport.disks[key]
       isVhdDifferencing[key] = disk.isDifferencing()
-      deltaExport.disks[key] = new SynchronizedDisk(disk)
+      if (!isFull && !isVhdDifferencing[key] && key !== exportedVm.$suspend_VDI?.$ref) {
+        Task.warning('Backup fell back to a full')
+      }
       useNbd = useNbd || disk.useNbd()
+      disk = new ThrottledDisk(disk, this._throttleGenerator)
+      deltaExport.disks[key] = new SynchronizedDisk(disk)
     }
     if (useNbd) {
       Task.info('Transfer data using NBD')

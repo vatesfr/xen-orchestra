@@ -8,41 +8,27 @@
         @click="open($event)"
       />
     </template>
-    <MenuItem icon="fa:book">
-      <a
-        class="link typo-body-bold-small"
-        href="https://docs.xcp-ng.org?utm_campaign=xo6&utm_term=xcpdoc"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        {{ t('documentation-name', { name: 'XCP-ng' }) }}
-      </a>
+
+    <MenuItem v-for="(link, index) in links" :key="index">
+      <UiLink size="small" class="link typo-body-bold-small" v-bind="link.props">
+        {{ link.label }}
+      </UiLink>
     </MenuItem>
-    <MenuItem icon="fa:headset">
-      <a
-        class="link typo-body-bold-small"
-        href="https://vates.tech/pricing-and-support?utm_campaign=xo6&utm_term=pricing"
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        {{ t('professional-support') }}
-      </a>
-    </MenuItem>
-    <MenuItem icon="fa:code">
-      <a class="link typo-body-bold-small" href="/rest/v0/docs/#/" rel="noopener noreferrer" target="_blank">
-        {{ t('documentation-name', { name: 'REST API' }) }}
-      </a>
-    </MenuItem>
-    <MenuItem icon="fa:arrow-right-from-bracket" class="logout" @click="logout()">
-      {{ t('log-out') }}
+
+    <MenuItem class="icon" icon="fa:arrow-right-from-bracket" @click="logout()">
+      <span class="link typo-body-bold-small">{{ t('log-out') }}</span>
     </MenuItem>
   </MenuList>
 </template>
 
 <script lang="ts" setup>
+import { XCP_LINKS, XO_LINKS } from '@/constants.ts'
+import type { IconName } from '@core/icons'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
+import { type LinkOptions } from '@core/composables/link-component.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useI18n } from 'vue-i18n'
 
@@ -54,19 +40,78 @@ const { t } = useI18n()
 
 // TODO: Fetch the XO 5 mount path from API when available
 const logout = () => window.location.assign('/signout')
+
+const links: { label: string; props: LinkOptions & { icon: IconName } }[] = [
+  {
+    label: t('settings'),
+    props: {
+      icon: 'fa:gear',
+      to: '/settings',
+    },
+  },
+  {
+    label: t('license-name', { name: t('xoa') }),
+    props: {
+      icon: 'fa:satellite',
+      href: '/#/xoa/licenses',
+    },
+  },
+  {
+    label: t('documentation-name', { name: t('xo') }),
+    props: {
+      icon: 'fa:book',
+      href: XO_LINKS.DOC,
+    },
+  },
+  {
+    label: t('documentation-name', { name: t('xcp-ng') }),
+    props: {
+      icon: 'fa:book',
+      href: XCP_LINKS.DOC,
+    },
+  },
+  {
+    label: t('professional-support'),
+    props: {
+      icon: 'fa:headset',
+      href: XCP_LINKS.SUPPORT,
+    },
+  },
+  {
+    label: t('documentation-name', { name: t('rest-api') }),
+    props: {
+      icon: 'fa:code',
+      href: '/rest/v0/docs/#/',
+    },
+  },
+  {
+    label: t('send-us-feedback'),
+    props: {
+      icon: 'fa:message',
+      href: XO_LINKS.COMMUNITY,
+    },
+  },
+]
 </script>
 
 <style lang="postcss" scoped>
 .link {
   text-decoration: none;
-  color: var(--color-neutral-txt-primary);
+  color: var(--color-brand-txt-base);
   /* Make the link take the height of the MenuItem component */
-  padding-block: 1.15rem;
+  padding-block: 1.2rem;
   /* Make the link take the available width in the MenuItem component */
   flex-grow: 1;
 }
+.icon {
+  color: var(--color-brand-txt-base);
 
-.logout {
-  color: var(--color-danger-txt-base);
+  &:hover {
+    color: var(--color-brand-txt-hover);
+  }
+
+  &:active {
+    color: var(--color-brand-txt-active);
+  }
 }
 </style>

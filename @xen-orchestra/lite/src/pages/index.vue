@@ -1,4 +1,4 @@
-<template>{{ t('loading-in-progress') }}</template>
+<template>{{ t('loading') }}</template>
 
 <script lang="ts" setup>
 import { usePoolStore } from '@/stores/xen-api/pool.store'

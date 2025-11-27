@@ -1,15 +1,14 @@
 <template>
-  <UiModal>
-    <BasicModalLayout>
+  <VtsModal accent="info" dismissible>
+    <template #content>
       <CodeHighlight :code />
-    </BasicModalLayout>
-  </UiModal>
+    </template>
+  </VtsModal>
 </template>
 
 <script lang="ts" setup>
 import CodeHighlight from '@/components/CodeHighlight.vue'
-import BasicModalLayout from '@/components/ui/modals/layouts/BasicModalLayout.vue'
-import UiModal from '@/components/ui/modals/UiModal.vue'
+import VtsModal from '@core/components/modal/VtsModal.vue'
 
 defineProps<{
   code: any

@@ -574,6 +574,17 @@ const TRANSFORMS = {
     const coresPerSocket = obj.platform['cores-per-socket']
     if (coresPerSocket !== undefined) {
       vm.coresPerSocket = +coresPerSocket
+    } else {
+      // https://github.com/vatesfr/xen-orchestra/issues/9111
+      // TODO: Remove when correctly handled by XCP-ng
+      obj
+        .update_platform('cores-per-socket', String(vm.CPUs.number))
+        .catch(err => {
+          warn(`unable to set default cores per socket property for VM: ${obj.$id}`, err)
+        })
+        .finally(() => {
+          debug(`cores-per-socket was called for: ${obj.$id}`)
+        })
     }
 
     if (obj.is_control_domain) {

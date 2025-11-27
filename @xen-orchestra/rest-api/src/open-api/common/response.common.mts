@@ -21,7 +21,6 @@ export const createdResp = {
 export const asynchronousActionResp = {
   status: 202,
   description: 'Action executed asynchronously',
-  produce: 'text/plain',
 } as const
 
 export const unauthorizedResp = {
@@ -67,4 +66,9 @@ export const forbiddenOperationResp = {
 export const badRequestResp = {
   status: 400,
   description: 'Bad request',
+} as const
+
+export const incorrectStateResp = {
+  status: 409,
+  description: 'Incorrect state',
 } as const

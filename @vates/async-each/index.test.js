@@ -114,6 +114,20 @@ describe('asyncEach', () => {
 
         tracker.verify()
       })
+
+      it('handle error on iterable', async () => {
+        const iteratee = spy(async () => {})
+        const iterable = async function* () {
+          for (const value of [1, 2, 3]) {
+            if (value === 2) {
+              throw new Error('iterator error')
+            }
+            await randomDelay()
+            yield value
+          }
+        }
+        await assert.rejects(() => asyncEach(iterable(), iteratee, { concurrency: 1 }), { message: 'iterator error' })
+      })
     })
   )
 })

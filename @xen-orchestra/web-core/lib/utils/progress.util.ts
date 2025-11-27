@@ -8,6 +8,7 @@ import type { ThresholdConfig } from '@core/packages/threshold/type.ts'
 import { formatSize } from '@core/utils/size.util.ts'
 import { computed, type ComputedRef, type MaybeRefOrGetter, type Reactive, toValue } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { toComputed } from './to-computed.util'
 
 export function defaultProgressThresholds(tooltip?: string): ThresholdConfig<ProgressBarThresholdPayload> {
   return {
@@ -27,24 +28,26 @@ export function cpuProgressThresholds(tooltip?: string): ThresholdConfig<Progres
 
 export function useProgressToLegend(
   rawType: MaybeRefOrGetter<ProgressBarLegendType | undefined>
-): (label: string, progress: Progress | Reactive<Progress>) => ProgressBarLegend | undefined
+): (label: string | undefined, progress: Progress | Reactive<Progress>) => ProgressBarLegend | undefined
 
 export function useProgressToLegend(
   rawType: MaybeRefOrGetter<ProgressBarLegendType | undefined>,
-  label: string,
+  rawLabel: MaybeRefOrGetter<string | undefined>,
   progress: Progress | Reactive<Progress>
 ): ComputedRef<ProgressBarLegend | undefined>
 
 export function useProgressToLegend(
   rawType: MaybeRefOrGetter<ProgressBarLegendType | undefined>,
-  label?: string,
+  rawLabel?: MaybeRefOrGetter<string | undefined>,
   progress?: Progress | Reactive<Progress>
 ) {
   const { n } = useI18n()
 
-  const type = computed(() => toValue(rawType))
+  const type = toComputed(rawType)
 
-  function toLegend(label: string, progress: Progress | Reactive<Progress>): ProgressBarLegend | undefined {
+  const label = toComputed(rawLabel)
+
+  function toLegend(label: string = '', progress: Progress | Reactive<Progress>): ProgressBarLegend | undefined {
     switch (type.value) {
       case 'percent':
         return { label, value: n(toValue(progress.percentage) / 100, { maximumFractionDigits: 1, style: 'percent' }) }
@@ -65,7 +68,7 @@ export function useProgressToLegend(
   }
 
   if (label && progress) {
-    return computed(() => toLegend(label, progress))
+    return computed(() => toLegend(label.value, progress))
   }
 
   return toLegend

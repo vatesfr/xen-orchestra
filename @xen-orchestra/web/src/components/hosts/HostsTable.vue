@@ -1,0 +1,221 @@
+<template>
+  <div class="hosts-table">
+    <UiTitle>{{ t('hosts') }}</UiTitle>
+    <div class="container">
+      <div class="table-actions">
+        <UiQuerySearchBar @search="value => (searchQuery = value)" />
+        <UiTopBottomTable :selected-items="0" :total-items="0">
+          <UiTablePagination v-bind="paginationBindings" />
+        </UiTopBottomTable>
+      </div>
+      <VtsDataTable :no-data-message="hosts.length === 0 ? t('no-hosts-detected') : undefined" :has-error :is-ready>
+        <template #thead>
+          <tr>
+            <template v-for="column of visibleColumns" :key="column.id">
+              <th>
+                <div v-tooltip class="text-ellipsis">
+                  <VtsIcon accent="brand" size="medium" :name="headerIcon[column.id]" />
+                  {{ column.label }}
+                </div>
+              </th>
+            </template>
+          </tr>
+        </template>
+        <template #tbody>
+          <tr
+            v-for="row of hostsRecords"
+            :key="row.id"
+            :class="{ selected: selectedHostId === row.id }"
+            @click="selectedHostId = row.id"
+          >
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
+              <div v-if="column.id === 'host'" class="host">
+                <UiObjectLink :route="`/host/${row.id}/dashboard`" @click.stop>
+                  <template #icon>
+                    <VtsObjectIcon size="medium" :state="getHostState(column.value.state)" type="host" />
+                  </template>
+                  {{ column.value.label }}
+                </UiObjectLink>
+                <VtsIcon v-if="column.value.primary" v-tooltip="t('master')" name="legacy:primary" size="medium" />
+              </div>
+              <div
+                v-else-if="column.id === 'ip-addresses'"
+                v-tooltip="[column.value].join(', ')"
+                class="text-ellipsis ip-addresses"
+              >
+                <span class="text-ellipsis">{{ column.value[0] }}</span>
+                <span v-if="column.value.length > 1" class="typo-body-regular-small more-info">
+                  {{ `+${column.value.length - 1}` }}
+                </span>
+              </div>
+              <div v-else-if="column.id === 'tags'" v-tooltip="[column.value].filter(Boolean).join(', ')" class="tags">
+                <div v-if="column.value.length > 0" class="text-ellipsis">
+                  <UiTagsList nowrap>
+                    <UiTag
+                      v-for="tag in column.value.slice(0, 2)"
+                      :key="tag"
+                      v-tooltip="false"
+                      accent="info"
+                      variant="secondary"
+                    >
+                      {{ tag }}
+                    </UiTag>
+                  </UiTagsList>
+                </div>
+                <div v-if="column.value.length > 2" class="typo-body-regular-small more-info">
+                  {{ `+${column.value.length - 2}` }}
+                </div>
+              </div>
+              <div v-else v-tooltip class="text-ellipsis">
+                {{ column.value }}
+              </div>
+            </td>
+          </tr>
+        </template>
+      </VtsDataTable>
+      <VtsStateHero v-if="searchQuery && filteredHosts.length === 0" format="table" type="no-result" size="small">
+        {{ t('no-result') }}
+      </VtsStateHero>
+      <UiTopBottomTable :selected-items="0" :total-items="0">
+        <UiTablePagination v-bind="paginationBindings" />
+      </UiTopBottomTable>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { useXoHostUtils } from '@/composables/xo-host.composable'
+import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection'
+import type { IconName } from '@core/icons'
+import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
+import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
+import UiTag from '@core/components/ui/tag/UiTag.vue'
+import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
+import { usePagination } from '@core/composables/pagination.composable'
+import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useTable } from '@core/composables/table.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
+import type { XoHost } from '@vates/types'
+import { logicAnd } from '@vueuse/math'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { hostReady, hosts } = defineProps<{
+  hosts: XoHost[]
+  hasError: boolean
+  hostReady: boolean
+}>()
+
+const { t } = useI18n()
+
+const searchQuery = ref('')
+
+const selectedHostId = useRouteQuery('id')
+
+const { pifsByHost, arePifsReady } = useXoPifCollection()
+
+const { isMasterHost } = useXoHostCollection()
+
+const isReady = logicAnd(arePifsReady, hostReady)
+
+const { getHostState } = useXoHostUtils()
+
+const filteredHosts = computed(() => {
+  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
+
+  if (!searchTerm) {
+    return hosts
+  }
+
+  return hosts.filter(host => Object.values(host).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+})
+
+const getIpAddresses = (host: XoHost) => {
+  const pifs = pifsByHost.value.get(host.id)
+  if (!pifs) {
+    return []
+  }
+
+  return pifs.reduce<string[]>((acc, pif) => {
+    if (pif.ip) {
+      acc.push(pif.ip)
+    }
+
+    if (pif.ipv6) {
+      acc.push(...pif.ipv6.filter(ip => ip))
+    }
+
+    return acc
+  }, [])
+}
+
+const { visibleColumns, rows } = useTable('hosts', filteredHosts, {
+  rowId: record => record.id,
+  columns: define => [
+    define(
+      'host',
+      record => ({ label: record.name_label, state: record.power_state, primary: isMasterHost(record.id) }),
+      {
+        label: t('host'),
+      }
+    ),
+    define('description', record => record.name_description, { label: t('description') }),
+    define('ip-addresses', record => getIpAddresses(record), { label: t('ip-addresses') }),
+    define('tags', record => record.tags, { label: t('tags') }),
+  ],
+})
+
+const { pageRecords: hostsRecords, paginationBindings } = usePagination('hosts', rows)
+
+type HostHeader = 'host' | 'description' | 'ip-addresses' | 'tags'
+
+const headerIcon: Record<HostHeader, IconName> = {
+  host: 'fa:a',
+  description: 'fa:align-left',
+  'ip-addresses': 'fa:align-left',
+  tags: 'fa:square-caret-down',
+}
+</script>
+
+<style scoped lang="postcss">
+.container,
+.hosts-table,
+.table-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.hosts-table {
+  gap: 2.4rem;
+
+  .container,
+  .table-actions {
+    gap: 0.8rem;
+  }
+
+  .host,
+  .tags,
+  .ip-addresses {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+
+    .more-info {
+      color: var(--color-neutral-txt-secondary);
+    }
+  }
+
+  .tags,
+  .ip-addresses {
+    justify-content: space-between;
+  }
+}
+</style>
