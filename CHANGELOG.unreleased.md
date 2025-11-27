@@ -39,6 +39,7 @@
 - **XO 6:**
   - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
   - [Dashboards/Alarms] fix double scrollbar in Alarms lists due to incorrect height setting (PR [#9246](https://github.com/vatesfr/xen-orchestra/pull/9246))
+  - [Dashboards] Prevent charts reloading every 30 seconds (PR [#8939](https://github.com/vatesfr/pull/8939))
 - [V2V] fix transfer failing at 99% for unaligned disk (PR [#9233](https://github.com/vatesfr/xen-orchestra/pull/9233))
 - [REST API] _parse error: expected end of input at position #_ when an invalid query parameter is provided, a 400 error is returned with more details (PR [#9244](https://github.com/vatesfr/xen-orchestra/pull/9244))
 
