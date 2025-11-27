@@ -14,7 +14,7 @@
       </TabItem>
     </RouterLink>
     <TabItem>
-      <UiLink :href="`/#/pool/${pool.id}/stats`" size="medium">
+      <UiLink :href="`${xo5Route}#/pool/${pool.id}/stats`" size="medium">
         {{ t('stats') }}
       </UiLink>
     </TabItem>
@@ -48,11 +48,13 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import type { XoPool } from '@vates/types'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
@@ -60,4 +62,7 @@ const { pool } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 </script>

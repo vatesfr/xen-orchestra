@@ -4,7 +4,7 @@
       {{ t('pifs') }}
       <template #actions>
         <UiLink
-          :href="`/#/hosts/${host.id}/network`"
+          :href="`${xo5Route}#/hosts/${host.id}/network`"
           icon="fa:plus"
           variant="secondary"
           accent="brand"
@@ -95,6 +95,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -118,6 +119,9 @@ const { pifs } = defineProps<{
   host: XoHost
   pifs: XoPif[]
 }>()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const { arePifsReady, hasPifFetchError } = useXoPifCollection()
 const { getNetworkById } = useXoNetworkCollection()

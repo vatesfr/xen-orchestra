@@ -33,7 +33,7 @@
           >
             <td v-for="column of row.visibleColumns" :key="column.id">
               <div v-if="column.id === 'schedule'">
-                <UiLink size="medium" icon="object:backup-job" :href="`/#/backup/${column.value.jobId}/edit`">
+                <UiLink size="medium" icon="object:backup-job" :href="`${xo5Route}#/backup/${column.value.jobId}/edit`">
                   {{ column.value.name }}
                 </UiLink>
               </div>
@@ -73,6 +73,7 @@
 <script setup lang="ts">
 import { useXoBackupJobSchedulesUtils } from '@/composables/xo-backup-job-schedules.composable'
 import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
@@ -101,6 +102,9 @@ const { t } = useI18n()
 
 const { useGetBackupJobById } = useXoBackupJobCollection()
 const { getLastThreeRunsStatuses } = useXoBackupJobSchedulesUtils()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const selectedBackupJobId = useRouteQuery('id')
 

@@ -39,7 +39,7 @@
                   v-tooltip
                   size="medium"
                   icon="object:sr:muted"
-                  :href="`/#/srs/${row.id}/general`"
+                  :href="`${xo5Route}#/srs/${row.id}/general`"
                   class="text-ellipsis"
                   @click.stop
                 >
@@ -73,6 +73,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
@@ -99,6 +100,9 @@ const { srs } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const selectedSrId = useRouteQuery('id')
 
@@ -156,16 +160,6 @@ const headerIcon: Record<BackupJobHeader, IconName> = {
   .container,
   .table-actions {
     gap: 0.8rem;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 
   .name {

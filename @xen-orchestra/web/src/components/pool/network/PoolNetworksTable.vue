@@ -4,7 +4,7 @@
       {{ t('networks') }}
       <template #actions>
         <UiLink
-          :href="`/#/new/network?pool=${pool.id}`"
+          :href="`${xo5Route}#/new/network?pool=${pool.id}`"
           icon="fa:plus"
           variant="secondary"
           accent="brand"
@@ -48,7 +48,7 @@
             <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
               <VtsStatus v-if="column.id === 'status'" :status="column.value" />
               <div v-else-if="column.id === 'name_label'" v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                <UiLink size="medium" :href="`/#/pools/${pool.id}/network?s=1_0_asc-${row.id}`" @click.stop>
+                <UiLink size="medium" :href="`${xo5Route}#/pools/${pool.id}/network?s=1_0_asc-${row.id}`" @click.stop>
                   {{ column.value }}
                 </UiLink>
               </div>
@@ -72,6 +72,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -96,6 +97,9 @@ const { networks } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const { areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
 

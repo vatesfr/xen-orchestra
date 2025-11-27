@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="sr.name_label" size="small" icon="object:sr:muted" :href="`/#/srs/${sr.id}/general`">
+      <UiLink v-if="sr.name_label" size="small" icon="object:sr:muted" :href="`${xo5Route}#/srs/${sr.id}/general`">
         {{ sr.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -71,6 +71,7 @@
 <script lang="ts" setup>
 import { useXoPbdUtils } from '@/composables/xo-pbd-utils.composable'
 import { useXoPbdCollection } from '@/remote-resources/use-xo-pbd-collection'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -89,6 +90,9 @@ const { sr } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const { getPbdsByIds } = useXoPbdCollection()
 const { isHighAvailabilitySr } = useXoSrCollection()
