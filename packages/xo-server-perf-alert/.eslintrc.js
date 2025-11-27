@@ -1,1 +1,6 @@
-../../scripts/babel-eslintrc.js
+module.exports = {
+  parserOptions: { 
+        sourceType: 'module',
+      },
+  }
+

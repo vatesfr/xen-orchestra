@@ -62,7 +62,8 @@ export class XapiPerfmon extends MonitorStrategy {
     /**
      * @type {Array<XoMessage>}
      */
-    const xapiAlarms = Object.values(this.#xo.objects.indexes.type.message ?? [])
+    // @todo: filter by messange name to ensure this is an alarm
+    const xapiAlarms = this.#xo.getObjectsByType('message')
     for (const xapiAlarm of xapiAlarms) {
       let target
       try {

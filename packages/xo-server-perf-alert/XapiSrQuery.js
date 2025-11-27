@@ -30,11 +30,10 @@ export class XapiSrQuery extends MonitorStrategy {
   }
 
   async computeActiveAlarms() {
-    // make queries host by host, that way we don't need to cache RRD
     /**
-     * @type {Array<XoHost>}
+     * @type {Array<import('@vates/types').XoSr>}
      */
-    const srs = Object.values(this.#xo.objects.indexes.type.SR ?? {})
+    const srs = this.#xo.getObjectsByType('SR')
 
     const alarms = []
     for (const sr of srs) {

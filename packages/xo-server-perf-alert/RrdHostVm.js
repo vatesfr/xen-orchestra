@@ -266,21 +266,18 @@ export class RrdHostVm extends MonitorStrategy {
      * @type {Array<XoHost>}
      */
 
-    const hosts = Object.values(this.#xo.objects.indexes.type.host ?? {})
+    const hosts = this.#xo.getObjectsByType('host')
     /**
      * @type {Map<XoHost['id'], Set<XoVm['id']>}
      */
     const watchedVmsByHosts = new Map()
-    Object.values(this.#xo.objects.indexes.type.VM ?? {})
-
-      .filter(vm => this.#rules.isObjectAffected(vm))
-      .forEach(vm => {
-        if (!watchedVmsByHosts.has(vm.$container)) {
-          watchedVmsByHosts.set(vm.$container, new Set([vm.id]))
-        } else {
-          watchedVmsByHosts.get(vm.$container).add(vm.id)
-        }
-      })
+    this.#xo.getObjectsByType('VM', { filter: vm => this.#rules.isObjectAffected(vm) }).forEach(vm => {
+      if (!watchedVmsByHosts.has(vm.$container)) {
+        watchedVmsByHosts.set(vm.$container, new Set([vm.id]))
+      } else {
+        watchedVmsByHosts.get(vm.$container).add(vm.id)
+      }
+    })
 
     const alarmsByObjects = []
 
