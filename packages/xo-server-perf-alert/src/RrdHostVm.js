@@ -104,7 +104,7 @@ export class RrdHostVm extends MonitorStrategy {
         return
       }
       const [, type, uuidInStat, metricType] = matches
-      if (!USED_METRICS.includes(metricType)) {
+      if (!USED_METRICS.includes(metricType) || metricType.match('/cpu[0-9]+')) {
         return
       }
       switch (type) {
@@ -216,7 +216,18 @@ export class RrdHostVm extends MonitorStrategy {
         let value
         switch (rule.variableName) {
           case 'cpuUsage':
-            value = Math.round(100 * xapiAverage(vmStats.cpu_usage))
+            // some vms don't have cpu_usage, compute it by averaging the cores usage
+            if (vmStats.cpu_usage && vmStats.cpu_usage.length > 0) {
+              value = Math.round(100 * xapiAverage(vmStats.cpu_usage))
+            } else {
+              const coresUsage = []
+              for (const [metric, value] of Object.entries(vmStats)) {
+                if (metric.match(/cpu[0-9]+/)) {
+                  coresUsage.push(xapiAverage(value))
+                }
+              }
+              value = xapiAverage(coresUsage)
+            }
             break
           case 'memoryUsage': {
             const total = xapiAverage(vmStats.memory)
