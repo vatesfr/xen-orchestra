@@ -70,7 +70,7 @@ export function defineRemoteResource<
     handleDelete: THandleDelete
     handlePost: THandlePost
     handleWatching: THandleWatching
-    predicate?: (receivedData: TData, args: ResourceContext<TArgs> | undefined) => boolean
+    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => boolean
   }
 }): UseRemoteResource<TState, TArgs>
 
@@ -94,7 +94,7 @@ export function defineRemoteResource<
     handleDelete: THandleDelete
     handlePost: THandlePost
     handleWatching: THandleWatching
-    predicate?: (receivedData: TData, args: ResourceContext<TArgs> | undefined) => boolean
+    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => boolean
   }
 }) {
   const cache = new Map<
