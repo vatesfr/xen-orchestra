@@ -3,7 +3,7 @@ import { watchCollectionWrapper } from '@/utils/sse.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoVdi } from '@vates/types'
 
-const vdiFields: (keyof XoVdi)[] = [
+export const vdiFields: (keyof XoVdi)[] = [
   'id',
   'name_label',
   'name_description',
@@ -12,6 +12,11 @@ const vdiFields: (keyof XoVdi)[] = [
   'size',
   '$pool',
   'type',
+  'usage',
+  'tags',
+  'uuid',
+  'cbt_enabled',
+  'image_format',
 ] as const
 
 export const useXoVdiCollection = defineRemoteResource({
