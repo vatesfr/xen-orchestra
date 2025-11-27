@@ -35,6 +35,4 @@
 
 <!--packages-start-->
 
-- vhd-cli major
-
 <!--packages-end-->

@@ -92,6 +92,7 @@
 - xo-server-load-balancer 0.11.0
 - xo-server-transport-email 1.1.1
 - xo-server-usage-report 0.11.0
+- vhd-cli 1.0.0
 - vhd-lib 4.14.5
 - @vates/nbd-client 3.2.2
 - @xen-orchestra/web-core 0.35.0
