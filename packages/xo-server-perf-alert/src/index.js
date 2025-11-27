@@ -6,7 +6,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import { MonitorRuleSet } from './Rules.js'
 
-import * as templates from '../src/templates/index.js'
+import templates from './templates/index.js'
 import { HybridStrategy } from './HybridStrategy.js'
 export { configurationSchema } from './schema.js'
 
