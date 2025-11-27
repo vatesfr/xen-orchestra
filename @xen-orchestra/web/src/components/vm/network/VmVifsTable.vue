@@ -3,7 +3,13 @@
     <UiTitle>
       {{ t('vifs') }}
       <template #actions>
-        <UiLink :href="`/#/vms/${vm.id}/network`" icon="fa:plus" variant="secondary" accent="brand" size="medium">
+        <UiLink
+          :href="`${xo5Route}#/vms/${vm.id}/network`"
+          icon="fa:plus"
+          variant="secondary"
+          accent="brand"
+          size="medium"
+        >
           {{ t('add-vifs-in-xo-5') }}
         </UiLink>
       </template>
@@ -31,6 +37,7 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
@@ -56,6 +63,9 @@ const { getNetworkById } = useXoNetworkCollection()
 const { getVmById } = useXoVmCollection()
 const { areVifsReady, hasVifFetchError } = useXoVifCollection()
 const { t } = useI18n()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const selectedVifId = useRouteQuery('id')
 

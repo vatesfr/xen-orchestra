@@ -20,7 +20,7 @@
       </TabItem>
     </RouterLink>
     <TabItem>
-      <UiLink :href="`/#/hosts/${host.id}/stats`" size="medium">
+      <UiLink :href="`${xo5Route}#/hosts/${host.id}/stats`" size="medium">
         {{ t('stats') }}
       </UiLink>
     </TabItem>
@@ -50,6 +50,7 @@
 
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
@@ -67,6 +68,9 @@ const { host } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const { isMasterHost } = useXoHostCollection()
 
