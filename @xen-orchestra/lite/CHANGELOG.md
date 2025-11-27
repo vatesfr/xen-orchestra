@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## **0.17.0** (2025-11-27)
 
 - [Host/HostSystemResourceManagement] Fix display when control domain memory is undefined (PR [#9197](https://github.com/vatesfr/xen-orchestra/pull/9197))
 
