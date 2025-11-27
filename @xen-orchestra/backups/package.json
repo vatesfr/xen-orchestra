@@ -26,7 +26,7 @@
     "@vates/disposable": "^0.1.6",
     "@vates/fuse-vhd": "^2.1.2",
     "@vates/generator-toolbox": "^1.1.0",
-    "@vates/nbd-client": "^3.2.1",
+    "@vates/nbd-client": "^3.2.2",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/disk-transform": "^1.2.0",
@@ -51,7 +51,7 @@
     "tar": "^6.1.15",
     "uuid": "^9.0.0",
     "value-matcher": "^0.2.0",
-    "vhd-lib": "^4.14.4",
+    "vhd-lib": "^4.14.5",
     "xen-api": "^4.7.5",
     "yazl": "^2.5.1"
   },
