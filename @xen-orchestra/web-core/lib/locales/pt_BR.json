@@ -151,5 +151,6 @@
   "fullscreen": "Tela cheia",
   "fullscreen-leave": "Sair da tela cheia",
   "new-vm.feature-not-supported": "Este é o nosso novo formulário de criação de VM. A configuração do Cloud-init, as opções avançadas e a gestão de vTPM ainda não são suportadas. Uma versão atualizada estará disponível em breve, em 2026. Enquanto isso, todas as funcionalidades estão disponíveis aqui em {xo-5}",
+  "template-has-bios-strings": "O template já contém BIOS strings",
   "xo-5": "XO-5"
 }

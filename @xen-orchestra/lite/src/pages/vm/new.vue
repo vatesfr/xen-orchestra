@@ -113,7 +113,8 @@
                     vmState.boot_firmware === 'uefi' || templateHasBiosStrings
                       ? {
                           placement: 'top-start',
-                          content: vmState.boot_firmware !== 'uefi' ? t('boot-firmware-bios') : t('boot-firmware-uefi'),
+                          content:
+                            vmState.boot_firmware !== 'uefi' ? t('template-has-bios-strings') : t('boot-firmware-uefi'),
                         }
                       : undefined
                   "

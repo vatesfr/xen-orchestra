@@ -52,6 +52,7 @@ const vmFields: (keyof XoVm)[] = [
   'type',
   '$VBDs',
   'snapshots',
+  'boot',
 ] as const
 
 export const useXoVmCollection = defineRemoteResource({

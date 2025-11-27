@@ -25,6 +25,7 @@
   - [Core] Add tooltip on tag component if the text is cut (PR [#9184](https://github.com/vatesfr/xen-orchestra/pull/9184))
   - [Pool/Hosts] Implement hosts view and side panel information (PR [#9218](https://github.com/vatesfr/xen-orchestra/pull/9218))
   - [VM/VDIs] Implement vdis view and side panel information (PR [#9232](https://github.com/vatesfr/xen-orchestra/pull/9232))
+  - [VM/New] Add boot firmware to VM creation form (PR [#9158](https://github.com/vatesfr/xen-orchestra/pull/9158))
 
 ### Bug fixes
 

@@ -106,31 +106,14 @@
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
                 <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" :label=" t('tags')" /> -->
-                <!--              <VtsInputWrapper :label="t('boot-firmware')"> -->
-                <!--                <FormSelect v-model="vmState.boot_firmware"> -->
-                <!--                  <option v-for="boot in bootFirmwares" :key="boot" :value="boot"> -->
-                <!--                    {{ boot === undefined ? t('bios-default') : boot }} -->
-                <!--                  </option> -->
-                <!--                </FormSelect> -->
-                <!--              </VtsInputWrapper> -->
-                <!--              <div -->
-                <!--                v-tooltip=" -->
-                <!--                  vmState.boot_firmware === 'uefi' || templateHasBiosStrings -->
-                <!--                    ? { -->
-                <!--                        placement: 'top-start', -->
-                <!--                        content: vmState.boot_firmware !== 'uefi' ? t('boot-firmware-bios') : t('boot-firmware-uefi'), -->
-                <!--                      } -->
-                <!--                    : undefined -->
-                <!--                " -->
-                <!--              > -->
-                <!--                <UiCheckbox -->
-                <!--                  v-model="copyHostBiosStrings" -->
-                <!--                  accent="brand" -->
-                <!--                  :disabled="vmState.boot_firmware === 'uefi' || templateHasBiosStrings" -->
-                <!--                > -->
-                <!--                  {{ t('copy-host') }} -->
-                <!--                </UiCheckbox> -->
-                <!--              </div> -->
+                <VtsInputWrapper :label="t('boot-firmware')">
+                  <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
+                </VtsInputWrapper>
+                <div v-tooltip="{ placement: 'top-start', content: copyHostBiosStringsTooltipContent }">
+                  <UiCheckbox v-model="vmState.copyHostBiosStrings" accent="brand" :disabled="!canCopyBiosStrings">
+                    {{ t('copy-host-bios-strings') }}
+                  </UiCheckbox>
+                </div>
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
@@ -222,7 +205,6 @@
                     <VtsIcon name="fa:align-left" size="medium" />
                     {{ t('description') }}
                   </th>
-                  <th />
                 </tr>
               </thead>
               <tbody>
@@ -367,6 +349,7 @@ import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
 import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
 
@@ -400,7 +383,7 @@ const vmState = reactive<VmState>({
   description: '',
   installMode: undefined,
   affinity_host: undefined,
-  boot_firmware: '',
+  bootFirmware: '',
   new_vm_template: undefined,
   boot_vm: true,
   autoPoweron: false,
@@ -498,20 +481,29 @@ const isDiskTemplate = computed(() => {
     vmState.new_vm_template.name_label !== 'Other install media'
   )
 })
-// Todo: implement when the API will support
-// const getBootFirmwares = computed(() => {
-//   return [
-//     ...new Set(vmsTemplates.value.map(vmsTemplate => vmsTemplate.boot.firmware).filter(firmware => firmware != null)),
-//   ]
-// })
 
-// Todo: implement when the API will support
-// const getCopyHostBiosStrings = computed({
-//   get: () => vmState.boot_firmware !== 'uefi',
-//   set: value => {
-//     vmState.boot_firmware = value ? 'bios' : 'uefi'
-//   },
-// })
+// BIOS strings customization (Copy-Host BIOS strings or User-Defined BIOS strings)
+// is only applicable when using BIOS firmware, not UEFI.
+// This allows installation of OEM/BIOS-locked operating systems.
+// See https://docs.xenserver.com/en-us/xencenter/current-release/vms-new-template.html
+
+const selectedTemplateHasBiosStrings = computed(
+  () => vmState.new_vm_template !== undefined && Object.keys(vmState.new_vm_template.bios_strings).length !== 0
+)
+
+const canCopyBiosStrings = computed(() => vmState.bootFirmware === 'bios')
+
+const copyHostBiosStringsTooltipContent = computed(() => {
+  if (vmState.bootFirmware === 'uefi') {
+    return t('boot-firmware-uefi')
+  }
+
+  if (selectedTemplateHasBiosStrings.value) {
+    return t('template-has-bios-strings')
+  }
+
+  return undefined
+})
 
 const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
@@ -793,6 +785,8 @@ const vmData = computed(() => {
     name_description: vmState.description,
     name_label: vmState.name,
     template: vmState.new_vm_template?.uuid,
+    hvmBootFirmware: vmState.bootFirmware,
+    copyHostBiosStrings: vmState.copyHostBiosStrings,
     ...optionalFields,
   }
 })
@@ -861,6 +855,7 @@ watch(
       vifs: getExistingVifs(template),
       selectedVdi: undefined,
       installMode: undefined,
+      bootFirmware: template.boot.firmware ?? 'bios',
     } satisfies Partial<VmState>)
   }
 )
@@ -939,6 +934,25 @@ const xo5Link = computed(() => {
 
   return `${routes.value.xo5}#/vms/new?pool=${vmState.pool?.id}`
 })
+
+// BOOT FIRMWARE SELECTOR
+
+const bootFirmwareOptions = ['bios', 'uefi']
+
+const { id: bootFirmwareSelectId } = useFormSelect(bootFirmwareOptions, {
+  model: toRef(vmState, 'bootFirmware'),
+})
+
+watch(
+  () => vmState.new_vm_template,
+  () => {
+    if (vmState.bootFirmware !== 'bios') {
+      vmState.copyHostBiosStrings = false
+    } else if (selectedTemplateHasBiosStrings.value) {
+      vmState.copyHostBiosStrings = true
+    }
+  }
+)
 </script>
 
 <style scoped lang="postcss">
