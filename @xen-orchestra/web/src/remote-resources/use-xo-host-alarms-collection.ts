@@ -1,12 +1,30 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
+import { watchCollectionWrapper } from '@/utils/sse.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { createDateSorter } from '@core/utils/date-sorter.utils.ts'
 import type { XoAlarm } from '@vates/types'
 import { useSorted } from '@vueuse/core'
+import { toValue } from 'vue'
+import { alarmFields } from './use-xo-alarm-collection'
 
 export const useXoHostAlarmsCollection = defineRemoteResource({
-  url: (hostId: string) => `/rest/v0/hosts/${hostId}/alarms?fields=id,time,body,object`,
+  url: (hostId: string) => `/rest/v0/hosts/${hostId}/alarms?fields=${alarmFields.join(',')}`,
   initialData: () => [] as XoAlarm[],
+  watchCollection: watchCollectionWrapper<XoAlarm>({
+    collectionId: 'hostAlarm',
+    resource: 'alarm',
+    fields: alarmFields,
+    predicate(alarm, context) {
+      if (context === undefined || context.args === undefined || Array.isArray(alarm)) {
+        return true
+      }
+
+      const [id] = context.args
+      const hostId = toValue(id)
+
+      return alarm.object.uuid === hostId
+    },
+  }),
   state: (rawHostAlarms, context) => {
     const hostAlarms = useSorted(rawHostAlarms, createDateSorter('time'))
 

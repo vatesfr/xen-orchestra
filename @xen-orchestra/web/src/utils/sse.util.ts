@@ -1,4 +1,5 @@
 import type { THandleDelete, THandlePost, THandleWatching } from '@core/packages/remote-resource/sse.store'
+import type { ResourceContext } from '@core/packages/remote-resource/types'
 import { useEventSource } from '@vueuse/core'
 import { watchEffect } from 'vue'
 
@@ -6,22 +7,26 @@ const EVENT_ENDPOINTS = '/rest/v0/events'
 
 // TODO: move into a composable
 // https://github.com/vatesfr/xen-orchestra/pull/9183#discussion_r2561650429
-export function watchCollectionWrapper({
+export function watchCollectionWrapper<T>({
   resource,
   fields,
+  collectionId = resource,
   getIdentifier,
   getType,
   handleDelete,
   handlePost,
   handleWatching,
+  predicate,
 }: {
   resource: string
   fields?: string[]
+  collectionId?: string
   getIdentifier?: (obj: unknown) => string
   getType?: (obj: unknown) => string
   handleDelete?: THandleDelete
   handlePost?: THandlePost
   handleWatching?: THandleWatching
+  predicate?: (receivedObj: T | T[], context: ResourceContext<any[]> | undefined) => boolean
 }) {
   const _getType: (obj: unknown) => string | undefined = getType ?? ((obj: any) => obj.type)
   const _getIdentifier: (obj: unknown) => string | undefined = getIdentifier ?? ((obj: any) => obj.id)
@@ -80,13 +85,19 @@ export function watchCollectionWrapper({
             updateSseId(data.value.id)
             break
           case 'add':
-            getConfigByResource(getObjectType(data.value))?.events.add(data.value)
+            Object.values(getConfigByResource(getObjectType(data.value))?.configs ?? {}).forEach(config =>
+              config.add(data.value)
+            )
             break
           case 'update':
-            getConfigByResource(getObjectType(data.value))?.events.update(data.value)
+            Object.values(getConfigByResource(getObjectType(data.value))?.configs ?? {}).forEach(config =>
+              config.update(data.value)
+            )
             break
           case 'remove':
-            getConfigByResource(getObjectType(data.value))?.events.remove(data.value)
+            Object.values(getConfigByResource(getObjectType(data.value))?.configs ?? {}).forEach(config =>
+              config.remove(data.value)
+            )
             break
         }
       })
@@ -95,6 +106,7 @@ export function watchCollectionWrapper({
 
   return {
     resource,
+    collectionId,
     getIdentifier: (obj: unknown) => {
       const identifier = _getIdentifier(obj)
       if (identifier === undefined) {
@@ -106,5 +118,6 @@ export function watchCollectionWrapper({
     handleDelete,
     handlePost,
     handleWatching,
+    predicate,
   }
 }

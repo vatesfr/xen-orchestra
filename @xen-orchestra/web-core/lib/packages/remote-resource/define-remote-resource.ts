@@ -64,11 +64,13 @@ export function defineRemoteResource<
   onDataRemoved?: (data: Ref<NoInfer<TData>>, receivedData: any) => void
   stream?: boolean
   watchCollection: {
+    collectionId: string
     resource: string // reactivity only on XAPI XO record for now
     getIdentifier: (obj: unknown) => string
     handleDelete: THandleDelete
     handlePost: THandlePost
     handleWatching: THandleWatching
+    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => boolean
   }
 }): UseRemoteResource<TState, TArgs>
 
@@ -86,11 +88,13 @@ export function defineRemoteResource<
   pollingIntervalMs?: number | false
   stream?: boolean
   watchCollection?: {
+    collectionId: string
     resource: string // reactivity only on XAPI XO record for now
     getIdentifier: (obj: unknown) => string
     handleDelete: THandleDelete
     handlePost: THandlePost
     handleWatching: THandleWatching
+    predicate?: (receivedData: TData, context: ResourceContext<TArgs> | undefined) => boolean
   }
 }) {
   const cache = new Map<
@@ -131,7 +135,11 @@ export function defineRemoteResource<
 
   const onDataReceived =
     config.onDataReceived ??
-    ((data: Ref<TData>, receivedData: any) => {
+    ((data: Ref<TData>, receivedData: any, args?: ResourceContext<TArgs>) => {
+      // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
+      if (config.watchCollection?.predicate?.(receivedData, args) === false) {
+        return
+      }
       if (data.value === undefined || (Array.isArray(data.value) && Array.isArray(receivedData))) {
         data.value = receivedData
         return
@@ -148,7 +156,12 @@ export function defineRemoteResource<
 
   const onDataRemoved =
     config.onDataRemoved ??
-    ((data: Ref<TData>, receivedData: any) => {
+    ((data: Ref<TData>, receivedData: any, args?: ResourceContext<TArgs>) => {
+      // allow to ignore some update (like for sub collection. E.g. vms/:id/vdis)
+      if (!config.watchCollection?.predicate?.(receivedData, args)) {
+        return
+      }
+
       // for now only support `onDataRemoved` when watching XapiXoRecord collection
       if (Array.isArray(data.value) && !Array.isArray(receivedData)) {
         removeData(data.value, receivedData)
@@ -244,18 +257,19 @@ export function defineRemoteResource<
     let resume: VoidFunction = execute
 
     if (config.watchCollection !== undefined) {
-      const { resource, handleDelete, handlePost, handleWatching } = config.watchCollection
+      const { collectionId, resource, handleDelete, handlePost, handleWatching } = config.watchCollection
       const { watch, unwatch } = useSseStore()
 
-      pause = () => unwatch({ resource, handleDelete })
+      pause = () => unwatch({ collectionId, resource, handleDelete })
       resume = async function () {
         await execute()
         await watch({
+          collectionId,
           handleWatching,
           handlePost,
           resource,
-          onDataReceived: receivedData => onDataReceived(data, receivedData),
-          onDataRemoved: receivedData => onDataRemoved(data, receivedData),
+          onDataReceived: receivedData => onDataReceived(data, receivedData, context),
+          onDataRemoved: receivedData => onDataRemoved(data, receivedData, context),
         })
       }
     } else if (pollingInterval !== false) {

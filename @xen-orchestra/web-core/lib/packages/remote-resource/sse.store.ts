@@ -9,26 +9,32 @@ export type THandleWatching = (
   getConfigByResource: (resource: string) =>
     | {
         subscriptionId: string
-        events: {
-          add: (object: unknown) => void
-          update: (object: unknown) => void
-          remove: (object: unknown) => void
-        }
+        configs: Record<
+          string,
+          {
+            add: (object: unknown) => void
+            update: (object: unknown) => void
+            remove: (object: unknown) => void
+          }
+        >
       }
     | undefined
 ) => void
 
 export const useSseStore = defineStore('sse', () => {
   const sse = ref<{ id?: string; isWatching: boolean }>({ isWatching: false })
-  const configByResource: Map<
+  const configsByResource: Map<
     string,
     {
       subscriptionId: string
-      events: {
-        add: EventFn
-        update: EventFn
-        remove: EventFn
-      }
+      configs: Record<
+        string,
+        {
+          add: EventFn
+          update: EventFn
+          remove: EventFn
+        }
+      >
     }
   > = new Map()
 
@@ -36,8 +42,8 @@ export const useSseStore = defineStore('sse', () => {
     sse.value.id = id
   }
 
-  function getConfigByResource(resource: string) {
-    return configByResource.get(resource)
+  function getConfigsByResource(resource: string) {
+    return configsByResource.get(resource)
   }
 
   function initializeWatcher(handleWatching: THandleWatching) {
@@ -58,18 +64,20 @@ export const useSseStore = defineStore('sse', () => {
 
       if (!sse.value.isWatching) {
         sse.value.isWatching = true
-        handleWatching(updateSseId, getConfigByResource)
+        handleWatching(updateSseId, getConfigsByResource)
       }
     })
   }
 
   async function watch({
+    collectionId,
     resource,
     onDataReceived,
     onDataRemoved,
     handlePost,
     handleWatching,
   }: {
+    collectionId: string
     resource: string
     onDataReceived: EventFn
     onDataRemoved: EventFn
@@ -82,25 +90,50 @@ export const useSseStore = defineStore('sse', () => {
 
     const id = await handlePost(sse.value.id!)
 
-    configByResource.set(resource, {
+    const { subscriptionId, configs } = configsByResource.get(resource) ?? {}
+
+    if (subscriptionId !== undefined && id !== subscriptionId) {
+      throw new Error(`Previous subscription ID: ${subscriptionId} and new one: ${id} are not the same`)
+    }
+
+    configsByResource.set(resource, {
       subscriptionId: id,
-      events: {
-        add: onDataReceived,
-        update: onDataReceived,
-        remove: onDataRemoved,
+      configs: {
+        ...configs,
+        [collectionId]: {
+          add: onDataReceived,
+          update: onDataReceived,
+          remove: onDataRemoved,
+        },
       },
     })
   }
 
-  async function unwatch({ resource, handleDelete }: { resource: string; handleDelete: THandleDelete }) {
-    if (sse.value.id === undefined || !configByResource.has(resource)) {
+  async function unwatch({
+    collectionId,
+    resource,
+    handleDelete,
+  }: {
+    collectionId: string
+    resource: string
+    handleDelete: THandleDelete
+  }) {
+    if (sse.value.id === undefined || !configsByResource.has(resource)) {
       return
     }
 
-    const subscriptionId = configByResource.get(resource)!.subscriptionId
-    await handleDelete(sse.value.id, subscriptionId)
+    const { configs, subscriptionId } = configsByResource.get(resource)!
+    delete configs[collectionId]
 
-    configByResource.delete(resource)
+    if (Object.keys(configs).length === 0) {
+      await handleDelete(sse.value.id, subscriptionId)
+      configsByResource.delete(resource)
+    } else {
+      configsByResource.set(resource, {
+        subscriptionId,
+        configs,
+      })
+    }
   }
 
   return { watch, unwatch }
