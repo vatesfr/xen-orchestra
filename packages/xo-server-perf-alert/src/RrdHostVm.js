@@ -247,8 +247,8 @@ export class RrdHostVm extends MonitorStrategy {
 
     let alarms = this.#computeHostAlarm(xoHost, hostStat, this.#rules.getObjectAlerts(xoHost))
     for (const [vmUid, vmStats] of Object.entries(hostStat.vms ?? {})) {
-      const xoVm = this.#xo.getObject(vmUid)
       try {
+        const xoVm = this.#xo.getObject(vmUid)
         alarms = alarms.concat(this.#computeVmAlarm(xoVm, vmStats, this.#rules.getObjectAlerts(xoVm)))
       } catch (err) {}
     }
@@ -321,7 +321,7 @@ export class RrdHostVm extends MonitorStrategy {
         await new Promise((resolve, reject) => {
           const interval = setTimeout(() => {
             resolve()
-            this.#abortWaitController.signal.removeEventListener('abort', onAbort)
+            this.#abortWaitController?.signal.removeEventListener('abort', onAbort)
           }, nextRun)
           function onAbort() {
             clearInterval(interval)
@@ -329,13 +329,13 @@ export class RrdHostVm extends MonitorStrategy {
             error.code = 'ERR_ABORTED'
             reject(error)
           }
-          this.#abortWaitController.signal.addEventListener('abort', onAbort)
+          this.#abortWaitController?.signal.addEventListener('abort', onAbort)
         })
       }
 
       this.#lastChangeComputation = Date.now()
       const changes = await this.computeAlarmChanges()
-      if (this.#abortWaitController.signal.aborted) {
+      if (this.#abortWaitController?.signal.aborted) {
         return
       }
       await onChanges(changes)
@@ -344,7 +344,7 @@ export class RrdHostVm extends MonitorStrategy {
         throw error
       }
     } finally {
-      if (!this.#abortWaitController.signal.aborted) {
+      if (!this.#abortWaitController?.signal.aborted) {
         this.#poll(onChanges, delay)
       }
     }
