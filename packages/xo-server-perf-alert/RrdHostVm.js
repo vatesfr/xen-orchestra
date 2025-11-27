@@ -266,21 +266,18 @@ export class RrdHostVm extends MonitorStrategy {
      * @type {Array<XoHost>}
      */
 
-    const hosts = Object.values(this.#xo.objects.indexes.type.host ?? {})
+    const hosts = this.#xo.getObjectsByType('host')
     /**
      * @type {Map<XoHost['id'], Set<XoVm['id']>}
      */
     const watchedVmsByHosts = new Map()
-    Object.values(this.#xo.objects.indexes.type.VM ?? {})
-
-      .filter(vm => this.#rules.isObjectAffected(vm))
-      .forEach(vm => {
-        if (!watchedVmsByHosts.has(vm.$container)) {
-          watchedVmsByHosts.set(vm.$container, new Set([vm.id]))
-        } else {
-          watchedVmsByHosts.get(vm.$container).add(vm.id)
-        }
-      })
+    this.#xo.getObjectsByType('VM', { filter: vm => this.#rules.isObjectAffected(vm) }).forEach(vm => {
+      if (!watchedVmsByHosts.has(vm.$container)) {
+        watchedVmsByHosts.set(vm.$container, new Set([vm.id]))
+      } else {
+        watchedVmsByHosts.get(vm.$container).add(vm.id)
+      }
+    })
 
     const alarmsByObjects = []
 
@@ -321,7 +318,7 @@ export class RrdHostVm extends MonitorStrategy {
         await new Promise((resolve, reject) => {
           const interval = setTimeout(() => {
             resolve()
-            this.#abortWaitController.signal.removeEventListener('abort', onAbort)
+            this.#abortWaitController?.signal.removeEventListener('abort', onAbort)
           }, nextRun)
           function onAbort() {
             clearInterval(interval)
@@ -329,13 +326,13 @@ export class RrdHostVm extends MonitorStrategy {
             error.code = 'ERR_ABORTED'
             reject(error)
           }
-          this.#abortWaitController.signal.addEventListener('abort', onAbort)
+          this.#abortWaitController?.signal.addEventListener('abort', onAbort)
         })
       }
 
       this.#lastChangeComputation = Date.now()
       const changes = await this.computeAlarmChanges()
-      if (this.#abortWaitController.signal.aborted) {
+      if (this.#abortWaitController?.signal.aborted) {
         return
       }
       await onChanges(changes)
@@ -344,7 +341,7 @@ export class RrdHostVm extends MonitorStrategy {
         throw error
       }
     } finally {
-      if (!this.#abortWaitController.signal.aborted) {
+      if (!this.#abortWaitController?.signal.aborted) {
         this.#poll(onChanges, delay)
       }
     }
