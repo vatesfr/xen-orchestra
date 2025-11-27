@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **5.113.0** (2025-11-327)
+## **5.113.0** (2025-11-27)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
