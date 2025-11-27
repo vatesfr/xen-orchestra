@@ -21,6 +21,7 @@ const vmTemplateFields: (keyof XoVmTemplate)[] = [
   'tags',
   'isDefaultTemplate',
   'type',
+  'bios_strings',
 ] as const
 
 export const useXoVmTemplateCollection = defineRemoteResource({
