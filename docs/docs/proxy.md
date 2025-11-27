@@ -55,6 +55,12 @@ While creating a standard backup job from your main Xen Orchestra appliance, you
 
 ![](https://user-images.githubusercontent.com/21563339/80116365-29b41100-8586-11ea-9746-e01ca3e53996.png)
 
+:::tip
+If you see this error: `The backup will not be run on this remote because it's not compatible with the selected proxy`, it means the selected remote is not accessible from the proxy or mounted on the proxy that you have selected for the job.
+
+![Error message: "The backup will not be run on this remote because it's not compatible with the selected proxy"](./assets/remote_not_compatible_with_proxy.png)
+:::
+
 ## Enabling login to a proxy appliance
 
 Login is disabled by default on proxy appliances.
