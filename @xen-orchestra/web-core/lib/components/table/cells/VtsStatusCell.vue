@@ -46,16 +46,16 @@ const statuses = computed(() => toArray(status).map(status => (typeof status ===
 
     &:first-child {
       scale: 1.2;
-      margin-inline-end: 0.7rem;
     }
 
     &:nth-child(2) {
-      margin-inline-end: 0.4rem;
+      margin-inline-start: 0.7rem;
     }
 
     /* From 3rd status onward, all are scaled down to 0.8 */
     &:nth-child(n + 3) {
       scale: 0.8;
+      margin-inline-start: 0.4rem;
 
       &::after {
         content: '';

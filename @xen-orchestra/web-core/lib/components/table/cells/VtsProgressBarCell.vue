@@ -1,6 +1,6 @@
 <template>
   <UiTableCell>
-    <div class="vts-progress-bar-cell">
+    <div class="container">
       <VtsProgressBar :current :total noruler class="progress" />
       <span>{{ n(percentage / 100, { maximumFractionDigits: 0, style: 'percent' }) }}</span>
     </div>
@@ -27,7 +27,7 @@ const { percentage } = useProgress(
 </script>
 
 <style lang="postcss" scoped>
-.vts-progress-bar-cell {
+.container {
   display: flex;
   align-items: center;
   gap: 0.8rem;
