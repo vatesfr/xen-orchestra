@@ -246,7 +246,7 @@ export class RrdHostVm extends MonitorStrategy {
                   coresUsage.push(xapiAverage(vmMetricValue))
                 }
               }
-              value = xapiAverage(coresUsage)
+              value = Math.round(100 * xapiAverage(coresUsage))
             }
             break
           case 'memoryUsage': {
