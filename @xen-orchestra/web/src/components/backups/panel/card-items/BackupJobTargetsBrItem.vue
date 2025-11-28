@@ -1,6 +1,6 @@
 <template>
   <li>
-    <UiLink size="small" :icon href="/#/settings/remotes">
+    <UiLink size="small" :icon href="/#/settings/remotes" wrap>
       {{ br.name }}
     </UiLink>
   </li>

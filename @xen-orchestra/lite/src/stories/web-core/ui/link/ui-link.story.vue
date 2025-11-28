@@ -8,6 +8,7 @@
       iconProp(),
       prop('disabled').bool().widget(),
       prop('target').enum('_blank', '_self').widget(),
+      prop('wrap').bool().widget(),
     ]"
   >
     <UiLink v-bind="properties">This is a link</UiLink>

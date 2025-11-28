@@ -1,6 +1,6 @@
 <template>
   <li>
-    <UiLink size="small" icon="fa:database" :href="`/#/srs/${sr.id}/general`">
+    <UiLink size="small" icon="fa:database" :href="`/#/srs/${sr.id}/general`" wrap>
       {{ sr.name_label }}
     </UiLink>
   </li>
