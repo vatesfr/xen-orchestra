@@ -104,7 +104,7 @@ export class RrdHostVm extends MonitorStrategy {
         return
       }
       const [, type, uuidInStat, metricType] = matches
-      if (!USED_METRICS.includes(metricType) || metricType.match('/cpu[0-9]+')) {
+      if (!USED_METRICS.includes(metricType) || metricType.match(/cpu[0-9]+/)) {
         return
       }
       switch (type) {
