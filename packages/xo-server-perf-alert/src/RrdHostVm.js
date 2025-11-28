@@ -244,7 +244,7 @@ export class RrdHostVm extends MonitorStrategy {
         }
       } catch (err) {
         // value computation can fail if the VM didn't accumaulate values yes
-        // of if it's missing its tool
+        logger.debug('VM alarm computation skipped', { vmId: xoVm?.id, rule: rule.variableName, error: err.message })
       }
     }
     return vmAlarm
