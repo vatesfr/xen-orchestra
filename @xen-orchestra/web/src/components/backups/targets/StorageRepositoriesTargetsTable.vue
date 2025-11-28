@@ -38,7 +38,7 @@
               <UiLink
                 v-if="column.id === 'storage-repository'"
                 size="medium"
-                :to="`/#/srs/${row.id}/general`"
+                :href="`${xo5Route}#/srs/${row.id}/general`"
                 icon="fa:database"
               >
                 {{ column.value }}
@@ -61,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -85,6 +86,9 @@ const { storageRepositories } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const searchQuery = ref('')
 

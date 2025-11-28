@@ -3,43 +3,21 @@
     <UiTitle>
       {{ t('pifs') }}
       <template #actions>
-        <UiButton
-          v-tooltip="t('coming-soon')"
-          disabled
-          left-icon="fa:plus"
+        <UiLink
+          :href="`${xo5Route}#/hosts/${host.id}/network`"
+          icon="fa:plus"
           variant="secondary"
           accent="brand"
           size="medium"
+          class="button"
         >
-          {{ t('scan-pifs') }}
-        </UiButton>
+          {{ t('scan-pifs-in-xo-5') }}
+        </UiLink>
       </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('delete') }}
-          </UiButton>
-        </UiTableActions>
         <UiTopBottomTable :selected-items="0" :total-items="0">
           <UiTablePagination v-if="arePifsReady" v-bind="paginationBindings" />
         </UiTopBottomTable>
@@ -52,15 +30,7 @@
         <template #thead>
           <tr>
             <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
+              <th>
                 <div v-tooltip class="text-ellipsis">
                   <VtsIcon :name="headerIcon[column.id]" size="medium" />
                   {{ column.label }}
@@ -76,35 +46,27 @@
             :class="{ selected: selectedPifId === row.id }"
             @click="selectedPifId = row.id"
           >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="column.id === 'status'">
+            <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
+              <div v-if="column.id === 'status'">
                 <VtsStatus :status="column.value" />
               </div>
-              <div v-else-if="column.id === 'network'" class="network">
-                <!-- TODO Remove the span when the link works and the icon is fixed -->
-                <!--
-                  <UiComplexIcon size="medium" class="icon">
-                    <VtsIcon :icon="faNetworkWired" accent="current" />
-                    <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                  </UiComplexIcon>
-                  <a v-tooltip href="" class="text-ellipsis">{{ column.value.name }}</a>
-                 -->
+              <div
+                v-else-if="column.id === 'network'"
+                v-tooltip="{ placement: 'bottom-end' }"
+                class="text-ellipsis network"
+              >
+                <UiLink size="medium" :to="`/pool/${host.$pool}/networks?id=${column.value.id}`" @click.stop>
+                  <VtsIcon name="fa:network-wired" size="medium" />
+                  <span v-tooltip>{{ column.value.name }}</span>
+                </UiLink>
+              </div>
+              <div v-else-if="column.id === 'ip'" class="ip-addresses">
+                <span class="text-ellipsis">{{ column.value[0] }}</span>
+                <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
+                  {{ `+${column.value.length - 1}` }}
+                </span>
+              </div>
+              <div v-else-if="column.id === 'device'" class="device">
                 <span v-tooltip class="text-ellipsis">{{ column.value.name }}</span>
                 <VtsIcon
                   v-if="column.value.management"
@@ -112,12 +74,6 @@
                   name="legacy:primary"
                   size="medium"
                 />
-              </div>
-              <div v-else-if="column.id === 'ip'" class="ip-addresses">
-                <span class="text-ellipsis">{{ column.value[0] }}</span>
-                <span v-if="column.value.length > 1" class="typo-body-regular-small more-ips">
-                  {{ `+${column.value.length - 1}` }}
-                </span>
               </div>
               <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
                 {{ column.value }}
@@ -139,33 +95,33 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
 import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
-import type { XoPif } from '@vates/types'
-import { noop } from '@vueuse/shared'
+import type { XoHost, XoPif } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pifs } = defineProps<{
+  host: XoHost
   pifs: XoPif[]
 }>()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const { arePifsReady, hasPifFetchError } = useXoPifCollection()
 const { getNetworkById } = useXoNetworkCollection()
@@ -184,10 +140,6 @@ const filteredPifs = computed(() => {
 
   return pifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
-
-const pifsIds = computed(() => pifs.map(pif => pif.id))
-
-const { selected, areAllSelected } = useMultiSelect(pifsIds)
 
 const getNetworkName = (pif: XoPif) => getNetworkById(pif.$network)?.name_label ?? ''
 
@@ -209,16 +161,8 @@ const getIpConfigurationMode = (ipMode: string) => {
 const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
   rowId: record => record.id,
   columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
-    define(
-      'network',
-      record => ({
-        name: getNetworkName(record),
-        management: record.management,
-      }),
-      { label: t('network') }
-    ),
-    define('device', { label: t('device') }),
+    define('network', record => ({ id: record.$network, name: getNetworkName(record) }), { label: t('network') }),
+    define('device', record => ({ name: record.device, management: record.management }), { label: t('device') }),
     define('status', record => getPifStatus(record), { label: t('status') }),
     define('vlan', record => getVlanData(record.vlan), { label: t('vlan') }),
     define('ip', record => getIpAddresses(record), { label: t('ip-addresses') }),
@@ -226,7 +170,6 @@ const { visibleColumns, rows } = useTable('pifs', filteredPifs, {
     define('mode', record => getIpConfigurationMode(record.mode), {
       label: t('ip-mode'),
     }),
-    define('more', noop, { label: '', isHideable: false }),
   ],
 })
 
@@ -235,7 +178,7 @@ const { pageRecords: pifsRecords, paginationBindings } = usePagination('pifs', r
 type pifHeader = 'network' | 'device' | 'status' | 'vlan' | 'ip' | 'mac' | 'mode' | 'more'
 
 const headerIcon: Record<pifHeader, IconName> = {
-  network: 'fa:align-left',
+  network: 'fa:a',
   device: 'fa:align-left',
   status: 'fa:power-off',
   vlan: 'fa:align-left',
@@ -268,6 +211,12 @@ const headerIcon: Record<pifHeader, IconName> = {
     gap: 1.8rem;
   }
 
+  .device {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
+
   .ip-addresses {
     display: flex;
     justify-content: space-between;
@@ -276,16 +225,6 @@ const headerIcon: Record<pifHeader, IconName> = {
     .more-ips {
       color: var(--color-neutral-txt-secondary);
     }
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 }
 </style>

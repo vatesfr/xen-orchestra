@@ -34,7 +34,7 @@
                 v-if="column.id == 'backup-repository'"
                 size="medium"
                 :icon="column.value.icon"
-                :href="column.value.link"
+                :href="`${xo5Route}#/settings/remotes`"
               >
                 {{ column.value.label }}
               </UiLink>
@@ -58,6 +58,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -82,6 +83,9 @@ const { backupRepositories } = defineProps<{
 
 const { t } = useI18n()
 
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+
 const searchQuery = ref('')
 
 const filteredBackupTargetsRepositories = computed(() => {
@@ -103,7 +107,6 @@ const { visibleColumns, rows } = useTable('backup-repositories-targets', filtere
       'backup-repository',
       record => ({
         label: record.name,
-        link: '/#/settings/remotes',
         icon: getBackupRepositoryIcon(record),
       }),
       { label: t('backup-repository') }

@@ -102,7 +102,7 @@
         <template #value>
           <div class="value">
             <VtsIcon name="fa:template" size="medium" />
-            <UiLink v-if="template" size="small" :href="`/#/home?p=1&s=${template.id}&t=VM-template`">
+            <UiLink v-if="template" size="small" :href="`${xo5Route}#/home?p=1&s=${template.id}&t=VM-template`">
               {{ template.name_label }}
             </UiLink>
             <span v-else>{{ vm.other.base_template_name }}</span>
@@ -124,7 +124,7 @@
         <template #value>
           <div class="value">
             <UiUserLogo size="extra-small" class="user-logo" />
-            <UiLink v-if="userLabel" size="small" :href="`/#/settings/users?s=1_0_asc-${user?.id}`">
+            <UiLink v-if="userLabel" size="small" :href="`${xo5Route}#/settings/users?s=1_0_asc-${user?.id}`">
               {{ userLabel }}
             </UiLink>
             <span v-else>{{ t('unknown') }}</span>
@@ -151,6 +151,7 @@ import { useXoVmUtils } from '@/composables/xo-vm-utils.composable.ts'
 import { XCP_LINKS } from '@/constants.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
@@ -174,6 +175,9 @@ const { vm } = defineProps<{
 }>()
 
 const { t } = useI18n()
+
+const { routes } = useXoRoutes()
+const xo5Route = computed(() => routes.value?.xo5 ?? '/')
 
 const { useGetPoolById } = useXoPoolCollection()
 const { getVmHost } = useXoVmCollection()
