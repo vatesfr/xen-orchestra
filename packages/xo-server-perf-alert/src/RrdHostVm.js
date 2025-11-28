@@ -12,7 +12,18 @@ import { Alarm, MonitorStrategy } from './Strategy.js'
 
 const logger = createLogger('xo:xo-server-perf-alert:rrdStrategy')
 
-const USED_METRICS = ['cpu_usage', 'memory', 'memory_internal_free', 'cpu_avg', 'memory_total_kib', 'memory_free_kib']
+const VM_CORE_USAGE_METRIC = /^cpu[0-9+]$/
+
+/**
+ *
+ * @param {string} metricName
+ * @returns
+ */
+function isWatchedMetric(metricName) {
+  const USED_METRICS = ['cpu_usage', 'memory', 'memory_internal_free', 'cpu_avg', 'memory_total_kib', 'memory_free_kib']
+  return USED_METRICS.includes(metricName) || metricName.match(VM_CORE_USAGE_METRIC)
+}
+
 /**
  *
  * @param {*} xapi
@@ -103,22 +114,22 @@ export class RrdHostVm extends MonitorStrategy {
         logger.debug(`Can't parse legend ${legend}`)
         return
       }
-      const [, type, uuidInStat, metricType] = matches
-      if (!USED_METRICS.includes(metricType) || metricType.match(/cpu[0-9]+/)) {
+      const [, type, uuidInStat, metricName] = matches
+      if (!isWatchedMetric(metricName)) {
         return
       }
       switch (type) {
         case 'host':
-          hostStats.stats[metricType] = []
+          hostStats.stats[metricName] = []
           data.forEach(({ values }) => {
-            hostStats.stats[metricType].push(values[index])
+            hostStats.stats[metricName].push(values[index])
           })
           break
         case 'vm':
           hostStats.vms[uuidInStat] = hostStats.vms[uuidInStat] ?? {}
-          hostStats.vms[uuidInStat][metricType] = []
+          hostStats.vms[uuidInStat][metricName] = []
           data.forEach(({ values }) => {
-            hostStats.vms[uuidInStat][metricType].push(values[index])
+            hostStats.vms[uuidInStat][metricName].push(values[index])
           })
           break
       }
@@ -180,22 +191,31 @@ export class RrdHostVm extends MonitorStrategy {
     for (const rule of rules) {
       // compare value to data extracted from rrd
       let value
-      switch (rule.variableName) {
-        case 'cpuUsage':
-          value = Math.round(100 * xapiAverage(hostStat.stats.cpu_avg))
-          break
-        case 'memoryUsage': {
-          const total = xapiAverage(hostStat.stats.memory_total_kib)
-          const free = xapiAverage(hostStat.stats.memory_free_kib)
-          value = Math.round((100 * (total - free)) / total)
-          break
-        }
-        default:
-          throw new Error(`Can't compute alert of type ${rule.variableName} for host`)
-      }
 
-      if (rule.isTriggeredBy(value)) {
-        hostAlarms.push(new Alarm({ rule, target: xoHost, value }))
+      try {
+        switch (rule.variableName) {
+          case 'cpuUsage':
+            value = Math.round(100 * xapiAverage(hostStat.stats.cpu_avg))
+            break
+          case 'memoryUsage': {
+            const total = xapiAverage(hostStat.stats.memory_total_kib)
+            const free = xapiAverage(hostStat.stats.memory_free_kib)
+            value = Math.round((100 * (total - free)) / total)
+            break
+          }
+          default:
+            throw new Error(`Can't compute alert of type ${rule.variableName} for host`)
+        }
+
+        if (rule.isTriggeredBy(value)) {
+          hostAlarms.push(new Alarm({ rule, target: xoHost, value }))
+        }
+      } catch (err) {
+        logger.debug('host alarm computation skipped', {
+          hostId: xoHost?.id,
+          rule: rule.variableName,
+          error: err.message,
+        })
       }
     }
     return hostAlarms
@@ -221,9 +241,9 @@ export class RrdHostVm extends MonitorStrategy {
               value = Math.round(100 * xapiAverage(vmStats.cpu_usage))
             } else {
               const coresUsage = []
-              for (const [metric, value] of Object.entries(vmStats)) {
-                if (metric.match(/cpu[0-9]+/)) {
-                  coresUsage.push(xapiAverage(value))
+              for (const [vmMetricName, vmMetricValue] of Object.entries(vmStats)) {
+                if (vmMetricName.match(VM_CORE_USAGE_METRIC)) {
+                  coresUsage.push(xapiAverage(vmMetricValue))
                 }
               }
               value = xapiAverage(coresUsage)
@@ -244,6 +264,8 @@ export class RrdHostVm extends MonitorStrategy {
         }
       } catch (err) {
         // value computation can fail if the VM didn't accumulate values yet
+        // or if it's missing xen tools
+
         logger.debug('VM alarm computation skipped', { vmId: xoVm?.id, rule: rule.variableName, error: err.message })
       }
     }
@@ -296,7 +318,6 @@ export class RrdHostVm extends MonitorStrategy {
           watchedVmsByHosts.get(vm.$container).add(vm.id)
         }
       })
-
     const alarmsByObjects = []
 
     await asyncEach(
@@ -323,7 +344,6 @@ export class RrdHostVm extends MonitorStrategy {
       },
       { concurrency: 5 }
     )
-
     return [].concat(...alarmsByObjects)
   }
 
