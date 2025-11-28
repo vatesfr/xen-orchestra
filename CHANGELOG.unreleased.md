@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backups] Allow offline backups for more types of backups [Forum#11578](https://xcp-ng.org/forum/topic/11578) (PR [#9228](https://github.com/vatesfr/xen-orchestra/pull/9228))
+
 - **XO 6:**
 
 ### Packages to release
@@ -34,5 +36,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-web patch
 
 <!--packages-end-->
