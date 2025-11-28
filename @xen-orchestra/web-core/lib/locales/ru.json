@@ -296,7 +296,7 @@
   "in-last-three-jobs": "На своих последних трех работах",
   "in-progress": "В процессе",
   "info": "Информация | Информация",
-  "install-app": "Установить {имя}",
+  "install-app": "Установить {name}",
   "install-guest-tools": "Установите guest tools",
   "install-settings": "Установить настройки",
   "installed": "Установлено",
