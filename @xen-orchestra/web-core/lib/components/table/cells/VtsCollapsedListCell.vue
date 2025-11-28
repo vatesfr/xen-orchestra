@@ -13,12 +13,27 @@
       </UiButton>
     </div>
     <ul v-else>
-      <li v-for="(item, index) of items" :key="index">{{ item }}</li>
+      <li v-for="(item, index) of items" :key="index">
+        <div class="content">
+          {{ item }}
+          <UiButton
+            v-if="isExpanded && index === 0"
+            accent="brand"
+            size="small"
+            variant="tertiary"
+            class="typo-body-regular-small more"
+            @click="toggleExpand(false)"
+          >
+            <VtsIcon size="small" name="fa:minus" />
+          </UiButton>
+        </div>
+      </li>
     </ul>
   </UiTableCell>
 </template>
 
 <script setup lang="ts">
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import type { MaybeArray } from '@core/types/utility.type'

@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoBackupJobSchedulesUtils } from '@/composables/xo-backup-job-schedules.composable'
 import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
 import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection'
@@ -49,7 +50,8 @@ const { backupJobs: rawBackupJobs } = defineProps<{
 const { t } = useI18n()
 
 const { schedulesByJobId, areSchedulesReady } = useXoScheduleCollection()
-const { getLastNBackupLogsByJobId, areBackupLogsReady } = useXoBackupLogCollection()
+const { areBackupLogsReady } = useXoBackupLogCollection()
+const { getLastThreeRunsStatuses } = useXoBackupJobSchedulesUtils()
 
 const { getModeLabels } = useXoBackupUtils()
 const selectedBackupJobId = useRouteQuery('id')
@@ -67,9 +69,6 @@ const filteredBackupJobs = computed(() => {
     Object.values(backupJob).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
-
-const getLastThreeRunsStatuses = (backupJob: AnyXoBackupJob) =>
-  getLastNBackupLogsByJobId(backupJob.id).map(backupLog => backupLog.status)
 
 const getTotalSchedules = (backupJob: AnyXoBackupJob) => schedulesByJobId.value.get(backupJob.id)?.length ?? 0
 
