@@ -70,9 +70,6 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     // Base VM for the export
     this._baseVdis = undefined
 
-    // offlineBackup parameter is saved even when it shouldn't be applied
-    settings.offlineBackup = settings.offlineBackup && job.mode === 'full'
-
     // Settings for this specific run (job, schedule, VM)
     if (tags.includes('xo-memory-backup')) {
       settings.checkpointSnapshot = true
