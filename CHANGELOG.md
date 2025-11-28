@@ -1,8 +1,14 @@
 # ChangeLog
 
-## **5.113.0** (2025-11-27)
+## **5.113.1** (2025-11-28)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Released packages
+
+- xo-server-perf-alert 1.0.3
+
+## **5.113.0** (2025-11-27)
 
 ### Highlights
 
@@ -109,7 +115,7 @@
 - xo-web 5.191.0
 - @xen-orchestra/web-core 0.35.1
 - @xen-orchestra/web 0.34.2
-- xo-server-perf-alert 1.0.3
+- xo-server-perf-alert 1.0.2
 
 ## **5.112.1** (2025-11-03)
 
