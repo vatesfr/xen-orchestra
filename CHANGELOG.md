@@ -109,7 +109,7 @@
 - xo-web 5.191.0
 - @xen-orchestra/web-core 0.35.1
 - @xen-orchestra/web 0.34.2
-- xo-server-perf-alert 1.0.2
+- xo-server-perf-alert 1.0.3
 
 ## **5.112.1** (2025-11-03)
 
