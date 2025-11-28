@@ -638,6 +638,7 @@ export type XoTask = {
     name?: string
     objectId?: string
     params?: Record<string, unknown>
+    progress?: number
     type?: string
     userId?: string
     [key: string]: unknown | undefined
