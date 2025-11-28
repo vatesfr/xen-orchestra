@@ -6,7 +6,7 @@ import HomeTags from 'home-tags'
 import Icon from 'icon'
 import React from 'react'
 import Usage, { UsageElement } from 'usage'
-import { addTag, removeTag, getLicense } from 'xo'
+import { addTag, removeTag } from 'xo'
 import { connectStore, formatSize } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createCollectionWrapper, createGetObjectsOfType, createSelector } from 'selectors'
@@ -126,14 +126,6 @@ const UsageTooltip = decorate([
 ])
 
 export default class TabGeneral extends Component {
-  componentDidMount() {
-    const { sr } = this.props
-
-    if (sr.SR_type === 'xosan') {
-      getLicense('xosan.trial', sr.id).then(() => this.setState({ licenseRestriction: true }))
-    }
-  }
-
   _getDiskGroups = createSelector(
     () => this.props.vdis,
     () => this.props.vdiSnapshots,
@@ -244,7 +236,6 @@ export default class TabGeneral extends Component {
               {formatSize(sr.size)} <Icon icon='sr' size='lg' />
             </h2>
             <p>Type: {sr.SR_type}</p>
-            {this.state.licenseRestriction && <p className='text-danger'>{_('xosanLicenseRestricted')}</p>}
           </Col>
           <Col mediumSize={4}>
             <h2>

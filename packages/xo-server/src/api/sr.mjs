@@ -1,4 +1,3 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
 import some from 'lodash/some.js'
@@ -65,22 +64,12 @@ export async function destroy({ sr }) {
     await destroyXostor.call(this, { sr })
     return
   }
-  if (sr.SR_type !== 'xosan') {
-    await xapi.destroySr(sr._xapiId)
-    return
-  }
   const xapiSr = xapi.getObject(sr)
   if (srIsBackingHa(xapiSr)) {
     throw new Error('You tried to remove a SR the High Availability is relying on. Please disable HA first.')
   }
-  const config = xapi.xo.getData(sr, 'xosan_config')
   // we simply forget because the hosted disks are being destroyed with the VMs
   await xapi.forgetSr(sr._xapiId)
-  await asyncMapSettled(config.nodes, node => this.getXapiObject(node.vm.id).$destroy())
-  await xapi.deleteNetwork(config.network)
-  if (sr.SR_type === 'xosan') {
-    await this.unbindXosanLicense({ srId: sr.id })
-  }
 }
 
 destroy.params = {

@@ -629,9 +629,6 @@ export default {
   // Original text: "Import"
   newImport: 'Импорт',
 
-  // Original text: 'XOSAN'
-  xosan: undefined,
-
   // Original text: "Overview"
   backupOverviewPage: 'Обзор',
 
@@ -6575,278 +6572,8 @@ export default {
   // Original text: 'Enter the passphrase:'
   xoCloudConfigRestoreEnterPassphrase: undefined,
 
-  // Original text: 'XOSAN'
-  xosanTitle: undefined,
-
-  // Original text: 'Suggestions'
-  xosanSuggestions: undefined,
-
-  // Original text: 'Warning: using disperse layout is not recommended right now. Please read {link}.'
-  xosanDisperseWarning: undefined,
-
-  // Original text: "Name"
-  xosanName: 'Имя',
-
-  // Original text: "Host"
-  xosanHost: 'Хост',
-
-  // Original text: "Connected Hosts"
-  xosanHosts: 'Хосты',
-
-  // Original text: 'Pool'
-  xosanPool: undefined,
-
-  // Original text: "Size"
-  xosanSize: 'Размер',
-
-  // Original text: 'Used space'
-  xosanUsedSpace: undefined,
-
   // Original text: 'License'
   license: undefined,
-
-  // Original text: 'This XOSAN has more than 1 license!'
-  xosanMultipleLicenses: undefined,
-
-  // Original text: 'XOSAN pack needs to be installed and up to date on each host of the pool.'
-  xosanNeedPack: undefined,
-
-  // Original text: 'Install it now!'
-  xosanInstallIt: undefined,
-
-  // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
-  xosanNeedRestart: undefined,
-
-  // Original text: 'Restart toolstacks'
-  xosanRestartAgents: undefined,
-
-  // Original text: 'Select no more than 1 SR per host'
-  xosanSrOnSameHostMessage: undefined,
-
-  // Original text: 'Layout'
-  xosanLayout: undefined,
-
-  // Original text: 'Redundancy'
-  xosanRedundancy: undefined,
-
-  // Original text: 'Capacity'
-  xosanCapacity: undefined,
-
-  // Original text: 'Available space'
-  xosanAvailableSpace: undefined,
-
-  // Original text: '* Can fail without data loss'
-  xosanDiskLossLegend: undefined,
-
-  // Original text: 'Create'
-  xosanCreate: undefined,
-
-  // Original text: 'XOSAN is available in XOA'
-  xosanCommunity: undefined,
-
-  // Original text: 'New'
-  xosanNew: undefined,
-
-  // Original text: 'Advanced'
-  xosanAdvanced: undefined,
-
-  // Original text: 'Remove subvolumes'
-  xosanRemoveSubvolumes: undefined,
-
-  // Original text: 'Add subvolume…'
-  xosanAddSubvolume: undefined,
-
-  // Original text: "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it."
-  xosanWarning: undefined,
-
-  // Original text: 'VLAN'
-  xosanVlan: undefined,
-
-  // Original text: 'No XOSAN found'
-  xosanNoSrs: undefined,
-
-  // Original text: 'Some SRs are detached from the XOSAN'
-  xosanPbdsDetached: undefined,
-
-  // Original text: 'Something is wrong with: {badStatuses}'
-  xosanBadStatus: undefined,
-
-  // Original text: 'Running'
-  xosanRunning: undefined,
-
-  // Original text: 'Update packs'
-  xosanUpdatePacks: undefined,
-
-  // Original text: 'Checking for updates'
-  xosanPackUpdateChecking: undefined,
-
-  // Original text: 'Error while checking XOSAN packs. Please make sure that the Cloud plugin is installed and loaded, and that the updater is reachable.'
-  xosanPackUpdateError: undefined,
-
-  // Original text: 'XOSAN resources are unavailable'
-  xosanPackUpdateUnavailable: undefined,
-
-  // Original text: 'Not registered for XOSAN resources'
-  xosanPackUpdateUnregistered: undefined,
-
-  // Original text: "✓ This pool's XOSAN packs are up to date!"
-  xosanPackUpdateUpToDate: undefined,
-
-  // Original text: 'Update pool with latest pack v{version}'
-  xosanPackUpdateVersion: undefined,
-
-  // Original text: 'Delete XOSAN'
-  xosanDelete: undefined,
-
-  // Original text: 'Fix'
-  xosanFixIssue: undefined,
-
-  // Original text: 'Creating XOSAN on {pool}'
-  xosanCreatingOn: undefined,
-
-  // Original text: 'Configuring network…'
-  xosanState_configuringNetwork: undefined,
-
-  // Original text: 'Importing VM…'
-  xosanState_importingVm: undefined,
-
-  // Original text: 'Copying VMs…'
-  xosanState_copyingVms: undefined,
-
-  // Original text: 'Configuring VMs…'
-  xosanState_configuringVms: undefined,
-
-  // Original text: 'Configuring gluster…'
-  xosanState_configuringGluster: undefined,
-
-  // Original text: 'Creating SR…'
-  xosanState_creatingSr: undefined,
-
-  // Original text: 'Scanning SR…'
-  xosanState_scanningSr: undefined,
-
-  // Original text: 'XOSAN cannot be installed on XCP-ng yet. Incoming XOSANv2 will be compatible with XCP-ng: {link}.'
-  xosanXcpngWarning: undefined,
-
-  // Original text: 'Install XOA plugin first'
-  xosanInstallCloudPlugin: undefined,
-
-  // Original text: 'Load XOA plugin first'
-  xosanLoadCloudPlugin: undefined,
-
-  // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
-  xosanNoPackFound: undefined,
-
-  // Original text: 'Some XOSAN Virtual Machines are not running'
-  xosanVmsNotRunning: undefined,
-
-  // Original text: 'Some XOSAN Virtual Machines could not be found'
-  xosanVmsNotFound: undefined,
-
-  // Original text: 'Files needing healing'
-  xosanFilesNeedingHealing: undefined,
-
-  // Original text: 'Some XOSAN Virtual Machines have files needing healing'
-  xosanFilesNeedHealing: undefined,
-
-  // Original text: 'Host {hostName} is not in XOSAN network'
-  xosanHostNotInNetwork: undefined,
-
-  // Original text: 'VM controller'
-  xosanVm: undefined,
-
-  // Original text: 'SR'
-  xosanUnderlyingStorage: undefined,
-
-  // Original text: 'Replace…'
-  xosanReplace: undefined,
-
-  // Original text: 'On same VM'
-  xosanOnSameVm: undefined,
-
-  // Original text: 'Brick name'
-  xosanBrickName: undefined,
-
-  // Original text: 'Brick UUID'
-  xosanBrickUuid: undefined,
-
-  // Original text: 'Brick size'
-  xosanBrickSize: undefined,
-
-  // Original text: 'Memory size'
-  xosanMemorySize: undefined,
-
-  // Original text: 'Status'
-  xosanStatus: undefined,
-
-  // Original text: 'Arbiter'
-  xosanArbiter: undefined,
-
-  // Original text: 'Used Inodes'
-  xosanUsedInodes: undefined,
-
-  // Original text: 'Block size'
-  xosanBlockSize: undefined,
-
-  // Original text: 'Device'
-  xosanDevice: undefined,
-
-  // Original text: 'FS name'
-  xosanFsName: undefined,
-
-  // Original text: 'Mount options'
-  xosanMountOptions: undefined,
-
-  // Original text: 'Path'
-  xosanPath: undefined,
-
-  // Original text: 'Job'
-  xosanJob: undefined,
-
-  // Original text: 'PID'
-  xosanPid: undefined,
-
-  // Original text: 'Port'
-  xosanPort: undefined,
-
-  // Original text: 'Missing values'
-  xosanReplaceBrickErrorTitle: undefined,
-
-  // Original text: 'You need to select a SR and a size'
-  xosanReplaceBrickErrorMessage: undefined,
-
-  // Original text: 'Bad values'
-  xosanAddSubvolumeErrorTitle: undefined,
-
-  // Original text: 'You need to select {nSrs, number} and a size'
-  xosanAddSubvolumeErrorMessage: undefined,
-
-  // Original text: 'Select {nSrs, number} SRs'
-  xosanSelectNSrs: undefined,
-
-  // Original text: 'Run'
-  xosanRun: undefined,
-
-  // Original text: 'Remove'
-  xosanRemove: undefined,
-
-  // Original text: 'Volume'
-  xosanVolume: undefined,
-
-  // Original text: 'Volume options'
-  xosanVolumeOptions: undefined,
-
-  // Original text: 'Could not find VM'
-  xosanCouldNotFindVm: undefined,
-
-  // Original text: 'Using {usage}'
-  xosanUnderlyingStorageUsage: undefined,
-
-  // Original text: 'Custom IP network (/24)'
-  xosanCustomIpNetwork: undefined,
-
-  // Original text: 'Will configure the host xosan network device with a static IP address and plug it in.'
-  xosanIssueHostNotInNetwork: undefined,
 
   // Original text: 'Approximate SR capacity'
   approximateSrCapacity: undefined,
@@ -7217,12 +6944,6 @@ export default {
   // Original text: "To bind an XCP-ng license, go to the pool's Advanced tab."
   xcpngLicensesBindingAvancedView: undefined,
 
-  // Original text: 'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}'
-  xosanUnregisteredDisclaimer: undefined,
-
-  // Original text: 'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.'
-  xosanSourcesDisclaimer: undefined,
-
   // Original text: 'Register now!'
   registerNow: undefined,
 
@@ -7244,14 +6965,8 @@ export default {
   // Original text: 'Support'
   productSupport: undefined,
 
-  // Original text: 'No XOSAN attached'
-  licenseNotBoundXosan: undefined,
-
   // Original text: 'No proxy attached'
   licenseNotBoundProxy: undefined,
-
-  // Original text: 'License attached to an unknown XOSAN'
-  licenseBoundUnknownXosan: undefined,
 
   // Original text: 'License attached to an unknown proxy'
   licenseBoundUnknownProxy: undefined,
@@ -7264,18 +6979,6 @@ export default {
 
   // Original text: 'Refresh'
   refreshLicenses: undefined,
-
-  // Original text: 'Limited size because XOSAN is in trial'
-  xosanLicenseRestricted: undefined,
-
-  // Original text: 'You need a license on this SR to manage the XOSAN.'
-  xosanAdminNoLicenseDisclaimer: undefined,
-
-  // Original text: 'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.'
-  xosanAdminExpiredLicenseDisclaimer: undefined,
-
-  // Original text: 'Could not check the license on this XOSAN SR'
-  xosanCheckLicenseError: undefined,
 
   // Original text: 'Could not fetch licenses'
   getLicensesError: undefined,
@@ -7295,14 +6998,8 @@ export default {
   // Original text: 'Update the license now!'
   updateLicenseMessage: undefined,
 
-  // Original text: 'Unknown XOSAN SR.'
-  xosanUnknownSr: undefined,
-
   // Original text: 'Contact us!'
   contactUs: undefined,
-
-  // Original text: 'No license.'
-  xosanNoLicense: undefined,
 
   // Original text: 'Unlock now!'
   unlockNow: undefined,
@@ -7318,12 +7015,6 @@ export default {
 
   // Original text: 'expires on {date}'
   expiresOn: undefined,
-
-  // Original text: 'Install XOA plugin first'
-  xosanInstallXoaPlugin: undefined,
-
-  // Original text: 'Load XOA plugin first'
-  xosanLoadXoaPlugin: undefined,
 
   // Original text: 'Activate license'
   bindXoaLicense: undefined,
