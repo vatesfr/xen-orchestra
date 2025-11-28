@@ -243,7 +243,7 @@ export class RrdHostVm extends MonitorStrategy {
           vmAlarm.push(new Alarm({ rule, target: xoVm, value }))
         }
       } catch (err) {
-        // value computation can fail if the VM didn't accumaulate values yes
+        // value computation can fail if the VM didn't accumulate values yet
         logger.debug('VM alarm computation skipped', { vmId: xoVm?.id, rule: rule.variableName, error: err.message })
       }
     }
