@@ -366,7 +366,7 @@
   "last-run-number": "Последний запуск #{n}",
   "last-week": "Прошлая неделя",
   "learn-more": "Узнать больше",
-  "license-name": "{имя} лицензия",
+  "license-name": "{name} лицензия",
   "mac-address": "MAC адрес",
   "mac-addresses": "MAC адреса",
   "memory": "Память",
