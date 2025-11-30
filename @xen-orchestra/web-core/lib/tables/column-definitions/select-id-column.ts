@@ -12,10 +12,10 @@ export const useSelectIdColumn = defineColumn((config?: HeaderConfig) => ({
       () =>
         h(UiButtonIcon, {
           accent: 'brand',
-          size: 'small',
+          size: 'medium',
           icon: 'fa:eye',
           onClick: () => onSelect(),
-          targetScale: 1.8,
+          targetScale: 1.4,
         }),
       'center'
     ),

@@ -3,6 +3,7 @@ import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
 import { useSelectIdColumn } from '@core/tables/column-definitions/select-id-column.ts'
 import { useTextColumn } from '@core/tables/column-definitions/text-column.ts'
+import { useTruncatedTextColumn } from '@core/tables/column-definitions/truncated-text-column'
 import { useI18n } from 'vue-i18n'
 
 export const useInternalNetworkColumns = defineColumns(() => {
@@ -10,7 +11,7 @@ export const useInternalNetworkColumns = defineColumns(() => {
 
   return {
     name: useLinkColumn({ headerLabel: () => t('name') }),
-    description: useTextColumn({ headerLabel: () => t('description') }),
+    description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
     mtu: useNumberColumn({ headerLabel: () => t('mtu') }),
     defaultLockingMode: useTextColumn({ headerLabel: () => t('default-locking-mode') }),
     selectId: useSelectIdColumn(),

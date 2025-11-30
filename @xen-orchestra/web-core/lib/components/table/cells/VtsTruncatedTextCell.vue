@@ -33,6 +33,8 @@ const { content, limit } = defineProps<{
 
 const DEFAULT_TRUNCATE_LIMIT = 90
 
+const { t } = useI18n()
+
 const TRUNCATE_TOLERANCE = 20
 
 const { t } = useI18n()
