@@ -27,11 +27,7 @@ import VtsTableNew from '@core/components/table/VtsTableNew.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { useFormSelect } from '@core/packages/form-select'
-import { defineColumns } from '@core/packages/table/define-columns'
-import { useButtonIconColumn } from '@core/tables/column-definitions/button-icon-column'
-import { useInputColumn } from '@core/tables/column-definitions/input-column'
-import { useSelectColumn } from '@core/tables/column-definitions/select-column'
-import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
+import { useNewVmNetworkColumns } from '@core/tables/column-sets/new-vm-network-columns'
 import type { XoNetwork } from '@vates/types'
 import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -48,19 +44,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const useNewVmNetworkColumns = defineColumns(() => ({
-  interface: useSelectColumn({
-    headerLabel: () => t('interfaces'),
-    headerIcon: 'fa:network-wired',
-  }),
-  mac: useInputColumn({
-    headerLabel: () => t('mac-addresses'),
-    headerIcon: 'fa:at',
-    placeholder: () => t('auto-generated'),
-  }),
-  remove: useButtonIconColumn({ buttonIcon: 'fa:trash' }),
-}))
-
 const { HeadCells, BodyCells, colspan } = useNewVmNetworkColumns({
   body: ({ vif, onRemove }: { vif: Vif; onRemove: () => void }) => {
     const { id: interfaceSelectId } = useFormSelect(networks, {
@@ -71,10 +54,12 @@ const { HeadCells, BodyCells, colspan } = useNewVmNetworkColumns({
       },
     })
 
+    const mac = toRef(vif, 'mac')
+
     return {
       interface: r => r(interfaceSelectId),
-      mac: r => r(toRef(vif, 'mac')),
-      remove: r => (onRemove ? r(onRemove) : renderBodyCell()),
+      mac: r => r(mac),
+      remove: r => r(onRemove),
     }
   },
 })

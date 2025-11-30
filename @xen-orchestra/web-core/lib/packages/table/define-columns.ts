@@ -1,6 +1,6 @@
 import type { AreAllPropertiesOptional, Columns } from '@core/packages/table/types.ts'
 import { objectOmit } from '@vueuse/shared'
-import { computed, defineComponent, ref, type Component, type Ref, type VNode } from 'vue'
+import { computed, defineComponent, Fragment, h, ref, type Component, type Ref, type VNode } from 'vue'
 
 export function defineColumns<TSetupArgs extends any[], TColumns extends Columns>(
   setup: (...args: TSetupArgs) => TColumns
@@ -64,15 +64,15 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
         },
       },
       setup(props) {
-        const renderers = config.head?.(props.item as THeadItem) ?? ({} as THeadRenderers)
+        const headCellRenderers = config.head?.(props.item as THeadItem) ?? ({} as THeadRenderers)
 
         return () =>
           visibleColumnIds.value.map(columnId => {
-            const baseRenderer = availableColumns[columnId].renderHead
+            const { renderHead } = availableColumns[columnId]
 
-            const renderer = renderers[columnId as keyof typeof renderers]
+            const headCellRenderer = headCellRenderers[columnId as keyof typeof headCellRenderers]
 
-            return renderer ? renderer(baseRenderer) : baseRenderer()
+            return h(Fragment, { key: columnId }, [headCellRenderer ? headCellRenderer(renderHead) : renderHead()])
           })
       },
     })
@@ -85,15 +85,15 @@ export function defineColumns<TSetupArgs extends any[], TColumns extends Columns
         },
       },
       setup(props) {
-        const renderers = config.body(props.item as TBodyItem) ?? ({} as TBodyRenderers)
+        const bodyCellRenderers = config.body(props.item as TBodyItem) ?? ({} as TBodyRenderers)
 
         return () =>
           visibleColumnIds.value.map(columnId => {
-            const baseRenderer = availableColumns[columnId].renderBody
+            const { renderBody } = availableColumns[columnId]
 
-            const renderer = renderers[columnId as keyof typeof renderers]
+            const bodyCellRenderer = bodyCellRenderers[columnId as keyof typeof bodyCellRenderers]
 
-            return renderer ? renderer(baseRenderer) : baseRenderer()
+            return h(Fragment, { key: columnId }, [bodyCellRenderer ? bodyCellRenderer(renderBody) : renderBody()])
           })
       },
     })

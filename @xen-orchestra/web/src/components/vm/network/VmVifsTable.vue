@@ -52,12 +52,7 @@
         </UiTableActions>
       </div>
 
-      <VtsTableNew
-        :busy="!areVifsReady"
-        :error="hasVifFetchError"
-        :empty="vifs.length === 0 ? t('no-vif-detected') : filteredVifs.length === 0 ? t('no-result') : false"
-        :pagination-bindings
-      >
+      <VtsTableNew :busy="!areVifsReady" :error="hasVifFetchError" :empty="emptyMessage" :pagination-bindings>
         <thead>
           <tr>
             <HeadCells />
@@ -118,6 +113,18 @@ const filteredVifs = computed(() => {
   )
 })
 
+const emptyMessage = computed(() => {
+  if (rawVifs.length === 0) {
+    return t('no-vif-detected')
+  }
+
+  if (filteredVifs.value.length === 0) {
+    return t('no-result')
+  }
+
+  return undefined
+})
+
 const getIpAddresses = (vif: XoVif) => {
   const addresses = getVmById(vif.$VM)?.addresses
 
@@ -127,16 +134,21 @@ const getIpAddresses = (vif: XoVif) => {
 const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)
 
 const { HeadCells, BodyCells } = useVifColumns({
-  body: (vif: XoVif) => ({
-    network: r => r({ label: getNetworkName(vif) }),
-    device: r => r(t('vif-device', { device: vif.device })),
-    status: r => r(vif.attached ? 'connected' : 'disconnected'),
-    ipsAddresses: r => r(getIpAddresses(vif)),
-    macAddresses: r => r(vif.MAC),
-    mtu: r => r(vif.MTU),
-    lockingMode: r => r(vif.lockingMode),
-    selectId: r => r(() => (selectedVifId.value = vif.id)),
-  }),
+  body: (vif: XoVif) => {
+    const networkName = computed(() => getNetworkName(vif))
+    const ipAddresses = computed(() => getIpAddresses(vif))
+
+    return {
+      network: r => r({ label: networkName.value }),
+      device: r => r(t('vif-device', { device: vif.device })),
+      status: r => r(vif.attached ? 'connected' : 'disconnected'),
+      ipsAddresses: r => r(ipAddresses.value),
+      macAddresses: r => r(vif.MAC),
+      mtu: r => r(vif.MTU),
+      lockingMode: r => r(vif.lockingMode),
+      selectItem: r => r(() => (selectedVifId.value = vif.id)),
+    }
+  },
 })
 </script>
 

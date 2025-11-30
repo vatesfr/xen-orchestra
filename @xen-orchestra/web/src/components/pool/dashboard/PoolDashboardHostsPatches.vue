@@ -69,9 +69,5 @@ const noMissingPatches = computed(() => nMissingPatches.value === 0)
       margin-top: -0.1rem;
     }
   }
-
-  .version {
-    text-align: end;
-  }
 }
 </style>

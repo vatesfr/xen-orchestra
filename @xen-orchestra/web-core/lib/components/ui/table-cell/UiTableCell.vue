@@ -1,3 +1,4 @@
+<!-- WIP -->
 <template>
   <td class="ui-table-cell typo-body-regular" :class="align">
     <slot />
@@ -19,10 +20,10 @@ const { align = 'start' } = defineProps<{
   border-inline-start: none;
   color: var(--color-neutral-txt-primary);
   background-color: var(--ui-table-cell-background-color, var(--color-neutral-background-primary));
-  max-width: 30rem;
+  max-width: 50rem;
 
   &:last-child {
-    border-right: none;
+    border-inline-end: none;
   }
 
   &.start {

@@ -10,7 +10,7 @@
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
-      <VtsTableNew :busy="!isReady" :error="hasError" :pagination-bindings sticky="right">
+      <VtsTableNew :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -27,6 +27,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTableNew from '@core/components/table/VtsTableNew.vue'
@@ -35,7 +36,7 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { objectIcon } from '@core/icons'
+import { icon, objectIcon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns'
 import type { XoSr } from '@vates/types'
 import { computed, ref } from 'vue'
@@ -65,23 +66,53 @@ const filteredSrs = computed(() => {
   return rawSrs.filter(sr => Object.values(sr).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
+const emptyMessage = computed(() => {
+  if (rawSrs.length === 0) {
+    return t('no-storage-repositories-detected')
+  }
+
+  if (filteredSrs.value.length === 0) {
+    return t('no-results')
+  }
+
+  return undefined
+})
+
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)
 
+function getPrimaryIcon(sr: XoSr) {
+  if (!isDefaultSr(sr)) {
+    return undefined
+  }
+
+  return {
+    icon: icon('legacy:primary'),
+    tooltip: t('default-storage-repository'),
+  }
+}
+
 const { HeadCells, BodyCells } = useSrColumns({
-  body: (sr: XoSr) => ({
-    storageRepository: r =>
-      r({
-        label: sr.name_label,
-        href: `/#/srs/${sr.id}/general`,
-        icon: objectIcon('sr', 'muted'),
-        rightIcon: isDefaultSr(sr) ? { icon: 'legacy:primary', tooltip: t('default-storage-repository') } : undefined,
-      }),
-    description: r => r(sr.name_description),
-    storageFormat: r => r(sr.SR_type),
-    accessMode: r => r(sr.shared ? t('shared') : t('local')),
-    usedSpace: r => r(sr.physical_usage, sr.size),
-    selectId: r => r(() => (selectedSrId.value = sr.id)),
-  }),
+  body: (sr: XoSr) => {
+    const { buildXo5Route } = useXoRoutes()
+
+    const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
+    const rightIcon = computed(() => getPrimaryIcon(sr))
+
+    return {
+      storageRepository: r =>
+        r({
+          label: sr.name_label,
+          href: href.value,
+          icon: objectIcon('sr', 'muted'),
+          rightIcon: rightIcon.value,
+        }),
+      description: r => r(sr.name_description),
+      storageFormat: r => r(sr.SR_type),
+      accessMode: r => r(sr.shared ? t('shared') : t('local')),
+      usedSpace: r => r(sr.physical_usage, sr.size),
+      selectItem: r => r(() => (selectedSrId.value = sr.id)),
+    }
+  },
 })
 </script>
 
@@ -98,22 +129,6 @@ const { HeadCells, BodyCells } = useSrColumns({
 
   .container,
   .table-actions {
-    gap: 0.8rem;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
-  }
-
-  .name {
-    display: flex;
-    align-items: center;
     gap: 0.8rem;
   }
 }

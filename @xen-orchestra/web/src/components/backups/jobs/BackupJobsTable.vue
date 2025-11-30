@@ -8,7 +8,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTableNew :busy="!isReady" :error="hasError" :pagination-bindings sticky="right">
+      <VtsTableNew :busy :empty="emptyMessage" :error :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -43,15 +43,15 @@ import { useI18n } from 'vue-i18n'
 
 const { backupJobs: rawBackupJobs } = defineProps<{
   backupJobs: AnyXoBackupJob[]
-  isReady: boolean
-  hasError: boolean
+  busy?: boolean
+  error?: boolean
 }>()
 
 const { t } = useI18n()
 
-const { schedulesByJobId, areSchedulesReady } = useXoScheduleCollection()
+const { areSchedulesReady } = useXoScheduleCollection()
 const { areBackupLogsReady } = useXoBackupLogCollection()
-const { getLastThreeRunsStatuses } = useXoBackupJobSchedulesUtils()
+const { getLastThreeRunsStatuses, getTotalSchedules } = useXoBackupJobSchedulesUtils()
 
 const { getModeLabels } = useXoBackupUtils()
 const selectedBackupJobId = useRouteQuery('id')
@@ -70,23 +70,37 @@ const filteredBackupJobs = computed(() => {
   )
 })
 
-const getTotalSchedules = (backupJob: AnyXoBackupJob) => schedulesByJobId.value.get(backupJob.id)?.length ?? 0
+const emptyMessage = computed(() => {
+  if (rawBackupJobs.length === 0) {
+    return t('no-backup-job-available')
+  }
+
+  if (filteredBackupJobs.value.length === 0) {
+    return t('no-result')
+  }
+
+  return undefined
+})
 
 const { pageRecords: paginatedBackupJobs, paginationBindings } = usePagination('backups-jobs', filteredBackupJobs)
 
 const { HeadCells, BodyCells } = useBackupJobColumns({
   body: (job: AnyXoBackupJob) => {
+    const modeLabels = computed(() => getModeLabels(job))
+    const lastRuns = computed(() => getLastThreeRunsStatuses(job))
+    const totalSchedules = computed(() => getTotalSchedules(job))
+
     return {
       job: r =>
         r({
-          label: job.name ?? '',
+          label: job.name ?? t('untitled'),
           to: `/backup/${job.id}/runs`,
           icon: 'object:backup-job',
         }),
-      mode: r => r(getModeLabels(job)),
-      lastRuns: r => (areBackupLogsReady.value ? r(getLastThreeRunsStatuses(job)) : renderLoadingCell()),
-      schedules: r => (areSchedulesReady.value ? r(getTotalSchedules(job)) : renderLoadingCell()),
-      selectId: r => r(() => (selectedBackupJobId.value = job.id)),
+      mode: r => r(modeLabels.value),
+      lastRuns: r => (areBackupLogsReady.value ? r(lastRuns.value) : renderLoadingCell()),
+      schedules: r => (areSchedulesReady.value ? r(totalSchedules.value) : renderLoadingCell()),
+      selectItem: r => r(() => (selectedBackupJobId.value = job.id)),
     }
   },
 })
@@ -106,67 +120,6 @@ const { HeadCells, BodyCells } = useBackupJobColumns({
   .container,
   .table-actions {
     gap: 0.8rem;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
-  }
-
-  .mode {
-    max-width: fit-content;
-  }
-
-  .last-three-runs {
-    display: flex;
-    gap: 0.8rem;
-    align-items: center;
-
-    li:not(:first-child) {
-      &::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        transform: scale(1.3);
-      }
-    }
-
-    /* Order of selectors matters
-    *  because when there is only one item, it is both the first and the last child
-    *  and we want to apply the first-child style in that case
-    **/
-    li:last-child {
-      transform: scale(0.8);
-
-      &::after {
-        transform: scale(1.6);
-      }
-    }
-
-    li:first-child {
-      transform: scale(1.2);
-      margin-inline-end: 0.3rem;
-    }
-  }
-
-  .modes {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.8rem;
-
-    .more-info {
-      color: var(--color-neutral-txt-secondary);
-    }
-  }
-
-  .schedules {
-    text-align: right;
   }
 }
 </style>

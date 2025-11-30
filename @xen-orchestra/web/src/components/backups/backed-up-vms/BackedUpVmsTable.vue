@@ -77,6 +77,7 @@ const emptyMessage = computed(() => {
   if (backedUpVms.value.length === 0) {
     return t('no-backed-up-vms-detected')
   }
+
   if (filteredBackedUpVms.value.length === 0) {
     return t('no-result')
   }
@@ -105,6 +106,8 @@ const useBackedUpVmColumns = defineColumns(() => {
 
 const { HeadCells, BodyCells } = useBackedUpVmColumns({
   body: (vm: XoVm) => {
+    const diskSize = computed(() => getDiskSize(vm))
+
     return {
       vm: r =>
         r({
@@ -113,8 +116,7 @@ const { HeadCells, BodyCells } = useBackedUpVmColumns({
           to: `/vm/${vm.id}/dashboard`,
         }),
       diskSize: r => {
-        const diskSize = getDiskSize(vm)
-        return r(diskSize.value, diskSize.prefix)
+        return r(diskSize.value.value, diskSize.value.prefix)
       },
     }
   },

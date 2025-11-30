@@ -1,6 +1,6 @@
 <template>
   <UiTableCell>
-    <UiLink size="medium" :icon :to :href :target>
+    <UiLink size="medium" :icon :to :href :target class="link">
       <slot />
       <VtsIcon v-if="rightIcon" v-tooltip="rightIcon.tooltip ?? false" :name="rightIcon.icon" size="medium" />
     </UiLink>
@@ -25,3 +25,9 @@ export type VtsLinkCellProps = LinkOptions & {
 
 defineProps<VtsLinkCellProps>()
 </script>
+
+<style lang="postcss" scoped>
+.link {
+  line-height: 1.5;
+}
+</style>

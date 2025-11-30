@@ -1,11 +1,7 @@
 <template>
   <div class="backups" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <BackupJobsTable
-        :backup-jobs="vmBackupJobs"
-        :is-ready="areVmBackupJobsReady"
-        :has-error="hasVmBackupJobFetchError"
-      />
+      <BackupJobsTable :backup-jobs="vmBackupJobs" :busy="!areVmBackupJobsReady" :error="hasVmBackupJobFetchError" />
     </UiCard>
     <BackupJobsSidePanel
       v-if="selectedBackupJob"

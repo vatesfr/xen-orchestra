@@ -1,7 +1,7 @@
 import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useDateColumn } from '@core/tables/column-definitions/date-column.ts'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
-import { useSelectIdColumn } from '@core/tables/column-definitions/select-id-column.ts'
+import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column'
 import { useStatusColumn } from '@core/tables/column-definitions/status-column.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -14,6 +14,6 @@ export const useBackupLogsColumns = defineColumns(() => {
     duration: useNumberColumn({ headerIcon: 'fa:time', headerLabel: () => t('duration') }),
     status: useStatusColumn(),
     transferSize: useNumberColumn({ headerLabel: () => t('transfer-size') }),
-    selectId: useSelectIdColumn(),
+    selectItem: useSelectItemColumn(),
   }
 })
