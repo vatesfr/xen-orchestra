@@ -7,7 +7,7 @@
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
-      <VtsTableNew :busy="!isReady" :error="hasError" :pagination-bindings sticky="right">
+      <VtsTableNew :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings sticky="right">
         <thead>
           <HeadCells />
         </thead>
@@ -33,8 +33,10 @@ import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { objectIcon } from '@core/icons'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns'
+import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import type { XoVdi, XoVm } from '@vates/types'
+import { logicAnd } from '@vueuse/math'
 import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -45,8 +47,8 @@ const { vms: rawVms } = defineProps<{
   hasError: boolean
 }>()
 
-const { getVbdsByIds } = useXoVbdCollection()
-const { getVdiById } = useXoVdiCollection()
+const { areVbdsReady, getVbdsByIds } = useXoVbdCollection()
+const { areVdisReady, getVdiById } = useXoVdiCollection()
 
 const { t } = useI18n()
 
@@ -64,6 +66,20 @@ const filteredVms = computed(() => {
   return rawVms.filter(vm => Object.values(vm).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
+const emptyMessage = computed(() => {
+  if (rawVms.length === 0) {
+    return t('no-vm-detected')
+  }
+
+  if (filteredVms.value.length === 0) {
+    return t('no-results')
+  }
+
+  return undefined
+})
+
+const isDiskSpaceReady = logicAnd(areVbdsReady, areVdisReady)
+
 const getDiskSpace = (vm: XoVm) => {
   const vdis = getVbdsByIds(vm.$VBDs).map(vbd => vbd?.VDI)
 
@@ -77,27 +93,26 @@ const getDiskSpace = (vm: XoVm) => {
 const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', filteredVms)
 
 const { HeadCells, BodyCells } = useVmColumns({
-  exclude: ['description'],
   body: (vm: XoVm) => {
+    const ram = computed(() => formatSizeRaw(vm.memory.size, 1))
+    const diskSpace = computed(() => getDiskSpace(vm))
+    const ipAddresses = computed(() => getVmIpAddresses(vm))
+    const vmIcon = computed(() => objectIcon('vm', toLower(vm.power_state)))
+
     return {
-      vm: r =>
-        r({
-          label: vm.name_label,
-          to: `/vm/${vm.id}/dashboard`,
-          icon: objectIcon('vm', toLower(vm.power_state)),
-        }),
-      ipAddresses: r => r(getVmIpAddresses(vm)),
+      vm: r => r({ label: vm.name_label, to: `/vm/${vm.id}/dashboard`, icon: vmIcon.value }),
+      ipAddresses: r => r(ipAddresses.value),
       vcpus: r => r(vm.CPUs.number),
-      ram: r => {
-        const ram = formatSizeRaw(vm.memory.size, 1)
-        return r(ram.value, ram.prefix)
-      },
+      ram: r => r(ram.value.value, ram.value.prefix),
       diskSpace: r => {
-        const { value, unit } = getDiskSpace(vm)
-        return r(value, unit)
+        if (!isDiskSpaceReady.value) {
+          return renderLoadingCell()
+        }
+
+        return r(diskSpace.value.value, diskSpace.value.unit)
       },
       tags: r => r(vm.tags),
-      selectId: r => r(() => (selectedVmId.value = vm.id)),
+      selectItem: r => r(() => (selectedVmId.value = vm.id)),
     }
   },
 })

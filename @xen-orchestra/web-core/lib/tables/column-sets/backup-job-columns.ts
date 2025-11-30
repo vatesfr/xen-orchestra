@@ -2,7 +2,7 @@ import { defineColumns } from '@core/packages/table/define-columns.ts'
 import { useCollapsedListColumn } from '@core/tables/column-definitions/collapsed-list-column.ts'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column.ts'
-import { useSelectIdColumn } from '@core/tables/column-definitions/select-id-column.ts'
+import { useSelectItemColumn } from '@core/tables/column-definitions/select-item-column.ts'
 import { useStatusColumn } from '@core/tables/column-definitions/status-column.ts'
 import { useI18n } from 'vue-i18n'
 
@@ -18,6 +18,6 @@ export const useBackupJobColumns = defineColumns(() => {
       progressiveSize: true,
     }),
     schedules: useNumberColumn({ headerLabel: t('total-schedules') }),
-    selectId: useSelectIdColumn(),
+    selectItem: useSelectItemColumn(),
   }
 })

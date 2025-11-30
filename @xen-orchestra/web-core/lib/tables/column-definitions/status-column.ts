@@ -10,7 +10,7 @@ export const useStatusColumn = defineColumn((config?: HeaderConfig & Omit<Status
   const { headerIcon, headerLabel, ...statusCellProps } = config ?? {}
 
   return {
-    renderHead: () => renderHeadCell(headerIcon ?? 'fa:power-off', headerLabel ?? t('status')),
+    renderHead: () => renderHeadCell(headerIcon ?? 'fa:square-caret-down', headerLabel ?? t('status')),
     renderBody: (status: StatusCellProps['status']) => h(VtsStatusCell, { status, ...statusCellProps }),
   }
 })

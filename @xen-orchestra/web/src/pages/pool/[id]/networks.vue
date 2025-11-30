@@ -1,8 +1,13 @@
 <template>
   <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <PoolNetworksTable :networks />
-      <PoolNetworksTable :networks="internalNetworks" internal />
+      <PoolNetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks />
+      <PoolNetworksTable
+        :busy="!areNetworksReady"
+        :error="hasNetworkFetchError"
+        :networks="internalNetworks"
+        internal
+      />
     </UiCard>
     <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -32,7 +37,8 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { networksWithoutPifs, networksWithPifs, getNetworkById } = useXoNetworkCollection()
+const { areNetworksReady, hasNetworkFetchError, networksWithoutPifs, networksWithPifs, getNetworkById } =
+  useXoNetworkCollection()
 const uiStore = useUiStore()
 
 const internalNetworks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))

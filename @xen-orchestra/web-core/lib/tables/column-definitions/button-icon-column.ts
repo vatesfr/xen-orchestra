@@ -22,7 +22,7 @@ export const useButtonIconColumn = defineColumn((config: HeaderConfig & ButtonIc
       h(UiButtonIcon, {
         icon: toValue(config.buttonIcon),
         accent: toValue(config.buttonAccent) ?? 'brand',
-        size: toValue(config.buttonSize) ?? 'small',
+        size: toValue(config.buttonSize) ?? 'medium',
         targetScale: 1.5,
         onClick,
       })

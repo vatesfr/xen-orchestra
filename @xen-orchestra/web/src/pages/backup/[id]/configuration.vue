@@ -2,7 +2,7 @@
   <div class="backup-job-configuration">
     <BackupJobGeneralInformation :backup-job />
     <BackupJobSettings :backup-job />
-    <BackupJobSchedulesTable :backup-job-schedules :is-ready="areSchedulesReady" :has-error="hasScheduleFetchError" />
+    <BackupJobSchedulesTable :backup-job-schedules :busy="!areSchedulesReady" :error="hasScheduleFetchError" />
   </div>
 </template>
 

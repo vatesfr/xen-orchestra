@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import type { IconName } from '@core/icons'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTableNew from '@core/components/table/VtsTableNew.vue'
@@ -89,14 +90,16 @@ const useColumns = defineColumns(() => {
 })
 
 const { HeadCells, BodyCells } = useColumns({
-  body: (br: XoBackupRepository) => ({
-    backupRepositoy: r =>
-      r({
-        label: br.name,
-        href: '/#/settings/remotes',
-        icon: getBackupRepositoryIcon(br),
-      }),
-  }),
+  body: (br: XoBackupRepository) => {
+    const { buildXo5Route } = useXoRoutes()
+
+    const href = computed(() => buildXo5Route('/settings/remotes'))
+    const statusIcon = computed(() => getBackupRepositoryIcon(br))
+
+    return {
+      backupRepositoy: r => r({ label: br.name, href: href.value, icon: statusIcon.value }),
+    }
+  },
 })
 </script>
 

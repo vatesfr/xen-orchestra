@@ -25,6 +25,7 @@
 </template>
 
 <script setup lang="ts">
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTableNew from '@core/components/table/VtsTableNew.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -87,25 +88,18 @@ const useColumns = defineColumns(() => {
 
 const { HeadCells, BodyCells } = useColumns({
   body: (sr: XoSr) => {
+    const { buildXo5Route } = useXoRoutes()
+
+    const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
+    const usedSpace = computed(() => formatSizeRaw(sr.physical_usage, 2))
+    const remainingSpace = computed(() => formatSizeRaw(sr.size - sr.physical_usage, 2))
+    const totalCapacity = computed(() => formatSizeRaw(sr.size, 2))
+
     return {
-      storageRepository: r =>
-        r({
-          label: sr.name_label,
-          href: `/#/srs/${sr.id}/general`,
-          icon: 'fa:database',
-        }),
-      usedSpace: r => {
-        const usedSpace = formatSizeRaw(sr.physical_usage, 2)
-        return r(usedSpace.value, usedSpace.prefix)
-      },
-      remainingSpace: r => {
-        const remainingSpace = formatSizeRaw(sr.size - sr.physical_usage, 2)
-        return r(remainingSpace.value, remainingSpace.prefix)
-      },
-      totalCapacity: r => {
-        const totalCapacity = formatSizeRaw(sr.size, 2)
-        return r(totalCapacity.value, totalCapacity.prefix)
-      },
+      storageRepository: r => r({ label: sr.name_label, href: href.value, icon: 'fa:database' }),
+      usedSpace: r => r(usedSpace.value.value, usedSpace.value.prefix),
+      remainingSpace: r => r(remainingSpace.value.value, remainingSpace.value.prefix),
+      totalCapacity: r => r(totalCapacity.value.value, totalCapacity.value.prefix),
     }
   },
 })

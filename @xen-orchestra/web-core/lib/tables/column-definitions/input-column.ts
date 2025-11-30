@@ -22,7 +22,7 @@ export const useInputColumn = defineColumn((config?: HeaderConfig & InputConfig)
         accent: 'brand',
         placeholder: toValue(config?.placeholder),
         type: toValue(config?.type),
-        modelValue: toValue(model) ?? '',
+        modelValue: toValue(model),
         'onUpdate:modelValue': (value: string | number) => {
           model.value = value
         },

@@ -813,14 +813,14 @@ watch(
   { immediate: true }
 )
 
-const { routes } = useXoRoutes()
+const { buildXo5Route } = useXoRoutes()
 
 const xo5Link = computed(() => {
-  if (!vmState.pool?.id || !routes.value) {
+  if (!vmState.pool?.id) {
     return '#'
   }
 
-  return `${routes.value.xo5}#/vms/new?pool=${vmState.pool?.id}`
+  return buildXo5Route(`/vms/new?pool=${vmState.pool?.id}`)
 })
 
 // BOOT FIRMWARE SELECTOR

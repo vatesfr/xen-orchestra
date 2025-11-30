@@ -42,7 +42,13 @@
         </UiTableActions>
       </div>
 
-      <VtsTableNew :busy="!arePifsReady" :error="hasPifFetchError" sticky="right" :pagination-bindings>
+      <VtsTableNew
+        :busy="!arePifsReady"
+        :error="hasPifFetchError"
+        :empty="emptyMessage"
+        sticky="right"
+        :pagination-bindings
+      >
         <thead>
           <tr>
             <HeadCells />
@@ -71,6 +77,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns'
 import type { XoPif } from '@vates/types'
 import { computed, ref } from 'vue'
@@ -98,6 +105,18 @@ const filteredPifs = computed(() => {
   return rawPifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
+const emptyMessage = computed(() => {
+  if (rawPifs.length === 0) {
+    return t('no-pif-detected')
+  }
+
+  if (filteredPifs.value.length === 0) {
+    return t('no-result')
+  }
+
+  return undefined
+})
+
 const getNetworkName = (pif: XoPif) => getNetworkById(pif.$network)?.name_label ?? ''
 
 const getVlanData = (vlan: number) => (vlan !== -1 ? vlan : t('none'))
@@ -117,21 +136,37 @@ const getIpConfigurationMode = (ipMode: string) => {
 
 const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
 
+function getManagementIcon(pif: XoPif) {
+  if (!pif.management) {
+    return undefined
+  }
+
+  return {
+    icon: icon('legacy:primary'),
+    tooltip: t('management'),
+  }
+}
+
 const { HeadCells, BodyCells } = usePifColumns({
-  body: (pif: XoPif) => ({
-    network: r =>
-      r({
-        label: getNetworkName(pif),
-        rightIcon: pif.management ? { icon: 'legacy:primary', tooltip: t('management') } : undefined,
-      }),
-    device: r => r(pif.device),
-    status: r => r(getPifStatus(pif)),
-    vlan: r => r(getVlanData(pif.vlan)),
-    ip: r => r(getIpAddresses(pif)),
-    mac: r => r(pif.mac),
-    mode: r => r(getIpConfigurationMode(pif.mode)),
-    selectId: r => r(() => (selectedPifId.value = pif.id)),
-  }),
+  body: (pif: XoPif) => {
+    const name = computed(() => getNetworkName(pif))
+    const status = computed(() => getPifStatus(pif))
+    const vlan = computed(() => getVlanData(pif.vlan))
+    const ip = computed(() => getIpAddresses(pif))
+    const mode = computed(() => getIpConfigurationMode(pif.mode))
+    const rightIcon = computed(() => getManagementIcon(pif))
+
+    return {
+      network: r => r({ label: name.value, rightIcon: rightIcon.value }),
+      device: r => r(pif.device),
+      status: r => r(status.value),
+      vlan: r => r(vlan.value),
+      ip: r => r(ip.value),
+      mac: r => r(pif.mac),
+      mode: r => r(mode.value),
+      selectItem: r => r(() => (selectedPifId.value = pif.id)),
+    }
+  },
 })
 </script>
 
@@ -149,32 +184,6 @@ const { HeadCells, BodyCells } = usePifColumns({
   .container,
   .table-actions {
     gap: 0.8rem;
-  }
-
-  .network {
-    display: flex;
-    align-items: center;
-    gap: 1.8rem;
-  }
-
-  .ip-addresses {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .more-ips {
-      color: var(--color-neutral-txt-secondary);
-    }
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 }
 </style>

@@ -83,16 +83,16 @@ const { pageRecords: paginatedBackupLogs, paginationBindings } = usePagination('
 
 const { HeadCells, BodyCells } = useBackupLogsColumns({
   body: (log: XoBackupLog) => {
+    const transferSize = computed(() => getTransferSize(log))
+    const duration = computed(() => getBackupLogDuration(log))
+
     return {
       startDate: r => r(log.start),
       endDate: r => r(log.end),
-      duration: r => r(getBackupLogDuration(log)),
+      duration: r => r(duration.value),
       status: r => r(log.status),
-      transferSize: r => {
-        const transferSize = getTransferSize(log)
-        return r(transferSize?.value, transferSize?.prefix)
-      },
-      selectId: r => r(() => (selectedBackupLogId.value = log.id)),
+      transferSize: r => r(transferSize.value?.value, transferSize.value?.prefix),
+      selectItem: r => r(() => (selectedBackupLogId.value = log.id)),
     }
   },
 })
@@ -112,20 +112,6 @@ const { HeadCells, BodyCells } = useBackupLogsColumns({
   .container,
   .table-actions {
     gap: 0.8rem;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
-  }
-
-  .number {
-    text-align: right;
   }
 }
 </style>

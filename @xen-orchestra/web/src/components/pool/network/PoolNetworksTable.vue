@@ -1,12 +1,7 @@
 <template>
   <div class="pool-networks-table">
     <UiTitle>
-      {{ t('networks') }}
-      <template #actions>
-        <UiDropdownButton v-tooltip="t('coming-soon')" disabled>
-          {{ t('new') }}
-        </UiDropdownButton>
-      </template>
+      {{ internal ? t('host-internal-networks') : t('networks') }}
     </UiTitle>
     <div class="container">
       <div class="table-actions">
@@ -44,7 +39,7 @@
           </UiButton>
         </UiTableActions>
       </div>
-      <VtsTableNew :busy="!areNetworksReady" :error="hasNetworkFetchError" sticky="right" :pagination-bindings>
+      <VtsTableNew :busy :error :empty="emptyMessage" sticky="right" :pagination-bindings>
         <thead>
           <tr>
             <HeadCells />
@@ -61,12 +56,11 @@
 </template>
 
 <script setup lang="ts">
-import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTableNew from '@core/components/table/VtsTableNew.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
@@ -76,17 +70,17 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { icon, objectIcon } from '@core/icons'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns'
 import type { XoNetwork } from '@vates/types'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { networks: rawNetworks, internal } = defineProps<{
   networks: XoNetwork[]
+  busy?: boolean
+  error?: boolean
   internal?: boolean
 }>()
 
 const { t } = useI18n()
-
-const { areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
 
 const { pifs } = useXoPifCollection()
 
@@ -104,6 +98,18 @@ const filteredNetworks = computed(() => {
   return rawNetworks.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
+})
+
+const emptyMessage = computed(() => {
+  if (rawNetworks.length === 0) {
+    return t('no-network-detected')
+  }
+
+  if (filteredNetworks.value.length === 0) {
+    return t('no-results')
+  }
+
+  return undefined
 })
 
 const getNetworkVlan = (network: XoNetwork) => {
@@ -136,36 +142,32 @@ const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unl
 
 const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
 
-const { HeadCells, BodyCells, toggle } = useNetworkColumns({
+const { HeadCells, BodyCells } = useNetworkColumns({
+  exclude: internal ? ['vlan', 'status'] : [],
   body: (network: XoNetwork) => {
+    const { buildXo5Route } = useXoRoutes()
+
     const status = computed(() => getNetworkStatus(network))
     const vlan = computed(() => getNetworkVlan(network))
+    const defaultLockingMode = computed(() => getLockingMode(network.defaultIsLocked))
+    const href = computed(() => buildXo5Route(`/pools/${network.$pool}/network?s=1_0_asc-${network.id}`))
 
     return {
       network: r =>
         r({
           label: network.name_label,
           icon: internal ? icon('fa:network-wired') : objectIcon('network', status.value),
+          href: href.value,
         }),
       description: r => r(network.name_description),
-      status: r => r(internal ? 'disconnected' : status.value),
-      vlan: r => r(internal ? undefined : vlan.value),
+      status: r => r(status.value),
+      vlan: r => r(vlan.value),
       mtu: r => r(network.MTU),
-      defaultLockingMode: r => r(getLockingMode(network.defaultIsLocked)),
-      selectId: r => r(() => (selectedNetworkId.value = network.id)),
+      defaultLockingMode: r => r(defaultLockingMode),
+      selectItem: r => r(() => (selectedNetworkId.value = network.id)),
     }
   },
 })
-
-// Hide VLAN and Status columns for internal networks
-watch(
-  () => internal,
-  isInternal => {
-    toggle('vlan', !isInternal)
-    toggle('status', !isInternal)
-  },
-  { immediate: true }
-)
 </script>
 
 <style scoped lang="postcss">

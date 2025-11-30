@@ -1,3 +1,4 @@
+<!-- WIP -->
 <template>
   <th class="ui-column-header typo-caption" scope="col">
     <slot />
@@ -15,7 +16,7 @@
   background-color: var(--color-neutral-background-primary);
 
   &:last-child {
-    border-right: none;
+    border-inline-end: none;
   }
 }
 </style>

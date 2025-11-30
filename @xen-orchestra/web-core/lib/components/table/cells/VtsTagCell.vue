@@ -20,5 +20,5 @@ const { tag } = defineProps<{
   tag: MaybeArray<string>
 }>()
 
-const tags = computed(() => toArray(tag))
+const tags = computed(() => toArray(tag).filter(tagItem => tagItem.trim() !== ''))
 </script>

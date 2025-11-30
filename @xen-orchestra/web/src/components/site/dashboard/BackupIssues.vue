@@ -6,7 +6,7 @@
       <template #description>{{ t('in-last-three-jobs') }}</template>
     </UiCardTitle>
     <div class="backup-items">
-      <VtsTableNew :busy="!areBackupIssuesReady" :empty="!hasBackupIssues">
+      <VtsTableNew :busy="!areBackupIssuesReady" :error="hasError" :empty="!hasBackupIssues">
         <thead>
           <HeadCells />
         </thead>
@@ -48,7 +48,7 @@ const hasBackupIssues = computed(() => nBackupIssues.value > 0)
 
 const { HeadCells, BodyCells } = useBackupIssueColumns({
   body: (issue: BackupIssue) => ({
-    name: r => r({ label: issue.name ?? '', icon: 'fa:floppy-disk' }),
+    job: r => r({ label: issue.name ?? '', icon: 'fa:floppy-disk' }),
     lastRun: r => r(issue.logs[0]),
     secondLastRun: r => r(issue.logs[1]),
     thirdLastRun: r => r(issue.logs[2]),
@@ -62,15 +62,5 @@ const { HeadCells, BodyCells } = useBackupIssueColumns({
   overflow-y: auto;
   margin-inline: -2.4rem;
   margin-block-end: -2.4rem;
-
-  .name {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-  }
-
-  .logs {
-    max-width: 1.5rem;
-  }
 }
 </style>

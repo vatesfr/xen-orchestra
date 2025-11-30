@@ -20,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import HostPatchesTable from '@/components/host/HostPatchesTable.vue'
 import { useXoHostMissingPatchesCollection } from '@/remote-resources/use-xo-host-missing-patches-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -27,7 +28,6 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import type { XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import HostPatchesTable from '../HostPatchesTable.vue'
 
 const { host } = defineProps<{
   host: XoHost
@@ -62,10 +62,6 @@ const noMissingPatches = computed(() => nMissingPatches.value === 0)
     .table {
       margin-top: -0.1rem;
     }
-  }
-
-  .version {
-    text-align: end;
   }
 }
 </style>
