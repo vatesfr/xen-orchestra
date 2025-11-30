@@ -7,18 +7,13 @@
       </template>
     </UiCardTitle>
     <div class="table-container">
-      <HostPatches
-        :are-all-loaded="areAllLoaded"
-        :are-some-loaded="areSomeLoaded"
-        :has-multiple-hosts="hosts.length > 1"
-        :patches
-      />
+      <HostPatchesTable :patches :busy="!areSomeLoaded" />
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import HostPatches from '@/components/HostPatchesTable.vue'
+import HostPatchesTable from '@/components/HostPatchesTable.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
 import { useHostPatches } from '@/composables/host-patches.composable'
@@ -29,7 +24,7 @@ const { t } = useI18n()
 
 const { records: hosts } = useHostStore().subscribe()
 
-const { count, patches, areSomeLoaded, areAllLoaded } = useHostPatches(hosts)
+const { count, patches, areAllLoaded, areSomeLoaded } = useHostPatches(hosts)
 </script>
 
 <style lang="postcss" scoped>

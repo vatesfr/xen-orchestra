@@ -8,7 +8,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTableNew :busy :empty="emptyMessage" :error :pagination-bindings sticky="right">
+      <VtsTable :busy :empty="emptyMessage" :error :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -19,7 +19,7 @@
             <BodyCells :item="job" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -30,7 +30,7 @@ import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
 import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'

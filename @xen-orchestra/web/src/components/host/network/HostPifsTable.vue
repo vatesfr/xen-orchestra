@@ -42,7 +42,7 @@
         </UiTableActions>
       </div>
 
-      <VtsTableNew
+      <VtsTable
         :busy="!arePifsReady"
         :error="hasPifFetchError"
         :empty="emptyMessage"
@@ -59,7 +59,7 @@
             <BodyCells :item="pif" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -69,7 +69,7 @@ import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collec
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'

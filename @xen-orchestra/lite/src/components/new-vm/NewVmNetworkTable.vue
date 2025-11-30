@@ -6,8 +6,8 @@
       </tr>
     </thead>
     <tbody>
-      <VtsRow v-for="(vif, index) in vmState.vifs" :key="vif.id ?? index">
-        <BodyCells :item="{ vif, onRemove: () => emit('remove', index) }" />
+      <VtsRow v-for="(networkInterface, index) in vmState.networkInterfaces" :key="index">
+        <BodyCells :item="{ networkInterface, onRemove: () => emit('remove', index) }" />
       </VtsRow>
       <tr>
         <UiTableCell :colspan>
@@ -21,20 +21,21 @@
 </template>
 
 <script setup lang="ts">
-import type { Vif, VmState } from '@/types/xo/new-vm.type'
+import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
+import type { NetworkInterface, VmState } from '@/types/new-vm'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { useNewVmNetworkColumns } from '@core/tables/column-sets/new-vm-network-columns'
-import type { XoNetwork } from '@vates/types'
+import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
 import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { networks } = defineProps<{
   vmState: VmState
-  networks: XoNetwork[]
+  networks: XenApiNetwork[]
 }>()
 
 const emit = defineEmits<{
@@ -45,21 +46,20 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const { HeadCells, BodyCells, colspan } = useNewVmNetworkColumns({
-  body: ({ vif, onRemove }: { vif: Vif; onRemove: () => void }) => {
+  body: ({ networkInterface, onRemove }: { networkInterface: NetworkInterface; onRemove: () => void }) => {
     const { id: interfaceSelectId } = useFormSelect(networks, {
-      model: toRef(vif, 'network'),
+      model: toRef(networkInterface, 'interface'),
       option: {
+        id: '$ref',
         label: 'name_label',
-        value: 'id',
+        value: '$ref',
       },
     })
 
-    const mac = toRef(vif, 'mac')
-
     return {
       interface: r => r(interfaceSelectId),
-      mac: r => r(mac),
-      remove: r => r(onRemove),
+      mac: r => r(toRef(networkInterface, 'macAddress')),
+      remove: r => (onRemove ? r(onRemove) : renderBodyCell()),
     }
   },
 })

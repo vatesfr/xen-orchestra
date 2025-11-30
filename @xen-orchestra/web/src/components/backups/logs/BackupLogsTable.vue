@@ -11,7 +11,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTableNew :busy="!isReady" :error="hasError" :empty="emptyMessage" sticky="right" :pagination-bindings>
+      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" sticky="right" :pagination-bindings>
         <thead>
           <tr>
             <HeadCells />
@@ -22,7 +22,7 @@
             <BodyCells :item="log" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { useXoBackupLogsUtils } from '@/composables/xo-backup-log-utils.composable'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

@@ -52,7 +52,7 @@
         </UiTableActions>
       </div>
 
-      <VtsTableNew
+      <VtsTable
         :busy="!areVifsReady"
         :error="hasVifFetchError"
         :empty="emptyMessage"
@@ -69,7 +69,7 @@
             <BodyCells :item="vif" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -79,7 +79,7 @@ import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collec
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'

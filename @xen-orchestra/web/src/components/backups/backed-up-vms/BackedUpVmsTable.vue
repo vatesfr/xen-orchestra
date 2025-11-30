@@ -6,7 +6,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTableNew :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings>
+      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings>
         <thead>
           <tr>
             <HeadCells />
@@ -17,7 +17,7 @@
             <BodyCells :item="vm" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </UiCard>
 </template>
@@ -27,7 +27,7 @@ import { useXoBackedUpVmsUtils } from '@/composables/xo-backed-up-vms-utils.comp
 import { useXoVmBackupArchiveCollection } from '@/remote-resources/use-xo-vm-backup-archive-collection'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

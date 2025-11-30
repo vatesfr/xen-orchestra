@@ -10,7 +10,7 @@
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
-      <VtsTableNew :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings sticky="right">
+      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -21,7 +21,7 @@
             <BodyCells :item="sr" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -30,7 +30,7 @@
 import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

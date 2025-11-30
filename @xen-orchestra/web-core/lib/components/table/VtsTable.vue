@@ -1,66 +1,128 @@
 <template>
-  <table :class="{ 'vertical-border': verticalBorder }" class="vts-table typo-body-regular-small">
-    <slot />
-  </table>
+  <div class="vts-table-new" :class="className">
+    <VtsStateHero v-if="busy" format="table" busy size="medium" />
+    <VtsStateHero v-else-if="error" format="table" type="error" size="small" no-background>
+      {{ t('error-no-data') }}
+    </VtsStateHero>
+    <VtsStateHero v-else-if="empty" format="table" type="no-data" size="small">
+      {{ emptyMessage }}
+    </VtsStateHero>
+    <div v-else class="table-container">
+      <UiTablePagination v-if="paginationBindings" v-bind="paginationBindings" class="pagination" />
+      <div ref="wrapper" class="wrapper">
+        <table class="table" vertical-border>
+          <slot />
+        </table>
+      </div>
+      <UiTablePagination v-if="paginationBindings" v-bind="paginationBindings" class="pagination" />
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { provide } from 'vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
+import type { PaginationBindings } from '@core/composables/pagination.composable'
+import { hasEllipsis } from '@core/utils/has-ellipsis.util'
+import { toVariants } from '@core/utils/to-variants.util'
+import { useResizeObserver, useScroll } from '@vueuse/core'
+import { computed, ref, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
-  name?: string
-  verticalBorder?: boolean
+export type TableStickySide = 'left' | 'right' | 'both'
+
+const { empty, sticky } = defineProps<{
+  busy?: boolean
+  error?: boolean
+  empty?: string | boolean
+  sticky?: TableStickySide
+  paginationBindings?: PaginationBindings
 }>()
 
-defineSlots<{
-  default(): any
-}>()
+const { t } = useI18n()
 
-provide('tableName', props.name)
+const emptyMessage = computed(() => (typeof empty === 'string' ? empty : t('no-data')))
+
+const wrapper = useTemplateRef('wrapper')
+
+const { arrivedState } = useScroll(wrapper)
+
+const canScroll = ref(false)
+
+useResizeObserver(wrapper, ([entry]) => {
+  canScroll.value = hasEllipsis(entry.target)
+})
+
+const className = computed(() =>
+  canScroll.value
+    ? toVariants({
+        sticky,
+        stuck: arrivedState.left ? (arrivedState.right ? 'both' : 'left') : arrivedState.right ? 'right' : false,
+      })
+    : {}
+)
 </script>
 
 <style lang="postcss" scoped>
-.vts-table {
-  width: 100%;
-  border-spacing: 0;
-  background-color: var(--color-neutral-background-primary);
-  line-height: 2.4rem;
-  color: var(--color-neutral-txt-secondary);
-  border-collapse: collapse;
-  table-layout: fixed;
+.vts-table-new {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
 
-  :deep(th),
-  :deep(td) {
-    padding: 1rem;
-    border-top: 0.1rem solid var(--color-neutral-border);
-    text-align: left;
+  .table-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
   }
 
-  :deep(th) {
-    font-weight: 700;
+  .pagination {
+    margin-left: auto;
   }
 
-  :deep(thead) {
-    th,
-    td {
-      color: var(--color-brand-txt-base);
-      font-size: 1.4rem;
-      font-weight: 400;
-      text-transform: uppercase;
+  .wrapper {
+    max-width: 100%;
+    overflow: auto;
+  }
+
+  .table {
+    min-width: 100%;
+    width: max-content;
+    border-spacing: 0;
+  }
+
+  &.sticky--left,
+  &.sticky--both {
+    :deep(th:first-child),
+    :deep(td:first-child) {
+      position: sticky;
+      left: 0;
+      border-right: 0.3rem solid var(--color-brand-item-base);
+      transition: border-right 0.1s ease-out;
+      z-index: 1;
+    }
+
+    &.stuck--left {
+      :deep(th:first-child),
+      :deep(td:first-child) {
+        border-right-color: var(--color-neutral-border);
+      }
     }
   }
 
-  &.vertical-border {
-    :deep(th),
-    :deep(td) {
-      border-right: 0.1rem solid var(--color-neutral-border);
+  &.sticky--right,
+  &.sticky--both {
+    :deep(th:last-child),
+    :deep(td:last-child) {
+      position: sticky;
+      right: 0;
+      border-left: 0.3rem solid var(--color-brand-item-base);
+      transition: border-left 0.1s ease-out;
+    }
 
-      &:first-child {
-        border-left: none;
-      }
-
-      &:last-child {
-        border-right: none;
+    &.stuck--right {
+      :deep(th:last-child),
+      :deep(td:last-child) {
+        border-left-color: var(--color-neutral-border);
       }
     }
   }

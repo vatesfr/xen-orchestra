@@ -6,7 +6,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTableNew :busy :error :empty="emptyMessage" :pagination-bindings>
+      <VtsTable :busy :error :empty="emptyMessage" :pagination-bindings>
         <thead>
           <tr>
             <HeadCells />
@@ -17,7 +17,7 @@
             <BodyCells :item="schedule" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </UiCard>
 </template>
@@ -27,7 +27,7 @@ import { useXoBackupJobSchedulesUtils } from '@/composables/xo-backup-job-schedu
 import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'

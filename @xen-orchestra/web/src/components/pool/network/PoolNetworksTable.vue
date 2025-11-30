@@ -39,7 +39,7 @@
           </UiButton>
         </UiTableActions>
       </div>
-      <VtsTableNew :busy :error :empty="emptyMessage" sticky="right" :pagination-bindings>
+      <VtsTable :busy :error :empty="emptyMessage" sticky="right" :pagination-bindings>
         <thead>
           <tr>
             <HeadCells />
@@ -50,7 +50,7 @@
             <BodyCells :item="network" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -59,7 +59,7 @@
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'

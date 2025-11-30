@@ -6,7 +6,7 @@
       <template #description>{{ t('in-last-three-jobs') }}</template>
     </UiCardTitle>
     <div class="backup-items">
-      <VtsTableNew :busy="!areBackupIssuesReady" :error="hasError" :empty="!hasBackupIssues">
+      <VtsTable :busy="!areBackupIssuesReady" :error="hasError" :empty="!hasBackupIssues">
         <thead>
           <HeadCells />
         </thead>
@@ -15,7 +15,7 @@
             <BodyCells :item="issue" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </UiCard>
 </template>
@@ -23,7 +23,7 @@
 <script lang="ts" setup>
 import type { BackupIssue, XoDashboard } from '@/types/xo/dashboard.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
