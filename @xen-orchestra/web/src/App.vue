@@ -26,16 +26,14 @@ const { get } = useCookies()
 
 // TODO: Remove when we considere XO6 in more advanced state
 const isFirstConnection = useLocalStorage('first-connection', true)
-if (isFirstConnection.value) {
-  const open = useModal({
-    component: import('@/components/modals/FirstConnection.vue'),
-    onConfirm: () => {
-      isFirstConnection.value = false
-    },
-  })
+const openModal = useModal({
+  component: import('@/components/modals/FirstConnection.vue'),
+  onConfirm: () => {
+    isFirstConnection.value = false
+  },
+})
+whenever(() => isFirstConnection.value, openModal, { immediate: true })
 
-  open()
-}
 const cookieLang = get('lang')
 locale.value = cookieLang && locales[cookieLang] ? cookieLang : 'en'
 
