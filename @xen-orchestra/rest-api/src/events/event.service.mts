@@ -1,8 +1,9 @@
 import { createLogger } from '@xen-orchestra/log'
+import type { EventEmitter } from 'node:events'
 import type { Response } from 'express'
 
 import type { Listener } from '../abstract-classes/listener.mjs'
-import { PingListener, Subscriber, SubscriberManager, XapiXoListener } from './event.class.mjs'
+import { PingListener, Subscriber, SubscriberManager, XoListener } from './event.class.mjs'
 import type { ListenerType, SubscriberId } from './event.type.mjs'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import type { RestApi } from '../rest-api/rest-api.mjs'
@@ -28,19 +29,30 @@ export class EventService {
   }
 
   #getListener(type: ListenerType): Listener {
-    if (!this.#listeners.has(type)) {
-      if (type === 'ping') {
-        this.#listeners.set(type, new PingListener())
-      } else {
-        const isAlarm = type === 'alarm'
-        // alarm is purely XO-related; it doesn't exist at the XAPI level.
-        // alarm is a message with parsed values. So, in the case of an alarm listener, it listens for message collection.
-        const ee = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(isAlarm ? 'message' : type)
-        this.#listeners.set(type, new XapiXoListener(type, ee, isAlarm ? this.#alarmService : undefined))
-      }
+    if (this.#listeners.has(type)) {
+      return this.#listeners.get(type)!
     }
 
-    return this.#listeners.get(type)!
+    let listener: Listener
+    if (type === 'ping') {
+      listener = new PingListener()
+    } else {
+      const isAlarm = type === 'alarm'
+
+      let eventEmitter: EventEmitter
+      if (type === 'task') {
+        eventEmitter = this.#restApi.xoApp.tasks
+      } else {
+        // alarm is purely XO-related; it doesn't exist at the XAPI level.
+        // alarm is a message with parsed values. So, in the case of an alarm listener, it listens for message collection.
+        eventEmitter = this.#restApi.xoApp.objects.allIndexes.type.getEventEmitterByType(isAlarm ? 'message' : type)
+      }
+
+      listener = new XoListener(type, eventEmitter, isAlarm ? this.#alarmService : undefined)
+    }
+
+    this.#listeners.set(type, listener)
+    return listener
   }
 
   createSseSubscriber(res: Response): SubscriberId {
