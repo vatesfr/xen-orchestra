@@ -36,7 +36,7 @@
                   v-tooltip
                   size="medium"
                   icon="fa:hard-drive"
-                  :href="`${xo5routes}#/vms/${vm.id}/disks/s=1_6_asc-${row.id}`"
+                  :href="`${xo5routes}#/vms/${vm.id}/disks?s=1_6_asc-${row.id}`"
                   class="text-ellipsis"
                   @click.stop
                 >
