@@ -18,7 +18,7 @@
       <VtsTreeList v-if="!isReady">
         <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="fa:city" />
       </VtsTreeList>
-      <VtsStateHero v-else-if="isSearching" format="card" busy size="medium" class="loader" />
+      <VtsStateHero v-else-if="isSearching" format="card" size="medium" type="busy" class="loader" />
       <VtsStateHero v-else-if="sites.length === 0" format="card" size="medium" type="no-result">
         {{ t('no-results') }}
       </VtsStateHero>

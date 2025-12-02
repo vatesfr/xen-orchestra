@@ -8,7 +8,7 @@
         </template>
       </UiCardTitle>
     </div>
-    <VtsStateHero v-if="!areHostMissingPatchesReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!areHostMissingPatchesReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="noMissingPatches" format="card" type="all-done" size="extra-small" horizontal>
       <span> {{ t('all-good') }} </span>
       <span>{{ t('patches-up-to-date') }}</span>

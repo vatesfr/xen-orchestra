@@ -1,7 +1,7 @@
 <template>
   <UiCard :has-error>
     <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
-    <VtsStateHero v-if="!areVmsStatusReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!areVmsStatusReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
