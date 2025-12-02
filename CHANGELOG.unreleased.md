@@ -11,13 +11,11 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- **XO 6:**
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- **XO 6:**
+- [VDIs] Fix broken fallback link to XO 5 VDIs page (PR [#9267](https://github.com/vatesfr/xen-orchestra/pull/9267))
 
 ### Packages to release
 
@@ -34,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web patch
 
 <!--packages-end-->
