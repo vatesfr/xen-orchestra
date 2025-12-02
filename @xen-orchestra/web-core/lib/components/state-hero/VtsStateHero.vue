@@ -1,5 +1,5 @@
 <template>
-  <div :class="[className, { horizontal, 'no-background': noBackground }]" class="vts-state-hero">
+  <div :class="[className, { horizontal, error, success, 'no-background': noBackground }]" class="vts-state-hero">
     <UiLoader v-if="type === 'busy'" class="loader" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
     <div v-if="slots.default" :class="typoClass" class="content">
@@ -41,17 +41,14 @@ const slots = defineSlots<{
 
 const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
 
-const className = computed(() =>
-  toVariants({
-    size,
-    format,
-    error: type === 'error',
-    success: type === 'all-good' || type === 'all-done',
-  })
-)
+const className = computed(() => toVariants({ size, format }))
+
+const error = computed(() => type === 'error')
+
+const success = computed(() => type === 'all-good' || type === 'all-done')
 
 const imageSrc = computed(() => {
-  if (!type || type === 'busy') {
+  if (type === 'busy') {
     return undefined
   }
 
