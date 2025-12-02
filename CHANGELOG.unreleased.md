@@ -14,6 +14,7 @@
 - [REST-API/SSE] Possibility to subscribe to XO task (PR [#9269](https://github.com/vatesfr/xen-orchestra/pull/9269))
 
 - **XO 6:**
+  - [Reactivity] Tasks are now reactive (PR [#9271](https://github.com/vatesfr/xen-orchestra/pull/9271))
 
 ### Bug fixes
 
@@ -37,7 +38,9 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/mixins minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
 
 <!--packages-end-->
