@@ -284,7 +284,7 @@ const TRANSFORMS = {
           total = Math.ceil(total / ONE_GIB) * ONE_GIB
 
           return {
-            usage: total - free,
+            usage: isRunning ? total - free : 0,
             size: total,
           }
         }
