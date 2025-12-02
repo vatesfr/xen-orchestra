@@ -78,7 +78,7 @@ export class XoListener extends Listener {
     { fields, event }: { fields: '*' | string[]; subscriber: Subscriber; event: CollectionEventType },
     object: T | undefined,
     previousObj?: T
-  ): (Partial<XapiXoRecord | XoTask> & { collectionType: XoListenerType }) | undefined {
+  ): (Partial<XapiXoRecord | XoTask> & { $subscription: XoListenerType }) | undefined {
     let _object: Partial<XapiXoRecord | XoTask> | undefined = object
     let _prevObject: Partial<XapiXoRecord | XoTask> | undefined = previousObj
 
@@ -116,7 +116,7 @@ export class XoListener extends Listener {
     }
 
     // if _object === undefined, this means we are on a remove event, so _prevObject will not be undefined
-    return { collectionType: this.#type, ...(_object ?? _prevObject) }
+    return { $subscription: this.#type, ...(_object ?? _prevObject) }
   }
 }
 
