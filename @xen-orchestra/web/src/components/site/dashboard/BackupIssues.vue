@@ -5,7 +5,7 @@
       <UiCounter :value="nBackupIssues" accent="danger" size="medium" variant="primary" />
       <template #description>{{ t('in-last-three-jobs') }}</template>
     </UiCardTitle>
-    <VtsStateHero v-if="!areBackupIssuesReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!areBackupIssuesReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="!hasBackupIssues" format="card" type="no-data" size="small" horizontal>
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>

@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+  <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
   <VtsColumns v-else>
     <VtsColumn>
       <PoolGeneralInfo :pool />

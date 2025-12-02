@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('pool-management') }}
     </UiTitle>
-    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <template v-else>
       <VtsQuickInfoRow :label="t('master')">
         <template #value>

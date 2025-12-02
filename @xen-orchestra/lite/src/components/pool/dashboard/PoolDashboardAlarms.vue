@@ -18,7 +18,7 @@
       </div>
     </div>
     <NoDataError v-else-if="hasError" />
-    <VtsStateHero v-else-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-else-if="!isReady" format="card" type="busy" size="medium" />
     <div v-else-if="alarms.length === 0" class="no-alarm">
       <div>
         <img alt="" src="@/assets/server-status.svg" />

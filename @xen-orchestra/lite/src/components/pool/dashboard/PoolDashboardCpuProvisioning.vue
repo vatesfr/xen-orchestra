@@ -1,7 +1,7 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
-    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>

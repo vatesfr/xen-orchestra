@@ -1,6 +1,6 @@
 <template>
   <div class="table-container">
-    <VtsStateHero v-if="!isReady" format="table" busy size="medium" />
+    <VtsStateHero v-if="!isReady" format="table" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="table" type="error" size="small" no-background>
       {{ t('error-no-data') }}
     </VtsStateHero>

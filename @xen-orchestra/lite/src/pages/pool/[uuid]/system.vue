@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="!isReady" format="page" busy size="medium" />
+  <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium" />
   <VtsStateHero v-else-if="pool === undefined" format="page" type="no-data" size="medium">
     {{ t('no-data') }}
   </VtsStateHero>
