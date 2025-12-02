@@ -73,7 +73,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useInternalNetworkColumns } from '@core/tables/column-sets/internal-network-columns'
+import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -117,13 +117,14 @@ const emptyMessage = computed(() => {
   return undefined
 })
 
-const { HeadCells, BodyCells } = useInternalNetworkColumns({
+const { HeadCells, BodyCells } = useNetworkColumns({
+  exclude: ['status', 'vlan'],
   body: (network: XenApiNetwork) => ({
-    name: r => r({ label: network.name_label }),
+    network: r => r({ label: network.name_label }),
     description: r => r(network.name_description),
     mtu: r => r(network.MTU),
     defaultLockingMode: r => r(getLockingMode(network.default_locking_mode)),
-    selectId: r => r(() => selectedNetworkId.value === network.uuid),
+    selectItem: r => r(() => selectedNetworkId.value === network.uuid),
   }),
 })
 </script>

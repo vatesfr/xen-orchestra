@@ -152,7 +152,7 @@ const { HeadCells, BodyCells } = useVifColumns({
     macAddresses: r => r(vif.MAC),
     mtu: r => r(vif.MTU),
     lockingMode: r => r(vif.locking_mode),
-    selectId: r => r(() => (selectedVifId.value = vif.uuid)),
+    selectItem: r => r(() => (selectedVifId.value = vif.uuid)),
   }),
 })
 </script>

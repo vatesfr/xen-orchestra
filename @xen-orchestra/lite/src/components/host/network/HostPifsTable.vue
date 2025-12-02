@@ -141,7 +141,7 @@ const { HeadCells, BodyCells } = usePifColumns({
     ip: r => r(getIpAddresses(pif)),
     mac: r => r(pif.MAC),
     mode: r => r(getIpConfigurationMode(pif.ip_configuration_mode)),
-    selectId: r => r(() => (selectedPifId.value = pif.uuid)),
+    selectItem: r => r(() => (selectedPifId.value = pif.uuid)),
   }),
 })
 </script>

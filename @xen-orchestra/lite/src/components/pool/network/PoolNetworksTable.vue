@@ -160,7 +160,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
     vlan: r => r(getNetworkVlan(network)),
     mtu: r => r(network.MTU),
     defaultLockingMode: r => r(getLockingMode(network.default_locking_mode)),
-    selectId: r => r(() => (selectedNetworkId.value = network.uuid)),
+    selectItem: r => r(() => (selectedNetworkId.value = network.uuid)),
   }),
 })
 </script>

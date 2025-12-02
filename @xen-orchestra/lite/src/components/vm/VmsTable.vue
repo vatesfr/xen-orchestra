@@ -61,7 +61,7 @@ const filters: Filters = {
 const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', vms)
 
 const { HeadCells, BodyCells } = useVmColumns({
-  exclude: ['selectId'],
+  exclude: ['selectItem'],
   body: (vm: XenApiVm) => {
     const guestMetrics = computed(() => getGuestMetrics(vm.guest_metrics))
 
@@ -86,7 +86,6 @@ const { HeadCells, BodyCells } = useVmColumns({
 
     return {
       vm: r => r({ label: vm.name_label, icon: objectIcon('vm', toLower(vm.power_state)) }),
-      description: r => r(vm.name_description),
       ipAddresses: r => (areGuestMetricsReady.value ? r(ips.value) : renderLoadingCell()),
       vcpus: r => (vcpus.value ? r(vcpus.value) : renderBodyCell()),
       ram: r => (ram.value.value ? r(ram.value.value, ram.value.prefix) : renderBodyCell()),

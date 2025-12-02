@@ -42,7 +42,7 @@ usePageTitleStore().setTitle(() => t('hosts'))
 const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', hosts)
 
 const { HeadCells, BodyCells } = useHostColumns({
-  exclude: ['selectId'],
+  exclude: ['selectItem'],
   body: (host: XenApiHost) => {
     const state = isHostRunning(host) ? 'running' : 'halted'
 

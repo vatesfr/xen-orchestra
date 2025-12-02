@@ -64,8 +64,6 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
-import { getHostInfo } from '@/utils/xo-records/host.util'
-import { getPoolInfo } from '@/utils/xo-records/pool.util'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'

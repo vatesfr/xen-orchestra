@@ -8,7 +8,7 @@
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
       </div>
 
-      <VtsTableNew :busy="!isReady" :error="hasError" :pagination-bindings sticky="right">
+      <VtsTable :busy="!isReady" :error="hasError" :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -19,7 +19,7 @@
             <BodyCells :item="vdi" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -28,7 +28,7 @@
 import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { getVdiFormat } from '@/utils/vdi-format.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'

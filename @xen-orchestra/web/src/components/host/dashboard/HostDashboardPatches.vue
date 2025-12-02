@@ -28,7 +28,6 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import type { XoHost } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import HostPatchesTable from '../HostPatchesTable.vue'
 
 const { host } = defineProps<{
   host: XoHost
