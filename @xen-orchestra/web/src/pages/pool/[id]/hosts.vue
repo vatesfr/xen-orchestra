@@ -31,7 +31,7 @@ const { pool } = defineProps<{
 
 const uiStore = useUiStore()
 
-const { areHostsReady, getHostById, hostsByPool, hasHostFetchError } = useXoHostCollection()
+const { areHostsReady, hostsByPool, hasHostFetchError } = useXoHostCollection()
 
 const { t } = useI18n()
 
