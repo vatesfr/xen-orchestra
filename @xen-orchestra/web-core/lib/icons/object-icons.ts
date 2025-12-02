@@ -198,7 +198,7 @@ export const objectIcons = defineIconPack({
     },
     { icon: getStatusIcon(state) },
   ]),
-  network: defineIcon([['connected', 'disconnected']], state => [
+  network: defineIcon([['connected', 'partially-connected', 'disconnected']], state => [
     {
       icon: faNetworkWired,
       color: getMainColor(state),

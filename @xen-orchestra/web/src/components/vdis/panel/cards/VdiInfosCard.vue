@@ -1,6 +1,6 @@
 <template>
   <UiCard class="card-container">
-    <UiLink size="medium" :href="`${xo5Route}#/vms/${vm.id}/disks/s=1_6_asc-${vdi.id}`" icon="fa:hard-drive">
+    <UiLink size="medium" :href="vdiHref" icon="fa:hard-drive">
       {{ vdi.name_label }}
     </UiLink>
     <div class="content">
@@ -75,7 +75,11 @@ const { vdi, vm } = defineProps<{
 
 const { t } = useI18n()
 
+const { buildXo5Route } = useXoRoutes()
+
 const { getVbdsByIds } = useXoVbdCollection()
+
+const vdiHref = computed(() => buildXo5Route(`/vms/${vm.id}/disks/s=1_6_asc-${vdi.id}`))
 
 const vbdsStatus = computed(() => {
   const vdiVbds = getVbdsByIds(vdi.$VBDs)
@@ -99,9 +103,6 @@ const vbdsStatus = computed(() => {
 const { notCdDriveVbds } = useXoVmVbdsUtils(() => vm)
 
 const vdiDevice = computed(() => notCdDriveVbds.value.find(vbd => vbd.VDI === vdi.id)?.device ?? '')
-
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '')
 </script>
 
 <style scoped lang="postcss">

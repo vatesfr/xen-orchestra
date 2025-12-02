@@ -1,12 +1,7 @@
 <template>
   <div class="pool-networks-table">
     <UiTitle>
-      {{ t('networks') }}
-      <template #actions>
-        <UiDropdownButton v-tooltip="t('coming-soon')" disabled>
-          {{ t('new') }}
-        </UiDropdownButton>
-      </template>
+      {{ internal ? t('host-internal-networks') : t('networks') }}
     </UiTitle>
     <div class="container">
       <div class="table-actions">
@@ -43,111 +38,49 @@
             {{ t('delete') }}
           </UiButton>
         </UiTableActions>
-        <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-          <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
-        </UiTopBottomTable>
       </div>
-      <VtsDataTable
-        :is-ready="areNetworksReady"
-        :has-error="hasNetworkFetchError"
-        :no-data-message="networks.length === 0 ? t('no-network-detected') : undefined"
-      >
-        <template #thead>
+      <VtsTableNew :busy :error :empty="emptyMessage" sticky="right" :pagination-bindings>
+        <thead>
           <tr>
-            <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled :v-model="areAllSelected" accent="brand" @update:model-value="toggleSelect" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
-                <div v-tooltip class="text-ellipsis">
-                  <VtsIcon :name="headerIcon[column.id]" size="medium" />
-                  {{ column.label }}
-                </div>
-              </th>
-            </template>
+            <HeadCells />
           </tr>
-        </template>
-        <template #tbody>
-          <tr
-            v-for="row of networksRecords"
-            :key="row.id"
-            :class="{ selected: selectedNetworkId === row.id }"
-            @click="selectedNetworkId = row.id"
-          >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox v-model="selected" disabled accent="brand" :value="row.id" />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <VtsStatus v-else-if="column.id === 'status'" :status="column.value" />
-              <div v-else v-tooltip="{ placement: 'bottom-end' }" class="text-ellipsis">
-                {{ column.value }}
-              </div>
-            </td>
-          </tr>
-        </template>
-      </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredNetworks.length === 0" format="table" type="no-result" size="small">
-        <div>{{ t('no-result') }}</div>
-      </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0" @toggle-select-all="toggleSelect">
-        <UiTablePagination v-if="areNetworksReady" v-bind="paginationBindings" />
-      </UiTopBottomTable>
+        </thead>
+        <tbody>
+          <VtsRow v-for="network of paginatedNetworks" :key="network.id" :selected="selectedNetworkId === network.id">
+            <BodyCells :item="network" />
+          </VtsRow>
+        </tbody>
+      </VtsTableNew>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import type { IconName } from '@core/icons'
-import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTableNew from '@core/components/table/VtsTableNew.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
-import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
-import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import useMultiSelect from '@core/composables/table/multi-select.composable.ts'
-import { useTable } from '@core/composables/table.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { icon, objectIcon } from '@core/icons'
+import { useNetworkColumns } from '@core/tables/column-sets/network-columns'
 import type { XoNetwork } from '@vates/types'
-import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networks } = defineProps<{
+const { networks: rawNetworks, internal } = defineProps<{
   networks: XoNetwork[]
+  busy?: boolean
+  error?: boolean
+  internal?: boolean
 }>()
 
 const { t } = useI18n()
-
-const { areNetworksReady, hasNetworkFetchError } = useXoNetworkCollection()
 
 const { pifs } = useXoPifCollection()
 
@@ -159,21 +92,25 @@ const filteredNetworks = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return networks
+    return rawNetworks
   }
 
-  return networks.filter(network =>
+  return rawNetworks.filter(network =>
     Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const networkIds = computed(() => networks.map(network => network.id))
+const emptyMessage = computed(() => {
+  if (rawNetworks.length === 0) {
+    return t('no-network-detected')
+  }
 
-const { selected, areAllSelected } = useMultiSelect(networkIds)
+  if (filteredNetworks.value.length === 0) {
+    return t('no-results')
+  }
 
-const toggleSelect = () => {
-  selected.value = selected.value.length === 0 ? networkIds.value : []
-}
+  return undefined
+})
 
 const getNetworkVlan = (network: XoNetwork) => {
   const networkPIFs = pifs.value.filter(pif => network.PIFs.includes(pif.id))
@@ -203,36 +140,34 @@ const getNetworkStatus = (network: XoNetwork) => {
 
 const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unlocked'))
 
-const { visibleColumns, rows } = useTable('networks', filteredNetworks, {
-  rowId: record => record.id,
-  columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
-    define('name_label', { label: t('name') }),
-    define('name_description', {
-      label: t('description'),
-    }),
-    define('status', record => getNetworkStatus(record), { label: t('pifs-status') }),
-    define('vlan', record => getNetworkVlan(record), { label: t('vlan') }),
-    define('MTU', { label: t('mtu') }),
-    define('default_locking_mode', record => getLockingMode(record.defaultIsLocked), {
-      label: t('default-locking-mode'),
-    }),
-    define('more', noop, { label: '', isHideable: false }),
-  ],
+const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
+
+const { HeadCells, BodyCells } = useNetworkColumns({
+  exclude: internal ? ['vlan', 'status'] : [],
+  body: (network: XoNetwork) => {
+    const { buildXo5Route } = useXoRoutes()
+
+    const status = computed(() => getNetworkStatus(network))
+    const vlan = computed(() => getNetworkVlan(network))
+    const defaultLockingMode = computed(() => getLockingMode(network.defaultIsLocked))
+    const href = computed(() => buildXo5Route(`/pools/${network.$pool}/network?s=1_0_asc-${network.id}`))
+
+    return {
+      network: r =>
+        r({
+          label: network.name_label,
+          icon: internal ? icon('fa:network-wired') : objectIcon('network', status.value),
+          href: href.value,
+        }),
+      description: r => r(network.name_description),
+      status: r => r(status.value),
+      vlan: r => r(vlan.value),
+      mtu: r => r(network.MTU),
+      defaultLockingMode: r => r(defaultLockingMode),
+      selectItem: r => r(() => (selectedNetworkId.value = network.id)),
+    }
+  },
 })
-
-const { pageRecords: networksRecords, paginationBindings } = usePagination('networks', rows)
-
-type NetworkHeader = 'name_label' | 'name_description' | 'status' | 'vlan' | 'MTU' | 'default_locking_mode'
-
-const headerIcon: Record<NetworkHeader, IconName> = {
-  name_label: 'fa:align-left',
-  name_description: 'fa:align-left',
-  status: 'fa:power-off',
-  vlan: 'fa:align-left',
-  MTU: 'fa:hashtag',
-  default_locking_mode: 'fa:caret-down',
-}
 </script>
 
 <style scoped lang="postcss">
@@ -241,24 +176,11 @@ const headerIcon: Record<NetworkHeader, IconName> = {
 .container {
   display: flex;
   flex-direction: column;
+  gap: 2.4rem;
 }
 
-.pool-networks-table {
-  gap: 2.4rem;
-
-  .container,
-  .table-actions {
-    gap: 0.8rem;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
-  }
+.container,
+.table-actions {
+  gap: 0.8rem;
 }
 </style>

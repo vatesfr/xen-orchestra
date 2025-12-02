@@ -35,9 +35,9 @@ type Product = 'dcscope' | 'dcnetscope'
 const { t } = useI18n()
 
 const { vms } = useXoVmCollection()
-const { routes } = useXoRoutes()
+const { buildXo5Route } = useXoRoutes()
 
-const hubLink = computed(() => `${routes.value?.xo5}#/hub/recipes`)
+const hubLink = computed(() => buildXo5Route(`/hub/recipes`))
 
 const dcScopeVms = computed(() => vms.value.filter(vm => vm.other['xo:dcscope:installTime'] !== undefined))
 const dcNetscopeVms = computed(() => vms.value.filter(vm => vm.other['xo:dcnetscope:installTime'] !== undefined))
