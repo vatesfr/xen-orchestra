@@ -29,7 +29,7 @@
           {{ settings.action2 }}
         </UiButton>
       </template>
-      <VtsStateHero v-if="!isReady" format="card" busy />
+      <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
       <UiCard v-else-if="!properties.error">
         <div>Content 1</div>
         <div>Content 1</div>

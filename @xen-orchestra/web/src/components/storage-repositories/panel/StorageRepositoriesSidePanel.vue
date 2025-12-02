@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="!isReady" format="panel" busy size="medium" />
+  <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">

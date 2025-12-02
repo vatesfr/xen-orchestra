@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-ram-provisioning">
     <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
-    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <template v-else>
       <VtsProgressBar
         :current="memory?.usage ?? 0"

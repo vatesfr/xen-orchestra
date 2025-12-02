@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="!areHostsReady" format="page" busy size="large" />
+  <VtsStateHero v-if="!areHostsReady" format="page" type="busy" size="large" />
   <VtsStateHero v-else-if="!host" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>

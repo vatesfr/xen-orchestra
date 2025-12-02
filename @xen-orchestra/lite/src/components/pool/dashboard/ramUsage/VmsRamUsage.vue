@@ -5,7 +5,7 @@
     :right="t('top-#', { n: N_ITEMS })"
   />
   <VtsStateHero v-if="hasError" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
-  <VtsStateHero v-else-if="isLoading" format="card" busy size="medium" />
+  <VtsStateHero v-else-if="isLoading" format="card" type="busy" size="medium" />
   <VtsStateHero v-else-if="isStatEmpty" format="card" type="no-data" size="medium">
     {{ t('no-data-to-calculate') }}
   </VtsStateHero>

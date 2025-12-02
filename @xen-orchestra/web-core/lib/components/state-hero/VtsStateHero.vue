@@ -1,6 +1,6 @@
 <template>
   <div :class="[className, { horizontal, error, success, 'no-background': noBackground }]" class="vts-state-hero">
-    <UiLoader v-if="busy" class="loader" />
+    <UiLoader v-if="type === 'busy'" class="loader" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
     <div v-if="slots.default" :class="typoClass" class="content">
       <slot />
@@ -15,7 +15,8 @@ import { computed } from 'vue'
 
 export type StateHeroFormat = 'page' | 'card' | 'panel' | 'table'
 
-type StateHeroType =
+export type StateHeroType =
+  | 'busy'
   | 'no-result'
   | 'under-construction'
   | 'no-data'
@@ -26,12 +27,11 @@ type StateHeroType =
   | 'all-good'
   | 'all-done'
 
-const { format, type, size, busy } = defineProps<{
+const { format, type, size } = defineProps<{
   format: StateHeroFormat
-  type?: StateHeroType
+  type: StateHeroType
   size: 'extra-small' | 'small' | 'medium' | 'large'
   horizontal?: boolean
-  busy?: boolean
   noBackground?: boolean
 }>()
 
@@ -43,12 +43,12 @@ const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
 
 const className = computed(() => toVariants({ size, format }))
 
-const error = computed(() => !busy && type === 'error')
+const error = computed(() => type === 'error')
 
-const success = computed(() => !busy && (type === 'all-good' || type === 'all-done'))
+const success = computed(() => type === 'all-good' || type === 'all-done')
 
 const imageSrc = computed(() => {
-  if (!type) {
+  if (type === 'busy') {
     return undefined
   }
 
