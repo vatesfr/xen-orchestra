@@ -632,6 +632,7 @@ export type XoTask = {
   end?: number
   id: Branded<'task'>
   infos?: { data: unknown; message: string }[]
+  progress?: number
   properties: {
     method?: string
     name?: string
