@@ -36,6 +36,7 @@ import { objectIcon } from '@core/icons'
 import { defineColumns } from '@core/packages/table/define-columns'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column'
+import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { type XoVm, type XoVmBackupJob, type XoBackupRepository } from '@vates/types'
 import { toLower } from 'lodash-es'
@@ -54,7 +55,7 @@ const { backedUpVms } = useXoBackedUpVmsUtils(() => backupJob.vms)
 
 const backupRepositoriesIds = computed(() => extractIdsFromSimplePattern(backupJob.remotes))
 
-const { backupArchives } = useXoVmBackupArchiveCollection(
+const { backupArchives, areBackupArchivesReady } = useXoVmBackupArchiveCollection(
   {},
   () => backupRepositoriesIds.value as XoBackupRepository['id'][]
 )
@@ -115,9 +116,8 @@ const { HeadCells, BodyCells } = useBackedUpVmColumns({
           icon: objectIcon('vm', toLower(vm.power_state)),
           to: `/vm/${vm.id}/dashboard`,
         }),
-      diskSize: r => {
-        return r(diskSize.value.value, diskSize.value.prefix)
-      },
+      diskSize: r =>
+        areBackupArchivesReady.value ? r(diskSize.value.value, diskSize.value.prefix) : renderLoadingCell(),
     }
   },
 })

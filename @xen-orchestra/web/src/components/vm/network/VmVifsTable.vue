@@ -52,7 +52,13 @@
         </UiTableActions>
       </div>
 
-      <VtsTableNew :busy="!areVifsReady" :error="hasVifFetchError" :empty="emptyMessage" :pagination-bindings>
+      <VtsTableNew
+        :busy="!areVifsReady"
+        :error="hasVifFetchError"
+        :empty="emptyMessage"
+        :pagination-bindings
+        sticky="right"
+      >
         <thead>
           <tr>
             <HeadCells />
