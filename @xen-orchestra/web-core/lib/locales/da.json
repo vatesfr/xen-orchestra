@@ -123,6 +123,7 @@
   "description": "Beskrivelse",
   "dhcp": "DHCP",
   "disabled": "Deaktiveret",
+  "disconnected": "Frakoblet",
   "disk-name": "Disk navn",
   "disk-size": "Disk størrelse",
   "dns": "DNS",
