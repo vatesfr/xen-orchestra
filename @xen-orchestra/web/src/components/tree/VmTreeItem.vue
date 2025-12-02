@@ -1,5 +1,5 @@
 <template>
-  <VtsTreeItem expanded>
+  <VtsTreeItem expanded :node-id="leaf.id">
     <UiTreeItemLabel :route="`/vm/${leaf.data.id}`" no-indent>
       {{ leaf.data.name_label }}
       <template #icon>

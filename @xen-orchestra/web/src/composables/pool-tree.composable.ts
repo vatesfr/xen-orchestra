@@ -63,12 +63,13 @@ export function useSiteTree() {
     )
   )
 
-  const { nodes } = useTree(definitions)
+  const { nodes, scrollToNodeElement } = useTree(definitions)
 
   return {
     isReady,
     sites: nodes,
     filter,
     isSearching,
+    scrollToNodeElement,
   }
 }

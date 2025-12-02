@@ -1,5 +1,5 @@
 <template>
-  <VtsTreeItem :expanded="branch.isExpanded">
+  <VtsTreeItem :expanded="branch.isExpanded" :node-id="branch.id">
     <UiTreeItemLabel icon="fa:satellite" route="/" @toggle="branch.toggleExpand()">
       {{ branch.data.name_label }}
       <template #addons>
