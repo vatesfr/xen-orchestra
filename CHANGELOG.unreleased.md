@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST-API/SSE] Possibility to subscribe to XO task (PR [#9269](https://github.com/vatesfr/xen-orchestra/pull/9269))
+
 - **XO 6:**
 
 ### Bug fixes
@@ -34,5 +36,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/mixins minor
+- @xen-orchestra/rest-api minor
 
 <!--packages-end-->

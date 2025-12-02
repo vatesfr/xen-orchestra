@@ -27,7 +27,7 @@ import { inject } from 'inversify'
 import { EventService } from './event.service.mjs'
 import type { AuthenticatedRequest } from '../helpers/helper.type.mjs'
 import { json } from 'express'
-import type { SubscriberId, XapiXoListenerType } from './event.type.mjs'
+import type { SubscriberId, XoListenerType } from './event.type.mjs'
 import { addSubscription } from '../open-api/oa-examples/event.oa-example.mjs'
 
 @Route('events')
@@ -88,7 +88,7 @@ export class EventController extends Controller {
   @Response(notFoundResp.status, notFoundResp.description)
   addSubscription(
     @Path() id: string,
-    @Body() body: { collection: XapiXoListenerType; fields?: '*' | string[] }
+    @Body() body: { collection: XoListenerType; fields?: '*' | string[] }
   ): { id: string } {
     this.#eventService.addListenerFor(id as SubscriberId, { ...body, type: body.collection })
     return { id: body.collection }
@@ -103,7 +103,7 @@ export class EventController extends Controller {
   @Delete('{id}/subscriptions/{subscriptionId}')
   @SuccessResponse(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
-  removeSubscription(@Path() id: string, @Path() subscriptionId: XapiXoListenerType): void {
+  removeSubscription(@Path() id: string, @Path() subscriptionId: XoListenerType): void {
     this.#eventService.removeListenerFor(id as SubscriberId, subscriptionId)
   }
 }
