@@ -1,25 +1,23 @@
 <template>
-  <UiCard :color="hasError ? 'error' : undefined">
+  <UiCard>
     <UiTitle class="title-with-counter" type="h4">
       {{ t('tasks') }}
       <UiCounter :value="pendingTasks.length" accent="info" size="medium" variant="primary" />
     </UiTitle>
     <TasksTable :finished-tasks="finishedTasks" :pending-tasks="pendingTasks" />
-    <UiCardSpinner v-if="!isReady" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import TasksTable from '@/components/tasks/TasksTable.vue'
 import UiCard from '@/components/ui/UiCard.vue'
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
 import UiTitle from '@/components/ui/UiTitle.vue'
 import { usePageTitleStore } from '@/stores/page-title.store'
 import { useTaskStore } from '@/stores/xen-api/task.store'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import { useI18n } from 'vue-i18n'
 
-const { pendingTasks, finishedTasks, isReady, hasError } = useTaskStore().subscribe()
+const { pendingTasks, finishedTasks } = useTaskStore().subscribe()
 
 const { t } = useI18n()
 

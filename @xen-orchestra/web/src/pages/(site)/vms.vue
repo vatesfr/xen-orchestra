@@ -1,7 +1,7 @@
 <template>
   <div class="vms" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <VmsTable :vms :is-ready="areVmsReady" :has-error="hasVmFetchError" />
+      <VmsTable :vms :busy="!areVmsReady" :error="hasVmFetchError" />
     </UiCard>
     <VmsSidePanel v-if="selectedVm" :vm="selectedVm" @close="selectedVm = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">

@@ -12,8 +12,7 @@
     </UiCardTitle>
     <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="rawAlarms.length === 0" format="card" type="all-good" horizontal size="medium">
-      <span>{{ t('all-good') }}</span>
-      <span>{{ t('no-alarms-detected') }}</span>
+      {{ t('no-alarms-detected') }}
     </VtsStateHero>
     <div v-else class="alarm-list-container" v-bind="containerProps">
       <UiAlarmList v-bind="wrapperProps">

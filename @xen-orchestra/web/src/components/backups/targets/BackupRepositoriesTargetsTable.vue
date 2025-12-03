@@ -8,7 +8,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTableNew :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings>
+      <VtsTable :state :pagination-bindings>
         <thead>
           <tr>
             <HeadCells />
@@ -19,7 +19,7 @@
             <BodyCells :item="repository" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -28,20 +28,21 @@
 import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import type { IconName } from '@core/icons'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { defineColumns } from '@core/packages/table/define-columns'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import type { XoBackupRepository } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupRepositories } = defineProps<{
+const { backupRepositories, busy, error } = defineProps<{
   backupRepositories: XoBackupRepository[]
-  isReady: boolean
-  hasError: boolean
+  busy?: boolean
+  error?: boolean
 }>()
 
 const { t } = useI18n()
@@ -60,16 +61,15 @@ const filteredRepositories = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (backupRepositories.length === 0) {
-    return t('no-backup-repositories-detected')
-  }
-
-  if (filteredRepositories.value.length === 0) {
-    return t('no-result')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    backupRepositories.length === 0
+      ? t('no-backup-repositories-detected')
+      : filteredRepositories.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
 const { pageRecords: paginatedRepositories, paginationBindings } = usePagination(

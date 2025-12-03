@@ -39,13 +39,7 @@
           </UiButton>
         </UiTableActions>
       </div>
-      <VtsTableNew
-        :ready="areServersReady"
-        :error="hasServerFetchError"
-        :empty="emptyMessage"
-        :pagination-bindings
-        sticky="right"
-      >
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -56,7 +50,7 @@
             <BodyCells :item="server" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -67,16 +61,18 @@ import { useXoServerCollection } from '@/remote-resources/use-xo-server-collecti
 import { getHostInfo } from '@/utils/xo-records/host.util'
 import { getPoolInfo } from '@/utils/xo-records/pool.util'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useServerColumns } from '@core/tables/column-sets/server-columns'
 import type { XoServer } from '@vates/types'
+import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -106,16 +102,15 @@ const filteredServers = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (rawServers.length === 0) {
-    return t('no-server-detected')
-  }
-
-  if (filteredServers.value.length === 0) {
-    return t('no-results')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: logicNot(areServersReady),
+  error: hasServerFetchError,
+  empty: () =>
+    rawServers.length === 0
+      ? t('no-server-detected')
+      : filteredServers.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
 const { pageRecords: paginatedServers, paginationBindings } = usePagination('pools', filteredServers)

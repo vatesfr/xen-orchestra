@@ -8,7 +8,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTableNew :busy :empty="emptyMessage" :error :pagination-bindings sticky="right">
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -19,7 +19,7 @@
             <BodyCells :item="job" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -30,18 +30,23 @@ import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
 import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable'
 import { useBackupJobColumns } from '@core/tables/column-sets/backup-job-columns'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell'
 import type { AnyXoBackupJob } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupJobs: rawBackupJobs } = defineProps<{
+const {
+  backupJobs: rawBackupJobs,
+  busy,
+  error,
+} = defineProps<{
   backupJobs: AnyXoBackupJob[]
   busy?: boolean
   error?: boolean
@@ -70,16 +75,15 @@ const filteredBackupJobs = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (rawBackupJobs.length === 0) {
-    return t('no-backup-job-available')
-  }
-
-  if (filteredBackupJobs.value.length === 0) {
-    return t('no-result')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    rawBackupJobs.length === 0
+      ? t('no-backup-job-available')
+      : filteredBackupJobs.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
 const { pageRecords: paginatedBackupJobs, paginationBindings } = usePagination('backups-jobs', filteredBackupJobs)

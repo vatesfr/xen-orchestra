@@ -1,55 +1,38 @@
 <template>
-  <UiCardSpinner v-if="!areSomeLoaded" />
-  <UiTable v-else :class="{ desktop: isDesktop }" class="hosts-patches-table">
-    <tr v-for="patch in sortedPatches" :key="patch.$id">
-      <th>
-        <span v-tooltip="{ placement: 'left', content: patch.version }">
-          {{ patch.name }}
-        </span>
-      </th>
-      <td v-if="hasMultipleHosts">
-        <UiSpinner v-if="!areAllLoaded" />
-        <UiCounter
-          v-else
-          v-tooltip="{
-            placement: 'left',
-            content: t('n-hosts-awaiting-patch', {
-              n: patch.$hostRefs.size,
-            }),
-          }"
-          :value="patch.$hostRefs.size"
-          class="counter"
-          accent="danger"
-          variant="primary"
-          size="small"
-        />
-      </td>
-    </tr>
-  </UiTable>
+  <VtsTable class="hosts-patches-table" :state :class="{ desktop: uiStore.isDesktop }">
+    <thead>
+      <tr>
+        <HeadCells />
+      </tr>
+    </thead>
+    <tbody>
+      <VtsRow v-for="patch of sortedPatches" :key="patch.$id">
+        <BodyCells :item="patch" />
+      </VtsRow>
+    </tbody>
+  </VtsTable>
 </template>
 
 <script lang="ts" setup>
-import UiCardSpinner from '@/components/ui/UiCardSpinner.vue'
-import UiSpinner from '@/components/ui/UiSpinner.vue'
-import UiTable from '@/components/ui/UiTable.vue'
 import type { XenApiPatchWithHostRefs } from '@/composables/host-patches.composable'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
+import { useTableState } from '@core/composables/table-state.composable'
 import { useUiStore } from '@core/stores/ui.store'
+import { usePatchColumns } from '@core/tables/column-sets/patch-columns'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { patches, busy } = defineProps<{
   patches: XenApiPatchWithHostRefs[]
-  hasMultipleHosts: boolean
-  areAllLoaded: boolean
-  areSomeLoaded: boolean
+  busy?: boolean
 }>()
 
 const { t } = useI18n()
+const uiStore = useUiStore()
 
 const sortedPatches = computed(() =>
-  [...props.patches].sort((patch1, patch2) => {
+  [...patches].sort((patch1, patch2) => {
     if (patch1.changelog == null) {
       return 1
     } else if (patch2.changelog == null) {
@@ -60,15 +43,21 @@ const sortedPatches = computed(() =>
   })
 )
 
-const { isDesktop } = useUiStore()
+const state = useTableState({
+  busy: () => busy,
+  empty: () => (patches.length === 0 ? { type: 'all-good', message: t('patches-up-to-date') } : false),
+})
+
+const { HeadCells, BodyCells } = usePatchColumns({
+  body: (patch: XenApiPatchWithHostRefs) => ({
+    name: r => r(patch.name),
+    version: r => r(patch.version),
+  }),
+})
 </script>
 
 <style lang="postcss" scoped>
 .hosts-patches-table.desktop {
   max-width: 45rem;
-}
-
-.counter {
-  font-size: 1rem;
 }
 </style>

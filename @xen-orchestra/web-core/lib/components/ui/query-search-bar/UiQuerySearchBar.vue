@@ -32,8 +32,8 @@
 
     <!-- Mobile icons: search + filter -->
     <template v-else>
-      <UiButtonIcon accent="brand" size="medium" type="submit" icon="fa:magnifying-glass" class="action-button" />
-      <UiButtonIcon accent="brand" size="medium" disabled icon="fa:filter" class="action-button" />
+      <UiButtonIcon accent="brand" size="small" type="submit" icon="fa:magnifying-glass" class="action-button" />
+      <UiButtonIcon accent="brand" size="small" disabled icon="fa:filter" class="action-button" />
     </template>
   </form>
 </template>

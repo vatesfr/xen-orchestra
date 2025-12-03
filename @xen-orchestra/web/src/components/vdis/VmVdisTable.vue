@@ -8,7 +8,7 @@
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
       </div>
 
-      <VtsTableNew :busy="!isReady" :error="hasError" :pagination-bindings sticky="right">
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -19,7 +19,7 @@
             <BodyCells :item="vdi" />
           </VtsRow>
         </tbody>
-      </VtsTableNew>
+      </VtsTable>
     </div>
   </div>
 </template>
@@ -28,22 +28,23 @@
 import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { getVdiFormat } from '@/utils/vdi-format.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
-import VtsTableNew from '@core/components/table/VtsTableNew.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import type { XoVdi, XoVm } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vm, vdis } = defineProps<{
-  vdis: XoVdi[]
-  hasError: boolean
-  isReady: boolean
+const { vm, vdis, busy, error } = defineProps<{
   vm: XoVm
+  vdis: XoVdi[]
+  error?: boolean
+  busy?: boolean
 }>()
 
 const { t } = useI18n()
@@ -62,6 +63,13 @@ const filteredVdis = computed(() => {
   }
 
   return vdis.filter(vdi => Object.values(vdi).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+})
+
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    vdis.length === 0 ? t('no-vdis-detected') : filteredVdis.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis', filteredVdis)
