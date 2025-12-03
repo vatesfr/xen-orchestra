@@ -3,7 +3,7 @@
     <UiCardTitle>
       {{ t('source-backup-repository') }}
     </UiCardTitle>
-    <UiLink size="small" :icon="sourceBackupRepositoryIcon" :href="`${xo5Route}#/settings/remotes`">
+    <UiLink size="small" :icon="sourceBackupRepositoryIcon" :href>
       {{ sourceBackupRepository.name }}
     </UiLink>
   </UiCard>
@@ -25,8 +25,8 @@ const { mirrorBackupJob } = defineProps<{
 
 const { t } = useI18n()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
+const href = computed(() => buildXo5Route('/settings/remotes'))
 
 const { useGetBackupRepositoryById } = useXoBackupRepositoryCollection()
 

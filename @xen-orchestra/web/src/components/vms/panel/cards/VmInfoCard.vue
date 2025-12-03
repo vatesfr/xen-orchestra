@@ -102,7 +102,7 @@
         <template #value>
           <div class="value">
             <VtsIcon name="fa:template" size="medium" />
-            <UiLink v-if="template" size="small" :href="`${xo5Route}#/home?p=1&s=${template.id}&t=VM-template`">
+            <UiLink v-if="template" size="small" :href="xo5VmTemplateHref">
               {{ template.name_label }}
             </UiLink>
             <span v-else>{{ vm.other.base_template_name }}</span>
@@ -124,7 +124,7 @@
         <template #value>
           <div class="value">
             <UiUserLogo size="extra-small" class="user-logo" />
-            <UiLink v-if="userLabel" size="small" :href="`${xo5Route}#/settings/users?s=1_0_asc-${user?.id}`">
+            <UiLink v-if="userLabel" size="small" :href="xo5UserHref">
               {{ userLabel }}
             </UiLink>
             <span v-else>{{ t('unknown') }}</span>
@@ -176,8 +176,7 @@ const { vm } = defineProps<{
 
 const { t } = useI18n()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
 
 const { useGetPoolById } = useXoPoolCollection()
 const { getVmHost } = useXoVmCollection()
@@ -186,6 +185,8 @@ const { getHostState } = useXoHostUtils()
 
 const { user } = useXoUserResource({}, () => vm.creation?.user)
 
+const xo5UserHref = computed(() => (user.value !== undefined ? buildXo5Route(`/users/${user.value.id}`) : undefined))
+
 const userLabel = computed(() => user.value?.name || user.value?.email)
 
 const { templates } = useXoVmTemplateCollection()
@@ -193,6 +194,10 @@ const { templates } = useXoVmTemplateCollection()
 const template = computed(() => {
   return templates.value.find(template => template.uuid === vm.creation?.template && template.$pool === vm.$pool)
 })
+
+const xo5VmTemplateHref = computed(() =>
+  template.value !== undefined ? buildXo5Route(`/home?p=1&s=${template.value.id}&t=VM-template`) : undefined
+)
 
 const pool = useGetPoolById(() => vm.$pool)
 

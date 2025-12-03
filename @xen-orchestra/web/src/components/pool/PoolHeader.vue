@@ -14,7 +14,7 @@
       </TabItem>
     </RouterLink>
     <TabItem>
-      <UiLink :href="`${xo5Route}#/pools/${pool.id}/stats`" size="medium">
+      <UiLink :href="xo5PoolStatsHref" size="medium">
         {{ t('stats') }}
       </UiLink>
     </TabItem>
@@ -63,6 +63,6 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
+const xo5PoolStatsHref = computed(() => buildXo5Route(`/pools/${pool.id}/stats`))
 </script>

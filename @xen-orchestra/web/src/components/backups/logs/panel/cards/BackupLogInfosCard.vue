@@ -1,9 +1,10 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="backupLog.id !== undefined" size="small" icon="object:backup-log">
+      <span v-if="backupLog.id !== undefined" class="backup-log-id">
+        <VtsIcon size="current" name="object:backup-log" />
         {{ backupLog.id }}
-      </UiLink>
+      </span>
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
@@ -60,6 +61,7 @@
 import { useXoBackupLogsUtils } from '@/composables/xo-backup-log-utils.composable'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -89,6 +91,12 @@ const transferSize = computed(() => getTransferSize(backupLog))
   display: flex;
   flex-direction: column;
   gap: 1.6rem;
+
+  .backup-log-id {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
 
   .content {
     display: flex;

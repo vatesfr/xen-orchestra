@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="sr.name_label" size="small" icon="object:sr:muted" :href="`${xo5Route}#/srs/${sr.id}/general`">
+      <UiLink v-if="sr.name_label" size="small" icon="object:sr:muted" :href>
         {{ sr.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -91,8 +91,8 @@ const { sr } = defineProps<{
 
 const { t } = useI18n()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
+const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
 
 const { getPbdsByIds } = useXoPbdCollection()
 const { isHighAvailabilitySr } = useXoSrCollection()

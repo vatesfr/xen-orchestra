@@ -5,7 +5,7 @@
       <VtsObjectIcon size="medium" :state="vm.power_state.toLocaleLowerCase() as VmState" type="vm" />
     </template>
     <template #actions>
-      <UiLink :href="`${xo5Route}#/vms/${vm.id}/general`" size="medium">
+      <UiLink :href="xo5VmGeneralHref" size="medium">
         {{ t('manage-vm-lifecycle-in-xo-5') }}
       </UiLink>
     </template>
@@ -27,7 +27,7 @@
       </TabItem>
     </RouterLink>
     <TabItem>
-      <UiLink :href="`${xo5Route}#/vms/${vm.id}/stats`" size="medium">
+      <UiLink :href="xo5VmStatsHref" size="medium">
         {{ t('stats') }}
       </UiLink>
     </TabItem>
@@ -62,10 +62,11 @@ import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ vm: XoVm }>()
+const { vm } = defineProps<{ vm: XoVm }>()
 
 const { t } = useI18n()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
+const xo5VmGeneralHref = computed(() => buildXo5Route(`/vms/${vm.id}/general`))
+const xo5VmStatsHref = computed(() => buildXo5Route(`/vms/${vm.id}/stats`))
 </script>

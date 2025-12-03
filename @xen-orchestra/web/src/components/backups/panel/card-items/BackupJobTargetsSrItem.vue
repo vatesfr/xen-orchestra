@@ -1,6 +1,6 @@
 <template>
   <li>
-    <UiLink size="small" icon="fa:database" :href="`${xo5Route}#/srs/${sr.id}/general`">
+    <UiLink size="small" icon="fa:database" :href>
       {{ sr.name_label }}
     </UiLink>
   </li>
@@ -16,6 +16,6 @@ const { sr } = defineProps<{
   sr: XoSr
 }>()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
+const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
 </script>

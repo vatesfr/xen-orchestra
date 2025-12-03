@@ -16,7 +16,7 @@
               v-if="schedule.name"
               size="small"
               icon="object:backup-schedule"
-              :href="`${xo5Route}#/backup/${schedule.jobId}/edit`"
+              :href="buildXo5Route(`/backup/${schedule.jobId}/edit`)"
             >
               {{ schedule.name }}
             </UiLink>
@@ -71,7 +71,6 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import type { XoSchedule } from '@vates/types'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJobSchedules } = defineProps<{
@@ -80,8 +79,7 @@ const { backupJobSchedules } = defineProps<{
 
 const { t } = useI18n()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
 </script>
 
 <style scoped lang="postcss">

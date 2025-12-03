@@ -1,11 +1,12 @@
 <template>
   <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <PoolNetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks />
+      <PoolNetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks :pool />
       <PoolNetworksTable
         :busy="!areNetworksReady"
         :error="hasNetworkFetchError"
         :networks="internalNetworks"
+        :pool
         internal
       />
     </UiCard>

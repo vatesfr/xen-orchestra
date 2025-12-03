@@ -35,12 +35,12 @@
               {{ t('network') }}
             </template>
             <template #value>
-              <UiLink size="medium" :to="`/pool/${network?.$pool}/networks?id=${network?.id}`" @click.stop>
+              <UiLink v-if="network" size="medium" :to="networkTo">
                 <VtsIcon name="fa:network-wired" size="medium" />
-                <span v-tooltip class="text-ellipsis">{{ network?.name_label }}</span>
+                <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
               </UiLink>
             </template>
-            <template v-if="network?.name_label" #addons>
+            <template v-if="network" #addons>
               <VtsCopyButton :value="network.name_label" />
             </template>
           </VtsCardRowKeyValue>
@@ -302,6 +302,10 @@ const { t } = useI18n()
 const ipAddresses = computed(() => [pif.ip, ...pif.ipv6].filter(ip => ip))
 
 const network = useGetNetworkById(() => pif.$network)
+
+const networkTo = computed(() =>
+  network.value !== undefined ? `/pool/${network.value.$pool}/networks?id=${network.value.id}` : undefined
+)
 
 const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 

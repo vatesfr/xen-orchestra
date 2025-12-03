@@ -6,7 +6,7 @@
     </UiCardTitle>
     <UiCollapsibleList v-if="vdis.length > 0" tag="ul" :total-items="vdis.length">
       <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
-        <UiLink size="small" icon="fa:hard-drive" :href="`${xo5Route}#/srs/${vdi.$SR}/disks?s=1_0_asc-${vdi.id}`">
+        <UiLink size="small" icon="fa:hard-drive" :href="buildXo5Route(`/srs/${vdi.$SR}/disks?s=1_0_asc-${vdi.id}`)">
           {{ vdi.name_label }}
         </UiLink>
       </li>
@@ -27,7 +27,6 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XoVdi } from '@vates/types'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -36,8 +35,7 @@ defineProps<{
 
 const { t } = useI18n()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
 </script>
 
 <style scoped lang="postcss">
