@@ -11,9 +11,10 @@ import { randomBytes, randomUUID } from 'crypto'
 import { synchronized } from 'decorator-synchronized'
 
 import { withTimeout } from './utils'
-import { basename, dirname, normalize as normalizePath } from './path'
+import { basename, dirname, normalize as normalizePath, join } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 import { DEFAULT_ENCRYPTION_ALGORITHM, UNENCRYPTED_ALGORITHM, _getEncryptor } from './_encryptor'
+import { ensureDir } from 'fs-extra'
 
 const { info, warn } = createLogger('xo:fs:abstract')
 
@@ -42,6 +43,7 @@ const WITH_LIMIT = [
   'readFile',
   'rename',
   'rmdir',
+  'tree',
   'truncate',
   'unlink',
   'write',
@@ -60,6 +62,7 @@ const WITH_RETRY = {
   _readFile: {},
   _rename: {},
   _rmdir: {},
+  _tree: {}, 
   _truncate: {},
   _unlink: {},
   _write: {},
@@ -86,6 +89,7 @@ const WITH_TIMEOUT = [
   '_closeFile',
   '_openFile',
   '_createOutputStream',
+  '_tree',
 ]
 
 const ignoreEnoent = error => {
@@ -136,6 +140,9 @@ class PrefixWrapper {
 
 export default class RemoteHandlerAbstract {
   #rawEncryptor
+  #treeCache = null
+  #treeCacheTimestamp = null
+  #treeCacheTimeOut = 30000 // 30 seconds default TTL
 
   get #encryptor() {
     if (this.#rawEncryptor === undefined) {
@@ -162,6 +169,7 @@ export default class RemoteHandlerAbstract {
     } = options)
 
     this.#applySafeGuards(options)
+    this.#treeCacheTimeOut = options.treeCacheTimeOut ?? 30000
   }
 
   #conditionRetry(error) {
@@ -214,6 +222,31 @@ export default class RemoteHandlerAbstract {
         })
       }
     })
+  }
+
+  // Clear tree cache (call after write operations)
+  #clearTreeCache() {
+    this.#treeCache = null
+    this.#treeCacheTimestamp = null
+  }
+
+  // Check if tree cache is valid
+  #isTreeCacheValid() {
+    if (this.#treeCache === null || this.#treeCacheTimestamp === null) {
+      return false
+    }
+    return Date.now() - this.#treeCacheTimestamp < this.#treeCacheTimeOut
+  }
+
+  // Set tree cache
+  #setTreeCache(entries) {
+    this.#treeCache = entries
+    this.#treeCacheTimestamp = Date.now()
+  }
+
+  // Get tree cache
+  #getTreeCache() {
+    return this.#isTreeCacheValid() ? this.#treeCache : null
   }
 
   // Public members
@@ -337,10 +370,42 @@ export default class RemoteHandlerAbstract {
     return this._getSize(typeof file === 'string' ? normalizePath(file) : file)
   }
 
-  async __list(dir, { filter, ignoreMissing = false, prependDir = false } = {}) {
+  async __list(dir, { filter, ignoreMissing = false, prependDir = false, forceNoCache = false } = {}) {
     try {
       const virtualDir = normalizePath(dir)
       dir = normalizePath(dir)
+      assert.strictEqual(await ensureDir(dir), true)
+
+      if (!forceNoCache && this.useTreeCache) {
+        if (!this.#isTreeCacheValid()) {
+          this.#setTreeCache(await this._tree('/'))
+        }
+        const cached = this.#getTreeCache()
+        if (cached !== undefined && cached.length !== 0) {
+          const entries = new Set()
+
+          for (const path of cached) {
+            const normalizedPath = normalizePath(path)
+            const parentDir = dirname(normalizedPath)
+
+            if (parentDir === virtualDir) {
+              entries.add(basename(normalizedPath))
+            }
+          }
+    
+          let result = [...entries]
+          
+          if (filter !== undefined) {
+            result = result.filter(filter)
+          }
+          
+          if (prependDir) {
+            result = result.map(entry => join(virtualDir, entry))
+          }
+          
+          return result
+        }
+      }
 
       let entries = await this._list(dir)
       if (filter !== undefined) {
@@ -353,6 +418,34 @@ export default class RemoteHandlerAbstract {
         })
       }
 
+      return entries
+    } catch (error) {
+      if (ignoreMissing && error?.code === 'ENOENT') {
+        return []
+      }
+      throw error
+    }
+  }
+
+  async __tree(dir, { filter, ignoreMissing = false, useCache = true } = {}) {
+    try {
+      const normalizedDir = normalizePath(dir)
+      
+      // Try to use cache if enabled and we're listing from root
+      if (useCache && normalizedDir === '/' && this.#isTreeCacheValid()) {
+        const cached = this.#getTreeCache()
+        if (cached !== null) {
+          return filter === undefined ? cached : cached.filter(filter)
+        }
+      }
+      
+      const entries = await this._tree(normalizedDir, { filter })
+      
+      // Cache the result if listing from root and no filter applied
+      if (normalizedDir === '/' && filter === undefined) {
+        this.#setTreeCache(entries)
+      }
+      
       return entries
     } catch (error) {
       if (ignoreMissing && error?.code === 'ENOENT') {
@@ -393,6 +486,7 @@ export default class RemoteHandlerAbstract {
         p = Promise.all([p, this._rename(checksumFile(oldPath), checksumFile(newPath))])
       }
       await p
+      this.#clearTreeCache()
     } catch (error) {
       // ENOENT can be a missing target directory OR a missing source
       if (error.code === 'ENOENT' && createTree) {
@@ -408,6 +502,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async __copy(oldPath, newPath, { checksum = false } = {}) {
+    this.#clearTreeCache()
     oldPath = normalizePath(oldPath)
     newPath = normalizePath(newPath)
 
@@ -420,10 +515,12 @@ export default class RemoteHandlerAbstract {
 
   async rmdir(dir) {
     await this._rmdir(normalizePath(dir)).catch(ignoreEnoent)
+    this.#clearTreeCache()
   }
 
   async rmtree(dir) {
     await this._rmtree(normalizePath(dir))
+    this.#clearTreeCache()
   }
 
   // Asks the handler to sync the state of the effective remote with its
@@ -444,6 +541,7 @@ export default class RemoteHandlerAbstract {
   async #canWriteMetadata() {
     const list = await this.__list('/', {
       filter: e => !e.startsWith('.') && e !== ENCRYPTION_DESC_FILENAME && e !== ENCRYPTION_METADATA_FILENAME,
+      avoidCache: true
     })
     return list.length === 0
   }
@@ -553,6 +651,7 @@ export default class RemoteHandlerAbstract {
     }
 
     await this._unlink(file).catch(ignoreEnoent)
+    this.#clearTreeCache()
   }
 
   async write(file, buffer, position) {
@@ -601,6 +700,10 @@ export default class RemoteHandlerAbstract {
     return this._remote.useVhdDirectory ?? false
   }
 
+  useTreeCache() {
+    return this._remote.useTreeCache ?? false
+  }
+
   async _closeFile(fd) {
     throw new Error('Not implemented')
   }
@@ -643,7 +746,11 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async _list(dir) {
+  async _list(dir, { filter } = {}) {
+    throw new Error('Not implemented')
+  }
+
+  async _tree(dir) {
     throw new Error('Not implemented')
   }
 
