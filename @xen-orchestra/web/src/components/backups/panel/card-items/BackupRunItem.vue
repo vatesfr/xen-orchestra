@@ -9,6 +9,7 @@
         size="small"
         icon="object:backup-log"
         :to="`/backup/${backupRun.jobId}/runs?id=${backupRun.id}`"
+        wrap
       >
         {{ backupRun.id }}
       </UiLink>
@@ -41,7 +42,7 @@
       {{ t('schedule') }}
     </template>
     <template #value>
-      <UiLink size="small" icon="object:backup-schedule" :href="`/#/backup/${backupRun.jobId}/edit`">
+      <UiLink size="small" icon="object:backup-schedule" :href="`/#/backup/${backupRun.jobId}/edit`" wrap>
         {{ scheduleName || backupRun.jobId }}
       </UiLink>
     </template>
