@@ -148,8 +148,8 @@ const { HeadCells, BodyCells } = usePifColumns({
     const rightIcon = computed(() => getManagementIcon(pif))
 
     return {
-      network: r => r({ label: name.value, rightIcon: rightIcon.value }),
-      device: r => r(pif.device),
+      network: r => r({ label: name.value }),
+      device: r => r(pif.device, { rightIcon: rightIcon.value }),
       status: r => r(status.value),
       vlan: r => r(vlan.value),
       ip: r => r(ip.value),

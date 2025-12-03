@@ -154,15 +154,21 @@ const state = useTableState({
 })
 
 const { HeadCells, BodyCells } = useNetworkColumns({
-  body: (network: XenApiNetwork) => ({
-    network: r => r({ label: network.name_label }),
-    description: r => r(network.name_description),
-    status: r => r(getNetworkStatus(network)),
-    vlan: r => r(getNetworkVlan(network)),
-    mtu: r => r(network.MTU),
-    defaultLockingMode: r => r(getLockingMode(network.default_locking_mode)),
-    selectItem: r => r(() => (selectedNetworkId.value = network.uuid)),
-  }),
+  body: (network: XenApiNetwork) => {
+    const status = computed(() => getNetworkStatus(network))
+    const vlan = computed(() => getNetworkVlan(network))
+    const defaultLockingMode = computed(() => getLockingMode(network.default_locking_mode))
+
+    return {
+      network: r => r({ label: network.name_label }),
+      description: r => r(network.name_description),
+      status: r => r(status.value),
+      vlan: r => r(vlan.value),
+      mtu: r => r(network.MTU),
+      defaultLockingMode: r => r(defaultLockingMode.value),
+      selectItem: r => r(() => (selectedNetworkId.value = network.uuid)),
+    }
+  },
 })
 </script>
 

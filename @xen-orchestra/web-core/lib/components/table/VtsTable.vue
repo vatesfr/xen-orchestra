@@ -1,5 +1,5 @@
 <template>
-  <div class="vts-table-new" :class="className">
+  <div class="vts-table" :class="className">
     <VtsStateHero v-if="state" format="table" :type="state.type" :size="state.size ?? 'medium'">
       {{ state.message }}
     </VtsStateHero>
@@ -59,7 +59,7 @@ const className = computed(() =>
 </script>
 
 <style lang="postcss" scoped>
-.vts-table-new {
+.vts-table {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;

@@ -141,16 +141,21 @@ const state = useTableState({
 const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)
 
 const { HeadCells, BodyCells } = useVifColumns({
-  body: (vif: XenApiVif) => ({
-    network: r => r({ label: getNetworkName(vif.network) }),
-    device: r => r(t('vif-device', { device: vif.device })),
-    status: r => r(vif.currently_attached ? 'connected' : 'disconnected'),
-    ipsAddresses: r => r(getIpAddresses(vif)),
-    macAddresses: r => r(vif.MAC),
-    mtu: r => r(vif.MTU),
-    lockingMode: r => r(vif.locking_mode),
-    selectItem: r => r(() => (selectedVifId.value = vif.uuid)),
-  }),
+  body: (vif: XenApiVif) => {
+    const name = computed(() => getNetworkName(vif.network))
+    const ipAddresses = computed(() => getIpAddresses(vif))
+
+    return {
+      network: r => r({ label: name.value }),
+      device: r => r(t('vif-device', { device: vif.device })),
+      status: r => r(vif.currently_attached ? 'connected' : 'disconnected'),
+      ipsAddresses: r => r(ipAddresses.value),
+      macAddresses: r => r(vif.MAC),
+      mtu: r => r(vif.MTU),
+      lockingMode: r => r(vif.locking_mode),
+      selectItem: r => r(() => (selectedVifId.value = vif.uuid)),
+    }
+  },
 })
 </script>
 

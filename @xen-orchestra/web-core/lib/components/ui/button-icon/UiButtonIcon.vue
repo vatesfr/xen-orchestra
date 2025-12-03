@@ -2,7 +2,7 @@
 <!-- TODO: Add complex icon -->
 <template>
   <button :class="classNames" :disabled class="ui-button-icon" type="button">
-    <VtsIcon :name="icon" size="medium" />
+    <VtsIcon :name="icon" size="current" />
     <span v-if="dot" class="dot" />
   </button>
 </template>

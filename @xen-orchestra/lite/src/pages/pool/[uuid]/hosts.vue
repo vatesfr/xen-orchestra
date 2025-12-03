@@ -63,3 +63,9 @@ const { HeadCells, BodyCells } = useHostColumns({
   },
 })
 </script>
+
+<style lang="postcss" scoped>
+.pool-hosts-view {
+  margin: 1rem;
+}
+</style>

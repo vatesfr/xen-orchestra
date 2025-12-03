@@ -58,6 +58,8 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
+import { getHostInfo } from '@/utils/xo-records/host.util'
+import { getPoolInfo } from '@/utils/xo-records/pool.util'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -73,8 +75,6 @@ import type { XoServer } from '@vates/types'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getHostInfo } from './get-host-info'
-import { getPoolInfo } from './get-pool-info'
 
 const { servers: rawServers } = defineProps<{
   servers: XoServer[]

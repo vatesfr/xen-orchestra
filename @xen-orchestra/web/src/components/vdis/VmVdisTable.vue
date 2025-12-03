@@ -40,7 +40,7 @@ import type { XoVdi, XoVm } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vm, vdis, error, busy } = defineProps<{
+const { vm, vdis, busy, error } = defineProps<{
   vm: XoVm
   vdis: XoVdi[]
   error?: boolean

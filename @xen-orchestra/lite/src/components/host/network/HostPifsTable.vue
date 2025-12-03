@@ -71,6 +71,7 @@ import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
@@ -130,6 +131,17 @@ const state = useTableState({
 
 const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
 
+function getManagementIcon(pif: XenApiPif) {
+  if (!pif.management) {
+    return undefined
+  }
+
+  return {
+    icon: icon('legacy:primary'),
+    tooltip: t('management'),
+  }
+}
+
 const { HeadCells, BodyCells } = usePifColumns({
   body: (pif: XenApiPif) => {
     const name = computed(() => getNetworkName(pif.network))
@@ -137,10 +149,11 @@ const { HeadCells, BodyCells } = usePifColumns({
     const vlan = computed(() => getVlanData(pif.VLAN))
     const ipAddresses = computed(() => getIpAddresses(pif))
     const ipMode = computed(() => getIpConfigurationMode(pif.ip_configuration_mode))
+    const rightIcon = computed(() => getManagementIcon(pif))
 
     return {
       network: r => r({ label: name.value }),
-      device: r => r(pif.device),
+      device: r => r(pif.device, { rightIcon: rightIcon.value }),
       status: r => r(status.value),
       vlan: r => r(vlan.value),
       ip: r => r(ipAddresses.value),

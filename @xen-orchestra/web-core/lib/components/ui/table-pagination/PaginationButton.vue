@@ -1,5 +1,5 @@
 <template>
-  <UiButtonIcon :disabled accent="brand" class="pagination-button" size="medium" :icon />
+  <UiButtonIcon :disabled accent="brand" class="pagination-button" size="small" :icon />
 </template>
 
 <script setup lang="ts">

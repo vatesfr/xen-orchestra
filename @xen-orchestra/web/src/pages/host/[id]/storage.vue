@@ -1,7 +1,7 @@
 <template>
   <div class="storage" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <StorageRepositoriesTable :srs :error="hasSrFetchError" :busy="!isReady" />
+      <StorageRepositoriesTable :srs :busy="!isReady" :error="hasSrFetchError" />
     </UiCard>
     <StorageRepositoriesSidePanel v-if="selectedSr" :sr="selectedSr" @close="selectedSr = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">

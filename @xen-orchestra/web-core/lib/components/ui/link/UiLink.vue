@@ -62,6 +62,11 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
     cursor: not-allowed;
   }
 
+  &:not([href]) {
+    text-decoration: none;
+    cursor: default;
+  }
+
   .external-icon {
     font-size: 0.75em;
   }

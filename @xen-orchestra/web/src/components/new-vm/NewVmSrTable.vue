@@ -68,7 +68,7 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
     return {
       sr: r => r(srSelectId),
       diskName: r => r(diskName),
-      size: r => r(size),
+      size: r => r(size, { disabled: !onRemove }),
       description: r => r(description),
       remove: r => (onRemove ? r(onRemove) : renderBodyCell()),
     }

@@ -29,7 +29,7 @@
             icon="fa:ellipsis-vertical"
             accent="brand"
             class="more-actions-button"
-            size="large"
+            size="medium"
             @click="open"
           />
         </template>

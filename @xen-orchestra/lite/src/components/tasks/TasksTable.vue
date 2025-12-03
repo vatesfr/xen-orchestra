@@ -23,11 +23,16 @@ import { useTaskStore } from '@/stores/xen-api/task.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import { useTableState } from '@core/composables/table-state.composable'
-import { useTaskColumns } from '@core/tables/column-sets/task-column'
+import { defineColumns } from '@core/packages/table'
+import { useDateColumn } from '@core/tables/column-definitions/date-column'
+import { useLinkColumn } from '@core/tables/column-definitions/link-column'
+import { useProgressBarColumn } from '@core/tables/column-definitions/progress-bar-column'
+import { useTextColumn } from '@core/tables/column-definitions/text-column'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
 import { parseDateTime } from '@core/utils/time.util'
 import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   pendingTasks: XenApiTask[]
@@ -44,6 +49,22 @@ const state = useTableState({
   busy: logicNot(isReady),
   error: hasError,
   empty: logicNot(hasTasks),
+})
+
+// Warning: Task system will be completely revamped in the future.
+// This is a temporary solution to display tasks.
+// Don't move this code outside of this file.
+
+const useTaskColumns = defineColumns(() => {
+  const { t } = useI18n()
+
+  return {
+    name: useTextColumn({ headerLabel: t('name') }),
+    host: useLinkColumn({ headerLabel: t('host') }),
+    progress: useProgressBarColumn({ headerLabel: t('task.progress') }),
+    started: useDateColumn({ headerLabel: t('task.started'), dateStyle: 'short', timeStyle: 'short' }),
+    estimatedEnd: useDateColumn({ headerLabel: t('task.estimated-end'), dateStyle: 'short', timeStyle: 'short' }),
+  }
 })
 
 const { HeadCells, BodyCells } = useTaskColumns({

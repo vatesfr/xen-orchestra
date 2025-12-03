@@ -56,7 +56,7 @@ const { t } = useI18n()
 
 const { records: alarms, start, isStarted, isReady, hasError } = useAlarmStore().subscribe({ defer: true })
 
-// Warning: Task system will be completely revamped in the future.
+// Warning: Alarm system will be completely revamped in the future.
 // This is a temporary solution to display alarms.
 // Don't move this code outside of this file.
 
@@ -66,7 +66,7 @@ const useLegacyObjectLinkColumn = defineColumn(() => ({
     renderBodyCell(() => h(ObjectLink, { type: rawTypeToType(type), uuid: uuid as any })),
 }))
 
-const useTaskColumns = defineColumns(() => ({
+const useAlarmColumns = defineColumns(() => ({
   time: useDateColumn(),
   description: useTextColumn(),
   level: usePercentColumn(),
@@ -80,7 +80,7 @@ const state = useTableState({
   empty: () => (alarms.value.length === 0 ? { type: 'all-good', message: t('no-alarms-detected') } : false),
 })
 
-const { BodyCells } = useTaskColumns({
+const { BodyCells } = useAlarmColumns({
   body: (alarm: XenApiAlarm<RawObjectType>) => ({
     time: r => r(alarm.timestamp, { relative: true }),
     description: r => r(t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 })),

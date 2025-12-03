@@ -29,7 +29,7 @@ export function useTableState(config: {
     }
 
     if (typeof input === 'object') {
-      return { message: DEFAULT_MESSAGES[defaultType], ...input }
+      return { message: DEFAULT_MESSAGES[input.type], ...input }
     }
 
     if (typeof input === 'string') {

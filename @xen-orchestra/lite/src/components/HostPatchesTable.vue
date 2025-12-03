@@ -1,5 +1,5 @@
 <template>
-  <VtsTable :state>
+  <VtsTable class="hosts-patches-table" :state :class="{ desktop: uiStore.isDesktop }">
     <thead>
       <tr>
         <HeadCells />
@@ -18,6 +18,7 @@ import type { XenApiPatchWithHostRefs } from '@/composables/host-patches.composa
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import { useTableState } from '@core/composables/table-state.composable'
+import { useUiStore } from '@core/stores/ui.store'
 import { usePatchColumns } from '@core/tables/column-sets/patch-columns'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -28,6 +29,7 @@ const { patches, busy } = defineProps<{
 }>()
 
 const { t } = useI18n()
+const uiStore = useUiStore()
 
 const sortedPatches = computed(() =>
   [...patches].sort((patch1, patch2) => {
