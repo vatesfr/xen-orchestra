@@ -41,7 +41,7 @@
             <UiCircleProgressBar v-if="task.progress" :accent="progressAccent" size="small" :value="task.progress" />
           </div>
           <div class="actions">
-            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" />
+            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select')" />
             <div class="cancel">
               <UiButtonIcon v-if="task.status === 'pending'" icon="fa:close" size="medium" accent="danger" />
             </div>
@@ -86,6 +86,7 @@ const { task } = defineProps<{
 
 const emit = defineEmits<{
   expand: []
+  select: []
 }>()
 
 const { t } = useI18n()
