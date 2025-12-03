@@ -6,23 +6,19 @@
       </tr>
     </thead>
     <tbody>
-      <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
-        <VtsRow v-for="(vdi, index) in vmState.existingVdis" :key="index">
-          <BodyCells :item="{ vdi }" />
-        </VtsRow>
-      </template>
-      <template v-if="vmState.vdis && vmState.vdis.length > 0">
-        <VtsRow v-for="(vdi, index) in vmState.vdis" :key="index">
-          <BodyCells :item="{ vdi, onRemove: () => emit('remove', index) }" />
-        </VtsRow>
-      </template>
-      <tr>
+      <VtsRow v-for="(vdi, index) in vmState.existingVdis" :key="index">
+        <BodyCells :item="{ vdi }" />
+      </VtsRow>
+      <VtsRow v-for="(vdi, index) in vmState.vdis" :key="index">
+        <BodyCells :item="{ vdi, onRemove: () => emit('remove', index) }" />
+      </VtsRow>
+      <VtsRow>
         <UiTableCell :colspan>
           <UiButton left-icon="fa:plus" variant="tertiary" accent="brand" size="medium" @click="emit('add')">
             {{ t('new') }}
           </UiButton>
         </UiTableCell>
-      </tr>
+      </VtsRow>
     </tbody>
   </VtsTable>
 </template>
@@ -66,11 +62,15 @@ const { HeadCells, BodyCells, colspan } = useNewVmSrColumns({
       },
     })
 
+    const diskName = toRef(vdi, 'name_label')
+    const size = toRef(vdi, 'size')
+    const description = toRef(vdi, 'name_description')
+
     return {
       sr: r => r(srSelectId),
-      diskName: r => r(toRef(vdi, 'name_label')),
-      size: r => r(toRef(vdi, 'size')),
-      description: r => r(toRef(vdi, 'name_description')),
+      diskName: r => r(diskName),
+      size: r => r(size),
+      description: r => r(description),
       remove: r => (onRemove ? r(onRemove) : renderBodyCell()),
     }
   },

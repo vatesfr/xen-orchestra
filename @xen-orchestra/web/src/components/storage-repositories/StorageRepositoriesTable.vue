@@ -10,7 +10,7 @@
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
-      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings sticky="right">
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -36,16 +36,21 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable'
 import { icon, objectIcon } from '@core/icons'
 import { useSrColumns } from '@core/tables/column-sets/sr-columns'
 import type { XoSr } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { srs: rawSrs } = defineProps<{
+const {
+  srs: rawSrs,
+  busy,
+  error,
+} = defineProps<{
   srs: XoSr[]
-  hasError: boolean
-  isReady: boolean
+  busy?: boolean
+  error?: boolean
 }>()
 
 const { t } = useI18n()
@@ -66,16 +71,15 @@ const filteredSrs = computed(() => {
   return rawSrs.filter(sr => Object.values(sr).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
-const emptyMessage = computed(() => {
-  if (rawSrs.length === 0) {
-    return t('no-storage-repositories-detected')
-  }
-
-  if (filteredSrs.value.length === 0) {
-    return t('no-results')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    rawSrs.length === 0
+      ? t('no-storage-repositories-detected')
+      : filteredSrs.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('srs', filteredSrs)

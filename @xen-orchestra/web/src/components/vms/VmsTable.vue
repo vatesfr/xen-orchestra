@@ -7,7 +7,7 @@
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
-      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings sticky="right">
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <HeadCells />
         </thead>
@@ -31,6 +31,7 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable'
 import { objectIcon } from '@core/icons'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell'
@@ -41,10 +42,14 @@ import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vms: rawVms } = defineProps<{
+const {
+  vms: rawVms,
+  busy,
+  error,
+} = defineProps<{
   vms: XoVm[]
-  isReady: boolean
-  hasError: boolean
+  busy?: boolean
+  error?: boolean
 }>()
 
 const { areVbdsReady, getVbdsByIds } = useXoVbdCollection()
@@ -66,16 +71,11 @@ const filteredVms = computed(() => {
   return rawVms.filter(vm => Object.values(vm).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
-const emptyMessage = computed(() => {
-  if (rawVms.length === 0) {
-    return t('no-vm-detected')
-  }
-
-  if (filteredVms.value.length === 0) {
-    return t('no-results')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    rawVms.length === 0 ? t('no-vm-detected') : filteredVms.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const isDiskSpaceReady = logicAnd(areVbdsReady, areVdisReady)

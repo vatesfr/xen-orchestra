@@ -29,7 +29,6 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiTableCell from '@core/components/ui/table-cell/UiTableCell.vue'
 import { useFormSelect } from '@core/packages/form-select'
 import { useNewVmNetworkColumns } from '@core/tables/column-sets/new-vm-network-columns'
-import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
 import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -56,10 +55,12 @@ const { HeadCells, BodyCells, colspan } = useNewVmNetworkColumns({
       },
     })
 
+    const mac = toRef(networkInterface, 'macAddress')
+
     return {
       interface: r => r(interfaceSelectId),
-      mac: r => r(toRef(networkInterface, 'macAddress')),
-      remove: r => (onRemove ? r(onRemove) : renderBodyCell()),
+      mac: r => r(mac),
+      remove: r => r(onRemove),
     }
   },
 })

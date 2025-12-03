@@ -1,7 +1,7 @@
 <template>
   <div class="backups" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <BackupLogsTable :backup-logs :has-error="hasBackupLogFetchError" :is-ready="areBackupLogsReady" />
+      <BackupLogsTable :backup-logs :error="hasBackupLogFetchError" :busy="!areBackupLogsReady" />
     </UiCard>
     <BackupLogsSidePanel
       v-if="selectedBackupLog"

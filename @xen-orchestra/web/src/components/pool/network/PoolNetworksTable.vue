@@ -39,7 +39,7 @@
           </UiButton>
         </UiTableActions>
       </div>
-      <VtsTable :busy :error :empty="emptyMessage" sticky="right" :pagination-bindings>
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -66,6 +66,7 @@ import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { icon, objectIcon } from '@core/icons'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns'
@@ -73,7 +74,12 @@ import type { XoNetwork } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { networks: rawNetworks, internal } = defineProps<{
+const {
+  networks: rawNetworks,
+  internal,
+  busy,
+  error,
+} = defineProps<{
   networks: XoNetwork[]
   busy?: boolean
   error?: boolean
@@ -100,16 +106,15 @@ const filteredNetworks = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (rawNetworks.length === 0) {
-    return t('no-network-detected')
-  }
-
-  if (filteredNetworks.value.length === 0) {
-    return t('no-results')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    rawNetworks.length === 0
+      ? t('no-network-detected')
+      : filteredNetworks.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
 const getNetworkVlan = (network: XoNetwork) => {

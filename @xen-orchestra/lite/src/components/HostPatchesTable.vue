@@ -1,5 +1,5 @@
 <template>
-  <VtsTable :busy :empty="patches.length === 0">
+  <VtsTable :state>
     <thead>
       <tr>
         <HeadCells />
@@ -17,16 +17,20 @@
 import type { XenApiPatchWithHostRefs } from '@/composables/host-patches.composable'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import { useTableState } from '@core/composables/table-state.composable'
 import { usePatchColumns } from '@core/tables/column-sets/patch-columns'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { patches, busy } = defineProps<{
   patches: XenApiPatchWithHostRefs[]
   busy?: boolean
 }>()
 
+const { t } = useI18n()
+
 const sortedPatches = computed(() =>
-  [...props.patches].sort((patch1, patch2) => {
+  [...patches].sort((patch1, patch2) => {
     if (patch1.changelog == null) {
       return 1
     } else if (patch2.changelog == null) {
@@ -36,6 +40,11 @@ const sortedPatches = computed(() =>
     return patch1.changelog.date - patch2.changelog.date
   })
 )
+
+const state = useTableState({
+  busy: () => busy,
+  empty: () => (patches.length === 0 ? { type: 'all-good', message: t('patches-up-to-date') } : false),
+})
 
 const { HeadCells, BodyCells } = usePatchColumns({
   body: (patch: XenApiPatchWithHostRefs) => ({
@@ -48,9 +57,5 @@ const { HeadCells, BodyCells } = usePatchColumns({
 <style lang="postcss" scoped>
 .hosts-patches-table.desktop {
   max-width: 45rem;
-}
-
-.counter {
-  font-size: 1rem;
 }
 </style>

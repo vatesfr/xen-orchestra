@@ -41,16 +41,16 @@
           </UiButton>
         </UiTableActions>
       </div>
-      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings sticky="right">
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
           </tr>
         </thead>
         <tbody>
-          <tr v-for="pif of paginatedPifs" :key="pif.uuid" :class="{ selected: selectedPifId === pif.uuid }">
+          <VtsRow v-for="pif of paginatedPifs" :key="pif.uuid" :selected="selectedPifId === pif.uuid">
             <BodyCells :item="pif" />
-          </tr>
+          </VtsRow>
         </tbody>
       </VtsTable>
     </div>
@@ -61,6 +61,7 @@
 import type { XenApiNetwork, XenApiPif } from '@/libs/xen-api/xen-api.types'
 import { useNetworkStore } from '@/stores/xen-api/network.store'
 import { usePifStore } from '@/stores/xen-api/pif.store'
+import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
@@ -68,8 +69,10 @@ import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns'
+import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -118,31 +121,34 @@ const filteredPifs = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (pifs.length === 0) {
-    return t('no-pif-detected')
-  }
-
-  if (filteredPifs.value.length === 0) {
-    return t('no-result')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: logicNot(isReady),
+  error: hasError,
+  empty: () =>
+    pifs.length === 0 ? t('no-pif-detected') : filteredPifs.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const { pageRecords: paginatedPifs, paginationBindings } = usePagination('pifs', filteredPifs)
 
 const { HeadCells, BodyCells } = usePifColumns({
-  body: (pif: XenApiPif) => ({
-    network: r => r({ label: getNetworkName(pif.network) }),
-    device: r => r(pif.device),
-    status: r => r(getPifStatus(pif)),
-    vlan: r => r(getVlanData(pif.VLAN)),
-    ip: r => r(getIpAddresses(pif)),
-    mac: r => r(pif.MAC),
-    mode: r => r(getIpConfigurationMode(pif.ip_configuration_mode)),
-    selectItem: r => r(() => (selectedPifId.value = pif.uuid)),
-  }),
+  body: (pif: XenApiPif) => {
+    const name = computed(() => getNetworkName(pif.network))
+    const status = computed(() => getPifStatus(pif))
+    const vlan = computed(() => getVlanData(pif.VLAN))
+    const ipAddresses = computed(() => getIpAddresses(pif))
+    const ipMode = computed(() => getIpConfigurationMode(pif.ip_configuration_mode))
+
+    return {
+      network: r => r({ label: name.value }),
+      device: r => r(pif.device),
+      status: r => r(status.value),
+      vlan: r => r(vlan.value),
+      ip: r => r(ipAddresses.value),
+      mac: r => r(pif.MAC),
+      mode: r => r(ipMode.value),
+      selectItem: r => r(() => (selectedPifId.value = pif.uuid)),
+    }
+  },
 })
 </script>
 
@@ -160,32 +166,6 @@ const { HeadCells, BodyCells } = usePifColumns({
   .container,
   .table-actions {
     gap: 0.8rem;
-  }
-
-  .network {
-    display: flex;
-    align-items: center;
-    gap: 1.8rem;
-  }
-
-  .ip-addresses {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .more-ips {
-      color: var(--color-neutral-txt-secondary);
-    }
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 }
 </style>

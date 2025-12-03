@@ -42,13 +42,7 @@
         </UiTableActions>
       </div>
 
-      <VtsTable
-        :busy="!arePifsReady"
-        :error="hasPifFetchError"
-        :empty="emptyMessage"
-        sticky="right"
-        :pagination-bindings
-      >
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -76,10 +70,12 @@ import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns'
 import type { XoPif } from '@vates/types'
+import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -105,16 +101,11 @@ const filteredPifs = computed(() => {
   return rawPifs.filter(pif => Object.values(pif).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
 })
 
-const emptyMessage = computed(() => {
-  if (rawPifs.length === 0) {
-    return t('no-pif-detected')
-  }
-
-  if (filteredPifs.value.length === 0) {
-    return t('no-result')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: logicNot(arePifsReady),
+  error: hasPifFetchError,
+  empty: () =>
+    rawPifs.length === 0 ? t('no-pif-detected') : filteredPifs.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const getNetworkName = (pif: XoPif) => getNetworkById(pif.$network)?.name_label ?? ''

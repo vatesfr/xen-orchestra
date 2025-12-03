@@ -11,7 +11,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" sticky="right" :pagination-bindings>
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -36,15 +36,20 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable'
 import { useBackupLogsColumns } from '@core/tables/column-sets/backup-log-columns'
 import type { XoBackupLog } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupLogs: rawBackupLogs } = defineProps<{
+const {
+  backupLogs: rawBackupLogs,
+  error,
+  busy,
+} = defineProps<{
   backupLogs: XoBackupLog[]
-  hasError: boolean
-  isReady: boolean
+  error?: boolean
+  busy?: boolean
 }>()
 
 const { t } = useI18n()
@@ -65,16 +70,15 @@ const filteredBackupLogs = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (rawBackupLogs.length === 0) {
-    return t('no-backup-run-available')
-  }
-
-  if (filteredBackupLogs.value.length === 0) {
-    return t('no-result')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    rawBackupLogs.length === 0
+      ? t('no-backup-run-available')
+      : filteredBackupLogs.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
 const { getBackupLogDuration, getTransferSize } = useXoBackupLogsUtils()

@@ -3,7 +3,7 @@
     <UiCardTitle subtitle>
       {{ t('hosts') }}
     </UiCardTitle>
-    <VtsTable :busy="!isReady" :error="hasError" :empty="hosts.length === 0" :pagination-bindings>
+    <VtsTable :state :pagination-bindings>
       <thead>
         <tr>
           <HeadCells />
@@ -28,8 +28,10 @@ import { useHostStore } from '@/stores/xen-api/host.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { objectIcon } from '@core/icons'
 import { useHostColumns } from '@core/tables/column-sets/host-columns'
+import { logicNot } from '@vueuse/math'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -40,6 +42,12 @@ const { isHostRunning } = useHostMetricsStore().subscribe()
 usePageTitleStore().setTitle(() => t('hosts'))
 
 const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', hosts)
+
+const state = useTableState({
+  busy: logicNot(isReady),
+  error: hasError,
+  empty: () => (hosts.value.length === 0 ? t('no-hosts-detected') : false),
+})
 
 const { HeadCells, BodyCells } = useHostColumns({
   exclude: ['selectItem'],

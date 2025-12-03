@@ -6,7 +6,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings>
+      <VtsTable :state :pagination-bindings>
         <thead>
           <tr>
             <HeadCells />
@@ -32,6 +32,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { objectIcon } from '@core/icons'
 import { defineColumns } from '@core/packages/table/define-columns'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
@@ -43,10 +44,10 @@ import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupJob } = defineProps<{
+const { backupJob, busy, error } = defineProps<{
   backupJob: XoVmBackupJob
-  isReady: boolean
-  hasError: boolean
+  busy?: boolean
+  error?: boolean
 }>()
 
 const { t } = useI18n()
@@ -74,16 +75,15 @@ const filteredBackedUpVms = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (backedUpVms.value.length === 0) {
-    return t('no-backed-up-vms-detected')
-  }
-
-  if (filteredBackedUpVms.value.length === 0) {
-    return t('no-result')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    backedUpVms.value.length === 0
+      ? t('no-backed-up-vms-detected')
+      : filteredBackedUpVms.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
 const getDiskSize = (vm: XoVm) =>

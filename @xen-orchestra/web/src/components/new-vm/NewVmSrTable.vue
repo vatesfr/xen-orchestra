@@ -6,23 +6,19 @@
       </tr>
     </thead>
     <tbody>
-      <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
-        <VtsRow v-for="(vdi, index) in vmState.existingVdis" :key="index">
-          <BodyCells :item="{ vdi }" />
-        </VtsRow>
-      </template>
-      <template v-if="vmState.vdis && vmState.vdis.length > 0">
-        <VtsRow v-for="(vdi, index) in vmState.vdis" :key="index">
-          <BodyCells :item="{ vdi, onRemove: () => emit('remove', index) }" />
-        </VtsRow>
-      </template>
-      <tr>
+      <VtsRow v-for="(vdi, index) in vmState.existingVdis" :key="index">
+        <BodyCells :item="{ vdi }" />
+      </VtsRow>
+      <VtsRow v-for="(vdi, index) in vmState.vdis" :key="index">
+        <BodyCells :item="{ vdi, onRemove: () => emit('remove', index) }" />
+      </VtsRow>
+      <VtsRow>
         <UiTableCell :colspan>
           <UiButton left-icon="fa:plus" variant="tertiary" accent="brand" size="medium" @click="emit('add')">
             {{ t('new') }}
           </UiButton>
         </UiTableCell>
-      </tr>
+      </VtsRow>
     </tbody>
   </VtsTable>
 </template>

@@ -8,7 +8,7 @@
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
       </div>
 
-      <VtsTable :busy="!isReady" :error="hasError" :pagination-bindings sticky="right">
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -33,17 +33,18 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
+import { useTableState } from '@core/composables/table-state.composable'
 import { useVdiColumns } from '@core/tables/column-sets/vdi-columns'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import type { XoVdi, XoVm } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vm, vdis } = defineProps<{
-  vdis: XoVdi[]
-  hasError: boolean
-  isReady: boolean
+const { vm, vdis, error, busy } = defineProps<{
   vm: XoVm
+  vdis: XoVdi[]
+  error?: boolean
+  busy?: boolean
 }>()
 
 const { t } = useI18n()
@@ -62,6 +63,13 @@ const filteredVdis = computed(() => {
   }
 
   return vdis.filter(vdi => Object.values(vdi).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+})
+
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    vdis.length === 0 ? t('no-vdis-detected') : filteredVdis.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis', filteredVdis)

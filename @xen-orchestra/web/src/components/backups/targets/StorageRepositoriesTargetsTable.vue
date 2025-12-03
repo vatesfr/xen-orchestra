@@ -8,7 +8,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings>
+      <VtsTable :state :pagination-bindings>
         <thead>
           <tr>
             <HeadCells />
@@ -31,6 +31,7 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { defineColumns } from '@core/packages/table/define-columns'
 import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column'
@@ -39,10 +40,10 @@ import type { XoSr } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { storageRepositories } = defineProps<{
+const { storageRepositories, busy, error } = defineProps<{
   storageRepositories: XoSr[]
-  isReady: boolean
-  hasError: boolean
+  busy?: boolean
+  error?: boolean
 }>()
 
 const { t } = useI18n()
@@ -61,16 +62,15 @@ const filteredSrs = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (storageRepositories.length === 0) {
-    return t('no-storage-repositories-detected')
-  }
-
-  if (filteredSrs.value.length === 0) {
-    return t('no-result')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    storageRepositories.length === 0
+      ? t('no-storage-repositories-detected')
+      : filteredSrs.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
 const { pageRecords: paginatedSrs, paginationBindings } = usePagination('storage-repositories-targets', filteredSrs)

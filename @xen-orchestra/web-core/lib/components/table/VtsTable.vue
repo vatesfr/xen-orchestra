@@ -1,11 +1,7 @@
 <template>
   <div class="vts-table-new" :class="className">
-    <VtsStateHero v-if="busy" format="table" type="busy" size="medium" />
-    <VtsStateHero v-else-if="error" format="table" type="error" size="small" no-background>
-      {{ t('error-no-data') }}
-    </VtsStateHero>
-    <VtsStateHero v-else-if="empty" format="table" type="no-data" size="small">
-      {{ emptyMessage }}
+    <VtsStateHero v-if="state" format="table" :type="state.type" :size="state.size ?? 'medium'">
+      {{ state.message }}
     </VtsStateHero>
     <div v-else class="table-container">
       <UiTablePagination v-if="paginationBindings" v-bind="paginationBindings" class="pagination" />
@@ -20,28 +16,27 @@
 </template>
 
 <script lang="ts" setup>
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsStateHero, { type StateHeroSize, type StateHeroType } from '@core/components/state-hero/VtsStateHero.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import type { PaginationBindings } from '@core/composables/pagination.composable'
 import { hasEllipsis } from '@core/utils/has-ellipsis.util'
 import { toVariants } from '@core/utils/to-variants.util'
 import { useResizeObserver, useScroll } from '@vueuse/core'
 import { computed, ref, useTemplateRef } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 export type TableStickySide = 'left' | 'right' | 'both'
 
-const { empty, sticky } = defineProps<{
-  busy?: boolean
-  error?: boolean
-  empty?: string | boolean
+export type TableState = {
+  type: StateHeroType
+  message?: string
+  size?: StateHeroSize
+}
+
+const { state, sticky } = defineProps<{
+  state?: TableState
   sticky?: TableStickySide
   paginationBindings?: PaginationBindings
 }>()
-
-const { t } = useI18n()
-
-const emptyMessage = computed(() => (typeof empty === 'string' ? empty : t('no-data')))
 
 const wrapper = useTemplateRef('wrapper')
 

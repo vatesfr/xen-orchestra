@@ -1,12 +1,12 @@
 <template>
-  <UiCard :has-error>
+  <UiCard>
     <UiCardTitle>
       {{ t('backup-issues') }}
       <UiCounter :value="nBackupIssues" accent="danger" size="medium" variant="primary" />
       <template #description>{{ t('in-last-three-jobs') }}</template>
     </UiCardTitle>
     <div class="backup-items">
-      <VtsTable :busy="!areBackupIssuesReady" :error="hasError" :empty="!hasBackupIssues">
+      <VtsTable :state>
         <thead>
           <HeadCells />
         </thead>
@@ -27,13 +27,14 @@ import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import { useTableState } from '@core/composables/table-state.composable'
 import { useBackupIssueColumns } from '@core/tables/column-sets/backup-issue-columns'
+import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { issues: rawIssues } = defineProps<{
   issues: NonNullable<XoDashboard['backups']>['issues'] | undefined
-  hasError?: boolean
 }>()
 
 const { t } = useI18n()
@@ -45,6 +46,12 @@ const backupIssues = computed(() => rawIssues ?? [])
 const nBackupIssues = computed(() => backupIssues.value.length)
 
 const hasBackupIssues = computed(() => nBackupIssues.value > 0)
+
+const state = useTableState({
+  busy: logicNot(areBackupIssuesReady),
+  empty: () =>
+    !hasBackupIssues.value ? { type: 'no-data', message: t('no-data-to-calculate'), size: 'small' } : false,
+})
 
 const { HeadCells, BodyCells } = useBackupIssueColumns({
   body: (issue: BackupIssue) => ({

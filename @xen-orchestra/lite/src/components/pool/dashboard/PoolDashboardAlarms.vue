@@ -18,7 +18,7 @@
       </div>
     </div>
     <div v-else class="table-container">
-      <VtsTable :busy="!isReady" :error="hasError" :empty="alarms.length === 0">
+      <VtsTable :state>
         <tbody>
           <VtsRow v-for="alarm of alarms" :key="alarm.uuid">
             <BodyCells :item="alarm" />
@@ -41,12 +41,14 @@ import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import { useTableState } from '@core/composables/table-state.composable'
 import { defineColumn, defineColumns } from '@core/packages/table'
 import { useDateColumn } from '@core/tables/column-definitions/date-column'
 import { usePercentColumn } from '@core/tables/column-definitions/percent-column'
 import { useTextColumn } from '@core/tables/column-definitions/text-column'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
 import { renderHeadCell } from '@core/tables/helpers/render-head-cell'
+import { logicNot } from '@vueuse/math'
 import { h } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -71,6 +73,12 @@ const useTaskColumns = defineColumns(() => ({
   onObject: useTextColumn(),
   object: useLegacyObjectLinkColumn(),
 }))
+
+const state = useTableState({
+  busy: logicNot(isReady),
+  error: hasError,
+  empty: () => (alarms.value.length === 0 ? { type: 'all-good', message: t('no-alarms-detected') } : false),
+})
 
 const { BodyCells } = useTaskColumns({
   body: (alarm: XenApiAlarm<RawObjectType>) => ({

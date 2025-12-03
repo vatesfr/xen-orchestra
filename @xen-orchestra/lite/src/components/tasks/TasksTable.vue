@@ -1,5 +1,5 @@
 <template>
-  <VtsTable :busy="!isReady" :error="hasError" :empty="!hasTasks">
+  <VtsTable :state>
     <thead>
       <tr>
         <HeadCells />
@@ -22,9 +22,11 @@ import { useHostStore } from '@/stores/xen-api/host.store'
 import { useTaskStore } from '@/stores/xen-api/task.store'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import { useTableState } from '@core/composables/table-state.composable'
 import { useTaskColumns } from '@core/tables/column-sets/task-column'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
 import { parseDateTime } from '@core/utils/time.util'
+import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -37,6 +39,12 @@ const { hasError, isReady } = useTaskStore().subscribe()
 const { getByOpaqueRef: getHost } = useHostStore().subscribe()
 
 const hasTasks = computed(() => props.pendingTasks.length > 0 || (props.finishedTasks?.length ?? 0) > 0)
+
+const state = useTableState({
+  busy: logicNot(isReady),
+  error: hasError,
+  empty: logicNot(hasTasks),
+})
 
 const { HeadCells, BodyCells } = useTaskColumns({
   body: ({ task, pending }: { task: XenApiTask; pending: boolean }) => {

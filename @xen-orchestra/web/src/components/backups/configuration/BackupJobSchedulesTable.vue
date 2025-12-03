@@ -6,7 +6,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTable :busy :error :empty="emptyMessage" :pagination-bindings>
+      <VtsTable :state :pagination-bindings>
         <thead>
           <tr>
             <HeadCells />
@@ -32,12 +32,17 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { useBackupJobScheduleColumns } from '@core/tables/column-sets/backup-job-schedule-columns'
 import type { XoSchedule } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupJobSchedules: rawSchedules } = defineProps<{
+const {
+  backupJobSchedules: rawSchedules,
+  busy,
+  error,
+} = defineProps<{
   backupJobSchedules: XoSchedule[]
   busy?: boolean
   error?: boolean
@@ -63,16 +68,15 @@ const filteredSchedules = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (rawSchedules.length === 0) {
-    return t('no-schedule-available')
-  }
-
-  if (filteredSchedules.value.length === 0) {
-    return t('no-result')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    rawSchedules.length === 0
+      ? t('no-schedule-available')
+      : filteredSchedules.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
 const { pageRecords: paginatedSchedules, paginationBindings } = usePagination('backup-job-schedules', filteredSchedules)

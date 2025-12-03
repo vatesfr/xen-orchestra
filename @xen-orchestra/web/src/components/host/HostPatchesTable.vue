@@ -1,5 +1,5 @@
 <template>
-  <VtsTable sticky="right">
+  <VtsTable :state sticky="right">
     <thead>
       <tr>
         <HeadCells />
@@ -17,11 +17,20 @@
 import type { MissingPatch } from '@/remote-resources/use-xo-host-missing-patches-collection'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
+import { useTableState } from '@core/composables/table-state.composable'
 import { usePatchColumns } from '@core/tables/column-sets/patch-columns'
+import { useI18n } from 'vue-i18n'
 
-defineProps<{
+const { patches } = defineProps<{
   patches: MissingPatch[]
 }>()
+
+const { t } = useI18n()
+
+const state = useTableState({
+  empty: () =>
+    patches.length === 0 ? { type: 'all-done', message: t('patches-up-to-date'), size: 'extra-small' } : false,
+})
 
 const { HeadCells, BodyCells } = usePatchColumns({
   body: (patch: MissingPatch) => ({

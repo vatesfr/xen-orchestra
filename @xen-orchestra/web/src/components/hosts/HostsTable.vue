@@ -6,7 +6,7 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
       </div>
 
-      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings sticky="right">
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <HeadCells />
         </thead>
@@ -30,10 +30,11 @@ import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearch
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { icon, objectIcon } from '@core/icons'
 import { useHostColumns } from '@core/tables/column-sets/host-columns'
 import type { XoHost } from '@vates/types'
-import { logicAnd, logicOr } from '@vueuse/math'
+import { logicAnd, logicNot, logicOr } from '@vueuse/math'
 import { toLower } from 'lodash-es'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -74,16 +75,11 @@ const filteredHosts = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (rawHosts.length === 0) {
-    return t('no-hosts-detected')
-  }
-
-  if (filteredHosts.value.length === 0) {
-    return t('no-results')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: logicNot(isReady),
+  error: hasError,
+  empty: () =>
+    rawHosts.length === 0 ? t('no-hosts-detected') : filteredHosts.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', filteredHosts)

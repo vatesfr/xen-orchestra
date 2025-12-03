@@ -1,40 +1,65 @@
 <template>
-  <CollectionTable
-    :available-filters="filters"
-    :available-sorts="filters"
-    :collection="paginatedVms"
-    :busy="busy"
-    :pagination-bindings
-  >
-    <template #head-row>
-      <HeadCells />
-    </template>
-    <template #body-row="{ item }">
-      <BodyCells :item />
-    </template>
-  </CollectionTable>
+  <div>
+    <div class="filter-and-sort">
+      <CollectionFilter
+        :active-filters="filters"
+        :available-filters="availableFilters"
+        @add-filter="addFilter"
+        @remove-filter="removeFilter"
+      />
+
+      <CollectionSorter
+        :active-sorts="sorts"
+        :available-sorts="availableFilters"
+        @add-sort="addSort"
+        @remove-sort="removeSort"
+        @toggle-sort-direction="toggleSortDirection"
+      />
+    </div>
+
+    <VtsTable :state :pagination-bindings>
+      <thead>
+        <tr>
+          <HeadCells />
+        </tr>
+      </thead>
+      <tbody>
+        <VtsRow v-for="vm in paginatedVms" :key="vm.$ref">
+          <BodyCells :item="vm" />
+        </VtsRow>
+      </tbody>
+    </VtsTable>
+  </div>
 </template>
 
 <script lang="ts" setup>
-import CollectionTable from '@/components/CollectionTable.vue'
+import useCollectionFilter from '@/composables/collection-filter.composable'
+import useCollectionSorter from '@/composables/collection-sorter.composable'
 import type { XenApiVm } from '@/libs/xen-api/xen-api.types'
 import { useVbdStore } from '@/stores/xen-api/vbd.store'
 import { useVdiStore } from '@/stores/xen-api/vdi.store'
 import { useVmGuestMetricsStore } from '@/stores/xen-api/vm-guest-metrics.store'
 import { useVmMetricsStore } from '@/stores/xen-api/vm-metrics.store'
 import type { Filters } from '@/types/filter'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { objectIcon } from '@core/icons'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { VM_POWER_STATE } from '@vates/types'
+import { useSorted } from '@vueuse/core'
+import { useArrayFilter } from '@vueuse/shared'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import CollectionFilter from '../CollectionFilter.vue'
+import CollectionSorter from '../CollectionSorter.vue'
 
-const { vms } = defineProps<{
+const { vms, busy, error } = defineProps<{
   vms: XenApiVm[]
   busy?: boolean
   error?: boolean
@@ -47,7 +72,7 @@ const { getByOpaqueRefs: getVdis } = useVdiStore().subscribe()
 
 const { t } = useI18n()
 
-const filters: Filters = {
+const availableFilters: Filters = {
   name_label: { label: t('name'), type: 'string' },
   name_description: { label: t('description'), type: 'string' },
   power_state: {
@@ -58,7 +83,29 @@ const filters: Filters = {
   },
 }
 
-const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', vms)
+const { filters, addFilter, removeFilter, predicate } = useCollectionFilter<XenApiVm>({
+  queryStringParam: 'filter',
+})
+
+const { sorts, addSort, removeSort, toggleSortDirection, compareFn } = useCollectionSorter<XenApiVm>({
+  queryStringParam: 'sort',
+})
+
+const filteredVms = useArrayFilter(
+  () => vms,
+  vm => predicate.value(vm)
+)
+
+const filteredAndSortedVms = useSorted(filteredVms, (a, b) => compareFn.value(a, b))
+
+const { pageRecords: paginatedVms, paginationBindings } = usePagination('vms', filteredAndSortedVms)
+
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    vms.length === 0 ? t('no-vm-detected') : filteredVms.value.length === 0 ? { type: 'no-result' } : false,
+})
 
 const { HeadCells, BodyCells } = useVmColumns({
   exclude: ['selectItem'],
@@ -95,3 +142,9 @@ const { HeadCells, BodyCells } = useVmColumns({
   },
 })
 </script>
+
+<style lang="postcss" scoped>
+.filter-and-sort {
+  display: flex;
+}
+</style>

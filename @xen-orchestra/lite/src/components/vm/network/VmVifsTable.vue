@@ -51,7 +51,7 @@
           </UiButton>
         </UiTableActions>
       </div>
-      <VtsTable :busy="!isReady" :error="hasError" :empty="emptyMessage" :pagination-bindings sticky="right">
+      <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
             <HeadCells />
@@ -81,8 +81,10 @@ import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useTableState } from '@core/composables/table-state.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns'
+import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -129,16 +131,11 @@ const filteredVifs = computed(() => {
   )
 })
 
-const emptyMessage = computed(() => {
-  if (vifs.length === 0) {
-    return t('no-vif-detected')
-  }
-
-  if (filteredVifs.value.length === 0) {
-    return t('no-result')
-  }
-
-  return undefined
+const state = useTableState({
+  busy: logicNot(isReady),
+  error: hasError,
+  empty: () =>
+    vifs.length === 0 ? t('no-vif-detected') : filteredVifs.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs', filteredVifs)
@@ -168,32 +165,6 @@ const { HeadCells, BodyCells } = useVifColumns({
     display: flex;
     flex-direction: column;
     gap: 0.8rem;
-  }
-
-  .network {
-    display: flex;
-    align-items: center;
-    gap: 1.8rem;
-  }
-
-  .ip-addresses {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .more-ips {
-      color: var(--color-neutral-txt-secondary);
-    }
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
   }
 }
 </style>

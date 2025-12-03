@@ -10,8 +10,7 @@
     </div>
     <VtsStateHero v-if="!areMissingPatchesReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="noMissingPatches" format="card" type="all-done" size="small">
-      <span> {{ t('all-good') }} </span>
-      <span>{{ t('patches-up-to-date') }}</span>
+      {{ t('patches-up-to-date') }}
     </VtsStateHero>
     <div v-else class="table-wrapper">
       <HostPatchesTable :patches="missingPatches" />
