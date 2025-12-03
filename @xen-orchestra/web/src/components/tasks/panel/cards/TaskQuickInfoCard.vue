@@ -57,7 +57,7 @@
           </UiTagsList>
         </template>
         <template v-if="task.properties.progress" #addons>
-          <UiCircleProgressBar :accent="progressStatus" size="small" :value="task.properties.progress" />
+          <UiCircleProgressBar :accent="progressStatus" size="small" :value="Number(task.properties.progress)" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -65,7 +65,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoUserCollection } from '@/remote-resources/use-xo-user-collections.ts'
+import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
 import { getTaskAccent } from '@/utils/task-status.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -86,9 +86,7 @@ const { task } = defineProps<{
 
 const { t, d } = useI18n()
 
-const { getUserById } = useXoUserCollection()
-
-const user = getUserById(task.properties.userId as XoUser['id'])
+const { user } = useXoUserResource({}, () => task.properties.userId as XoUser['id'])
 
 const progressStatus = computed(() => getTaskAccent(task.status, 'progress'))
 const taskStatus = computed(() => getTaskAccent(task.status, 'status'))

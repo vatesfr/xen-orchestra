@@ -1,7 +1,7 @@
 <template>
   <div class="tasks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <VtsStateHero v-if="areTasksFetching" busy format="card" size="medium" />
+      <VtsStateHero v-if="areTasksFetching" busy format="card" type="busy" size="medium" />
       <TasksList v-else :tasks="convertedTasks" :has-error="hasTaskFetchError" />
     </UiCard>
     <TaskSidePanel v-if="selectedTask" :task="selectedTask" @close="selectedTask = undefined" />
