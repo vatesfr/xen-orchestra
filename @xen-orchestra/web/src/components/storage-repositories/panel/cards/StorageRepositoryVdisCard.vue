@@ -27,7 +27,6 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XoVdi } from '@vates/types'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
