@@ -20,7 +20,7 @@
       </TabItem>
     </RouterLink>
     <TabItem>
-      <UiLink :href="`${xo5Route}#/hosts/${host.id}/stats`" size="medium">
+      <UiLink :href="xo5HostStatsHref" size="medium">
         {{ t('stats') }}
       </UiLink>
     </TabItem>
@@ -69,8 +69,8 @@ const { host } = defineProps<{
 
 const { t } = useI18n()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
+const xo5HostStatsHref = computed(() => buildXo5Route(`/hosts/${host.id}/stats`))
 
 const { isMasterHost } = useXoHostCollection()
 

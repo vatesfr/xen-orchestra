@@ -41,7 +41,7 @@
       {{ t('schedule') }}
     </template>
     <template #value>
-      <UiLink size="small" icon="object:backup-schedule" :href="`${xo5Route}#/backup/${backupRun.jobId}/edit`">
+      <UiLink size="small" icon="object:backup-schedule" :href>
         {{ scheduleName || backupRun.jobId }}
       </UiLink>
     </template>
@@ -73,8 +73,8 @@ const { backupRun } = defineProps<{
 
 const { t, d } = useI18n()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
+const href = computed(() => buildXo5Route(`/backup/${backupRun.jobId}/edit`))
 
 const { schedules } = useXoScheduleCollection()
 

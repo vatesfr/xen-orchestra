@@ -8,7 +8,7 @@
         {{ backupJob.name }}
       </span>
     </UiBreadcrumb>
-    <UiLink :size :href="`${xo5Route}#/backup/new`">{{ t('configure-in-xo-5') }}</UiLink>
+    <UiLink :size :href="newBackupRoute">{{ t('configure-in-xo-5') }}</UiLink>
   </div>
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/runs`" custom>
@@ -52,8 +52,8 @@ defineProps<{ backupJob: AnyXoBackupJob }>()
 const { t } = useI18n()
 const uiStore = useUiStore()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
+const newBackupRoute = computed(() => buildXo5Route('/backup/new'))
 
 const size = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
 </script>
@@ -68,7 +68,7 @@ const size = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
   border-bottom: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);
   justify-content: space-between;
-  overflow-y: scroll;
+  overflow-y: auto;
 
   .backup-job-name {
     display: flex;

@@ -35,12 +35,12 @@
               {{ t('network') }}
             </template>
             <template #value>
-              <UiLink size="medium" :to="`/pool/${network?.$pool}/networks?id=${network?.id}`" @click.stop>
+              <UiLink v-if="network" size="medium" :to="networkTo">
                 <VtsIcon name="fa:network-wired" size="medium" />
-                <span v-tooltip class="text-ellipsis">{{ network?.name_label }}</span>
+                <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
               </UiLink>
             </template>
-            <template v-if="network?.name_label" #addons>
+            <template v-if="network" #addons>
               <VtsCopyButton :value="network.name_label" />
             </template>
           </VtsCardRowKeyValue>
@@ -152,6 +152,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
+import { getPoolNetworkLink } from '@/utils/xo-records/network.utils'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -186,6 +187,8 @@ const ipAddresses = computed(() => {
 })
 
 const network = useGetNetworkById(() => vif.$network)
+
+const networkTo = computed(() => getPoolNetworkLink(network.value))
 
 const status = computed(() => (vif.attached ? 'connected' : 'disconnected'))
 </script>

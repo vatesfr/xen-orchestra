@@ -27,7 +27,7 @@
                 v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
                 icon="fa:city"
                 size="small"
-                :to="`/pool/${server.poolId}/`"
+                :to="`/pool/${server.poolId}/dashboard`"
               >
                 {{ server.poolNameLabel }}
               </UiLink>
@@ -89,7 +89,12 @@
         <VtsCardRowKeyValue>
           <template #key>{{ t('master') }}</template>
           <template #value>
-            <UiLink v-if="primaryHost !== undefined" icon="fa:server" size="small" :to="`/host/${primaryHost.id}/`">
+            <UiLink
+              v-if="primaryHost !== undefined"
+              icon="fa:server"
+              size="small"
+              :to="`/host/${primaryHost.id}/dashboard`"
+            >
               {{ primaryHost.name_label }}
             </UiLink>
           </template>
@@ -148,7 +153,7 @@
           {{ t('no-data') }}
         </VtsStateHero>
         <template v-else>
-          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" icon="fa:server" size="small">
+          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/dashboard`" icon="fa:server" size="small">
             {{ host.name_label }}
             <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="legacy:primary" size="medium" />
           </UiLink>

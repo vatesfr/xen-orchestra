@@ -3,13 +3,7 @@
     <UiTitle>
       {{ t('vifs') }}
       <template #actions>
-        <UiLink
-          :href="`${xo5Route}#/vms/${vm.id}/network`"
-          icon="fa:plus"
-          variant="secondary"
-          accent="brand"
-          size="medium"
-        >
+        <UiLink :href="xo5VmVifHref" icon="fa:plus" size="medium">
           {{ t('add-vifs-in-xo-5') }}
         </UiLink>
       </template>
@@ -37,35 +31,40 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
+import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
+import { getNetworkStatus, getPoolNetworkLink } from '@/utils/xo-records/network.utils'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { objectIcon } from '@core/icons'
 import { useVifColumns } from '@core/tables/column-sets/vif-columns'
+import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
 import type { XoVm, XoVif } from '@vates/types'
 import { logicNot } from '@vueuse/math'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { vifs: rawVifs } = defineProps<{
+const { vifs: rawVifs, vm } = defineProps<{
   vm: XoVm
   vifs: XoVif[]
 }>()
 
-const { getNetworkById } = useXoNetworkCollection()
+const { getNetworkById, useGetNetworkById } = useXoNetworkCollection()
 const { getVmById } = useXoVmCollection()
 const { areVifsReady, hasVifFetchError } = useXoVifCollection()
+const { getPifsByIds } = useXoPifCollection()
 const { t } = useI18n()
 
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
+const xo5VmVifHref = computed(() => buildXo5Route(`/vms/${vm.id}/network`))
 
 const selectedVifId = useRouteQuery('id')
 
@@ -102,11 +101,22 @@ const { pageRecords: paginatedVifs, paginationBindings } = usePagination('vifs',
 
 const { HeadCells, BodyCells } = useVifColumns({
   body: (vif: XoVif) => {
-    const networkName = computed(() => getNetworkName(vif))
     const ipAddresses = computed(() => getIpAddresses(vif))
 
+    const network = useGetNetworkById(() => vif.$network)
+    const poolNetworkLink = computed(() => getPoolNetworkLink(network.value))
+    const networkPifs = computed(() => getPifsByIds(network.value?.PIFs ?? []))
+    const networkStatus = computed(() => getNetworkStatus(networkPifs.value))
+
     return {
-      network: r => r({ label: networkName.value }),
+      network: r =>
+        network.value
+          ? r({
+              label: network.value.name_label,
+              to: poolNetworkLink.value,
+              icon: objectIcon('network', networkStatus.value),
+            })
+          : renderBodyCell(),
       device: r => r(t('vif-device', { device: vif.device })),
       status: r => r(vif.attached ? 'connected' : 'disconnected'),
       ipsAddresses: r => r(ipAddresses.value),

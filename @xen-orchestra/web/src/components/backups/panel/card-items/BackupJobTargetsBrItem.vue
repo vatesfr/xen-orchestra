@@ -1,6 +1,6 @@
 <template>
   <li>
-    <UiLink size="small" :icon :href="`${xo5Route}#/settings/remotes`">
+    <UiLink size="small" :icon :href>
       {{ br.name }}
     </UiLink>
   </li>
@@ -15,8 +15,8 @@ import { computed } from 'vue'
 const { br } = defineProps<{
   br: XoBackupRepository
 }>()
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '/')
+const { buildXo5Route } = useXoRoutes()
+const href = computed(() => buildXo5Route('/settings/remotes'))
 
 const icon = computed(() =>
   br.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected'
