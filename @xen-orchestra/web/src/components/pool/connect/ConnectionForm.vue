@@ -35,7 +35,7 @@
       </UiCheckbox>
     </div>
     <div class="buttons-container">
-      <RouterLink to="/">
+      <RouterLink :to="{ name: '/(site)/dashboard' }">
         <UiButton accent="brand" size="medium" variant="secondary">{{ t('cancel') }}</UiButton>
       </RouterLink>
       <UiButton type="submit" accent="brand" size="medium" variant="primary" :busy="connecting">

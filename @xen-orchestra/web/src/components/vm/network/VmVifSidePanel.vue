@@ -152,7 +152,7 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import { getPoolNetworkLink } from '@/utils/xo-records/network.utils'
+import { getPoolNetworkRoute } from '@/utils/xo-records/network.utils'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -188,7 +188,9 @@ const ipAddresses = computed(() => {
 
 const network = useGetNetworkById(() => vif.$network)
 
-const networkTo = computed(() => getPoolNetworkLink(network.value))
+const networkTo = computed(() =>
+  network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
+)
 
 const status = computed(() => (vif.attached ? 'connected' : 'disconnected'))
 </script>
