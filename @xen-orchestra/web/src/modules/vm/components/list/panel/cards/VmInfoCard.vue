@@ -1,7 +1,12 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="vm.name_label !== ''" size="medium" icon="fa:desktop" :to="`/vm/${vm.id}/dashboard`">
+      <UiLink
+        v-if="vm.name_label !== ''"
+        size="medium"
+        icon="fa:desktop"
+        :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+      >
         {{ vm.name_label }}
       </UiLink>
     </UiCardTitle>
@@ -45,7 +50,7 @@
         <template #value>
           <div v-if="pool" class="value">
             <VtsIcon name="fa:city" size="small" />
-            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small">
+            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="small">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -60,7 +65,7 @@
           <div v-if="host" class="value">
             <VtsObjectIcon type="host" :state="hostPowerState" size="small" />
             <div v-tooltip class="text-ellipsis">
-              <UiLink :to="`/host/${host.id}/dashboard`" size="small">
+              <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="small">
                 {{ host.name_label }}
               </UiLink>
             </div>

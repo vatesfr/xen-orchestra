@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getNetworkStatus, getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
+import { getNetworkStatus, getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -101,7 +101,11 @@ const { HeadCells, BodyCells } = useVifColumns({
     const ipAddresses = computed(() => getIpAddresses(vif))
 
     const network = useGetNetworkById(() => vif.$network)
-    const poolNetworkLink = computed(() => getPoolNetworkLink(network.value))
+
+    const poolNetworkRoute = computed(() =>
+      network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
+    )
+
     const networkPifs = computed(() => getPifsByIds(network.value?.PIFs ?? []))
     const networkStatus = computed(() => getNetworkStatus(networkPifs.value))
 
@@ -110,7 +114,7 @@ const { HeadCells, BodyCells } = useVifColumns({
         network.value
           ? r({
               label: network.value.name_label,
-              to: poolNetworkLink.value,
+              to: poolNetworkRoute.value,
               icon: objectIcon('network', networkStatus.value),
             })
           : renderBodyCell(),

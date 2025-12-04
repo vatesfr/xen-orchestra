@@ -4,7 +4,12 @@
       {{ t('host') }}
     </template>
     <template #value>
-      <UiLink v-if="host !== undefined" size="small" icon="fa:server" :to="`host/${host.id}/dashboard`">
+      <UiLink
+        v-if="host !== undefined"
+        size="small"
+        icon="fa:server"
+        :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
+      >
         {{ host.name_label }}
       </UiLink>
     </template>

@@ -22,7 +22,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('pool')">
       <template v-if="pool !== undefined" #value>
-        <UiLink size="medium" :to="`/pool/${pool.id}/dashboard`" icon="fa:city">
+        <UiLink size="medium" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" icon="fa:city">
           {{ pool.name_label }}
         </UiLink>
       </template>
@@ -33,7 +33,12 @@
           <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
           {{ t('this-host') }}
         </template>
-        <UiLink v-else-if="masterHost !== undefined" size="medium" :to="`/host/${masterHost.id}/`" icon="fa:server">
+        <UiLink
+          v-else-if="masterHost !== undefined"
+          size="medium"
+          :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
+          icon="fa:server"
+        >
           {{ masterHost.name_label }}
         </UiLink>
       </template>
