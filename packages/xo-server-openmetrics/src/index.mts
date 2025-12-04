@@ -128,9 +128,10 @@ class OpenMetricsPlugin {
       return
     }
 
-    const configuration = this.#configuration
-    if (configuration === undefined) {
-      throw new Error('Plugin not configured')
+    // Use configured values or defaults from configurationSchema
+    const configuration: PluginConfiguration = {
+      port: this.#configuration?.port ?? 9004,
+      bindAddress: this.#configuration?.bindAddress ?? '127.0.0.1',
     }
 
     logger.info('Starting OpenMetrics server', {
@@ -396,6 +397,9 @@ interface PluginOptions {
   xo: XoServer
 }
 
-export default function ({ xo }: PluginOptions): OpenMetricsPlugin {
+function pluginFactory({ xo }: PluginOptions): OpenMetricsPlugin {
   return new OpenMetricsPlugin(xo)
 }
+pluginFactory.configurationSchema = configurationSchema
+
+export default pluginFactory
