@@ -8,7 +8,7 @@
     </template>
   </UiHeadBar>
   <TabList>
-    <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/dashboard`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}
       </TabItem>
@@ -18,17 +18,17 @@
         {{ t('stats') }}
       </UiLink>
     </TabItem>
-    <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/system`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/system', params: { id: pool.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('system') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/networks`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/networks', params: { id: pool.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('network') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/storage`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/storage', params: { id: pool.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('storage') }}
       </TabItem>
@@ -38,12 +38,12 @@
         {{ t('tasks') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/hosts`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/hosts', params: { id: pool.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('hosts') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/vms`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/vms', params: { id: pool.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('vms') }}
       </TabItem>

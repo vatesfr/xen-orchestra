@@ -252,6 +252,7 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection, type FrontXoPif } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
@@ -291,7 +292,7 @@ const ipAddresses = computed(() => [pif.ip, ...pif.ipv6].filter(ip => ip))
 const network = useGetNetworkById(() => pif.$network)
 
 const networkTo = computed(() =>
-  network.value !== undefined ? `/pool/${network.value.$pool}/networks?id=${network.value.id}` : undefined
+  network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
 )
 
 const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))

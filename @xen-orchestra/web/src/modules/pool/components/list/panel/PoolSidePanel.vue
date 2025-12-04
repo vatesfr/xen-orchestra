@@ -29,7 +29,7 @@
                 v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
                 icon="object:pool"
                 size="small"
-                :to="`/pool/${server.poolId}/dashboard`"
+                :to="{ name: '/pool/[id]/dashboard', params: { id: server.poolId } }"
               >
                 {{ server.poolNameLabel }}
               </UiLink>
@@ -87,7 +87,7 @@
               v-if="primaryHost !== undefined"
               :icon="`object:host:${toLower(primaryHost.power_state)}`"
               size="small"
-              :to="`/host/${primaryHost.id}/dashboard`"
+              :to="{ name: '/host/[id]/dashboard', params: { id: primaryHost.id } }"
             >
               {{ primaryHost.name_label }}
               <VtsIcon accent="info" name="status:primary-circle" size="medium" />
@@ -151,7 +151,7 @@
           <UiLink
             v-for="host in hosts"
             :key="host.id"
-            :to="`/host/${host.id}/dashboard`"
+            :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }"
             :icon="`object:host:${toLower(host.power_state)}`"
             size="small"
           >

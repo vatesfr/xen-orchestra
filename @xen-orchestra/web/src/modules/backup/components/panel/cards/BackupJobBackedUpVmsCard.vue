@@ -56,7 +56,11 @@
         <!-- Backed up VMs list -->
         <UiCollapsibleList tag="ul" :total-items="backedUpVmsCount">
           <li v-for="vm in backedUpVms" :key="vm.id">
-            <UiLink size="small" :icon="`object:vm:${toLower(vm.power_state)}`" :to="`/vm/${vm.id}/dashboard`">
+            <UiLink
+              size="small"
+              :icon="`object:vm:${toLower(vm.power_state)}`"
+              :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
+            >
               {{ vm.name_label }}
             </UiLink>
           </li>

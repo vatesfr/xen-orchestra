@@ -5,7 +5,7 @@
         v-if="vm.name_label !== ''"
         size="medium"
         :icon="`object:vm:${toLower(vm.power_state)}`"
-        :to="`/vm/${vm.id}/dashboard`"
+        :to="{ name: '/vm/[id]/dashboard', params: { id: vm.id } }"
       >
         {{ vm.name_label }}
       </UiLink>
@@ -43,7 +43,7 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small" icon="object:pool">
+            <UiLink :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }" size="small" icon="object:pool">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -56,7 +56,7 @@
         <template #key>{{ t('host') }}</template>
         <template #value>
           <div v-if="host" class="value">
-            <UiLink :to="`/host/${host.id}/dashboard`" size="small" :icon="`object:host:${hostPowerState}`">
+            <UiLink :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" size="small" :icon="`object:host:${hostPowerState}`">
               {{ host.name_label }}
             </UiLink>
             <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="small" />

@@ -138,7 +138,7 @@
 
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
-import { getPoolNetworkLink } from '@/modules/network/utils/xo-network.util.ts'
+import { getPoolNetworkRoute } from '@/modules/network/utils/xo-network.util.ts'
 import type { FrontXoVif } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
@@ -176,7 +176,9 @@ const ipAddresses = computed(() => {
 
 const network = useGetNetworkById(() => vif.$network)
 
-const networkTo = computed(() => getPoolNetworkLink(network.value))
+const networkTo = computed(() =>
+  network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
+)
 
 const status = computed(() => (vif.attached ? CONNECTION_STATUS.CONNECTED : CONNECTION_STATUS.DISCONNECTED))
 </script>

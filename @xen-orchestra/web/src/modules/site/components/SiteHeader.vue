@@ -2,7 +2,7 @@
   <UiHeadBar icon="fa:satellite">
     {{ XOA_NAME }}
     <template #actions>
-      <UiLink to="/pool/connect" size="medium" icon="fa:plus">
+      <UiLink :to="{ name: '/pool/connect' }" size="medium" icon="fa:plus">
         {{ t('action:connect-pool') }}
       </UiLink>
     </template>
@@ -13,7 +13,7 @@
         {{ t('dashboard') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isExactActive, href }" to="/backups" custom>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/backups' }" custom>
       <TabItem :active="isExactActive" :href tag="a">
         {{ t('backups') }}
       </TabItem>
@@ -23,13 +23,13 @@
         {{ t('tasks') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isExactActive, href }" to="/pools" custom>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/pools' }" custom>
       <TabItem :active="isExactActive" :href tag="a">{{ t('pools') }}</TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isExactActive, href }" to="/hosts" custom>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/hosts' }" custom>
       <TabItem :active="isExactActive" :href tag="a">{{ t('hosts') }}</TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isExactActive, href }" to="/vms" custom>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/vms' }" custom>
       <TabItem :active="isExactActive" :href tag="a">{{ t('vms') }}</TabItem>
     </RouterLink>
   </TabList>

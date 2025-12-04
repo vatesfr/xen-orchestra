@@ -3,7 +3,7 @@
     <VtsStateHero format="page" type="not-found" size="large">
       {{ t('page-not-found') }}
     </VtsStateHero>
-    <UiLink to="/" size="medium">
+    <UiLink :to="{ name: '/(site)/dashboard' }" size="medium">
       {{ t('back-site-dashboard') }}
     </UiLink>
   </div>
