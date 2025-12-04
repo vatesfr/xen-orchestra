@@ -9,12 +9,12 @@
     </template>
   </UiHeadBar>
   <TabList>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/dashboard`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/dashboard', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('dashboard') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/console`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/console', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('console') }}
       </TabItem>
@@ -24,23 +24,23 @@
         {{ t('stats') }}
       </UiLink>
     </TabItem>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/system`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/system', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('system') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/networks`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/networks', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('network') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/storage`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/storage', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('storage') }}
       </TabItem>
     </RouterLink>
     <TabItem disabled>{{ t('tasks') }}</TabItem>
-    <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/vms`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/host/[id]/vms', params: { id: host.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('vms', 2) }}
       </TabItem>
