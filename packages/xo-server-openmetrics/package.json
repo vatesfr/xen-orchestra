@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "license": "AGPL-3.0-or-later",
   "description": "XO Server plugin exposing metrics in OpenMetrics/Prometheus format",
+  "type": "module",
   "keywords": [
     "xen-orchestra",
     "xo-server",
@@ -23,26 +24,25 @@
     "name": "Vates SAS",
     "url": "https://vates.fr"
   },
-  "main": "dist/",
+  "main": "dist/index.mjs",
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.7.1"
+    "@vates/async-each": "^1.0.0",
+    "@xen-orchestra/log": "^0.7.1",
+    "undici": "^6.2.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "cross-env": "^7.0.2",
-    "rimraf": "^6.0.1"
+    "@types/node": "^20.0.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.0.0"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --copy-files --out-dir=dist/ src/",
+    "build": "tsc",
     "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --copy-files --out-dir=dist/ src/",
+    "dev": "yarn run clean && yarn run build",
     "prebuild": "yarn run clean",
-    "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
   },
   "private": true

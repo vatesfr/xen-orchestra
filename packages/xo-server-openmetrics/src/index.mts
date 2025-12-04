@@ -1,22 +1,66 @@
-// @ts-check
+/**
+ * XO Server OpenMetrics Plugin
+ *
+ * This plugin exposes XO metrics in OpenMetrics/Prometheus format.
+ * It spawns a child process that runs an HTTP server and fetches
+ * RRD data directly from connected XAPI pools.
+ */
 
 import { createLogger } from '@xen-orchestra/log'
-import { fork } from 'child_process'
-import { join } from 'path'
+import { fork, type ChildProcess } from 'node:child_process'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-/**
- * @typedef {Object} IpcMessage
- * @property {string} type
- * @property {unknown} [payload]
- * @property {string} [requestId]
- * @property {string} [error]
- */
+// ============================================================================
+// Types
+// ============================================================================
 
-/**
- * @typedef {Object} PluginConfiguration
- * @property {number} port
- * @property {string} bindAddress
- */
+interface IpcMessage {
+  type: string
+  payload?: unknown
+  requestId?: string
+  error?: string
+}
+
+interface PluginConfiguration {
+  port: number
+  bindAddress: string
+}
+
+interface PendingRequest {
+  resolve: (value: unknown) => void
+  reject: (error: Error) => void
+}
+
+interface PoolCredentials {
+  poolId: string
+  masterUrl: string
+  sessionId: string
+}
+
+interface XapiCredentialsPayload {
+  pools: PoolCredentials[]
+}
+
+// Minimal type for XAPI connection
+interface Xapi {
+  status: string
+  pool?: { uuid: string }
+  sessionId: string
+  _url?: URL
+}
+
+// Minimal type for xo-server instance
+interface XoServer {
+  getAllXapis(): Record<string, Xapi>
+}
+
+// ============================================================================
+// Constants
+// ============================================================================
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const logger = createLogger('xo:xo-server-openmetrics')
 
@@ -25,6 +69,10 @@ const IPC_TIMEOUT_MS = 10_000
 
 /** Default timeout for graceful shutdown in milliseconds */
 const SHUTDOWN_TIMEOUT_MS = 5_000
+
+// ============================================================================
+// Configuration Schema (exported for xo-server)
+// ============================================================================
 
 export const configurationSchema = {
   type: 'object',
@@ -47,31 +95,25 @@ export const configurationSchema = {
   additionalProperties: false,
 }
 
+// ============================================================================
+// Plugin Class
+// ============================================================================
+
 class OpenMetricsPlugin {
-  /** @type {PluginConfiguration | undefined} */
-  #configuration
-
-  /** @type {import('child_process').ChildProcess | undefined} */
-  #childProcess
-
-  /** @type {Map<string, { resolve: (value: unknown) => void, reject: (error: Error) => void }>} */
-  #pendingRequests = new Map()
-
-  /** @type {number} */
+  #configuration: PluginConfiguration | undefined
+  #childProcess: ChildProcess | undefined
+  #pendingRequests = new Map<string, PendingRequest>()
   #requestIdCounter = 0
+  readonly #xo: XoServer
 
-  /**
-   * @param {Object} xo - The xo-server instance
-   */
-  constructor(xo) {
-    this._xo = xo
+  constructor(xo: XoServer) {
+    this.#xo = xo
   }
 
   /**
    * Configure the plugin with the provided configuration.
-   * @param {PluginConfiguration} configuration
    */
-  async configure(configuration) {
+  async configure(configuration: PluginConfiguration): Promise<void> {
     this.#configuration = configuration
     logger.debug('Plugin configured', { configuration })
   }
@@ -80,7 +122,7 @@ class OpenMetricsPlugin {
    * Load and start the plugin.
    * Forks the child process and waits for it to be ready.
    */
-  async load() {
+  async load(): Promise<void> {
     if (this.#childProcess !== undefined) {
       logger.warn('Plugin already loaded, skipping')
       return
@@ -103,7 +145,7 @@ class OpenMetricsPlugin {
    * Unload and stop the plugin.
    * Gracefully shuts down the child process.
    */
-  async unload() {
+  async unload(): Promise<void> {
     if (this.#childProcess === undefined) {
       return
     }
@@ -116,16 +158,15 @@ class OpenMetricsPlugin {
   /**
    * Test the plugin configuration.
    */
-  async test() {
+  async test(): Promise<void> {
     logger.debug('Testing OpenMetrics plugin')
   }
 
   /**
    * Start the child process and wait for it to be ready.
-   * @param {PluginConfiguration} configuration
    */
-  async #startChildProcess(configuration) {
-    const serverPath = join(__dirname, 'open-metric-server.js')
+  async #startChildProcess(configuration: PluginConfiguration): Promise<void> {
+    const serverPath = join(__dirname, 'open-metric-server.mjs')
 
     this.#childProcess = fork(serverPath, [], {
       stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
@@ -133,31 +174,31 @@ class OpenMetricsPlugin {
 
     const child = this.#childProcess
 
-    child.on('message', message => this.#handleChildMessage(message))
+    child.on('message', (message: unknown) => this.#handleChildMessage(message))
 
-    child.on('error', error => {
+    child.on('error', (error: Error) => {
       logger.error('Child process error', { error })
     })
 
-    child.on('exit', (code, signal) => {
+    child.on('exit', (code: number | null, signal: string | null) => {
       logger.info('Child process exited', { code, signal })
       this.#childProcess = undefined
       this.#rejectAllPendingRequests(new Error(`Child process exited with code ${code}`))
     })
 
     if (child.stdout !== null) {
-      child.stdout.on('data', data => {
+      child.stdout.on('data', (data: Buffer) => {
         logger.debug('Child stdout', { data: data.toString() })
       })
     }
 
     if (child.stderr !== null) {
-      child.stderr.on('data', data => {
+      child.stderr.on('data', (data: Buffer) => {
         logger.warn('Child stderr', { data: data.toString() })
       })
     }
 
-    await this.#sendToChild({ type: 'INIT', payload: configuration })
+    this.#sendToChild({ type: 'INIT', payload: configuration })
 
     await this.#waitForReady()
   }
@@ -165,7 +206,7 @@ class OpenMetricsPlugin {
   /**
    * Stop the child process gracefully.
    */
-  async #stopChildProcess() {
+  async #stopChildProcess(): Promise<void> {
     const child = this.#childProcess
     if (child === undefined) {
       return
@@ -174,16 +215,16 @@ class OpenMetricsPlugin {
     try {
       this.#sendToChildNoWait({ type: 'SHUTDOWN' })
 
-      await new Promise((resolve, reject) => {
+      await new Promise<void>(resolve => {
         const timeout = setTimeout(() => {
           logger.warn('Child process did not exit gracefully, forcing kill')
           child.kill('SIGKILL')
-          resolve(undefined)
+          resolve()
         }, SHUTDOWN_TIMEOUT_MS)
 
         child.once('exit', () => {
           clearTimeout(timeout)
-          resolve(undefined)
+          resolve()
         })
       })
     } catch (error) {
@@ -197,11 +238,9 @@ class OpenMetricsPlugin {
 
   /**
    * Handle messages received from the child process.
-   * @param {unknown} rawMessage
    */
-  #handleChildMessage(rawMessage) {
-    /** @type {IpcMessage} */
-    const message = /** @type {IpcMessage} */ (rawMessage)
+  #handleChildMessage(rawMessage: unknown): void {
+    const message = rawMessage as IpcMessage
 
     logger.debug('Received message from child', { type: message.type })
 
@@ -215,12 +254,12 @@ class OpenMetricsPlugin {
         this.#rejectPendingRequest('READY', new Error(String(message.error)))
         break
 
-      case 'GET_METRICS': {
-        const metrics = this.#collectMetrics()
+      case 'GET_XAPI_CREDENTIALS': {
+        const credentials = this.#getXapiCredentials()
         this.#sendToChildNoWait({
-          type: 'METRICS_RESPONSE',
+          type: 'XAPI_CREDENTIALS',
           requestId: message.requestId,
-          payload: metrics,
+          payload: credentials,
         })
         break
       }
@@ -231,20 +270,48 @@ class OpenMetricsPlugin {
   }
 
   /**
-   * Collect metrics from xo-server.
-   * This is a placeholder for XO-1666 which will implement actual RRD collection.
-   * @returns {string}
+   * Get XAPI credentials for all connected pools.
+   * Returns host URLs and session IDs for the child process to fetch RRD data directly.
    */
-  #collectMetrics() {
-    // Placeholder - XO-1666 will implement actual metrics collection
-    return '# OpenMetrics placeholder\n# HELP xo_info XO Server information\n# TYPE xo_info gauge\nxo_info 1\n'
+  #getXapiCredentials(): XapiCredentialsPayload {
+    const pools: PoolCredentials[] = []
+
+    const xapis = this.#xo.getAllXapis()
+    for (const serverId of Object.keys(xapis)) {
+      const xapi = xapis[serverId]
+      if (xapi.status !== 'connected') {
+        continue
+      }
+
+      try {
+        const pool = xapi.pool
+        if (pool === undefined) {
+          continue
+        }
+
+        // Access the internal URL - this is the connection URL to the pool master
+        const url = xapi._url
+        if (url === undefined) {
+          continue
+        }
+
+        pools.push({
+          poolId: pool.uuid,
+          masterUrl: `${url.protocol}//${url.host}`,
+          sessionId: xapi.sessionId,
+        })
+      } catch (error) {
+        logger.warn('Failed to get credentials for pool', { serverId, error })
+      }
+    }
+
+    return { pools }
   }
 
   /**
-   * Send a message to the child process and wait for acknowledgment.
-   * @param {IpcMessage} message
+   * Send a message to the child process.
    */
-  async #sendToChild(message) {
+  #sendToChild(message: IpcMessage): void {
     const child = this.#childProcess
     if (child === undefined) {
       throw new Error('Child process not running')
@@ -254,10 +321,9 @@ class OpenMetricsPlugin {
   }
 
   /**
-   * Send a message to the child process without waiting.
-   * @param {IpcMessage} message
+   * Send a message to the child process without throwing if not running.
    */
-  #sendToChildNoWait(message) {
+  #sendToChildNoWait(message: IpcMessage): void {
     const child = this.#childProcess
     if (child === undefined) {
       return
@@ -268,9 +334,8 @@ class OpenMetricsPlugin {
 
   /**
    * Wait for the child process to be ready.
-   * @returns {Promise<void>}
    */
-  #waitForReady() {
+  #waitForReady(): Promise<void> {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.#pendingRequests.delete('READY')
@@ -282,7 +347,7 @@ class OpenMetricsPlugin {
           clearTimeout(timeout)
           resolve()
         },
-        reject: error => {
+        reject: (error: Error) => {
           clearTimeout(timeout)
           reject(error)
         },
@@ -292,10 +357,8 @@ class OpenMetricsPlugin {
 
   /**
    * Resolve a pending request.
-   * @param {string} requestId
-   * @param {unknown} value
    */
-  #resolvePendingRequest(requestId, value) {
+  #resolvePendingRequest(requestId: string, value: unknown): void {
     const pending = this.#pendingRequests.get(requestId)
     if (pending !== undefined) {
       this.#pendingRequests.delete(requestId)
@@ -305,10 +368,8 @@ class OpenMetricsPlugin {
 
   /**
    * Reject a pending request.
-   * @param {string} requestId
-   * @param {Error} error
    */
-  #rejectPendingRequest(requestId, error) {
+  #rejectPendingRequest(requestId: string, error: Error): void {
     const pending = this.#pendingRequests.get(requestId)
     if (pending !== undefined) {
       this.#pendingRequests.delete(requestId)
@@ -318,9 +379,8 @@ class OpenMetricsPlugin {
 
   /**
    * Reject all pending requests.
-   * @param {Error} error
    */
-  #rejectAllPendingRequests(error) {
+  #rejectAllPendingRequests(error: Error): void {
     for (const pending of this.#pendingRequests.values()) {
       pending.reject(error)
     }
@@ -328,11 +388,14 @@ class OpenMetricsPlugin {
   }
 }
 
-/**
- * Plugin factory function.
- * @param {{ xo: Object }} opts
- * @returns {OpenMetricsPlugin}
- */
-export default function ({ xo }) {
+// ============================================================================
+// Plugin Factory (exported for xo-server)
+// ============================================================================
+
+interface PluginOptions {
+  xo: XoServer
+}
+
+export default function ({ xo }: PluginOptions): OpenMetricsPlugin {
   return new OpenMetricsPlugin(xo)
 }
