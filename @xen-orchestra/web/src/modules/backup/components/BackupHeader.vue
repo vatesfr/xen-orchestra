@@ -1,8 +1,8 @@
 <template>
   <div class="breadcrumb-container">
     <UiBreadcrumb :size>
-      <UiLink :size to="/dashboard" icon="fa:satellite">{{ XOA_NAME }}</UiLink>
-      <UiLink :size to="/backups">{{ t('backups') }}</UiLink>
+      <UiLink :size :to="{ name: '/(site)/dashboard' }" icon="fa:satellite">{{ XOA_NAME }}</UiLink>
+      <UiLink :size :to="{ name: '/(site)/backups' }">{{ t('backups') }}</UiLink>
       <span class="backup-job-name">
         <VtsIcon name="object:backup-job" size="current" />
         {{ backupJob.name }}
@@ -11,22 +11,30 @@
     <UiLink :size :href="newBackupRoute">{{ t('configure-in-xo-5') }}</UiLink>
   </div>
   <TabList>
-    <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/runs`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/backup/[id]/runs', params: { id: backupJob.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('runs') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/configuration`" custom>
+    <RouterLink
+      v-slot="{ isActive, href }"
+      :to="{ name: '/backup/[id]/configuration', params: { id: backupJob.id } }"
+      custom
+    >
       <TabItem :active="isActive" :href tag="a">
         {{ t('configuration') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/backed-up-vms`" custom>
+    <RouterLink
+      v-slot="{ isActive, href }"
+      :to="{ name: '/backup/[id]/backed-up-vms', params: { id: backupJob.id } }"
+      custom
+    >
       <TabItem :active="isActive" :href tag="a" :disabled="backupJob.type !== 'backup'">
         {{ t('backed-up-vms') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/targets`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/backup/[id]/targets', params: { id: backupJob.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('backup-targets') }}
       </TabItem>
