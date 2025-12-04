@@ -22,7 +22,7 @@
           </template>
           <UiLink
             v-else-if="masterHost !== undefined"
-            :to="`/host/${masterHost.id}/`"
+            :to="{ name: '/host/[id]/dashboard', params: { id: masterHost.id } }"
             size="medium"
             :icon="`object:host:${toLower(masterHost.power_state)}`"
           >
