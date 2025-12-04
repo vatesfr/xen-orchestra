@@ -41,7 +41,7 @@
       {{ t('schedule') }}
     </template>
     <template #value>
-      <UiLink size="small" icon="object:backup-schedule" :href="`/#/backup/${backupRun.jobId}/edit`">
+      <UiLink size="small" icon="object:backup-schedule" :href>
         {{ scheduleName || backupRun.jobId }}
       </UiLink>
     </template>
@@ -56,6 +56,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
@@ -71,6 +72,9 @@ const { backupRun } = defineProps<{
 }>()
 
 const { t, d } = useI18n()
+
+const { buildXo5Route } = useXoRoutes()
+const href = computed(() => buildXo5Route(`/backup/${backupRun.jobId}/edit`))
 
 const { schedules } = useXoScheduleCollection()
 

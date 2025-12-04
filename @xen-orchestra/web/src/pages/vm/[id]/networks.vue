@@ -1,7 +1,7 @@
 <template>
   <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <VmVifsTable :vifs />
+      <VmVifsTable :vm :vifs />
     </UiCard>
     <VmVifSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -21,19 +21,20 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoVif } from '@vates/types'
+import type { XoVif, XoVm } from '@vates/types'
 import { useArrayFilter } from '@vueuse/shared'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router/auto'
+
+const { vm } = defineProps<{
+  vm: XoVm
+}>()
 
 const { vifs: rawVifs, getVifById } = useXoVifCollection()
 const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const route = useRoute<'/vm/[id]'>()
-
-const vifs = useArrayFilter(rawVifs, vif => vif.$VM === route.params.id)
+const vifs = useArrayFilter(rawVifs, vif => vif.$VM === vm.id)
 
 const selectedVif = useRouteQuery<XoVif | undefined>('id', {
   toData: id => getVifById(id as XoVif['id']),

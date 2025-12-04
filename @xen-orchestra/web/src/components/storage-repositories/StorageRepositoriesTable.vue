@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('storage-repositories') }}
       <template #actions>
-        <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
+        <UiLink size="medium" :href>{{ t('configure-in-xo-5') }}</UiLink>
       </template>
     </UiTitle>
     <div class="container">
@@ -54,6 +54,9 @@ const {
 }>()
 
 const { t } = useI18n()
+
+const { buildXo5Route } = useXoRoutes()
+const href = computed(() => buildXo5Route('/new/sr'))
 
 const selectedSrId = useRouteQuery('id')
 

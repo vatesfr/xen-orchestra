@@ -6,38 +6,6 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:square-caret-down"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('change-state') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:eraser"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('forget') }}
-          </UiButton>
-        </UiTableActions>
       </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -62,14 +30,11 @@ import { getHostInfo } from '@/utils/xo-records/host.util'
 import { getPoolInfo } from '@/utils/xo-records/pool.util'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useTableState } from '@core/composables/table-state.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useServerColumns } from '@core/tables/column-sets/server-columns'
 import type { XoServer } from '@vates/types'
 import { logicNot } from '@vueuse/math'

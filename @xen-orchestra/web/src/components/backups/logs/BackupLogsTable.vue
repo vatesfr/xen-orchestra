@@ -2,9 +2,6 @@
   <div class="backup-logs-table">
     <UiTitle>
       {{ t('runs') }}
-      <template #actions>
-        <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
-      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
@@ -31,7 +28,6 @@
 import { useXoBackupLogsUtils } from '@/composables/xo-backup-log-utils.composable'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'

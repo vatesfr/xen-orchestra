@@ -8,7 +8,7 @@
         {{ backupJob.name }}
       </span>
     </UiBreadcrumb>
-    <UiLink :size href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
+    <UiLink :size :href="newBackupRoute">{{ t('configure-in-xo-5') }}</UiLink>
   </div>
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/runs`" custom>
@@ -36,6 +36,7 @@
 
 <script lang="ts" setup>
 import { XOA_NAME } from '@/constants'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
@@ -51,6 +52,9 @@ defineProps<{ backupJob: AnyXoBackupJob }>()
 const { t } = useI18n()
 const uiStore = useUiStore()
 
+const { buildXo5Route } = useXoRoutes()
+const newBackupRoute = computed(() => buildXo5Route('/backup/new'))
+
 const size = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
 </script>
 
@@ -64,7 +68,7 @@ const size = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
   border-bottom: 0.1rem solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);
   justify-content: space-between;
-  overflow-y: scroll;
+  overflow-y: auto;
 
   .backup-job-name {
     display: flex;

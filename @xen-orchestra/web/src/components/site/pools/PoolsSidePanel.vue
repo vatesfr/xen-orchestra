@@ -4,37 +4,13 @@
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
-          v-if="uiStore.isMobile"
           v-tooltip="t('close')"
           size="small"
           variant="tertiary"
           accent="brand"
-          icon="fa:angle-left"
+          :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
           @click="emit('close')"
         />
-        <div class="action-buttons">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            variant="tertiary"
-            size="medium"
-            accent="brand"
-            left-icon="fa:edit"
-          >
-            {{ t('change-state') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            variant="tertiary"
-            size="medium"
-            accent="danger"
-            left-icon="fa:trash"
-          >
-            {{ t('forget') }}
-          </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="small" icon="fa:ellipsis" />
-        </div>
       </div>
     </template>
     <template #default>
@@ -51,7 +27,7 @@
                 v-if="server.poolId !== undefined && server.poolNameLabel !== undefined"
                 icon="fa:city"
                 size="small"
-                :to="`/pool/${server.poolId}/`"
+                :to="`/pool/${server.poolId}/dashboard`"
               >
                 {{ server.poolNameLabel }}
               </UiLink>
@@ -113,7 +89,12 @@
         <VtsCardRowKeyValue>
           <template #key>{{ t('master') }}</template>
           <template #value>
-            <UiLink v-if="primaryHost !== undefined" icon="fa:server" size="small" :to="`/host/${primaryHost.id}/`">
+            <UiLink
+              v-if="primaryHost !== undefined"
+              icon="fa:server"
+              size="small"
+              :to="`/host/${primaryHost.id}/dashboard`"
+            >
               {{ primaryHost.name_label }}
             </UiLink>
           </template>
@@ -172,7 +153,7 @@
           {{ t('no-data') }}
         </VtsStateHero>
         <template v-else>
-          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/`" icon="fa:server" size="small">
+          <UiLink v-for="host in hosts" :key="host.id" :to="`/host/${host.id}/dashboard`" icon="fa:server" size="small">
             {{ host.name_label }}
             <VtsIcon v-if="primaryHost?.id === host.id" accent="info" name="legacy:primary" size="medium" />
           </UiLink>
@@ -198,7 +179,6 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -268,10 +248,5 @@ const connectionStatus = useMapper(
     align-items: center;
     width: 100%;
   }
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
 }
 </style>
