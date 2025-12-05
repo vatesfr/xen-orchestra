@@ -1,11 +1,5 @@
-import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
-import type {
-  BranchStatuses,
-  ChildTreeGetter,
-  TreeContext,
-  TreeNode,
-  TreeNodeOptions,
-} from '@core/composables/tree/types'
+import { TreeNodeBase } from '@core/packages/tree/tree-node-base'
+import type { BranchStatuses, ChildTreeGetter, TreeContext, TreeNode, TreeNodeOptions } from '@core/packages/tree/types'
 
 export class Branch<
   TData extends object = any,
@@ -16,6 +10,7 @@ export class Branch<
   readonly rawChildren: TChildNode[]
 
   constructor(
+    treeId: string,
     data: TData,
     parent: Branch | undefined,
     context: TreeContext,
@@ -23,7 +18,7 @@ export class Branch<
     options: TreeNodeOptions<TData, TDiscriminator> | undefined,
     getChildTree: ChildTreeGetter<TData, TChildNode, TDiscriminator>
   ) {
-    super(data, parent, context, depth, options)
+    super(treeId, data, parent, context, depth, options)
     this.rawChildren = getChildTree(this)
   }
 
@@ -48,7 +43,7 @@ export class Branch<
   }
 
   get isExcluded() {
-    if (this.parent?.isExpanded === false) {
+    if (this.parent?.isCollapsed === true) {
       return true
     }
 
@@ -59,8 +54,8 @@ export class Branch<
     return this.failsFilterDownwards
   }
 
-  get isExpanded() {
-    return this.context.expandedIds.has(this.id) || this.passesFilterDownwards || this.passesFilterUpwards
+  get isCollapsed() {
+    return this.context.collapsedIds.has(this.id)
   }
 
   get areChildrenFullySelected(): boolean {
@@ -92,7 +87,7 @@ export class Branch<
       matches: this.passesFilter === true,
       'selected-partial': this.context.allowMultiSelect && this.areChildrenPartiallySelected,
       'selected-full': this.context.allowMultiSelect && this.areChildrenFullySelected,
-      expanded: this.isExpanded,
+      collapsed: this.isCollapsed,
     }
   }
 
@@ -101,21 +96,21 @@ export class Branch<
     return this.areChildrenFullySelected ? 'all' : this.areChildrenPartiallySelected ? 'some' : 'none'
   }
 
-  toggleExpand(forcedValue?: boolean, recursive?: boolean) {
-    const nextExpanded = forcedValue ?? !this.isExpanded
+  toggleCollapse(forcedValue?: boolean, recursive?: boolean) {
+    const nextCollapsed = forcedValue ?? !this.isCollapsed
 
-    if (nextExpanded) {
-      this.context.expandedIds.add(this.id)
+    if (nextCollapsed) {
+      this.context.collapsedIds.add(this.id)
     } else {
-      this.context.expandedIds.delete(this.id)
+      this.context.collapsedIds.delete(this.id)
     }
 
-    const shouldPropagate = recursive ?? !nextExpanded
+    const shouldPropagate = recursive ?? nextCollapsed
 
     if (shouldPropagate) {
       this.rawChildren.forEach(child => {
         if (child.isBranch) {
-          child.toggleExpand(nextExpanded, recursive)
+          child.toggleCollapse(nextCollapsed, recursive)
         }
       })
     }

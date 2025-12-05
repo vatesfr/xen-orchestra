@@ -50,12 +50,13 @@ This option allows you to customize the label of the selected nodes.
 ## `LeafDefinition`
 
 ```ts
-new LeafDefinition(data)
-new LeafDefinition(data, options)
+new LeafDefinition(treeId, data)
+new LeafDefinition(treeId, data, options)
 ```
 
 |                         |       Required       | Type                                                 | Default                                 |                                                                                        |
 | ----------------------- | :------------------: | ---------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------- |
+| `treeId`                |          ✓           | `string`                                             |                                         | identifier for tree this node belongs to                                               |
 | `data`                  |          ✓           | `TData`                                              |                                         | data to be stored in the node                                                          |
 | `options.discriminator` |                      | `string`                                             | `undefined`                             | discriminator for the node when you mix different data types (see Discriminator below) |
 | `options.predicate`     |                      | `(node: TreeNode) => boolean \| undefined`           | `undefined`                             | filter function (see Filtering below)                                                  |
@@ -66,7 +67,7 @@ new LeafDefinition(data, options)
 ### Example
 
 ```ts
-const definition = new LeafDefinition({ id: 1, label: 'John Doe', age: 30 })
+const definition = new LeafDefinition('users', { id: 1, label: 'John Doe', age: 30 })
 ```
 
 ## `BranchDefinition`
@@ -74,8 +75,8 @@ const definition = new LeafDefinition({ id: 1, label: 'John Doe', age: 30 })
 A `BranchDefinition` is very similar to a `LeafDefinition`, but it contains a collection of children definitions.
 
 ```ts
-new BranchDefinition(data, children)
-new BranchDefinition(data, options, children)
+new BranchDefinition(treeId, data, children)
+new BranchDefinition(treeId, data, options, children)
 ```
 
 |                            |     | Type                   | Default |                                                                  |
@@ -86,9 +87,9 @@ new BranchDefinition(data, options, children)
 ### Example
 
 ```ts
-const definition = new BranchDefinition({ id: 'smithes', name: 'The Smithes' }, [
-  new LeafDefinition({ id: 'jd-1', name: 'John Smith', age: 30 }),
-  new LeafDefinition({ id: 'jd-2', name: 'Jane Smith', age: 28 }),
+const definition = new BranchDefinition('users', { id: 'smithes', name: 'The Smithes' }, [
+  new LeafDefinition('users', { id: 'jd-1', name: 'John Smith', age: 30 }),
+  new LeafDefinition('users', { id: 'jd-2', name: 'Jane Smith', age: 28 }),
 ])
 ```
 
@@ -101,8 +102,8 @@ mix different types of nodes at the same collection depth.
 
 ```ts
 const definitions = [
-  new LeafDefinition({ id: 'jd-1', label: 'John Doe', age: 30 }),
-  new LeafDefinition({ id: 'rx-1', label: 'Rex', breed: 'Golden Retriever' }),
+  new LeafDefinition('family', { id: 'jd-1', label: 'John Doe', age: 30 }),
+  new LeafDefinition('family', { id: 'rx-1', label: 'Rex', breed: 'Golden Retriever' }),
 ]
 
 const { nodes } = useTree(definitions)
@@ -116,8 +117,8 @@ nodes.value.forEach(node => {
 
 ```ts
 const definitions = [
-  new LeafDefinition({ id: 'jd-1', label: 'John Doe', age: 30 }, { discriminator: 'person' }),
-  new LeafDefinition({ id: 'rx-1', label: 'Rex', breed: 'Golden Retriever' }, { discriminator: 'animal' }),
+  new LeafDefinition('family', { id: 'jd-1', label: 'John Doe', age: 30 }, { discriminator: 'person' }),
+  new LeafDefinition('family', { id: 'rx-1', label: 'Rex', breed: 'Golden Retriever' }, { discriminator: 'animal' }),
 ]
 
 const { nodes } = useTree(definitions)
@@ -138,8 +139,8 @@ the `isBranch` property will serve the same purpose.
 
 ```ts
 const definitions = [
-  new LeafDefinition({ id: 'jd-1', label: 'John Doe', age: 30 }),
-  new BranchDefinition({ id: 'dogs', label: 'Dogs', legs: 4 }, [
+  new LeafDefinition('family', { id: 'jd-1', label: 'John Doe', age: 30 }),
+  new BranchDefinition('family', { id: 'dogs', label: 'Dogs', legs: 4 }, [
     /* ... */
   ]),
 ]
@@ -254,7 +255,9 @@ const families = [
 You can use the `defineTree` helper this way:
 
 ```ts
-const definitions = defineTree(families, family => defineTree(family.members, member => defineTree(member.animals)))
+const definitions = defineTree('family', families, family =>
+  defineTree('member', family.members, member => defineTree('animal', member.animals))
+)
 ```
 
 This is the equivalent of the following code:
@@ -263,12 +266,14 @@ This is the equivalent of the following code:
 const definitions = families.map(
   family =>
     new BranchDefinition(
+      'family',
       family,
       family.members.map(
         member =>
           new BranchDefinition(
+            'member',
             member,
-            member.animals.map(animal => new LeafDefinition(animal))
+            member.animals.map('animal', animal => new LeafDefinition(animal))
           )
       )
     )
@@ -287,12 +292,12 @@ const entries = [
   { uuid: 'jd-2', name: 'Jane Doe' },
 ]
 
-const definitionsA = defineTree(entries, {
+const definitionsA = defineTree('user', entries, {
   getId: 'uuid',
   getLabel: 'name',
 })
 
-const definitionsB = defineTree(entries, {
+const definitionsB = defineTree('user', entries, {
   getId: entry => entry.uuid,
   getLabel: entry => entry.name,
 })
@@ -394,8 +399,8 @@ Here are the rules to determine whether a node is visible or not.
 </template>
 
 <script lang="ts" setup>
-  const familyDefinitions = defineTree(families, ({ members }) =>
-    defineTree(members, ({ animals }) => defineTree(animals))
+  const familyDefinitions = defineTree('family', families, ({ members }) =>
+    defineTree('member', members, ({ animals }) => defineTree('animal', animals))
   )
 
   const { nodes } = useTree(familyDefinitions)
@@ -448,7 +453,7 @@ Here are the rules to determine whether a node is visible or not.
 </template>
 
 <script lang="ts" setup>
-  const definitions = defineTree(families, ({ members }) => defineTree(members))
+  const definitions = defineTree('family', families, ({ members }) => defineTree('member', members))
 
   const { nodes } = useTree(definitions, { allowMultiSelect: true })
 </script>
@@ -517,8 +522,8 @@ Here are the rules to determine whether a node is visible or not.
     return !filterValue ? undefined : label.toLocaleLowerCase().includes(filterValue)
   }
 
-  const definitions = defineTree(families, { predicate }, ({ members }) =>
-    defineTree(members, { predicate }, ({ animals }) => defineTree(animals, { predicate }))
+  const definitions = defineTree('family', families, { predicate }, ({ members }) =>
+    defineTree('member', members, { predicate }, ({ animals }) => defineTree('animal', animals, { predicate }))
   )
 
   const { nodes } = useTree(definitions, { expand: false })

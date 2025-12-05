@@ -1,6 +1,6 @@
 <template>
-  <VtsTreeItem :expanded="branch.isExpanded">
-    <UiTreeItemLabel icon="fa:server" :route="`/host/${branch.data.id}`" @toggle="branch.toggleExpand()">
+  <VtsTreeItem :expanded="!branch.isCollapsed">
+    <UiTreeItemLabel icon="fa:server" :route="`/host/${branch.data.id}`" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #icon>
         <VtsObjectIcon

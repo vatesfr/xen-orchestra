@@ -1,5 +1,5 @@
-import type { Branch } from '@core/composables/tree/branch'
-import type { Identifiable, Labeled, TreeContext, TreeNodeId, TreeNodeOptions } from '@core/composables/tree/types'
+import type { Branch } from '@core/packages/tree/branch'
+import type { Identifiable, Labeled, TreeContext, TreeNodeId, TreeNodeOptions } from '@core/packages/tree/types'
 
 export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = any> {
   abstract readonly isBranch: boolean
@@ -7,6 +7,7 @@ export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = 
   abstract isExcluded: boolean
   abstract statuses: Record<string, boolean>
 
+  readonly treeId: string
   readonly data: TData
   readonly depth: number
   readonly parent: Branch | undefined
@@ -14,12 +15,14 @@ export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = 
   readonly options: TreeNodeOptions<TData, TDiscriminator>
 
   constructor(
+    treeId: string,
     data: TData,
     parent: Branch | undefined,
     context: TreeContext,
     depth: number,
     options?: TreeNodeOptions<TData, TDiscriminator>
   ) {
+    this.treeId = treeId
     this.data = data
     this.parent = parent
     this.context = context
@@ -27,7 +30,7 @@ export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = 
     this.options = options ?? ({} as TreeNodeOptions<TData, TDiscriminator>)
   }
 
-  get id(): TreeNodeId {
+  get dataId(): TreeNodeId {
     if (this.options.getId === undefined) {
       return (this.data as Identifiable).id
     }
@@ -37,6 +40,18 @@ export abstract class TreeNodeBase<TData extends object = any, TDiscriminator = 
     }
 
     return this.data[this.options.getId as keyof TData] as TreeNodeId
+  }
+
+  get id(): TreeNodeId {
+    const parts = [this.dataId, this.treeId]
+    let currentParent = this.parent
+
+    while (currentParent) {
+      parts.push(currentParent.treeId)
+      currentParent = currentParent.parent
+    }
+
+    return parts.reverse().join('.')
   }
 
   get label() {

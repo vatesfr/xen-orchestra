@@ -1,17 +1,21 @@
-import { BranchDefinition } from '@core/composables/tree/branch-definition'
-import type { Identifiable, Labeled, TreeNodeDefinition, TreeNodeOptions } from '@core/composables/tree/types'
+import { BranchDefinition } from '@core/packages/tree/branch-definition'
+import type { Identifiable, Labeled, TreeNodeDefinition, TreeNodeOptions } from '@core/packages/tree/types'
 
 export function defineBranch<
   TData extends Identifiable & Labeled,
   TChildDefinition extends TreeNodeDefinition,
   const TDiscriminator,
->(data: TData, children: TChildDefinition[]): BranchDefinition<TData, TChildDefinition, TDiscriminator>
+>(treeId: string, data: TData, children: TChildDefinition[]): BranchDefinition<TData, TChildDefinition, TDiscriminator>
+
 export function defineBranch<TData extends object, TChildDefinition extends TreeNodeDefinition, const TDiscriminator>(
+  treeId: string,
   data: TData,
   options: TreeNodeOptions<TData, TDiscriminator>,
   children: TChildDefinition[]
 ): BranchDefinition<TData, TChildDefinition, TDiscriminator>
+
 export function defineBranch<TData extends object, TChildDefinition extends TreeNodeDefinition, const TDiscriminator>(
+  treeId: string,
   data: TData,
   optionsOrChildren: TreeNodeOptions<TData, TDiscriminator> | TChildDefinition[],
   childrenOrNone?: TChildDefinition[]
@@ -19,5 +23,5 @@ export function defineBranch<TData extends object, TChildDefinition extends Tree
   const options = Array.isArray(optionsOrChildren) ? ({} as TreeNodeOptions<TData, TDiscriminator>) : optionsOrChildren
   const children = Array.isArray(optionsOrChildren) ? optionsOrChildren : childrenOrNone!
 
-  return new BranchDefinition(data, options, children)
+  return new BranchDefinition(treeId, data, options, children)
 }

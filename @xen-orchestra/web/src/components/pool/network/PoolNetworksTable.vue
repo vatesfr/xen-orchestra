@@ -168,7 +168,7 @@ const { HeadCells, BodyCells } = useNetworkColumns({
       status: r => r(status.value),
       vlan: r => r(vlan.value),
       mtu: r => r(network.MTU),
-      defaultLockingMode: r => r(defaultLockingMode),
+      defaultLockingMode: r => r(defaultLockingMode.value),
       selectItem: r => r(() => (selectedNetworkId.value = network.id)),
     }
   },
