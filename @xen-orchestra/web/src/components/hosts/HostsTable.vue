@@ -1,6 +1,6 @@
 <template>
   <div class="hosts-table">
-    <UiTitle>{{ t('hosts') }}</UiTitle>
+    <UiTitle>{{ t('host', 0) }}</UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />

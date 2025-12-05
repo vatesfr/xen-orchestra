@@ -12,7 +12,7 @@ export const useHostColumns = defineColumns(() => {
   return {
     host: useLinkColumn({ headerLabel: () => t('host') }),
     description: useTruncatedTextColumn({ headerLabel: () => t('description') }),
-    ipAddresses: useAddressColumn({ headerLabel: () => t('ip-addresses') }),
+    ipAddresses: useAddressColumn({ headerLabel: () => t('ip-address', 0) }),
     tags: useTagColumn({ headerLabel: () => t('tags') }),
     selectItem: useSelectItemColumn(),
   }

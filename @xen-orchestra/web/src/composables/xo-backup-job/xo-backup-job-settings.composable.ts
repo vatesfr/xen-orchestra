@@ -73,12 +73,13 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<AnyXo
 
   const snapshotModeTranslation = computed(() => {
     if (settings.checkpointSnapshot === true && settings.offlineSnapshot === false) {
-      return 'with-memory'
+      return t('with-memory')
     }
+
     if (settings.checkpointSnapshot === false && settings.offlineSnapshot === true) {
-      return 'offline'
+      return t('offline')
     } else {
-      return 'normal'
+      return t('normal')
     }
   })
 

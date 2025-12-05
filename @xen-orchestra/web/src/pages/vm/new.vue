@@ -7,7 +7,7 @@
       </template>
     </UiHeadBar>
     <UiAlert v-if="vmState.pool" accent="info" class="card-container">
-      <I18nT keypath="new-vm.feature-not-supported">
+      <I18nT keypath="new-vm.feature-not-supported" scope="global">
         <template #xo-5>
           <UiLink :href="xo5Link" size="medium">
             {{ t('xo-5') }}

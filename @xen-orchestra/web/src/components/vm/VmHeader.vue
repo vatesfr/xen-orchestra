@@ -18,7 +18,7 @@
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/backups`" custom>
       <TabItem :active="isActive" :href tag="a">
-        {{ t('backups') }}
+        {{ t('backup', 0) }}
       </TabItem>
     </RouterLink>
     <TabItem disabled>{{ t('alarms') }}</TabItem>
@@ -35,10 +35,10 @@
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/vdis`" custom>
       <TabItem :active="isActive" :href tag="a">
-        {{ t('vdis', 2) }}
+        {{ t('vdi', 0) }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('tasks') }}</TabItem>
+    <TabItem disabled>{{ t('task', 0) }}</TabItem>
   </TabList>
 </template>
 

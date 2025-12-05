@@ -133,7 +133,7 @@
           <template v-if="ipAddresses.length">
             <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
               <template #key>
-                <div v-if="index === 0">{{ t('ip-addresses') }}</div>
+                <div v-if="index === 0">{{ t('ip-address', 0) }}</div>
               </template>
               <template #value>
                 <span class="text-ellipsis">{{ ip }}</span>
@@ -153,7 +153,7 @@
           </template>
           <VtsCardRowKeyValue v-else>
             <template #key>
-              {{ t('ip-addresses') }}
+              {{ t('ip-address', 0) }}
             </template>
             <template #value>
               <span class="value" />

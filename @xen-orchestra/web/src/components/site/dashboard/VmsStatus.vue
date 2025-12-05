@@ -38,7 +38,7 @@ const areVmsStatusReady = computed(() => status !== undefined)
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('vms-status.running'),
+    label: t('status.running', status?.active ?? 0),
     value: status?.active ?? 0,
     accent: 'success',
   },
@@ -49,7 +49,7 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
     tooltip: t('vms-status.inactive.tooltip'),
   },
   {
-    label: t('vms-status.unknown'),
+    label: t('status.unknown', status?.unknown ?? 0),
     value: status?.unknown ?? 0,
     accent: 'muted',
     tooltip: t('vms-status.unknown.tooltip'),

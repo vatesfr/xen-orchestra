@@ -13,7 +13,7 @@
     <BackupJobTargetsSection
       v-if="storageRepositoryTargets.length > 0"
       :targets="storageRepositoryTargets"
-      :label="t('storage-repositories')"
+      :label="t('storage-repository', 0)"
     />
   </UiCard>
 </template>

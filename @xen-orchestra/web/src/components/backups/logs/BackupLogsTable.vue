@@ -1,7 +1,7 @@
 <template>
   <div class="backup-logs-table">
     <UiTitle>
-      {{ t('runs') }}
+      {{ t('run', 0) }}
       <template #actions>
         <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
       </template>

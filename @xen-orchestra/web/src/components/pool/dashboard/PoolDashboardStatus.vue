@@ -6,7 +6,7 @@
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" icon="fa:server" />
+      <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('host', 0) }" icon="fa:server" />
       <UiCardNumbers :label="t('total')" :value="poolDashboard?.hosts?.status?.total" size="small" />
       <VtsDivider type="stretch" />
       <VtsStateHero
@@ -19,7 +19,7 @@
         {{ t('no-vm-detected') }}
       </VtsStateHero>
       <template v-else>
-        <VtsDonutChartWithLegend :segments="vmsSegments" :title="{ label: t('vms', 2) }" icon="fa:display" />
+        <VtsDonutChartWithLegend :segments="vmsSegments" :title="{ label: t('vm', 0) }" icon="fa:display" />
         <UiCardNumbers :label="t('total')" :value="poolDashboard?.vms?.status?.total" size="small" />
       </template>
     </template>
@@ -51,7 +51,7 @@ const { t } = useI18n()
 
 const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('hosts-status.running'),
+    label: t('status.running', poolDashboard?.hosts?.status?.running ?? 0),
     value: poolDashboard?.hosts?.status?.running ?? 0,
     accent: 'success',
   },
@@ -61,7 +61,7 @@ const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
     accent: 'neutral',
   },
   {
-    label: t('hosts-status.halted'),
+    label: t('status.halted', poolDashboard?.hosts?.status?.halted ?? 0),
     value: poolDashboard?.hosts?.status?.halted ?? 0,
     accent: 'danger',
   },
@@ -69,22 +69,22 @@ const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
 
 const vmsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('vms-status.running'),
+    label: t('status.running', poolDashboard?.vms?.status?.running ?? 0),
     value: poolDashboard?.vms?.status?.running ?? 0,
     accent: 'success',
   },
   {
-    label: t('vms-status.paused'),
+    label: t('status.paused', poolDashboard?.vms?.status?.paused ?? 0),
     value: poolDashboard?.vms?.status?.paused ?? 0,
     accent: 'info',
   },
   {
-    label: t('vms-status.suspended'),
+    label: t('status.suspended', poolDashboard?.vms?.status?.suspended ?? 0),
     value: poolDashboard?.vms?.status?.suspended ?? 0,
     accent: 'neutral',
   },
   {
-    label: t('vms-status.halted'),
+    label: t('status.halted', poolDashboard?.vms?.status?.halted ?? 0),
     value: poolDashboard?.vms?.status?.halted ?? 0,
     accent: 'danger',
   },

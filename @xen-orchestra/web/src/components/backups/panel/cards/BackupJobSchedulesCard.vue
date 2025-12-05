@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiCardTitle>
-      {{ t('schedules') }}
+      {{ t('schedule', 0) }}
       <UiCounter :value="backupJobSchedules.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
     <div class="content">

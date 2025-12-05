@@ -1,7 +1,7 @@
 <template>
   <div class="storage-repositories-targets-table">
     <UiTitle>
-      {{ t('storage-repositories') }}
+      {{ t('storage-repository', 0) }}
     </UiTitle>
     <div class="container">
       <div class="table-actions">

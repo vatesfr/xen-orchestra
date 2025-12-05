@@ -1,7 +1,7 @@
 <template>
   <div class="pools-table">
     <UiTitle>
-      {{ t('pools') }}
+      {{ t('pool', 0) }}
     </UiTitle>
     <div class="container">
       <div class="table-actions">

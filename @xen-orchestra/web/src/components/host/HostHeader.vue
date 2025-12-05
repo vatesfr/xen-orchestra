@@ -36,10 +36,10 @@
         {{ t('storage') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('tasks') }}</TabItem>
+    <TabItem disabled>{{ t('task', 0) }}</TabItem>
     <RouterLink v-slot="{ isActive, href }" :to="`/host/${host.id}/vms`" custom>
       <TabItem :active="isActive" :href tag="a">
-        {{ t('vms', 2) }}
+        {{ t('vm', 0) }}
       </TabItem>
     </RouterLink>
   </TabList>

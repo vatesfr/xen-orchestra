@@ -38,18 +38,18 @@ const total = useSum(() => Object.values(status ?? {}))
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('pools-status.connected'),
+    label: t('status.connected', status?.connected ?? 0),
     value: status?.connected ?? 0,
     accent: 'success',
   },
   {
-    label: t('pools-status.unreachable'),
+    label: t('status.unreachable', status?.unreachable ?? 0),
     value: status?.unreachable ?? 0,
     accent: 'warning',
     tooltip: t('pools-status.unreachable.tooltip'),
   },
   {
-    label: t('pools-status.unknown'),
+    label: t('status.unknown', status?.unknown ?? 0),
     value: status?.unknown ?? 0,
     accent: 'muted',
     tooltip: t('pools-status.unknown.tooltip'),

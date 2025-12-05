@@ -13,7 +13,7 @@
       </div>
     </div>
     <div class="container">
-      <span class="typo-body-regular-small label show">{{ t('core.pagination.show-by') }}</span>
+      <span class="typo-body-regular-small label show">{{ t('show-by') }}</span>
       <VtsSelect :id="showBySelectId" accent="brand" class="typo-body-regular-small show-by-select" />
     </div>
   </div>

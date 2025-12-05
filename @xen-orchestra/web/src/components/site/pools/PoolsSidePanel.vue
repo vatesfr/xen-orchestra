@@ -164,7 +164,7 @@
       <UiCard v-if="hosts !== undefined">
         <UiCardTitle>
           <span>
-            {{ t('hosts') }}
+            {{ t('host', 0) }}
             <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
           </span>
         </UiCardTitle>

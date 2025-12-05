@@ -15,18 +15,18 @@
     </RouterLink>
     <RouterLink v-slot="{ isExactActive, href }" to="/backups" custom>
       <TabItem :active="isExactActive" :href tag="a">
-        {{ t('backups') }}
+        {{ t('backup', 0) }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('tasks') }}</TabItem>
+    <TabItem disabled>{{ t('task', 0) }}</TabItem>
     <RouterLink v-slot="{ isExactActive, href }" to="/pools" custom>
-      <TabItem :active="isExactActive" :href tag="a">{{ t('pools') }}</TabItem>
+      <TabItem :active="isExactActive" :href tag="a">{{ t('pool', 0) }}</TabItem>
     </RouterLink>
     <RouterLink v-slot="{ isExactActive, href }" to="/hosts" custom>
-      <TabItem :active="isExactActive" :href tag="a">{{ t('hosts') }}</TabItem>
+      <TabItem :active="isExactActive" :href tag="a">{{ t('host', 0) }}</TabItem>
     </RouterLink>
     <RouterLink v-slot="{ isExactActive, href }" to="/vms" custom>
-      <TabItem :active="isExactActive" :href tag="a">{{ t('vms', 2) }}</TabItem>
+      <TabItem :active="isExactActive" :href tag="a">{{ t('vm', 0) }}</TabItem>
     </RouterLink>
   </TabList>
 </template>

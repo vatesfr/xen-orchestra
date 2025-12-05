@@ -43,7 +43,7 @@ const { t } = useI18n()
 const arePatchesReady = computed(() => missingPatches !== undefined)
 
 const poolsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() => ({
-  label: t('pools'),
+  label: t('pool', 0),
 }))
 
 const poolsSegments: ComputedRef<DonutChartWithLegendProps['segments']> = computed(() => {
@@ -59,7 +59,7 @@ const poolsSegments: ComputedRef<DonutChartWithLegendProps['segments']> = comput
 })
 
 const hostsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() => ({
-  label: t('hosts'),
+  label: t('host', 0),
 }))
 
 const hostsSegments = computed(() => {

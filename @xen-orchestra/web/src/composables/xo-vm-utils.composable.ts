@@ -16,10 +16,10 @@ export function useXoVmUtils(rawVm: MaybeRefOrGetter<XoVm>) {
   const powerState = useMapper<VM_POWER_STATE, { icon: IconName; text: string }>(
     () => vm.value.power_state,
     {
-      [VM_POWER_STATE.RUNNING]: { icon: 'legacy:running', text: t('vm-status.running') },
-      [VM_POWER_STATE.HALTED]: { icon: 'legacy:halted', text: t('vm-status.halted') },
-      [VM_POWER_STATE.PAUSED]: { icon: 'legacy:paused', text: t('vm-status.paused') },
-      [VM_POWER_STATE.SUSPENDED]: { icon: 'legacy:suspended', text: t('vm-status.suspended') },
+      [VM_POWER_STATE.RUNNING]: { icon: 'legacy:running', text: t('status.running') },
+      [VM_POWER_STATE.HALTED]: { icon: 'legacy:halted', text: t('status.halted') },
+      [VM_POWER_STATE.PAUSED]: { icon: 'legacy:paused', text: t('status.paused') },
+      [VM_POWER_STATE.SUSPENDED]: { icon: 'legacy:suspended', text: t('status.suspended') },
     },
     VM_POWER_STATE.RUNNING
   )

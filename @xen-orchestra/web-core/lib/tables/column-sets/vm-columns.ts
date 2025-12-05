@@ -11,7 +11,7 @@ export const useVmColumns = defineColumns(() => {
 
   return {
     vm: useLinkColumn({ headerLabel: () => t('vm') }),
-    ipAddresses: useAddressColumn({ headerLabel: () => t('ip-addresses') }),
+    ipAddresses: useAddressColumn({ headerLabel: () => t('ip-address') }),
     vcpus: useNumberColumn({ headerLabel: () => t('vcpus') }),
     ram: useNumberColumn({ headerLabel: () => t('ram') }),
     diskSpace: useNumberColumn({ headerLabel: () => t('disk-space') }),

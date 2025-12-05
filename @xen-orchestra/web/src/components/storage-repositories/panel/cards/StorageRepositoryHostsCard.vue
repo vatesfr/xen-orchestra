@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('hosts') }}
+      {{ t('host', 0) }}
       <UiCounter :value="hosts.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
     <UiCollapsibleList v-if="hosts.length > 0" tag="ul" :total-items="hosts.length">

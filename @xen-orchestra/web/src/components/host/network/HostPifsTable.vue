@@ -1,7 +1,7 @@
 <template>
   <div class="host-pif-table">
     <UiTitle>
-      {{ t('pifs') }}
+      {{ t('pif', 0) }}
       <template #actions>
         <UiButton
           v-tooltip="t('coming-soon')"

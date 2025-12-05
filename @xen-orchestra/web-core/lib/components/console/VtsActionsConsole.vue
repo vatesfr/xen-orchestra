@@ -8,7 +8,7 @@
     :left-icon="isFullscreen ? 'fa:down-left-and-up-right-to-center' : 'fa:up-right-and-down-left-from-center'"
     @click="toggleFullScreen"
   >
-    {{ t(isFullscreen ? 'exit-fullscreen' : 'fullscreen') }}
+    {{ isFullscreen ? t('exit-fullscreen') : t('fullscreen') }}
   </UiButton>
   <UiButton
     class="button"

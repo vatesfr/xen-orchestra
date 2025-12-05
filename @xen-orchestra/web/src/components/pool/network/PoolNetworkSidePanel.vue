@@ -101,7 +101,7 @@
       </UiCard>
       <UiCard v-if="pifsCount && pifsCount > 0" class="card-container">
         <div class="typo-body-bold">
-          {{ t('pifs') }}
+          {{ t('pif', 0) }}
           <UiCounter :value="pifsCount" variant="primary" size="small" accent="neutral" />
         </div>
         <table class="simple-table">

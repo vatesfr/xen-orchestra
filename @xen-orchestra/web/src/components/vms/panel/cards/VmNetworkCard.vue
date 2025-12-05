@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('network') }}
+      {{ t('network', 0) }}
       <UiLink v-if="ipAddresses.length > 0" size="medium" :to="`/vm/${vm.id}/networks`">
         {{ t('see-all') }}
       </UiLink>
@@ -10,7 +10,7 @@
       <template v-if="ipAddresses.length > 0">
         <VtsCardRowKeyValue v-for="(ip, index) in ipAddresses" :key="ip">
           <template #key>
-            <div v-if="index === 0">{{ t('ip-addresses') }}</div>
+            <div v-if="index === 0">{{ t('ip-address', 0) }}</div>
           </template>
           <template #value>
             <span class="text-ellipsis">{{ ip }}</span>
@@ -29,7 +29,7 @@
         </VtsCardRowKeyValue>
       </template>
       <VtsCardRowKeyValue v-else>
-        <template #key>{{ t('ip-addresses') }}</template>
+        <template #key>{{ t('ip-address', 0) }}</template>
       </VtsCardRowKeyValue>
     </div>
   </UiCard>

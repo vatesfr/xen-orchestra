@@ -1,6 +1,6 @@
 <template>
   <UiCard class="backup-job-schedules-table">
-    <UiTitle>{{ t('schedules') }}</UiTitle>
+    <UiTitle>{{ t('schedule', 0) }}</UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />

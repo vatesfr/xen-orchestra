@@ -1,7 +1,7 @@
 <template>
   <div class="storage-repositories-table">
     <UiTitle>
-      {{ t('storage-repositories') }}
+      {{ t('storage-repository', 0) }}
       <template #actions>
         <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
       </template>

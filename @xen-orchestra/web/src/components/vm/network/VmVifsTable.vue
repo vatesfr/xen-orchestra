@@ -1,7 +1,7 @@
 <template>
   <div class="vm-vifs-table">
     <UiTitle>
-      {{ t('vifs') }}
+      {{ t('vif', 0) }}
       <template #actions>
         <UiButton
           v-tooltip="t('coming-soon')"

@@ -13,7 +13,7 @@
     />
     <VtsQuickInfoRow :label="t('cpu-model')" :value="host.CPUs.modelname" />
     <VtsQuickInfoRow :label="t('core-socket')" :value="`${host.cpus.cores} (${host.cpus.sockets})`" />
-    <VtsQuickInfoRow :label="t('gpus')">
+    <VtsQuickInfoRow :label="t('gpu', 0)">
       <template v-if="isReady" #value>
         <template v-if="devicesNames">
           {{ devicesNames }}

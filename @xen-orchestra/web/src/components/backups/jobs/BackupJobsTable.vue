@@ -1,7 +1,7 @@
 <template>
   <div class="backup-jobs-table">
     <UiTitle>
-      {{ t('backup-jobs') }}
+      {{ t('backup-job', 0) }}
     </UiTitle>
     <div class="container">
       <div class="table-actions">

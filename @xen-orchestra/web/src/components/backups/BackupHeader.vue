@@ -2,7 +2,7 @@
   <div class="breadcrumb-container">
     <UiBreadcrumb :size>
       <UiLink :size to="/dashboard" icon="fa:satellite">{{ XOA_NAME }}</UiLink>
-      <UiLink :size to="/backups">{{ t('backups') }}</UiLink>
+      <UiLink :size to="/backups">{{ t('backup', 0) }}</UiLink>
       <span class="backup-job-name">
         <VtsIcon name="object:backup-job" size="current" />
         {{ backupJob.name }}
@@ -13,7 +13,7 @@
   <TabList>
     <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/runs`" custom>
       <TabItem :active="isActive" :href tag="a">
-        {{ t('runs') }}
+        {{ t('run', 0) }}
       </TabItem>
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="`/backup/${backupJob.id}/configuration`" custom>
