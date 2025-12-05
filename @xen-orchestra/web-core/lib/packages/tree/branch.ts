@@ -55,7 +55,7 @@ export class Branch<
   }
 
   get isCollapsed() {
-    return this.context.collapsedIds.has(this.id) /* && !this.passesFilterDownwards && !this.passesFilterUpwards */
+    return this.context.collapsedIds.has(this.id)
   }
 
   get areChildrenFullySelected(): boolean {
