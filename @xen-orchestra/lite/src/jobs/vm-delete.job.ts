@@ -13,15 +13,15 @@ export const useVmDeleteJob = defineJob('vm.delete', [vmsArg], () => {
     run: vms => xapi.vm.delete(vms.map(vm => vm.$ref)),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job.vm-delete.missing-vms'))
+        throw new JobError(t('job:vm-delete:missing-vms'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.DESTROY))) {
-        throw new JobRunningError(t('job.vm-delete.in-progress'))
+        throw new JobRunningError(t('job:vm-delete:in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.HALTED)) {
-        throw new JobError(t('job.vm-delete.bad-power-state'))
+        throw new JobError(t('job:vm-delete:bad-power-state'))
       }
     },
   }

@@ -17,19 +17,19 @@ export const useVmStartOnJob = defineJob('vm.start-on', [vmsArg, hostArg], () =>
       ),
     validate: (isRunning, vms, host) => {
       if (vms.length === 0) {
-        throw new JobError(t('job.vm-start-on.missing-vms'))
+        throw new JobError(t('job:vm-start-on:missing-vms'))
       }
 
       if (!host) {
-        throw new JobError(t('job.vm-start-on.missing-host'))
+        throw new JobError(t('job:vm-start-on:missing-host'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.START_ON))) {
-        throw new JobRunningError(t('job.vm-start-on.in-progress'))
+        throw new JobRunningError(t('job:vm-start-on:in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.HALTED)) {
-        throw new JobError(t('job.vm-start-on.bad-power-state'))
+        throw new JobError(t('job:vm-start-on:bad-power-state'))
       }
     },
   }

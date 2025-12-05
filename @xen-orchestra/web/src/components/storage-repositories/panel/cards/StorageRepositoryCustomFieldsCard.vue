@@ -11,7 +11,7 @@
         horizontal
         size="extra-small"
       >
-        {{ t('no-custom-fields-detected') }}
+        {{ t('no-custom-field-detected') }}
       </VtsStateHero>
       <VtsLabelValueList v-else :fields="customFields" />
     </div>

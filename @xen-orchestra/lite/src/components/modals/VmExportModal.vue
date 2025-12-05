@@ -1,7 +1,7 @@
 <template>
   <VtsModal accent="info" icon="fa:display" @confirm="emit('confirm', compressionType)">
     <template #title>
-      {{ t('export-n-vms', { n: count }) }}
+      {{ t('action:action:export-n-vms', { n: count }) }}
     </template>
     <template #content>
       <VtsInputWrapper
@@ -14,7 +14,7 @@
     <template #buttons>
       <VtsModalCancelButton />
       <VtsModalConfirmButton>
-        {{ t('export-n-vms', { n: count }) }}
+        {{ t('action:action:export-n-vms', { n: count }) }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>

@@ -27,7 +27,7 @@
     <template #buttons>
       <VtsModalCancelButton />
       <VtsModalConfirmButton :disabled="!isFilterValid">
-        {{ editedFilter ? t('update') : t('add') }}
+        {{ editedFilter ? t('action:update') : t('action:add') }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>

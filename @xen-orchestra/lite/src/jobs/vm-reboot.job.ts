@@ -13,15 +13,15 @@ export const useVmRebootJob = defineJob('vm.reboot', [vmsArg], () => {
     run: vms => xapi.vm.reboot(vms.map(vm => vm.$ref)),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job.vm-reboot.missing-vms'))
+        throw new JobError(t('job:vm-reboot:missing-vms'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.CLEAN_REBOOT))) {
-        throw new JobRunningError(t('job.vm-reboot.in-progress'))
+        throw new JobRunningError(t('job:vm-reboot:in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED)) {
-        throw new JobError(t('job.vm-reboot.bad-power-state'))
+        throw new JobError(t('job:vm-reboot:bad-power-state'))
       }
     },
   }

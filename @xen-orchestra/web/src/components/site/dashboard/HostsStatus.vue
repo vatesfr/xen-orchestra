@@ -34,20 +34,20 @@ const areHostsStatusReady = computed(() => status !== undefined)
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('hosts-status.running'),
+    label: t('host:status:running', status?.running ?? 0),
     value: status?.running ?? 0,
     accent: 'success',
   },
   {
-    label: t('hosts-status.halted'),
+    label: t('host:status:halted', status?.halted ?? 0),
     value: status?.halted ?? 0,
     accent: 'warning',
   },
   {
-    label: t('hosts-status.unknown'),
+    label: t('host:status:unknown'),
     value: status?.unknown ?? 0,
     accent: 'muted',
-    tooltip: t('hosts-status.unknown.tooltip'),
+    tooltip: t('host:status:unknown:tooltip'),
   },
 ])
 </script>

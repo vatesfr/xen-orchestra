@@ -10,7 +10,7 @@
       <UiButtonIcon accent="brand" size="small" :selected="isOpen" icon="fa:ellipsis" @click="open" />
     </template>
     <MenuItem icon="fa:power-off">
-      {{ t('change-state') }}
+      {{ t('action:change-state') }}
       <template #submenu>
         <VmActionPowerStateItems :vm-refs="selectedRefs" />
       </template>
@@ -18,7 +18,7 @@
     <VmActionMigrateItem :selected-refs="selectedRefs" />
     <VmActionCopyItem :selected-refs="selectedRefs" />
     <MenuItem v-tooltip="t('coming-soon')" icon="fa:edit">
-      {{ t('edit-config') }}
+      {{ t('action:edit-config') }}
     </MenuItem>
     <VmActionSnapshotItem :vm-refs="selectedRefs" />
     <VmActionExportItems :vm-refs="selectedRefs" />

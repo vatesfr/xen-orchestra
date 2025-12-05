@@ -2,20 +2,20 @@
 <template>
   <form class="ui-query-search-bar" @submit.prevent="emit('search', value)">
     <label v-if="uiStore.isDesktopLarge" :for="id" class="typo-body-regular-small label">
-      {{ t('core.query-search-bar.label') }}
+      {{ t('query-search-bar:label') }}
     </label>
     <UiInput
       :id
       v-model="value"
       type="text"
       accent="brand"
-      :aria-label="uiStore.isMobile ? t('core.query-search-bar.label') : undefined"
+      :aria-label="uiStore.isMobile ? t('query-search-bar:label') : undefined"
       :icon="!uiStore.isMobile ? 'fa:magnifying-glass' : undefined"
-      :placeholder="t('core.query-search-bar.placeholder')"
+      :placeholder="t('query-search-bar:placeholder')"
     />
     <template v-if="!uiStore.isMobile">
       <UiButton size="medium" accent="brand" variant="primary" type="submit" class="action-button">
-        {{ t('core.search') }}
+        {{ t('action:search') }}
       </UiButton>
       <VtsDivider type="stretch" />
       <UiButton
@@ -26,7 +26,7 @@
         disabled
         class="action-button"
       >
-        {{ t('core.query-search-bar.use-query-builder') }}
+        {{ t('query-search-bar:use-query-builder') }}
       </UiButton>
     </template>
 
