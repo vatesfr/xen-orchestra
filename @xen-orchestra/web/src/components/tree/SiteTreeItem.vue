@@ -1,6 +1,6 @@
 <template>
-  <VtsTreeItem :expanded="branch.isExpanded">
-    <UiTreeItemLabel icon="fa:satellite" route="/" @toggle="branch.toggleExpand()">
+  <VtsTreeItem :expanded="!branch.isCollapsed">
+    <UiTreeItemLabel icon="fa:satellite" route="/" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #addons>
         <UiCounter

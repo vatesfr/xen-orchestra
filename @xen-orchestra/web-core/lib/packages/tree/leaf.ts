@@ -1,5 +1,5 @@
-import { TreeNodeBase } from '@core/composables/tree/tree-node-base'
-import type { LeafStatuses } from '@core/composables/tree/types'
+import { TreeNodeBase } from '@core/packages/tree/tree-node-base'
+import type { LeafStatuses } from '@core/packages/tree/types'
 
 export class Leaf<TData extends object = any, const TDiscriminator = any> extends TreeNodeBase<TData, TDiscriminator> {
   readonly isBranch = false
@@ -13,7 +13,7 @@ export class Leaf<TData extends object = any, const TDiscriminator = any> extend
   }
 
   get isExcluded() {
-    if (this.parent?.isExpanded === false) {
+    if (this.parent?.isCollapsed === true) {
       return true
     }
 

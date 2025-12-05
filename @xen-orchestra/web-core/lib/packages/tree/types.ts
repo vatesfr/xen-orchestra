@@ -1,9 +1,10 @@
-import type { Branch } from '@core/composables/tree/branch'
-import type { BranchDefinition } from '@core/composables/tree/branch-definition'
-import type { Leaf } from '@core/composables/tree/leaf'
-import type { LeafDefinition } from '@core/composables/tree/leaf-definition'
-import type { TreeNodeBase } from '@core/composables/tree/tree-node-base'
-import { useTree } from '@core/composables/tree.composable'
+import type { Branch } from '@core/packages/tree/branch'
+import type { BranchDefinition } from '@core/packages/tree/branch-definition'
+import type { Leaf } from '@core/packages/tree/leaf'
+import type { LeafDefinition } from '@core/packages/tree/leaf-definition'
+import type { TreeNodeBase } from '@core/packages/tree/tree-node-base'
+import { useTree } from '@core/packages/tree/use-tree'
+import type { Ref } from 'vue'
 
 export type TreeNodeId = string | number
 
@@ -62,13 +63,14 @@ export type ChildTreeDefinitionGetter<TData extends object, TChildDefinition ext
 export type TreeContext = {
   allowMultiSelect: boolean
   selectedIds: Set<TreeNodeId>
-  expandedIds: Set<TreeNodeId>
+  collapsedIds: Set<TreeNodeId>
   activeId: TreeNodeId | undefined
 }
 
 export type UseTreeOptions = {
   allowMultiSelect?: boolean
-  expand?: boolean
+  collapse?: boolean
+  collapsedIds?: Ref<Set<TreeNodeId>>
   selectedLabel?:
     | ((nodes: TreeNode[]) => string)
     | {
@@ -88,5 +90,5 @@ export type LeafStatuses = {
 export type BranchStatuses = LeafStatuses & {
   'selected-partial': boolean
   'selected-full': boolean
-  expanded: boolean
+  collapsed: boolean
 }

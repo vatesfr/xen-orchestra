@@ -1,4 +1,4 @@
-import { buildNodes } from '@core/composables/tree/build-nodes'
+import { buildNodes } from '@core/packages/tree/build-nodes'
 import type {
   DefinitionToTreeNode,
   TreeContext,
@@ -6,7 +6,7 @@ import type {
   TreeNodeDefinition,
   TreeNodeId,
   UseTreeOptions,
-} from '@core/composables/tree/types'
+} from '@core/packages/tree/types'
 import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
 
 export function useTree<
@@ -14,21 +14,21 @@ export function useTree<
   TTreeNode extends DefinitionToTreeNode<TDefinition> = DefinitionToTreeNode<TDefinition>,
 >(definitions: MaybeRefOrGetter<TDefinition[]>, options: UseTreeOptions = {}) {
   const selectedIds = ref(new Set<TreeNodeId>())
-  const expandedIds = ref(new Set<TreeNodeId>())
+  const collapsedIds = options.collapsedIds ?? ref(new Set<TreeNodeId>())
   const activeId = ref<TreeNodeId>()
 
   const context = reactive({
     allowMultiSelect: options.allowMultiSelect ?? false,
     selectedIds,
-    expandedIds,
+    collapsedIds,
     activeId,
-  }) as TreeContext
+  }) satisfies TreeContext
 
   const nodes = computed(() => {
     const nodes = buildNodes<TDefinition, TTreeNode>(toValue(definitions), context)
 
-    if (options.expand !== false) {
-      nodes.forEach(node => node.isBranch && node.toggleExpand(true, true))
+    if (options.collapse) {
+      nodes.forEach(node => node.isBranch && node.toggleCollapse(true, true))
     }
 
     return nodes
@@ -52,11 +52,24 @@ export function useTree<
 
   const visibleNodes = computed(() => nodes.value.filter(node => !node.isExcluded))
 
-  const getNode = (id: TreeNodeId | undefined) => (id !== undefined ? nodesMap.value.get(id) : undefined)
-  const getNodes = (ids: TreeNodeId[]) => ids.map(getNode).filter(node => node !== undefined) as TreeNode[]
+  function getNode(id: TreeNodeId | undefined): TreeNode | undefined {
+    if (id === undefined) {
+      return undefined
+    }
 
-  const selectedNodes = computed(() => getNodes(Array.from(selectedIds.value.values())))
-  const expandedNodes = computed(() => getNodes(Array.from(expandedIds.value.values())))
+    return nodesMap.value.get(id)
+  }
+
+  const selectedNodes = computed(() =>
+    Array.from(selectedIds.value.values())
+      .map(id => getNode(id))
+      .filter(node => node !== undefined)
+  )
+
+  const expandedIds = computed(() => Array.from(nodesMap.value.keys()).filter(id => !collapsedIds.value.has(id)))
+
+  const expandedNodes = computed(() => expandedIds.value.map(id => getNode(id)).filter(node => node !== undefined))
+
   const activeNode = computed(() => getNode(activeId.value))
 
   const selectedLabel = computed(() => {
