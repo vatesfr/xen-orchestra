@@ -40,11 +40,11 @@ const resources = computed(() => {
     },
     {
       label: t('minimum-cpu-limit'),
-      value: `${vm.CPUs.number} ${t('cpus')}`,
+      value: `${vm.CPUs.number} ${t('cpu', vm.CPUs.number)}`,
     },
     {
       label: t('maximum-cpu-limit'),
-      value: `${vm.CPUs.max} ${t('cpus')}`,
+      value: `${vm.CPUs.max} ${t('cpu', vm.CPUs.max)}`,
     },
     {
       label: t('vm-limit-topology'),
@@ -72,7 +72,7 @@ const resources = computed(() => {
       value: `${dynamicMaxMemoryFormated.value.value} ${dynamicMaxMemoryFormated.value.prefix}`,
     },
     {
-      label: t('gpus'),
+      label: t('gpu', vm.VGPUs.length),
       value: vm.VGPUs.length > 0 ? vm.VGPUs.join(', ') : t('none'),
     },
   ]

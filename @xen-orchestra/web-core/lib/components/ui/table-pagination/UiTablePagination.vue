@@ -3,7 +3,7 @@
   <div class="ui-table-pagination" :class="className">
     <div class="container">
       <span class="typo-body-regular-small label">
-        {{ t('core.select.n-object-of', { from, to, total }) }}
+        {{ t('action:select-n-object-of', { from, to, total }) }}
       </span>
       <div class="buttons-container">
         <PaginationButton :disabled="isFirstPage" icon="fa:angle-double-left" @click="emit('first')" />
@@ -13,7 +13,7 @@
       </div>
     </div>
     <div class="container">
-      <span class="typo-body-regular-small label show">{{ t('core.pagination.show-by') }}</span>
+      <span class="typo-body-regular-small label show">{{ t('show-by') }}</span>
       <VtsSelect :id="showBySelectId" accent="brand" class="typo-body-regular-small show-by-select" />
     </div>
   </div>
@@ -54,7 +54,7 @@ const { t } = useI18n()
 const { id: showBySelectId } = useFormSelect([12, 24, 48, -1], {
   model: showBy,
   option: {
-    label: option => (option === -1 ? t('core.pagination.all') : option.toString()),
+    label: option => (option === -1 ? t('pagination:all') : option.toString()),
   },
 })
 </script>

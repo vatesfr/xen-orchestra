@@ -14,7 +14,7 @@
       <HostsRamUsage :top-five-ram="poolDashboard?.hosts?.topFiveUsage?.ram" :has-error />
     </template>
     <UiCardSubtitle>
-      {{ t('vms', 2) }}
+      {{ t('vms') }}
       <template #info>
         {{ t('top-#', 5) }}
       </template>

@@ -18,7 +18,7 @@ export function useXoBackupUtils() {
 
     // Rolling Snapshot - check if any settings have snapshotRetention > 0
     if (hasSnapshotRetention(backupJob)) {
-      modes.push(t('backup.rolling-snapshot'))
+      modes.push(t('backup:rolling-snapshot'))
     }
 
     const hasRemotes = hasIds(backupJob.remotes?.id)
@@ -27,19 +27,19 @@ export function useXoBackupUtils() {
 
     if (backupJob.mode === 'full') {
       if (hasRemotes) {
-        modes.push(t('backup.full'))
+        modes.push(t('backup:full'))
       }
 
       if (hasSrs) {
-        modes.push(t('backup.full-replication'))
+        modes.push(t('backup:full-replication'))
       }
     } else if (backupJob.mode === 'delta') {
       if (hasRemotes) {
-        modes.push(t('backup.incremental'))
+        modes.push(t('backup:incremental'))
       }
 
       if (hasSrs) {
-        modes.push(t('backup.incremental-replication'))
+        modes.push(t('backup:incremental-replication'))
       }
     }
 
@@ -50,11 +50,11 @@ export function useXoBackupUtils() {
     const modes = []
 
     if (hasIds(backupJob.pools?.id)) {
-      modes.push(t('backup.pool-metadata'))
+      modes.push(t('backup:pool-metadata'))
     }
 
     if (backupJob.xoMetadata) {
-      modes.push(t('backup.xo-config'))
+      modes.push(t('backup:xo-config'))
     }
 
     return modes
@@ -64,9 +64,9 @@ export function useXoBackupUtils() {
     const modes = []
 
     if (backupJob.mode === 'full') {
-      modes.push(t('backup.mirror.full'))
+      modes.push(t('backup:mirror:full'))
     } else if (backupJob.mode === 'delta') {
-      modes.push(t('backup.mirror.incremental'))
+      modes.push(t('backup:mirror:incremental'))
     }
 
     return modes

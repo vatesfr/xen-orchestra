@@ -10,7 +10,7 @@
     icon="fa:route"
     @click="openMigrateModal()"
   >
-    {{ t('migrate') }}
+    {{ t('action:migrate') }}
   </MenuItem>
 </template>
 

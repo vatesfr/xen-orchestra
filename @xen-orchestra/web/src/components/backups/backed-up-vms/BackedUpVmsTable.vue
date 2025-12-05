@@ -80,7 +80,7 @@ const state = useTableState({
   error: () => error,
   empty: () =>
     backedUpVms.value.length === 0
-      ? t('no-backed-up-vms-detected')
+      ? t('no-backed-up-vm-detected')
       : filteredBackedUpVms.value.length === 0
         ? { type: 'no-result' }
         : false,

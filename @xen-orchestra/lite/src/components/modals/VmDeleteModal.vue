@@ -9,9 +9,9 @@
       {{ t('please-confirm') }}
     </template>
     <template #buttons>
-      <VtsModalCancelButton>{{ t('go-back') }}</VtsModalCancelButton>
+      <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t('delete-vms', { n: count }) }}
+        {{ t('action:delete-vms', { n: count }) }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>

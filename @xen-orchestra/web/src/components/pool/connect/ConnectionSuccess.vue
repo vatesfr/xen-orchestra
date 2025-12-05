@@ -12,7 +12,7 @@
             :to="{ name: '/pool/[id]/dashboard', params: { id: server.poolId } }"
             size="medium"
           >
-            {{ t('visit-pool-dashboard') }}
+            {{ t('action:visit-pool-dashboard') }}
           </UiLink>
           <UiButton
             variant="secondary"
@@ -21,7 +21,7 @@
             left-icon="fa:plus"
             @click="emit('connectAnotherPool')"
           >
-            {{ t('connect-another-pool') }}
+            {{ t('action:connect-another-pool') }}
           </UiButton>
         </div>
       </div>

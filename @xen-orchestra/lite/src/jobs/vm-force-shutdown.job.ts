@@ -17,11 +17,11 @@ export const useVmForceShutdownJob = defineJob('vm.force-shutdown', [vmsArg], ()
       ),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job.vm-force-shutdown.missing-vms'))
+        throw new JobError(t('job:vm-force-shutdown:missing-vms'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.HARD_SHUTDOWN))) {
-        throw new JobRunningError(t('job.vm-force-shutdown.in-progress'))
+        throw new JobRunningError(t('job:vm-force-shutdown:in-progress'))
       }
 
       if (
@@ -32,7 +32,7 @@ export const useVmForceShutdownJob = defineJob('vm.force-shutdown', [vmsArg], ()
             vm.power_state === VM_POWER_STATE.PAUSED
         )
       ) {
-        throw new JobError(t('job.vm-force-shutdown.bad-power-state'))
+        throw new JobError(t('job:vm-force-shutdown:bad-power-state'))
       }
     },
   }

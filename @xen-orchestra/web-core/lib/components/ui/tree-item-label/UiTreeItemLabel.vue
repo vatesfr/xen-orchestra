@@ -11,7 +11,7 @@
       </template>
       <UiButtonIcon
         v-if="hasToggle"
-        v-tooltip="isExpanded ? t('core.close') : t('core.open')"
+        v-tooltip="isExpanded ? t('action:close') : t('action:open')"
         class="toggle"
         accent="brand"
         :icon="isExpanded ? 'fa:angle-down' : 'fa:angle-right'"

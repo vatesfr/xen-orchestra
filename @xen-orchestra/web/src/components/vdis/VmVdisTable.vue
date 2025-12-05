@@ -1,7 +1,7 @@
 <template>
   <div class="vm-vdis-table">
     <UiTitle>
-      {{ t('vdis', 2) }}
+      {{ t('vdis') }}
     </UiTitle>
     <div class="container">
       <div class="table-actions">
@@ -69,7 +69,7 @@ const state = useTableState({
   busy: () => busy,
   error: () => error,
   empty: () =>
-    vdis.length === 0 ? t('no-vdis-detected') : filteredVdis.value.length === 0 ? { type: 'no-result' } : false,
+    vdis.length === 0 ? t('no-vdi-detected') : filteredVdis.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const { pageRecords: paginatedVdis, paginationBindings } = usePagination('vdis', filteredVdis)

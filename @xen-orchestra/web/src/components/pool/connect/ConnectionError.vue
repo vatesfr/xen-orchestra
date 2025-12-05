@@ -17,7 +17,7 @@
         />
         <RouterLink :to="{ name: '/pool/connect' }">
           <UiButton variant="secondary" accent="brand" size="medium" @click="emit('goBack')">
-            {{ t('go-back') }}
+            {{ t('action:go-back') }}
           </UiButton>
         </RouterLink>
       </div>

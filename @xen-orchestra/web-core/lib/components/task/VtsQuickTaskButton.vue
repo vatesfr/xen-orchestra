@@ -1,7 +1,7 @@
 <template>
   <UiButtonIcon
     ref="buttonRef"
-    v-tooltip="{ content: t('tasks.quick-view'), placement: 'bottom-end' }"
+    v-tooltip="{ content: t('tasks:quick-view'), placement: 'bottom-end' }"
     accent="brand"
     :dot="hasNewTask"
     icon="fa:bars-progress"

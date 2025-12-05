@@ -63,22 +63,23 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<AnyXo
   const reportWhenValueTranslation = useMapper<ReportWhen, string>(
     () => settings.reportWhen as ReportWhen | undefined,
     {
-      always: t('report-when.always'),
-      failure: t('report-when.skipped-and-failure'),
-      error: t('report-when.error'),
-      never: t('report-when.never'),
+      always: t('report-when:always'),
+      failure: t('report-when:skipped-and-failure'),
+      error: t('report-when:error'),
+      never: t('report-when:never'),
     },
     'never'
   )
 
   const snapshotModeTranslation = computed(() => {
     if (settings.checkpointSnapshot === true && settings.offlineSnapshot === false) {
-      return 'with-memory'
+      return t('with-memory')
     }
+
     if (settings.checkpointSnapshot === false && settings.offlineSnapshot === true) {
-      return 'offline'
+      return t('offline')
     } else {
-      return 'normal'
+      return t('normal')
     }
   })
 

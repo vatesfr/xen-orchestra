@@ -78,19 +78,19 @@ const formattedStartDelay = computed(() => {
   const parts = []
 
   if (days > 0) {
-    parts.push(t('relative-time.day', days))
+    parts.push(t('relative-time:day', days))
   }
 
   if (hours > 0) {
-    parts.push(t('relative-time.hour', hours))
+    parts.push(t('relative-time:hour', hours))
   }
 
   if (minutes > 0) {
-    parts.push(t('relative-time.minute', minutes))
+    parts.push(t('relative-time:minute', minutes))
   }
 
   if (seconds > 0 || parts.length === 0) {
-    parts.push(t('relative-time.second', seconds))
+    parts.push(t('relative-time:second', seconds))
   }
 
   return parts.join(' ')

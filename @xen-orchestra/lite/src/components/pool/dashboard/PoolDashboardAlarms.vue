@@ -11,7 +11,7 @@
         <p class="text typo-h4">
           {{ t('click-to-display-alarms') }}
         </p>
-        <UiButton size="medium" accent="brand" variant="primary" @click="start">{{ t('load-now') }}</UiButton>
+        <UiButton size="medium" accent="brand" variant="primary" @click="start">{{ t('action:load-now') }}</UiButton>
       </div>
       <div>
         <img alt="" src="@/assets/server-status.svg" />
@@ -77,13 +77,13 @@ const useAlarmColumns = defineColumns(() => ({
 const state = useTableState({
   busy: logicNot(isReady),
   error: hasError,
-  empty: () => (alarms.value.length === 0 ? { type: 'all-good', message: t('no-alarms-detected') } : false),
+  empty: () => (alarms.value.length === 0 ? { type: 'all-good', message: t('no-alarm-detected') } : false),
 })
 
 const { BodyCells } = useAlarmColumns({
   body: (alarm: XenApiAlarm<RawObjectType>) => ({
     time: r => r(alarm.timestamp, { relative: true }),
-    description: r => r(t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 })),
+    description: r => r(t(`alarm-type:${alarm.type}`, { n: alarm.triggerLevel * 100 })),
     level: r => r(Math.min(alarm.level, 1)),
     onObject: r => r(t('on-object', { object: alarm.cls })),
     object: r => r(alarm.cls, alarm.obj_uuid),

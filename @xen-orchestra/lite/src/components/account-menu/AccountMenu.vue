@@ -25,7 +25,7 @@
       {{ t('access-forum') }}
     </MenuItem>
     <MenuItem icon="fa:arrow-right-from-bracket" class="menu-item-logout" @click="logout">
-      {{ t('log-out') }}
+      {{ t('action:log-out') }}
     </MenuItem>
   </MenuList>
 </template>

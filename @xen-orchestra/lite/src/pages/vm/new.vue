@@ -1,7 +1,7 @@
 <template>
   <div class="new-vm-view">
     <UiHeadBar icon="fa:plus">
-      {{ t('new-vm.add') }}
+      {{ t('new-vm:add') }}
     </UiHeadBar>
     <div class="card-container">
       <form @submit.prevent="createVm()">
@@ -9,7 +9,7 @@
           <!-- TEMPLATE SECTION -->
           <UiTitle>{{ t('template') }}</UiTitle>
           <div class="template-container">
-            <VtsInputWrapper :label="t('pick-template')">
+            <VtsInputWrapper :label="t('action:pick-template')">
               <VtsSelect :id="templateSelectId" accent="brand" />
             </VtsInputWrapper>
           </div>
@@ -93,7 +93,7 @@
             <!-- <UiToggle v-model="vmState.toggle">{{ t('multi-creation') }}</UiToggle> -->
             <div class="system-container">
               <div class="column">
-                <VtsInputWrapper :label="t('new-vm.name')">
+                <VtsInputWrapper :label="t('new-vm:name')">
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
                 <VtsInputWrapper :label="t('tags')">
@@ -124,13 +124,13 @@
                     accent="brand"
                     :disabled="vmState.boot_firmware === 'uefi' || templateHasBiosStrings"
                   >
-                    {{ t('copy-host') }}
+                    {{ t('action:copy-host') }}
                   </UiCheckbox>
                 </div>
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
-                  {{ t('new-vm.description') }}
+                  {{ t('new-vm:description') }}
                 </UiTextarea>
                 <VtsInputWrapper :label="t('affinity-host')">
                   <VtsSelect :id="affinityHostSelectId" accent="brand" />
@@ -140,7 +140,7 @@
             <!-- MEMORY SECTION -->
             <UiTitle>{{ t('memory') }}</UiTitle>
             <div class="memory-container">
-              <VtsInputWrapper :label="t('vcpus', Number(vmState.vCPU))">
+              <VtsInputWrapper :label="t('vcpu', Number(vmState.vCPU))">
                 <UiInput v-model="vmState.vCPU" accent="brand" />
               </VtsInputWrapper>
               <!-- TODO remove (GB) when we can use new selector -->
@@ -169,7 +169,7 @@
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand">
-              <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('boot-vm') }}</UiCheckbox>
+              <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('action:boot-vm') }}</UiCheckbox>
               <UiCheckbox v-model="vmState.auto_power" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.fast_clone" accent="brand">
                 {{ t('fast-clone') }}
@@ -179,18 +179,18 @@
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
               <!-- TODO change label to manage pluralization when we can have multiple vm -->
-              <VtsResource icon="fa:display" count="1" :label="t('vms', 1)" />
-              <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus', Number(vmState.vCPU))" />
+              <VtsResource icon="fa:display" count="1" :label="t('vm')" />
+              <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpu', Number(vmState.vCPU))" />
               <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
                 icon="fa:database"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
-                :label="t('vdis', vmState.existingVdis.length + vmState.vdis.length)"
+                :label="t('vdi', vmState.existingVdis.length + vmState.vdis.length)"
               />
               <VtsResource
                 icon="fa:network-wired"
                 :count="vmState.networkInterfaces.length"
-                :label="t('interfaces', vmState.networkInterfaces.length)"
+                :label="t('interface', vmState.networkInterfaces.length)"
               />
             </VtsResources>
           </div>
@@ -210,7 +210,7 @@
               :busy="isBusy"
               :disabled="vmState.new_vm_template === undefined || !hasInstallSettings || hasInvalidSrVdi || isBusy"
             >
-              {{ t('create') }}
+              {{ t('action:create') }}
             </UiButton>
           </div>
         </UiCard>

@@ -19,7 +19,7 @@
     class="xoa-button"
     @click="openXoaDeploy()"
   >
-    {{ t('deploy-xoa') }}
+    {{ t('action:deploy-xoa') }}
   </UiButton>
 </template>
 
