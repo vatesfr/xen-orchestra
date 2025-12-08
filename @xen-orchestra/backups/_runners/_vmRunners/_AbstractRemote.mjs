@@ -73,7 +73,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     }
   }
 
-  async #computeTransferListPerJob(sourceBackups, remotesBackups, sharedProperties) {
+  async #computeTransferListPerJob(sourceBackups, remotesBackups) {
     const localMetadata = new Map()
     sourceBackups.forEach(metadata => {
       const timestamp = metadata.timestamp
@@ -102,12 +102,11 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
       }
     }
     if (transferList.length > 0) {
-      return this._filterTransferList(transferList)
+      const filteredTransferList = this._filterTransferList(transferList)
+      return { transferList: filteredTransferList, filtered: true }
     } else {
-      sharedProperties.atLeastOneJobMatches = true
+      return { transferList, filtered: false }
     }
-
-    return []
   }
 
   /**
@@ -121,18 +120,18 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
       Object.values(this.remoteAdapters).map(remoteAdapter => remoteAdapter.listVmBackups(this._vmUuid, vmPredicate))
     )
     const sourceBackupByJobId = groupBy(sourceBackups, 'jobId')
-    const sharedProperties = { atLeastOneJobMatches: false }
-    const transferByJobs = await Promise.all(
+    const transferObjectsList = await Promise.all(
       Object.values(sourceBackupByJobId).map(vmBackupsByJob =>
-        this.#computeTransferListPerJob(vmBackupsByJob, remotesBackups, sharedProperties)
+        this.#computeTransferListPerJob(vmBackupsByJob, remotesBackups)
       )
     )
-    const transferList = transferByJobs.flat(1)
+    const transferList = transferObjectsList.map(transferObject => transferObject.transferList).flat(1)
     if (transferList.length === 0 && Object.values(sourceBackupByJobId).length > 0) {
-      if (sharedProperties.atLeastOneJobMatches) {
-        Task.info('No new data to upload for this VM')
-      } else {
+      if (transferObjectsList.some(transferObject => transferObject.filtered)) {
+        // Happens if any job transfer list wasn't empty before filter and is empty after filter.
         Task.info('This VM is excluded by the job filter')
+      } else {
+        Task.info('No new data to upload for this VM')
       }
     }
     return transferList
