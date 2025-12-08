@@ -284,6 +284,7 @@
   "new-vm.name": "VM navn",
   "news": "Nyheder",
   "news-name": "{name} nyheder",
+  "nic-type": "NIC type",
   "no-alarm-triggered": "Ingen alarm udløst",
   "no-alarms-detected": "Ingen alarmer registreret",
   "no-config": "Ingen konfiguration",
