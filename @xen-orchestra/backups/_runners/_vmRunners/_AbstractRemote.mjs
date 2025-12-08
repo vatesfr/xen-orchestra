@@ -73,7 +73,7 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
     }
   }
 
-  async #computeTransferListPerJob(sourceBackups, remotesBackups) {
+  async #computeTransferListPerJob(sourceBackups, remotesBackups, sharedProperties) {
     const localMetadata = new Map()
     sourceBackups.forEach(metadata => {
       const timestamp = metadata.timestamp
@@ -102,15 +102,9 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
       }
     }
     if (transferList.length > 0) {
-      const filteredTransferList = this._filterTransferList(transferList)
-      if (filteredTransferList.length > 0) {
-        return filteredTransferList
-      } else {
-        Task.info('This VM is excluded by the job filter')
-        return []
-      }
+      return this._filterTransferList(transferList)
     } else {
-      Task.info('No new data to upload for this VM')
+      sharedProperties.atLeastOneJobMatches = true
     }
 
     return []
@@ -127,12 +121,21 @@ export const AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstrac
       Object.values(this.remoteAdapters).map(remoteAdapter => remoteAdapter.listVmBackups(this._vmUuid, vmPredicate))
     )
     const sourceBackupByJobId = groupBy(sourceBackups, 'jobId')
+    const sharedProperties = { atLeastOneJobMatches: false }
     const transferByJobs = await Promise.all(
       Object.values(sourceBackupByJobId).map(vmBackupsByJob =>
-        this.#computeTransferListPerJob(vmBackupsByJob, remotesBackups)
+        this.#computeTransferListPerJob(vmBackupsByJob, remotesBackups, sharedProperties)
       )
     )
-    return transferByJobs.flat(1)
+    const transferList = transferByJobs.flat(1)
+    if (transferList.length === 0 && Object.values(sourceBackupByJobId).length > 0) {
+      if (sharedProperties.atLeastOneJobMatches) {
+        Task.info('No new data to upload for this VM')
+      } else {
+        Task.info('This VM is excluded by the job filter')
+      }
+    }
+    return transferList
   }
 
   async run($defer) {
