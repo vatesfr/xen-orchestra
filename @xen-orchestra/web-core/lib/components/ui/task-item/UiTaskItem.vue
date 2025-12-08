@@ -22,15 +22,15 @@
 
       <div class="main-content">
         <div v-if="task.name" class="content-left">
-          <UiLink :to="`#task-${task.id}`" size="medium">
+          <UiLink disabled :to="`#task-${task.id}`" size="medium">
             {{ task.name }}
           </UiLink>
-          <div class="counter">
-            <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="muted" variant="primary" size="small" />
+          <div v-if="shouldShowInfos || hasSubTasks" class="infos">
+            <UiCounter v-if="hasSubTasks" :value="subTasksCount" accent="brand" variant="secondary" size="small" />
+            <UiInfo v-if="hasInfos" accent="info" />
+            <UiInfo v-if="hasWarnings" accent="warning" />
+            <UiInfo v-if="isError" accent="danger" />
           </div>
-          <UiInfo v-if="task.infos?.length" accent="info" />
-          <UiInfo v-if="task.warning?.length" accent="warning" />
-          <UiInfo v-if="isError" accent="danger" />
         </div>
 
         <div class="content-right typo-body-regular-small">
@@ -41,31 +41,29 @@
             <UiCircleProgressBar v-if="task.progress" :accent="progressAccent" size="small" :value="task.progress" />
           </div>
           <div class="actions">
-            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" />
-            <div class="cancel">
-              <UiButtonIcon v-if="task.status === 'pending'" icon="fa:close" size="medium" accent="danger" />
-            </div>
+            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select')" />
           </div>
         </div>
       </div>
     </div>
     <template v-if="hasSubTasks && expanded">
-      <UiTaskList :tasks="subTasks" :depth="depth" />
+      <UiTaskList :tasks="subTasks" :depth />
     </template>
   </li>
 </template>
 
 <script lang="ts" setup>
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
+import { useTimeAgo } from '@core/composables/locale-time-ago.composable.ts'
 import { vTooltip } from '@core/directives/tooltip.directive'
-import { useTimeAgo } from '@vueuse/core'
+import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
 import UiCircleProgressBar from '../circle-progress-bar/UiCircleProgressBar.vue'
-import UiInfo from '../info/UiInfo.vue'
 
 export type Task = {
   id: string
@@ -80,12 +78,13 @@ export type Task = {
 
 const { task } = defineProps<{
   task: Task
-  expanded?: boolean
   depth: number
+  expanded?: boolean
 }>()
 
 const emit = defineEmits<{
   expand: []
+  select: []
 }>()
 
 const { t } = useI18n()
@@ -98,9 +97,15 @@ const hasSubTasks = computed(() => subTasksCount.value > 0)
 
 const isError = computed(() => task.status === 'failure' || task.status === 'interrupted')
 
-const progressAccent = computed(() => (isError.value ? 'danger' : task.warning?.length ? 'warning' : 'info'))
-
 const end = useTimeAgo(() => task.end ?? 0)
+
+const hasWarnings = computed(() => task.warning && task.warning.length > 0)
+
+const hasInfos = computed(() => task.infos && task.infos.length > 0)
+
+const shouldShowInfos = logicOr(isError, hasWarnings, hasInfos)
+
+const progressAccent = computed(() => (isError.value ? 'danger' : 'info'))
 </script>
 
 <style lang="postcss" scoped>
@@ -127,7 +132,7 @@ const end = useTimeAgo(() => task.end ?? 0)
       display: flex;
       align-items: center;
       padding-left: 1.6rem;
-      gap: 0.6rem;
+      gap: 0.4rem;
 
       .tree-lines {
         display: flex;
@@ -135,7 +140,7 @@ const end = useTimeAgo(() => task.end ?? 0)
       }
 
       .tree-line {
-        flex: 0 0 2.4rem;
+        flex: 0 0 2.8rem;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -148,7 +153,7 @@ const end = useTimeAgo(() => task.end ?? 0)
       }
 
       .h-space {
-        width: 1.8rem;
+        width: 2.4rem;
       }
     }
 
@@ -165,14 +170,16 @@ const end = useTimeAgo(() => task.end ?? 0)
 
     .content-left {
       display: flex;
-      gap: 0.8rem;
+      gap: 1.6rem;
       align-items: center;
       flex-wrap: wrap;
       color: var(--color-neutral-txt-secondary);
       word-break: break-word;
 
-      .counter {
-        margin: 0 0.8rem;
+      .infos {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
       }
     }
 
@@ -191,10 +198,6 @@ const end = useTimeAgo(() => task.end ?? 0)
       .actions {
         display: flex;
         gap: 1.6rem;
-
-        .cancel {
-          width: calc(4rem - 1.6rem);
-        }
       }
     }
   }
