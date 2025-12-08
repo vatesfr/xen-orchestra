@@ -17,7 +17,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Plugins/OIDC] Fix group import on string (PR [#]())
+- [Plugins/OIDC] Fix group import on string (PR [#9280](https://github.com/vatesfr/xen-orchestra/pull/9280/files))
 
 - **XO 6:**
 
