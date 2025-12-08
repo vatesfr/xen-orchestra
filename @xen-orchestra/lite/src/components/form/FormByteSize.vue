@@ -1,6 +1,6 @@
 <template>
   <VtsInputGroup>
-    <UiInput v-model="sizeInput" accent="brand" type="number" :max-decimals="3" />
+    <UiInput v-model.number="sizeInput" accent="brand" type="number" :max-decimals="3" />
     <VtsSelect :id="prefixSelectId" accent="brand" />
   </VtsInputGroup>
 </template>
