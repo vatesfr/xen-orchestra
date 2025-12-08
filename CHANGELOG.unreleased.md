@@ -18,6 +18,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Plugins/OIDC] Fix group import on string (PR [#9280](https://github.com/vatesfr/xen-orchestra/pull/9280/files))
+
+- **XO 6:**
 - [VDIs] Fix broken fallback link to XO 5 VDIs page (PR [#9267](https://github.com/vatesfr/xen-orchestra/pull/9267))
 
 ### Packages to release
@@ -38,5 +41,6 @@
 
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server-auth-oidc patch
 
 <!--packages-end-->
