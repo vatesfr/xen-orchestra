@@ -32,14 +32,37 @@ interface PendingRequest {
   reject: (error: Error) => void
 }
 
-interface PoolCredentials {
+interface HostCredentials {
+  hostId: string
+  hostAddress: string
+  hostLabel: string
   poolId: string
-  masterUrl: string
+  poolLabel: string
   sessionId: string
+  protocol: string
 }
 
 interface XapiCredentialsPayload {
-  pools: PoolCredentials[]
+  hosts: HostCredentials[]
+}
+
+// Minimal type for XO host object
+interface XoHost {
+  id: string
+  uuid: string
+  type: 'host'
+  address: string
+  name_label: string
+  $pool: string
+  $poolId: string
+}
+
+// Minimal type for XO pool object
+interface XoPool {
+  id: string
+  uuid: string
+  type: 'pool'
+  name_label: string
 }
 
 // Minimal type for XAPI connection
@@ -47,12 +70,13 @@ interface Xapi {
   status: string
   pool?: { uuid: string }
   sessionId: string
-  _url?: URL
+  _url?: { protocol: string; hostname: string; port?: string }
 }
 
 // Minimal type for xo-server instance
 interface XoServer {
   getAllXapis(): Record<string, Xapi>
+  getObjects(filter?: { filter?: Record<string, unknown> }): Record<string, unknown>
 }
 
 // ============================================================================
@@ -107,13 +131,16 @@ export const configurationSchema = {
 
 class OpenMetricsPlugin {
   #configuration: PluginConfiguration | undefined
+  #staticConfig: Partial<PluginConfiguration>
   #childProcess: ChildProcess | undefined
   #pendingRequests = new Map<string, PendingRequest>()
   #requestIdCounter = 0
   readonly #xo: XoServer
 
-  constructor(xo: XoServer) {
+  constructor(xo: XoServer, staticConfig: Partial<PluginConfiguration> = {}) {
     this.#xo = xo
+    this.#staticConfig = staticConfig
+    logger.info('Plugin initialized with staticConfig', { staticConfig })
   }
 
   /**
@@ -134,10 +161,16 @@ class OpenMetricsPlugin {
       return
     }
 
-    // Use configured values or defaults from configurationSchema
+    // Use configured values with priority: static config (TOML) > dynamic config (UI) > defaults
+    // Static config from TOML takes precedence as it represents admin-level infrastructure config
+    logger.info('Config sources', {
+      dynamicConfig: this.#configuration,
+      staticConfig: this.#staticConfig,
+    })
+
     const configuration: PluginConfiguration = {
-      port: this.#configuration?.port ?? DEFAULT_PORT,
-      bindAddress: this.#configuration?.bindAddress ?? DEFAULT_BIND_ADDRESS,
+      port: this.#staticConfig.port ?? this.#configuration?.port ?? DEFAULT_PORT,
+      bindAddress: this.#staticConfig.bindAddress ?? this.#configuration?.bindAddress ?? DEFAULT_BIND_ADDRESS,
     }
 
     logger.info('Starting OpenMetrics server', {
@@ -273,42 +306,77 @@ class OpenMetricsPlugin {
   }
 
   /**
-   * Get XAPI credentials for all connected pools.
-   * Returns host URLs and session IDs for the child process to fetch RRD data directly.
+   * Get XAPI credentials for all hosts in all connected pools.
+   * Returns host addresses, labels, pool info, and session IDs for the child process to fetch RRD data directly.
    */
   #getXapiCredentials(): XapiCredentialsPayload {
-    const pools: PoolCredentials[] = []
+    const hosts: HostCredentials[] = []
 
+    // Build a map of poolId -> { sessionId, protocol }
+    const poolSessionMap = new Map<string, { sessionId: string; protocol: string }>()
     const xapis = this.#xo.getAllXapis()
+
     for (const serverId of Object.keys(xapis)) {
       const xapi = xapis[serverId]
       if (xapi.status !== 'connected') {
         continue
       }
 
-      try {
-        const pool = xapi.pool
-        if (pool === undefined) {
-          continue
-        }
-
-        // Access the internal URL - this is the connection URL to the pool master
-        const url = xapi._url
-        if (url === undefined) {
-          continue
-        }
-
-        pools.push({
-          poolId: pool.uuid,
-          masterUrl: `${url.protocol}//${url.host}`,
-          sessionId: xapi.sessionId,
-        })
-      } catch (error) {
-        logger.warn('Failed to get credentials for pool', { serverId, error })
+      const pool = xapi.pool
+      if (pool === undefined) {
+        logger.warn('Pool is undefined for connected xapi', { serverId })
+        continue
       }
+
+      const url = xapi._url
+      if (url === undefined) {
+        logger.warn('URL is undefined for connected xapi', { serverId, poolUuid: pool.uuid })
+        continue
+      }
+
+      poolSessionMap.set(pool.uuid, {
+        sessionId: xapi.sessionId,
+        protocol: url.protocol,
+      })
     }
 
-    return { pools }
+    // Get all pools to resolve pool labels
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const poolId of Object.keys(allPools)) {
+      const pool = allPools[poolId]
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    // Get all hosts from XO objects
+    const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
+
+    for (const hostId of Object.keys(allHosts)) {
+      const host = allHosts[hostId]
+
+      // Get the session info for this host's pool
+      const poolInfo = poolSessionMap.get(host.$poolId)
+      if (poolInfo === undefined) {
+        logger.debug('No session for host pool, pool may be disconnected', {
+          hostId: host.uuid,
+          poolId: host.$poolId,
+        })
+        continue
+      }
+
+      hosts.push({
+        hostId: host.uuid,
+        hostAddress: host.address,
+        hostLabel: host.name_label,
+        poolId: host.$poolId,
+        poolLabel: poolLabelMap.get(host.$poolId) ?? host.$poolId,
+        sessionId: poolInfo.sessionId,
+        protocol: poolInfo.protocol,
+      })
+    }
+
+    logger.debug('Returning host credentials', { hostCount: hosts.length })
+    return { hosts }
   }
 
   /**
@@ -397,10 +465,11 @@ class OpenMetricsPlugin {
 
 interface PluginOptions {
   xo: XoServer
+  staticConfig?: Partial<PluginConfiguration>
 }
 
-function pluginFactory({ xo }: PluginOptions): OpenMetricsPlugin {
-  return new OpenMetricsPlugin(xo)
+function pluginFactory({ xo, staticConfig }: PluginOptions): OpenMetricsPlugin {
+  return new OpenMetricsPlugin(xo, staticConfig)
 }
 pluginFactory.configurationSchema = configurationSchema
 

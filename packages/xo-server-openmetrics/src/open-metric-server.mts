@@ -40,14 +40,18 @@ interface ServerConfiguration {
   bindAddress: string
 }
 
-interface PoolCredentials {
+interface HostCredentials {
+  hostId: string
+  hostAddress: string
+  hostLabel: string
   poolId: string
-  masterUrl: string
+  poolLabel: string
   sessionId: string
+  protocol: string
 }
 
 interface XapiCredentialsPayload {
-  pools: PoolCredentials[]
+  hosts: HostCredentials[]
 }
 
 interface PendingRequest<T> {
@@ -96,11 +100,11 @@ function handleParentMessage(rawMessage: unknown): void {
 
   switch (message.type) {
     case 'INIT':
-      handleInit(message.payload as ServerConfiguration)
+      handleInit(message.payload as ServerConfiguration).catch(err => logger.error('Init failed', { error: err }))
       break
 
     case 'SHUTDOWN':
-      handleShutdown()
+      handleShutdown().catch(err => logger.error('Shutdown failed', { error: err }))
       break
 
     case 'XAPI_CREDENTIALS':
@@ -202,23 +206,33 @@ async function requestXapiCredentials(): Promise<XapiCredentialsPayload> {
 // ============================================================================
 
 /**
- * Fetch and parse RRD data from a pool.
+ * Fetch and parse RRD data from a single host.
  *
- * @param pool - Pool credentials
+ * Each host in a XCP-ng/XenServer pool serves RRD data for:
+ * - The host itself
+ * - All VMs running on that host
+ *
+ * @param host - Host credentials including address, sessionId, poolId, labels
  * @returns ParsedRrdData or null on error
  */
-async function fetchRrdFromPool(pool: PoolCredentials): Promise<ParsedRrdData | null> {
-  const { masterUrl, sessionId, poolId } = pool
+async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | null> {
+  const { hostAddress, hostLabel, sessionId, poolId, poolLabel, protocol } = host
+
+  // Calculate start time: current time minus 2 intervals (to ensure we get data)
+  const now = Math.floor(Date.now() / 1000)
+  const interval = 60
+  const start = now - 2 * interval
 
   // Build RRD URL with query parameters
   // cf=LAST returns the most recent value (vs AVERAGE which averages over the interval)
   // This is more suitable for real-time monitoring with Prometheus/Grafana
-  const url = new URL('/rrd_updates', masterUrl)
+  const baseUrl = `${protocol}//${hostAddress}`
+  const url = new URL('/rrd_updates', baseUrl)
   url.searchParams.set('session_id', sessionId)
   url.searchParams.set('cf', 'LAST')
-  url.searchParams.set('interval', '60')
+  url.searchParams.set('interval', String(interval))
+  url.searchParams.set('start', String(start))
   url.searchParams.set('host', 'true')
-  url.searchParams.set('vm_uuid', 'all')
   url.searchParams.set('json', 'true')
 
   try {
@@ -230,7 +244,9 @@ async function fetchRrdFromPool(pool: PoolCredentials): Promise<ParsedRrdData | 
     })
 
     if (response.statusCode !== 200) {
-      logger.warn('RRD fetch failed', { poolId, statusCode: response.statusCode })
+      // Drain the body to release the connection
+      await response.body.text()
+      logger.warn('RRD fetch failed', { hostLabel, poolLabel, statusCode: response.statusCode })
       return null
     }
 
@@ -240,11 +256,11 @@ async function fetchRrdFromPool(pool: PoolCredentials): Promise<ParsedRrdData | 
       // Parse RRD response using the dedicated parser (handles JSON5 fallback)
       return parseRrdResponse(text, poolId)
     } catch (parseError) {
-      logger.warn('RRD parse failed', { poolId, error: parseError })
+      logger.warn('RRD parse failed', { hostLabel, poolLabel, error: parseError })
       return null
     }
   } catch (error) {
-    logger.warn('RRD fetch error', { poolId, error })
+    logger.warn('RRD fetch error', { hostLabel, poolLabel, error })
     return null
   }
 }
@@ -254,9 +270,9 @@ async function fetchRrdFromPool(pool: PoolCredentials): Promise<ParsedRrdData | 
 // ============================================================================
 
 /**
- * Collect metrics from all connected pools.
+ * Collect metrics from all hosts in all connected pools.
  *
- * Fetches RRD data from all pools with bounded concurrency,
+ * Fetches RRD data from each host with bounded concurrency,
  * parses and transforms to OpenMetrics format.
  *
  * @returns OpenMetrics-formatted string
@@ -264,35 +280,51 @@ async function fetchRrdFromPool(pool: PoolCredentials): Promise<ParsedRrdData | 
 async function collectMetrics(): Promise<string> {
   const credentials = await requestXapiCredentials()
 
-  if (credentials.pools.length === 0) {
-    return '# No connected pools\n# EOF'
+  logger.debug('Collecting metrics', { hostCount: credentials.hosts.length })
+
+  if (credentials.hosts.length === 0) {
+    return '# No connected hosts\n# EOF'
   }
 
-  // Collect parsed RRD data from all pools
+  // Collect parsed RRD data from all hosts
   const rrdDataList: ParsedRrdData[] = []
 
   await asyncEach(
-    credentials.pools,
-    async pool => {
-      const rrdData = await fetchRrdFromPool(pool)
+    credentials.hosts,
+    async host => {
+      const rrdData = await fetchRrdFromHost(host)
       if (rrdData !== null) {
+        logger.debug('RRD data fetched', {
+          hostLabel: host.hostLabel,
+          poolLabel: host.poolLabel,
+          metricCount: rrdData.metrics.length,
+        })
         rrdDataList.push(rrdData)
       }
     },
     { concurrency: RRD_FETCH_CONCURRENCY, stopOnError: false }
   )
 
-  // Build pool connection metrics
+  // Build pool connection metrics (deduplicate pools from hosts)
   const poolMetrics: string[] = []
   poolMetrics.push('# HELP xcp_pool_connected Indicates if a pool is connected (1) or not (0)')
   poolMetrics.push('# TYPE xcp_pool_connected gauge')
 
-  for (const pool of credentials.pools) {
-    poolMetrics.push(`xcp_pool_connected{pool_id="${pool.poolId}"} 1`)
+  const seenPools = new Set<string>()
+  for (const host of credentials.hosts) {
+    if (!seenPools.has(host.poolId)) {
+      seenPools.add(host.poolId)
+      poolMetrics.push(`xcp_pool_connected{pool_id="${host.poolId}",pool_label="${host.poolLabel}"} 1`)
+    }
   }
 
   // Format all RRD data to OpenMetrics
+  logger.debug('Formatting RRD data', {
+    hostCount: rrdDataList.length,
+    totalMetrics: rrdDataList.reduce((sum, d) => sum + d.metrics.length, 0),
+  })
   const rrdMetrics = formatAllPoolsToOpenMetrics(rrdDataList)
+  logger.debug('Formatted metrics', { outputLength: rrdMetrics.length })
 
   // Combine pool metrics with RRD metrics
   // Remove the # EOF from rrdMetrics if present (we'll add our own)
