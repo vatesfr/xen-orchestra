@@ -368,6 +368,7 @@ async function startServer(): Promise<void> {
         })
         res.end(metrics)
       } catch (error) {
+        logger.warn('Failed to collect metrics', { error })
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(
           JSON.stringify({
