@@ -9,7 +9,7 @@
         <VtsCopyButton :value="content" />
         <UiButtonIcon
           icon="fa:arrow-up-right-from-square"
-          size="medium"
+          size="small"
           accent="brand"
           @click="openRawValueInNewTab()"
         />

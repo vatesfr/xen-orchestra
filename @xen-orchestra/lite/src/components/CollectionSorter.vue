@@ -18,7 +18,7 @@
   </UiFilterGroup>
 </template>
 
-<script lang="ts" setup>
+<script lang="ts" setup generic="TProperty extends PropertyKey">
 import UiActionButton from '@/components/ui/UiActionButton.vue'
 import UiFilter from '@/components/ui/UiFilter.vue'
 import UiFilterGroup from '@/components/ui/UiFilterGroup.vue'
@@ -30,13 +30,13 @@ import { useI18n } from 'vue-i18n'
 
 const { availableSorts } = defineProps<{
   availableSorts: Sorts
-  activeSorts: ActiveSorts<Record<string, any>>
+  activeSorts: ActiveSorts<Record<TProperty, any>>
 }>()
 
 const emit = defineEmits<{
-  toggleSortDirection: [property: string]
-  addSort: [property: string, isAscending: boolean]
-  removeSort: [property: string]
+  toggleSortDirection: [property: TProperty]
+  addSort: [property: TProperty, isAscending: boolean]
+  removeSort: [property: TProperty]
 }>()
 
 const { t } = useI18n()
@@ -44,7 +44,7 @@ const { t } = useI18n()
 const openFormModal = useModal({
   component: import('@/components/modals/CollectionSorterModal.vue'),
   props: { availableSorts: computed(() => availableSorts) },
-  onConfirm: ({ property, isAscending }) => emit('addSort', property, isAscending),
+  onConfirm: ({ property, isAscending }) => emit('addSort', property as TProperty, isAscending),
 })
 </script>
 

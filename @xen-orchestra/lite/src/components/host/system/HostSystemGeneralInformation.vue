@@ -52,12 +52,12 @@
 </template>
 
 <script setup lang="ts">
-import VtsRelativeTime from '@/components/RelativeTime.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostMetricsStore } from '@/stores/xen-api/host-metrics.store.ts'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsRelativeTime from '@core/components/relative-time/VtsRelativeTime.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'

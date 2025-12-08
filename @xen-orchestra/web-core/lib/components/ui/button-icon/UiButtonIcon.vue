@@ -2,7 +2,7 @@
 <!-- TODO: Add complex icon -->
 <template>
   <button :class="classNames" :disabled class="ui-button-icon" type="button">
-    <VtsIcon :name="icon" size="medium" />
+    <VtsIcon :name="icon" size="current" />
     <span v-if="dot" class="dot" />
   </button>
 </template>
@@ -13,8 +13,9 @@ import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 import { computed } from 'vue'
 
-type ButtonIconAccent = 'brand' | 'warning' | 'danger'
-type ButtonSize = 'small' | 'medium' | 'large'
+export type ButtonIconAccent = 'brand' | 'warning' | 'danger'
+
+export type ButtonIconSize = 'small' | 'medium' | 'large'
 
 const {
   accent,
@@ -24,7 +25,7 @@ const {
   targetScale = 1,
 } = defineProps<{
   icon: IconName
-  size: ButtonSize
+  size: ButtonIconSize
   accent: ButtonIconAccent
   disabled?: boolean
   selected?: boolean
@@ -191,9 +192,9 @@ const classNames = computed(() => {
 
   &.size--small {
     & {
-      width: 1.6rem;
-      height: 1.6rem;
-      font-size: 1.2rem;
+      width: 2.4rem;
+      height: 2.4rem;
+      font-size: 1.6rem;
     }
 
     .dot {
@@ -206,9 +207,9 @@ const classNames = computed(() => {
 
   &.size--medium {
     & {
-      width: 2.4rem;
-      height: 2.4rem;
-      font-size: 1.6rem;
+      width: 3.2rem;
+      height: 3.2rem;
+      font-size: 2rem;
     }
 
     .dot {
@@ -223,7 +224,7 @@ const classNames = computed(() => {
     & {
       width: 4rem;
       height: 4rem;
-      font-size: 2.4rem;
+      font-size: 3.2rem;
     }
 
     .dot {

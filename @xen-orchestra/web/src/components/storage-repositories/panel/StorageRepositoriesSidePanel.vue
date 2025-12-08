@@ -1,11 +1,11 @@
 <template>
-  <VtsStateHero v-if="!isReady" format="panel" busy size="medium" />
+  <VtsStateHero v-if="!isReady" format="panel" type="busy" size="medium" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
           v-tooltip="t('close')"
-          size="medium"
+          size="small"
           variant="tertiary"
           accent="brand"
           :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"

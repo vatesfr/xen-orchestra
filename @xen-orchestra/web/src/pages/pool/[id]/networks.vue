@@ -1,8 +1,13 @@
 <template>
   <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <PoolNetworksTable :networks />
-      <PoolHostInternalNetworksTable :networks="internalNetworks" />
+      <PoolNetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks />
+      <PoolNetworksTable
+        :busy="!areNetworksReady"
+        :error="hasNetworkFetchError"
+        :networks="internalNetworks"
+        internal
+      />
     </UiCard>
     <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -14,7 +19,6 @@
 </template>
 
 <script setup lang="ts">
-import PoolHostInternalNetworksTable from '@/components/pool/network/PoolHostInternalNetworksTable.vue'
 import PoolNetworkSidePanel from '@/components/pool/network/PoolNetworkSidePanel.vue'
 import PoolNetworksTable from '@/components/pool/network/PoolNetworksTable.vue'
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
@@ -33,7 +37,8 @@ const { pool } = defineProps<{
 
 const { t } = useI18n()
 
-const { networksWithoutPifs, networksWithPifs, getNetworkById } = useXoNetworkCollection()
+const { areNetworksReady, hasNetworkFetchError, networksWithoutPifs, networksWithPifs, getNetworkById } =
+  useXoNetworkCollection()
 const uiStore = useUiStore()
 
 const internalNetworks = computed(() => networksWithoutPifs.value.filter(network => network.$pool === pool.id))

@@ -6,15 +6,7 @@
       </RouterLink>
     </template>
     <template #app-header>
-      <UiButton
-        size="medium"
-        accent="brand"
-        right-icon="fa:arrow-up-right-from-square"
-        variant="tertiary"
-        @click="openUrl(xo5Route, true)"
-      >
-        XO 5
-      </UiButton>
+      <UiLink size="medium" :href="xo5Route">XO 5</UiLink>
       <ThirdParties />
       <QuickTaskButton />
       <AccountMenu />
@@ -26,7 +18,7 @@
       <VtsTreeList v-if="!isReady">
         <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="fa:city" />
       </VtsTreeList>
-      <VtsStateHero v-else-if="isSearching" format="card" busy size="medium" class="loader" />
+      <VtsStateHero v-else-if="isSearching" format="card" size="medium" type="busy" class="loader" />
       <VtsStateHero v-else-if="sites.length === 0" format="card" size="medium" type="no-result">
         {{ t('no-results') }}
       </VtsStateHero>
@@ -45,15 +37,14 @@ import SidebarSearch from '@/components/SidebarSearch.vue'
 import QuickTaskButton from '@/components/task/QuickTaskButton.vue'
 import ThirdParties from '@/components/third-parties/ThirdParties.vue'
 import SiteTreeList from '@/components/tree/SiteTreeList.vue'
-import { useSiteTree } from '@/composables/pool-tree.composable'
+import { useSiteTree } from '@/composables/site-tree.composable'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
-import { openUrl } from '@core/utils/open-url.utils'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -65,8 +56,8 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { sites, isReady, filter, isSearching } = useSiteTree()
-const { routes } = useXoRoutes()
-const xo5Route = computed(() => routes.value?.xo5 ?? '')
+const { buildXo5Route } = useXoRoutes()
+const xo5Route = computed(() => buildXo5Route('/'))
 </script>
 
 <style lang="postcss" scoped>
