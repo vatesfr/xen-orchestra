@@ -31,6 +31,7 @@
   "dependencies": {
     "@vates/async-each": "^1.0.0",
     "@xen-orchestra/log": "^0.7.1",
+    "json5": "^2.2.3",
     "undici": "^6.2.1"
   },
   "devDependencies": {
@@ -43,7 +44,8 @@
     "clean": "rimraf dist/",
     "dev": "yarn run clean && yarn run build",
     "prebuild": "yarn run clean",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "test": "cd dist && node --test"
   },
   "private": true
 }
