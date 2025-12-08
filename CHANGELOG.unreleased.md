@@ -21,7 +21,9 @@
 - [Plugins/OIDC] Fix group import on string (PR [#9280](https://github.com/vatesfr/xen-orchestra/pull/9280/files))
 
 - **XO 6:**
-- [VDIs] Fix broken fallback link to XO 5 VDIs page (PR [#9267](https://github.com/vatesfr/xen-orchestra/pull/9267))
+  - [VDIs] Fix broken fallback link to XO 5 VDIs page (PR [#9267](https://github.com/vatesfr/xen-orchestra/pull/9267))
+
+- [perf-alert] Improve email subject (PR [#9283](https://github.com/vatesfr/xen-orchestra/pull/9283))
 
 ### Packages to release
 
@@ -42,5 +44,6 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-server-auth-oidc patch
+- xo-server-perf-alert patch
 
 <!--packages-end-->

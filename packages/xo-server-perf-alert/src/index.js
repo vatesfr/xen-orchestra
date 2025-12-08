@@ -70,7 +70,24 @@ class PerfAlertXoPlugin {
         notificationType: 'closed',
       })
     })
-    const subject = newAlarms.size > 0 ? `Performance Alerts : new Alerts` : `Performance Alerts : end of all Alerts`
+
+    let subject = ''
+    if (newAlarms.size > 0) {
+      if (activeAlarms.size === 0) {
+        subject = 'Performance Alerts: Alerting has started'
+      } else {
+        subject = `Performance Alerts: ${newAlarms.size} new alert(s) detected`
+        if (closedAlarms.size > 0) {
+          subject += `, ${closedAlarms.size} alert(s) resolved`
+        }
+      }
+    } else {
+      if (activeAlarms.size === 0) {
+        subject = 'Performance Alerts: All alerts resolved'
+      } else {
+        subject = `Performance Alerts: ${closedAlarms.size} alert(s) resolved`
+      }
+    }
     const { html } = await templates.mjml.transform(templates.mjml.$newAlarms({ byRules }))
     const text = await templates.markdown.$newAlarms({ byRules })
     return this._sendAlertEmail(subject, html, text)
