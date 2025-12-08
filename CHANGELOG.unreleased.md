@@ -17,6 +17,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Plugins/OIDC] Fix group import on string (PR [#]())
+
 - **XO 6:**
 
 ### Packages to release
@@ -34,5 +36,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server-auth-oidc patch
 
 <!--packages-end-->
