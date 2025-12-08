@@ -5,7 +5,11 @@
  * Defines metric mappings with transformations and labels.
  */
 
+import { createLogger } from '@xen-orchestra/log'
+
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
+
+const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
 // ============================================================================
 // Types
@@ -548,14 +552,23 @@ export function formatToOpenMetrics(metrics: FormattedMetric[]): string {
  */
 export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[]): string {
   const allMetrics: FormattedMetric[] = []
+  const unmatchedMetrics: Set<string> = new Set()
 
   for (const rrdData of rrdDataList) {
     for (const metric of rrdData.metrics) {
       const formatted = transformMetric(metric, rrdData.poolId)
       if (formatted !== null) {
         allMetrics.push(formatted)
+      } else if (metric.value !== null) {
+        // Track unmatched metrics that have valid values (not null due to NaN/Infinity)
+        unmatchedMetrics.add(`${metric.legend.objectType}:${metric.legend.metricName}`)
       }
     }
+  }
+
+  // Log unmatched metrics for debugging (this helps identify missing metric definitions)
+  if (unmatchedMetrics.size > 0) {
+    logger.warn('Unmatched RRD metrics', { metrics: Array.from(unmatchedMetrics).sort() })
   }
 
   // Sort metrics by name for consistent output
