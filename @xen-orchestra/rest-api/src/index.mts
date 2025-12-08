@@ -18,6 +18,7 @@ export const BASE_URL = '/rest/v0'
 
 const SWAGGER_UI_OPTIONS = {
   swaggerOptions: {
+    url: `${BASE_URL}/docs/swagger.json`,
     displayRequestDuration: true,
     docExpansion: 'none', // collapse all tags by default
     filter: true, // add a tags searchbar,
@@ -54,7 +55,11 @@ export default function setupRestApi(express: Express, xoApp: XoApp) {
 
   // do not register the doc at the root level, or it may lead to unwanted behaviour
   express.get('/rest/v0', (_req, res) => res.redirect('/rest/v0/docs'))
-  express.use(`${BASE_URL}/docs`, swaggerUi.serve, swaggerUi.setup(swaggerOpenApiSpec, SWAGGER_UI_OPTIONS))
+  express.use(
+    `${BASE_URL}/docs`,
+    swaggerUi.serveFiles(undefined, SWAGGER_UI_OPTIONS),
+    swaggerUi.setup(null, SWAGGER_UI_OPTIONS)
+  )
 
   express.use(BASE_URL, tsoaToXoErrorHandler)
   express.use(BASE_URL, genericErrorHandler)
