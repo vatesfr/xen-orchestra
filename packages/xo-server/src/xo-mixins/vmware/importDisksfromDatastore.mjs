@@ -1,5 +1,5 @@
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
-import { VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_MAX_SIZE } from '@xen-orchestra/xapi'
+import { QCOW2_CLUSTER_SIZE, VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_BLOCK_SIZE, VHD_MAX_SIZE } from '@xen-orchestra/xapi'
 import { ReadAhead } from '@xen-orchestra/disk-transform'
 import { toVhdStream } from 'vhd-lib/disk-consumer/index.mjs'
 import { NbdDisk } from '@vates/nbd-client/NbdDisk.mjs'
@@ -18,7 +18,17 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
 
   const start = Date.now()
   const activeDisk = chainByNode[chainByNode.length - 1]
-  const { datastore: datastoreName, diskPath, descriptionLabel, nameLabel, uid } = activeDisk
+  const { capacity, datastore: datastoreName, diskPath, descriptionLabel, nameLabel, uid } = activeDisk
+  let format
+  let blockSize
+  if (capacity > VHD_MAX_SIZE) {
+    format = VDI_FORMAT_QCOW2
+    blockSize = QCOW2_CLUSTER_SIZE
+  } else {
+    format = VDI_FORMAT_VHD
+    blockSize = VHD_BLOCK_SIZE
+  }
+
   let dataMap
   const previouslyImportedIndex = chainByNode.findLastIndex(disk => !!diskIsAlreadyImported(existingVdis, disk))
   let existingVdi
@@ -46,7 +56,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
   try {
     // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
     const { nbdInfos } = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
-    vmdk = new NbdDisk(nbdInfos, 2 * 1024 * 1024, { dataMap })
+    vmdk = new NbdDisk(nbdInfos, blockSize, { dataMap })
 
     await vmdk.init()
     vmdk = new ReadAhead(vmdk)
@@ -56,7 +66,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
         name_description: descriptionLabel,
         name_label: '[ESXI]' + nameLabel,
         SR: sr.$ref,
-        virtual_size: vmdk.getVirtualSize(),
+        virtual_size: capacity,
       }
       const vdiRef = await sr.$xapi.VDI_create(vdiMetadata)
       existingVdi = sr.$xapi.getObject(vdiRef, undefined) ?? (await sr.$xapi.waitObject(vdiRef))
@@ -77,13 +87,10 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
       Task.info(`vbd created `, diskPath)
     }
     let stream
-    let format
-    if (vmdk.getVirtualSize() > VHD_MAX_SIZE) {
+    if (format === VDI_FORMAT_QCOW2) {
       stream = await toQcow2Stream(vmdk)
-      format = VDI_FORMAT_QCOW2
     } else {
       stream = await toVhdStream(vmdk)
-      format = VDI_FORMAT_VHD
     }
     await existingVdi.$importContent(stream, { format })
     Task.info(`import of ${diskPath} content done`, { datastoreName, diskPath, sourceVmId: vmId })
