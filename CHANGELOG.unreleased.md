@@ -32,5 +32,6 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+- xo-server patch
 
 <!--packages-end-->
