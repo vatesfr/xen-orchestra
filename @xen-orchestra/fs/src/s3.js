@@ -139,6 +139,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
+  _conditionRetry(error) {
+    return ![401, 403, 404, 405].includes(error?.$metadata?.httpStatusCode) && super._conditionRetry(error)
+  }
+
   async _copy(oldPath, newPath) {
     const CopySource = this.#makeCopySource(oldPath)
     try {

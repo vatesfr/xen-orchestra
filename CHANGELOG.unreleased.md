@@ -42,6 +42,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
