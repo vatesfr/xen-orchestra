@@ -23,6 +23,7 @@ declare module 'vue-router/auto-routes' {
     '/(site)/dashboard': RouteRecordInfo<'/(site)/dashboard', '/dashboard', Record<never, never>, Record<never, never>>,
     '/(site)/hosts': RouteRecordInfo<'/(site)/hosts', '/hosts', Record<never, never>, Record<never, never>>,
     '/(site)/pools': RouteRecordInfo<'/(site)/pools', '/pools', Record<never, never>, Record<never, never>>,
+    '/(site)/vms': RouteRecordInfo<'/(site)/vms', '/vms', Record<never, never>, Record<never, never>>,
     '/[...path]': RouteRecordInfo<'/[...path]', '/:path(.*)', { path: ParamValue<true> }, { path: ParamValue<false> }>,
     '/backup/[id]': RouteRecordInfo<'/backup/[id]', '/backup/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/backup/[id]/backed-up-vms': RouteRecordInfo<'/backup/[id]/backed-up-vms', '/backup/:id/backed-up-vms', { id: ParamValue<true> }, { id: ParamValue<false> }>,
@@ -49,12 +50,14 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/system': RouteRecordInfo<'/pool/[id]/system', '/pool/:id/system', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/[id]/vms': RouteRecordInfo<'/pool/[id]/vms', '/pool/:id/vms', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/connect': RouteRecordInfo<'/pool/connect', '/pool/connect', Record<never, never>, Record<never, never>>,
+    '/settings': RouteRecordInfo<'/settings', '/settings', Record<never, never>, Record<never, never>>,
     '/vm/[id]': RouteRecordInfo<'/vm/[id]', '/vm/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/backups': RouteRecordInfo<'/vm/[id]/backups', '/vm/:id/backups', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/console': RouteRecordInfo<'/vm/[id]/console', '/vm/:id/console', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/dashboard': RouteRecordInfo<'/vm/[id]/dashboard', '/vm/:id/dashboard', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/networks': RouteRecordInfo<'/vm/[id]/networks', '/vm/:id/networks', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/[id]/system': RouteRecordInfo<'/vm/[id]/system', '/vm/:id/system', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/vm/[id]/vdis': RouteRecordInfo<'/vm/[id]/vdis', '/vm/:id/vdis', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/vm/new': RouteRecordInfo<'/vm/new', '/vm/new', Record<never, never>, Record<never, never>>,
   }
 }

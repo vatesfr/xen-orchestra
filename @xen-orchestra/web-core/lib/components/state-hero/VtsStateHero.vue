@@ -1,8 +1,9 @@
 <template>
   <div :class="[className, { horizontal, error, success, 'no-background': noBackground }]" class="vts-state-hero">
-    <UiLoader v-if="busy" class="loader" />
+    <UiLoader v-if="type === 'busy'" class="loader" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
-    <div v-if="slots.default" :class="typoClass" class="content">
+    <div v-if="slots.default || success" :class="typoClass" class="content">
+      <div v-if="success">{{ t('all-good') }}</div>
       <slot />
     </div>
   </div>
@@ -12,10 +13,14 @@
 import UiLoader from '@core/components/ui/loader/UiLoader.vue'
 import { toVariants } from '@core/utils/to-variants.util.ts'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type StateHeroFormat = 'page' | 'card' | 'panel' | 'table'
 
-type StateHeroType =
+export type StateHeroSize = 'extra-small' | 'small' | 'medium' | 'large'
+
+export type StateHeroType =
+  | 'busy'
   | 'no-result'
   | 'under-construction'
   | 'no-data'
@@ -26,12 +31,11 @@ type StateHeroType =
   | 'all-good'
   | 'all-done'
 
-const { format, type, size, busy } = defineProps<{
+const { format, type, size } = defineProps<{
   format: StateHeroFormat
-  type?: StateHeroType
-  size: 'extra-small' | 'small' | 'medium' | 'large'
+  type: StateHeroType
+  size: StateHeroSize
   horizontal?: boolean
-  busy?: boolean
   noBackground?: boolean
 }>()
 
@@ -39,16 +43,18 @@ const slots = defineSlots<{
   default?(): any
 }>()
 
+const { t } = useI18n()
+
 const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
 
 const className = computed(() => toVariants({ size, format }))
 
-const error = computed(() => !busy && type === 'error')
+const error = computed(() => type === 'error')
 
-const success = computed(() => !busy && (type === 'all-good' || type === 'all-done'))
+const success = computed(() => type === 'all-good' || type === 'all-done')
 
 const imageSrc = computed(() => {
-  if (!type) {
+  if (type === 'busy') {
     return undefined
   }
 
@@ -80,6 +86,10 @@ const imageSrc = computed(() => {
     display: flex;
     flex-direction: column;
     gap: 1.6rem;
+
+    &:empty {
+      display: none;
+    }
   }
 
   .loader,

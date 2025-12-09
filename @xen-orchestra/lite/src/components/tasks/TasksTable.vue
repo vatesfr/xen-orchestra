@@ -1,42 +1,36 @@
 <template>
-  <UiTable :color="hasError ? 'error' : undefined" class="tasks-table">
+  <VtsTable :state>
     <thead>
       <tr>
-        <th>{{ t('name') }}</th>
-        <th>{{ t('object') }}</th>
-        <th>{{ t('task.progress') }}</th>
-        <th>{{ t('task.started') }}</th>
-        <th>{{ t('task.estimated-end') }}</th>
+        <HeadCells />
       </tr>
     </thead>
     <tbody>
-      <tr v-if="hasError">
-        <td colspan="5">
-          <span class="text-error typo-h6">{{ t('error-no-data') }}</span>
-        </td>
-      </tr>
-      <tr v-else-if="isFetching">
-        <td colspan="5">
-          <UiSpinner class="loader" />
-        </td>
-      </tr>
-      <tr v-else-if="!hasTasks">
-        <td class="no-tasks" colspan="5">{{ t('no-tasks') }}</td>
-      </tr>
-      <template v-else>
-        <TaskRow v-for="task in pendingTasks" :key="task.uuid" :task is-pending />
-        <TaskRow v-for="task in finishedTasks" :key="task.uuid" :task />
-      </template>
+      <VtsRow v-for="task of pendingTasks" :key="task.uuid">
+        <BodyCells :item="{ task, pending: true }" />
+      </VtsRow>
+      <VtsRow v-for="task of finishedTasks" :key="task.uuid" class="finished">
+        <BodyCells :item="{ task, pending: false }" />
+      </VtsRow>
     </tbody>
-  </UiTable>
+  </VtsTable>
 </template>
 
 <script lang="ts" setup>
-import TaskRow from '@/components/tasks/TaskRow.vue'
-import UiSpinner from '@/components/ui/UiSpinner.vue'
-import UiTable from '@/components/ui/UiTable.vue'
 import type { XenApiTask } from '@/libs/xen-api/xen-api.types'
+import { useHostStore } from '@/stores/xen-api/host.store'
 import { useTaskStore } from '@/stores/xen-api/task.store'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
+import { useTableState } from '@core/composables/table-state.composable'
+import { defineColumns } from '@core/packages/table'
+import { useDateColumn } from '@core/tables/column-definitions/date-column'
+import { useLinkColumn } from '@core/tables/column-definitions/link-column'
+import { useProgressBarColumn } from '@core/tables/column-definitions/progress-bar-column'
+import { useTextColumn } from '@core/tables/column-definitions/text-column'
+import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
+import { parseDateTime } from '@core/utils/time.util'
+import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -45,36 +39,60 @@ const props = defineProps<{
   finishedTasks?: XenApiTask[]
 }>()
 
-const { t } = useI18n()
+const { hasError, isReady } = useTaskStore().subscribe()
 
-const { hasError, isFetching } = useTaskStore().subscribe()
+const { getByOpaqueRef: getHost } = useHostStore().subscribe()
 
 const hasTasks = computed(() => props.pendingTasks.length > 0 || (props.finishedTasks?.length ?? 0) > 0)
+
+const state = useTableState({
+  busy: logicNot(isReady),
+  error: hasError,
+  empty: logicNot(hasTasks),
+})
+
+// Warning: Task system will be completely revamped in the future.
+// This is a temporary solution to display tasks.
+// Don't move this code outside of this file.
+
+const useTaskColumns = defineColumns(() => {
+  const { t } = useI18n()
+
+  return {
+    name: useTextColumn({ headerLabel: t('name') }),
+    host: useLinkColumn({ headerLabel: t('host') }),
+    progress: useProgressBarColumn({ headerLabel: t('task.progress') }),
+    started: useDateColumn({ headerLabel: t('task.started'), dateStyle: 'short', timeStyle: 'short' }),
+    estimatedEnd: useDateColumn({ headerLabel: t('task.estimated-end'), dateStyle: 'short', timeStyle: 'short' }),
+  }
+})
+
+const { HeadCells, BodyCells } = useTaskColumns({
+  body: ({ task, pending }: { task: XenApiTask; pending: boolean }) => {
+    const host = computed(() => getHost(task.resident_on))
+    const createdAt = computed(() => parseDateTime(task.created))
+    const finishedAt = computed(() => (pending ? undefined : parseDateTime(task.finished)))
+    const estimatedEndAt = computed(() => createdAt.value + (new Date().getTime() - createdAt.value) / task.progress)
+
+    return {
+      name: r => r(task.name_label),
+      host: r =>
+        host.value ? r({ label: host.value.name_label, to: `/host/${host.value.uuid}/dashboard` }) : renderBodyCell(),
+      progress: r => (pending ? r(task.progress, 1) : renderBodyCell()),
+      started: r => r(createdAt.value, { relative: pending }),
+      estimatedEnd: r =>
+        finishedAt.value
+          ? r(finishedAt.value)
+          : pending && estimatedEndAt.value !== Infinity
+            ? r(estimatedEndAt.value, { relative: true })
+            : renderBodyCell(),
+    }
+  },
+})
 </script>
 
 <style lang="postcss" scoped>
-.tasks-table {
-  width: 100%;
-}
-
-.no-tasks {
-  text-align: center;
-  color: var(--color-neutral-txt-secondary);
-  font-style: italic;
-}
-
-td[colspan='5'] {
-  text-align: center;
-}
-
-.text-error {
-  color: var(--color-danger-txt-base);
-}
-
-.loader {
-  color: var(--color-brand-txt-base);
-  display: block;
-  font-size: 4rem;
-  margin: 2rem auto 0;
+.finished {
+  opacity: 0.5;
 }
 </style>

@@ -1,16 +1,21 @@
 import { createPredicate } from 'value-matcher'
 import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.mjs'
 import { noSuchObject } from 'xo-common/api-errors.js'
-import type { XoVmBackupJob, XoVm, XoSchedule } from '@vates/types'
+import type { XoVmBackupJob, XoVm, XoSchedule, AnyXoJob, AnyXoBackupJob } from '@vates/types'
 
 import type { RestApi } from '../rest-api/rest-api.mjs'
 import { vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
 
 export class BackupJobService {
+  #backupJobTypes = ['backup', 'metadataBackup', 'mirrorBackup']
   #restApi: RestApi
 
   constructor(restApi: RestApi) {
     this.#restApi = restApi
+  }
+
+  isBackupJob(anyJob: AnyXoJob): anyJob is AnyXoBackupJob {
+    return this.#backupJobTypes.includes(anyJob.type)
   }
 
   async isVmInBackupJob(backupJobId: XoVmBackupJob['id'], vmId: XoVm['id']): Promise<boolean> {

@@ -1,10 +1,10 @@
-import * as CM from 'complex-matcher'
 import { createLogger } from '@xen-orchestra/log'
 import { invalidCredentials } from 'xo-common/api-errors.js'
 import type { XapiXoRecord, XoUser } from '@vates/types'
 
 import type { XoApp } from './rest-api.type.mjs'
 import type { Container } from 'inversify'
+import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const log = createLogger('xo:rest-api:error-handler')
 
@@ -56,7 +56,7 @@ export class RestApi {
     { filter, ...opts }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}
   ) {
     if (filter !== undefined && typeof filter === 'string') {
-      filter = CM.parse(filter).createPredicate()
+      filter = safeParseComplexMatcher(filter).createPredicate()
     }
     return this.#xoApp.getObjectsByType(type, { filter, ...opts })
   }

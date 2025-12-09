@@ -1,4 +1,3 @@
-import * as CM from 'complex-matcher'
 import { Controller, HttpStatusCodeLiteral } from 'tsoa'
 import { createGzip } from 'node:zlib'
 import { pipeline } from 'node:stream/promises'
@@ -14,9 +13,11 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { makeObjectMapper } from '../helpers/object-wrapper.helper.mjs'
 import type { MaybePromise, SendObjects, WithHref } from '../helpers/helper.type.mjs'
 import type { Response as ExResponse } from 'express'
-import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
+import { NDJSON_CONTENT_TYPE, safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 const noop = () => {}
+
+export type CreateActionReturnType<CbType> = Promise<{ taskId: string } | CbType>
 
 export abstract class BaseController<T extends XoRecord, IsSync extends boolean> extends Controller {
   abstract getObjects(): IsSync extends false ? Promise<Record<T['id'], T>> : Record<T['id'], T>
@@ -62,7 +63,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
 
     let userFilter: (task: XoTask) => boolean = () => true
     if (filter !== undefined) {
-      userFilter = typeof filter === 'string' ? CM.parse(filter).createPredicate() : filter
+      userFilter = typeof filter === 'string' ? safeParseComplexMatcher(filter).createPredicate() : filter
     }
 
     for await (const task of this.restApi.tasks.list({ filter: objectFilter })) {
@@ -92,7 +93,7 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       sync?: boolean
       taskProperties: { name: string; objectId: T['id']; params?: unknown; [key: string]: unknown }
     }
-  ): Promise<string | CbType> {
+  ): CreateActionReturnType<CbType> {
     taskProperties.name = 'REST API: ' + taskProperties.name
     taskProperties.type = 'xo:rest-api:action'
 
@@ -107,9 +108,9 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       const location = `${BASE_URL}/tasks/${task.id}`
       this.setStatus(202)
       this.setHeader('Location', location)
-      this.setHeader('Content-Type', 'text/plain')
+      this.setHeader('Content-Type', 'application/json')
 
-      return location
+      return { taskId: task.id }
     }
   }
 

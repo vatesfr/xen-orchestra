@@ -52,7 +52,6 @@ import { XoController } from '../abstract-classes/xo-controller.mjs'
 import { groupIds, partialGroups } from '../open-api/oa-examples/group.oa-example.mjs'
 import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
 import { redirectMeAlias } from './user.middleware.mjs'
-import { ApiError } from '../helpers/error.helper.mjs'
 
 const log = createLogger('xo:rest-api:user-controller')
 

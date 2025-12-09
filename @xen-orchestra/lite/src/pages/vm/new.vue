@@ -96,7 +96,7 @@
                 <VtsInputWrapper :label="t('new-vm.name')">
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
-                <VtsInputWrapper :label="t('tags')" icon="fa:tags">
+                <VtsInputWrapper :label="t('tags')">
                   <!-- TODO Change input text into select when Thierry's component is available -->
                   <UiInput v-model="vmState.tag" accent="brand" @keydown.enter.prevent="addTag" />
                 </VtsInputWrapper>
@@ -113,7 +113,8 @@
                     vmState.boot_firmware === 'uefi' || templateHasBiosStrings
                       ? {
                           placement: 'top-start',
-                          content: vmState.boot_firmware !== 'uefi' ? t('boot-firmware-bios') : t('boot-firmware-uefi'),
+                          content:
+                            vmState.boot_firmware !== 'uefi' ? t('template-has-bios-strings') : t('boot-firmware-uefi'),
                         }
                       : undefined
                   "
@@ -155,141 +156,16 @@
             <!-- NETWORK SECTION -->
             <UiTitle>{{ t('network') }}</UiTitle>
             <div class="network-container">
-              <VtsTable vertical-border>
-                <thead>
-                  <tr>
-                    <th>
-                      <VtsIcon name="fa:network-wired" size="medium" />
-                      {{ t('interfaces') }}
-                    </th>
-                    <th>
-                      <VtsIcon name="fa:at" size="medium" />
-                      {{ t('mac-addresses') }}
-                    </th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(networkInterface, index) in vmState.networkInterfaces" :key="index">
-                    <td>
-                      <NetworkInterfaceSelect v-model="networkInterface.interface" />
-                    </td>
-                    <td>
-                      <UiInput
-                        v-model="networkInterface.macAddress"
-                        :placeholder="t('auto-generated')"
-                        accent="brand"
-                      />
-                    </td>
-                    <td>
-                      <UiButtonIcon
-                        icon="fa:trash"
-                        size="medium"
-                        accent="brand"
-                        variant="secondary"
-                        @click="deleteItem(vmState.networkInterfaces, index)"
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="3">
-                      <UiButton
-                        left-icon="fa:plus"
-                        variant="tertiary"
-                        accent="brand"
-                        size="medium"
-                        @click="addNetworkInterface()"
-                      >
-                        {{ t('new') }}
-                      </UiButton>
-                    </td>
-                  </tr>
-                </tbody>
-              </VtsTable>
+              <NewVmNetworkTable
+                :networks
+                :vm-state
+                @add="addNetworkInterface()"
+                @remove="index => deleteItem(vmState.networkInterfaces, index)"
+              />
             </div>
             <!-- STORAGE SECTION -->
             <UiTitle>{{ t('storage') }}</UiTitle>
-            <VtsTable vertical-border>
-              <thead>
-                <tr>
-                  <th>
-                    <VtsIcon name="fa:database" size="medium" />
-                    {{ t('storage-repositories') }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:align-left" size="medium" />
-                    {{ t('disk-name') }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:memory" size="medium" />
-                    <!-- TODO remove (GB) when we can use new selector -->
-                    {{ `${t('size')} (GB)` }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:align-left" size="medium" />
-                    {{ t('description') }}
-                  </th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
-                  <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
-                    <td>
-                      <SrSelect v-model="vdi.SR" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.size" :placeholder="t('size')" accent="brand" disabled />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_description" :placeholder="t('description')" accent="brand" />
-                    </td>
-                    <td />
-                  </tr>
-                </template>
-                <template v-if="vmState.vdis && vmState.vdis.length > 0">
-                  <tr v-for="(vdi, index) in vmState.vdis" :key="index">
-                    <td>
-                      <SrSelect v-model="vdi.SR" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.size" :placeholder="t('size')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_description" :placeholder="t('description')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiButtonIcon
-                        icon="fa:trash"
-                        size="medium"
-                        accent="brand"
-                        variant="secondary"
-                        @click="deleteItem(vmState.vdis, index)"
-                      />
-                    </td>
-                  </tr>
-                </template>
-                <tr>
-                  <td colspan="5">
-                    <UiButton
-                      left-icon="fa:plus"
-                      variant="tertiary"
-                      accent="brand"
-                      size="medium"
-                      @click="addStorageEntry()"
-                    >
-                      {{ t('new') }}
-                    </UiButton>
-                  </td>
-                </tr>
-              </tbody>
-            </VtsTable>
+            <NewVmSrTable :srs :vm-state @add="addStorageEntry()" @remove="index => deleteItem(vmState.vdis, index)" />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand">
@@ -344,10 +220,10 @@
 </template>
 
 <script lang="ts" setup>
-import NetworkInterfaceSelect from '@/components/select/NetworkInterfaceSelect.vue'
-import SrSelect from '@/components/select/SrSelect.vue'
+import NewVmNetworkTable from '@/components/new-vm/NewVmNetworkTable.vue'
 
 // XenAPI Store imports
+import NewVmSrTable from '@/components/new-vm/NewVmSrTable.vue'
 import type { XenApiSr, XenApiVbd, XenApiVdi, XenApiVm } from '@/libs/xen-api/xen-api.types.ts'
 import { useHostStore } from '@/stores/xen-api/host.store.ts'
 import { useNetworkStore } from '@/stores/xen-api/network.store.ts'
@@ -362,14 +238,11 @@ import { useXenApiStore } from '@/stores/xen-api.store.ts'
 import { type Vdi, type VmState } from '@/types/new-vm.ts'
 
 // UI components imports from web-core
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
@@ -394,7 +267,7 @@ import { useRouter } from 'vue-router'
 // Store subscriptions
 const { templates, isReady: areTemplatesReady } = useVmStore().subscribe()
 const { pool } = usePoolStore().subscribe()
-const { vdiIsosBySrName } = useSrStore().subscribe()
+const { records: srs, vdiIsosBySrName } = useSrStore().subscribe()
 const { records: hosts } = useHostStore().subscribe()
 const { records: networks, getByOpaqueRef: getNetworkByOpaqueRef } = useNetworkStore().subscribe()
 const { getByOpaqueRef: getVbdByOpaqueRef } = useVbdStore().subscribe()

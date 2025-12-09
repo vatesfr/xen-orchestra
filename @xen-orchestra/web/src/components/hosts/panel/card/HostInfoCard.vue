@@ -9,7 +9,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
-          <span class="power-state">
+          <span class="value">
             <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
@@ -51,7 +51,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('pool') }}</template>
         <template #value>
-          <div v-if="pool" class="pool-name">
+          <div v-if="pool" class="value">
             <VtsIcon name="fa:city" size="medium" />
             <UiLink :to="`/pool/${pool.id}/dashboard`" size="small">
               {{ pool.name_label }}
@@ -65,11 +65,11 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('master') }}</template>
         <template #value>
-          <div v-if="isMaster" class="primary-host">
+          <div v-if="isMaster" class="value">
             <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
             {{ t('this-host') }}
           </div>
-          <div v-else-if="masterHost !== undefined" class="primary-host">
+          <div v-else-if="masterHost !== undefined" class="value">
             <UiLink
               :to="`/host/${masterHost.id}/dashboard`"
               size="small"
@@ -87,8 +87,8 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('started') }}</template>
         <template #value>{{ relativeStartTime }}</template>
-        <template v-if="relativeStartTime !== undefined" #addons>
-          <VtsCopyButton :value="relativeStartTime" />
+        <template v-if="relativeStartTime" #addons>
+          <VtsCopyButton :value="String(relativeStartTime)" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
@@ -144,12 +144,16 @@ const { hostMissingPatches: missingPatches } = useXoHostMissingPatchesCollection
 const pool = useGetPoolById(() => host.$pool)
 
 const isMaster = computed(() => isMasterHost(host.id))
+
 const masterHost = computed(() => getMasterHostByPoolId(host.$pool))
+
 const nMissingPatches = computed(() => missingPatches.value.length)
+
 const noMissingPatches = computed(() => nMissingPatches.value === 0)
+
 const powerState = computed(() => getPowerState(host.power_state))
 
-const relativeStartTime = host.startTime ? getRelativeStartTime(host.startTime) : undefined
+const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(host.startTime) : undefined))
 </script>
 
 <style scoped lang="postcss">
@@ -160,10 +164,8 @@ const relativeStartTime = host.startTime ? getRelativeStartTime(host.startTime) 
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-    
-    .power-state,
-    .pool-name,
-    .primary-host {
+
+    .value {
       display: flex;
       align-items: center;
       gap: 0.8rem;

@@ -3,17 +3,17 @@
 const { Bar } = require('cli-progress')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { mergeVhdChain } = require('vhd-lib/merge')
-const { resolve } = require('path')
 const { Disposable } = require('promise-toolbox')
 
 module.exports = async function merge(args) {
-  if (args.length < 2 || args.some(_ => _ === '-h' || _ === '--help')) {
-    return `Usage: ${this.command} <child VHD> <parent VHD>`
+  if (args.length < 3 || args.some(_ => _ === '-h' || _ === '--help')) {
+    return `Merges two VHDs.
+    Usage: ${this.command} <remote URL> <child VHD path on remote> <parent VHD path on remote>`
   }
 
-  await Disposable.use(getSyncedHandler({ url: 'file:///' }), async handler => {
+  await Disposable.use(getSyncedHandler({ url: args[0] }), async handler => {
     let bar
-    await mergeVhdChain(handler, [resolve(args[1]), resolve(args[0])], {
+    await mergeVhdChain(handler, [args[2], args[1]], {
       onProgress({ done, total }) {
         if (bar === undefined) {
           bar = new Bar({

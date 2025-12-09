@@ -10,7 +10,7 @@
           placement: 'right',
         }"
         accent="brand"
-        size="medium"
+        size="small"
         :icon="sidebar.isLocked ? 'fa:thumb-tack-slash' : 'fa:thumb-tack'"
         @click="sidebar.toggleLock()"
       />

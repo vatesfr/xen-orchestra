@@ -9,109 +9,47 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTopBottomTable :selected-items="0" :total-items="0">
-          <UiTablePagination v-bind="paginationBindings" />
-        </UiTopBottomTable>
       </div>
-      <VtsDataTable
-        :is-ready
-        :has-error
-        :no-data-message="backupLogs.length === 0 ? t('no-backup-run-available') : undefined"
-      >
-        <template #thead>
+
+      <VtsTable :state :pagination-bindings sticky="right">
+        <thead>
           <tr>
-            <template v-for="column of visibleColumns" :key="column.id">
-              <th v-if="column.id === 'checkbox'" class="checkbox">
-                <div v-tooltip="t('coming-soon')">
-                  <UiCheckbox disabled accent="brand" />
-                </div>
-              </th>
-              <th v-else-if="column.id === 'more'" class="more">
-                <UiButtonIcon v-tooltip="t('coming-soon')" icon="fa:ellipsis" accent="brand" disabled size="small" />
-              </th>
-              <th v-else>
-                <div v-tooltip class="text-ellipsis">
-                  <VtsIcon size="medium" :name="headerIcon[column.id]" />
-                  {{ column.label }}
-                </div>
-              </th>
-            </template>
+            <HeadCells />
           </tr>
-        </template>
-        <template #tbody>
-          <tr
-            v-for="row of backupLogsRecords"
-            :key="row.id"
-            :class="{ selected: selectedBackupLogId === row.id }"
-            @click="selectedBackupLogId = row.id"
-          >
-            <td
-              v-for="column of row.visibleColumns"
-              :key="column.id"
-              class="typo-body-regular-small"
-              :class="{ checkbox: column.id === 'checkbox' }"
-            >
-              <div v-if="column.id === 'checkbox'" v-tooltip="t('coming-soon')">
-                <UiCheckbox disabled accent="brand" :value="row.id" />
-              </div>
-              <UiButtonIcon
-                v-else-if="column.id === 'more'"
-                v-tooltip="t('coming-soon')"
-                icon="fa:ellipsis"
-                accent="brand"
-                disabled
-                size="small"
-              />
-              <div v-else-if="['start-date', 'end-date', 'duration'].includes(column.id)" class="number">
-                {{ column.value }}
-              </div>
-              <template v-else-if="column.id === 'status'">
-                <VtsStatus :status="column.value" />
-              </template>
-              <div v-else-if="column.id === 'transfer-size'" class="number">
-                {{ column.value?.value }} {{ column.value?.prefix }}
-              </div>
-            </td>
-          </tr>
-        </template>
-      </VtsDataTable>
-      <VtsStateHero v-if="searchQuery && filteredBackupLogs.length === 0" format="table" type="no-result" size="small">
-        {{ t('no-result') }}
-      </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-bind="paginationBindings" />
-      </UiTopBottomTable>
+        </thead>
+        <tbody>
+          <VtsRow v-for="log of paginatedBackupLogs" :key="log.id" :selected="log.id === selectedBackupLogId">
+            <BodyCells :item="log" />
+          </VtsRow>
+        </tbody>
+      </VtsTable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useXoBackupLogsUtils } from '@/composables/xo-backup-log-utils.composable'
-import type { IconName } from '@core/icons'
-import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
-import { useTable } from '@core/composables/table.composable.ts'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
+import { useTableState } from '@core/composables/table-state.composable'
+import { useBackupLogsColumns } from '@core/tables/column-sets/backup-log-columns'
 import type { XoBackupLog } from '@vates/types'
-import { noop } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupLogs } = defineProps<{
+const {
+  backupLogs: rawBackupLogs,
+  error,
+  busy,
+} = defineProps<{
   backupLogs: XoBackupLog[]
-  hasError: boolean
-  isReady: boolean
+  error?: boolean
+  busy?: boolean
 }>()
 
 const { t } = useI18n()
@@ -124,40 +62,44 @@ const filteredBackupLogs = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
-    return backupLogs
+    return rawBackupLogs
   }
 
-  return backupLogs.filter(backupLog =>
+  return rawBackupLogs.filter(backupLog =>
     Object.values(backupLog).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
   )
 })
 
-const { getBackupLogDate, getBackupLogDuration, getTransferSize } = useXoBackupLogsUtils()
-
-const { visibleColumns, rows } = useTable('backup-logs', filteredBackupLogs, {
-  rowId: record => record.id,
-  columns: define => [
-    define('checkbox', noop, { label: '', isHideable: false }),
-    define('start-date', record => getBackupLogDate(record.start), { label: t('start-date') }),
-    define('end-date', record => getBackupLogDate(record.end), { label: t('end-date') }),
-    define('duration', record => getBackupLogDuration(record), { label: t('duration') }),
-    define('status', record => record.status, { label: t('status') }),
-    define('transfer-size', record => getTransferSize(record), { label: t('transfer-size') }),
-    define('more', noop, { label: '', isHideable: false }),
-  ],
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    rawBackupLogs.length === 0
+      ? t('no-backup-run-available')
+      : filteredBackupLogs.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
-const { pageRecords: backupLogsRecords, paginationBindings } = usePagination('backups-logs', rows)
+const { getBackupLogDuration, getTransferSize } = useXoBackupLogsUtils()
 
-type BackupLogHeader = 'start-date' | 'end-date' | 'duration' | 'status' | 'transfer-size'
+const { pageRecords: paginatedBackupLogs, paginationBindings } = usePagination('backups-logs', filteredBackupLogs)
 
-const headerIcon: Record<BackupLogHeader, IconName> = {
-  'start-date': 'fa:date',
-  'end-date': 'fa:date',
-  duration: 'fa:time',
-  status: 'fa:square-caret-down',
-  'transfer-size': 'fa:hashtag',
-}
+const { HeadCells, BodyCells } = useBackupLogsColumns({
+  body: (log: XoBackupLog) => {
+    const transferSize = computed(() => getTransferSize(log))
+    const duration = computed(() => getBackupLogDuration(log))
+
+    return {
+      startDate: r => r(log.start),
+      endDate: r => r(log.end),
+      duration: r => r(duration.value),
+      status: r => r(log.status),
+      transferSize: r => r(transferSize.value?.value, transferSize.value?.prefix),
+      selectItem: r => r(() => (selectedBackupLogId.value = log.id)),
+    }
+  },
+})
 </script>
 
 <style scoped lang="postcss">
@@ -174,20 +116,6 @@ const headerIcon: Record<BackupLogHeader, IconName> = {
   .container,
   .table-actions {
     gap: 0.8rem;
-  }
-
-  .checkbox,
-  .more {
-    width: 4.8rem;
-  }
-
-  .checkbox {
-    text-align: center;
-    line-height: 1;
-  }
-
-  .number {
-    text-align: right;
   }
 }
 </style>

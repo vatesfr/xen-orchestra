@@ -6,7 +6,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardTitle>
-    <VtsStateHero v-if="!areStoragesUsageReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!areStoragesUsageReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
