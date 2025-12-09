@@ -14,6 +14,8 @@
 - **XO 6:**
   - [Navigation] Navigation state is now persisted in localStorage and items are now collapsible while filtering. (PR [#9277](https://github.com/vatesfr/xen-orchestra/pull/9277))
 
+- [REST API] Add link to the openAPI JSON directly in the swagger description (PR [#9285](https://github.com/vatesfr/xen-orchestra/pull/9285))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -37,6 +39,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 
