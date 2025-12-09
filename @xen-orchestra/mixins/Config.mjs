@@ -99,7 +99,7 @@ export default class Config {
 
     let channel = 'latest'
     try {
-      channel = await this._app.getCurrentChannel()
+      channel = await this._app.getCurrentChannel?.()
     } catch (error) {
       info('Unable to get current channel, fallback to latest', error)
     }
@@ -116,10 +116,10 @@ export default class Config {
 
     for (let [url, path] of Object.entries(mounts)) {
       url = url.replace(/(.+)\/$/, '$1')
-      const objectEntries = Object.entries(guiRoutes).find(([_, r]) => r.url === url)
+      const conflictRoute = Object.entries(guiRoutes).find(([_, route]) => route.url === url)
 
-      if (objectEntries) {
-        const [key] = objectEntries
+      if (conflictRoute) {
+        const [key] = conflictRoute
         guiRoutes[key] = { url, path }
       } else {
         const key = `xo${url

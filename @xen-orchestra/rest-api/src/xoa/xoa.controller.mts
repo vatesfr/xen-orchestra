@@ -63,7 +63,12 @@ export class XoaController extends Controller {
   @Security('none')
   @Example(guiRoutes)
   @Get('gui-routes')
-  getGuiRoutes(): XoGuiRoutes {
-    return this.#restApi.xoApp.config.getGuiRoutes()
+  async getGuiRoutes(): Promise<XoGuiRoutes> {
+    const { xo5, xo6 } = await this.#restApi.xoApp.config.getGuiRoutes()
+
+    return {
+      xo5: xo5.url,
+      xo6: xo6.url,
+    }
   }
 }

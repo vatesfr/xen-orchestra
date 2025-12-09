@@ -197,7 +197,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
         signInPage({
           error: errorMsg,
           strategies,
-          xo5Mount: xo5.url.endsWith('/') ? xo5.url : xo5.url + '/',
+          xo5Mount: xo5.url + '/',
         })
       )
     } catch (error) {
