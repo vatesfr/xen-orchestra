@@ -1,5 +1,17 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Plugins/OIDC] Fix group import on string (PR [#9280](https://github.com/vatesfr/xen-orchestra/pull/9280))
+- [Plugins/Perf-alert] Improve email subject (PR [#9283](https://github.com/vatesfr/xen-orchestra/pull/9283))
+
+### Released packages
+
+- xo-server-auth-oidc 0.4.1
+- xo-server-perf-alert 1.0.4
+
 ## **5.113.1** (2025-11-28)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
