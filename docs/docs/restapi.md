@@ -95,7 +95,7 @@ HTTP/1.1 200 OK
 Set-Cookie: authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
 ```
 
-Since automatic refresh is not implemented yet, you must manually refresh your token. To do so, simply create a new token using your existing valid authentication token:
+Since automatic refresh is not implemented yet, you must manually refresh your token. To do so, create a new token using your existing valid authentication token:
 
 ```http
 POST /rest/v0/users/e531b8c9-3876-4ed9-8fd2-0476d5f825c9/authentication_tokens HTTP/1.1
