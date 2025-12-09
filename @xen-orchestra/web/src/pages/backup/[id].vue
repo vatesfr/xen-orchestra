@@ -1,5 +1,5 @@
 <template>
-  <VtsStateHero v-if="!areBackupJobsReady" format="page" busy size="large" />
+  <VtsStateHero v-if="!areBackupJobsReady" format="page" type="busy" size="large" />
   <VtsStateHero v-else-if="!backupJob" format="page" type="not-found" size="large">
     {{ t('object-not-found', { id: route.params.id }) }}
   </VtsStateHero>
@@ -11,10 +11,11 @@
 
 <script lang="ts" setup>
 import BackupHeader from '@/components/backups/BackupHeader.vue'
-import { useXoBackupJobCollection, type XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection'
+import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
+import type { AnyXoBackupJob } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -27,5 +28,5 @@ const { t } = useI18n()
 const { areBackupJobsReady, useGetBackupJobById } = useXoBackupJobCollection()
 const uiStore = useUiStore()
 
-const backupJob = useGetBackupJobById(() => route.params.id as XoBackupJob['id'])
+const backupJob = useGetBackupJobById(() => route.params.id as AnyXoBackupJob['id'])
 </script>

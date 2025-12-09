@@ -1,6 +1,7 @@
 import _ from 'intl'
 import addSubscriptions from 'add-subscriptions'
 import decorate from 'apply-decorators'
+import Icon from 'icon'
 import React from 'react'
 import { adminOnly } from 'utils'
 import { createPredicate } from 'value-matcher'
@@ -58,6 +59,9 @@ const BackupTab = decorate([
         <div>
           <a href={`#/backup/overview?s=${encodeURIComponent(`id: |(${jobIds.join(' ')})`)}`}>{_('goToBackupPage')}</a>
         </div>
+        <p className='text-warning'>
+          <Icon icon='alarm' /> {_('backupJobWarningVmView')}
+        </p>
         <div className='mt-2'>
           <JobsTable main={false} predicate={predicate} />
         </div>

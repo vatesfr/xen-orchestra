@@ -9,6 +9,7 @@
         <VtsStatus :status="vm.secureBoot" />
       </template>
     </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="t('boot-firmware')" :value="vm.boot?.firmware" />
     <VtsQuickInfoRow :label="t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : t('none')" />
     <VtsQuickInfoRow :label="t('viridian')">
       <template #value>
@@ -29,11 +30,11 @@
 </template>
 
 <script setup lang="ts">
-import type { XoVm } from '@/types/xo/vm.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{ vm: XoVm }>()

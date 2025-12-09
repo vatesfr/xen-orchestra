@@ -1,4 +1,3 @@
-import * as CM from 'complex-matcher'
 import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
 import type { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
@@ -12,6 +11,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
+import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 
 type UnbrandedXoMessage = Unbrand<XoMessage>
 
@@ -35,7 +35,7 @@ export class MessageController extends XapiXoController<XoMessage> {
   > {
     let userfilter: (obj: XoMessage) => boolean = () => true
     if (filter !== undefined) {
-      userfilter = CM.parse(filter).createPredicate()
+      userfilter = safeParseComplexMatcher(filter).createPredicate()
     }
     const messagePredicate = (obj: XoMessage) => !alarmPredicate(obj) && userfilter(obj)
 

@@ -5,7 +5,7 @@
         <UiButtonIcon
           v-if="uiStore.isMobile"
           v-tooltip="t('close')"
-          size="medium"
+          size="small"
           variant="tertiary"
           accent="brand"
           icon="fa:angle-left"
@@ -150,7 +150,7 @@
                   v-tooltip="t('coming-soon')"
                   disabled
                   icon="fa:ellipsis"
-                  size="medium"
+                  size="small"
                   accent="brand"
                 />
               </template>
@@ -241,7 +241,7 @@
                   v-tooltip="t('coming-soon')"
                   disabled
                   icon="fa:ellipsis"
-                  size="medium"
+                  size="small"
                   accent="brand"
                 />
               </template>
@@ -295,7 +295,6 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import type { XoPif } from '@/types/xo/pif.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -309,6 +308,7 @@ import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoPif } from '@vates/types'
 import humanFormat from 'human-format'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

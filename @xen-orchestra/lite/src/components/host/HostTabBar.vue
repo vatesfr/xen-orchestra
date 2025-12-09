@@ -15,7 +15,7 @@
     <RouterTab :to="{ name: '/host/[uuid]/tasks', params: { uuid } }" disabled>
       {{ t('tasks') }}
     </RouterTab>
-    <RouterTab :to="{ name: '/host/[uuid]/vms', params: { uuid } }" disabled>
+    <RouterTab :to="{ name: '/host/[uuid]/vms', params: { uuid } }">
       {{ t('vms', 2) }}
     </RouterTab>
   </TabList>

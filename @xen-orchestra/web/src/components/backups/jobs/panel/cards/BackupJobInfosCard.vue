@@ -18,17 +18,23 @@
           <VtsCopyButton :value="backupJob.id" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('mode') }}</template>
-        <template #value>
-          <UiTagsList>
-            <UiTag v-for="(mode, index) in backupJobModes" :key="index" accent="info" variant="secondary">
-              {{ mode }}
-            </UiTag>
-          </UiTagsList>
+      <VtsCardRowKeyValue v-for="(mode, index) in backupJobModes" :key="mode">
+        <template #key>
+          <template v-if="index === 0">{{ t('mode', backupJobModes.length) }}</template>
         </template>
-        <template v-if="backupJobModes !== undefined" #addons>
-          <VtsCopyButton :value="backupJobModes.join(', ')" />
+        <template #value>
+          <span class="text-ellipsis">{{ mode }}</span>
+        </template>
+        <template #addons>
+          <VtsCopyButton :value="mode" />
+          <UiButtonIcon
+            v-if="index === 0 && backupJobModes.length > 1"
+            v-tooltip="t('coming-soon')"
+            disabled
+            icon="fa:ellipsis"
+            size="small"
+            accent="brand"
+          />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -37,19 +43,19 @@
 
 <script lang="ts" setup>
 import { useXoBackupUtils } from '@/composables/xo-backup-utils.composable.ts'
-import type { XoBackupJob } from '@/remote-resources/use-xo-backup-job-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import UiTag from '@core/components/ui/tag/UiTag.vue'
-import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import { vTooltip } from '@core/directives/tooltip.directive'
+import type { AnyXoBackupJob } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
-  backupJob: XoBackupJob
+  backupJob: AnyXoBackupJob
 }>()
 
 const { t } = useI18n()

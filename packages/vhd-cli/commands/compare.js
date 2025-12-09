@@ -33,7 +33,8 @@ function deepCompareObjects(src, dest, path) {
 
 module.exports = async function compare(args) {
   if (args.length < 4 || args.some(_ => _ === '-h' || _ === '--help')) {
-    return `Usage: compare <sourceRemoteUrl> <source VHD> <destinationRemoteUrl> <destination> `
+    return `Tells if two VHDs are identical.
+    Usage: ${this.command} <sourceRemoteUrl> <source VHD> <destinationRemoteUrl> <destination>`
   }
   const [sourceRemoteUrl, sourcePath, destRemoteUrl, destPath] = args
 
@@ -60,13 +61,13 @@ module.exports = async function compare(args) {
           const destBlock = await dest.readBlock(i)
 
           if (!srcBlock.buffer.equals(destBlock.buffer)) {
-            throw new Error(`Block  ${i} has different data in src and dest`)
+            throw new Error(`Block ${i} has different data in src and dest`)
           }
         } else {
-          throw new Error(`Block  ${i} is present in source but not in dest `)
+          throw new Error(`Block ${i} is present in source but not in dest`)
         }
       } else if (dest.containsBlock(i)) {
-        throw new Error(`Block  ${i} is present in dest but not in source `)
+        throw new Error(`Block ${i} is present in dest but not in source`)
       }
     }
 

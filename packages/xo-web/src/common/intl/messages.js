@@ -282,6 +282,7 @@ const messages = {
   userPage: 'User',
   xoa: 'XOA',
   restApiDoc: 'REST API doc',
+  tryXo6: 'Try XO 6',
   // ----- Support -----
   noSupport: 'No support',
   freeUpgrade: 'Free upgrade!',
@@ -690,6 +691,7 @@ const messages = {
   mirrorFullBackup: 'Mirror full backup',
   mirrorIncrementalBackup: 'Mirror incremental backup',
   runBackupJob: 'Run backup job once',
+  backupJobWarningVmView: 'Enabling or disabling a backup job here will affect all VMs within that job.',
   speedLimit: 'Speed limit (in MiB/s)',
   sourceRemote: 'Source remote',
   targetRemotes: 'Target remotes',
@@ -2816,6 +2818,14 @@ const messages = {
   recipeNameserverAddressesExample: '192.168.1.0,172.16.1.0',
   recipeSearches: 'Search domains',
   recipeSearchesExample: 'domain.com,search.org',
+  recipeLabelAllowInsecureXoConnection: 'Allow insecure XO connection',
+  recipeTooltipAcceptInsecureXoConnection: 'Check if you want to accept self signed certificates',
+  recipeXoFqdn: 'Xen Orchestra FQDN / IP',
+  recipeXoFqdnTooltip:
+    'FQDN or IP address of the Xen Orchestra instance reachable by the Kubernetes cluster for the XO CCM',
+  recipeUseCustomClusterCIDR: 'Use a custom cluster CIDR',
+  recipeClusterPodCIDR: 'Cluster CIDR',
+  recipeClusterServiceCIDR: 'Service CIDR',
 
   // Recipe DC Scope
   vmNameCompleteLabel: 'VM Name',

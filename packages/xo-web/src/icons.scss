@@ -919,10 +919,18 @@
     @extend .fa;
     @extend .fa-sign-out;
   }
+  &-announcement {
+    @extend .fa;
+    @extend .fa-bullhorn;
+  }
 
   &-multiline-clipboard {
     @extend .fa;
     @extend .fa-file-text-o;
+  }
+  &-external-link {
+    @extend .fa;
+    @extend .fa-external-link;
   }
 
   // Menu

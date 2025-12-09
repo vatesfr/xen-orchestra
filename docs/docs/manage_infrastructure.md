@@ -402,10 +402,12 @@ In Xen Orchestra, you can filter to see which VMs are in which mode:
 `high_availability:restart` or `high_availability:best-effort`
 :::
 
-#### Docker management
+#### Container management
+
+You can use containers (such as Docker) inside your VMs. To know more on installing Docker inside a VM, check out the official [Docker documentation](https://docs.docker.com/).
 
 :::tip
-Please [read the dedicated section](manage_infrastructure.md#docker-support) to install a Docker Ready VM.
+You can also run containers using Kubernetes, using the dedicated [Kubernetes recipe](https://docs.vates.tech/devops-tools/kubernetes). 
 :::
 
 ### VM CPU priority

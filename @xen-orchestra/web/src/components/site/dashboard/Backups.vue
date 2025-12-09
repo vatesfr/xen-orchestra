@@ -1,7 +1,7 @@
 <template>
   <UiCard :has-error>
     <UiCardTitle>{{ t('backups') }}</UiCardTitle>
-    <VtsStateHero v-if="!areBackupsReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!areBackupsReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>

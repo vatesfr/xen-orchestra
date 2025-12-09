@@ -1,9 +1,27 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
-import type { XoVdi } from '@/types/xo/vdi.type.ts'
+import { watchCollectionWrapper } from '@/utils/sse.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import type { XoVdi } from '@vates/types'
+
+export const vdiFields: (keyof XoVdi)[] = [
+  'id',
+  'name_label',
+  'name_description',
+  '$VBDs',
+  '$SR',
+  'size',
+  '$pool',
+  'type',
+  'usage',
+  'tags',
+  'uuid',
+  'cbt_enabled',
+  'image_format',
+] as const
 
 export const useXoVdiCollection = defineRemoteResource({
-  url: '/rest/v0/vdis?fields=id,name_label,name_description,$VBDs,$SR,size,$pool',
+  url: `/rest/v0/vdis?fields=${vdiFields.join(',')}`,
+  watchCollection: watchCollectionWrapper({ resource: 'VDI', fields: vdiFields }),
   initialData: () => [] as XoVdi[],
   state: (vdis, context) =>
     useXoCollectionState(vdis, {

@@ -1,14 +1,37 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import type { XoHost } from '@/types/xo/host.type.ts'
-import type { XoNetwork } from '@/types/xo/network.type.ts'
-import type { XoPif } from '@/types/xo/pif.type.ts'
+import { watchCollectionWrapper } from '@/utils/sse.util'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
+import type { XoHost, XoNetwork, XoPif } from '@vates/types'
 import { computed } from 'vue'
 
+const pifFields: (keyof XoPif)[] = [
+  '$host',
+  '$network',
+  'attached',
+  'carrier',
+  'device',
+  'dns',
+  'gateway',
+  'id',
+  'ip',
+  'ipv6',
+  'mac',
+  'management',
+  'mode',
+  'mtu',
+  'netmask',
+  'speed',
+  'vlan',
+  'isBondMaster',
+  'bondSlaves',
+  'type',
+] as const
+
 export const useXoPifCollection = defineRemoteResource({
-  url: '/rest/v0/pifs?fields=$host,$network,attached,carrier,device,dns,gateway,id,ip,ipv6,mac,management,mode,mtu,netmask,speed,vlan,isBondMaster,bondSlaves',
+  url: `/rest/v0/pifs?fields=${pifFields.join(',')}`,
   initialData: () => [] as XoPif[],
+  watchCollection: watchCollectionWrapper({ resource: 'PIF', fields: pifFields }),
   state: (pifs, context) => {
     const state = useXoCollectionState(pifs, {
       context,
@@ -53,7 +76,11 @@ export const useXoPifCollection = defineRemoteResource({
     })
 
     function getBondsDevices(pif: XoPif) {
-      return pif.isBondMaster ? pif.bondSlaves.flatMap(slaveId => state.getPifById(slaveId)?.device ?? []) : []
+      if (!pif.isBondMaster || !pif.bondSlaves) {
+        return []
+      }
+
+      return pif.bondSlaves.flatMap(slaveId => state.getPifById(slaveId)?.device ?? [])
     }
 
     return {

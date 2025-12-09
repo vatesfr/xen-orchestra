@@ -1,11 +1,9 @@
-import type { XoHost } from '@/types/xo/host.type.ts'
-import type { XoPool } from '@/types/xo/pool.type.ts'
-import type { XoVm } from '@/types/xo/vm.type.ts'
 import { type GRANULARITY, RRD_STEP_FROM_STRING } from '@/utils/rest-api-stats.ts'
+import type { XoHost, XoPool, XoVm } from '@vates/types'
 import type { XapiHostStats, XapiPoolStats, XapiVmStats } from '@vates/types/common'
 import { useFetch, useIntervalFn } from '@vueuse/core'
 import type { MaybeRefOrGetter } from '@vueuse/shared'
-import { type ShallowRef, toValue } from 'vue'
+import { computed, type ShallowRef, toValue } from 'vue'
 
 type StatsByObjectType = {
   host: { stats: XapiHostStats; id: XoHost['id'] }
@@ -22,7 +20,9 @@ export function useFetchStats<T extends keyof StatsByObjectType>(
   error: ShallowRef<any>
   isFetching: Readonly<ShallowRef<boolean>>
 } {
-  const result = useFetch(() => `/rest/v0/${objectType}s/${toValue(id)}/stats?granularity=${toValue(granularity)}`, {
+  const url = computed(() => `/rest/v0/${objectType}s/${toValue(id)}/stats?granularity=${toValue(granularity)}`)
+
+  const result = useFetch(url, {
     immediate: false,
     refetch: true,
     beforeFetch({ options }) {

@@ -58,13 +58,13 @@
 
 <script lang="ts" setup>
 import { useXoBackupLogsUtils } from '@/composables/xo-backup-log-utils.composable'
-import type { XoBackupLog } from '@/types/xo/backup-log.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import type { XoBackupLog } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

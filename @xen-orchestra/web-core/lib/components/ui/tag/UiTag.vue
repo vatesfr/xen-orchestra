@@ -5,12 +5,15 @@
     <slot name="icon">
       <VtsIcon :name="icon" size="medium" />
     </slot>
-    <span class="text-ellipsis"><slot /></span>
+    <span v-tooltip class="text-ellipsis">
+      <slot />
+    </span>
   </span>
 </template>
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
+import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 

@@ -33,7 +33,6 @@ import type {
   XapiXoRecord,
   XoVm,
   XoSchedule,
-  XoJob,
   XoGroup,
   XoPool,
   XoTask,
@@ -77,6 +76,15 @@ export type XoApp = {
     getOptional(path: string): Record<string, string> | undefined
     getOptionalDuration(path: string): number | undefined
   }
+
+  objects: EventEmitter & {
+    allIndexes: {
+      type: {
+        getEventEmitterByType(type: XapiXoRecord['type']): EventEmitter
+      }
+    }
+  }
+
   tasks: EventEmitter & {
     abort(id: XoTask['id'], reason?: string): Promise<void>
     clearLogs(): Promise<void>
@@ -179,14 +187,14 @@ export type XoApp = {
   }>
   listVmBackupsNg(
     backupRepositoryIds: XoBackupRepository['id'][],
-    _forceRefresh?: boolean
+    opts?: { _forceRefresh?: boolean; vmId: XoVm['id'] }
   ): Promise<Record<XoBackupRepository['id'], Record<XoVm['id'], XoVmBackupArchive[]>>>
   /** Allow to add a new server in the DB (XCP-ng/XenServer) */
   registerXenServer(body: InsertableXoServer): Promise<XoServer>
   rollingPoolReboot(pool: XoPool, opts?: { parentTask?: VatesTask }): Promise<void>
   rollingPoolUpdate(pool: XoPool, opts?: { rebootVm?: boolean; parentTask?: VatesTask }): Promise<void>
   removeUserFromGroup(userId: XoUser['id'], id: XoGroup['id']): Promise<void>
-  runJob(job: XoJob, schedule: XoSchedule): void
+  runJob(job: AnyXoJob, schedule: XoSchedule): void
   runWithApiContext: (user: XoUser | undefined, fn: () => void) => Promise<unknown>
   /** Remove a server from the DB (XCP-ng/XenServer) */
   unregisterXenServer(id: XoServer['id']): Promise<void>

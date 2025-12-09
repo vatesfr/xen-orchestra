@@ -4,7 +4,7 @@ import ActionButton from 'action-button'
 import ButtonLink from 'button-link'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
-import marked from 'marked'
+import { marked } from 'marked'
 import React from 'react'
 import { Card, CardBlock, CardHeader } from 'card'
 import escapeRegExp from 'lodash/escapeRegExp.js'
@@ -65,6 +65,10 @@ export default decorate([
           sshKey,
           vipAddress,
           workerNodeIpAddresses,
+          xoUrl,
+          useInsecureXoConnection,
+          customClusterPodCIDR,
+          customClusterServiceCIDR,
         } = recipeParams
 
         markRecipeAsCreating(RECIPE_INFO.id)
@@ -83,6 +87,10 @@ export default decorate([
           sshKey,
           vipAddress,
           workerNodeIpAddresses,
+          xoUrl,
+          useInsecureXoConnection,
+          customClusterPodCIDR,
+          customClusterServiceCIDR,
         })
         markRecipeAsDone(RECIPE_INFO.id)
 

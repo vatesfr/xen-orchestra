@@ -65,8 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoBackupJobSettingsUtils } from '@/composables/xo-backup-job-settings.composable'
-import type { XoVmBackupJob } from '@/types/xo/vm-backup-job.type'
+import { useXoBackupJobSettingsUtils } from '@/composables/xo-backup-job/xo-backup-job-settings.composable'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
@@ -75,6 +74,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XoVmBackupJob } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{

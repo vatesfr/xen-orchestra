@@ -1,99 +1,59 @@
 <template>
-  <VtsStateHero v-if="!areHostsReady" format="page" busy size="medium" />
-  <UiCard v-else class="hosts">
-    <div class="pagination-container">
-      <!-- TODO: update with item selection button when available -->
-      <p class="typo-body-regular-small count">{{ t('n-hosts', { n: hosts.length }) }}</p>
-      <UiTablePagination v-if="areHostsReady" v-bind="paginationBindings" />
-    </div>
-    <VtsTable vertical-border>
-      <thead>
-        <tr>
-          <ColumnTitle id="host" icon="fa:server">{{ t('host') }}</ColumnTitle>
-          <ColumnTitle id="description" icon="fa:align-left">{{ t('host-description') }}</ColumnTitle>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="host in hostsRecords" :key="host.id">
-          <VtsCellObject :id="host.data.id">
-            <UiObjectLink :route="`/host/${host.data.id}`">
-              <template #icon>
-                <VtsObjectIcon
-                  size="medium"
-                  type="host"
-                  :state="host.data.power_state.toLocaleLowerCase() as HostState"
-                />
-              </template>
-              {{ host.data.name_label }}
-            </UiObjectLink>
-          </VtsCellObject>
-          <VtsCellText>{{ host.data.name_description }}</VtsCellText>
-        </tr>
-      </tbody>
-    </VtsTable>
-    <div class="pagination-container">
-      <!-- TODO: update with item selection button when available -->
-      <p class="typo-body-regular-small count">{{ t('n-hosts', { n: hosts.length }) }}</p>
-      <UiTablePagination v-if="areHostsReady" v-bind="paginationBindings" />
-    </div>
-  </UiCard>
+  <div class="hosts" :class="{ mobile: uiStore.isMobile }">
+    <UiCard class="container">
+      <HostsTable :hosts :busy="!areHostsReady" :error="hasHostFetchError" />
+    </UiCard>
+    <HostsSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
+    <UiPanel v-else-if="!uiStore.isMobile">
+      <VtsStateHero format="panel" type="no-selection" size="medium">
+        {{ t('select-to-see-details') }}
+      </VtsStateHero>
+    </UiPanel>
+  </div>
 </template>
 
 <script lang="ts" setup>
+import HostsTable from '@/components/hosts/HostsTable.vue'
+import HostsSidePanel from '@/components/hosts/panel/HostsSidePanel.vue'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import type { XoPool } from '@/types/xo/pool.type'
-import type { HostState } from '@core/types/object-icon.type'
-import VtsCellObject from '@core/components/cell-object/VtsCellObject.vue'
-import VtsCellText from '@core/components/cell-text/VtsCellText.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import ColumnTitle from '@core/components/table/ColumnTitle.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
-import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
-import { usePagination } from '@core/composables/pagination.composable'
-import { defineTree } from '@core/composables/tree/define-tree'
-import { useTree } from '@core/composables/tree.composable'
+import UiPanel from '@core/components/ui/panel/UiPanel.vue'
+import { useRouteQuery } from '@core/composables/route-query.composable'
+import { useUiStore } from '@core/stores/ui.store'
+import type { XoHost, XoPool } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { pool } = defineProps<{
   pool: XoPool
 }>()
 
+const uiStore = useUiStore()
+
+const { areHostsReady, hostsByPool, hasHostFetchError } = useXoHostCollection()
+
 const { t } = useI18n()
 
-const { areHostsReady, hostsByPool } = useXoHostCollection()
+const hosts = computed(() => hostsByPool.value.get(pool.id) ?? [])
 
-const definitions = computed(() =>
-  defineTree(hostsByPool.value.get(props.pool.id) ?? [], {
-    getLabel: 'name_label',
-  })
-)
-
-const { nodes: hosts } = useTree(definitions)
-const { pageRecords: hostsRecords, paginationBindings } = usePagination('hosts', hosts)
+const selectedHost = useRouteQuery<XoHost | undefined>('id', {
+  toData: id => hosts.value.find(host => host.id === id),
+  toQuery: host => host?.id ?? '',
+})
 </script>
 
-<style lang="postcss" scoped>
+<style scoped lang="postcss">
 .hosts {
-  margin: 1rem;
-  gap: 0.8rem;
-}
+  &:not(.mobile) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40rem;
+  }
 
-.count {
-  color: var(--color-neutral-txt-secondary);
-  text-transform: lowercase;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  .count {
-    color: var(--color-neutral-txt-secondary);
+  .container {
+    height: fit-content;
+    gap: 4rem;
+    margin: 0.8rem;
   }
 }
 </style>

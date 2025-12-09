@@ -14,32 +14,68 @@ Our REST API is versioned, and the current version is `/v0` (see URL format belo
 
 ## Authentication
 
-A valid authentication token should be attached as a cookie to all HTTP
-requests:
+Most endpoints require authentication. For this, you can either attach a valid authentication token as a cookie, or use the [Authorization header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Authorization)
+
+:::tip
+Only admin users can currently use the API.
+:::
+
+### Usage
 
 ```http
-GET /rest/v0 HTTP/1.1
+GET /rest/v0/vms HTTP/1.1
 Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 ```
 
-The server will respond to an invalid token with a `401 Unauthorized` status.
-
-**[Not implemented at this time]** The server can request that the client updates its token with a `Set-Cookie` header:
-
 ```http
-HTTP/1.1 200 OK
-Set-Cookie: authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
+GET /rest/v0/vms HTTP/1.1
+Authorization: Basic YWRtaW5AYWRtaW4ubmV0OmFkbWlu
 ```
+
+The server will respond to an invalid token or invalid Basic token with a `401 Unauthorized` status.
 
 Usage with cURL:
 
 ```bash
 curl -b \
     authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
-    https://xo.company.lan/rest/v0/
+    https://xo.company.lan/rest/v0/vms
 ```
 
-You can use `xo-cli` to create an authentication token:
+### Creation
+
+To create an authentication token, you can use:
+
+- `POST /rest/v0/users/:id/authentication_tokens`
+
+:::tip
+If you don't know your user ID, you can use the `me` alias. (`/rest/v0/users/me/authentication_tokens`)
+:::
+
+```bash
+$ curl -X POST \
+    https://xoa.company.lan/rest/v0/users/e531b8c9-3876-4ed9-8fd2-0476d5f825c9/authentication_tokens \
+    -u admin@admin.net:admin
+```
+
+```bash
+$ curl -X POST \
+    https://xoa.company.lan/rest/v0/users/e531b8c9-3876-4ed9-8fd2-0476d5f825c9/authentication_tokens \
+    -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
+```
+
+```json
+{
+  "token": {
+    "created_at": 1765187444219,
+    "id": "UlTBEnFeL12XocK-7Qx-DKvOYbPn0eG7Z2oMvOniNjg",
+    "user_id": "e531b8c9-3876-4ed9-8fd2-0476d5f825c9",
+    "expiration": 1767779444219
+  }
+}
+```
+
+- `xo-cli`
 
 ```bash
 $ xo-cli create-token xoa.company.lan admin@admin.net
@@ -50,9 +86,30 @@ Authentication token created
 DiYBFavJwf9GODZqQJs23eAx9eh3KlsRhBi8RcoX0KM
 ```
 
-:::tip
-Only admin users can currently use the API.
-:::
+### Refresh
+
+**[Not implemented at this time]** The server can request that the client updates its token with a `Set-Cookie` header:
+
+```http
+HTTP/1.1 200 OK
+Set-Cookie: authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
+```
+
+Since automatic refresh is not implemented yet, you must manually refresh your token. To do so, create a new token using your existing valid authentication token:
+
+```http
+POST /rest/v0/users/e531b8c9-3876-4ed9-8fd2-0476d5f825c9/authentication_tokens HTTP/1.1
+Cookie: authenticationToken=r3ZRJTejFmD8_8Yj7PnG008T58xnw01VzR3YmuIVNPw
+
+{
+  "token": {
+    "created_at": 1765189117608,
+    "id": "s2BPrps41PRqRSn1i69udcGsbx_Yx46HBa2zhY2Jj-A",
+    "user_id": "e531b8c9-3876-4ed9-8fd2-0476d5f825c9",
+    "expiration": 1767781117608
+  }
+}
+```
 
 ## Collections request
 
@@ -82,7 +139,7 @@ Content-Type: application/json
 
 With custom fields:
 
-````
+```http
 GET /rest/v0/vms?fields=name_label,power_state HTTP/1.1
 Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 
@@ -102,9 +159,11 @@ Content-Type: application/json
   }
 ]
 
+```
+
 Here is an example with `curl`:
 
-```console
+```bash
 $ curl \
   -b authenticationToken=0OQIKwb1WjeHtch25Ls \
   http://xoa.example.com/rest/v0/vms?fields=name_label,power_state
@@ -130,12 +189,12 @@ $ curl \
     "href": "/rest/v0/vms/857e34e5-c61a-f3f1-65e6-a7a9306b347b"
   }
 ]
-````
+```
 
 As NDJSON:
 
 ```http
-GET /rest/v0/vms?fields=name_label,power_state&ndjson HTTP/1.1
+GET /rest/v0/vms?fields=name_label,power_state&ndjson=true HTTP/1.1
 Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 
 HTTP/1.1 200 OK
@@ -149,12 +208,12 @@ Content-Type: application/x-ndjson
 
 ### Specific task
 
-When fetching a task record, the special `wait` query string can be used. If its value is `result` it will wait for the task to be resolved (either success or failure) before returning; otherwise, it will wait for the next change of state.
+When fetching a task record, the special `wait` query string can be used.
 
 ```sh
 curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
-  'https://xo.example.org/rest/v0/tasks/0lr4zljbe?wait=result'
+  'https://xo.example.org/rest/v0/tasks/0lr4zljbe?wait=true'
 ```
 
 ### All tasks
@@ -168,7 +227,7 @@ The `fields` and `filter` parameters are supported.
 Example:
 
 ```http
-GET /rest/v0/vms?fields=start,status&ndjson&watch HTTP/1.1
+GET /rest/v0/vms?fields=start,status&ndjson=true&watch=true HTTP/1.1
 Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 
 HTTP/1.1 200 OK
@@ -185,18 +244,6 @@ Content-Type: application/x-ndjson
 > 3. process events sent by the watch request to update the local cache
 
 ## Properties update
-
-> This feature is restricted to `name_label`, `name_description` and `tags` at the moment.
-
-```sh
-curl \
-  -X PATCH \
-  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{ "name_label": "The new name", "name_description": "The new description" }' \
-  'https://xo.example.org/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac'
-```
 
 ### Collections
 
@@ -264,7 +311,7 @@ curl \
 
 The following optional query parameters are supported for VDI export:
 
-- `preferNbd`: will use NBD for export if available
+- `preferNbd=<boolean>`: will use NBD for export if available
 - `nbdConcurrency=<integer>`: set the number of concurrent stream per disk if NBD is enabled, default 1
 
 ## VM Import
@@ -330,42 +377,6 @@ The following query parameters are supported to customize the created VDI:
 
 ## Actions
 
-### Available actions
-
-To see the actions available on objects of a specific collection, get the collection at `/rest/v0/<type>/_/actions`.
-
-For example, to list all actions on a VM:
-
-```console
-$ curl \
-  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
-  'https://xo.company.lan/rest/v0/vms/_/actions'
-[
-"/rest/v0/vms/_/actions/clean_reboot",
-"/rest/v0/vms/_/actions/clean_shutdown",
-"/rest/v0/vms/_/actions/hard_reboot",
-"/rest/v0/vms/_/actions/hard_shutdown",
-"/rest/v0/vms/_/actions/snapshot",
-"/rest/v0/vms/_/actions/start"
-]
-```
-
-To see more information about a specific action, you can checkout its endpoint:
-
-```console
-$ curl \
-  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
-  'https://xo.company.lan/rest/v0/vms/_/actions/snapshot'
-{
-  "params": {
-    "name_label": {
-      "type": "string",
-      "optional": true
-    }
-  }
-}
-```
-
 The field `params` contains the [JSON schema](https://json-schema.org/) for the parameters.
 
 ### Start an action
@@ -395,13 +406,13 @@ curl \
 
 By default, actions are asynchronous and return the reference of the task associated with the request (see [_Task monitoring_](#task-monitoring)).
 
-The `?sync` flag can be used to run the action synchronously without requiring task monitoring. The result of the action will be returned encoded as JSON:
+The `?sync=true` flag can be used to run the action synchronously without requiring task monitoring. The result of the action will be returned encoded as JSON:
 
 ```console
 $ curl \
   -X POST \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
-  'https://xo.example.org/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/clean_reboot'
+  'https://xo.example.org/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/clean_reboot?sync=true'
 "2b0266aa-c753-6fbc-e4dd-c79be7782052"
 ```
 
@@ -423,11 +434,7 @@ The Swagger API documentation is still a work in progress. Not all endpoints are
 
 ### Accessing the Xen Orchestra API documentation in Swagger
 
-Both versions of the API are now available at `/rest/v0`. However, only the endpoints that have been migrated to the new Swagger setup will show up in the documentation at `/rest/v0/docs`.
-
-The Swagger UI doesn't just provide documentation of available endpoints. It also **lets you test them directly from the interface**, making it easier to experiment with the API without writing any code.
-
-As we continue the migration process, the documentation will expand and improve. Our goal is that once everything is fully transitioned, `/rest/v0` will automatically redirect to the docs.
+The Swagger UI is available at `/rest/v0/docs`. It doesn't just provide documentation of available endpoints, but also **lets you test them directly from the interface**. This way, you can experiment with the API without writing any code!
 
 ## Ongoing Improvements
 

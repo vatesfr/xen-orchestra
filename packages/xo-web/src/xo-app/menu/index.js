@@ -89,6 +89,7 @@ export default class Menu extends Component {
 
     this._updateMissingPatchesSubscriptions()
     this._updateProxiesSubscriptions()
+    this._fetchGuiRoutes()
   }
 
   componentWillUnmount() {
@@ -209,6 +210,16 @@ export default class Menu extends Component {
     }
 
     this._unsubscribeProxiesApplianceUpdaterState = () => forEach(unsubs, unsub => unsub())
+  }
+
+  _fetchGuiRoutes = async () => {
+    const res = await fetch('./rest/v0/gui-routes')
+    if (!res.ok) {
+      console.error(await res.text())
+      return
+    }
+
+    this.setState({ guiRoutes: await res.json() })
   }
 
   render() {
@@ -573,6 +584,17 @@ export default class Menu extends Component {
                 
             </a>
           </li>
+          {isAdmin && this.state.guiRoutes?.xo6 !== undefined && <li className='nav-item xo-menu-item'>
+            <a className='nav-link' target='_blank' rel='noreferrer' href={this.state.guiRoutes.xo6}>
+              <span className={classNames(styles.hiddenCollapsed)}>
+                <Icon icon='announcement' size='lg' fixedWidth /> {_('tryXo6')} <Icon icon='external-link' />
+              </span>
+              <span className={classNames(styles.hiddenUncollapsed)}>
+                <Icon icon="announcement"  size='lg' fixedWidth/>
+              </span>
+
+            </a>
+          </li>}
           <li>&nbsp;</li>
           <li>&nbsp;</li>
           {!state.isXoaStatusOk && (

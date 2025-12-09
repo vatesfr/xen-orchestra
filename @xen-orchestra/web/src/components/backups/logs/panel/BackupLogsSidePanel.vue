@@ -4,7 +4,7 @@
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
           v-tooltip="t('close')"
-          size="medium"
+          size="small"
           variant="tertiary"
           accent="brand"
           :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
@@ -37,14 +37,13 @@ import BackupJobSchedulesCard from '@/components/backups/panel/cards/BackupJobSc
 import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection'
 import { useXoScheduleCollection } from '@/remote-resources/use-xo-schedule-collection.ts'
-import type { XoBackupLog } from '@/types/xo/backup-log.type'
-import type { XoPool } from '@/types/xo/pool.type'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util'
 import { getTasksResultsRecursively } from '@/utils/xo-records/task.util'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoPool, XoBackupLog } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

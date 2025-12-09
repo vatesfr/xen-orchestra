@@ -1,5 +1,5 @@
-import type { XoPif } from '@/types/xo/pif.type.ts'
 import type { Status } from '@core/components/status/VtsStatus.vue'
+import type { XoPif } from '@vates/types'
 
 export function getPifStatus(pif: XoPif): Status {
   if (!pif.attached) {
@@ -11,4 +11,22 @@ export function getPifStatus(pif: XoPif): Status {
   }
 
   return 'connected'
+}
+
+export function getPifsIpAddresses(pifs?: XoPif[]): string[] {
+  if (!pifs) {
+    return []
+  }
+
+  return pifs.reduce((acc, pif) => {
+    if (pif.ip) {
+      acc.push(pif.ip)
+    }
+
+    if (pif.ipv6) {
+      acc.push(...pif.ipv6.filter(ip => ip))
+    }
+
+    return acc
+  }, [] as string[])
 }

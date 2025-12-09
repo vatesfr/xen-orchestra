@@ -11,7 +11,7 @@
           <slot name="description" />
         </div>
       </div>
-      <UiButtonIcon class="close-icon" icon="fa:xmark" accent="brand" size="medium" @click="emit('close')" />
+      <UiButtonIcon class="close-icon" icon="fa:xmark" accent="brand" size="small" @click="emit('close')" />
     </div>
     <div v-if="slots.actions" class="actions">
       <slot name="actions" />

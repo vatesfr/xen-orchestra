@@ -31,12 +31,12 @@
 
 <script setup lang="ts">
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
-import type { XoServer } from '@/types/xo/server.type.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoServer } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { serverId } = defineProps<{

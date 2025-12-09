@@ -14,15 +14,14 @@
 
 <script setup lang="ts">
 import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
-import HostPifTable from '@/components/host/network/HostPifTable.vue'
+import HostPifTable from '@/components/host/network/HostPifsTable.vue'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import type { XoHost } from '@/types/xo/host.type.ts'
-import type { XoPif } from '@/types/xo/pif.type'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoHost, XoPif } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router/auto'

@@ -5,7 +5,7 @@
         <UiButtonIcon
           v-if="uiStore.isMobile"
           v-tooltip="t('close')"
-          size="medium"
+          size="small"
           variant="tertiary"
           accent="brand"
           icon="fa:angle-left"
@@ -145,7 +145,7 @@
                   v-tooltip="t('coming-soon')"
                   disabled
                   icon="fa:ellipsis"
-                  size="medium"
+                  size="small"
                   accent="brand"
                 />
               </template>
@@ -180,7 +180,6 @@
 <script setup lang="ts">
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { XoVif } from '@/types/xo/vif.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
@@ -191,6 +190,7 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoVif } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

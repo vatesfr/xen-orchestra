@@ -6,6 +6,15 @@
         <VtsSelect :id="poolSelectId" accent="brand" />
       </template>
     </UiHeadBar>
+    <UiAlert v-if="vmState.pool" accent="info" class="card-container">
+      <I18nT keypath="new-vm.feature-not-supported">
+        <template #xo-5>
+          <UiLink :href="xo5Link" size="medium">
+            {{ t('xo-5') }}
+          </UiLink>
+        </template>
+      </I18nT>
+    </UiAlert>
     <div class="card-container">
       <form @submit.prevent="createNewVM()">
         <UiCard v-if="vmState.pool">
@@ -97,31 +106,14 @@
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
                 <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" :label=" t('tags')" /> -->
-                <!--              <VtsInputWrapper :label="t('boot-firmware')"> -->
-                <!--                <FormSelect v-model="vmState.boot_firmware"> -->
-                <!--                  <option v-for="boot in bootFirmwares" :key="boot" :value="boot"> -->
-                <!--                    {{ boot === undefined ? t('bios-default') : boot }} -->
-                <!--                  </option> -->
-                <!--                </FormSelect> -->
-                <!--              </VtsInputWrapper> -->
-                <!--              <div -->
-                <!--                v-tooltip=" -->
-                <!--                  vmState.boot_firmware === 'uefi' || templateHasBiosStrings -->
-                <!--                    ? { -->
-                <!--                        placement: 'top-start', -->
-                <!--                        content: vmState.boot_firmware !== 'uefi' ? t('boot-firmware-bios') : t('boot-firmware-uefi'), -->
-                <!--                      } -->
-                <!--                    : undefined -->
-                <!--                " -->
-                <!--              > -->
-                <!--                <UiCheckbox -->
-                <!--                  v-model="copyHostBiosStrings" -->
-                <!--                  accent="brand" -->
-                <!--                  :disabled="vmState.boot_firmware === 'uefi' || templateHasBiosStrings" -->
-                <!--                > -->
-                <!--                  {{ t('copy-host') }} -->
-                <!--                </UiCheckbox> -->
-                <!--              </div> -->
+                <VtsInputWrapper :label="t('boot-firmware')">
+                  <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
+                </VtsInputWrapper>
+                <div v-tooltip="{ placement: 'top-start', content: copyHostBiosStringsTooltipContent }">
+                  <UiCheckbox v-model="vmState.copyHostBiosStrings" accent="brand" :disabled="!canCopyBiosStrings">
+                    {{ t('copy-host-bios-strings') }}
+                  </UiCheckbox>
+                </div>
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
@@ -149,131 +141,21 @@
             <!-- NETWORK SECTION -->
             <UiTitle>{{ t('network') }}</UiTitle>
             <div class="network-container">
-              <VtsTable vertical-border>
-                <thead>
-                  <tr>
-                    <th>
-                      <VtsIcon name="fa:network-wired" size="medium" />
-                      {{ t('interfaces') }}
-                    </th>
-                    <th>
-                      <VtsIcon name="fa:at" size="medium" />
-                      {{ t('mac-addresses') }}
-                    </th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(vif, index) in vmState.vifs" :key="index">
-                    <td>
-                      <NetworkSelect v-model="vif.network" :networks="filteredNetworks" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vif.mac" :placeholder="t('auto-generated')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiButtonIcon
-                        icon="fa:trash"
-                        size="medium"
-                        accent="brand"
-                        variant="secondary"
-                        @click="deleteItem(vmState.vifs, index)"
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="3">
-                      <UiButton left-icon="fa:plus" variant="tertiary" accent="brand" size="medium" @click="addVif()">
-                        {{ t('new') }}
-                      </UiButton>
-                    </td>
-                  </tr>
-                </tbody>
-              </VtsTable>
+              <NewVmNetworkTable
+                :networks="filteredNetworks"
+                :vm-state
+                @add="addVif()"
+                @remove="index => deleteItem(vmState.vifs, index)"
+              />
             </div>
             <!-- STORAGE SECTION -->
             <UiTitle>{{ t('storage') }}</UiTitle>
-            <VtsTable vertical-border>
-              <thead>
-                <tr>
-                  <th>
-                    <VtsIcon name="fa:database" size="medium" />
-                    {{ t('storage-repositories') }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:align-left" size="medium" />
-                    {{ t('disk-name') }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:memory" size="medium" />
-                    <!-- TODO remove (GB) when we can use new selector -->
-                    {{ `${t('size')} (GB)` }}
-                  </th>
-                  <th>
-                    <VtsIcon name="fa:align-left" size="medium" />
-                    {{ t('description') }}
-                  </th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                <template v-if="vmState.existingVdis && vmState.existingVdis.length > 0">
-                  <tr v-for="(vdi, index) in vmState.existingVdis" :key="index">
-                    <td>
-                      <SrSelect v-model="vdi.sr" :srs="filteredSrs" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.size" :placeholder="t('size')" accent="brand" disabled />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_description" :placeholder="t('description')" accent="brand" />
-                    </td>
-                    <td />
-                  </tr>
-                </template>
-                <template v-if="vmState.vdis && vmState.vdis.length > 0">
-                  <tr v-for="(vdi, index) in vmState.vdis" :key="index">
-                    <td>
-                      <SrSelect v-model="vdi.sr" :srs="filteredSrs" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_label" :placeholder="t('disk-name')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.size" :placeholder="t('size')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiInput v-model="vdi.name_description" :placeholder="t('description')" accent="brand" />
-                    </td>
-                    <td>
-                      <UiButtonIcon
-                        icon="fa:trash"
-                        size="medium"
-                        accent="brand"
-                        variant="secondary"
-                        @click="deleteItem(vmState.vdis, index)"
-                      />
-                    </td>
-                  </tr>
-                </template>
-                <tr>
-                  <td colspan="5">
-                    <UiButton
-                      left-icon="fa:plus"
-                      variant="tertiary"
-                      accent="brand"
-                      size="medium"
-                      @click="addStorageEntry()"
-                    >
-                      {{ t('new') }}
-                    </UiButton>
-                  </td>
-                </tr>
-              </tbody>
-            </VtsTable>
+            <NewVmSrTable
+              :srs="filteredSrs"
+              :vm-state
+              @add="addStorageEntry()"
+              @remove="index => deleteItem(vmState.vdis, index)"
+            />
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand">
@@ -324,42 +206,40 @@
 </template>
 
 <script lang="ts" setup>
-import NetworkSelect from '@/components/select/NetworkSelect.vue'
-import SrSelect from '@/components/select/SrSelect.vue'
+import NewVmNetworkTable from '@/components/new-vm/NewVmNetworkTable.vue'
+import NewVmSrTable from '@/components/new-vm/NewVmSrTable.vue'
 import { createVM } from '@/jobs/vm-create.job.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
 import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
-import type { XoNetwork } from '@/types/xo/network.type.ts'
 import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
-import type { XoPool } from '@/types/xo/pool.type.ts'
-import type { XoVdi } from '@/types/xo/vdi.type.ts'
-import type { XoVmTemplate } from '@/types/xo/vm-template.type'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
 import VtsSelect from '@core/components/select/VtsSelect.vue'
-import VtsTable from '@core/components/table/VtsTable.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
-import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
+import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
+import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
 
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -391,7 +271,7 @@ const vmState = reactive<VmState>({
   description: '',
   installMode: undefined,
   affinity_host: undefined,
-  boot_firmware: '',
+  bootFirmware: '',
   new_vm_template: undefined,
   boot_vm: true,
   autoPoweron: false,
@@ -489,20 +369,29 @@ const isDiskTemplate = computed(() => {
     vmState.new_vm_template.name_label !== 'Other install media'
   )
 })
-// Todo: implement when the API will support
-// const getBootFirmwares = computed(() => {
-//   return [
-//     ...new Set(vmsTemplates.value.map(vmsTemplate => vmsTemplate.boot.firmware).filter(firmware => firmware != null)),
-//   ]
-// })
 
-// Todo: implement when the API will support
-// const getCopyHostBiosStrings = computed({
-//   get: () => vmState.boot_firmware !== 'uefi',
-//   set: value => {
-//     vmState.boot_firmware = value ? 'bios' : 'uefi'
-//   },
-// })
+// BIOS strings customization (Copy-Host BIOS strings or User-Defined BIOS strings)
+// is only applicable when using BIOS firmware, not UEFI.
+// This allows installation of OEM/BIOS-locked operating systems.
+// See https://docs.xenserver.com/en-us/xencenter/current-release/vms-new-template.html
+
+const selectedTemplateHasBiosStrings = computed(
+  () => vmState.new_vm_template !== undefined && Object.keys(vmState.new_vm_template.bios_strings).length !== 0
+)
+
+const canCopyBiosStrings = computed(() => vmState.bootFirmware === 'bios')
+
+const copyHostBiosStringsTooltipContent = computed(() => {
+  if (vmState.bootFirmware === 'uefi') {
+    return t('boot-firmware-uefi')
+  }
+
+  if (selectedTemplateHasBiosStrings.value) {
+    return t('template-has-bios-strings')
+  }
+
+  return undefined
+})
 
 const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
@@ -524,7 +413,7 @@ const getExistingVdis = (template: XoVmTemplate) => {
       return acc
     }
 
-    const vdi = getVdiById(vbd.VDI)
+    const vdi = getVdiById(vbd.VDI as XoVdi['id'])
 
     if (vdi === undefined) {
       console.error('VDI not found')
@@ -784,6 +673,8 @@ const vmData = computed(() => {
     name_description: vmState.description,
     name_label: vmState.name,
     template: vmState.new_vm_template?.uuid,
+    hvmBootFirmware: vmState.bootFirmware,
+    copyHostBiosStrings: vmState.copyHostBiosStrings,
     ...optionalFields,
   }
 })
@@ -796,8 +687,8 @@ const createNewVM = async () => {
       throw new Error('Template UUID and Pool ID are required')
     }
 
-    await createVM(vmData.value, vmState.pool.id)
-    redirectToPool(vmState.pool.id)
+    const vmId = await createVM(vmData.value, vmState.pool.id)
+    router.push({ name: '/vm/[id]/dashboard', params: { id: vmId } })
   } catch (error) {
     isOpen.value = true
 
@@ -852,6 +743,7 @@ watch(
       vifs: getExistingVifs(template),
       selectedVdi: undefined,
       installMode: undefined,
+      bootFirmware: template.boot.firmware ?? 'bios',
     } satisfies Partial<VmState>)
   }
 )
@@ -919,6 +811,35 @@ watch(
     }
   },
   { immediate: true }
+)
+
+const { buildXo5Route } = useXoRoutes()
+
+const xo5Link = computed(() => {
+  if (!vmState.pool?.id) {
+    return '#'
+  }
+
+  return buildXo5Route(`/vms/new?pool=${vmState.pool?.id}`)
+})
+
+// BOOT FIRMWARE SELECTOR
+
+const bootFirmwareOptions = ['bios', 'uefi']
+
+const { id: bootFirmwareSelectId } = useFormSelect(bootFirmwareOptions, {
+  model: toRef(vmState, 'bootFirmware'),
+})
+
+watch(
+  () => vmState.new_vm_template,
+  () => {
+    if (vmState.bootFirmware !== 'bios') {
+      vmState.copyHostBiosStrings = false
+    } else if (selectedTemplateHasBiosStrings.value) {
+      vmState.copyHostBiosStrings = true
+    }
+  }
 )
 </script>
 
@@ -992,10 +913,6 @@ watch(
       gap: 10.8rem;
     }
 
-    thead tr th:last-child {
-      width: 4rem;
-    }
-
     .select {
       display: flex;
       flex-direction: column;
@@ -1008,49 +925,6 @@ watch(
     display: flex;
     justify-content: center;
     gap: 1.6rem;
-  }
-
-  /*Todo: Remove when we implement the new select component*!*/
-
-  .custom-select {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-  }
-
-  .custom-select {
-    select {
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-
-      width: 100%;
-      min-width: 20rem;
-      padding-block: 0.8rem;
-      padding-inline: 1.6rem;
-      outline: none;
-      font-size: 1.6rem;
-      background-color: var(--color-neutral-background-primary);
-      border-color: var(--color-neutral-border);
-      border-radius: 0.4rem;
-
-      &:hover {
-        border-color: var(--color-brand-item-hover);
-      }
-
-      &:focus {
-        border-color: transparent;
-        box-shadow: inset 0 0 0 2px var(--color-brand-item-base);
-      }
-    }
-
-    .icon {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
   }
 }
 </style>

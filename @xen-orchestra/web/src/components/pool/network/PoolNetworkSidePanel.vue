@@ -5,7 +5,7 @@
         <UiButtonIcon
           v-if="uiStore.isMobile"
           v-tooltip="t('close')"
-          size="medium"
+          size="small"
           variant="tertiary"
           accent="brand"
           icon="fa:angle-left"
@@ -32,7 +32,7 @@
           >
             {{ t('delete') }}
           </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" icon="fa:ellipsis" />
+          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="small" icon="fa:ellipsis" />
         </div>
       </div>
     </template>
@@ -131,7 +131,6 @@
 <script setup lang="ts">
 import PifRow from '@/components/pif/PifRow.vue'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import type { XoNetwork } from '@/types/xo/network.type.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -142,6 +141,7 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import type { XoNetwork } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -170,9 +170,7 @@ const networkVlan = computed(() => {
 
 const networkNbd = computed(() => (network.nbd ? t('on') : t('off')))
 
-const networkDefaultLockingMode = computed(() =>
-  network.default_locking_mode === 'disabled' ? t('disabled') : t('unlocked')
-)
+const networkDefaultLockingMode = computed(() => (network.defaultIsLocked ? t('disabled') : t('unlocked')))
 
 const pifsCount = computed(() => pifs.value.length)
 </script>

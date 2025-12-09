@@ -1,5 +1,5 @@
 <template>
-  <UiButtonIcon v-tooltip="copied && t('core.copied')" :icon size="medium" accent="brand" @click="copy()" />
+  <UiButtonIcon v-tooltip="copied && t('core.copied')" :icon size="small" accent="brand" @click="copy()" />
 </template>
 
 <script setup lang="ts">

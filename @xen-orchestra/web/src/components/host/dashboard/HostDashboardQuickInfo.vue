@@ -51,7 +51,6 @@
 
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { HOST_POWER_STATE, type XoHost } from '@/types/xo/host.type'
 import type { IconName } from '@core/icons'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
@@ -60,11 +59,11 @@ import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import useRelativeTime from '@core/composables/relative-time.composable'
+import { getRelativeTime } from '@core/composables/relative-time.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util'
-import { useNow } from '@vueuse/core'
+import { HOST_POWER_STATE, type XoHost } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -73,7 +72,7 @@ const { host } = defineProps<{
   host: XoHost
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const { getMasterHostByPoolId, isMasterHost, areHostsReady } = useXoHostCollection()
 
@@ -92,11 +91,14 @@ const powerState = computed(() => {
   }
 })
 
-const date = computed(() => new Date(parseDateTime(host.startTime * 1000)))
-const now = useNow({ interval: 1000 })
-const relativeStartTime = useRelativeTime(date, now)
+const date = computed(() => (host.startTime === null ? undefined : new Date(parseDateTime(host.startTime * 1000))))
+
+const relativeStartTime = computed(() =>
+  date.value === undefined ? undefined : getRelativeTime(date.value, locale.value)
+)
 
 const isMaster = computed(() => isMasterHost(host.id))
+
 const masterHost = computed(() => getMasterHostByPoolId(host.$pool))
 
 const ram = computed(() => formatSizeRaw(host.memory.size, 1))

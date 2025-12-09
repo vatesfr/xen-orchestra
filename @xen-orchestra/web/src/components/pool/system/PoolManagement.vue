@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('pool-management') }}
     </UiTitle>
-    <VtsStateHero v-if="!areHostsReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!areHostsReady" format="card" type="busy" size="medium" />
     <template v-else>
       <VtsQuickInfoRow :label="t('master')">
         <template #value>
@@ -36,13 +36,13 @@
 
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import type { XoPool } from '@/types/xo/pool.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XoPool } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{

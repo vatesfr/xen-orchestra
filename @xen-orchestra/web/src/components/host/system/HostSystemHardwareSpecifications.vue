@@ -29,10 +29,10 @@
 <script setup lang="ts">
 import { useXoPciCollection } from '@/remote-resources/use-xo-pci-collection.ts'
 import { useXoPgpuCollection } from '@/remote-resources/use-xo-pgpu-collection.ts'
-import type { XoHost } from '@/types/xo/host.type.ts'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import type { XoHost } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { useArrayReduce } from '@vueuse/shared'
 import { useI18n } from 'vue-i18n'

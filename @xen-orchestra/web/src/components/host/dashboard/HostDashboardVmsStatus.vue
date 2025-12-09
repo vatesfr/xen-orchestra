@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-vms-status">
     <UiCardTitle>{{ t('vms-status') }}</UiCardTitle>
-    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <template v-else>
       <VtsDonutChartWithLegend :segments />
       <UiCardNumbers class="total" :label="t('total')" :value="total" size="small" />
@@ -12,8 +12,6 @@
 <script lang="ts" setup>
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import type { XoHost } from '@/types/xo/host.type'
-import { VM_POWER_STATE } from '@/types/xo/vm.type'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
@@ -22,6 +20,7 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { useItemCounter } from '@core/composables/item-counter.composable'
+import { VM_POWER_STATE, type XoHost } from '@vates/types'
 import { logicAnd, useSum } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

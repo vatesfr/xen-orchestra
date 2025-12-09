@@ -1,12 +1,12 @@
 <template>
-  <VtsStateHero v-if="!arePoolsReady" format="panel" busy size="medium" />
+  <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
   <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
           v-if="uiStore.isMobile"
           v-tooltip="t('close')"
-          size="medium"
+          size="small"
           variant="tertiary"
           accent="brand"
           icon="fa:angle-left"
@@ -33,7 +33,7 @@
           >
             {{ t('forget') }}
           </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" icon="fa:ellipsis" />
+          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="small" icon="fa:ellipsis" />
         </div>
       </div>
     </template>
@@ -81,7 +81,7 @@
             <template #key>{{ t('tags') }}</template>
             <template #value>
               <UiTagsList v-if="pool !== undefined && pool.tags.length > 0">
-                <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="primary">{{ tag }}</UiTag>
+                <UiTag v-for="tag in pool.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
               </UiTagsList>
             </template>
             <template v-if="pool !== undefined && pool.tags.length > 0" #addons>
@@ -192,7 +192,6 @@
 <script setup lang="ts">
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import type { XoServer } from '@/types/xo/server.type'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -213,6 +212,7 @@ import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store'
+import type { XoServer } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

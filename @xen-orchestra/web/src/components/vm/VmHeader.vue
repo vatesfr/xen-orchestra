@@ -33,18 +33,22 @@
         {{ t('network') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('storage') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/vdis`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('vdis', 2) }}
+      </TabItem>
+    </RouterLink>
     <TabItem disabled>{{ t('tasks') }}</TabItem>
   </TabList>
 </template>
 
 <script lang="ts" setup>
-import type { XoVm } from '@/types/xo/vm.type'
 import type { VmState } from '@core/types/object-icon.type'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
+import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{ vm: XoVm }>()
