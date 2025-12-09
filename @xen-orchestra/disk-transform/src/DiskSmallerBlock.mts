@@ -17,7 +17,7 @@ export class DiskSmallerBlock extends DiskPassthrough {
     assert.strictEqual(
       source.getBlockSize() % blockSize,
       0,
-      `target block size ${blockSize} must be a multiple of the source block size ${source.getBlockSize()} `
+      `source block size ${blockSize} must be a multiple of the target block size ${source.getBlockSize()} `
     )
     this.#blockSize = blockSize
   }
