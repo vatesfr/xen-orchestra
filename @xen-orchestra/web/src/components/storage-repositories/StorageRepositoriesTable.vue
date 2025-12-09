@@ -2,7 +2,7 @@
   <div class="storage-repositories-table">
     <UiTitle>
       {{ t('storage-repositories') }}
-      <template #actions>
+      <template #action>
         <UiLink size="medium" :href>{{ t('configure-in-xo-5') }}</UiLink>
       </template>
     </UiTitle>

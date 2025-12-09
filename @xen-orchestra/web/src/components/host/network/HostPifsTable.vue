@@ -2,7 +2,7 @@
   <div class="host-pifs-table">
     <UiTitle>
       {{ t('pifs') }}
-      <template #actions>
+      <template #action>
         <UiLink :href="xo5ScanPifsHref" icon="fa:plus" size="medium">
           {{ t('scan-pifs-in-xo-5') }}
         </UiLink>
