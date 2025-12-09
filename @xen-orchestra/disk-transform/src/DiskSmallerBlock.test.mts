@@ -182,3 +182,19 @@ test('close propagation', async () => {
   await disk.close()
   assert(source.closed)
 })
+
+test('unaligned END ', async () => {
+  const source = new MockDisk(512, 1024 + 256, [
+    [0, Buffer.alloc(512)],
+    [2, Buffer.alloc(256)],
+  ])
+  await source.init()
+
+  const disk = new DiskSmallerBlock(source, 256)
+  await disk.init()
+
+  const indexes = disk.getBlockIndexes()
+  assert.deepStrictEqual(indexes, [0, 1, 4])
+  assert.strictEqual(disk.hasBlock(4), true)
+  assert.strictEqual(disk.hasBlock(5), false)
+})

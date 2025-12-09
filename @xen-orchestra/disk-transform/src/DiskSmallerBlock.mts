@@ -35,13 +35,17 @@ export class DiskSmallerBlock extends DiskPassthrough {
     try {
       const blockRatio = this.source.getBlockSize() / this.#blockSize
       const sourceGenerator = this.source.diskBlocks()
+      const maxIndex = Math.ceil(this.getVirtualSize() / this.getBlockSize())
       for await (const { data: sourceData, index: sourceIndex } of sourceGenerator) {
         for (let i = 0; i < blockRatio; i++) {
           this.#generatedDiskBlocks++
           const data = sourceData.subarray(i * this.#blockSize, (i + 1) * this.#blockSize)
-          yield {
-            index: sourceIndex * blockRatio + i,
-            data,
+          const index = sourceIndex * blockRatio + i
+          if (index <= maxIndex) {
+            yield {
+              index,
+              data,
+            }
           }
         }
       }
@@ -71,6 +75,10 @@ export class DiskSmallerBlock extends DiskPassthrough {
   }
 
   hasBlock(index: number): boolean {
+    const maxIndex = Math.ceil(this.getVirtualSize() / this.getBlockSize())
+    if (index >= maxIndex) {
+      return false
+    }
     const blockRatio = this.source.getBlockSize() / this.getBlockSize()
     const sourceIndex = Math.floor(index / blockRatio)
     return this.source.hasBlock(sourceIndex)
