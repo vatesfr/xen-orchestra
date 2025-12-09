@@ -385,8 +385,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
       )
 
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
-      // const contents = (result.Contents ?? []).map(({ Key }) => ({ Key }))
-      // console.log("CONTENTS", contents)
       await this.#s3.send(
         new DeleteObjectsCommand({
           Bucket: this.#bucket,

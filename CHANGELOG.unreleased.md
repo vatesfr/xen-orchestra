@@ -14,6 +14,8 @@
 - **XO 6:**
   - [Navigation] Navigation state is now persisted in localStorage and items are now collapsible while filtering. (PR [#9277](https://github.com/vatesfr/xen-orchestra/pull/9277))
 
+- [Backups/s3] Update filesystem handling to use DeleteObjectsCommand in order to improve performance (PR [#9281](https://github.com/vatesfr/xen-orchestra/pull/9281))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
