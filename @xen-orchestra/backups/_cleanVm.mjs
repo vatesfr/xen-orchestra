@@ -236,8 +236,8 @@ export async function cleanVm(
 
   const { vhds, interruptedVhds, aliases, checksums } = await listVhds(handler, vmDir, logWarn)
 
-  // from 5.110 to 5.113 we cmputed checkseum for vhd file
-  // but never use nor remove them
+  // from 5.110 to 5.113 we computed checksum for vhd file
+  // but never used nor removed them
   await asyncMap(checksums, async path => {
     if (remove) {
       logInfo('deleting checksum file ', { path })
