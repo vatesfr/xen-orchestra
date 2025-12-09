@@ -434,7 +434,7 @@ The Swagger API documentation is still a work in progress. Not all endpoints are
 
 ### Accessing the Xen Orchestra API documentation in Swagger
 
-The Swagger UI is available at `/rest/v0/docs`. It doesn't just provide documentation of available endpoints. It also **lets you test them directly from the interface**, making it easier to experiment with the API without writing any code.
+The Swagger UI is available at `/rest/v0/docs`. It doesn't just provide documentation of available endpoints, but also **lets you test them directly from the interface**. This way, you can experiment with the API without writing any code!
 
 ## Ongoing Improvements
 
