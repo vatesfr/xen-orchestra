@@ -71,6 +71,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
           keepAlive: true,
         }),
       }),
+      logger: console,
       // from https://github.com/aws/aws-sdk-js-v3/issues/6810
       // some non AWS services like backblaze or cloudflare don't expect the new headers
       requestChecksumCalculation: 'WHEN_REQUIRED',
@@ -384,10 +385,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
       )
 
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
+      // const contents = (result.Contents ?? []).map(({ Key }) => ({ Key }))
+      // console.log("CONTENTS", contents)
       await this.#s3.send(
         new DeleteObjectsCommand({
           Bucket: this.#bucket,
-          Objects: result.Contents ?? [],
+          Delete: {
+            Objects: result.Contents ?? [],
+          },
         })
       )
     } while (NextContinuationToken !== undefined)
