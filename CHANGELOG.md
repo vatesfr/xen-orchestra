@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.113.2** (2025-12-09)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
@@ -13,8 +15,6 @@
 - xo-server-perf-alert 1.0.4
 
 ## **5.113.1** (2025-11-28)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Released packages
 
