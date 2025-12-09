@@ -28,7 +28,8 @@ export async function indexFile(path, immutabilityIndexPath) {
     if (err.code === 'ENOENT') {
       await fs.mkdir(dirname(indexFilePath), { recursive: true })
       await fs.writeFile(indexFilePath, path)
-    } else {
+    } else if (err.code !== 'EEXIST') {
+      // file has alredy been indexed
       throw err
     }
   }
