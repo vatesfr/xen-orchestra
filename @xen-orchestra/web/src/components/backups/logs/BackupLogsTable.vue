@@ -2,7 +2,7 @@
   <div class="backup-logs-table">
     <UiTitle>
       {{ t('runs') }}
-      <template #actions>
+      <template #action>
         <UiLink size="medium" href="/#/backup/new">{{ t('configure-in-xo-5') }}</UiLink>
       </template>
     </UiTitle>
