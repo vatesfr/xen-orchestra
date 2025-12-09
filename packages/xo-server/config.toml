@@ -161,8 +161,9 @@ requestTimeout = 0
 
 # These mount points are exposed only when authenticated.
 [http.mounts]
-'/' = '../../@xen-orchestra/web/dist/'
-'/v5' = '../xo-web/dist/'
+#'/' = '../../@xen-orchestra/web/dist/'
+#'/v5' = '../xo-web/dist/'
+#'/v6' = '../../@xen-orchestra/web/dist/'
 
 [http.proxies]
 '/v5/api' = 'ws://localhost:9000/api'

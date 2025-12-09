@@ -192,12 +192,12 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       // TODO:
       // The login page uses certain files from the xo-web package (css,svg)
       // remove once XO5 is no more used and update `signin.pug` to use `public/logo.svg`, ...
-      const { xo5 } = xo.config.getGuiRoutes()
+      const { xo5 } = await xo.config.getGuiRoutes()
       res.send(
         signInPage({
           error: errorMsg,
           strategies,
-          xo5Mount: xo5.endsWith('/') ? xo5 : xo5 + '/',
+          xo5Mount: xo5.url.endsWith('/') ? xo5.url : xo5.url + '/',
         })
       )
     } catch (error) {
@@ -941,12 +941,17 @@ export default async function main(args) {
 
   setUpProxies(express, config.http.proxies, xo)
 
-  setUpStaticFiles(express, config.http.mounts)
-
   if (!safeMode) {
     await registerPlugins(xo)
     xo.emit('plugins:registered')
   }
+
+  const mounts = {}
+  for (const guiRoute of Object.values(await xo.config.getGuiRoutes())) {
+    mounts[guiRoute.url] = guiRoute.path
+  }
+
+  setUpStaticFiles(express, mounts)
 
   // Gracefully shutdown on signals.
   //
