@@ -43,6 +43,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/disk-transform patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
