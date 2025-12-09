@@ -87,13 +87,13 @@ const listVhds = async (handler, vmDir, logWarn) => {
         }),
         async vdiDir => {
           const list = await handler.list(vdiDir, {
-            filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file || isVhdSumFile(file)),
+            filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file) || isVhdSumFile(file),
           })
           aliases[vdiDir] = list.filter(vhd => isVhdAlias(vhd)).map(file => `${vdiDir}/${file}`)
 
           await asyncMap(list, async file => {
             if (isVhdSumFile(file)) {
-              checksums.add(file)
+              checksums.add(`${vdiDir}/${file}`)
               return
             }
             const res = INTERRUPTED_VHDS_REG.exec(file)
