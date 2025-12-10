@@ -13,6 +13,7 @@ If you need to do any configuration on the system itself (firewall, SSH…), che
 Starting with **Xen Orchestra 6**, the XO 6 UI becomes the default interface. That said, you can still switch back to XO 5, temporarily or by default.
 
 ### Temporary Switch to XO 5
+
 To quickly access the old UI without changing any configuration, `/v5` to your URL (e.g., `https://xo.example.com/v5`).
 
 ### Making XO 5 the default UI
@@ -23,25 +24,42 @@ In Xen Orchestra 6, the default mount configuration looks like this:
 
 ```toml
 [http.mounts]
-'/' = '../../@xen-orchestra/web/dist/'
+# Uncomment to setup a default version.
+# Otherwise, XO5 will be the default for stable channel and XO6 for latest and source
+# '/' = '../xo-web/dist/'
+
 '/v5' = '../xo-web/dist/'
+'/v6' = '../../@xen-orchestra/web/dist/'
 
 [http.proxies]
-'/v5/api' = 'ws://localhost:9000/api'
+# [port] is used to reuse the same port declared in [http.listen.0]
+'/v5/api' = 'ws://localhost:[port]/api'
 '/v5/api/updater' = 'ws://localhost:9001'
-'/v5/rest' = 'http://localhost:9000/rest'
+'/v5/rest' = 'http://localhost:[port]/rest'
 ```
 
-To make XO 5 the main interface and XO 6 accessible under `/v6`, replace the `[http.mounts]` block with:
+To make XO 5 the main interface and XO 6 accessible under `/v6`, uncomment this line `'/' = '../xo-web/dist/'`
 
 ```toml
 [http.mounts]
-'/v6' = '../../@xen-orchestra/web/dist/'
+# Uncomment to setup a default version.
+# Otherwise, XO5 will be the default for stable channel and XO6 for latest and source
 '/' = '../xo-web/dist/'
+
+'/v5' = '../xo-web/dist/'
+'/v6' = '../../@xen-orchestra/web/dist/'
+
+[http.proxies]
+# [port] is used to reuse the same port declared in [http.listen.0]
+'/v5/api' = 'ws://localhost:[port]/api'
+'/v5/api/updater' = 'ws://localhost:9001'
+'/v5/rest' = 'http://localhost:[port]/rest'
 ```
 
 This configuration ensures:
+
 - Accessing `/` loads **XO 5**.
+- Accessing `/v5` loads **XO 5**.
 - Accessing `/v6` loads **XO 6**.
 
 ### Where to Place the Configuration File
@@ -57,7 +75,7 @@ Place your `config.toml` (or any `config.*.toml` override) in one of the followi
   (or any file matching `config.<name>.toml`)
 
 - **User-specific configuration**:  
-  `~/.config/xo-server/config.toml`  
+  `~/.config/xo-server/config.toml`
 
 ### Apply the changes
 
@@ -68,7 +86,6 @@ sudo systemctl restart xo-server
 ```
 
 XO 5 will now be served as the default UI.
-
 
 ## User to run XO-server as
 
