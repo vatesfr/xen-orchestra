@@ -8,7 +8,6 @@
 
 import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
-import { createServer } from 'node:net'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -161,35 +160,6 @@ class OpenMetricsPlugin {
     logger.info('Stopping OpenMetrics server')
 
     await this.#stopChildProcess()
-  }
-
-  /**
-   * Test the plugin configuration.
-   * Checks if the configured port is available.
-   */
-  async test(): Promise<void> {
-    const port = this.#configuration?.port ?? DEFAULT_PORT
-    const bindAddress = this.#configuration?.bindAddress ?? DEFAULT_BIND_ADDRESS
-
-    logger.debug('Testing OpenMetrics plugin', { port, bindAddress })
-
-    await new Promise<void>((resolve, reject) => {
-      const server = createServer()
-
-      server.once('error', (error: NodeJS.ErrnoException) => {
-        if (error.code === 'EADDRINUSE') {
-          reject(new Error(`Port ${port} is already in use`))
-        } else if (error.code === 'EACCES') {
-          reject(new Error(`Permission denied to bind to port ${port}`))
-        } else {
-          reject(error)
-        }
-      })
-
-      server.listen(port, bindAddress, () => {
-        server.close(() => resolve())
-      })
-    })
   }
 
   /**
