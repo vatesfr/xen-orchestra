@@ -218,18 +218,18 @@ async function requestXapiCredentials(): Promise<XapiCredentialsPayload> {
 async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | null> {
   const { hostAddress, hostLabel, sessionId, poolId, poolLabel, protocol } = host
 
-  // Calculate start time: current time minus 2 intervals (to ensure we get data)
+  // Calculate start time: current time minus 2 intervals (to ensure we get recent data)
   const now = Math.floor(Date.now() / 1000)
   const interval = 60
   const start = now - 2 * interval
 
   // Build RRD URL with query parameters
-  // cf=LAST returns the most recent value (vs AVERAGE which averages over the interval)
-  // This is more suitable for real-time monitoring with Prometheus/Grafana
+  // cf=AVERAGE is required (cf=LAST is not supported by XenServer rrd_updates endpoint)
+  // Using start parameter to get recent data points
   const baseUrl = `${protocol}//${hostAddress}`
   const url = new URL('/rrd_updates', baseUrl)
   url.searchParams.set('session_id', sessionId)
-  url.searchParams.set('cf', 'LAST')
+  url.searchParams.set('cf', 'AVERAGE')
   url.searchParams.set('interval', String(interval))
   url.searchParams.set('start', String(start))
   url.searchParams.set('host', 'true')

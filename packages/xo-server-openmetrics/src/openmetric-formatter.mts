@@ -568,7 +568,7 @@ export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[]): strin
 
   // Log unmatched metrics for debugging (this helps identify missing metric definitions)
   if (unmatchedMetrics.size > 0) {
-    logger.warn('Unmatched RRD metrics', { metrics: Array.from(unmatchedMetrics).sort() })
+    logger.debug('Unmatched RRD metrics', { metrics: Array.from(unmatchedMetrics).sort() })
   }
 
   // Sort metrics by name for consistent output
