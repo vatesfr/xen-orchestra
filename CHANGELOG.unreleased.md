@@ -23,6 +23,7 @@
 > 
 - [xo-server] better handling of xapi snapshots when converting to xo object (PR [#9231](https://github.com/vatesfr/xen-orchestra/pull/9231))
 - [REST API/VM Dashboard] Return `vmProtection: 'protected' | 'unprotected' | 'not-in-job'` instead of `vmProtected: boolean` (PR [#9288](https://github.com/vatesfr/xen-orchestra/pull/9288))
+- [Backup]clean up .vhd.checksum files (PR [#9291](https://github.com/vatesfr/xen-orchestra/pull/9291))
 
 - **XO 6:**
   - [VDIs] Fix broken fallback link to XO 5 VDIs page (PR [#9267](https://github.com/vatesfr/xen-orchestra/pull/9267))
@@ -44,6 +45,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
