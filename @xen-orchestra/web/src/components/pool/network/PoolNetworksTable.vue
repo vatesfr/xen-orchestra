@@ -2,42 +2,15 @@
   <div class="pool-networks-table">
     <UiTitle>
       {{ internal ? t('host-internal-networks') : t('networks') }}
+      <template #actions>
+        <UiLink :href="xo5NewNetworkHref" icon="fa:plus" size="medium">
+          {{ internal ? t('add-host-internal-network-in-xo-5') : t('add-network-in-xo-5') }}
+        </UiLink>
+      </template>
     </UiTitle>
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTableActions :title="t('table-actions')">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:edit"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:copy"
-            variant="tertiary"
-            accent="brand"
-            size="medium"
-          >
-            {{ t('copy-info-json') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            left-icon="fa:trash"
-            variant="tertiary"
-            accent="danger"
-            size="medium"
-          >
-            {{ t('delete') }}
-          </UiButton>
-        </UiTableActions>
       </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
@@ -58,29 +31,30 @@
 <script setup lang="ts">
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes'
+import { getNetworkStatus } from '@/utils/xo-records/network.utils'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTableActions from '@core/components/ui/table-actions/UiTableActions.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { icon, objectIcon } from '@core/icons'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns'
-import type { XoNetwork } from '@vates/types'
+import type { XoNetwork, XoPool } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
   networks: rawNetworks,
+  pool,
   internal,
   busy,
   error,
 } = defineProps<{
   networks: XoNetwork[]
+  pool: XoPool
   busy?: boolean
   error?: boolean
   internal?: boolean
@@ -88,7 +62,10 @@ const {
 
 const { t } = useI18n()
 
-const { pifs } = useXoPifCollection()
+const { buildXo5Route } = useXoRoutes()
+const xo5NewNetworkHref = computed(() => buildXo5Route(`/new/network?pool=${pool.id}`))
+
+const { pifs, getPifsByIds } = useXoPifCollection()
 
 const selectedNetworkId = useRouteQuery('id')
 
@@ -125,24 +102,6 @@ const getNetworkVlan = (network: XoNetwork) => {
   }
 }
 
-const getNetworkStatus = (network: XoNetwork) => {
-  const networkPIFs = pifs.value.filter(pif => network.PIFs?.includes(pif.id))
-
-  if (networkPIFs.length === 0) {
-    return 'disconnected'
-  }
-
-  const isConnected = networkPIFs.map(pif => pif.attached && pif.carrier)
-  if (isConnected.every(Boolean)) {
-    return 'connected'
-  }
-
-  if (isConnected.some(Boolean)) {
-    return 'partially-connected'
-  }
-  return 'disconnected'
-}
-
 const getLockingMode = (isLocked: boolean) => (isLocked ? t('disabled') : t('unlocked'))
 
 const { pageRecords: paginatedNetworks, paginationBindings } = usePagination('networks', filteredNetworks)
@@ -152,7 +111,9 @@ const { HeadCells, BodyCells } = useNetworkColumns({
   body: (network: XoNetwork) => {
     const { buildXo5Route } = useXoRoutes()
 
-    const status = computed(() => getNetworkStatus(network))
+    const networkPifs = computed(() => getPifsByIds(network.PIFs))
+
+    const status = computed(() => getNetworkStatus(networkPifs.value))
     const vlan = computed(() => getNetworkVlan(network))
     const defaultLockingMode = computed(() => getLockingMode(network.defaultIsLocked))
     const href = computed(() => buildXo5Route(`/pools/${network.$pool}/network?s=1_0_asc-${network.id}`))

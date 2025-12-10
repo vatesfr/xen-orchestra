@@ -13,6 +13,7 @@
 
 - **XO 6:**
   - [Navigation] Navigation state is now persisted in localStorage and items are now collapsible while filtering. (PR [#9277](https://github.com/vatesfr/xen-orchestra/pull/9277))
+  - [Navigation] Add links to XO 5 for actions and pages not yet implemented in XO 6 (PR [#9214](https://github.com/vatesfr/xen-orchestra/pull/9214))
 
 - [Backups/s3] Update filesystem handling to use DeleteObjectsCommand in order to improve performance (PR [#9281](https://github.com/vatesfr/xen-orchestra/pull/9281))
 - [REST API] Add link to the openAPI JSON directly in the swagger description (PR [#9285](https://github.com/vatesfr/xen-orchestra/pull/9285))
@@ -54,6 +55,5 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - xo-web patch
-
 
 <!--packages-end-->

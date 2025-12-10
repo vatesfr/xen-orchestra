@@ -3,37 +3,13 @@
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
-          v-if="uiStore.isMobile"
           v-tooltip="t('close')"
           size="small"
           variant="tertiary"
           accent="brand"
-          icon="fa:angle-left"
+          :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
           @click="emit('close')"
         />
-        <div class="action-buttons">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="brand"
-            left-icon="fa:edit"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="danger"
-            left-icon="fa:trash"
-          >
-            {{ t('delete') }}
-          </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="small" icon="fa:ellipsis" />
-        </div>
       </div>
     </template>
     <template #default>
@@ -133,7 +109,6 @@ import PifRow from '@/components/pif/PifRow.vue'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -215,10 +190,5 @@ const pifsCount = computed(() => pifs.value.length)
     align-items: center;
     width: 100%;
   }
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
 }
 </style>
