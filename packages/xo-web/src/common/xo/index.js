@@ -479,24 +479,6 @@ subscribeSchedulerGranularity.forceRefresh = host => {
   }
 }
 
-const checkSrCurrentStateSubscriptions = {}
-export const subscribeCheckSrCurrentState = (pool, cb) => {
-  const poolId = resolveId(pool)
-
-  return checkSrCurrentStateSubscriptions[poolId](cb)
-}
-subscribeCheckSrCurrentState.forceRefresh = pool => {
-  if (pool === undefined) {
-    forEach(checkSrCurrentStateSubscriptions, subscription => subscription.forceRefresh())
-    return
-  }
-
-  const subscription = checkSrCurrentStateSubscriptions[resolveId(pool)]
-  if (subscription !== undefined) {
-    subscription.forceRefresh()
-  }
-}
-
 const missingPatchesByHost = {}
 export const subscribeHostMissingPatches = (host, cb) => {
   const hostId = resolveId(host)
@@ -544,30 +526,6 @@ subscribeProxyApplianceUpdaterState.forceRefresh = proxyId => {
     subscription.forceRefresh()
   }
 }
-
-const volumeInfoBySr = {}
-export const subscribeVolumeInfo = ({ sr, infoType }, cb) => {
-  sr = resolveId(sr)
-
-  if (volumeInfoBySr[sr] == null) {
-    volumeInfoBySr[sr] = {}
-  }
-
-  return volumeInfoBySr[sr][infoType](cb)
-}
-subscribeVolumeInfo.forceRefresh = (() => {
-  const refreshSrVolumeInfo = volumeInfo => {
-    forEach(volumeInfo, subscription => subscription.forceRefresh())
-  }
-
-  return sr => {
-    if (sr === undefined) {
-      forEach(volumeInfoBySr, refreshSrVolumeInfo)
-    } else {
-      refreshSrVolumeInfo(volumeInfoBySr[sr])
-    }
-  }
-})()
 
 export const subscribeSrsUnhealthyVdiChainsLength = createSubscription(() => {
   const _isAdmin = isAdmin(store.getState())

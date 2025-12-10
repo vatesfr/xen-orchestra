@@ -38,7 +38,6 @@ const ALLOCATION_BY_TYPE = {
   shm: 'thin',
   smb: 'thin',
   udev: 'thick',
-  xosan: 'thin',
   zfs: 'thin',
 }
 
@@ -193,7 +192,6 @@ const TRANSFORMS = {
       name_description: obj.name_description,
       name_label: obj.name_label || obj.$master.name_label,
       migrationCompression: obj.migration_compression,
-      xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time),
       otherConfig: obj.other_config,
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,

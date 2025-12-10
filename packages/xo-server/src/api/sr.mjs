@@ -1,6 +1,5 @@
 import filter from 'lodash/filter.js'
 import isEmpty from 'lodash/isEmpty.js'
-import some from 'lodash/some.js'
 import throttle from 'lodash/throttle.js'
 import { createLogger } from '@xen-orchestra/log'
 
@@ -55,21 +54,15 @@ scan.resolve = {
 }
 
 // -------------------------------------------------------------------
-const srIsBackingHa = sr => sr.$pool.ha_enabled && some(sr.$pool.$ha_statefiles, f => f.$SR === sr)
 
 // TODO: find a way to call this "delete" and not destroy
 export async function destroy({ sr }) {
   const xapi = this.getXapi(sr)
   if (sr.SR_type === 'linstor') {
     await destroyXostor.call(this, { sr })
-    return
+  } else {
+    await xapi.destroySr(sr._xapiId)
   }
-  const xapiSr = xapi.getObject(sr)
-  if (srIsBackingHa(xapiSr)) {
-    throw new Error('You tried to remove a SR the High Availability is relying on. Please disable HA first.')
-  }
-  // we simply forget because the hosted disks are being destroyed with the VMs
-  await xapi.forgetSr(sr._xapiId)
 }
 
 destroy.params = {

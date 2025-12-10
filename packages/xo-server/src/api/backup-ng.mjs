@@ -95,7 +95,7 @@ createJob.params = {
 }
 
 export function getSuggestedExcludedTags() {
-  return ['Continuous Replication', 'Disaster Recovery', 'XOSAN', this.config.get('xo-proxy.vmTag')]
+  return ['Continuous Replication', 'Disaster Recovery', this.config.get('xo-proxy.vmTag')]
 }
 
 export function deleteJob({ id }) {
