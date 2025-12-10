@@ -20,10 +20,11 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-> 
+
 - [xo-server] better handling of xapi snapshots when converting to xo object (PR [#9231](https://github.com/vatesfr/xen-orchestra/pull/9231))
 - [REST API/VM Dashboard] Return `vmProtection: 'protected' | 'unprotected' | 'not-in-job'` instead of `vmProtected: boolean` (PR [#9288](https://github.com/vatesfr/xen-orchestra/pull/9288))
 - [Backup]clean up .vhd.checksum files (PR [#9291](https://github.com/vatesfr/xen-orchestra/pull/9291))
+- [Backup] Prevent "No new data to upload for this VM" info on mirror backups when it was false [Forum#11623](https://xcp-ng.org/forum/topic/11623) (PR [#9286](https://github.com/vatesfr/xen-orchestra/pull/9286))
 
 - **XO 6:**
   - [VDIs] Fix broken fallback link to XO 5 VDIs page (PR [#9267](https://github.com/vatesfr/xen-orchestra/pull/9267))
