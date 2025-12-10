@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-cpu-provisioning">
     <UiCardTitle>{{ t('cpu-provisioning') }}</UiCardTitle>
-    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <template v-else>
       <VtsProgressBar
         :label="t('vcpus')"
@@ -47,7 +47,7 @@ const isReady = logicAnd(areHostsReady, areVmsReady)
 
 const hostVms = computed(() => vmsByHost.value.get(host.id) ?? [])
 
-const cpusCount = computed(() => host.cpus.cores)
+const cpusCount = computed(() => host.cpus.cores ?? 0)
 
 const vCpusCount = useArrayReduce(hostVms, (total, vm) => total + vm.CPUs.number, 0)
 </script>

@@ -1,17 +1,17 @@
 <template>
   <UiCard class="targets">
-    <StorageRepositoriesTable :is-ready="areSrsReady" :has-error="hasSrFetchError" :storage-repositories />
-    <BackupRepositoriesTable
-      :is-ready="areBackupRepositoriesReady"
-      :has-error="hasBackupRepositoryFetchError"
+    <StorageRepositoriesTargetsTable :busy="!areSrsReady" :error="hasSrFetchError" :storage-repositories />
+    <BackupRepositoriesTargetsTable
+      :busy="!areBackupRepositoriesReady"
+      :error="hasBackupRepositoryFetchError"
       :backup-repositories
     />
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import BackupRepositoriesTable from '@/components/backups/targets/BackupRepositoriesTable.vue'
-import StorageRepositoriesTable from '@/components/backups/targets/StorageRepositoriesTable.vue'
+import BackupRepositoriesTargetsTable from '@/components/backups/targets/BackupRepositoriesTargetsTable.vue'
+import StorageRepositoriesTargetsTable from '@/components/backups/targets/StorageRepositoriesTargetsTable.vue'
 import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util'

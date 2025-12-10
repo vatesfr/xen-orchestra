@@ -10,13 +10,14 @@ import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
 import xml2js from 'xml2js'
 import { exec, spawn } from 'node:child_process'
+import NbdClient from '@vates/nbd-client'
 
 import { tmpdir } from 'node:os'
 import fs from 'node:fs/promises'
 
 const { info, warn } = createLogger('xo:vmware-explorer:esxi')
 
-export const VDDK_LIB_DIR = '/usr/local/lib/vddk/'
+export const VDDK_LIB_DIR = '/usr/local/lib/vddk'
 export const VDDK_LIB_PATH = `${VDDK_LIB_DIR}/vmware-vix-disklib-distrib`
 let nbdPort = 11000
 export default class Esxi extends EventEmitter {
@@ -82,8 +83,13 @@ export default class Esxi extends EventEmitter {
   }
 
   #findDatacenter(dataStore) {
-    notStrictEqual(this.#dcPaths, undefined)
-    notStrictEqual(this.#dcPaths[dataStore], undefined)
+    try {
+      notStrictEqual(this.#dcPaths, undefined)
+      notStrictEqual(this.#dcPaths[dataStore], undefined)
+    } catch (error) {
+      warn("can't find datacenter for datastore", { datacenters: this.#dcPaths, dataStore })
+      throw error
+    }
     return this.#dcPaths[dataStore]
   }
 
@@ -550,6 +556,10 @@ export default class Esxi extends EventEmitter {
       try {
         const nbdKitProcess = spawn('nbdkit', args, {
           cwd: tmpDir,
+          env: {
+            ...process.env,
+            LD_LIBRARY_PATH: `${VDDK_LIB_PATH}/lib64`,
+          },
         })
         nbdKitProcess.stdout.pipe(outFile)
         nbdKitProcess.stderr.pipe(errFile)
@@ -562,7 +572,7 @@ export default class Esxi extends EventEmitter {
 
         nbdKitProcess.on('close', code => {
           if (code !== 0) {
-            warn(`nbdkit server process exited with code ${code}`)
+            warn(`nbdkit server process exited with code ${code} ,detailed logs are in ${tmpDir}/stderr `)
           }
         })
         // @todo find a better to wait for server ready
@@ -579,6 +589,89 @@ export default class Esxi extends EventEmitter {
       warn(` process ${vmId}/${diskPath}/${singleLink} was already killed`)
     } else {
       this.#nbdServers.get(key).process.kill()
+    }
+  }
+
+  async #getDataMapFromVddk(vmId, datastoreName, diskPath) {
+    let nbdClient
+    try {
+      const start = Date.now()
+
+      const nbdInfoSpawn = await this.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`, {
+        singleLink: true,
+      })
+
+      info(`nbd server for data map spawned`)
+
+      nbdClient = new NbdClient(nbdInfoSpawn.nbdInfos)
+
+      await nbdClient.connect()
+
+      info(`nbd client for data map connected`)
+
+      const dataMap = await nbdClient.getMap()
+
+      info(
+        `got the data map of the single disk in ${Math.round((Date.now() - start) / 1000)} seconds ,${dataMap.length} blocks`
+      )
+
+      return dataMap
+    } finally {
+      await nbdClient.disconnect()
+      await this.killNbdServer(vmId, `[${datastoreName}] ${diskPath}`, { singleLink: true }).catch(err =>
+        warn('error while stopping nbdkit server for the snapshot', err)
+      )
+    }
+  }
+
+  async #getDataMapFromCowd(datastoreName, diskPath) {
+    const descriptorResponse = await this.download(datastoreName, diskPath, '0-512')
+    const descriptorBlob = await new Response(descriptorResponse.body).blob()
+    const descriptorBytes = new Uint8Array(await descriptorBlob.arrayBuffer()).slice(0, 512)
+
+    const parsedDescriptor = parseVmdk(new TextDecoder('utf-8').decode(descriptorBytes))
+
+    const diskPathArray = diskPath.split('/')
+    const extentPath = diskPathArray.slice(0, -1).join('/') + '/' + parsedDescriptor.fileName
+
+    const extentHeaderResponse = await this.download(datastoreName, extentPath, `0-2048`)
+    const extentHeaderBlob = await new Response(extentHeaderResponse.body).blob()
+    const extentHeaderBuffer = Buffer.from(await extentHeaderBlob.arrayBuffer())
+
+    strictEqual(extentHeaderBuffer.subarray(0, 4).toString('ascii'), 'COWD')
+
+    const extentNumGdEntries = extentHeaderBuffer.readUInt32LE(24)
+
+    const extentGDResponse = await this.download(datastoreName, extentPath, `2048-${2048 + extentNumGdEntries * 4}`)
+    const extentGDBlob = await new Response(extentGDResponse.body).blob()
+    const extentGDBuffer = Buffer.from(await extentGDBlob.arrayBuffer())
+
+    const dataMap = []
+    let offset = 0
+    for (let i = 0; i < extentNumGdEntries; i++) {
+      const extentGDE = extentGDBuffer.readUInt32LE(i * 4)
+      if (extentGDE !== 0) {
+        dataMap.push({
+          offset,
+          length: 4096 * 512,
+          type: 0,
+        })
+      }
+
+      // Number of grains in a grain table * size of a grain.
+      offset += 4096 * 512
+    }
+
+    return dataMap
+  }
+
+  async getDataMap(vmId, datastoreName, diskPath) {
+    try {
+      // We await the result of getDataMapFromVddk so we can catch errors and fallback to the direct metadata reading.
+      return await this.#getDataMapFromVddk(vmId, datastoreName, diskPath)
+    } catch (error) {
+      warn('error while getting datamap from vddk, fall back to a direct metadata reading', error)
+      return this.#getDataMapFromCowd(datastoreName, diskPath)
     }
   }
 }

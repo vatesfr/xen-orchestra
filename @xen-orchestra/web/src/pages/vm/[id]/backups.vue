@@ -1,7 +1,7 @@
 <template>
   <div class="backups" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <BackupJobsTable :backup-jobs="vmBackupJobs" :has-error="hasVmBackupJobFetchError" />
+      <BackupJobsTable :backup-jobs="vmBackupJobs" :busy="!areVmBackupJobsReady" :error="hasVmBackupJobFetchError" />
     </UiCard>
     <BackupJobsSidePanel
       v-if="selectedBackupJob"
@@ -34,10 +34,11 @@ const { vm } = defineProps<{
 
 const uiStore = useUiStore()
 
-const { backupJobs: vmBackupJobs, hasBackupJobFetchError: hasVmBackupJobFetchError } = useXoBackupJobCollection(
-  {},
-  () => vm.id
-)
+const {
+  backupJobs: vmBackupJobs,
+  areBackupJobsReady: areVmBackupJobsReady,
+  hasBackupJobFetchError: hasVmBackupJobFetchError,
+} = useXoBackupJobCollection({}, () => vm.id)
 
 const { t } = useI18n()
 

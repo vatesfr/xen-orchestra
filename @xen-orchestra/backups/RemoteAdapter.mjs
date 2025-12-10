@@ -27,7 +27,7 @@ import { formatFilenameDate } from './_filenameDate.mjs'
 import { getTmpDir } from './_getTmpDir.mjs'
 import { isMetadataFile } from './_backupType.mjs'
 import { isValidXva } from './_isValidXva.mjs'
-import { listPartitions, LVM_PARTITION_TYPE } from './_listPartitions.mjs'
+import { listPartitions, LVM_PARTITION_TYPE_MBR, LVM_PARTITION_TYPE_GPT } from './_listPartitions.mjs'
 import { lvs, pvs } from './_lvm.mjs'
 import { watchStreamSize } from './_watchStreamSize.mjs'
 
@@ -498,7 +498,7 @@ export class RemoteAdapter {
 
       const results = []
       await asyncMapSettled(partitions, partition =>
-        partition.type === LVM_PARTITION_TYPE
+        partition.type === LVM_PARTITION_TYPE_MBR || partition.type === LVM_PARTITION_TYPE_GPT
           ? this._listLvmLogicalVolumes(devicePath, partition, results)
           : results.push(partition)
       )
@@ -709,7 +709,7 @@ export class RemoteAdapter {
       })
     } else {
       const stream = await toVhdStream(disk)
-      await this.outputStream(path, stream, { validator })
+      await this.outputStream(path, stream, { validator, checksum: false })
       await validator(path)
     }
   }

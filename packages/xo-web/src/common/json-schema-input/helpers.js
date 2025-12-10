@@ -1,6 +1,6 @@
 import React from 'react'
 import includes from 'lodash/includes'
-import marked from 'marked'
+import { marked } from 'marked'
 
 import { Col, Row } from 'grid'
 

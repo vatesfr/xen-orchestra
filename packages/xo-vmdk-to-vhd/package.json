@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-vmdk-to-vhd",
-  "version": "2.5.8",
+  "version": "2.5.9",
   "license": "AGPL-3.0-or-later",
   "description": "JS lib reading and writing .vmdk and .ova files",
   "keywords": [
@@ -25,8 +25,8 @@
     "pako": "^2.0.4",
     "promise-toolbox": "^0.21.0",
     "tar-stream": "^3.1.6",
-    "vhd-lib": "^4.14.4",
-    "xml2js": "^0.4.23"
+    "vhd-lib": "^4.14.5",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

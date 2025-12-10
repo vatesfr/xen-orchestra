@@ -28,7 +28,7 @@ export interface VmState {
   affinity_host?: XoHost['id']
   autoPoweron: boolean
   installMode?: InstallMode
-  boot_firmware: string
+  bootFirmware: string
   boot_vm: boolean
   clone: boolean
   cloudConfig?: string

@@ -1,13 +1,6 @@
 <template>
   <div class="vts-input-wrapper">
-    <UiLabel
-      :accent="labelAccent"
-      :for="id"
-      :href="learnMoreUrl"
-      :icon
-      :required="wrapperController.required"
-      class="label"
-    >
+    <UiLabel :accent="labelAccent" :for="id" :href="learnMoreUrl" :required="wrapperController.required" class="label">
       <slot name="label">{{ label }}</slot>
     </UiLabel>
     <slot />
@@ -21,7 +14,6 @@
 import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLabel, { type LabelAccent } from '@core/components/ui/label/UiLabel.vue'
 import { useRanked } from '@core/composables/ranked.composable.ts'
-import type { IconName } from '@core/icons'
 import { useMapper } from '@core/packages/mapper/use-mapper.ts'
 import type { MaybeArray } from '@core/types/utility.type'
 import { IK_INPUT_WRAPPER_CONTROLLER } from '@core/utils/injection-keys.util'
@@ -40,7 +32,6 @@ export type InputWrapperController = {
 const { message: _message } = defineProps<{
   label?: string
   learnMoreUrl?: string
-  icon?: IconName
   message?: InputWrapperMessage
 }>()
 

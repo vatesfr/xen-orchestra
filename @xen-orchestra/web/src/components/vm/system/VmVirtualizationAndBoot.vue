@@ -9,6 +9,7 @@
         <VtsStatus :status="vm.secureBoot" />
       </template>
     </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="t('boot-firmware')" :value="vm.boot?.firmware" />
     <VtsQuickInfoRow :label="t('virtual-tpm')" :value="vm.VTPMs.length > 0 ? vm.VTPMs.join(', ') : t('none')" />
     <VtsQuickInfoRow :label="t('viridian')">
       <template #value>

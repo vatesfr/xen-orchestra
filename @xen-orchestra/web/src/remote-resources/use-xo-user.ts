@@ -2,7 +2,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { XoUser } from '@vates/types'
 
 export const useXoUserResource = defineRemoteResource({
-  url: (userId: string) => `/rest/v0/users/${userId}`,
+  url: (userId: string | undefined) => (userId !== undefined ? `/rest/v0/users/${userId}` : ''),
   initialData: () => undefined as XoUser | undefined,
   state: user => ({ user }),
 })

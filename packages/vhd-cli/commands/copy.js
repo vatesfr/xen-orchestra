@@ -15,14 +15,15 @@ module.exports = async function copy(rawArgs) {
       directory: 'd',
       help: 'h',
     },
-    boolean: ['directory', 'force'],
+    boolean: ['directory', 'help'],
     default: {
       directory: false,
       help: false,
     },
   })
   if (args.length < 4 || help) {
-    return `Usage: index.js copy <sourceRemoteUrl> <source VHD> <destinationRemoteUrl> <destination> --directory`
+    return `Copies a VHD. Use --directory if copied VHD is a VHD direcory.
+    Usage: ${this.command} <sourceRemoteUrl> <source VHD> <destinationRemoteUrl> <destination> [--directory]`
   }
   const [sourceRemoteUrl, sourcePath, destRemoteUrl, destPath] = args
 

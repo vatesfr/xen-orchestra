@@ -5,7 +5,7 @@
     accent="brand"
     :dot="hasNewTask"
     icon="fa:bars-progress"
-    size="large"
+    size="medium"
     @click="isPanelOpen = true"
   />
   <Teleport v-if="isPanelOpen" to="body">

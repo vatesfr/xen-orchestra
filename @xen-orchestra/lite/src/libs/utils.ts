@@ -1,7 +1,6 @@
 import { VM_POWER_STATE } from '@/libs/xen-api/xen-api.enums'
 import type { Filter } from '@/types/filter'
 import type { IconName } from '@core/icons'
-import { utcParse } from 'd3-time-format'
 import format from 'human-format'
 import { find, forEach, round, size, sum } from 'lodash-es'
 
@@ -30,23 +29,6 @@ export function getFilterIcon(filter: Filter | undefined) {
   }
 
   return iconsByType[filter.type]
-}
-
-export function parseDateTime(dateTime: Date | string | number): number {
-  if (typeof dateTime === 'number') {
-    return dateTime
-  }
-
-  if (dateTime instanceof Date) {
-    return dateTime.getTime()
-  }
-
-  dateTime = dateTime.replace(/(-|\.\d{3})/g, '') // Allow toISOString() date-time format
-  const date = utcParse('%Y%m%dT%H:%M:%SZ')(dateTime)
-  if (date === null) {
-    throw new RangeError(`unable to parse XAPI datetime ${JSON.stringify(dateTime)}`)
-  }
-  return date.getTime()
 }
 
 export function percent(currentValue: number, maxValue: number, precision = 2) {

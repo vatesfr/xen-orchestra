@@ -4,6 +4,7 @@ import {
   CopyObjectCommand,
   CreateMultipartUploadCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   GetObjectLockConfigurationCommand,
   HeadObjectCommand,
@@ -24,7 +25,6 @@ import copyStreamToBuffer from './_copyStreamToBuffer.js'
 import guessAwsRegion from './_guessAwsRegion.js'
 import RemoteHandlerAbstract from './abstract'
 import { basename, join, split } from './path'
-import { asyncEach } from '@vates/async-each'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -137,6 +137,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
       await this.#s3.send(new AbortMultipartUploadCommand(multipartParams))
       throw e
     }
+  }
+
+  _conditionRetry(error) {
+    return ![401, 403, 404, 405].includes(error?.$metadata?.httpStatusCode) && super._conditionRetry(error)
   }
 
   async _copy(oldPath, newPath) {
@@ -384,21 +388,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
       )
 
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
-      await asyncEach(
-        result.Contents ?? [],
-        async ({ Key }) => {
-          // _unlink will add the prefix, but Key contains everything
-          // also we don't need to check if we delete a directory, since the list only return files
-          await this.#s3.send(
-            new DeleteObjectCommand({
-              Bucket: this.#bucket,
-              Key,
-            })
-          )
-        },
-        {
-          concurrency: 16,
-        }
+      await this.#s3.send(
+        new DeleteObjectsCommand({
+          Bucket: this.#bucket,
+          Delete: {
+            Objects: result.Contents ?? [],
+          },
+        })
       )
     } while (NextContinuationToken !== undefined)
   }
