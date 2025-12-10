@@ -1,8 +1,8 @@
 <template>
   <CoreLayout>
     <template #app-logo>
-      <RouterLink class="logo-link" to="/">
-        <LogoTextOnly :key="String(uiStore.isMobile)" :short="uiStore.isMobile" class="logo" />
+      <RouterLink class="logo-link" :class="{ mobile: uiStore.isMobile }" to="/">
+        <UiLogoText :text="t('xen-orchestra')" />
       </RouterLink>
     </template>
     <template #app-header>
@@ -32,7 +32,6 @@
 
 <script lang="ts" setup>
 import AccountMenu from '@/components/account-menu/AccountMenu.vue'
-import LogoTextOnly from '@/components/LogoTextOnly.vue'
 import SidebarSearch from '@/components/SidebarSearch.vue'
 import QuickTaskButton from '@/components/task/QuickTaskButton.vue'
 import ThirdParties from '@/components/third-parties/ThirdParties.vue'
@@ -43,6 +42,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsTreeList from '@core/components/tree/VtsTreeList.vue'
 import VtsTreeLoadingItem from '@core/components/tree/VtsTreeLoadingItem.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
+import UiLogoText from '@core/components/ui/logo-text/UiLogoText.vue'
 import CoreLayout from '@core/layouts/CoreLayout.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { computed } from 'vue'
@@ -65,13 +65,14 @@ const xo5Route = computed(() => buildXo5Route('/'))
   display: flex;
   align-self: stretch;
   align-items: center;
-}
-
-.logo {
-  height: 1.6rem;
+  text-decoration: none;
 }
 
 .loader {
   padding-top: 4rem;
+}
+
+.mobile {
+  display: none;
 }
 </style>
