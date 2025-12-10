@@ -59,14 +59,7 @@
             </template>
             <template #value>
               <!-- TODO Remove the span when the link works and the icon is fixed -->
-              <!--
-              <UiComplexIcon size="medium">
-                <VtsIcon :icon="faNetworkWired" accent="current" />
-                <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-              </UiComplexIcon>
-              <a href="">{{ networkNameLabel }}</a>
-              -->
-              <span v-tooltip class="text-ellipsis value">{{ network?.name_label }}</span>
+              <span v-tooltip class="value">{{ network?.name_label }}</span>
             </template>
             <template v-if="network?.name_label" #addons>
               <VtsCopyButton :value="network.name_label" />
@@ -136,7 +129,7 @@
                 <div v-if="index === 0">{{ t('ip-addresses') }}</div>
               </template>
               <template #value>
-                <span class="text-ellipsis">{{ ip }}</span>
+                <span>{{ ip }}</span>
               </template>
               <template #addons>
                 <VtsCopyButton :value="ip" />

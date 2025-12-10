@@ -59,7 +59,7 @@
         <template #value>
           <div v-if="host" class="value">
             <VtsObjectIcon type="host" :state="hostPowerState" size="small" />
-            <div v-tooltip class="text-ellipsis">
+            <div v-tooltip>
               <UiLink :to="`/host/${host.id}/dashboard`" size="small">
                 {{ host.name_label }}
               </UiLink>
