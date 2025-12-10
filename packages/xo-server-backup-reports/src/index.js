@@ -35,7 +35,7 @@ export const configurationSchema = {
     customSubject: {
       type: 'string',
       title: 'Custom subject',
-      description: 'String added at the end of any backup report',
+      description: 'String added at the end of any backup report email subject',
     },
   },
 }
