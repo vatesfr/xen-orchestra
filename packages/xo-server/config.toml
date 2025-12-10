@@ -161,8 +161,18 @@ requestTimeout = 0
 
 # These mount points are exposed only when authenticated.
 [http.mounts]
-'/' = '../xo-web/dist/'
+# Uncomment to setup a default version.
+# Otherwise, XO5 will be the default for stable channel and XO6 for latest and source
+# '/' = '../xo-web/dist/'
+
+'/v5' = '../xo-web/dist/'
 '/v6' = '../../@xen-orchestra/web/dist/'
+
+[http.proxies]
+# [port] is used to reuse the same port declared in [http.listen.0]
+'/v5/api' = 'ws://localhost:[port]/api'
+'/v5/api/updater' = 'ws://localhost:9001'
+'/v5/rest' = 'http://localhost:[port]/rest'
 
 [logs]
 # Display all logs matching this filter, regardless of their level

@@ -16,6 +16,7 @@
 
 - [Backups/s3] Update filesystem handling to use DeleteObjectsCommand in order to improve performance (PR [#9281](https://github.com/vatesfr/xen-orchestra/pull/9281))
 - [REST API] Add link to the openAPI JSON directly in the swagger description (PR [#9285](https://github.com/vatesfr/xen-orchestra/pull/9285))
+- [XO] XO6 is now the default page (PR [#9212](https://github.com/vatesfr/xen-orchestra/pull/9212))
 
 ### Bug fixes
 

@@ -12,16 +12,19 @@ import { badRequestResp, unauthorizedResp } from '../open-api/common/response.co
 import { xoaDashboard } from '../open-api/oa-examples/xoa.oa-example.mjs'
 import { XoaService } from './xoa.service.mjs'
 import { NDJSON_CONTENT_TYPE } from '../helpers/utils.helper.mjs'
+import { RestApi } from '../rest-api/rest-api.mjs'
 
 @Route('')
 @Security('*')
 @Tags('xoa')
 @provide(XoaController)
 export class XoaController extends Controller {
+  #restApi: RestApi
   #xoaService: XoaService
 
-  constructor(@inject(XoaService) xoaService: XoaService) {
+  constructor(@inject(RestApi) restApi: RestApi, @inject(XoaService) xoaService: XoaService) {
     super()
+    this.#restApi = restApi
     this.#xoaService = xoaService
   }
 
@@ -60,7 +63,12 @@ export class XoaController extends Controller {
   @Security('none')
   @Example(guiRoutes)
   @Get('gui-routes')
-  getGuiRoutes(): XoGuiRoutes {
-    return this.#xoaService.getGuiRoutes()
+  async getGuiRoutes(): Promise<XoGuiRoutes> {
+    const { xo5, xo6 } = await this.#restApi.xoApp.config.getGuiRoutes()
+
+    return {
+      xo5: xo5.url,
+      xo6: xo6.url,
+    }
   }
 }
