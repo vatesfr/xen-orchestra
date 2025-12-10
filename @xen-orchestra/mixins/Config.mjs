@@ -4,7 +4,7 @@ import isEqual from 'lodash/isEqual.js'
 import { createLogger } from '@xen-orchestra/log'
 import { parseDuration } from '@vates/parse-duration'
 import { watch } from 'app-conf'
-import { resolve } from 'node:path'
+import assert from 'node:assert'
 
 const { warn, info } = createLogger('xo:mixins:config')
 
@@ -105,28 +105,32 @@ export default class Config {
     }
 
     const guiRoutes = {}
-    guiRoutes.xo5 = { url: '/v5', path: `${resolve(this._appDir, '..')}/xo-web/dist` }
-    guiRoutes.xo6 = { url: '/v6', path: `${resolve(this._appDir, '../..')}/@xen-orchestra/web/dist` }
-
-    if (channel === 'stable') {
-      guiRoutes.default = { ...guiRoutes.xo5, url: '/' }
-    } else {
-      guiRoutes.default = { ...guiRoutes.xo6, url: '/' }
-    }
 
     for (let [url, path] of Object.entries(mounts)) {
       url = url.replace(/(.+)\/$/, '$1')
-      const conflictRoute = Object.entries(guiRoutes).find(([_, route]) => route.url === url)
 
-      if (conflictRoute) {
-        const [key] = conflictRoute
-        guiRoutes[key] = { url, path }
+      const key = `xo${url
+        .split('/')
+        .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+        .join('')}`
+      guiRoutes[key] = { url, path }
+    }
+
+    if (Object.entries(guiRoutes).find(([_, route]) => route.url === '/') === undefined) {
+      const v5Path = Object.values(guiRoutes).find(route => route.path.includes('xo-web/dist'))?.path
+
+      if (channel === 'stable') {
+        assert.notStrictEqual(v5Path, undefined, `No path for v5 found in config`)
+        guiRoutes.default = { path: v5Path, url: '/' }
       } else {
-        const key = `xo${url
-          .split('/')
-          .map(s => s.charAt(0).toUpperCase() + s.slice(1))
-          .join('')}`
-        guiRoutes[key] = { url, path }
+        const v6Path = Object.values(guiRoutes).find(route => route.path.includes('@xen-orchestra/web/dist'))?.path
+
+        if (v6Path === undefined) {
+          assert.notStrictEqual(v5Path, undefined, `No path for v5 found in config`)
+          guiRoutes.default = { path: v5Path, url: '/' }
+        } else {
+          guiRoutes.default = { path: v6Path, url: '/' }
+        }
       }
     }
 

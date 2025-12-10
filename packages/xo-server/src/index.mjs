@@ -192,12 +192,12 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       // TODO:
       // The login page uses certain files from the xo-web package (css,svg)
       // remove once XO5 is no more used and update `signin.pug` to use `public/logo.svg`, ...
-      const { xo5 } = await xo.config.getGuiRoutes()
+      const { xoV5 } = await xo.config.getGuiRoutes()
       res.send(
         signInPage({
           error: errorMsg,
           strategies,
-          xo5Mount: xo5.url + '/',
+          xo5Mount: xoV5.url + '/',
         })
       )
     } catch (error) {

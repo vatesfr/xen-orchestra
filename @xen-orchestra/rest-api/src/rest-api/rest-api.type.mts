@@ -80,14 +80,6 @@ export type XoApp = {
         url: string
         path: string
       }
-      xo5: {
-        url: string
-        path: string
-      }
-      xo6: {
-        url: string
-        path: string
-      }
       [key: string]: {
         url: string
         path: string
