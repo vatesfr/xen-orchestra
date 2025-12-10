@@ -111,7 +111,6 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 
   .h-line {
     width: 2rem;
-    //border-bottom: 0.1rem solid var(--color-brand-txt-base);
     margin-left: -0.4rem;
   }
 
