@@ -15,6 +15,8 @@
 - [VM] Add delete and snapshot buttons to manage VM (PR [9410](https://github.com/vatesfr/xen-orchestra/pull/9410))
 - [Site] Update dashboard with new info from endpoint (PR [#8964](https://github.com/vatesfr/xen-orchestra/pull/8964))
 - [i18n] Update Czech, Danish, German, Spanish, Persian, Finnish, Italian, Japanese, Korean, Norwegian, Polish, Dutch, Portuguese (Brasil), Russian, Swedish and Ukrainian translations (PR [#9440](https://github.com/vatesfr/xen-orchestra/pull/9440))
+  - [Vm/dashboard] Add BackupRuns and BackupArchives cards on vm dashboard (PR [#9303](https://github.com/vatesfr/xen-orchestra/pull/9303))
+
 
 ### Bug fixes
 
