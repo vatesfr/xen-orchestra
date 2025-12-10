@@ -26,6 +26,8 @@
 - [REST API/VM Dashboard] Return `vmProtection: 'protected' | 'unprotected' | 'not-in-job'` instead of `vmProtected: boolean` (PR [#9288](https://github.com/vatesfr/xen-orchestra/pull/9288))
 - [Backup]clean up .vhd.checksum files (PR [#9291](https://github.com/vatesfr/xen-orchestra/pull/9291))
 - [Backup] Prevent "No new data to upload for this VM" info on mirror backups when it was false [Forum#11623](https://xcp-ng.org/forum/topic/11623) (PR [#9286](https://github.com/vatesfr/xen-orchestra/pull/9286))
+- [Host] Report 0 RAM usage for halted hosts instead of incorrect values (PR [#9272](https://github.com/vatesfr/xen-orchestra/pull/9272))
+- [Plugins/OIDC] Fix group import on string (PR [#9280](https://github.com/vatesfr/xen-orchestra/pull/9280/files))
 
 - **XO 6:**
   - [VDIs] Fix broken fallback link to XO 5 VDIs page (PR [#9267](https://github.com/vatesfr/xen-orchestra/pull/9267))
@@ -52,7 +54,8 @@
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- xo-server patch
+- xo-server-auth-oidc patch
 - xo-web patch
-
 
 <!--packages-end-->
