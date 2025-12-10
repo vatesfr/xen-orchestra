@@ -218,9 +218,11 @@ async function fetchRrdFromPool(pool: PoolCredentials): Promise<RrdResponse | nu
   const { masterUrl, sessionId } = pool
 
   // Build RRD URL with query parameters
+  // cf=LAST returns the most recent value (vs AVERAGE which averages over the interval)
+  // This is more suitable for real-time monitoring with Prometheus/Grafana
   const url = new URL('/rrd_updates', masterUrl)
   url.searchParams.set('session_id', sessionId)
-  url.searchParams.set('cf', 'AVERAGE')
+  url.searchParams.set('cf', 'LAST')
   url.searchParams.set('interval', '60')
   url.searchParams.set('host', 'true')
   url.searchParams.set('vm_uuid', 'all')
@@ -257,9 +259,9 @@ async function fetchRrdFromPool(pool: PoolCredentials): Promise<RrdResponse | nu
 // ============================================================================
 
 function formatMetricName(legend: string): { type: string; uuid: string; metric: string } | null {
-  // Legend format: "AVERAGE:type:uuid:metric_name"
-  // Example: "AVERAGE:host:abc123:cpu_avg"
-  const match = /^AVERAGE:([^:]+):([^:]+):(.+)$/.exec(legend)
+  // Legend format: "LAST:type:uuid:metric_name" (prefix matches the cf parameter in the request)
+  // Example: "LAST:host:abc123:cpu_avg"
+  const match = /^LAST:([^:]+):([^:]+):(.+)$/.exec(legend)
   if (match === null) {
     return null
   }
