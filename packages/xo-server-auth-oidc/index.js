@@ -125,7 +125,12 @@ class AuthOidc {
       new Strategy(conf, async (issuer, profile, context, idToken, done) => {
         try {
           const claims = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString())
-          const groups = claims.groups ? claims.groups : []
+
+          let groups = []
+          if (claims.groups) {
+            // Some OIDC auth provider send a string instead of an array when there is only 1 group
+            groups = Array.isArray(claims.groups) ? claims.groups : [claims.groups]
+          }
 
           // See https://github.com/jaredhanson/passport-openidconnect/blob/master/lib/profile.js
           const { id } = profile

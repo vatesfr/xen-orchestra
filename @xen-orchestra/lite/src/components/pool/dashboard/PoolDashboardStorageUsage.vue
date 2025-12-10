@@ -1,7 +1,7 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle :left="t('storage-usage')" :right="t('top-#', { n: N_ITEMS })" />
-    <VtsStateHero v-if="!isReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>

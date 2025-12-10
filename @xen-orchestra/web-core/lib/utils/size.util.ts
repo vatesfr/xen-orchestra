@@ -2,16 +2,12 @@ import { parse, raw, Scale, type Info } from 'human-format'
 
 const scale = Scale.create(['', 'KiB', 'MiB', 'GiB', 'TiB'], 1024)
 
-export function formatSizeRaw(bytes: number, decimals: number): Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+export type SizeInfo = Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+
+export function formatSizeRaw(bytes: number, decimals: number): SizeInfo
 export function formatSizeRaw(bytes: undefined, decimals: number): undefined
-export function formatSizeRaw(
-  bytes: undefined | number,
-  decimals: number
-): undefined | Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-export function formatSizeRaw(
-  bytes: number | undefined,
-  decimals: number
-): Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>> | undefined {
+export function formatSizeRaw(bytes: number | undefined, decimals: number): SizeInfo | undefined
+export function formatSizeRaw(bytes: number | undefined, decimals: number): SizeInfo | undefined {
   if (bytes === undefined) {
     return undefined
   }

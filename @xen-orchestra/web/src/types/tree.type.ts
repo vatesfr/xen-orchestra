@@ -1,6 +1,6 @@
 import type { XoSite } from '@/types/xo/site.type.ts'
-import type { Branch } from '@core/composables/tree/branch'
-import type { Leaf } from '@core/composables/tree/leaf'
+import type { Branch } from '@core/packages/tree/branch'
+import type { Leaf } from '@core/packages/tree/leaf'
 import type { XoHost, XoPool, XoVm } from '@vates/types'
 
 export type VmLeaf = Leaf<XoVm, 'vm'>

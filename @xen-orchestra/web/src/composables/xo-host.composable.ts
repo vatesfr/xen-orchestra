@@ -2,7 +2,6 @@ import type { IconName } from '@core/icons'
 import useRelativeTime from '@core/composables/relative-time.composable'
 import { parseDateTime } from '@core/utils/time.util'
 import { HOST_POWER_STATE } from '@vates/types'
-import { useNow } from '@vueuse/core'
 import { toLower } from 'lodash-es'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -39,8 +38,8 @@ export function useXoHostUtils() {
 
   function getRelativeStartTime(startTime: number) {
     const date = computed(() => new Date(parseDateTime(startTime * 1000)))
-    const now = useNow({ interval: 1000 })
-    return useRelativeTime(date, now)
+
+    return useRelativeTime(date)
   }
 
   return {

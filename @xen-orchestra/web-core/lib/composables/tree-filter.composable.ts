@@ -1,4 +1,4 @@
-import type { TreeNodeBase } from '@core/composables/tree/tree-node-base'
+import type { TreeNodeBase } from '@core/packages/tree/tree-node-base'
 import { refDebounced } from '@vueuse/shared'
 import { computed, ref } from 'vue'
 
@@ -12,5 +12,5 @@ export function useTreeFilter() {
   const predicate = (node: TreeNodeBase) =>
     hasFilter.value ? node.label.toLocaleLowerCase().includes(debouncedFilter.value.toLocaleLowerCase()) : undefined
 
-  return { filter, predicate, isSearching }
+  return { filter, predicate, isSearching, hasFilter }
 }

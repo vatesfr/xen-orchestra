@@ -1,7 +1,7 @@
 <template>
   <div class="hosts" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <HostsTable :hosts :host-ready="areHostsReady" :has-error="hasHostFetchError" />
+      <HostsTable :hosts :busy="!areHostsReady" :error="hasHostFetchError" />
     </UiCard>
     <HostsSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -31,9 +31,9 @@ const { pool } = defineProps<{
 
 const uiStore = useUiStore()
 
-const { t } = useI18n()
-
 const { areHostsReady, hostsByPool, hasHostFetchError } = useXoHostCollection()
+
+const { t } = useI18n()
 
 const hosts = computed(() => hostsByPool.value.get(pool.id) ?? [])
 

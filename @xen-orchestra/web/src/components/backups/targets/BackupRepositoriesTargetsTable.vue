@@ -6,85 +6,50 @@
     <div class="container">
       <div class="table-actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
-        <UiTopBottomTable :selected-items="0" :total-items="0">
-          <UiTablePagination v-bind="paginationBindings" />
-        </UiTopBottomTable>
       </div>
-      <VtsDataTable
-        :is-ready
-        :has-error
-        :no-data-message="backupRepositories.length === 0 ? t('no-backup-available') : undefined"
-      >
-        <template #thead>
+
+      <VtsTable :state :pagination-bindings>
+        <thead>
           <tr>
-            <template v-for="column of visibleColumns" :key="column.id">
-              <th>
-                <div v-tooltip class="text-ellipsis">
-                  <VtsIcon size="medium" :name="headerIcon[column.id]" />
-                  {{ column.label }}
-                </div>
-              </th>
-            </template>
+            <HeadCells />
           </tr>
-        </template>
-        <template #tbody>
-          <tr v-for="row of backupRepositoriesTargetsRecords" :key="row.id" class="typo-body-regular-small">
-            <td v-for="column of row.visibleColumns" :key="column.id" class="typo-body-regular-small">
-              <UiLink
-                v-if="column.id == 'backup-repository'"
-                size="medium"
-                :icon="column.value.icon"
-                :href="column.value.link"
-              >
-                {{ column.value.label }}
-              </UiLink>
-            </td>
-          </tr>
-        </template>
-      </VtsDataTable>
-      <VtsStateHero
-        v-if="searchQuery && filteredBackupTargetsRepositories.length === 0"
-        format="table"
-        type="no-result"
-        size="small"
-      >
-        {{ t('no-result') }}
-      </VtsStateHero>
-      <UiTopBottomTable :selected-items="0" :total-items="0">
-        <UiTablePagination v-bind="paginationBindings" />
-      </UiTopBottomTable>
+        </thead>
+        <tbody>
+          <VtsRow v-for="repository of paginatedRepositories" :key="repository.id">
+            <BodyCells :item="repository" />
+          </VtsRow>
+        </tbody>
+      </VtsTable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useXoRoutes } from '@/remote-resources/use-xo-routes'
 import type { IconName } from '@core/icons'
-import VtsDataTable from '@core/components/data-table/VtsDataTable.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
-import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable'
-import { useTable } from '@core/composables/table.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
+import { useTableState } from '@core/composables/table-state.composable'
+import { defineColumns } from '@core/packages/table/define-columns'
+import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import type { XoBackupRepository } from '@vates/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backupRepositories } = defineProps<{
+const { backupRepositories, busy, error } = defineProps<{
   backupRepositories: XoBackupRepository[]
-  isReady: boolean
-  hasError: boolean
+  busy?: boolean
+  error?: boolean
 }>()
 
 const { t } = useI18n()
 
 const searchQuery = ref('')
 
-const filteredBackupTargetsRepositories = computed(() => {
+const filteredRepositories = computed(() => {
   const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
 
   if (!searchTerm) {
@@ -96,35 +61,46 @@ const filteredBackupTargetsRepositories = computed(() => {
   )
 })
 
-const { visibleColumns, rows } = useTable('backup-repositories-targets', filteredBackupTargetsRepositories, {
-  rowId: record => record.id,
-  columns: define => [
-    define(
-      'backup-repository',
-      record => ({
-        label: record.name,
-        link: '/#/settings/remotes',
-        icon: getBackupRepositoryIcon(record),
-      }),
-      { label: t('backup-repository') }
-    ),
-  ],
+const state = useTableState({
+  busy: () => busy,
+  error: () => error,
+  empty: () =>
+    backupRepositories.length === 0
+      ? t('no-backup-repositories-detected')
+      : filteredRepositories.value.length === 0
+        ? { type: 'no-result' }
+        : false,
 })
 
-const { pageRecords: backupRepositoriesTargetsRecords, paginationBindings } = usePagination(
+const { pageRecords: paginatedRepositories, paginationBindings } = usePagination(
   'backup-repositories-targets',
-  rows
+  filteredRepositories
 )
-
-type BackupRepositoryHeader = 'backup-repository'
-
-const headerIcon: Record<BackupRepositoryHeader, IconName> = {
-  'backup-repository': 'fa:a',
-}
 
 function getBackupRepositoryIcon(backupRepository: XoBackupRepository): IconName {
   return backupRepository.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected'
 }
+
+const useColumns = defineColumns(() => {
+  const { t } = useI18n()
+
+  return {
+    backupRepositoy: useLinkColumn({ headerLabel: () => t('backup-repository') }),
+  }
+})
+
+const { HeadCells, BodyCells } = useColumns({
+  body: (br: XoBackupRepository) => {
+    const { buildXo5Route } = useXoRoutes()
+
+    const href = computed(() => buildXo5Route('/settings/remotes'))
+    const statusIcon = computed(() => getBackupRepositoryIcon(br))
+
+    return {
+      backupRepositoy: r => r({ label: br.name, href: href.value, icon: statusIcon.value }),
+    }
+  },
+})
 </script>
 
 <style lang="postcss" scoped>

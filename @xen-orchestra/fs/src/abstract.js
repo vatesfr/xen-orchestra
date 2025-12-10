@@ -164,7 +164,7 @@ export default class RemoteHandlerAbstract {
     this.#applySafeGuards(options)
   }
 
-  #conditionRetry(error) {
+  _conditionRetry(error) {
     return !['EEXIST', 'EISDIR', 'ENOTEMPTY', 'ENOENT', 'ENOTDIR', 'SystemInUse', 'ERR_ASSERTION'].includes(error?.code)
   }
 
@@ -193,7 +193,7 @@ export default class RemoteHandlerAbstract {
         this[functionName] = pRetry.wrap(this[functionName], {
           delays: [100, 200, 500, 1000, 2000],
           // these errors should not change on retry
-          when: err => this.#conditionRetry(err),
+          when: err => this._conditionRetry(err),
           onRetry(error) {
             warn('retrying method on fs ', {
               method: functionName,

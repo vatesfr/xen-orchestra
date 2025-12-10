@@ -53,6 +53,7 @@ export function useFormSelectController(select: FormSelect) {
     middleware: [shift(), flip(), size()],
     placement: 'bottom-start',
     open: isOpen,
+    strategy: 'fixed',
   })
 
   /* SEARCH */

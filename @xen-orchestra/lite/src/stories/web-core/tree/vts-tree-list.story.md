@@ -24,7 +24,7 @@
                   VM {{ i }}.{{ j }}
                   <template #addons>
                     <VtsIcon v-if="j === 2" busy :name="undefined" size="medium" />
-                    <UiButtonIcon accent="brand" size="medium" icon="fa:ellipsis" />
+                    <UiButtonIcon accent="brand" size="small" icon="fa:ellipsis" />
                   </template>
                 </UiTreeItemLabel>
               </VtsTreeItem>

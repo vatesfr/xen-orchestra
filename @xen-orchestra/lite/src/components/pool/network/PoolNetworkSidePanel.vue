@@ -5,7 +5,7 @@
         <UiButtonIcon
           v-if="uiStore.isMobile"
           v-tooltip="t('close')"
-          size="medium"
+          size="small"
           variant="tertiary"
           accent="brand"
           icon="fa:angle-left"
@@ -32,7 +32,7 @@
           >
             {{ t('delete') }}
           </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="medium" icon="fa:ellipsis" />
+          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="small" icon="fa:ellipsis" />
         </div>
       </div>
     </template>

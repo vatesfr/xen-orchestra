@@ -21,7 +21,7 @@
         </template>
         <template #addons>
           <VtsIcon name="legacy:primary" size="medium" />
-          <UiButtonIcon icon="fa:copy" size="medium" accent="brand" />
+          <UiButtonIcon icon="fa:copy" size="small" accent="brand" />
         </template>
       </VtsCardRowKeyValue>
 
@@ -36,7 +36,7 @@
           </UiObjectLink>
         </template>
         <template #addons>
-          <UiButtonIcon icon="fa:copy" size="medium" accent="brand" />
+          <UiButtonIcon icon="fa:copy" size="small" accent="brand" />
         </template>
       </VtsCardRowKeyValue>
 
@@ -48,8 +48,8 @@
           <UiInfo accent="success">Connected</UiInfo>
         </template>
         <template #addons>
-          <UiButtonIcon icon="fa:copy" size="medium" accent="brand" />
-          <UiButtonIcon icon="fa:ellipsis" size="medium" accent="brand" />
+          <UiButtonIcon icon="fa:copy" size="small" accent="brand" />
+          <UiButtonIcon icon="fa:ellipsis" size="small" accent="brand" />
         </template>
       </VtsCardRowKeyValue>
     </UiCard>

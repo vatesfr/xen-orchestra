@@ -1,7 +1,7 @@
 <template>
   <div class="vdis" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <VmVdisTable :vm :vdis="filteredVdisByNotCdVbd" :has-error="hasVmVdiFetchError" :is-ready="areVmVdisReady" />
+      <VmVdisTable :vm :vdis="filteredVdisByNotCdVbd" :busy="!areVmVdisReady" :error="hasVmVdiFetchError" />
     </UiCard>
     <VmVdiSidePanel v-if="selectedVdi" :vdi="selectedVdi" :vm @close="selectedVdi = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">

@@ -1,4 +1,4 @@
 export type XoRoutes = {
-  xo5: string
-  xo6: string
+  xo5: string | undefined
+  xo6: string | undefined
 }

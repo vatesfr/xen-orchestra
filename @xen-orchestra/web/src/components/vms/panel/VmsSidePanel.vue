@@ -4,7 +4,7 @@
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
           v-tooltip="t('close')"
-          size="medium"
+          size="small"
           variant="tertiary"
           accent="brand"
           :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
