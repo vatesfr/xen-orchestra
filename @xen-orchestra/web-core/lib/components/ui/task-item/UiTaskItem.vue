@@ -22,7 +22,7 @@
 
       <div class="main-content">
         <div v-if="task.name" class="content-left">
-          <UiLink disabled :to="`#task-${task.id}`" size="medium">
+          <UiLink size="medium">
             {{ task.name }}
           </UiLink>
           <div v-if="shouldShowInfos || hasSubTasks" class="infos">
@@ -53,6 +53,8 @@
 </template>
 
 <script lang="ts" setup>
+import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -62,8 +64,6 @@ import { vTooltip } from '@core/directives/tooltip.directive'
 import { logicOr } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import UiButtonIcon from '../button-icon/UiButtonIcon.vue'
-import UiCircleProgressBar from '../circle-progress-bar/UiCircleProgressBar.vue'
 
 export type Task = {
   id: string
