@@ -165,8 +165,8 @@ requestTimeout = 0
 # Otherwise, XO5 will be the default for stable channel and XO6 for latest and source
 # '/' = '../xo-web/dist/'
 
-# '/v5' = '../xo-web/dist/'
-# '/v6' = '../../@xen-orchestra/web/dist/'
+'/v5' = '../xo-web/dist/'
+'/v6' = '../../@xen-orchestra/web/dist/'
 
 [http.proxies]
 # [port] is used to reuse the same port declared in [http.listen.0]
