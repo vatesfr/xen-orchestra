@@ -272,6 +272,9 @@ function formatMetricName(legend: string): { type: string; uuid: string; metric:
 
 function sanitizeMetricName(name: string): string {
   // OpenMetrics requires metric names to match [a-zA-Z_:][a-zA-Z0-9_:]*
+  // We replace invalid characters with underscores (not remove them) to:
+  // - Avoid collisions: "cpu-avg" and "cpuavg" would both become "cpuavg" if removed
+  // - Follow Prometheus snake_case conventions: https://prometheus.io/docs/practices/naming/
   return name.replace(/[^a-zA-Z0-9_:]/g, '_')
 }
 
