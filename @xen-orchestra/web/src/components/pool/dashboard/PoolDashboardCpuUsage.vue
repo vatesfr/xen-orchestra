@@ -9,7 +9,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsStateHero v-if="!areHostsCpuUsageReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!areHostsCpuUsageReady" format="card" type="busy" size="medium" />
     <template v-else>
       <HostsCpuUsage :top-five-cpu="poolDashboard?.hosts?.topFiveUsage?.cpu" :has-error />
     </template>
@@ -19,7 +19,7 @@
         {{ t('top-#', 5) }}
       </template>
     </UiCardSubtitle>
-    <VtsStateHero v-if="!areVmsCpuUsageReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!areVmsCpuUsageReady" format="card" type="busy" size="medium" />
     <template v-else>
       <VmsCpuUsage :top-five-cpu="poolDashboard?.vms?.topFiveUsage?.cpu" :has-error />
     </template>

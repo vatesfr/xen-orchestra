@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
-import HostPifTable from '@/components/host/network/HostPifTable.vue'
+import HostPifTable from '@/components/host/network/HostPifsTable.vue'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

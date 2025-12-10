@@ -1,7 +1,7 @@
 <template>
   <UiCard class="host-dashboard-ram-provisioning">
     <UiCardTitle>{{ t('ram-provisioning') }}</UiCardTitle>
-    <VtsStateHero v-if="!areHostsReady" format="card" busy size="medium" />
+    <VtsStateHero v-if="!areHostsReady" format="card" type="busy" size="medium" />
     <template v-else>
       <VtsProgressBar
         :label="host.name_label"

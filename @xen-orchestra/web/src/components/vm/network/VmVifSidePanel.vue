@@ -5,7 +5,7 @@
         <UiButtonIcon
           v-if="uiStore.isMobile"
           v-tooltip="t('close')"
-          size="medium"
+          size="small"
           variant="tertiary"
           accent="brand"
           icon="fa:angle-left"
@@ -145,7 +145,7 @@
                   v-tooltip="t('coming-soon')"
                   disabled
                   icon="fa:ellipsis"
-                  size="medium"
+                  size="small"
                   accent="brand"
                 />
               </template>

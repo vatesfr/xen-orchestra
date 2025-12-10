@@ -16,7 +16,7 @@
         class="close-button"
         icon="fa:xmark"
         accent="brand"
-        size="medium"
+        size="small"
         @click="emit('close')"
       />
     </div>

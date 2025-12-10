@@ -33,7 +33,11 @@
         {{ t('network') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('storage') }}</TabItem>
+    <RouterLink v-slot="{ isActive, href }" :to="`/vm/${vm.id}/vdis`" custom>
+      <TabItem :active="isActive" :href tag="a">
+        {{ t('vdis', 2) }}
+      </TabItem>
+    </RouterLink>
     <TabItem disabled>{{ t('tasks') }}</TabItem>
   </TabList>
 </template>

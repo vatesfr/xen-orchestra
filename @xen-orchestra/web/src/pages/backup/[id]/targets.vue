@@ -1,9 +1,9 @@
 <template>
   <UiCard class="targets">
-    <StorageRepositoriesTargetsTable :is-ready="areSrsReady" :has-error="hasSrFetchError" :storage-repositories />
+    <StorageRepositoriesTargetsTable :busy="!areSrsReady" :error="hasSrFetchError" :storage-repositories />
     <BackupRepositoriesTargetsTable
-      :is-ready="areBackupRepositoriesReady"
-      :has-error="hasBackupRepositoryFetchError"
+      :busy="!areBackupRepositoriesReady"
+      :error="hasBackupRepositoryFetchError"
       :backup-repositories
     />
   </UiCard>

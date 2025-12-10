@@ -64,7 +64,6 @@ import useRelativeTime from '@core/composables/relative-time.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { formatSizeRaw } from '@core/utils/size.util'
 import { parseDateTime } from '@core/utils/time.util'
-import { useNow } from '@vueuse/core'
 import { logicAnd } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -89,8 +88,8 @@ const powerState = computed<{ text: string; icon: IconName }>(() => ({
 }))
 
 const date = computed(() => new Date(parseDateTime(Number(host.other_config.boot_time) * 1000)))
-const now = useNow({ interval: 1000 })
-const relativeStartTime = useRelativeTime(date, now)
+
+const relativeStartTime = useRelativeTime(date)
 
 const isMaster = computed(() => isMasterHost(host.$ref))
 

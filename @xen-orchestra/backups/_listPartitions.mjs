@@ -20,13 +20,31 @@ const IGNORED_PARTITION_TYPES = {
   0xd5: true,
 
   0x82: true, // swap
+  // GPT Linux swap GUID
+  '0657fd6d-a4ab-43c4-84e5-0933c84b4f4f': true,
 }
 
-export const LVM_PARTITION_TYPE = 0x8e
+// MBR LVM type
+export const LVM_PARTITION_TYPE_MBR = 0x8e
+// GPT LVM type
+export const LVM_PARTITION_TYPE_GPT = 'e6d6d379-f507-44c2-a23c-238f2a3df928'
 
 const parsePartxLine = createParser({
   keyTransform: key => (key === 'UUID' ? 'id' : key.toLowerCase()),
-  valueTransform: (value, key) => (key === 'start' || key === 'size' || key === 'type' ? +value : value),
+  valueTransform: (value, key) => {
+    if (key === 'start' || key === 'size') {
+      return +value
+    }
+    // For GPT partitions, type is a UUID string
+    if (key === 'type' && !value.startsWith('0x')) {
+      return value.toLowerCase()
+    }
+    // For MBR partitions, type is a hex number as string (e.g., "0x8e")
+    if (key === 'type' && value.startsWith('0x')) {
+      return parseInt(value, 16)
+    }
+    return value
+  },
 })
 
 // returns an empty array in case of a non-partitioned disk

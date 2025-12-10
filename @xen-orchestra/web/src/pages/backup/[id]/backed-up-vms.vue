@@ -1,7 +1,7 @@
 <template>
   <div class="backed-up-vms">
     <BackedUpVmsConfiguration :backup-job />
-    <BackedUpVmsTable :backup-job :is-ready="areBackupJobsReady" :has-error="hasBackupJobFetchError" />
+    <BackedUpVmsTable :backup-job :busy="!areBackupJobsReady" :error="hasBackupJobFetchError" />
   </div>
 </template>
 

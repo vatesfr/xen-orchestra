@@ -4,7 +4,7 @@
       {{ t('cpu-usage') }}
       <template #description>{{ t('last-week') }}</template>
     </UiCardTitle>
-    <VtsStateHero v-if="loading || data.stats === undefined" format="card" busy size="medium" />
+    <VtsStateHero v-if="loading || data.stats === undefined" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="error" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>

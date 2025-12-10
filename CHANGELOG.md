@@ -1,8 +1,137 @@
 # ChangeLog
 
-## **5.112.1** (2025-11-03)
+## **5.113.2** (2025-12-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Plugins/OIDC] Fix group import on string (PR [#9280](https://github.com/vatesfr/xen-orchestra/pull/9280))
+- [Plugins/Perf-alert] Improve email subject (PR [#9283](https://github.com/vatesfr/xen-orchestra/pull/9283))
+
+### Released packages
+
+- xo-server-auth-oidc 0.4.1
+- xo-server-perf-alert 1.0.4
+
+## **5.113.1** (2025-11-28)
+
+### Released packages
+
+- xo-server-perf-alert 1.0.3
+
+## **5.113.0** (2025-11-27)
+
+### Highlights
+
+- [vhd-cli] **Breaking changes** Changed commands input to make plugin usable on encrypted remotes (PR [#9235](https://github.com/vatesfr/xen-orchestra/pull/9235))
+- [Backups] Update wordings for backup jobs' modes to match XO documentation (PR [#9199](https://github.com/vatesfr/xen-orchestra/pull/9199))
+- [i18n] Update Czech, German, French, Italian, Dutch, Portuguese (Brazil), and Ukrainian translations, and add Danish translation (PR [#9165](https://github.com/vatesfr/xen-orchestra/pull/9165))
+- [Plugins/OIDC] Import user groups from OIDC (PR [#9206](https://github.com/vatesfr/xen-orchestra/pull/9206))
+- [Plugins/Perf-alert] **Breaking changes** Improve performance of plugins, remove Alarm generation (PR [#9070](https://github.com/vatesfr/xen-orchestra/pull/9070))
+- [VIF] Fix VIFs with device > 7 being destroyed when changing network - now uses non-destructive VIF.move API (XenServer 7.1+) that preserves VIF UUID and avoids network downtime (PR [#9221](https://github.com/vatesfr/xen-orchestra/pull/9221))
+- [Plugins/load balancer] Add 'Affinity tag' option in plugin configuration (PR [#9116](https://github.com/vatesfr/xen-orchestra/pull/9116))
+- [Plugins/Usage Report] Add RAM and CPU allocation columns to reports to help identify over/under-provisioned VMs (PR [#9224](https://github.com/vatesfr/xen-orchestra/pull/9224))
+
+- **XO 6:**
+  - [Dashboards/Alarms] fix double scrollbar in Alarms lists due to incorrect height setting (PR [#9246](https://github.com/vatesfr/xen-orchestra/pull/9246))
+  - Implement reactivity for VMs, VM templates, VM controllers, VIFs, VDIs, VBDs, SRs, pools, PIFs, PGPUs, PCIs, networks, alarms, and hosts (PR [#9183](https://github.com/vatesfr/xen-orchestra/pull/9183))
+  - [New/VM] Display unsupported features information message (PR [#9203](https://github.com/vatesfr/xen-orchestra/pull/9203))
+  - [VM/New] Add boot firmware to VM creation form (PR [#9158](https://github.com/vatesfr/xen-orchestra/pull/9158))
+  - [VM/VDIs] Implement vdis view and side panel information (PR [#9232](https://github.com/vatesfr/xen-orchestra/pull/9232))
+  - [Pool/VMs] Implement VMs view and side panel information (PR [#9196](https://github.com/vatesfr/xen-orchestra/pull/9196))
+  - [Host/VMs] Implement VMs view and side panel information (PR [#9193](https://github.com/vatesfr/xen-orchestra/pull/9193))
+  - [Site/VMs] Implement VMs view and side panel information (PR [#9145](https://github.com/vatesfr/xen-orchestra/pull/9145))
+  - [Pool/Hosts] Implement hosts view and side panel information (PR [#9218](https://github.com/vatesfr/xen-orchestra/pull/9218))
+  - [Header] Add EasyVirt DC Scope and DC NetScope buttons to install and access EasyVirt solutions (PR [#9242](https://github.com/vatesfr/xen-orchestra/pull/9242))
+  - [Pool] Add Storage Repositories page to display all SRs in the pool (PR [#9134](https://github.com/vatesfr/xen-orchestra/pull/9134))
+  - [Host] Add Storage Repositories page to display all SRs in the host (PR [#9137](https://github.com/vatesfr/xen-orchestra/pull/9137))
+
+### Security
+
+> Security fixes and new features should go in this section
+
+- [Packages] Update xml2js dependency (PR [#9216](https://github.com/vatesfr/xen-orchestra/pull/9216))
+- [Proxy] Update cookie package (PR [#9220](https://github.com/vatesfr/xen-orchestra/pull/9220))
+- [Plugins/transport-email] Update nodemailer (PR [#9217](https://github.com/vatesfr/xen-orchestra/pull/9217))
+- Update dependency ansi_up (PR [#9226](https://github.com/vatesfr/xen-orchestra/pull/9226))
+
+### Enhancements
+
+> Users must be able to say: “Nice enhancement, I'm eager to test it”
+
+- [REST API] Expose `GET /rest/v0/events` to open an SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
+- [REST API] Expose `POST /rest/v0/events/:id/subscriptions` to add a subscription in the SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
+- [REST API] Expose `DELETE /rest/v0/events/:id/subscriptions` to remove a subscription in the SSE connection (PR [#9130](https://github.com/vatesfr/xen-orchestra/pull/9130))
+- [Backup] Add warning message: enabling/disabling backup job from VM > Backup affects all VMs in the job (PR [#9155](https://github.com/vatesfr/xen-orchestra/pull/9155))
+- [Plugins/Usage Report] Add operating system information to reports - displays OS distribution statistics and includes OS details (name, distribution, version) in both HTML reports and CSV exports (PR [#9179](https://github.com/vatesfr/xen-orchestra/pull/9179))
+- [Backup archives] Add `vm.tags` to `backups archives` (PR [#9190](https://github.com/vatesfr/xen-orchestra/pull/9190))
+- [Menu] Add link from XO 5 to XO 6 (PR [#9187](https://github.com/vatesfr/xen-orchestra/pull/9187))
+- [REST API] Expose VM dashboard endpoint `GET /rest/v0/vms/:vm-id/dashboard` (PR [#9143](https://github.com/vatesfr/xen-orchestra/pull/9143))
+- [REST API] **Breaking changes** Async actions now return `application/json` (PR [#9209](https://github.com/vatesfr/xen-orchestra/pull/9209))
+- [HUB Recipe] Support custom cluster CIDR and Xo CCM (Cloud Controller Manager) in Pyrgos recipe
+- [Disk] Add warning before disconnecting a VBD (PR [#9211](https://github.com/vatesfr/xen-orchestra/pull/9211))
+
+- **XO 6:**
+  - [XO routes] fetch xo gui routes (PR [#9138](https://github.com/vatesfr/xen-orchestra/pull/9138))
+  - [Input search] update design of input search (PR [#9156](https://github.com/vatesfr/xen-orchestra/pull/9156))
+  - [Site/Hosts] Implement hosts view and side panel information (PR [#9128](https://github.com/vatesfr/xen-orchestra/pull/9128))
+  - [Settings page] Create settings page accessible from user menu (PR [#9175](https://github.com/vatesfr/xen-orchestra/pull/9175))
+  - [Core] Add tooltip on tag component if the text is cut (PR [#9184](https://github.com/vatesfr/xen-orchestra/pull/9184))
+
+### Bug fixes
+
+> Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Backups] use the oldest record for Long Term Retention instead of newest (PR [#9180](https://github.com/vatesfr/xen-orchestra/pull/9180))
+- [Backups] fix infinite chain of snapshot and replication [Forum#11540](https://xcp-ng.org/forum/topic/11540) [Forum#11539](https://xcp-ng.org/forum/topic/11539) (PR [#9202](https://github.com/vatesfr/xen-orchestra/pull/9202))
+- [V2V] fix missing libssl.so.3 in path on debian 11 (PR [#9208](https://github.com/vatesfr/xen-orchestra/pull/9208))
+- [Backups/File level restore] ignore swap partition (PR [#9182](https://github.com/vatesfr/xen-orchestra/pull/9182))
+- [Backups/File level restore] Better handling of LVM on GPT partition (PR [#9182](https://github.com/vatesfr/xen-orchestra/pull/9182))
+- [REST API] Fix `/rest/v0/backup-jobs` return non backup-jobs (PR [#9210](https://github.com/vatesfr/xen-orchestra/pull/9210))
+- [Backups] use the oldest record for Long Term Retention instead of newest (PR [#9180](https://github.com/vatesfr/xen-orchestra/pull/9180))
+- [Backups] fix infinite chain of snapshot and replication [Forum#11540](https://xcp-ng.org/forum/topic/11540) [Forum#11539](https://xcp-ng.org/forum/topic/11539) (PR [#9202](https://github.com/vatesfr/xen-orchestra/pull/9202))
+- [V2V] fix missing libssl.so.3 in path on debian 11 (PR [#9208](https://github.com/vatesfr/xen-orchestra/pull/9208))
+- [xo-server] imporve esxi 6 importing from wmware failure fallback by using COWD file (PR [#9223](https://github.com/vatesfr/xen-orchestra/pull/9223))
+- [REST API] Fix `/rest/v0/backup-archives` return error 500 _Cannot convert undefined or null to object_ (PR [#9240](https://github.com/vatesfr/xen-orchestra/pull/9240))
+
+- **XO 6:**
+  - [Host/Vm] fix issues on dashboards, and translation on charts (PR [#9204](https://github.com/vatesfr/xen-orchestra/pull/9204))
+  - [Dashboards] Prevent charts reloading every 30 seconds (PR [#8939](https://github.com/vatesfr/pull/8939))
+  - [Host/HostSystemResourceManagement] Fix display when control domain memory is undefined (PR [#9197](https://github.com/vatesfr/xen-orchestra/pull/9197))
+- [V2V] fix transfer failing at 99% for unaligned disk (PR [#9233](https://github.com/vatesfr/xen-orchestra/pull/9233))
+- [REST API] _parse error: expected end of input at position #_ when an invalid query parameter is provided, a 400 error is returned with more details (PR [#9244](https://github.com/vatesfr/xen-orchestra/pull/9244))
+  - [Host/HostSystemResourceManagement] Fix display when control domain memory is undefined (PR [#9197](https://github.com/vatesfr/xen-orchestra/pull/9197))
+
+### Released packages
+
+- xo-collection 0.6.0
+- xen-api 4.7.5
+- @vates/types 1.15.0
+- @xen-orchestra/xapi 8.6.1
+- @xen-orchestra/backups 0.67.0
+- @xen-orchestra/backups-cli 1.1.6
+- @xen-orchestra/immutable-backups 1.0.27
+- @xen-orchestra/proxy 0.29.36
+- xo-vmdk-to-vhd 2.5.9
+- xo-server-load-balancer 0.11.0
+- xo-server-transport-email 1.1.1
+- xo-server-usage-report 0.11.0
+- vhd-cli 1.0.0
+- vhd-lib 4.14.5
+- @vates/nbd-client 3.2.2
+- @xen-orchestra/rest-api 0.21.1
+- @xen-orchestra/vmware-explorer 0.10.6
+- xo-server 5.193.1
+- xo-server-auth-oidc 0.4.0
+- xo-web 5.191.0
+- @xen-orchestra/web-core 0.35.1
+- @xen-orchestra/web 0.34.2
+- xo-server-perf-alert 1.0.2
+
+## **5.112.1** (2025-11-03)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

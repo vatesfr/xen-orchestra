@@ -7,7 +7,7 @@
     placement="bottom-end"
   >
     <template v-if="uiStore.isMobile" #trigger="{ isOpen, open }">
-      <UiButtonIcon accent="brand" size="medium" :selected="isOpen" icon="fa:ellipsis" @click="open" />
+      <UiButtonIcon accent="brand" size="small" :selected="isOpen" icon="fa:ellipsis" @click="open" />
     </template>
     <MenuItem icon="fa:power-off">
       {{ t('change-state') }}
