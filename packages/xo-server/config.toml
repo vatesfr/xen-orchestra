@@ -169,9 +169,10 @@ requestTimeout = 0
 # '/v6' = '../../@xen-orchestra/web/dist/'
 
 [http.proxies]
-'/v5/api' = 'ws://localhost:9000/api'
+# [port] is used to reuse the same port declared in [http.listen.0]
+'/v5/api' = 'ws://localhost:[port]/api'
 '/v5/api/updater' = 'ws://localhost:9001'
-'/v5/rest' = 'http://localhost:9000/rest'
+'/v5/rest' = 'http://localhost:[port]/rest'
 
 [logs]
 # Display all logs matching this filter, regardless of their level

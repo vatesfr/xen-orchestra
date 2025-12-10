@@ -550,6 +550,8 @@ const setUpProxies = (express, opts, xo) => {
     return
   }
 
+  const userPort = xo.config.get('http.listen.0.port')
+
   const proxy = httpProxy
     .createServer({
       changeOrigin: true,
@@ -572,6 +574,25 @@ const setUpProxies = (express, opts, xo) => {
       })
     })
 
+  /**
+   *
+   * @param {string} url
+   * @returns {URL} targetUrl
+   */
+  function getTargetUrl(url) {
+    let target = url
+    if (url.includes('[port]')) {
+      target = url.replace(/\[port\]/g, userPort)
+    }
+
+    const targetUrl = new URL(target)
+    if (targetUrl.port === 443) {
+      targetUrl.protocol = targetUrl.protocol === 'ws:' ? 'wss:' : 'https:'
+    }
+
+    return targetUrl
+  }
+
   // TODO: sort proxies by descending prefix length.
 
   // HTTP request proxy.
@@ -580,11 +601,11 @@ const setUpProxies = (express, opts, xo) => {
 
     for (const prefix in opts) {
       if (url.startsWith(prefix)) {
-        const target = opts[prefix]
+        const target = getTargetUrl(opts[prefix])
 
         proxy.web(req, res, {
-          agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
-          target: target + url.slice(prefix.length),
+          agent: target.hostname === 'localhost' ? undefined : xo.httpAgent,
+          target: target.href + url.slice(prefix.length),
         })
 
         return
@@ -605,11 +626,11 @@ const setUpProxies = (express, opts, xo) => {
 
     for (const prefix in opts) {
       if (url.startsWith(prefix)) {
-        const target = opts[prefix]
+        const target = getTargetUrl(opts[prefix])
 
         proxy.ws(req, socket, head, {
           agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
-          target: target + url.slice(prefix.length),
+          target: target.href + url.slice(prefix.length),
         })
 
         return
