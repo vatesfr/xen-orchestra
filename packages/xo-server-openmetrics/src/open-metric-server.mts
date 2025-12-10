@@ -19,6 +19,9 @@ import { Agent, request as undiciRequest } from 'undici'
 import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 
+import { parseRrdResponse, type ParsedRrdData } from './rrd-parser.mjs'
+import { formatAllPoolsToOpenMetrics } from './openmetric-formatter.mjs'
+
 const logger = createLogger('xo:xo-server-openmetrics:child')
 
 // ============================================================================
@@ -37,14 +40,18 @@ interface ServerConfiguration {
   bindAddress: string
 }
 
-interface PoolCredentials {
+interface HostCredentials {
+  hostId: string
+  hostAddress: string
+  hostLabel: string
   poolId: string
-  masterUrl: string
+  poolLabel: string
   sessionId: string
+  protocol: string
 }
 
 interface XapiCredentialsPayload {
-  pools: PoolCredentials[]
+  hosts: HostCredentials[]
 }
 
 interface PendingRequest<T> {
@@ -93,11 +100,11 @@ function handleParentMessage(rawMessage: unknown): void {
 
   switch (message.type) {
     case 'INIT':
-      handleInit(message.payload as ServerConfiguration)
+      handleInit(message.payload as ServerConfiguration).catch(err => logger.error('Init failed', { error: err }))
       break
 
     case 'SHUTDOWN':
-      handleShutdown()
+      handleShutdown().catch(err => logger.error('Shutdown failed', { error: err }))
       break
 
     case 'XAPI_CREDENTIALS':
@@ -121,17 +128,17 @@ async function handleInit(config: ServerConfiguration): Promise<void> {
       error: error instanceof Error ? error.message : String(error),
     })
     process.exitCode = 1
-    cleanup()
+    await cleanup()
   }
 }
 
-function handleShutdown(): void {
+async function handleShutdown(): Promise<void> {
   if (isShuttingDown) {
     return
   }
   isShuttingDown = true
   process.exitCode = 0
-  cleanup()
+  await cleanup()
 }
 
 function handleCredentialsResponse(message: IpcMessage): void {
@@ -148,7 +155,7 @@ function handleCredentialsResponse(message: IpcMessage): void {
   }
 }
 
-function cleanup(): void {
+async function cleanup(): Promise<void> {
   // Cancel all pending requests
   for (const pending of pendingRequests.values()) {
     clearTimeout(pending.timer)
@@ -161,6 +168,9 @@ function cleanup(): void {
     server.close()
     server = undefined
   }
+
+  // Close the HTTPS agent to release resources
+  await httpsAgent.close()
 
   // Disconnect from parent IPC channel - this allows the process to exit naturally
   if (process.connected) {
@@ -195,37 +205,34 @@ async function requestXapiCredentials(): Promise<XapiCredentialsPayload> {
 // RRD Data Fetching
 // ============================================================================
 
-interface RrdMeta {
-  start: number
-  step: number
-  end: number
-  rows: number
-  columns: number
-  legend: string[]
-}
+/**
+ * Fetch and parse RRD data from a single host.
+ *
+ * Each host in a XCP-ng/XenServer pool serves RRD data for:
+ * - The host itself
+ * - All VMs running on that host
+ *
+ * @param host - Host credentials including address, sessionId, poolId, labels
+ * @returns ParsedRrdData or null on error
+ */
+async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | null> {
+  const { hostAddress, hostLabel, sessionId, poolId, poolLabel, protocol } = host
 
-interface RrdDataPoint {
-  t: number
-  values: (number | string)[]
-}
-
-interface RrdResponse {
-  meta: RrdMeta
-  data: RrdDataPoint[]
-}
-
-async function fetchRrdFromPool(pool: PoolCredentials): Promise<RrdResponse | null> {
-  const { masterUrl, sessionId } = pool
+  // Calculate start time: current time minus 2 intervals (to ensure we get recent data)
+  const now = Math.floor(Date.now() / 1000)
+  const interval = 60
+  const start = now - 2 * interval
 
   // Build RRD URL with query parameters
-  // cf=LAST returns the most recent value (vs AVERAGE which averages over the interval)
-  // This is more suitable for real-time monitoring with Prometheus/Grafana
-  const url = new URL('/rrd_updates', masterUrl)
+  // cf=AVERAGE is required (cf=LAST is not supported by XenServer rrd_updates endpoint)
+  // Using start parameter to get recent data points
+  const baseUrl = `${protocol}//${hostAddress}`
+  const url = new URL('/rrd_updates', baseUrl)
   url.searchParams.set('session_id', sessionId)
-  url.searchParams.set('cf', 'LAST')
-  url.searchParams.set('interval', '60')
+  url.searchParams.set('cf', 'AVERAGE')
+  url.searchParams.set('interval', String(interval))
+  url.searchParams.set('start', String(start))
   url.searchParams.set('host', 'true')
-  url.searchParams.set('vm_uuid', 'all')
   url.searchParams.set('json', 'true')
 
   try {
@@ -237,147 +244,97 @@ async function fetchRrdFromPool(pool: PoolCredentials): Promise<RrdResponse | nu
     })
 
     if (response.statusCode !== 200) {
-      logger.warn('RRD fetch failed', { poolId: pool.poolId, statusCode: response.statusCode })
+      // Drain the body to release the connection
+      await response.body.text()
+      logger.warn('RRD fetch failed', { hostLabel, poolLabel, statusCode: response.statusCode })
       return null
     }
 
     const text = await response.body.text()
+
     try {
-      return JSON.parse(text) as RrdResponse
+      // Parse RRD response using the dedicated parser (handles JSON5 fallback)
+      return parseRrdResponse(text, poolId)
     } catch (parseError) {
-      logger.warn('RRD JSON parse failed', { poolId: pool.poolId, error: parseError })
+      logger.warn('RRD parse failed', { hostLabel, poolLabel, error: parseError })
       return null
     }
   } catch (error) {
-    logger.warn('RRD fetch error', { poolId: pool.poolId, error })
+    logger.warn('RRD fetch error', { hostLabel, poolLabel, error })
     return null
   }
-}
-
-// ============================================================================
-// OpenMetrics Formatting
-// ============================================================================
-
-function formatMetricName(legend: string): { type: string; uuid: string; metric: string } | null {
-  // Legend format: "LAST:type:uuid:metric_name" (prefix matches the cf parameter in the request)
-  // Example: "LAST:host:abc123:cpu_avg"
-  const match = /^LAST:([^:]+):([^:]+):(.+)$/.exec(legend)
-  if (match === null) {
-    return null
-  }
-  return {
-    type: match[1],
-    uuid: match[2],
-    metric: match[3],
-  }
-}
-
-function sanitizeMetricName(name: string): string {
-  // OpenMetrics requires metric names to match [a-zA-Z_:][a-zA-Z0-9_:]*
-  // We replace invalid characters with underscores (not remove them) to:
-  // - Avoid collisions: "cpu-avg" and "cpuavg" would both become "cpuavg" if removed
-  // - Follow Prometheus snake_case conventions: https://prometheus.io/docs/practices/naming/
-  return name.replace(/[^a-zA-Z0-9_:]/g, '_')
-}
-
-function formatRrdToOpenMetrics(rrd: RrdResponse, poolId: string): string {
-  const lines: string[] = []
-  const { meta, data } = rrd
-
-  if (data.length === 0) {
-    return ''
-  }
-
-  // Use the most recent data point
-  const latestData = data[data.length - 1]
-  const timestamp = latestData.t * 1000 // Convert to milliseconds
-
-  // Group metrics by name for HELP/TYPE declarations
-  const metricsByName = new Map<string, Array<{ labels: string; value: number | string }>>()
-
-  for (let i = 0; i < meta.legend.length; i++) {
-    const parsed = formatMetricName(meta.legend[i])
-    if (parsed === null) {
-      continue
-    }
-
-    const { type, uuid, metric } = parsed
-    const value = latestData.values[i]
-
-    // Skip NaN and Infinity values
-    if (typeof value === 'string') {
-      const numValue = parseFloat(value)
-      if (!Number.isFinite(numValue)) {
-        continue
-      }
-    } else if (!Number.isFinite(value)) {
-      continue
-    }
-
-    const metricName = `xo_${sanitizeMetricName(type)}_${sanitizeMetricName(metric)}`
-    const labels = `pool_id="${poolId}",${type}_uuid="${uuid}"`
-
-    if (!metricsByName.has(metricName)) {
-      metricsByName.set(metricName, [])
-    }
-    metricsByName.get(metricName)!.push({ labels, value })
-  }
-
-  // Output metrics in OpenMetrics format
-  for (const [metricName, values] of metricsByName) {
-    lines.push(`# HELP ${metricName} XenServer ${metricName} metric`)
-    lines.push(`# TYPE ${metricName} gauge`)
-
-    for (const { labels, value } of values) {
-      lines.push(`${metricName}{${labels}} ${value} ${timestamp}`)
-    }
-  }
-
-  return lines.join('\n')
 }
 
 // ============================================================================
 // Metrics Collection
 // ============================================================================
 
+/**
+ * Collect metrics from all hosts in all connected pools.
+ *
+ * Fetches RRD data from each host with bounded concurrency,
+ * parses and transforms to OpenMetrics format.
+ *
+ * @returns OpenMetrics-formatted string
+ */
 async function collectMetrics(): Promise<string> {
   const credentials = await requestXapiCredentials()
 
-  if (credentials.pools.length === 0) {
-    return '# No connected pools\n'
+  logger.debug('Collecting metrics', { hostCount: credentials.hosts.length })
+
+  if (credentials.hosts.length === 0) {
+    return '# No connected hosts\n# EOF'
   }
 
-  const results: string[] = []
+  // Collect parsed RRD data from all hosts
+  const rrdDataList: ParsedRrdData[] = []
 
-  // Add header
-  results.push('# HELP xo_pool_connected Indicates if a pool is connected (1) or not (0)')
-  results.push('# TYPE xo_pool_connected gauge')
-
-  for (const pool of credentials.pools) {
-    results.push(`xo_pool_connected{pool_id="${pool.poolId}"} 1`)
-  }
-
-  // Fetch RRD data from all pools with bounded concurrency
-  const rrdResults: string[] = []
   await asyncEach(
-    credentials.pools,
-    async pool => {
-      const rrd = await fetchRrdFromPool(pool)
-      if (rrd !== null) {
-        const formatted = formatRrdToOpenMetrics(rrd, pool.poolId)
-        if (formatted !== '') {
-          rrdResults.push(formatted)
-        }
+    credentials.hosts,
+    async host => {
+      const rrdData = await fetchRrdFromHost(host)
+      if (rrdData !== null) {
+        logger.debug('RRD data fetched', {
+          hostLabel: host.hostLabel,
+          poolLabel: host.poolLabel,
+          metricCount: rrdData.metrics.length,
+        })
+        rrdDataList.push(rrdData)
       }
     },
     { concurrency: RRD_FETCH_CONCURRENCY, stopOnError: false }
   )
-  results.push(...rrdResults)
 
-  // Add EOF marker for OpenMetrics format
-  results.push('# EOF')
+  // Build pool connection metrics (deduplicate pools from hosts)
+  const poolMetrics: string[] = []
+  poolMetrics.push('# HELP xcp_pool_connected Indicates if a pool is connected (1) or not (0)')
+  poolMetrics.push('# TYPE xcp_pool_connected gauge')
 
-  return results.join('\n')
+  const seenPools = new Set<string>()
+  for (const host of credentials.hosts) {
+    if (!seenPools.has(host.poolId)) {
+      seenPools.add(host.poolId)
+      poolMetrics.push(`xcp_pool_connected{pool_id="${host.poolId}",pool_label="${host.poolLabel}"} 1`)
+    }
+  }
+
+  // Format all RRD data to OpenMetrics
+  logger.debug('Formatting RRD data', {
+    hostCount: rrdDataList.length,
+    totalMetrics: rrdDataList.reduce((sum, d) => sum + d.metrics.length, 0),
+  })
+  const rrdMetrics = formatAllPoolsToOpenMetrics(rrdDataList)
+  logger.debug('Formatted metrics', { outputLength: rrdMetrics.length })
+
+  // Combine pool metrics with RRD metrics
+  // Remove the # EOF from rrdMetrics if present (we'll add our own)
+  const rrdMetricsWithoutEof = rrdMetrics.replace(/\n# EOF$/, '')
+
+  if (rrdMetricsWithoutEof === '' || rrdMetricsWithoutEof === '# EOF') {
+    return poolMetrics.join('\n') + '\n# EOF'
+  }
+
+  return poolMetrics.join('\n') + '\n' + rrdMetricsWithoutEof + '\n# EOF'
 }
 
 // ============================================================================
@@ -411,6 +368,7 @@ async function startServer(): Promise<void> {
         })
         res.end(metrics)
       } catch (error) {
+        logger.warn('Failed to collect metrics', { error })
         res.writeHead(500, { 'Content-Type': 'application/json' })
         res.end(
           JSON.stringify({
@@ -448,17 +406,17 @@ process.on('message', handleParentMessage)
 process.on('disconnect', () => {
   if (!isShuttingDown) {
     process.exitCode = 1
-    cleanup()
+    cleanup().catch(err => logger.error('Cleanup failed during disconnect', { error: err }))
   }
 })
 
 // Handle process signals
 process.on('SIGTERM', () => {
-  handleShutdown()
+  handleShutdown().catch(err => logger.error('Shutdown failed on SIGTERM', { error: err }))
 })
 
 process.on('SIGINT', () => {
-  handleShutdown()
+  handleShutdown().catch(err => logger.error('Shutdown failed on SIGINT', { error: err }))
 })
 
 // Handle uncaught errors
@@ -466,7 +424,7 @@ process.on('uncaughtException', (error: Error) => {
   logger.error('Uncaught exception', { error })
   sendToParent({ type: 'ERROR', error: error.message })
   process.exitCode = 1
-  cleanup()
+  cleanup().catch(err => logger.error('Cleanup failed after uncaught exception', { error: err }))
 })
 
 process.on('unhandledRejection', (reason: unknown) => {
