@@ -8,6 +8,7 @@
 
 import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
+import { createServer } from 'node:net'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -64,6 +65,12 @@ const __dirname = dirname(__filename)
 
 const logger = createLogger('xo:xo-server-openmetrics')
 
+/** Default port for the OpenMetrics HTTP server */
+const DEFAULT_PORT = 9004
+
+/** Default bind address for the OpenMetrics HTTP server */
+const DEFAULT_BIND_ADDRESS = '127.0.0.1'
+
 /** Default timeout for IPC operations in milliseconds */
 const IPC_TIMEOUT_MS = 10_000
 
@@ -81,7 +88,7 @@ export const configurationSchema = {
       type: 'number',
       title: 'Port',
       description: 'Port for the OpenMetrics HTTP server',
-      default: 9004,
+      default: DEFAULT_PORT,
       minimum: 1,
       maximum: 65535,
     },
@@ -89,7 +96,7 @@ export const configurationSchema = {
       type: 'string',
       title: 'Bind Address',
       description: 'Address to bind to (127.0.0.1 for localhost only, 0.0.0.0 for all interfaces)',
-      default: '127.0.0.1',
+      default: DEFAULT_BIND_ADDRESS,
     },
   },
   additionalProperties: false,
@@ -130,8 +137,8 @@ class OpenMetricsPlugin {
 
     // Use configured values or defaults from configurationSchema
     const configuration: PluginConfiguration = {
-      port: this.#configuration?.port ?? 9004,
-      bindAddress: this.#configuration?.bindAddress ?? '127.0.0.1',
+      port: this.#configuration?.port ?? DEFAULT_PORT,
+      bindAddress: this.#configuration?.bindAddress ?? DEFAULT_BIND_ADDRESS,
     }
 
     logger.info('Starting OpenMetrics server', {
@@ -158,9 +165,31 @@ class OpenMetricsPlugin {
 
   /**
    * Test the plugin configuration.
+   * Checks if the configured port is available.
    */
   async test(): Promise<void> {
-    logger.debug('Testing OpenMetrics plugin')
+    const port = this.#configuration?.port ?? DEFAULT_PORT
+    const bindAddress = this.#configuration?.bindAddress ?? DEFAULT_BIND_ADDRESS
+
+    logger.debug('Testing OpenMetrics plugin', { port, bindAddress })
+
+    await new Promise<void>((resolve, reject) => {
+      const server = createServer()
+
+      server.once('error', (error: NodeJS.ErrnoException) => {
+        if (error.code === 'EADDRINUSE') {
+          reject(new Error(`Port ${port} is already in use`))
+        } else if (error.code === 'EACCES') {
+          reject(new Error(`Permission denied to bind to port ${port}`))
+        } else {
+          reject(error)
+        }
+      })
+
+      server.listen(port, bindAddress, () => {
+        server.close(() => resolve())
+      })
+    })
   }
 
   /**
@@ -251,6 +280,9 @@ class OpenMetricsPlugin {
         break
 
       case 'ERROR':
+        // ERROR is only sent during initialization when the child process fails to start
+        // (e.g., unable to bind to port). At this point, load() is waiting for READY,
+        // so we reject that pending request to propagate the failure.
         logger.error('Child process error', { error: message.error })
         this.#rejectPendingRequest('READY', new Error(String(message.error)))
         break
