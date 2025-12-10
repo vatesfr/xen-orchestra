@@ -20,7 +20,8 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
+> 
+- [xo-server] better handling of xapi snapshots when converting to xo object (PR [#9231](https://github.com/vatesfr/xen-orchestra/pull/9231))
 - [REST API/VM Dashboard] Return `vmProtection: 'protected' | 'unprotected' | 'not-in-job'` instead of `vmProtected: boolean` (PR [#9288](https://github.com/vatesfr/xen-orchestra/pull/9288))
 
 - **XO 6:**
