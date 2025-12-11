@@ -56,8 +56,8 @@
             </UiTag>
           </UiTagsList>
         </template>
-        <template v-if="task.properties.progress" #addons>
-          <UiCircleProgressBar :accent="progressStatus" size="small" :value="Number(task.properties.progress)" />
+        <template v-if="task.status" #addons>
+          <UiCircleProgressBar :accent="progressStatus" size="small" :value="task.properties.progress ?? 100" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -66,7 +66,7 @@
 
 <script lang="ts" setup>
 import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
-import { getTaskAccent } from '@/utils/task-status.util.ts'
+import { getTaskAccents } from '@/utils/task-status.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
@@ -76,7 +76,7 @@ import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircl
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
-import type { XoTask, XoUser } from '@vates/types'
+import type { XoTask } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -86,10 +86,11 @@ const { task } = defineProps<{
 
 const { t, d } = useI18n()
 
-const { user } = useXoUserResource({}, () => task.properties.userId as XoUser['id'])
+const { user } = useXoUserResource({}, () => task.properties.userId)
 
-const progressStatus = computed(() => getTaskAccent(task.status, 'progress'))
-const taskStatus = computed(() => getTaskAccent(task.status, 'status'))
+const progressStatus = computed(() => getTaskAccents(task.status).progressAccent)
+
+const taskStatus = computed(() => getTaskAccents(task.status).statusAccent)
 
 const taskStart = computed(() => d(task.start, 'datetime_short'))
 
