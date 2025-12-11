@@ -66,6 +66,7 @@ const xo5Route = computed(() => buildXo5Route('/'))
   align-self: stretch;
   align-items: center;
   text-decoration: none;
+  height: 5.76rem;
 }
 
 .loader {
