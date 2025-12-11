@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [XO5] Remove XOSAN (PR [#9248](https://github.com/vatesfr/xen-orchestra/pull/9248))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,5 +32,10 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @vates/types minor
+- xo-server minor
+xo-web minor
+xo-server-audit minor
 
 <!--packages-end-->
