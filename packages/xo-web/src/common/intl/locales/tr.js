@@ -206,9 +206,6 @@ export default {
   // Original text: "Import"
   newImport: 'İçe aktar',
 
-  // Original text: "XOSAN"
-  xosan: 'XOSAN',
-
   // Original text: 'Warning: Backup is deprecated, use Backup NG instead.'
   backupDeprecatedMessage: undefined,
 
@@ -4598,316 +4595,11 @@ export default {
   // Original text: "Connected"
   srAllConnected: 'Bağlı',
 
-  // Original text: "XOSAN"
-  xosanTitle: 'XOSAN',
-
-  // Original text: "Xen Orchestra SAN SR"
-  xosanSrTitle: 'Xen Orchestra SAN SR',
-
-  // Original text: "Select local SRs (lvm)"
-  xosanAvailableSrsTitle: "Yerel SR'leri seçin (lvm)",
-
-  // Original text: "Suggestions"
-  xosanSuggestions: 'Öneriler',
-
-  // Original text: "Warning: using disperse layout is not recommended right now. Please read {link}."
-  xosanDisperseWarning: 'Uyarı: dağıtma düzeninin kullanılması şu anda önerilmez. Lütfen okuyun {link}.',
-
-  // Original text: "Name"
-  xosanName: 'Ad',
-
-  // Original text: "Host"
-  xosanHost: 'Sunucu',
-
-  // Original text: "Connected Hosts"
-  xosanHosts: 'Bağlı Sunucular',
-
-  // Original text: "Pool"
-  xosanPool: 'Havuz',
-
-  // Original text: "Volume ID"
-  xosanVolumeId: 'Volume ID',
-
-  // Original text: "Size"
-  xosanSize: 'Boyut',
-
-  // Original text: "Used space"
-  xosanUsedSpace: 'Kullanılan alan',
-
   // Original text: "License"
   license: 'Lisans',
 
-  // Original text: "This XOSAN has more than 1 license!"
-  xosanMultipleLicenses: "Bu XOSAN 1'den fazla lisansa sahip!",
-
-  // Original text: "XOSAN pack needs to be installed and up to date on each host of the pool."
-  xosanNeedPack: 'XOSAN paketinin havuzdaki tüm sunuculara kurulması gerekir.',
-
-  // Original text: "Install it now!"
-  xosanInstallIt: 'Şimdi kur!',
-
-  // Original text: "Some hosts need their toolstack to be restarted before you can create an XOSAN"
-  xosanNeedRestart: "XOSAN oluşturmadan önce bazı sunucuların toolstack'ı yeniden başlatılmalı",
-
-  // Original text: "Restart toolstacks"
-  xosanRestartAgents: "toolstack'ları yeniden başlat",
-
-  // Original text: "Pool master is not running"
-  xosanMasterOffline: "Havuzun master'ı çalışmıyor",
-
-  // Original text: "Install XOSAN pack on {pool}"
-  xosanInstallPackTitle: 'XOSAN paketini şuraya kur {pool}',
-
-  // Original text: "Select at least 2 SRs"
-  xosanSelect2Srs: 'En az 2 SR seçin',
-
-  // Original text: "Layout"
-  xosanLayout: 'Düzen',
-
-  // Original text: "Redundancy"
-  xosanRedundancy: 'Fazlalık',
-
-  // Original text: "Capacity"
-  xosanCapacity: 'Kapasite',
-
-  // Original text: "Available space"
-  xosanAvailableSpace: 'Kullanılabilir alan',
-
-  // Original text: "* Can fail without data loss"
-  xosanDiskLossLegend: '* Veri kaybı olmadan başarısız olabilir',
-
-  // Original text: "Create"
-  xosanCreate: 'Oluştur',
-
-  // Original text: "Add"
-  xosanAdd: 'Ekle',
-
-  // Original text: "Installing XOSAN. Please wait…"
-  xosanInstalling: 'XOSAN yükleniyor. Lütfen bekleyin...',
-
-  // Original text: "No XOSAN available for Community Edition"
-  xosanCommunity: 'Topluluk sürümünde XOSAN özelliği yoktur',
-
-  // Original text: "New"
-  xosanNew: 'Yeni',
-
-  // Original text: "Advanced"
-  xosanAdvanced: 'Gelişmiş',
-
-  // Original text: "Remove subvolumes"
-  xosanRemoveSubvolumes: "Alt volume'leri kaldır",
-
-  // Original text: "Add subvolume…"
-  xosanAddSubvolume: 'Alt volume ekle...',
-
-  // Original text: "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it."
-  xosanWarning:
-    "XOSAN SR'nin bu versiyonu ilk beta sürümünden. Kullanmaya devam edebilirsiniz, ancak değiştirmek için disklerinizi kaydetmeniz ve yeniden oluşturmanız gerekir.",
-
-  // Original text: "VLAN"
-  xosanVlan: 'VLAN',
-
-  // Original text: "No XOSAN found"
-  xosanNoSrs: 'XOSAN bulunamadı',
-
-  // Original text: "Some SRs are detached from the XOSAN"
-  xosanPbdsDetached: "Bazı SR'ler XOSAN'dan ayrıldı",
-
-  // Original text: "Something is wrong with: {badStatuses}"
-  xosanBadStatus: 'Şununla ilgili birşeyler yanlış: {badStatuses}',
-
-  // Original text: "Running"
-  xosanRunning: 'Çalışıyor',
-
-  // Original text: 'Update packs'
-  xosanUpdatePacks: undefined,
-
-  // Original text: 'Checking for updates'
-  xosanPackUpdateChecking: undefined,
-
-  // Original text: 'Error while checking XOSAN packs. Please make sure that the Cloud plugin is installed and loaded and that the updater is reachable.'
-  xosanPackUpdateError: undefined,
-
-  // Original text: 'XOSAN resources are unavailable'
-  xosanPackUpdateUnavailable: undefined,
-
-  // Original text: 'Not registered for XOSAN resources'
-  xosanPackUpdateUnregistered: undefined,
-
-  // Original text: "✓ This pool's XOSAN packs are up to date!"
-  xosanPackUpdateUpToDate: undefined,
-
-  // Original text: 'Update pool with latest pack v{version}'
-  xosanPackUpdateVersion: undefined,
-
-  // Original text: "Delete XOSAN"
-  xosanDelete: 'XOSAN sil',
-
-  // Original text: "Fix"
-  xosanFixIssue: 'Onar',
-
-  // Original text: "Creating XOSAN on {pool}"
-  xosanCreatingOn: '{pool} üzerinde XOSAN oluşturuluyor',
-
-  // Original text: "Configuring network…"
-  xosanState_configuringNetwork: 'Ağ yapılandırılıyor...',
-
-  // Original text: "Importing VM…"
-  xosanState_importingVm: 'VM içe aktarılıyor...',
-
-  // Original text: "Copying VMs…"
-  xosanState_copyingVms: "VM'ler kopyalanıyor...",
-
-  // Original text: "Configuring VMs…"
-  xosanState_configuringVms: "VM'ler yapılandırılıyor...",
-
-  // Original text: "Configuring gluster…"
-  xosanState_configuringGluster: 'Gluster yapılandırılıyor...',
-
-  // Original text: "Creating SR…"
-  xosanState_creatingSr: 'SR oluşturuluyor...',
-
-  // Original text: "Scanning SR…"
-  xosanState_scanningSr: 'SR taranıyor...',
-
-  // Original text: "Install cloud plugin first"
-  xosanInstallCloudPlugin: 'Önce XOA eklentisini kurun',
-
-  // Original text: "Load cloud plugin first"
-  xosanLoadCloudPlugin: 'Önce XOA eklentisini yükleyin',
-
-  // Original text: "Register your appliance first"
-  xosanRegister: "Önce XOSAN'ın kaydını yapın",
-
-  // Original text: "Loading…"
-  xosanLoading: 'Yükleniyor...',
-
-  // Original text: "XOSAN is not available at the moment"
-  xosanNotAvailable: 'XOSAN şuan kullanılabilir değil',
-
-  // Original text: "No compatible XOSAN pack found for your XenServer versions."
-  xosanNoPackFound: 'XenServer sürümünüz ile uyumlu XOSAN paketi bulunamadı.',
-
-  // Original text: "Some XOSAN Virtual Machines are not running"
-  xosanVmsNotRunning: 'Bazı XOSAN Sanal Makinaları çalışmıyor',
-
-  // Original text: "Some XOSAN Virtual Machines could not be found"
-  xosanVmsNotFound: 'Bazı XOSAN Sanal Makinaları bulunamadı',
-
-  // Original text: "Files needing healing"
-  xosanFilesNeedingHealing: 'İyileştirme ihtiyacı olan dosyalar',
-
-  // Original text: "Some XOSAN Virtual Machines have files needing healing"
-  xosanFilesNeedHealing: 'Bazı XOSAN Sanal Makinalarında iyileştirilmesi gereken dosyalar var',
-
-  // Original text: "Host {hostName} is not in XOSAN network"
-  xosanHostNotInNetwork: '{hostName} sunucusu XOSAN ağında değil',
-
-  // Original text: "VM controller"
-  xosanVm: 'VM denetleyici',
-
-  // Original text: "SR"
-  xosanUnderlyingStorage: 'SR',
-
-  // Original text: "Replace…"
-  xosanReplace: 'Değiştir...',
-
-  // Original text: "On same VM"
-  xosanOnSameVm: 'Aynı VM üzerinde',
-
-  // Original text: "Brick name"
-  xosanBrickName: 'Brick adı',
-
-  // Original text: "Brick UUID"
-  xosanBrickUuid: 'Brick UUID',
-
-  // Original text: "Brick size"
-  xosanBrickSize: 'Brick boyutu',
-
-  // Original text: "Memory size"
-  xosanMemorySize: 'Bellek boyutu',
-
-  // Original text: "Status"
-  xosanStatus: 'Durum',
-
-  // Original text: "Arbiter"
-  xosanArbiter: 'Hakem',
-
-  // Original text: "Used Inodes"
-  xosanUsedInodes: 'Kullanılan düğümler',
-
-  // Original text: "Block size"
-  xosanBlockSize: 'Blok boyutu',
-
-  // Original text: "Device"
-  xosanDevice: 'Cihaz',
-
-  // Original text: "FS name"
-  xosanFsName: 'FS adı',
-
-  // Original text: "Mount options"
-  xosanMountOptions: 'Mount seçenekleri',
-
-  // Original text: "Path"
-  xosanPath: 'Yol',
-
-  // Original text: "Job"
-  xosanJob: 'İş',
-
-  // Original text: "PID"
-  xosanPid: 'PID',
-
-  // Original text: "Port"
-  xosanPort: 'Port',
-
-  // Original text: "Missing values"
-  xosanReplaceBrickErrorTitle: 'Eksik değerler',
-
-  // Original text: "You need to select a SR and a size"
-  xosanReplaceBrickErrorMessage: 'Bir SR ve bir boyut seçmelisiniz',
-
-  // Original text: "Bad values"
-  xosanAddSubvolumeErrorTitle: 'Kötü değerler',
-
-  // Original text: "You need to select {nSrs, number} and a size"
-  xosanAddSubvolumeErrorMessage: '{nSrs, number} ve bir boyut seçmelisiniz',
-
-  // Original text: "Select {nSrs, number} SRs"
-  xosanSelectNSrs: '{nSrs, number} SR seç',
-
-  // Original text: "Run"
-  xosanRun: 'Çalıştır',
-
-  // Original text: "Remove"
-  xosanRemove: 'Kaldır',
-
-  // Original text: "Volume"
-  xosanVolume: 'Volume',
-
-  // Original text: "Volume options"
-  xosanVolumeOptions: 'Volume seçenekleri',
-
-  // Original text: "Could not find VM"
-  xosanCouldNotFindVm: 'VM bulunamadı',
-
-  // Original text: "Using {usage}"
-  xosanUnderlyingStorageUsage: 'Kullanım {usage}',
-
-  // Original text: "Custom IP network (/24)"
-  xosanCustomIpNetwork: 'Özel IP ağı (/24)',
-
-  // Original text: "Will configure the host xosan network device with a static IP address and plug it in."
-  xosanIssueHostNotInNetwork: 'Sunucu, xosan ağ cihazını statik bir IP adresiyle yapılandırır ve fişe takar.',
-
   // Original text: "Licenses"
   licensesTitle: 'Lisanslar',
-
-  // Original text: "You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}"
-  xosanUnregisteredDisclaimer: 'Kayıtlı değilsiniz ve bu nedenle XOSAN SR oluşturamaz veya yönetemezsiniz. {Link}',
-
-  // Original text: "In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}."
-  xosanSourcesDisclaimer:
-    "Bir XOSAN SR oluşturmak için, XOA kullanmanız ve {link} 'ten bir XOSAN lisansı satın almanız gerekir.",
 
   // Original text: "Register now!"
   registerNow: 'Şimdi kaydol!',
@@ -4933,12 +4625,6 @@ export default {
   // Original text: "Support"
   productSupport: 'Destek',
 
-  // Original text: "No XOSAN attached"
-  licenseNotBoundXosan: 'Ekli XOSAN yok',
-
-  // Original text: "License attached to an unknown XOSAN"
-  licenseBoundUnknownXosan: "Lisans bilinmeyen bir XOSAN'a ekli",
-
   // Original text: "Manage the licenses"
   licensesManage: 'Lisansları yönet',
 
@@ -4948,24 +4634,8 @@ export default {
   // Original text: "Refresh"
   refreshLicenses: 'Yenile',
 
-  // Original text: "Limited size because XOSAN is in trial"
-  xosanLicenseRestricted: 'Limitli boyut çünkü XOSAN deneme sürecinde',
-
-  // Original text: "You need a license on this SR to manage the XOSAN."
-  xosanAdminNoLicenseDisclaimer: "XOSAN'ı yönetmek için bu SR üzerinde bir lisansa ihtiyacınız var.",
-
-  // Original text: "Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore."
-  xosanAdminExpiredLicenseDisclaimer:
-    "XOSAN lisansınızın süresi doldu. SR'yi hala kullanabilirsiniz ancak artık yönetemezsiniz.",
-
-  // Original text: "Could not check the license on this XOSAN SR"
-  xosanCheckLicenseError: "Bu XOSAN SR'deki lisans kontrol edilemedi",
-
   // Original text: "Could not fetch licenses"
   getLicensesError: 'Lisans alınamadı',
-
-  // Original text: "License has expired."
-  xosanLicenseHasExpired: "Lisnas'ın süresi doldu",
 
   // Original text: "License expires on {date}."
   licenseExpiresDate: 'Lisans {date} tarihinde bitecek.',
@@ -4973,14 +4643,8 @@ export default {
   // Original text: "Update the license now!"
   updateLicenseMessage: "Lisans'ı şimdi güncelle!",
 
-  // Original text: "Unknown XOSAN SR."
-  xosanUnknownSr: 'Bilinmeyen XOSAN SR',
-
   // Original text: "Contact us!"
   contactUs: 'Bizimle iletişime geçin!',
-
-  // Original text: "No license."
-  xosanNoLicense: 'Lisans yok.',
 
   // Original text: "Unlock now!"
   unlockNow: 'Şimdi kilidi kaldır!',
@@ -4993,12 +4657,6 @@ export default {
 
   // Original text: "expires on {date}"
   expiresOn: '{date} tarihinde bitecek',
-
-  // Original text: "Install XOA plugin first"
-  xosanInstallXoaPlugin: 'Önce XOA eklentisini kurun',
-
-  // Original text: "Load XOA plugin first"
-  xosanLoadXoaPlugin: 'Önce XOA eklentisini yükleyin',
 
   // Original text: '{seconds, plural, one {# second} other {# seconds}}'
   secondsFormat: undefined,

@@ -20,7 +20,6 @@ import {
   omit,
   pick,
   sample,
-  some,
 } from 'lodash'
 
 import _ from './intl'
@@ -480,8 +479,6 @@ export const compareVersions = makeNiceCompare((v1, v2) => {
   return 0
 })
 
-export const isXosanPack = ({ name }) => name.startsWith('XOSAN')
-
 // ===================================================================
 
 // Generates a random human-readable string of length `length`
@@ -572,12 +569,6 @@ export const findLatestPack = (packs, hostsVersions) => {
   return latestPack
 }
 
-export const isLatestXosanPackInstalled = (latestXosanPack, hosts) =>
-  latestXosanPack !== undefined &&
-  every(hosts, host =>
-    some(host.supplementalPacks, ({ name, version }) => name === 'XOSAN' && version === latestXosanPack.version)
-  )
-
 // ===================================================================
 
 export const getMemoryUsedMetric = ({ memory, memoryFree = memory }) =>
@@ -614,6 +605,7 @@ export const downloadLog = ({ log, date, type }) => {
   const isJson = typeof log !== 'string'
 
   const anchor = document.createElement('a')
+  // eslint-disable-next-line n/no-unsupported-features/node-builtins
   anchor.href = window.URL.createObjectURL(createBlobFromString(isJson ? JSON.stringify(log, null, 2) : log))
   anchor.download = `${safeDateFormat(date)} - ${type}.${isJson ? 'json' : 'log'}`
   anchor.style.display = 'none'

@@ -395,9 +395,6 @@ export default {
   // Original text: 'Import'
   newImport: 'Importare',
 
-  // Original text: 'XOSAN'
-  xosan: 'XOSAN',
-
   // Original text: 'How to migrate to the new backup system'
   backupMigrationLink: 'Come migrare al nuovo sistema di backup',
 
@@ -5336,278 +5333,8 @@ export default {
   migrateVdiMessage:
     'Tutti i VDI collegati a una VM devono trovarsi su un SR condiviso o sullo stesso host (SR locale) affinché la VM possa avviarsi.',
 
-  // Original text: 'XOSAN'
-  xosanTitle: 'XOSAN',
-
-  // Original text: 'Suggestions'
-  xosanSuggestions: 'Suggerimenti',
-
-  // Original text: 'Warning: using disperse layout is not recommended right now. Please read {link}.'
-  xosanDisperseWarning: 'Si prega di leggere {link}.',
-
-  // Original text: 'Name'
-  xosanName: 'Nome',
-
-  // Original text: 'Host'
-  xosanHost: 'Host',
-
-  // Original text: 'Connected Hosts'
-  xosanHosts: 'Host collegati',
-
-  // Original text: 'Pool'
-  xosanPool: 'Pool',
-
-  // Original text: 'Size'
-  xosanSize: 'Dimensione',
-
-  // Original text: 'Used space'
-  xosanUsedSpace: 'Spazio usato',
-
   // Original text: 'License'
   license: 'Licenza',
-
-  // Original text: 'This XOSAN has more than 1 license!'
-  xosanMultipleLicenses: 'Questo XOSAN ha più di 1 licenza!',
-
-  // Original text: 'XOSAN pack needs to be installed and up to date on each host of the pool.'
-  xosanNeedPack: 'Il pacchetto XOSAN deve essere installato e aggiornato su ogni host del pool.',
-
-  // Original text: 'Install it now!'
-  xosanInstallIt: 'Installarlo ora!',
-
-  // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
-  xosanNeedRestart: 'Alcuni hosts necessitano di riavviare il loro toolstack prima di poter creare un XOSAN',
-
-  // Original text: 'Restart toolstacks'
-  xosanRestartAgents: 'Riavvia toolstacks',
-
-  // Original text: 'Select no more than 1 SR per host'
-  xosanSrOnSameHostMessage: 'Selezionare non più di 1 SR per host',
-
-  // Original text: 'Layout'
-  xosanLayout: 'Disposizione',
-
-  // Original text: 'Redundancy'
-  xosanRedundancy: 'Ridondanza',
-
-  // Original text: 'Capacity'
-  xosanCapacity: 'Capacità',
-
-  // Original text: 'Available space'
-  xosanAvailableSpace: 'Spazio disponibile',
-
-  // Original text: '* Can fail without data loss'
-  xosanDiskLossLegend: '* Può fallire senza perdita di dati',
-
-  // Original text: 'Create'
-  xosanCreate: 'Creare',
-
-  // Original text: 'XOSAN is available in XOA'
-  xosanCommunity: 'XOSAN è disponibile in XOA',
-
-  // Original text: 'New'
-  xosanNew: 'Nuovo',
-
-  // Original text: 'Advanced'
-  xosanAdvanced: 'Avanzati',
-
-  // Original text: 'Remove subvolumes'
-  xosanRemoveSubvolumes: 'Rimuovi sottovolumi',
-
-  // Original text: 'Add subvolume…'
-  xosanAddSubvolume: 'Aggiungi volume secondario…',
-
-  // Original text: "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it."
-  xosanWarning:
-    'Questa versione di XOSAN SR è della prima fase beta. Puoi continuare a usarlo, ma per modificarlo dovrai salvare i tuoi dischi e ricrearli.',
-
-  // Original text: 'VLAN'
-  xosanVlan: 'VLAN',
-
-  // Original text: 'No XOSAN found'
-  xosanNoSrs: 'Nessun XOSAN trovato',
-
-  // Original text: 'Some SRs are detached from the XOSAN'
-  xosanPbdsDetached: 'Alcuni SR sono scollegati da XOSAN',
-
-  // Original text: 'Something is wrong with: {badStatuses}'
-  xosanBadStatus: 'Qualcosa non va: {badStatuses}',
-
-  // Original text: 'Running'
-  xosanRunning: 'In esecuzione',
-
-  // Original text: 'Update packs'
-  xosanUpdatePacks: 'Pacchetti di aggiornamento',
-
-  // Original text: 'Checking for updates'
-  xosanPackUpdateChecking: 'Verifica aggiornamenti',
-
-  // Original text: 'Error while checking XOSAN packs. Please make sure that the Cloud plugin is installed and loaded, and that the updater is reachable.'
-  xosanPackUpdateError:
-    'Assicurati che il plug-in Cloud sia installato e caricato e che il programma di aggiornamento sia raggiungibile.',
-
-  // Original text: 'XOSAN resources are unavailable'
-  xosanPackUpdateUnavailable: 'Le risorse XOSAN non sono disponibili',
-
-  // Original text: 'Not registered for XOSAN resources'
-  xosanPackUpdateUnregistered: 'Non registrato per le risorse XOSAN',
-
-  // Original text: "✓ This pool's XOSAN packs are up to date!"
-  xosanPackUpdateUpToDate: '✓ I pacchetti XOSAN di questo pool sono aggiornati!',
-
-  // Original text: 'Update pool with latest pack v{version}'
-  xosanPackUpdateVersion: "Pool di aggiornamento con l'ultimo pacchetto v{versione}",
-
-  // Original text: 'Delete XOSAN'
-  xosanDelete: 'Elimina XOSAN',
-
-  // Original text: 'Fix'
-  xosanFixIssue: 'fix',
-
-  // Original text: 'Creating XOSAN on {pool}'
-  xosanCreatingOn: 'Creazione di XOSAN su {pool}',
-
-  // Original text: 'Configuring network…'
-  xosanState_configuringNetwork: 'Configurazione della rete…',
-
-  // Original text: 'Importing VM…'
-  xosanState_importingVm: 'Importazione delle VMs…',
-
-  // Original text: 'Copying VMs…'
-  xosanState_copyingVms: 'Copia delle VMs…',
-
-  // Original text: 'Configuring VMs…'
-  xosanState_configuringVms: 'Configurazione delle VMs…',
-
-  // Original text: 'Configuring gluster…'
-  xosanState_configuringGluster: 'Configurazione dello gluster…',
-
-  // Original text: 'Creating SR…'
-  xosanState_creatingSr: 'Creazione dello SR…',
-
-  // Original text: 'Scanning SR…'
-  xosanState_scanningSr: 'Scansione SR…',
-
-  // Original text: 'Install XOA plugin first'
-  xosanInstallCloudPlugin: 'Installare prima il plugin XOA',
-
-  // Original text: 'Load XOA plugin first'
-  xosanLoadCloudPlugin: 'Carica prima il plugin XOA',
-
-  // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
-  xosanNoPackFound: 'Nessun pacchetto XOSAN compatibile trovato per le tue versioni XenServer.',
-
-  // Original text: 'Some XOSAN Virtual Machines are not running'
-  xosanVmsNotRunning: 'Alcune VMs XOSAN non sono in esecuzione',
-
-  // Original text: 'Some XOSAN Virtual Machines could not be found'
-  xosanVmsNotFound: 'Impossibile trovare alcune VMs XOSAN',
-
-  // Original text: 'Files needing healing'
-  xosanFilesNeedingHealing: 'File che necessitano di guarigione',
-
-  // Original text: 'Some XOSAN Virtual Machines have files needing healing'
-  xosanFilesNeedHealing: 'Alcune VMs XOSAN hanno file che richiedono cure',
-
-  // Original text: 'Host {hostName} is not in XOSAN network'
-  xosanHostNotInNetwork: "L'host {hostName} non si trova nella rete XOSAN",
-
-  // Original text: 'VM controller'
-  xosanVm: 'Controller VM',
-
-  // Original text: 'SR'
-  xosanUnderlyingStorage: 'SR',
-
-  // Original text: 'Replace…'
-  xosanReplace: 'Sostituire…',
-
-  // Original text: 'On same VM'
-  xosanOnSameVm: 'Sulla stessa macchina virtuale',
-
-  // Original text: 'Brick name'
-  xosanBrickName: 'Nome del brick',
-
-  // Original text: 'Brick UUID'
-  xosanBrickUuid: 'Brick UUID',
-
-  // Original text: 'Brick size'
-  xosanBrickSize: 'Dimensione del brick',
-
-  // Original text: 'Memory size'
-  xosanMemorySize: 'Dimensione delle memoria',
-
-  // Original text: 'Status'
-  xosanStatus: 'Stato',
-
-  // Original text: 'Arbiter'
-  xosanArbiter: 'Arbitro',
-
-  // Original text: 'Used Inodes'
-  xosanUsedInodes: 'Inodi usati',
-
-  // Original text: 'Block size'
-  xosanBlockSize: 'Dimensione del blocco',
-
-  // Original text: 'Device'
-  xosanDevice: 'Dispositivo',
-
-  // Original text: 'FS name'
-  xosanFsName: 'Nome FS',
-
-  // Original text: 'Mount options'
-  xosanMountOptions: 'Opzioni di montaggio',
-
-  // Original text: 'Path'
-  xosanPath: 'Percorso',
-
-  // Original text: 'Job'
-  xosanJob: 'Lavoro',
-
-  // Original text: 'PID'
-  xosanPid: 'PID',
-
-  // Original text: 'Port'
-  xosanPort: 'Porta',
-
-  // Original text: 'Missing values'
-  xosanReplaceBrickErrorTitle: 'Valori mancanti',
-
-  // Original text: 'You need to select a SR and a size'
-  xosanReplaceBrickErrorMessage: 'Devi selezionare un SR e una dimensione',
-
-  // Original text: 'Bad values'
-  xosanAddSubvolumeErrorTitle: 'Valori errati',
-
-  // Original text: 'You need to select {nSrs, number} and a size'
-  xosanAddSubvolumeErrorMessage: 'Devi selezionare {nSrs, number} e una dimensione',
-
-  // Original text: 'Select {nSrs, number} SRs'
-  xosanSelectNSrs: 'Seleziona {nSrs, number} SR',
-
-  // Original text: 'Run'
-  xosanRun: 'Execuzione',
-
-  // Original text: 'Remove'
-  xosanRemove: 'Rimuovere',
-
-  // Original text: 'Volume'
-  xosanVolume: 'Volume',
-
-  // Original text: 'Volume options'
-  xosanVolumeOptions: 'Opzioni volume',
-
-  // Original text: 'Could not find VM'
-  xosanCouldNotFindVm: 'Impossibile trovare la VM',
-
-  // Original text: 'Using {usage}'
-  xosanUnderlyingStorageUsage: 'Utilizzando {usage}',
-
-  // Original text: 'Custom IP network (/24)'
-  xosanCustomIpNetwork: 'Rete IP personalizzata (/ 24)',
-
-  // Original text: 'Will configure the host xosan network device with a static IP address and plug it in.'
-  xosanIssueHostNotInNetwork:
-    'Configurerà il dispositivo di rete xosan host con un indirizzo IP statico e lo collegherà.',
 
   // Original text: 'Hub'
   hubPage: 'Hub',
@@ -5729,14 +5456,6 @@ export default {
   // Original text: 'Refresh records list'
   refreshAuditRecordsList: "Aggiorna l'elenco dei record",
 
-  // Original text: 'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}'
-  xosanUnregisteredDisclaimer:
-    'Non sei registrato e pertanto non sarai in grado di creare o gestire i tuoi XOSAN SR. {link}',
-
-  // Original text: 'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.'
-  xosanSourcesDisclaimer:
-    'Per creare un XOSAN SR, è necessario utilizzare Xen Orchestra Appliance e acquistare una licenza XOSAN su {link}.',
-
   // Original text: 'Register now!'
   registerNow: 'Iscriviti ora!',
 
@@ -5758,12 +5477,6 @@ export default {
   // Original text: 'Support'
   productSupport: 'Supporto',
 
-  // Original text: 'No XOSAN attached'
-  licenseNotBoundXosan: 'XOSAN non collegato',
-
-  // Original text: 'License attached to an unknown XOSAN'
-  licenseBoundUnknownXosan: 'Licenza allegata a un XOSAN sconosciuto',
-
   // Original text: 'Manage the licenses'
   licensesManage: 'Gestisci le licenze',
 
@@ -5772,19 +5485,6 @@ export default {
 
   // Original text: 'Refresh'
   refreshLicenses: 'Ricaricare',
-
-  // Original text: 'Limited size because XOSAN is in trial'
-  xosanLicenseRestricted: 'Dimensioni limitate perché XOSAN è in prova',
-
-  // Original text: 'You need a license on this SR to manage the XOSAN.'
-  xosanAdminNoLicenseDisclaimer: 'Per gestire XOSAN è necessaria una licenza su questo SR.',
-
-  // Original text: 'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.'
-  xosanAdminExpiredLicenseDisclaimer:
-    'La tua licenza XOSAN è scaduta. È ancora possibile utilizzare SR ma non è più possibile gestirlo.',
-
-  // Original text: 'Could not check the license on this XOSAN SR'
-  xosanCheckLicenseError: 'Impossibile verificare la licenza su questo XOSAN SR',
 
   // Original text: 'Could not fetch licenses'
   getLicensesError: 'Impossibile recuperare le licenze',
@@ -5804,14 +5504,8 @@ export default {
   // Original text: 'Update the license now!'
   updateLicenseMessage: 'Aggiorna subito la licenza!',
 
-  // Original text: 'Unknown XOSAN SR.'
-  xosanUnknownSr: 'XOSAN SR sconosciuto.',
-
   // Original text: 'Contact us!'
   contactUs: 'Contattaci!',
-
-  // Original text: 'No license.'
-  xosanNoLicense: 'Nessuna licenza.',
 
   // Original text: 'Unlock now!'
   unlockNow: 'Sblocca ora!',
@@ -5824,12 +5518,6 @@ export default {
 
   // Original text: 'expires on {date}'
   expiresOn: 'scade il {date}',
-
-  // Original text: 'Install XOA plugin first'
-  xosanInstallXoaPlugin: 'Installare prima il plugin XOA',
-
-  // Original text: 'Load XOA plugin first'
-  xosanLoadXoaPlugin: 'Carica prima il plugin XOA',
 
   // Original text: 'Activate license'
   bindXoaLicense: 'Attiva la licenza',

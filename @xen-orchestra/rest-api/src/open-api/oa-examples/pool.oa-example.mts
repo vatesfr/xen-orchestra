@@ -29,7 +29,6 @@ export const pool = {
   tags: [],
   name_description: 'Main Lyon Lab',
   name_label: 'XO Lab',
-  xosanPackInstallationTime: null,
   otherConfig: {
     'xo:clientInfo:v9sc05bvrh':
       '{"lastConnected":1744102763392,"networkInterfaces":{"wlp58s0":[{"address":"192.168.1.22","netmask":"255.255.255.0","family":"IPv4","mac":"be:7b:03:70:e6:fe","internal":false,"cidr":"192.168.1.22/24"},{"address":"2a01:cb15:8411:4700:4aff:d5e9:6604:f90b","netmask":"ffff:ffff:ffff:ffff::","family":"IPv6","mac":"be:7b:03:70:e6:fe","internal":false,"cidr":"2a01:cb15:8411:4700:4aff:d5e9:6604:f90b/64","scopeid":0},{"address":"fe80::1d04:d88d:50de:799a","netmask":"ffff:ffff:ffff:ffff::","family":"IPv6","mac":"be:7b:03:70:e6:fe","internal":false,"cidr":"fe80::1d04:d88d:50de:799a/64","scopeid":2}],"wg-grenoble":[{"address":"10.200.205.115","netmask":"255.255.255.0","family":"IPv4","mac":"00:00:00:00:00:00","internal":false,"cidr":"10.200.205.115/24"}],"wg-lyon":[{"address":"10.200.200.115","netmask":"255.255.255.0","family":"IPv4","mac":"00:00:00:00:00:00","internal":false,"cidr":"10.200.200.115/24"}]}}',

@@ -164,9 +164,6 @@ export default {
   // Original text: "Import"
   newImport: 'Import',
 
-  // Original text: 'XOSAN'
-  xosan: undefined,
-
   // Original text: "Overview"
   backupOverviewPage: 'Överblick',
 
@@ -1492,7 +1489,7 @@ export default {
 
   // Original text: 'Add a bonded network'
   networkCreateBondedButton: undefined,
-  //FORTSÄTT
+  // FORTSÄTT
   // Original text: "Device"
   pifDeviceLabel: 'Enhet',
 
@@ -2579,7 +2576,7 @@ export default {
 
   // Original text: 'New'
   resourceSetNew: 'Ny',
-  //fortsätt
+  // fortsätt
   // Original text: "Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files."
   importVmsList:
     'Försök drag-o-släpp några VM-filer här. Eller klicka på Välj VMs för att ladda upp. Endast .xva/ .ova filer godkänns.',
@@ -3693,109 +3690,4 @@ export default {
 
   // Original text: 'Connected'
   srAllConnected: 'Ansluten',
-
-  // Original text: 'XOSAN'
-  xosanTitle: undefined,
-
-  // Original text: 'Xen Orchestra SAN SR'
-  xosanSrTitle: undefined,
-
-  // Original text: 'Select local SRs (lvm)'
-  xosanAvailableSrsTitle: 'Välj lokal SRs (lvm)',
-
-  // Original text: 'Suggestions'
-  xosanSuggestions: 'Förslag',
-
-  // Original text: 'Name'
-  xosanName: 'Namn',
-
-  // Original text: 'Host'
-  xosanHost: 'Värd',
-
-  // Original text: 'Hosts'
-  xosanHosts: 'Värdar',
-
-  // Original text: 'Volume ID'
-  xosanVolumeId: undefined,
-
-  // Original text: 'Size'
-  xosanSize: 'Storlek',
-
-  // Original text: 'Used space'
-  xosanUsedSpace: 'Använt utrymme',
-
-  // Original text: 'XOSAN pack needs to be installed on each host of the pool.'
-  xosanNeedPack: 'XOSAN paket behöver vara installerad på varje värd i poolen',
-
-  // Original text: 'Install it now!'
-  xosanInstallIt: 'Installera det nu!',
-
-  // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
-  xosanNeedRestart: 'Några värdar behöver starta om sina toolstacks före du kan skapa XOSAN',
-
-  // Original text: 'Restart toolstacks'
-  xosanRestartAgents: 'Starta om toolstakcs',
-
-  // Original text: 'Pool master is not running'
-  xosanMasterOffline: 'Pool master körs inte',
-
-  // Original text: 'Install XOSAN pack on {pool}'
-  xosanInstallPackTitle: 'Installera XOSAN paket på {pool}',
-
-  // Original text: 'Select at least 2 SRs'
-  xosanSelect2Srs: 'Välj åtminstone 2 SRs',
-
-  // Original text: 'Layout'
-  xosanLayout: undefined,
-
-  // Original text: 'Redundancy'
-  xosanRedundancy: 'Redundans',
-
-  // Original text: 'Capacity'
-  xosanCapacity: 'Kapacitet',
-
-  // Original text: 'Available space'
-  xosanAvailableSpace: 'Tillgängligt utrymme',
-
-  // Original text: '* Can fail without data loss'
-  xosanDiskLossLegend: 'Kan fallera utan att data försvinner',
-
-  // Original text: 'Create'
-  xosanCreate: 'Skapa',
-
-  // Original text: 'Installing XOSAN. Please wait…'
-  xosanInstalling: 'Installerar XOSAN. Vänligen vänta',
-
-  // Original text: 'No XOSAN available for Community Edition'
-  xosanCommunity: 'Ingen XOSAN tillgänglig för Community Edition',
-
-  // Original text: 'Install cloud plugin first'
-  xosanInstallCloudPlugin: 'Installera cloud plugin först',
-
-  // Original text: 'Load cloud plugin first'
-  xosanLoadCloudPlugin: 'Ladda cloud plugin först',
-
-  // Original text: 'Loading…'
-  xosanLoading: 'Laddar',
-
-  // Original text: 'XOSAN is not available at the moment'
-  xosanNotAvailable: 'XOSAN är inte tillgängligt just nu',
-
-  // Original text: 'Register for the XOSAN beta'
-  xosanRegisterBeta: 'Registrera för XOSAN beta',
-
-  // Original text: 'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.'
-  xosanSuccessfullyRegistered: 'Regitreringen för XOSAN betan lyckades. Vänligen vänta på att din ansökan blir godkänd',
-
-  // Original text: 'Install XOSAN pack on these hosts:'
-  xosanInstallPackOnHosts: 'Installera XOSAN paket på dessa värdar:',
-
-  // Original text: 'Install {pack} v{version}?'
-  xosanInstallPack: 'Installera {pack} v{version}?',
-
-  // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
-  xosanNoPackFound: 'Inget kompatibelt XOSAN paket hittat för din XenServer version',
-
-  // Original text: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
-  xosanPackRequirements: 'Åtminstone en av dessa versionskrav måste uppfyllas av alla värdar i denna poolen:',
 }

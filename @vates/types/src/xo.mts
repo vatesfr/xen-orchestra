@@ -439,7 +439,6 @@ export type XoPool = BaseXapiXo & {
   tags: string[]
   type: 'pool'
   vtpmSupported: boolean
-  xosanPackInstallationTime: number | null
   zstdSupported: boolean
 }
 
