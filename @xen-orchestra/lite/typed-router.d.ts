@@ -117,6 +117,8 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/table-pagination/ui-table-pagination': RouteRecordInfo<'/story/web-core/ui/table-pagination/ui-table-pagination', '/story/web-core/ui/table-pagination/ui-table-pagination', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/tag/ui-tag': RouteRecordInfo<'/story/web-core/ui/tag/ui-tag', '/story/web-core/ui/tag/ui-tag', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/tag/ui-tags-list': RouteRecordInfo<'/story/web-core/ui/tag/ui-tags-list', '/story/web-core/ui/tag/ui-tags-list', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/task-item/ui-task-item': RouteRecordInfo<'/story/web-core/ui/task-item/ui-task-item', '/story/web-core/ui/task-item/ui-task-item', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/task-list/ui-task-list': RouteRecordInfo<'/story/web-core/ui/task-list/ui-task-list', '/story/web-core/ui/task-list/ui-task-list', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/title/ui-title': RouteRecordInfo<'/story/web-core/ui/title/ui-title', '/story/web-core/ui/title/ui-title', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/toaster/ui-toaster': RouteRecordInfo<'/story/web-core/ui/toaster/ui-toaster', '/story/web-core/ui/toaster/ui-toaster', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/toggle/ui-toggle': RouteRecordInfo<'/story/web-core/ui/toggle/ui-toggle', '/story/web-core/ui/toggle/ui-toggle', Record<never, never>, Record<never, never>>,
