@@ -80,10 +80,20 @@ export type XoApp = {
         url: string
         path: string
       }
-      [key: string]: {
+      v5?: {
         url: string
         path: string
       }
+      v6?: {
+        url: string
+        path: string
+      }
+      [key: string]:
+        | undefined
+        | {
+            url: string
+            path: string
+          }
     }>
   }
 
