@@ -241,7 +241,7 @@ export class QcowStreamGenerator {
   stream(): WithLength<Readable> {
     const disk = this.#disk
     const nbAllocatedBlocks = disk.getBlockIndexes().length
-    const nbTotalBlock = disk.getVirtualSize() / disk.getBlockSize()
+    const nbTotalBlock = Math.ceil(disk.getVirtualSize() / disk.getBlockSize())
 
     // Compute table sizes
     const { size: addressTableSize, nbL1Entries } = this.#computeAddressingSpace()
@@ -254,7 +254,7 @@ export class QcowStreamGenerator {
     header.writeBigUint64BE(0n, 8) // backing_file_offset (none)
     header.writeUInt32BE(0, 16) // backing_file_size (none)
     header.writeUInt32BE(Math.log2(CLUSTER_SIZE), 20) // cluster_bits
-    header.writeBigUInt64BE(BigInt(disk.getVirtualSize()), 24) // size
+    header.writeBigUInt64BE(BigInt(nbTotalBlock * disk.getBlockSize()), 24) //aligned size
     header.writeUInt32BE(0, 32) // crypt_method: none
     header.writeUInt32BE(nbL1Entries, 36) // l1_size
     header.writeBigUInt64BE(BigInt(header.length + refCountL1Size + refCountL2Size), 40) // l1_table_offset
