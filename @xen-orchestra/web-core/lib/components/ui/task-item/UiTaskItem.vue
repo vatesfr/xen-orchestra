@@ -10,7 +10,7 @@
         </div>
         <UiButtonIcon
           v-if="hasSubTasks"
-          v-tooltip="expanded ? t('core.close') : t('core.open')"
+          v-tooltip="expanded ? t('action:close') : t('action:open')"
           accent="brand"
           :icon="expanded ? 'fa:angle-down' : 'fa:angle-right'"
           size="small"
@@ -35,7 +35,7 @@
 
         <div class="content-right typo-body-regular-small">
           <span v-if="task.end">
-            {{ `${t('task.ended')} ${end}` }}
+            {{ `${t('task:ended')} ${end}` }}
           </span>
           <div class="progress">
             <UiCircleProgressBar
