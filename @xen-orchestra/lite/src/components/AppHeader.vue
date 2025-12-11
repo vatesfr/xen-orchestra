@@ -2,7 +2,6 @@
   <header class="app-header">
     <div class="left">
       <UiButtonIcon
-        v-if="!uiStore.isDesktopLarge"
         ref="navigationTrigger"
         :class="{ 'menu-to-right': !uiStore.isMobile }"
         accent="brand"
@@ -81,7 +80,7 @@ const logoRoute = computed<RouteLocationRaw>(() =>
 .left {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.6rem;
 
   @media (max-width: 1023px) {
     flex: 1;
@@ -97,7 +96,7 @@ const logoRoute = computed<RouteLocationRaw>(() =>
     flex: 1;
     text-align: center;
   }
-
+  height: 2.5rem;
   text-decoration: none;
 }
 
