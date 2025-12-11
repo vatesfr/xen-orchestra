@@ -4,7 +4,7 @@
       {{ t('vifs') }}
       <template #actions>
         <UiLink :href="xo5VmVifHref" icon="fa:plus" size="medium">
-          {{ t('add-vifs-in-xo-5') }}
+          {{ t('action:add-vifs-in-xo-5') }}
         </UiLink>
       </template>
     </UiTitle>

@@ -686,8 +686,6 @@
   "tags": "Tags",
   "task": "Tâche",
   "task:ended": "Terminée",
-  "task:estimated-end": "@:estimated-end",
-  "task:progress": "@:progress",
   "task:started": "Démarrée",
   "tasks": "Tâches",
   "tasks:all": "Toutes",
