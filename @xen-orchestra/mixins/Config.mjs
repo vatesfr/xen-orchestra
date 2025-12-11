@@ -116,15 +116,26 @@ export default class Config {
       guiRoutes[key] = { url, path }
     }
 
-    if (Object.entries(guiRoutes).find(([_, route]) => route.url === '/') === undefined) {
-      const v5Path = Object.values(guiRoutes).find(route => route.path.includes('xo-web/dist'))?.path
+    // Try to find the normal v5 and v5 paths
+    const v5Path = Object.values(guiRoutes).find(route => route.path.includes('xo-web/dist'))?.path
+    const v6Path = Object.values(guiRoutes).find(route => route.path.includes('@xen-orchestra/web/dist'))?.path
 
+    // If no v5 route is present but its normal path is provided, we add it to the route list.
+    if (Object.entries(guiRoutes).find(([_, route]) => route.url === '/v5') === undefined && v5Path !== undefined) {
+      guiRoutes.xoV5 = { path: v5Path, url: '/v5' }
+    }
+
+    // If no v6 route is present but its normal path is provided, we add it to the route list.
+    if (Object.entries(guiRoutes).find(([_, route]) => route.url === '/v6') === undefined && v6Path !== undefined) {
+      guiRoutes.xoV6 = { path: v6Path, url: '/v6' }
+    }
+
+    // If no defaut route is present, we set it to the appropriate path depending on the channel and available paths.
+    if (Object.entries(guiRoutes).find(([_, route]) => route.url === '/') === undefined) {
       if (channel === 'stable') {
         assert.notStrictEqual(v5Path, undefined, `No path for v5 found in config`)
         guiRoutes.default = { path: v5Path, url: '/' }
       } else {
-        const v6Path = Object.values(guiRoutes).find(route => route.path.includes('@xen-orchestra/web/dist'))?.path
-
         if (v6Path === undefined) {
           assert.notStrictEqual(v5Path, undefined, `No path for v5 found in config`)
           guiRoutes.default = { path: v5Path, url: '/' }
