@@ -5,18 +5,18 @@
       <div class="inputs-container">
         <VtsInputWrapper :label="t('ip-address')">
           <!-- TODO validation -->
-          <UiInput v-model="form.host" accent="brand" required :placeholder="t('ip-port-placeholder')" />
+          <UiInput v-model.trim="form.host" accent="brand" required :placeholder="t('ip-port-placeholder')" />
           <UiInfo accent="info" wrap>
             {{ t('pool-connection-ip-info') }}
           </UiInfo>
         </VtsInputWrapper>
         <!-- TODO validation -->
         <VtsInputWrapper :label="t('proxy-url')">
-          <UiInput v-model="form.httpProxy" accent="brand" />
+          <UiInput v-model.trim="form.httpProxy" accent="brand" />
         </VtsInputWrapper>
         <!-- TODO validation -->
         <VtsInputWrapper :label="t('username')">
-          <UiInput v-model="form.username" accent="brand" required />
+          <UiInput v-model.trim="form.username" accent="brand" required />
           <UiInfo accent="info" wrap>
             {{ t('root-by-default') }}
           </UiInfo>

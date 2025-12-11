@@ -4,12 +4,13 @@
     <input
       :id="wrapperController?.id ?? id"
       ref="inputRef"
-      v-model.trim="modelValue"
+      :value="modelValue"
       :disabled
       :required
       :type
       class="typo-body-regular input text-ellipsis"
       v-bind="attrs"
+      @input="event => handleInput(event)"
     />
     <UiButtonIcon
       v-if="!disabled && modelValue && clearable"
@@ -42,7 +43,6 @@ export type InputType = 'text' | 'number' | 'password' | 'search'
 defineOptions({
   inheritAttrs: false,
 })
-
 const {
   accent: _accent,
   required,
@@ -65,6 +65,10 @@ const slots = defineSlots<{
   'right-icon'?(): any
 }>()
 
+function handleInput(event: Event) {
+  modelValue.value = (event.target as HTMLInputElement).value
+}
+
 const attrs = useAttrs()
 
 const inputRef = ref<HTMLInputElement>()
@@ -73,11 +77,11 @@ const wrapperController = inject(IK_INPUT_WRAPPER_CONTROLLER, undefined)
 
 const accent = useMapper<LabelAccent, InputAccent>(
   () => wrapperController?.labelAccent,
-  {
+  () => ({
     neutral: _accent,
     warning: 'warning',
     danger: 'danger',
-  },
+  }),
   'neutral'
 )
 
