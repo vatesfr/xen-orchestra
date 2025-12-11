@@ -28,13 +28,13 @@
 
 - @xen-orchestra/fs 4.6.5
 - @xen-orchestra/backups 0.67.1
-- @xen-orchestra/web-core 0.36.0
-- @xen-orchestra/mixins 0.17.0
-- @xen-orchestra/proxy 0.29.37
-- @xen-orchestra/rest-api 0.21.2
-- @xen-orchestra/web 0.35.0
-- xo-server 5.194.0
 - xo-web 5.191.1
+- @xen-orchestra/web-core 0.37.0
+- @xen-orchestra/mixins 0.17.1
+- @xen-orchestra/proxy 0.29.38
+- @xen-orchestra/rest-api 0.21.3
+- @xen-orchestra/web 0.35.1
+- xo-server 5.194.1
 
 ## **5.113.2** (2025-12-09)
 
