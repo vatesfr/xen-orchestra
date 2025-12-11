@@ -120,7 +120,6 @@ export default class Config {
     const v5 = Object.values(guiRoutes).find(route => route.path.includes('xo-web/dist'))
     const v6 = Object.values(guiRoutes).find(route => route.path.includes('@xen-orchestra/web/dist'))
 
-    // If no v5 or v6 route is present but its normal path is provided, we add it to the route list.
     guiRoutes.v5 = v5
     guiRoutes.v6 = v6
 
