@@ -38,12 +38,7 @@
             {{ `${t('task:ended')} ${end}` }}
           </span>
           <div class="progress">
-            <UiCircleProgressBar
-              v-if="task.progress !== undefined"
-              :accent="progressAccent"
-              size="small"
-              :value="task.progress"
-            />
+            <UiCircleProgressBar :accent="progressAccent" size="small" :value="task.progress ? task.progress : 100" />
           </div>
           <div class="actions">
             <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select')" />

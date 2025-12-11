@@ -50,7 +50,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const uiStore = useUiStore()
 
-const { properties } = useTaskPropertiesUtils(task)
+const { properties } = useTaskPropertiesUtils(() => task)
 </script>
 
 <style scoped lang="postcss">
