@@ -2,13 +2,6 @@
   <UiCard>
     <UiCardTitle>
       {{ t('task.properties') }}
-      <UiCounter
-        v-if="properties.other"
-        :value="Object.keys(properties.other).length"
-        accent="neutral"
-        size="small"
-        variant="primary"
-      />
     </UiCardTitle>
     <div class="content">
       <UiLogEntryViewer
@@ -30,7 +23,6 @@ import TaskPropertiesRecursive from '@/components/tasks/panel/cards/TaskProperti
 import { useTaskPropertiesUtils } from '@/composables/xo-task-properties-utils.composable.ts'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
 import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
@@ -41,7 +33,7 @@ const { task } = defineProps<{
 
 const { t } = useI18n()
 
-const { properties } = useTaskPropertiesUtils(task)
+const { properties } = useTaskPropertiesUtils(() => task)
 </script>
 
 <style scoped lang="postcss">

@@ -1,14 +1,22 @@
+import type { CircleProgressBarAccent } from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import type { TaskStatus } from '@core/types/task.type.ts'
 
-export const getTaskAccent = (status: TaskStatus, type: 'progress' | 'status') => {
+export type StatusAccent = 'info' | 'warning' | 'danger' | 'success'
+
+export type TaskAccents = {
+  statusAccent: StatusAccent
+  progressAccent: CircleProgressBarAccent
+}
+
+export const getTaskAccents = (status: TaskStatus): TaskAccents => {
   switch (status) {
     case 'pending':
-      return 'info'
+      return { statusAccent: 'info', progressAccent: 'info' }
     case 'success':
-      return type === 'progress' ? 'info' : 'success'
+      return { statusAccent: 'success', progressAccent: 'info' }
     case 'failure':
-      return 'danger'
+      return { statusAccent: 'danger', progressAccent: 'danger' }
     default:
-      return 'info'
+      return { statusAccent: 'info', progressAccent: 'info' }
   }
 }
