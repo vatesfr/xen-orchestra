@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [XO5] RemoveXOSAN (PR [#9248](https://github.com/vatesfr/xen-orchestra/pull/9248))
+- [XO5] Remove XOSAN (PR [#9248](https://github.com/vatesfr/xen-orchestra/pull/9248))
 
 ### Bug fixes
 
