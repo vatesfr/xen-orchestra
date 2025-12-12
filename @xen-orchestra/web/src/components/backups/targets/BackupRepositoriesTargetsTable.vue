@@ -66,7 +66,7 @@ const state = useTableState({
   error: () => error,
   empty: () =>
     backupRepositories.length === 0
-      ? t('no-backup-repositories-detected')
+      ? t('no-backup-repository-detected')
       : filteredRepositories.value.length === 0
         ? { type: 'no-result' }
         : false,

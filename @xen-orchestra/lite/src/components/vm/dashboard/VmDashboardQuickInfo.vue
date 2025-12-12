@@ -105,10 +105,10 @@ const hostPowerState = computed(() => {
 const powerState = useMapper(
   () => vm.power_state,
   {
-    [VM_POWER_STATE.RUNNING]: { icon: 'legacy:running', text: t('vm-status.running') },
-    [VM_POWER_STATE.HALTED]: { icon: 'legacy:halted', text: t('vm-status.halted') },
-    [VM_POWER_STATE.PAUSED]: { icon: 'legacy:paused', text: t('vm-status.paused') },
-    [VM_POWER_STATE.SUSPENDED]: { icon: 'legacy:suspended', text: t('vm-status.suspended') },
+    [VM_POWER_STATE.RUNNING]: { icon: 'legacy:running', text: t('vm:status:running') },
+    [VM_POWER_STATE.HALTED]: { icon: 'legacy:halted', text: t('vm:status:halted') },
+    [VM_POWER_STATE.PAUSED]: { icon: 'legacy:paused', text: t('vm:status:paused') },
+    [VM_POWER_STATE.SUSPENDED]: { icon: 'legacy:suspended', text: t('vm:status:suspended') },
   },
   VM_POWER_STATE.RUNNING
 )

@@ -1,7 +1,7 @@
 <template>
   <UiCard class="vms-page-content">
     <UiCardTitle subtitle>
-      {{ t('vms', 2) }}
+      {{ t('vms') }}
       <template v-if="uiStore.isMobile" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
       </template>
@@ -98,7 +98,7 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 const titleStore = usePageTitleStore()
 
-titleStore.setTitle(t('vms', 2))
+titleStore.setTitle(t('vms'))
 
 const availableFilters: Filters = {
   name_label: { label: t('name'), type: 'string' },

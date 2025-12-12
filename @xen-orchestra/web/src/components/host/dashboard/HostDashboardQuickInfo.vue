@@ -86,7 +86,7 @@ const powerState = computed(() => {
   const state = toLower(host.power_state)
 
   return {
-    text: t(`host-status.${state}`),
+    text: t(`host:status:${state}`),
     icon: powerStateConfig[state],
   }
 })

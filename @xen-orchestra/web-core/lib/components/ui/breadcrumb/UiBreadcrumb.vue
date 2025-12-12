@@ -1,6 +1,6 @@
 <!-- v2 -->
 <template>
-  <nav class="ui-breadcrumb" :class="className" :aria-label="t('aria.breadcrumb.label')">
+  <nav class="ui-breadcrumb" :class="className" :aria-label="t('aria:breadcrumb:label')">
     <ol>
       <li v-for="child in slots.default()" :key="child.ctx.uid">
         <component :is="child" />

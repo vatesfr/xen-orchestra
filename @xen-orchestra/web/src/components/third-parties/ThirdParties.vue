@@ -46,10 +46,14 @@ const dcScopeIp = computed(() => getFormattedIp(getLatestVmIp(dcScopeVms.value, 
 const dcNetscopeIp = computed(() => getFormattedIp(getLatestVmIp(dcNetscopeVms.value, 'dcnetscope')))
 
 const dcScopeLabel = computed(() =>
-  dcScopeIp.value !== undefined ? t('open-app', { name: 'DC Scope' }) : t('install-app', { name: 'DC Scope' })
+  dcScopeIp.value !== undefined
+    ? t('action:open-app', { name: 'DC Scope' })
+    : t('action:install-app', { name: 'DC Scope' })
 )
 const dcNetscopeLabel = computed(() =>
-  dcNetscopeIp.value !== undefined ? t('open-app', { name: 'DC Netscope' }) : t('install-app', { name: 'DC Netscope' })
+  dcNetscopeIp.value !== undefined
+    ? t('action:open-app', { name: 'DC Netscope' })
+    : t('action:install-app', { name: 'DC Netscope' })
 )
 
 const dcScopeLink = computed(() => (dcScopeIp.value !== undefined ? `https://${dcScopeIp.value}` : hubLink.value))

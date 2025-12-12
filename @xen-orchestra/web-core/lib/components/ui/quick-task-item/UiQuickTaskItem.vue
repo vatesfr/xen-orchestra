@@ -13,7 +13,7 @@
           <UiTag v-if="task.tag" accent="neutral" variant="primary">{{ task.tag }}</UiTag>
           <div v-if="hasSubTasks" class="subtasks">
             <VtsIcon name="fa:circle-notch" size="medium" />
-            <span class="typo-body-regular-small">{{ t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
+            <span class="typo-body-regular-small">{{ t('n-subtasks', { n: subTasksCount }) }}</span>
           </div>
         </div>
         <div v-if="task.start" class="line-2 typo-body-regular-small">

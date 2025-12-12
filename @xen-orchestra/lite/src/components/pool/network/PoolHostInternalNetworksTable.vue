@@ -27,7 +27,7 @@
             accent="brand"
             size="medium"
           >
-            {{ t('edit') }}
+            {{ t('action:edit') }}
           </UiButton>
           <UiButton
             v-tooltip="t('coming-soon')"
@@ -37,7 +37,7 @@
             accent="danger"
             size="medium"
           >
-            {{ t('delete') }}
+            {{ t('action:delete') }}
           </UiButton>
         </UiTableActions>
       </div>

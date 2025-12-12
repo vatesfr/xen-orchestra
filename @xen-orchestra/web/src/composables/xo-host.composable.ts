@@ -31,7 +31,7 @@ export function useXoHostUtils() {
     const state = toLower(powerState)
 
     return {
-      text: t(`host-status.${state}`),
+      text: t(`host:status:${state}`),
       icon: powerStateConfig[state],
     }
   }

@@ -1,13 +1,13 @@
 <template>
   <MenuItem icon="fa:file-export">
-    {{ t('export') }}
+    {{ t('action:export') }}
     <template #submenu>
       <VmActionExportItem :vm-refs="vmRefs" />
       <MenuItem icon="fa:code" @click="exportVmsAsJsonFile(vms, `vms_${new Date().toISOString()}.json`)">
-        {{ t('export-table-to', { type: '.json' }) }}
+        {{ t('action:export-table-to', { type: '.json' }) }}
       </MenuItem>
       <MenuItem icon="fa:file-csv" @click="exportVmsAsCsvFile(vms, `vms_${new Date().toISOString()}.csv`)">
-        {{ t('export-table-to', { type: '.csv' }) }}
+        {{ t('action:export-table-to', { type: '.csv' }) }}
       </MenuItem>
     </template>
   </MenuItem>

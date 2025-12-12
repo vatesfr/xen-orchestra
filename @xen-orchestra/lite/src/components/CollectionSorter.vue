@@ -13,7 +13,7 @@
     </UiFilter>
 
     <UiActionButton icon="fa:plus" class="add-sort" @click="openFormModal()">
-      {{ t('add-sort') }}
+      {{ t('action:add-sort') }}
     </UiActionButton>
   </UiFilterGroup>
 </template>

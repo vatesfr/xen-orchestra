@@ -1,7 +1,7 @@
 <template>
   <VtsModal accent="info" icon="fa:display">
     <template #title>
-      {{ t('export-n-vms-manually', { n: labelWithUrl.length }) }}
+      {{ t('action:export-n-vms-manually', { n: labelWithUrl.length }) }}
     </template>
     <template #content>
       <p class="export-information">
@@ -18,7 +18,7 @@
     </template>
 
     <template #buttons>
-      <VtsModalConfirmButton>{{ t('close') }}</VtsModalConfirmButton>
+      <VtsModalConfirmButton>{{ t('action:close') }}</VtsModalConfirmButton>
     </template>
   </VtsModal>
 </template>

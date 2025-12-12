@@ -13,15 +13,15 @@ export const useVmResumeJob = defineJob('vm.resume', [vmsArg], () => {
     run: vms => xapi.vm.resume(Object.fromEntries(vms.map(vm => [vm.$ref, vm.power_state]))),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job.vm-resume.missing-vms'))
+        throw new JobError(t('job:vm-resume:missing-vms'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, [VM_OPERATION.UNPAUSE, VM_OPERATION.RESUME]))) {
-        throw new JobRunningError(t('job.vm-resume.in-progress'))
+        throw new JobRunningError(t('job:vm-resume:in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.PAUSED || vm.power_state === VM_POWER_STATE.SUSPENDED)) {
-        throw new JobError(t('job.vm-resume.bad-power-state'))
+        throw new JobError(t('job:vm-resume:bad-power-state'))
       }
     },
   }

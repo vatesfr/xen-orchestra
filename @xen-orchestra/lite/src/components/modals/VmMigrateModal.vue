@@ -1,7 +1,7 @@
 <template>
   <VtsModal accent="info" @confirm="emit('confirm', selectedHost)">
     <template #title>
-      {{ t('migrate-n-vms', { n: count }) }}
+      {{ t('action:migrate-n-vms', { n: count }) }}
     </template>
 
     <template #content>
@@ -15,7 +15,7 @@
     <template #buttons>
       <VtsModalCancelButton />
       <VtsModalConfirmButton :disabled="!selectedHost">
-        {{ t('migrate-n-vms', { n: count }) }}
+        {{ t('action:migrate-n-vms', { n: count }) }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>

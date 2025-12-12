@@ -67,7 +67,7 @@ const state = useTableState({
   error: () => error,
   empty: () =>
     storageRepositories.length === 0
-      ? t('no-storage-repositories-detected')
+      ? t('no-storage-repository-detected')
       : filteredSrs.value.length === 0
         ? { type: 'no-result' }
         : false,

@@ -9,7 +9,7 @@
 
     <template #buttons>
       <VtsModalCancelButton />
-      <VtsModalConfirmButton :disabled="!newSortProperty">{{ t('add') }}</VtsModalConfirmButton>
+      <VtsModalConfirmButton :disabled="!newSortProperty">{{ t('action:add') }}</VtsModalConfirmButton>
     </template>
   </VtsModal>
 </template>

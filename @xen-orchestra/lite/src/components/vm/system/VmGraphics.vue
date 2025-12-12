@@ -10,7 +10,7 @@
     </VtsQuickInfoRow>
     <VtsQuickInfoRow :label="t('video-ram')">
       <template v-if="videoRamValue?.value" #value>
-        {{ `${videoRamValue.value} ${videoRamValue.prefix || t('bytes.mi')}` }}
+        {{ `${videoRamValue.value} ${videoRamValue.prefix || t('bytes:mi')}` }}
       </template>
     </VtsQuickInfoRow>
   </UiCard>

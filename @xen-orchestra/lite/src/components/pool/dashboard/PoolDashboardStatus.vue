@@ -7,16 +7,16 @@
       <PoolDashboardStatusItem
         :active="activeHostsCount"
         :label="t('hosts')"
-        :active-label="t('host.active', activeHostsCount)"
-        :inactive-label="t('host.inactive', totalHostsCount - activeHostsCount)"
+        :active-label="t('host:status:active', 2)"
+        :inactive-label="t('host:status:inactive', 2)"
         :total="totalHostsCount"
       />
       <UiSeparator />
       <PoolDashboardStatusItem
         :active="activeVmsCount"
-        :label="t('vms', 2)"
-        :active-label="t('vm.active', activeVmsCount)"
-        :inactive-label="t('vm.inactive', totalVmsCount - activeVmsCount)"
+        :label="t('vms')"
+        :active-label="t('vm:status:active', 2)"
+        :inactive-label="t('vm:status:inactive', 2)"
         :total="totalVmsCount"
       />
     </template>

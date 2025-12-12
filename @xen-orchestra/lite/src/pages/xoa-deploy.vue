@@ -1,5 +1,5 @@
 <template>
-  <TitleBar icon="fa:download">{{ t('deploy-xoa') }}</TitleBar>
+  <TitleBar icon="fa:download">{{ t('action:deploy-xoa') }}</TitleBar>
   <div v-if="deploying" class="status">
     <img src="@/assets/xo.svg" width="300" alt="Xen Orchestra" />
 
@@ -179,7 +179,7 @@
             {{ t('cancel') }}
           </UiButton>
           <UiButton size="medium" accent="brand" variant="primary" type="submit">
-            {{ t('deploy') }}
+            {{ t('action:deploy') }}
           </UiButton>
         </VtsButtonGroup>
       </form>
@@ -218,7 +218,7 @@ const REQUIRED_GB = 20
 const { t } = useI18n()
 const router = useRouter()
 
-usePageTitleStore().setTitle(() => t('deploy-xoa'))
+usePageTitleStore().setTitle(() => t('action:deploy-xoa'))
 
 const openInvalidFieldModal = useModal((message: string) => ({
   component: import('@/components/modals/InvalidFieldModal.vue'),
@@ -270,7 +270,7 @@ const openXoa = () => {
 
 const { id: srSelectId, selectedValue: selectedSr } = useFormSelect(filteredSrs, {
   loading: logicNot(isSrReady),
-  placeholder: t('select.storage'),
+  placeholder: t('action:select-storage'),
   option: {
     properties: sr => {
       const spaceLeft = computed(() => sr.physical_size - sr.physical_utilisation)
@@ -292,7 +292,7 @@ const { id: srSelectId, selectedValue: selectedSr } = useFormSelect(filteredSrs,
 const { id: networkSelectId, selectedValue: selectedNetwork } = useFormSelect(filteredNetworks, {
   loading: logicNot(isNetworkReady),
   searchable: true,
-  placeholder: t('select.network'),
+  placeholder: t('action:select-network'),
   option: {
     id: 'uuid',
     label: 'name_label',
@@ -357,7 +357,7 @@ async function deploy() {
   deploying.value = true
 
   try {
-    status.value = t('deploy-xoa-status.importing')
+    status.value = t('deploy-xoa-status:importing')
 
     vmRef.value = (
       (await xapi.call('VM.import', [
@@ -368,7 +368,7 @@ async function deploy() {
       ])) as string[]
     )[0]
 
-    status.value = t('deploy-xoa-status.configuring')
+    status.value = t('deploy-xoa-status:configuring')
 
     const [vifRef] = (await xapi.call('VM.get_VIFs', [vmRef.value])) as string[]
     await xapi.call('VIF.destroy', [vifRef])
@@ -430,7 +430,7 @@ async function deploy() {
       return
     }
 
-    status.value = t('deploy-xoa-status.starting')
+    status.value = t('deploy-xoa-status:starting')
 
     await xapi.call('VM.start', [
       vmRef.value,
@@ -442,7 +442,7 @@ async function deploy() {
       return
     }
 
-    status.value = t('deploy-xoa-status.waiting')
+    status.value = t('deploy-xoa-status:waiting')
 
     const metricsRef = await xapi.call('VM.get_guest_metrics', [vmRef.value])
     let attempts = 120
@@ -457,7 +457,7 @@ async function deploy() {
     } while (--attempts > 0 && networks?.['0/ip'] === undefined)
 
     if (attempts === 0 || networks === undefined) {
-      status.value = t('deploy-xoa-status.not-responding')
+      status.value = t('deploy-xoa-status:not-responding')
       return
     }
 
@@ -467,7 +467,7 @@ async function deploy() {
       )
     )
 
-    status.value = t('deploy-xoa-status.ready')
+    status.value = t('deploy-xoa-status:ready')
 
     // TODO: handle IPv6
     url.value = `https://${networks['0/ip']}`

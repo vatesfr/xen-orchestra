@@ -82,14 +82,14 @@
             <img
               v-if="colorModeOption === 'light'"
               src="../assets/color-mode-light.svg"
-              :alt="t('light-mode.enable')"
+              :alt="t('action:light-mode-enable')"
             />
             <img
               v-else-if="colorModeOption === 'dark'"
               src="../assets/color-mode-dark.svg"
-              :alt="t('dark-mode.enable')"
+              :alt="t('dark-mode:enable')"
             />
-            <img v-else src="../assets/color-mode-auto.svg" :alt="t('color-mode.auto')" />
+            <img v-else src="../assets/color-mode-auto.svg" :alt="t('color-mode:auto')" />
             <span>
               <VtsIcon v-if="uiStore.colorMode === colorModeOption" name="fa:check" size="medium" />
               {{ t(`theme-${colorModeOption}`) }}

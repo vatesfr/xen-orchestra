@@ -6,7 +6,7 @@
         <VtsQuickInfoRow :label="t('proxy')" :value="proxy?.name" />
         <VtsQuickInfoRow :label="t('snapshot-mode')">
           <template v-if="backupJob.mode" #value>
-            <UiTag variant="secondary" accent="info">{{ t(snapshotModeTranslation) }}</UiTag>
+            <UiTag variant="secondary" accent="info">{{ snapshotModeTranslation }}</UiTag>
           </template>
         </VtsQuickInfoRow>
         <VtsQuickInfoRow

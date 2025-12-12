@@ -1,9 +1,9 @@
 <template>
   <MenuItem :busy="areVmsBusyToStart" :disabled="!areVmsHalted" icon="fa:play" @click="xenApi.vm.start(vmRefs)">
-    {{ t('start') }}
+    {{ t('action:start') }}
   </MenuItem>
   <MenuItem :busy="areVmsBusyToStartOnHost" :disabled="!areVmsHalted" icon="fa:server">
-    {{ t('start-on-host') }}
+    {{ t('action:start-on-host') }}
     <template #submenu>
       <MenuItem v-for="host in hosts" :key="host.$ref" icon="fa:server" @click="xenApi.vm.startOn(vmRefs, host.$ref)">
         <div class="wrapper">
@@ -20,7 +20,7 @@
     {{ t('pause') }}
   </MenuItem>
   <MenuItem :busy="areVmsBusyToSuspend" :disabled="!areVmsRunning" icon="fa:moon" @click="xenApi.vm.suspend(vmRefs)">
-    {{ t('suspend') }}
+    {{ t('action:suspend') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToResume"
@@ -28,7 +28,7 @@
     icon="fa:circle-play"
     @click="xenApi.vm.resume(vmRefsWithPowerState)"
   >
-    {{ t('resume') }}
+    {{ t('action:resume') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToReboot"
@@ -36,7 +36,7 @@
     icon="fa:rotate-left"
     @click="xenApi.vm.reboot(vmRefs)"
   >
-    {{ t('reboot') }}
+    {{ t('action:reboot') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToForceReboot"
@@ -44,7 +44,7 @@
     icon="fa:repeat"
     @click="xenApi.vm.reboot(vmRefs, true)"
   >
-    {{ t('force-reboot') }}
+    {{ t('action:force-reboot') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToShutdown"
@@ -52,7 +52,7 @@
     icon="fa:power-off"
     @click="xenApi.vm.shutdown(vmRefs)"
   >
-    {{ t('shutdown') }}
+    {{ t('action:shutdown') }}
   </MenuItem>
   <MenuItem
     :busy="areVmsBusyToForceShutdown"
@@ -60,7 +60,7 @@
     icon="fa:plug"
     @click="xenApi.vm.shutdown(vmRefs, true)"
   >
-    {{ t('force-shutdown') }}
+    {{ t('action:force-shutdown') }}
   </MenuItem>
 </template>
 

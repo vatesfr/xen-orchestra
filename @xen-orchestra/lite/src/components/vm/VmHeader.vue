@@ -12,7 +12,7 @@
             left-icon="fa:power-off"
             @click="open"
           >
-            {{ t('change-state') }}
+            {{ t('action:change-state') }}
             <VtsIcon name="fa:angle-down" size="medium" />
           </UiButton>
         </template>
