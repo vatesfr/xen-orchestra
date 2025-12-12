@@ -1,11 +1,6 @@
 <template>
   <Transition name="slide">
-    <nav
-      v-if="uiStore.isDesktopLarge || isOpen"
-      ref="navElement"
-      :class="{ collapsible: !uiStore.isDesktopLarge }"
-      class="app-navigation"
-    >
+    <nav v-if="isOpen" ref="navElement" class="app-navigation">
       <StoryMenu v-if="route.meta.hasStoryNav" />
       <InfraPoolList v-else />
     </nav>
@@ -16,15 +11,12 @@
 import StoryMenu from '@/components/component-story/StoryMenu.vue'
 import InfraPoolList from '@/components/infra/InfraPoolList.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
-import { useUiStore } from '@core/stores/ui.store'
 import { onClickOutside, whenever } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-
-const uiStore = useUiStore()
 
 const navigationStore = useNavigationStore()
 const { isOpen, trigger } = storeToRefs(navigationStore)
