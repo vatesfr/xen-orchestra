@@ -11,31 +11,37 @@
 import StoryMenu from '@/components/component-story/StoryMenu.vue'
 import InfraPoolList from '@/components/infra/InfraPoolList.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
-import { onClickOutside, whenever } from '@vueuse/core'
+import { onClickOutside } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
 const navigationStore = useNavigationStore()
-const { isOpen, trigger } = storeToRefs(navigationStore)
+const { isOpen } = storeToRefs(navigationStore)
 
 const navElement = ref()
 
-whenever(isOpen, () => {
-  const unregisterEvent = onClickOutside(
-    navElement,
-    () => {
-      isOpen.value = false
-      unregisterEvent?.()
-    },
-    {
-      ignore: [trigger],
-      controls: false,
+watch(
+  () => navigationStore.trigger?.value,
+  triggerElement => {
+    if (triggerElement && navElement.value) {
+      onClickOutside(
+        navElement,
+        () => {
+          if (isOpen.value) {
+            isOpen.value = false
+          }
+        },
+        {
+          ignore: [triggerElement],
+        }
+      )
     }
-  )
-})
+  },
+  { immediate: true }
+)
 </script>
 
 <style lang="postcss" scoped>
