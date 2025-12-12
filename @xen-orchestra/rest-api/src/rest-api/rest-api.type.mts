@@ -186,7 +186,7 @@ export type XoApp = {
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],
     opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
-  ) => Record<T['id'], T>
+  ) => Record<T['id'], T> | undefined
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
   getUser: (id: XoUser['id']) => Promise<XoUser>
