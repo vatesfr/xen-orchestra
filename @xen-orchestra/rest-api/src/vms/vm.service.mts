@@ -237,8 +237,8 @@ export class VmService {
         size: memory.size,
       },
       creation: {
-        date: creation.date,
-        user: creation.user as XoUser['id'],
+        date: creation?.date,
+        user: creation?.user as XoUser['id'],
       },
       $pool,
       virtualizationMode,
@@ -379,6 +379,7 @@ export class VmService {
     const backupArchivesByVmByBr = await this.#restApi.xoApp.listVmBackupsNg(brIds, { vmId: vm.id })
 
     return Object.values(backupArchivesByVmByBr)
+      .filter(backupArchiveByVm => backupArchiveByVm !== undefined)
       .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id])
       .sort((a, b) => b.timestamp - a.timestamp)
       .splice(0, 3)
