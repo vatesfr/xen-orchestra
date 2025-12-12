@@ -729,10 +729,8 @@ const New = decorate([
       inputLongTermRetentionMonthly: generateId,
       inputLongTermRetentionYearly: generateId,
 
-      // In order to keep the user preference, the offline backup is kept in the DB
-      // and it's considered active only when the full mode is enabled
-      offlineBackupActive: ({ isFull, propSettings, settings = propSettings }) =>
-        isFull && Boolean(settings.getIn(['', 'offlineBackup'])),
+      offlineBackupActive: ({ propSettings, settings = propSettings }) =>
+        Boolean(settings.getIn(['', 'offlineBackup'])),
       vmsPattern: ({ _vmsPattern }, { job }) =>
         defined(_vmsPattern, () => (job.vms.id !== undefined ? undefined : job.vms), {
           type: 'VM',
@@ -1211,6 +1209,10 @@ const New = decorate([
                               value={compression}
                             />
                           </FormGroup>
+                        </div>
+                      )}
+                      {!state.snapshotMode && (
+                        <div>
                           <FormGroup>
                             <label>
                               <strong>{_('offlineBackup')}</strong>{' '}
@@ -1229,7 +1231,7 @@ const New = decorate([
                       )}
                       <SelectSnapshotMode
                         checkpointSnapshot={checkpointSnapshot}
-                        disabled={state.offlineBackupActive}
+                        disabled={offlineBackup}
                         offlineSnapshot={offlineSnapshot}
                         setGlobalSettings={effects.setGlobalSettings}
                       />

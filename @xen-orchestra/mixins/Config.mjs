@@ -4,14 +4,17 @@ import isEqual from 'lodash/isEqual.js'
 import { createLogger } from '@xen-orchestra/log'
 import { parseDuration } from '@vates/parse-duration'
 import { watch } from 'app-conf'
+import assert from 'node:assert'
 
-const { warn } = createLogger('xo:mixins:config')
+const { warn, info } = createLogger('xo:mixins:config')
 
 // if path is undefined, an empty string or an empty array, returns the root value
 const niceGet = (value, path) => (path === undefined || path.length === 0 ? value : get(value, path))
 
 export default class Config {
   constructor(app, { appDir, appName, config }) {
+    this._app = app
+    this._appDir = appDir
     this._config = config
     const watchers = (this._watchers = new Set())
 
@@ -89,5 +92,52 @@ export default class Config {
 
   watchDuration(path, cb) {
     return this.watch(path, cb, parseDuration)
+  }
+
+  async getGuiRoutes() {
+    const mounts = this.getOptional('http.mounts') ?? {}
+
+    let channel = 'latest'
+    try {
+      channel = await this._app.getCurrentChannel?.()
+    } catch (error) {
+      info('Unable to get current channel, fallback to latest', error)
+    }
+
+    const guiRoutes = {}
+
+    for (let [url, path] of Object.entries(mounts)) {
+      url = url.replace(/(.+)\/$/, '$1')
+
+      const key = `xo${url
+        .split('/')
+        .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+        .join('')}`
+      guiRoutes[key] = { url, path }
+    }
+
+    // Try to find the normal v5 and v5 paths
+    const v5 = Object.values(guiRoutes).find(route => route.path.includes('xo-web/dist'))
+    const v6 = Object.values(guiRoutes).find(route => route.path.includes('@xen-orchestra/web/dist'))
+
+    guiRoutes.v5 = v5
+    guiRoutes.v6 = v6
+
+    // If no defaut route is present, we set it to the appropriate path depending on the channel and available paths.
+    if (Object.values(guiRoutes).find(route => route.url === '/') === undefined) {
+      if (channel === 'stable') {
+        assert.notStrictEqual(v5, undefined, `No path for v5 found in config`)
+        guiRoutes.default = { path: v5.path, url: '/' }
+      } else {
+        if (v6 === undefined) {
+          assert.notStrictEqual(v5, undefined, `No path for v5 found in config`)
+          guiRoutes.default = { path: v5.path, url: '/' }
+        } else {
+          guiRoutes.default = { path: v6.path, url: '/' }
+        }
+      }
+    }
+
+    return guiRoutes
   }
 }

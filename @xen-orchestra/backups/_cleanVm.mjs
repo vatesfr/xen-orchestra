@@ -4,7 +4,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { Constants, openVhd, VhdAbstract, VhdFile } from 'vhd-lib'
 import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { basename, dirname, resolve } from 'node:path'
-import { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } from './_backupType.mjs'
+import { isMetadataFile, isVhdFile, isVhdSumFile, isXvaFile, isXvaSumFile } from './_backupType.mjs'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { mergeVhdChain } from 'vhd-lib/merge.js'
 
@@ -68,10 +68,12 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
 const noop = Function.prototype
 
 const INTERRUPTED_VHDS_REG = /^\.(.+)\.merge.json$/
+
 const listVhds = async (handler, vmDir, logWarn) => {
   const vhds = new Set()
   const aliases = {}
   const interruptedVhds = new Map()
+  const checksums = new Set()
 
   await asyncMap(
     await handler.list(`${vmDir}/vdis`, {
@@ -85,11 +87,15 @@ const listVhds = async (handler, vmDir, logWarn) => {
         }),
         async vdiDir => {
           const list = await handler.list(vdiDir, {
-            filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file),
+            filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file) || isVhdSumFile(file),
           })
           aliases[vdiDir] = list.filter(vhd => isVhdAlias(vhd)).map(file => `${vdiDir}/${file}`)
 
           await asyncMap(list, async file => {
+            if (isVhdSumFile(file)) {
+              checksums.add(`${vdiDir}/${file}`)
+              return
+            }
             const res = INTERRUPTED_VHDS_REG.exec(file)
             if (res === null) {
               vhds.add(`${vdiDir}/${file}`)
@@ -111,7 +117,7 @@ const listVhds = async (handler, vmDir, logWarn) => {
       )
   )
 
-  return { vhds, interruptedVhds, aliases }
+  return { vhds, interruptedVhds, aliases, checksums }
 }
 
 export async function checkAliases(
@@ -228,7 +234,16 @@ export async function cleanVm(
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
-  const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir, logWarn)
+  const { vhds, interruptedVhds, aliases, checksums } = await listVhds(handler, vmDir, logWarn)
+
+  // from 5.110 to 5.113 we computed checksum for vhd file
+  // but never used nor removed them
+  await asyncMap(checksums, async path => {
+    if (remove) {
+      logInfo('deleting checksum file ', { path })
+      return handler.unlink(path)
+    }
+  })
 
   // remove broken VHDs
   await asyncMap(vhds, async path => {

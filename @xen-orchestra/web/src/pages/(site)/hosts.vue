@@ -1,7 +1,7 @@
 <template>
   <div class="hosts" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <HostsTable :hosts :host-ready="areHostsReady" :has-error="hasHostFetchError" />
+      <HostsTable :hosts :busy="!areHostsReady" :error="hasHostFetchError" />
     </UiCard>
     <HostsSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">

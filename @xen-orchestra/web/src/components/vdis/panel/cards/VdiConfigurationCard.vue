@@ -22,7 +22,7 @@
         <template #value>
           <div v-if="vdiSr" class="storage">
             <VtsObjectIcon type="sr" state="muted" size="medium" />
-            <UiLink size="small" :href="`${xo5routes}#/srs/${vdiSr.id}/general`">
+            <UiLink size="small" :href="srHref">
               {{ vdiSr.name_label }}
             </UiLink>
           </div>
@@ -67,14 +67,15 @@ const { vdi } = defineProps<{
 
 const { t } = useI18n()
 
+const { buildXo5Route } = useXoRoutes()
+
 const { useGetSrById } = useXoSrCollection()
 
 const format = computed(() => getVdiFormat(vdi.image_format))
 
 const vdiSr = useGetSrById(() => vdi.$SR)
 
-const { routes } = useXoRoutes()
-const xo5routes = computed(() => routes.value?.xo5 ?? '')
+const srHref = computed(() => (vdiSr.value ? buildXo5Route(`/srs/${vdiSr.value.id}/general`) : undefined))
 </script>
 
 <style scoped lang="postcss">

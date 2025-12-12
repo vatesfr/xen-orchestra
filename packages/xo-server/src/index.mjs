@@ -188,10 +188,16 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       } else {
         errorMsg = req.flash('error')[0]
       }
+
+      // TODO:
+      // The login page uses certain files from the xo-web package (css,svg)
+      // remove once XO5 is no more used and update `signin.pug` to use `public/logo.svg`, ...
+      const { v5 } = await xo.config.getGuiRoutes()
       res.send(
         signInPage({
           error: errorMsg,
           strategies,
+          xo5Mount: v5?.url + '/',
         })
       )
     } catch (error) {
@@ -544,6 +550,8 @@ const setUpProxies = (express, opts, xo) => {
     return
   }
 
+  const userPort = xo.config.get('http.listen.0.port')
+
   const proxy = httpProxy
     .createServer({
       changeOrigin: true,
@@ -566,6 +574,25 @@ const setUpProxies = (express, opts, xo) => {
       })
     })
 
+  /**
+   *
+   * @param {string} url
+   * @returns {URL} targetUrl
+   */
+  function getTargetUrl(url) {
+    let target = url
+    if (url.includes('[port]')) {
+      target = url.replace(/\[port\]/g, userPort)
+    }
+
+    const targetUrl = new URL(target)
+    if (targetUrl.port === 443) {
+      targetUrl.protocol = targetUrl.protocol === 'ws:' ? 'wss:' : 'https:'
+    }
+
+    return targetUrl
+  }
+
   // TODO: sort proxies by descending prefix length.
 
   // HTTP request proxy.
@@ -574,11 +601,11 @@ const setUpProxies = (express, opts, xo) => {
 
     for (const prefix in opts) {
       if (url.startsWith(prefix)) {
-        const target = opts[prefix]
+        const target = getTargetUrl(opts[prefix])
 
         proxy.web(req, res, {
-          agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
-          target: target + url.slice(prefix.length),
+          agent: target.hostname === 'localhost' ? undefined : xo.httpAgent,
+          target: target.href + url.slice(prefix.length),
         })
 
         return
@@ -599,11 +626,11 @@ const setUpProxies = (express, opts, xo) => {
 
     for (const prefix in opts) {
       if (url.startsWith(prefix)) {
-        const target = opts[prefix]
+        const target = getTargetUrl(opts[prefix])
 
         proxy.ws(req, socket, head, {
           agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
-          target: target + url.slice(prefix.length),
+          target: target.href + url.slice(prefix.length),
         })
 
         return
@@ -935,12 +962,17 @@ export default async function main(args) {
 
   setUpProxies(express, config.http.proxies, xo)
 
-  setUpStaticFiles(express, config.http.mounts)
-
   if (!safeMode) {
     await registerPlugins(xo)
     xo.emit('plugins:registered')
   }
+
+  const mounts = {}
+  for (const guiRoute of Object.values(await xo.config.getGuiRoutes())) {
+    mounts[guiRoute.url] = guiRoute.path
+  }
+
+  setUpStaticFiles(express, mounts)
 
   // Gracefully shutdown on signals.
   //

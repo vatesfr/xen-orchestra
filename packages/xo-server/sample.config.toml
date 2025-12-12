@@ -152,6 +152,8 @@ port = 80
 # List of files/directories which will be served.
 [http.mounts]
 #'/any/url' = '/path/to/directory'
+# '/v5' = '../xo-web/dist/'
+# '/v6' = '../../@xen-orchestra/web/dist/'
 
 # List of proxied URLs (HTTP & WebSockets).
 [http.proxies]

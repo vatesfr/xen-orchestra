@@ -3,36 +3,13 @@
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
-          v-if="uiStore.isMobile"
           v-tooltip="t('close')"
-          size="medium"
+          size="small"
           variant="tertiary"
           accent="brand"
-          icon="fa:angle-left"
+          :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
           @click="emit('close')"
         />
-        <div class="action-buttons">
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="brand"
-            left-icon="fa:edit"
-          >
-            {{ t('edit') }}
-          </UiButton>
-          <UiButton
-            v-tooltip="t('coming-soon')"
-            disabled
-            size="medium"
-            variant="tertiary"
-            accent="danger"
-            left-icon="fa:trash"
-          >
-            {{ t('delete') }}
-          </UiButton>
-        </div>
       </div>
     </template>
     <template #default>
@@ -49,7 +26,6 @@
               {{ pif.id }}
             </template>
             <template #addons>
-              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
               <VtsCopyButton :value="pif.id" />
             </template>
           </VtsCardRowKeyValue>
@@ -59,17 +35,12 @@
               {{ t('network') }}
             </template>
             <template #value>
-              <!-- TODO Remove the span when the link works and the icon is fixed -->
-              <!--
-              <UiComplexIcon size="medium">
-                <VtsIcon :icon="faNetworkWired" accent="current" />
-                <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-              </UiComplexIcon>
-              <a href="">{{ networkNameLabel }}</a>
-              -->
-              <span v-tooltip class="value text-ellipsis">{{ network?.name_label }}</span>
+              <UiLink v-if="network" size="medium" :to="networkTo">
+                <VtsIcon name="fa:network-wired" size="medium" />
+                <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
+              </UiLink>
             </template>
-            <template v-if="network?.name_label" #addons>
+            <template v-if="network" #addons>
               <VtsCopyButton :value="network.name_label" />
             </template>
           </VtsCardRowKeyValue>
@@ -80,6 +51,7 @@
             </template>
             <template #value>
               {{ pif.device }}
+              <VtsIcon v-if="pif.management" v-tooltip="t('management')" name="legacy:primary" size="medium" />
             </template>
             <template #addons>
               <VtsCopyButton :value="pif.device" />
@@ -150,7 +122,7 @@
                   v-tooltip="t('coming-soon')"
                   disabled
                   icon="fa:ellipsis"
-                  size="medium"
+                  size="small"
                   accent="brand"
                 />
               </template>
@@ -241,7 +213,7 @@
                   v-tooltip="t('coming-soon')"
                   disabled
                   icon="fa:ellipsis"
-                  size="medium"
+                  size="small"
                   accent="brand"
                 />
               </template>
@@ -299,10 +271,10 @@ import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
-import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
@@ -330,6 +302,10 @@ const { t } = useI18n()
 const ipAddresses = computed(() => [pif.ip, ...pif.ipv6].filter(ip => ip))
 
 const network = useGetNetworkById(() => pif.$network)
+
+const networkTo = computed(() =>
+  network.value !== undefined ? `/pool/${network.value.$pool}/networks?id=${network.value.id}` : undefined
+)
 
 const networkNbd = computed(() => (network.value?.nbd ? t('on') : t('off')))
 
@@ -387,10 +363,5 @@ const speed = computed(() => {
     align-items: center;
     width: 100%;
   }
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
 }
 </style>

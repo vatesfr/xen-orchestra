@@ -13,9 +13,9 @@
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { event } from '@/libs/story/story-param'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
-import { defineTree } from '@core/composables/tree/define-tree'
 import { useTreeFilter } from '@core/composables/tree-filter.composable'
-import { useTree } from '@core/composables/tree.composable'
+import { defineTree } from '@core/packages/tree/define-tree'
+import { useTree } from '@core/packages/tree/use-tree'
 
 const data = [
   {
@@ -122,12 +122,12 @@ const data = [
 
 const { filter, predicate } = useTreeFilter()
 
-const definitions = defineTree(data, {
+const definitions = defineTree('vms', data, {
   getLabel: 'name_label',
   predicate,
 })
 
-const { nodes: vms } = useTree(definitions, { expand: false })
+const { nodes: vms } = useTree(definitions, { collapse: true })
 </script>
 
 <style lang="postcss" scoped>

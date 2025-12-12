@@ -75,6 +75,26 @@ export type XoApp = {
   config: {
     getOptional(path: string): Record<string, string> | undefined
     getOptionalDuration(path: string): number | undefined
+    getGuiRoutes(): Promise<{
+      default: {
+        url: string
+        path: string
+      }
+      v5?: {
+        url: string
+        path: string
+      }
+      v6?: {
+        url: string
+        path: string
+      }
+      [key: string]:
+        | undefined
+        | {
+            url: string
+            path: string
+          }
+    }>
   }
 
   objects: EventEmitter & {
@@ -166,7 +186,7 @@ export type XoApp = {
   getObjectsByType: <T extends XapiXoRecord>(
     type: T['type'],
     opts?: { filter?: string | ((obj: T) => boolean); limit?: number }
-  ) => Record<T['id'], T>
+  ) => Record<T['id'], T> | undefined
   getTotalBackupSizeOnRemote(id: XoBackupRepository['id']): Promise<{ onDisk: number }>
   getSchedule(id: XoSchedule['id']): Promise<XoSchedule>
   getUser: (id: XoUser['id']) => Promise<XoUser>

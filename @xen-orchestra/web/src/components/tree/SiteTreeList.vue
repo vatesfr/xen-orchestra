@@ -8,7 +8,7 @@
     class="site-tree-list"
   >
     <template #default="{ item: branch, active }">
-      <DynamicScrollerItem :item="branch" :active :size-dependencies="[branch.isExpanded]">
+      <DynamicScrollerItem :item="branch" :active :size-dependencies="[branch.isCollapsed]">
         <SiteTreeItem :key="branch.id" :branch />
       </DynamicScrollerItem>
     </template>

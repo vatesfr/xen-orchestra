@@ -7,12 +7,7 @@
       v-bind="attrs"
     >
       <template v-if="depth > 1">
-        <VtsTreeLine
-          v-for="i in depth - 1"
-          :key="i"
-          :half-height="(!hasToggle && i === depth - 1) || !isExpanded"
-          :right="i === depth - 1"
-        />
+        <VtsTreeLine v-for="i in depth - 1" :key="i" />
       </template>
       <UiButtonIcon
         v-if="hasToggle"
@@ -116,7 +111,6 @@ const depth = inject(IK_TREE_LIST_DEPTH, 0)
 
   .h-line {
     width: 2rem;
-    border-bottom: 0.1rem solid var(--color-brand-txt-base);
     margin-left: -0.4rem;
   }
 

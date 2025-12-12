@@ -17,39 +17,78 @@
         <img alt="" src="@/assets/server-status.svg" />
       </div>
     </div>
-    <NoDataError v-else-if="hasError" />
-    <VtsStateHero v-else-if="!isReady" format="card" busy size="medium" />
-    <div v-else-if="alarms.length === 0" class="no-alarm">
-      <div>
-        <img alt="" src="@/assets/server-status.svg" />
-      </div>
-      <p class="text typo-h4">{{ t('all-good') }}<br />{{ t('no-alarm-triggered') }}</p>
-    </div>
     <div v-else class="table-container">
-      <UiTable>
+      <VtsTable :state>
         <tbody>
-          <AlarmRow v-for="alarm in alarms" :key="alarm.uuid" :alarm />
+          <VtsRow v-for="alarm of alarms" :key="alarm.uuid">
+            <BodyCells :item="alarm" />
+          </VtsRow>
         </tbody>
-      </UiTable>
+      </VtsTable>
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import NoDataError from '@/components/NoDataError.vue'
-import AlarmRow from '@/components/pool/dashboard/alarm/AlarmRow.vue'
+import ObjectLink from '@/components/ObjectLink.vue'
 import UiCard from '@/components/ui/UiCard.vue'
 import UiCardTitle from '@/components/ui/UiCardTitle.vue'
-import UiTable from '@/components/ui/UiTable.vue'
+import type { RawObjectType } from '@/libs/xen-api/xen-api.types'
+import { rawTypeToType } from '@/libs/xen-api/xen-api.utils'
 import { useAlarmStore } from '@/stores/xen-api/alarm.store'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import type { XenApiAlarm } from '@/types/xen-api'
+import VtsRow from '@core/components/table/VtsRow.vue'
+import VtsTable from '@core/components/table/VtsTable.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
+import { useTableState } from '@core/composables/table-state.composable'
+import { defineColumn, defineColumns } from '@core/packages/table'
+import { useDateColumn } from '@core/tables/column-definitions/date-column'
+import { usePercentColumn } from '@core/tables/column-definitions/percent-column'
+import { useTextColumn } from '@core/tables/column-definitions/text-column'
+import { renderBodyCell } from '@core/tables/helpers/render-body-cell'
+import { renderHeadCell } from '@core/tables/helpers/render-head-cell'
+import { logicNot } from '@vueuse/math'
+import { h } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
 const { records: alarms, start, isStarted, isReady, hasError } = useAlarmStore().subscribe({ defer: true })
+
+// Warning: Alarm system will be completely revamped in the future.
+// This is a temporary solution to display alarms.
+// Don't move this code outside of this file.
+
+const useLegacyObjectLinkColumn = defineColumn(() => ({
+  renderHead: () => renderHeadCell(),
+  renderBody: (type: RawObjectType, uuid: string) =>
+    renderBodyCell(() => h(ObjectLink, { type: rawTypeToType(type), uuid: uuid as any })),
+}))
+
+const useAlarmColumns = defineColumns(() => ({
+  time: useDateColumn(),
+  description: useTextColumn(),
+  level: usePercentColumn(),
+  onObject: useTextColumn(),
+  object: useLegacyObjectLinkColumn(),
+}))
+
+const state = useTableState({
+  busy: logicNot(isReady),
+  error: hasError,
+  empty: () => (alarms.value.length === 0 ? { type: 'all-good', message: t('no-alarms-detected') } : false),
+})
+
+const { BodyCells } = useAlarmColumns({
+  body: (alarm: XenApiAlarm<RawObjectType>) => ({
+    time: r => r(alarm.timestamp, { relative: true }),
+    description: r => r(t(`alarm-type.${alarm.type}`, { n: alarm.triggerLevel * 100 })),
+    level: r => r(Math.min(alarm.level, 1)),
+    onObject: r => r(t('on-object', { object: alarm.cls })),
+    object: r => r(alarm.cls, alarm.obj_uuid),
+  }),
+})
 </script>
 
 <style lang="postcss" scoped>

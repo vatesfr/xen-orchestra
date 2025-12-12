@@ -102,9 +102,6 @@ const DEFAULT_BLOCKED_LIST = {
   'xoa.licenses.getAll': true,
   'xoa.licenses.getSelf': true,
   'xoa.supportTunnel.getState': true,
-  'xosan.checkSrCurrentState': true,
-  'xosan.computeXosanPossibleOptions': true,
-  'xosan.getVolumeInfo': true,
 }
 
 const LAST_ID = 'lastId'

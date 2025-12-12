@@ -32,7 +32,7 @@
             v-tooltip="t('coming-soon')"
             disabled
             icon="fa:ellipsis"
-            size="medium"
+            size="small"
             accent="brand"
           />
         </template>

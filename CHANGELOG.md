@@ -1,8 +1,56 @@
 # ChangeLog
 
-## **5.113.1** (2025-11-28)
+## **next**
+
+### Enhancements
+
+- **XO 6:**
+  - [Navigation] Navigation state is now persisted in localStorage and items are now collapsible while filtering. (PR [#9277](https://github.com/vatesfr/xen-orchestra/pull/9277))
+  - [Navigation] Add links to XO 5 for actions and pages not yet implemented in XO 6 (PR [#9214](https://github.com/vatesfr/xen-orchestra/pull/9214))
+
+- [Backups/s3] Update filesystem handling to use DeleteObjectsCommand in order to improve performance (PR [#9281](https://github.com/vatesfr/xen-orchestra/pull/9281))
+- [REST API] Add link to the openAPI JSON directly in the swagger description (PR [#9285](https://github.com/vatesfr/xen-orchestra/pull/9285))
+- [XO] XO6 is now the default page (PR [#9212](https://github.com/vatesfr/xen-orchestra/pull/9212))
+
+### Bug fixes
+
+- [Backups] Allow offline backups for more types of backups [Forum#11578](https://xcp-ng.org/forum/topic/11578) (PR [#9228](https://github.com/vatesfr/xen-orchestra/pull/9228))
+- [xo-server] better handling of xapi snapshots when converting to xo object (PR [#9231](https://github.com/vatesfr/xen-orchestra/pull/9231))
+- [REST API/VM Dashboard] Return `vmProtection: 'protected' | 'unprotected' | 'not-in-job'` instead of `vmProtected: boolean` (PR [#9288](https://github.com/vatesfr/xen-orchestra/pull/9288))
+- [Backup]clean up .vhd.checksum files (PR [#9291](https://github.com/vatesfr/xen-orchestra/pull/9291))
+- [Backup] Prevent "No new data to upload for this VM" info on mirror backups when it was false [Forum#11623](https://xcp-ng.org/forum/topic/11623) (PR [#9286](https://github.com/vatesfr/xen-orchestra/pull/9286))
+
+- **XO 6:**
+  - [VDIs] Fix broken fallback link to XO 5 VDIs page (PR [#9267](https://github.com/vatesfr/xen-orchestra/pull/9267))
+  - Redirect non admin user to XO5 (PR [#9219](https://github.com/vatesfr/xen-orchestra/pull/9219))
+
+### Released packages
+
+- @xen-orchestra/fs 4.6.5
+- @xen-orchestra/backups 0.67.1
+- xo-web 5.191.1
+- @xen-orchestra/web-core 0.37.0
+- @xen-orchestra/mixins 0.17.1
+- @xen-orchestra/proxy 0.29.38
+- @xen-orchestra/rest-api 0.21.3
+- @xen-orchestra/web 0.35.1
+- xo-server 5.194.1
+
+## **5.113.2** (2025-12-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Plugins/OIDC] Fix group import on string (PR [#9280](https://github.com/vatesfr/xen-orchestra/pull/9280))
+- [Plugins/Perf-alert] Improve email subject (PR [#9283](https://github.com/vatesfr/xen-orchestra/pull/9283))
+
+### Released packages
+
+- xo-server-auth-oidc 0.4.1
+- xo-server-perf-alert 1.0.4
+
+## **5.113.1** (2025-11-28)
 
 ### Released packages
 

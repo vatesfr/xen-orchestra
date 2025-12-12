@@ -667,6 +667,8 @@ export class VmController extends XapiXoController<XoVm> {
     @Path() id: string,
     @Query() ndjson?: boolean
   ): Promise<UnbrandedVmDashboard | undefined> {
+    const vm = this.getObject(id as XoVm['id'])
+
     const stream = ndjson ? new PassThrough() : undefined
     const isStream = stream !== undefined
 
@@ -677,7 +679,7 @@ export class VmController extends XapiXoController<XoVm> {
     }
 
     try {
-      const dashboard = await this.#vmService.getVmDashboard(id as XoVm['id'], { stream })
+      const dashboard = await this.#vmService.getVmDashboard(vm.id, { stream })
 
       if (!isStream) {
         return dashboard

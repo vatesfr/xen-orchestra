@@ -38,7 +38,6 @@ const ALLOCATION_BY_TYPE = {
   shm: 'thin',
   smb: 'thin',
   udev: 'thick',
-  xosan: 'thin',
   zfs: 'thin',
 }
 
@@ -193,7 +192,6 @@ const TRANSFORMS = {
       name_description: obj.name_description,
       name_label: obj.name_label || obj.$master.name_label,
       migrationCompression: obj.migration_compression,
-      xosanPackInstallationTime: toTimestamp(obj.other_config.xosan_pack_installation_time),
       otherConfig: obj.other_config,
       cpus: {
         cores: cpuInfo && +cpuInfo.cpu_count,
@@ -486,7 +484,7 @@ const TRANSFORMS = {
         ? obj.platform['nested-virt'] === 'true'
         : obj.platform['exp-nested-hvm'] === 'true',
       vulnerabilities:
-        obj.is_a_template || obj.is_a_snapshot || obj.is_control_domain
+        obj.is_a_template || obj.is_a_snapshot || obj.$snapshot_of !== undefined || obj.is_control_domain
           ? undefined
           : { xsa468: isVmVulnerable_XSA468(obj) },
       viridian: obj.platform.viridian === 'true',
@@ -589,7 +587,7 @@ const TRANSFORMS = {
 
     if (obj.is_control_domain) {
       vm.type += '-controller'
-    } else if (obj.is_a_snapshot) {
+    } else if (obj.is_a_snapshot || obj.$snapshot_of !== undefined) {
       vm.type += '-snapshot'
 
       vm.snapshot_time = toTimestamp(obj.snapshot_time)
@@ -780,7 +778,7 @@ const TRANSFORMS = {
       $VBDs: link(obj, 'VBDs'),
     }
 
-    if (obj.is_a_snapshot) {
+    if (obj.is_a_snapshot || obj.$snapshot_of !== undefined) {
       vdi.type += '-snapshot'
       vdi.snapshot_time = toTimestamp(obj.snapshot_time)
       vdi.$snapshot_of = link(obj, 'snapshot_of')

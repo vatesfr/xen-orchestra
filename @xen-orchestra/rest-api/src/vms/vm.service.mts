@@ -237,8 +237,8 @@ export class VmService {
         size: memory.size,
       },
       creation: {
-        date: creation.date,
-        user: creation.user as XoUser['id'],
+        date: creation?.date,
+        user: creation?.user as XoUser['id'],
       },
       $pool,
       virtualizationMode,
@@ -295,7 +295,7 @@ export class VmService {
     }
   }
 
-  async #getBackupsInfo(id: XoVm['id']): Promise<Pick<VmDashboard['backupsInfo'], 'vmProtected' | 'lastRuns'>> {
+  async #getBackupsInfo(id: XoVm['id']): Promise<Pick<VmDashboard['backupsInfo'], 'vmProtection' | 'lastRuns'>> {
     const vm = this.#restApi.getObject<XoVm>(id, 'VM')
 
     const allBackupJobs = await this.#restApi.xoApp.getAllJobs('backup')
@@ -339,21 +339,23 @@ export class VmService {
         }
       }) as { backupJobId: XoVmBackupJob['id']; timestamp: number; status: string }[]
 
-    let isProtected = false
+    let vmProtection: VmDashboard['backupsInfo']['vmProtection'] = 'not-in-job'
     if (!vmContainsNoBakTag(vm)) {
       const backupLogsByJob = groupBy(backupLogs, 'jobId')
 
       for (const backupJob of relevantJobsWithSchedule) {
-        if (isProtected) {
+        if (vmProtection === 'protected') {
           break
         }
+
+        vmProtection = 'unprotected'
         // can be undefined if the backup did run for now
         const jobLogs: XoBackupLog[] | undefined = backupLogsByJob[backupJob.id]
           ?.filter(log => log.status !== 'pending')
           .slice(-3)
 
         if (jobLogs !== undefined) {
-          isProtected = jobLogs.every(log => {
+          vmProtection = jobLogs.every(log => {
             if (log.status === 'success') {
               return true
             }
@@ -361,11 +363,13 @@ export class VmService {
             const vmTaskLog = this.#backupLogService.getVmBackupTaskLog(log, id)
             return vmTaskLog?.status === 'success'
           })
+            ? 'protected'
+            : 'unprotected'
         }
       }
     }
 
-    return { lastRuns: lastBackupRuns, vmProtected: isProtected }
+    return { lastRuns: lastBackupRuns, vmProtection }
   }
 
   async #getLastVmBackupArchives(id: XoVm['id']): Promise<VmDashboard['backupsInfo']['backupArchives']> {
@@ -375,6 +379,7 @@ export class VmService {
     const backupArchivesByVmByBr = await this.#restApi.xoApp.listVmBackupsNg(brIds, { vmId: vm.id })
 
     return Object.values(backupArchivesByVmByBr)
+      .filter(backupArchiveByVm => backupArchiveByVm !== undefined)
       .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id])
       .sort((a, b) => b.timestamp - a.timestamp)
       .splice(0, 3)
@@ -382,7 +387,7 @@ export class VmService {
   }
 
   async getVmDashboard(id: XoVm['id'], { stream }: { stream?: Writable } = {}): Promise<VmDashboard> {
-    const [quickInfo, alarms, lastReplication, { lastRuns, vmProtected }, lastBackupArchives] = await Promise.all([
+    const [quickInfo, alarms, lastReplication, { lastRuns, vmProtection }, lastBackupArchives] = await Promise.all([
       promiseWriteInStream({ maybePromise: this.#getDashboardQuickInfo(id), path: 'quickInfo', stream }),
       promiseWriteInStream({ maybePromise: Object.keys(this.getVmAlarms(id)), path: 'alarms', stream }),
       promiseWriteInStream({ maybePromise: this.#getLastReplication(id), path: 'backupsInfo.replication', stream }),
@@ -399,7 +404,7 @@ export class VmService {
       alarms: alarms as XoAlarm['id'][],
       backupsInfo: {
         lastRuns,
-        vmProtected,
+        vmProtection,
         replication: lastReplication,
         backupArchives: lastBackupArchives,
       },
