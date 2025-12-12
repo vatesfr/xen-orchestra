@@ -13,7 +13,7 @@
       />
     </div>
     <div>
-      <TaskPropertiesRecursive :data="properties.other as Record<string, unknown>" />
+      <TaskPropertiesRecursive :fields="properties.other as Record<string, unknown>" />
     </div>
   </UiCard>
 </template>

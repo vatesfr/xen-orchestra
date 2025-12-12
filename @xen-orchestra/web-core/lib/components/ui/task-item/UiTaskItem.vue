@@ -1,6 +1,6 @@
 <!-- v10 -->
 <template>
-  <li class="ui-task-item" :data-depth="depth">
+  <li class="ui-task-item" :data-depth="depth" :class="{ 'is-selected': selected }">
     <div class="container">
       <div class="tree-section">
         <div class="tree-lines">
@@ -80,6 +80,7 @@ const { task } = defineProps<{
   task: Task
   depth: number
   expanded?: boolean
+  selected?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -112,6 +113,10 @@ const progressAccent = computed(() => (isError.value ? 'danger' : 'info'))
 .ui-task-item {
   &[data-depth='1']:last-child {
     border-bottom: 0.1rem solid var(--color-neutral-border);
+  }
+
+  &.is-selected {
+    background-color: var(--color-brand-background-selected);
   }
 
   .container {

@@ -6,6 +6,7 @@
       :task="task.source"
       :expanded="task.flags.expanded"
       :depth="depth + 1"
+      :selected="selectedTaskId === task.id"
       @select="emit('select', task.id)"
       @expand="task.toggleFlag('expanded')"
     />
@@ -20,6 +21,7 @@ import type { Task } from '@core/types/task.type.ts'
 const { tasks, depth = 0 } = defineProps<{
   tasks: Task[]
   depth?: number
+  selectedTaskId?: string
 }>()
 
 const emit = defineEmits<{
