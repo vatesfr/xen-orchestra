@@ -19,6 +19,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [REST API] Fix various _cannot convert undefined or null to object_ (PR [#9304](https://github.com/vatesfr/xen-orchestra/pull/9304))
+- [REST API/VM Dashboard] Fix _cannot read property of undefined_ (PR [#9304](https://github.com/vatesfr/xen-orchestra/pull/9304))
 
 ### Packages to release
 
