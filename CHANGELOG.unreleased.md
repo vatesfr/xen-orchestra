@@ -15,6 +15,7 @@
 
 - **XO 6:**
   - [i18n] Update Czech, Danish, Spanish, French, Italian, Dutch, Portuguese (Brazil), and Russian translations (PR [#9243](https://github.com/vatesfr/xen-orchestra/pull/9243))
+  - [Reactivity] Tasks are now reactive (PR [#9271](https://github.com/vatesfr/xen-orchestra/pull/9271))
 
 ### Bug fixes
 
@@ -39,8 +40,10 @@
 
 <!--packages-start-->
 
+- @vates/types minor
 - @xen-orchestra/mixins minor
 - @xen-orchestra/rest-api minor
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 
 <!--packages-end-->
