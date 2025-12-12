@@ -51,17 +51,17 @@ const { t } = useI18n()
 
 const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('host:status:running', poolDashboard?.hosts?.status?.running ?? 0),
+    label: t('host:status:running', 2),
     value: poolDashboard?.hosts?.status?.running ?? 0,
     accent: 'success',
   },
   {
-    label: t('disabled'),
+    label: t('disabled', 2),
     value: poolDashboard?.hosts?.status?.disabled ?? 0,
     accent: 'neutral',
   },
   {
-    label: t('host:status:active', poolDashboard?.hosts?.status?.halted ?? 0),
+    label: t('host:status:active', 2),
     value: poolDashboard?.hosts?.status?.halted ?? 0,
     accent: 'danger',
   },
@@ -69,22 +69,22 @@ const hostsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
 
 const vmsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('vm:status:running', poolDashboard?.vms?.status?.running ?? 0),
+    label: t('vm:status:running', 2),
     value: poolDashboard?.vms?.status?.running ?? 0,
     accent: 'success',
   },
   {
-    label: t('vm:status:paused', poolDashboard?.vms?.status?.paused ?? 0),
+    label: t('vm:status:paused', 2),
     value: poolDashboard?.vms?.status?.paused ?? 0,
     accent: 'info',
   },
   {
-    label: t('vm:status:suspended', poolDashboard?.vms?.status?.suspended ?? 0),
+    label: t('vm:status:suspended', 2),
     value: poolDashboard?.vms?.status?.suspended ?? 0,
     accent: 'neutral',
   },
   {
-    label: t('vm:status:active', poolDashboard?.vms?.status?.halted ?? 0),
+    label: t('vm:status:active', 2),
     value: poolDashboard?.vms?.status?.halted ?? 0,
     accent: 'danger',
   },

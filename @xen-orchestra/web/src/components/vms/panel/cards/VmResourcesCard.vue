@@ -5,7 +5,7 @@
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
-        <template #key>{{ t('vcpu', vm.CPUs.number) }}</template>
+        <template #key>{{ t('vcpus') }}</template>
         <template #value>{{ vm.CPUs.number }}</template>
         <template #addons>
           <VtsCopyButton :value="String(vm.CPUs.number)" />
@@ -26,14 +26,14 @@
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
-        <template #key>{{ t('vdi', vdis.length) }}</template>
+        <template #key>{{ t('vdis') }}</template>
         <template v-if="vdis.length > 0" #value>{{ vdis.length }}</template>
         <template v-if="vdis.length > 0" #addons>
           <VtsCopyButton :value="String(vdis.length)" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
-        <template #key>{{ t('snapshot', vm.snapshots.length) }}</template>
+        <template #key>{{ t('snapshots') }}</template>
         <template v-if="vm.snapshots.length > 0" #value>{{ vm.snapshots.length }}</template>
         <template v-if="vm.snapshots.length > 0" #addons>
           <VtsCopyButton :value="String(vm.snapshots.length)" />

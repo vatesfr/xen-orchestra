@@ -68,7 +68,7 @@
       </VtsQuickInfoRow>
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('vcpu', vm.CPUs.number)" :value="String(vm.CPUs.number)" />
+      <VtsQuickInfoRow :label="t('vcpus')" :value="String(vm.CPUs.number)" />
       <VtsQuickInfoRow :label="t('ram')" :value="ram" />
       <VtsQuickInfoRow :label="t('tags')">
         <template #value>

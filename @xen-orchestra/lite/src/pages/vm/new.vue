@@ -140,7 +140,7 @@
             <!-- MEMORY SECTION -->
             <UiTitle>{{ t('memory') }}</UiTitle>
             <div class="memory-container">
-              <VtsInputWrapper :label="t('vcpu', Number(vmState.vCPU))">
+              <VtsInputWrapper :label="t('vcpus')">
                 <UiInput v-model="vmState.vCPU" accent="brand" />
               </VtsInputWrapper>
               <!-- TODO remove (GB) when we can use new selector -->
@@ -180,18 +180,14 @@
             <VtsResources>
               <!-- TODO change label to manage pluralization when we can have multiple vm -->
               <VtsResource icon="fa:display" count="1" :label="t('vm')" />
-              <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpu', Number(vmState.vCPU))" />
+              <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
               <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
                 icon="fa:database"
                 :count="vmState.existingVdis.length + vmState.vdis.length"
-                :label="t('vdi', vmState.existingVdis.length + vmState.vdis.length)"
+                :label="t('vdis')"
               />
-              <VtsResource
-                icon="fa:network-wired"
-                :count="vmState.networkInterfaces.length"
-                :label="t('interface', vmState.networkInterfaces.length)"
-              />
+              <VtsResource icon="fa:network-wired" :count="vmState.networkInterfaces.length" :label="t('interfaces')" />
             </VtsResources>
           </div>
           <!-- TOASTER -->
