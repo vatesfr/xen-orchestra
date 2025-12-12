@@ -61,6 +61,14 @@ export const locales: Locales = {
     code: 'da',
     name: 'Danish',
   },
+  ko: {
+    code: 'ko',
+    name: '한국어',
+  },
+  nb_NO: {
+    code: 'nb_NO',
+    name: 'Norsk (Bokmål)',
+  },
 }
 
 export default createI18n({
