@@ -13,7 +13,12 @@
       <VtsStateHero v-else-if="tasks.length === 0" format="table" type="no-data" size="small">
         {{ t('no-tasks-detected') }}
       </VtsStateHero>
-      <UiTaskList v-else :tasks="tasksRecords" @select="id => (selectedTaskId = id)" />
+      <UiTaskList
+        v-else
+        :tasks="tasksRecords"
+        :selected-task-id="selectedTaskId"
+        @select="id => (selectedTaskId = id)"
+      />
       <VtsStateHero v-if="searchQuery && filteredTasks.length === 0" format="table" type="no-result" size="small">
         {{ t('no-result') }}
       </VtsStateHero>

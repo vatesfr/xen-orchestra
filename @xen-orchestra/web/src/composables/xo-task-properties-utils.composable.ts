@@ -9,14 +9,13 @@ export function useTaskPropertiesUtils(rawTask: MaybeRefOrGetter<XoTask>) {
       return {}
     }
 
-    const { method, name, type, objectId, params, progress, userId, ...other } = task.value.properties
+    const { method, name, type, objectId, progress, userId, ...other } = task.value.properties
 
     return {
       method,
       name,
       type,
       objectId,
-      params,
       progress,
       userId,
       other,

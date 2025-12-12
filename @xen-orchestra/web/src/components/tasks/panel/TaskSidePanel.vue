@@ -17,7 +17,7 @@
       <TaskQuickInfoCard :task />
       <TaskInfoCard v-if="task.infos" :task />
       <TaskWarningsCard v-if="task.warnings" :task />
-      <TaskErrorsCard v-if="task.result" :task />
+      <TaskErrorsCard v-if="isError" :task />
       <TaskObjectsCard v-if="task.properties.objectId" :task />
       <TaskPropertiesCard v-if="properties.other" :task />
     </template>
@@ -37,6 +37,7 @@ import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoTask } from '@vates/types'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { task } = defineProps<{
@@ -51,6 +52,8 @@ const { t } = useI18n()
 const uiStore = useUiStore()
 
 const { properties } = useTaskPropertiesUtils(() => task)
+
+const isError = computed(() => task.result && (task.status === 'failure' || task.status === 'interrupted'))
 </script>
 
 <style scoped lang="postcss">
