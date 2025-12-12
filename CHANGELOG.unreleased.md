@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Plugins/Backup-reports] Add optional context in email subject and Pool ID in summary (PR [#8973](https://github.com/vatesfr/xen-orchestra/pull/8973))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,5 +35,6 @@
 
 <!--packages-start-->
 - @xen-orchestra/xapi patch
+- xo-server-backup-reports minor
 - xo-server-perf-alert minor
 <!--packages-end-->
