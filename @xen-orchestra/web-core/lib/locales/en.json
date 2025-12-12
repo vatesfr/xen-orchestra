@@ -446,6 +446,7 @@
   "n-selected-of": "{count} selected of {total} objects",
   "n-subtasks": "0 subtasks | 1 subtask | {n} subtasks",
   "n-vms": "1 VM | {n} VMs",
+  "n-cpus": "1 CPU | {n} CPUs",
   "name": "Name",
   "nbd-concurrency": "NBD concurrency",
   "nested-virtualization": "Nested virtualization",

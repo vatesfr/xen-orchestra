@@ -37,7 +37,7 @@
       <VtsQuickInfoRow :label="t('guest-tools')" :value="guestTools" />
     </VtsQuickInfoColumn>
     <VtsQuickInfoColumn>
-      <VtsQuickInfoRow :label="t('vcpu', vm.VCPUs_at_startup)" :value="String(vm.VCPUs_at_startup)" />
+      <VtsQuickInfoRow :label="t('vcpus')" :value="String(vm.VCPUs_at_startup)" />
       <VtsQuickInfoRow :label="t('ram')" :value="`${ram.value} ${ram.prefix}`" />
       <VtsQuickInfoRow :label="t('tags')">
         <template #value>

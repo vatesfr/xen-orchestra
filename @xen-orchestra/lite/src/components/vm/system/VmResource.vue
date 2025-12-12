@@ -52,7 +52,7 @@ const maxCpu = computed(() =>
 const minimumCpuLimitText = computed(() => {
   const minimumCpuLimit = hasXenTools.value && vmMetrics.value ? vmMetrics.value.VCPUs_number : vm.VCPUs_at_startup
 
-  return `${minimumCpuLimit} ${t('cpu', minimumCpuLimit)}`
+  return t('n-cpus', minimumCpuLimit)
 })
 const resources = computed(() => {
   return [
@@ -74,7 +74,7 @@ const resources = computed(() => {
     },
     {
       label: t('maximum-cpu-limit'),
-      value: `${vm.VCPUs_max} ${t('cpu', vm.VCPUs_max)}`,
+      value: t('n-cpus', vm.VCPUs_max),
     },
     {
       label: t('vm-limit-topology'),
@@ -102,7 +102,7 @@ const resources = computed(() => {
       value: `${dynamicMaxMemoryFormated.value.value} ${dynamicMaxMemoryFormated.value.prefix}`,
     },
     {
-      label: t('gpu', vm.VGPUs.length),
+      label: t('gpus'),
       value: vm.VGPUs.length > 0 ? vm.VGPUs.join(', ') : t('none'),
     },
   ]
