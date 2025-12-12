@@ -1,6 +1,6 @@
 <template>
   <div class="content">
-    <template v-for="(value, key) in data" :key="key">
+    <template v-for="(value, key) in fields" :key="key">
       <VtsCardRowKeyValue v-if="isPrimitive(value)">
         <template #key>{{ key }}</template>
         <template v-if="typeof value !== 'boolean'" #value>{{ value }}</template>
@@ -12,9 +12,7 @@
         </template>
       </VtsCardRowKeyValue>
 
-      <div v-else>
-        <TaskPropertiesRecursive :data="value as Record<string, unknown>" />
-      </div>
+      <TaskPropertiesRecursive v-else :fields="value as Record<string, unknown>" />
     </template>
   </div>
 </template>
@@ -25,7 +23,7 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsEnabledState from '@core/components/enabled-state/VtsEnabledState.vue'
 
 defineProps<{
-  data: Record<string, unknown> | unknown[] | null
+  fields: Record<string, unknown> | unknown[] | null
 }>()
 
 const isPrimitive = (value: unknown) => value === null || typeof value !== 'object'
