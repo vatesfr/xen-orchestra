@@ -108,10 +108,12 @@ class PerfAlertXoPlugin {
     this.#strategy = undefined
   }
 
-  async configure(configuration) {
+  async configure(configuration, state) {
     this.#configuration = configuration
     await this.unload()
-    await this.load()
+    if (state.loaded) {
+      await this.load()
+    }
   }
 
   /**
