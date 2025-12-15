@@ -555,7 +555,7 @@ const setUpProxies = (express, opts, xo) => {
 
   const dynamicProxyOptions = {}
   if (userPort === 443) {
-    const cert = userHttpConfig.cert
+    const cert = userHttpConfig.cert ?? userHttpConfig.certificate
     const key = userHttpConfig.key
     dynamicProxyOptions.ssl = {
       cert,
