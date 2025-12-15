@@ -550,16 +550,18 @@ const setUpProxies = (express, opts, xo) => {
     return
   }
 
-  const userPort = xo.config.get('http.listen.0.port')
-  let ssl
-  if (userPort === '443') {
-    const cert = xo.config.get('http.listen.0.cert')
-    const key = xo.config.get('http.listen.0.key')
-    ssl = {
+  const userHttpConfig = xo.config.get('http.listen.0')
+  const userPort = userHttpConfig.port
+
+  const dynamicProxyOptions = {}
+  if (userPort === 443) {
+    const cert = userHttpConfig.cert
+    const key = userHttpConfig.key
+    dynamicProxyOptions.ssl = {
       cert,
       key,
-      secure: false,
     }
+    dynamicProxyOptions.secure = false // to allow self signed certificate
   }
 
   const proxy = httpProxy
@@ -567,7 +569,7 @@ const setUpProxies = (express, opts, xo) => {
       changeOrigin: true,
       ignorePath: true,
       xfwd: true,
-      ssl,
+      ...dynamicProxyOptions,
     })
     .on('error', (error, req, res) => {
       // `res` can be either a `ServerResponse` or a `Socket` (which does not have
