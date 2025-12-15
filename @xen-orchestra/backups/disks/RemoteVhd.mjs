@@ -39,7 +39,7 @@ export class RemoteVhd extends RandomAccessDisk {
   /**
    * @type {() => any}
    */
-  #dispose = () => {}
+  #dispose = () => { }
 
   /**
    * @returns {string}
@@ -141,6 +141,75 @@ export class RemoteVhd extends RandomAccessDisk {
       data,
     }
   }
+
+  /**
+   * Writes a full block into this VHD.
+   * @param {number} index
+   * @param {Buffer} data
+   */
+  async writeBlock(index, data) {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call readBlock of a RemoteVhd before init`)
+    }
+    await this.#vhd.writeEntireBlock({ id: index, buffer: data })
+    await this.#vhd.writeBlockAllocationTable()
+
+    return this.getBlockSize();
+  }
+
+  /**
+   * Reads the VHD header.
+   * @returns {Promise<DiskBlock>}
+   */
+  readHeader() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call readBlock of a RemoteVhd before init`)
+    }
+    return this.#vhd.header
+  }
+
+
+  /**
+   * Reads the VHD footer.
+   * @returns {Promise<DiskBlock>}
+   */
+  readFooter() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call readBlock of a RemoteVhd before init`)
+    }
+    return this.#vhd.footer
+  }
+
+  /**
+   * Writes header back to the VHD
+   */
+  async writeHeader() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call readBlock of a RemoteVhd before init`)
+    }
+    await this.#vhd.writeHeader()
+  }
+
+  /**
+   * Writes footer back to the VHD
+   */
+  async writeFooter() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call readBlock of a RemoteVhd before init`)
+    }
+    await this.#vhd.writeFooter()
+  }
+
+  /**
+   * Writes block allocation table
+   */
+  async writeBlockAllocationTable() {
+    if (this.#vhd === undefined) {
+      throw new Error(`can't call readBlock of a RemoteVhd before init`)
+    }
+    await this.#vhd.writeBlockAllocationTable()
+  }
+
   /**
    *
    * @returns {RandomAccessDisk}
