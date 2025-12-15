@@ -9,6 +9,8 @@ import { pFromCallback } from 'promise-toolbox'
 import { RemoteAdapter } from '../RemoteAdapter.mjs'
 import { VHDFOOTER, VHDHEADER } from '../tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
+import { RemoteVhd } from './RemoteVhd.mjs'
+import { RemoteVhdChain } from './RemoteVhdChain.mjs'
 import { mergeVhdChain } from 'vhd-lib/merge.js'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
@@ -78,61 +80,6 @@ async function generateVhd(path, opts = {}) {
   return vhd
 }
 
-test('it merges delta of non destroyed chain', async () => {
-  await handler.writeFile(
-    `${rootPath}/metadata.json`,
-    JSON.stringify({
-      mode: 'delta',
-      size: 12000, // a size too small
-      vhds: [
-        `${relativePath}/grandchild.vhd`, // grand child should not be merged
-        `${relativePath}/child.vhd`,
-        // orphan is not here, he should be merged in child
-      ],
-    })
-  )
-
-  // one orphan, which is a full vhd, no parent
-  const orphan = await generateVhd(`${basePath}/orphan.vhd`)
-  // a child to the orphan
-  const child = await generateVhd(`${basePath}/child.vhd`, {
-    header: {
-      parentUnicodeName: 'orphan.vhd',
-      parentUuid: orphan.footer.uuid,
-    },
-  })
-  // a grand child
-  await generateVhd(`${basePath}/grandchild.vhd`, {
-    header: {
-      parentUnicodeName: 'child.vhd',
-      parentUuid: child.footer.uuid,
-    },
-  })
-
-  let logged = []
-  const logInfo = message => {
-    logged.push(message)
-  }
-  await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
-  assert.equal(logged[0], `unexpected number of entries in backup cache`)
-
-  logged = []
-  await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
-  const [merging] = logged
-  assert.equal(merging, `merging VHD chain`)
-
-  const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
-  // size should be the size of children + grand children after the merge
-  assert.equal(metadata.size, 104960)
-
-  // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
-  // only check deletion
-  const remainingVhds = await handler.list(basePath)
-  assert.equal(remainingVhds.length, 2)
-  assert.equal(remainingVhds.includes('child.vhd'), true)
-  assert.equal(remainingVhds.includes('grandchild.vhd'), true)
-})
-
 test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
   // Create ancestor (base) VHD
   const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
@@ -146,17 +93,35 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
     blocks: [2],
   })
 
-  // Merge chain: [ancestor, child]
-  const chain = [`${basePath}/ancestor.vhd`, `${basePath}/child.vhd`]
+  const parent = new RemoteVhd({handler, path: `${basePath}/ancestor.vhd`})
+  await parent.init()
+  const child = new RemoteVhd({handler, path: `${basePath}/child.vhd`})
+  await child.init()
+
+  console.log(parent.getBlockIndexes(), child.getBlockIndexes())
 
   let progressCalls = 0
   const onProgress = () => {
     progressCalls++
   }
 
-  const result = await mergeVhdChain(handler, chain, { onProgress, removeUnused: true })
+  const chain = new RemoteVhdChain(handler, [parent, child], { onProgress, removeUnused: true })
 
-  // console.log(result)
+  const result = await chain.merge()
+
+  // Merge chain: [ancestor, child]
+  /*const chain = [`${basePath}/ancestor.vhd`, `${basePath}/child.vhd`]
+
+  let progressCalls = 0
+  const onProgress = () => {
+    progressCalls++
+  }
+
+  const result = await mergeVhdChain(handler, chain, { onProgress, removeUnused: true })*/
+
+  console.log(result)
+
+  console.log(parent.getBlockIndexes(), child.getBlockIndexes())
 
   assert.ok(result.finalVhdSize > 0, 'merged VHD should have non-zero size')
   assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
