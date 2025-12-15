@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Plugins/Backup-reports] Add optional context in email subject and Pool ID in summary (PR [#8973](https://github.com/vatesfr/xen-orchestra/pull/8973))
+- [Plugins/Backup-reports] Add optional context in email subject and Pool ID in summary [#8544](https://github.com/vatesfr/xen-orchestra/issues/8544) (PR [#8973](https://github.com/vatesfr/xen-orchestra/pull/8973))
 
 ### Bug fixes
 
