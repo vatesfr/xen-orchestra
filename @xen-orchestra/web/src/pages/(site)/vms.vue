@@ -1,7 +1,7 @@
 <template>
   <div class="vms" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <VmsTable :vms :busy="!areVmsReady" :error="hasVmFetchError" />
+      <VmsTable :vms :busy="areVmsFetching" :error="hasVmFetchError" />
     </UiCard>
     <VmsSidePanel v-if="selectedVm" :vm="selectedVm" @close="selectedVm = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -26,7 +26,7 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
-const { vms, getVmById, areVmsReady, hasVmFetchError } = useXoVmCollection()
+const { vms, getVmById, areVmsFetching, hasVmFetchError } = useXoVmCollection()
 
 const uiStore = useUiStore()
 
