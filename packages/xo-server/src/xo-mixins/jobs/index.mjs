@@ -286,7 +286,7 @@ export default class Jobs {
       const jobUpdateFct = async backupTaskId => {
         await logger.notice(`Adding backupTaskId to run job ${runJobId}`, {
           backupTaskId,
-          event: 'job.update',
+          event: 'job.backupTaskStart',
           runJobId,
         })
       }

@@ -104,7 +104,7 @@ export default {
             log.end = time
             log.status = computeStatusAndSortTasks(getStatus((log.result = data.error)), log.tasks)
           }
-        } else if (event === 'job.update') {
+        } else if (event === 'job.backupTaskStart') {
           // happens once, only for backups using XO Tasks
           const { runJobId } = data
           const log = started[runJobId]
