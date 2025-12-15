@@ -1,8 +1,7 @@
 <template>
   <div class="tasks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <VtsStateHero v-if="areTasksFetching" busy format="card" type="busy" size="medium" />
-      <TasksList v-else :tasks="convertedTasks" :has-error="hasTaskFetchError" />
+      <TasksList :tasks="convertedTasks" :has-error="hasTaskFetchError" :busy="areTasksFetching" />
     </UiCard>
     <TaskSidePanel v-if="selectedTask" :task="selectedTask" @close="selectedTask = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -30,7 +29,7 @@ import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 
-const { tasks, getTaskById, hasTaskFetchError, areTasksFetching } = useXoTaskCollection()
+const { getTaskById, sortedTasks, hasTaskFetchError, areTasksFetching } = useXoTaskCollection()
 const { getUserById } = useXoUserCollection()
 
 const { t } = useI18n()
@@ -41,7 +40,7 @@ const selectedTask = useRouteQuery<XoTask | undefined>('id', {
 })
 
 const convertedTasks = computed(() =>
-  tasks.value.map(task => {
+  sortedTasks.value.map(task => {
     const userId = task.properties.userId
 
     if (!userId) {

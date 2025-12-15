@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard class="card-container">
     <UiCardTitle>
       {{ t('task.errors') }}
       <UiCounter :value="Array(task.result).length" accent="danger" size="small" variant="primary" />
@@ -12,14 +12,14 @@
           <VtsCopyButton :value="String(task.result.message)" />
         </template>
       </VtsCardRowKeyValue>
-      <UiLogEntryViewer
-        v-if="task.result.stack"
-        :content="task.result.stack"
-        :label="t('api-error-details')"
-        size="small"
-        accent="danger"
-      />
     </div>
+    <UiLogEntryViewer
+      v-if="task.result.stack"
+      :content="task.result.stack"
+      :label="t('api-error-details')"
+      size="small"
+      accent="danger"
+    />
   </UiCard>
 </template>
 
@@ -41,9 +41,15 @@ const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
-.content {
+.card-container {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 1.6rem;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
 }
 </style>

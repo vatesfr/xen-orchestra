@@ -1,20 +1,20 @@
 <template>
-  <UiCard>
+  <UiCard class="card-container">
     <UiCardTitle>
       {{ t('task.properties') }}
     </UiCardTitle>
     <div class="content">
-      <UiLogEntryViewer
-        v-if="properties.other && Object.keys(properties.other).length > 0"
-        :content="properties.other"
-        :label="t('other-properties')"
-        size="small"
-        accent="info"
-      />
+      <div>
+        <TaskPropertiesRecursive :fields="properties.other as Record<string, unknown>" />
+      </div>
     </div>
-    <div>
-      <TaskPropertiesRecursive :fields="properties.other as Record<string, unknown>" />
-    </div>
+    <UiLogEntryViewer
+      v-if="properties.other && Object.keys(properties.other).length > 0"
+      :content="properties.other"
+      :label="t('other-properties')"
+      size="small"
+      accent="info"
+    />
   </UiCard>
 </template>
 
@@ -37,9 +37,15 @@ const { properties } = useTaskPropertiesUtils(() => task)
 </script>
 
 <style scoped lang="postcss">
-.content {
+.card-container {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 1.6rem;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
 }
 </style>

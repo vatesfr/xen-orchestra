@@ -41,13 +41,13 @@
             <UiCircleProgressBar :accent="progressAccent" size="small" :value="task.progress ? task.progress : 100" />
           </div>
           <div class="actions">
-            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select')" />
+            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select', task.id)" />
           </div>
         </div>
       </div>
     </div>
     <template v-if="hasSubTasks && expanded">
-      <UiTaskList :tasks="subTasks" :depth />
+      <UiTaskList :tasks="subTasks" :depth :selected-task-id="selectedTaskId" @select="id => emit('select', id)" />
     </template>
   </li>
 </template>
@@ -72,8 +72,8 @@ export type Task = {
   progress?: number
   end?: number
   status: 'failure' | 'interrupted' | 'pending' | 'success'
-  tasks?: Task[]
-  warning?: { data: unknown; message: string }[]
+  subtasks?: Task[]
+  warnings?: { data: unknown; message: string }[]
 }
 
 const { task } = defineProps<{
@@ -81,16 +81,17 @@ const { task } = defineProps<{
   depth: number
   expanded?: boolean
   selected?: boolean
+  selectedTaskId?: string
 }>()
 
 const emit = defineEmits<{
   expand: []
-  select: []
+  select: [id: string]
 }>()
 
 const { t } = useI18n()
 
-const subTasks = computed(() => task.tasks ?? [])
+const subTasks = computed(() => task.subtasks ?? [])
 
 const subTasksCount = computed(() => subTasks.value.length)
 
@@ -100,7 +101,7 @@ const isError = computed(() => task.status === 'failure' || task.status === 'int
 
 const end = useTimeAgo(() => task.end ?? 0)
 
-const hasWarnings = computed(() => task.warning && task.warning.length > 0)
+const hasWarnings = computed(() => task.warnings && task.warnings.length > 0)
 
 const hasInfos = computed(() => task.infos && task.infos.length > 0)
 

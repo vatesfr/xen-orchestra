@@ -7,7 +7,8 @@
       :expanded="task.flags.expanded"
       :depth="depth + 1"
       :selected="selectedTaskId === task.id"
-      @select="emit('select', task.id)"
+      :selected-task-id="selectedTaskId"
+      @select="emit('select', $event)"
       @expand="task.toggleFlag('expanded')"
     />
   </ul>

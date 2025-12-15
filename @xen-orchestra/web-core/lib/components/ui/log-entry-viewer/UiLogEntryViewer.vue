@@ -26,7 +26,7 @@ import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { useMapper } from '@core/packages/mapper'
 import { toVariants } from '@core/utils/to-variants.util.ts'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 
 type LogEntryViewerAccent = 'info' | 'warning' | 'danger'
 type LogEntryViewerSize = 'small' | 'medium'
@@ -73,9 +73,17 @@ const content = computed(() => {
   return rawContent
 })
 
+const pre = document.createElement('pre')
+
+watch(
+  () => content,
+  content => {
+    pre.textContent = content.value
+  },
+  { immediate: true, deep: true }
+)
+
 function openRawValueInNewTab() {
-  const pre = document.createElement('pre')
-  pre.textContent = content.value
   window.open('', '_blank')?.document.body.appendChild(pre)
 }
 </script>

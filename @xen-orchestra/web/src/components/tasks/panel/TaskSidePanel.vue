@@ -13,13 +13,12 @@
       </div>
     </template>
     <template #default>
-      <pre>{{ t('tasks') }} {{ task }}</pre>
       <TaskQuickInfoCard :task />
       <TaskInfoCard v-if="task.infos" :task />
       <TaskWarningsCard v-if="task.warnings" :task />
       <TaskErrorsCard v-if="isError" :task />
       <TaskObjectsCard v-if="task.properties.objectId" :task />
-      <TaskPropertiesCard v-if="properties.other" :task />
+      <TaskPropertiesCard v-if="properties.other && Object.keys(properties.other).length > 0" :task />
     </template>
   </UiPanel>
 </template>

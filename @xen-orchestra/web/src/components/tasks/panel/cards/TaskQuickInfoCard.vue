@@ -29,8 +29,10 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('by') }}</template>
         <template v-if="user" #value>
-          <UiAccountMenuButton size="extra-small" />
-          {{ user.name }}
+          <div class="user">
+            <UiUserLogo size="extra-small" />
+            {{ user.name }}
+          </div>
         </template>
         <template v-if="user && user.name" #addons>
           <VtsCopyButton :value="user.name" />
@@ -38,12 +40,12 @@
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('task.started') }}</template>
-        <template #value>{{ taskStart }}</template>
+        <template #value>{{ formattedStartDate }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ task.status === 'pending' ? t('task.estimated-end') : t('task.ended') }}</template>
         <template #value>
-          {{ taskEnd }}
+          {{ formattedEndDate }}
         </template>
       </VtsCardRowKeyValue>
 
@@ -66,16 +68,16 @@
 
 <script lang="ts" setup>
 import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
-import { getTaskAccents } from '@/utils/task-status.util.ts'
+import { getTaskAccents } from '@/utils/xo-records/task.util.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccountMenuButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCircleProgressBar from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
 import UiTagsList from '@core/components/ui/tag/UiTagsList.vue'
+import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import type { XoTask } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -92,11 +94,10 @@ const progressStatus = computed(() => getTaskAccents(task.status).progressAccent
 
 const taskStatus = computed(() => getTaskAccents(task.status).statusAccent)
 
-const taskStart = computed(() => d(task.start, 'datetime_short'))
-
-const taskEnd = computed(() => {
+const formattedStartDate = computed(() => d(task.start, { dateStyle: 'short', timeStyle: 'medium' }))
+const formattedEndDate = computed(() => {
   if (task.end) {
-    return d(task.end, 'datetime_short')
+    return d(task.end, { dateStyle: 'short', timeStyle: 'medium' })
   }
 
   const progress = task.properties.progress
@@ -124,6 +125,12 @@ const taskEnd = computed(() => {
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+
+    .user {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
   }
 }
 </style>

@@ -1,6 +1,7 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { convertTaskToCore } from '@/utils/convert-task-to-core.util.ts'
 import { watchCollectionWrapper } from '@/utils/sse.util'
+import { findTaskById } from '@/utils/xo-records/task.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoTask } from '@vates/types'
 import { computed } from 'vue'
@@ -19,12 +20,22 @@ export const useXoTaskCollection = defineRemoteResource({
       return tasks.value.filter(task => now - task.start < ONE_DAY).map(task => convertTaskToCore(task))
     })
 
+    const sortedTasks = computed(() => {
+      return [...tasks.value].sort((a, b) => b.start - a.start)
+    })
+
+    const getTaskById = (taskId: XoTask['id']) => {
+      return findTaskById(sortedTasks.value, taskId)
+    }
+
     return {
       ...useXoCollectionState(tasks, {
         context,
         baseName: 'task',
       }),
       lastDayTasks,
+      sortedTasks,
+      getTaskById,
     }
   },
 })

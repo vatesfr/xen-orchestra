@@ -1,5 +1,8 @@
 <template>
   <div class="tasks-list">
+    <UiTitle>
+      {{ t('tasks') }}
+    </UiTitle>
     <div class="container">
       <div class="actions">
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
@@ -7,7 +10,8 @@
           <UiTablePagination v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
-      <VtsStateHero v-if="hasError" format="table" type="error" size="small" no-background>
+      <VtsStateHero v-if="busy" busy format="card" type="busy" size="medium" />
+      <VtsStateHero v-else-if="hasError" format="table" type="error" size="small" no-background>
         {{ t('error-no-data') }}
       </VtsStateHero>
       <VtsStateHero v-else-if="tasks.length === 0" format="table" type="no-data" size="small">
@@ -35,6 +39,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTablePagination from '@core/components/ui/table-pagination/UiTablePagination.vue'
 import UiTaskList from '@core/components/ui/task-list/UiTaskList.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiTopBottomTable from '@core/components/ui/top-bottom-table/UiTopBottomTable.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
@@ -44,6 +49,7 @@ import { useI18n } from 'vue-i18n'
 const { tasks } = defineProps<{
   tasks: Task[]
   hasError: boolean
+  busy: boolean
 }>()
 
 const { t } = useI18n()

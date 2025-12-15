@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard class="card-container">
     <UiCardTitle>
       {{ t('task.object') }}
     </UiCardTitle>
@@ -31,9 +31,15 @@ const { t } = useI18n()
 </script>
 
 <style scoped lang="postcss">
-.content {
+.card-container {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 1.6rem;
+
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
 }
 </style>

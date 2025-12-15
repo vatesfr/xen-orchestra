@@ -1,3 +1,5 @@
+import type { CircleProgressBarAccent } from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
+import type { TaskStatus } from '@core/types/task.type.ts'
 import type { XoTask } from '@vates/types'
 
 export type BackupLogResult = { message: string; stack: unknown }
@@ -28,4 +30,41 @@ export function getTasksResultsRecursively(task: XoTask, rawType: 'failure' | 'w
   }
 
   return data
+}
+
+export type StatusAccent = 'info' | 'warning' | 'danger' | 'success'
+
+export type TaskAccents = {
+  statusAccent: StatusAccent
+  progressAccent: CircleProgressBarAccent
+}
+
+export const getTaskAccents = (status: TaskStatus): TaskAccents => {
+  switch (status) {
+    case 'pending':
+      return { statusAccent: 'info', progressAccent: 'info' }
+    case 'success':
+      return { statusAccent: 'success', progressAccent: 'info' }
+    case 'failure':
+      return { statusAccent: 'danger', progressAccent: 'danger' }
+    default:
+      return { statusAccent: 'info', progressAccent: 'info' }
+  }
+}
+
+export function findTaskById(tasks: XoTask[], taskId: XoTask['id']): XoTask | undefined {
+  for (const task of tasks) {
+    if (task.id === taskId) {
+      return task
+    }
+
+    if (task.tasks && task.tasks.length > 0) {
+      const foundInSubtasks = findTaskById(task.tasks, taskId)
+      if (foundInSubtasks) {
+        return foundInSubtasks
+      }
+    }
+  }
+
+  return undefined
 }
