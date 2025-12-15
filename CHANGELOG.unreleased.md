@@ -11,18 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST-API/SSE] Possibility to subscribe to XO task (PR [#9269](https://github.com/vatesfr/xen-orchestra/pull/9269))
-
-- **XO 6:**
-  - [i18n] Update Czech, Danish, Spanish, French, Italian, Dutch, Portuguese (Brazil), and Russian translations (PR [#9243](https://github.com/vatesfr/xen-orchestra/pull/9243))
-  - [Reactivity] Tasks are now reactive (PR [#9271](https://github.com/vatesfr/xen-orchestra/pull/9271))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [REST API] Fix various _cannot convert undefined or null to object_ (PR [#9304](https://github.com/vatesfr/xen-orchestra/pull/9304))
-- [REST API/VM Dashboard] Fix _cannot read property of undefined_ (PR [#9304](https://github.com/vatesfr/xen-orchestra/pull/9304))
 
 ### Packages to release
 
@@ -39,11 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @vates/types minor
-- @xen-orchestra/mixins minor
-- @xen-orchestra/rest-api minor
-- @xen-orchestra/web minor
-- @xen-orchestra/web-core minor
 
 <!--packages-end-->
