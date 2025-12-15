@@ -254,7 +254,6 @@
   "maximum-cpu-limit": "Maksimal CPU grænse",
   "maximum-dynamic-memory": "Maksimal dynamisk hukommelse",
   "maximum-static-memory": "Maksimal statisk hukommelse",
-  "memory": "Hukommelse",
   "memory-usage": "Hukommelsesforbrug",
   "message": "Besked",
   "minimum-cpu-limit": "Minimum CPU grænse",

@@ -416,7 +416,6 @@
   "maximum-cpu-limit": "Maximale CPU-limiet",
   "maximum-dynamic-memory": "Maximaal dynamisch geheugen",
   "maximum-static-memory": "Maximaal statisch geheugen",
-  "memory": "Geheugen",
   "memory-usage": "Geheugengebruik",
   "merge-backups-synchronously": "Back-ups synchroon samenvoegen",
   "message": "Bericht",
