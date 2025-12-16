@@ -550,13 +550,26 @@ const setUpProxies = (express, opts, xo) => {
     return
   }
 
-  const userPort = xo.config.get('http.listen.0.port')
+  const userHttpConfig = xo.config.get('http.listen.0')
+  const userPort = userHttpConfig.port
+
+  const dynamicProxyOptions = {}
+  if (userPort === 443) {
+    const cert = userHttpConfig.cert ?? userHttpConfig.certificate
+    const key = userHttpConfig.key
+    dynamicProxyOptions.ssl = {
+      cert,
+      key,
+    }
+    dynamicProxyOptions.secure = false // to allow self signed certificate
+  }
 
   const proxy = httpProxy
     .createServer({
       changeOrigin: true,
       ignorePath: true,
       xfwd: true,
+      ...dynamicProxyOptions,
     })
     .on('error', (error, req, res) => {
       // `res` can be either a `ServerResponse` or a `Socket` (which does not have
@@ -577,16 +590,21 @@ const setUpProxies = (express, opts, xo) => {
   /**
    *
    * @param {string} url
+   * @param {'ws:' | 'http:'} protocol
    * @returns {URL} targetUrl
    */
-  function getTargetUrl(url) {
+  function getTargetUrl(url, protocol) {
     let target = url
-    if (url.includes('[port]')) {
-      target = url.replace(/\[port\]/g, userPort)
+
+    if (target.includes('[port]')) {
+      target = target.replace(/\[port\]/g, userPort)
+    }
+    if (target.includes('[protocol]')) {
+      target = target.replace(/\[protocol\]/g, protocol)
     }
 
     const targetUrl = new URL(target)
-    if (targetUrl.port === 443) {
+    if (targetUrl.port === '443') {
       targetUrl.protocol = targetUrl.protocol === 'ws:' ? 'wss:' : 'https:'
     }
 
@@ -601,7 +619,7 @@ const setUpProxies = (express, opts, xo) => {
 
     for (const prefix in opts) {
       if (url.startsWith(prefix)) {
-        const target = getTargetUrl(opts[prefix])
+        const target = getTargetUrl(opts[prefix], 'http:')
 
         proxy.web(req, res, {
           agent: target.hostname === 'localhost' ? undefined : xo.httpAgent,
@@ -626,7 +644,7 @@ const setUpProxies = (express, opts, xo) => {
 
     for (const prefix in opts) {
       if (url.startsWith(prefix)) {
-        const target = getTargetUrl(opts[prefix])
+        const target = getTargetUrl(opts[prefix], 'ws:')
 
         proxy.ws(req, socket, head, {
           agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
