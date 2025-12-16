@@ -432,10 +432,10 @@ describe('formatAllPoolsToOpenMetrics', () => {
     assert.ok(result.includes('# EOF'))
   })
 
-  it('should return only EOF for empty data', () => {
+  it('should return empty string for empty data', () => {
     const result = formatAllPoolsToOpenMetrics([])
 
-    assert.equal(result, '# EOF')
+    assert.equal(result, '')
   })
 
   it('should skip metrics with null values', () => {
@@ -461,8 +461,8 @@ describe('formatAllPoolsToOpenMetrics', () => {
 
     const result = formatAllPoolsToOpenMetrics(rrdDataList)
 
-    // Should only contain EOF since the metric has null value
-    assert.equal(result, '# EOF')
+    // Should return empty string since the metric has null value
+    assert.equal(result, '')
   })
 
   it('should sort metrics by name for consistent output', () => {

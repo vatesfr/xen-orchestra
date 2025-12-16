@@ -100,14 +100,7 @@ export function parseNumber(value: number | string): number | null {
     }
 
     // XAPI 23.31+ encodes numbers as strings
-    const asNumber = Number(value)
-
-    // Check for invalid string that doesn't parse to a valid number
-    if (Number.isNaN(asNumber) && value !== 'NaN') {
-      return null
-    }
-
-    value = asNumber
+    value = Number(value)
   }
 
   // Return null for NaN and Infinity (they can't be represented in OpenMetrics)

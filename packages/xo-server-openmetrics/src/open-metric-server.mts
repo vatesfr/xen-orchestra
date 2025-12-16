@@ -330,7 +330,7 @@ async function collectMetrics(): Promise<string> {
   // Remove the # EOF from rrdMetrics if present (we'll add our own)
   const rrdMetricsWithoutEof = rrdMetrics.replace(/\n# EOF$/, '')
 
-  if (rrdMetricsWithoutEof === '' || rrdMetricsWithoutEof === '# EOF') {
+  if (rrdMetricsWithoutEof === '') {
     return poolMetrics.join('\n') + '\n# EOF'
   }
 

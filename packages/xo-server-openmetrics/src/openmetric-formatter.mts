@@ -476,8 +476,8 @@ export function transformMetric(metric: ParsedMetric, poolId: string): Formatted
     type: legend.objectType,
   }
 
-  // Add extracted labels from regex matches
-  if (matches !== null && definition.extractLabels !== undefined) {
+  // Add extracted labels from regex matches (ensure capture group exists)
+  if (matches !== null && matches.length >= 2 && definition.extractLabels !== undefined) {
     Object.assign(labels, definition.extractLabels(matches))
   }
 
@@ -583,5 +583,6 @@ export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[]): strin
   const output = formatToOpenMetrics(allMetrics)
 
   // Add EOF marker as per OpenMetrics specification
-  return output !== '' ? `${output}\n# EOF` : '# EOF'
+  // Return empty string if no metrics (caller handles EOF)
+  return output !== '' ? `${output}\n# EOF` : ''
 }
