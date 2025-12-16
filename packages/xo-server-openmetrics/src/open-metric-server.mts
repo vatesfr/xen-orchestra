@@ -236,7 +236,7 @@ async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | 
   url.searchParams.set('json', 'true')
 
   try {
-    const response = await undiciRequest(url.toString(), {
+    const response = await undiciRequest(url, {
       method: 'GET',
       dispatcher: httpsAgent,
       headersTimeout: RRD_FETCH_TIMEOUT_MS,
@@ -260,7 +260,7 @@ async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | 
       return null
     }
   } catch (error) {
-    logger.warn('RRD fetch error', { hostLabel, poolLabel, error })
+    logger.warn('RRD fetch error', { hostLabel, poolLabel, error, url })
     return null
   }
 }
@@ -288,22 +288,25 @@ async function collectMetrics(): Promise<string> {
 
   // Collect parsed RRD data from all hosts
   const rrdDataList: ParsedRrdData[] = []
-
-  await asyncEach(
-    credentials.hosts,
-    async host => {
-      const rrdData = await fetchRrdFromHost(host)
-      if (rrdData !== null) {
-        logger.debug('RRD data fetched', {
-          hostLabel: host.hostLabel,
-          poolLabel: host.poolLabel,
-          metricCount: rrdData.metrics.length,
-        })
-        rrdDataList.push(rrdData)
-      }
-    },
-    { concurrency: RRD_FETCH_CONCURRENCY, stopOnError: false }
-  )
+  try {
+    await asyncEach(
+      credentials.hosts,
+      async host => {
+        const rrdData = await fetchRrdFromHost(host)
+        if (rrdData !== null) {
+          logger.debug('RRD data fetched', {
+            hostLabel: host.hostLabel,
+            poolLabel: host.poolLabel,
+            metricCount: rrdData.metrics.length,
+          })
+          rrdDataList.push(rrdData)
+        }
+      },
+      { concurrency: RRD_FETCH_CONCURRENCY, stopOnError: false }
+    )
+  } catch (error) {
+    logger.warn('Error collecting RRD metrics', { error })
+  }
 
   // Build pool connection metrics (deduplicate pools from hosts)
   const poolMetrics: string[] = []
