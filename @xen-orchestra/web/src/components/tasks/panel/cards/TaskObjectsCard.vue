@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('task.object') }}
+      {{ t('object') }}
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>

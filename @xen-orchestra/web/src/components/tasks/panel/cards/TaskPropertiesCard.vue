@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('task.properties') }}
+      {{ t('properties') }}
     </UiCardTitle>
     <div class="content">
       <div>

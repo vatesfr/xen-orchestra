@@ -3,7 +3,7 @@
     <template #header>
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
-          v-tooltip="t('close')"
+          v-tooltip="t('action:close')"
           size="medium"
           variant="tertiary"
           accent="brand"

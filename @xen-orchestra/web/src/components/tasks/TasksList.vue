@@ -15,7 +15,7 @@
         {{ t('error-no-data') }}
       </VtsStateHero>
       <VtsStateHero v-else-if="tasks.length === 0" format="table" type="no-data" size="small">
-        {{ t('no-tasks-detected') }}
+        {{ t('no-task-detected') }}
       </VtsStateHero>
       <UiTaskList
         v-else

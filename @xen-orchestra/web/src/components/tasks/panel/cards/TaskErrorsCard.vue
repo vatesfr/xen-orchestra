@@ -1,12 +1,12 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('task.errors') }}
+      {{ t('errors') }}
       <UiCounter :value="Array(task.result).length" accent="danger" size="small" variant="primary" />
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>
-        <template #key>{{ t('task.message') }}</template>
+        <template #key>{{ t('message') }}</template>
         <template #value>{{ task.result.message }}</template>
         <template #addons>
           <VtsCopyButton :value="String(task.result.message)" />
