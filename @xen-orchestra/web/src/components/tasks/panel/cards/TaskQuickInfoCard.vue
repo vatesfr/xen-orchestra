@@ -14,7 +14,7 @@
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
-        <template #key>{{ t('task.type') }}</template>
+        <template #key>{{ t('task:type') }}</template>
         <template #value>
           <UiTagsList>
             <UiTag accent="info" variant="secondary">
@@ -39,11 +39,11 @@
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
-        <template #key>{{ t('task.started') }}</template>
+        <template #key>{{ t('task:started') }}</template>
         <template #value>{{ formattedStartDate }}</template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
-        <template #key>{{ task.status === 'pending' ? t('task.estimated-end') : t('task.ended') }}</template>
+        <template #key>{{ task.status === 'pending' ? t('estimated-end') : t('task:ended') }}</template>
         <template #value>
           {{ formattedEndDate }}
         </template>
