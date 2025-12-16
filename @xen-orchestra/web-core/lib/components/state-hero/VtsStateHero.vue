@@ -3,7 +3,7 @@
     <UiLoader v-if="type === 'busy'" class="loader" />
     <img v-else-if="imageSrc" :src="imageSrc" :alt="type" class="image" />
     <div v-if="slots.default || success" :class="typoClass" class="content">
-      <div v-if="success">{{ t('all-good') }}</div>
+      <div v-if="success">{{ t('all-good!') }}</div>
       <slot />
     </div>
   </div>

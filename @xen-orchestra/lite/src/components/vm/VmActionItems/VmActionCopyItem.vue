@@ -6,7 +6,7 @@
     icon="fa:copy"
     @click="handleCopy"
   >
-    {{ t('copy') }}
+    {{ t('action:copy') }}
   </MenuItem>
 </template>
 

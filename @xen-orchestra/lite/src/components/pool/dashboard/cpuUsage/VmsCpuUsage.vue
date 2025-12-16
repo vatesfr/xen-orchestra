@@ -1,9 +1,5 @@
 <template>
-  <UiCardTitle
-    :left="t('vms', 2)"
-    :level="UiCardTitleLevel.SubtitleWithUnderline"
-    :right="t('top-#', { n: N_ITEMS })"
-  />
+  <UiCardTitle :left="t('vms')" :level="UiCardTitleLevel.SubtitleWithUnderline" :right="t('top-#', { n: N_ITEMS })" />
   <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
   <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">{{ t('error-no-data') }}</VtsStateHero>
   <VtsStateHero v-else-if="isStatEmpty" format="card" type="no-data" size="medium">

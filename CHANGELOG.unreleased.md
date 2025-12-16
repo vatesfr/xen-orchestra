@@ -34,6 +34,8 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/web minor
+- @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
 - xo-server patch
 - xo-server-perf-alert minor

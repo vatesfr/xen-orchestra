@@ -1,13 +1,13 @@
 <template>
   <div class="new">
     <UiHeadBar icon="fa:plus">
-      {{ t('new-vm.add') }}
+      {{ t('new-vm:add') }}
       <template #actions>
         <VtsSelect :id="poolSelectId" accent="brand" />
       </template>
     </UiHeadBar>
     <UiAlert v-if="vmState.pool" accent="info" class="card-container">
-      <I18nT keypath="new-vm.feature-not-supported">
+      <I18nT keypath="new-vm:feature-not-supported" scope="global">
         <template #xo-5>
           <UiLink :href="xo5Link" size="medium">
             {{ t('xo-5') }}
@@ -21,7 +21,7 @@
           <!-- TEMPLATE SECTION -->
           <UiTitle>{{ t('template') }}</UiTitle>
           <div class="template-container">
-            <VtsInputWrapper :label="t('pick-template')">
+            <VtsInputWrapper :label="t('action:pick-template')">
               <VtsSelect :id="templateSelectId" accent="brand" />
             </VtsInputWrapper>
           </div>
@@ -102,7 +102,7 @@
             <!-- <UiToggle v-model="vmState.toggle">{{ t('multi-creation') }}</UiToggle> -->
             <div class="system-container">
               <div class="column">
-                <VtsInputWrapper :label="t('new-vm.name')">
+                <VtsInputWrapper :label="t('new-vm:name')">
                   <UiInput v-model="vmState.name" accent="brand" />
                 </VtsInputWrapper>
                 <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" :label=" t('tags')" /> -->
@@ -117,7 +117,7 @@
               </div>
               <div class="column">
                 <UiTextarea v-model="vmState.description" accent="brand">
-                  {{ t('new-vm.description') }}
+                  {{ t('new-vm:description') }}
                 </UiTextarea>
                 <VtsInputWrapper :label="t('affinity-host')">
                   <VtsSelect :id="affinityHostSelectId" accent="brand" />
@@ -159,7 +159,7 @@
             <!-- SETTINGS SECTION -->
             <UiTitle>{{ t('settings') }}</UiTitle>
             <UiCheckboxGroup accent="brand">
-              <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('boot-vm') }}</UiCheckbox>
+              <UiCheckbox v-model="vmState.boot_vm" accent="brand">{{ t('action:boot-vm') }}</UiCheckbox>
               <UiCheckbox v-model="vmState.autoPoweron" accent="brand">{{ t('auto-power') }}</UiCheckbox>
               <UiCheckbox v-if="isDiskTemplate" v-model="vmState.clone" accent="brand">
                 {{ t('fast-clone') }}
@@ -169,7 +169,7 @@
             <UiTitle>{{ t('summary') }}</UiTitle>
             <VtsResources>
               <!-- TODO change label to manage pluralization when we can have multiple vm -->
-              <VtsResource icon="fa:display" count="1" :label="t('vms', 1)" />
+              <VtsResource icon="fa:display" count="1" :label="t('vm')" />
               <VtsResource icon="fa:microchip" :count="vmState.vCPU" :label="t('vcpus')" />
               <VtsResource icon="fa:memory" :count="`${ramFormatted} GB`" :label="t('ram')" />
               <VtsResource
@@ -196,7 +196,7 @@
               :disabled="isCreateVmDisabled"
               type="submit"
             >
-              {{ t('create') }}
+              {{ t('action:create') }}
             </UiButton>
           </div>
         </UiCard>

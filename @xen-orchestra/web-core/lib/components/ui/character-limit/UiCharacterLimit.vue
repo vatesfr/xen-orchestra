@@ -1,7 +1,7 @@
 <!-- v1 -->
 <template>
   <span class="ui-character-limit" :class="classes">
-    {{ t('core.character-limit', { count, max }) }}
+    {{ t('character-limit', { count, max }) }}
   </span>
 </template>
 

@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('vdis', { n: vdis.length }) }}
+      {{ t('vdis') }}
       <UiCounter :value="vdis.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
     <UiCollapsibleList v-if="vdis.length > 0" tag="ul" :total-items="vdis.length">
@@ -12,7 +12,7 @@
       </li>
     </UiCollapsibleList>
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
-      {{ t('no-vdis-attached') }}
+      {{ t('no-vdi-attached') }}
     </VtsStateHero>
   </UiCard>
 </template>

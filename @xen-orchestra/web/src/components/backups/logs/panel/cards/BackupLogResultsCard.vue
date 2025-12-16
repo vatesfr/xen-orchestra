@@ -52,17 +52,17 @@ const cardMetadata = useMapper(
   () => type,
   {
     info: {
-      title: t('info', 2),
+      title: t('infos'),
       logEntryTitle: t('api-info-details'),
       accent: 'info',
     },
     warning: {
-      title: t('warning', 2),
+      title: t('warnings'),
       logEntryTitle: t('api-warning-details'),
       accent: 'warning',
     },
     error: {
-      title: t('error', 2),
+      title: t('errors'),
       logEntryTitle: t('api-error-details'),
       accent: 'danger',
     },
