@@ -25,7 +25,7 @@ export const useVmExportJob = defineJob('vm.export', [vmsArg, compressionArg], (
       ),
     validate: (isRunning, vms, compression) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-export:missing-vms'))
+        throw new JobError(t('job:vm-export:missing-vm'))
       }
 
       if (!compression) {

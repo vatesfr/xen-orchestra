@@ -17,7 +17,7 @@ export const useVmForceRebootJob = defineJob('vm.force-reboot', [vmsArg], () => 
       ),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-force-reboot:missing-vms'))
+        throw new JobError(t('job:vm-force-reboot:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.HARD_REBOOT))) {

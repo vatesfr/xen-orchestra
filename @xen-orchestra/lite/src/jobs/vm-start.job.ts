@@ -13,7 +13,7 @@ export const useVmStartJob = defineJob('vm.start', [vmsArg], () => {
     run: vms => xapi.vm.start(vms.map(vm => vm.$ref)),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-start:missing-vms'))
+        throw new JobError(t('job:vm-start:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.START))) {

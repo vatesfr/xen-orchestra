@@ -82,7 +82,7 @@
             <img
               v-if="colorModeOption === 'light'"
               src="../assets/color-mode-light.svg"
-              :alt="t('action:light-mode-enable')"
+              :alt="t('action:enable-light-mode')"
             />
             <img
               v-else-if="colorModeOption === 'dark'"

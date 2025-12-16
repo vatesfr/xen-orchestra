@@ -19,7 +19,7 @@ export const useVmSnapshotJob = defineJob('vm.snapshot', [vmsArg], () => {
     },
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-snapshot:missing-vms'))
+        throw new JobError(t('job:vm-snapshot:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.SNAPSHOT))) {

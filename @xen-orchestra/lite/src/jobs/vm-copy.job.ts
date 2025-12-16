@@ -17,7 +17,7 @@ export const useVmCopyJob = defineJob('vm.copy', [vmsArg], () => {
     },
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-copy:missing-vms'))
+        throw new JobError(t('job:vm-copy:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.CLONE))) {

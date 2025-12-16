@@ -13,7 +13,7 @@ export const useVmPauseJob = defineJob('vm.pause', [vmsArg], () => {
     run: async vms => xapi.vm.pause(vms.map(vm => vm.$ref)),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-pause:missing-vms'))
+        throw new JobError(t('job:vm-pause:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.PAUSE))) {

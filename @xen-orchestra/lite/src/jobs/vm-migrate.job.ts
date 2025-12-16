@@ -17,7 +17,7 @@ export const useVmMigrateJob = defineJob('vm.migrate', [vmsArg, hostArg], () => 
       ),
     validate: (isRunning, vms, host) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-migrate:missing-vms'))
+        throw new JobError(t('job:vm-migrate:missing-vm'))
       }
 
       if (!host) {

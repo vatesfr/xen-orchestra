@@ -34,7 +34,7 @@
   "action:open": "Abrir",
   "action:search": "Pesquisa",
   "action:select-all": "Selecionar todos",
-  "action:select-n-object-of": "{from} - {to} de {total} objetos",
+  "action:select-n-objects-of": "{from} - {to} de {total} objetos",
   "add-or": "+OU",
   "admin-login": "Login do administrador",
   "admin-password": "Senha do administrador",

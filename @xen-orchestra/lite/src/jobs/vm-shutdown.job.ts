@@ -13,7 +13,7 @@ export const useVmShutdownJob = defineJob('vm.shutdown', [vmsArg], () => {
     run: vms => xapi.vm.shutdown(vms.map(vm => vm.$ref)),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-shutdown:missing-vms'))
+        throw new JobError(t('job:vm-shutdown:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.CLEAN_SHUTDOWN))) {

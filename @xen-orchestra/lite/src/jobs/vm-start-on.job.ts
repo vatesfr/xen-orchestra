@@ -17,7 +17,7 @@ export const useVmStartOnJob = defineJob('vm.start-on', [vmsArg, hostArg], () =>
       ),
     validate: (isRunning, vms, host) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-start-on:missing-vms'))
+        throw new JobError(t('job:vm-start-on:missing-vm'))
       }
 
       if (!host) {

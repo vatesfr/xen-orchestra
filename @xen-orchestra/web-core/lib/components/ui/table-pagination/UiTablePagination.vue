@@ -3,7 +3,7 @@
   <div class="ui-table-pagination" :class="className">
     <div class="container">
       <span class="typo-body-regular-small label">
-        {{ t('action:select-n-object-of', { from, to, total }) }}
+        {{ t('action:select-n-objects-of', { from, to, total }) }}
       </span>
       <div class="buttons-container">
         <PaginationButton :disabled="isFirstPage" icon="fa:angle-double-left" @click="emit('first')" />

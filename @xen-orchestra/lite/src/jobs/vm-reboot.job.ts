@@ -13,7 +13,7 @@ export const useVmRebootJob = defineJob('vm.reboot', [vmsArg], () => {
     run: vms => xapi.vm.reboot(vms.map(vm => vm.$ref)),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-reboot:missing-vms'))
+        throw new JobError(t('job:vm-reboot:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.CLEAN_REBOOT))) {

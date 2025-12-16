@@ -17,7 +17,7 @@ export const useVmForceShutdownJob = defineJob('vm.force-shutdown', [vmsArg], ()
       ),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-force-shutdown:missing-vms'))
+        throw new JobError(t('job:vm-force-shutdown:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.HARD_SHUTDOWN))) {

@@ -41,7 +41,7 @@
   "action:open": "Відкрити",
   "action:search": "Пошук",
   "action:select-all": "Вибрати все",
-  "action:select-n-object-of": "{from} - {to} з {total} об'єктів",
+  "action:select-n-objects-of": "{from} - {to} з {total} об'єктів",
   "action:select-none": "Нічого не вибирати",
   "action:send": "Відправити",
   "action:send-ctrl-alt-del": "Надіслати Ctrl+Alt+Del",

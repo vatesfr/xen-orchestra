@@ -13,7 +13,7 @@ export const useVmResumeJob = defineJob('vm.resume', [vmsArg], () => {
     run: vms => xapi.vm.resume(Object.fromEntries(vms.map(vm => [vm.$ref, vm.power_state]))),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job:vm-resume:missing-vms'))
+        throw new JobError(t('job:vm-resume:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, [VM_OPERATION.UNPAUSE, VM_OPERATION.RESUME]))) {
