@@ -11,6 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **XO 6:**
+  - [Vm/dashboard] Add BackupRuns and BackupArchives cards on vm dashboard (PR [#9303](https://github.com/vatesfr/xen-orchestra/pull/9303))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
