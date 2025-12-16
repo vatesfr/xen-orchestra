@@ -17,7 +17,7 @@
 
 - [Backups] Don't fail backup with memory on "INVALID_UUID" error (PR [#9308](https://github.com/vatesfr/xen-orchestra/pull/9308))
 - [Plugins/Perf-alert] Unload configuration when the plugin is disabled (PR [#9306](https://github.com/vatesfr/xen-orchestra/pull/9306))
-- [XO5/Restore] Replace deprecated endpoint call (PR [#](https://github.com/vatesfr/xen-orchestra/pull/))
+- [XO5/Restore] Replace deprecated endpoint call (PR [#9316](https://github.com/vatesfr/xen-orchestra/pull/9316))
 
 ### Packages to release
 
