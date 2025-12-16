@@ -412,28 +412,28 @@ class OpenMetricsPlugin {
     for (const obj of Object.values(allObjects)) {
       switch (obj.type) {
         case 'VM':
-          vms.push(obj as XoVm)
+          vms.push(obj)
           break
         case 'host':
-          hosts.push(obj as XoHost)
+          hosts.push(obj)
           break
         case 'SR':
-          srs.push(obj as XoSr)
+          srs.push(obj)
           break
         case 'VBD':
-          vbds.push(obj as XoVbd)
+          vbds.push(obj)
           break
         case 'VDI':
-          vdis.push(obj as XoVdi)
+          vdis.push(obj)
           break
         case 'VIF':
-          vifs.push(obj as XoVif)
+          vifs.push(obj)
           break
         case 'PIF':
-          pifs.push(obj as XoPif)
+          pifs.push(obj)
           break
         case 'network':
-          networks.push(obj as XoNetwork)
+          networks.push(obj)
           break
       }
     }
