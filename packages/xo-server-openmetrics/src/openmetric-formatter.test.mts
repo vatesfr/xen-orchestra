@@ -13,6 +13,7 @@ import {
   formatToOpenMetrics,
   formatAllPoolsToOpenMetrics,
   type FormattedMetric,
+  type LabelContext,
 } from './openmetric-formatter.mjs'
 
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
@@ -505,5 +506,330 @@ describe('formatAllPoolsToOpenMetrics', () => {
     const memIndex = lines.findIndex(l => l.includes('xcp_host_memory_free_bytes'))
 
     assert.ok(cpuIndex < memIndex, 'Metrics should be sorted alphabetically')
+  })
+})
+
+// ============================================================================
+// Label Context Tests
+// ============================================================================
+
+describe('transformMetric with labelContext', () => {
+  const createLabelContext = (): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-uuid-123',
+        hostAddress: '192.168.1.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-456',
+        poolLabel: 'Production Pool',
+        sessionId: 'session-123',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: {
+        'vm-uuid-789': {
+          name_label: 'Web Server',
+          vbdDeviceToVdiName: { xvda: 'System Disk', xvdb: 'Data Disk' },
+          vifIndexToNetworkName: { '0': 'Pool-wide network', '1': 'Storage network' },
+        },
+      },
+      hosts: {
+        'host-uuid-123': {
+          name_label: 'Host 1',
+          pifDeviceToNetworkName: { eth0: 'Pool-wide network', eth1: 'Storage network' },
+        },
+      },
+      srs: {
+        'sr-uuid-full-1234567890': {
+          name_label: 'Local Storage',
+        },
+      },
+      srSuffixToUuid: {
+        '1234567890': 'sr-uuid-full-1234567890',
+      },
+    },
+  })
+
+  it('should add pool_name label from host credentials', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: 'cpu_avg',
+        rawLegend: 'AVERAGE:host:host-uuid-123:cpu_avg',
+      },
+      value: 0.75,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.pool_name, 'Production Pool')
+  })
+
+  it('should add host_name label for host metrics', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: 'cpu_avg',
+        rawLegend: 'AVERAGE:host:host-uuid-123:cpu_avg',
+      },
+      value: 0.75,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.host_name, 'Host 1')
+  })
+
+  it('should add vm_name label for VM metrics', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'vm-uuid-789',
+        metricName: 'cpu_usage',
+        rawLegend: 'AVERAGE:vm:vm-uuid-789:cpu_usage',
+      },
+      value: 0.5,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.vm_name, 'Web Server')
+  })
+
+  it('should add vdi_name label for VBD metrics', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'vm-uuid-789',
+        metricName: 'vbd_xvda_read',
+        rawLegend: 'AVERAGE:vm:vm-uuid-789:vbd_xvda_read',
+      },
+      value: 1000000,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.device, 'xvda')
+    assert.equal(result.labels.vdi_name, 'System Disk')
+  })
+
+  it('should add network_name label for VIF metrics', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'vm-uuid-789',
+        metricName: 'vif_0_rx',
+        rawLegend: 'AVERAGE:vm:vm-uuid-789:vif_0_rx',
+      },
+      value: 500000,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.vif, '0')
+    assert.equal(result.labels.network_name, 'Pool-wide network')
+  })
+
+  it('should add network_name label for PIF metrics', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: 'pif_eth0_rx',
+        rawLegend: 'AVERAGE:host:host-uuid-123:pif_eth0_rx',
+      },
+      value: 1000000,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.interface, 'eth0')
+    assert.equal(result.labels.network_name, 'Pool-wide network')
+  })
+
+  it('should add sr_name label for SR metrics', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: 'iops_read_1234567890',
+        rawLegend: 'AVERAGE:host:host-uuid-123:iops_read_1234567890',
+      },
+      value: 100,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.sr, '1234567890')
+    assert.equal(result.labels.sr_name, 'Local Storage')
+  })
+
+  it('should handle missing label context gracefully', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'host',
+        uuid: 'host-uuid-123',
+        metricName: 'cpu_avg',
+        rawLegend: 'AVERAGE:host:host-uuid-123:cpu_avg',
+      },
+      value: 0.75,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456')
+
+    assert.ok(result)
+    assert.equal(result.labels.pool_name, undefined)
+    assert.equal(result.labels.host_name, undefined)
+  })
+
+  it('should handle missing VM in label context gracefully', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'unknown-vm-uuid',
+        metricName: 'cpu_usage',
+        rawLegend: 'AVERAGE:vm:unknown-vm-uuid:cpu_usage',
+      },
+      value: 0.5,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.vm_name, undefined)
+  })
+
+  it('should handle missing VDI mapping gracefully', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'vm-uuid-789',
+        metricName: 'vbd_xvdc_read',
+        rawLegend: 'AVERAGE:vm:vm-uuid-789:vbd_xvdc_read',
+      },
+      value: 1000000,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.device, 'xvdc')
+    assert.equal(result.labels.vdi_name, undefined)
+  })
+})
+
+describe('formatAllPoolsToOpenMetrics with labelContext', () => {
+  const createLabelContext = (): LabelContext => ({
+    hosts: [
+      {
+        hostId: 'host-1',
+        hostAddress: '192.168.1.1',
+        hostLabel: 'Host 1',
+        poolId: 'pool-1',
+        poolLabel: 'Production',
+        sessionId: 'session-1',
+        protocol: 'https:',
+      },
+    ],
+    labels: {
+      vms: {
+        'vm-1': {
+          name_label: 'Web Server',
+          vbdDeviceToVdiName: { xvda: 'System Disk' },
+          vifIndexToNetworkName: { '0': 'Management' },
+        },
+      },
+      hosts: {
+        'host-1': {
+          name_label: 'Host 1',
+          pifDeviceToNetworkName: { eth0: 'Management' },
+        },
+      },
+      srs: {},
+      srSuffixToUuid: {},
+    },
+  })
+
+  it('should include human-readable labels in formatted output', () => {
+    const rrdDataList: ParsedRrdData[] = [
+      {
+        poolId: 'pool-1',
+        timestamp: 1700000000,
+        metrics: [
+          {
+            legend: {
+              cf: 'AVERAGE',
+              objectType: 'host',
+              uuid: 'host-1',
+              metricName: 'cpu_avg',
+              rawLegend: 'AVERAGE:host:host-1:cpu_avg',
+            },
+            value: 0.5,
+            timestamp: 1700000000,
+          },
+        ],
+      },
+    ]
+
+    const result = formatAllPoolsToOpenMetrics(rrdDataList, createLabelContext())
+
+    assert.ok(result.includes('pool_name="Production"'))
+    assert.ok(result.includes('host_name="Host 1"'))
+  })
+
+  it('should include VM labels in VM metrics', () => {
+    const rrdDataList: ParsedRrdData[] = [
+      {
+        poolId: 'pool-1',
+        timestamp: 1700000000,
+        metrics: [
+          {
+            legend: {
+              cf: 'AVERAGE',
+              objectType: 'vm',
+              uuid: 'vm-1',
+              metricName: 'cpu_usage',
+              rawLegend: 'AVERAGE:vm:vm-1:cpu_usage',
+            },
+            value: 0.75,
+            timestamp: 1700000000,
+          },
+        ],
+      },
+    ]
+
+    const result = formatAllPoolsToOpenMetrics(rrdDataList, createLabelContext())
+
+    assert.ok(result.includes('vm_name="Web Server"'))
   })
 })

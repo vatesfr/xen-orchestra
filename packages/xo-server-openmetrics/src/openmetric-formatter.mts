@@ -47,6 +47,45 @@ export interface FormattedMetric {
   timestampMs: number
 }
 
+// Label lookup types for enriching metrics with human-readable names
+interface VmLabelInfo {
+  name_label: string
+  vbdDeviceToVdiName: Record<string, string>
+  vifIndexToNetworkName: Record<string, string>
+}
+
+interface HostLabelInfo {
+  name_label: string
+  pifDeviceToNetworkName: Record<string, string>
+}
+
+interface SrLabelInfo {
+  name_label: string
+}
+
+interface LabelLookupData {
+  vms: Record<string, VmLabelInfo>
+  hosts: Record<string, HostLabelInfo>
+  srs: Record<string, SrLabelInfo>
+  srSuffixToUuid: Record<string, string>
+}
+
+interface HostCredentials {
+  hostId: string
+  hostAddress: string
+  hostLabel: string
+  poolId: string
+  poolLabel: string
+  sessionId: string
+  protocol: string
+}
+
+/** Credentials payload with label context for enriching metrics */
+export interface LabelContext {
+  hosts: HostCredentials[]
+  labels: LabelLookupData
+}
+
 // ============================================================================
 // Metric Definitions
 // ============================================================================
@@ -447,9 +486,14 @@ function formatLabels(labels: Record<string, string>): string {
  *
  * @param metric - Parsed metric from RRD
  * @param poolId - Pool UUID
+ * @param labelContext - Optional label context for enriching metrics with human-readable names
  * @returns FormattedMetric or null if no matching definition or null value
  */
-export function transformMetric(metric: ParsedMetric, poolId: string): FormattedMetric | null {
+export function transformMetric(
+  metric: ParsedMetric,
+  poolId: string,
+  labelContext?: LabelContext
+): FormattedMetric | null {
   const { legend, value, timestamp } = metric
 
   // Skip null values (NaN/Infinity)
@@ -469,17 +513,85 @@ export function transformMetric(metric: ParsedMetric, poolId: string): Formatted
   // Apply value transformation if defined
   const transformedValue = definition.transformValue !== undefined ? definition.transformValue(value) : value
 
-  // Build labels
+  // Extract labels from regex matches first (we need them for name lookups)
+  const extractedLabels: Record<string, string> = {}
+  if (matches !== null && definition.extractLabels !== undefined) {
+    Object.assign(extractedLabels, definition.extractLabels(matches))
+  }
+
+  // Build base labels
   const labels: Record<string, string> = {
     pool_id: poolId,
     uuid: legend.uuid,
     type: legend.objectType,
   }
 
-  // Add extracted labels from regex matches (ensure capture group exists)
-  if (matches !== null && matches.length >= 2 && definition.extractLabels !== undefined) {
-    Object.assign(labels, definition.extractLabels(matches))
+  // Add pool_name from host credentials
+  if (labelContext !== undefined) {
+    const hostCred = labelContext.hosts.find(h => h.poolId === poolId)
+    if (hostCred !== undefined && hostCred.poolLabel !== '') {
+      labels.pool_name = hostCred.poolLabel
+    }
+
+    // Add type-specific human-readable labels
+    if (legend.objectType === 'host') {
+      const hostInfo = labelContext.labels.hosts[legend.uuid]
+      if (hostInfo !== undefined) {
+        if (hostInfo.name_label !== '') {
+          labels.host_name = hostInfo.name_label
+        }
+
+        // For PIF metrics, add network_name
+        if (extractedLabels.interface !== undefined) {
+          const networkName = hostInfo.pifDeviceToNetworkName[extractedLabels.interface]
+          if (networkName !== undefined && networkName !== '') {
+            labels.network_name = networkName
+          }
+        }
+
+        // For SR metrics (iops, throughput, latency), resolve sr suffix to sr_name
+        if (extractedLabels.sr !== undefined) {
+          const srSuffix = extractedLabels.sr
+          // Try to find the full SR UUID from the suffix
+          const srUuid = labelContext.labels.srSuffixToUuid[srSuffix]
+          if (srUuid !== undefined) {
+            const srInfo = labelContext.labels.srs[srUuid]
+            if (srInfo !== undefined && srInfo.name_label !== '') {
+              labels.sr_name = srInfo.name_label
+            }
+          }
+        }
+      }
+    }
+
+    if (legend.objectType === 'vm') {
+      const vmInfo = labelContext.labels.vms[legend.uuid]
+      if (vmInfo !== undefined) {
+        if (vmInfo.name_label !== '') {
+          labels.vm_name = vmInfo.name_label
+        }
+
+        // For VBD metrics, add vdi_name
+        if (extractedLabels.device !== undefined) {
+          const vdiName = vmInfo.vbdDeviceToVdiName[extractedLabels.device]
+          if (vdiName !== undefined && vdiName !== '') {
+            labels.vdi_name = vdiName
+          }
+        }
+
+        // For VIF metrics, add network_name
+        if (extractedLabels.vif !== undefined) {
+          const networkName = vmInfo.vifIndexToNetworkName[extractedLabels.vif]
+          if (networkName !== undefined && networkName !== '') {
+            labels.network_name = networkName
+          }
+        }
+      }
+    }
   }
+
+  // Add extracted labels (device, interface, vif, sr, core)
+  Object.assign(labels, extractedLabels)
 
   return {
     name: `${METRIC_PREFIX}_${definition.openMetricName}`,
@@ -548,15 +660,19 @@ export function formatToOpenMetrics(metrics: FormattedMetric[]): string {
  * Format all RRD data from multiple pools to OpenMetrics.
  *
  * @param rrdDataList - Array of ParsedRrdData from all pools
+ * @param labelContext - Optional label context for enriching metrics with human-readable names
  * @returns Complete OpenMetrics output string with EOF marker
  */
-export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[]): string {
+export function formatAllPoolsToOpenMetrics(
+  rrdDataList: ParsedRrdData[],
+  labelContext?: LabelContext
+): string {
   const allMetrics: FormattedMetric[] = []
   const unmatchedMetrics: Set<string> = new Set()
 
   for (const rrdData of rrdDataList) {
     for (const metric of rrdData.metrics) {
-      const formatted = transformMetric(metric, rrdData.poolId)
+      const formatted = transformMetric(metric, rrdData.poolId, labelContext)
       if (formatted !== null) {
         allMetrics.push(formatted)
       } else if (metric.value !== null) {
