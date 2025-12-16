@@ -33,7 +33,7 @@
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes'
-import { getNetworkStatus, getPoolNetworkLink } from '@/utils/xo-records/network.utils'
+import { getNetworkStatus, getPoolNetworkRoute } from '@/utils/xo-records/network.utils'
 import { getPifStatus } from '@/utils/xo-records/pif.util.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
@@ -121,7 +121,11 @@ const { HeadCells, BodyCells } = usePifColumns({
     const rightIcon = computed(() => getManagementIcon(pif))
 
     const network = useGetNetworkById(() => pif.$network)
-    const poolNetworkLink = computed(() => getPoolNetworkLink(network.value))
+
+    const poolNetworkLink = computed(() =>
+      network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
+    )
+
     const networkPifs = computed(() => getPifsByIds(network.value?.PIFs ?? []))
     const networkStatus = computed(() => getNetworkStatus(networkPifs.value))
 

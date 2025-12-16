@@ -35,7 +35,7 @@
               :key="pool.id"
               size="small"
               icon="fa:city"
-              :to="`/pool/${pool.id}/dashboard`"
+              :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
             >
               {{ pool.name_label }}
             </UiLink>
@@ -59,7 +59,7 @@
               :key="pool.id"
               size="small"
               icon="fa:city"
-              :to="`/pool/${pool.id}/dashboard`"
+              :to="{ name: '/pool/[id]/dashboard', params: { id: pool.id } }"
             >
               {{ pool.name_label }}
             </UiLink>
