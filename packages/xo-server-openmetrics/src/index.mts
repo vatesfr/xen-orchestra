@@ -72,7 +72,7 @@ interface XapiCredentialsPayload {
 }
 
 // Union type for all XO objects we handle
-type XoObject = XoHost | XoPool | XoVm | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork | { type?: string }
+type XoObject = XoHost | XoPool | XoVm | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
 
 // Minimal type for XAPI connection
 interface Xapi {
@@ -398,7 +398,7 @@ class OpenMetricsPlugin {
     }
 
     // Get all objects and categorize them by type in a single pass
-    const allObjects = this.#xo.getObjects() as Record<string, XoObject>
+    const allObjects = this.#xo.getObjects() as Record<XoObject['id'], XoObject>
 
     const vms: XoVm[] = []
     const hosts: XoHost[] = []
@@ -409,10 +409,7 @@ class OpenMetricsPlugin {
     const pifs: XoPif[] = []
     const networks: XoNetwork[] = []
 
-    for (const id of Object.keys(allObjects)) {
-      const obj = allObjects[id]
-      if (obj === undefined || obj.type === undefined) continue
-
+    for (const obj of Object.values(allObjects)) {
       switch (obj.type) {
         case 'VM':
           vms.push(obj as XoVm)
@@ -442,19 +439,19 @@ class OpenMetricsPlugin {
     }
 
     // Build network name map (id -> name_label)
-    const networkNameById = new Map<string, string>()
+    const networkNameById = new Map<XoNetwork['id'], string>()
     for (const network of networks) {
       networkNameById.set(network.id, network.name_label)
     }
 
     // Build VDI name map (id -> name_label)
-    const vdiNameById = new Map<string, string>()
+    const vdiNameById = new Map<NonNullable<XoVbd['VDI']>, string>()
     for (const vdi of vdis) {
       vdiNameById.set(vdi.id, vdi.name_label)
     }
 
     // Build VBD map (VM id -> device -> VDI name)
-    const vbdMap = new Map<string, Map<string, string>>()
+    const vbdMap = new Map<XoVbd['VM'], Map<string, string>>()
     for (const vbd of vbds) {
       if (vbd.device === null || vbd.device === '' || vbd.VDI == null) continue
 
@@ -471,7 +468,7 @@ class OpenMetricsPlugin {
     }
 
     // Build VIF map (VM id -> vif index -> network name)
-    const vifMap = new Map<string, Map<string, string>>()
+    const vifMap = new Map<XoVif['$VM'], Map<string, string>>()
     for (const vif of vifs) {
       // VIF device is the index (0, 1, 2...)
       if (vif.$VM === undefined) continue
@@ -489,7 +486,7 @@ class OpenMetricsPlugin {
     }
 
     // Build PIF map (Host id -> device -> network name)
-    const pifMap = new Map<string, Map<string, string>>()
+    const pifMap = new Map<XoPif['$host'], Map<string, string>>()
     for (const pif of pifs) {
       let hostPifs = pifMap.get(pif.$host)
       if (hostPifs === undefined) {
