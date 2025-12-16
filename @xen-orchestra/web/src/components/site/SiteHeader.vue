@@ -18,7 +18,7 @@
         {{ t('backups') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isExactActive, href }" to="/tasks" custom>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/tasks' }" custom>
       <TabItem :active="isExactActive" :href tag="a">
         {{ t('tasks') }}
       </TabItem>

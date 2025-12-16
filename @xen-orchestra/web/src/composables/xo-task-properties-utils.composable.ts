@@ -1,8 +1,9 @@
+import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { XoTask } from '@vates/types'
-import { computed, type MaybeRefOrGetter, toValue } from 'vue'
+import { computed, type MaybeRefOrGetter } from 'vue'
 
 export function useTaskPropertiesUtils(rawTask: MaybeRefOrGetter<XoTask>) {
-  const task = computed(() => toValue(rawTask))
+  const task = toComputed(rawTask)
 
   const properties = computed(() => {
     if (!task.value.properties) {
