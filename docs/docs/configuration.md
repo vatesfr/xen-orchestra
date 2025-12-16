@@ -33,7 +33,7 @@ In Xen Orchestra 6, the default mount configuration looks like this:
 
 [http.proxies]
 # [port] is used to reuse the same port declared in [http.listen.0]
-'/v5/api' = 'ws://localhost:[port]/api'
+'/v5/api' = '[protocol]//localhost:[port]/api'
 '/v5/api/updater' = 'ws://localhost:9001'
 '/v5/rest' = 'http://localhost:[port]/rest'
 ```
