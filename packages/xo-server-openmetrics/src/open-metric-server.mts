@@ -38,6 +38,7 @@ interface IpcMessage {
 interface ServerConfiguration {
   port: number
   bindAddress: string
+  secret: string
 }
 
 interface HostCredentials {
@@ -349,7 +350,7 @@ async function startServer(): Promise<void> {
     throw new Error('Server not configured')
   }
 
-  const { port, bindAddress } = configuration
+  const { port, bindAddress, secret } = configuration
 
   server = createServer(async (req, res) => {
     const url = req.url ?? '/'
@@ -359,6 +360,18 @@ async function startServer(): Promise<void> {
     if (url === '/health' && method === 'GET') {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ status: 'ok' }))
+      return
+    }
+    const auth = req.headers.authorization?.trim()
+    if (!auth) {
+      res.writeHead(401, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Query is not authenticated' }))
+      return
+    }
+
+    if (auth !== `Bearer ${secret}`) {
+      res.writeHead(401, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Query authentication does not match server setting' }))
       return
     }
 
