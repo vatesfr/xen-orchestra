@@ -327,7 +327,7 @@ class OpenMetricsPlugin {
 
     for (const serverId of Object.keys(xapis)) {
       const xapi = xapis[serverId]
-      if (xapi.status !== 'connected') {
+      if (xapi === undefined || xapi.status !== 'connected') {
         continue
       }
 
@@ -411,7 +411,7 @@ class OpenMetricsPlugin {
 
     for (const id of Object.keys(allObjects)) {
       const obj = allObjects[id]
-      if (obj.type === undefined) continue
+      if (obj === undefined || obj.type === undefined) continue
 
       switch (obj.type) {
         case 'VM':

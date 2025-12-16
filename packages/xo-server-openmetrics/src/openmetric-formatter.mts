@@ -132,7 +132,7 @@ export const HOST_METRICS: MetricDefinition[] = [
     openMetricName: 'host_cpu_core_usage',
     type: 'gauge',
     help: 'Host CPU core usage ratio',
-    extractLabels: matches => ({ core: matches[1] }),
+    extractLabels: matches => ({ core: matches[1]! }),
   },
 
   // Network metrics (PIF)
@@ -141,14 +141,14 @@ export const HOST_METRICS: MetricDefinition[] = [
     openMetricName: 'host_network_receive_bytes_total',
     type: 'counter',
     help: 'Host network interface received bytes',
-    extractLabels: matches => ({ interface: matches[1] }),
+    extractLabels: matches => ({ interface: matches[1]! }),
   },
   {
     test: /^pif_(.+)_tx$/,
     openMetricName: 'host_network_transmit_bytes_total',
     type: 'counter',
     help: 'Host network interface transmitted bytes',
-    extractLabels: matches => ({ interface: matches[1] }),
+    extractLabels: matches => ({ interface: matches[1]! }),
   },
 
   // Disk IOPS metrics
@@ -157,14 +157,14 @@ export const HOST_METRICS: MetricDefinition[] = [
     openMetricName: 'host_disk_iops_read',
     type: 'gauge',
     help: 'Host disk read IOPS',
-    extractLabels: matches => ({ sr: matches[1] }),
+    extractLabels: matches => ({ sr: matches[1]! }),
   },
   {
     test: /^iops_write_(.+)$/,
     openMetricName: 'host_disk_iops_write',
     type: 'gauge',
     help: 'Host disk write IOPS',
-    extractLabels: matches => ({ sr: matches[1] }),
+    extractLabels: matches => ({ sr: matches[1]! }),
   },
 
   // Disk throughput metrics
@@ -174,7 +174,7 @@ export const HOST_METRICS: MetricDefinition[] = [
     type: 'gauge',
     help: 'Host disk read throughput in bytes per second',
     transformValue: v => v * Math.pow(2, 20), // MB to bytes
-    extractLabels: matches => ({ sr: matches[1] }),
+    extractLabels: matches => ({ sr: matches[1]! }),
   },
   {
     test: /^io_throughput_write_(.+)$/,
@@ -182,7 +182,7 @@ export const HOST_METRICS: MetricDefinition[] = [
     type: 'gauge',
     help: 'Host disk write throughput in bytes per second',
     transformValue: v => v * Math.pow(2, 20), // MB to bytes
-    extractLabels: matches => ({ sr: matches[1] }),
+    extractLabels: matches => ({ sr: matches[1]! }),
   },
 
   // Disk latency metrics
@@ -192,7 +192,7 @@ export const HOST_METRICS: MetricDefinition[] = [
     type: 'gauge',
     help: 'Host disk read latency in seconds',
     transformValue: v => v / 1000, // ms to seconds
-    extractLabels: matches => ({ sr: matches[1] }),
+    extractLabels: matches => ({ sr: matches[1]! }),
   },
   {
     test: /^write_latency_(.+)$/,
@@ -200,7 +200,7 @@ export const HOST_METRICS: MetricDefinition[] = [
     type: 'gauge',
     help: 'Host disk write latency in seconds',
     transformValue: v => v / 1000, // ms to seconds
-    extractLabels: matches => ({ sr: matches[1] }),
+    extractLabels: matches => ({ sr: matches[1]! }),
   },
 
   // Disk iowait
@@ -209,7 +209,7 @@ export const HOST_METRICS: MetricDefinition[] = [
     openMetricName: 'host_disk_iowait',
     type: 'gauge',
     help: 'Host disk IO wait ratio',
-    extractLabels: matches => ({ sr: matches[1] }),
+    extractLabels: matches => ({ sr: matches[1]! }),
   },
 ]
 
@@ -252,7 +252,7 @@ export const VM_METRICS: MetricDefinition[] = [
     openMetricName: 'vm_cpu_core_usage',
     type: 'gauge',
     help: 'VM CPU core usage ratio',
-    extractLabels: matches => ({ core: matches[1] }),
+    extractLabels: matches => ({ core: matches[1]! }),
   },
 
   // Runstate metrics
@@ -299,28 +299,28 @@ export const VM_METRICS: MetricDefinition[] = [
     openMetricName: 'vm_network_receive_bytes_total',
     type: 'counter',
     help: 'VM network interface received bytes',
-    extractLabels: matches => ({ vif: matches[1] }),
+    extractLabels: matches => ({ vif: matches[1]! }),
   },
   {
     test: /^vif_(\d+)_tx$/,
     openMetricName: 'vm_network_transmit_bytes_total',
     type: 'counter',
     help: 'VM network interface transmitted bytes',
-    extractLabels: matches => ({ vif: matches[1] }),
+    extractLabels: matches => ({ vif: matches[1]! }),
   },
   {
     test: /^vif_(\d+)_rx_errors$/,
     openMetricName: 'vm_network_receive_errors_total',
     type: 'counter',
     help: 'VM network interface receive errors',
-    extractLabels: matches => ({ vif: matches[1] }),
+    extractLabels: matches => ({ vif: matches[1]! }),
   },
   {
     test: /^vif_(\d+)_tx_errors$/,
     openMetricName: 'vm_network_transmit_errors_total',
     type: 'counter',
     help: 'VM network interface transmit errors',
-    extractLabels: matches => ({ vif: matches[1] }),
+    extractLabels: matches => ({ vif: matches[1]! }),
   },
 
   // Disk read/write bytes (VBD)
@@ -329,14 +329,14 @@ export const VM_METRICS: MetricDefinition[] = [
     openMetricName: 'vm_disk_read_bytes_total',
     type: 'counter',
     help: 'VM disk read bytes',
-    extractLabels: matches => ({ device: `xvd${matches[1]}` }),
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
   {
     test: /^vbd_xvd(.)_write$/,
     openMetricName: 'vm_disk_write_bytes_total',
     type: 'counter',
     help: 'VM disk write bytes',
-    extractLabels: matches => ({ device: `xvd${matches[1]}` }),
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
 
   // Disk IOPS (VBD)
@@ -345,21 +345,21 @@ export const VM_METRICS: MetricDefinition[] = [
     openMetricName: 'vm_disk_iops_read',
     type: 'gauge',
     help: 'VM disk read IOPS',
-    extractLabels: matches => ({ device: `xvd${matches[1]}` }),
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
   {
     test: /^vbd_xvd(.)_iops_write$/,
     openMetricName: 'vm_disk_iops_write',
     type: 'gauge',
     help: 'VM disk write IOPS',
-    extractLabels: matches => ({ device: `xvd${matches[1]}` }),
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
   {
     test: /^vbd_xvd(.)_iops_total$/,
     openMetricName: 'vm_disk_iops_total',
     type: 'gauge',
     help: 'VM disk total IOPS',
-    extractLabels: matches => ({ device: `xvd${matches[1]}` }),
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
 
   // Disk latency (VBD)
@@ -369,7 +369,7 @@ export const VM_METRICS: MetricDefinition[] = [
     type: 'gauge',
     help: 'VM disk read latency in seconds',
     transformValue: v => v / 1000, // ms to seconds
-    extractLabels: matches => ({ device: `xvd${matches[1]}` }),
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
   {
     test: /^vbd_xvd(.)_write_latency$/,
@@ -377,7 +377,7 @@ export const VM_METRICS: MetricDefinition[] = [
     type: 'gauge',
     help: 'VM disk write latency in seconds',
     transformValue: v => v / 1000, // ms to seconds
-    extractLabels: matches => ({ device: `xvd${matches[1]}` }),
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
 
   // Disk other metrics (VBD)
@@ -386,21 +386,21 @@ export const VM_METRICS: MetricDefinition[] = [
     openMetricName: 'vm_disk_iowait',
     type: 'gauge',
     help: 'VM disk IO wait ratio',
-    extractLabels: matches => ({ device: `xvd${matches[1]}` }),
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
   {
     test: /^vbd_xvd(.)_inflight$/,
     openMetricName: 'vm_disk_inflight',
     type: 'gauge',
     help: 'VM disk inflight operations',
-    extractLabels: matches => ({ device: `xvd${matches[1]}` }),
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
   {
     test: /^vbd_xvd(.)_avgqu_sz$/,
     openMetricName: 'vm_disk_queue_size',
     type: 'gauge',
     help: 'VM disk average queue size',
-    extractLabels: matches => ({ device: `xvd${matches[1]}` }),
+    extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
   },
 ]
 
@@ -643,6 +643,7 @@ export function formatToOpenMetrics(metrics: FormattedMetric[]): string {
   for (const [name, metricsForName] of grouped) {
     // Output HELP and TYPE only once per metric name
     const first = metricsForName[0]
+    if (first === undefined) continue
     lines.push(`# HELP ${name} ${first.help}`)
     lines.push(`# TYPE ${name} ${first.type}`)
 
@@ -663,10 +664,7 @@ export function formatToOpenMetrics(metrics: FormattedMetric[]): string {
  * @param labelContext - Optional label context for enriching metrics with human-readable names
  * @returns Complete OpenMetrics output string with EOF marker
  */
-export function formatAllPoolsToOpenMetrics(
-  rrdDataList: ParsedRrdData[],
-  labelContext?: LabelContext
-): string {
+export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[], labelContext?: LabelContext): string {
   const allMetrics: FormattedMetric[] = []
   const unmatchedMetrics: Set<string> = new Set()
 
