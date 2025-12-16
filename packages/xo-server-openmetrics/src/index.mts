@@ -6,6 +6,7 @@
  * RRD data directly from connected XAPI pools.
  */
 
+import type { XoHost, XoNetwork, XoPif, XoPool, XoSr, XoVbd, XoVdi, XoVif, XoVm } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
@@ -44,28 +45,36 @@ interface HostCredentials {
   protocol: string
 }
 
+// Label lookup types for enriching metrics with human-readable names
+interface VmLabelInfo {
+  name_label: string
+  vbdDeviceToVdiName: Record<string, string> // { "xvda": "System Disk" }
+  vifIndexToNetworkName: Record<string, string> // { "0": "Pool-wide network" }
+}
+
+interface HostLabelInfo {
+  name_label: string
+  pifDeviceToNetworkName: Record<string, string> // { "eth0": "Management" }
+}
+
+interface SrLabelInfo {
+  name_label: string
+}
+
+interface LabelLookupData {
+  vms: Record<string, VmLabelInfo> // keyed by VM UUID
+  hosts: Record<string, HostLabelInfo> // keyed by Host UUID
+  srs: Record<string, SrLabelInfo> // keyed by SR UUID
+  srSuffixToUuid: Record<string, string> // maps UUID suffix to full UUID
+}
+
 interface XapiCredentialsPayload {
   hosts: HostCredentials[]
+  labels: LabelLookupData
 }
 
-// Minimal type for XO host object
-interface XoHost {
-  id: string
-  uuid: string
-  type: 'host'
-  address: string
-  name_label: string
-  $pool: string
-  $poolId: string
-}
-
-// Minimal type for XO pool object
-interface XoPool {
-  id: string
-  uuid: string
-  type: 'pool'
-  name_label: string
-}
+// Union type for all XO objects we handle
+type XoObject = XoHost | XoPool | XoVm | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
 
 // Minimal type for XAPI connection
 interface Xapi {
@@ -332,7 +341,7 @@ class OpenMetricsPlugin {
 
     for (const serverId of Object.keys(xapis)) {
       const xapi = xapis[serverId]
-      if (xapi.status !== 'connected') {
+      if (xapi === undefined || xapi.status !== 'connected') {
         continue
       }
 
@@ -387,7 +396,191 @@ class OpenMetricsPlugin {
     }
 
     logger.debug('Returning host credentials', { hostCount: hosts.length })
-    return { hosts }
+    return { hosts, labels: this.#getLabelLookupData() }
+  }
+
+  /**
+   * Get label lookup data for enriching metrics with human-readable names.
+   * Gathers VM, Host, SR, VDI, VIF, PIF, and Network labels.
+   */
+  #getLabelLookupData(): LabelLookupData {
+    const labels: LabelLookupData = {
+      vms: {},
+      hosts: {},
+      srs: {},
+      srSuffixToUuid: {},
+    }
+
+    // Get all objects and categorize them by type in a single pass
+    const allObjects = this.#xo.getObjects() as Record<XoObject['id'], XoObject>
+
+    const vms: XoVm[] = []
+    const hosts: XoHost[] = []
+    const srs: XoSr[] = []
+    const vbds: XoVbd[] = []
+    const vdis: XoVdi[] = []
+    const vifs: XoVif[] = []
+    const pifs: XoPif[] = []
+    const networks: XoNetwork[] = []
+
+    for (const obj of Object.values(allObjects)) {
+      switch (obj.type) {
+        case 'VM':
+          vms.push(obj)
+          break
+        case 'host':
+          hosts.push(obj)
+          break
+        case 'SR':
+          srs.push(obj)
+          break
+        case 'VBD':
+          vbds.push(obj)
+          break
+        case 'VDI':
+          vdis.push(obj)
+          break
+        case 'VIF':
+          vifs.push(obj)
+          break
+        case 'PIF':
+          pifs.push(obj)
+          break
+        case 'network':
+          networks.push(obj)
+          break
+      }
+    }
+
+    // Build network name map (id -> name_label)
+    const networkNameById = new Map<XoNetwork['id'], string>()
+    for (const network of networks) {
+      networkNameById.set(network.id, network.name_label)
+    }
+
+    // Build VDI name map (id -> name_label)
+    const vdiNameById = new Map<NonNullable<XoVbd['VDI']>, string>()
+    for (const vdi of vdis) {
+      vdiNameById.set(vdi.id, vdi.name_label)
+    }
+
+    // Build VBD map (VM id -> device -> VDI name)
+    const vbdMap = new Map<XoVbd['VM'], Map<string, string>>()
+    for (const vbd of vbds) {
+      if (vbd.device === null || vbd.device === '' || vbd.VDI == null) continue
+
+      let vmVbds = vbdMap.get(vbd.VM)
+      if (vmVbds === undefined) {
+        vmVbds = new Map<string, string>()
+        vbdMap.set(vbd.VM, vmVbds)
+      }
+
+      const vdiName = vdiNameById.get(vbd.VDI)
+      if (vdiName !== undefined) {
+        vmVbds.set(vbd.device, vdiName)
+      }
+    }
+
+    // Build VIF map (VM id -> vif index -> network name)
+    const vifMap = new Map<XoVif['$VM'], Map<string, string>>()
+    for (const vif of vifs) {
+      // VIF device is the index (0, 1, 2...)
+      if (vif.$VM === undefined) continue
+
+      let vmVifs = vifMap.get(vif.$VM)
+      if (vmVifs === undefined) {
+        vmVifs = new Map<string, string>()
+        vifMap.set(vif.$VM, vmVifs)
+      }
+
+      const networkName = networkNameById.get(vif.$network)
+      if (networkName !== undefined) {
+        vmVifs.set(vif.device, networkName)
+      }
+    }
+
+    // Build PIF map (Host id -> device -> network name)
+    const pifMap = new Map<XoPif['$host'], Map<string, string>>()
+    for (const pif of pifs) {
+      let hostPifs = pifMap.get(pif.$host)
+      if (hostPifs === undefined) {
+        hostPifs = new Map<string, string>()
+        pifMap.set(pif.$host, hostPifs)
+      }
+
+      const networkName = networkNameById.get(pif.$network)
+      if (networkName !== undefined) {
+        hostPifs.set(pif.device, networkName)
+      }
+    }
+
+    // Build VM labels
+    for (const vm of vms) {
+      const vbdDeviceToVdiName: Record<string, string> = {}
+      const vmVbds = vbdMap.get(vm.id)
+      if (vmVbds !== undefined) {
+        for (const [device, vdiName] of vmVbds) {
+          vbdDeviceToVdiName[device] = vdiName
+        }
+      }
+
+      const vifIndexToNetworkName: Record<string, string> = {}
+      const vmVifs = vifMap.get(vm.id)
+      if (vmVifs !== undefined) {
+        for (const [index, networkName] of vmVifs) {
+          vifIndexToNetworkName[index] = networkName
+        }
+      }
+
+      labels.vms[vm.uuid] = {
+        name_label: vm.name_label,
+        vbdDeviceToVdiName,
+        vifIndexToNetworkName,
+      }
+    }
+
+    // Build Host labels
+    for (const host of hosts) {
+      const pifDeviceToNetworkName: Record<string, string> = {}
+      const hostPifs = pifMap.get(host.id)
+      if (hostPifs !== undefined) {
+        for (const [device, networkName] of hostPifs) {
+          pifDeviceToNetworkName[device] = networkName
+        }
+      }
+
+      labels.hosts[host.uuid] = {
+        name_label: host.name_label,
+        pifDeviceToNetworkName,
+      }
+    }
+
+    // Build SR labels with suffix mapping
+    for (const sr of srs) {
+      labels.srs[sr.uuid] = {
+        name_label: sr.name_label,
+      }
+
+      // Create suffix mappings for different suffix lengths (8, 12, 16 chars)
+      // SR metrics in RRD use truncated UUIDs
+      for (const suffixLen of [8, 12, 16, 20]) {
+        if (sr.uuid.length >= suffixLen) {
+          const suffix = sr.uuid.slice(-suffixLen)
+          // Only store if not already mapped (first match wins)
+          if (labels.srSuffixToUuid[suffix] === undefined) {
+            labels.srSuffixToUuid[suffix] = sr.uuid
+          }
+        }
+      }
+    }
+
+    logger.debug('Label lookup data built', {
+      vmCount: Object.keys(labels.vms).length,
+      hostCount: Object.keys(labels.hosts).length,
+      srCount: Object.keys(labels.srs).length,
+    })
+
+    return labels
   }
 
   /**

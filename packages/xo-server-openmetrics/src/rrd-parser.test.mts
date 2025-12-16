@@ -172,7 +172,7 @@ describe('parseRrdText', () => {
 
     assert.equal(result.meta.step, 60)
     assert.equal(result.data.length, 1)
-    assert.ok(Number.isNaN(result.data[0].values[0] as number))
+    assert.ok(Number.isNaN(result.data[0]!.values[0] as number))
   })
 
   it('should throw on completely invalid input', () => {
@@ -289,7 +289,7 @@ describe('parseRrdData', () => {
     const result = parseRrdData(rrdWithInvalidLegend, 'pool-123')
 
     assert.equal(result.metrics.length, 1)
-    assert.equal(result.metrics[0].legend.metricName, 'cpu_avg')
+    assert.equal(result.metrics[0]!.legend.metricName, 'cpu_avg')
   })
 })
 
@@ -315,6 +315,6 @@ describe('parseRrdResponse', () => {
 
     assert.equal(result.poolId, 'pool-456')
     assert.equal(result.metrics.length, 1)
-    assert.equal(result.metrics[0].value, 0.75)
+    assert.equal(result.metrics[0]!.value, 0.75)
   })
 })
