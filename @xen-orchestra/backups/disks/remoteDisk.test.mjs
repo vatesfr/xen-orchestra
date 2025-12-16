@@ -9,11 +9,12 @@ import { pFromCallback } from 'promise-toolbox'
 import { RemoteAdapter } from '../RemoteAdapter.mjs'
 import { VHDFOOTER, VHDHEADER } from '../tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
-import { RemoteVhd } from './RemoteVhd.mjs'
+import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 import { RemoteVhdChain } from './RemoteVhdChain.mjs'
 import { mergeVhdChain } from 'vhd-lib/merge.js'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
+import { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
 
 const { beforeEach, afterEach } = test
 
@@ -93,9 +94,9 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
     blocks: [2],
   })
 
-  const parent = new RemoteVhd({handler, path: `${basePath}/ancestor.vhd`})
+  const parent = new RemoteVhdDisk({handler, path: `${basePath}/ancestor.vhd`})
   await parent.init()
-  const child = new RemoteVhd({handler, path: `${basePath}/child.vhd`})
+  const child = new RemoteVhdDisk({handler, path: `${basePath}/child.vhd`})
   await child.init()
 
   console.log(parent.getBlockIndexes(), child.getBlockIndexes())
@@ -105,9 +106,13 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
     progressCalls++
   }
 
-  const chain = new RemoteVhdChain(handler, [parent, child], { onProgress, removeUnused: true })
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress, removeUnused: true })
 
-  const result = await chain.merge()
+  const result = await mergeRemoteDisk.merge(parent, child)
+
+  //const chain = new RemoteVhdChain(handler, [parent, child], { onProgress, removeUnused: true })
+
+  //const result = await chain.merge()
 
   // Merge chain: [ancestor, child]
   /*const chain = [`${basePath}/ancestor.vhd`, `${basePath}/child.vhd`]
