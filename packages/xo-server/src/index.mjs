@@ -551,10 +551,10 @@ const setUpProxies = (express, opts, xo) => {
   }
 
   const userHttpConfig = xo.config.get('http.listen.0')
-  const userPort = userHttpConfig.port
+  const isSecure = userHttpConfig.key !== undefined
 
   const dynamicProxyOptions = {}
-  if (userPort === 443) {
+  if (isSecure) {
     const cert = userHttpConfig.cert ?? userHttpConfig.certificate
     const key = userHttpConfig.key
     dynamicProxyOptions.ssl = {
@@ -597,14 +597,14 @@ const setUpProxies = (express, opts, xo) => {
     let target = url
 
     if (target.includes('[port]')) {
-      target = target.replace(/\[port\]/g, userPort)
+      target = target.replace(/\[port\]/g, userHttpConfig.port)
     }
     if (target.includes('[protocol]')) {
       target = target.replace(/\[protocol\]/g, protocol)
     }
 
     const targetUrl = new URL(target)
-    if (targetUrl.port === '443') {
+    if (isSecure) {
       targetUrl.protocol = targetUrl.protocol === 'ws:' ? 'wss:' : 'https:'
     }
 
