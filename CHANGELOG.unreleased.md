@@ -15,6 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 - [Backups] Don't fail backup with memory on "INVALID_UUID" error (PR [#9308](https://github.com/vatesfr/xen-orchestra/pull/9308))
+- [Plugins/Perf-alert] Unload configuration when the plugin is disabled (PR [#9306](https://github.com/vatesfr/xen-orchestra/pull/9306))
 
 ### Packages to release
 
@@ -32,4 +33,5 @@
 
 <!--packages-start-->
 - @xen-orchestra/xapi patch
+- xo-server-perf-alert minor
 <!--packages-end-->
