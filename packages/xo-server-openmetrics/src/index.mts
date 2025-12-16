@@ -343,17 +343,14 @@ class OpenMetricsPlugin {
     // Get all pools to resolve pool labels
     const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
     const poolLabelMap = new Map<string, string>()
-    for (const poolId of Object.keys(allPools)) {
-      const pool = allPools[poolId]
+    for (const pool of Object.values(allPools)) {
       poolLabelMap.set(pool.uuid, pool.name_label)
     }
 
     // Get all hosts from XO objects
     const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
 
-    for (const hostId of Object.keys(allHosts)) {
-      const host = allHosts[hostId]
-
+    for (const host of Object.values(allHosts)) {
       // Get the session info for this host's pool
       const poolInfo = poolSessionMap.get(host.$poolId)
       if (poolInfo === undefined) {
