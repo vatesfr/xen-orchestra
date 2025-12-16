@@ -25,6 +25,10 @@ const { tasks, depth = 0 } = defineProps<{
   selectedTaskId?: string
 }>()
 
+const emit = defineEmits<{
+  select: [id: string]
+}>()
+
 const { items: tasksItems } = useCollection(() => tasks, {
   flags: ['expanded'],
 })

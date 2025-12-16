@@ -33,7 +33,7 @@
         {{ t('storage') }}
       </TabItem>
     </RouterLink>
-    <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/tasks`" custom>
+    <RouterLink v-slot="{ isActive, href }" :to="{ name: '/pool/[id]/tasks', params: { id: pool.id } }" custom>
       <TabItem :active="isActive" :href tag="a">
         {{ t('tasks') }}
       </TabItem>
