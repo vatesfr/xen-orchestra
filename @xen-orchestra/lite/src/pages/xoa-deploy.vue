@@ -6,11 +6,11 @@
     <!-- Error -->
     <template v-if="error !== undefined">
       <div>
-        <h2>{{ t('xoa-deploy-failed') }}</h2>
+        <h2>{{ t('xoa-deploy-failed!') }}</h2>
         <VtsIcon name="legacy:status:danger" size="medium" />
       </div>
       <div class="error">
-        <strong>{{ t('check-errors') }}</strong>
+        <strong>{{ t('check-errors:') }}</strong>
         <UiRaw>{{ error }}</UiRaw>
       </div>
       <UiButton size="medium" accent="brand" variant="primary" left-icon="fa:download" @click="resetValues()">
@@ -21,7 +21,7 @@
     <!-- Success -->
     <template v-else-if="url !== undefined">
       <div>
-        <h2>{{ t('xoa-deploy-successful') }}</h2>
+        <h2>{{ t('xoa-deploy-successful!') }}</h2>
         <VtsIcon name="legacy:status:success" size="medium" />
       </div>
       <UiButton

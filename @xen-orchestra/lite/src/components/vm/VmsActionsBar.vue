@@ -17,7 +17,7 @@
     </MenuItem>
     <VmActionMigrateItem :selected-refs="selectedRefs" />
     <VmActionCopyItem :selected-refs="selectedRefs" />
-    <MenuItem v-tooltip="t('coming-soon')" icon="fa:edit">
+    <MenuItem v-tooltip="t('coming-soon!')" icon="fa:edit">
       {{ t('action:edit-config') }}
     </MenuItem>
     <VmActionSnapshotItem :vm-refs="selectedRefs" />

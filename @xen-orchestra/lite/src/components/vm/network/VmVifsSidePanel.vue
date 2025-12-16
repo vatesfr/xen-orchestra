@@ -13,7 +13,7 @@
         />
         <div class="action-buttons">
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             size="medium"
             variant="tertiary"
@@ -23,7 +23,7 @@
             {{ t('action:edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             size="medium"
             variant="tertiary"
@@ -136,7 +136,7 @@
                 <VtsCopyButton :value="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
-                  v-tooltip="t('coming-soon')"
+                  v-tooltip="t('coming-soon!')"
                   disabled
                   icon="fa:ellipsis"
                   size="small"

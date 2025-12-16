@@ -4,7 +4,7 @@
       {{ t('pifs') }}
       <template #actions>
         <UiButton
-          v-tooltip="t('coming-soon')"
+          v-tooltip="t('coming-soon!')"
           disabled
           left-icon="fa:plus"
           variant="secondary"
@@ -20,7 +20,7 @@
         <UiQuerySearchBar @search="(value: string) => (searchQuery = value)" />
         <UiTableActions :title="t('table-actions')">
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             left-icon="fa:edit"
             variant="tertiary"
@@ -30,7 +30,7 @@
             {{ t('action:edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             left-icon="fa:trash"
             variant="tertiary"

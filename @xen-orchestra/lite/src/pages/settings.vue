@@ -101,7 +101,7 @@
       </template>
       <template #value>
         <UiLink size="medium" href="https://translate.vates.tech/engage/xen-orchestra/">
-          {{ t('missing-translations') }}
+          {{ t('missing-translations?') }}
         </UiLink>
       </template>
     </VtsQuickInfoRow>

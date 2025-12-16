@@ -9,7 +9,7 @@
     <div v-if="!isStarted" class="pre-start">
       <div>
         <p class="text typo-h4">
-          {{ t('click-to-display-alarms') }}
+          {{ t('click-to-display-alarms:') }}
         </p>
         <UiButton size="medium" accent="brand" variant="primary" @click="start">{{ t('action:load-now') }}</UiButton>
       </div>

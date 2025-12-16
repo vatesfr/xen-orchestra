@@ -114,7 +114,7 @@
                 <VtsCopyButton :value="ip" />
                 <UiButtonIcon
                   v-if="index === 0 && ipAddresses.length > 1"
-                  v-tooltip="t('coming-soon')"
+                  v-tooltip="t('coming-soon!')"
                   disabled
                   icon="fa:ellipsis"
                   size="small"

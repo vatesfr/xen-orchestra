@@ -4,7 +4,7 @@
     <div class="content">
       <img alt="" src="@/assets/under-construction.svg" />
     </div>
-    <div class="content">{{ t('coming-soon') }}</div>
+    <div class="content">{{ t('coming-soon!') }}</div>
   </UiCard>
 </template>
 

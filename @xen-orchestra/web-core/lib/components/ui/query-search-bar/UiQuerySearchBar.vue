@@ -19,7 +19,7 @@
       </UiButton>
       <VtsDivider type="stretch" />
       <UiButton
-        v-tooltip="t('coming-soon')"
+        v-tooltip="t('coming-soon!')"
         size="medium"
         accent="brand"
         variant="secondary"

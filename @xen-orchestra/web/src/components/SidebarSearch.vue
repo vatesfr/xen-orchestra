@@ -2,9 +2,9 @@
   <div class="sidebar-search">
     <UiInput
       v-model="search"
-      :aria-label="t('action:search-tree-view')"
+      :aria-label="t('action:search-treeview')"
       right-icon="fa:magnifying-glass"
-      :placeholder="t('action:search-tree-view')"
+      :placeholder="t('action:search-treeview')"
       accent="brand"
       clearable
     />

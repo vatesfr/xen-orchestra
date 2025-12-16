@@ -16,7 +16,7 @@
         </div>
       </div>
       <div v-if="newFilters.some(filter => filter.isAdvanced)" class="available-properties">
-        {{ t('available-properties-for-advanced-filter') }}
+        {{ t('available-properties-for-advanced-filter:') }}
         <div class="properties typo-body-regular">
           <UiBadge v-for="(filter, property) in availableFilters" :key="property" :icon="getFilterIcon(filter)">
             {{ property }}

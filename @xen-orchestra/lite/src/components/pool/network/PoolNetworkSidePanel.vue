@@ -13,7 +13,7 @@
         />
         <div class="action-buttons">
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             size="medium"
             variant="tertiary"
@@ -23,7 +23,7 @@
             {{ t('action:edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             size="medium"
             variant="tertiary"
@@ -32,7 +32,7 @@
           >
             {{ t('action:delete') }}
           </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="small" icon="fa:ellipsis" />
+          <UiButtonIcon v-tooltip="t('coming-soon!')" disabled accent="brand" size="small" icon="fa:ellipsis" />
         </div>
       </div>
     </template>

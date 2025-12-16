@@ -21,7 +21,7 @@
             <VtsCopyButton :value="ip" />
             <UiButtonIcon
               v-if="index === 0 && ipV4Addresses.length > 1"
-              v-tooltip="t('coming-soon')"
+              v-tooltip="t('coming-soon!')"
               disabled
               icon="fa:ellipsis"
               size="small"
@@ -43,7 +43,7 @@
             <VtsCopyButton :value="ip" />
             <UiButtonIcon
               v-if="index === 0 && ipV6Addresses.length > 1"
-              v-tooltip="t('coming-soon')"
+              v-tooltip="t('coming-soon!')"
               disabled
               icon="fa:ellipsis"
               size="small"
