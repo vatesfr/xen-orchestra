@@ -12,10 +12,10 @@ import { XapiStreamNbdSource } from './XapiStreamNbd.mjs'
 import { XapiVhdStreamSource } from './XapiVhdStreamSource.mjs'
 import { XapiProgressHandler } from './XapiProgress.mjs'
 import { XapiQcow2StreamSource } from './XapiQcow2StreamSource.mjs'
-import { VDI_FORMAT_QCOW2, VHD_MAX_SIZE } from '../index.mjs'
+import { VDI_FORMAT_QCOW2, VDI_FORMAT_VHD, VHD_MAX_SIZE } from '../index.mjs'
 
 // @todo how to type this ?
-const { info, warn } = createLogger('xo:xapi:xapi-disks')
+const { debug, info, warn } = createLogger('xo:xapi:xapi-disks')
 
 /**
  * Meta class that handles the fallback logic when trying to export a disk from xapi.
@@ -118,6 +118,35 @@ export class XapiDiskSource extends DiskPassthrough {
     return readAhead
   }
 
+  async #getPreferedExportFormat() {
+    const xapi = this.#xapi
+    const vdiRef = this.#vdiRef
+
+    try {
+      const sm_config = await xapi.getField('VDI', vdiRef, 'sm_config')
+      let exportFormat = sm_config['image-format']
+      if (exportFormat !== undefined) {
+        return exportFormat
+      }
+      // there is a bug in sm that does not apply the image format to snapshot
+      // but a disk chain will always have the same image-format
+      const snaphotRef = await xapi.getField('VDI', vdiRef, 'snapshot_of')
+      if (snaphotRef) {
+        const sourceSmConfig = await xapi.getField('VDI', snaphotRef, 'sm_config')
+        exportFormat = sourceSmConfig['image-format']
+        if (exportFormat !== undefined) {
+          return exportFormat
+        }
+      }
+    } catch (error) {
+      // it can fail on suspend image
+      debug(`Couldn't get image-format of ${this.#vdiRef}`, error)
+    }
+
+    const size = await xapi.getField('VDI', vdiRef, 'virtual_size')
+    return size > VHD_MAX_SIZE ? VDI_FORMAT_QCOW2 : VDI_FORMAT_VHD
+  }
+
   /**
    * Create a disk source using stream export.
    * On failure, fall back to a full export.
@@ -128,19 +157,11 @@ export class XapiDiskSource extends DiskPassthrough {
     const xapi = this.#xapi
     const baseRef = this.#baseRef
     const vdiRef = this.#vdiRef
-
     let source
-    try {
-      const size = await xapi.getField('VDI', vdiRef, 'virtual_size')
-      const sm_config = await xapi.getField('VDI', vdiRef, 'sm_config')
-      const snaphotRef = await xapi.getField('VDI', vdiRef, 'snapshot_of')
-      const sm_config_source = snaphotRef && (await xapi.getField('VDI', snaphotRef, 'sm_config'))
 
-      // there is a bug in sm that does not apply the image format to snapshot
-      // but a disk chain will always have the same image-format
-      const format = sm_config['image-format'] ?? sm_config_source?.['image-format']
-      // as a fallback ensure we don't try to export a disk bigger than the max vhd size
-      if (format === VDI_FORMAT_QCOW2 || size > VHD_MAX_SIZE) {
+    const exportFormat = await this.#getPreferedExportFormat()
+    try {
+      if (exportFormat === VDI_FORMAT_QCOW2) {
         info('export through qcow2')
         source = new XapiQcow2StreamSource({ vdiRef, baseRef, xapi })
       } else {

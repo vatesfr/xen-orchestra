@@ -7,13 +7,13 @@ import decorate from 'apply-decorators'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
-import renderXoItem, { Host, Proxy } from 'render-xo-item'
+import { Host, Proxy } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { addSubscriptions, adminOnly, connectStore, ShortDate } from 'utils'
 import { CURRENT, productId2Plan, getXoaPlan } from 'xoa-plans'
 import { Container, Row, Col } from 'grid'
-import { createSelector, createGetObjectsOfType } from 'selectors'
-import { find, forEach, groupBy } from 'lodash'
+import { createSelector } from 'selectors'
+import { forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import { getLicenses, selfBindLicense, subscribePlugins, subscribeProxies, subscribeSelfLicenses } from 'xo'
 
@@ -49,22 +49,6 @@ const ProxyLicense = decorate([
 
 const LicenseManager = ({ item, userData }) => {
   const { type } = item
-
-  if (type === 'xosan') {
-    const { srId } = item
-
-    if (srId === undefined) {
-      return _('licenseNotBoundXosan')
-    }
-
-    const sr = userData.xosanSrs[srId]
-    return (
-      <span>
-        {sr === undefined ? _('licenseBoundUnknownXosan') : <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>}{' '}
-        <CopyToClipboardButton value={srId} />
-      </span>
-    )
-  }
 
   if (type === 'xoa') {
     const { id, xoaId, productId } = item
@@ -128,7 +112,7 @@ const LicenseManager = ({ item, userData }) => {
     }
   }
 
-  console.warn( `encountered unsupported license type ${type}`)
+  console.warn(`encountered unsupported license type ${type}`)
   return null
 }
 
@@ -175,9 +159,6 @@ const PRODUCTS_COLUMNS = [
 
 @adminOnly
 @connectStore({
-  xosanSrs: createGetObjectsOfType('SR').filter([
-    ({ SR_type }) => SR_type === 'xosan', // eslint-disable-line camelcase
-  ]),
   xoaRegistration: state => state.xoaRegisterState,
 })
 @addSubscriptions(() => ({
@@ -196,13 +177,10 @@ export default class Licenses extends Component {
 
     return getLicenses()
       .then(licenses => {
-        const { proxy, xcpng, xoa, xosan, xostor } = groupBy(licenses, license => {
+        const { proxy, xcpng, xoa, xostor } = groupBy(licenses, license => {
           for (const productType of license.productTypes) {
             if (productType === 'xo') {
               return 'xoa'
-            }
-            if (productType === 'xosan') {
-              return 'xosan'
             }
             if (productType === 'xoproxy') {
               return 'proxy'
@@ -221,7 +199,6 @@ export default class Licenses extends Component {
             proxy,
             xcpng,
             xoa,
-            xosan,
             xostor,
           },
         })
@@ -234,29 +211,8 @@ export default class Licenses extends Component {
   _getProducts = createSelector(
     () => this.state.licenses,
     licenses => {
-      if (get(() => licenses.xosan.state) === 'register-needed') {
-        // Should not happen
-        return
-      }
-
       const now = Date.now()
       const products = []
-
-      // --- XOSAN ---
-      forEach(licenses.xosan, license => {
-        // When `expires` is undefined, the license isn't expired
-        if (!(license.expires < now) && license.productId === 'xosan') {
-          products.push({
-            buyer: license.buyer,
-            expires: license.expires,
-            id: license.id,
-            product: 'XOSAN',
-            productId: license.productId,
-            srId: license.boundObjectId,
-            type: 'xosan',
-          })
-        }
-      })
 
       // --- XOA ---
       forEach(licenses.xoa, license => {
@@ -329,15 +285,6 @@ export default class Licenses extends Component {
       if (plugins === undefined) {
         return true
       }
-
-      const xoaPlugin = find(plugins, { id: 'xoa' })
-      if (!xoaPlugin) {
-        return _('xosanInstallXoaPlugin')
-      }
-
-      if (!xoaPlugin.loaded) {
-        return _('xosanLoadXoaPlugin')
-      }
     }
   )
 
@@ -363,7 +310,7 @@ export default class Licenses extends Component {
       return <em>{_('statusLoading')}</em>
     }
 
-    const { xoaRegistration, selfLicenses, xosanSrs } = this.props
+    const { xoaRegistration, selfLicenses } = this.props
 
     return (
       <Container>
@@ -389,7 +336,6 @@ export default class Licenses extends Component {
               columns={PRODUCTS_COLUMNS}
               data-registeredEmail={xoaRegistration.email}
               data-selfLicenses={selfLicenses}
-              data-xosanSrs={xosanSrs}
               stateUrlParam='s'
             />
           </Col>

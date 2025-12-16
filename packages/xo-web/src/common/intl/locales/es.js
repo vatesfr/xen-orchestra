@@ -164,9 +164,6 @@ export default {
   // Original text: "Import"
   newImport: 'Importar',
 
-  // Original text: 'XOSAN'
-  xosan: undefined,
-
   // Original text: "Overview"
   backupOverviewPage: 'Visión General',
 
@@ -3682,109 +3679,4 @@ export default {
 
   // Original text: 'Connected'
   srAllConnected: undefined,
-
-  // Original text: 'XOSAN'
-  xosanTitle: undefined,
-
-  // Original text: 'Xen Orchestra SAN SR'
-  xosanSrTitle: undefined,
-
-  // Original text: 'Select local SRs (lvm)'
-  xosanAvailableSrsTitle: undefined,
-
-  // Original text: 'Suggestions'
-  xosanSuggestions: undefined,
-
-  // Original text: 'Name'
-  xosanName: undefined,
-
-  // Original text: 'Host'
-  xosanHost: undefined,
-
-  // Original text: 'Hosts'
-  xosanHosts: undefined,
-
-  // Original text: 'Volume ID'
-  xosanVolumeId: undefined,
-
-  // Original text: 'Size'
-  xosanSize: undefined,
-
-  // Original text: 'Used space'
-  xosanUsedSpace: undefined,
-
-  // Original text: 'XOSAN pack needs to be installed on each host of the pool.'
-  xosanNeedPack: undefined,
-
-  // Original text: 'Install it now!'
-  xosanInstallIt: undefined,
-
-  // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
-  xosanNeedRestart: undefined,
-
-  // Original text: 'Restart toolstacks'
-  xosanRestartAgents: undefined,
-
-  // Original text: 'Pool master is not running'
-  xosanMasterOffline: undefined,
-
-  // Original text: 'Install XOSAN pack on {pool}'
-  xosanInstallPackTitle: undefined,
-
-  // Original text: 'Select at least 2 SRs'
-  xosanSelect2Srs: undefined,
-
-  // Original text: 'Layout'
-  xosanLayout: undefined,
-
-  // Original text: 'Redundancy'
-  xosanRedundancy: undefined,
-
-  // Original text: 'Capacity'
-  xosanCapacity: undefined,
-
-  // Original text: 'Available space'
-  xosanAvailableSpace: undefined,
-
-  // Original text: '* Can fail without data loss'
-  xosanDiskLossLegend: undefined,
-
-  // Original text: 'Create'
-  xosanCreate: undefined,
-
-  // Original text: 'Installing XOSAN. Please wait…'
-  xosanInstalling: undefined,
-
-  // Original text: 'No XOSAN available for Community Edition'
-  xosanCommunity: undefined,
-
-  // Original text: 'Install cloud plugin first'
-  xosanInstallCloudPlugin: undefined,
-
-  // Original text: 'Load cloud plugin first'
-  xosanLoadCloudPlugin: undefined,
-
-  // Original text: 'Loading…'
-  xosanLoading: undefined,
-
-  // Original text: 'XOSAN is not available at the moment'
-  xosanNotAvailable: undefined,
-
-  // Original text: 'Register for the XOSAN beta'
-  xosanRegisterBeta: undefined,
-
-  // Original text: 'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.'
-  xosanSuccessfullyRegistered: undefined,
-
-  // Original text: 'Install XOSAN pack on these hosts:'
-  xosanInstallPackOnHosts: undefined,
-
-  // Original text: 'Install {pack} v{version}?'
-  xosanInstallPack: undefined,
-
-  // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
-  xosanNoPackFound: undefined,
-
-  // Original text: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
-  xosanPackRequirements: undefined,
 }

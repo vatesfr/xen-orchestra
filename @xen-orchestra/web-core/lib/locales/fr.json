@@ -442,7 +442,7 @@
   "new-vm": "Nouvelle VM",
   "new-vm.add": "Ajouter une nouvelle VM",
   "new-vm.description": "Description de la VM",
-  "new-vm.feature-not-supported": "Ceci est notre nouveau formulaire de création de VM. La configuration Cloud-init, les options avancées et la gestion vTPM ne sont pas encore prises en charge. Une version mise à jour sera disponible prochainement en 2026. En attendant, l'ensemble des fonctionnalités est disponible ici sur {xo-5}.",
+  "new-vm.feature-not-supported": "Ceci est notre nouveau formulaire de création de VM. La configuration Cloud-init, les options avancées et la gestion vTPM ne sont pas encore prises en charge. Une version mise à jour sera disponible prochainement en 2026. En attendant, l'ensemble des fonctionnalités est disponible ici sur {xo-5}",
   "new-vm.name": "Nom de la VM",
   "news": "Actualités",
   "news-name": "Actualités {name}",

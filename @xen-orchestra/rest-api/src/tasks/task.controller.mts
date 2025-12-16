@@ -101,8 +101,8 @@ export class TaskController extends XoController<XoTask> {
           stream.write(['update', task])
         }
       }
-      function remove(taskId: XoTask['id']) {
-        stream.write(['remove', { id: taskId }])
+      function remove(task: XoTask) {
+        stream.write(['remove', { id: task.id }])
       }
 
       this.restApi.tasks.on('update', update).on('remove', remove)

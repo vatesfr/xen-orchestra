@@ -7,10 +7,13 @@
 - **XO 6:**
   - [Navigation] Navigation state is now persisted in localStorage and items are now collapsible while filtering. (PR [#9277](https://github.com/vatesfr/xen-orchestra/pull/9277))
   - [Navigation] Add links to XO 5 for actions and pages not yet implemented in XO 6 (PR [#9214](https://github.com/vatesfr/xen-orchestra/pull/9214))
+  - [i18n] Update Czech, Danish, Spanish, French, Italian, Dutch, Portuguese (Brazil), and Russian translations (PR [#9243](https://github.com/vatesfr/xen-orchestra/pull/9243))
+  - [Reactivity] Tasks are now reactive (PR [#9271](https://github.com/vatesfr/xen-orchestra/pull/9271))
 
 - [Backups/s3] Update filesystem handling to use DeleteObjectsCommand in order to improve performance (PR [#9281](https://github.com/vatesfr/xen-orchestra/pull/9281))
 - [REST API] Add link to the openAPI JSON directly in the swagger description (PR [#9285](https://github.com/vatesfr/xen-orchestra/pull/9285))
 - [XO] XO6 is now the default page (PR [#9212](https://github.com/vatesfr/xen-orchestra/pull/9212))
+- [REST-API/SSE] Possibility to subscribe to XO task (PR [#9269](https://github.com/vatesfr/xen-orchestra/pull/9269))
 
 ### Bug fixes
 
@@ -19,6 +22,8 @@
 - [REST API/VM Dashboard] Return `vmProtection: 'protected' | 'unprotected' | 'not-in-job'` instead of `vmProtected: boolean` (PR [#9288](https://github.com/vatesfr/xen-orchestra/pull/9288))
 - [Backup]clean up .vhd.checksum files (PR [#9291](https://github.com/vatesfr/xen-orchestra/pull/9291))
 - [Backup] Prevent "No new data to upload for this VM" info on mirror backups when it was false [Forum#11623](https://xcp-ng.org/forum/topic/11623) (PR [#9286](https://github.com/vatesfr/xen-orchestra/pull/9286))
+- [REST API] Fix various _cannot convert undefined or null to object_ (PR [#9304](https://github.com/vatesfr/xen-orchestra/pull/9304))
+- [REST API/VM Dashboard] Fix _cannot read property of undefined_ (PR [#9304](https://github.com/vatesfr/xen-orchestra/pull/9304))
 
 - **XO 6:**
   - [VDIs] Fix broken fallback link to XO 5 VDIs page (PR [#9267](https://github.com/vatesfr/xen-orchestra/pull/9267))
@@ -29,12 +34,13 @@
 - @xen-orchestra/fs 4.6.5
 - @xen-orchestra/backups 0.67.1
 - xo-web 5.191.1
-- @xen-orchestra/web-core 0.37.0
-- @xen-orchestra/mixins 0.17.1
-- @xen-orchestra/proxy 0.29.38
-- @xen-orchestra/rest-api 0.21.3
-- @xen-orchestra/web 0.35.1
-- xo-server 5.194.1
+- @vates/types 1.16.0
+- @xen-orchestra/web-core 0.38.0
+- @xen-orchestra/mixins 0.18.0
+- @xen-orchestra/proxy 0.29.39
+- @xen-orchestra/rest-api 0.22.0
+- @xen-orchestra/web 0.36.0
+- xo-server 5.194.2
 
 ## **5.113.2** (2025-12-09)
 

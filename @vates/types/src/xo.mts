@@ -439,7 +439,6 @@ export type XoPool = BaseXapiXo & {
   tags: string[]
   type: 'pool'
   vtpmSupported: boolean
-  xosanPackInstallationTime: number | null
   zstdSupported: boolean
 }
 
@@ -633,6 +632,7 @@ export type XoTask = {
   end?: number
   id: Branded<'task'>
   infos?: { data: unknown; message: string }[]
+  progress?: number
   properties: {
     method?: string
     name?: string

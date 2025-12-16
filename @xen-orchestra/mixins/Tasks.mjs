@@ -141,8 +141,8 @@ export default class Tasks extends EventEmitter {
 
       const deleteEntry = key => {
         ++count
-        db.del(key, cb)
-        this.emit('remove', key)
+
+        this.deleteLog(key, cb)
       }
 
       const onData =
@@ -209,9 +209,13 @@ export default class Tasks extends EventEmitter {
     return task
   }
 
-  async deleteLog(id) {
-    await this.#store.del(id)
-    this.emit('remove', id)
+  async deleteLog(id, cb) {
+    const log = await this.get(id).catch(noop)
+
+    if (log !== undefined) {
+      await this.#store.del(id, cb)
+      this.emit('remove', log)
+    }
   }
 
   async get(id) {

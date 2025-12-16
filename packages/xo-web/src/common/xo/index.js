@@ -479,28 +479,6 @@ subscribeSchedulerGranularity.forceRefresh = host => {
   }
 }
 
-const checkSrCurrentStateSubscriptions = {}
-export const subscribeCheckSrCurrentState = (pool, cb) => {
-  const poolId = resolveId(pool)
-
-  if (!checkSrCurrentStateSubscriptions[poolId]) {
-    checkSrCurrentStateSubscriptions[poolId] = createSubscription(() => _call('xosan.checkSrCurrentState', { poolId }))
-  }
-
-  return checkSrCurrentStateSubscriptions[poolId](cb)
-}
-subscribeCheckSrCurrentState.forceRefresh = pool => {
-  if (pool === undefined) {
-    forEach(checkSrCurrentStateSubscriptions, subscription => subscription.forceRefresh())
-    return
-  }
-
-  const subscription = checkSrCurrentStateSubscriptions[resolveId(pool)]
-  if (subscription !== undefined) {
-    subscription.forceRefresh()
-  }
-}
-
 const missingPatchesByHost = {}
 export const subscribeHostMissingPatches = (host, cb) => {
   const hostId = resolveId(host)
@@ -548,34 +526,6 @@ subscribeProxyApplianceUpdaterState.forceRefresh = proxyId => {
     subscription.forceRefresh()
   }
 }
-
-const volumeInfoBySr = {}
-export const subscribeVolumeInfo = ({ sr, infoType }, cb) => {
-  sr = resolveId(sr)
-
-  if (volumeInfoBySr[sr] == null) {
-    volumeInfoBySr[sr] = {}
-  }
-
-  if (volumeInfoBySr[sr][infoType] == null) {
-    volumeInfoBySr[sr][infoType] = createSubscription(() => _call('xosan.getVolumeInfo', { sr, infoType }))
-  }
-
-  return volumeInfoBySr[sr][infoType](cb)
-}
-subscribeVolumeInfo.forceRefresh = (() => {
-  const refreshSrVolumeInfo = volumeInfo => {
-    forEach(volumeInfo, subscription => subscription.forceRefresh())
-  }
-
-  return sr => {
-    if (sr === undefined) {
-      forEach(volumeInfoBySr, refreshSrVolumeInfo)
-    } else {
-      refreshSrVolumeInfo(volumeInfoBySr[sr])
-    }
-  }
-})()
 
 export const subscribeSrsUnhealthyVdiChainsLength = createSubscription(() => {
   const _isAdmin = isAdmin(store.getState())
@@ -3917,90 +3867,6 @@ export const deleteNetworkConfigs = ids => {
 export const editNetworkConfig = (networkConfig, props) =>
   _call('cloudConfig.update', { ...props, id: resolveId(networkConfig) })::tap(subscribeNetworkConfigs.forceRefresh)
 
-// XO SAN ----------------------------------------------------------------------
-
-export const getVolumeInfo = (xosanSr, infoType) => _call('xosan.getVolumeInfo', { sr: xosanSr, infoType })
-
-export const createXosanSR = ({
-  template,
-  pif,
-  vlan,
-  srs,
-  glusterType,
-  redundancy,
-  brickSize,
-  memorySize,
-  ipRange,
-}) => {
-  const promise = _call('xosan.createSR', {
-    template,
-    pif: pif.id,
-    vlan: String(vlan),
-    srs: resolveIds(srs),
-    glusterType,
-    redundancy: Number.parseInt(redundancy),
-    brickSize,
-    memorySize,
-    ipRange,
-  })
-
-  // Force refresh in parallel to get the creation progress sooner
-  subscribeCheckSrCurrentState.forceRefresh()
-
-  return promise
-}
-
-export const addXosanBricks = (xosansr, lvmsrs, brickSize) => _call('xosan.addBricks', { xosansr, lvmsrs, brickSize })
-
-export const replaceXosanBrick = (xosansr, previousBrick, newLvmSr, brickSize, onSameVM = false) =>
-  _call('xosan.replaceBrick', resolveIds({ xosansr, previousBrick, newLvmSr, brickSize, onSameVM }))
-
-export const removeXosanBricks = (xosansr, bricks) => _call('xosan.removeBricks', { xosansr, bricks })
-
-export const computeXosanPossibleOptions = (lvmSrs, brickSize) =>
-  _call('xosan.computeXosanPossibleOptions', { lvmSrs, brickSize })
-
-export const registerXosan = () =>
-  _call('cloud.registerResource', { namespace: 'xosan' })::tap(subscribeResourceCatalog.forceRefresh)
-
-export const fixHostNotInXosanNetwork = (xosanSr, host) => _call('xosan.fixHostNotInNetwork', { xosanSr, host })
-
-// XOSAN packs -----------------------------------------------------------------
-
-export const getResourceCatalog = ({ filters } = {}) => _call('cloud.getResourceCatalog', { filters })
-
-export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
-
-const downloadAndInstallXosanPack = (pack, pool, { version }) =>
-  _call('xosan.downloadAndInstallXosanPack', {
-    id: resolveId(pack),
-    version,
-    pool: resolveId(pool),
-  })
-
-export const downloadAndInstallResource = ({ namespace, id, version, sr, templateOnly }) =>
-  _call('cloud.downloadAndInstallResource', {
-    namespace,
-    id,
-    version,
-    sr: resolveId(sr),
-    templateOnly,
-  })
-
-import UpdateXosanPacksModal from './update-xosan-packs-modal' // eslint-disable-line import/first
-export const updateXosanPacks = pool =>
-  confirm({
-    title: _('xosanUpdatePacks'),
-    icon: 'host-patch-update',
-    body: <UpdateXosanPacksModal pool={pool} />,
-  }).then(pack => {
-    if (pack === undefined) {
-      return
-    }
-
-    return downloadAndInstallXosanPack(pack, pool, { version: pack.version })
-  })
-
 // XOSTOR   --------------------------------------------------------------------
 
 export const createXostorSr = params => _call('xostor.create', params)
@@ -4037,8 +3903,6 @@ export const setXostor = (sr, params) => _call('xostor.set', { sr: resolveId(sr)
 export const getLicenses = ({ productType } = {}) => _call('xoa.licenses.getAll', { productType })
 
 export const getLicense = (productId, boundObjectId) => _call('xoa.licenses.get', { productId, boundObjectId })
-
-export const unlockXosan = (licenseId, srId) => _call('xosan.unlock', { licenseId, sr: srId })
 
 export const bindLicense = (licenseId, boundObjectId) => _call('xoa.licenses.bind', { licenseId, boundObjectId })
 

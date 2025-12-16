@@ -54,11 +54,11 @@ export class RestApi {
   getObjectsByType<T extends XapiXoRecord>(
     type: T['type'],
     { filter, ...opts }: { filter?: string | ((obj: T) => boolean); limit?: number } = {}
-  ) {
+  ): Record<T['id'], T> {
     if (filter !== undefined && typeof filter === 'string') {
       filter = safeParseComplexMatcher(filter).createPredicate()
     }
-    return this.#xoApp.getObjectsByType(type, { filter, ...opts })
+    return this.#xoApp.getObjectsByType(type, { filter, ...opts }) ?? ({} as Record<T['id'], T>)
   }
 
   getXapiObject<T extends XapiXoRecord>(maybeId: T['id'] | T, type: T['type'] | T['type'][]) {

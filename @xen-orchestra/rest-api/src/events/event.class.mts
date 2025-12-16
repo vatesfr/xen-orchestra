@@ -6,8 +6,8 @@ import { EventEmitter } from 'node:events'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
 import { Listener } from '../abstract-classes/listener.mjs'
-import type { CollectionEventType, EventType, SubscriberId, XapiXoListenerType } from './event.type.mjs'
-import type { XapiXoRecord, XoAlarm } from '@vates/types'
+import type { CollectionEventType, EventType, SubscriberId, XoListenerType } from './event.type.mjs'
+import type { XapiXoRecord, XoAlarm, XoTask } from '@vates/types'
 import type { AlarmService } from '../alarms/alarm.service.mjs'
 
 const log = createLogger('xo:rest-api:event-service')
@@ -64,29 +64,39 @@ export class Subscriber {
   }
 }
 
-export class XapiXoListener extends Listener {
-  #type: XapiXoListenerType
+export class XoListener extends Listener {
+  #type: XoListenerType
   #alarmService?: AlarmService
 
-  constructor(type: XapiXoListenerType, eventEmitter: EventEmitter, alarmService?: AlarmService) {
+  constructor(type: XoListenerType, eventEmitter: EventEmitter, alarmService?: AlarmService) {
     super(eventEmitter, ['add', 'update', 'remove'])
     this.#type = type
     this.#alarmService = alarmService
   }
 
-  handleData<T extends Exclude<XapiXoRecord, XoAlarm>>(
+  handleData<T extends Exclude<XapiXoRecord, XoAlarm> | XoTask>(
     { fields, event }: { fields: '*' | string[]; subscriber: Subscriber; event: CollectionEventType },
     object: T | undefined,
     previousObj?: T
-  ): Partial<XapiXoRecord> | undefined {
-    let _object: Partial<XapiXoRecord> | undefined = object
-    let _prevObject: Partial<XapiXoRecord> | undefined = previousObj
+  ): (Partial<XapiXoRecord | XoTask> & { $subscription: XoListenerType }) | undefined {
+    let _object: Partial<XapiXoRecord | XoTask> | undefined = object
+    let _prevObject: Partial<XapiXoRecord | XoTask> | undefined = previousObj
 
     if (this.#type === 'alarm') {
-      if (object?.type === 'message' && this.#alarmService?.isAlarm(object)) {
+      if (
+        object !== undefined &&
+        'type' in object &&
+        object.type === 'message' &&
+        this.#alarmService?.isAlarm(object)
+      ) {
         _object = this.#alarmService.parseAlarm(object)
       }
-      if (previousObj?.type === 'message' && this.#alarmService?.isAlarm(previousObj)) {
+      if (
+        previousObj !== undefined &&
+        'type' in previousObj &&
+        previousObj.type === 'message' &&
+        this.#alarmService?.isAlarm(previousObj)
+      ) {
         _prevObject = this.#alarmService.parseAlarm(previousObj)
       }
     }
@@ -106,7 +116,7 @@ export class XapiXoListener extends Listener {
     }
 
     // if _object === undefined, this means we are on a remove event, so _prevObject will not be undefined
-    return _object ?? _prevObject!
+    return { $subscription: this.#type, ...(_object ?? _prevObject) }
   }
 }
 
