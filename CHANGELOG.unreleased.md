@@ -34,6 +34,7 @@
 - [Vm Import] Fix `error intermediate value not iterable` (PR [#9327](https://github.com/vatesfr/xen-orchestra/pull/9327))
 - **XO 6:**
   - [VM/New] Fix wording in "Memory" section (PR [#9309](https://github.com/vatesfr/xen-orchestra/pull/9309))
+  - [Nav/AccountMenu] License URL wasn’t redirecting properly to XO 5 (PR [#9321](https://github.com/vatesfr/xen-orchestra/pull/9321))
 
 ### Packages to release
 
