@@ -10,6 +10,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { getRandomValues } from 'node:crypto'
 
 // ============================================================================
 // Types
@@ -25,6 +26,7 @@ interface IpcMessage {
 interface PluginConfiguration {
   port: number
   bindAddress: string
+  secret: string
 }
 
 interface PendingRequest {
@@ -121,6 +123,12 @@ export const configurationSchema = {
       description: 'Address to bind to (127.0.0.1 for localhost only, 0.0.0.0 for all interfaces)',
       default: DEFAULT_BIND_ADDRESS,
     },
+    secret: {
+      type: 'string',
+      title: 'Prometheus secret',
+      description: 'Add this secret to http_config > authorization > credentials, and set type to Bearer',
+      default: Buffer.from(getRandomValues(new Uint32Array(8))).toString('hex'),
+    },
   },
   additionalProperties: false,
 }
@@ -148,7 +156,11 @@ class OpenMetricsPlugin {
    */
   async configure(configuration: PluginConfiguration): Promise<void> {
     this.#configuration = configuration
-    logger.debug('Plugin configured', { configuration })
+    logger.debug('Plugin configured', {
+      port: configuration.port,
+      bindAddress: configuration.bindAddress,
+      // secret is not logged since it is sensitive
+    })
   }
 
   /**
@@ -171,11 +183,13 @@ class OpenMetricsPlugin {
     const configuration: PluginConfiguration = {
       port: this.#staticConfig.port ?? this.#configuration?.port ?? DEFAULT_PORT,
       bindAddress: this.#staticConfig.bindAddress ?? this.#configuration?.bindAddress ?? DEFAULT_BIND_ADDRESS,
+      secret: this.#configuration?.secret ?? '',
     }
 
     logger.info('Starting OpenMetrics server', {
       port: configuration.port,
       bindAddress: configuration.bindAddress,
+      // secret is not logged since it can be sensitive
     })
 
     await this.#startChildProcess(configuration)
