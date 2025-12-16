@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('task.info') }}
+      {{ t('info') }}
       <UiCounter
         v-if="task.infos"
         :value="Object.keys(task.infos).length"
@@ -14,7 +14,7 @@
       <template v-for="(info, index) in task.infos" :key="index">
         <VtsDivider v-if="index > 0" class="divider" type="stretch" />
         <VtsCardRowKeyValue>
-          <template #key>{{ t('task.message') }}</template>
+          <template #key>{{ t('message') }}</template>
           <template #value>{{ info.message }}</template>
           <template v-if="info.message" #addons>
             <VtsCopyButton :value="info.message" />
