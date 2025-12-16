@@ -51,8 +51,32 @@ interface HostCredentials {
   protocol: string
 }
 
+// Label lookup types for enriching metrics with human-readable names
+interface VmLabelInfo {
+  name_label: string
+  vbdDeviceToVdiName: Record<string, string>
+  vifIndexToNetworkName: Record<string, string>
+}
+
+interface HostLabelInfo {
+  name_label: string
+  pifDeviceToNetworkName: Record<string, string>
+}
+
+interface SrLabelInfo {
+  name_label: string
+}
+
+interface LabelLookupData {
+  vms: Record<string, VmLabelInfo>
+  hosts: Record<string, HostLabelInfo>
+  srs: Record<string, SrLabelInfo>
+  srSuffixToUuid: Record<string, string>
+}
+
 interface XapiCredentialsPayload {
   hosts: HostCredentials[]
+  labels: LabelLookupData
 }
 
 interface PendingRequest<T> {
@@ -318,7 +342,7 @@ async function collectMetrics(): Promise<string> {
   for (const host of credentials.hosts) {
     if (!seenPools.has(host.poolId)) {
       seenPools.add(host.poolId)
-      poolMetrics.push(`xcp_pool_connected{pool_id="${host.poolId}",pool_label="${host.poolLabel}"} 1`)
+      poolMetrics.push(`xcp_pool_connected{pool_id="${host.poolId}",pool_name="${host.poolLabel}"} 1`)
     }
   }
 
@@ -327,7 +351,7 @@ async function collectMetrics(): Promise<string> {
     hostCount: rrdDataList.length,
     totalMetrics: rrdDataList.reduce((sum, d) => sum + d.metrics.length, 0),
   })
-  const rrdMetrics = formatAllPoolsToOpenMetrics(rrdDataList)
+  const rrdMetrics = formatAllPoolsToOpenMetrics(rrdDataList, credentials)
   logger.debug('Formatted metrics', { outputLength: rrdMetrics.length })
 
   // Combine pool metrics with RRD metrics

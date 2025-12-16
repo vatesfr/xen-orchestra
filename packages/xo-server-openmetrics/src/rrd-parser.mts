@@ -91,7 +91,10 @@ const VALID_OBJECT_TYPES = new Set(['host', 'vm', 'sr'])
  * @param value - Number or string from RRD response
  * @returns Parsed number or null if NaN/Infinity/invalid
  */
-export function parseNumber(value: number | string): number | null {
+export function parseNumber(value: number | string | undefined): number | null {
+  if (value === undefined) {
+    return null
+  }
   if (typeof value === 'string') {
     // Empty strings and non-numeric strings are invalid
     const trimmed = value.trim()
@@ -129,7 +132,11 @@ export function parseLegend(legend: string): ParsedLegend | null {
 
   const [, cf, objectType, uuid, metricName] = match
 
-  // Validate object type
+  // Validate all capture groups exist and object type is valid
+  if (cf === undefined || objectType === undefined || uuid === undefined || metricName === undefined) {
+    return null
+  }
+
   if (!VALID_OBJECT_TYPES.has(objectType)) {
     return null
   }
@@ -185,12 +192,22 @@ export function parseRrdData(rrd: RrdResponse, poolId: string): ParsedRrdData {
 
   // Get the most recent data point
   const latestData = data[data.length - 1]
+  if (latestData === undefined) {
+    return {
+      poolId,
+      timestamp: meta.end,
+      metrics: [],
+    }
+  }
   const timestamp = latestData.t
 
   const metrics: ParsedMetric[] = []
 
   for (let i = 0; i < meta.legend.length; i++) {
-    const legend = parseLegend(meta.legend[i])
+    const legendStr = meta.legend[i]
+    if (legendStr === undefined) continue
+
+    const legend = parseLegend(legendStr)
 
     if (legend === null) {
       // Skip unparseable legend entries
