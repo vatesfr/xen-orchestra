@@ -16,7 +16,7 @@
 import TaskSidePanel from '@/components/tasks/panel/TaskSidePanel.vue'
 import TasksList from '@/components/tasks/TasksList.vue'
 import { useXoHostTasksCollection } from '@/remote-resources/use-xo-host-tasks-collection.ts'
-import { useXoUserCollection } from '@/remote-resources/use-xo-user-collections.ts'
+import { useXoUserCollection } from '@/remote-resources/use-xo-user-collection.ts'
 import { convertTaskToCore } from '@/utils/convert-task-to-core.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
