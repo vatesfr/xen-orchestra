@@ -42,7 +42,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf dist/",
-    "dev": "yarn run clean && yarn run build",
+    "dev": "yarn run clean && tsc --watch",
     "prebuild": "yarn run clean",
     "prepublishOnly": "yarn run build",
     "test": "cd dist && node --test"
