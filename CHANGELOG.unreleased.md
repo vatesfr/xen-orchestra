@@ -12,11 +12,9 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **XO 6:**
-  - [Navigation] Navigation state is now persisted in localStorage and items are now collapsible while filtering. (
-    PR [#9277](https://github.com/vatesfr/xen-orchestra/pull/9277))
+  - [Navigation] Navigation state is now persisted in localStorage and items are now collapsible while filtering. (PR [#9277](https://github.com/vatesfr/xen-orchestra/pull/9277))
 
-- [REST API] Add link to the openAPI JSON directly in the swagger description (
-  PR [#9285](https://github.com/vatesfr/xen-orchestra/pull/9285))
+- [REST API] Add link to the openAPI JSON directly in the swagger description (PR [#9285](https://github.com/vatesfr/xen-orchestra/pull/9285))
 
 ### Bug fixes
 
@@ -28,8 +26,7 @@
 - **XO 6:**
   - [VDIs] Fix broken fallback link to XO 5 VDIs page (PR [#9267](https://github.com/vatesfr/xen-orchestra/pull/9267))
   - Redirect non admin user to XO5 (PR [#9219](https://github.com/vatesfr/xen-orchestra/pull/9219))
-  - [VMs] The disk name match the selected template when creating (
-    PR [#9294](https://github.com/vatesfr/xen-orchestra/pull/9294))
+  - [New VM Form] The disk name match the selected template when creating (PR [#9294](https://github.com/vatesfr/xen-orchestra/pull/9294))
 
 ### Packages to release
 
