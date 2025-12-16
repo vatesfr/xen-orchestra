@@ -6,6 +6,7 @@
  * RRD data directly from connected XAPI pools.
  */
 
+import type { XoHost, XoNetwork, XoPif, XoPool, XoSr, XoVbd, XoVdi, XoVif, XoVm } from '@vates/types'
 import { createLogger } from '@xen-orchestra/log'
 import { fork, type ChildProcess } from 'node:child_process'
 import { dirname, join } from 'node:path'
@@ -68,86 +69,6 @@ interface LabelLookupData {
 interface XapiCredentialsPayload {
   hosts: HostCredentials[]
   labels: LabelLookupData
-}
-
-// Minimal type for XO host object
-interface XoHost {
-  id: string
-  uuid: string
-  type: 'host'
-  address: string
-  name_label: string
-  $pool: string
-  $poolId: string
-}
-
-// Minimal type for XO pool object
-interface XoPool {
-  id: string
-  uuid: string
-  type: 'pool'
-  name_label: string
-}
-
-// Minimal type for XO VM object
-interface XoVm {
-  id: string
-  uuid: string
-  type: 'VM'
-  name_label: string
-  $VBDs: string[]
-  VIFs: string[]
-}
-
-// Minimal type for XO VBD object
-interface XoVbd {
-  id: string
-  type: 'VBD'
-  device: string | null
-  VDI: string | null
-  VM: string
-}
-
-// Minimal type for XO VDI object
-interface XoVdi {
-  id: string
-  uuid: string
-  type: 'VDI'
-  name_label: string
-}
-
-// Minimal type for XO VIF object
-interface XoVif {
-  id: string
-  type: 'VIF'
-  device: string
-  $network: string
-  VM: string
-}
-
-// Minimal type for XO PIF object
-interface XoPif {
-  id: string
-  type: 'PIF'
-  device: string
-  $network: string
-  $host: string
-}
-
-// Minimal type for XO SR object
-interface XoSr {
-  id: string
-  uuid: string
-  type: 'SR'
-  name_label: string
-}
-
-// Minimal type for XO Network object
-interface XoNetwork {
-  id: string
-  uuid: string
-  type: 'network'
-  name_label: string
 }
 
 // Union type for all XO objects we handle
@@ -535,7 +456,7 @@ class OpenMetricsPlugin {
     // Build VBD map (VM id -> device -> VDI name)
     const vbdMap = new Map<string, Map<string, string>>()
     for (const vbd of vbds) {
-      if (vbd.device === null || vbd.device === '' || vbd.VDI === null) continue
+      if (vbd.device === null || vbd.device === '' || vbd.VDI == null) continue
 
       let vmVbds = vbdMap.get(vbd.VM)
       if (vmVbds === undefined) {
@@ -553,12 +474,12 @@ class OpenMetricsPlugin {
     const vifMap = new Map<string, Map<string, string>>()
     for (const vif of vifs) {
       // VIF device is the index (0, 1, 2...)
-      if (vif.VM === undefined) continue
+      if (vif.$VM === undefined) continue
 
-      let vmVifs = vifMap.get(vif.VM)
+      let vmVifs = vifMap.get(vif.$VM)
       if (vmVifs === undefined) {
         vmVifs = new Map<string, string>()
-        vifMap.set(vif.VM, vmVifs)
+        vifMap.set(vif.$VM, vmVifs)
       }
 
       const networkName = networkNameById.get(vif.$network)
