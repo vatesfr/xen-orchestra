@@ -52,6 +52,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/immutable-backups patch
 - @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
