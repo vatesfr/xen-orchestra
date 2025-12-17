@@ -14,7 +14,7 @@ export class RemoteDisk extends RandomAccessDisk {
      * Abstract
      * @returns {string}
      */
-    getUid() {}
+    getUuid() {}
 
     /**
      * Abstract
