@@ -328,7 +328,6 @@
   "maximum-cpu-limit": "Øvre CPU-grense",
   "maximum-dynamic-memory": "Maksimale mengde dynamisk minne",
   "maximum-static-memory": "Maksimale mengde statisk minne",
-  "memory": "Minne",
   "memory-usage": "Minnebruk",
   "merge-backups-synchronously": "Slå sammen sikkerhetskopier synkront",
   "message": "Melding",
