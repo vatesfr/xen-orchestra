@@ -17,6 +17,7 @@
 
 - [Backups] Don't fail backup with memory on "INVALID_UUID" error (PR [#9308](https://github.com/vatesfr/xen-orchestra/pull/9308))
 - [Plugins/Perf-alert] Unload configuration when the plugin is disabled (PR [#9306](https://github.com/vatesfr/xen-orchestra/pull/9306))
+- [REST-API] Fix duplicate entries using `ndjson` (PR [#9320](https://github.com/vatesfr/xen-orchestra/pull/9320))
 
 ### Packages to release
 
@@ -34,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/rest-api patch
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
