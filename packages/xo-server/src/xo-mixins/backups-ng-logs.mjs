@@ -1,4 +1,3 @@
-import forEach from 'lodash/forEach.js'
 import isEmpty from 'lodash/isEmpty.js'
 import iteratee from 'lodash/iteratee.js'
 import ms from 'ms'
@@ -183,9 +182,15 @@ export default {
         }
       }
 
-      forEach(jobLogs, handleLog)
-      forEach(restoreLogs, handleLog)
-      forEach(restoreMetadataLogs, handleLog)
+      for (const [logId, log] of Object.entries(jobLogs)) {
+        await handleLog(log, logId)
+      }
+      for (const [logId, log] of Object.entries(restoreLogs)) {
+        await handleLog(log, logId)
+      }
+      for (const [logId, log] of Object.entries(restoreMetadataLogs)) {
+        await handleLog(log, logId)
+      }
 
       if (runId !== undefined) {
         if (consolidated[runId] === undefined) {

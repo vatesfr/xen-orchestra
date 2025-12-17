@@ -190,7 +190,7 @@ export default class Jobs {
     }
     const runJobId = logger.notice(`Starting execution of ${id}.`, jobData)
     // Links the backup log to the job run
-    // We keep the jobs for this because of some mehcnanism jobs have like preventing double execution.
+    // We keep the jobs for this because of some mechanism related to jobs, like preventing double execution.
     jobData.runJobId = runJobId
 
     const app = this._app

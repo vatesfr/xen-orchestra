@@ -75,7 +75,7 @@ export default class BackupNg {
       const executor = async ({
         cancelToken,
         data,
-        job: job_,
+        job,
         jobData,
         logger: jobsLogger,
         runJobId,
@@ -84,7 +84,6 @@ export default class BackupNg {
       }) => {
         const backupsConfig = app.config.get('backups')
 
-        let job = job_
         let vmIds
 
         if (job.type === 'backup') {
