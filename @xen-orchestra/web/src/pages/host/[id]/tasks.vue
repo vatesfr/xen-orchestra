@@ -1,7 +1,7 @@
 <template>
   <div class="tasks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <TasksList :tasks="convertedTasks" :has-error="hasTaskFetchError" :busy="areTasksFetching" />
+      <TasksList :tasks="convertedTasks" :has-error="hasTaskFetchError" :busy="!areTasksReady" />
     </UiCard>
     <TaskSidePanel v-if="selectedTask" :task="selectedTask" @close="selectedTask = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -33,7 +33,7 @@ const { host } = defineProps<{
 
 const uiStore = useUiStore()
 
-const { getTaskById, sortedTasks, hasTaskFetchError, areTasksFetching } = useXoHostTasksCollection({}, () => host.id)
+const { getTaskById, sortedTasks, hasTaskFetchError, areTasksReady } = useXoHostTasksCollection({}, () => host.id)
 const { getUserById } = useXoUserCollection()
 
 const { t } = useI18n()
