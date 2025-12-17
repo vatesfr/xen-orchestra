@@ -1,3 +1,5 @@
+import type { CircleProgressBarAccent } from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
+import { createMapper } from '@core/packages/mapper'
 import type { XoTask } from '@vates/types'
 
 export type BackupLogResult = { message: string; stack: unknown }
@@ -28,4 +30,38 @@ export function getTasksResultsRecursively(task: XoTask, rawType: 'failure' | 'w
   }
 
   return data
+}
+
+export type TaskStatusAccent = 'info' | 'warning' | 'danger' | 'success'
+
+export type TaskAccents = {
+  statusAccent: TaskStatusAccent
+  progressAccent: CircleProgressBarAccent
+}
+
+export const getTaskAccents = createMapper(
+  {
+    pending: { statusAccent: 'info', progressAccent: 'info' },
+    success: { statusAccent: 'success', progressAccent: 'info' },
+    failure: { statusAccent: 'danger', progressAccent: 'danger' },
+    interrupted: { statusAccent: 'danger', progressAccent: 'danger' },
+  },
+  'pending'
+)
+
+export function findTaskById(tasks: XoTask[], taskId: XoTask['id']): XoTask | undefined {
+  for (const task of tasks) {
+    if (task.id === taskId) {
+      return task
+    }
+
+    if (task.tasks && task.tasks.length > 0) {
+      const subTask = findTaskById(task.tasks, taskId)
+      if (subTask) {
+        return subTask
+      }
+    }
+  }
+
+  return undefined
 }

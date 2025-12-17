@@ -13,6 +13,9 @@
 
 - [XO5] Remove XOSAN (PR [#9248](https://github.com/vatesfr/xen-orchestra/pull/9248))
 
+- **XO 6:**
+  - [Site/Tasks] Implement tasks view and side panel information (PR [#9063](https://github.com/vatesfr/xen-orchestra/pull/9063))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”

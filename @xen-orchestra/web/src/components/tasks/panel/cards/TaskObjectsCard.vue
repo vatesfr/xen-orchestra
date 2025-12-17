@@ -1,32 +1,30 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('custom-fields') }}
+      {{ t('object') }}
     </UiCardTitle>
     <div class="content">
-      <VtsStateHero
-        v-if="Object.keys(customFields).length === 0"
-        type="no-data"
-        format="card"
-        horizontal
-        size="extra-small"
-      >
-        {{ t('no-custom-field-detected') }}
-      </VtsStateHero>
-      <VtsRecursiveFields v-else :fields="customFields" />
+      <VtsCardRowKeyValue>
+        <template #key>{{ t('id') }}</template>
+        <template #value>{{ task.properties.objectId }}</template>
+        <template #addons>
+          <VtsCopyButton :value="String(task.properties.objectId)" />
+        </template>
+      </VtsCardRowKeyValue>
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import VtsRecursiveFields from '@core/components/recursive-fields/VtsRecursiveFields.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
-  customFields: Record<string, unknown>
+  task: XoTask
 }>()
 
 const { t } = useI18n()
