@@ -1,35 +1,31 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      {{ t('custom-fields') }}
+      {{ t('properties') }}
     </UiCardTitle>
     <div class="content">
-      <VtsStateHero
-        v-if="Object.keys(customFields).length === 0"
-        type="no-data"
-        format="card"
-        horizontal
-        size="extra-small"
-      >
-        {{ t('no-custom-field-detected') }}
-      </VtsStateHero>
-      <VtsRecursiveFields v-else :fields="customFields" />
+      <VtsRecursiveFields :fields="properties.other" />
     </div>
+    <UiLogEntryViewer :content="properties.other" :label="t('other-properties')" size="small" accent="info" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
+import { useTaskPropertiesUtils } from '@/composables/xo-task-properties-utils.composable.ts'
 import VtsRecursiveFields from '@core/components/recursive-fields/VtsRecursiveFields.vue'
-import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
+import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-defineProps<{
-  customFields: Record<string, unknown>
+const { task } = defineProps<{
+  task: XoTask
 }>()
 
 const { t } = useI18n()
+
+const { properties } = useTaskPropertiesUtils(() => task)
 </script>
 
 <style scoped lang="postcss">

@@ -10,7 +10,7 @@ import UiUserLogo from '@core/components/ui/user-logo/UiUserLogo.vue'
 import { useDisabled } from '@core/composables/disabled.composable'
 
 defineProps<{
-  size: 'small' | 'medium'
+  size: 'extra-small' | 'small' | 'medium'
   selected?: boolean
 }>()
 
