@@ -1,6 +1,6 @@
 <!-- v10 -->
 <template>
-  <li class="ui-task-item" :data-depth="depth" :class="{ 'is-selected': selected }">
+  <li class="ui-task-item" :data-depth="depth" :class="{ selected }">
     <div class="container">
       <div class="tree-section">
         <div class="tree-lines">
@@ -38,7 +38,7 @@
             {{ `${t('task:ended')} ${end}` }}
           </span>
           <div class="progress">
-            <UiCircleProgressBar :accent="progressAccent" size="small" :value="task.progress ? task.progress : 100" />
+            <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
           </div>
           <div class="actions">
             <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select', task.id)" />
@@ -108,6 +108,15 @@ const hasInfos = computed(() => task.infos && task.infos.length > 0)
 const shouldShowInfos = logicOr(isError, hasWarnings, hasInfos)
 
 const progressAccent = computed(() => (isError.value ? 'danger' : 'info'))
+
+// TODO remove when progress is available for all tasks
+const progress = computed(() => {
+  if (task.status === 'pending' && !task.end) {
+    return task.progress ? task.progress : 0
+  }
+
+  return task.progress ? task.progress : 100
+})
 </script>
 
 <style lang="postcss" scoped>
@@ -116,7 +125,7 @@ const progressAccent = computed(() => (isError.value ? 'danger' : 'info'))
     border-bottom: 0.1rem solid var(--color-neutral-border);
   }
 
-  &.is-selected {
+  &.selected {
     background-color: var(--color-brand-background-selected);
   }
 

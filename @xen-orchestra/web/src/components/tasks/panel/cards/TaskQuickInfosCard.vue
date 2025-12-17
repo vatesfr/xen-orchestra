@@ -14,9 +14,9 @@
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
-        <template #key>{{ t('task:type') }}</template>
+        <template #key>{{ t('task-type') }}</template>
         <template #value>
-          <UiTagsList>
+          <UiTagsList v-if="task.properties.type !== undefined">
             <UiTag accent="info" variant="secondary">
               {{ task.properties.type }}
             </UiTag>
@@ -53,13 +53,13 @@
         <template #key>{{ t('status') }}</template>
         <template #value>
           <UiTagsList>
-            <UiTag :accent="taskStatus" variant="secondary">
+            <UiTag :accent="taskAccent" variant="secondary">
               {{ task.status }}
             </UiTag>
           </UiTagsList>
         </template>
         <template v-if="task.status" #addons>
-          <UiCircleProgressBar :accent="progressStatus" size="small" :value="task.properties.progress ?? 100" />
+          <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
         </template>
       </VtsCardRowKeyValue>
     </div>
@@ -90,9 +90,18 @@ const { t, d } = useI18n()
 
 const { user } = useXoUserResource({}, () => task.properties.userId)
 
-const progressStatus = computed(() => getTaskAccents(task.status).progressAccent)
+const progressAccent = computed(() => getTaskAccents(task.status).progressAccent)
 
-const taskStatus = computed(() => getTaskAccents(task.status).statusAccent)
+const taskAccent = computed(() => getTaskAccents(task.status).statusAccent)
+
+// TODO remove when progress is available for all tasks
+const progress = computed(() => {
+  if (task.status === 'pending' && !task.end) {
+    return task.properties.progress ?? 0
+  }
+
+  return task.properties.progress ?? 100
+})
 
 const formattedStartDate = computed(() => d(task.start, { dateStyle: 'short', timeStyle: 'medium' }))
 const formattedEndDate = computed(() => {
@@ -117,8 +126,6 @@ const formattedEndDate = computed(() => {
 
 <style scoped lang="postcss">
 .card-container {
-  display: flex;
-  flex-direction: column;
   gap: 1.6rem;
 
   .content {

@@ -13,13 +13,13 @@
       >
         {{ t('no-custom-field-detected') }}
       </VtsStateHero>
-      <VtsLabelValueList v-else :fields="customFields" />
+      <VtsRecursiveFields v-else :fields="customFields" />
     </div>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import VtsLabelValueList from '@core/components/label-value-list/VtsLabelValueList.vue'
+import VtsRecursiveFields from '@core/components/recursive-fields/VtsRecursiveFields.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'

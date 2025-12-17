@@ -2,13 +2,7 @@
   <UiCard class="card-container">
     <UiCardTitle>
       {{ t('warnings') }}
-      <UiCounter
-        v-if="task.warnings"
-        :value="Object.keys(task.warnings).length"
-        accent="warning"
-        size="small"
-        variant="primary"
-      />
+      <UiCounter :value="Object.keys(task.warnings!).length" accent="warning" size="small" variant="primary" />
     </UiCardTitle>
     <div class="content">
       <template v-for="(warning, index) in task.warnings" :key="index">
@@ -44,8 +38,6 @@ const { t } = useI18n()
 
 <style scoped lang="postcss">
 .card-container {
-  display: flex;
-  flex-direction: column;
   gap: 1.6rem;
 
   .content {

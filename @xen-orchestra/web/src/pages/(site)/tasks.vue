@@ -1,7 +1,7 @@
 <template>
   <div class="tasks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <TasksList :tasks="convertedTasks" :has-error="hasTaskFetchError" :busy="areTasksFetching" />
+      <TasksList :tasks="convertedTasks" :has-error="hasTaskFetchError" :busy="!areTasksReady" />
     </UiCard>
     <TaskSidePanel v-if="selectedTask" :task="selectedTask" @close="selectedTask = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
@@ -29,7 +29,7 @@ import { useI18n } from 'vue-i18n'
 
 const uiStore = useUiStore()
 
-const { getTaskById, sortedTasks, hasTaskFetchError, areTasksFetching } = useXoTaskCollection()
+const { getTaskById, sortedTasks, hasTaskFetchError, areTasksReady } = useXoTaskCollection()
 const { getUserById } = useXoUserCollection()
 
 const { t } = useI18n()
@@ -50,7 +50,7 @@ const convertedTasks = computed(() =>
     const user = getUserById(userId as XoUser['id'])
 
     // TODO , just put username when it is available in endpoint
-    return convertTaskToCore(task, user?.name ? user?.name : user?.email)
+    return convertTaskToCore(task, user?.name ? user.name : user?.email)
   })
 )
 </script>

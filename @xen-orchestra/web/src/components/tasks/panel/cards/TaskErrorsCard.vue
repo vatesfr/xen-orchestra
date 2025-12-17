@@ -8,7 +8,7 @@
       <VtsCardRowKeyValue>
         <template #key>{{ t('message') }}</template>
         <template #value>{{ task.result.message }}</template>
-        <template #addons>
+        <template v-if="task.result.message" #addons>
           <VtsCopyButton :value="String(task.result.message)" />
         </template>
       </VtsCardRowKeyValue>
@@ -42,8 +42,6 @@ const { t } = useI18n()
 
 <style scoped lang="postcss">
 .card-container {
-  display: flex;
-  flex-direction: column;
   gap: 1.6rem;
 
   .content {

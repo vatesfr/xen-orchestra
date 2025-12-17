@@ -13,8 +13,8 @@
       </div>
     </template>
     <template #default>
-      <TaskQuickInfoCard :task />
-      <TaskInfoCard v-if="task.infos" :task />
+      <TaskQuickInfosCard :task />
+      <TaskInfosCard v-if="task.infos" :task />
       <TaskWarningsCard v-if="task.warnings" :task />
       <TaskErrorsCard v-if="isError" :task />
       <TaskObjectsCard v-if="task.properties.objectId" :task />
@@ -25,10 +25,10 @@
 
 <script setup lang="ts">
 import TaskErrorsCard from '@/components/tasks/panel/cards/TaskErrorsCard.vue'
-import TaskInfoCard from '@/components/tasks/panel/cards/TaskInfoCard.vue'
+import TaskInfosCard from '@/components/tasks/panel/cards/TaskInfosCard.vue'
 import TaskObjectsCard from '@/components/tasks/panel/cards/TaskObjectsCard.vue'
 import TaskPropertiesCard from '@/components/tasks/panel/cards/TaskPropertiesCard.vue'
-import TaskQuickInfoCard from '@/components/tasks/panel/cards/TaskQuickInfoCard.vue'
+import TaskQuickInfosCard from '@/components/tasks/panel/cards/TaskQuickInfosCard.vue'
 import TaskWarningsCard from '@/components/tasks/panel/cards/TaskWarningsCard.vue'
 import { useTaskPropertiesUtils } from '@/composables/xo-task-properties-utils.composable.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'

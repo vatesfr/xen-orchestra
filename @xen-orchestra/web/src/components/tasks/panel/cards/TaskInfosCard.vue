@@ -2,13 +2,7 @@
   <UiCard class="card-container">
     <UiCardTitle>
       {{ t('info') }}
-      <UiCounter
-        v-if="task.infos"
-        :value="Object.keys(task.infos).length"
-        accent="info"
-        size="small"
-        variant="primary"
-      />
+      <UiCounter :value="Object.keys(task.infos!).length" accent="info" size="small" variant="primary" />
     </UiCardTitle>
     <div class="content">
       <template v-for="(info, index) in task.infos" :key="index">

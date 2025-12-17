@@ -10,7 +10,7 @@
           <UiTablePagination v-bind="paginationBindings" />
         </UiTopBottomTable>
       </div>
-      <VtsStateHero v-if="busy" busy format="card" type="busy" size="medium" />
+      <VtsStateHero v-if="busy" format="card" type="busy" size="medium" />
       <VtsStateHero v-else-if="hasError" format="table" type="error" size="small" no-background>
         {{ t('error-no-data') }}
       </VtsStateHero>

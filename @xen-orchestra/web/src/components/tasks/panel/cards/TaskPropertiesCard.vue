@@ -5,22 +5,16 @@
     </UiCardTitle>
     <div class="content">
       <div>
-        <TaskPropertiesRecursive :fields="properties.other as Record<string, unknown>" />
+        <VtsRecursiveFields :fields="properties.other as Record<string, unknown>" />
       </div>
     </div>
-    <UiLogEntryViewer
-      v-if="properties.other && Object.keys(properties.other).length > 0"
-      :content="properties.other"
-      :label="t('other-properties')"
-      size="small"
-      accent="info"
-    />
+    <UiLogEntryViewer :content="properties.other" :label="t('other-properties')" size="small" accent="info" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import TaskPropertiesRecursive from '@/components/tasks/panel/cards/TaskPropertiesRecursive.vue'
 import { useTaskPropertiesUtils } from '@/composables/xo-task-properties-utils.composable.ts'
+import VtsRecursiveFields from '@core/components/recursive-fields/VtsRecursiveFields.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryViewer.vue'
@@ -38,8 +32,6 @@ const { properties } = useTaskPropertiesUtils(() => task)
 
 <style scoped lang="postcss">
 .card-container {
-  display: flex;
-  flex-direction: column;
   gap: 1.6rem;
 
   .content {
