@@ -15,10 +15,6 @@ async function vmAction(vmId: XoVm['id'], action: string, body?: Record<string, 
   }
 }
 
-export async function startVm(vmId: XoVm['id'], hostId?: XoHost['id']): Promise<void> {
-  return vmAction(vmId, 'start', hostId ? { hostId } : undefined)
-}
-
 export const vmActions = {
   start: (vmId: XoVm['id'], hostId?: XoHost['id']) => vmAction(vmId, 'start', hostId ? { hostId } : undefined),
 }
