@@ -41,7 +41,7 @@
     </RouterLink>
     <RouterLink v-slot="{ isActive, href }" :to="`/pool/${pool.id}/vms`" custom>
       <TabItem :active="isActive" :href tag="a">
-        {{ t('vms', 2) }}
+        {{ t('vms') }}
       </TabItem>
     </RouterLink>
   </TabList>

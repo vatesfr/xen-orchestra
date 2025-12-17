@@ -1,7 +1,7 @@
 <template>
   <VtsModal accent="info" icon="fa:satellite">
     <template #title>
-      {{ t('welcome-to-xo6') }}
+      {{ t('welcome-to-xo6!') }}
     </template>
     <template #content>
       <div class="popup-content">
@@ -36,7 +36,7 @@
       </div>
     </template>
     <template #buttons>
-      <VtsModalConfirmButton>{{ t('lets-go') }}</VtsModalConfirmButton>
+      <VtsModalConfirmButton>{{ t('lets-go!') }}</VtsModalConfirmButton>
     </template>
   </VtsModal>
 </template>

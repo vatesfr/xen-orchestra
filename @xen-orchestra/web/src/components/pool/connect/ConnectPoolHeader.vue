@@ -1,6 +1,6 @@
 <template>
   <UiHeadBar icon="fa:link">
-    {{ t('connect-pool') }}
+    {{ t('action:connect-pool') }}
   </UiHeadBar>
 </template>
 

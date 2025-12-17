@@ -20,7 +20,7 @@
         <div>{{ t('loading') }}</div>
       </div>
     </li>
-    <li v-else-if="tasks.length === 0" class="typo-body-bold">{{ t('tasks.no-tasks') }}</li>
+    <li v-else-if="tasks.length === 0" class="typo-body-bold">{{ t('no-task') }}</li>
   </ul>
 </template>
 

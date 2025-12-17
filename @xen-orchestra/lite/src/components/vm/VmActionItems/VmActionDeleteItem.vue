@@ -5,7 +5,7 @@
     icon="fa:trash"
     @click="openDeleteModal"
   >
-    {{ t('delete') }}
+    {{ t('action:delete') }}
   </MenuItem>
 </template>
 

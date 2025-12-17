@@ -6,7 +6,7 @@
     <div v-if="!ui.isMobile" class="lock">
       <UiButtonIcon
         v-tooltip="{
-          content: sidebar.isLocked ? t('core.sidebar.unlock') : t('core.sidebar.lock'),
+          content: sidebar.isLocked ? t('action:sidebar-unlock') : t('action:sidebar-lock'),
           placement: 'right',
         }"
         accent="brand"

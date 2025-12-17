@@ -7,7 +7,7 @@
     <textarea v-bind="attrs" :id ref="textarea" v-model="model" :disabled class="textarea" />
     <UiCharacterLimit v-if="maxCharacters" :count="model.trim().length" :max="maxCharacters" />
     <UiInfo v-if="isExceedingMaxCharacters" accent="danger">
-      {{ t('core.textarea.exceeds-max-characters', { max: maxCharacters }) }}
+      {{ t('field:exceeds-max-characters', { max: maxCharacters }) }}
     </UiInfo>
     <UiInfo v-if="slots.info" :accent="accent === 'brand' ? 'info' : accent">
       <slot name="info" />

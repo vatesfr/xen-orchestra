@@ -16,7 +16,7 @@
     </MenuItem>
 
     <MenuItem class="icon" icon="fa:arrow-right-from-bracket" @click="logout()">
-      <span class="link typo-body-bold-small">{{ t('log-out') }}</span>
+      <span class="link typo-body-bold-small">{{ t('action:log-out') }}</span>
     </MenuItem>
   </MenuList>
 </template>

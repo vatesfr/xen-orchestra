@@ -1,5 +1,5 @@
 <template>
-  <div class="no-results typo-body-bold">{{ t('no-results') }}</div>
+  <div class="no-results typo-body-bold">{{ t('no-result') }}</div>
 </template>
 
 <script lang="ts" setup>

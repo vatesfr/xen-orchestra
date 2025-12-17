@@ -17,26 +17,26 @@ export const useVmMigrateJob = defineJob('vm.migrate', [vmsArg, hostArg], () => 
       ),
     validate: (isRunning, vms, host) => {
       if (vms.length === 0) {
-        throw new JobError(t('job.vm-migrate.missing-vms'))
+        throw new JobError(t('job:vm-migrate:missing-vm'))
       }
 
       if (!host) {
-        throw new JobError(t('job.vm-migrate.missing-host'))
+        throw new JobError(t('job:vm-migrate:missing-host'))
       }
 
       if (
         isRunning ||
         vms.some(vm => isVmOperationPending(vm, [VM_OPERATION.POOL_MIGRATE, VM_OPERATION.MIGRATE_SEND]))
       ) {
-        throw new JobRunningError(t('job.vm-migrate.in-progress'))
+        throw new JobRunningError(t('job:vm-migrate:in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.RUNNING)) {
-        throw new JobError(t('job.vm-migrate.bad-power-state'))
+        throw new JobError(t('job:vm-migrate:bad-power-state'))
       }
 
       if (!vms.every(vm => areSomeVmOperationAllowed(vm, [VM_OPERATION.POOL_MIGRATE, VM_OPERATION.MIGRATE_SEND]))) {
-        throw new JobError(t('job.vm-export.not-allowed'))
+        throw new JobError(t('job:vm-export:not-allowed'))
       }
     },
   }
