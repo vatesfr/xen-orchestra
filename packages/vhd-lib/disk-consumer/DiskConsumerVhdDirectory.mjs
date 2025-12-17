@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { asyncEach } from '@vates/async-each'
 import { VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
+import assert from 'node:assert'
 
 /**
  * @typedef {Object} VhdRemoteTarget
@@ -55,6 +56,11 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       await asyncEach(
         generator,
         async ({ index, data }) => {
+          assert.strictEqual(
+            data.length,
+            2 * 1024 * 1024,
+            `Expecting a ${2 * 1024 * 1024} bytes block, got a ${data.length}, for index ${index}`
+          )
           await vhd.writeEntireBlock({ id: index, buffer: Buffer.concat([FULL_BLOCK_BITMAP, data]) })
         },
         { concurrency }
