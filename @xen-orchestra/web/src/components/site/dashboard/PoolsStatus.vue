@@ -7,7 +7,7 @@
     </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend icon="fa:city" :segments />
-      <UiCardNumbers :value="total" class="total" label="Total" size="small" />
+      <UiCardNumbers :value="total" class="total" :label="t('total')" size="small" />
     </template>
   </UiCard>
 </template>
