@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import TaskSidePanel from '@/components/tasks/panel/TaskSidePanel.vue'
 import TasksList from '@/components/tasks/TasksList.vue'
-import { useXoUserCollection } from '@/remote-resources/use-xo-user-collections.ts'
+import { useXoUserCollection } from '@/remote-resources/use-xo-user-collection.ts'
 import { useXoVmTasksCollection } from '@/remote-resources/use-xo-vm-tasks-collection.ts'
 import { convertTaskToCore } from '@/utils/convert-task-to-core.util.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
