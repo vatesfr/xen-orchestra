@@ -422,7 +422,6 @@
   "viridian": "Viridian",
   "virtualization-type": "Тип виртуализации",
   "vlan": "VLAN",
-  "vm-description": "Описание ВМ",
   "vm:status:halted": "@:status:halted",
   "vm:status:paused": "Пауза",
   "vm:status:running": "Запущенный",

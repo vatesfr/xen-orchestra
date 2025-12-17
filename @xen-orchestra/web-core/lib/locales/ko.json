@@ -1,10 +1,9 @@
 {
-  "bytes.gi": "GiB",
-  "bytes.ki": "KiB",
-  "bytes.mi": "MiB",
+  "bytes:gi": "GiB",
+  "bytes:ki": "KiB",
+  "bytes:mi": "MiB",
   "dhcp": "DHCP",
   "dns": "DNS",
-  "gzip": "gzip",
   "iscsi-iqn": "iSCSI IQN",
   "iso-dvd": "ISO/DVD",
   "mtu": "MTU",
@@ -20,6 +19,5 @@
   "xen-orchestra": "Xen Orchestra",
   "xo": "XO",
   "xo-5": "XO-5",
-  "xoa": "XOA",
-  "zstd": "zstd"
+  "xoa": "XOA"
 }

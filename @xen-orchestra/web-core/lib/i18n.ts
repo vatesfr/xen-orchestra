@@ -69,6 +69,10 @@ export const locales: Locales = {
     code: 'nb_NO',
     name: 'Norsk (Bokmål)',
   },
+  ja: {
+    code: 'ja',
+    name: '日本語',
+  },
 }
 
 export default createI18n({
