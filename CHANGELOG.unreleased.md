@@ -31,6 +31,7 @@
 - [REST-API] Fix duplicate entries using `ndjson` (PR [#9320](https://github.com/vatesfr/xen-orchestra/pull/9320))
 - [Host] Report 0 RAM usage for halted hosts instead of incorrect values (PR [#9272](https://github.com/vatesfr/xen-orchestra/pull/9272))
 - [Plugins/OIDC] Fix group import on string (PR [#9280](https://github.com/vatesfr/xen-orchestra/pull/9280))
+- [Vm Import] Fix`error intermediate value not iterable` (PR [#9327](https://github.com/vatesfr/xen-orchestra/pull/9327))
 
 ### Packages to release
 
@@ -52,6 +53,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
+- xen-api patch
 - xo-server patch
 - xo-server-audit minor
 - xo-server-auth-oidc patch
