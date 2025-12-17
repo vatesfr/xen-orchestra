@@ -593,7 +593,12 @@ export class Xapi extends EventEmitter {
       if (useHack) {
         // In case of the hack, ignore (but log) the very probably `VDI_IO_ERROR` because it is usually irrelevant
         pTaskResult = pTaskResult.catch(error => {
-          console.warn(this._humanId, 'Xapi#putResource', pathname, error)
+          if (error.code === 'VDI_IO_ERROR') {
+            console.warn(this._humanId, 'Xapi#putResource> task result ', pathname, error)
+          } else {
+            error.url = response.url
+            throw error
+          }
         })
       } else {
         pTaskResult = pTaskResult.catch(error => {
