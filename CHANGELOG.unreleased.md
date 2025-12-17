@@ -13,6 +13,7 @@
 
 - [XO5] Remove XOSAN (PR [#9248](https://github.com/vatesfr/xen-orchestra/pull/9248))
 - [Plugins/Backup-reports] Add optional context in email subject and Pool ID in summary [#8544](https://github.com/vatesfr/xen-orchestra/issues/8544) (PR [#8973](https://github.com/vatesfr/xen-orchestra/pull/8973))
+- [Plugins/Openmetrics] Expose XCP-NG metrics in OpenMetrics format for Prometheus/Grafana (PR [#9323](https://github.com/vatesfr/xen-orchestra/pull/9323))
 
 - **XO 6:**
   - [Site/Tasks] Implement tasks view and side panel information (PR [#9063](https://github.com/vatesfr/xen-orchestra/pull/9063))
@@ -57,6 +58,7 @@
 - xo-server-audit minor
 - xo-server-auth-oidc patch
 - xo-server-backup-reports minor
+- xo-server-openmetrics major
 - xo-server-perf-alert minor
 
 <!--packages-end-->
