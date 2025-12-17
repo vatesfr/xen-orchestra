@@ -1,8 +1,8 @@
 import type { XoHost, XoVm } from '@vates/types'
 import { useFetch } from '@vueuse/core'
 
-async function vmAction(vmId: XoVm['id'], action: string, body?: Record<string, any>): Promise<void> {
-  const { error } = await useFetch(`/rest/v0/vms/${vmId}/actions/${action}`, {
+async function vmAction(vmId: XoVm['id'], action: 'start', body?: Record<string, any>): Promise<void> {
+  const { error } = await useFetch(`/rest/v0/vms/${vmId}/actions/${action}?sync=true`, {
     method: 'POST',
     ...(body && {
       body: JSON.stringify(body),
