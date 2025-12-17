@@ -9,7 +9,7 @@
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('change-state') }}</UiDropdownButton>
         </template>
-        <MenuItem icon="fa:play" :disabled="isVmRunning" @click="handleStart">{{ t('start') }}</MenuItem>
+        <VmActionPowerStateItems :vm="vm" />
       </MenuList>
       <UiLink :href="xo5VmGeneralHref" size="medium">
         {{ t('manage-vm-lifecycle-in-xo-5') }}
@@ -61,9 +61,9 @@
 </template>
 
 <script lang="ts" setup>
+import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import type { VmState } from '@core/types/object-icon.type'
-import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
@@ -71,10 +71,9 @@ import TabList from '@core/components/tab/TabList.vue'
 import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { VM_POWER_STATE, type XoVm } from '@vates/types'
+import { type XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { startVm } from '../../actions/vm-actions'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
@@ -83,9 +82,4 @@ const { t } = useI18n()
 const { buildXo5Route } = useXoRoutes()
 const xo5VmGeneralHref = computed(() => buildXo5Route(`/vms/${vm.id}/general`))
 const xo5VmStatsHref = computed(() => buildXo5Route(`/vms/${vm.id}/stats`))
-
-const handleStart = async () => {
-  await startVm(vm.id)
-}
-const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 </script>
