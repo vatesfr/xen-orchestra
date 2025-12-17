@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts" setup>
-import { startVm } from '@/actions/vm-actions'
+import { vmActions } from '@/actions/vm-actions'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { computed } from 'vue'
@@ -16,6 +16,6 @@ const { t } = useI18n()
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
 const handleStart = async () => {
-  await startVm(vm.id)
+  await vmActions.start(vm.id)
 }
 </script>
