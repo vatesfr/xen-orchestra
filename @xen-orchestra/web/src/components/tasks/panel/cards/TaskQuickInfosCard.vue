@@ -4,6 +4,7 @@
       <UiLink v-if="task.properties.name !== undefined" size="small" icon="fa:bars-progress">
         {{ task.properties.name }}
       </UiLink>
+      <template v-else>{{ task.id }}</template>
     </UiCardTitle>
     <div class="content">
       <VtsCardRowKeyValue>

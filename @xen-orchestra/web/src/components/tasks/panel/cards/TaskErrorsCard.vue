@@ -33,7 +33,7 @@ import UiLogEntryViewer from '@core/components/ui/log-entry-viewer/UiLogEntryVie
 import type { XoTask } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-const { task } = defineProps<{
+defineProps<{
   task: XoTask
 }>()
 

@@ -4,9 +4,7 @@
       {{ t('properties') }}
     </UiCardTitle>
     <div class="content">
-      <div>
-        <VtsRecursiveFields :fields="properties.other as Record<string, unknown>" />
-      </div>
+      <VtsRecursiveFields :fields="properties.other" />
     </div>
     <UiLogEntryViewer :content="properties.other" :label="t('other-properties')" size="small" accent="info" />
   </UiCard>
