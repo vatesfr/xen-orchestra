@@ -208,6 +208,7 @@
 <script lang="ts" setup>
 import NewVmNetworkTable from '@/components/new-vm/NewVmNetworkTable.vue'
 import NewVmSrTable from '@/components/new-vm/NewVmSrTable.vue'
+import { useXoTaskUtils } from '@/composables/xo-task-utils.composable'
 import { createVM } from '@/jobs/vm-create.job.ts'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
@@ -239,7 +240,7 @@ import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
-import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
+import type { XoNetwork, XoPool, XoVdi, XoVm, XoVmTemplate } from '@vates/types'
 
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -265,6 +266,7 @@ const { getVdiById } = useXoVdiCollection()
 const { getVifById } = useXoVifCollection()
 const { hostsByPool } = useXoHostCollection()
 const { vmsTemplatesByPool } = useXoVmTemplateCollection()
+const { monitorTask } = useXoTaskUtils()
 
 const vmState = reactive<VmState>({
   name: '',
@@ -687,7 +689,9 @@ const createNewVM = async () => {
       throw new Error('Template UUID and Pool ID are required')
     }
 
-    const vmId = await createVM(vmData.value, vmState.pool.id)
+    const taskId = await createVM(vmData.value, vmState.pool.id)
+    const { id: vmId } = await monitorTask<{ id: XoVm['id'] }>(taskId)
+
     router.push({ name: '/vm/[id]/dashboard', params: { id: vmId } })
   } catch (error) {
     isOpen.value = true

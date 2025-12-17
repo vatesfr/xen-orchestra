@@ -46,7 +46,8 @@
 </template>
 
 <script setup lang="ts">
-import createAndConnectServer from '@/api/connect-server.api.ts'
+import { connectServer, createServer, removeServer } from '@/api/connect-server.api.ts'
+import { useXoTaskUtils } from '@/composables/xo-task-utils.composable'
 import { ApiError } from '@/error/api.error.ts'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
@@ -66,6 +67,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
+const { monitorTask } = useXoTaskUtils()
 const connecting = ref(false)
 const serverId = ref<XoServer['id']>()
 
@@ -105,9 +107,16 @@ async function submit() {
   }
 
   try {
-    serverId.value = await createAndConnectServer(payload)
+    serverId.value = (await createServer(payload)).id
+
+    const { taskId } = await connectServer(serverId.value)
+    await monitorTask<void>(taskId)
+
     emit('success', serverId.value, form.host)
-  } catch (error: ApiError | any) {
+  } catch (error) {
+    if (serverId.value !== undefined) {
+      await removeServer(serverId.value)
+    }
     if (error instanceof ApiError) {
       emit('error', error, form.host)
     } else {

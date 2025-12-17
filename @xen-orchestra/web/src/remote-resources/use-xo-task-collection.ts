@@ -7,7 +7,16 @@ import { computed } from 'vue'
 
 const ONE_DAY = 24 * 60 * 60 * 1000
 
-const taskFields: (keyof XoTask)[] = ['id', 'start', 'end', 'properties', 'status', 'progress', 'tasks'] as const
+const taskFields: (keyof XoTask)[] = [
+  'id',
+  'start',
+  'end',
+  'properties',
+  'status',
+  'progress',
+  'tasks',
+  'result',
+] as const
 
 export const useXoTaskCollection = defineRemoteResource({
   url: `/rest/v0/tasks?fields=${taskFields}`,
