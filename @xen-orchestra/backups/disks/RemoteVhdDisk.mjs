@@ -1,6 +1,12 @@
+/**
+ * @typedef {import('./RemoteDisk.mjs').DiskMetadata} DiskMetadata
+ * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
+ */
+
 import { openVhd } from 'vhd-lib'
 import { RemoteDisk } from "./RemoteDisk.mjs";
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
+import { stringify } from 'uuid'
 
 export class RemoteVhdDisk extends RemoteDisk {
     /**
@@ -41,30 +47,6 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     /**
-     * @returns {number}
-     */
-    getVirtualSize() {
-        if (this.#vhd === undefined) {
-        throw new Error(`can't call getvirtualsize of a RemoteVhd before init`)
-        }
-        return this.#vhd.footer.currentSize
-    }
-
-    /**
-     * @returns {number}
-     */
-    getBlockSize() {
-        return 2 * 1024 * 1024
-    }
-
-    /**
-     * @returns {string}
-     */
-    getPath() {
-        return this.#path
-    }
-
-    /**
      * Initializes the VHD.
      * @returns {Promise<void>}
      */
@@ -87,13 +69,59 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     /**
+     * @returns {number}
+     */
+    getVirtualSize() {
+        if (this.#vhd === undefined) {
+            throw new Error(`can't call getVirtualSize of a RemoteVhdDisk before init`)
+        }
+        return this.#vhd.footer.currentSize
+    }
+
+    /**
+     * @returns {number}
+     */
+    getBlockSize() {
+        return 2 * 1024 * 1024
+    }
+
+    /**
+     * @returns {string}
+     */
+    getPath() {
+        return this.#path
+    }
+
+    /**
+     * @returns {string}
+     */
+    getUuid() {
+        if (this.#vhd === undefined) {
+            throw new Error(`can't call getUid of a RemoteVhdDisk before init`)
+        }
+
+        return stringify(this.#vhd.footer.uuid)
+    }
+
+    /**
+     * @returns {number}
+     */
+    getMaxTableEntries() {
+        if (this.#vhd === undefined) {
+            throw new Error(`can't call getMaxTableEntries of a RemoteVhdDisk before init`)
+        }
+
+        return this.#vhd.header.maxTableEntries
+    }
+
+    /**
      * Checks if the VHD contains a specific block.
      * @param {number} index
      * @returns {boolean}
      */
     hasBlock(index) {
         if (this.#vhd === undefined) {
-            throw new Error(`can't call hasblock of a RemoteVhd before init`)
+            throw new Error(`can't call hasblock of a RemoteVhdDisk before init`)
         }
         return this.#vhd.containsBlock(index)
     }
@@ -104,7 +132,7 @@ export class RemoteVhdDisk extends RemoteDisk {
      */
     getBlockIndexes() {
         if (this.#vhd === undefined) {
-            throw new Error(`can't call getBlockIndexes of a RemoteVhd before init`)
+            throw new Error(`can't call getBlockIndexes of a RemoteVhdDisk before init`)
         }
         const index = []
         for (let blockIndex = 0; blockIndex < this.#vhd.header.maxTableEntries; blockIndex++) {
@@ -119,10 +147,11 @@ export class RemoteVhdDisk extends RemoteDisk {
      * Writes a full block into this VHD.
      * @param {number} index
      * @param {Buffer} data
+     * @return {number}
      */
     async writeBlock(index, data) {
         if (this.#vhd === undefined) {
-            throw new Error(`can't call readBlock of a RemoteVhd before init`)
+            throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
         }
         await this.#vhd.writeEntireBlock({ id: index, buffer: data })
         await this.#vhd.writeBlockAllocationTable()
@@ -137,7 +166,7 @@ export class RemoteVhdDisk extends RemoteDisk {
      */
     async readBlock(index) {
         if (this.#vhd === undefined) {
-            throw new Error(`can't call readBlock of a RemoteVhd before init`)
+            throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
         }
         const { data } = await this.#vhd.readBlock(index)
         return {
@@ -147,46 +176,46 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     /**
-     * Reads the VHD header.
-     * @returns {Promise<DiskBlock>}
+     * @returns {DiskMetadata}
      */
-    readHeader() {
+    getMetadata() {
         if (this.#vhd === undefined) {
-            throw new Error(`can't call readBlock of a RemoteVhd before init`)
+            throw new Error(`can't call setvirtualsize of a RemoteVhdDisk before init`)
         }
-        return this.#vhd.header
-    }
-
-
-    /**
-     * Reads the VHD footer.
-     * @returns {Promise<DiskBlock>}
-     */
-    readFooter() {
-        if (this.#vhd === undefined) {
-            throw new Error(`can't call readBlock of a RemoteVhd before init`)
-        }
-        return this.#vhd.footer
+        
+        return this.#vhd.footer;
     }
 
     /**
-     * Writes header back to the VHD
+     * @param {RemoteDisk} child
      */
-    async writeHeader() {
+    mergeMetadata(child) {
+        const childMetadata = child.getMetadata();
+
         if (this.#vhd === undefined) {
-            throw new Error(`can't call readBlock of a RemoteVhd before init`)
+            throw new Error(`can't call mergeMetadata of a RemoteVhdDisk before init`)
         }
-        await this.#vhd.writeHeader()
+
+        this.#vhd.footer.currentSize = childMetadata.currentSize
+        this.#vhd.footer.diskGeometry = { ...childMetadata.diskGeometry }
+        this.#vhd.footer.originalSize = childMetadata.originalSize
+        this.#vhd.footer.timestamp = childMetadata.timestamp
+        this.#vhd.footer.uuid = childMetadata.uuid
     }
 
     /**
-     * Writes footer back to the VHD
+     * @param {DiskMetadata} metadata
      */
-    async writeFooter() {
+    setMetadata(metadata) {
         if (this.#vhd === undefined) {
-            throw new Error(`can't call readBlock of a RemoteVhd before init`)
+            throw new Error(`can't call setvirtualsize of a RemoteVhdDisk before init`)
         }
-        await this.#vhd.writeFooter()
+
+        this.#vhd.footer.currentSize = metadata.currentSize ?? this.#vhd.footer.currentSize
+        this.#vhd.footer.diskGeometry = metadata.diskGeometry ?? this.#vhd.footer.diskGeometry
+        this.#vhd.footer.originalSize = metadata.originalSize ?? this.#vhd.footer.originalSize
+        this.#vhd.footer.timestamp = metadata.timestamp ?? this.#vhd.footer.timestamp
+        this.#vhd.footer.uuid = metadata.uuid ?? this.#vhd.footer.uuid
     }
 
     /**
@@ -194,7 +223,7 @@ export class RemoteVhdDisk extends RemoteDisk {
      */
     async writeBlockAllocationTable() {
         if (this.#vhd === undefined) {
-            throw new Error(`can't call readBlock of a RemoteVhd before init`)
+            throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
         }
         await this.#vhd.writeBlockAllocationTable()
     }
