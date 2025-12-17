@@ -18,6 +18,7 @@
   - [Pool/Tasks] Implement tasks view and side panel information (PR [#9312](https://github.com/vatesfr/xen-orchestra/pull/9312))
   - [Host/Tasks] Implement tasks view and side panel information (PR [#9311](https://github.com/vatesfr/xen-orchestra/pull/9311))
   - [VMs/Tasks] Implement tasks view and side panel information (PR [#9313](https://github.com/vatesfr/xen-orchestra/pull/9313))
+  - [i18n] Update Czech, German, Persian, Italian, Japanese, Korean, Norwegian, Dutch, Russian, Swedish and Ukrainian translations (PR [#9305](https://github.com/vatesfr/xen-orchestra/pull/9305))
 
 ### Bug fixes
 
