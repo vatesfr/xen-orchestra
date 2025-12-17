@@ -632,13 +632,6 @@ class Vm {
         throw new JsonRpcError('Importing this VM requires XCP-ng or Citrix Hypervisor >=8.1')
       }
 
-      // augment the error with as much relevant info as possible
-      const [poolMaster, sr] = await Promise.all([
-        safeGetRecord(this, 'host', this.pool.master),
-        safeGetRecord(this, 'SR', srRef),
-      ])
-      error.pool_master = poolMaster
-      error.SR = sr
       throw error
     }
   }
