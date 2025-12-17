@@ -15,6 +15,7 @@ import { mergeVhdChain } from 'vhd-lib/merge.js'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
 import { MergeRemoteDisk } from './MergeRemoteDisk.mjs'
+import { DiskChain } from '@xen-orchestra/disk-transform'
 
 const { beforeEach, afterEach } = test
 
@@ -85,8 +86,8 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
   // Create ancestor (base) VHD
   const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
 
-  // Create child VHD
-  await generateVhd(`${basePath}/child.vhd`, {
+  // Create children VHD
+  await generateVhd(`${basePath}/child_1.vhd`, {
     header: {
       parentUnicodeName: 'ancestor.vhd',
       parentUuid: ancestor.footer.uuid,
@@ -94,12 +95,30 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
     blocks: [2],
   })
 
+
+  await generateVhd(`${basePath}/child_2.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+    blocks: [3],
+  })
+
   const parent = new RemoteVhdDisk({handler, path: `${basePath}/ancestor.vhd`})
   await parent.init()
-  const child = new RemoteVhdDisk({handler, path: `${basePath}/child.vhd`})
-  await child.init()
+  const child1 = new RemoteVhdDisk({handler, path: `${basePath}/child_1.vhd`})
+  await child1.init()
+  const child2 = new RemoteVhdDisk({handler, path: `${basePath}/child_2.vhd`})
+  await child2.init()
 
-  console.log(parent.getBlockIndexes(), child.getBlockIndexes())
+  console.log(parent.getBlockIndexes(), child1.getBlockIndexes(), child2.getBlockIndexes())
+
+  const childDiskChain = new DiskChain({disks: [child1, child2]})
+  await childDiskChain.init()
+
+  console.log(typeof childDiskChain)
+
+  console.log(childDiskChain.getBlockIndexes())
 
   let progressCalls = 0
   const onProgress = () => {
@@ -108,7 +127,7 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
 
   const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress, removeUnused: true })
 
-  const result = await mergeRemoteDisk.merge(parent, child)
+  const result = await mergeRemoteDisk.merge(parent, childDiskChain)
 
   //const chain = new RemoteVhdChain(handler, [parent, child], { onProgress, removeUnused: true })
 
@@ -126,14 +145,14 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
 
   console.log(result)
 
-  console.log(parent.getBlockIndexes(), child.getBlockIndexes())
+  console.log(parent.getBlockIndexes(), child1.getBlockIndexes())
 
-  assert.ok(result.finalVhdSize > 0, 'merged VHD should have non-zero size')
+  assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
   assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
   assert.ok(progressCalls > 0, 'onProgress should have been called')
 
   // Check that ancestor was renamed to child
-  const remainingVhds = await handler.list(basePath)
-  assert.equal(remainingVhds.includes('child.vhd'), true)
-  assert.equal(remainingVhds.includes('ancestor.vhd'), false)
+  const remainingDisks = await handler.list(basePath)
+  assert.equal(remainingDisks.includes('child_1.vhd'), true)
+  assert.equal(remainingDisks.includes('ancestor.vhd'), false)
 })
