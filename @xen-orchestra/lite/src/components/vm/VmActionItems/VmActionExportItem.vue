@@ -7,7 +7,7 @@
     icon="fa:display"
     @click="openExportModal"
   >
-    {{ t(isSingleAction ? 'export-vm' : 'export-vms') }}
+    {{ t('action:export-vm', isSingleAction ? 1 : 2) }}
   </MenuItem>
 </template>
 

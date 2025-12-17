@@ -13,7 +13,7 @@
         class="typo-body-regular-small button"
         @click="toggleExpanded()"
       >
-        {{ isExpanded ? t('show-less') : t('show-more') }}
+        {{ isExpanded ? t('action:show-less') : t('action:show-more') }}
       </UiButton>
     </div>
   </UiTableCell>

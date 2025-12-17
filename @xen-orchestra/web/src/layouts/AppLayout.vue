@@ -6,7 +6,7 @@
       </RouterLink>
     </template>
     <template #app-header>
-      <UiLink size="medium" :href="xo5Route">XO 5</UiLink>
+      <UiLink size="medium" :href="xo5Route">{{ t('xo-5') }}</UiLink>
       <ThirdParties />
       <QuickTaskButton />
       <AccountMenu />
@@ -20,7 +20,7 @@
       </VtsTreeList>
       <VtsStateHero v-else-if="isSearching" format="card" size="medium" type="busy" class="loader" />
       <VtsStateHero v-else-if="sites.length === 0" format="card" size="medium" type="no-result">
-        {{ t('no-results') }}
+        {{ t('no-result') }}
       </VtsStateHero>
       <SiteTreeList v-else :branches="sites" />
     </template>

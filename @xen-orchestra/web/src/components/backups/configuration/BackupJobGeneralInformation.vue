@@ -9,7 +9,7 @@
         <VtsQuickInfoRow :label="t('id')" :value="backupJob.id" />
       </VtsColumn>
       <VtsColumn>
-        <VtsQuickInfoRow :label="t('mode')">
+        <VtsQuickInfoRow :label="t('modes')">
           <template v-if="modeLabels.length > 0" #value>
             <UiTagsList>
               <UiTag v-for="label in modeLabels" :key="label" variant="secondary" accent="info">

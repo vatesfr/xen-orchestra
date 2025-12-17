@@ -379,7 +379,7 @@ export class RrdHostVm extends MonitorStrategy {
         throw error
       }
     } finally {
-      if (!this.#abortWaitController?.signal.aborted) {
+      if (this.#abortWaitController && !this.#abortWaitController.signal.aborted) {
         this.#poll(onChanges, delay)
       }
     }

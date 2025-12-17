@@ -25,19 +25,19 @@ export const useVmExportJob = defineJob('vm.export', [vmsArg, compressionArg], (
       ),
     validate: (isRunning, vms, compression) => {
       if (vms.length === 0) {
-        throw new JobError(t('job.vm-export.missing-vms'))
+        throw new JobError(t('job:vm-export:missing-vm'))
       }
 
       if (!compression) {
-        throw new JobError(t('job.vm-export.missing-compression'))
+        throw new JobError(t('job:vm-export:missing-compression'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.EXPORT))) {
-        throw new JobRunningError(t('job.vm-export.in-progress'))
+        throw new JobRunningError(t('job:vm-export:in-progress'))
       }
 
       if (!vms.every(vm => areSomeVmOperationAllowed(vm, VM_OPERATION.EXPORT))) {
-        throw new JobError(t('job.vm-export.not-allowed'))
+        throw new JobError(t('job:vm-export:not-allowed'))
       }
     },
   }

@@ -4,7 +4,7 @@
       <slot name="app-logo" />
       <UiButtonIcon
         v-tooltip="{
-          content: sidebarStore.isExpanded ? t('core.sidebar.close') : t('core.sidebar.open'),
+          content: sidebarStore.isExpanded ? t('action:sidebar-close') : t('action:sidebar-open'),
           placement: 'right',
         }"
         accent="brand"
