@@ -22,15 +22,7 @@ const { warn } = createLogger('remote-disk:merge')
 
 export class MergeRemoteDisk {
     /**
-     * @type { 
-     *  {
-     *      child: { header: number },
-     *      parent: { header: number }, 
-     *      currentBlock: number, 
-     *      mergedDataSize: number, 
-     *      step: 'mergeBlocks' | 'cleanupVhds'
-     *  }
-     * }
+     * @type {MergeState}
      */
     #state
 
@@ -127,8 +119,8 @@ export class MergeRemoteDisk {
         switch (this.#state?.step ?? 'mergeBlocks') {
             case 'mergeBlocks':
                 await this.#step_mergeBlocks(parentDisk, childDisk)
-            case 'cleanupVhds':
-                await this.#step_cleanVhds(parentDisk, childDisk)
+            case 'cleanup':
+                await this.#step_cleanup(parentDisk, childDisk)
                 return this.#cleanup(parentDisk, childDisk)
             default:
                 warn(`Step ${this.#state.step} is unknown`, { state: this.#state })
@@ -219,7 +211,7 @@ export class MergeRemoteDisk {
         )
 
         await this.#writeState()
-        this.#state.vhdSize = await parentDisk.getVirtualSize()
+        this.#state.diskSize = await parentDisk.getVirtualSize()
 
         this.#onProgress({ total: nBlocks, done: nBlocks })
     }
@@ -228,58 +220,20 @@ export class MergeRemoteDisk {
      * @param {RemoteDisk} parentDisk
      * @param {RemoteDisk} childDisk
      */
-    async #updateHeaders(parentDisk, childDisk) {
-        await parentDisk.writeBlockAllocationTable()
-        const cFooter = childDisk.readFooter()
-        const pFooter = parentDisk.readFooter()
-
-        pFooter.currentSize = cFooter.currentSize
-        pFooter.diskGeometry = { ...cFooter.diskGeometry }
-        pFooter.originalSize = cFooter.originalSize
-        pFooter.timestamp = cFooter.timestamp
-        pFooter.uuid = cFooter.uuid
-
-        await parentDisk.writeFooter(pFooter)
-    }
-
-    /**
-     * @param {RemoteDisk} parentDisk
-     * @param {RemoteDisk} childDisk
-     */
-    async #step_cleanVhds(parentDisk, childDisk) {
-
-        console.log(parentDisk.getPath(), childDisk.getPath())
-
+    async #step_cleanup(parentDisk, childDisk) {
         assert.notEqual(this.#state, undefined)
-        this.#state.step = 'cleanupVhds'
+        this.#state.step = 'cleanup'
         await this.#writeState()
-
-        let oldTarget
-        if (isVhdAlias(childDisk.getPath())) {
-            oldTarget = await resolveVhdAlias(this.#handler, childDisk.getPath())
-        }
 
         try {
             await this.#handler.rename(parentDisk.getPath(), childDisk.getPath())
-            if (oldTarget) {
-                await VhdAbstract.unlink(this.#handler, oldTarget).catch(warn)
-            }
         } catch (error) {
             if (error.code === 'ENOENT' && this.#isResuming) {
-                await Disposable.use(openVhd(this.#handler, childDisk.getPath()), vhd => {
-                    assert.strictEqual(vhd.header.checksum, this.#state.parent.header)
-                })
-                this.#logInfo(`the VHD parent was already renamed`, { parent: parentDisk.getPath(), mergeTarget: childDisk.getPath() })
+                this.#logInfo(`the parent disk was already renamed`, { parent: parentDisk.getPath(), mergeTarget: childDisk.getPath() })
             } else {
                 throw error
             }
         }
-
-        /*this.#logInfo(`the VHD child is already merged`, { child: childDisk.getPath() })
-        if (this.#removeUnused) {
-            this.#logInfo(`deleting merged VHD child`, { child: childDisk.getPath() })
-            return VhdAbstract.unlink(this.#handler, childDisk.getPath())
-        }*/
     }
 
     /**
@@ -287,11 +241,11 @@ export class MergeRemoteDisk {
      * @param {RemoteDisk} childDisk
      */
     async #cleanup(parentDisk, childDisk) {
-        const finalVhdSize = this.#state?.vhdSize ?? 0
+        const finalDiskSize = this.#state?.diskSize ?? 0
         const mergedDataSize = this.#state?.mergedDataSize ?? 0
         await this.#handler.unlink(this.#statePath).catch(warn)
         await parentDisk.close().catch(warn)
         await childDisk.close().catch(warn)
-        return { mergedDataSize, finalVhdSize }
+        return { mergedDataSize, finalDiskSize }
     }
 }
