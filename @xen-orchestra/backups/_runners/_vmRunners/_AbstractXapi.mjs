@@ -1,5 +1,6 @@
 import assert from 'node:assert'
 import groupBy from 'lodash/groupBy.js'
+import { createLogger } from '@xen-orchestra/log'
 import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { decorateMethodsWith } from '@vates/decorate-with'
@@ -16,6 +17,8 @@ import {
   resetVmOtherConfig,
   setVmOtherConfig,
 } from '../../_otherConfig.mjs'
+
+const { warn } = createLogger('xo:backups:AbstractXapi')
 
 export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   constructor({
@@ -255,28 +258,41 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           return
         }
         const vdis = snapshotPerDatetime[datetime]
-        let vmRef
+        let vm
         // if there is an attached VM => destroy the VM (Non CBT backups)
         for (const vdi of vdis) {
           const vbds = vdi.$VBDs.filter(({ $VM }) => $VM.is_control_domain === false)
           if (vbds.length > 0) {
             // only one VM linked to this vdi
             // this will throw error for VDI still attached to control domain
+            // since we won't be able to remove an attached VDI
             assert.strictEqual(vbds.length, 1, 'VDI must be free or attached to exactly one VM')
-            const vm = vbds[0].$VM
-            assert.strictEqual(vm.is_a_snapshot, true, `VM must be a snapshot`) // don't delete a VM (especially a control domain)
-
-            const vmRefVdi = vm.$ref
-            // same vm than other vdi of the same batch
-            assert.ok(
-              vmRef === undefined || vmRef === vmRefVdi,
-              '_removeUnusedSnapshots don t handle vdi related to multiple VMs '
-            )
-            vmRef = vmRefVdi
+            const vdiVm = vbds[0].$VM
+            assert.strictEqual(vdiVm.is_a_snapshot, true, `VM must be a snapshot`) // don't delete a VM (especially a control domain)
+            if (vm !== undefined && vm.$ref !== vdiVm.$ref) {
+              // this VDI is attached to another VM than the other vdi of
+              // this batch
+              // in doubt , do not delete anything
+              warn('_removeUnusedSnapshots don t handle vdi related to multiple VMs ', {
+                vm1: {
+                  label: vm.name_label,
+                  id: vm.$id,
+                },
+                vm2: {
+                  label: vdiVm.name_label,
+                  id: vdiVm.$id,
+                },
+                vdis: vdis.map(({ name_label, $id }) => ({ name_label, $id })),
+              })
+              throw new Error(
+                `_removeUnusedSnapshots don t handle vdi related to multiple VMs ${vm.name_label} and ${vdiVm.name_label}`
+              )
+            }
+            vm = vdiVm
           }
         }
-        if (vmRef !== undefined) {
-          return xapi.VM_destroy(vmRef)
+        if (vm?.$ref !== undefined) {
+          return xapi.VM_destroy(vm.$ref)
         } else {
           return asyncMap(
             vdis.map(async ({ $ref }) => {
