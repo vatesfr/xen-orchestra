@@ -137,8 +137,8 @@
                 </VtsInputWrapper>
               </div>
             </div>
-            <!-- MEMORY SECTION -->
-            <UiTitle>{{ t('memory') }}</UiTitle>
+            <!-- RESOURCE MANAGEMENT SECTION -->
+            <UiTitle>{{ t('resource-management') }}</UiTitle>
             <div class="memory-container">
               <VtsInputWrapper :label="t('vcpus')">
                 <UiInput v-model="vmState.vCPU" accent="brand" />

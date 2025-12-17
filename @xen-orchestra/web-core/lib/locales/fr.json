@@ -422,7 +422,6 @@
   "maximum-cpu-limit": "Nombre maximal de CPU",
   "maximum-dynamic-memory": "Mémoire dynamique maximale",
   "maximum-static-memory": "Mémoire statique maximale",
-  "memory": "Mémoire",
   "memory-usage": "Utilisation de la mémoire",
   "merge-backups-synchronously": "Fusionner les sauvegardes de manière synchrone",
   "message": "Message",

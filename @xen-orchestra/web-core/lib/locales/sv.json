@@ -366,7 +366,6 @@
   "maximum-cpu-limit": "Maximal CPU-begränsning",
   "maximum-dynamic-memory": "Maximalt dynamiskt minne",
   "maximum-static-memory": "Maximalt statiskt minne",
-  "memory": "Minne",
   "memory-usage": "Minnesanvändning",
   "minimum-cpu-limit": "Minimal CPU-begränsning",
   "minimum-dynamic-memory": "Minimalt dynamiskt minne",

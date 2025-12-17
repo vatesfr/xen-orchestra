@@ -417,7 +417,6 @@
   "maximum-cpu-limit": "Limit procesoru nejvýše",
   "maximum-dynamic-memory": "Dynamické přidělované paměti nejvýše",
   "maximum-static-memory": "Staticky přidělené paměti nejvýše",
-  "memory": "Paměť",
   "memory-usage": "Využití paměti",
   "merge-backups-synchronously": "Sloučit zálohy synchronně",
   "message": "Zpráva",
