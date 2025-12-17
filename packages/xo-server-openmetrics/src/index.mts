@@ -87,6 +87,7 @@ interface Xapi {
 // Minimal type for xo-server instance
 interface XoServer {
   getAllXapis(): Record<string, Xapi>
+  checkFeatureAuthorization(code: string): Promise<void>
   getObjects(filter?: { filter?: Record<string, unknown> }): Record<string, unknown>
 }
 
@@ -177,6 +178,7 @@ class OpenMetricsPlugin {
    * Forks the child process and waits for it to be ready.
    */
   async load(): Promise<void> {
+    await this.#xo.checkFeatureAuthorization('PLUGIN.OPENMETRICS')
     if (this.#childProcess !== undefined) {
       logger.warn('Plugin already loaded, skipping')
       return
