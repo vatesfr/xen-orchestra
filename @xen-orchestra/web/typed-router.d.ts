@@ -49,6 +49,7 @@ declare module 'vue-router/auto-routes' {
     '/pool/[id]/networks': RouteRecordInfo<'/pool/[id]/networks', '/pool/:id/networks', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/[id]/storage': RouteRecordInfo<'/pool/[id]/storage', '/pool/:id/storage', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/[id]/system': RouteRecordInfo<'/pool/[id]/system', '/pool/:id/system', { id: ParamValue<true> }, { id: ParamValue<false> }>,
+    '/pool/[id]/tasks': RouteRecordInfo<'/pool/[id]/tasks', '/pool/:id/tasks', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/[id]/vms': RouteRecordInfo<'/pool/[id]/vms', '/pool/:id/vms', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/pool/connect': RouteRecordInfo<'/pool/connect', '/pool/connect', Record<never, never>, Record<never, never>>,
     '/settings': RouteRecordInfo<'/settings', '/settings', Record<never, never>, Record<never, never>>,

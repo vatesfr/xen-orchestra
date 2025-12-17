@@ -15,6 +15,7 @@
 
 - **XO 6:**
   - [Site/Tasks] Implement tasks view and side panel information (PR [#9063](https://github.com/vatesfr/xen-orchestra/pull/9063))
+  - [Pool/Tasks] Implement tasks view and side panel information (PR [#9312](https://github.com/vatesfr/xen-orchestra/pull/9312))
 
 ### Bug fixes
 
