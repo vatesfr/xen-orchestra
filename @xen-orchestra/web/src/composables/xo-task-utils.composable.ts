@@ -9,14 +9,14 @@ export function useXoTaskUtils() {
     const task = useGetTaskById(taskId)
 
     return new Promise((resolve, reject) => {
-      // If the task asn't be found in the store after 2 seconds, we throw
+      // If the task is not found in the store after 2 seconds, we throw
       const timeout = setTimeout(() => {
         cleanup()
         reject(new Error(`task ID: ${taskId} never received`))
       }, 2000)
 
       const stop = watch(
-        () => task.value,
+        task,
         task => {
           if (task !== undefined) {
             clearTimeout(timeout)
