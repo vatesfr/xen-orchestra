@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [XO5] Remove XOSAN (PR [#9248](https://github.com/vatesfr/xen-orchestra/pull/9248))
+
 - **XO 6:**
   - [Site/Tasks] Implement tasks view and side panel information (PR [#9063](https://github.com/vatesfr/xen-orchestra/pull/9063))
 
@@ -43,6 +45,7 @@
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
 - xo-server patch
+- xo-server-audit minor
 - xo-server-perf-alert minor
 
 <!--packages-end-->
