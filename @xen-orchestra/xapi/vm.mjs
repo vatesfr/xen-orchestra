@@ -632,6 +632,18 @@ class Vm {
         throw new JsonRpcError('Importing this VM requires XCP-ng or Citrix Hypervisor >=8.1')
       }
 
+      let poolMasterId = ''
+      let srId = ''
+      try {
+        ;[poolMasterId, srId] = await Promise.all([
+          this.getField('host', this.pool.master, 'uuid'),
+          this.getField('SR', srRef, 'uuid'),
+        ])
+      } catch (err) {
+        warn("Can't augment error", error)
+      }
+      error.pool_master = poolMasterId
+      error.SR = srId
       throw error
     }
   }
