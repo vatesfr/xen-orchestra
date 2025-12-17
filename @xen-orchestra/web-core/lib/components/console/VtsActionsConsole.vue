@@ -8,7 +8,7 @@
     :left-icon="isFullscreen ? 'fa:down-left-and-up-right-to-center' : 'fa:up-right-and-down-left-from-center'"
     @click="toggleFullScreen"
   >
-    {{ t(isFullscreen ? 'exit-fullscreen' : 'fullscreen') }}
+    {{ isFullscreen ? t('exit-fullscreen') : t('fullscreen') }}
   </UiButton>
   <UiButton
     class="button"
@@ -18,7 +18,7 @@
     left-icon="fa:arrow-up-right-from-square"
     @click="openInNewTab"
   >
-    {{ t('open-console-in-new-tab') }}
+    {{ t('action:open-console-in-new-tab') }}
   </UiButton>
   <UiButton
     class="button"
@@ -28,7 +28,7 @@
     left-icon="fa:keyboard"
     @click="sendCtrlAltDel"
   >
-    {{ t('send-ctrl-alt-del') }}
+    {{ t('action:send-ctrl-alt-del') }}
   </UiButton>
 </template>
 

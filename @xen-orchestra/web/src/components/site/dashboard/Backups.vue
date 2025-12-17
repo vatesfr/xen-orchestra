@@ -40,53 +40,53 @@ const areBackupsReady = computed(() => backups?.jobs !== undefined && backups?.v
 const { t } = useI18n()
 
 const jobsTitle = computed<DonutChartWithLegendProps['title']>(() => ({
-  label: t('backups.jobs'),
-  iconTooltip: t('backups.jobs.based-on-last-three'),
+  label: t('jobs'),
+  iconTooltip: t('backups:jobs:based-on-last-three'),
   icon: 'fa:info-circle',
 }))
 
 const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('backups.jobs.running-good'),
+    label: t('backups:jobs:running-good'),
     value: backups?.jobs.successful ?? 0,
     accent: 'success',
   },
   {
-    label: t('backups.jobs.at-least-one-skipped'),
+    label: t('backups:jobs:at-least-one-skipped'),
     value: backups?.jobs.skipped ?? 0,
     accent: 'info',
   },
   {
-    label: t('backups.jobs.looks-like-issue'),
+    label: t('backups:jobs:looks-like-issue'),
     value: backups?.jobs.failed ?? 0,
     accent: 'danger',
   },
   {
-    label: t('backups.jobs.disabled'),
+    label: t('backups:jobs:disabled'),
     value: backups?.jobs.disabled ?? 0,
     accent: 'muted',
   },
 ])
 
 const vmsProtectionTitle = computed<DonutChartWithLegendProps['title']>(() => ({
-  label: t('backups.vms-protection'),
-  iconTooltip: t('backups.vms-protection.tooltip'),
+  label: t('backups:vms-protection'),
+  iconTooltip: t('backups:vms-protection:tooltip'),
   icon: 'fa:info-circle',
 }))
 
 const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('backups.vms-protection.protected'),
+    label: t('backups:vms-protection:protected'),
     value: backups?.vmsProtection.protected ?? 0,
     accent: 'success',
   },
   {
-    label: t('backups.vms-protection.unprotected'),
+    label: t('backups:vms-protection:unprotected'),
     value: backups?.vmsProtection.unprotected ?? 0,
     accent: 'warning',
   },
   {
-    label: t('backups.vms-protection.no-job'),
+    label: t('backups:vms-protection:no-job'),
     value: backups?.vmsProtection.notInJob ?? 0,
     accent: 'danger',
   },

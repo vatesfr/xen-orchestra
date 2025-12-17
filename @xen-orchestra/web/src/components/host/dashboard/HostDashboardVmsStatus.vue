@@ -49,22 +49,22 @@ const total = useSum(() => Object.values(vmsStatuses.value))
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('vms-status.running'),
+    label: t('vm:status:running', 2),
     value: vmsStatuses.value.running,
     accent: 'success',
   },
   {
-    label: t('vms-status.paused'),
+    label: t('vm:status:paused', 2),
     value: vmsStatuses.value.paused,
     accent: 'info',
   },
   {
-    label: t('vms-status.suspended'),
+    label: t('vm:status:suspended', 2),
     value: vmsStatuses.value.suspended,
     accent: 'neutral',
   },
   {
-    label: t('vms-status.halted'),
+    label: t('vm:status:active', 2),
     value: vmsStatuses.value.halted,
     accent: 'danger',
   },

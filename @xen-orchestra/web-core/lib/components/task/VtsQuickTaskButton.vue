@@ -1,7 +1,7 @@
 <template>
   <UiButtonIcon
     ref="buttonRef"
-    v-tooltip="{ content: t('tasks.quick-view'), placement: 'bottom-end' }"
+    v-tooltip="{ content: t('tasks:overview'), placement: 'bottom-end' }"
     accent="brand"
     :dot="hasNewTask"
     icon="fa:bars-progress"
@@ -18,9 +18,9 @@
 <script lang="ts" setup>
 import VtsBackdrop from '@core/components/backdrop/VtsBackdrop.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
-import type { Task } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
 import UiQuickTaskPanel from '@core/components/ui/quick-task-panel/UiQuickTaskPanel.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import type { Task } from '@core/types/task.type.ts'
 import { unrefElement, watchArray, whenever } from '@vueuse/core'
 import placementJs from 'placement.js'
 import { computed, nextTick, ref } from 'vue'

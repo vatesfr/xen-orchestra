@@ -98,6 +98,7 @@ export function useXoCollectionState<TRecord extends XoRecord, TNameConfig exten
     [names.hasById]: hasById,
     [names.useHasById]: reactify(hasById),
     [names.isReady]: config.context.isReady,
+    [names.isFetching]: config.context.isFetching,
     [names.hasError]: config.context.hasError,
     [names.lastError]: config.context.lastError,
   } satisfies CollectionState<TRecord, NameConfig>

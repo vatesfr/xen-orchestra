@@ -15,7 +15,7 @@
           accent="brand"
           @click="copy(id)"
         >
-          {{ copied ? t('core.copied') : t('core.copy-id') }}
+          {{ copied ? t('copied') : t('action:copy-id') }}
         </UiButton>
       </template>
     </div>

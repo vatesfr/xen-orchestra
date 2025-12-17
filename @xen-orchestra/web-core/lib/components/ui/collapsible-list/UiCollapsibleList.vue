@@ -6,7 +6,7 @@
     </component>
     <div v-if="hasMoreItems" class="footer">
       <UiButton size="small" accent="brand" variant="tertiary" @click="isExpanded = !isExpanded">
-        {{ isExpanded ? t('see-less') : t('see-n-more', { n: remainingItems }) }}
+        {{ isExpanded ? t('action:see-less') : t('action:see-n-more', { n: remainingItems }) }}
       </UiButton>
     </div>
   </div>

@@ -14,7 +14,7 @@
       <HostsCpuUsage :top-five-cpu="poolDashboard?.hosts?.topFiveUsage?.cpu" :has-error />
     </template>
     <UiCardSubtitle>
-      {{ t('vms', 2) }}
+      {{ t('vms') }}
       <template #info>
         {{ t('top-#', 5) }}
       </template>

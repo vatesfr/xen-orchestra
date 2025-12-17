@@ -4,7 +4,7 @@
       {{ internal ? t('host-internal-networks') : t('networks') }}
       <template #actions>
         <UiLink :href="xo5NewNetworkHref" icon="fa:plus" size="medium">
-          {{ internal ? t('add-host-internal-network-in-xo-5') : t('add-network-in-xo-5') }}
+          {{ internal ? t('action:add-host-internal-network-in-xo-5') : t('action:add-network-in-xo-5') }}
         </UiLink>
       </template>
     </UiTitle>

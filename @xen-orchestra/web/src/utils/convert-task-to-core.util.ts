@@ -1,12 +1,16 @@
-import type { Task as CoreTask } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
+import type { Task } from '@core/types/task.type.ts'
 import type { XoTask } from '@vates/types'
 
-export const convertTaskToCore = (task: XoTask): CoreTask => ({
+export const convertTaskToCore = (task: XoTask, userName?: string): Task => ({
   id: task.id,
   status: task.status === 'interrupted' ? 'failure' : task.status,
   name: task.properties.name ?? '',
   tag: task.properties.type,
+  progress: typeof task.properties.progress === 'number' ? task.properties.progress : 0,
+  userName,
   start: task.start,
+  infos: task.infos,
+  warnings: task.warnings,
   end: task.end,
-  subtasks: task.tasks !== undefined ? task.tasks.map(subtask => convertTaskToCore(subtask)) : undefined,
+  subtasks: task.tasks?.map(subtask => convertTaskToCore(subtask, userName)),
 })

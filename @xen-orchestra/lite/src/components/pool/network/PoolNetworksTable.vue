@@ -3,7 +3,7 @@
     <UiTitle>
       {{ t('networks') }}
       <template #actions>
-        <UiDropdownButton v-tooltip="t('coming-soon')" disabled>
+        <UiDropdownButton v-tooltip="t('coming-soon!')" disabled>
           {{ t('new') }}
         </UiDropdownButton>
       </template>
@@ -13,34 +13,34 @@
         <UiQuerySearchBar @search="value => (searchQuery = value)" />
         <UiTableActions :title="t('table-actions')">
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             left-icon="fa:edit"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ t('edit') }}
+            {{ t('action:edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             left-icon="fa:copy"
             variant="tertiary"
             accent="brand"
             size="medium"
           >
-            {{ t('copy-info-json') }}
+            {{ t('action:copy-info-json') }}
           </UiButton>
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             left-icon="fa:trash"
             variant="tertiary"
             accent="danger"
             size="medium"
           >
-            {{ t('delete') }}
+            {{ t('action:delete') }}
           </UiButton>
         </UiTableActions>
       </div>

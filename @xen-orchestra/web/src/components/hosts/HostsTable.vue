@@ -79,7 +79,7 @@ const state = useTableState({
   busy: logicNot(isReady),
   error: hasError,
   empty: () =>
-    rawHosts.length === 0 ? t('no-hosts-detected') : filteredHosts.value.length === 0 ? { type: 'no-result' } : false,
+    rawHosts.length === 0 ? t('no-host-detected') : filteredHosts.value.length === 0 ? { type: 'no-result' } : false,
 })
 
 const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts', filteredHosts)

@@ -16,7 +16,7 @@
       {{ t('tasks') }}
     </RouterTab>
     <RouterTab :to="{ name: '/host/[uuid]/vms', params: { uuid } }">
-      {{ t('vms', 2) }}
+      {{ t('vms') }}
     </RouterTab>
   </TabList>
 </template>

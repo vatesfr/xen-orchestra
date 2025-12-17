@@ -13,15 +13,15 @@ export const useVmPauseJob = defineJob('vm.pause', [vmsArg], () => {
     run: async vms => xapi.vm.pause(vms.map(vm => vm.$ref)),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job.vm-pause.missing-vms'))
+        throw new JobError(t('job:vm-pause:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.PAUSE))) {
-        throw new JobRunningError(t('job.vm-pause.in-progress'))
+        throw new JobRunningError(t('job:vm-pause:in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.RUNNING)) {
-        throw new JobError(t('job.vm-pause.bad-power-state'))
+        throw new JobError(t('job:vm-pause:bad-power-state'))
       }
     },
   }

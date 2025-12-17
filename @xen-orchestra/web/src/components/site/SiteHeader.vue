@@ -3,7 +3,7 @@
     {{ XOA_NAME }}
     <template #actions>
       <UiLink to="/pool/connect" size="medium" icon="fa:plus">
-        {{ t('connect-pool') }}
+        {{ t('action:connect-pool') }}
       </UiLink>
     </template>
   </UiHeadBar>
@@ -18,7 +18,11 @@
         {{ t('backups') }}
       </TabItem>
     </RouterLink>
-    <TabItem disabled>{{ t('tasks') }}</TabItem>
+    <RouterLink v-slot="{ isExactActive, href }" :to="{ name: '/(site)/tasks' }" custom>
+      <TabItem :active="isExactActive" :href tag="a">
+        {{ t('tasks') }}
+      </TabItem>
+    </RouterLink>
     <RouterLink v-slot="{ isExactActive, href }" to="/pools" custom>
       <TabItem :active="isExactActive" :href tag="a">{{ t('pools') }}</TabItem>
     </RouterLink>
@@ -26,7 +30,7 @@
       <TabItem :active="isExactActive" :href tag="a">{{ t('hosts') }}</TabItem>
     </RouterLink>
     <RouterLink v-slot="{ isExactActive, href }" to="/vms" custom>
-      <TabItem :active="isExactActive" :href tag="a">{{ t('vms', 2) }}</TabItem>
+      <TabItem :active="isExactActive" :href tag="a">{{ t('vms') }}</TabItem>
     </RouterLink>
   </TabList>
 </template>

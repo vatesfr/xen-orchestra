@@ -46,7 +46,7 @@ const { pageRecords: paginatedHosts, paginationBindings } = usePagination('hosts
 const state = useTableState({
   busy: logicNot(isReady),
   error: hasError,
-  empty: () => (hosts.value.length === 0 ? t('no-hosts-detected') : false),
+  empty: () => (hosts.value.length === 0 ? t('no-host-detected') : false),
 })
 
 const { HeadCells, BodyCells } = useHostColumns({

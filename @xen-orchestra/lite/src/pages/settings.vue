@@ -84,9 +84,9 @@
         :class="{ selected: uiStore.colorMode === colorModeOption }"
         @click="uiStore.colorMode = colorModeOption"
       >
-        <img v-if="colorModeOption === 'light'" src="../assets/color-mode-light.svg" :alt="t('dark-mode.disable')" />
-        <img v-else-if="colorModeOption === 'dark'" src="../assets/color-mode-dark.svg" :alt="t('dark-mode.enable')" />
-        <img v-else src="../assets/color-mode-auto.svg" :alt="t('dark-mode.auto')" />
+        <img v-if="colorModeOption === 'light'" src="../assets/color-mode-light.svg" :alt="t('dark-mode:disable')" />
+        <img v-else-if="colorModeOption === 'dark'" src="../assets/color-mode-dark.svg" :alt="t('dark-mode:enable')" />
+        <img v-else src="../assets/color-mode-auto.svg" :alt="t('dark-mode:auto')" />
         <span>
           <VtsIcon v-if="uiStore.colorMode === colorModeOption" name="fa:check" size="medium" />
           {{ t(`theme-${colorModeOption}`) }}
@@ -101,7 +101,7 @@
       </template>
       <template #value>
         <UiLink size="medium" href="https://translate.vates.tech/engage/xen-orchestra/">
-          {{ t('settings.missing-translations') }}
+          {{ t('missing-translations?') }}
         </UiLink>
       </template>
     </VtsQuickInfoRow>

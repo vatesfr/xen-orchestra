@@ -1,7 +1,7 @@
 <template>
   <VtsStateHero format="page" type="under-construction" size="large">
     <span>{{ t('xo-lite-under-construction') }}</span>
-    <span class="typo-h3">{{ t('new-features-are-coming') }}</span>
+    <span class="typo-h3">{{ t('new-features-are-coming!') }}</span>
     <p class="contact typo-body-regular">
       {{ t('do-you-have-needs') }}
       <a

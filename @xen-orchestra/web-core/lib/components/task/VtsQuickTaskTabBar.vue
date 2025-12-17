@@ -1,7 +1,7 @@
 <template>
   <TabList :disabled="loading">
     <TabItem v-bind="tabs.pending.bindings">
-      {{ t('tasks.quick-view.in-progress') }}
+      {{ t('in-progress') }}
       <UiCounter
         v-if="pendingCount !== undefined"
         :value="pendingCount"
@@ -11,7 +11,7 @@
       />
     </TabItem>
     <TabItem v-bind="tabs.success.bindings">
-      {{ t('tasks.quick-view.done') }}
+      {{ t('done') }}
       <UiCounter
         v-if="successCount !== undefined"
         :value="successCount"
@@ -21,7 +21,7 @@
       />
     </TabItem>
     <TabItem v-bind="tabs.failure.bindings">
-      {{ t('tasks.quick-view.failed') }}
+      {{ t('failed') }}
       <UiCounter
         v-if="failureCount !== undefined"
         :value="failureCount"
@@ -32,12 +32,12 @@
     </TabItem>
     <VtsDivider type="tab" />
     <TabItem v-bind="tabs.all.bindings">
-      {{ t('tasks.quick-view.all') }}
+      {{ t('all') }}
     </TabItem>
     <!--
     TODO
     <UiButton :right-icon="faAngleRight" class="see-all" level="tertiary" size="extra-small">
-      {{ t('see-all') }}
+      {{ t('action:see-all') }}
     </UiButton>
     -->
   </TabList>
@@ -48,8 +48,8 @@ import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
-import type { TaskStatus } from '@core/components/ui/quick-task-item/UiQuickTaskItem.vue'
 import { useTabList } from '@core/composables/tab-list.composable'
+import type { TaskStatus } from '@core/types/task.type.ts'
 import { useI18n } from 'vue-i18n'
 
 export type TaskTab = TaskStatus | 'all'
