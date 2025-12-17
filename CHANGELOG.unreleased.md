@@ -12,6 +12,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [XO5] Remove XOSAN (PR [#9248](https://github.com/vatesfr/xen-orchestra/pull/9248))
+- [Plugins/Backup-reports] Add optional context in email subject and Pool ID in summary [#8544](https://github.com/vatesfr/xen-orchestra/issues/8544) (PR [#8973](https://github.com/vatesfr/xen-orchestra/pull/8973))
+
 
 - **XO 6:**
   - [Site/Tasks] Implement tasks view and side panel information (PR [#9063](https://github.com/vatesfr/xen-orchestra/pull/9063))
@@ -49,6 +51,7 @@
 - @xen-orchestra/xapi patch
 - xo-server patch
 - xo-server-audit minor
+- xo-server-backup-reports minor
 - xo-server-perf-alert minor
 
 <!--packages-end-->
