@@ -15,6 +15,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- **XO 5:**
+  - Fix infinite loading when `redirectToHttps=true` (PR [#9339](https://github.com/vatesfr/xen-orchestra/pull/9339))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +33,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server patch
 
 <!--packages-end-->
