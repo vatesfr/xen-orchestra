@@ -119,7 +119,7 @@ const COLUMNS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
-    handler: task => window.open('./rest/v0/restore/logs/' + task.id),
+    handler: task => window.open('./rest/v0/restore-logs/' + task.id),
     icon: 'api',
     label: _('taskOpenRawLog'),
   },

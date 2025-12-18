@@ -32,6 +32,8 @@
 - [Host] Report 0 RAM usage for halted hosts instead of incorrect values (PR [#9272](https://github.com/vatesfr/xen-orchestra/pull/9272))
 - [Plugins/OIDC] Fix group import on string (PR [#9280](https://github.com/vatesfr/xen-orchestra/pull/9280))
 - [Vm Import] Fix `error intermediate value not iterable` (PR [#9327](https://github.com/vatesfr/xen-orchestra/pull/9327))
+- [XO5/Restore] Replace deprecated endpoint call (PR [#9316](https://github.com/vatesfr/xen-orchestra/pull/9316))
+
 - **XO 6:**
   - [VM/New] Fix wording in "Memory" section (PR [#9309](https://github.com/vatesfr/xen-orchestra/pull/9309))
   - [Nav/AccountMenu] License URL wasn’t redirecting properly to XO 5 (PR [#9321](https://github.com/vatesfr/xen-orchestra/pull/9321))
@@ -63,5 +65,6 @@
 - xo-server-backup-reports minor
 - xo-server-openmetrics major
 - xo-server-perf-alert minor
+- xo-web patch
 
 <!--packages-end-->
