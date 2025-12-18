@@ -9,7 +9,7 @@
 {{else}}
 ### VM not found
 
-- **UUID**: {{{taskLog.data.id}}}
+- **UUID**: {{{taskLog.properties.id}}}
 {{/if}}
 {{>reportTemporalDataMd end=taskLog.end start=taskLog.start}}
 {{>reportWarningsMd task=taskLog}}

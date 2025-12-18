@@ -1,8 +1,8 @@
 ## Global status: {{{log.status}}}
 
-- **Job ID**: {{{log.jobId}}}
+- **Job ID**: {{{log.properties.jobId}}}
 - **Job name**: {{{jobName}}}
-- **Run ID**: {{{log.id}}}
+- **Run ID**: {{{log.properties.runJobId}}}
 {{>reportTemporalDataMd end=log.end start=log.start}}
 {{#if log.tasks.length}}
 - **Successes**: {{#if tasksByStatus.success.length ~}} {{{tasksByStatus.success.length}}} {{~else~}} 0 {{~/if}} / {{{log.tasks.length}}}
@@ -16,7 +16,7 @@
 {{#each this}}
 
 
-### {{>taskTitle task=. jobName=../../log.jobName}}
+### {{>taskTitle task=. jobName=../../log.properties.jobName}}
 {{>taskBody task=.}}
 {{>reportTemporalDataMd formatDate=../../formatDate}}
 {{>reportErrorMd task=.}}

@@ -20,9 +20,9 @@
           <mj-text font-size="16px" font-weight="300" line-height="24px">
             <h1>Global status : {{log.status}} {{getIcon log.status}}</h1>
             <ul>
-              <li><span style="font-weight: bold">Job ID</span>: {{log.jobId}}</li>
-              <li><span style="font-weight: bold">Run ID</span>: {{log.id}}</li>
-              <li><span style="font-weight: bold">Mode</span>: {{log.data.mode}}</li>
+              <li><span style="font-weight: bold">Job ID</span>: {{log.properties.jobId}}</li>
+              <li><span style="font-weight: bold">Run ID</span>: {{log.properties.runJobId}}</li>
+              <li><span style="font-weight: bold">Mode</span>: {{log.properties.data.mode}}</li>
               {{>reportTemporalDataMjml end=log.end start=log.start}}
               {{#if log.tasks}}
               <li>

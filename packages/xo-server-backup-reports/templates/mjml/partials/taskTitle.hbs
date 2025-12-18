@@ -1,9 +1,9 @@
-{{#ifCond task.data.type '===' 'xo'}}
+{{#ifCond task.properties.type '===' 'xo'}}
 [XO] {{{jobName}}}
 {{~/ifCond}}
-{{#ifCond task.data.type '===' 'remote'}}
-[remote] {{{task.additionalData.name}}}
+{{#ifCond task.properties.type '===' 'remote'}}
+[remote] {{{task.properties.additionalData.name}}}
 {{~/ifCond}}
-{{#ifCond task.data.type '===' 'pool'}}
-[pool] {{#if task.data.pool.name_label ~}} {{{task.data.pool.name_label}}} {{~else if task.data.poolMaster.name_label ~}} {{{task.data.poolMaster.name_label}}} {{~else~}} Unknown {{~/if}}
+{{#ifCond task.properties.type '===' 'pool'}}
+[pool] {{#if task.properties.data.pool.name_label ~}} {{{task.properties.data.pool.name_label}}} {{~else if task.properties.data.poolMaster.name_label ~}} {{{task.properties.data.poolMaster.name_label}}} {{~else~}} Unknown {{~/if}}
 {{~/ifCond}}
