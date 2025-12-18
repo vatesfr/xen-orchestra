@@ -178,7 +178,8 @@ export class MergeRemoteDisk {
             toMerge,
             async blockId => {
                 merging.add(blockId)
-                this.#state.mergedDataSize += await parentDisk.writeBlock(blockId, (await childDisk.readBlock(blockId)).data)
+                const blockSize = await parentDisk.writeBlock(blockId, (await childDisk.readBlock(blockId)).data)
+                this.#state.mergedDataSize += blockSize
 
                 this.#state.currentBlock = Math.min(...merging)
                 merging.delete(blockId)
@@ -205,8 +206,12 @@ export class MergeRemoteDisk {
         this.#state.step = 'cleanup'
         await this.#writeState()
 
+        const newPath = childDisk.getPath();
+
+        await childDisk.unlink()
+
         try {
-            await this.#handler.rename(parentDisk.getPath(), childDisk.getPath())
+            await this.#handler.rename(parentDisk.getPath(), newPath)
         } catch (error) {
             if (error.code === 'ENOENT' && this.#isResuming) {
                 this.#logInfo(`the parent disk was already renamed`, { parent: parentDisk.getPath(), mergeTarget: childDisk.getPath() })

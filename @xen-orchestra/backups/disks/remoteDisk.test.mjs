@@ -10,7 +10,7 @@ import { RemoteAdapter } from '../RemoteAdapter.mjs'
 import { VHDFOOTER, VHDHEADER } from '../tests.fixtures.mjs'
 import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
-import { RemoteVhdChain } from './RemoteVhdChain.mjs'
+import { RemoteVhdDiskChain } from './RemoteVhdDiskChain.mjs'
 import { mergeVhdChain } from 'vhd-lib/merge.js'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
@@ -109,16 +109,13 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
   const child1 = new RemoteVhdDisk({handler, path: `${basePath}/child_1.vhd`})
   await child1.init()
   const child2 = new RemoteVhdDisk({handler, path: `${basePath}/child_2.vhd`})
+
+  const childDiskChain = new RemoteVhdDiskChain({disks: [child1, child2]})
+  await childDiskChain.init()
   await child2.init()
 
-  console.log(parent.getBlockIndexes(), child1.getBlockIndexes(), child2.getBlockIndexes())
+  console.log(parent.getBlockIndexes(), child1.getBlockIndexes(), child2.getBlockIndexes(), childDiskChain.getBlockIndexes())
 
-  const childDiskChain = new DiskChain({disks: [child1, child2]})
-  await childDiskChain.init()
-
-  console.log(typeof childDiskChain)
-
-  console.log(childDiskChain.getBlockIndexes())
 
   let progressCalls = 0
   const onProgress = () => {
@@ -153,6 +150,8 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
 
   // Check that ancestor was renamed to child
   const remainingDisks = await handler.list(basePath)
+  console.log(remainingDisks)
   assert.equal(remainingDisks.includes('child_1.vhd'), true)
+  assert.equal(remainingDisks.includes('child_2.vhd'), false)
   assert.equal(remainingDisks.includes('ancestor.vhd'), false)
 })
