@@ -456,7 +456,7 @@ const getVdis = (template: XenApiVm) => {
   }
 
   vdis.push({
-    name_label: (vmState.new_vm_template?.name_label || 'disk') + '_' + generateRandomString(4),
+    name_label: (template?.name_label || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     size: bytesToGiB(Number(size)),
     SR: defaultSr.value,
