@@ -550,7 +550,16 @@ const setUpProxies = (express, opts, xo) => {
     return
   }
 
-  const userHttpConfig = xo.config.get('http.listen.0')
+  const httpConfig = xo.config.get('http')
+  // if redirectToHttps, we need to find the config for the secure protocol
+  const userHttpConfig = Object.values(httpConfig.listen).find(
+    listenConfig => !httpConfig.redirectToHttps || listenConfig.key !== undefined
+  )
+
+  if (userHttpConfig === undefined) {
+    throw new Error('unable to found a valid http.listen config')
+  }
+
   const isSecure = userHttpConfig.key !== undefined
 
   const dynamicProxyOptions = {}
