@@ -403,8 +403,6 @@ The OpenMetrics plugin exposes a `/metrics` endpoint that Prometheus can scrape 
 
 | Option                | Default    | Description                                               |
 | --------------------- | ---------- | --------------------------------------------------------- |
-| **Port**              | 9004       | HTTP server port for the metrics endpoint                 |
-| **Bind Address**      | 127.0.0.1  | Address to bind (use `0.0.0.0` for all interfaces)        |
 | **Prometheus secret** | (required) | Bearer token for authentication - you must set this value |
 
 4. Save and load the plugin
@@ -413,26 +411,17 @@ The OpenMetrics plugin exposes a `/metrics` endpoint that Prometheus can scrape 
 You must set a **Prometheus secret** before loading the plugin. Without a valid secret, the metrics endpoint authentication is ineffective, potentially exposing sensitive infrastructure data (host resources, VM configurations, network details) to unauthorized access. Use a strong, random string (e.g., generated with `openssl rand -hex 32`).
 :::
 
-#### Static Configuration (TOML)
-
-For infrastructure-level configuration, you can set these values in your `xo-server` configuration file. Static config takes precedence over UI settings:
-
-```toml
-[plugins.openmetrics]
-port = 9004
-bindAddress = "0.0.0.0"
-```
-
 ### Prometheus Configuration
 
-Add the following job to your `prometheus.yml`:
+The metrics endpoint is available through xo-server's HTTP proxy at `/openmetrics/metrics`. Add the following job to your `prometheus.yml`:
 
 ```yaml
 scrape_configs:
   - job_name: 'xen-orchestra'
     scrape_interval: 60s
+    metrics_path: '/openmetrics/metrics'
     static_configs:
-      - targets: ['your-xoa-ip:9004']
+      - targets: ['your-xoa-ip'] # Use port 80 or 443 depending on your XO setup
     authorization:
       type: Bearer
       credentials: 'your-secret-from-plugin-config'
@@ -634,12 +623,11 @@ groups:
 
 ### Security Recommendations
 
-- **Bind to localhost**: Keep `bindAddress` as `127.0.0.1` and use a reverse proxy (nginx, Caddy) with HTTPS
 - **Use strong secrets**: Generate a secure random token (e.g., `openssl rand -hex 32`)
 - **Network segmentation**: Ensure only your Prometheus server can reach the metrics endpoint
-- **Firewall rules**: If exposing on `0.0.0.0`, restrict access with iptables/firewalld
+- **Use HTTPS**: Configure xo-server with TLS or use a reverse proxy (nginx, Caddy) in front of XO
 
-Example nginx reverse proxy configuration:
+Example nginx reverse proxy configuration (if you need an additional proxy in front of XO):
 
 ```nginx
 server {
@@ -650,7 +638,7 @@ server {
     ssl_certificate_key /path/to/key.pem;
 
     location /metrics {
-        proxy_pass http://127.0.0.1:9004/metrics;
+        proxy_pass http://your-xoa-ip/openmetrics/metrics;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
@@ -662,7 +650,7 @@ server {
 A health check endpoint is available without authentication:
 
 ```bash
-curl http://localhost:9004/health
+curl http://your-xoa-ip/openmetrics/health
 # Response: {"status":"ok"}
 ```
 
@@ -676,8 +664,7 @@ curl http://localhost:9004/health
 **Connection refused:**
 
 - Ensure the plugin is loaded (check plugin status in UI)
-- Verify the port is not blocked by firewall
-- Check if another service uses port 9004
+- Verify xo-server is running and accessible
 
 **No metrics returned:**
 
