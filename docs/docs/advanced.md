@@ -397,8 +397,8 @@ The OpenMetrics plugin exposes a `/metrics` endpoint that Prometheus can scrape 
 
 ### Plugin Configuration
 
-1. Go to **Settings → Plugins** in Xen Orchestra
-2. Find and enable the **openmetrics** plugin
+1. Go to **Settings → Plugins** in Xen Orchestra.
+2. Find and enable the **OpenMetrics** plugin.
 3. Configure the following options:
 
 | Option                | Default    | Description                                               |
@@ -410,12 +410,12 @@ The OpenMetrics plugin exposes a `/metrics` endpoint that Prometheus can scrape 
 4. Save and load the plugin
 
 :::warning
-You must set a **Prometheus secret** before loading the plugin. This token will be used to authenticate Prometheus scrape requests. Use a strong, random string (e.g., generated with `openssl rand -hex 32`).
+You must set a **Prometheus secret** before loading the plugin. Without a valid secret, the metrics endpoint authentication is ineffective, potentially exposing sensitive infrastructure data (host resources, VM configurations, network details) to unauthorized access. Use a strong, random string (e.g., generated with `openssl rand -hex 32`).
 :::
 
 #### Static Configuration (TOML)
 
-For infrastructure-level configuration, you can set these values in your xo-server configuration file. Static config takes precedence over UI settings:
+For infrastructure-level configuration, you can set these values in your `xo-server` configuration file. Static config takes precedence over UI settings:
 
 ```toml
 [plugins.openmetrics]
@@ -542,8 +542,8 @@ sum by (sr_name) (xcp_host_disk_iops_read + xcp_host_disk_iops_write)
 
 #### Creating a Dashboard
 
-1. Add your Prometheus instance as a data source in Grafana
-2. Create a new dashboard
+1. Add your Prometheus instance as a data source in Grafana.
+2. Create a new dashboard.
 3. Use the following variables for filtering:
 
 **Pool variable:**
