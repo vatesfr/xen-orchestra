@@ -1,12 +1,13 @@
-/**
- * @typedef {import('./RemoteDisk.mjs').DiskMetadata} DiskMetadata
- * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
- */
-
 import { openVhd } from 'vhd-lib'
 import { RemoteDisk } from "./RemoteDisk.mjs";
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import { stringify } from 'uuid'
+
+/**
+ * @typedef {import('./RemoteDisk.mjs').DiskMetadata} DiskMetadata
+ * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
+ * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
+ */
 
 export class RemoteVhdDisk extends RemoteDisk {
     /**
@@ -226,5 +227,13 @@ export class RemoteVhdDisk extends RemoteDisk {
             throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
         }
         await this.#vhd.writeBlockAllocationTable()
+    }
+
+    /**
+     * Deletes disk
+     */
+    async unlink() {
+        await this.close()
+        await this.#handler.unlink(this.#path)
     }
 }
