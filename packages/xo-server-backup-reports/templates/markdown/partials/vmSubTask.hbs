@@ -4,7 +4,7 @@
   {{>reportWarningsMd task=subTaskLog}}
   {{>reportErrorMd task=subTaskLog}}
 {{else}}
-  - **{{{operationLog.message}}}** {{getIcon operationLog.status}}
+  - **{{{operationLog.properties.name}}}** {{getIcon operationLog.status}}
     {{>reportTemporalDataMd end=operationLog.end start=operationLog.start}}
     {{#if operationLog.result.size}}
     - **Size**: {{formatSize operationLog.result.size}}

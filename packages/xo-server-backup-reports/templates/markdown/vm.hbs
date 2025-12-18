@@ -1,8 +1,8 @@
 ## Global status: {{{log.status}}}
 
-- **Job ID**: {{{log.jobId}}}
+- **Job ID**: {{{log.properties.jobId}}}
 - **Run ID**: {{{log.id}}}
-- **Mode**: {{{log.data.mode}}}
+- **Mode**: {{{log.properties.data.mode}}}
 {{>reportTemporalDataMd end=log.end start=log.start}}
 {{#if log.tasks}}
 - **Successes**: {{{tasksByStatus.success.count}}} / {{{tasksByStatus.vmTasks.count}}}

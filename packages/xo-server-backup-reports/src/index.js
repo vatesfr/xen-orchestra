@@ -130,12 +130,12 @@ class BackupReportsXoPlugin {
 
     let log
     try {
-      log = await xo.getBackupNgLogs(runJobId)
+      log = (await xo.getBackupNgLogs(runJobId)).tasks[0]
     } catch (error) {
       throw new Error(`no log found with runId=${JSON.stringify(runJobId)}`)
     }
 
-    const reportWhen = log.data.reportWhen
+    const reportWhen = log.properties?.data?.reportWhen
     if (
       !force &&
       (reportWhen === 'never' ||
@@ -151,8 +151,8 @@ class BackupReportsXoPlugin {
     }
 
     const [job, schedule] = await Promise.all([
-      await xo.getJob(log.jobId),
-      await xo.getSchedule(log.scheduleId).catch(error => {
+      await xo.getJob(log.properties.jobId),
+      await xo.getSchedule(log.properties.scheduleId).catch(error => {
         logger.warn(error)
       }),
     ])
@@ -175,7 +175,7 @@ class BackupReportsXoPlugin {
 
     const tasksByStatus = groupBy(log.tasks, 'status')
 
-    if (log.status === 'failure' && log.data?.hideSuccessfulItems) {
+    if (log.status === 'failure' && log.properties?.data?.hideSuccessfulItems) {
       delete tasksByStatus.success
     }
 
@@ -201,7 +201,7 @@ class BackupReportsXoPlugin {
       formatDate,
     }
 
-    const backupReportTpl = log.data?.backupReportTpl ?? DEFAULT_TEMPLATE
+    const backupReportTpl = log.properties?.data?.backupReportTpl ?? DEFAULT_TEMPLATE
     return this._sendReport({
       ...(await templates.markdown.transform(templates.markdown.$metadata(context))),
       ...(await templates.compactMarkdown.transform(templates.compactMarkdown.$metadata(context))),
@@ -232,8 +232,8 @@ class BackupReportsXoPlugin {
     let nInterrupted = 0
 
     for (const taskLog of log.tasks ?? []) {
-      const { type, id } = taskLog.data ?? {}
-      if (taskLog.message === 'get SR record' || taskLog.message === 'get remote adapter') {
+      const { type, id } = taskLog.properties ?? {}
+      if (taskLog.properties?.name === 'get SR record' || taskLog.properties?.name === 'get remote adapter') {
         ++nFailures
 
         try {
@@ -256,7 +256,7 @@ class BackupReportsXoPlugin {
         continue
       }
 
-      if (taskLog.status === 'success' && log.status === 'failure' && log.data?.hideSuccessfulItems) {
+      if (taskLog.status === 'success' && log.status === 'failure' && log.properties?.data?.hideSuccessfulItems) {
         ++nSuccesses
         continue
       }
@@ -272,16 +272,16 @@ class BackupReportsXoPlugin {
       const remotesSubTasks = []
 
       for (const subTaskLog of taskLog.tasks ?? []) {
-        if (subTaskLog.message !== 'export' && subTaskLog.message !== 'snapshot') {
+        if (subTaskLog.properties?.name !== 'export' && subTaskLog.properties?.name !== 'snapshot') {
           continue
         }
 
-        const type = subTaskLog.data?.type
+        const type = subTaskLog.properties?.type
 
-        if (subTaskLog.message === 'snapshot') {
+        if (subTaskLog.properties?.name === 'snapshot') {
           snapshotSubtasks.push({ subTaskLog })
         } else if (type === 'remote') {
-          const id = subTaskLog.data.id
+          const id = subTaskLog.properties.id
           const remote = await xo.getRemote(id).catch(error => {
             logger.warn(error)
           })
@@ -293,7 +293,7 @@ class BackupReportsXoPlugin {
             failedSubTasks.push(remote !== undefined ? remote.name : id)
           }
         } else {
-          const id = subTaskLog.data.id
+          const id = subTaskLog.properties.id
           let sr
           try {
             sr = xo.getObject(id)
@@ -307,22 +307,22 @@ class BackupReportsXoPlugin {
 
         forEach(subTaskLog.tasks, operationLog => {
           if (
-            operationLog.message !== 'merge' &&
-            operationLog.message !== 'transfer' &&
-            operationLog.message !== 'health check'
+            operationLog.properties?.name !== 'merge' &&
+            operationLog.properties?.name !== 'transfer' &&
+            operationLog.properties?.name !== 'health check'
           ) {
             return
           }
 
           const size = operationLog.result?.size
           if (size > 0) {
-            if (operationLog.message === 'merge') {
+            if (operationLog.properties?.name === 'merge') {
               globalMergeSize += size
             } else {
               globalTransferSize += size
             }
           } // don't ignore health check
-          else if (operationLog.status === 'success' && operationLog.message !== 'health check') {
+          else if (operationLog.status === 'success' && operationLog.properties?.name !== 'health check') {
             return
           }
 
@@ -365,27 +365,29 @@ class BackupReportsXoPlugin {
 
     const nVmTasks = nSuccesses + nFailures + nSkipped + nInterrupted
 
+    const tasksByStatus = {
+      failure: { tasks: failedTasks, count: nFailures },
+      skipped: { tasks: skippedVms, count: nSkipped },
+      interrupted: { tasks: interruptedVms, count: nInterrupted },
+      success: {
+        tasks: log.status === 'failure' && log.properties?.data?.hideSuccessfulItems ? [] : successfulVms,
+        count: nSuccesses,
+      },
+      vmTasks: { count: nVmTasks },
+    }
+
     const context = {
       jobName,
       log,
       customSubject: this._customSubject,
       pkg,
-      tasksByStatus: {
-        failure: { tasks: failedTasks, count: nFailures },
-        skipped: { tasks: skippedVms, count: nSkipped },
-        interrupted: { tasks: interruptedVms, count: nInterrupted },
-        success: {
-          tasks: log.status === 'failure' && log.data?.hideSuccessfulItems ? [] : successfulVms,
-          count: nSuccesses,
-        },
-        vmTasks: { count: nVmTasks },
-      },
+      tasksByStatus,
       formatDate,
       globalMergeSize,
       globalTransferSize,
     }
 
-    const backupReportTpl = log.data?.backupReportTpl ?? DEFAULT_TEMPLATE
+    const backupReportTpl = log.properties?.data?.backupReportTpl ?? DEFAULT_TEMPLATE
     return this._sendReport({
       ...(await templates.markdown.transform(templates.markdown.$vm(context))),
       ...(await templates.compactMarkdown.transform(templates.compactMarkdown.$vm(context))),
