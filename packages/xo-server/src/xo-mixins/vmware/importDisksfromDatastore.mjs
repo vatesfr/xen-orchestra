@@ -29,6 +29,8 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     blockSize = VHD_BLOCK_SIZE
   }
 
+  Task.info(`Importing disk in ${format} format, with block of ${blockSize} bytes`)
+
   let dataMap
   const previouslyImportedIndex = chainByNode.findLastIndex(disk => !!diskIsAlreadyImported(existingVdis, disk))
   let existingVdi
@@ -61,12 +63,18 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
     await vmdk.init()
     vmdk = new ReadAhead(vmdk)
     if (!existingVdi) {
-      Task.info(`create a new VDI for `, diskPath)
+      Task.info(`create a new VDI for ${diskPath}`)
+      const alignedSize = Math.ceil(capacity / blockSize) * blockSize
+      const delta = alignedSize - capacity
+      if (delta > 0) {
+        Task.info(`aligning disk size from ${capacity} to ${alignedSize} (adding ${delta} bytes at the end)`)
+      }
+
       const vdiMetadata = {
         name_description: descriptionLabel,
         name_label: '[ESXI]' + nameLabel,
         SR: sr.$ref,
-        virtual_size: capacity,
+        virtual_size: alignedSize,
       }
       const vdiRef = await sr.$xapi.VDI_create(vdiMetadata)
       existingVdi = sr.$xapi.getObject(vdiRef, undefined) ?? (await sr.$xapi.waitObject(vdiRef))
