@@ -25,6 +25,10 @@ interface IpcMessage {
 }
 
 interface PluginConfiguration {
+  secret: string
+}
+
+interface ServerConfiguration {
   port: number
   bindAddress: string
   secret: string
@@ -119,20 +123,6 @@ const SHUTDOWN_TIMEOUT_MS = 5_000
 export const configurationSchema = {
   type: 'object',
   properties: {
-    port: {
-      type: 'number',
-      title: 'Port',
-      description: 'Port for the OpenMetrics HTTP server',
-      default: DEFAULT_PORT,
-      minimum: 1,
-      maximum: 65535,
-    },
-    bindAddress: {
-      type: 'string',
-      title: 'Bind Address',
-      description: 'Address to bind to (127.0.0.1 for localhost only, 0.0.0.0 for all interfaces)',
-      default: DEFAULT_BIND_ADDRESS,
-    },
     secret: {
       type: 'string',
       title: 'Prometheus secret',
@@ -149,16 +139,14 @@ export const configurationSchema = {
 
 class OpenMetricsPlugin {
   #configuration: PluginConfiguration | undefined
-  #staticConfig: Partial<PluginConfiguration>
   #childProcess: ChildProcess | undefined
   #pendingRequests = new Map<string, PendingRequest>()
   #requestIdCounter = 0
   readonly #xo: XoServer
 
-  constructor(xo: XoServer, staticConfig: Partial<PluginConfiguration> = {}) {
+  constructor(xo: XoServer) {
     this.#xo = xo
-    this.#staticConfig = staticConfig
-    logger.info('Plugin initialized with staticConfig', { staticConfig })
+    logger.info('Plugin initialized')
   }
 
   /**
@@ -166,11 +154,7 @@ class OpenMetricsPlugin {
    */
   async configure(configuration: PluginConfiguration): Promise<void> {
     this.#configuration = configuration
-    logger.debug('Plugin configured', {
-      port: configuration.port,
-      bindAddress: configuration.bindAddress,
-      // secret is not logged since it is sensitive
-    })
+    logger.debug('Plugin configured')
   }
 
   /**
@@ -184,26 +168,19 @@ class OpenMetricsPlugin {
       return
     }
 
-    // Use configured values with priority: static config (TOML) > dynamic config (UI) > defaults
-    // Static config from TOML takes precedence as it represents admin-level infrastructure config
-    logger.info('Config sources', {
-      dynamicConfig: this.#configuration,
-      staticConfig: this.#staticConfig,
-    })
-
-    const configuration: PluginConfiguration = {
-      port: this.#staticConfig.port ?? this.#configuration?.port ?? DEFAULT_PORT,
-      bindAddress: this.#staticConfig.bindAddress ?? this.#configuration?.bindAddress ?? DEFAULT_BIND_ADDRESS,
+    // Port and bindAddress are fixed for security (server is behind xo-server proxy)
+    const serverConfig: ServerConfiguration = {
+      port: DEFAULT_PORT,
+      bindAddress: DEFAULT_BIND_ADDRESS,
       secret: this.#configuration?.secret ?? '',
     }
 
     logger.info('Starting OpenMetrics server', {
-      port: configuration.port,
-      bindAddress: configuration.bindAddress,
-      // secret is not logged since it can be sensitive
+      port: serverConfig.port,
+      bindAddress: serverConfig.bindAddress,
     })
 
-    await this.#startChildProcess(configuration)
+    await this.#startChildProcess(serverConfig)
   }
 
   /**
@@ -223,7 +200,7 @@ class OpenMetricsPlugin {
   /**
    * Start the child process and wait for it to be ready.
    */
-  async #startChildProcess(configuration: PluginConfiguration): Promise<void> {
+  async #startChildProcess(configuration: ServerConfiguration): Promise<void> {
     const serverPath = join(__dirname, 'open-metric-server.mjs')
 
     this.#childProcess = fork(serverPath, [], {
@@ -671,11 +648,10 @@ class OpenMetricsPlugin {
 
 interface PluginOptions {
   xo: XoServer
-  staticConfig?: Partial<PluginConfiguration>
 }
 
-function pluginFactory({ xo, staticConfig }: PluginOptions): OpenMetricsPlugin {
-  return new OpenMetricsPlugin(xo, staticConfig)
+function pluginFactory({ xo }: PluginOptions): OpenMetricsPlugin {
+  return new OpenMetricsPlugin(xo)
 }
 pluginFactory.configurationSchema = configurationSchema
 
