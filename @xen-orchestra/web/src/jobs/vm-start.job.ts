@@ -1,5 +1,6 @@
+import { isVmOperatingPending } from '@/utils/xo-records/vm.util'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { VM_POWER_STATE, type XoVm } from '@vates/types'
+import { VM_OPERATIONS, VM_POWER_STATE, type XoVm } from '@vates/types'
 import { useFetch } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 import { vmsArg } from './args'
@@ -26,15 +27,15 @@ export const useVmStartJob = defineJob('vm.start', [vmsArg], () => {
 
     validate(isRunning, vms) {
       if (!vms || vms.length === 0) {
-        throw new JobError(t('job:vm-start:missing-vm'))
+        throw new JobError(t('job.vm-start.missing-vms'))
       }
 
-      if (isRunning) {
-        throw new JobRunningError(t('job:vm-start:in-progress'))
+      if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.START))) {
+        throw new JobRunningError(t('job.vm-start.in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.HALTED)) {
-        throw new JobError(t('job:vm-start:bad-power-state'))
+        throw new JobError(t('job.vm-start.bad-power-state'))
       }
     },
   }
