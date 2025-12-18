@@ -58,7 +58,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
   try {
     // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
     const { nbdInfos } = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
-    vmdk = new NbdDisk(nbdInfos, blockSize, { dataMap })
+    vmdk = new NbdDisk(nbdInfos, 2 * 1024 * 1024, { dataMap })
 
     await vmdk.init()
     vmdk = new ReadAhead(vmdk)
