@@ -25,56 +25,8 @@
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="ISO">
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
-                  <!-- TODO need to be add later after confirmation -->
-                  <!--
-                    <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
-                      {{ t('ssh-key') }}
-                    </UiRadioButton>
-                    <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
-                      {{ t('custom-config') }}
-                    </UiRadioButton>
-                  -->
                 </div>
                 <VtsSelect v-if="vmState.installMode === 'ISO'" :id="vdiIsoSelectId" accent="brand" />
-                <!-- TODO need to be add later after confirmation -->
-                <!--
-                 <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
-                    <div class="install-chips">
-                      <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
-                        {{ key }}
-                      </UiChip>
-                    </div>
-                    <div class="install-ssh-key">
-                      <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
-                      <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey()">
-                        {{ t('add') }}
-                      </UiButton>
-                    </div>
-                  </div>
-                  <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
-                    <div>
-                      <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
-                        {{ t('user-config') }}
-                      </UiTextarea>
-                      <span class="typo p3-regular-italic">
-                        Available template variables <br />
-                        - {name}: the VM's name. - It must not contain "_" <br />
-                        - {index}: the VM's index,<br />
-                        it will take 0 in case of single VM Tip: escape any variable with a preceding backslash (\)
-                      </span>
-                    </div>
-                    <div>
-                      <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="brand" href="''">
-                        {{ t('network-config') }}
-                      </UiTextarea>
-                      <span class="typo p3-regular-italic">
-                        Network configuration is only compatible with the NoCloud datasource. <br />
-
-                        See Network config documentation.
-                      </span>
-                    </div>
-                  </div>
-                  -->
               </div>
               <div v-else class="install-settings-container">
                 <div class="radio-container">
@@ -332,25 +284,13 @@ const addStorageEntry = () => {
   if (!vmState.new_vm_template) return
 
   vmState.vdis.push({
-    name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
+    name_label: (vmState.new_vm_template?.name_label || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     SR: pool.value!.default_SR,
     type: 'system',
     size: 0,
   })
 }
-
-// TODO re add when it work
-// const addSshKey = () => {
-//   if (vmState.ssh_key.trim()) {
-//     vmState.sshKeys.push(vmState.ssh_key.trim())
-//     vmState.ssh_key = ''
-//   }
-// }
-//
-// const removeSshKey = (index: number) => {
-//   vmState.sshKeys.splice(index, 1)
-// }
 
 const addTag = () => {
   const tag = vmState.tag.trim()
@@ -516,7 +456,7 @@ const getVdis = (template: XenApiVm) => {
   }
 
   vdis.push({
-    name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
+    name_label: (vmState.new_vm_template?.name_label || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     size: bytesToGiB(Number(size)),
     SR: defaultSr.value,
@@ -983,29 +923,6 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
         display: flex;
         gap: 15rem;
       }
-    }
-
-    .install-custom-config {
-      display: flex;
-      margin-block-start: 3rem;
-      gap: 4.2rem;
-    }
-
-    .install-ssh-key-container {
-      margin-block-start: 3rem;
-    }
-
-    .install-ssh-key {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      width: 50%;
-    }
-
-    .install-chips {
-      display: flex;
-      gap: 0.5rem;
-      margin-block-end: 1rem;
     }
 
     .memory-container {
