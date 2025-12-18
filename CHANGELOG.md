@@ -1,23 +1,28 @@
 # ChangeLog
 
-## **next**
+## **6.0.0** (2025-12-18)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [i18n] Update Czech, German, Persian, Italian, Japanese, Korean, Norwegian, Dutch, Russian, Swedish and Ukrainian translations (PR [#9305](https://github.com/vatesfr/xen-orchestra/pull/9305))
+- [i18n] Update Czech, Danish, Spanish, French, Italian, Dutch, Portuguese (Brazil), and Russian translations (PR [#9243](https://github.com/vatesfr/xen-orchestra/pull/9243))
+- [Navigation] Navigation state is now persisted in localStorage and items are now collapsible while filtering. (PR [#9277](https://github.com/vatesfr/xen-orchestra/pull/9277))
+- [Reactivity] Tasks are now reactive (PR [#9271](https://github.com/vatesfr/xen-orchestra/pull/9271))
+- [XO] XO6 is now the default page (PR [#9212](https://github.com/vatesfr/xen-orchestra/pull/9212))
+- [Site/Tasks] Implement tasks view and side panel information (PR [#9063](https://github.com/vatesfr/xen-orchestra/pull/9063))
+- [Pool/Tasks] Implement tasks view and side panel information (PR [#9312](https://github.com/vatesfr/xen-orchestra/pull/9312))
+- [Host/Tasks] Implement tasks view and side panel information (PR [#9311](https://github.com/vatesfr/xen-orchestra/pull/9311))
+- [VMs/Tasks] Implement tasks view and side panel information (PR [#9313](https://github.com/vatesfr/xen-orchestra/pull/9313))
 
 ### Enhancements
 
 - **XO 6:**
-  - [Navigation] Navigation state is now persisted in localStorage and items are now collapsible while filtering. (PR [#9277](https://github.com/vatesfr/xen-orchestra/pull/9277))
   - [Navigation] Add links to XO 5 for actions and pages not yet implemented in XO 6 (PR [#9214](https://github.com/vatesfr/xen-orchestra/pull/9214))
-  - [i18n] Update Czech, Danish, Spanish, French, Italian, Dutch, Portuguese (Brazil), and Russian translations (PR [#9243](https://github.com/vatesfr/xen-orchestra/pull/9243))
-  - [Reactivity] Tasks are now reactive (PR [#9271](https://github.com/vatesfr/xen-orchestra/pull/9271))
-  - [Site/Tasks] Implement tasks view and side panel information (PR [#9063](https://github.com/vatesfr/xen-orchestra/pull/9063))
-  - [Pool/Tasks] Implement tasks view and side panel information (PR [#9312](https://github.com/vatesfr/xen-orchestra/pull/9312))
-  - [Host/Tasks] Implement tasks view and side panel information (PR [#9311](https://github.com/vatesfr/xen-orchestra/pull/9311))
-  - [VMs/Tasks] Implement tasks view and side panel information (PR [#9313](https://github.com/vatesfr/xen-orchestra/pull/9313))
-  - [i18n] Update Czech, German, Persian, Italian, Japanese, Korean, Norwegian, Dutch, Russian, Swedish and Ukrainian translations (PR [#9305](https://github.com/vatesfr/xen-orchestra/pull/9305))
 
 - [Backups/s3] Update filesystem handling to use DeleteObjectsCommand in order to improve performance (PR [#9281](https://github.com/vatesfr/xen-orchestra/pull/9281))
 - [REST API] Add link to the openAPI JSON directly in the swagger description (PR [#9285](https://github.com/vatesfr/xen-orchestra/pull/9285))
-- [XO] XO6 is now the default page (PR [#9212](https://github.com/vatesfr/xen-orchestra/pull/9212))
 - [REST-API/SSE] Possibility to subscribe to XO task (PR [#9269](https://github.com/vatesfr/xen-orchestra/pull/9269))
 - [XO5] Remove XOSAN (PR [#9248](https://github.com/vatesfr/xen-orchestra/pull/9248))
 - [Plugins/Backup-reports] Add optional context in email subject and Pool ID in summary [#8544](https://github.com/vatesfr/xen-orchestra/issues/8544) (PR [#8973](https://github.com/vatesfr/xen-orchestra/pull/8973))
@@ -67,8 +72,6 @@
 - xo-web 5.191.2
 
 ## **5.113.2** (2025-12-09)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
