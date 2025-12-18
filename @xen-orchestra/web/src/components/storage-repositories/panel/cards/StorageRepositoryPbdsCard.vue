@@ -4,7 +4,7 @@
       {{ t('pbd-details') }}
     </UiCardTitle>
     <VtsStateHero v-if="pbds.length === 0" type="no-data" format="card" horizontal size="extra-small">
-      {{ t('no-pbds-attached') }}
+      {{ t('no-pbd-attached') }}
     </VtsStateHero>
     <template v-else>
       <div class="content">

@@ -3,7 +3,7 @@
   <div class="ui-top-bottom-table" :class="{ 'no-content': totalItems === 0 }">
     <div v-if="totalItems > 0" class="content">
       <span class="typo-body-regular-small label">
-        {{ t('core.select.n-selected-of', { count: selectedItems, total: totalItems }) }}
+        {{ t('n-selected-of', { count: selectedItems, total: totalItems }) }}
       </span>
 
       <UiButton
@@ -13,7 +13,7 @@
         variant="tertiary"
         @click="emit('toggleSelectAll', true)"
       >
-        {{ t('core.select.all') }}
+        {{ t('action:select-all') }}
       </UiButton>
       <UiButton
         :disabled="selectedItems === 0"
@@ -22,7 +22,7 @@
         variant="tertiary"
         @click="emit('toggleSelectAll', false)"
       >
-        {{ t('core.select.unselect') }}
+        {{ t('action:unselect-all') }}
       </UiButton>
     </div>
     <slot />

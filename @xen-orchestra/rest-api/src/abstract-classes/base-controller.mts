@@ -43,7 +43,6 @@ export abstract class BaseController<T extends XoRecord, IsSync extends boolean>
       res.setHeader('Content-Type', NDJSON_CONTENT_TYPE)
 
       const stream = Readable.from(makeNdJsonStream(mappedObjects))
-      stream.pipe(res)
 
       return stream
     } else {

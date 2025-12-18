@@ -29,7 +29,7 @@
           <VtsCopyButton :value="mode" />
           <UiButtonIcon
             v-if="index === 0 && backupJobModes.length > 1"
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             icon="fa:ellipsis"
             size="small"

@@ -1,0 +1,23 @@
+{
+  "bytes:gi": "GiB",
+  "bytes:ki": "KiB",
+  "bytes:mi": "MiB",
+  "dhcp": "DHCP",
+  "dns": "DNS",
+  "iso-dvd": "ISO/DVD",
+  "mtu": "MTU",
+  "n-percent": "{n}%",
+  "proxy": "Proxy",
+  "pxe": "PXE",
+  "rest-api": "REST API",
+  "uuid": "UUID",
+  "vga": "VGA",
+  "viridian": "Viridian",
+  "vlan": "VLAN",
+  "weblate": "Weblate",
+  "xcp-ng": "XCP-ng",
+  "xen-orchestra": "Xen Orchestra",
+  "xo": "XO",
+  "xo-5": "XO-5",
+  "xoa": "XOA"
+}

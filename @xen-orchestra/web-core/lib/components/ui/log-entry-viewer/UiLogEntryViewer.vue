@@ -80,7 +80,7 @@ watch(
   content => {
     pre.textContent = content.value
   },
-  { immediate: true }
+  { immediate: true, deep: true }
 )
 
 function openRawValueInNewTab() {

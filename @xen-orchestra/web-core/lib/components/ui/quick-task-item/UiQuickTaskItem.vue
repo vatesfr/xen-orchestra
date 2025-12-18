@@ -13,7 +13,7 @@
           <UiTag v-if="task.tag" accent="neutral" variant="primary">{{ task.tag }}</UiTag>
           <div v-if="hasSubTasks" class="subtasks">
             <VtsIcon name="fa:circle-notch" size="medium" />
-            <span class="typo-body-regular-small">{{ t('tasks.n-subtasks', { n: subTasksCount }) }}</span>
+            <span class="typo-body-regular-small">{{ t('n-subtasks', { n: subTasksCount }) }}</span>
           </div>
         </div>
         <div v-if="task.start" class="line-2 typo-body-regular-small">
@@ -34,21 +34,10 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsQuickTaskList from '@core/components/task/VtsQuickTaskList.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiTag from '@core/components/ui/tag/UiTag.vue'
+import type { Task } from '@core/types/task.type.ts'
 import { useToggle } from '@vueuse/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-export type TaskStatus = 'pending' | 'success' | 'failure'
-
-export type Task = {
-  id: string | number
-  name: string
-  status: TaskStatus
-  tag?: string
-  start?: number
-  end?: number
-  subtasks?: Task[]
-}
 
 const props = defineProps<{
   task: Task

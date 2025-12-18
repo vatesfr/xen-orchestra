@@ -17,15 +17,15 @@ export const useVmCopyJob = defineJob('vm.copy', [vmsArg], () => {
     },
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job.vm-copy.missing-vms'))
+        throw new JobError(t('job:vm-copy:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.CLONE))) {
-        throw new JobRunningError(t('job.vm-copy.in-progress'))
+        throw new JobRunningError(t('job:vm-copy:in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.HALTED)) {
-        throw new JobError(t('job.vm-copy.bad-power-state'))
+        throw new JobError(t('job:vm-copy:bad-power-state'))
       }
     },
   }

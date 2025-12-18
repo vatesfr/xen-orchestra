@@ -4,7 +4,7 @@
       <div :class="{ 'action-buttons-container': uiStore.isMobile }">
         <UiButtonIcon
           v-if="uiStore.isMobile"
-          v-tooltip="t('close')"
+          v-tooltip="t('action:close')"
           size="small"
           variant="tertiary"
           accent="brand"
@@ -13,26 +13,26 @@
         />
         <div class="action-buttons">
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             size="medium"
             variant="tertiary"
             accent="brand"
             left-icon="fa:edit"
           >
-            {{ t('edit') }}
+            {{ t('action:edit') }}
           </UiButton>
           <UiButton
-            v-tooltip="t('coming-soon')"
+            v-tooltip="t('coming-soon!')"
             disabled
             size="medium"
             variant="tertiary"
             accent="danger"
             left-icon="fa:trash"
           >
-            {{ t('delete') }}
+            {{ t('action:delete') }}
           </UiButton>
-          <UiButtonIcon v-tooltip="t('coming-soon')" disabled accent="brand" size="small" icon="fa:ellipsis" />
+          <UiButtonIcon v-tooltip="t('coming-soon!')" disabled accent="brand" size="small" icon="fa:ellipsis" />
         </div>
       </div>
     </template>

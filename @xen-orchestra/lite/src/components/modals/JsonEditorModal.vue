@@ -8,14 +8,14 @@
     <template #content>
       <UiTextarea v-model="editedJson" accent="brand" class="modal-textarea" />
       <VtsModalButton variant="tertiary" @click="formatJson()">
-        {{ t('reformat') }}
+        {{ t('action:reformat') }}
       </VtsModalButton>
     </template>
 
     <template #buttons>
       <VtsModalCancelButton />
       <VtsModalConfirmButton :disabled="!isJsonValid">
-        {{ t('save') }}
+        {{ t('action:save') }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>

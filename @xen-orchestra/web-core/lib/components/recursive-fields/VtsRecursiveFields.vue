@@ -1,6 +1,6 @@
 <template>
   <template v-for="(value, label) in fields" :key="label">
-    <VtsCardRowKeyValue v-if="isPrimitiveOrBooleanString(value)">
+    <VtsCardRowKeyValue v-if="isPrimitiveOrBoolean(value)">
       <template #key>
         <span class="label">{{ label }}</span>
       </template>
@@ -16,7 +16,7 @@
         <VtsCopyButton :value="String(value)" />
       </template>
     </VtsCardRowKeyValue>
-    <VtsLabelValueList v-else :fields="value" />
+    <VtsRecursiveFields v-else :fields="value" />
   </template>
 </template>
 
@@ -35,8 +35,8 @@ const isBooleanLike = (value: unknown): boolean => typeof value === 'boolean' ||
 
 const toBoolean = (value: unknown): boolean => value === true || value === 'true'
 
-const isPrimitiveOrBooleanString = (value: unknown): boolean =>
-  ['number', 'string'].includes(typeof value) || isBooleanString(value)
+const isPrimitiveOrBoolean = (value: unknown): boolean =>
+  ['number', 'string'].includes(typeof value) || isBooleanLike(value)
 </script>
 
 <style lang="postcss" scoped>

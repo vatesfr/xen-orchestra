@@ -38,9 +38,9 @@ const scale = format.Scale.create(availablePrefixes, 1024, 1)
 
 const { id: prefixSelectId } = useFormSelect(
   [
-    { value: 'Ki', label: t('bytes.ki') },
-    { value: 'Mi', label: t('bytes.mi') },
-    { value: 'Gi', label: t('bytes.gi') },
+    { value: 'Ki', label: t('bytes:ki') },
+    { value: 'Mi', label: t('bytes:mi') },
+    { value: 'Gi', label: t('bytes:gi') },
   ],
   {
     model: prefixInput,

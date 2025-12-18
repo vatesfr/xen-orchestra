@@ -17,15 +17,15 @@ export const useVmForceRebootJob = defineJob('vm.force-reboot', [vmsArg], () => 
       ),
     validate: (isRunning, vms) => {
       if (vms.length === 0) {
-        throw new JobError(t('job.vm-force-reboot.missing-vms'))
+        throw new JobError(t('job:vm-force-reboot:missing-vm'))
       }
 
       if (isRunning || vms.some(vm => isVmOperationPending(vm, VM_OPERATION.HARD_REBOOT))) {
-        throw new JobRunningError(t('job.vm-force-reboot.in-progress'))
+        throw new JobRunningError(t('job:vm-force-reboot:in-progress'))
       }
 
       if (!vms.every(vm => vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED)) {
-        throw new JobError(t('job.vm-force-reboot.bad-power-state'))
+        throw new JobError(t('job:vm-force-reboot:bad-power-state'))
       }
     },
   }

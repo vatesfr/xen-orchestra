@@ -133,6 +133,25 @@ export function defineRemoteResource<
     })
   }
 
+  const bufferedEvents: ['update' | 'remove', TData][] = []
+  let isBufferEventsProcessed = false
+  function handleBuffer(data: Ref<TData[]>) {
+    while (bufferedEvents.length > 0) {
+      const buffer = bufferedEvents.shift()
+      if (buffer === undefined) {
+        continue
+      }
+
+      const type = buffer[0]
+      const event = buffer[1]
+
+      removeData(data.value, event)
+      if (type !== 'remove') {
+        data.value.push(event)
+      }
+    }
+  }
+
   const onDataReceived =
     config.onDataReceived ??
     ((data: Ref<TData>, receivedData: any, context?: ResourceContext<TArgs>) => {
@@ -140,14 +159,24 @@ export function defineRemoteResource<
       if (config.watchCollection?.predicate?.(receivedData, context) === false) {
         return
       }
+
       if (data.value === undefined || (Array.isArray(data.value) && Array.isArray(receivedData))) {
         data.value = receivedData
+
+        if (config.watchCollection !== undefined && Array.isArray(data.value)) {
+          handleBuffer(data as Ref<TData[]>)
+          isBufferEventsProcessed = true
+        }
         return
       }
 
       if (Array.isArray(data.value)) {
-        removeData(data.value, receivedData)
-        data.value.push(receivedData)
+        if (!isBufferEventsProcessed) {
+          bufferedEvents.push(['update', receivedData])
+        } else {
+          removeData(data.value, receivedData)
+          data.value.push(receivedData)
+        }
         return
       }
 
@@ -164,7 +193,11 @@ export function defineRemoteResource<
 
       // for now only support `onDataRemoved` when watching XapiXoRecord collection
       if (Array.isArray(data.value) && !Array.isArray(receivedData)) {
-        removeData(data.value, receivedData)
+        if (!isBufferEventsProcessed) {
+          bufferedEvents.push(['remove', receivedData])
+        } else {
+          removeData(data.value, receivedData)
+        }
         return
       }
 
@@ -262,7 +295,6 @@ export function defineRemoteResource<
 
       pause = () => unwatch({ collectionId, resource, handleDelete })
       resume = async function () {
-        await execute()
         await watch({
           collectionId,
           handleWatching,
@@ -271,6 +303,7 @@ export function defineRemoteResource<
           onDataReceived: receivedData => onDataReceived(data, receivedData, context),
           onDataRemoved: receivedData => onDataRemoved(data, receivedData, context),
         })
+        await execute()
       }
     } else if (pollingInterval !== false) {
       const timeoutPoll = useTimeoutPoll(execute, pollingInterval, {

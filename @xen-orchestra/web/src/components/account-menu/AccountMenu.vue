@@ -16,13 +16,14 @@
     </MenuItem>
 
     <MenuItem class="icon" icon="fa:arrow-right-from-bracket" @click="logout()">
-      <span class="link typo-body-bold-small">{{ t('log-out') }}</span>
+      <span class="link typo-body-bold-small">{{ t('action:log-out') }}</span>
     </MenuItem>
   </MenuList>
 </template>
 
 <script lang="ts" setup>
 import { XCP_LINKS, XO_LINKS } from '@/constants.ts'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import type { IconName } from '@core/icons'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -30,6 +31,7 @@ import UiAccountMenuButton from '@core/components/ui/account-menu-button/UiAccou
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { type LinkOptions } from '@core/composables/link-component.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -37,11 +39,14 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
+const { buildXo5Route } = useXoRoutes()
 
 // TODO: Fetch the XO 5 mount path from API when available
 const logout = () => window.location.assign('/signout')
 
-const links: { label: string; props: LinkOptions & { icon: IconName } }[] = [
+const licenseUrl = computed(() => buildXo5Route('/xoa/licenses'))
+
+const links = computed<{ label: string; props: LinkOptions & { icon: IconName } }[]>(() => [
   {
     label: t('settings'),
     props: {
@@ -53,7 +58,7 @@ const links: { label: string; props: LinkOptions & { icon: IconName } }[] = [
     label: t('license-name', { name: t('xoa') }),
     props: {
       icon: 'fa:satellite',
-      href: '/#/xoa/licenses',
+      href: licenseUrl.value,
     },
   },
   {
@@ -91,7 +96,7 @@ const links: { label: string; props: LinkOptions & { icon: IconName } }[] = [
       href: XO_LINKS.COMMUNITY,
     },
   },
-]
+])
 </script>
 
 <style lang="postcss" scoped>

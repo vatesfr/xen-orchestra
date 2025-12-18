@@ -61,9 +61,9 @@ const useTaskColumns = defineColumns(() => {
   return {
     name: useTextColumn({ headerLabel: t('name') }),
     host: useLinkColumn({ headerLabel: t('host') }),
-    progress: useProgressBarColumn({ headerLabel: t('task.progress') }),
-    started: useDateColumn({ headerLabel: t('task.started'), dateStyle: 'short', timeStyle: 'short' }),
-    estimatedEnd: useDateColumn({ headerLabel: t('task.estimated-end'), dateStyle: 'short', timeStyle: 'short' }),
+    progress: useProgressBarColumn({ headerLabel: t('progress') }),
+    started: useDateColumn({ headerLabel: t('started'), dateStyle: 'short', timeStyle: 'short' }),
+    estimatedEnd: useDateColumn({ headerLabel: t('estimated-end'), dateStyle: 'short', timeStyle: 'short' }),
   }
 })
 

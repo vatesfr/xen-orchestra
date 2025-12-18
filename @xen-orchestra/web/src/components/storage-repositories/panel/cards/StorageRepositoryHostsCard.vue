@@ -12,7 +12,7 @@
       </li>
     </UiCollapsibleList>
     <VtsStateHero v-else type="no-data" format="card" horizontal size="extra-small">
-      {{ t('no-hosts-attached') }}
+      {{ t('no-host-attached') }}
     </VtsStateHero>
   </UiCard>
 </template>

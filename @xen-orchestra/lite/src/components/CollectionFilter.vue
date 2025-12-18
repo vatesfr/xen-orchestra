@@ -10,7 +10,7 @@
     </UiFilter>
 
     <UiActionButton icon="fa:plus" class="add-filter" @click="openFilterModal()">
-      {{ t('add-filter') }}
+      {{ t('action:add-filter') }}
     </UiActionButton>
   </UiFilterGroup>
 </template>

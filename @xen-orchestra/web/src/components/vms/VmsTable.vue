@@ -1,7 +1,7 @@
 <template>
   <div class="vms-table">
     <UiTitle>
-      {{ t('vms', 2) }}
+      {{ t('vms') }}
     </UiTitle>
     <div class="container">
       <div class="table-actions">
