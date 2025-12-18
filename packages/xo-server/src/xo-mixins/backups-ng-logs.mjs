@@ -1,4 +1,3 @@
-import forEach from 'lodash/forEach.js'
 import isEmpty from 'lodash/isEmpty.js'
 import iteratee from 'lodash/iteratee.js'
 import ms from 'ms'
@@ -73,12 +72,13 @@ export default {
         this.getLogs('restore'),
         this.getLogs('metadataRestore'),
       ])
+      const taskStore = await this.getStore('tasks')
 
       const { runningJobs, runningRestores, runningMetadataRestores } = this
       const consolidated = {}
       const started = {}
 
-      const handleLog = ({ data, time, message }, id) => {
+      const handleLog = async ({ data, time, message }, id) => {
         const { event } = data
         if (event === 'job.start') {
           if ((data.type === 'backup' || data.key === undefined) && (runId === undefined || runId === id)) {
@@ -102,6 +102,13 @@ export default {
             delete started[runJobId]
             log.end = time
             log.status = computeStatusAndSortTasks(getStatus((log.result = data.error)), log.tasks)
+          }
+        } else if (event === 'job.backupTaskStart') {
+          // happens once, only for backups using XO Tasks
+          const { runJobId } = data
+          const log = started[runJobId]
+          if (log !== undefined && (await taskStore.has(data.backupTaskId))) {
+            log.tasks = [await taskStore.get(data.backupTaskId)]
           }
         } else if (event === 'task.start') {
           const task = {
@@ -175,9 +182,15 @@ export default {
         }
       }
 
-      forEach(jobLogs, handleLog)
-      forEach(restoreLogs, handleLog)
-      forEach(restoreMetadataLogs, handleLog)
+      for (const [logId, log] of Object.entries(jobLogs)) {
+        await handleLog(log, logId)
+      }
+      for (const [logId, log] of Object.entries(restoreLogs)) {
+        await handleLog(log, logId)
+      }
+      for (const [logId, log] of Object.entries(restoreMetadataLogs)) {
+        await handleLog(log, logId)
+      }
 
       if (runId !== undefined) {
         if (consolidated[runId] === undefined) {

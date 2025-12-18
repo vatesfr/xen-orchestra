@@ -3,12 +3,13 @@ import cloneDeep from 'lodash/cloneDeep.js'
 import Disposable from 'promise-toolbox/Disposable'
 import { createLogger } from '@xen-orchestra/log'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
+import { makeOnProgress } from '@vates/task/combineEvents'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.mjs'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.mjs'
 import { Task } from '@vates/task'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
-import { handleBackupLog } from '../_handleBackupLog.mjs'
+import { forwardResult, handleBackupLog } from '../_handleBackupLog.mjs'
 import { waitAll } from '../_waitAll.mjs'
 import { serializeError, unboxIdsFromPattern } from '../utils.mjs'
 
@@ -23,7 +24,7 @@ export default class metadataBackup {
 
   constructor(app) {
     this._app = app
-    this._logger = undefined
+    this._store = undefined
     this._runningMetadataRestores = new Set()
 
     const debounceDelay = app.config.getDuration('backups.listingDebounce')
@@ -31,13 +32,13 @@ export default class metadataBackup {
     this._listPoolMetadataBackups = debounceWithKey(this._listPoolMetadataBackups, debounceDelay, remoteId => remoteId)
 
     app.hooks.on('start', async () => {
-      this._logger = await app.getLogger('metadataRestore')
+      this._store = await app.getStore('tasks')
 
       app.registerJobExecutor(METADATA_BACKUP_JOB_TYPE, this._executor.bind(this))
     })
   }
 
-  async _executor({ cancelToken, job: job_, logger, runJobId, schedule }) {
+  async _executor({ cancelToken, job: job_, jobData, logger: jobsLogger, runJobId, schedule }) {
     const job = cloneDeep(job_)
     const scheduleSettings = job.settings[schedule.id]
 
@@ -96,6 +97,7 @@ export default class metadataBackup {
 
         const params = {
           job,
+          jobData,
           recordToXapi,
           remotes,
           schedule,
@@ -107,30 +109,32 @@ export default class metadataBackup {
           assertType: 'iterator',
         })
 
-        const localTaskIds = { __proto__: null }
-
         let result
+        const onLogFct = makeOnProgress({
+          onRootTaskEnd: log => {
+            result = forwardResult(log)
+          },
+          onTaskUpdate: (log, event) => {
+            handleBackupLog(log, event, { store: this._store })
+          },
+        })
+
         for await (const log of logsStream) {
-          result = handleBackupLog(log, {
-            localTaskIds,
-            logger,
-            runJobId,
-          })
+          onLogFct(log)
         }
         return result
       } else {
         cancelToken.throwIfRequested()
 
-        const localTaskIds = { __proto__: null }
+        const onLogFct = makeOnProgress({
+          onTaskUpdate: (log, event) => {
+            handleBackupLog(log, event, { store: this._store })
+          },
+        })
         return Task.run(
           {
-            properties: { name: 'backup run' },
-            onProgress: log =>
-              handleBackupLog(log, {
-                localTaskIds,
-                logger,
-                runJobId,
-              }),
+            properties: { name: 'backup run', ...jobData },
+            onProgress: onLogFct,
           },
           () =>
             createRunner({
@@ -330,7 +334,6 @@ export default class metadataBackup {
   // └─ task.end
   async restoreMetadataBackup({ id, poolUuid }) {
     const app = this._app
-    const logger = this._logger
     const [remoteId, ...path] = id.split('/')
     const backupId = path.join('/')
 
@@ -343,29 +346,30 @@ export default class metadataBackup {
     }
 
     let rootTaskId
-    const localTaskIds = { __proto__: null }
-    const onLog = async log => {
-      if (type === 'xoConfig' && localTaskIds[log.taskId] === rootTaskId && log.status === 'success') {
+
+    const onProgressFct = makeOnProgress({
+      onRootTaskStart: log => {
+        this._runningMetadataRestores.add(log.id)
+        rootTaskId = log.id
+      },
+      onTaskUpdate: (log, event) => {
+        handleBackupLog(log, event, { store: this._store })
+      },
+    })
+    const onLogFct = async event => {
+      if (type === 'xoConfig' && event.status === 'success' && event.parentId === undefined) {
         try {
-          const { result } = log
+          const { result } = event
           await app.importConfig(typeof result === 'string' ? result : Buffer.from(result.data, result.encoding))
 
           // don't log the XO config
-          log.result = undefined
+          event.result = undefined
         } catch (error) {
-          log.result = serializeError(error)
-          log.status = 'failure'
+          event.result = serializeError(error)
+          event.status = 'failure'
         }
       }
-
-      handleBackupLog(log, {
-        logger,
-        localTaskIds,
-        handleRootTaskId: id => {
-          this._runningMetadataRestores.add(id)
-          rootTaskId = id
-        },
-      })
+      onProgressFct(event)
     }
 
     try {
@@ -398,7 +402,7 @@ export default class metadataBackup {
           }
         )
         for await (const log of logsStream) {
-          onLog(log)
+          await onLogFct(log)
         }
       } else {
         const handler = await app.getRemoteHandler(remoteId)
@@ -408,7 +412,7 @@ export default class metadataBackup {
               name: 'metadataRestore',
               metadata: JSON.parse(String(await handler.readFile(`${backupId}/metadata.json`))),
             },
-            onProgress: onLog,
+            onProgress: onLogFct,
           },
           async () =>
             new RestoreMetadataBackup({
