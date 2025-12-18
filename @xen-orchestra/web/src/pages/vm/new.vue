@@ -182,7 +182,7 @@
           </div>
           <!-- TOASTER -->
           <!-- TODO Change to a real toaster (or alert ?) when available -->
-          <UiToaster v-if="isOpen" accent="danger" @close="isOpen = false">{{ errorMessage }}</UiToaster>
+          <UiToaster v-if="isToasterOpen" accent="danger" @close="isToasterOpen = false">{{ errorMessage }}</UiToaster>
           <!-- ACTIONS -->
           <div class="footer">
             <UiButton variant="secondary" accent="brand" size="medium" @click="redirectToPool(vmState.pool.id)">
@@ -192,8 +192,8 @@
               variant="primary"
               accent="brand"
               size="medium"
-              :busy="isBusy"
-              :disabled="isCreateVmDisabled"
+              :busy="isRunning"
+              :disabled="!canRun"
               type="submit"
             >
               {{ t('action:create') }}
@@ -208,7 +208,7 @@
 <script lang="ts" setup>
 import NewVmNetworkTable from '@/components/new-vm/NewVmNetworkTable.vue'
 import NewVmSrTable from '@/components/new-vm/NewVmSrTable.vue'
-import { createVM } from '@/jobs/vm-create.job.ts'
+import { useVmCreateJob } from '@/jobs/vm/vm-create.job'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
@@ -252,9 +252,7 @@ const poolId = useRouteQuery('poolid')
 
 // Toaster
 const errorMessage = ref('')
-const isOpen = ref(false)
-
-const isBusy = ref(false)
+const isToasterOpen = ref(false)
 
 const { networks, getNetworkById } = useXoNetworkCollection()
 const { getPifsByNetworkId } = useXoPifCollection()
@@ -516,31 +514,6 @@ const addVif = () => {
 //   return existingVDIs.every(vdi => vdi.sr.length > 0)
 // })
 
-const hasInvalidSrVdi = computed(() => vmState.vdis.some(vdi => vdi.sr === undefined))
-
-const hasInstallSettings = computed(() => {
-  switch (vmState.installMode) {
-    case 'no-config':
-      return true
-    case 'network':
-      return true
-    case 'cdrom':
-      return !!vmState.selectedVdi
-    default:
-      return false
-  }
-})
-
-const isCreateVmDisabled = computed(() => {
-  return (
-    isBusy.value ||
-    !vmState.new_vm_template ||
-    !vmState.name.length ||
-    !hasInstallSettings.value ||
-    hasInvalidSrVdi.value
-  )
-})
-
 // TODO: when refactoring the component, remove the param and sync with the pool id in the route
 const redirectToPool = (poolId: XoPool['id']) => {
   router.push({ name: '/pool/[id]/dashboard', params: { id: poolId } })
@@ -679,22 +652,29 @@ const vmData = computed(() => {
   }
 })
 
+const payload = computed(() => ({ ...vmData.value, poolId: vmState.pool?.id }))
+// TODO: multiple VM creation not possible in the UI for now
+// Only pass a single payload
+const { run, isRunning, canRun } = useVmCreateJob([payload])
+
 const createNewVM = async () => {
   try {
-    isBusy.value = true
-
-    if (vmData.value.template === undefined || vmState.pool === undefined) {
-      throw new Error('Template UUID and Pool ID are required')
+    // TODO: multiple VM creation not possible in the UI for now
+    // so only handle single VM creation
+    const [promiseResult] = await run()
+    if (promiseResult.status === 'rejected') {
+      throw promiseResult.reason
+    }
+    router.push({ name: '/vm/[id]/dashboard', params: { id: promiseResult.value } })
+  } catch (error) {
+    if (error instanceof Error) {
+      errorMessage.value = error.message
+    } else {
+      console.error(error)
+      errorMessage.value = `Error creating VM: ${JSON.stringify(error)}`
     }
 
-    const vmId = await createVM(vmData.value, vmState.pool.id)
-    router.push({ name: '/vm/[id]/dashboard', params: { id: vmId } })
-  } catch (error) {
-    isOpen.value = true
-
-    errorMessage.value = 'Error creating VM: ' + error
-  } finally {
-    isBusy.value = false
+    isToasterOpen.value = true
   }
 }
 
