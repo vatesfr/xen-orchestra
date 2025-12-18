@@ -291,7 +291,7 @@ const addStorageEntry = () => {
   }
 
   vmState.vdis.push({
-    name_label: (vmState.name || 'disk') + '_' + generateRandomString(4),
+    name_label: (vmState.new_vm_template?.name_label || 'disk') + '_' + generateRandomString(4),
     name_description: 'Created by XO',
     sr: defaultSr.value,
     size: 0,
@@ -301,18 +301,6 @@ const addStorageEntry = () => {
 const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
 }
-
-// Todo: implement when the API will support
-// const addSshKey = () => {
-//   if (vmState.ssh_key.trim()) {
-//     vmState.sshKeys.push(vmState.ssh_key.trim())
-//     vmState.ssh_key = ''
-//   }
-// }
-//
-// const removeSshKey = (index: number) => {
-//   vmState.sshKeys.splice(index, 1)
-// }
 
 const isDiskTemplate = computed(() => {
   return (
