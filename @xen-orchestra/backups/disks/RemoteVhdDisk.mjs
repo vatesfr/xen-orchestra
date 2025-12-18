@@ -17,6 +17,12 @@ import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 import { stringify } from 'uuid'
 import { dirname, join } from 'node:path'
 
+/**
+ * @typedef {import('./RemoteDisk.mjs').DiskMetadata} DiskMetadata
+ * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
+ * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
+ */
+
 export class RemoteVhdDisk extends RemoteDisk {
   /**
    * @type {string}
