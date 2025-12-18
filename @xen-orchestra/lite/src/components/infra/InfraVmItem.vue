@@ -1,5 +1,5 @@
 <template>
-  <VtsTreeItem v-if="vm !== undefined" ref="rootElement" expanded class="infra-vm-item">
+  <VtsTreeItem v-if="vm !== undefined" ref="rootElement" expanded class="infra-vm-item" :node-id="`vm:${vm.uuid}`">
     <UiTreeItemLabel v-if="isVisible" :route="{ name: '/vm/[uuid]', params: { uuid: vm.uuid } }" no-indent>
       {{ vm.name_label || '(VM)' }}
       <template #icon>

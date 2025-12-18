@@ -17,7 +17,7 @@ import StoryMenu from '@/components/component-story/StoryMenu.vue'
 import InfraPoolList from '@/components/infra/InfraPoolList.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
 import { useUiStore } from '@core/stores/ui.store'
-import { onClickOutside, whenever } from '@vueuse/core'
+import { onClickOutside, whenever, useTimeoutFn, tryOnMounted, watchImmediate } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
@@ -44,6 +44,42 @@ whenever(isOpen, () => {
     }
   )
 })
+
+const getCurrentNodeId = () => {
+  const name = route.name as string | undefined
+  const params = route.params as Record<string, any>
+  if (name?.startsWith('/pool/[uuid]')) {
+    return `pool:${params.uuid}`
+  }
+  if (name?.startsWith('/host/[uuid]')) {
+    return `host:${params.uuid}`
+  }
+  if (name?.startsWith('/vm/[uuid]')) {
+    return `vm:${params.uuid}`
+  }
+
+  return undefined
+}
+
+const scrollToCurrent = async () => {
+  const id = getCurrentNodeId()
+  if (!id) return
+
+  const container = navElement.value as HTMLElement | undefined
+  const target = container?.querySelector(`[data-node-id="${CSS.escape(id)}"]`)
+
+  if (target && 'scrollIntoView' in target) {
+    const el = target as HTMLElement
+    el.scrollIntoView({ block: !id.startsWith('vm:') ? 'start' : 'center', behavior: 'smooth' })
+  } else {
+    useTimeoutFn(async () => {
+      await scrollToCurrent()
+    }, 1200)
+  }
+}
+
+tryOnMounted(scrollToCurrent)
+watchImmediate(route, scrollToCurrent)
 </script>
 
 <style lang="postcss" scoped>
@@ -60,15 +96,5 @@ whenever(isOpen, () => {
     position: fixed;
     z-index: 1;
   }
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(-37rem);
 }
 </style>
