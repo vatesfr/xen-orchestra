@@ -80,8 +80,12 @@ const attrs = useAttrs()
     border-radius: 0.2rem;
 
     .icon {
+      height: 1.6rem;
+      width: 1.6rem;
       font-size: 0.75rem;
-      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: var(--color-info-txt-item);
       transition: opacity 0.125s ease-in-out;
     }
