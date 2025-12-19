@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **6.0.1** (2025-12-19)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Security
 
@@ -20,8 +22,6 @@
 - xo-server-openmetrics 1.0.1
 
 ## **6.0.0** (2025-12-18)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
