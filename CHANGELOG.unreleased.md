@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Openmetrics] Hardcode port and bind address for security
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
@@ -36,5 +38,6 @@
 <!--packages-start-->
 
 - xo-server patch
+- xo-server-openmetrics patch
 
 <!--packages-end-->
