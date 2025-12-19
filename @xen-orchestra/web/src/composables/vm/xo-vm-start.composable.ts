@@ -10,15 +10,17 @@ export const useJobVmStart = defineJob('vm.start', [vmsArg], () => {
 
   return {
     async run(vms) {
-      for (const vm of vms) {
-        const { error } = await useFetch(`/rest/v0/vms/${vm.id}/actions/start?sync=false`, {
-          method: 'POST',
-        }).json()
+      await Promise.all(
+        vms.map(async vm => {
+          const { error } = await useFetch(`/rest/v0/vms/${vm.id}/actions/start?sync=false`, {
+            method: 'POST',
+          }).json()
 
-        if (error.value) {
-          throw new Error(error.value.message)
-        }
-      }
+          if (error.value) {
+            throw new Error(error.value.message)
+          }
+        })
+      )
     },
 
     validate(isRunning, vms) {
