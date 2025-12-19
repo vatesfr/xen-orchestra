@@ -5,15 +5,15 @@
       <VtsObjectIcon size="medium" :state="vm.power_state.toLocaleLowerCase() as VmState" type="vm" />
     </template>
     <template #actions>
+      <UiLink :href="xo5VmGeneralHref" size="medium">
+        {{ t('manage-vm-lifecycle-in-xo-5') }}
+      </UiLink>
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('change-state') }}</UiDropdownButton>
         </template>
-        <VmActionPowerStateItems :vm="vm" />
+        <VmActionPowerStateItems :vm />
       </MenuList>
-      <UiLink :href="xo5VmGeneralHref" size="medium">
-        {{ t('manage-vm-lifecycle-in-xo-5') }}
-      </UiLink>
     </template>
   </UiHeadBar>
   <TabList>
