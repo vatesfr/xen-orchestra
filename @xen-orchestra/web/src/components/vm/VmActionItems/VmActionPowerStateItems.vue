@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="fa:play" :busy="isVmBusyToStart" :disabled="isVmStartDisabled" @click="start">
+  <MenuItem icon="fa:play" :busy="isRunning" :disabled="isVmStartDisabled" @click="startVm">
     {{ t('start') }}
   </MenuItem>
 </template>
@@ -15,15 +15,9 @@ const { vm } = defineProps<{ vm: XoVm }>()
 
 const { t } = useI18n()
 
-const { run: runVmStart, canRun: canRunVmStart, isRunning: isVmStartRunning } = useJobVmStart(computed(() => [vm]))
+const { run: startVm, canRun, isRunning } = useJobVmStart([vm])
 
 const isVmHalted = computed(() => vm.power_state === VM_POWER_STATE.HALTED)
 
-const isVmBusyToStart = isVmStartRunning
-const isVmStartDisabled = computed(() => !isVmHalted.value || !canRunVmStart.value)
-
-const start = () => {
-  if (isVmStartDisabled.value) return
-  void runVmStart()
-}
+const isVmStartDisabled = computed(() => !isVmHalted.value || !canRun.value)
 </script>
