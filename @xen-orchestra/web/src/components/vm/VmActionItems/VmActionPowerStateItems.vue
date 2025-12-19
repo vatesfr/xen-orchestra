@@ -1,34 +1,29 @@
 <template>
-  <MenuItem icon="fa:play" :busy="isVmBusyToStart" :disabled="!isVmHalted" @click="start">
+  <MenuItem icon="fa:play" :busy="isVmBusyToStart" :disabled="isVmStartDisabled" @click="start">
     {{ t('start') }}
   </MenuItem>
 </template>
 
 <script lang="ts" setup>
-import { useVmStartJob } from '@/composables/vm/xo-vm-start.composable'
-import { isVmOperatingPending } from '@/utils/xo-records/vm.util'
+import { useJobVmStart } from '@/composables/vm/xo-vm-start.composable'
 import MenuItem from '@core/components/menu/MenuItem.vue'
-import { VM_OPERATIONS, VM_POWER_STATE, type XoVm } from '@vates/types'
+import { VM_POWER_STATE, type XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{ vm: XoVm }>()
+const { vm } = defineProps<{ vm: XoVm }>()
 
 const { t } = useI18n()
 
-const selectedVms = computed(() => [props.vm])
+const { run: runVmStart, canRun: canRunVmStart, isRunning: isVmStartRunning } = useJobVmStart(computed(() => [vm]))
 
-const isVmHalted = computed(() => props.vm.power_state === VM_POWER_STATE.HALTED)
+const isVmHalted = computed(() => vm.power_state === VM_POWER_STATE.HALTED)
 
-const { run: runVmStart, canRun: canRunVmStart } = useVmStartJob(selectedVms)
-
-const areOperationsPending = (operation: VM_OPERATIONS | VM_OPERATIONS[]) =>
-  selectedVms.value.some(vm => isVmOperatingPending(vm, operation))
-
-const isVmBusyToStart = computed(() => areOperationsPending(VM_OPERATIONS.START))
+const isVmBusyToStart = isVmStartRunning
+const isVmStartDisabled = computed(() => !isVmHalted.value || !canRunVmStart.value)
 
 const start = () => {
-  if (!canRunVmStart.value || !isVmHalted.value) return
+  if (isVmStartDisabled.value) return
   void runVmStart()
 }
 </script>
