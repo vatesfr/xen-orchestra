@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [OTP] Fix rendering of OTP signin page
+- [OTP] Fix rendering of OTP signin page (PR [#9340](https://github.com/vatesfr/xen-orchestra/pull/9340))
 
 ### Packages to release
 
