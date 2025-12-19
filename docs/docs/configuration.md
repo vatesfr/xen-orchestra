@@ -62,6 +62,20 @@ This configuration ensures:
 - Accessing `/v5` loads **XO 5**.
 - Accessing `/v6` loads **XO 6**.
 
+:::tip
+If the configuration above breaks the Xen Orchestra interface, try using absolute paths:
+
+```toml
+[http.mounts]
+# Uncomment to setup a default version.
+# Otherwise, XO5 will be the default for stable channel and XO6 for latest and source
+'/' = '/usr/local/lib/node_modules/xo-web/dist/'
+
+'/v5' = '/usr/local/lib/node_modules/xo-web/dist/'
+'/v6' = '/usr/local/lib/node_modules/@xen-orchestra/web/dist/'
+```
+:::
+
 ### Where to Place the Configuration File
 
 :::tip
