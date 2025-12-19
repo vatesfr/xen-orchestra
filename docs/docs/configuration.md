@@ -18,43 +18,16 @@ To quickly access the old UI without changing any configuration, `/v5` to your U
 
 ### Making XO 5 the default UI
 
-To permanently use XO 5 as the default interface, create a new config file (you can call it `config.mounts.toml`) to override the orignal `config.toml` file used by `xo-server`.
-
-In Xen Orchestra 6, the default mount configuration looks like this:
+To permanently use XO 5 as the default interface, create a new config file (you can call it `config.mounts.toml`). This configuration file can placed either in `~/.config/xo-server/` of the process running xo-server or if you are using a xoa in `/etc/xo-server/`. This file will contain :
 
 ```toml
 [http.mounts]
-# Uncomment to setup a default version.
-# Otherwise, XO5 will be the default for stable channel and XO6 for latest and source
-# '/' = '../xo-web/dist/'
-
-'/v5' = '../xo-web/dist/'
-'/v6' = '../../@xen-orchestra/web/dist/'
-
-[http.proxies]
-# [port] is used to reuse the same port declared in [http.listen.0]
-'/v5/api' = '[protocol]//localhost:[port]/api'
-'/v5/api/updater' = 'ws://localhost:9001'
-'/v5/rest' = 'http://localhost:[port]/rest'
+'/' = '/usr/local/lib/node_modules/xo-web/dist/'
+'/v5' = '/usr/local/lib/node_modules/xo-web/dist/'
+'/v6' = '/usr/local/lib/node_modules/@xen-orchestra/web/dist/'
 ```
 
-To make XO 5 the main interface and XO 6 accessible under `/v6`, uncomment this line `'/' = '../xo-web/dist/'`
-
-```toml
-[http.mounts]
-# Uncomment to setup a default version.
-# Otherwise, XO5 will be the default for stable channel and XO6 for latest and source
-'/' = '../xo-web/dist/'
-
-'/v5' = '../xo-web/dist/'
-'/v6' = '../../@xen-orchestra/web/dist/'
-
-[http.proxies]
-# [port] is used to reuse the same port declared in [http.listen.0]
-'/v5/api' = '[protocol]//localhost:[port]/api'
-'/v5/api/updater' = 'ws://localhost:9001'
-'/v5/rest' = 'http://localhost:[port]/rest'
-```
+If you are not using a xoa, replace the path `/usr/local/lib/node_modules/` with the real path of the modules.
 
 This configuration ensures:
 
