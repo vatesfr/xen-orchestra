@@ -1,5 +1,24 @@
 # ChangeLog
 
+## **next**
+
+### Security
+
+- [Openmetrics] Hardcode port and bind address for security and compatibility with the system firewall (PR [#9337](https://github.com/vatesfr/xen-orchestra/pull/9337))
+
+### Enhancements
+
+### Bug fixes
+
+- [OTP] Fix rendering of OTP signin page (PR [#9340](https://github.com/vatesfr/xen-orchestra/pull/9340))
+- **XO 5:**
+  - Fix infinite loading when `redirectToHttps=true` (PR [#9339](https://github.com/vatesfr/xen-orchestra/pull/9339))
+
+### Released packages
+
+- xo-server 5.194.4
+- xo-server-openmetrics 1.0.1
+
 ## **6.0.0** (2025-12-18)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

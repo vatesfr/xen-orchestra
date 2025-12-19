@@ -7,8 +7,6 @@
 
 > Security fixes and new features should go in this section
 
-- [Openmetrics] Hardcode port and bind address for security and compatibility with the system firewall  (PR [#9337](https://github.com/vatesfr/xen-orchestra/pull/9337)) 
-
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
@@ -16,10 +14,6 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [OTP] Fix rendering of OTP signin page (PR [#9340](https://github.com/vatesfr/xen-orchestra/pull/9340))
-- **XO 5:**
-  - Fix infinite loading when `redirectToHttps=true` (PR [#9339](https://github.com/vatesfr/xen-orchestra/pull/9339))
 
 ### Packages to release
 
@@ -36,8 +30,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- xo-server patch
-- xo-server-openmetrics patch
 
 <!--packages-end-->
