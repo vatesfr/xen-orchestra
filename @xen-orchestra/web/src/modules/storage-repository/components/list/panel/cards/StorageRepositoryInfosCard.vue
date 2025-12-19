@@ -6,20 +6,19 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('status') }}</template>
-        <template #value>
-          <VtsStatus :status="allPbdsConnectionStatus" />
-        </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('id') }}</template>
+      <VtsCardRowKeyValue no-key>
         <template #value>{{ sr.id }}</template>
         <template #addons>
           <VtsCopyButton :value="sr.id" />
         </template>
       </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
+        <template #key>{{ t('status') }}</template>
+        <template #value>
+          <VtsStatus :status="allPbdsConnectionStatus" />
+        </template>
+      </VtsCardRowKeyValue>
+      <VtsCardRowKeyValue max-lines>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ sr.name_description }}</template>
         <template v-if="sr.name_description" #addons>

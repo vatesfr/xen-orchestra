@@ -19,6 +19,13 @@
           {{ t('general-information') }}
         </UiCardTitle>
         <div class="content">
+          <!-- ID -->
+          <VtsCardRowKeyValue no-key>
+            <template #value>{{ server.id }}</template>
+            <template #addons>
+              <VtsCopyButton :value="server.id" />
+            </template>
+          </VtsCardRowKeyValue>
           <!-- Pool -->
           <VtsCardRowKeyValue>
             <template #key>{{ t('pool') }}</template>
@@ -36,16 +43,8 @@
               <VtsCopyButton :value="server.poolId" />
             </template>
           </VtsCardRowKeyValue>
-          <!-- ID -->
-          <VtsCardRowKeyValue>
-            <template #key>{{ t('id') }}</template>
-            <template #value>{{ server.id }}</template>
-            <template #addons>
-              <VtsCopyButton :value="server.id" />
-            </template>
-          </VtsCardRowKeyValue>
           <!-- Description -->
-          <VtsCardRowKeyValue>
+          <VtsCardRowKeyValue max-lines>
             <template #key>{{ t('description') }}</template>
             <template #value>{{ server.poolNameDescription }}</template>
             <template v-if="server.poolNameDescription !== undefined" #addons>
