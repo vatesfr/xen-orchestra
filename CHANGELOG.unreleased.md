@@ -7,7 +7,7 @@
 
 > Security fixes and new features should go in this section
 
-- [Openmetrics] Hardcode port and bind address for security
+- [Openmetrics] Hardcode port and bind address for security and compatibility with the system firewall  (PR [#9337](https://github.com/vatesfr/xen-orchestra/pull/9337)) 
 
 ### Enhancements
 
