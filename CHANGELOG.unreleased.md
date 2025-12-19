@@ -16,7 +16,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - **XO5**:
-  - [XOA/Updates] Fix xoa-updater service appears to be down
+  - [XOA/Updates] Fix xoa-updater service appears to be down (PR [#9349](https://github.com/vatesfr/xen-orchestra/pull/9349))
 
 ### Packages to release
 
