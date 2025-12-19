@@ -268,12 +268,18 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
             // since we won't be able to remove an attached VDI
             assert.strictEqual(vbds.length, 1, 'VDI must be free or attached to exactly one VM')
             const vdiVm = vbds[0].$VM
-            assert.strictEqual(vdiVm.is_a_snapshot, true, `VM must be a snapshot`) // don't delete a VM (especially a control domain)
+            if (!vdiVm.is_a_snapshot) {
+              // don't delete a VM (especially a control domain)
+              warn(
+                `VM ${vdiVm.uuid} (${vdiVm.name_label}) linked to VDI ${vdi.uuid} (${vdi.name_label}) should be a snapshot`
+              )
+              throw new Error(`VM must be a snapshot`)
+            }
             if (vm !== undefined && vm.$ref !== vdiVm.$ref) {
               // this VDI is attached to another VM than the other vdi of
               // this batch
-              // in doubt , do not delete anything
-              warn('_removeUnusedSnapshots don t handle vdi related to multiple VMs ', {
+              // in doubt, do not delete anything
+              warn("_removeUnusedSnapshots don't handle vdi related to multiple VMs ", {
                 vm1: {
                   label: vm.name_label,
                   id: vm.$id,
@@ -285,7 +291,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
                 vdis: vdis.map(({ name_label, $id }) => ({ name_label, $id })),
               })
               throw new Error(
-                `_removeUnusedSnapshots don t handle vdi related to multiple VMs ${vm.name_label} and ${vdiVm.name_label}`
+                `_removeUnusedSnapshots don't handle vdi related to multiple VMs ${vm.name_label} and ${vdiVm.name_label}`
               )
             }
             vm = vdiVm
