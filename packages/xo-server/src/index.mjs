@@ -557,7 +557,7 @@ const setUpProxies = (express, opts, xo) => {
   )
 
   if (userHttpConfig === undefined) {
-    throw new Error('unable to found a valid http.listen config')
+    throw new Error('unable to find a valid http.listen config')
   }
 
   const isSecure = userHttpConfig.key !== undefined
