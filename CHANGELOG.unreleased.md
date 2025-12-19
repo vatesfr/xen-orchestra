@@ -16,6 +16,8 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [OTP] Fix rendering of OTP signin page (PR [#9340](https://github.com/vatesfr/xen-orchestra/pull/9340))
+- **XO 5:**
+  - Fix infinite loading when `redirectToHttps=true` (PR [#9339](https://github.com/vatesfr/xen-orchestra/pull/9339))
 
 ### Packages to release
 
