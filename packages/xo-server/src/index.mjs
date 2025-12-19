@@ -617,12 +617,14 @@ const setUpProxies = (express, opts, xo) => {
     if (target.includes('[port]')) {
       target = target.replace(/\[port\]/g, userHttpConfig.port)
     }
+    let dynamicProtocol = false
     if (target.includes('[protocol]')) {
+      dynamicProtocol = true
       target = target.replace(/\[protocol\]/g, protocol)
     }
 
     const targetUrl = new URL(target)
-    if (isSecure) {
+    if (dynamicProtocol && isSecure) {
       targetUrl.protocol = targetUrl.protocol === 'ws:' ? 'wss:' : 'https:'
     }
 
