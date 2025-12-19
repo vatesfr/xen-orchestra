@@ -18,10 +18,7 @@
         <UiCardTitle>{{ t('vif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
+          <VtsCardRowKeyValue no-key>
             <template #value>
               {{ vif.id }}
             </template>

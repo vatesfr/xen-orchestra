@@ -43,17 +43,14 @@
         </UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
+          <VtsCardRowKeyValue no-key>
             <template #value>{{ network.uuid }}</template>
             <template #addons>
               <VtsCopyButton :value="network.uuid" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DESCRIPTION -->
-          <VtsCardRowKeyValue>
+          <VtsCardRowKeyValue max-lines>
             <template #key>{{ t('description') }}</template>
             <template #value>
               <span class="value">{{ network.name_description }}</span>

@@ -19,22 +19,17 @@
         </UiCardTitle>
         <div class="content">
           <!-- ID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('id') }}
-            </template>
+          <VtsCardRowKeyValue no-key>
             <template #value>{{ network.id }}</template>
             <template #addons>
               <VtsCopyButton :value="network.id" />
             </template>
           </VtsCardRowKeyValue>
           <!-- DESCRIPTION -->
-          <VtsCardRowKeyValue>
+          <VtsCardRowKeyValue max-lines>
             <template #key>{{ t('description') }}</template>
             <template #value>
-              <span v-tooltip class="value text-ellipsis">
-                {{ network.name_description }}
-              </span>
+              {{ network.name_description }}
             </template>
             <template v-if="network.name_description" #addons>
               <VtsCopyButton :value="network.name_description" />

@@ -6,6 +6,12 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
+      <VtsCardRowKeyValue no-key>
+        <template #value>{{ vm.id }}</template>
+        <template #addons>
+          <VtsCopyButton :value="vm.id" />
+        </template>
+      </VtsCardRowKeyValue>
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
@@ -15,14 +21,7 @@
           </div>
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('uuid') }}</template>
-        <template #value>{{ vm.id }}</template>
-        <template #addons>
-          <VtsCopyButton :value="vm.id" />
-        </template>
-      </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue max-lines>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vm.name_description }}</template>
         <template v-if="vm.name_description" #addons>

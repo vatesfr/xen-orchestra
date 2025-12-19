@@ -11,8 +11,7 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('id') }}</template>
+      <VtsCardRowKeyValue no-key>
         <template #value>{{ backupJob.id }}</template>
         <template #addons>
           <VtsCopyButton :value="backupJob.id" />

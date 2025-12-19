@@ -18,10 +18,7 @@
         <UiCardTitle>{{ pif.isBondMaster ? t('bond') : t('pif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
+          <VtsCardRowKeyValue no-key>
             <template #value>
               {{ pif.id }}
             </template>
