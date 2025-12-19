@@ -210,18 +210,27 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
     res.redirect('/')
   })
 
-  express.get('/signin-otp', (req, res, next) => {
-    if (req.session.user === undefined) {
-      return res.redirect('/signin')
-    }
+  express.get('/signin-otp', async (req, res, next) => {
+    try {
+      if (req.session.user === undefined) {
+        return res.redirect('/signin')
+      }
 
-    res.send(
-      signInPage({
-        error: req.flash('error')[0],
-        otp: true,
-        strategies,
-      })
-    )
+      // TODO:
+      // The login page uses certain files from the xo-web package (css,svg)
+      // remove once XO5 is no more used and update `signin.pug` to use `public/logo.svg`, ...
+      const { v5 } = await xo.config.getGuiRoutes()
+      res.send(
+        signInPage({
+          error: req.flash('error')[0],
+          otp: true,
+          strategies,
+          xo5Mount: v5?.url + '/',
+        })
+      )
+    } catch (error) {
+      next(error)
+    }
   })
 
   express.post('/signin-otp', async (req, res, next) => {
