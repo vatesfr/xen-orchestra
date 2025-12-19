@@ -405,7 +405,7 @@ The OpenMetrics plugin exposes a `/metrics` endpoint that Prometheus can scrape 
 | --------------------- | ---------- | --------------------------------------------------------- |
 | **Prometheus secret** | (required) | Bearer token for authentication - you must set this value |
 
-4. Save and load the plugin
+4. Save and load the plugin.
 
 :::warning
 You must set a **Prometheus secret** before loading the plugin. Without a valid secret, the metrics endpoint authentication is ineffective, potentially exposing sensitive infrastructure data (host resources, VM configurations, network details) to unauthorized access. Use a strong, random string (e.g., generated with `openssl rand -hex 32`).
