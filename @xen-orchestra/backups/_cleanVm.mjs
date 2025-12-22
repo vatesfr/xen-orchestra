@@ -7,6 +7,9 @@ import { basename, dirname, resolve } from 'node:path'
 import { isMetadataFile, isVhdFile, isVhdSumFile, isXvaFile, isXvaSumFile } from './_backupType.mjs'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { mergeVhdChain } from 'vhd-lib/merge.js'
+import { RemoteVhdDisk } from './disks/RemoteVhdDisk.mjs'
+import { RemoteVhdDiskChain } from './disks/RemoteVhdDiskChain.mjs'
+import { MergeRemoteDisk } from './disks/MergeRemoteDisk.mjs'
 
 import { Task } from './Task.mjs'
 import { Disposable } from 'promise-toolbox'
@@ -51,7 +54,20 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
     }
   }, 10e3)
   try {
-    return await mergeVhdChain(handler, chain, {
+    //console.log(chain)
+
+    const parentDisk = new RemoteVhdDisk({handler, path: chain.shift()})
+
+    const childDisks = []
+    for (const path of chain){
+      childDisks.push(new RemoteVhdDisk({handler, path}))
+    }
+    const childDiskChain = new RemoteVhdDiskChain({disks: childDisks})
+
+    await parentDisk.init()
+    await childDiskChain.init()
+
+    const mergeRemoteDisk = new MergeRemoteDisk(handler, {
       logInfo,
       mergeBlockConcurrency,
       onProgress({ done: d, total: t }) {
@@ -60,6 +76,20 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
       },
       removeUnused: remove,
     })
+
+    const result = await mergeRemoteDisk.merge(parentDisk, childDiskChain)
+
+    return result
+
+    /*return await mergeVhdChain(handler, chain, {
+      logInfo,
+      mergeBlockConcurrency,
+      onProgress({ done: d, total: t }) {
+        done = d
+        total = t
+      },
+      removeUnused: remove,
+    })*/
   } finally {
     clearInterval(handle)
   }
