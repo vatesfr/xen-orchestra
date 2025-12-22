@@ -43,8 +43,8 @@ export interface FormattedMetric {
   labels: Record<string, string>
   /** Metric value */
   value: number
-  /** Timestamp in milliseconds */
-  timestampMs: number
+  /** Timestamp in seconds (Unix epoch) per OpenMetrics specification */
+  timestamp: number
 }
 
 // Label lookup types for enriching metrics with human-readable names
@@ -599,7 +599,7 @@ export function transformMetric(
     type: definition.type,
     labels,
     value: transformedValue,
-    timestampMs: timestamp * 1000, // Convert to milliseconds
+    timestamp,
   }
 }
 
@@ -650,7 +650,7 @@ export function formatToOpenMetrics(metrics: FormattedMetric[]): string {
     // Output all metric values
     for (const metric of metricsForName) {
       const labelsStr = formatLabels(metric.labels)
-      lines.push(`${metric.name}${labelsStr} ${metric.value} ${metric.timestampMs}`)
+      lines.push(`${metric.name}${labelsStr} ${metric.value} ${metric.timestamp}`)
     }
   }
 

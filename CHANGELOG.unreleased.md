@@ -15,6 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [OpenMetrics] Fix compliance with OpenMetrics 1.0 specification: use correct Content-Type header and timestamps in seconds [#9351](https://github.com/vatesfr/xen-orchestra/pull/9351)
 - **XO 6:**
   - [Select component] Fix randomly empty select component at initialization (PR [#9282](https://github.com/vatesfr/xen-orchestra/pull/9282))
   - [TaskItem] Fix tree on task item component due to a different behavior on firefox (PR [#9352](https://github.com/vatesfr/xen-orchestra/pull/9352))
@@ -37,5 +38,6 @@
 
 - @xen-orchestra/web patch
 - @xen-orchestra/web-core patch
+- xo-server-openmetrics patch
 
 <!--packages-end-->
