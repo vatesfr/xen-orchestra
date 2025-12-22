@@ -144,12 +144,12 @@ const progress = computed(() => {
     }
 
     .tree-section {
+      --line-container-base-width: 2.8rem;
+      --line-width: 0.1rem;
       display: flex;
       align-items: center;
       padding-left: 1.6rem;
       gap: 0.4rem;
-      --line-container-base-width: 2.8rem;
-      --line-width: 0.1rem;
 
       .tree-lines {
         display: flex;
