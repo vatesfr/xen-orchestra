@@ -197,7 +197,7 @@ describe('transformMetric', () => {
     assert.equal(result.name, 'xcp_host_cpu_average')
     assert.equal(result.type, 'gauge')
     assert.equal(result.value, 0.75)
-    assert.equal(result.timestampMs, 1700000000000)
+    assert.equal(result.timestamp, 1700000000)
     assert.equal(result.labels.pool_id, 'pool-456')
     assert.equal(result.labels.uuid, 'host-uuid-123')
     assert.equal(result.labels.type, 'host')
@@ -315,7 +315,7 @@ describe('formatToOpenMetrics', () => {
         type: 'gauge',
         labels: { pool_id: 'pool-1', uuid: 'host-1', type: 'host' },
         value: 0.5,
-        timestampMs: 1700000000000,
+        timestamp: 1700000000,
       },
     ]
 
@@ -323,7 +323,7 @@ describe('formatToOpenMetrics', () => {
 
     assert.ok(result.includes('# HELP xcp_host_cpu_average Host average CPU usage ratio'))
     assert.ok(result.includes('# TYPE xcp_host_cpu_average gauge'))
-    assert.ok(result.includes('xcp_host_cpu_average{pool_id="pool-1",uuid="host-1",type="host"} 0.5 1700000000000'))
+    assert.ok(result.includes('xcp_host_cpu_average{pool_id="pool-1",uuid="host-1",type="host"} 0.5 1700000000'))
   })
 
   it('should group metrics by name', () => {
@@ -334,7 +334,7 @@ describe('formatToOpenMetrics', () => {
         type: 'gauge',
         labels: { pool_id: 'pool-1', uuid: 'host-1', type: 'host', core: '0' },
         value: 0.3,
-        timestampMs: 1700000000000,
+        timestamp: 1700000000,
       },
       {
         name: 'xcp_host_cpu_core_usage',
@@ -342,7 +342,7 @@ describe('formatToOpenMetrics', () => {
         type: 'gauge',
         labels: { pool_id: 'pool-1', uuid: 'host-1', type: 'host', core: '1' },
         value: 0.4,
-        timestampMs: 1700000000000,
+        timestamp: 1700000000,
       },
     ]
 
@@ -373,7 +373,7 @@ describe('formatToOpenMetrics', () => {
         type: 'gauge',
         labels: { name: 'value with "quotes"' },
         value: 1,
-        timestampMs: 1700000000000,
+        timestamp: 1700000000,
       },
     ]
 

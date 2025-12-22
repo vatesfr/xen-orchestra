@@ -404,7 +404,7 @@ async function startServer(): Promise<void> {
       try {
         const metrics = await collectMetrics()
         res.writeHead(200, {
-          'Content-Type': 'text/plain; version=0.0.4; charset=utf-8',
+          'Content-Type': 'application/openmetrics-text; version=1.0.0; charset=utf-8',
         })
         res.end(metrics)
       } catch (error) {
