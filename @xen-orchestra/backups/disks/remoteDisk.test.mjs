@@ -143,10 +143,10 @@ test('mergeVhdChain merges a simple ancestor + child VHD chain', async () => {
   const child1 = new RemoteVhdDisk({handler, path: `${basePath}/child_1.vhd`})
   await child1.init()
   const child2 = new RemoteVhdDisk({handler, path: `${basePath}/child_2.vhd`})
+  await child2.init()
 
   const childDiskChain = new RemoteVhdDiskChain({disks: [child1, child2]})
   await childDiskChain.init()
-  await child2.init()
 
   console.log(parent.getBlockIndexes(), child1.getBlockIndexes(), child2.getBlockIndexes(), childDiskChain.getBlockIndexes())
 
