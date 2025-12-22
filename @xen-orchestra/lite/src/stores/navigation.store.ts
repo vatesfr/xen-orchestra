@@ -1,27 +1,22 @@
 import { useUiStore } from '@core/stores/ui.store'
-import { useEventListener, whenever } from '@vueuse/core'
+import { useEventListener } from '@vueuse/core'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, watch } from 'vue'
 
 export const useNavigationStore = defineStore('navigation', () => {
-  const router = useRouter()
   const uiStore = useUiStore()
 
   const trigger = ref()
-  const isOpen = ref(false)
+  const isOpen = ref(true)
   const toggle = () => (isOpen.value = !isOpen.value)
-
-  // Close the menu when the user navigates to a new page
-  router.afterEach(() => {
-    isOpen.value = false
-  })
 
   useEventListener(trigger, 'click', toggle)
 
-  whenever(
-    () => !uiStore.isMobile,
-    () => (isOpen.value = false)
+  watch(
+    () => uiStore.isMobile,
+    isMobile => {
+      isOpen.value = !isMobile
+    }
   )
 
   return {

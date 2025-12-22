@@ -106,6 +106,7 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/legend/ui-legend-title': RouteRecordInfo<'/story/web-core/ui/legend/ui-legend-title', '/story/web-core/ui/legend/ui-legend-title', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/link/ui-link': RouteRecordInfo<'/story/web-core/ui/link/ui-link', '/story/web-core/ui/link/ui-link', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/log-entry-viewer/ui-log-entry-viewer': RouteRecordInfo<'/story/web-core/ui/log-entry-viewer/ui-log-entry-viewer', '/story/web-core/ui/log-entry-viewer/ui-log-entry-viewer', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/logo-text/ui-logo-text': RouteRecordInfo<'/story/web-core/ui/logo-text/ui-logo-text', '/story/web-core/ui/logo-text/ui-logo-text', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/object-link/ui-object-link': RouteRecordInfo<'/story/web-core/ui/object-link/ui-object-link', '/story/web-core/ui/object-link/ui-object-link', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/panel/ui-panel': RouteRecordInfo<'/story/web-core/ui/panel/ui-panel', '/story/web-core/ui/panel/ui-panel', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/progress-bar/ui-progress-bar': RouteRecordInfo<'/story/web-core/ui/progress-bar/ui-progress-bar', '/story/web-core/ui/progress-bar/ui-progress-bar', Record<never, never>, Record<never, never>>,
