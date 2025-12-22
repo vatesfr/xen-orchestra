@@ -548,7 +548,7 @@
   "ssh-password-confirm": "Bekreft SSH-passord",
   "stacked-cpu-usage": "Stablet CPU-bruk",
   "stacked-ram-usage": "Stablet RAM-bruk",
-  "start-console": "Start {type} for å få tilgang til konsollen og gjenoppta operasjoner",
+  "start-console": "Start {type} for å få tilgang til konsollen og gjenoppta operasjoner.",
   "start-date": "Startdato",
   "start-delay": "Startforsinkelse",
   "start-host": "Start verten for å gjenoppta operasjoner, eller sjekk igjen senere når den er slått på.",
