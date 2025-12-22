@@ -152,10 +152,11 @@ const progress = computed(() => {
       .tree-lines {
         display: flex;
         align-self: stretch;
+        min-width: calc(2.8rem * v-bind(depth - 1));
       }
 
       .tree-line {
-        flex: 0 0 2.8rem;
+        flex: 0 0 2.9rem;
         display: flex;
         align-items: center;
         justify-content: center;
