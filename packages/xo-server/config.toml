@@ -173,7 +173,7 @@ requestTimeout = 0
 '/v5/api' = '[protocol]//localhost:[port]/api'
 '/v5/api/updater' = 'ws://localhost:9001'
 '/v5/rest' = '[protocol]//localhost:[port]/rest'
-'/v5/netdata' = '[protocol]//localhost:[port]/netdata
+'/v5/netdata' = '[protocol]//localhost:[port]/netdata'
 '/openmetrics' = 'http://localhost:9004'
 
 [logs]
