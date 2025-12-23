@@ -55,6 +55,7 @@ interface HostCredentials {
 interface VmLabelInfo {
   name_label: string
   vbdDeviceToVdiName: Record<string, string>
+  vbdDeviceToVdiUuid: Record<string, string>
   vifIndexToNetworkName: Record<string, string>
 }
 
@@ -72,6 +73,7 @@ interface LabelLookupData {
   hosts: Record<string, HostLabelInfo>
   srs: Record<string, SrLabelInfo>
   srSuffixToUuid: Record<string, string>
+  vdiUuidToSrUuid: Record<string, string>
 }
 
 interface XapiCredentialsPayload {

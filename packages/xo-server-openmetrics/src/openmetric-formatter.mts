@@ -51,6 +51,7 @@ export interface FormattedMetric {
 interface VmLabelInfo {
   name_label: string
   vbdDeviceToVdiName: Record<string, string>
+  vbdDeviceToVdiUuid: Record<string, string>
   vifIndexToNetworkName: Record<string, string>
 }
 
@@ -68,6 +69,7 @@ interface LabelLookupData {
   hosts: Record<string, HostLabelInfo>
   srs: Record<string, SrLabelInfo>
   srSuffixToUuid: Record<string, string>
+  vdiUuidToSrUuid: Record<string, string>
 }
 
 interface HostCredentials {
@@ -571,11 +573,23 @@ export function transformMetric(
           labels.vm_name = vmInfo.name_label
         }
 
-        // For VBD metrics, add vdi_name
+        // For VBD metrics, add vdi_name and sr_name
         if (extractedLabels.device !== undefined) {
           const vdiName = vmInfo.vbdDeviceToVdiName[extractedLabels.device]
           if (vdiName !== undefined && vdiName !== '') {
             labels.vdi_name = vdiName
+          }
+
+          // Resolve sr_name via device → VDI UUID → SR UUID → SR name
+          const vdiUuid = vmInfo.vbdDeviceToVdiUuid[extractedLabels.device]
+          if (vdiUuid !== undefined) {
+            const srUuid = labelContext.labels.vdiUuidToSrUuid[vdiUuid]
+            if (srUuid !== undefined) {
+              const srInfo = labelContext.labels.srs[srUuid]
+              if (srInfo !== undefined && srInfo.name_label !== '') {
+                labels.sr_name = srInfo.name_label
+              }
+            }
           }
         }
 
