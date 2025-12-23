@@ -53,6 +53,7 @@ interface HostCredentials {
 interface VmLabelInfo {
   name_label: string
   vbdDeviceToVdiName: Record<string, string> // { "xvda": "System Disk" }
+  vbdDeviceToVdiUuid: Record<string, XoVdi['uuid']> // { "xvda": "vdi-uuid-123" }
   vifIndexToNetworkName: Record<string, string> // { "0": "Pool-wide network" }
 }
 
@@ -66,10 +67,11 @@ interface SrLabelInfo {
 }
 
 interface LabelLookupData {
-  vms: Record<string, VmLabelInfo> // keyed by VM UUID
-  hosts: Record<string, HostLabelInfo> // keyed by Host UUID
-  srs: Record<string, SrLabelInfo> // keyed by SR UUID
-  srSuffixToUuid: Record<string, string> // maps UUID suffix to full UUID
+  vms: Record<XoVm['uuid'], VmLabelInfo>
+  hosts: Record<XoHost['uuid'], HostLabelInfo>
+  srs: Record<XoSr['uuid'], SrLabelInfo>
+  srSuffixToUuid: Record<string, XoSr['uuid']> // maps UUID suffix to full SR UUID
+  vdiUuidToSrUuid: Record<XoVdi['uuid'], XoSr['uuid']> // maps VDI UUID to parent SR UUID
 }
 
 interface XapiCredentialsPayload {
@@ -388,6 +390,7 @@ class OpenMetricsPlugin {
       hosts: {},
       srs: {},
       srSuffixToUuid: {},
+      vdiUuidToSrUuid: {},
     }
 
     // Get all objects and categorize them by type in a single pass
@@ -437,26 +440,36 @@ class OpenMetricsPlugin {
       networkNameById.set(network.id, network.name_label)
     }
 
-    // Build VDI name map (id -> name_label)
+    // Build VDI name map (id -> name_label) and VDI UUID to SR UUID map
     const vdiNameById = new Map<NonNullable<XoVbd['VDI']>, string>()
+    const vdiIdToUuid = new Map<NonNullable<XoVbd['VDI']>, string>()
     for (const vdi of vdis) {
       vdiNameById.set(vdi.id, vdi.name_label)
+      vdiIdToUuid.set(vdi.id, vdi.uuid)
+      // Build VDI UUID -> SR UUID mapping
+      if (vdi.$SR !== undefined) {
+        const srObj = allObjects[vdi.$SR]
+        if (srObj !== undefined && srObj.type === 'SR') {
+          labels.vdiUuidToSrUuid[vdi.uuid] = srObj.uuid
+        }
+      }
     }
 
-    // Build VBD map (VM id -> device -> VDI name)
-    const vbdMap = new Map<XoVbd['VM'], Map<string, string>>()
+    // Build VBD map (VM id -> device -> VDI info)
+    const vbdMap = new Map<XoVbd['VM'], Map<string, { name: string; uuid: string }>>()
     for (const vbd of vbds) {
       if (vbd.device === null || vbd.device === '' || vbd.VDI == null) continue
 
       let vmVbds = vbdMap.get(vbd.VM)
       if (vmVbds === undefined) {
-        vmVbds = new Map<string, string>()
+        vmVbds = new Map<string, { name: string; uuid: string }>()
         vbdMap.set(vbd.VM, vmVbds)
       }
 
       const vdiName = vdiNameById.get(vbd.VDI)
-      if (vdiName !== undefined) {
-        vmVbds.set(vbd.device, vdiName)
+      const vdiUuid = vdiIdToUuid.get(vbd.VDI)
+      if (vdiName !== undefined && vdiUuid !== undefined) {
+        vmVbds.set(vbd.device, { name: vdiName, uuid: vdiUuid })
       }
     }
 
@@ -496,10 +509,12 @@ class OpenMetricsPlugin {
     // Build VM labels
     for (const vm of vms) {
       const vbdDeviceToVdiName: Record<string, string> = {}
+      const vbdDeviceToVdiUuid: Record<string, string> = {}
       const vmVbds = vbdMap.get(vm.id)
       if (vmVbds !== undefined) {
-        for (const [device, vdiName] of vmVbds) {
-          vbdDeviceToVdiName[device] = vdiName
+        for (const [device, vdiInfo] of vmVbds) {
+          vbdDeviceToVdiName[device] = vdiInfo.name
+          vbdDeviceToVdiUuid[device] = vdiInfo.uuid
         }
       }
 
@@ -514,6 +529,7 @@ class OpenMetricsPlugin {
       labels.vms[vm.uuid] = {
         name_label: vm.name_label,
         vbdDeviceToVdiName,
+        vbdDeviceToVdiUuid,
         vifIndexToNetworkName,
       }
     }
