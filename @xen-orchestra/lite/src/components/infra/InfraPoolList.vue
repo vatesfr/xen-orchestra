@@ -1,6 +1,6 @@
 <template>
   <VtsTreeList class="infra-pool-list">
-    <VtsTreeItem :expanded="isExpanded">
+    <VtsTreeItem :expanded="isExpanded" :node-id="`pool:${pool?.uuid}`">
       <VtsTreeItemError v-if="hasError">
         {{ t('error-no-data') }}
       </VtsTreeItemError>
