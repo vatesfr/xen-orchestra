@@ -19,7 +19,7 @@ const tasks: Task[] = [
     name: 'VM backup',
     status: 'pending',
     progress: 25,
-    tasks: [
+    subtasks: [
       {
         id: '1-1',
         name: 'Snapshot',
@@ -31,7 +31,7 @@ const tasks: Task[] = [
         name: 'Export',
         status: 'pending',
         progress: 10,
-        tasks: [
+        subtasks: [
           {
             id: '1-2-1',
             name: 'Sub task',
@@ -47,7 +47,7 @@ const tasks: Task[] = [
     name: 'VM Migration',
     status: 'failure',
     progress: 100,
-    warning: [
+    warnings: [
       {
         data: { file: 'server-1.log' },
         message: 'warning',
@@ -70,7 +70,7 @@ const tasks: Task[] = [
     end: Date.now() - 1000 * 60 * 15,
     status: 'success',
     progress: 75,
-    warning: [
+    warnings: [
       {
         data: { file: 'server-1.log' },
         message: 'warning',

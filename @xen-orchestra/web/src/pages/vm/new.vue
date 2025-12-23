@@ -103,7 +103,7 @@
             <div class="system-container">
               <div class="column">
                 <VtsInputWrapper :label="t('new-vm:name')">
-                  <UiInput v-model="vmState.name" accent="brand" />
+                  <UiInput v-model.trim="vmState.name" accent="brand" />
                 </VtsInputWrapper>
                 <!-- <UiInput v-model="vmState.tags" :label-icon="faTags" accent="brand" :label=" t('tags')" /> -->
                 <VtsInputWrapper :label="t('boot-firmware')">
@@ -128,14 +128,14 @@
             <UiTitle>{{ t('resource-management') }}</UiTitle>
             <div class="memory-container">
               <VtsInputWrapper :label="t('vcpus')">
-                <UiInput v-model="vmState.vCPU" accent="brand" />
+                <UiInput v-model.number="vmState.vCPU" type="number" accent="brand" />
               </VtsInputWrapper>
               <!-- TODO remove (GB) when we can use new selector -->
               <VtsInputWrapper :label="`${t('ram')} (GB)`">
-                <UiInput v-model="ramFormatted" accent="brand" />
+                <UiInput v-model.number="ramFormatted" type="number" accent="brand" />
               </VtsInputWrapper>
               <VtsInputWrapper :label="t('topology')">
-                <UiInput v-model="vmState.topology" accent="brand" disabled />
+                <UiInput v-model.trim="vmState.topology" accent="brand" disabled />
               </VtsInputWrapper>
             </div>
             <!-- NETWORK SECTION -->
