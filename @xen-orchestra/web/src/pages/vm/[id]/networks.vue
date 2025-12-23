@@ -1,9 +1,15 @@
 <template>
   <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <VmVifsTable :vm :vifs />
+      <VifsTable :vifs>
+        <template #title-actions>
+          <UiLink :href="xo5VmVifHref" icon="fa:plus" size="medium">
+            {{ t('action:add-vifs-in-xo-5') }}
+          </UiLink>
+        </template>
+      </VifsTable>
     </UiCard>
-    <VmVifSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
+    <VifSidePanel v-if="selectedVif" :vif="selectedVif" @close="selectedVif = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
@@ -13,21 +19,27 @@
 </template>
 
 <script setup lang="ts">
-import VmVifSidePanel from '@/components/vm/network/VmVifSidePanel.vue'
-import VmVifsTable from '@/components/vm/network/VmVifsTable.vue'
-import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
+import VifSidePanel from '@/modules/vif/components/panel/VifSidePanel.vue'
+import VifsTable from '@/modules/vif/components/VifsTable.vue'
+import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 import type { XoVif, XoVm } from '@vates/types'
 import { useArrayFilter } from '@vueuse/shared'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
   vm: XoVm
 }>()
+
+const { buildXo5Route } = useXoRoutes()
+const xo5VmVifHref = computed(() => buildXo5Route(`/vms/${vm.id}/network`))
 
 const { vifs: rawVifs, getVifById } = useXoVifCollection()
 const uiStore = useUiStore()

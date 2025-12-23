@@ -1,9 +1,15 @@
 <template>
   <div class="networks" :class="{ mobile: uiStore.isMobile }">
     <UiCard class="container">
-      <HostPifTable :host :pifs />
+      <PifsTable :pifs>
+        <template #title-actions>
+          <UiLink :href="xo5ScanPifsHref" icon="fa:plus" size="medium">
+            {{ t('scan-pifs-in-xo-5') }}
+          </UiLink>
+        </template>
+      </PifsTable>
     </UiCard>
-    <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" @close="selectedPif = undefined" />
+    <PifSidePanel v-if="selectedPif" :pif="selectedPif" @close="selectedPif = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
       <VtsStateHero format="panel" type="no-selection" size="small">
         {{ t('select-to-see-details') }}
@@ -13,11 +19,13 @@
 </template>
 
 <script setup lang="ts">
-import HostPifSidePanel from '@/components/host/network/HostPifSidePanel.vue'
-import HostPifTable from '@/components/host/network/HostPifsTable.vue'
-import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
+import PifSidePanel from '@/modules/pif/components/list/panel/PifSidePanel.vue'
+import PifsTable from '@/modules/pif/components/list/PifsTable.vue'
+import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
@@ -28,6 +36,9 @@ import { useI18n } from 'vue-i18n'
 const { host } = defineProps<{
   host: XoHost
 }>()
+
+const { buildXo5Route } = useXoRoutes()
+const xo5ScanPifsHref = computed(() => buildXo5Route(`/hosts/${host.id}/network`))
 
 const { pifsByHost } = useXoPifCollection()
 const uiStore = useUiStore()

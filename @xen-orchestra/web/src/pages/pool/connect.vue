@@ -1,17 +1,17 @@
 <template>
-  <ConnectPoolHeader />
+  <PoolConnectionHeader />
   <UiCard class="pool-connect-card" :class="{ 'full-height': success || hasError }">
-    <ConnectionSuccess v-if="success && serverId" :ip :server-id @connect-another-pool="reset()" />
-    <ConnectionError v-else-if="hasError && error" :ip :error @go-back="reset()" />
-    <ConnectionForm v-else @success="handleSuccess" @error="handleError" />
+    <PoolConnectionSuccess v-if="success && serverId" :ip :server-id @connect-another-pool="reset()" />
+    <PoolConnectionError v-else-if="hasError && error" :ip :error @go-back="reset()" />
+    <PoolConnectionForm v-else @success="handleSuccess" @error="handleError" />
   </UiCard>
 </template>
 
 <script setup lang="ts">
-import ConnectionError from '@/components/pool/connect/ConnectionError.vue'
-import ConnectionForm from '@/components/pool/connect/ConnectionForm.vue'
-import ConnectionSuccess from '@/components/pool/connect/ConnectionSuccess.vue'
-import ConnectPoolHeader from '@/components/pool/connect/ConnectPoolHeader.vue'
+import PoolConnectionError from '@/modules/pool/components/connection/PoolConnectionError.vue'
+import PoolConnectionForm from '@/modules/pool/components/connection/PoolConnectionForm.vue'
+import PoolConnectionHeader from '@/modules/pool/components/connection/PoolConnectionHeader.vue'
+import PoolConnectionSuccess from '@/modules/pool/components/connection/PoolConnectionSuccess.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import type { XoServer } from '@vates/types'
 import { ref } from 'vue'

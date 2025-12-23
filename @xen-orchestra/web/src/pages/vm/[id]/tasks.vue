@@ -13,11 +13,11 @@
 </template>
 
 <script setup lang="ts">
-import TaskSidePanel from '@/components/tasks/panel/TaskSidePanel.vue'
-import TasksList from '@/components/tasks/TasksList.vue'
-import { useXoUserCollection } from '@/remote-resources/use-xo-user-collection.ts'
-import { useXoVmTasksCollection } from '@/remote-resources/use-xo-vm-tasks-collection.ts'
-import { convertTaskToCore } from '@/utils/convert-task-to-core.util.ts'
+import TaskSidePanel from '@/modules/task/components/list/panel/TaskSidePanel.vue'
+import TasksList from '@/modules/task/components/list/TasksList.vue'
+import { convertTaskToCore } from '@/modules/task/utils/convert-task-to-core.util'
+import { useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
+import { useXoVmTasksCollection } from '@/modules/vm/remote-resources/use-xo-vm-tasks-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'

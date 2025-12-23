@@ -3,7 +3,7 @@
     <UiCard class="container">
       <BackupLogsTable :backup-logs :busy="!areBackupLogsReady" :error="hasBackupLogFetchError" />
     </UiCard>
-    <BackupLogsSidePanel
+    <BackupLogSidePanel
       v-if="selectedBackupLog"
       :backup-log="selectedBackupLog"
       @close="selectedBackupLog = undefined"
@@ -17,9 +17,9 @@
 </template>
 
 <script setup lang="ts">
-import BackupLogsTable from '@/components/backups/logs/BackupLogsTable.vue'
-import BackupLogsSidePanel from '@/components/backups/logs/panel/BackupLogsSidePanel.vue'
-import { useXoBackupLogCollection } from '@/remote-resources/use-xo-backup-log-collection'
+import BackupLogsTable from '@/modules/backup/components/logs/BackupLogsTable.vue'
+import BackupLogSidePanel from '@/modules/backup/components/logs/panel/BackupLogSidePanel.vue'
+import { useXoBackupLogCollection } from '@/modules/backup/remote-resources/use-xo-backup-log-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
