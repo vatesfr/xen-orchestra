@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import HostHeader from '@/components/host/HostHeader.vue'
+import HostHeader from '@/modules/host/components/HostHeader.vue'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'

@@ -206,9 +206,10 @@
 </template>
 
 <script lang="ts" setup>
-import NewVmNetworkTable from '@/components/new-vm/NewVmNetworkTable.vue'
-import NewVmSrTable from '@/components/new-vm/NewVmSrTable.vue'
-import { createVM } from '@/jobs/vm-create.job.ts'
+import NewVmNetworkTable from '@/modules/vm/components/new/NewVmNetworkTable.vue'
+import NewVmSrTable from '@/modules/vm/components/new/NewVmSrTable.vue'
+import { createVM } from '@/modules/vm/jobs/vm-create.job'
+import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-vm.type'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
@@ -219,7 +220,6 @@ import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
-import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'

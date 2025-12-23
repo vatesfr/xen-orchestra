@@ -1,4 +1,4 @@
-import type { XoRoutes } from '@/types/xo/xo-routes.type.ts'
+import type { XoRoutes } from '@/types/xo-routes.type.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { computed, watchEffect } from 'vue'
 

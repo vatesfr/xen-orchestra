@@ -2,23 +2,23 @@
   <VtsStateHero v-if="!isReady" format="card" type="busy" size="medium" />
   <VtsColumns v-else>
     <VtsColumn>
-      <PoolGeneralInfo :pool />
-      <PoolNetworking :pool />
-      <PoolStorageConfiguration :pool />
+      <PoolSystemGeneralInfo :pool />
+      <PoolSystemNetworking :pool />
+      <PoolSystemStorageConfiguration :pool />
     </VtsColumn>
     <VtsColumn>
-      <PoolManagement :pool />
-      <PoolConnections :pool />
+      <PoolSystemManagement :pool />
+      <PoolSystemConnections :pool />
     </VtsColumn>
   </VtsColumns>
 </template>
 
 <script setup lang="ts">
-import PoolConnections from '@/components/pool/system/PoolConnections.vue'
-import PoolGeneralInfo from '@/components/pool/system/PoolGeneralInfo.vue'
-import PoolManagement from '@/components/pool/system/PoolManagement.vue'
-import PoolNetworking from '@/components/pool/system/PoolNetworking.vue'
-import PoolStorageConfiguration from '@/components/pool/system/PoolStorageConfiguration.vue'
+import PoolSystemConnections from '@/modules/pool/components/system/PoolSystemConnections.vue'
+import PoolSystemGeneralInfo from '@/modules/pool/components/system/PoolSystemGeneralInfo.vue'
+import PoolSystemManagement from '@/modules/pool/components/system/PoolSystemManagement.vue'
+import PoolSystemNetworking from '@/modules/pool/components/system/PoolSystemNetworking.vue'
+import PoolSystemStorageConfiguration from '@/modules/pool/components/system/PoolSystemStorageConfiguration.vue'
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoServerCollection } from '@/remote-resources/use-xo-server-collection.ts'
