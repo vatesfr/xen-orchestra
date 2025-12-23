@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import { isVmOperatingPending } from '@/utils/xo-records/vm.util.ts'
+import { isVmOperatingPending } from '@/modules/vm/utils/vm.util.ts'
 import VtsActionsConsole from '@core/components/console/VtsActionsConsole.vue'
 import VtsClipboardConsole from '@core/components/console/VtsClipboardConsole.vue'
 import VtsLayoutConsole from '@core/components/console/VtsLayoutConsole.vue'

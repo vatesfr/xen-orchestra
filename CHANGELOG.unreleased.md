@@ -33,11 +33,13 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch 
+- @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
-- @xen-orchestra/qcow2 patch 
+- @xen-orchestra/qcow2 patch
+- @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - @xen-orchestra/xapi patch
 - vhd-lib patch
 - xo-server patch
+
 <!--packages-end-->

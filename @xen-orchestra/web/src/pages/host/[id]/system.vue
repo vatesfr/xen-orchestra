@@ -15,12 +15,12 @@
 </template>
 
 <script lang="ts" setup>
-import HostSystemGeneralInformation from '@/components/host/system/HostSystemGeneralInformation.vue'
-import HostSystemHardwareSpecifications from '@/components/host/system/HostSystemHardwareSpecifications.vue'
+import HostSystemGeneralInformation from '@/modules/host/components/system/HostSystemGeneralInformation.vue'
+import HostSystemHardwareSpecifications from '@/modules/host/components/system/HostSystemHardwareSpecifications.vue'
 // import HostSystemLicensing from '@/components/host/system/HostSystemLicensing.vue'
-import HostSystemNetworking from '@/components/host/system/HostSystemNetworking.vue'
-import HostSystemResourceManagement from '@/components/host/system/HostSystemResourceManagement.vue'
-import HostSystemSoftwareTooling from '@/components/host/system/HostSystemSoftwareTooling.vue'
+import HostSystemNetworking from '@/modules/host/components/system/HostSystemNetworking.vue'
+import HostSystemResourceManagement from '@/modules/host/components/system/HostSystemResourceManagement.vue'
+import HostSystemSoftwareTooling from '@/modules/host/components/system/HostSystemSoftwareTooling.vue'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
 import type { XoHost } from '@vates/types'

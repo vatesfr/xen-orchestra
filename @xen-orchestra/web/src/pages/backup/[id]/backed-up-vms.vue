@@ -6,8 +6,8 @@
 </template>
 
 <script setup lang="ts">
-import BackedUpVmsConfiguration from '@/components/backups/backed-up-vms/BackedUpVmsConfiguration.vue'
-import BackedUpVmsTable from '@/components/backups/backed-up-vms/BackedUpVmsTable.vue'
+import BackedUpVmsConfiguration from '@/modules/backup/components/backed-up-vms/BackedUpVmsConfiguration.vue'
+import BackedUpVmsTable from '@/modules/backup/components/backed-up-vms/BackedUpVmsTable.vue'
 import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
 import type { XoVmBackupJob } from '@vates/types'
 

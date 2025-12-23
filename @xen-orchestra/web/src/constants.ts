@@ -12,5 +12,13 @@ export const XCP_LINKS = {
   COMMUNITY: 'https://xcp-ng.org/forum',
   DOC: 'https://xcp-ng.org/docs/',
   SUPPORT: 'https://vates.tech/pricing-and-support?utm_campaign=xo6&utm_term=pricing',
-  GUEST_TOOLS: 'https://docs.xcp-ng.org/vms/#guest-tools'
+  GUEST_TOOLS: 'https://docs.xcp-ng.org/vms/#guest-tools',
 }
+
+export const CONNECTION_STATUS = {
+  CONNECTED: 'connected',
+  PARTIALLY_CONNECTED: 'partially-connected',
+  DISCONNECTED: 'disconnected',
+  PHYSICALLY_DISCONNECTED: 'physically-disconnected',
+  DISCONNECTED_FROM_PHYSICAL_DEVICE: 'disconnected-from-physical-device',
+} as const

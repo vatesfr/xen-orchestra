@@ -1,0 +1,34 @@
+<template>
+  <UiCard>
+    <UiTitle>
+      {{ t('graphics-display') }}
+    </UiTitle>
+    <VtsQuickInfoRow :label="t('vga')">
+      <template #value>
+        <VtsStatus :status="vm.vga === 'std'" />
+      </template>
+    </VtsQuickInfoRow>
+    <VtsQuickInfoRow :label="t('video-ram')">
+      <template v-if="videoRamValue?.value" #value>
+        {{ `${videoRamValue.value} ${videoRamValue.prefix || t('bytes:mi')}` }}
+      </template>
+    </VtsQuickInfoRow>
+  </UiCard>
+</template>
+
+<script setup lang="ts">
+import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsStatus from '@core/components/status/VtsStatus.vue'
+import UiCard from '@core/components/ui/card/UiCard.vue'
+import UiTitle from '@core/components/ui/title/UiTitle.vue'
+import { formatSizeRaw } from '@core/utils/size.util.ts'
+import type { XoVm } from '@vates/types'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { vm } = defineProps<{ vm: XoVm }>()
+
+const { t } = useI18n()
+
+const videoRamValue = computed(() => (vm.videoram ? formatSizeRaw(vm.videoram, 0) : null))
+</script>

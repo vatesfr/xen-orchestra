@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-import SiteHeader from '@/components/site/SiteHeader.vue'
+import SiteHeader from '@/modules/site/components/SiteHeader.vue'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
