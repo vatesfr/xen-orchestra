@@ -38,7 +38,14 @@
       <RouterLink to="/">
         <UiButton accent="brand" size="medium" variant="secondary">{{ t('cancel') }}</UiButton>
       </RouterLink>
-      <UiButton type="submit" accent="brand" size="medium" variant="primary" :busy="connecting">
+      <UiButton
+        type="submit"
+        accent="brand"
+        size="medium"
+        variant="primary"
+        :busy="createIsRunning || connectIsRunning || removeIsRunning"
+        :disabled="!createCanRun"
+      >
         {{ t('connect') }}
       </UiButton>
     </div>
@@ -46,8 +53,10 @@
 </template>
 
 <script setup lang="ts">
-import createAndConnectServer from '@/api/connect-server.api.ts'
 import { ApiError } from '@/error/api.error.ts'
+import { useJobServerConnect } from '@/jobs/server/server-connect.job'
+import { useJobServerCreate } from '@/jobs/server/server-create.job'
+import { useJobServerRemove } from '@/jobs/server/server-remove.job'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
@@ -56,7 +65,7 @@ import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import type { XoServer } from '@vates/types'
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
@@ -66,8 +75,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-const connecting = ref(false)
-const serverId = ref<XoServer['id']>()
+const serverId = ref<XoServer['id']>('' as XoServer['id'])
 
 interface NewServerForm {
   host: string
@@ -87,34 +95,45 @@ const form = reactive<NewServerForm>({
   allowUnauthorized: false,
 })
 
-async function submit() {
-  connecting.value = true
-
-  const optionalFields = Object.assign(
+const payload = computed(() => ({
+  host: form.host,
+  username: form.username,
+  password: form.password,
+  ...Object.assign(
     {},
     form.httpProxy && { httpProxy: form.httpProxy },
     form.readOnly && { readOnly: form.readOnly },
     form.allowUnauthorized && { allowUnauthorized: form.allowUnauthorized }
-  )
+  ),
+}))
 
-  const payload = {
-    host: form.host,
-    username: form.username,
-    password: form.password,
-    ...optionalFields,
-  }
-
+// TODO: multiple server creation not possible in the UI for now
+// so only handle a single payload
+const { canRun: createCanRun, isRunning: createIsRunning, run: create } = useJobServerCreate([payload])
+const { isRunning: connectIsRunning, run: connect } = useJobServerConnect([serverId])
+const { isRunning: removeIsRunning, run: remove } = useJobServerRemove([serverId])
+async function submit() {
   try {
-    serverId.value = await createAndConnectServer(payload)
+    // TODO: multiple server creation not possible in the UI for now
+    // so only handle single server creation
+    const [promiseCreateResult] = await create()
+    if (promiseCreateResult.status === 'rejected') {
+      throw promiseCreateResult.reason
+    }
+    serverId.value = promiseCreateResult.value
+    const [promiseConnectResult] = await connect()
+    if (promiseConnectResult.status === 'rejected') {
+      throw promiseConnectResult.reason
+    }
+
     emit('success', serverId.value, form.host)
-  } catch (error: ApiError | any) {
+  } catch (error) {
+    await remove()
     if (error instanceof ApiError) {
       emit('error', error, form.host)
     } else {
       console.error('Unknown error:', error)
     }
-  } finally {
-    connecting.value = false
   }
 }
 </script>
