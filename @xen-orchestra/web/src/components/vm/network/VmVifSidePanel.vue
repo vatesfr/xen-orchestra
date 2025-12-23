@@ -18,10 +18,7 @@
         <UiCardTitle>{{ t('vif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
+          <VtsCardRowKeyValue no-key>
             <template #value>
               {{ vif.id }}
             </template>
@@ -108,7 +105,7 @@
                 <div v-if="index === 0">{{ t('ip-addresses') }}</div>
               </template>
               <template #value>
-                <span class="text-ellipsis">{{ ip }}</span>
+                <span>{{ ip }}</span>
               </template>
               <template #addons>
                 <VtsCopyButton :value="ip" />

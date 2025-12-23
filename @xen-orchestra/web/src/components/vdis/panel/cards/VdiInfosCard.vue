@@ -4,8 +4,7 @@
       {{ vdi.name_label }}
     </UiLink>
     <div class="content">
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('uuid') }}</template>
+      <VtsCardRowKeyValue no-key>
         <template #value>
           {{ vdi.id }}
         </template>
@@ -13,7 +12,7 @@
           <VtsCopyButton :value="vdi.id" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue max-lines>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vdi.name_description }}</template>
         <template v-if="vdi.name_description" #addons>

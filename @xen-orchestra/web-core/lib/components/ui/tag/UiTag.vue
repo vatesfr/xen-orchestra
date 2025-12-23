@@ -5,7 +5,7 @@
     <slot name="icon">
       <VtsIcon :name="icon" size="medium" />
     </slot>
-    <span v-tooltip class="text-ellipsis">
+    <span>
       <slot />
     </span>
   </span>
@@ -13,7 +13,6 @@
 
 <script lang="ts" setup>
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import type { IconName } from '@core/icons'
 import { toVariants } from '@core/utils/to-variants.util'
 
@@ -38,11 +37,11 @@ defineSlots<{
   justify-content: center;
   align-items: center;
   gap: 0.8rem;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
   padding: 0.2rem 0.8rem;
   border-radius: 0.4rem;
   vertical-align: middle;
-  min-width: 0;
 
   /* COLOR VARIANTS */
 

@@ -18,10 +18,7 @@
         <UiCardTitle>{{ pif.isBondMaster ? t('bond') : t('pif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
+          <VtsCardRowKeyValue no-key>
             <template #value>
               {{ pif.id }}
             </template>
@@ -204,7 +201,7 @@
                 <div v-if="index === 0">{{ t('bond-devices') }}</div>
               </template>
               <template #value>
-                <span v-tooltip class="text-ellipsis">{{ device }}</span>
+                <span v-tooltip>{{ device }}</span>
               </template>
               <template #addons>
                 <VtsCopyButton :value="device" />
