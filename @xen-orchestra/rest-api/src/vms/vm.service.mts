@@ -131,6 +131,8 @@ export class VmService {
     }
 
     return {
+      active: nRunning + nPaused,
+      inactive: nHalted + nSuspended,
       running: nRunning,
       halted: nHalted,
       paused: nPaused,
