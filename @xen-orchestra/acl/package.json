@@ -17,10 +17,12 @@
     "build": "tsc",
     "clean": "rimraf dist/",
     "dev": "tsc --watch",
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "tsc && node --test ./dist/**/*.test.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
+    "@vates/types": "^1.16.0",
     "rimraf": "^6.0.1",
     "typescript": "~5.6",
     "typescript-eslint": "^8.23.0"
@@ -30,5 +32,8 @@
     "directory": "@xen-orchestra/acl",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "dependencies": {
+    "value-matcher": "^0.2.0"
   }
 }
