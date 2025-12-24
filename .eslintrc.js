@@ -287,6 +287,17 @@ module.exports = {
         'eslint-comments/no-unlimited-disable': 'off',
       },
     },
+    {
+      files: ['*.d.ts'],
+      parser: '@typescript-eslint/parser',
+      parserOptions: {
+        sourceType: 'module',
+      },
+      rules: {
+        'n/no-unsupported-features/es-syntax': 'off',
+        'no-unused-vars': 'off',
+      },
+    },
   ],
 
   ignorePatterns: ['@vates/fatfs/'],
