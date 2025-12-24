@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+
+    "strict": true,
+    "module": "ESNext",
+    "lib": ["ESNext"],
+    "moduleResolution": "bundler",
+    "target": "ES2023",
+    "skipLibCheck": true,
+    "types": ["node"], // Only use types from Node.js and packages that are explicitly imported
+    "noImplicitAny": false, // otherwise it will throw an error when importing packages without type definition
+    "noUncheckedIndexedAccess": true
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["./node_modules", "./dist"]
+}

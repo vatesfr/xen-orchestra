@@ -1,0 +1,34 @@
+{
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "main": "dist/index.mjs",
+  "name": "@xen-orchestra/acl",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/acl",
+  "version": "0.0.0",
+  "license": "AGPL-3.0-or-later",
+  "private": false,
+  "type": "module",
+  "engines": {
+    "node": ">= 20.18"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist/",
+    "dev": "tsc --watch",
+    "postversion": "npm publish --access public"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.6",
+    "typescript-eslint": "^8.23.0"
+  },
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/acl",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  }
+}
