@@ -1,8 +1,10 @@
 'use strict'
 
+const get = require('lodash/get.js')
 const escapeRegExp = require('lodash/escapeRegExp.js')
 const isPlainObject = require('lodash/isPlainObject.js')
 const some = require('lodash/some.js')
+const isEmpty = require('lodash/isEmpty.js')
 
 // ===================================================================
 
@@ -184,7 +186,7 @@ class Property extends Node {
   }
 
   match(value) {
-    return value != null && this.child.match(value[this.name])
+    return value != null && this.child.match(get(value, this.name))
   }
 
   toString() {
@@ -300,7 +302,17 @@ class TruthyProperty extends Node {
   }
 
   match(value) {
-    return value != null && !!value[this.name]
+    if (value == null) {
+      return false
+    }
+
+    const currentValue = get(value, this.name)
+
+    if (typeof currentValue === 'object') {
+      return !isEmpty(currentValue)
+    }
+
+    return !!currentValue
   }
 
   toString() {
