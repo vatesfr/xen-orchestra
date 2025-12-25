@@ -445,7 +445,7 @@
   "n-missing": "{n} ontbreekt",
   "n-percent": "{n} %",
   "n-selected-of": "{count} geselecteerd van {total} objecten",
-  "n-subtasks": "{n} subtaak | {n} subtaken",
+  "n-subtasks": "1 subtaak | {n} subtaken",
   "n-vms": "1 VM | {n} VMs",
   "name": "Naam",
   "nbd-concurrency": "NBD-gelijktijdigheid",
