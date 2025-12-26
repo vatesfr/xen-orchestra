@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error :horizontal="!uiStore.isMobile">
+  <UiCard :has-error :horizontal="!uiStore.isSmall">
     <BackupRepository :repositories="backupRepositories" :has-error />
     <VtsDivider type="stretch" />
     <StorageRepository :repositories="storageRepositories" />

@@ -1,14 +1,14 @@
 <template>
   <VtsStateHero v-if="!arePoolsReady" format="panel" type="busy" size="medium" />
-  <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isMobile }">
+  <UiPanel v-else :class="{ 'mobile-drawer': uiStore.isSmall }">
     <template #header>
-      <div :class="{ 'action-buttons-container': uiStore.isMobile }">
+      <div :class="{ 'action-buttons-container': uiStore.isSmall }">
         <UiButtonIcon
           v-tooltip="t('action:close')"
           size="small"
           variant="tertiary"
           accent="brand"
-          :icon="uiStore.isMobile ? 'fa:angle-left' : 'fa:close'"
+          :icon="uiStore.isSmall ? 'fa:angle-left' : 'fa:close'"
           @click="emit('close')"
         />
       </div>

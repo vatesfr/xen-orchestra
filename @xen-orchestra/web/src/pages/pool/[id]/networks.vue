@@ -1,5 +1,5 @@
 <template>
-  <div class="networks" :class="{ mobile: uiStore.isMobile }">
+  <div class="networks" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <PoolNetworksTable :busy="!areNetworksReady" :error="hasNetworkFetchError" :networks :pool />
       <PoolNetworksTable
@@ -11,7 +11,7 @@
       />
     </UiCard>
     <PoolNetworkSidePanel v-if="selectedNetwork" :network="selectedNetwork" @close="selectedNetwork = undefined" />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>

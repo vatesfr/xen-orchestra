@@ -1,5 +1,5 @@
 <template>
-  <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
+  <div class="site-dashboard" :class="{ mobile: uiStore.isSmall }">
     <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
     <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
     <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />

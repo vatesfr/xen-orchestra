@@ -2,7 +2,7 @@
   <CoreLayout>
     <template #app-logo>
       <RouterLink class="logo-link" to="/">
-        <LogoTextOnly :key="String(uiStore.isMobile)" :short="uiStore.isMobile" class="logo" />
+        <LogoTextOnly :key="String(uiStore.isSmall)" :short="uiStore.isSmall" class="logo" />
       </RouterLink>
     </template>
     <template #app-header>

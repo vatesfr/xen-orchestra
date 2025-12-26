@@ -1,9 +1,9 @@
 <template>
   <div
-    :class="{ locked: sidebar.isLocked && !ui.isMobile, expanded: sidebar.isExpanded, mobile: ui.isMobile }"
+    :class="{ locked: sidebar.isLocked && !ui.isSmall, expanded: sidebar.isExpanded, mobile: ui.isSmall }"
     class="vts-layout-sidebar"
   >
-    <div v-if="!ui.isMobile" class="lock">
+    <div v-if="!ui.isSmall" class="lock">
       <UiButtonIcon
         v-tooltip="{
           content: sidebar.isLocked ? t('action:sidebar-unlock') : t('action:sidebar-lock'),
@@ -25,7 +25,7 @@
       <slot name="footer" />
     </div>
     <div
-      v-if="!ui.isMobile"
+      v-if="!ui.isSmall"
       :class="{ active: sidebar.isResizing }"
       class="resize-handle"
       @mousedown="sidebar.startResize"

@@ -1,10 +1,10 @@
 <template>
-  <div class="networks" :class="{ mobile: uiStore.isMobile }">
+  <div class="networks" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <HostPifTable :host :pifs />
     </UiCard>
     <HostPifSidePanel v-if="selectedPif" :pif="selectedPif" @close="selectedPif = undefined" />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="small">
         {{ t('select-to-see-details') }}
       </VtsStateHero>

@@ -52,7 +52,7 @@
     </template>
   </div>
 
-  <div v-else-if="uiStore.isMobile" class="not-available">
+  <div v-else-if="uiStore.isSmall" class="not-available">
     <p>{{ t('deploy-xoa-available-on-desktop') }}</p>
   </div>
 
