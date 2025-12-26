@@ -9,13 +9,15 @@ export const useUiStore = defineStore('ui', () => {
   const { store: colorMode } = useColorMode({ initialValue: 'auto' })
 
   const breakpoints = useBreakpoints({
-    desktop: 1024,
-    desktopLarge: 1440,
+    medium: 1024,
+    large: 1440,
   })
 
-  const isMobile = breakpoints.smaller('desktop')
-  const isDesktop = breakpoints.between('desktop', 'desktopLarge')
-  const isDesktopLarge = breakpoints.greater('desktopLarge')
+  const isSmall = breakpoints.smaller('medium')
+  const isSmallOrMedium = breakpoints.smallerOrEqual('medium')
+  const isMedium = breakpoints.between('medium', 'large')
+  const isMediumOrLarge = breakpoints.greaterOrEqual('medium')
+  const isLarge = breakpoints.greater('large')
 
   const router = useRouter()
   const route = useRoute()
@@ -30,9 +32,11 @@ export const useUiStore = defineStore('ui', () => {
   return {
     colorMode,
     currentHostOpaqueRef,
-    isMobile,
-    isDesktop,
-    isDesktopLarge,
+    isSmall,
+    isSmallOrMedium,
+    isMedium,
+    isMediumOrLarge,
+    isLarge,
     hasUi,
   }
 })

@@ -2,21 +2,22 @@
   <header class="app-header">
     <div class="left">
       <UiButtonIcon
+        v-if="!uiStore.isLarge"
         ref="navigationTrigger"
-        :class="{ 'menu-to-right': !uiStore.isMobile }"
+        :class="{ 'menu-to-right': !uiStore.isSmall }"
         accent="brand"
         icon="fa:bars"
         size="medium"
       />
       <RouterLink :to="logoRoute" class="logo-container">
-        <img v-if="uiStore.isMobile" alt="XO Lite" src="../assets/logo.svg" />
+        <img v-if="uiStore.isSmall" alt="XO Lite" src="../assets/logo.svg" />
         <UiLogoText v-else :text="t('xo-lite')" />
       </RouterLink>
     </div>
     <slot />
     <div class="right">
       <PoolOverrideWarning as-tooltip />
-      <XoaButton v-if="!uiStore.isMobile" />
+      <XoaButton v-if="!uiStore.isSmall" />
       <AccountMenu />
     </div>
   </header>

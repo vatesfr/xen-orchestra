@@ -1,5 +1,5 @@
 <template>
-  <form class="connection-form" :class="{ mobile: uiStore.isMobile }" @submit.prevent="submit()">
+  <form class="connection-form" :class="{ mobile: uiStore.isSmall }" @submit.prevent="submit()">
     <div class="primary-host-section">
       <UiTitle>{{ t('master') }}</UiTitle>
       <div class="inputs-container">
