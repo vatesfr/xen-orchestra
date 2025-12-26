@@ -4,7 +4,7 @@
     <!-- ABOUT -->
     <div class="container">
       <UiTitle>{{ t('about') }}</UiTitle>
-      <VtsColumns class="columns" :class="{ 'mobile-about': uiStore.isMobile }">
+      <VtsColumns class="columns" :class="{ 'mobile-about': uiStore.isSmall }">
         <VtsQuickInfoColumn>
           <div class="typo-h6">{{ t('xen-orchestra') }}</div>
           <VtsQuickInfoRow :label="t('version')" />
@@ -118,7 +118,7 @@
     <!-- LANGUAGE -->
     <div class="container">
       <UiTitle>{{ t('language-preferences') }}</UiTitle>
-      <VtsColumns class="columns" :class="{ 'mobile-language': uiStore.isMobile }">
+      <VtsColumns class="columns" :class="{ 'mobile-language': uiStore.isSmall }">
         <VtsQuickInfoColumn class="language">
           <VtsInputWrapper :label="t('language')">
             <VtsSelect :id="localeSelectId" accent="brand" />

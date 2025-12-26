@@ -143,7 +143,7 @@ onMounted(() => {
   gap: 1rem;
   max-width: 100%;
 
-  @media (--mobile) {
+  @media (--small) {
     gap: 2.4rem;
   }
 }

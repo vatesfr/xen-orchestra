@@ -1,5 +1,5 @@
 <template>
-  <div :class="uiStore.isMobile ? 'mobile' : undefined" class="vts-remote-console">
+  <div :class="uiStore.isSmall ? 'mobile' : undefined" class="vts-remote-console">
     <VtsStateHero v-if="!isReady" format="page" type="busy" size="medium">{{ t('loading') }}</VtsStateHero>
     <div ref="console-container" class="console" />
   </div>

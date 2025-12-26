@@ -1,6 +1,6 @@
 <!-- v2 -->
 <template>
-  <div class="ui-panel" :class="{ error, 'mobile-drawer': uiStore.isMobile }">
+  <div class="ui-panel" :class="{ error, 'mobile-drawer': uiStore.isSmall }">
     <div v-if="slots.header" class="header">
       <slot name="header" />
     </div>

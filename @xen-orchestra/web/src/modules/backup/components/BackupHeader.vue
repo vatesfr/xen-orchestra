@@ -55,7 +55,7 @@ const uiStore = useUiStore()
 const { buildXo5Route } = useXoRoutes()
 const newBackupRoute = computed(() => buildXo5Route('/backup/new'))
 
-const size = computed(() => (uiStore.isMobile ? 'small' : 'medium'))
+const size = computed(() => (uiStore.isSmall ? 'small' : 'medium'))
 </script>
 
 <style lang="postcss" scoped>
