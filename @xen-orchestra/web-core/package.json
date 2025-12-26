@@ -21,6 +21,7 @@
     "@vueuse/core": "^13.0.0",
     "@vueuse/math": "^13.0.0",
     "@vueuse/shared": "^13.0.0",
+    "complex-matcher": "^1.1.0",
     "d3-time-format": "^4.1.0",
     "echarts": "^5.6.0",
     "human-format": "^1.2.1",
