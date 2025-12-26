@@ -1,5 +1,5 @@
 <template>
-  <VtsTable class="hosts-patches-table" :state :class="{ desktop: uiStore.isDesktop }">
+  <VtsTable class="hosts-patches-table" :state :class="{ desktop: uiStore.isMedium }">
     <thead>
       <tr>
         <HeadCells />

@@ -1,5 +1,5 @@
 <template>
-  <div class="backups" :class="{ mobile: uiStore.isMobile }">
+  <div class="backups" :class="{ mobile: uiStore.isSmall }">
     <UiCard class="container">
       <BackupJobsTable :backup-jobs :busy="!areBackupJobsReady" :error="hasBackupJobFetchError" />
     </UiCard>
@@ -8,7 +8,7 @@
       :backup-job="selectedBackupJob"
       @close="selectedBackupJob = undefined"
     />
-    <UiPanel v-else-if="!uiStore.isMobile">
+    <UiPanel v-else-if="!uiStore.isSmall">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
       </VtsStateHero>

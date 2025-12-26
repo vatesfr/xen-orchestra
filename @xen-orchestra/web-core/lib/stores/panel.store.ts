@@ -8,5 +8,5 @@ export const usePanelStore = defineStore('panel', () => {
   const open = () => (isExpanded.value = true)
   const close = () => (isExpanded.value = false)
 
-  return { open, close, isExpanded: computed(() => !uiStore.isMobile || isExpanded.value) }
+  return { open, close, isExpanded: computed(() => !uiStore.isSmall || isExpanded.value) }
 })

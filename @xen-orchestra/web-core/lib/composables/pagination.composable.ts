@@ -81,7 +81,7 @@ export function usePagination<T>(id: string, _records: MaybeRefOrGetter<T[]>) {
   const uiStore = useUiStore()
 
   const paginationBindings = computed<PaginationBindings>(() => ({
-    size: (uiStore.isMobile ? 'small' : 'medium') as TablePaginationSize,
+    size: (uiStore.isSmall ? 'small' : 'medium') as TablePaginationSize,
     showBy: showBy.value,
     'onUpdate:showBy': (value: number) => (showBy.value = value),
     from: Math.max(0, startIndex.value + 1),

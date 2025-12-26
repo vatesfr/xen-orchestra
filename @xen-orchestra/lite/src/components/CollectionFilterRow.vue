@@ -260,7 +260,7 @@ const { id: builderValueSelectId } = useFormSelect(
     display: flex;
     gap: 1rem;
 
-    @media (--mobile) {
+    @media (--small) {
       flex-direction: column;
       gap: 0.5rem;
     }

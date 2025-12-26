@@ -88,7 +88,7 @@ If no style is applied to the root element, the class name will be omitted
 <script setup lang="ts">
 const classes = computed(() => {
   return [
-    isMobile.value ? 'typo-caption-small' : 'typo-caption',
+    isSmall.value ? 'typo-caption-small' : 'typo-caption',
     toVariants({
       accent,
       size,
@@ -109,7 +109,7 @@ const classes = computed(() => {
 <script setup lang="ts">
 const className = computed(() => {
   return [
-    isMobile.value ? 'typo-caption-small' : 'typo-caption',
+    isSmall.value ? 'typo-caption-small' : 'typo-caption',
     toVariants({
       accent,
       size,
