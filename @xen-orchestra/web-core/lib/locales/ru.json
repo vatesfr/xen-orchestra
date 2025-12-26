@@ -93,6 +93,7 @@
   "alarm-type:physical_utilisation": "Физическое использование превышает @:n-percent",
   "alarm-type:sr_io_throughput_total_per_host": "Общая пропускная способность SR IO на один хост превышает @:n-percent",
   "alarm-type:unknown": "Неизвестный тип оповещения",
+  "alarms": "Тревога",
   "all": "Все",
   "all-done!": "Все готово!",
   "all-good!": "Все в порядке!",
