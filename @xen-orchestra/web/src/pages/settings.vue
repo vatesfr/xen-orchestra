@@ -142,12 +142,18 @@ import { type BasicColorSchema } from '@vueuse/core'
 import { useCookies } from '@vueuse/integrations/useCookies'
 import { watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+
+const { go } = useRouter()
 
 const { t, locale, availableLocales } = useI18n()
 
 const cookies = useCookies(['lang'])
 
-watch(locale, newLocale => cookies.set('lang', newLocale))
+watch(locale, newLocale => {
+  cookies.set('lang', newLocale)
+  go(0)
+})
 
 const colorModeOptions = ['light', 'dark', 'auto'] as BasicColorSchema[]
 
