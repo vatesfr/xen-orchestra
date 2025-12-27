@@ -1,7 +1,12 @@
 <!-- v5 -->
 <template>
   <div :class="toVariants({ accent, disabled })" class="ui-input" @click.self="focus()">
+    <span v-if="readonly" class="typo-body-regular input text-ellipsis">
+      <input ref="inputRef" class="readonly-input" readonly type="text" />
+      {{ modelValue }}
+    </span>
     <input
+      v-else
       :id="wrapperController?.id ?? id"
       ref="inputRef"
       :value="modelValue"
@@ -15,7 +20,6 @@
     <UiButtonIcon
       v-if="!disabled && modelValue && clearable"
       icon="fa:xmark"
-      :target-scale="1.6"
       accent="brand"
       size="small"
       @click="clear()"
@@ -53,13 +57,18 @@ const {
   id?: string
   required?: boolean
   disabled?: boolean
+  readonly?: boolean
   type?: InputType
   icon?: IconName
   rightIcon?: IconName
   clearable?: boolean
 }>()
 
-const modelValue = defineModel<string | number>({ required: true })
+const emit = defineEmits<{
+  clear: []
+}>()
+
+const modelValue = defineModel<string | number | undefined>({ required: true })
 
 const slots = defineSlots<{
   'right-icon'?(): any
@@ -97,6 +106,7 @@ function focus() {
 
 function clear() {
   modelValue.value = ''
+  emit('clear')
   focus()
 }
 
@@ -115,12 +125,18 @@ defineExpose({ focus })
   color: var(--color-neutral-txt-primary);
   height: 4rem;
   width: 100%;
-  min-width: 15rem;
+  text-align: left;
   padding-inline: 1.6rem;
 
   .right-icon {
     pointer-events: none;
     color: var(--color-brand-txt-base);
+  }
+
+  .readonly-input {
+    border: none;
+    width: 0;
+    padding: 0;
   }
 
   .input {
