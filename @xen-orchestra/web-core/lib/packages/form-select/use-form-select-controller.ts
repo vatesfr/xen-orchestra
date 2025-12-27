@@ -50,7 +50,15 @@ export function useFormSelectController(select: FormSelect) {
 
   const { floatingStyles } = useFloating(triggerRef, dropdownRef, {
     whileElementsMounted: autoUpdate,
-    middleware: [shift(), flip(), size()],
+    middleware: [
+      shift(),
+      flip(),
+      size({
+        apply: ({ availableHeight, elements }) => {
+          elements.floating.style.maxHeight = `${Math.min(500, availableHeight)}px`
+        },
+      }),
+    ],
     placement: 'bottom-start',
     open: isOpen,
     strategy: 'fixed',
