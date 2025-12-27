@@ -17,13 +17,7 @@ export type ButtonIconAccent = 'brand' | 'warning' | 'danger'
 
 export type ButtonIconSize = 'small' | 'medium' | 'large'
 
-const {
-  accent,
-  size,
-  disabled,
-  selected,
-  targetScale = 1,
-} = defineProps<{
+const { accent, size, disabled, selected, targetScale } = defineProps<{
   icon: IconName
   size: ButtonIconSize
   accent: ButtonIconAccent
@@ -34,11 +28,13 @@ const {
 }>()
 
 const cssTargetScale = computed(() => {
-  if (typeof targetScale === 'number') {
-    return `scale(${targetScale})`
+  const scale = targetScale ?? (size === 'small' ? 1.6 : 1)
+
+  if (typeof scale === 'number') {
+    return `scale(${scale})`
   }
 
-  return `scale(${targetScale.x}, ${targetScale.y})`
+  return `scale(${scale.x}, ${scale.y})`
 })
 
 const classNames = computed(() => {
