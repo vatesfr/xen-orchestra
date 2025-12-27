@@ -5355,6 +5355,13 @@
   resolved "https://registry.yarnpkg.com/@vueuse/metadata/-/metadata-13.9.0.tgz#57c738d99661c33347080c0bc4cd11160e0d0881"
   integrity sha512-1AFRvuiGphfF7yWixZa0KwjYH8ulyjDCC0aFgrGRz8+P4kvDFSdXLVfTk5xAN9wEuD1J6z4/myMoYbnHoX07zg==
 
+"@vueuse/router@^13.0.0":
+  version "13.9.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/router/-/router-13.9.0.tgz#44235e6732a30b53d1c8e2ef13ce783fdd189ca6"
+  integrity sha512-7AYay8Pv/0fC4D0eygbIyZuLyVs+9D7dsnO5D8aqat9qcOz91v/XFWR667WE1+p+OkU0ib+FjQUdnTVBNoIw8g==
+  dependencies:
+    "@vueuse/shared" "13.9.0"
+
 "@vueuse/shared@13.9.0", "@vueuse/shared@^13.0.0":
   version "13.9.0"
   resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-13.9.0.tgz#7168b4ed647e625b05eb4e7e80fe8aabd00e3923"
