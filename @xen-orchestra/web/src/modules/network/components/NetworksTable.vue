@@ -6,10 +6,8 @@
         <slot name="title-actions" />
       </template>
     </UiTitle>
+    <VtsQueryBuilder v-model="filter" :schema />
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="value => (searchQuery = value)" />
-      </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -31,16 +29,21 @@ import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-n
 import { getNetworkStatus } from '@/modules/network/utils/xo-network.util.ts'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
+import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon } from '@core/icons'
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
+import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useNetworkColumns } from '@core/tables/column-sets/network-columns.ts'
-import { computed, ref } from 'vue'
+import { useBooleanSchema } from '@core/utils/query-builder/use-boolean-schema.ts'
+import { useNumberSchema } from '@core/utils/query-builder/use-number-schema.ts'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
@@ -65,18 +68,18 @@ const { pifs, getPifsByIds } = useXoPifCollection()
 
 const selectedNetworkId = useRouteQuery('id')
 
-const searchQuery = ref('')
+const { items: filteredNetworks, filter } = useQueryBuilderFilter(internal ? 'inw' : 'nw', () => rawNetworks)
 
-const filteredNetworks = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return rawNetworks
-  }
-
-  return rawNetworks.filter(network =>
-    Object.values(network).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
+const schema = useQueryBuilderSchema<FrontXoNetwork>({
+  '': useStringSchema(t('any-property')),
+  name_label: useStringSchema(t('name')),
+  name_description: useStringSchema(t('description')),
+  MTU: useNumberSchema(t('mtu')),
+  tags: useStringSchema(t('tags')),
+  defaultIsLocked: useBooleanSchema(t('default-locking-mode'), {
+    true: t('locked'),
+    false: t('unlocked'),
+  }),
 })
 
 const state = useTableState({

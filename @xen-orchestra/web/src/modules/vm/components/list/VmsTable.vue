@@ -3,10 +3,8 @@
     <UiTitle>
       {{ t('vms') }}
     </UiTitle>
+    <VtsQueryBuilder v-model="filter" :schema />
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="value => (searchQuery = value)" />
-      </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <HeadCells />
@@ -26,21 +24,26 @@ import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-co
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { getVmIpAddresses } from '@/modules/vm/utils/xo-vm.util.ts'
+import { ONE_GB } from '@/shared/constants.ts'
+import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { objectIcon } from '@core/icons'
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema'
+import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter'
 import { useVmColumns } from '@core/tables/column-sets/vm-columns.ts'
 import { renderLoadingCell } from '@core/tables/helpers/render-loading-cell.ts'
+import { useNumberSchema } from '@core/utils/query-builder/use-number-schema'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
-import type { XoVdi } from '@vates/types'
+import { VM_POWER_STATE, type XoVdi } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 import { toLower } from 'lodash-es'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const {
@@ -60,16 +63,33 @@ const { t } = useI18n()
 
 const selectedVmId = useRouteQuery('id')
 
-const searchQuery = ref('')
+const { items: filteredVms, filter } = useQueryBuilderFilter('vms', () => rawVms)
 
-const filteredVms = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return rawVms
-  }
-
-  return rawVms.filter(vm => Object.values(vm).some(value => String(value).toLocaleLowerCase().includes(searchTerm)))
+const schema = useQueryBuilderSchema<FrontXoVm>({
+  '': useStringSchema(t('any-property')),
+  id: useStringSchema(t('id')),
+  name_label: useStringSchema(t('name')),
+  name_description: useStringSchema(t('description')),
+  power_state: useStringSchema(t('power-state'), {
+    [VM_POWER_STATE.RUNNING]: t('status:running'),
+    [VM_POWER_STATE.HALTED]: t('status:halted'),
+    [VM_POWER_STATE.SUSPENDED]: t('status:suspended'),
+    [VM_POWER_STATE.PAUSED]: t('status:paused'),
+  }),
+  addresses: useStringSchema(t('ip-addresses')),
+  'CPUs.number': useNumberSchema(t('vcpus')),
+  'memory.size': useNumberSchema(t('ram'), {
+    [ONE_GB]: t('n-gb', { n: 1 }),
+    [2 * ONE_GB]: t('n-gb', { n: 2 }),
+    [4 * ONE_GB]: t('n-gb', { n: 4 }),
+    [8 * ONE_GB]: t('n-gb', { n: 8 }),
+    [16 * ONE_GB]: t('n-gb', { n: 16 }),
+    [32 * ONE_GB]: t('n-gb', { n: 32 }),
+    [64 * ONE_GB]: t('n-gb', { n: 64 }),
+    [128 * ONE_GB]: t('n-gb', { n: 128 }),
+    [256 * ONE_GB]: t('n-gb', { n: 256 }),
+  }),
+  tags: useStringSchema(t('tags')),
 })
 
 const state = useTableState({
