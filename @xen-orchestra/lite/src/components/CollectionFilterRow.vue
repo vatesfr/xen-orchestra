@@ -166,20 +166,20 @@ watch(generatedFilter, value => {
 const comparisons = computed<FilterComparisons>(() => {
   const comparisonsByType = {
     string: {
-      stringContains: t('filter:comparison:contains'),
-      stringEquals: t('filter:comparison:equals'),
-      stringStartsWith: t('filter:comparison:starts-with'),
-      stringEndsWith: t('filter:comparison:ends-with'),
-      stringMatchesRegex: t('filter:comparison:matches-regex'),
-      stringDoesNotContain: t('filter:comparison:not-contain'),
-      stringDoesNotEqual: t('filter:comparison:not-equal'),
-      stringDoesNotStartWith: t('filter:comparison:not-start-with'),
-      stringDoesNotEndWith: t('filter:comparison:not-end-with'),
-      stringDoesNotMatchRegex: t('filter:comparison:not-match-regex'),
+      stringContains: t('query-builder:operator:contains'),
+      stringEquals: t('query-builder:operator:equals'),
+      stringStartsWith: t('query-builder:operator:starts-with'),
+      stringEndsWith: t('query-builder:operator:ends-with'),
+      stringMatchesRegex: t('query-builder:operator:matches-regex'),
+      stringDoesNotContain: t('query-builder:operator:not-contain'),
+      stringDoesNotEqual: t('query-builder:operator:not-equal'),
+      stringDoesNotStartWith: t('query-builder:operator:not-start-with'),
+      stringDoesNotEndWith: t('query-builder:operator:not-end-with'),
+      stringDoesNotMatchRegex: t('query-builder:operator:not-match-regex'),
     },
     boolean: {
-      booleanTrue: t('filter:comparison:is-true'),
-      booleanFalse: t('filter:comparison:is-false'),
+      booleanTrue: t('query-builder:operator:is-true'),
+      booleanFalse: t('query-builder:operator:is-false'),
     },
     number: {
       numberLessThan: '<',
@@ -189,8 +189,8 @@ const comparisons = computed<FilterComparisons>(() => {
       numberGreaterThan: '>',
     },
     enum: {
-      enumIs: t('filter:comparison:is'),
-      enumIsNot: t('filter:comparison:is-not'),
+      enumIs: t('query-builder:operator:is'),
+      enumIsNot: t('query-builder:operator:is-not'),
     },
   }
 

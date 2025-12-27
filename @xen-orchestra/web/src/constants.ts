@@ -12,5 +12,7 @@ export const XCP_LINKS = {
   COMMUNITY: 'https://xcp-ng.org/forum',
   DOC: 'https://xcp-ng.org/docs/',
   SUPPORT: 'https://vates.tech/pricing-and-support?utm_campaign=xo6&utm_term=pricing',
-  GUEST_TOOLS: 'https://docs.xcp-ng.org/vms/#guest-tools'
+  GUEST_TOOLS: 'https://docs.xcp-ng.org/vms/#guest-tools',
 }
+
+export const ONE_GB = 1024 ** 3
