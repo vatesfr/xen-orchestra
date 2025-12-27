@@ -3,10 +3,8 @@
     <UiTitle>
       {{ t('pools') }}
     </UiTitle>
+    <VtsQueryBuilder v-model="filter" :schema />
     <div class="container">
-      <div class="table-actions">
-        <UiQuerySearchBar @search="value => (searchQuery = value)" />
-      </div>
       <VtsTable :state :pagination-bindings sticky="right">
         <thead>
           <tr>
@@ -30,18 +28,21 @@ import {
   useXoServerCollection,
   type FrontXoServer,
 } from '@/modules/server/remote-resources/use-xo-server-collection.ts'
+import VtsQueryBuilder from '@core/components/query-builder/VtsQueryBuilder.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
-import UiQuerySearchBar from '@core/components/ui/query-search-bar/UiQuerySearchBar.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
 import { icon, objectIcon } from '@core/icons'
+import { useQueryBuilderSchema } from '@core/packages/query-builder/schema/use-query-builder-schema.ts'
+import { useQueryBuilderFilter } from '@core/packages/query-builder/use-query-builder-filter.ts'
 import { useServerColumns } from '@core/tables/column-sets/server-columns.ts'
+import { useStringSchema } from '@core/utils/query-builder/use-string-schema.ts'
 import { logicNot } from '@vueuse/math'
 import { toLower } from 'lodash-es'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { servers: rawServers } = defineProps<{
@@ -56,18 +57,17 @@ const { getHostById, isMasterHost } = useXoHostCollection()
 
 const selectedServerId = useRouteQuery('id')
 
-const searchQuery = ref('')
+const { items: filteredServers, filter } = useQueryBuilderFilter<FrontXoServer>('servers', () => rawServers)
 
-const filteredServers = computed(() => {
-  const searchTerm = searchQuery.value.trim().toLocaleLowerCase()
-
-  if (!searchTerm) {
-    return rawServers
-  }
-
-  return rawServers.filter(server =>
-    Object.values(server).some(value => String(value).toLocaleLowerCase().includes(searchTerm))
-  )
+const schema = useQueryBuilderSchema<FrontXoServer>({
+  '': useStringSchema(t('any-property')),
+  poolNameLabel: useStringSchema(t('name')),
+  host: useStringSchema(t('ip-address')),
+  status: useStringSchema(t('status'), {
+    connected: t('connected'),
+    connecting: t('connecting'),
+    disconnected: t('disconnected'),
+  }),
 })
 
 const state = useTableState({
