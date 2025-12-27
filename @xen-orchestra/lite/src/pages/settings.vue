@@ -132,6 +132,7 @@ import { useI18n } from 'vue-i18n'
 
 const xoLiteVersion = XO_LITE_VERSION
 const xoLiteGitHead = XO_LITE_GIT_HEAD
+
 const { t, locale, availableLocales } = useI18n()
 
 usePageTitleStore().setTitle(() => t('settings'))
@@ -143,7 +144,10 @@ const { getByOpaqueRef: getHost } = useHostStore().subscribe()
 const poolMaster = computed(() => (pool.value ? getHost(pool.value.master) : undefined))
 const xcpVersion = computed(() => poolMaster.value?.software_version.product_version)
 
-watch(locale, newLocale => localStorage.setItem('lang', newLocale))
+watch(locale, newLocale => {
+  localStorage.setItem('lang', newLocale)
+  window.location.reload()
+})
 
 const colorModeOptions = ['light', 'dark', 'auto'] as BasicColorSchema[]
 
