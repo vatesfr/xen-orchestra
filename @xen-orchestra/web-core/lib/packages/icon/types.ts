@@ -9,6 +9,7 @@ export type IconTransforms = {
   size?: number | [number, number]
   rotate?: number
   flip?: 'horizontal' | 'vertical' | 'both'
+  spin?: boolean | number
   color?: string
 }
 
@@ -24,6 +25,7 @@ export type IconBindings = {
     rotate?: string
     translate?: string
     scale?: string
+    '--spin-duration'?: string
   }
 }
 
