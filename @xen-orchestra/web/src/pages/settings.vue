@@ -165,7 +165,10 @@ const { t, locale, availableLocales } = useI18n()
 
 const cookies = useCookies(['lang'])
 
-watch(locale, newLocale => cookies.set('lang', newLocale))
+watch(locale, newLocale => {
+  cookies.set('lang', newLocale)
+  window.location.reload()
+})
 
 const colorModeOptions = ['light', 'dark', 'auto'] as BasicColorSchema[]
 
