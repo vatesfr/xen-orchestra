@@ -85,7 +85,6 @@ const className = computed(() => toVariants({ accent }))
     padding: 3.2rem 2.4rem 2.4rem;
     gap: 2.4rem;
     border-radius: 1rem;
-    overflow: auto;
 
     &:not(:has(.buttons)) {
       padding-bottom: 3.2rem;
