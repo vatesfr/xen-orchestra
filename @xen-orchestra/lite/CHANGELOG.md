@@ -3,6 +3,7 @@
 ## **next**
 
 - [VM/New] Fix wording in "Memory" section (PR [#9309](https://github.com/vatesfr/xen-orchestra/pull/9309))
+- [XoLite] Add ellipsis on link, and limit width of some cards (PR [#9234](https://github.com/vatesfr/xen-orchestra/pull/9234))
 
 ## **0.17.0** (2025-11-27)
 

@@ -11,6 +11,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- **XO 6:**
+  - [XO6] Add ellipsis on link, and limit width of some cards (PR [#9234](https://github.com/vatesfr/xen-orchestra/pull/9234))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,5 +33,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web patch
+- @xen-orchestra/web-core patch
 
 <!--packages-end-->
