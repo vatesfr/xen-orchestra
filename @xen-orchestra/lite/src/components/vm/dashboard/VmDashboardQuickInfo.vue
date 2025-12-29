@@ -3,7 +3,7 @@
     <VtsKeyValueList>
       <VtsKeyValueRow :label="t('state')">
         <template #value>
-          <span class="value">
+          <span class="power-state">
             <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
