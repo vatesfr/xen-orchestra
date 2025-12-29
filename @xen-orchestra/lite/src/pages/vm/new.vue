@@ -1011,10 +1011,6 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
     .memory-container {
       display: flex;
       gap: 10.8rem;
-
-      .topology {
-        width: 32rem;
-      }
     }
 
     thead tr th:last-child {
