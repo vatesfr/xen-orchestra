@@ -77,6 +77,20 @@ interface XapiCredentialsPayload {
   labels: LabelLookupData
 }
 
+interface SrDataItem {
+  uuid: string
+  name_label: string
+  pool_id: string
+  pool_name: string
+  size: number
+  physical_usage: number
+  usage: number
+}
+
+interface SrDataPayload {
+  srs: SrDataItem[]
+}
+
 // Union type for all XO objects we handle
 type XoObject = XoHost | XoPool | XoVm | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
 
@@ -302,6 +316,16 @@ class OpenMetricsPlugin {
         break
       }
 
+      case 'GET_SR_DATA': {
+        const srData = this.#getSrData()
+        this.#sendToChildNoWait({
+          type: 'SR_DATA',
+          requestId: message.requestId,
+          payload: srData,
+        })
+        break
+      }
+
       default:
         logger.warn('Unknown message type from child', { type: message.type })
     }
@@ -376,6 +400,39 @@ class OpenMetricsPlugin {
 
     logger.debug('Returning host credentials', { hostCount: hosts.length })
     return { hosts, labels: this.#getLabelLookupData() }
+  }
+
+  /**
+   * Get SR data for capacity metrics.
+   * Returns size, physical_usage, and virtual_allocation (usage) for all SRs.
+   */
+  #getSrData(): SrDataPayload {
+    const srs: SrDataItem[] = []
+
+    // Get all pools to resolve pool labels
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of Object.values(allPools)) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    // Get all SRs
+    const allSrs = this.#xo.getObjects({ filter: { type: 'SR' } }) as Record<string, XoSr>
+
+    for (const sr of Object.values(allSrs)) {
+      srs.push({
+        uuid: sr.uuid,
+        name_label: sr.name_label,
+        pool_id: sr.$poolId,
+        pool_name: poolLabelMap.get(sr.$poolId) ?? '',
+        size: sr.size,
+        physical_usage: sr.physical_usage,
+        usage: sr.usage,
+      })
+    }
+
+    logger.debug('Returning SR data', { srCount: srs.length })
+    return { srs }
   }
 
   /**
