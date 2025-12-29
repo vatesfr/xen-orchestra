@@ -3,7 +3,7 @@
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
-          <span class="value">
+          <span class="power-state">
             <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
@@ -17,7 +17,7 @@
       <VtsQuickInfoRow :label="t('uuid')" :value="vm.uuid" />
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
-          <span v-if="host" class="value">
+          <span v-if="host" class="host-name">
             <VtsObjectIcon type="host" :state="hostPowerState" size="medium" />
             <UiLink :to="`/host/${host.uuid}`" size="medium">
               {{ host.name_label }}
@@ -187,11 +187,15 @@ const mainIpAddress = computed(() => {
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
-  .value {
-    min-width: 0;
+  .power-state,
+  .host-name {
     display: flex;
     align-items: center;
     gap: 0.8rem;
+  }
+
+  .host-name {
+    min-width: 0;
   }
 }
 </style>
