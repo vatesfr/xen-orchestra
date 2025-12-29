@@ -1,1 +1,21 @@
-{}
+{
+  "about": "O aplikacji",
+  "account": "Konto",
+  "action:add": "Dodaj",
+  "action:close": "Zamknij",
+  "action:copy": "Skopiuj",
+  "action:create": "Utwórz",
+  "action:delete": "Usuń",
+  "action:deploy": "Wdrażaj",
+  "action:edit": "Edytuj",
+  "action:export": "Eksportuj",
+  "action:filter": "Filtr",
+  "action:forget": "Zapomnij",
+  "action:group": "Grupa",
+  "action:hide": "Ukryj",
+  "action:migrate": "Migruj",
+  "action:open": "Otwórz",
+  "action:reboot": "Uruchom ponownie",
+  "action:reformat": "Sformatuj ponownie",
+  "action:resume": "Wznów"
+}
