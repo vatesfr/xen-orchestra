@@ -3,7 +3,7 @@
     <VtsQuickInfoColumn>
       <VtsQuickInfoRow :label="t('state')">
         <template #value>
-          <span class="value">
+          <span class="power-state">
             <VtsIcon :name="powerState.icon" size="medium" />
             {{ powerState.text }}
           </span>
@@ -55,7 +55,7 @@
       <VtsQuickInfoRow :label="t('virtualization-type')" :value="virtualizationType" />
       <VtsQuickInfoRow :label="t('guest-tools')">
         <template #value>
-          <div class="value">
+          <div class="guest-tools">
             <VtsIcon
               v-if="guestToolsDisplay.value !== '-'"
               v-tooltip="guestToolsDisplay.tooltip"
@@ -145,11 +145,19 @@ const hostPowerState = computed(() =>
 
 <style lang="postcss" scoped>
 .vm-dashboard-quick-info {
-  .value {
-    min-width: 0;
+  .power-state,
+  .pool-name,
+  .host-name,
+  .guest-tools {
     display: flex;
     align-items: center;
     gap: 0.8rem;
+  }
+
+  .pool-name,
+  .host-name,
+  .guest-tools {
+    min-width: 0;
   }
 }
 </style>
