@@ -8,7 +8,7 @@
         </span>
       </div>
       <div v-else>
-        <span>{{ t('host-unknown') }}</span>
+        <span>{{ t('host:status:unknown') }}</span>
       </div>
     </td>
     <td v-tooltip class="typo-body-regular-small text-ellipsis device">{{ pif.device }}</td>
