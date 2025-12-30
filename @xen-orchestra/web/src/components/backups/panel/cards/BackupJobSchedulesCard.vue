@@ -62,7 +62,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useXoRoutes } from '@/remote-resources/use-xo-routes'
+import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'

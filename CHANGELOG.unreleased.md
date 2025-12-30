@@ -12,7 +12,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - **XO 6:**
-  - [XO6] Add ellipsis on link, and limit width of some cards (PR [#9234](https://github.com/vatesfr/xen-orchestra/pull/9234))
+  - [XO6] Add ellipsis on link (PR [#9234](https://github.com/vatesfr/xen-orchestra/pull/9234))
 
 ### Bug fixes
 

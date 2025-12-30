@@ -5,11 +5,9 @@
         {{ label }}
       </slot>
     </span>
-    <span class="typo-body-regular value">
+    <span v-tooltip class="typo-body-regular value text-ellipsis">
       <slot name="value">
-        <span v-tooltip class="text-ellipsis value-prop">
-          {{ value }}
-        </span>
+        {{ value }}
       </slot>
     </span>
   </div>
@@ -36,7 +34,6 @@ const uiStore = useUiStore()
 .vts-quick-info-row {
   display: flex;
   gap: 2.4rem;
-  max-width: 100%;
 
   &.mobile {
     flex-direction: column;
@@ -44,8 +41,8 @@ const uiStore = useUiStore()
   }
 
   .label {
+    flex-shrink: 0;
     color: var(--color-neutral-txt-secondary);
-    min-width: 30%;
   }
 
   .value {
@@ -53,9 +50,8 @@ const uiStore = useUiStore()
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    min-width: 30%;
 
-    .value-prop:empty::before {
+    &:empty::before {
       content: '-';
     }
   }
