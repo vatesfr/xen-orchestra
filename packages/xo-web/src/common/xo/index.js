@@ -3867,6 +3867,21 @@ export const deleteNetworkConfigs = ids => {
 export const editNetworkConfig = (networkConfig, props) =>
   _call('cloudConfig.update', { ...props, id: resolveId(networkConfig) })::tap(subscribeNetworkConfigs.forceRefresh)
 
+// XO-HUB   ---------------------------------------------------------------------
+
+export const getResourceCatalog = ({ filters } = {}) => _call('cloud.getResourceCatalog', { filters })
+
+export const getAllResourceCatalog = () => _call('cloud.getAllResourceCatalog')
+
+export const downloadAndInstallResource = ({ namespace, id, version, sr, templateOnly }) =>
+  _call('cloud.downloadAndInstallResource', {
+    namespace,
+    id,
+    version,
+    sr: resolveId(sr),
+    templateOnly,
+  })
+
 // XOSTOR   --------------------------------------------------------------------
 
 export const createXostorSr = params => _call('xostor.create', params)
