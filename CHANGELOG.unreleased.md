@@ -38,7 +38,7 @@
 - [Backups] Backups no longer use their own task system, but instead use the same system as XO Task. This will help improve loading times in the future (PR [#9734](https://github.com/vatesfr/xen-orchestra/pull/9734))
 
 - **XO 6:**
-  - [XO6] Add ellipsis on link, and limit width of some cards (PR [#9234](https://github.com/vatesfr/xen-orchestra/pull/9234))
+  - [XO6] Add ellipsis on link (PR [#9234](https://github.com/vatesfr/xen-orchestra/pull/9234))
 
 ### Bug fixes
 

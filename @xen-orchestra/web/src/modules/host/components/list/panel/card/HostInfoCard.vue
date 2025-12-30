@@ -170,6 +170,7 @@ const relativeStartTime = computed(() => (host.startTime ? getRelativeStartTime(
 
     .value {
       display: flex;
+      align-items: center;
       gap: 0.8rem;
     }
   }
