@@ -4,7 +4,12 @@
       {{ t('source-backup-repository') }}
     </UiCardTitle>
     <UiLink size="small" :icon="sourceBackupRepositoryIcon" :href wrap>
-      {{ sourceBackupRepository.name }}
+      {{
+        sourceBackupRepository.name +
+        sourceBackupRepository.name +
+        sourceBackupRepository.name +
+        sourceBackupRepository.name
+      }}
     </UiLink>
   </UiCard>
 </template>

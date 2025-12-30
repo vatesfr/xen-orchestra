@@ -41,6 +41,7 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
   color: var(--color-brand-txt-base);
   min-width: 0;
   max-width: 100%;
+  align-items: center;
 
   &:hover {
     color: var(--color-brand-txt-hover);
