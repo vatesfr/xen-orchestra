@@ -1,12 +1,13 @@
 <template>
   <UiCard :has-error>
     <UiCardTitle>
-      {{ t('backups') }}
+      {{ t('backups:jobs:status') }}
       <template #info>
-        <UiLink size="small" to="/backups"> {{ t('see-all') }}</UiLink>
+        <UiLink size="small" to="/backups"> {{ t('action:see-all') }}</UiLink>
       </template>
+      <template #description>{{ t('backups:jobs:last-seven-days') }}</template>
     </UiCardTitle>
-    <VtsStateHero v-if="!areBackupsReady" format="card" type="busy" size="medium" />
+    <VtsStateHero v-if="!areBackupsJobsReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
@@ -14,7 +15,7 @@
       {{ t('no-data-to-calculate') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend :segments="jobsSegments" :title="jobsTitle" />
+      <VtsDonutChartWithLegend :segments="jobsSegments" />
       <UiCardNumbers :label="t('total')" :value="backups.jobs.total" size="small" />
     </template>
   </UiCard>
@@ -46,12 +47,6 @@ const { backups } = defineProps<{
 const areBackupsJobsReady = computed(() => backups?.jobs !== undefined)
 
 const { t } = useI18n()
-
-const jobsTitle = computed<DonutChartWithLegendProps['title']>(() => ({
-  label: t('jobs'),
-  iconTooltip: t('backups:jobs:last-seven-days'),
-  icon: 'fa:info-circle',
-}))
 
 const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {

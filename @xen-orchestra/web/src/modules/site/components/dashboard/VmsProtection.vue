@@ -1,7 +1,10 @@
 <template>
   <UiCard>
-    <UiCardTitle>{{ t('backups.vms-protection') }}</UiCardTitle>
-    <VtsStateHero v-if="!areBackupsVmsProtectionReady" format="card" busy size="medium" />
+    <UiCardTitle>
+      {{ t('backups:vms-protection') }}
+      <template #description>{{ t('in-last-three-runs') }}</template>
+    </UiCardTitle>
+    <VtsStateHero v-if="!areBackupsVmsProtectionReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="backups === undefined" format="card" type="no-data" size="medium" />
     <template v-else>
       <VtsDonutChartWithLegend :segments="vmsProtectionSegments" />
@@ -35,17 +38,17 @@ const { t } = useI18n()
 
 const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
-    label: t('backups.vms-protection.protected'),
+    label: t('backups:vms-protection:protected'),
     value: backups?.vmsProtection.protected ?? 0,
     accent: 'success',
   },
   {
-    label: t('backups.vms-protection.unprotected'),
+    label: t('backups:vms-protection:unprotected'),
     value: backups?.vmsProtection.unprotected ?? 0,
     accent: 'warning',
   },
   {
-    label: t('backups.vms-protection.no-job'),
+    label: t('backups:vms-protection:no-job'),
     value: backups?.vmsProtection.notInJob ?? 0,
     accent: 'muted',
   },

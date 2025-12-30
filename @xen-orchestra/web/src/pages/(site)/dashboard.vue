@@ -17,8 +17,8 @@
       :has-error
     />
         <BackupJobsStatus class="backup-jobs-status" :backups="dashboard.backups" :has-error />
-        <VmsProtection class="vms-protection" :backups="dashboard.backups" :has-error />
         <BackupIssues class="backup-issues" :issues="dashboard.backups?.issues" :has-error />
+        <VmsProtection class="vms-protection" :backups="dashboard.backups" :has-error />
         <BackupRepository class="backup-repository" :repositories="backupRepositories" :has-error />
         <StorageRepository class="storage-repository" :repositories="storageRepositories" :has-error />
         <S3BackupRepository class="s3-backup-repository" :size="dashboard.backupRepositories?.s3?.size" :has-error />
@@ -78,7 +78,7 @@ const areAlarmsReady = logicAnd(areHostsReady, areVmsReady, areVmControllersRead
     grid-template-columns: repeat(3, 1fr);
     grid-template-areas:
       'alarms alarms patches'
-      'backup-jobs-status vms-protection backup-issues'
+      'backup-jobs-status backup-issues vms-protection'
       'backup-repository storage-repository s3-backup-repository';
   }
 
@@ -111,12 +111,12 @@ const areAlarmsReady = logicAnd(areHostsReady, areVmsReady, areVmControllersRead
     grid-area: backup-jobs-status;
   }
 
-  .vms-protection {
-    grid-area: vms-protection;
-  }
-
   .backup-issues {
     grid-area: backup-issues;
+  }
+
+  .vms-protection {
+    grid-area: vms-protection;
   }
 
   .backup-repository {
