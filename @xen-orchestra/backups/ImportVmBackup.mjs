@@ -11,6 +11,7 @@ import pickBy from 'lodash/pickBy.js'
 import { defer } from 'golike-defer'
 import { NegativeDisk } from '@xen-orchestra/disk-transform'
 import { openDiskChain } from './disks/openDiskChain.mjs'
+import { resetVmOtherConfig } from './_otherConfig.mjs'
 
 const { debug, info, warn } = createLogger('xo:backups:importVmBackup')
 async function resolveUuid(xapi, cache, uuid, type) {
@@ -270,6 +271,7 @@ export class ImportVmBackup {
             `${metadata.vm.name_label} (${formatFilenameDate(metadata.timestamp)})`
           ),
           xapi.call('VM.set_name_description', vmRef, desc),
+          resetVmOtherConfig(xapi, vmRef),
         ])
 
         return {
