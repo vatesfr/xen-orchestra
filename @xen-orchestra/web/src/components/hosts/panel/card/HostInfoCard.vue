@@ -82,8 +82,8 @@
               wrap
             >
               {{ masterHost.name_label }}
+              <VtsIcon v-if="masterHost" v-tooltip="t('master')" name="legacy:primary" size="medium" />
             </UiLink>
-            <VtsIcon v-if="masterHost" v-tooltip="t('master')" name="legacy:primary" size="medium" />
           </div>
         </template>
         <template v-if="masterHost !== undefined" #addons>

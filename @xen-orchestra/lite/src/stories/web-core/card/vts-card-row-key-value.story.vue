@@ -31,9 +31,7 @@
         </template>
 
         <template #value>
-          <UiObjectLink route="`/vm/test/console`" icon="object:network:connected">
-            <span>Network Name</span>
-          </UiObjectLink>
+          <UiLink to="#" size="medium" icon="object:network:connected">Network Name</UiLink>
         </template>
         <template #addons>
           <UiButtonIcon icon="fa:copy" size="small" accent="brand" />
@@ -65,7 +63,7 @@ import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 </script>
 
 <style lang="postcss" scoped>

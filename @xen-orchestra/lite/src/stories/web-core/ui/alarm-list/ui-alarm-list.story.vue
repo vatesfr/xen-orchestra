@@ -4,32 +4,17 @@
       <UiAlarmList>
         <UiAlarmItem label="Label" :percent="93.2" size="large" :description :date="Date.now()">
           <template #link>
-            <UiObjectLink route="#">
-              <template #icon>
-                <VtsIcon size="medium" name="object:vm:running" />
-              </template>
-              VM1
-            </UiObjectLink>
+            <UiLink to="#" size="medium" icon="object:vm:running">VM1</UiLink>
           </template>
         </UiAlarmItem>
         <UiAlarmItem label="Label" :percent="93.2" size="large" :description :date="Date.now()">
           <template #link>
-            <UiObjectLink route="#">
-              <template #icon>
-                <VtsIcon size="medium" name="object:vm:running" />
-              </template>
-              VM1
-            </UiObjectLink>
+            <UiLink to="#" size="medium" icon="object:vm:running">VM2</UiLink>
           </template>
         </UiAlarmItem>
         <UiAlarmItem label="Label" :percent="93.2" size="large" :description :date="Date.now()">
           <template #link>
-            <UiObjectLink route="#">
-              <template #icon>
-                <VtsIcon size="medium" name="object:vm:running" />
-              </template>
-              VM1
-            </UiObjectLink>
+            <UiLink to="#" size="medium" icon="object:vm:running">VM3</UiLink>
           </template>
         </UiAlarmItem>
       </UiAlarmList>
@@ -40,10 +25,9 @@
 <script setup lang="ts">
 import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { slot } from '@/libs/story/story-param'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import UiAlarmItem from '@core/components/ui/alarm-item/UiAlarmItem.vue'
 import UiAlarmList from '@core/components/ui/alarm-list/UiAlarmList.vue'
-import UiObjectLink from '@core/components/ui/object-link/UiObjectLink.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { ref } from 'vue'
 
 const description = ref(
