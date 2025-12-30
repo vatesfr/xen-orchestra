@@ -37,6 +37,7 @@ const classes = computed(() => [typoClasses[props.size], { disabled: isDisabled.
 <style lang="postcss" scoped>
 .ui-link {
   display: inline-flex;
+  align-items: center;
   gap: 0.8rem;
   color: var(--color-brand-txt-base);
   min-width: 0;

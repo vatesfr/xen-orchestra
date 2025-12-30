@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import type { XoSr } from '@vates/types'
 import { computed } from 'vue'
