@@ -1,7 +1,7 @@
 <template>
   <CoreLayout>
     <template #app-logo>
-      <RouterLink class="logo-link" :class="{ mobile: uiStore.isMobile }" to="/">
+      <RouterLink class="logo-link" :class="{ mobile: uiStore.isMobile }" to="/dashboard">
         <UiLogoText :text="t('xen-orchestra')" />
       </RouterLink>
     </template>

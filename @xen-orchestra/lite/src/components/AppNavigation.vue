@@ -53,11 +53,6 @@ watch(
   padding: 0.5rem;
   border-right: 1px solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);
-
-  &.collapsible {
-    position: fixed;
-    z-index: 1;
-  }
 }
 
 .slide-enter-active,
