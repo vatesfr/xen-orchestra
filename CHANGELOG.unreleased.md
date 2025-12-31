@@ -15,7 +15,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Xo-Web] Re-add methods mistakenly removed during refactor (PR [#9362](https://github.com/vatesfr/xen-orchestra/pull/9362))
+- [Hub] Fix _m.downloadAndInstallResource is not a function_ error [Forum#11735](https://xcp-ng.org/forum/topic/11735/hub-is-bugged) (PR [#9362](https://github.com/vatesfr/xen-orchestra/pull/9362))
 
 ### Packages to release
 
