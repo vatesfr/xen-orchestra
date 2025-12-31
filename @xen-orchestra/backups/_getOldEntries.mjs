@@ -28,8 +28,9 @@ import assert from 'node:assert'
  */
 
 /**
- * @typedef {Object} WithTimeStamp
- * @property {number} timestamp - Unix timestamp of the entry
+ * @typedef {Object} Entry
+ * @property {number | undefined} timestamp - Unix timestamp of the entry
+ * @property {string} id
  * @property {*} [key] - Any other properties
  */
 
@@ -38,7 +39,7 @@ import assert from 'node:assert'
  * @property {number} remaining - Number of remaining buckets to fill
  * @property {string|null} lastMatchingBucket - Last bucket key that was matched
  * @property {(date: Moment) => string} formatter - Function to format date into bucket key
- * @property {Object.<string, WithTimeStamp>} entries - Map of bucket keys to entries
+ * @property {Object.<string, Entry>} entries - Map of bucket keys to entries
  */
 
 /**
@@ -110,7 +111,7 @@ const LTR_DEFINITIONS = {
 }
 /**
  * Groups entries into date buckets based on long-term retention configuration
- * @template {WithTimeStamp} T
+ * @template {Entry} T
  * @param {Array<T>} entries - Array of entries sorted in descending order by timestamp
  * @param {LongTermRetention} longTermRetention - Configuration for retention periods
  * @param {string | undefined} timezone - IANA timezone string
@@ -155,7 +156,15 @@ export function getLtrEntries(entries, longTermRetention, timezone) {
   let previousTimestamp = -1
   for (let i = nb - 1; i >= 0; i--) {
     const entry = entries[i]
-    assert.notEqual(entry.timestamp, `Can't compute long term retention if entries don't have a timestamp`)
+    // force it so the compiler is sure we have a timestamp
+    if (entry.timestamp === undefined) {
+      assert.notStrictEqual(
+        entry.timestamp,
+        undefined,
+        `Can't compute long term retention if entries don't have a timestamp`
+      )
+      continue
+    }
     assert.ok(
       previousTimestamp === -1 || entry.timestamp < previousTimestamp,
       `entries must be sorted in desc order ${new Date(entry.timestamp)} , previous :  > ${new Date(previousTimestamp)} `
@@ -183,6 +192,27 @@ export function getLtrEntries(entries, longTermRetention, timezone) {
   return dateBuckets
 }
 
+/**
+ * return the status of an entry
+ * @param {Array<Entry>} entries
+ * @param {Entry} entry
+ * @param {LongTermRetention} longTermRetention - Configuration for retention periods
+ * @param {string | undefined} timezone - IANA timezone string
+ * @returns {Array<{duration: string, dateBucket:string}>}
+ */
+export function getEntryStatus(entries, entry, longTermRetention, timezone) {
+  const dateBuckets = getLtrEntries(entries, longTermRetention, timezone)
+  const entryBuckets = []
+  for (const [duration, { entries }] of Object.entries(dateBuckets)) {
+    for (const [dateBucket, bucketEntry] of Object.entries(entries)) {
+      if (entry.id === bucketEntry.id) {
+        entryBuckets.push({ duration, dateBucket })
+      }
+    }
+  }
+  return entryBuckets
+}
+
 // returns all entries but the last retention-th
 /**
  * return the entries too old to be kept
@@ -191,11 +221,11 @@ export function getLtrEntries(entries, longTermRetention, timezone) {
  *  if a bucket is completely empty : it does not count as one, thus it may extend the retention
  *
  * @param {number} minRetentionCount - Minimum number of most recent entries to always keep
- * @param {Array<WithTimeStamp>} entries - Array of entries sorted in descending order by timestamp
+ * @param {Array<Entry>} entries - Array of entries sorted in descending order by timestamp
  * @param {Object} options - Additional options
  * @param {LongTermRetention} [options.longTermRetention={}] - Configuration for retention periods
  * @param {string | undefined} [options.timezone] - IANA timezone string
- * @returns {Array<WithTimeStamp>} Array of entries that can be removed
+ * @returns {Array<Entry>} Array of entries that can be removed
  */
 export function getOldEntries(minRetentionCount, entries, { longTermRetention = {}, timezone } = {}) {
   assert.strictEqual(
@@ -212,7 +242,7 @@ export function getOldEntries(minRetentionCount, entries, { longTermRetention = 
 
   const kept = new Set(entries.filter((_, index) => index >= entries.length - minRetentionCount))
   /**
-   * @type {Set<WithTimeStamp>}
+   * @type {Set<Entry>}
    */
   for (const { entries } of Object.values(dateBuckets)) {
     for (const entry of Object.values(entries)) {
