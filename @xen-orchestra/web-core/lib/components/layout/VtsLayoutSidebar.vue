@@ -1,6 +1,11 @@
 <template>
   <div
-    :class="{ locked: sidebar.isLocked && !ui.isMobile, expanded: sidebar.isExpanded, mobile: ui.isMobile }"
+    :class="{
+      locked: sidebar.isLocked && !ui.isMobile,
+      expanded: sidebar.isExpanded,
+      mobile: ui.isMobile,
+      'no-border-right': ui.isMobile,
+    }"
     class="vts-layout-sidebar"
   >
     <div v-if="!ui.isMobile" class="lock">
@@ -99,5 +104,9 @@ const ui = useUiStore()
       transition: background-color 0.05s;
     }
   }
+}
+
+.no-border-right {
+  border-right: none;
 }
 </style>
