@@ -45,7 +45,7 @@ function formatVmBackup(backup) {
       name_label: backup.vm.name_label,
       tags: backup.vm.tags,
     },
-    tags: backup.tags,
+    tags: backup.tags ?? [],
     differencingVhds,
     dynamicVhds,
     withMemory,
