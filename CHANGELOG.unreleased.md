@@ -15,6 +15,7 @@
 - [REST API] Update `/dashboard` endpoint to also return disconnected servers, disabled hosts, the status of all VMs, and compute `jobs` from the last seven days (PR [#9207](https://github.com/vatesfr/xen-orchestra/pull/9207))
 - [vhd-cli] Prevent using invalid options (PR [#9386](https://github.com/vatesfr/xen-orchestra/pull/9386))
 - [REST API] Add endpoints to reconfigure management interface for hosts and pools (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
+- [Backup] show the backup archive that will be kept for Long Term Retention (PR [#9364](https://github.com/vatesfr/xen-orchestra/pull/9364))
 
 ### Bug fixes
 
@@ -48,7 +49,7 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
