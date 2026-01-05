@@ -15,7 +15,7 @@
     </div>
     <template v-else>
       <DashboardAlarms
-        class="alarms"
+        :class="areVmAlarmsReady || areVmAlarmsReady ? 'alarms-hero' : 'alarms'"
         :alarms="vmAlarms"
         :is-ready="areVmAlarmsReady"
         :has-ready="hasVmAlarmFetchError"
@@ -91,8 +91,12 @@ const { t } = useI18n()
   }
 
   .alarms {
-    grid-area: alarms;
     height: 46.2rem;
+  }
+
+  .alarms,
+  .alarms-hero {
+    grid-area: alarms;
   }
 
   .offline-hero-container {

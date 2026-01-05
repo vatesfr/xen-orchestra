@@ -15,7 +15,7 @@
     </div>
     <template v-else>
       <DashboardAlarms
-        class="alarms"
+        :class="!areHostAlarmsReady || hasHostAlarmFetchError ? 'alarms-hero' : 'alarms'"
         :alarms="hostAlarms"
         :is-ready="areHostAlarmsReady"
         :has-error="hasHostAlarmFetchError"
@@ -104,8 +104,12 @@ const { isMobile } = useUiStore()
   }
 
   .alarms {
-    grid-area: alarms;
     height: 46.2rem;
+  }
+
+  .alarms,
+  .alarms-hero {
+    grid-area: alarms;
   }
 
   .patches {

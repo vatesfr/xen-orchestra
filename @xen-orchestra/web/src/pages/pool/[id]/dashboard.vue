@@ -2,7 +2,12 @@
   <div class="dashboard" :class="{ mobile: uiStore.isMobile }">
     <div class="row first-row">
       <PoolDashboardStatus class="status" :pool-dashboard :has-error />
-      <DashboardAlarms class="alarms" :alarms :is-ready :has-error="hasAlarmFetchError" />
+      <DashboardAlarms
+        :class="!isReady || hasAlarmFetchError ? 'alarms-hero' : 'alarms'"
+        :alarms
+        :is-ready
+        :has-error="hasAlarmFetchError"
+      />
       <PoolDashboardHostsPatches class="patches" :pool-dashboard :has-error />
     </div>
 
@@ -90,8 +95,12 @@ const uiStore = useUiStore()
   }
 
   .alarms {
-    grid-area: alarms;
     height: 46.2rem;
+  }
+
+  .alarms,
+  .alarms-hero {
+    grid-area: alarms;
   }
 
   .patches {
