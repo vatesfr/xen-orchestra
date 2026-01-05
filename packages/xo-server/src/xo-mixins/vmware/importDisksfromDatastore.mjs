@@ -8,6 +8,12 @@ import { toQcow2Stream } from '@xen-orchestra/qcow2'
 
 const { warn } = createLogger('xo:importdiskfromdatastore')
 
+// default size that give a correct compromise between read speed
+// and reading empty bits
+// as a bonus this is aligned with VHD block size, thus removing
+// any block size conversion for transfer to VHD
+const READ_BLOCK_SIZE = VHD_BLOCK_SIZE
+
 async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) {
   if (chainByNode.length === 0) {
     Task.info('Empty chain')
@@ -58,7 +64,7 @@ async function importDiskChain({ esxi, sr, vm, chainByNode, userdevice, vmId }) 
   try {
     // we read the data from the full chain to ensure we don't have partial blocks ( blocks with 0 when clusters are in parent only)
     const { nbdInfos } = await esxi.spanwNbdKitProcess(vmId, `[${datastoreName}] ${diskPath}`)
-    vmdk = new NbdDisk(nbdInfos, 2 * 1024 * 1024, { dataMap })
+    vmdk = new NbdDisk(nbdInfos, READ_BLOCK_SIZE, { dataMap })
 
     await vmdk.init()
     vmdk = new ReadAhead(vmdk)
