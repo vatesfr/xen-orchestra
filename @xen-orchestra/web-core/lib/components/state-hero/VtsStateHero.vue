@@ -54,7 +54,7 @@ const uiStore = useUiStore()
 
 const { t } = useI18n()
 
-const horizontal = computed(() => horizontalProps && !uiStore.isMobile)
+const horizontal = computed(() => horizontalProps && !uiStore.isSmall)
 
 const typoClass = computed(() => (format === 'page' ? 'typo-h2' : 'typo-h4'))
 
