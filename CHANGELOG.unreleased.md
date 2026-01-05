@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [V2V] Better handling of block alignment (PR [#9293](https://github.com/vatesfr/xen-orchestra/pull/9293))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,4 +34,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/disk-transform patch
+- @xen-orchestra/qcow2 patch
+- @xen-orchestra/xapi patch
+- xo-server patch
 <!--packages-end-->
