@@ -6,6 +6,8 @@ export class DiskSmallerBlock extends DiskPassthrough {
   #blockSize
   #generatedDiskBlocks = 0
   #blockCache?: DiskBlock
+  #blockRatio: number
+  #maxBlockIndex: number
 
   constructor(source: Disk, blockSize: number) {
     super(source)
@@ -20,6 +22,8 @@ export class DiskSmallerBlock extends DiskPassthrough {
       `source block size ${blockSize} must be a multiple of the target block size ${source.getBlockSize()} `
     )
     this.#blockSize = blockSize
+    this.#blockRatio = source.getBlockSize() / blockSize
+    this.#maxBlockIndex = Math.ceil(this.getVirtualSize() / this.getBlockSize())
   }
 
   openSource(): Promise<Disk> {
@@ -35,13 +39,15 @@ export class DiskSmallerBlock extends DiskPassthrough {
     try {
       const blockRatio = this.source.getBlockSize() / this.#blockSize
       const sourceGenerator = this.source.diskBlocks()
-      const maxIndex = Math.ceil(this.getVirtualSize() / this.getBlockSize())
+      // we don't reuse getBlockIndexes here since we want don't want to force
+      // a use of source.readblock that would limit the use of this class to RandomeAccessDisk
+      // thus we generate block based on the source block generator
       for await (const { data: sourceData, index: sourceIndex } of sourceGenerator) {
         for (let i = 0; i < blockRatio; i++) {
           this.#generatedDiskBlocks++
           const data = sourceData.subarray(i * this.#blockSize, (i + 1) * this.#blockSize)
           const index = sourceIndex * blockRatio + i
-          if (index <= maxIndex) {
+          if (this.#isBlockBeforeEnd(index)) {
             yield {
               index,
               data,
@@ -58,15 +64,22 @@ export class DiskSmallerBlock extends DiskPassthrough {
   getBlockSize(): number {
     return this.#blockSize
   }
+  // changing the block size can lead
+  // to the last block being incomplete
+  // for example going for a block size of 1024 to 512
+  // and a virtual size of 1200 means 2 blocks in source,
+  // but 3 here
+  #isBlockBeforeEnd(blockIndex: number): boolean {
+    return blockIndex < this.#maxBlockIndex
+  }
   getBlockIndexes(): Array<number> {
     const blockRatio = this.source.getBlockSize() / this.getBlockSize()
     const sourceIndexes = this.source.getBlockIndexes()
     const indexes: Array<number> = []
-    const maxIndex = Math.ceil(this.getVirtualSize() / this.getBlockSize())
     for (const sourceIndex of sourceIndexes) {
       for (let i = 0; i < blockRatio; i++) {
         const index = sourceIndex * blockRatio + i
-        if (index < maxIndex) {
+        if (this.#isBlockBeforeEnd(index)) {
           indexes.push(index)
         }
       }
@@ -75,8 +88,8 @@ export class DiskSmallerBlock extends DiskPassthrough {
   }
 
   hasBlock(index: number): boolean {
-    const maxIndex = Math.ceil(this.getVirtualSize() / this.getBlockSize())
-    if (index >= maxIndex) {
+    // asking for a block after the end of the smaller disk => false
+    if (!this.#isBlockBeforeEnd(index)) {
       return false
     }
     const blockRatio = this.source.getBlockSize() / this.getBlockSize()
@@ -84,8 +97,19 @@ export class DiskSmallerBlock extends DiskPassthrough {
     return this.source.hasBlock(sourceIndex)
   }
 
+  /**
+   * handle gracefully readblock if the source is a RandomAccessDisk
+   * @param index
+   * @returns Promise<DiskBlock>
+   */
+
   async readBlock(index: number): Promise<DiskBlock> {
     if (this.source instanceof RandomAccessDisk) {
+      if (!this.#isBlockBeforeEnd(index)) {
+        throw new Error(
+          `Read after the end, asking for ${index}, last block is ${this.#maxBlockIndex - 1}, vitual size is ${this.getVirtualSize()}, blockSize : ${this.getBlockSize()}`
+        )
+      }
       const blockRatio = this.source.getBlockSize() / this.getBlockSize()
       const sourceBlockIndex = Math.floor(index / blockRatio)
       const indexInblock = index % blockRatio
