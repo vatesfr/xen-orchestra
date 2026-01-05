@@ -486,4 +486,43 @@ export class PoolController extends XapiXoController<XoPool> {
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
   }
+
+  /**
+   * Reconfigure the management interface for all hosts in the pool to use the given network.
+   *
+   * Each host in the pool will switch their management interface to a PIF on the specified network.
+   * The PIFs on the target network must already have IP addresses configured.
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body { "network": "c787b75c-3e0d-70fa-d0c3-cbfd382d7e33" }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/management_reconfigure')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  managementReconfigure(
+    @Path() id: string,
+    @Body() body: { network: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const poolId = id as XoPool['id']
+    const action = async () => {
+      const xapiPool = this.getXapiObject(poolId)
+      const network = this.restApi.getXapiObject<XoNetwork>(body.network as XoNetwork['id'], 'network')
+      await xapiPool.$xapi.call('pool.management_reconfigure', network.$ref)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'reconfigure pool management interface',
+        objectId: poolId,
+        args: body,
+      },
+    })
+  }
 }

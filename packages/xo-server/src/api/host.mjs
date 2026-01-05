@@ -13,6 +13,9 @@ import backupGuard from './_backupGuard.mjs'
 
 import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
+/** @typedef {import('@vates/types').XoHost} XoHost */
+/** @typedef {import('@vates/types').XoPif} XoPif */
+
 const CERT_PUBKEY_MIN_SIZE = 2048
 const IPMI_CACHE_TTL = 6e4
 const IPMI_CACHE = new TTLCache({
@@ -682,6 +685,35 @@ getBiosInfo.params = {
 }
 getBiosInfo.resolve = {
   host: ['id', 'host', 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
+/**
+ * Reconfigure the management interface of the host to use the given PIF.
+ *
+ * The target PIF must already have an IP address configured.
+ *
+ * @param {object} params
+ * @param {XoHost} params.host - The host to reconfigure
+ * @param {XoPif} params.pif - The target PIF for management interface
+ * @returns {Promise<void>}
+ */
+export async function managementReconfigure({ host, pif }) {
+  const xapi = this.getXapi(host)
+  await xapi.call('host.management_reconfigure', pif._xapiRef)
+}
+
+managementReconfigure.description = 'Reconfigure the management interface of the host to use the given PIF'
+
+managementReconfigure.params = {
+  id: { type: 'string' },
+  pif: { type: 'string' },
+}
+
+managementReconfigure.resolve = {
+  host: ['id', 'host', 'administrate'],
+  pif: ['pif', 'PIF', 'administrate'],
 }
 
 // ===================================================================
