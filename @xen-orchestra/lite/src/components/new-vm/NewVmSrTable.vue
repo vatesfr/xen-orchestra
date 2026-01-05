@@ -6,7 +6,7 @@
       </tr>
     </thead>
     <tbody>
-      <VtsRow v-for="vdi in vmState.existingVdis" :key="vdi.name_label">
+      <VtsRow v-for="vdi in vmState.existingVdis" :key="vdi.id">
         <BodyCells :item="{ vdi }" />
       </VtsRow>
       <VtsRow v-for="(vdi, index) in vmState.vdis" :key="vdi.name_label">

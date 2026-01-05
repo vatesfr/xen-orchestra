@@ -480,6 +480,7 @@ const getExistingVdis = (template: XenApiVm) => {
     }
 
     acc.push({
+      id: vdi.$ref,
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.virtual_size),
