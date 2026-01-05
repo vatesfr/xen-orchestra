@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Pool/Host] Add ability to move management interface to another PIF/network (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,4 +34,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/rest-api minor
+- xo-server minor
 <!--packages-end-->

@@ -12,6 +12,9 @@ import backupGuard from './_backupGuard.mjs'
 import { fromCallback } from 'promise-toolbox'
 import { moveFirst } from '../_moveFirst.mjs'
 
+/** @typedef {import('@vates/types').XoNetwork} XoNetwork */
+/** @typedef {import('@vates/types').XoPool} XoPool */
+
 const log = createLogger('xo:api:pool')
 
 const TTL_CACHE = 3e4
@@ -416,6 +419,37 @@ listPoolsMatchingCriteria.params = {
   minHostVersion: { type: 'string', optional: true },
   poolNameRegExp: { type: 'string', optional: true },
   srNameRegExp: { type: 'string', optional: true },
+}
+
+// -------------------------------------------------------------------
+
+/**
+ * Reconfigure the management interface for all hosts in the pool to use the given network.
+ *
+ * Each host in the pool will switch their management interface to a PIF on the specified network.
+ * The PIFs on the target network must already have IP addresses configured.
+ *
+ * @param {object} params
+ * @param {XoPool} params.pool - The pool to reconfigure
+ * @param {XoNetwork} params.network - The target network for management interfaces
+ * @returns {Promise<void>}
+ */
+export async function managementReconfigure({ pool, network }) {
+  const xapi = this.getXapi(pool)
+  await xapi.call('pool.management_reconfigure', network._xapiRef)
+}
+
+managementReconfigure.description =
+  'Reconfigure the management interface for all hosts in the pool to use the given network'
+
+managementReconfigure.params = {
+  id: { type: 'string' },
+  network: { type: 'string' },
+}
+
+managementReconfigure.resolve = {
+  pool: ['id', 'pool', 'administrate'],
+  network: ['network', 'network', 'administrate'],
 }
 
 // ===================================================================

@@ -1,4 +1,21 @@
-import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
+import {
+  Body,
+  Delete,
+  Example,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Put,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
+import { json } from 'express'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
 import { pipeline } from 'node:stream/promises'
@@ -10,6 +27,7 @@ import type {
   XoAlarm,
   XoHost,
   XoMessage,
+  XoPif,
   XoTask,
   XsPatches,
 } from '@vates/types'
@@ -29,6 +47,7 @@ import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import {
+  asynchronousActionResp,
   badRequestResp,
   featureUnauthorized,
   internalServerErrorResp,
@@ -37,9 +56,10 @@ import {
   unauthorizedResp,
   type Unbrand,
 } from '../open-api/common/response.common.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { HostService } from './host.service.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import { partialTasks, taskIds } from '../open-api/oa-examples/task.oa-example.mjs'
+import { partialTasks, taskIds, taskLocation } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('hosts')
 @Security('*')
@@ -282,5 +302,43 @@ export class HostController extends XapiXoController<XoHost> {
   async deleteHostTag(@Path() id: string, @Path() tag: string): Promise<void> {
     const host = this.getXapiObject(id as XoHost['id'])
     await host.$call('remove_tags', tag)
+  }
+
+  /**
+   * Reconfigure the management interface of the host to use the given PIF.
+   *
+   * The target PIF must already have an IP address configured.
+   *
+   * @example id "b61a5c92-700e-4966-a13b-00633f03eea8"
+   * @example body { "pif": "d9e42451-3794-089f-de81-4ee0e6137bee" }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/management_reconfigure')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  managementReconfigure(
+    @Path() id: string,
+    @Body() body: { pif: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const hostId = id as XoHost['id']
+    const action = async () => {
+      const xapiHost = this.getXapiObject(hostId)
+      const pif = this.restApi.getXapiObject<XoPif>(body.pif as XoPif['id'], 'PIF')
+      await xapiHost.$xapi.call('host.management_reconfigure', pif.$ref)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'reconfigure host management interface',
+        objectId: hostId,
+        args: body,
+      },
+    })
   }
 }
