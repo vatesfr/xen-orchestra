@@ -18,7 +18,7 @@
       <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :has-error />
       <VmDashboardBackupReplication class="backup-replication" :vm-dashboard :has-error />
       <DashboardAlarms
-        class="alarms"
+        :class="areVmAlarmsReady || areVmAlarmsReady ? 'alarms-hero' : 'alarms'"
         :alarms="vmAlarms"
         :is-ready="areVmAlarmsReady"
         :has-error="hasVmAlarmFetchError"
@@ -88,7 +88,8 @@ const { t } = useI18n()
     grid-area: quick-info;
   }
 
-  .alarms {
+  .alarms,
+  .alarms-hero {
     grid-area: alarms;
     max-height: 46.2rem;
   }
