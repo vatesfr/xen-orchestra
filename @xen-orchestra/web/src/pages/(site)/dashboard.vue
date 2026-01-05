@@ -4,7 +4,7 @@
     <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
     <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
     <DashboardAlarms
-      :class="!areAlarmsReady || hasAlarmFetchError ? 'alarms-hero' : 'alarms'"
+      :class="alarmHero ? 'alarms-hero' : 'alarms'"
       :alarms
       :is-ready="areAlarmsReady"
       :has-error="hasAlarmFetchError"
@@ -43,12 +43,15 @@ import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
 import { useXoAlarmCollection } from '@/remote-resources/use-xo-alarm-collection.ts'
 import { useXoSiteDashboard } from '@/remote-resources/use-xo-site-dashboard.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
+import { computed } from 'vue'
 
 const uiStore = useUiStore()
 
 const { dashboard, backupRepositories, storageRepositories, hasError } = useXoSiteDashboard()
 
 const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
+
+const alarmHero = computed(() => !areAlarmsReady.value || hasAlarmFetchError.value || alarms.value.length === 0)
 </script>
 
 <style lang="postcss" scoped>
