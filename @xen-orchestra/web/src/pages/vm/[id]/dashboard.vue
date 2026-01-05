@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
+  <div class="dashboard" :class="{ mobile: isSmall }">
     <VmDashboardQuickInfo class="quick-info" :vm />
     <div v-if="!isVmRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
@@ -18,7 +18,7 @@
       <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :has-error />
       <VmDashboardBackupReplication class="backup-replication" :vm-dashboard :has-error />
       <DashboardAlarms
-        :class="areVmAlarmsReady || areVmAlarmsReady ? 'alarms-hero' : 'alarms'"
+        :class="alarmHero ? 'alarms-hero' : 'alarms'"
         :alarms="vmAlarms"
         :is-ready="areVmAlarmsReady"
         :has-error="hasVmAlarmFetchError"
@@ -66,7 +66,9 @@ const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollec
 
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
 
-const uiStore = useUiStore()
+const alarmHero = computed(() => areVmAlarmsReady.value || hasVmAlarmFetchError.value || vmAlarms.value.length === 0)
+
+const { isSmall } = useUiStore()
 
 const { t } = useI18n()
 </script>
