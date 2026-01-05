@@ -15,7 +15,7 @@
     </div>
     <template v-else>
       <DashboardAlarms
-        :class="!areHostAlarmsReady || hasHostAlarmFetchError ? 'alarms-hero' : 'alarms'"
+        :class="alarmHero ? 'alarms-hero' : 'alarms'"
         :alarms="hostAlarms"
         :is-ready="areHostAlarmsReady"
         :has-error="hasHostAlarmFetchError"
@@ -66,6 +66,9 @@ const { data, isFetching, error } = useFetchStats('host', () => host.id, GRANULA
 const { hostAlarms, areHostAlarmsReady, hasHostAlarmFetchError } = useXoHostAlarmsCollection({}, () => host.id)
 
 const isHostRunning = computed(() => host.power_state === HOST_POWER_STATE.RUNNING)
+const alarmHero = computed(
+  () => !areHostAlarmsReady.value || hasHostAlarmFetchError.value || hostAlarms.value.length === 0
+)
 
 const { isMobile } = useUiStore()
 </script>

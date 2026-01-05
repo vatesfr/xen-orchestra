@@ -15,10 +15,10 @@
     </div>
     <template v-else>
       <DashboardAlarms
-        :class="areVmAlarmsReady || areVmAlarmsReady ? 'alarms-hero' : 'alarms'"
+        :class="alarmHero ? 'alarms-hero' : 'alarms'"
         :alarms="vmAlarms"
         :is-ready="areVmAlarmsReady"
-        :has-ready="hasVmAlarmFetchError"
+        :has-error="hasVmAlarmFetchError"
       />
       <template v-if="data">
         <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error :loading="isFetching" />
@@ -56,6 +56,8 @@ const { data, isFetching, error } = useFetchStats('vm', () => vm.id, GRANULARITY
 const { vmAlarms, areVmAlarmsReady, hasVmAlarmFetchError } = useXoVmAlarmsCollection({}, () => vm.id)
 
 const isVmRunning = computed(() => vm.power_state === VM_POWER_STATE.RUNNING)
+
+const alarmHero = computed(() => areVmAlarmsReady.value || hasVmAlarmFetchError.value || vmAlarms.value.length === 0)
 
 const { isMobile } = useUiStore()
 
