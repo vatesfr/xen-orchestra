@@ -17,6 +17,10 @@ import {
   setVmOtherConfig,
 } from '../../_otherConfig.mjs'
 
+import { createLogger } from '@xen-orchestra/log'
+
+const { warn } = createLogger('xo:backups:AbstractXapi')
+
 export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   constructor({
     config,
@@ -264,6 +268,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
             // this will throw error for VDI still attached to control domain
             assert.strictEqual(vbds.length, 1, 'VDI must be free or attached to exactly one VM')
             const vm = vbds[0].$VM
+            if (!vm.is_a_snapshot) {
+              warn(
+                `VM ${vm.uuid} (${vm.name_label}) linked to VDI ${vdi.uuid} (${vdi.name_label}) should be a snapshot`
+              )
+            }
             assert.strictEqual(vm.is_a_snapshot, true, `VM must be a snapshot`) // don't delete a VM (especially a control domain)
 
             const vmRefVdi = vm.$ref
