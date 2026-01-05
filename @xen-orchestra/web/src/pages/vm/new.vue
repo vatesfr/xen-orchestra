@@ -361,6 +361,7 @@ const getExistingVdis = (template: XoVmTemplate) => {
     }
 
     acc.push({
+      id: vdi.id,
       name_label: vdi.name_label,
       name_description: vdi.name_description,
       size: bytesToGiB(vdi.size),

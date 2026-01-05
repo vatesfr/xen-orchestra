@@ -2,6 +2,7 @@ import type { XenApiHost, XenApiNetwork, XenApiSr, XenApiVdi, XenApiVm } from '@
 import { type OPAQUE_REF_NULL, type VDI_TYPE } from '@vates/types/common'
 
 export interface Vdi {
+  id?: XenApiVdi['$ref'] | undefined
   name_label: string
   name_description: string
   size: number
