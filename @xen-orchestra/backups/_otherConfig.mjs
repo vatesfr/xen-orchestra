@@ -70,7 +70,8 @@ export async function getVmDeltaChainLength(xapi, vmRef) {
 
 /**
  *
- * Reset the other_config field of a VM and its VDIs
+ * Reset the other_config field related to backups of a VM and its VDIs
+ *
  *
  * @param {Xapi} xapi
  * @param {String} vmRef

@@ -25,7 +25,7 @@ const task: Task = {
   name: 'VM backup',
   status: 'pending',
   progress: 25,
-  tasks: [
+  subtasks: [
     {
       id: '1-1',
       name: 'Snapshot',

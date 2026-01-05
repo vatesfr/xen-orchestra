@@ -36,7 +36,7 @@
       <template v-if="ipV6Addresses.length > 0">
         <VtsCardRowKeyValue v-for="(ip, index) in ipV6Addresses" :key="ip">
           <template #key>
-            <div v-if="index === 0">{{ t('ipv4-addresses') }}</div>
+            <div v-if="index === 0">{{ t('ipv6-addresses') }}</div>
           </template>
           <template #value>{{ ip }}</template>
           <template #addons>
@@ -53,7 +53,7 @@
         </VtsCardRowKeyValue>
       </template>
       <VtsCardRowKeyValue v-else>
-        <template #key>{{ t('ipv4-addresses') }}</template>
+        <template #key>{{ t('ipv6-addresses') }}</template>
       </VtsCardRowKeyValue>
     </div>
   </UiCard>
