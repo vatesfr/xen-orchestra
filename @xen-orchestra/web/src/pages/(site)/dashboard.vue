@@ -3,7 +3,12 @@
     <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
     <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
     <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
-    <DashboardAlarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
+    <DashboardAlarms
+      :class="!areAlarmsReady || hasAlarmFetchError ? 'alarms-hero' : 'alarms'"
+      :alarms
+      :is-ready="areAlarmsReady"
+      :has-error="hasAlarmFetchError"
+    />
     <Patches
       class="patches"
       :missing-patches="dashboard.missingPatches"
@@ -85,8 +90,12 @@ const { alarms, hasAlarmFetchError, areAlarmsReady } = useXoAlarmCollection()
   }
 
   .alarms {
+    height: 46.2rem;
+  }
+
+  .alarms,
+  .alarms-hero {
     grid-area: alarms;
-    max-height: 40.6rem;
   }
 
   .patches {
