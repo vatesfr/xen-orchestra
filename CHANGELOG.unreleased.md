@@ -36,6 +36,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/disk-transform patch
 - @xen-orchestra/qcow2 patch
+- @xen-orchestra/web patch
 - @xen-orchestra/xapi patch
 - xo-server patch
 <!--packages-end-->
