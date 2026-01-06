@@ -22,7 +22,6 @@ describe('_getOldEntries() should succeed', () => {
       expectedIds: [1],
       testLabel: 'should  handle number based retention without timestamp  ',
     },
-
     {
       args: [
         0,

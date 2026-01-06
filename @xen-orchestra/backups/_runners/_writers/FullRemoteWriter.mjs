@@ -73,6 +73,7 @@ export class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
       return { size: sizeContainer.size }
     })
     metadata.size = sizeContainer.size
+    metadata.tags = await this.getLongTermRetentionTags(metadata)
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadata)
 
     if (!deleteFirst) {

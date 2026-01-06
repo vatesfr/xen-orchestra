@@ -744,6 +744,13 @@ const xoItemToRender = {
       )}
       {backup.withMemory && <span className='tag tag-info'>{_('withMemory')} </span>}
       {backup.size !== undefined && <span className='tag tag-info'>{formatSize(backup.size)}</span>}{' '}
+      {backup.tags.map((tag, index) => {
+        return (
+          <span className='tag tag-info' key={index}>
+            {tag}
+          </span>
+        )
+      })}{' '}
       <NumericDate timestamp={backup.timestamp} />
     </span>
   ),

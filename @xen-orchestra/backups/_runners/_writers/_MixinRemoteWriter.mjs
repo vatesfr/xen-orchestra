@@ -9,6 +9,7 @@ import { ImportVmBackup } from '../../ImportVmBackup.mjs'
 import { Task } from '../../Task.mjs'
 import * as MergeWorker from '../../merge-worker/index.mjs'
 import ms from 'ms'
+import { getEntryStatus } from '../../_getOldEntries.mjs'
 
 const { info, warn } = createLogger('xo:backups:MixinBackupWriter')
 
@@ -45,6 +46,19 @@ export const MixinRemoteWriter = (BaseClass = Object) =>
         warn(error)
         return {}
       }
+    }
+
+    async getLongTermRetentionTags(currentEntry) {
+      const settings = this._settings
+      const scheduleId = this._scheduleId
+      const vmUuid = this._vmUuid
+      const adapter = this._adapter
+
+      const entries = await adapter.listVmBackups(vmUuid, _ => _.scheduleId === scheduleId)
+      entries.push(currentEntry)
+      const buckets = getEntryStatus(entries, currentEntry, settings.longTermRetention, settings.timezone)
+
+      return buckets.map(({ duration, dateBucket }) => `${duration}=${dateBucket}`)
     }
 
     async beforeBackup() {
