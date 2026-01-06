@@ -63,11 +63,17 @@ export function watchCollectionWrapper<T>({
   }
 
   if (handleWatching === undefined) {
-    handleWatching = (updateSseId, getConfigByResource) => {
-      const { data, event } = useEventSource(EVENT_ENDPOINTS, ['init', 'add', 'update', 'remove'], {
+    handleWatching = (updateSseId, getConfigByResource, onError) => {
+      const { data, event, error } = useEventSource(EVENT_ENDPOINTS, ['init', 'add', 'update', 'remove'], {
         serializer: {
           read: raw => (raw === undefined ? undefined : JSON.parse(raw)),
         },
+      })
+
+      watchEffect(() => {
+        if (error.value) {
+          onError?.(error.value)
+        }
       })
 
       function getObjectType(obj: unknown) {
