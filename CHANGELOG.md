@@ -1,5 +1,27 @@
 # ChangeLog
 
+## **next**
+
+### Security
+
+### Enhancements
+
+### Bug fixes
+
+- [V2V] Better handling of block alignment (PR [#9293](https://github.com/vatesfr/xen-orchestra/pull/9293))
+
+### Released packages
+
+- vhd-lib 4.14.6
+- @xen-orchestra/disk-transform 1.2.1
+- @xen-orchestra/qcow2 1.1.1
+- @xen-orchestra/xapi 8.6.3
+- @xen-orchestra/backups 0.67.2
+- @xen-orchestra/web-core 0.40.0
+- @xen-orchestra/proxy 0.29.41
+- @xen-orchestra/web 0.37.2
+- xo-server 5.194.6
+
 ## **6.0.2** (2025-12-23)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
