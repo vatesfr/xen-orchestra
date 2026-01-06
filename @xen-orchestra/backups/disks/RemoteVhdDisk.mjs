@@ -1,13 +1,40 @@
+// @ts-check
+
+/**
+ * @typedef {import('vhd-lib/Vhd/VhdDirectory.js').VhdDirectory} VhdDirectory
+ * @typedef {import('vhd-lib/Vhd/VhdFile.js').VhdFile} VhdFile
+ * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
+ * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
+ * 
+ * @typedef {(Object)} DiskGeometry
+ * @property {(number)} cylinders
+ * @property {(number)} heads
+ * @property {(number)} sectorsPerTrackCylinder
+ * 
+ * @typedef {(Object)} VhdFooter
+ * @property {(string)} cookie
+ * @property {(number)} features
+ * @property {(number)} fileFormatVersion
+ * @property {(number)} dataOffset
+ * @property {(number)} timestamp
+ * @property {(string)} creatorApplication
+ * @property {(number)} creatorVersion
+ * @property {(number)} creatorHostOs
+ * @property {(number)} originalSize
+ * @property {(number)} currentSize
+ * @property {(DiskGeometry)} diskGeometry
+ * @property {(number)} diskType
+ * @property {(number)} checksum
+ * @property {(Buffer)} uuid
+ * @property {(string)} saved
+ * @property {(string)} hidden
+ * @property {(string)} reserved
+ */
+
 import { openVhd } from 'vhd-lib'
 import { RemoteDisk } from "./RemoteDisk.mjs";
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
 import { stringify } from 'uuid'
-
-/**
- * @typedef {import('./RemoteDisk.mjs').DiskMetadata} DiskMetadata
- * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
- * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
- */
 
 export class RemoteVhdDisk extends RemoteDisk {
     /**
@@ -29,6 +56,26 @@ export class RemoteVhdDisk extends RemoteDisk {
      * @type {boolean | undefined}
      */
     #isDifferencing
+
+    /**
+     * @type {number}
+     */
+    #blockSize = 2 * 1024 * 1024
+
+    /**
+     * @type {number}
+     */
+    #headerSize = 1024
+
+    /**
+     * @type {number}
+     */
+    #footerSize = 512
+
+    /**
+     * @type {number}
+     */
+    #bitmapSize = 512
 
     /**
      * @type {() => any}
@@ -80,10 +127,21 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     /**
+     * @returns {number} size
+     */
+    getSize() {
+        if (this.#vhd === undefined) {
+            throw new Error(`can't call getVirtualSize of a RemoteVhdDisk before init`)
+        }
+
+        return this.#footerSize + this.#headerSize + this.#vhd.streamSize() + (this.getBlockIndexes().length * (this.#blockSize + this.#bitmapSize)) + this.#footerSize
+    }
+
+    /**
      * @returns {number}
      */
     getBlockSize() {
-        return 2 * 1024 * 1024
+        return this.#blockSize
     }
 
     /**
@@ -105,11 +163,11 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     /**
-     * @returns {number}
+     * @returns {number} getMaxBlockCount
      */
-    getMaxTableEntries() {
+    getMaxBlockCount() {
         if (this.#vhd === undefined) {
-            throw new Error(`can't call getMaxTableEntries of a RemoteVhdDisk before init`)
+            throw new Error(`can't call getMaxBlockCount of a RemoteVhdDisk before init`)
         }
 
         return this.#vhd.header.maxTableEntries
@@ -135,27 +193,25 @@ export class RemoteVhdDisk extends RemoteDisk {
         if (this.#vhd === undefined) {
             throw new Error(`can't call getBlockIndexes of a RemoteVhdDisk before init`)
         }
-        const index = []
+        const indexes = []
         for (let blockIndex = 0; blockIndex < this.#vhd.header.maxTableEntries; blockIndex++) {
             if (this.hasBlock(blockIndex)) {
-                index.push(blockIndex)
+                indexes.push(blockIndex)
             }
         }
-        return index
+        return indexes
     }
 
     /**
      * Writes a full block into this VHD.
-     * @param {number} index
-     * @param {Buffer} data
-     * @return {number}
+     * @param {DiskBlock} diskBlock
+     * @return {Promise<number>} blockSize
      */
-    async writeBlock(index, data) {
+    async writeBlock(diskBlock) {
         if (this.#vhd === undefined) {
             throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
         }
-        await this.#vhd.writeEntireBlock({ id: index, buffer: data })
-        await this.#vhd.writeBlockAllocationTable()
+        await this.#vhd.writeEntireBlock({ id: diskBlock.index, buffer: Buffer.concat([Buffer.alloc(this.#bitmapSize, 255), diskBlock.data]) })
 
         return this.getBlockSize();
     }
@@ -163,7 +219,7 @@ export class RemoteVhdDisk extends RemoteDisk {
     /**
      * Reads a specific block from the VHD.
      * @param {number} index
-     * @returns {Promise<DiskBlock>}
+     * @returns {Promise<DiskBlock>} diskBlock
      */
     async readBlock(index) {
         if (this.#vhd === undefined) {
@@ -177,63 +233,71 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     /**
-     * @returns {DiskMetadata}
+     * Writes Block Allocation Table
+     * @returns {Promise<void>}
      */
-    getMetadata() {
+    async flushMetadata() {
         if (this.#vhd === undefined) {
-            throw new Error(`can't call setvirtualsize of a RemoteVhdDisk before init`)
+            throw new Error(`can't call flushMetadata of a RemoteVhdDisk before init`)
         }
-        
-        return this.#vhd.footer;
+
+        await this.#vhd.writeBlockAllocationTable()
     }
 
     /**
-     * @param {RemoteDisk} child
+     * @returns {VhdFooter}
+     */
+    getMetadata() {
+        if (this.#vhd === undefined) {
+            throw new Error(`can't call getMetadata of a RemoteVhdDisk before init`)
+        }
+
+        return this.#vhd.footer
+    }
+
+    /**
+     * @param {RemoteVhdDisk} child
      */
     mergeMetadata(child) {
-        const childMetadata = child.getMetadata();
+        const childMetadata = child.getMetadata()
 
         if (this.#vhd === undefined) {
             throw new Error(`can't call mergeMetadata of a RemoteVhdDisk before init`)
         }
-
+        
+        // @ts-ignore
         this.#vhd.footer.currentSize = childMetadata.currentSize
+        // @ts-ignore
         this.#vhd.footer.diskGeometry = { ...childMetadata.diskGeometry }
+        // @ts-ignore
         this.#vhd.footer.originalSize = childMetadata.originalSize
+        // @ts-ignore
         this.#vhd.footer.timestamp = childMetadata.timestamp
+        // @ts-ignore
         this.#vhd.footer.uuid = childMetadata.uuid
     }
 
     /**
-     * @param {DiskMetadata} metadata
+     * Checks if the VHD is a differencing disk.
+     * @returns {boolean}
      */
-    setMetadata(metadata) {
-        if (this.#vhd === undefined) {
-            throw new Error(`can't call setvirtualsize of a RemoteVhdDisk before init`)
+    isDifferencing() {
+        if (this.#isDifferencing === undefined) {
+        throw new Error(`can't call isDifferencing of a RemoteVhdDisk before init`)
         }
-
-        this.#vhd.footer.currentSize = metadata.currentSize ?? this.#vhd.footer.currentSize
-        this.#vhd.footer.diskGeometry = metadata.diskGeometry ?? this.#vhd.footer.diskGeometry
-        this.#vhd.footer.originalSize = metadata.originalSize ?? this.#vhd.footer.originalSize
-        this.#vhd.footer.timestamp = metadata.timestamp ?? this.#vhd.footer.timestamp
-        this.#vhd.footer.uuid = metadata.uuid ?? this.#vhd.footer.uuid
-    }
-
-    /**
-     * Writes block allocation table
-     */
-    async writeBlockAllocationTable() {
-        if (this.#vhd === undefined) {
-            throw new Error(`can't call readBlock of a RemoteVhdDisk before init`)
-        }
-        await this.#vhd.writeBlockAllocationTable()
+        return this.#isDifferencing
     }
 
     /**
      * Deletes disk
      */
     async unlink() {
+        if (this.#vhd === undefined) {
+            throw new Error(`can't call unlink of a RemoteVhdDisk before init`)
+        }
+
         await this.close()
         await this.#handler.unlink(this.#path)
     }
+    
 }

@@ -4,7 +4,7 @@
  * @typedef {import('../../disk-transform/src/FileAccessor.mjs').FileAccessor} FileAccessor
  */
 import { DiskChain } from '@xen-orchestra/disk-transform'
-import { RemoteVhd } from './RemoteVhd.mjs'
+import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 
 import { defer } from 'golike-defer'
 /**
@@ -17,7 +17,7 @@ async function _openDiskChain($defer, { handler, path, until }) {
   let disk
   const disks = []
   $defer.onFailure(() => Promise.all(disks.map(disk => disk.close())))
-  disk = new RemoteVhd({ handler, path })
+  disk = new RemoteVhdDisk({ handler, path })
 
   await disk.init()
   disks.push(disk)

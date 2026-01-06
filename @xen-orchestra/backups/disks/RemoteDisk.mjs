@@ -1,81 +1,139 @@
-import { RandomAccessDisk } from "@xen-orchestra/disk-transform"
+// @ts-check
 
 /**
  * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
- * @typedef {import('./RemoteDisk.mjs').DiskMetadata} DiskMetadata
- * 
- * @typedef {(Object)} DiskMetadata
- * @property {(string)} uuid
- * @property {(string)} parentId
- * @property {(number)} virtualSize
- * @property {(string)} parentLocation
  */
 
-
+import { RandomAccessDisk } from "@xen-orchestra/disk-transform"
 export class RemoteDisk extends RandomAccessDisk {
     /**
      * Abstract
-     * @returns {string}
+     * @returns {Promise<void>}
      */
-    getPath() { }
+    async init() {
+        throw new Error(`init must be implemented`)
+    }
 
     /**
      * Abstract
-     * @returns {string}
+     * @returns {Promise<void>}
      */
-    getUuid() { }
+    async close() {
+        throw new Error(`close must be implemented`)
+    }
 
     /**
      * Abstract
      * @returns {number}
      */
-    getMaxTableEntries() { }
+    getVirtualSize() {
+        throw new Error(`getVirtualSize must be implemented`)
+    }
+
+    /**
+     * Abstract
+     * @returns {number} size
+     */
+    getSize() {
+        throw new Error(`getSize must be implemented`)
+    }
+
+    /**
+     * @returns {number}
+     */
+    getBlockSize() {
+        throw new Error(`getBlockSize must be implemented`)
+    }
+
+    /**
+     * Abstract
+     * @returns {string}
+     */
+    getPath() {
+        throw new Error(`getPath must be implemented`)
+    }
+
+    /**
+     * Abstract
+     * @returns {string}
+     */
+    getUuid() {
+        throw new Error(`getUuid must be implemented`)
+    }
+
+    /**
+     * Abstract
+     * @returns {number} getMaxBlockCount
+     */
+    getMaxBlockCount() {
+        throw new Error(`getMaxBlockCount must be implemented`)
+    }
+
+    /**
+     * Checks if the VHD contains a specific block.
+     * @param {number} index
+     * @returns {boolean}
+     */
+    hasBlock(index) {
+        throw new Error(`hasBlock must be implemented`)
+    }
+
+    /**
+     * Gets the indexes of all blocks in the VHD.
+     * @returns {Array<number>}
+     */
+    getBlockIndexes() {
+        throw new Error(`getBlockIndexes must be implemented`)
+    }
 
     /**
      * Abstract
      * Writes a full block.
-     * @param {number} index
-     * @param {Buffer} data
-     * @return {number
+     * @param {DiskBlock} diskBlock
+     * @return {Promise<number>} blockSize
      */
-    async writeBlock(index, data) { }
+    async writeBlock(diskBlock) {
+        throw new Error(`writeBlock must be implemented`)
+    }
 
+    /**
+     * Reads a specific block from the VHD.
+     * @param {number} index
+     * @returns {Promise<DiskBlock>} diskBlock
+     */
+    async readBlock(index) {
+        throw new Error(`readBlock must be implemented`)
+    }
 
     /**
      * Abstract
-     * Reads a specific block.
-     * @param {number} index
-     * @returns {Promise<DiskBlock>}
+     * @returns {Promise<void>}
      */
-    async readBlock(index) { }
-
-    /**
-     * Abstract
-     * @returns {DiskMetadata}
-     */
-    getMetadata() { }
+    async flushMetadata() {
+        throw new Error(`flushMetadata must be implemented`)
+    }
 
     /**
      * Abstract
      * @param {RemoteDisk} child
      */
-    mergeMetadata(child) { }
+    mergeMetadata(child) {
+        throw new Error(`mergeMetadata must be implemented`)
+    }
 
     /**
-     * Abstract
-     * @param {DiskMetadata} metadata
+     * Checks if the VHD is a differencing disk.
+     * @returns {boolean}
      */
-    setMetadata(metadata) { }
-
-    /**
-     * Abstract
-     * Writes block allocation table
-     */
-    async writeBlockAllocationTable() { }
+    isDifferencing() {
+        throw new Error(`isDifferencing must be implemented`)
+    }
 
     /**
      * Abstract
      * Deletes disk
      */
-    async unlink() { }
+    async unlink() { 
+        throw new Error(`unlink must be implemented`)
+    }
 }

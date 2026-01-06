@@ -64,9 +64,6 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
     }
     const childDiskChain = new RemoteVhdDiskChain({disks: childDisks})
 
-    await parentDisk.init()
-    await childDiskChain.init()
-
     const mergeRemoteDisk = new MergeRemoteDisk(handler, {
       logInfo,
       mergeBlockConcurrency,
@@ -77,19 +74,18 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
       removeUnused: remove,
     })
 
+    // TODO
+    /*const isResuming = mergeRemoteDisk.isResuming()
+
+    await parentDisk.init(isResuming)
+    await childDiskChain.init(isResuming)*/
+
+    await parentDisk.init()
+    await childDiskChain.init()
+
     const result = await mergeRemoteDisk.merge(parentDisk, childDiskChain)
 
     return result
-
-    /*return await mergeVhdChain(handler, chain, {
-      logInfo,
-      mergeBlockConcurrency,
-      onProgress({ done: d, total: t }) {
-        done = d
-        total = t
-      },
-      removeUnused: remove,
-    })*/
   } finally {
     clearInterval(handle)
   }
