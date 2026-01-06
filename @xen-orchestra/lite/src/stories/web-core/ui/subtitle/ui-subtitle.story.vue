@@ -2,7 +2,7 @@
 <template>
   <ComponentStory
     v-slot="{ properties, settings }"
-    :params="[slot().help('Meant to display the title'), setting('default').preset('Label').widget()]"
+    :params="[slot().help('Meant to display the subtitle'), setting('default').preset('Label').widget()]"
   >
     <UiSubtitle v-bind="properties">
       {{ settings.default }}

@@ -3,7 +3,7 @@
     v-slot="{ properties, settings }"
     :params="[
       slot().help('Meant to display the title'),
-      slot('action').help('Meant to receive UiButton or ButtonIcon components that will trigger actions'),
+      slot('action').help('Meant to receive UiButton or ButtonIcon component that will trigger action'),
       setting('default').preset('Label').widget(),
       setting('showDemoButton').widget(boolean()),
     ]"
