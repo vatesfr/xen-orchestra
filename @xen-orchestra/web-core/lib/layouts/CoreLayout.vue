@@ -16,6 +16,14 @@
       />
       <slot name="app-header" />
     </header>
+    <div v-if="isError" class="danger-banner">
+      <UiInfo accent="danger">
+        <div class="typo-body-regular-small">{{ t('unable-to-connect-to-xo-server') }}</div>
+      </UiInfo>
+      <UiButton variant="primary" accent="brand" size="small" @click="handleRetry">
+        {{ t('retry') }}
+      </UiButton>
+    </div>
     <div class="container">
       <template v-if="uiStore.hasUi">
         <VtsBackdrop
@@ -44,16 +52,27 @@
 <script lang="ts" setup>
 import VtsBackdrop from '@core/components/backdrop/VtsBackdrop.vue'
 import VtsLayoutSidebar from '@core/components/layout/VtsLayoutSidebar.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { useSseStore } from '@core/packages/remote-resource/sse.store.ts'
 import { useSidebarStore } from '@core/stores/sidebar.store'
 import { useUiStore } from '@core/stores/ui.store'
+import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
 const uiStore = useUiStore()
 const sidebarStore = useSidebarStore()
+
+const sseStore = useSseStore()
+const { isError } = storeToRefs(sseStore)
+
+function handleRetry() {
+  sseStore.retry()
+}
 </script>
 
 <style lang="postcss" scoped>
@@ -61,6 +80,15 @@ const sidebarStore = useSidebarStore()
   display: flex;
   height: 100dvh;
   flex-direction: column;
+}
+
+.danger-banner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.6rem;
+  background-color: var(--color-danger-background-selected);
+  padding: 0.8rem 1.6rem;
 }
 
 .container {
