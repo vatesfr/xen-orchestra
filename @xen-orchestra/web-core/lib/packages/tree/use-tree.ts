@@ -8,7 +8,7 @@ import type {
   UseTreeOptions,
 } from '@core/packages/tree/types'
 import { useTimeoutFn } from '@vueuse/core'
-import { computed, type MaybeRefOrGetter, reactive, ref, toValue } from 'vue'
+import { computed, type MaybeRefOrGetter, nextTick, reactive, ref, toValue } from 'vue'
 
 export function useTree<
   TDefinition extends TreeNodeDefinition,
@@ -23,13 +23,13 @@ export function useTree<
     selectedIds,
     collapsedIds,
     activeId,
-  }) satisfies TreeContext
+  }) as TreeContext
 
   const nodes = computed(() => {
     const nodes = buildNodes<TDefinition, TTreeNode>(toValue(definitions), context)
 
     if (options.collapse) {
-      nodes.forEach(node => node.isBranch && node.toggleCollapse(true, true))
+      nodes.forEach(node => node.isBranch && node.toggleCollapse(false, true))
     }
 
     return nodes
@@ -53,23 +53,10 @@ export function useTree<
 
   const visibleNodes = computed(() => nodes.value.filter(node => !node.isExcluded))
 
-  function getNode(id: TreeNodeId | undefined): TreeNode | undefined {
-    if (id === undefined) {
-      return undefined
-    }
+  const getNode = (id: TreeNodeId | undefined) => (id !== undefined ? nodesMap.value.get(id) : undefined)
+  const getNodes = (ids: TreeNodeId[]) => ids.map(getNode).filter(node => node !== undefined) as TreeNode[]
 
-    return nodesMap.value.get(id)
-  }
-
-  const selectedNodes = computed(() =>
-    Array.from(selectedIds.value.values())
-      .map(id => getNode(id))
-      .filter(node => node !== undefined)
-  )
-
-  const expandedIds = computed(() => Array.from(nodesMap.value.keys()).filter(id => !collapsedIds.value.has(id)))
-
-  const getPathToNode = (node: TreeNode | undefined) => {
+  const getHierarchy = (node: TreeNode | undefined) => {
     const path: TreeNode[] = []
     while (node) {
       path.unshift(node)
@@ -84,9 +71,9 @@ export function useTree<
         return node
       }
       if (node && node.isBranch && node.hasChildren) {
-        const found = findNodeByObjectId(node.rawChildren, objectId)
-        if (found) {
-          return found
+        const foundNode = findNodeByObjectId(node.rawChildren, objectId)
+        if (foundNode) {
+          return foundNode
         }
       }
     }
@@ -98,21 +85,24 @@ export function useTree<
     if (!node) {
       if (id) {
         useTimeoutFn(async () => {
+          await nextTick()
           await scrollToNodeElement(id, options)
         }, 200)
       }
       return
     }
 
-    getPathToNode(node).forEach(node => {
+    getHierarchy(node).forEach(node => {
       if (node.isBranch) {
         node.toggleCollapse(false)
       }
     })
 
-    const nodeElement = document.querySelector<HTMLElement>(`[data-node-id="${node.data.id}"]`)
+    const nodeElement = document.querySelector<HTMLElement>(`[data-node-id="${id}"]`)
+
     if (!nodeElement) {
       useTimeoutFn(async () => {
+        await nextTick()
         await scrollToNodeElement(id, options)
       }, 200)
       return
@@ -132,7 +122,8 @@ export function useTree<
     nodeElement.scrollIntoView(cfg)
   }
 
-  const expandedNodes = computed(() => expandedIds.value.map(id => getNode(id)).filter(node => node !== undefined))
+  const selectedNodes = computed(() => getNodes(Array.from(selectedIds.value.values())))
+  const expandedIds = computed(() => Array.from(nodesMap.value.keys()).filter(id => !collapsedIds.value.has(id)))
   const activeNode = computed(() => getNode(activeId.value))
 
   const selectedLabel = computed(() => {
@@ -154,8 +145,8 @@ export function useTree<
     selectedIds,
     selectedNodes,
     selectedLabel,
+    collapsedIds,
     expandedIds,
-    expandedNodes,
     options,
     scrollToNodeElement,
   }
