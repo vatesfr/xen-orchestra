@@ -470,12 +470,8 @@ function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[
   const vmCoreMetrics = new Map<string, Map<number, Map<string, { value: number; metric: FormattedMetric }>>>()
 
   for (const metric of metrics) {
-    if (metric.labels.type !== 'vm') {
-      continue
-    }
-
     const vmUuid = metric.labels.uuid
-    if (vmUuid === undefined) {
+    if (metric.labels.type !== 'vm' || vmUuid === undefined) {
       continue
     }
 
