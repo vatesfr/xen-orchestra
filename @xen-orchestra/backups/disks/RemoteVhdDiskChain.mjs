@@ -1,19 +1,39 @@
+// @ts-check
+
 /**
- * @typedef {import('./RemoteDisk.mjs').DiskMetadata} DiskMetadata
- * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
+ * @typedef {import('./RemoteVhdDisk.mjs').VhdFooter} VhdFooter
  * @typedef {import('./RemoteVhdDisk.mjs').RemoteVhdDisk} RemoteVhdDisk
+ * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
+ * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
  */
 
-import { openVhd } from 'vhd-lib'
 import { RemoteDisk } from "./RemoteDisk.mjs";
-import { DISK_TYPES } from 'vhd-lib/_constants.js'
-import { stringify } from 'uuid'
 
 export class RemoteVhdDiskChain extends RemoteDisk {
     /**
      * @type {RemoteVhdDisk[]}
      */
     #disks
+
+    /**
+     * @type {number}
+     */
+    #blockSize = 2 * 1024 * 1024
+
+    /**
+     * @type {number}
+     */
+    #headerSize = 1024
+
+    /**
+     * @type {number}
+     */
+    #footerSize = 512
+
+    /**
+     * @type {number}
+     */
+    #bitmapSize = 512
 
     /**
      * @param {Object} params
@@ -49,6 +69,17 @@ export class RemoteVhdDiskChain extends RemoteDisk {
     }
 
     /**
+     * @returns {number} size
+     */
+    getSize() {
+        const batEntrySize = 4
+        const sectorSize = 512
+        const batSize = Math.ceil(this.getMaxBlockCount() * batEntrySize / sectorSize) * sectorSize
+
+        return  this.#footerSize + this.#headerSize + batSize + (this.getBlockIndexes().length * (this.#blockSize + this.#bitmapSize)) + this.#footerSize
+    }
+
+    /**
      * @returns {number}
      */
     getBlockSize() {
@@ -70,10 +101,10 @@ export class RemoteVhdDiskChain extends RemoteDisk {
     }
 
     /**
-     * @returns {number}
+     * @returns {number} getMaxBlockCount
      */
-    getMaxTableEntries() {
-        return this.#disks[this.#disks.length - 1].getMaxTableEntries()
+    getMaxBlockCount() {
+        return this.#disks[this.#disks.length - 1].getMaxBlockCount()
     }
 
     /**
@@ -107,18 +138,17 @@ export class RemoteVhdDiskChain extends RemoteDisk {
 
     /**
      * Writes a full block into this VHD.
-     * @param {number} index
-     * @param {Buffer} data
-     * @return {number}
+     * @param {DiskBlock} diskBlock
+     * @return {Promise<number>} blockSize
      */
-    async writeBlock(index, data) {
+    async writeBlock(diskBlock) {
         throw new Error(`Can't write blocks into a disk chain`)
     }
 
     /**
      * Reads a specific block from the VHD.
      * @param {number} index
-     * @returns {Promise<DiskBlock>}
+     * @returns {Promise<DiskBlock>} diskBlock
      */
     async readBlock(index) {
         for (let i = this.#disks.length - 1; i >= 0; i--) {
@@ -130,31 +160,32 @@ export class RemoteVhdDiskChain extends RemoteDisk {
     }
 
     /**
-     * @returns {DiskMetadata}
+     * @returns {VhdFooter}
      */
     getMetadata() {
         return this.#disks[this.#disks.length - 1].getMetadata()
     }
 
     /**
+     * @returns {Promise<void>}
+     */
+    async flushMetadata() {
+        throw new Error(`Can't flush metadata on a disk chain`)
+    }
+
+    /**
      * @param {RemoteDisk} child
      */
     mergeMetadata(child) {
-        this.#disks[this.#disks.length - 1].mergeMetadata(child)
+        throw new Error(`Can't merge metadata on a disk chain`)
     }
 
     /**
-     * @param {DiskMetadata} metadata
+     * Checks if the VHD is a differencing disk.
+     * @returns {boolean}
      */
-    setMetadata(metadata) {
-        this.#disks[this.#disks.length - 1].setMetadata(metadata)
-    }
-
-    /**
-     * Writes block allocation table
-     */
-    async writeBlockAllocationTable() {
-        await this.#disks[this.#disks.length - 1].writeBlockAllocationTable()
+    isDifferencing() {
+        throw new Error(`Can't get isDifferencing on a disk chain`)
     }
 
     /**
