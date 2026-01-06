@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, watch as watchVue } from 'vue'
+import { computed, ref, watch as watchVue } from 'vue'
 
 type EventFn = (object: unknown) => void
 export type THandlePost = (sseId: string) => Promise<string>
@@ -18,11 +18,13 @@ export type THandleWatching = (
           }
         >
       }
-    | undefined
+    | undefined,
+  onError?: (error: unknown) => void
 ) => void
 
 export const useSseStore = defineStore('sse', () => {
-  const sse = ref<{ id?: string; isWatching: boolean }>({ isWatching: false })
+  const sse = ref<{ id?: string; isWatching: boolean; isError: boolean }>({ isWatching: false, isError: false })
+  const isError = computed(() => sse.value.isError)
   const configsByResource: Map<
     string,
     {
@@ -40,10 +42,15 @@ export const useSseStore = defineStore('sse', () => {
 
   function updateSseId(id: string) {
     sse.value.id = id
+    sse.value.isError = false
   }
 
   function getConfigsByResource(resource: string) {
     return configsByResource.get(resource)
+  }
+
+  function onSseError() {
+    sse.value.isError = true
   }
 
   function initializeWatcher(handleWatching: THandleWatching) {
@@ -64,7 +71,7 @@ export const useSseStore = defineStore('sse', () => {
 
       if (!sse.value.isWatching) {
         sse.value.isWatching = true
-        handleWatching(updateSseId, getConfigsByResource)
+        handleWatching(updateSseId, getConfigsByResource, onSseError)
       }
     })
   }
@@ -136,5 +143,11 @@ export const useSseStore = defineStore('sse', () => {
     }
   }
 
-  return { watch, unwatch }
+  function retry() {
+    sse.value.id = undefined
+    sse.value.isWatching = false
+    sse.value.isError = false
+  }
+
+  return { watch, unwatch, isError, retry }
 })
