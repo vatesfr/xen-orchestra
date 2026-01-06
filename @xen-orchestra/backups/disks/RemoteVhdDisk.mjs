@@ -17,12 +17,6 @@ import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
 // import { set as setBitmap } from 'vhd-lib/_bitmap.js'
 import { stringify } from 'uuid'
 
-/**
- * @typedef {import('./RemoteDisk.mjs').DiskMetadata} DiskMetadata
- * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
- * @typedef {import('@xen-orchestra/disk-transform').DiskBlock} DiskBlock
- */
-
 export class RemoteVhdDisk extends RemoteDisk {
   /**
    * @type {string}
