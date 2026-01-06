@@ -12,7 +12,7 @@
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('change-state') }}</UiDropdownButton>
         </template>
-        <VmActionPowerStateItems :vm />
+        <VtsVmActions :vm />
       </MenuList>
     </template>
   </UiHeadBar>
@@ -61,7 +61,6 @@
 </template>
 
 <script lang="ts" setup>
-import VmActionPowerStateItems from '@/components/vm/VmActionItems/VmActionPowerStateItems.vue'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import type { VmState } from '@core/types/object-icon.type'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -74,6 +73,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import VtsVmActions from './actions/VtsVmActions.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
