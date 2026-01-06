@@ -9,6 +9,7 @@
 ### Bug fixes
 
 - [V2V] Better handling of block alignment (PR [#9293](https://github.com/vatesfr/xen-orchestra/pull/9293))
+- [Hub] Fix _m.downloadAndInstallResource is not a function_ error [Forum#11735](https://xcp-ng.org/forum/topic/11735/hub-is-bugged) (PR [#9362](https://github.com/vatesfr/xen-orchestra/pull/9362))
 
 ### Released packages
 
@@ -21,6 +22,7 @@
 - @xen-orchestra/proxy 0.29.41
 - @xen-orchestra/web 0.37.2
 - xo-server 5.194.6
+- xo-web 5.191.3
 
 ## **6.0.2** (2025-12-23)
 
