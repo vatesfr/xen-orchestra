@@ -6,7 +6,7 @@
 import type { XoVm } from '@vates/types'
 import VmStartButton from './VmStartButton.vue'
 
-const { vm } = defineProps<{
+defineProps<{
   vm: XoVm
 }>()
 </script>
