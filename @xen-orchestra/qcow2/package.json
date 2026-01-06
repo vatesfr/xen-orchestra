@@ -35,6 +35,6 @@
     "typescript-eslint": "^8.23.0"
   },
   "dependencies": {
-    "@xen-orchestra/disk-transform": "^1.2.0"
+    "@xen-orchestra/disk-transform": "^1.2.1"
   }
 }
