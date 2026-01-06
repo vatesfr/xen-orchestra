@@ -15,6 +15,11 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- **XO 6:**
+  - [Vm/new] Fix overflow of resource management input on little screen (PR [#9344](https://github.com/vatesfr/xen-orchestra/pull/9344))
+  - [Core/checkbox] Fix width of checkbox when the container is too small. Now checkbox is a square in all cases (PR [#9344](https://github.com/vatesfr/xen-orchestra/pull/9344))
+  - [Core/RadioButton] Fix width of radio button when the container is too small. Now radio button is a circle in all cases (PR [#9344](https://github.com/vatesfr/xen-orchestra/pull/9344))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +35,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/web patch
 
 <!--packages-end-->
