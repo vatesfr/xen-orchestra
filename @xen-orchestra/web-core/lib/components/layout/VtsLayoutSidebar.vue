@@ -4,7 +4,7 @@
       locked: sidebar.isLocked && !ui.isMobile,
       expanded: sidebar.isExpanded,
       mobile: ui.isMobile,
-      'no-border-right': ui.isMobile,
+      'border-right': !ui.isMobile,
     }"
     class="vts-layout-sidebar"
   >
@@ -63,12 +63,15 @@ const ui = useUiStore()
   flex-direction: column;
   height: 100%;
   background-color: var(--color-neutral-background-secondary);
-  border-right: 0.1rem solid var(--color-neutral-border);
   width: v-bind('sidebar.cssWidth');
   z-index: 1010;
   transition:
     margin-left 0.25s,
     transform 0.25s;
+
+  &.border-right {
+    border-right: 0.1rem solid var(--color-neutral-border);
+  }
 
   &.locked {
     margin-left: v-bind('sidebar.cssOffset');
@@ -104,9 +107,5 @@ const ui = useUiStore()
       transition: background-color 0.05s;
     }
   }
-}
-
-.no-border-right {
-  border-right: none;
 }
 </style>

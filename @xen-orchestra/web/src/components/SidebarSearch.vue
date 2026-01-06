@@ -1,5 +1,5 @@
 <template>
-  <div class="sidebar-search" :class="{ 'no-border-top': uiStore.isMobile }">
+  <div class="sidebar-search" :class="{ 'border-top': !uiStore.isMobile }">
     <UiInput
       v-model="search"
       :aria-label="t('action:search-treeview')"
@@ -25,11 +25,10 @@ const uiStore = useUiStore()
 <style lang="postcss" scoped>
 .sidebar-search {
   padding: 0.4rem;
-  border-top: 0.1rem solid var(--color-neutral-border);
   border-bottom: 0.1rem solid var(--color-neutral-border);
-}
 
-.no-border-top {
-  border-top: none;
+  &.border-top {
+    border-top: 0.1rem solid var(--color-neutral-border);
+  }
 }
 </style>
