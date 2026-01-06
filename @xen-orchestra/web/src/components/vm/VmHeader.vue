@@ -12,7 +12,7 @@
         <template #trigger="{ open }">
           <UiDropdownButton @click="open($event)">{{ t('change-state') }}</UiDropdownButton>
         </template>
-        <VtsVmActions :vm />
+        <VmActions :vm />
       </MenuList>
     </template>
   </UiHeadBar>
@@ -73,7 +73,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import VtsVmActions from './actions/VtsVmActions.vue'
+import VmActions from './actions/VmActions.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
