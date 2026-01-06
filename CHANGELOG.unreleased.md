@@ -15,6 +15,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Hub] Fix _m.downloadAndInstallResource is not a function_ error [Forum#11735](https://xcp-ng.org/forum/topic/11735/hub-is-bugged) (PR [#9362](https://github.com/vatesfr/xen-orchestra/pull/9362))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,5 +32,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-web patch
 
 <!--packages-end-->
