@@ -10,8 +10,8 @@
 </template>
 
 <script setup lang="ts">
-import BackupRepositoriesTargetsTable from '@/components/backups/targets/BackupRepositoriesTargetsTable.vue'
-import StorageRepositoriesTargetsTable from '@/components/backups/targets/StorageRepositoriesTargetsTable.vue'
+import BackupRepositoriesTargetsTable from '@/modules/backup/components/targets/BackupRepositoriesTargetsTable.vue'
+import StorageRepositoriesTargetsTable from '@/modules/backup/components/targets/StorageRepositoriesTargetsTable.vue'
 import { useXoBackupRepositoryCollection } from '@/remote-resources/use-xo-br-collection'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import { extractIdsFromSimplePattern } from '@/utils/pattern.util'

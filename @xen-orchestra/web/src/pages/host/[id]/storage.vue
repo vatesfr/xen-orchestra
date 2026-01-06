@@ -3,7 +3,7 @@
     <UiCard class="container">
       <StorageRepositoriesTable :srs :busy="!isReady" :error="hasSrFetchError" />
     </UiCard>
-    <StorageRepositoriesSidePanel v-if="selectedSr" :sr="selectedSr" @close="selectedSr = undefined" />
+    <StorageRepositorySidePanel v-if="selectedSr" :sr="selectedSr" @close="selectedSr = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
@@ -13,8 +13,8 @@
 </template>
 
 <script setup lang="ts">
-import StorageRepositoriesSidePanel from '@/components/storage-repositories/panel/StorageRepositoriesSidePanel.vue'
-import StorageRepositoriesTable from '@/components/storage-repositories/StorageRepositoriesTable.vue'
+import StorageRepositorySidePanel from '@/modules/storage-repository/components/list/panel/StorageRepositorySidePanel.vue'
+import StorageRepositoriesTable from '@/modules/storage-repository/components/list/StorageRepositoriesTable.vue'
 import { useXoPbdCollection } from '@/remote-resources/use-xo-pbd-collection'
 import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'

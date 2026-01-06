@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import VmHeader from '@/components/vm/VmHeader.vue'
+import VmHeader from '@/modules/vm/components/VmHeader.vue'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import { useDefaultTab } from '@core/composables/default-tab.composable.ts'
