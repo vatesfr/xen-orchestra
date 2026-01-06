@@ -107,6 +107,8 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
 
   const result = await mergeRemoteDisk.merge(parent, child)
 
+  console.log(result)
+
   assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
   assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
   assert.ok(progressCalls > 0, 'onProgress should have been called')
@@ -148,20 +150,16 @@ test('mergeVhdChain merges a simple ancestor + child VHD chain', async () => {
   const childDiskChain = new RemoteVhdDiskChain({disks: [child1, child2]})
   await childDiskChain.init()
 
-  console.log(parent.getBlockIndexes(), child1.getBlockIndexes(), child2.getBlockIndexes(), childDiskChain.getBlockIndexes())
-
   let progressCalls = 0
   const onProgress = () => {
     progressCalls++
   }
 
-  const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress, removeUnused: true })
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress })
 
   const result = await mergeRemoteDisk.merge(parent, childDiskChain)
 
   console.log(result)
-
-  console.log(parent.getBlockIndexes(), child1.getBlockIndexes())
 
   assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
   assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
@@ -169,8 +167,60 @@ test('mergeVhdChain merges a simple ancestor + child VHD chain', async () => {
 
   // Check that ancestor was renamed to child
   const remainingDisks = await handler.list(basePath)
-  console.log(remainingDisks)
   assert.equal(remainingDisks.includes('child_1.vhd'), true)
   assert.equal(remainingDisks.includes('child_2.vhd'), false)
   assert.equal(remainingDisks.includes('ancestor.vhd'), false)
+})
+
+test('mergeRemoteDisk closes disks on error', async () => {
+  // Create parent and child VHDs
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0] })
+  const childVhd = await generateVhd(`${basePath}/child.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+    blocks: [1],
+  })
+
+  // Wrap disks in RemoteVhdDisk
+  const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
+  const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
+  await parent.init()
+  await child.init()
+
+  // Spy on close()
+  let parentClosed = false
+  let childClosed = false
+  const originalParentClose = parent.close.bind(parent)
+  parent.close = async () => {
+    parentClosed = true
+    await originalParentClose()
+  }
+  const originalChildClose = child.close.bind(child)
+  child.close = async () => {
+    childClosed = true
+    await originalChildClose()
+  }
+
+  // Make writeBlock throw an error to simulate failure
+  const originalWriteBlock = parent.writeBlock.bind(parent)
+  parent.writeBlock = async () => {
+    throw new Error('simulated write error')
+  }
+
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true })
+
+  // Run merge and expect it to throw
+  let threw = false
+  try {
+    await mergeRemoteDisk.merge(parent, child)
+  } catch (err) {
+    threw = true
+    assert.equal(err.message, 'simulated write error')
+  }
+
+  assert.equal(threw, true, 'merge should throw')
+  assert.equal(parentClosed, true, 'parent disk should be closed on error')
+  assert.equal(childClosed, true, 'child disk should be closed on error')
 })

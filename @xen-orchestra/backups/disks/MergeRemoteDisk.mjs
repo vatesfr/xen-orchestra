@@ -1,15 +1,20 @@
+
+/**
+ * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
+ */
+
 import assert from 'assert'
-import handlerPath from '@xen-orchestra/fs/path'
 import { createLogger } from '@xen-orchestra/log'
 
 import { basename, dirname } from 'path'
-import { Disposable } from 'promise-toolbox'
 import { asyncEach } from '@vates/async-each'
+import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 
 // @ts-ignore
 const { warn } = createLogger('remote-disk:merge')
 
 /**
+ * 
  * @typedef {Object} MergeState
  * @property {{ uuid: string }} child
  * @property {{ uuid: string }} parent
@@ -50,11 +55,6 @@ export class MergeRemoteDisk {
      * @type {Function}
      */
     #onProgress
-
-    /**
-     * @type {boolean}
-     */
-    #removeUnused
 
     /**
      * @type {number}
@@ -103,10 +103,13 @@ export class MergeRemoteDisk {
     async merge(parentDisk, childDisk) {
         this.#statePath = dirname(parentDisk.getPath()) + '/.' + basename(parentDisk.getPath()) + '.merge.json'
 
-        // Try to load previous state (resume support)
         try {
             const mergeStateContent = await this.#handler.readFile(this.#statePath)
             this.#state = JSON.parse(mergeStateContent)
+
+            // work-around a bug introduce in 97d94b795
+            //
+            // currentBlock could be `null` due to the JSON.stringify of a `NaN` value
             if (this.#state.currentBlock === null) this.#state.currentBlock = 0
             this.#isResuming = true
         } catch (error) {
@@ -183,6 +186,10 @@ export class MergeRemoteDisk {
      * @param {RemoteDisk} childDisk
      */
     async #mergeBlocks(parentDisk, childDisk) {
+        if(parentDisk instanceof RemoteVhdDisk || childDisk instanceof RemoteVhdDisk){
+            this.#mergeBlockConcurrency = 1 // TODO: TEST
+        }
+
         const toMerge = []
         for (const block of childDisk.getBlockIndexes()) {
             if (childDisk.hasBlock(block)) toMerge.push(block)
@@ -199,7 +206,7 @@ export class MergeRemoteDisk {
             async blockId => {
                 merging.add(blockId)
 
-                const blockSize = await parentDisk.writeBlock(blockId, (await childDisk.readBlock(blockId)).data)
+                const blockSize = await parentDisk.writeBlock((await childDisk.readBlock(blockId)))
                 this.#state.mergedDataSize += blockSize
 
                 this.#state.currentBlock = Math.min(...merging)
@@ -213,7 +220,8 @@ export class MergeRemoteDisk {
         )
 
         await this.#writeState()
-        this.#state.diskSize = await childDisk.getVirtualSize()
+        
+        this.#state.diskSize = childDisk.getSize()
 
         this.#onProgress({ total: nBlocks, done: nBlocks })
     }
@@ -247,6 +255,7 @@ export class MergeRemoteDisk {
      * @param {RemoteDisk} childDisk
      */
     async #cleanup(parentDisk, childDisk) {
+        console.log('close')
         const finalDiskSize = this.#state?.diskSize ?? 0
         const mergedDataSize = this.#state?.mergedDataSize ?? 0
         await this.#handler.unlink(this.#statePath).catch(warn)
