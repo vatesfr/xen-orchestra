@@ -776,6 +776,7 @@ export default class NewVm extends BaseComponent {
       '{index}': (_, i) => i,
       '{name}': state => state.name_label || '',
       '%': (state, i) => (state.multipleVms ? i : '%'),
+      '{alpha}': (state, i) => (state.multipleVms ? 'abcdefghijklmnopqrstuvwxyz'.split('')[i-1] : '{alpha}'),
     }
     this.props.userSshKeys?.forEach(sshKey => {
       rules[`{sshKey:${sshKey.title}}`] = sshKey.key
