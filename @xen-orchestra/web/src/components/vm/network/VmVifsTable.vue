@@ -35,7 +35,7 @@ import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
-import { getNetworkStatus, getPoolNetworkLink } from '@/utils/xo-records/network.utils'
+import { getNetworkStatus, getPoolNetworkRoute } from '@/utils/xo-records/network.utils'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -104,7 +104,11 @@ const { HeadCells, BodyCells } = useVifColumns({
     const ipAddresses = computed(() => getIpAddresses(vif))
 
     const network = useGetNetworkById(() => vif.$network)
-    const poolNetworkLink = computed(() => getPoolNetworkLink(network.value))
+
+    const poolNetworkRoute = computed(() =>
+      network.value ? getPoolNetworkRoute(network.value.$pool, network.value.id) : undefined
+    )
+
     const networkPifs = computed(() => getPifsByIds(network.value?.PIFs ?? []))
     const networkStatus = computed(() => getNetworkStatus(networkPifs.value))
 
@@ -113,7 +117,7 @@ const { HeadCells, BodyCells } = useVifColumns({
         network.value
           ? r({
               label: network.value.name_label,
-              to: poolNetworkLink.value,
+              to: poolNetworkRoute.value,
               icon: objectIcon('network', networkStatus.value),
             })
           : renderBodyCell(),
