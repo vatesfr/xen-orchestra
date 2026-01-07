@@ -460,8 +460,9 @@ export class XoaService {
               failedJobs++
             } else if (hasSoftFailure) {
               skippedJobs++
+            } else {
+              successfulJobs++
             }
-            successfulJobs++
           }
 
           if (last3BackupLogs.length === 0) {
@@ -472,11 +473,11 @@ export class XoaService {
           if (job.type === BACKUP_TYPE.backup) {
             // VM should only be considered protected if these last logs have been successful
             const backupLogStatusesByVm: Record<XoVm['id'], boolean[]> = {}
-            function updateVmBackupLogStatuses(id: XoVm['id'], boolean: boolean) {
+            function updateVmBackupLogStatuses(id: XoVm['id'], isSuccess: boolean) {
               if (backupLogStatusesByVm[id] === undefined) {
                 backupLogStatusesByVm[id] = []
               }
-              backupLogStatusesByVm[id].push(boolean)
+              backupLogStatusesByVm[id].push(isSuccess)
             }
 
             last3BackupLogs.forEach(jobLob => {
