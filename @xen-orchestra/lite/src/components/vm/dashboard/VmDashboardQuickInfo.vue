@@ -191,7 +191,11 @@ const mainIpAddress = computed(() => {
   .host-name {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.8rem;
+  }
+
+  .host-name {
+    min-width: 0;
   }
 }
 </style>

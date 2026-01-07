@@ -50,7 +50,7 @@
         <template #key>{{ t('task') }}</template>
         <template #value>
           <!-- TODO: add link to task when Tasks page will be available -->
-          <UiLink size="small">{{ backupLog.tasks[0].id }}</UiLink>
+          <UiLink size="small" wrap>{{ backupLog.tasks[0].id }}</UiLink>
         </template>
       </VtsCardRowKeyValue>
     </div>

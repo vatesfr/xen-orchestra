@@ -5,8 +5,13 @@
       <UiCounter :value="vdis.length" accent="neutral" size="small" variant="primary" />
     </UiCardTitle>
     <UiCollapsibleList v-if="vdis.length > 0" tag="ul" :total-items="vdis.length">
-      <li v-for="vdi in vdis" :key="vdi.id" v-tooltip class="text-ellipsis">
-        <UiLink size="small" icon="fa:hard-drive" :href="buildXo5Route(`/srs/${vdi.$SR}/disks?s=1_0_asc-${vdi.id}`)">
+      <li v-for="vdi in vdis" :key="vdi.id">
+        <UiLink
+          size="small"
+          icon="fa:hard-drive"
+          :href="buildXo5Route(`/srs/${vdi.$SR}/disks?s=1_0_asc-${vdi.id}`)"
+          wrap
+        >
           {{ vdi.name_label }}
         </UiLink>
       </li>
@@ -25,7 +30,6 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import type { XoVdi } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 

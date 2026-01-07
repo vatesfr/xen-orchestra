@@ -1,6 +1,6 @@
 <template>
   <li>
-    <UiLink size="small" :icon :href>
+    <UiLink size="small" :icon :href wrap>
       {{ br.name }}
     </UiLink>
   </li>
