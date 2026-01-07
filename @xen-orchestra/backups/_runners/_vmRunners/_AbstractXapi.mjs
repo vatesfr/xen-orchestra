@@ -9,14 +9,7 @@ import { defer } from 'golike-defer'
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { Task } from '../../Task.mjs'
 import { Abstract } from './_Abstract.mjs'
-import {
-  DATETIME,
-  JOB_ID,
-  SCHEDULE_ID,
-  populateVdisOtherConfig,
-  resetVmOtherConfig,
-  setVmOtherConfig,
-} from '../../_otherConfig.mjs'
+import { DATETIME, JOB_ID, SCHEDULE_ID, resetVmOtherConfig, setVmOtherConfig } from '../../_otherConfig.mjs'
 
 const { warn } = createLogger('xo:backups:AbstractXapi')
 
@@ -184,23 +177,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
   async _fetchJobSnapshots() {
     const jobId = this._jobId
-    const vmRef = this._vm.$ref
     const xapi = this._xapi
-
-    // to ensure compatibility with snapshots older than CBT implementation
-    // update vdi data to ensure the vdi are correctly fetched in _jobSnapshotVdis
-    // remove by then end of 2024
-    const vmSnapshotsRef = await xapi.getField('VM', vmRef, 'snapshots')
-    const vmSnapshotsOtherConfig = await asyncMap(vmSnapshotsRef, ref => xapi.getField('VM', ref, 'other_config'))
-
-    const vmSnapshots = []
-    vmSnapshotsOtherConfig.forEach((other_config, i) => {
-      if (other_config[JOB_ID] === jobId) {
-        vmSnapshots.push({ other_config, $ref: vmSnapshotsRef[i] })
-      }
-    })
-    await Promise.all(vmSnapshots.map(snapshot => populateVdisOtherConfig(xapi, snapshot.$ref)))
-    // end of compatibility handling
 
     // handle snapshot by VDI
     this._jobSnapshotVdis = []
