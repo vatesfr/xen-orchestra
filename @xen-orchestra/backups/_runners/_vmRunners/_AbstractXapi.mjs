@@ -9,9 +9,9 @@ import { defer } from 'golike-defer'
 import { getOldEntries } from '../../_getOldEntries.mjs'
 import { Task } from '../../Task.mjs'
 import { Abstract } from './_Abstract.mjs'
-import { DATETIME, JOB_ID, SCHEDULE_ID, resetVmOtherConfig, setVmOtherConfig } from '../../_otherConfig.mjs'
+import { DATETIME, JOB_ID, SCHEDULE_ID, VM_UUID, resetVmOtherConfig, setVmOtherConfig } from '../../_otherConfig.mjs'
 
-const { warn } = createLogger('xo:backups:AbstractXapi')
+const { warn, info } = createLogger('xo:backups:AbstractXapi')
 
 export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   constructor({
@@ -175,27 +175,92 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     }
   }
 
+  // handle snapshot by VDI since snapshot of cbtDestroySnapshotData jobs
+  // aren't attached to any VM
+
+  // look at all the vdi snapshots ( snapshot_of not empty )
+  // with the same vm_uuid and job_uuid
+  // for cbt_metadata list them unconditionnaly to remove older one
+  // for other: only list them if they are attached to a VM snapshot
+  // ideally ensure this snapshot is really a snapshot of the source VM
+  // this will also list the snapshot of disk removed from the source vm and clean vm later
   async _fetchJobSnapshots() {
     const jobId = this._jobId
     const xapi = this._xapi
 
-    // handle snapshot by VDI
-    this._jobSnapshotVdis = []
-    const srcVdis = await xapi.getRecords('VDI', await this._vm.$getDisks())
-    for (const srcVdi of srcVdis) {
-      const snapshots = await xapi.getRecords('VDI', srcVdi.snapshots)
-      for (const snapshot of snapshots) {
-        // only keep the snapshot related to this backup job
-        // and only if the job is still using  purge snapshot data or if the disk
-        // is not a cbt metadata disk ( expect a type: user for normal disks)
-        if (
-          snapshot.other_config[JOB_ID] === jobId &&
-          (this._settings.cbtDestroySnapshotData || snapshot.type !== 'cbt_metadata')
-        ) {
-          this._jobSnapshotVdis.push(snapshot)
-        }
+    const vdiCandidates = {}
+
+    Object.values(xapi.objects.indexes.type.VDI)
+      .filter(_ => !!_) // filter nullish
+      .filter(({ other_config, is_a_snapshot }) => {
+        return is_a_snapshot && other_config[JOB_ID] === jobId && other_config[VM_UUID] === this._vm.uuid
+      })
+      .forEach(vdi => {
+        vdiCandidates[vdi.uuid] = vdi
+      })
+
+    // check that user snapshots are clean
+
+    for (const vdi of Object.values(vdiCandidates)) {
+      if (vdi.type !== 'user') {
+        continue
       }
+      const vbds = vdi.$VBDs
+        .filter(({ $VM }) => !!$VM) // filter empty VMs
+        .filter(({ $VM }) => $VM.is_control_domain === false)
+      if (vbds.length === 0) {
+        // orphan vdi snapshot
+        info(
+          `disk snapshot ${vdi.name_label} is orphan or attached only to control domain,
+          it will be removed at the end of a successfull backup run`,
+          { vdi, attachedto: vdi.$VBDs.map(vbd => vbd?.$VM) }
+        )
+        continue
+      }
+      const userVms = vbds.map(({ $VM }) => $VM)
+      if (vbds.length > 1) {
+        warn(
+          `vdi ${vdi.name_label} (${vdi.uuid}) is linked to multipe vms :  ${userVms.map(({ name_label, uuid }) => `${name_label} ${uuid}`).join(', ')}. 
+              This disk snapshot will be excluded from the backup cleaining`,
+          { vdi, userVms }
+        )
+        delete vdiCandidates[vdi.uuid]
+        continue
+      }
+
+      const vm = vbds[0].$VM
+
+      // xapi has some issue regarding vdi snapshot attached to non snapshot VM
+      // it can also be some user action forcibely linking a vdi snapshot to a vm
+      // => we exclude these from the backup processing
+      if (!vm.is_a_snapshot) {
+        warn(
+          `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a non snapshot vm ${vm.name_label} ${vm.uuid}. 
+          This disk snapshot will be excluded from the backup cleaining`,
+          { vdi, vm }
+        )
+        delete vdiCandidates[vdi.uuid]
+        continue
+      }
+
+      // check if all the disks of these VM snapshot have been recolted
+      // if not => remove it from the list to ensure we won't half destroy VM later
+      vm.$VBDs
+        .filter(({ $VDI }) => !!$VDI) // filter missing keys
+        .filter(({ $VDI }) => $VDI && vdiCandidates[$VDI.uuid] === undefined)
+        .forEach(({ $VDI: outOfSnapshotsVdi, ...other }) => {
+          warn(
+            `vdi ${vdi.name_label} ${vdi.uuid} is recognized as a snapshot of the backup job,
+           linked to vm ${vm.name_label} ${vm.uuid} but vdi ${outOfSnapshotsVdi.name_label} ${outOfSnapshotsVdi.uuid} 
+           is not linked to the job. This disk snapshot will be excluded from the backup cleaining`,
+            { vdi, vm, vbds, outOfSnapshotsVdi }
+          )
+          // this will be called multiple time but it is not really an issue
+          delete vdiCandidates[vdi.uuid]
+        })
     }
+
+    this._jobSnapshotVdis = Object.values(vdiCandidates)
   }
 
   async _removeUnusedSnapshots() {
