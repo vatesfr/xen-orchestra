@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard" :class="{ mobile: isSmall }">
+  <div class="dashboard" :class="{ mobile: uiStore.isSmall }">
     <HostDashboardQuickInfo class="quick-info" :host />
     <div v-if="!isHostRunning" class="offline-hero-container">
       <VtsStateHero format="page" type="offline" size="large" horizontal>
@@ -67,7 +67,7 @@ const { hostAlarms, areHostAlarmsReady, hasHostAlarmFetchError } = useXoHostAlar
 
 const isHostRunning = computed(() => host.power_state === HOST_POWER_STATE.RUNNING)
 
-const { isSmall } = useUiStore()
+const uiStore = useUiStore()
 </script>
 
 <style lang="postcss" scoped>
@@ -84,19 +84,8 @@ const { isSmall } = useUiStore()
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   &.mobile {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'quick-info'
-      'alarms'
-      'patches'
-      'vms-status'
-      'cpu-provisioning'
-      'ram-provisioning'
-      'cpu-usage-chart'
-      'ram-usage-chart'
-      'network-usage-chart'
-      'load-average-chart'
-      'offline-hero-container';
+    display: flex;
+    flex-direction: column;
   }
 
   .quick-info {

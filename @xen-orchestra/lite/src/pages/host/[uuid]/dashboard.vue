@@ -98,17 +98,8 @@ onUnmounted(() => setRegisteredHost(undefined))
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
 
   &.mobile {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'quick-info'
-      'vms-status'
-      'cpu-provisioning'
-      'ram-usage'
-      'cpu-usage-chart'
-      'memory-usage-chart'
-      'network-usage-chart'
-      'load-average-chart'
-      'offline-hero-container';
+    display: flex;
+    flex-direction: column;
   }
 
   .quick-info {
