@@ -8,7 +8,6 @@
 <script lang="ts" setup>
 import { useDisabled } from '@core/composables/disabled.composable'
 import { useUiStore } from '@core/stores/ui.store'
-import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 
 const props = withDefaults(
@@ -20,13 +19,13 @@ const props = withDefaults(
   { tag: 'span' }
 )
 
-const { isMobile } = storeToRefs(useUiStore())
+const uiStore = useUiStore()
 
 const isDisabled = useDisabled(() => props.disabled)
 
 const classNames = computed(() => {
   return [
-    isMobile.value ? 'typo-caption-small' : 'typo-caption',
+    uiStore.isMobile ? 'typo-caption-small' : 'typo-caption',
     {
       disabled: isDisabled.value,
       active: props.active,
