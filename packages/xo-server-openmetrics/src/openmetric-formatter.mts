@@ -8,6 +8,7 @@
 import { createLogger } from '@xen-orchestra/log'
 
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
+import type { SrDataItem } from './index.mjs'
 
 const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
@@ -63,16 +64,8 @@ interface SrLabelInfo {
   name_label: string
 }
 
-/** SR data for capacity metrics */
-export interface SrData {
-  uuid: string
-  name_label: string
-  pool_id: string
-  pool_name: string
-  size: number
-  physical_usage: number
-  usage: number
-}
+/** SR data for capacity metrics - re-exported from index for convenience */
+export type { SrDataItem }
 
 interface LabelLookupData {
   vms: Record<string, VmLabelInfo>
@@ -747,10 +740,12 @@ export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[], labelC
  * - physical_size (size)
  * - physical_usage
  *
+ * For local (non-shared) SRs, host_id and host_name labels are included.
+ *
  * @param srDataList - Array of SR data with capacity information
  * @returns Array of FormattedMetric entries for SR capacity
  */
-export function formatSrMetrics(srDataList: SrData[]): FormattedMetric[] {
+export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
   const metrics: FormattedMetric[] = []
   const timestamp = Math.floor(Date.now() / 1000)
 
@@ -763,6 +758,14 @@ export function formatSrMetrics(srDataList: SrData[]): FormattedMetric[] {
 
     if (sr.pool_name !== '') {
       baseLabels.pool_name = sr.pool_name
+    }
+
+    // For local SRs, add host information
+    if (sr.host_id !== undefined) {
+      baseLabels.host_id = sr.host_id
+    }
+    if (sr.host_name !== undefined) {
+      baseLabels.host_name = sr.host_name
     }
 
     // Virtual size (virtual_allocation)

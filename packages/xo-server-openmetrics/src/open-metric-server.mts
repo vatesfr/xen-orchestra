@@ -24,7 +24,7 @@ import {
   formatAllPoolsToOpenMetrics,
   formatSrMetrics,
   formatToOpenMetrics,
-  type SrData,
+  type SrDataItem,
 } from './openmetric-formatter.mjs'
 
 const logger = createLogger('xo:xo-server-openmetrics:child')
@@ -85,7 +85,7 @@ interface XapiCredentialsPayload {
 }
 
 interface SrDataPayload {
-  srs: SrData[]
+  srs: SrDataItem[]
 }
 
 interface PendingRequest<T> {

@@ -77,14 +77,11 @@ interface XapiCredentialsPayload {
   labels: LabelLookupData
 }
 
-interface SrDataItem {
-  uuid: string
-  name_label: string
+export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_usage' | 'usage'> & {
   pool_id: string
   pool_name: string
-  size: number
-  physical_usage: number
-  usage: number
+  host_id?: string
+  host_name?: string
 }
 
 interface SrDataPayload {
@@ -416,11 +413,18 @@ class OpenMetricsPlugin {
       poolLabelMap.set(pool.uuid, pool.name_label)
     }
 
+    // Get all hosts to resolve host labels for local SRs
+    const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
+    const hostLabelMap = new Map<string, string>()
+    for (const host of Object.values(allHosts)) {
+      hostLabelMap.set(host.id, host.name_label)
+    }
+
     // Get all SRs
     const allSrs = this.#xo.getObjects({ filter: { type: 'SR' } }) as Record<string, XoSr>
 
     for (const sr of Object.values(allSrs)) {
-      srs.push({
+      const srData: SrDataItem = {
         uuid: sr.uuid,
         name_label: sr.name_label,
         pool_id: sr.$poolId,
@@ -428,7 +432,17 @@ class OpenMetricsPlugin {
         size: sr.size,
         physical_usage: sr.physical_usage,
         usage: sr.usage,
-      })
+      }
+
+      // For local (non-shared) SRs, add host information
+      // $container is the host ID for local SRs, pool ID for shared SRs
+      if (!sr.shared && sr.$container !== sr.$poolId) {
+        const hostId = sr.$container as string
+        srData.host_id = hostId
+        srData.host_name = hostLabelMap.get(hostId)
+      }
+
+      srs.push(srData)
     }
 
     logger.debug('Returning SR data', { srCount: srs.length })
