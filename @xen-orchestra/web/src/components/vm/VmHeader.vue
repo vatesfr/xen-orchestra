@@ -73,7 +73,7 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import VmActions from './actions/VmActions.vue'
+import VmActions from '@/components/vm/actions/VmActions.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
