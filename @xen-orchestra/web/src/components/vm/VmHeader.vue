@@ -61,6 +61,7 @@
 </template>
 
 <script lang="ts" setup>
+import VmActions from '@/components/vm/actions/VmActions.vue'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import type { VmState } from '@core/types/object-icon.type'
 import MenuList from '@core/components/menu/MenuList.vue'
@@ -73,7 +74,6 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import type { XoVm } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import VmActions from '@/components/vm/actions/VmActions.vue'
 
 const { vm } = defineProps<{ vm: XoVm }>()
 
