@@ -1,8 +1,52 @@
 # ChangeLog
 
-## **6.0.1** (2025-12-19)
+## **6.0.3** (2026-01-06)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Security
+
+### Enhancements
+
+### Bug fixes
+
+- [V2V] Better handling of block alignment (PR [#9293](https://github.com/vatesfr/xen-orchestra/pull/9293))
+- [Hub] Fix _m.downloadAndInstallResource is not a function_ error [Forum#11735](https://xcp-ng.org/forum/topic/11735/hub-is-bugged) (PR [#9362](https://github.com/vatesfr/xen-orchestra/pull/9362))
+
+### Released packages
+
+- vhd-lib 4.14.6
+- @xen-orchestra/disk-transform 1.2.1
+- @xen-orchestra/qcow2 1.1.1
+- @xen-orchestra/xapi 8.6.3
+- @xen-orchestra/backups 0.67.2
+- @xen-orchestra/web-core 0.40.0
+- @xen-orchestra/proxy 0.29.41
+- @xen-orchestra/web 0.37.2
+- xo-server 5.194.6
+- xo-web 5.191.3
+
+## **6.0.2** (2025-12-23)
+
+### Bug fixes
+
+- **XO5**:
+  - [XOA/Updates] Fix xoa-updater service appears to be down (PR [#9349](https://github.com/vatesfr/xen-orchestra/pull/9349))
+  - [Netdata] Fix netdata URL (PR [#9354](https://github.com/vatesfr/xen-orchestra/pull/9354))
+
+- [OpenMetrics] Fix compliance with OpenMetrics 1.0 specification: use correct Content-Type header and timestamps in seconds [#9351](https://github.com/vatesfr/xen-orchestra/pull/9351)
+- [OpenMetrics] Fix authentication bypass for `/openmetrics` routes to allow Prometheus scraping with Bearer token [#9351](https://github.com/vatesfr/xen-orchestra/pull/9351)
+- [Select component] Fix randomly empty select component at initialization (PR [#9282](https://github.com/vatesfr/xen-orchestra/pull/9282))
+- [TaskItem] Fix tree on task item component due to a different behavior on firefox (PR [#9352](https://github.com/vatesfr/xen-orchestra/pull/9352))
+
+### Released packages
+
+- @xen-orchestra/web-core 0.39.1
+- @xen-orchestra/web 0.37.1
+- xo-server 5.194.5
+- xo-server-openmetrics 1.0.2
+
+## **6.0.1** (2025-12-19)
 
 ### Security
 

@@ -291,7 +291,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   const UNCHECKED_URL_RE =
-    /(?:^\/rest\/)|favicon|manifest\.webmanifest|fontawesome|images|styles|\.(?:css|jpg|png|svg)$/
+    /(?:^\/rest\/)|(?:^\/openmetrics\/)|favicon|manifest\.webmanifest|fontawesome|images|styles|\.(?:css|jpg|png|svg)$/
   express.use(async (req, res, next) => {
     const { url } = req
 
@@ -617,12 +617,14 @@ const setUpProxies = (express, opts, xo) => {
     if (target.includes('[port]')) {
       target = target.replace(/\[port\]/g, userHttpConfig.port)
     }
+    let dynamicProtocol = false
     if (target.includes('[protocol]')) {
+      dynamicProtocol = true
       target = target.replace(/\[protocol\]/g, protocol)
     }
 
     const targetUrl = new URL(target)
-    if (isSecure) {
+    if (dynamicProtocol && isSecure) {
       targetUrl.protocol = targetUrl.protocol === 'ws:' ? 'wss:' : 'https:'
     }
 

@@ -172,7 +172,8 @@ requestTimeout = 0
 # [port] is used to reuse the same port declared in [http.listen.0]
 '/v5/api' = '[protocol]//localhost:[port]/api'
 '/v5/api/updater' = 'ws://localhost:9001'
-'/v5/rest' = 'http://localhost:[port]/rest'
+'/v5/rest' = '[protocol]//localhost:[port]/rest'
+'/v5/netdata' = '[protocol]//localhost:[port]/netdata'
 '/openmetrics' = 'http://localhost:9004'
 
 [logs]
