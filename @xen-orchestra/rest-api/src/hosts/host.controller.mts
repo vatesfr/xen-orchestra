@@ -318,6 +318,7 @@ export class HostController extends XapiXoController<XoHost> {
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(badRequestResp.status, badRequestResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   managementReconfigure(
     @Path() id: string,
@@ -326,9 +327,14 @@ export class HostController extends XapiXoController<XoHost> {
   ): CreateActionReturnType<void> {
     const hostId = id as XoHost['id']
     const action = async () => {
+      const host = this.getObject(hostId)
+      const pif = this.restApi.getObject<XoPif>(body.pif as XoPif['id'], 'PIF')
+      if (pif.$host !== host.id) {
+        throw new Error(`the PIF ${pif.uuid} does not belong to host ${host.uuid}`)
+      }
       const xapiHost = this.getXapiObject(hostId)
-      const pif = this.restApi.getXapiObject<XoPif>(body.pif as XoPif['id'], 'PIF')
-      await xapiHost.$xapi.call('host.management_reconfigure', pif.$ref)
+      const xapiPif = this.restApi.getXapiObject<XoPif>(body.pif as XoPif['id'], 'PIF')
+      await xapiHost.$xapi.callAsync('host.management_reconfigure', xapiPif.$ref)
     }
 
     return this.createAction<void>(action, {

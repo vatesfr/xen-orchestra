@@ -5,7 +5,7 @@ import { format } from 'json-rpc-peer'
 import { pipeline } from 'node:stream'
 import tarStream from 'tar-stream'
 import { Ref } from 'xen-api'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 
 import backupGuard from './_backupGuard.mjs'
 
@@ -435,8 +435,11 @@ listPoolsMatchingCriteria.params = {
  * @returns {Promise<void>}
  */
 export async function managementReconfigure({ pool, network }) {
+  if (network.$pool !== pool.id) {
+    throw invalidParameters(`the network ${network.id} does not belong to pool ${pool.id}`)
+  }
   const xapi = this.getXapi(pool)
-  await xapi.call('pool.management_reconfigure', network._xapiRef)
+  await xapi.callAsync('pool.management_reconfigure', network._xapiRef)
 }
 
 managementReconfigure.description =

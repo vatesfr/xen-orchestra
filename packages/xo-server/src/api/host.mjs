@@ -5,7 +5,7 @@ import { format } from 'json-rpc-peer'
 import { X509Certificate } from 'node:crypto'
 import { pipeline } from 'node:stream'
 import semver from 'semver'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 
 import { asyncEach } from '@vates/async-each'
 import { fromCallback } from 'promise-toolbox'
@@ -700,8 +700,11 @@ getBiosInfo.resolve = {
  * @returns {Promise<void>}
  */
 export async function managementReconfigure({ host, pif }) {
+  if (pif.$host !== host.id) {
+    throw invalidParameters(`the PIF ${pif.id} does not belong to host ${host.id}`)
+  }
   const xapi = this.getXapi(host)
-  await xapi.call('host.management_reconfigure', pif._xapiRef)
+  await xapi.callAsync('host.management_reconfigure', pif._xapiRef)
 }
 
 managementReconfigure.description = 'Reconfigure the management interface of the host to use the given PIF'

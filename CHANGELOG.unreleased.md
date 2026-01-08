@@ -11,7 +11,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Pool/Host] Add ability to move management interface to another PIF/network (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
+- [REST API] Add endpoints to reconfigure management interface for hosts and pools (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
 
 ### Bug fixes
 

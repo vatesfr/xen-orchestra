@@ -502,6 +502,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
+  @Response(badRequestResp.status, badRequestResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   managementReconfigure(
     @Path() id: string,
@@ -510,9 +511,14 @@ export class PoolController extends XapiXoController<XoPool> {
   ): CreateActionReturnType<void> {
     const poolId = id as XoPool['id']
     const action = async () => {
+      const pool = this.getObject(poolId)
+      const network = this.restApi.getObject<XoNetwork>(body.network as XoNetwork['id'], 'network')
+      if (network.$pool !== pool.id) {
+        throw new Error(`the network ${network.uuid} does not belong to pool ${pool.uuid}`)
+      }
       const xapiPool = this.getXapiObject(poolId)
-      const network = this.restApi.getXapiObject<XoNetwork>(body.network as XoNetwork['id'], 'network')
-      await xapiPool.$xapi.call('pool.management_reconfigure', network.$ref)
+      const xapiNetwork = this.restApi.getXapiObject<XoNetwork>(body.network as XoNetwork['id'], 'network')
+      await xapiPool.$xapi.callAsync('pool.management_reconfigure', xapiNetwork.$ref)
     }
 
     return this.createAction<void>(action, {
