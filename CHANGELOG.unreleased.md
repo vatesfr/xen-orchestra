@@ -17,6 +17,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- **XO 6:**
+  - [Sidebar] Removal borders top and right of sidebar in mobile (PR [#9366](https://github.com/vatesfr/xen-orchestra/pull/9366))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
