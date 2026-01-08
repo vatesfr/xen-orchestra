@@ -2,31 +2,39 @@
   <ComponentStory
     v-slot="{ properties }"
     :params="[
+      prop('radioType').enum('default', 'rich').preset('default').widget(),
       prop('accent').required().enum('brand', 'warning', 'danger').preset('brand').widget(),
       prop('label').str().widget().preset('Label'),
       prop('info').str().widget().preset('message'),
       prop('vertical').bool().widget(),
+      prop('rich').bool().widget().help('Available only if radioType = rich'),
+      prop('layout')
+        .enum('grid', 'flex')
+        .preset('flex')
+        .widget()
+        .help('Only for rich radio, grid for small size and flex for medium size'),
       prop('size').enum('small', 'medium').preset('medium').widget(),
-      prop('rich').bool().widget(),
-      prop('src').str().help('Image URL for rich mode'),
-      prop('alt').str().help('Alt text for image'),
       slot().help('Meant to receive a list of radio button components'),
       slot('label').help('Meant to receive a label UiLabel component or another component'),
       slot('info').help('Meant to receive a message info or UiInfo component or another component'),
     ]"
   >
     <UiRadioButtonGroup v-bind="properties">
-      <UiRadioButton
+      <component
+        :is="properties.radioType === 'rich' ? UiRichRadioButton : UiRadioButton"
         v-for="(label, index) in labels"
         :key="index"
         v-model="selectedRadio"
-        v-bind="properties"
+        v-bind="{
+          ...properties,
+          rich: properties.radioType === 'rich' ? properties.rich : false,
+        }"
         :value="`radio-${index}`"
-        :src="properties.rich ? imageUrl : undefined"
-        :alt="properties.rich ? properties.alt : undefined"
+        :src="imageUrl"
+        :alt="properties.alt"
       >
         {{ label }}
-      </UiRadioButton>
+      </component>
     </UiRadioButtonGroup>
   </ComponentStory>
 </template>
@@ -36,6 +44,7 @@ import ComponentStory from '@/components/component-story/ComponentStory.vue'
 import { prop, slot } from '@/libs/story/story-param'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
+import UiRichRadioButton from '@core/components/ui/rich-radio-button/UiRichRadioButton.vue'
 import { ref } from 'vue'
 import imageUrl from '../../../../assets/color-mode-dark.svg'
 
