@@ -192,8 +192,8 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
     Object.values(xapi.objects.indexes.type.VDI)
       .filter(_ => !!_) // filter nullish
-      .filter(({ other_config, is_a_snapshot }) => {
-        return is_a_snapshot && other_config[JOB_ID] === jobId && other_config[VM_UUID] === this._vm.uuid
+      .filter(({ other_config, $snapshot_of }) => {
+        return $snapshot_of !== undefined && other_config[JOB_ID] === jobId && other_config[VM_UUID] === this._vm.uuid
       })
       .forEach(vdi => {
         vdiCandidates[vdi.uuid] = vdi
@@ -233,7 +233,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       // xapi has some issue regarding vdi snapshot attached to non snapshot VM
       // it can also be some user action forcibely linking a vdi snapshot to a vm
       // => we exclude these from the backup processing
-      if (!vm.is_a_snapshot) {
+      if (vm.$snapshot_of === undefined) {
         warn(
           `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a non snapshot vm ${vm.name_label} ${vm.uuid}. 
           This disk snapshot will be excluded from the backup cleaning`,
@@ -310,7 +310,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
             // since we won't be able to remove an attached VDI
             assert.strictEqual(vbds.length, 1, 'VDI must be free or attached to exactly one VM')
             const vdiVm = vbds[0].$VM
-            if (!vdiVm.is_a_snapshot) {
+            if (vdiVm.$snapshot_of === undefined) {
               // don't delete a VM (especially a control domain)
               warn(
                 `VM ${vdiVm.uuid} (${vdiVm.name_label}) linked to VDI ${vdi.uuid} (${vdi.name_label}) should be a snapshot`
@@ -357,8 +357,9 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     // going back to a previous version of XO not supporting CBT will create a full backup
     // this will only do something after snapshot and transfer
     if (
+      this._exportedVm !== undefined &&
       // don't modify the VM
-      this._exportedVm?.is_a_snapshot &&
+      this._exportedVm.$snapshot_of !== undefined &&
       // user don't want to keep the snapshot data
       this._settings.snapshotRetention === 0 &&
       // preferNbd is not a guarantee that the backup used NBD, depending on the network configuration,
