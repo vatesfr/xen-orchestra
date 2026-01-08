@@ -1,50 +1,86 @@
-import { AbstractEncryptor } from "../../dist/encryptors/AbstractEncryptor.js";
-import { RollingEncryptor } from "./RollingEncryptor.js";
-import { SingleEncryptor } from "./SingleEncryptor.js";
+// @ts-check
 
-export class FsEncryptor extends AbstractEncryptor{
-    #handler
-    #encryptor 
-     
-    constructor(handler){
-        super(handler)
-        this.#handler = handler
-    }
+import { AbstractEncryptor } from './AbstractEncryptor.js'
+import { RollingEncryptor } from './RollingEncryptor.js'
+import { SingleEncryptor } from './SingleEncryptor.js'
 
-    async init(){
-        const {algorithm, updateMode } = await this.getAlgorithm()
-        let encryptor
-        switch(updateMode){
-            case 'rolling':
-                const currentEncryptor = new SingleEncryptor(this.#handler,algorithm)
-                encryptor =  new RollingEncryptor(currentEncryptor)
-                break
-            case 'single':
-                encryptor = new SingleEncryptor(this.#handler,algorithm) 
-                break
-            default: 
-                throw new Error(`remote encryption mode ${mode} is not supported`)
-        }
-        await encryptor.init(algorithm)
-        await encryptor.check(algorithm)
-        this.#encryptor = encryptor
-    }
+export class FsEncryptor extends AbstractEncryptor {
+  #handler
+  /**
+   * @type {AbstractEncryptor|undefined}
+   */
+  #encryptor
 
-    
-    updateEncryptionKey(key, algorithm) {    
-        return this.#encryptor.updateEncryptionKey(key , algorithm)
-    }
-    encryptBuffer(buffer){
-        return this.#encryptor.encryptBuffer(buffer)
-    }    
-    decryptBuffer(buffer){
-        return this.#encryptor.decryptBuffer(buffer)
-    }    
-    encryptStream(stream){
-        return this.#encryptor.encryptStream(stream)
-    }   
-    decryptStream(stream){
-        return this.#encryptor.decryptStream(stream)
-    }
+  /**
+   *
+   * @param {*} handler
+   */
+  constructor(handler) {
+    super(handler)
+    this.#handler = handler
+  }
 
+  async init() {
+    await super.init()
+    const { algorithm, updateMode } = await this.getAlgorithm()
+    let encryptor
+    switch (updateMode) {
+      case 'rolling': {
+        const currentEncryptor = new SingleEncryptor(this.#handler, algorithm)
+        encryptor = new RollingEncryptor(currentEncryptor)
+        break
+      }
+      case 'single':
+        encryptor = new SingleEncryptor(this.#handler, algorithm)
+        break
+      default:
+        throw new Error(`remote encryption mode ${updateMode} is not supported`)
+    }
+    await encryptor.init()
+    await encryptor.check(algorithm)
+    this.#encryptor = encryptor
+  }
+
+  /**
+   *
+   * @param {Buffer} key
+   * @param {string} algorithm
+   * @returns
+   */
+
+  updateEncryptionKey(key, algorithm) {
+    return this.#encryptor.updateEncryptionKey(key, algorithm)
+  }
+  /**
+   *
+   * @param {Buffer} buffer
+   * @returns {Promise<Buffer>}
+   */
+  encryptBuffer(buffer) {
+    return this.#encryptor.encryptBuffer(buffer)
+  }
+  /**
+   *
+   * @param {Buffer} buffer
+   * @returns {Promise<Buffer>}
+   */
+  decryptBuffer(buffer) {
+    return this.#encryptor.decryptBuffer(buffer)
+  }
+  /**
+   *
+   * @param {Readable} stream
+   * @returns {Promise<Readable>}
+   */
+  encryptStream(stream) {
+    return this.#encryptor.encryptStream(stream)
+  }
+  /**
+   *
+   * @param {Readable} stream
+   * @returns {Promise<Readable>}
+   */
+  decryptStream(stream) {
+    return this.#encryptor.decryptStream(stream)
+  }
 }
