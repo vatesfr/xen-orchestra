@@ -212,7 +212,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         // orphan vdi snapshot
         info(
           `disk snapshot ${vdi.name_label} is orphan or attached only to control domain,
-          it will be removed at the end of a successfull backup run`,
+          it will be removed at the end of a successful backup run`,
           { vdi, attachedto: vdi.$VBDs.map(vbd => vbd?.$VM) }
         )
         continue
@@ -221,7 +221,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       if (vbds.length > 1) {
         warn(
           `vdi ${vdi.name_label} (${vdi.uuid}) is linked to multipe vms :  ${userVms.map(({ name_label, uuid }) => `${name_label} ${uuid}`).join(', ')}. 
-              This disk snapshot will be excluded from the backup cleaining`,
+              This disk snapshot will be excluded from the backup cleaning`,
           { vdi, userVms }
         )
         delete vdiCandidates[vdi.uuid]
@@ -236,7 +236,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       if (!vm.is_a_snapshot) {
         warn(
           `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a non snapshot vm ${vm.name_label} ${vm.uuid}. 
-          This disk snapshot will be excluded from the backup cleaining`,
+          This disk snapshot will be excluded from the backup cleaning`,
           { vdi, vm }
         )
         delete vdiCandidates[vdi.uuid]
@@ -252,7 +252,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
           warn(
             `vdi ${vdi.name_label} ${vdi.uuid} is recognized as a snapshot of the backup job,
            linked to vm ${vm.name_label} ${vm.uuid} but vdi ${outOfSnapshotsVdi.name_label} ${outOfSnapshotsVdi.uuid} 
-           is not linked to the job. This disk snapshot will be excluded from the backup cleaining`,
+           is not linked to the job. This disk snapshot will be excluded from the backup cleaning`,
             { vdi, vm, vbds, outOfSnapshotsVdi }
           )
           // this will be called multiple time but it is not really an issue
