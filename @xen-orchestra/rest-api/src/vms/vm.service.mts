@@ -4,6 +4,7 @@ import { Task } from '@vates/task'
 import {
   AnyXoVm,
   VM_POWER_STATE,
+  XapiXoRecord,
   XoAlarm,
   XoBackupLog,
   XoHost,
@@ -145,17 +146,20 @@ export class VmService {
   getVmVdis(id: XoVm['id'], vmType: 'VM'): XoVdi[]
   getVmVdis(id: XoVmTemplate['id'], vmType: 'VM-template'): XoVdi[]
   getVmVdis(id: XoVmSnapshot['id'], vmType: 'VM-snapshot'): XoVdiSnapshot[]
-  getVmVdis(id: XoVmController['id'], vmType: 'VM-controller'): (XoVdi | XoVdiSnapshot)[]
-  getVmVdis<T extends AnyXoVm>(id: T['id'], vmType: T['type']): (XoVdi | XoVdiSnapshot)[] {
+  getVmVdis(id: XoVmController['id'], vmType: 'VM-controller'): XoVdi[]
+  getVmVdis<T extends AnyXoVm, VdiType extends XapiXoRecord = T['type'] extends 'VM-snapshot' ? XoVdiSnapshot : XoVdi>(
+    id: T['id'],
+    vmType: T['type']
+  ): VdiType[] {
     const getObject = this.#restApi.getObject.bind(this.#restApi)
-    const vdis: (XoVdi | XoVdiSnapshot)[] = []
+    const vdis: VdiType[] = []
 
     const vm = getObject<T>(id, vmType)
 
     for (const vbdId of vm.$VBDs) {
       const vbd = getObject<XoVbd>(vbdId, 'VBD')
       if (vbd.VDI !== undefined) {
-        const vdi = getObject<XoVdi | XoVdiSnapshot>(vbd.VDI, ['VDI-snapshot', 'VDI'])
+        const vdi = getObject<VdiType>(vbd.VDI, [vmType === 'VM-snapshot' ? 'VDI-snapshot' : 'VDI'])
         vdis.push(vdi)
       }
     }
