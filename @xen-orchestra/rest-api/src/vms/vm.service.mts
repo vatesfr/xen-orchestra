@@ -272,7 +272,7 @@ export class VmService {
     }
 
     if (lastReplica === undefined) {
-      return
+      return {}
     }
 
     const vdis = this.getVmVdis(id, 'VM')
@@ -341,7 +341,7 @@ export class VmService {
         }
       }) as { backupJobId: XoVmBackupJob['id']; timestamp: number; status: string }[]
 
-    let vmProtection: VmDashboard['backupsInfo']['vmProtection'] = 'not-in-job'
+    let vmProtection: VmDashboard['backupsInfo']['vmProtection'] = 'not-in-active-job'
     if (!vmContainsNoBakTag(vm)) {
       const backupLogsByJob = groupBy(backupLogs, 'jobId')
 
@@ -382,7 +382,7 @@ export class VmService {
 
     return Object.values(backupArchivesByVmByBr)
       .filter(backupArchiveByVm => backupArchiveByVm !== undefined)
-      .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id])
+      .flatMap(backupArchiveByVm => backupArchiveByVm[vm.id] ?? [])
       .sort((a, b) => b.timestamp - a.timestamp)
       .splice(0, 3)
       .map(ba => ({ id: ba.id, timestamp: ba.timestamp, backupRepository: ba.backupRepository, size: ba.size }))
