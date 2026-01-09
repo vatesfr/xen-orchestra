@@ -180,10 +180,11 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
 
   // look at all the vdi snapshots ( snapshot_of not empty )
   // with the same vm_uuid and job_uuid
-  // for cbt_metadata list them unconditionnaly to remove older one
-  // for other: only list them if they are attached to a VM snapshot
-  // ideally ensure this snapshot is really a snapshot of the source VM
-  // this will also list the snapshot of disk removed from the source vm and clean vm later
+  //   for cbt_metadata list them unconditionnaly to remove older one
+  //   for other: only list them if they are attached to a VM snapshot
+  //   ensure they are attached to only one vm snapshot
+  //   ensure any VM-snapshot harvested by this has all its disk harvested (no mix of vdi snapshot from this job and not)
+
   async _fetchJobSnapshots() {
     const jobId = this._jobId
     const xapi = this._xapi
@@ -202,12 +203,14 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
     // check that user snapshots are clean
 
     for (const vdi of Object.values(vdiCandidates)) {
-      if (vdi.type !== 'user') {
+      // cbt metadata are always considered linked to a backup job
+      // if they have the right other_config
+      if (vdi.type === 'cbt_metadata') {
         continue
       }
       const vbds = vdi.$VBDs
         .filter(({ $VM }) => !!$VM) // filter empty VMs
-        .filter(({ $VM }) => $VM.is_control_domain === false)
+        .filter(({ $VM }) => $VM.is_control_domain === false) // do not handle control domain
       if (vbds.length === 0) {
         // orphan vdi snapshot
         info(
@@ -243,7 +246,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
         continue
       }
 
-      // check if all the disks of these VM snapshot have been recolted
+      // check if all the disks of these VM snapshot have been harvested
       // if not => remove it from the list to ensure we won't half destroy VM later
       vm.$VBDs
         .filter(({ $VDI }) => !!$VDI) // filter missing keys
