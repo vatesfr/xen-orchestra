@@ -516,10 +516,10 @@ function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[
         vmCoreMetrics.set(vmUuid, vmTimestamps)
       }
 
-      let coreValues = vmTimestamps.get(metric.timestampMs)
+      let coreValues = vmTimestamps.get(metric.timestamp)
       if (coreValues === undefined) {
         coreValues = new Map()
-        vmTimestamps.set(metric.timestampMs, coreValues)
+        vmTimestamps.set(metric.timestamp, coreValues)
       }
 
       coreValues.set(metric.labels.core, { value: metric.value, metric })
@@ -536,7 +536,7 @@ function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[
     }
 
     // For each timestamp, compute average of all cores
-    for (const [timestampMs, coreValues] of timestamps) {
+    for (const [timestamp, coreValues] of timestamps) {
       if (coreValues.size === 0) {
         continue
       }
@@ -569,7 +569,7 @@ function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[
         type: 'gauge',
         labels,
         value: averageUsage,
-        timestampMs,
+        timestamp,
       })
     }
   }
