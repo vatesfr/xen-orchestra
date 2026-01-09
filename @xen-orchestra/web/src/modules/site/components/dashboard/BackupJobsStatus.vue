@@ -1,22 +1,31 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="hasError">
     <UiCardTitle>
       {{ t('backups:jobs:status') }}
-      <template #info>
-        <UiLink size="small" to="/backups"> {{ t('action:see-all') }}</UiLink>
+      <template v-if="!areBackupsJobsEmpty" #info>
+        <UiLink size="small" :to="{ name: '/(site)/backups' }"> {{ t('action:see-all') }}</UiLink>
       </template>
-      <template #description>{{ t('backups:jobs:last-seven-days') }}</template>
+      <template v-if="!areBackupsJobsEmpty" #description>{{ t('backups:jobs:last-seven-days') }}</template>
     </UiCardTitle>
     <VtsStateHero v-if="!areBackupsJobsReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
-    <VtsStateHero v-else-if="!backups" format="card" type="no-data" horizontal size="medium">
-      {{ t('no-data-to-calculate') }}
-    </VtsStateHero>
+    <UiAlert v-else-if="areBackupsJobsEmpty" accent="warning">
+      <span class="typo-body-bold">{{ t('no-active-backup-jobs') }}</span>
+      <template #description>
+        <I18nT keypath="configure-for-protected" scope="global" tag="div">
+          <template #backup-job>
+            <UiLink size="small" :to="{ name: '/(site)/backups' }">
+              {{ t('backup-job') }}
+            </UiLink>
+          </template>
+        </I18nT>
+      </template>
+    </UiAlert>
     <template v-else>
-      <VtsDonutChartWithLegend :segments="jobsSegments" />
-      <UiCardNumbers :label="t('total')" :value="backups.jobs.total" size="small" />
+      <VtsDonutChartWithLegend icon="object:backup-job" :segments="jobsSegments" />
+      <UiCardNumbers :label="t('total')" :value="backups?.jobs.total" size="small" />
     </template>
   </UiCard>
 </template>
@@ -32,6 +41,7 @@ import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
@@ -45,6 +55,8 @@ const { backups } = defineProps<{
 }>()
 
 const areBackupsJobsReady = computed(() => backups?.jobs !== undefined)
+
+const areBackupsJobsEmpty = computed(() => backups?.jobs.total === 0)
 
 const { t } = useI18n()
 
@@ -65,9 +77,9 @@ const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
     accent: 'danger',
   },
   {
-    label: t('backups:jobs:disabled'),
-    value: backups?.jobs.disabled ?? 0,
-    accent: 'muted',
+    label: t('backups:jobs:no-recent-run'),
+    value: backups?.jobs.noRecentRun ?? 0,
+    accent: 'info',
   },
 ])
 </script>
