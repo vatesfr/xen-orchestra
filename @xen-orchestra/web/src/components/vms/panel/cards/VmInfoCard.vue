@@ -6,12 +6,7 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <VtsCardRowKeyValue no-key>
-        <template #value>{{ vm.id }}</template>
-        <template #addons>
-          <VtsCopyButton :value="vm.id" />
-        </template>
-      </VtsCardRowKeyValue>
+      <VtsCodeSnippet :content="vm.id" copy />
       <VtsCardRowKeyValue>
         <template #key>{{ t('state') }}</template>
         <template #value>
@@ -21,14 +16,14 @@
           </div>
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue max-lines>
+      <VtsCardRowKeyValue truncate align-top>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vm.name_description }}</template>
         <template v-if="vm.name_description" #addons>
           <VtsCopyButton :value="vm.name_description" />
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue>
+      <VtsCardRowKeyValue align-top>
         <template #key>{{ t('tags') }}</template>
         <template #value>
           <UiTagsList v-if="vm.tags.length > 0">
@@ -155,6 +150,7 @@ import { useXoUserResource } from '@/remote-resources/use-xo-user.ts'
 import { useXoVmCollection } from '@/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'

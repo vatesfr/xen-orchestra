@@ -20,12 +20,7 @@
         </UiCardTitle>
         <div class="content">
           <!-- ID -->
-          <VtsCardRowKeyValue no-key>
-            <template #value>{{ server.id }}</template>
-            <template #addons>
-              <VtsCopyButton :value="server.id" />
-            </template>
-          </VtsCardRowKeyValue>
+          <VtsCodeSnippet :content="server.id" copy />
           <!-- Pool -->
           <VtsCardRowKeyValue>
             <template #key>{{ t('pool') }}</template>
@@ -44,7 +39,7 @@
             </template>
           </VtsCardRowKeyValue>
           <!-- Description -->
-          <VtsCardRowKeyValue max-lines>
+          <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
             <template #value>{{ server.poolNameDescription }}</template>
             <template v-if="server.poolNameDescription !== undefined" #addons>
@@ -173,6 +168,7 @@
 import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'

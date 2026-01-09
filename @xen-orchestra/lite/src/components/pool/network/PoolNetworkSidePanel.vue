@@ -43,14 +43,9 @@
         </UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue no-key>
-            <template #value>{{ network.uuid }}</template>
-            <template #addons>
-              <VtsCopyButton :value="network.uuid" />
-            </template>
-          </VtsCardRowKeyValue>
+          <VtsCodeSnippet :content="network.uuid" copy />
           <!-- DESCRIPTION -->
-          <VtsCardRowKeyValue max-lines>
+          <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
             <template #value>
               <span class="value">{{ network.name_description }}</span>
@@ -126,6 +121,7 @@ import PifRow from '@/components/pif/PifRow.vue'
 import type { XenApiNetwork } from '@/libs/xen-api/xen-api.types'
 import { usePifStore } from '@/stores/xen-api/pif.store'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
