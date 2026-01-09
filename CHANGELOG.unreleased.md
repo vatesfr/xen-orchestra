@@ -30,6 +30,7 @@
 - [Backup] Implement Distributed storage for Backups, Mirror Backups and Replications(PR [#9433](https://github.com/vatesfr/xen-orchestra/pull/9433))
 - [REST API] Added POST `/srs/{id}/actions/reclaim_space` rest route (PR [#9486](https://github.com/vatesfr/xen-orchestra/pull/9486))
 - [REST API] Expose `POST /vdis` to create a VDI (PR [#9492](https://github.com/vatesfr/xen-orchestra/pull/9492))
+- [CONNECTION XO-SERVER] Add a banner to the header when the connection to the xo server fails (PR [#9375](https://github.com/vatesfr/xen-orchestra/pull/9375))
 
 ### Bug fixes
 
