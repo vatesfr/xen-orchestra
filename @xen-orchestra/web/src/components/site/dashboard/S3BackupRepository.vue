@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <div class="s3-backup-repository">
       <UiCardTitle>
         {{ t('s3-backup-repository') }}
