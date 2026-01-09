@@ -11,6 +11,10 @@ module.exports = async function repl(args) {
     return `Starts REPL on given remote, or on remote at current path if no param is passed. (works only for unencrypted remotes)
     Usage: ${this.command} <remote URL (optional)>`
   }
+  const unexpectedArgs = args.filter(arg => arg.startsWith('-'))
+  if (unexpectedArgs.length > 0) {
+    return `Option${unexpectedArgs.length > 1 ? 's' : ''} ${unexpectedArgs} unsupported, use --help for details.`
+  }
   const cwd = process.cwd()
   const url = args.length === 0 ? 'file://' + cwd : args[0]
   const handler = getHandler({ url })
