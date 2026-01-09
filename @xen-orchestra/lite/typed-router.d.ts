@@ -114,6 +114,7 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/ui/radio-button/ui-radio-button': RouteRecordInfo<'/story/web-core/ui/radio-button/ui-radio-button', '/story/web-core/ui/radio-button/ui-radio-button', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/radio-button-group/ui-radio-button-group': RouteRecordInfo<'/story/web-core/ui/radio-button-group/ui-radio-button-group', '/story/web-core/ui/radio-button-group/ui-radio-button-group', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/stacked-bar/ui-stacked-bar': RouteRecordInfo<'/story/web-core/ui/stacked-bar/ui-stacked-bar', '/story/web-core/ui/stacked-bar/ui-stacked-bar', Record<never, never>, Record<never, never>>,
+    '/story/web-core/ui/subtitle/ui-subtitle': RouteRecordInfo<'/story/web-core/ui/subtitle/ui-subtitle', '/story/web-core/ui/subtitle/ui-subtitle', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/table-actions/ui-table-actions': RouteRecordInfo<'/story/web-core/ui/table-actions/ui-table-actions', '/story/web-core/ui/table-actions/ui-table-actions', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/table-pagination/ui-table-pagination': RouteRecordInfo<'/story/web-core/ui/table-pagination/ui-table-pagination', '/story/web-core/ui/table-pagination/ui-table-pagination', Record<never, never>, Record<never, never>>,
     '/story/web-core/ui/tag/ui-tag': RouteRecordInfo<'/story/web-core/ui/tag/ui-tag', '/story/web-core/ui/tag/ui-tag', Record<never, never>, Record<never, never>>,
