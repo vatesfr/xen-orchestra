@@ -19,14 +19,9 @@
         </UiCardTitle>
         <div class="content">
           <!-- ID -->
-          <VtsCardRowKeyValue no-key>
-            <template #value>{{ network.id }}</template>
-            <template #addons>
-              <VtsCopyButton :value="network.id" />
-            </template>
-          </VtsCardRowKeyValue>
+          <VtsCodeSnippet :content="network.id" copy />
           <!-- DESCRIPTION -->
-          <VtsCardRowKeyValue max-lines>
+          <VtsCardRowKeyValue truncate align-top>
             <template #key>{{ t('description') }}</template>
             <template #value>
               {{ network.name_description }}
@@ -103,6 +98,7 @@
 import PifRow from '@/components/pif/PifRow.vue'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

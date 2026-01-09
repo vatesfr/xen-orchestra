@@ -53,6 +53,7 @@ declare module 'vue-router/auto-routes' {
     '/story/web-core/card/vts-card-row-key-value': RouteRecordInfo<'/story/web-core/card/vts-card-row-key-value', '/story/web-core/card/vts-card-row-key-value', Record<never, never>, Record<never, never>>,
     '/story/web-core/cell-object/vts-cell-object': RouteRecordInfo<'/story/web-core/cell-object/vts-cell-object', '/story/web-core/cell-object/vts-cell-object', Record<never, never>, Record<never, never>>,
     '/story/web-core/cell-text/vts-cell-text': RouteRecordInfo<'/story/web-core/cell-text/vts-cell-text', '/story/web-core/cell-text/vts-cell-text', Record<never, never>, Record<never, never>>,
+    '/story/web-core/code-snippet/vts-code-snippet': RouteRecordInfo<'/story/web-core/code-snippet/vts-code-snippet', '/story/web-core/code-snippet/vts-code-snippet', Record<never, never>, Record<never, never>>,
     '/story/web-core/columns/vts-columns': RouteRecordInfo<'/story/web-core/columns/vts-columns', '/story/web-core/columns/vts-columns', Record<never, never>, Record<never, never>>,
     '/story/web-core/copy-button/vts-copy-button': RouteRecordInfo<'/story/web-core/copy-button/vts-copy-button', '/story/web-core/copy-button/vts-copy-button', Record<never, never>, Record<never, never>>,
     '/story/web-core/donut-chart-with-legend/vts-donut-chart-with-legend': RouteRecordInfo<'/story/web-core/donut-chart-with-legend/vts-donut-chart-with-legend', '/story/web-core/donut-chart-with-legend/vts-donut-chart-with-legend', Record<never, never>, Record<never, never>>,

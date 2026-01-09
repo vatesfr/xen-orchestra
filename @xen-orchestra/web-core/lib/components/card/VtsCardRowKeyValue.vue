@@ -1,16 +1,20 @@
 <template>
-  <div class="vts-card-row-key-value typo-body-regular-small" :class="{ 'no-key': noKey }">
-    <div v-if="!noKey && slots.key" class="key">
+  <div
+    class="vts-card-row-key-value typo-body-regular-small"
+    :class="{ truncate: shouldTruncate, 'align-top': alignTop }"
+  >
+    <div class="key">
       <slot name="key" />
     </div>
     <div class="value-container">
-      <div ref="truncatableValueRef" class="value" :class="{ truncated: shouldTruncate && !isExpanded }">
+      <div ref="truncatableValueElement" class="value" :class="{ truncated: shouldTruncate && !isExpanded }">
         <slot name="value" />
       </div>
       <UiButtonIcon
         v-if="shouldTruncate"
         v-tooltip="isExpanded ? t('action:show-less') : t('action:show-more')"
         :icon="isExpanded ? 'fa:chevron-up' : 'fa:chevron-down'"
+        class="show-more"
         size="small"
         accent="brand"
         @click="toggleExpanded()"
@@ -25,16 +29,18 @@
 <script lang="ts" setup>
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import { vTooltip } from '@core/directives/tooltip.directive'
+import { useStyleTag } from '@vueuse/core'
 import { useToggle } from '@vueuse/shared'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { maxLines } = defineProps<{
-  noKey?: boolean
-  maxLines?: number | boolean
+const { truncate } = defineProps<{
+  truncate?: number | boolean
+  alignTop?: boolean
 }>()
+
 const slots = defineSlots<{
-  key?(): any
+  key(): any
   value(): any
   addons?(): any
 }>()
@@ -43,15 +49,16 @@ const DEFAULT_MAX_LINES = 5
 
 const { t } = useI18n()
 
-const truncatableValueRef = ref<HTMLElement>()
+const truncatableValueElementRef = useTemplateRef('truncatableValueElement')
 const lineCount = ref(0)
 
-const isTruncationEnabled = computed(() => maxLines !== undefined && maxLines !== false)
+const isTruncationEnabled = computed(() => truncate !== undefined && truncate !== false)
 
 const lineLimit = computed(() => {
-  if (typeof maxLines === 'number') {
-    return maxLines
+  if (typeof truncate === 'number') {
+    return truncate
   }
+
   return DEFAULT_MAX_LINES
 })
 
@@ -62,15 +69,26 @@ const [isExpanded, toggleExpanded] = useToggle(false)
 const calculateLines = async () => {
   await nextTick()
 
-  if (!truncatableValueRef.value) {
+  if (!truncatableValueElementRef.value) {
     return
   }
 
-  const lineHeight = parseFloat(getComputedStyle(truncatableValueRef.value).lineHeight)
-  const height = truncatableValueRef.value.scrollHeight
+  // TODO: handle cases where lineHeight is 'normal' or not in px
+  const lineHeight = parseFloat(getComputedStyle(truncatableValueElementRef.value).lineHeight)
+  const height = truncatableValueElementRef.value.scrollHeight
 
   lineCount.value = Math.round(height / lineHeight)
 }
+
+const style = computed(() => {
+  if (!(shouldTruncate.value || isExpanded.value)) {
+    return ''
+  }
+
+  return `.vts-card-row-key-value.truncate .value.truncated { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: ${lineLimit.value}; line-clamp: ${lineLimit.value}; overflow: hidden; text-overflow: ellipsis; }`
+})
+
+useStyleTag(style)
 
 onMounted(() => {
   calculateLines()
@@ -78,9 +96,7 @@ onMounted(() => {
 
 watch(
   () => slots.value?.(),
-  () => {
-    calculateLines()
-  }
+  () => calculateLines()
 )
 </script>
 
@@ -88,7 +104,31 @@ watch(
 .vts-card-row-key-value {
   display: flex;
   align-items: center;
-  gap: 1.6rem;
+  column-gap: 1.6rem;
+
+  &.truncate {
+    display: grid;
+    row-gap: 0.4rem;
+    grid-template-columns: 1fr auto;
+
+    .key {
+      grid-column: 1 / -1;
+      grid-row: 1;
+    }
+
+    .addons {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .value-container {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &.align-top:not(.truncate) {
+    align-items: flex-start;
+  }
 
   .key {
     overflow-wrap: break-word;
@@ -98,21 +138,15 @@ watch(
   .value-container {
     display: flex;
     align-items: end;
-    .value {
-      max-width: 25rem;
-      color: var(--color-neutral-txt-primary);
-      overflow-wrap: anywhere;
-      word-break: break-word;
-      white-space: normal;
-    }
-  }
+    gap: 0.8rem;
 
-  .value.truncated {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: v-bind(lineLimit);
-    overflow: hidden;
-    text-overflow: ellipsis;
+    .value {
+      color: var(--color-neutral-txt-primary);
+    }
+
+    .show-more {
+      flex-shrink: 0;
+    }
   }
 
   .value:empty::before {
@@ -125,19 +159,6 @@ watch(
     margin-left: auto;
     font-size: 1.6rem;
     align-items: center;
-  }
-
-  &.no-key {
-    .value-container {
-      flex: 1;
-      .value {
-        flex: 1;
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 1.2rem;
-        color: var(--color-neutral-border);
-        max-width: none;
-      }
-    }
   }
 }
 </style>
