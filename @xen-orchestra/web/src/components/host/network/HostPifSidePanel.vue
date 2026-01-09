@@ -18,14 +18,7 @@
         <UiCardTitle>{{ pif.isBondMaster ? t('bond') : t('pif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue no-key>
-            <template #value>
-              {{ pif.id }}
-            </template>
-            <template #addons>
-              <VtsCopyButton :value="pif.id" />
-            </template>
-          </VtsCardRowKeyValue>
+          <VtsCodeSnippet :content="pif.id" copy />
           <!-- NETWORK -->
           <VtsCardRowKeyValue>
             <template #key>
@@ -85,16 +78,15 @@
             </template>
           </VtsCardRowKeyValue>
           <!-- TAGS -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('tags') }}
-            </template>
+          <VtsCardRowKeyValue align-top>
+            <template #key>{{ t('tags') }}</template>
             <template #value>
-              <UiTagsList class="value">
-                <UiTag v-for="tag in network?.tags" :key="tag" accent="info" variant="secondary">
-                  {{ tag }}
-                </UiTag>
+              <UiTagsList v-if="network && network.tags.length > 0">
+                <UiTag v-for="tag in network.tags" :key="tag" accent="info" variant="secondary">{{ tag }}</UiTag>
               </UiTagsList>
+            </template>
+            <template v-if="network && network.tags.length > 0" #addons>
+              <VtsCopyButton :value="network.tags.join(', ')" />
             </template>
           </VtsCardRowKeyValue>
         </div>
@@ -200,9 +192,7 @@
               <template #key>
                 <div v-if="index === 0">{{ t('bond-devices') }}</div>
               </template>
-              <template #value>
-                <span v-tooltip>{{ device }}</span>
-              </template>
+              <template #value>{{ device }}</template>
               <template #addons>
                 <VtsCopyButton :value="device" />
                 <UiButtonIcon
@@ -265,6 +255,7 @@
 import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
+import VtsCodeSnippet from '@core/components/code-snippet/VtsCodeSnippet.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
