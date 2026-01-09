@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error="hasError">
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('backups:jobs:status') }}
       <template v-if="!areBackupsJobsEmpty" #info>
