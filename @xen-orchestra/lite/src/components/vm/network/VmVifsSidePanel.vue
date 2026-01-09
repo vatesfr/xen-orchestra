@@ -41,10 +41,7 @@
         <UiCardTitle>{{ t('vif') }}</UiCardTitle>
         <div class="content">
           <!-- UUID -->
-          <VtsCardRowKeyValue>
-            <template #key>
-              {{ t('uuid') }}
-            </template>
+          <VtsCardRowKeyValue no-key>
             <template #value>
               {{ vif.uuid }}
             </template>
@@ -60,14 +57,7 @@
             <template #value>
               <div class="network">
                 <!-- TODO Remove the span when the link works and the icon is fixed -->
-                <!--
-                <UiComplexIcon size="medium">
-                  <VtsIcon icon="fa:network-wired" accent="current" />
-                  <VtsIcon accent="success" :icon="faCircle" :overlay-icon="faCheck" />
-                </UiComplexIcon>
-                <a href="">{{ networkNameLabel }}</a>
-                -->
-                <span v-tooltip class="text-ellipsis value">{{ network?.name_label }}</span>
+                <span v-tooltip class="value">{{ network?.name_label }}</span>
               </div>
             </template>
             <template v-if="network?.name_label" #addons>
@@ -130,7 +120,7 @@
                 <div v-if="index === 0">{{ t('ip-addresses') }}</div>
               </template>
               <template #value>
-                <span v-tooltip class="text-ellipsis">{{ ip }}</span>
+                <span v-tooltip>{{ ip }}</span>
               </template>
               <template #addons>
                 <VtsCopyButton :value="ip" />

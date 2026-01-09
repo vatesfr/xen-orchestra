@@ -11,8 +11,7 @@
       </UiLink>
     </UiCardTitle>
     <div class="content">
-      <VtsCardRowKeyValue>
-        <template #key>{{ t('id') }}</template>
+      <VtsCardRowKeyValue no-key>
         <template #value>{{ backupJob.id }}</template>
         <template #addons>
           <VtsCopyButton :value="backupJob.id" />
@@ -22,9 +21,7 @@
         <template #key>
           <template v-if="index === 0">{{ t('mode', backupJobModes.length) }}</template>
         </template>
-        <template #value>
-          <span class="text-ellipsis">{{ mode }}</span>
-        </template>
+        <template #value> {{ mode }} </template>
         <template #addons>
           <VtsCopyButton :value="mode" />
           <UiButtonIcon
