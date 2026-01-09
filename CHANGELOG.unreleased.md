@@ -16,6 +16,9 @@
 - [vhd-cli] Prevent using invalid options (PR [#9386](https://github.com/vatesfr/xen-orchestra/pull/9386))
 - [REST API] Add endpoints to reconfigure management interface for hosts and pools (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
 
+- **XO 6:**
+- [CONNECTION XO-SERVER] Add a banner to the header when the connection to the xo server fails (PR [#9375](https://github.com/vatesfr/xen-orchestra/pull/9375))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
