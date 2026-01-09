@@ -51,12 +51,12 @@ const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vm:status:paused', 2),
     value: status?.paused ?? 0,
-    accent: 'neutral',
+    accent: 'brand',
   },
   {
     label: t('vm:status:suspended', 2),
     value: status?.suspended ?? 0,
-    accent: 'muted',
+    accent: 'neutral',
   },
   {
     label: t('vm:status:halted', 2),
