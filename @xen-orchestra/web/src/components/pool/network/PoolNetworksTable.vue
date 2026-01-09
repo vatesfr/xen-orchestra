@@ -2,7 +2,7 @@
   <div class="pool-networks-table">
     <UiTitle>
       {{ internal ? t('host-internal-networks') : t('networks') }}
-      <template #actions>
+      <template #action>
         <UiLink :href="xo5NewNetworkHref" icon="fa:plus" size="medium">
           {{ internal ? t('action:add-host-internal-network-in-xo-5') : t('action:add-network-in-xo-5') }}
         </UiLink>
