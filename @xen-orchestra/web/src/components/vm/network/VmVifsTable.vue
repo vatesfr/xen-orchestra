@@ -2,7 +2,7 @@
   <div class="vm-vifs-table">
     <UiTitle>
       {{ t('vifs') }}
-      <template #actions>
+      <template #action>
         <UiLink :href="xo5VmVifHref" icon="fa:plus" size="medium">
           {{ t('action:add-vifs-in-xo-5') }}
         </UiLink>
