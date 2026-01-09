@@ -17,7 +17,7 @@
       :has-error
     />
         <BackupJobsStatus class="backup-jobs-status" :backups="dashboard.backups" :has-error />
-        <BackupIssues class="backup-issues" :issues="dashboard.backups?.issues" :has-error />
+        <BackupIssues class="backup-issues" :backups="dashboard.backups" :has-error />
         <VmsProtection class="vms-protection" :backups="dashboard.backups" :has-error />
         <BackupRepository class="backup-repository" :repositories="backupRepositories" :has-error />
         <StorageRepository class="storage-repository" :repositories="storageRepositories" :has-error />

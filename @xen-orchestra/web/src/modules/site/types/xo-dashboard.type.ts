@@ -46,6 +46,7 @@ export type XoDashboard = {
     jobs: {
       disabled: number
       failed: number
+      noRecentRun: number
       skipped: number
       successful: number
       total: number
@@ -64,10 +65,13 @@ export type XoDashboard = {
   }
   poolsStatus?: {
     connected: number
+    disconnected: number
     unreachable: number
     unknown: number
+    total: number
   }
   hostsStatus?: {
+    disabled: number
     running: number
     halted: number
     unknown: number
@@ -75,7 +79,11 @@ export type XoDashboard = {
   }
   vmsStatus?: {
     active: number
+    halted: number
     inactive: number
+    paused: number
+    running: number
+    suspended: number
     unknown: number
     total: number
   }

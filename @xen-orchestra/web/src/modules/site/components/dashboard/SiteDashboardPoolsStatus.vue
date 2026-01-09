@@ -1,13 +1,18 @@
 <template>
   <UiCard :has-error>
-    <UiCardTitle>{{ t('pools-status') }}</UiCardTitle>
+    <UiCardTitle>
+      {{ t('pools-status') }}
+      <template #info>
+        <UiLink size="small" :to="{ name: '/(site)/pools' }"> {{ t('action:see-all') }}</UiLink>
+      </template>
+    </UiCardTitle>
     <VtsStateHero v-if="!arePoolsStatusReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend icon="object:pool" :segments />
-      <UiCardNumbers :value="total"  :label="t('total')" size="small" />
+      <UiCardNumbers :label="t('total')" :value="status?.total" size="small" />
     </template>
   </UiCard>
 </template>
@@ -21,7 +26,7 @@ import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import { useSum } from '@vueuse/math'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -34,20 +39,16 @@ const { t } = useI18n()
 
 const arePoolsStatusReady = computed(() => status !== undefined)
 
-const total = useSum(() => Object.values(status ?? {}))
-
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('pool:status:connected', 2),
     value: status?.connected ?? 0,
     accent: 'success',
   },
-  // TODO change to disconnected when available in api
   {
-    label: t('pool:status:unknown'),
-    value: status?.unknown ?? 0,
+    label: t('pool:status:disconnected', 2),
+    value: status?.disconnected ?? 0,
     accent: 'muted',
-    tooltip: t('pool:status:unknown:tooltip'),
   },
   {
     label: t('pool:status:unreachable', 2),

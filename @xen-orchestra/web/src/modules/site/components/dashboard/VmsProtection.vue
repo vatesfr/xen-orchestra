@@ -7,10 +7,18 @@
     <VtsStateHero v-if="!areBackupsVmsProtectionReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="backups === undefined" format="card" type="no-data" size="medium" />
     <template v-else>
-      <VtsDonutChartWithLegend :segments="vmsProtectionSegments" />
+      <VtsDonutChartWithLegend icon="object:backup-job" :segments="vmsProtectionSegments" />
       <div>
-        <!--        TODO add a link to a modal when component is available -->
-        <UiLink size="small" icon="fa:info-circle">{{ t('what-does-protect-means') }}</UiLink>
+        <UiButton
+          class="protection-helper"
+          accent="brand"
+          left-icon="legacy:status:info"
+          size="small"
+          variant="tertiary"
+          @click="openVmProtectedModal()"
+        >
+          {{ t('what-does-protected-means?') }}
+        </UiButton>
       </div>
     </template>
   </UiCard>
@@ -22,15 +30,20 @@ import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
+import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiLink from '@core/components/ui/link/UiLink.vue'
+import { useModal } from '@core/packages/modal/use-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backups } = defineProps<{
   backups: XoDashboard['backups'] | undefined
 }>()
+
+const openVmProtectedModal = useModal(() => ({
+  component: import('@/components/modals/VmProtected.vue'),
+}))
 
 const areBackupsVmsProtectionReady = computed(() => backups?.vmsProtection !== undefined)
 

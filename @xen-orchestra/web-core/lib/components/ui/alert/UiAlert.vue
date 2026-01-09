@@ -1,4 +1,4 @@
-<!-- v3 -->
+<!-- v4 -->
 <template>
   <div :class="toVariants({ accent })" class="ui-alert">
     <div class="content">
@@ -84,22 +84,18 @@ const icon = useMapper<AlertAccent, IconName>(
   }
 
   &.accent--info {
-    background-color: var(--color-info-background-selected);
     border-color: var(--color-info-item-base);
   }
 
   &.accent--success {
-    background-color: var(--color-success-background-selected);
     border-color: var(--color-success-item-base);
   }
 
   &.accent--warning {
-    background-color: var(--color-warning-background-selected);
     border-color: var(--color-warning-item-base);
   }
 
   &.accent--danger {
-    background-color: var(--color-danger-background-selected);
     border-color: var(--color-danger-item-base);
   }
 }
