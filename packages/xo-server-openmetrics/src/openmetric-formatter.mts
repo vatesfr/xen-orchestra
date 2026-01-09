@@ -8,6 +8,7 @@
 import { createLogger } from '@xen-orchestra/log'
 
 import type { ParsedMetric, ParsedRrdData } from './rrd-parser.mjs'
+import type { SrDataItem } from './index.mjs'
 
 const logger = createLogger('xo:xo-server-openmetrics:formatter')
 
@@ -62,6 +63,9 @@ interface HostLabelInfo {
 interface SrLabelInfo {
   name_label: string
 }
+
+/** SR data for capacity metrics - re-exported from index for convenience */
+export type { SrDataItem }
 
 interface LabelLookupData {
   vms: Record<string, VmLabelInfo>
@@ -401,6 +405,33 @@ export const VM_METRICS: MetricDefinition[] = [
     type: 'gauge',
     help: 'VM disk average queue size',
     extractLabels: matches => ({ device: `xvd${matches[1]!}` }),
+  },
+]
+
+/**
+ * SR capacity metric definitions.
+ *
+ * These metrics are derived from XO SR objects, not RRD data.
+ * They provide storage capacity information for monitoring.
+ */
+export const SR_METRICS: MetricDefinition[] = [
+  {
+    test: 'virtual_size',
+    openMetricName: 'sr_virtual_size_bytes',
+    type: 'gauge',
+    help: 'SR virtual allocated size in bytes',
+  },
+  {
+    test: 'physical_size',
+    openMetricName: 'sr_physical_size_bytes',
+    type: 'gauge',
+    help: 'SR physical size in bytes',
+  },
+  {
+    test: 'physical_usage',
+    openMetricName: 'sr_physical_usage_bytes',
+    type: 'gauge',
+    help: 'SR physical space used in bytes',
   },
 ]
 
@@ -809,4 +840,74 @@ export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[], labelC
   // Add EOF marker as per OpenMetrics specification
   // Return empty string if no metrics (caller handles EOF)
   return output !== '' ? `${output}\n# EOF` : ''
+}
+
+/**
+ * Format SR capacity metrics to OpenMetrics format.
+ *
+ * Creates FormattedMetric entries for each SR's capacity metrics:
+ * - virtual_size (usage/virtual_allocation)
+ * - physical_size (size)
+ * - physical_usage
+ *
+ * For local (non-shared) SRs, host_id and host_name labels are included.
+ *
+ * @param srDataList - Array of SR data with capacity information
+ * @returns Array of FormattedMetric entries for SR capacity
+ */
+export function formatSrMetrics(srDataList: SrDataItem[]): FormattedMetric[] {
+  const metrics: FormattedMetric[] = []
+  const timestamp = Math.floor(Date.now() / 1000)
+
+  for (const sr of srDataList) {
+    const baseLabels: Record<string, string> = {
+      pool_id: sr.pool_id,
+      sr_uuid: sr.uuid,
+      sr_name: sr.name_label,
+    }
+
+    if (sr.pool_name !== '') {
+      baseLabels.pool_name = sr.pool_name
+    }
+
+    // For local SRs, add host information
+    if (sr.host_id !== undefined) {
+      baseLabels.host_id = sr.host_id
+    }
+    if (sr.host_name !== undefined) {
+      baseLabels.host_name = sr.host_name
+    }
+
+    // Virtual size (virtual_allocation)
+    metrics.push({
+      name: `${METRIC_PREFIX}_sr_virtual_size_bytes`,
+      help: 'SR virtual allocated size in bytes',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: sr.usage,
+      timestamp,
+    })
+
+    // Physical size
+    metrics.push({
+      name: `${METRIC_PREFIX}_sr_physical_size_bytes`,
+      help: 'SR physical size in bytes',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: sr.size,
+      timestamp,
+    })
+
+    // Physical usage
+    metrics.push({
+      name: `${METRIC_PREFIX}_sr_physical_usage_bytes`,
+      help: 'SR physical space used in bytes',
+      type: 'gauge',
+      labels: { ...baseLabels },
+      value: sr.physical_usage,
+      timestamp,
+    })
+  }
+
+  return metrics
 }
