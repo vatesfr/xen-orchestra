@@ -36,6 +36,10 @@ module.exports = async function compare(args) {
     return `Tells if two VHDs are identical.
     Usage: ${this.command} <sourceRemoteUrl> <source VHD> <destinationRemoteUrl> <destination>`
   }
+  const unexpectedArgs = args.filter(arg => arg.startsWith('-'))
+  if (unexpectedArgs.length > 0) {
+    return `Option${unexpectedArgs.length > 1 ? 's' : ''} ${unexpectedArgs} unsupported, use --help for details.`
+  }
   const [sourceRemoteUrl, sourcePath, destRemoteUrl, destPath] = args
 
   await Disposable.use(async function* () {
