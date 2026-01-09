@@ -11,6 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [CONNECTION XO-SERVER] Add a banner to the header when the connection to the xo server fails (PR [#9375](https://github.com/vatesfr/xen-orchestra/pull/9375))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
