@@ -1,11 +1,14 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('backups:vms-protection') }}
       <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
     <VtsStateHero v-if="!areBackupsVmsProtectionReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="backups === undefined" format="card" type="no-data" size="medium" />
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
+      {{ t('error-no-data') }}
+    </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend icon="object:backup-job" :segments="vmsProtectionSegments" />
       <div>
@@ -39,6 +42,7 @@ import { useI18n } from 'vue-i18n'
 
 const { backups } = defineProps<{
   backups: XoDashboard['backups'] | undefined
+  hasError?: boolean
 }>()
 
 const openVmProtectedModal = useModal(() => ({

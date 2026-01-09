@@ -1,5 +1,5 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <div class="site-dashboard-storage-repository">
       <UiCardTitle>
         {{ t('storage-repository') }}
@@ -47,6 +47,7 @@ import { useI18n } from 'vue-i18n'
 
 const { repositories } = defineProps<{
   repositories: StorageRepositories | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()

@@ -1,8 +1,14 @@
 <template>
-  <UiCard>
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('backups:jobs:issues') }}
-      <UiCounter v-if="hasBackupIssues" :value="nBackupIssues" accent="danger" size="medium" variant="primary" />
+      <UiCounter
+        v-if="hasBackupIssues || !hasError"
+        :value="nBackupIssues"
+        accent="danger"
+        size="medium"
+        variant="primary"
+      />
       <template v-if="hasBackupIssues" #info>
         <!-- TODO Need to be Filter on “Last 3 backups”: “Skipped runs, no errors”, “Errors detected “ -->
         <UiLink size="small" :to="{ name: '/(site)/backups' }"> {{ t('action:see-all') }}</UiLink>
@@ -39,8 +45,9 @@ import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backups } = defineProps<{
+const { backups, hasError } = defineProps<{
   backups: XoDashboard['backups'] | undefined
+  hasError?: boolean
 }>()
 
 const { t } = useI18n()
@@ -59,6 +66,7 @@ const hasBackupJobs = computed(() => (backups?.jobs?.total ?? 0) > 0)
 
 const state = useTableState({
   busy: logicNot(areBackupIssuesReady),
+  error: () => (hasError ? { type: 'error', message: t('error-no-data'), size: 'extra-small' } : false),
   empty: () =>
     !hasBackupIssues.value && !hasBackupJobs.value
       ? { type: 'no-data', message: t('no-data-to-calculate'), size: 'extra-small' }
