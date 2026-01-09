@@ -449,6 +449,111 @@ export function findMetricDefinition(
 }
 
 // ============================================================================
+// CPU Usage Fallback
+// ============================================================================
+
+/**
+ * Compute vm_cpu_usage from per-core metrics when cpu_usage is not available.
+ *
+ * Some VMs (particularly on XCP-ng 8.2) don't report a single cpu_usage metric,
+ * but they do report individual per-core CPU metrics (cpu0, cpu1, cpu2, etc.).
+ * This function creates synthetic vm_cpu_usage metrics by averaging the per-core values.
+ *
+ * @param metrics - Array of formatted metrics
+ * @returns Array of synthetic vm_cpu_usage metrics for VMs missing the native metric
+ */
+function computeVmCpuUsageFallback(metrics: FormattedMetric[]): FormattedMetric[] {
+  // Track VMs that have vm_cpu_usage
+  const vmsWithCpuUsage = new Set<string>()
+
+  // Track per-core metrics by VM UUID: { uuid -> { timestamp -> { core -> value } } }
+  const vmCoreMetrics = new Map<string, Map<number, Map<string, { value: number; metric: FormattedMetric }>>>()
+
+  for (const metric of metrics) {
+    const vmUuid = metric.labels.uuid
+    if (metric.labels.type !== 'vm' || vmUuid === undefined) {
+      continue
+    }
+
+    if (metric.name === 'xcp_vm_cpu_usage') {
+      vmsWithCpuUsage.add(vmUuid)
+    } else if (metric.name === 'xcp_vm_cpu_core_usage' && metric.labels.core !== undefined) {
+      // Store per-core metrics grouped by VM and timestamp
+      let vmTimestamps = vmCoreMetrics.get(vmUuid)
+      if (vmTimestamps === undefined) {
+        vmTimestamps = new Map()
+        vmCoreMetrics.set(vmUuid, vmTimestamps)
+      }
+
+      let coreValues = vmTimestamps.get(metric.timestampMs)
+      if (coreValues === undefined) {
+        coreValues = new Map()
+        vmTimestamps.set(metric.timestampMs, coreValues)
+      }
+
+      coreValues.set(metric.labels.core, { value: metric.value, metric })
+    }
+  }
+
+  // Generate synthetic vm_cpu_usage for VMs that don't have the native metric
+  const syntheticMetrics: FormattedMetric[] = []
+
+  for (const [vmUuid, timestamps] of vmCoreMetrics) {
+    // Skip VMs that already have cpu_usage
+    if (vmsWithCpuUsage.has(vmUuid)) {
+      continue
+    }
+
+    // For each timestamp, compute average of all cores
+    for (const [timestampMs, coreValues] of timestamps) {
+      if (coreValues.size === 0) {
+        continue
+      }
+
+      // Calculate average CPU usage across all cores
+      let sum = 0
+      for (const { value } of coreValues.values()) {
+        sum += value
+      }
+      const averageUsage = sum / coreValues.size
+
+      // Get a sample metric to copy labels from (without core label)
+      const sampleEntry = coreValues.values().next().value
+      if (sampleEntry === undefined) {
+        continue
+      }
+      const sampleMetric = sampleEntry.metric
+
+      // Create synthetic metric with same labels (excluding core)
+      const labels: Record<string, string> = {}
+      for (const [key, value] of Object.entries(sampleMetric.labels)) {
+        if (key !== 'core') {
+          labels[key] = value
+        }
+      }
+
+      syntheticMetrics.push({
+        name: 'xcp_vm_cpu_usage',
+        help: 'VM CPU usage ratio (computed from per-core average)',
+        type: 'gauge',
+        labels,
+        value: averageUsage,
+        timestampMs,
+      })
+    }
+  }
+
+  if (syntheticMetrics.length > 0) {
+    logger.debug('Generated synthetic vm_cpu_usage metrics', {
+      count: syntheticMetrics.length,
+      vms: [...new Set(syntheticMetrics.map(m => m.labels.uuid))],
+    })
+  }
+
+  return syntheticMetrics
+}
+
+// ============================================================================
 // Formatting Functions
 // ============================================================================
 
@@ -684,6 +789,11 @@ export function formatAllPoolsToOpenMetrics(rrdDataList: ParsedRrdData[], labelC
   if (unmatchedMetrics.size > 0) {
     logger.debug('Unmatched RRD metrics', { metrics: Array.from(unmatchedMetrics).sort() })
   }
+
+  // Compute fallback vm_cpu_usage for VMs that don't have the native metric
+  // This handles XCP-ng 8.2 and other versions that only report per-core metrics
+  const syntheticCpuMetrics = computeVmCpuUsageFallback(allMetrics)
+  allMetrics.push(...syntheticCpuMetrics)
 
   // Sort metrics by name for consistent output
   allMetrics.sort((a, b) => {
