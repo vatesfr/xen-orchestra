@@ -732,6 +732,8 @@
   "theme-dracula-description": "Un thème sombre aux couleurs vives",
   "theme-solarized": "Solarized",
   "theme-solarized-description": "Couleurs précises pour réduire la fatigue oculaire",
+  "theme-monokai": "Monokai",
+  "theme-monokai-description": "Thème coloré inspiré des éditeurs de code",
   "third-parties": "Apps tierces",
   "this-host": "Cet hôte",
   "this-vm-cant-be-migrated": "Cette VM ne peut pas être migrée",
