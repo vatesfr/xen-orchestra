@@ -728,6 +728,8 @@
   "theme-light": "Clair",
   "theme-nord": "Nord",
   "theme-nord-description": "Une palette de couleurs arctique, aux tons bleutés",
+  "theme-dracula": "Dracula",
+  "theme-dracula-description": "Un thème sombre aux couleurs vives",
   "theme-solarized": "Solarized",
   "theme-solarized-description": "Couleurs précises pour réduire la fatigue oculaire",
   "third-parties": "Apps tierces",
