@@ -97,6 +97,25 @@
           </div>
         </div>
       </VtsColumns>
+      <VtsColumns>
+        <div class="typo-h6">{{ t('theme') }}</div>
+        <div class="themes">
+          <div
+            v-for="themeOption in themes"
+            :key="themeOption.id"
+            class="theme-card"
+            :class="{ selected: currentTheme === themeOption.id }"
+            @click="currentTheme = themeOption.id"
+          >
+            <div class="theme-header">
+              <VtsIcon v-if="currentTheme === themeOption.id" name="fa:circle-check" size="medium" />
+              <VtsIcon v-else name="fa:circle" size="medium" />
+              <span class="theme-name">{{ t(themeOption.labelKey) }}</span>
+            </div>
+            <span class="theme-description">{{ t(themeOption.descriptionKey) }}</span>
+          </div>
+        </div>
+      </VtsColumns>
     </div>
     <!-- LANGUAGE -->
     <div class="container">
@@ -124,6 +143,7 @@
 
 <script setup lang="ts">
 import { XCP_LINKS, XO_LINKS } from '@/shared/constants.ts'
+import { useTheme } from '@/composables/theme.composable.ts'
 import VtsColumns from '@core/components/column/VtsColumn.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
@@ -152,6 +172,8 @@ watch(locale, newLocale => cookies.set('lang', newLocale))
 const colorModeOptions = ['light', 'dark', 'auto'] as BasicColorSchema[]
 
 const uiStore = useUiStore()
+
+const { currentTheme, themes } = useTheme()
 
 const { id: localeSelectId } = useFormSelect(availableLocales, {
   model: locale,
@@ -209,6 +231,55 @@ const { id: localeSelectId } = useFormSelect(availableLocales, {
       img {
         box-shadow: var(--shadow-100);
         border-radius: 8px;
+      }
+    }
+  }
+
+  .themes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.6rem;
+
+    .theme-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      padding: 1.6rem;
+      border: 1px solid var(--color-neutral-border);
+      border-radius: 8px;
+      min-width: 20rem;
+      background: var(--color-neutral-background-secondary);
+
+      &.selected {
+        border-color: var(--color-brand-txt-base);
+        background: var(--color-brand-background-selected);
+
+        .theme-header {
+          color: var(--color-brand-txt-base);
+        }
+      }
+
+      &:not(.selected) {
+        cursor: pointer;
+
+        &:hover {
+          border-color: var(--color-brand-txt-base);
+        }
+      }
+
+      .theme-header {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+
+        .theme-name {
+          font-weight: 600;
+        }
+      }
+
+      .theme-description {
+        font-size: 0.9em;
+        color: var(--color-neutral-txt-secondary);
       }
     }
   }
