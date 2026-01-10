@@ -728,6 +728,8 @@
   "theme-light": "Clair",
   "theme-nord": "Nord",
   "theme-nord-description": "Une palette de couleurs arctique, aux tons bleutés",
+  "theme-solarized": "Solarized",
+  "theme-solarized-description": "Couleurs précises pour réduire la fatigue oculaire",
   "third-parties": "Apps tierces",
   "this-host": "Cet hôte",
   "this-vm-cant-be-migrated": "Cette VM ne peut pas être migrée",
