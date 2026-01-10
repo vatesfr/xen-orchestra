@@ -1,7 +1,7 @@
 import { useCookies } from '@vueuse/integrations/useCookies'
 import { computed, watch } from 'vue'
 
-export type ThemeId = 'default' | 'nord' | 'solarized' | 'dracula'
+export type ThemeId = 'default' | 'nord' | 'solarized' | 'dracula' | 'monokai'
 
 export interface ThemeDefinition {
   id: ThemeId
@@ -29,6 +29,11 @@ export const themes: ThemeDefinition[] = [
     id: 'dracula',
     labelKey: 'theme-dracula',
     descriptionKey: 'theme-dracula-description',
+  },
+  {
+    id: 'monokai',
+    labelKey: 'theme-monokai',
+    descriptionKey: 'theme-monokai-description',
   },
 ]
 

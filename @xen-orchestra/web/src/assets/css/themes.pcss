@@ -591,3 +591,198 @@
   --color-danger-item-active: color-mix(in srgb, #000000 30%, var(--color-danger-item-base));
   --color-danger-item-disabled: #652a2a;
 }
+
+/*
+ * Monokai Theme - Light Mode
+ * A colorful theme inspired by Monokai syntax highlighting
+ * https://monokai.pro/
+ *
+ * Background: #272822, Foreground: #f8f8f2, Comment: #75715e
+ * Pink: #f92672, Green: #a6e22e, Blue: #66d9ef, Orange: #fd971f, Purple: #ae81ff
+ */
+:root.theme-monokai {
+  --color-logo: #f92672;
+
+  /* NEUTRALS */
+  --color-neutral-txt-primary: #272822;
+  --color-neutral-txt-secondary: #75715e;
+
+  --color-neutral-background-primary: #f8f8f2;
+  --color-neutral-background-secondary: #e8e8e2;
+  --color-neutral-background-disabled: #d8d8d2;
+
+  --color-neutral-border: #ccc8be;
+
+  /* OPACITY */
+  --color-opacity-primary: #27282220;
+
+  /* BRAND - Using pink */
+  --color-brand-txt-base: #d02060;
+  --color-brand-txt-hover: color-mix(in srgb, #000000 15%, var(--color-brand-txt-base));
+  --color-brand-txt-active: color-mix(in srgb, #000000 30%, var(--color-brand-txt-base));
+
+  --color-brand-background-selected: color-mix(in srgb, #f8f8f2 85%, var(--color-brand-item-base));
+  --color-brand-background-hover: color-mix(in srgb, #f8f8f2 75%, var(--color-brand-item-base));
+  --color-brand-background-active: color-mix(in srgb, #f8f8f2 65%, var(--color-brand-item-base));
+
+  --color-brand-txt-item: #f8f8f2;
+  --color-brand-item-base: #f92672;
+  --color-brand-item-hover: color-mix(in srgb, #ffffff 15%, var(--color-brand-item-base));
+  --color-brand-item-active: color-mix(in srgb, #ffffff 30%, var(--color-brand-item-base));
+  --color-brand-item-disabled: #e8a8b8;
+
+  /* INFO - Using blue */
+  --color-info-txt-base: #4aa8c0;
+  --color-info-txt-hover: color-mix(in srgb, #000000 15%, var(--color-info-txt-base));
+  --color-info-txt-active: color-mix(in srgb, #000000 30%, var(--color-info-txt-base));
+
+  --color-info-background-selected: color-mix(in srgb, #f8f8f2 85%, var(--color-info-item-base));
+  --color-info-background-hover: color-mix(in srgb, #f8f8f2 75%, var(--color-info-item-base));
+  --color-info-background-active: color-mix(in srgb, #f8f8f2 65%, var(--color-info-item-base));
+
+  --color-info-txt-item: #272822;
+  --color-info-item-base: #66d9ef;
+  --color-info-item-hover: color-mix(in srgb, #ffffff 15%, var(--color-info-item-base));
+  --color-info-item-active: color-mix(in srgb, #ffffff 30%, var(--color-info-item-base));
+  --color-info-item-disabled: #a8dae8;
+
+  /* SUCCESS - Using green */
+  --color-success-txt-base: #7aa020;
+  --color-success-txt-hover: color-mix(in srgb, #000000 15%, var(--color-success-txt-base));
+  --color-success-txt-active: color-mix(in srgb, #000000 30%, var(--color-success-txt-base));
+
+  --color-success-background-selected: color-mix(in srgb, #f8f8f2 85%, var(--color-success-item-base));
+  --color-success-background-hover: color-mix(in srgb, #f8f8f2 75%, var(--color-success-item-base));
+  --color-success-background-active: color-mix(in srgb, #f8f8f2 65%, var(--color-success-item-base));
+
+  --color-success-txt-item: #272822;
+  --color-success-item-base: #a6e22e;
+  --color-success-item-hover: color-mix(in srgb, #ffffff 15%, var(--color-success-item-base));
+  --color-success-item-active: color-mix(in srgb, #ffffff 30%, var(--color-success-item-base));
+  --color-success-item-disabled: #c8e8a8;
+
+  /* WARNING - Using orange */
+  --color-warning-txt-base: #d07818;
+  --color-warning-txt-hover: color-mix(in srgb, #000000 15%, var(--color-warning-txt-base));
+  --color-warning-txt-active: color-mix(in srgb, #000000 30%, var(--color-warning-txt-base));
+
+  --color-warning-background-selected: color-mix(in srgb, #f8f8f2 85%, var(--color-warning-item-base));
+  --color-warning-background-hover: color-mix(in srgb, #f8f8f2 75%, var(--color-warning-item-base));
+  --color-warning-background-active: color-mix(in srgb, #f8f8f2 65%, var(--color-warning-item-base));
+
+  --color-warning-txt-item: #272822;
+  --color-warning-item-base: #fd971f;
+  --color-warning-item-hover: color-mix(in srgb, #ffffff 15%, var(--color-warning-item-base));
+  --color-warning-item-active: color-mix(in srgb, #ffffff 30%, var(--color-warning-item-base));
+  --color-warning-item-disabled: #f0c898;
+
+  /* DANGER - Using pink/red */
+  --color-danger-txt-base: #d02060;
+  --color-danger-txt-hover: color-mix(in srgb, #000000 15%, var(--color-danger-txt-base));
+  --color-danger-txt-active: color-mix(in srgb, #000000 30%, var(--color-danger-txt-base));
+
+  --color-danger-background-selected: color-mix(in srgb, #f8f8f2 85%, var(--color-danger-item-base));
+  --color-danger-background-hover: color-mix(in srgb, #f8f8f2 75%, var(--color-danger-item-base));
+  --color-danger-background-active: color-mix(in srgb, #f8f8f2 65%, var(--color-danger-item-base));
+
+  --color-danger-txt-item: #f8f8f2;
+  --color-danger-item-base: #f92672;
+  --color-danger-item-hover: color-mix(in srgb, #000000 15%, var(--color-danger-item-base));
+  --color-danger-item-active: color-mix(in srgb, #000000 30%, var(--color-danger-item-base));
+  --color-danger-item-disabled: #e8a8b8;
+}
+
+/*
+ * Monokai Theme - Dark Mode
+ */
+:root.dark.theme-monokai {
+  --color-logo: #f92672;
+
+  /* NEUTRALS */
+  --color-neutral-txt-primary: #f8f8f2;
+  --color-neutral-txt-secondary: #a8a8a0;
+
+  --color-neutral-background-primary: #272822;
+  --color-neutral-background-secondary: #3e3d32;
+  --color-neutral-background-disabled: #49483e;
+
+  --color-neutral-border: #49483e;
+
+  /* OPACITY */
+  --color-opacity-primary: #00000050;
+
+  /* BRAND - Using pink */
+  --color-brand-txt-base: #f92672;
+  --color-brand-txt-hover: color-mix(in srgb, #ffffff 15%, var(--color-brand-txt-base));
+  --color-brand-txt-active: color-mix(in srgb, #ffffff 30%, var(--color-brand-txt-base));
+
+  --color-brand-background-selected: color-mix(in srgb, #272822 70%, var(--color-brand-item-base));
+  --color-brand-background-hover: color-mix(in srgb, #272822 60%, var(--color-brand-item-base));
+  --color-brand-background-active: color-mix(in srgb, #272822 50%, var(--color-brand-item-base));
+
+  --color-brand-txt-item: #f8f8f2;
+  --color-brand-item-base: #f92672;
+  --color-brand-item-hover: color-mix(in srgb, #ffffff 15%, var(--color-brand-item-base));
+  --color-brand-item-active: color-mix(in srgb, #ffffff 30%, var(--color-brand-item-base));
+  --color-brand-item-disabled: #6a2a3a;
+
+  /* INFO - Using blue */
+  --color-info-txt-base: #66d9ef;
+  --color-info-txt-hover: color-mix(in srgb, #ffffff 15%, var(--color-info-txt-base));
+  --color-info-txt-active: color-mix(in srgb, #ffffff 30%, var(--color-info-txt-base));
+
+  --color-info-background-selected: color-mix(in srgb, #272822 70%, var(--color-info-item-base));
+  --color-info-background-hover: color-mix(in srgb, #272822 60%, var(--color-info-item-base));
+  --color-info-background-active: color-mix(in srgb, #272822 50%, var(--color-info-item-base));
+
+  --color-info-txt-item: #272822;
+  --color-info-item-base: #66d9ef;
+  --color-info-item-hover: color-mix(in srgb, #ffffff 15%, var(--color-info-item-base));
+  --color-info-item-active: color-mix(in srgb, #ffffff 30%, var(--color-info-item-base));
+  --color-info-item-disabled: #2a5a65;
+
+  /* SUCCESS - Using green */
+  --color-success-txt-base: #a6e22e;
+  --color-success-txt-hover: color-mix(in srgb, #ffffff 15%, var(--color-success-txt-base));
+  --color-success-txt-active: color-mix(in srgb, #ffffff 30%, var(--color-success-txt-base));
+
+  --color-success-background-selected: color-mix(in srgb, #272822 70%, var(--color-success-txt-base));
+  --color-success-background-hover: color-mix(in srgb, #272822 60%, var(--color-success-txt-base));
+  --color-success-background-active: color-mix(in srgb, #272822 50%, var(--color-success-txt-base));
+
+  --color-success-txt-item: #272822;
+  --color-success-item-base: #a6e22e;
+  --color-success-item-hover: color-mix(in srgb, #ffffff 15%, var(--color-success-item-base));
+  --color-success-item-active: color-mix(in srgb, #ffffff 30%, var(--color-success-item-base));
+  --color-success-item-disabled: #4a5a1a;
+
+  /* WARNING - Using orange */
+  --color-warning-txt-base: #fd971f;
+  --color-warning-txt-hover: color-mix(in srgb, #ffffff 15%, var(--color-warning-txt-base));
+  --color-warning-txt-active: color-mix(in srgb, #ffffff 30%, var(--color-warning-txt-base));
+
+  --color-warning-background-selected: color-mix(in srgb, #272822 70%, var(--color-warning-txt-base));
+  --color-warning-background-hover: color-mix(in srgb, #272822 60%, var(--color-warning-txt-base));
+  --color-warning-background-active: color-mix(in srgb, #272822 50%, var(--color-warning-txt-base));
+
+  --color-warning-txt-item: #272822;
+  --color-warning-item-base: #fd971f;
+  --color-warning-item-hover: color-mix(in srgb, #ffffff 15%, var(--color-warning-item-base));
+  --color-warning-item-active: color-mix(in srgb, #ffffff 30%, var(--color-warning-item-base));
+  --color-warning-item-disabled: #654a1a;
+
+  /* DANGER - Using pink/red */
+  --color-danger-txt-base: #f92672;
+  --color-danger-txt-hover: color-mix(in srgb, #ffffff 15%, var(--color-danger-txt-base));
+  --color-danger-txt-active: color-mix(in srgb, #ffffff 30%, var(--color-danger-txt-base));
+
+  --color-danger-background-selected: color-mix(in srgb, #272822 70%, var(--color-danger-txt-base));
+  --color-danger-background-hover: color-mix(in srgb, #272822 60%, var(--color-danger-txt-base));
+  --color-danger-background-active: color-mix(in srgb, #272822 50%, var(--color-danger-txt-base));
+
+  --color-danger-txt-item: #f8f8f2;
+  --color-danger-item-base: #f92672;
+  --color-danger-item-hover: color-mix(in srgb, #000000 15%, var(--color-danger-item-base));
+  --color-danger-item-active: color-mix(in srgb, #000000 30%, var(--color-danger-item-base));
+  --color-danger-item-disabled: #6a2a3a;
+}
