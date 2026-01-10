@@ -7,6 +7,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useTheme } from '@/composables/theme.composable.ts'
 import AppLayout from '@/layouts/AppLayout.vue'
 import VtsModalList from '@core/components/modal/VtsModalList.vue'
 import VtsTooltipList from '@core/components/tooltip-list/VtsTooltipList.vue'
@@ -23,6 +24,9 @@ import { useI18n } from 'vue-i18n'
 const uiStore = useUiStore()
 const { locale } = useI18n()
 const { get } = useCookies()
+
+// Initialize theme on app load
+useTheme()
 
 // TODO: Remove when we considere XO6 in more advanced state
 const isFirstConnection = useLocalStorage('first-connection', true)
