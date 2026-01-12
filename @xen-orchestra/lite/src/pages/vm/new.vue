@@ -211,7 +211,6 @@ import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioBu
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useFormSelect } from '@core/packages/form-select'
 import { useUiStore } from '@core/stores/ui.store'
 
@@ -549,6 +548,11 @@ const _createVm = defer(async ($defer: Defer) => {
       : await xapi.vm.copy({ [templateRef]: newVmName })
 
     $defer.onFailure(() => xapi.vm.delete(vmRefs))
+
+    // VTPM
+    if (vmState.boot_firmware === 'uefi' && vmState.vtpm) {
+      await xapi.vtpm.create(vmRefs[0])
+    }
 
     // COPY BIOS strings
     const domainType = await xapi.getField<DOMAIN_TYPE>('VM', vmRefs[0], 'domain_type')
