@@ -1,8 +1,8 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="error">
     <UiCardTitle>{{ t('patches') }}</UiCardTitle>
     <VtsStateHero v-if="!arePatchesReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
+    <VtsStateHero v-else-if="error" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
@@ -30,17 +30,22 @@ const {
   nPools = 0,
   nHosts = 0,
   nHostsEol = 0,
+  hasError,
+  isReady,
 } = defineProps<{
   missingPatches: XoDashboard['missingPatches'] | undefined
   nPools: XoDashboard['nPools'] | undefined
   nHosts: XoDashboard['nHosts'] | undefined
   nHostsEol: XoDashboard['nHostsEol'] | undefined
   hasError?: boolean
+  isReady?: boolean
 }>()
 
 const { t } = useI18n()
 
 const arePatchesReady = computed(() => missingPatches !== undefined)
+
+const error = computed(() => hasError || (missingPatches === undefined && isReady))
 
 const poolsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() => ({
   label: t('pools'),

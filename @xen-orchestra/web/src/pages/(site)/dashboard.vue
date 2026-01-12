@@ -1,10 +1,15 @@
 <template>
   <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
     <div class="row first-row">
-      <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
-      <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
-      <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
-      <ResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" :has-error />
+      <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error :is-ready="isDashboardReady" />
+      <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error :is-ready="isDashboardReady" />
+      <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error :is-ready="isDashboardReady" />
+      <ResourcesOverview
+        class="resources-overview"
+        :resources="dashboard.resourcesOverview"
+        :has-error
+        :is-ready="isDashboardReady"
+      />
     </div>
     <div class="row second-row">
       <DashboardAlarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
@@ -16,12 +21,30 @@
         :n-pools="dashboard.nPools"
         :has-error
       />
-      <BackupJobsStatus class="backup-jobs-status" :backups="dashboard.backups" :has-error />
-      <BackupIssues class="backup-issues" :backups="dashboard.backups" :has-error />
-      <VmsProtection class="vms-protection" :backups="dashboard.backups" :has-error />
-      <BackupRepository class="backup-repository" :repositories="backupRepositories" :has-error />
-      <StorageRepository class="storage-repository" :repositories="storageRepositories" :has-error />
-      <S3BackupRepository class="s3-backup-repository" :size="dashboard.backupRepositories?.s3?.size" :has-error />
+      <BackupJobsStatus
+        class="backup-jobs-status"
+        :backups="dashboard.backups"
+        :has-error:is-ready="isDashboardReady"
+      />
+      <BackupIssues class="backup-issues" :backups="dashboard.backups" :has-error:is-ready="isDashboardReady" />
+      <VmsProtection class="vms-protection" :backups="dashboard.backups" :has-error :is-ready="isDashboardReady" />
+      <BackupRepository
+        class="backup-repository"
+        :repositories="backupRepositories"
+        :has-error
+        :is-ready="isDashboardReady"
+      />
+      <StorageRepository
+        class="storage-repository"
+        :repositories="storageRepositories"
+        :has-error:is-ready="isDashboardReady"
+      />
+      <S3BackupRepository
+        class="s3-backup-repository"
+        :size="dashboard.backupRepositories?.s3?.size"
+        :has-error
+        :is-ready="isDashboardReady"
+      />
     </div>
   </div>
 </template>
@@ -50,7 +73,7 @@ import { logicAnd } from '@vueuse/math'
 
 const uiStore = useUiStore()
 
-const { dashboard, backupRepositories, storageRepositories, hasError } = useXoSiteDashboard()
+const { dashboard, backupRepositories, storageRepositories, hasError, isDashboardReady } = useXoSiteDashboard()
 
 const { alarms, hasAlarmFetchError } = useXoAlarmCollection()
 
