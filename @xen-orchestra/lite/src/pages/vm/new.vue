@@ -60,23 +60,14 @@
                 <VtsInputWrapper :label="t('boot-firmware')">
                   <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
-                <div
-                  v-tooltip="
-                    vmState.boot_firmware === 'uefi' || templateHasBiosStrings
-                      ? {
-                          placement: 'top-start',
-                          content:
-                            vmState.boot_firmware !== 'uefi' ? t('template-has-bios-strings') : t('boot-firmware-uefi'),
-                        }
-                      : undefined
-                  "
-                >
-                  <UiCheckbox
-                    v-model="copyHostBiosStrings"
-                    accent="brand"
-                    :disabled="vmState.boot_firmware === 'uefi' || templateHasBiosStrings"
-                  >
+                <div v-if="vmState.boot_firmware !== 'uefi' || templateHasBiosStrings">
+                  <UiCheckbox v-model="copyHostBiosStrings" accent="brand">
                     {{ t('action:copy-host') }}
+                  </UiCheckbox>
+                </div>
+                <div v-else-if="vmState.boot_firmware === 'uefi'">
+                  <UiCheckbox v-model="vmState.vtpm" accent="brand">
+                    {{ t('vtpm') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -201,7 +192,6 @@ import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
-import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { useFormSelect } from '@core/packages/form-select'
 
 // Vue imports
@@ -260,6 +250,7 @@ const vmState = reactive<VmState>({
   vdis: [],
   networkInterfaces: [],
   defaultNetwork: undefined,
+  vtpm: false,
 })
 
 // TODO remove when we can use new selector
@@ -511,6 +502,7 @@ const vmCreationParams = computed(() => ({
   autoPoweron: vmState.auto_power,
   bootAfterCreate: vmState.boot_vm,
   copyHostBiosStrings: vmState.boot_firmware !== 'uefi' && !templateHasBiosStrings.value && vmState.copyHostBiosStrings,
+  vtpm: vmState.boot_firmware === 'uefi' && vmState.vtpm,
   hvmBootFirmware: vmState.boot_firmware ?? 'bios',
   coresPerSocket: vmState.topology ?? vmState.vCPU,
   tags: vmState.tags,
@@ -535,6 +527,11 @@ const _createVm = defer(async ($defer: Defer) => {
       : await xapi.vm.copy({ [templateRef]: newVmName })
 
     $defer.onFailure(() => xapi.vm.delete(vmRefs))
+
+    // VTPM
+    if (vmState.boot_firmware === 'uefi' && vmState.vtpm) {
+      await xapi.vtpm.create(vmRefs[0])
+    }
 
     // COPY BIOS strings
     const domainType = await xapi.getField<DOMAIN_TYPE>('VM', vmRefs[0], 'domain_type')
@@ -877,6 +874,17 @@ const { id: affinityHostSelectId } = useFormSelect(hosts, {
     value: '$ref',
   },
 })
+
+watch(
+  () => vmState.boot_firmware,
+  (newValue, oldValue) => {
+    if (oldValue === undefined || newValue === oldValue) {
+      return
+    }
+    vmState.copyHostBiosStrings = false
+    vmState.vtpm = false
+  }
+)
 </script>
 
 <style lang="postcss" scoped>
