@@ -109,9 +109,14 @@
                 <VtsInputWrapper :label="t('boot-firmware')">
                   <VtsSelect :id="bootFirmwareSelectId" accent="brand" />
                 </VtsInputWrapper>
-                <div v-tooltip="{ placement: 'top-start', content: copyHostBiosStringsTooltipContent }">
-                  <UiCheckbox v-model="vmState.copyHostBiosStrings" accent="brand" :disabled="!canCopyBiosStrings">
+                <div v-if="canCopyBiosStrings">
+                  <UiCheckbox v-model="vmState.copyHostBiosStrings" accent="brand">
                     {{ t('copy-host-bios-strings') }}
+                  </UiCheckbox>
+                </div>
+                <div v-else>
+                  <UiCheckbox v-model="vmState.vtpm" accent="brand">
+                    {{ t('vtpm') }}
                   </UiCheckbox>
                 </div>
               </div>
@@ -237,7 +242,6 @@ import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
 import type { XoNetwork, XoPool, XoVdi, XoVmTemplate } from '@vates/types'
 
@@ -290,6 +294,7 @@ const vmState = reactive<VmState>({
   vifs: [],
   existingVdis: [],
   pool: undefined,
+  vtpm: false,
 })
 
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
@@ -378,18 +383,6 @@ const selectedTemplateHasBiosStrings = computed(
 )
 
 const canCopyBiosStrings = computed(() => vmState.bootFirmware === 'bios')
-
-const copyHostBiosStringsTooltipContent = computed(() => {
-  if (vmState.bootFirmware === 'uefi') {
-    return t('boot-firmware-uefi')
-  }
-
-  if (selectedTemplateHasBiosStrings.value) {
-    return t('template-has-bios-strings')
-  }
-
-  return undefined
-})
 
 const filteredSrs = computed(() => {
   return srs.value.filter(sr => sr.content_type !== 'iso' && sr.physical_usage > 0 && sr.$pool === vmState.pool?.id)
@@ -648,6 +641,7 @@ const vmData = computed(() => {
     template: vmState.new_vm_template?.uuid,
     hvmBootFirmware: vmState.bootFirmware,
     copyHostBiosStrings: vmState.copyHostBiosStrings,
+    vtpm: vmState.vtpm,
     ...optionalFields,
   }
 })
@@ -805,19 +799,22 @@ const xo5Link = computed(() => {
 
 // BOOT FIRMWARE SELECTOR
 
-const bootFirmwareOptions = ['bios', 'uefi']
+const bootFirmwareOptions = ['BIOS', 'UEFI']
 
 const { id: bootFirmwareSelectId } = useFormSelect(bootFirmwareOptions, {
   model: toRef(vmState, 'bootFirmware'),
 })
 
 watch(
-  () => vmState.new_vm_template,
+  () => [vmState.new_vm_template, vmState.bootFirmware],
   () => {
-    if (vmState.bootFirmware !== 'bios') {
+    if (vmState.bootFirmware === 'bios') {
+      vmState.vtpm = false
+      if (selectedTemplateHasBiosStrings.value) {
+        vmState.copyHostBiosStrings = true
+      }
+    } else {
       vmState.copyHostBiosStrings = false
-    } else if (selectedTemplateHasBiosStrings.value) {
-      vmState.copyHostBiosStrings = true
     }
   }
 )
