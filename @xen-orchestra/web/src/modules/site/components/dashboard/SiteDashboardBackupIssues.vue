@@ -1,9 +1,9 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="error">
     <UiCardTitle>
       {{ t('backups:jobs:issues') }}
       <UiCounter
-        v-if="hasBackupIssues || !hasError"
+        v-if="hasBackupIssues || !error"
         :value="nBackupIssues"
         accent="danger"
         size="medium"
@@ -45,9 +45,10 @@ import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backups, hasError } = defineProps<{
+const { backups, hasError, isReady } = defineProps<{
   backups: XoDashboard['backups'] | undefined
   hasError?: boolean
+  isReady?: boolean
 }>()
 
 const { t } = useI18n()
@@ -56,13 +57,15 @@ const { getLastRunsInfo } = useXoBackupJobIssuesUtils()
 
 const areBackupIssuesReady = computed(() => backups?.issues !== undefined)
 
-const backupIssues = computed(() => backups?.issues ?? [])
-
-const nBackupIssues = computed(() => backupIssues.value.length)
+const nBackupIssues = computed(() => backups?.issues?.length ?? 0)
 
 const hasBackupIssues = computed(() => nBackupIssues.value > 0)
 
+const backupIssues = computed(() => backups?.issues)
+
 const hasBackupJobs = computed(() => (backups?.jobs?.total ?? 0) > 0)
+
+const error = computed(() => hasError || (backups?.issues === undefined && isReady))
 
 const state = useTableState({
   busy: logicNot(areBackupIssuesReady),

@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="error">
     <UiCardTitle>
       {{ t('backups:jobs:status') }}
       <template v-if="!areBackupsJobsEmpty" #info>
@@ -8,7 +8,7 @@
       <template v-if="!areBackupsJobsEmpty" #description>{{ t('backups:jobs:last-seven-days') }}</template>
     </UiCardTitle>
     <VtsStateHero v-if="!areBackupsJobsReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
+    <VtsStateHero v-else-if="error" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <UiAlert v-else-if="areBackupsJobsEmpty" accent="warning">
@@ -49,14 +49,17 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backups } = defineProps<{
+const { backups, hasError, isReady } = defineProps<{
   backups: XoDashboard['backups'] | undefined
   hasError?: boolean
+  isReady?: boolean
 }>()
 
 const areBackupsJobsReady = computed(() => backups?.jobs !== undefined)
 
 const areBackupsJobsEmpty = computed(() => backups?.jobs.total === 0)
+
+const error = computed(() => hasError || (backups?.jobs === undefined && isReady))
 
 const { t } = useI18n()
 

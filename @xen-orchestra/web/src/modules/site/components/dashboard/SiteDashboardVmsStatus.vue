@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="error">
     <UiCardTitle>
       {{ t('vms-status') }}
       <template #info>
@@ -7,7 +7,7 @@
       </template>
     </UiCardTitle>
     <VtsStateHero v-if="!areVmsStatusReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
+    <VtsStateHero v-else-if="error" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
     <VtsStateHero v-else-if="status?.total === 0" format="card" type="no-data" size="extra-small" horizontal>
@@ -33,14 +33,17 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { status } = defineProps<{
+const { status, hasError, isReady } = defineProps<{
   status: XoDashboard['vmsStatus'] | undefined
   hasError?: boolean
+  isReady?: boolean
 }>()
 
 const { t } = useI18n()
 
 const areVmsStatusReady = computed(() => status !== undefined)
+
+const error = computed(() => hasError || (status === undefined && isReady))
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
