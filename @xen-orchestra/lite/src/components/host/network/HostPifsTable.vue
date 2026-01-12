@@ -2,7 +2,7 @@
   <div class="host-pif-table">
     <UiTitle>
       {{ t('pifs') }}
-      <template #actions>
+      <template #action>
         <UiButton
           v-tooltip="t('coming-soon!')"
           disabled

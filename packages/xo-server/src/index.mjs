@@ -210,18 +210,27 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
     res.redirect('/')
   })
 
-  express.get('/signin-otp', (req, res, next) => {
-    if (req.session.user === undefined) {
-      return res.redirect('/signin')
-    }
+  express.get('/signin-otp', async (req, res, next) => {
+    try {
+      if (req.session.user === undefined) {
+        return res.redirect('/signin')
+      }
 
-    res.send(
-      signInPage({
-        error: req.flash('error')[0],
-        otp: true,
-        strategies,
-      })
-    )
+      // TODO:
+      // The login page uses certain files from the xo-web package (css,svg)
+      // remove once XO5 is no more used and update `signin.pug` to use `public/logo.svg`, ...
+      const { v5 } = await xo.config.getGuiRoutes()
+      res.send(
+        signInPage({
+          error: req.flash('error')[0],
+          otp: true,
+          strategies,
+          xo5Mount: v5?.url + '/',
+        })
+      )
+    } catch (error) {
+      next(error)
+    }
   })
 
   express.post('/signin-otp', async (req, res, next) => {
@@ -282,7 +291,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   const UNCHECKED_URL_RE =
-    /(?:^\/rest\/)|favicon|manifest\.webmanifest|fontawesome|images|styles|\.(?:css|jpg|png|svg)$/
+    /(?:^\/rest\/)|(?:^\/openmetrics\/)|favicon|manifest\.webmanifest|fontawesome|images|styles|\.(?:css|jpg|png|svg)$/
   express.use(async (req, res, next) => {
     const { url } = req
 
@@ -550,11 +559,20 @@ const setUpProxies = (express, opts, xo) => {
     return
   }
 
-  const userHttpConfig = xo.config.get('http.listen.0')
-  const userPort = userHttpConfig.port
+  const httpConfig = xo.config.get('http')
+  // if redirectToHttps, we need to find the config for the secure protocol
+  const userHttpConfig = Object.values(httpConfig.listen).find(
+    listenConfig => !httpConfig.redirectToHttps || listenConfig.key !== undefined
+  )
+
+  if (userHttpConfig === undefined) {
+    throw new Error('unable to find a valid http.listen config')
+  }
+
+  const isSecure = userHttpConfig.key !== undefined
 
   const dynamicProxyOptions = {}
-  if (userPort === 443) {
+  if (isSecure) {
     const cert = userHttpConfig.cert ?? userHttpConfig.certificate
     const key = userHttpConfig.key
     dynamicProxyOptions.ssl = {
@@ -597,14 +615,16 @@ const setUpProxies = (express, opts, xo) => {
     let target = url
 
     if (target.includes('[port]')) {
-      target = target.replace(/\[port\]/g, userPort)
+      target = target.replace(/\[port\]/g, userHttpConfig.port)
     }
+    let dynamicProtocol = false
     if (target.includes('[protocol]')) {
+      dynamicProtocol = true
       target = target.replace(/\[protocol\]/g, protocol)
     }
 
     const targetUrl = new URL(target)
-    if (targetUrl.port === '443') {
+    if (dynamicProtocol && isSecure) {
       targetUrl.protocol = targetUrl.protocol === 'ws:' ? 'wss:' : 'https:'
     }
 

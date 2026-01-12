@@ -160,8 +160,8 @@ test('hasBlock behavior', async () => {
 
 test('getBlockIndexes', async () => {
   const source = new MockDisk(512, 2048, [
-    [0, Buffer.alloc(512)],
-    [2, Buffer.alloc(512)],
+    [0, Buffer.alloc(2048)],
+    [2, Buffer.alloc(2048)],
   ])
   await source.init()
 
@@ -181,4 +181,29 @@ test('close propagation', async () => {
 
   await disk.close()
   assert(source.closed)
+})
+
+test('unaligned END ', async () => {
+  const source = new MockDisk(1024, 2048 + 256, [
+    [0, Buffer.alloc(1024)],
+    [2, Buffer.alloc(1024)],
+  ])
+  await source.init()
+
+  const disk = new DiskSmallerBlock(source, 256)
+  await disk.init()
+  assert.strictEqual(source.getVirtualSize(), disk.getVirtualSize())
+
+  const indexes = disk.getBlockIndexes()
+  const expecteBlockIndex = [0, 1, 2, 3, 8]
+  assert.deepStrictEqual(indexes, expecteBlockIndex)
+  assert.strictEqual(disk.hasBlock(8), true)
+  assert.strictEqual(disk.hasBlock(9), false) //After the end of small block disk
+  assert.strictEqual(disk.hasBlock(12), false) //After the end of source disk
+
+  // ensure disk blocks also handle the unaligned part
+  for await (const { index, data } of disk.diskBlocks()) {
+    assert.ok(expecteBlockIndex.includes(index))
+    assert.equal(data.length, 256)
+  }
 })

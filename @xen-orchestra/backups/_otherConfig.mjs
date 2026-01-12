@@ -70,7 +70,8 @@ export async function getVmDeltaChainLength(xapi, vmRef) {
 
 /**
  *
- * Reset the other_config field of a VM and its VDIs
+ * Reset the other_config field related to backups of a VM and its VDIs
+ *
  *
  * @param {Xapi} xapi
  * @param {String} vmRef
@@ -88,39 +89,6 @@ export function resetVmOtherConfig(xapi, vmRef) {
       // REPLICATED_TO_SR_UUID is not reset since we can replicate a replication
     })
   })
-}
-
-/**
- *
- * used to ensure compatibility with the previous snapshots that were having the config stored only into VM
- *
- * @param {Xapi} xapi
- * @param {String} vmRef
- * @returns {Promise}
- */
-export async function populateVdisOtherConfig(xapi, vmRef) {
-  const otherConfig = await xapi.getField('VM', vmRef, 'other_config')
-  const {
-    [DATETIME]: datetime,
-    [DELTA_CHAIN_LENGTH]: chainLength,
-    [EXPORTED_SUCCESSFULLY]: successfully,
-    [JOB_ID]: jobId,
-    [REPLICATED_TO_SR_UUID]: replicatedTo,
-    [SCHEDULE_ID]: scheduleId,
-    [VM_UUID]: vmUuid,
-  } = otherConfig
-
-  return applyToVmAndVdis(xapi, vmRef, (type, ref) =>
-    xapi.setFieldEntries(type, ref, 'other_config', {
-      [DATETIME]: datetime,
-      [DELTA_CHAIN_LENGTH]: chainLength,
-      [EXPORTED_SUCCESSFULLY]: successfully,
-      [JOB_ID]: jobId,
-      [REPLICATED_TO_SR_UUID]: replicatedTo,
-      [SCHEDULE_ID]: scheduleId,
-      [VM_UUID]: vmUuid,
-    })
-  )
 }
 
 /**

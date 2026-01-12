@@ -2,7 +2,7 @@
   <div class="pool-networks-table">
     <UiTitle>
       {{ t('networks') }}
-      <template #actions>
+      <template #action>
         <UiDropdownButton v-tooltip="t('coming-soon!')" disabled>
           {{ t('new') }}
         </UiDropdownButton>

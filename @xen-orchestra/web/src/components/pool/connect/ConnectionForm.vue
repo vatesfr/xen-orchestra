@@ -5,18 +5,18 @@
       <div class="inputs-container">
         <VtsInputWrapper :label="t('ip-address')">
           <!-- TODO validation -->
-          <UiInput v-model="form.host" accent="brand" required :placeholder="t('ip-port-placeholder')" />
+          <UiInput v-model.trim="form.host" accent="brand" required :placeholder="t('ip-port-placeholder')" />
           <UiInfo accent="info" wrap>
             {{ t('pool-connection-ip-info') }}
           </UiInfo>
         </VtsInputWrapper>
         <!-- TODO validation -->
         <VtsInputWrapper :label="t('proxy-url')">
-          <UiInput v-model="form.httpProxy" accent="brand" />
+          <UiInput v-model.trim="form.httpProxy" accent="brand" />
         </VtsInputWrapper>
         <!-- TODO validation -->
         <VtsInputWrapper :label="t('username')">
-          <UiInput v-model="form.username" accent="brand" required />
+          <UiInput v-model.trim="form.username" accent="brand" required />
           <UiInfo accent="info" wrap>
             {{ t('root-by-default') }}
           </UiInfo>
@@ -35,10 +35,17 @@
       </UiCheckbox>
     </div>
     <div class="buttons-container">
-      <RouterLink to="/">
-        <UiButton accent="brand" size="medium" variant="secondary">{{ t('cancel') }}</UiButton>
-      </RouterLink>
-      <UiButton type="submit" accent="brand" size="medium" variant="primary" :busy="connecting">
+      <UiLink :to="{ name: '/(site)/dashboard' }" size="medium">
+        {{ t('cancel') }}
+      </UiLink>
+      <UiButton
+        type="submit"
+        accent="brand"
+        size="medium"
+        variant="primary"
+        :busy="isServerJobRunning"
+        :disabled="!createCanRun"
+      >
         {{ t('connect') }}
       </UiButton>
     </div>
@@ -46,28 +53,30 @@
 </template>
 
 <script setup lang="ts">
-import createAndConnectServer from '@/api/connect-server.api.ts'
-import { ApiError } from '@/error/api.error.ts'
+import { useServerConnectJob } from '@/jobs/server/server-connect.job'
+import { useServerCreateJob } from '@/jobs/server/server-create.job'
+import { useServerRemoveJob } from '@/jobs/server/server-remove.job'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiInfo from '@core/components/ui/info/UiInfo.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
+import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import type { XoServer } from '@vates/types'
-import { reactive, ref } from 'vue'
+import { logicOr } from '@vueuse/math'
+import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const emit = defineEmits<{
   success: [serverId: XoServer['id'], ip?: string]
-  error: [error: ApiError, ip?: string]
+  error: [error: Error, ip?: string]
 }>()
 
 const { t } = useI18n()
 const uiStore = useUiStore()
-const connecting = ref(false)
-const serverId = ref<XoServer['id']>()
+const serverId = ref<XoServer['id']>('' as XoServer['id'])
 
 interface NewServerForm {
   host: string
@@ -87,34 +96,48 @@ const form = reactive<NewServerForm>({
   allowUnauthorized: false,
 })
 
-async function submit() {
-  connecting.value = true
-
-  const optionalFields = Object.assign(
+const payload = computed(() => ({
+  host: form.host,
+  username: form.username,
+  password: form.password,
+  ...Object.assign(
     {},
     form.httpProxy && { httpProxy: form.httpProxy },
     form.readOnly && { readOnly: form.readOnly },
     form.allowUnauthorized && { allowUnauthorized: form.allowUnauthorized }
-  )
+  ),
+}))
 
-  const payload = {
-    host: form.host,
-    username: form.username,
-    password: form.password,
-    ...optionalFields,
-  }
+// TODO: multiple server creation not possible in the UI for now
+// so only handle a single payload
+const { canRun: createCanRun, isRunning: createIsRunning, run: create } = useServerCreateJob([payload])
+const { isRunning: connectIsRunning, run: connect } = useServerConnectJob([serverId])
+const { isRunning: removeIsRunning, run: remove } = useServerRemoveJob([serverId])
 
+const isServerJobRunning = logicOr(connectIsRunning, createIsRunning, removeIsRunning)
+
+async function submit() {
   try {
-    serverId.value = await createAndConnectServer(payload)
+    // TODO: multiple server creation not possible in the UI for now
+    // so only handle single server creation
+    const [promiseCreateResult] = await create()
+    if (promiseCreateResult.status === 'rejected') {
+      throw promiseCreateResult.reason
+    }
+    serverId.value = promiseCreateResult.value
+    const [promiseConnectResult] = await connect()
+    if (promiseConnectResult.status === 'rejected') {
+      throw promiseConnectResult.reason
+    }
+
     emit('success', serverId.value, form.host)
-  } catch (error: ApiError | any) {
-    if (error instanceof ApiError) {
+  } catch (error) {
+    await remove()
+    if (error instanceof Error) {
       emit('error', error, form.host)
     } else {
       console.error('Unknown error:', error)
     }
-  } finally {
-    connecting.value = false
   }
 }
 </script>

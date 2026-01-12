@@ -1,6 +1,6 @@
 <!-- v10 -->
 <template>
-  <li class="ui-task-item" :data-depth="depth">
+  <li class="ui-task-item" :data-depth="depth" :class="{ selected }">
     <div class="container">
       <div class="tree-section">
         <div class="tree-lines">
@@ -38,21 +38,16 @@
             {{ `${t('task:ended')} ${end}` }}
           </span>
           <div class="progress">
-            <UiCircleProgressBar
-              v-if="task.progress !== undefined"
-              :accent="progressAccent"
-              size="small"
-              :value="task.progress"
-            />
+            <UiCircleProgressBar :accent="progressAccent" size="small" :value="progress" />
           </div>
           <div class="actions">
-            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select')" />
+            <UiButtonIcon icon="fa:eye" size="medium" accent="brand" @click="emit('select', task.id)" />
           </div>
         </div>
       </div>
     </div>
     <template v-if="hasSubTasks && expanded">
-      <UiTaskList :tasks="subTasks" :depth />
+      <UiTaskList :tasks="subTasks" :depth :selected-task-id="selectedTaskId" @select="id => emit('select', id)" />
     </template>
   </li>
 </template>
@@ -77,24 +72,26 @@ export type Task = {
   progress?: number
   end?: number
   status: 'failure' | 'interrupted' | 'pending' | 'success'
-  tasks?: Task[]
-  warning?: { data: unknown; message: string }[]
+  subtasks?: Task[]
+  warnings?: { data: unknown; message: string }[]
 }
 
 const { task } = defineProps<{
   task: Task
   depth: number
   expanded?: boolean
+  selected?: boolean
+  selectedTaskId?: string
 }>()
 
 const emit = defineEmits<{
   expand: []
-  select: []
+  select: [id: string]
 }>()
 
 const { t } = useI18n()
 
-const subTasks = computed(() => task.tasks ?? [])
+const subTasks = computed(() => task.subtasks ?? [])
 
 const subTasksCount = computed(() => subTasks.value.length)
 
@@ -104,19 +101,32 @@ const isError = computed(() => task.status === 'failure' || task.status === 'int
 
 const end = useTimeAgo(() => task.end ?? 0)
 
-const hasWarnings = computed(() => task.warning && task.warning.length > 0)
+const hasWarnings = computed(() => task.warnings && task.warnings.length > 0)
 
 const hasInfos = computed(() => task.infos && task.infos.length > 0)
 
 const shouldShowInfos = logicOr(isError, hasWarnings, hasInfos)
 
 const progressAccent = computed(() => (isError.value ? 'danger' : 'info'))
+
+// TODO remove when progress is available for all tasks
+const progress = computed(() => {
+  if (task.status === 'pending' && !task.end) {
+    return task.progress ? task.progress : 0
+  }
+
+  return task.progress ? task.progress : 100
+})
 </script>
 
 <style lang="postcss" scoped>
 .ui-task-item {
   &[data-depth='1']:last-child {
     border-bottom: 0.1rem solid var(--color-neutral-border);
+  }
+
+  &.selected {
+    background-color: var(--color-brand-background-selected);
   }
 
   .container {
@@ -134,6 +144,8 @@ const progressAccent = computed(() => (isError.value ? 'danger' : 'info'))
     }
 
     .tree-section {
+      --line-container-base-width: 2.8rem;
+      --line-width: 0.1rem;
       display: flex;
       align-items: center;
       padding-left: 1.6rem;
@@ -142,10 +154,11 @@ const progressAccent = computed(() => (isError.value ? 'danger' : 'info'))
       .tree-lines {
         display: flex;
         align-self: stretch;
+        min-width: calc(var(--line-container-base-width) * v-bind(depth - 1));
       }
 
       .tree-line {
-        flex: 0 0 2.8rem;
+        flex: 0 0 calc(var(--line-container-base-width) + var(--line-width));
         display: flex;
         align-items: center;
         justify-content: center;

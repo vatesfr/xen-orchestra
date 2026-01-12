@@ -2,7 +2,6 @@
   <header class="app-header">
     <div class="left">
       <UiButtonIcon
-        v-if="!uiStore.isDesktopLarge"
         ref="navigationTrigger"
         :class="{ 'menu-to-right': !uiStore.isMobile }"
         accent="brand"
@@ -11,7 +10,7 @@
       />
       <RouterLink :to="logoRoute" class="logo-container">
         <img v-if="uiStore.isMobile" alt="XO Lite" src="../assets/logo.svg" />
-        <TextLogo v-else />
+        <UiLogoText v-else :text="t('xo-lite')" />
       </RouterLink>
     </div>
     <slot />
@@ -26,18 +25,20 @@
 <script lang="ts" setup>
 import AccountMenu from '@/components/account-menu/AccountMenu.vue'
 import PoolOverrideWarning from '@/components/PoolOverrideWarning.vue'
-import TextLogo from '@/components/TextLogo.vue'
 import XoaButton from '@/components/XoaButton.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
 import { usePoolStore } from '@/stores/xen-api/pool.store.ts'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
+import UiLogoText from '@core/components/ui/logo-text/UiLogoText.vue'
 import { useUiStore } from '@core/stores/ui.store'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 
 const uiStore = useUiStore()
 const { pool } = usePoolStore().getContext()
+const { t } = useI18n()
 
 const navigationStore = useNavigationStore()
 const { trigger: navigationTrigger } = storeToRefs(navigationStore)
@@ -79,7 +80,7 @@ const logoRoute = computed<RouteLocationRaw>(() =>
 .left {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.6rem;
 
   @media (max-width: 1023px) {
     flex: 1;
@@ -95,6 +96,8 @@ const logoRoute = computed<RouteLocationRaw>(() =>
     flex: 1;
     text-align: center;
   }
+  height: 2.5rem;
+  text-decoration: none;
 }
 
 .right {

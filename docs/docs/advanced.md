@@ -366,7 +366,7 @@ If you get a `403 Forbidden` error when testing the plugin, make sure you correc
 
 ### What are recipes?
 
-In Xen Orchestra, recipes are ready-to-use automation templates that make it easy to deploy complex infrastructures. You don’t need to configure each virtual machine manually. 
+In Xen Orchestra, recipes are ready-to-use automation templates that make it easy to deploy complex infrastructures. You don’t need to configure each virtual machine manually.
 
 With just a few clicks, you can launch a complete multi-VM environment, where all nodes are automatically set up and connected.
 
@@ -375,3 +375,305 @@ Currently, the only available recipe is for Kubernetes clusters. [This guide](ht
 
 Coming soon: We’ll expand the Recipes feature to include EasyVirt DC Scope deployment.
 :::
+
+## OpenMetrics / Prometheus Integration
+
+Export your XenServer/XCP-ng infrastructure metrics in OpenMetrics/Prometheus format for monitoring, alerting, and visualization with Grafana.
+
+### Overview
+
+The OpenMetrics plugin exposes a `/metrics` endpoint that Prometheus can scrape to collect real-time metrics from all your connected pools, hosts, and VMs. This enables:
+
+- **Real-time monitoring** of CPU, memory, network, and disk metrics
+- **Alerting** based on custom thresholds using Prometheus Alertmanager
+- **Visualization** with Grafana dashboards
+- **Historical analysis** of infrastructure performance
+
+### Requirements
+
+- Xen Orchestra with Premium license
+- Prometheus server (or compatible: Victoria Metrics, Mimir, etc.)
+- (Optional) Grafana for visualization
+
+### Plugin Configuration
+
+1. Go to **Settings → Plugins** in Xen Orchestra.
+2. Find and enable the **OpenMetrics** plugin.
+3. Configure the following options:
+
+| Option                | Default    | Description                                               |
+| --------------------- | ---------- | --------------------------------------------------------- |
+| **Prometheus secret** | (required) | Bearer token for authentication - you must set this value |
+
+4. Save and load the plugin.
+
+:::warning
+You must set a **Prometheus secret** before loading the plugin. Without a valid secret, the metrics endpoint authentication is ineffective, potentially exposing sensitive infrastructure data (host resources, VM configurations, network details) to unauthorized access. Use a strong, random string (e.g., generated with `openssl rand -hex 32`).
+:::
+
+### Prometheus Configuration
+
+The metrics endpoint is available through xo-server's HTTP proxy at `/openmetrics/metrics`. Add the following job to your `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'xen-orchestra'
+    scrape_interval: 60s
+    metrics_path: '/openmetrics/metrics'
+    static_configs:
+      - targets: ['your-xoa-ip'] # Use port 80 or 443 depending on your XO setup
+    authorization:
+      type: Bearer
+      credentials: 'your-secret-from-plugin-config'
+```
+
+:::warning
+The metrics endpoint requires authentication. Without a valid Bearer token, requests will receive a 401 Unauthorized response.
+:::
+
+### Available Metrics
+
+All metrics are prefixed with `xcp_` and include enriched labels for easy filtering.
+
+#### Host Metrics
+
+| Metric                                  | Type    | Description                             |
+| --------------------------------------- | ------- | --------------------------------------- |
+| `xcp_host_load_average`                 | gauge   | Host load average                       |
+| `xcp_host_memory_free_bytes`            | gauge   | Free memory in bytes                    |
+| `xcp_host_memory_total_bytes`           | gauge   | Total memory in bytes                   |
+| `xcp_host_cpu_average`                  | gauge   | Average CPU usage (0-1)                 |
+| `xcp_host_cpu_core_usage`               | gauge   | Per-core CPU usage                      |
+| `xcp_host_network_receive_bytes_total`  | counter | Network bytes received per interface    |
+| `xcp_host_network_transmit_bytes_total` | counter | Network bytes transmitted per interface |
+| `xcp_host_disk_iops_read`               | gauge   | Disk read IOPS per SR                   |
+| `xcp_host_disk_iops_write`              | gauge   | Disk write IOPS per SR                  |
+| `xcp_host_disk_throughput_read_bytes`   | gauge   | Disk read throughput (bytes/s)          |
+| `xcp_host_disk_throughput_write_bytes`  | gauge   | Disk write throughput (bytes/s)         |
+| `xcp_host_disk_read_latency_seconds`    | gauge   | Disk read latency                       |
+| `xcp_host_disk_write_latency_seconds`   | gauge   | Disk write latency                      |
+| `xcp_host_disk_iowait`                  | gauge   | Disk IO wait ratio                      |
+
+#### VM Metrics
+
+| Metric                                 | Type    | Description                       |
+| -------------------------------------- | ------- | --------------------------------- |
+| `xcp_vm_memory_bytes`                  | gauge   | Memory usage in bytes             |
+| `xcp_vm_memory_internal_free_bytes`    | gauge   | Internal free memory              |
+| `xcp_vm_memory_target_bytes`           | gauge   | Memory target                     |
+| `xcp_vm_cpu_usage`                     | gauge   | CPU usage ratio                   |
+| `xcp_vm_cpu_core_usage`                | gauge   | Per-vCPU usage                    |
+| `xcp_vm_runstate_fullrun`              | gauge   | Runstate: full run ratio          |
+| `xcp_vm_runstate_blocked`              | gauge   | Runstate: blocked ratio           |
+| `xcp_vm_network_receive_bytes_total`   | counter | Network bytes received per VIF    |
+| `xcp_vm_network_transmit_bytes_total`  | counter | Network bytes transmitted per VIF |
+| `xcp_vm_network_receive_errors_total`  | counter | Network receive errors            |
+| `xcp_vm_network_transmit_errors_total` | counter | Network transmit errors           |
+| `xcp_vm_disk_read_bytes_total`         | counter | Disk read bytes per device        |
+| `xcp_vm_disk_write_bytes_total`        | counter | Disk write bytes per device       |
+| `xcp_vm_disk_iops_read`                | gauge   | Disk read IOPS                    |
+| `xcp_vm_disk_iops_write`               | gauge   | Disk write IOPS                   |
+| `xcp_vm_disk_read_latency_seconds`     | gauge   | Disk read latency                 |
+| `xcp_vm_disk_write_latency_seconds`    | gauge   | Disk write latency                |
+| `xcp_vm_disk_iowait`                   | gauge   | Disk IO wait ratio                |
+| `xcp_vm_disk_inflight`                 | gauge   | In-flight disk operations         |
+| `xcp_vm_disk_queue_size`               | gauge   | Disk queue size                   |
+
+#### Connection Metrics
+
+| Metric               | Type  | Description                                          |
+| -------------------- | ----- | ---------------------------------------------------- |
+| `xcp_pool_connected` | gauge | Pool connection status (1=connected, 0=disconnected) |
+
+#### Labels
+
+All metrics include these labels for filtering:
+
+| Label          | Description                                |
+| -------------- | ------------------------------------------ |
+| `pool_id`      | Pool UUID                                  |
+| `pool_name`    | Pool name                                  |
+| `uuid`         | Object UUID (host or VM)                   |
+| `type`         | Object type (`host` or `vm`)               |
+| `host_name`    | Host name (for host metrics)               |
+| `vm_name`      | VM name (for VM metrics)                   |
+| `sr_name`      | Storage Repository name (for disk metrics) |
+| `vdi_name`     | Virtual Disk name (for VM disk metrics)    |
+| `network_name` | Network name (for network metrics)         |
+| `interface`    | Network interface name                     |
+| `device`       | Disk device (xvda, xvdb, etc.)             |
+| `core`         | CPU core number                            |
+
+### PromQL Query Examples
+
+```promql
+# Average CPU usage per host
+avg by (host_name) (xcp_host_cpu_average) * 100
+
+# Memory usage percentage per VM
+(xcp_vm_memory_bytes - xcp_vm_memory_internal_free_bytes)
+  / xcp_vm_memory_bytes * 100
+
+# Top 5 VMs by CPU usage
+topk(5, xcp_vm_cpu_usage * 100)
+
+# Network throughput per host (MB/s)
+rate(xcp_host_network_receive_bytes_total[5m]) / 1024 / 1024
+
+# Disk latency above 10ms
+xcp_vm_disk_read_latency_seconds > 0.01
+
+# Total IOPS per Storage Repository
+sum by (sr_name) (xcp_host_disk_iops_read + xcp_host_disk_iops_write)
+```
+
+### Grafana Integration
+
+#### Creating a Dashboard
+
+1. Add your Prometheus instance as a data source in Grafana.
+2. Create a new dashboard.
+3. Use the following variables for filtering:
+
+**Pool variable:**
+
+```promql
+label_values(xcp_host_cpu_average, pool_name)
+```
+
+**Host variable:**
+
+```promql
+label_values(xcp_host_cpu_average{pool_name="$pool"}, host_name)
+```
+
+**VM variable:**
+
+```promql
+label_values(xcp_vm_cpu_usage{pool_name="$pool"}, vm_name)
+```
+
+#### Example Panels
+
+**Host CPU Overview:**
+
+```promql
+xcp_host_cpu_average{pool_name="$pool"} * 100
+```
+
+**VM Memory Usage:**
+
+```promql
+xcp_vm_memory_bytes{vm_name="$vm"} / 1024 / 1024 / 1024
+```
+
+### Alerting with Alertmanager
+
+Create alerting rules in Prometheus for proactive monitoring:
+
+```yaml
+groups:
+  - name: xcp-alerts
+    rules:
+      - alert: HighHostCPU
+        expr: xcp_host_cpu_average > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'High CPU usage on {{ $labels.host_name }}'
+          description: 'Host {{ $labels.host_name }} has CPU usage above 90% for 5 minutes.'
+
+      - alert: HighHostMemory
+        expr: (1 - xcp_host_memory_free_bytes / xcp_host_memory_total_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'High memory usage on {{ $labels.host_name }}'
+          description: 'Host {{ $labels.host_name }} memory usage is above 90%.'
+
+      - alert: HighDiskLatency
+        expr: xcp_host_disk_read_latency_seconds > 0.05 or xcp_host_disk_write_latency_seconds > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'High disk latency on {{ $labels.host_name }}'
+          description: 'Storage {{ $labels.sr_name }} on {{ $labels.host_name }} has latency above 50ms.'
+
+      - alert: VMHighCPU
+        expr: xcp_vm_cpu_usage > 0.95
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: 'High CPU on VM {{ $labels.vm_name }}'
+          description: 'VM {{ $labels.vm_name }} has sustained high CPU usage.'
+
+      - alert: PoolDisconnected
+        expr: xcp_pool_connected == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Pool {{ $labels.pool_name }} disconnected'
+          description: 'XO lost connection to pool {{ $labels.pool_name }}.'
+```
+
+### Security Recommendations
+
+- **Use strong secrets**: Generate a secure random token (e.g., `openssl rand -hex 32`)
+- **Network segmentation**: Ensure only your Prometheus server can reach the metrics endpoint
+- **Use HTTPS**: Configure xo-server with TLS or use a reverse proxy (nginx, Caddy) in front of XO
+
+Example nginx reverse proxy configuration (if you need an additional proxy in front of XO):
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name metrics.example.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    location /metrics {
+        proxy_pass http://your-xoa-ip/openmetrics/metrics;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+### Health Check Endpoint
+
+A health check endpoint is available without authentication:
+
+```bash
+curl http://your-xoa-ip/openmetrics/health
+# Response: {"status":"ok"}
+```
+
+### Troubleshooting
+
+**401 Unauthorized:**
+
+- Verify the Bearer token matches the plugin configuration
+- Check the `Authorization` header format: `Bearer <token>`
+
+**Connection refused:**
+
+- Ensure the plugin is loaded (check plugin status in UI)
+- Verify xo-server is running and accessible
+
+**No metrics returned:**
+
+- Verify pools are connected in Xen Orchestra
+- Check xo-server logs: `DEBUG=xo:xo-server-openmetrics* yarn start`
+- Ensure the license includes the OpenMetrics feature
+
+**Stale or missing data:**
+
+- RRD data is collected every 60 seconds
+- Some metrics require XCP-ng/XenServer tools installed in VMs
+- Check individual host connectivity from xo-server

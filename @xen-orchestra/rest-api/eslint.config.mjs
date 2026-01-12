@@ -15,5 +15,6 @@ export default tseslint.config(eslint.configs.recommended, tseslint.configs.reco
   },
   rules: {
     'no-unused-vars': ['off'], // In order to define the OpenAPI specification, we sometimes need to declare variables that will not be used.
+    '@typescript-eslint/no-empty-object-type': ['off'], // It can be useful to return an empty object instead of `undefined` (to differentiate between "no data" and an error case).
   },
 })

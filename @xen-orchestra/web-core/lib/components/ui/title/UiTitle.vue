@@ -1,11 +1,11 @@
-<!-- v2 -->
+<!-- v5 -->
 <template>
   <div class="ui-title">
     <div class="typo-h4 label">
       <slot />
     </div>
-    <div v-if="slots.actions" class="actions">
-      <slot name="actions" />
+    <div v-if="slots.action" class="action">
+      <slot name="action" />
     </div>
   </div>
 </template>
@@ -13,7 +13,7 @@
 <script setup lang="ts">
 const slots = defineSlots<{
   default(): any
-  actions?(): any
+  action?(): any
 }>()
 </script>
 
@@ -29,7 +29,7 @@ const slots = defineSlots<{
     color: var(--color-brand-txt-base);
   }
 
-  .actions {
+  .action {
     margin-inline-start: auto;
     display: flex;
     align-items: center;

@@ -53,8 +53,8 @@ export const locales: Locales = {
     code: 'nl',
     name: 'Nederlands',
   },
-  pt_BR: {
-    code: 'pt_BR',
+  'pt-BR': {
+    code: 'pt-BR',
     name: 'Português (Brasil)',
   },
   da: {
@@ -65,9 +65,13 @@ export const locales: Locales = {
     code: 'ko',
     name: '한국어',
   },
-  nb_NO: {
-    code: 'nb_NO',
+  'nb-NO': {
+    code: 'nb-NO',
     name: 'Norsk (Bokmål)',
+  },
+  ja: {
+    code: 'ja',
+    name: '日本語',
   },
 }
 

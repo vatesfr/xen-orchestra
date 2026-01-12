@@ -14,6 +14,7 @@ export type DashboardBackupsInfo = {
   jobs: {
     disabled: number
     failed: number
+    noRecentRun: number
     skipped: number
     successful: number
     total: number
@@ -36,6 +37,7 @@ export type XoaDashboard = {
   nHosts: number
   nHostsEol?: number | PromiseWriteInStreamError
   hostsStatus: {
+    disabled: number
     running: number
     halted: number
     unknown: number
@@ -43,7 +45,11 @@ export type XoaDashboard = {
   }
   vmsStatus: {
     active: number
+    halted: number
     inactive: number
+    paused: number
+    running: number
+    suspended: number
     unknown: number
     total: number
   }
@@ -76,8 +82,10 @@ export type XoaDashboard = {
   }
   poolsStatus: {
     connected: number
+    disconnected: number
     unreachable: number
     unknown: number
+    total: number
   }
 }
 
