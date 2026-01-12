@@ -144,6 +144,13 @@ export const configurationSchema = {
           title: 'Maximum concurrent migrations',
           type: 'integer',
         },
+        migrationCooldown: {
+          default: 30,
+          description: 'Minimum time (in minutes) before a VM can be migrated again',
+          minimum: 0,
+          title: 'Migration cooldown',
+          type: 'integer',
+        },
       },
     },
   },
@@ -156,6 +163,7 @@ export const configurationSchema = {
 class LoadBalancerPlugin {
   constructor(xo) {
     this.xo = xo
+    this._migrationHistory = new Map() // vmId -> timestamp of last migration
 
     this._job = createSchedule(`*/${EXECUTION_DELAY} * * * *`).createJob(async () => {
       try {
@@ -169,7 +177,11 @@ class LoadBalancerPlugin {
   async configure({ plans, advanced, ignoredVmTags = [] }) {
     this._plans = []
     this._poolIds = [] // Used pools.
-    this._globalOptions = { ignoredVmTags: new Set(ignoredVmTags) }
+    this._globalOptions = {
+      ignoredVmTags: new Set(ignoredVmTags),
+      migrationCooldown: (advanced.migrationCooldown ?? 30) * 60 * 1000, // convert to ms
+      migrationHistory: this._migrationHistory,
+    }
     this._concurrentMigrationLimiter = limitConcurrency(advanced.maxConcurrentMigrations)()
 
     if (plans) {
