@@ -5,10 +5,12 @@ import {
   XenApiRecord,
   XenApiSr,
   XenApiTask,
+  XenApiVbd,
   XenApiVdi,
   XenApiVm,
   XenApiVmWrapped,
 } from '../xen-api.mjs'
+import type { OPAQUE_REF_NULL, VBD_MODE, VBD_TYPE } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
   XoGpuGroup,
@@ -207,4 +209,17 @@ export interface Xapi {
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
+  VBD_create(params: {
+    bootable?: boolean
+    mode?: VBD_MODE
+    type?: VBD_TYPE
+    unpluggable?: boolean
+    userdevice?: string
+    VDI: XenApiVdi['$ref'] | OPAQUE_REF_NULL
+    VM: XenApiVm['$ref']
+    empty?: boolean
+    other_config?: Record<string, string>
+    qos_algorithm_params?: Record<string, string>
+    qos_algorithm_type?: string
+  }): Promise<XenApiVbd['$ref']>
 }
