@@ -73,6 +73,7 @@ type ObjectTypeToRecordMapping = {
   vm: XenApiVm
   vm_guest_metrics: XenApiVmGuestMetrics
   vm_metrics: XenApiVmMetrics
+  vtpm: XenApiVtpm
 }
 
 export type ObjectTypeToRecord<Type extends ObjectType> = Type extends keyof ObjectTypeToRecordMapping
