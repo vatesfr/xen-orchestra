@@ -54,7 +54,7 @@ suite('it should handle metadata', async () => {
   test('it should update the metadata files correctly', async () => {
     const fs = new MockFs()
     const encryptor = new AbstractEncryptor(fs)
-    await encryptor.updateEncryptionKey('one GOOD key', 'secure algo')
+    await encryptor.updateEncryptionMetadata('one GOOD key', 'secure algo')
     let content = JSON.parse(await fs._readFile(ENCRYPTION_DESC_FILENAME))
 
     assert.strictEqual(content.algorithm, 'secure algo')

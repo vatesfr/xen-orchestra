@@ -26,13 +26,13 @@ export class RollingEncryptor extends AbstractEncryptor {
     return this.#currentEncryptor.handler
   }
   /**
-   * @type {Map<number, SingleEncryptor | Promise<SingleEncryptor>}
+   * @type {Map<number, SingleEncryptor}
    */
   #encryptorCache = new Map()
   /**
    * @type {number|undefined}
    */
-  #currentEncryptorKey
+  #currentEncryptorKey 
 
   #currentEncryptor
 
@@ -52,15 +52,10 @@ export class RollingEncryptor extends AbstractEncryptor {
   async init() {
     await super.init()
     const encryptorsList = (await this.handler.list(ENCRYPTOR_METADATA_BASEPATH))
-      .filter(name => name.match(/[0-9]{4}/))
-      .map(name => parseInt(name, 10))
-    if (encryptorsList.length > 0) {
-      encryptorsList.sort()
-    }
-    if (this.#currentEncryptor) {
-      this.#encryptorCache.set(this.#encryptorCache.size, this.#currentEncryptor)
-    }
-    this.#currentEncryptorKey = this.#encryptorCache.size - 1
+      .filter(name => name.match(/[0-9]{4}/)) 
+    this.#currentEncryptorKey = encryptorsList.length + 1
+    this.#encryptorCache.set(this.#currentEncryptorKey, this.#currentEncryptor) 
+    await this.#instantiateEncryptor(1) // this will try to load the full chain of key
   }
 
   /**
@@ -71,13 +66,25 @@ export class RollingEncryptor extends AbstractEncryptor {
   async #instantiateEncryptor(encryptorIndex) {
     assert.notEqual(this.#currentEncryptorKey, undefined, `Encryptor index must have been init`)
     assert.ok(encryptorIndex > 0, `Encryptor index must be over zero`)
-    assert.ok(encryptorIndex < this.#currentEncryptorKey, `Can't reinstantaite current encryptor`)
+
+    const encryptorInCache = this.#encryptorCache.get(encryptorIndex)
+    if(encryptorInCache !== undefined){
+      return Promise.resolve(encryptorInCache)
+    }
+    // ensure we don't have an infinite recursion
+    assert.ok(encryptorIndex < this.#currentEncryptorKey, `Can't reinstantiate current encryptor ${encryptorIndex},  ${this.#currentEncryptorKey} `)
+    
+    
+    // past encryptors are store one dis
+    //  encrypted with the next more recent encryptor
     try {
       const indexStr = String(encryptorIndex).padStart(4, '0')
-      const encryptedBy = await this.#getEncryptor(encryptorIndex + 1)
+      const encryptedByIndex = encryptorIndex+1
+      const  encryptedBy = await this.#instantiateEncryptor(encryptedByIndex)
+
       // read raw data
       const data = await this.handler._readFile(path.join(ENCRYPTOR_METADATA_BASEPATH, indexStr))
-      const decrypted = (await encryptedBy.decryptBuffer(data)).toString()
+      const decrypted = encryptedBy.decryptBuffer(data).toString()
       const { algorithm, key } = JSON.parse(decrypted)
       const encryptor = new SingleEncryptor(this.handler, algorithm, key)
       return encryptor
@@ -91,33 +98,32 @@ export class RollingEncryptor extends AbstractEncryptor {
   /**
    *
    * @param {number} encryptorIndex
-   * @returns {Promise<SingleEncryptor>}
+   * @returns {SingleEncryptor}
    */
-  async #getEncryptor(encryptorIndex) {
+  #getEncryptor(encryptorIndex) {
     let encryptor = this.#encryptorCache.get(encryptorIndex)
     if (encryptor === undefined) {
-      encryptor = this.#instantiateEncryptor(encryptorIndex)
-      this.#encryptorCache.set(encryptorIndex, encryptor)
+      throw new Error(`Encryptor index ${encryptorIndex} doe snot exists `)
     }
 
-    return await encryptor
+    return encryptor
   }
 
   /**
-   *
+   * use the current encrypt to encrypt a buffer 
    * @param {Buffer} buffer
-   * @returns {Promise<Buffer>}
+   * @returns {Buffer}
    */
-  async encryptBuffer(buffer) {
+  encryptBuffer(buffer) {
     if (typeof buffer === 'string') {
       buffer = Buffer.from(buffer)
     }
-    const encryptor = await this.#getEncryptor(this.#currentEncryptorKey)
+    const encryptor = this.#currentEncryptor
     const keyBuffer = Buffer.alloc(4)
     keyBuffer.writeUInt32BE(this.#currentEncryptorKey)
     return Buffer.concat([
       keyBuffer,
-      await encryptor.encryptBuffer(
+      encryptor.encryptBuffer(
         Buffer.concat([
           keyBuffer, // add keybuffer to encrypted data to ensure it is authenticated
           buffer,
@@ -126,29 +132,31 @@ export class RollingEncryptor extends AbstractEncryptor {
     ])
   }
   /**
-   *
+   * decrypt a buffer with the right encryptor  
+   * 
    * @param {Buffer} buffer
-   * @returns {Promise<Buffer>}
+   * @returns {Buffer}
    */
-  async decryptBuffer(buffer) {
+  decryptBuffer(buffer) {
     if (buffer.length < 4) {
       throw new Error(`Can't decrypt a buffer so small, size:${buffer.length}`)
     }
     const encryptorIndex = buffer.readUInt32BE(0)
-    const encryptor = await this.#getEncryptor(encryptorIndex)
-    const decrypted = await encryptor.decryptBuffer(buffer.slice(4))
+    const encryptor = this.#getEncryptor(encryptorIndex)
+    const decrypted = encryptor.decryptBuffer(buffer.slice(4))
 
-    // check tha the encryptor index has not been tampered with
+    // check that the encryptor index has not been tampered with
     const authenticatedEncryptorIndex = decrypted.readUInt32BE(0)
     assert.strictEqual(authenticatedEncryptorIndex, encryptorIndex)
     return decrypted.slice(4)
   }
 
   /**
+   * use the current encrypt to encrypt a stream 
    * @param {Readable}  stream
-   * @returns {Promise<Readable>}
+   * @returns {Readable}
    */
-  async encryptStream(stream) {
+  encryptStream(stream) {
     const keyBuffer = Buffer.alloc(4)
     keyBuffer.writeUInt32BE(this.#currentEncryptorKey)
 
@@ -165,8 +173,10 @@ export class RollingEncryptor extends AbstractEncryptor {
   }
 
   /**
+   * decrypt a stream with the right encryptor  
+   * 
    * @param {Readable}  stream
-   * @returns {Promise<Readable>}
+   * @returns {Readable}
    */
   async decryptStream(stream) {
     /**
@@ -175,7 +185,7 @@ export class RollingEncryptor extends AbstractEncryptor {
     const keyBuffer = await readChunkStrict(stream, 4)
     const encryptorIndex = keyBuffer.readUInt32BE(0)
 
-    const encryptor = await this.#getEncryptor(encryptorIndex)
+    const encryptor = this.#getEncryptor(encryptorIndex)
     const decryptedStream = await encryptor.decryptStream(stream)
     /**
      * @type {Buffer}
@@ -202,11 +212,20 @@ export class RollingEncryptor extends AbstractEncryptor {
    * @returns {Promise<void>}
    */
   async updateEncryptionKey(key, algorithm = DEFAULT_ENCRYPTION_ALGORITHM) {
+    // can only update the key if the current one is ok
+    await this.check() 
+
     const previousEncryptor = this.#currentEncryptor
-    const previousEncryptorIndex = pad(this.#currentEncryptorKey, 4)
     const encryptor = new SingleEncryptor(this.handler, algorithm, key)
-    this.#currentEncryptorKey++
-    this.#encryptorCache.set(this.#currentEncryptorKey, encryptor)
+
+    // same key and algorithm, no need to grow the key chain
+    // compare from encryptors to ensure every key is a buffer 
+    if(encryptor.key.equals(previousEncryptor.key) && encryptor.algorithm ===  previousEncryptor.algorithm){
+        return 
+    }
+
+    // write the old encryptor data encrypted with the new encryptor
+    const previousEncryptorIndex = pad(this.#currentEncryptorKey, 4) 
     await this.handler.__writeFile(
       path.join(ENCRYPTOR_METADATA_BASEPATH, previousEncryptorIndex),
       Buffer.from(
@@ -217,6 +236,16 @@ export class RollingEncryptor extends AbstractEncryptor {
         })
       )
     )
-    await super.updateEncryptionKey(key, algorithm)
+    // set the new encryptor as the current one
+    this.#currentEncryptorKey++
+    this.#encryptorCache.set(this.#currentEncryptorKey, encryptor)
+    this.#currentEncryptor = encryptor
+
+    await this.updateEncryptionMetadata()
+  }
+
+  async updateEncryptionMetadata(){
+    const algorithm = this.#currentEncryptor.algorithm
+    super.updateEncryptionMetadata(algorithm)
   }
 }

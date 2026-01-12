@@ -1,5 +1,7 @@
 // @ts-check
-
+/**
+ * @typedef {import('node:stream').Readable} Readable
+ */
 import { AbstractEncryptor } from './AbstractEncryptor.js'
 import { RollingEncryptor } from './RollingEncryptor.js'
 import { SingleEncryptor } from './SingleEncryptor.js'
@@ -7,9 +9,15 @@ import { SingleEncryptor } from './SingleEncryptor.js'
 export class FsEncryptor extends AbstractEncryptor {
   #handler
   /**
-   * @type {AbstractEncryptor|undefined}
+   * @type {SingleEncryptor| RollingEncryptor|undefined}
    */
   #encryptor
+  get encryptor(){
+    if(this.#encryptor === undefined){
+        throw new Error("Can't access encryptor before init")
+    }
+    return this.#encryptor
+    }
 
   /**
    *
@@ -22,7 +30,8 @@ export class FsEncryptor extends AbstractEncryptor {
 
   async init() {
     await super.init()
-    const { algorithm, updateMode } = await this.getAlgorithm()
+    const { algorithm, updateMode } = await this.getEncryptionMetadata()
+    console.log('received', { algorithm, updateMode })
     let encryptor
     switch (updateMode) {
       case 'rolling': {
@@ -37,7 +46,9 @@ export class FsEncryptor extends AbstractEncryptor {
         throw new Error(`remote encryption mode ${updateMode} is not supported`)
     }
     await encryptor.init()
-    await encryptor.check(algorithm)
+    // check if 
+    await encryptor.check()
+    console.log(('CHECK OK ', { algorithm, updateMode }))
     this.#encryptor = encryptor
   }
 
@@ -49,38 +60,43 @@ export class FsEncryptor extends AbstractEncryptor {
    */
 
   updateEncryptionKey(key, algorithm) {
-    return this.#encryptor.updateEncryptionKey(key, algorithm)
+    return this.encryptor.updateEncryptionKey(key, algorithm)
+  }
+
+
+  updateEncryptionMetadata() {
+    return this.encryptor.updateEncryptionMetadata()
   }
   /**
    *
    * @param {Buffer} buffer
-   * @returns {Promise<Buffer>}
+   * @returns {Buffer}
    */
   encryptBuffer(buffer) {
-    return this.#encryptor.encryptBuffer(buffer)
+    return this.encryptor.encryptBuffer(buffer)
   }
   /**
    *
    * @param {Buffer} buffer
-   * @returns {Promise<Buffer>}
+   * @returns {Buffer}
    */
   decryptBuffer(buffer) {
-    return this.#encryptor.decryptBuffer(buffer)
+    return this.encryptor.decryptBuffer(buffer)
   }
   /**
    *
    * @param {Readable} stream
-   * @returns {Promise<Readable>}
+   * @returns {Readable}
    */
   encryptStream(stream) {
-    return this.#encryptor.encryptStream(stream)
+    return this.encryptor.encryptStream(stream)
   }
   /**
    *
    * @param {Readable} stream
-   * @returns {Promise<Readable>}
+   * @returns {Readable}
    */
   decryptStream(stream) {
-    return this.#encryptor.decryptStream(stream)
+    return this.encryptor.decryptStream(stream)
   }
 }

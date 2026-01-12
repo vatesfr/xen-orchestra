@@ -435,10 +435,12 @@ export default class RemoteHandlerAbstract {
       const encryptor = new FsEncryptor(this)
       await encryptor.init()
       this.#rawEncryptor = encryptor
+      console.log('UDPATE', encryptor)
+      await encryptor.updateEncryptionMetadata()
     } catch (error) {
       await this._forget()
       throw error
-    }
+    } 
   }
 
   async test() {

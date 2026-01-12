@@ -3,8 +3,10 @@
  *
  * @typedef {import('node:crypto').Cipheriv} Cipheriv
  * @typedef {import('node:crypto').Decipheriv} Decipheriv
+ * 
+ * @typedef {import('node:stream').Readable} Readable
  */
-import { AbstractEncryptor, CHACHA20, DEFAULT_ENCRYPTION_ALGORITHM } from './AbstractEncryptor.js'
+import { AbstractEncryptor, CHACHA20, DEFAULT_ENCRYPTION_ALGORITHM, ENCRYPTION_DESC_FILENAME, ENCRYPTION_METADATA_FILENAME } from './AbstractEncryptor.js'
 import assert from 'node:assert'
 import crypto from 'node:crypto'
 import { Readable } from 'node:stream'
@@ -47,9 +49,9 @@ export class SingleEncryptor extends AbstractEncryptor {
    */
   constructor(handler, algorithm, key = undefined) {
     super(handler)
-    this.#handler = handler
-    this.#key = key ?? handler._remote.encryptionKey
-    if (!this.#key) {
+    this.#handler = handler 
+    this.#key = Buffer.from(key ?? handler._remote.encryptionKey ?? '')
+    if (!this.#key.length) {
       this.#algorithm = 'none'
       this.#ivLength = 0
       return
@@ -75,11 +77,11 @@ export class SingleEncryptor extends AbstractEncryptor {
   /**
    *
    * @param {Buffer} buffer
-   * @returns {Promise<Buffer>}
+   * @returns {Buffer}
    */
-  async encryptBuffer(buffer) {
+  encryptBuffer(buffer) {
     if (this.#algorithm === 'none') {
-      return Promise.resolve(buffer)
+      return buffer
     }
 
     const iv = crypto.randomBytes(this.#ivLength)
@@ -95,11 +97,11 @@ export class SingleEncryptor extends AbstractEncryptor {
   /**
    *
    * @param {Buffer} buffer
-   * @returns {Promise<Buffer>}
+   * @returns {Buffer}
    */
-  async decryptBuffer(buffer) {
+  decryptBuffer(buffer) {
     if (this.#algorithm === 'none') {
-      return Promise.resolve(buffer)
+      return buffer
     }
     const iv = buffer.slice(0, this.#ivLength)
     /**
@@ -121,11 +123,11 @@ export class SingleEncryptor extends AbstractEncryptor {
   /**
    *
    * @param {Readable} input
-   * @returns {Promise<Readable>}
+   * @returns {Readable}
    */
-  async encryptStream(input) {
+  encryptStream(input) {
     if (this.#algorithm === 'none') {
-      return Promise.resolve(input)
+      return  input
     }
     const iv = crypto.randomBytes(this.#ivLength)
     const cipher = crypto.createCipheriv(this.#algorithm, Buffer.from(this.#key), iv)
@@ -148,18 +150,20 @@ export class SingleEncryptor extends AbstractEncryptor {
   /**
    *
    * @param {Readable} encryptedStream
-   * @returns {Promise<Readable>}
+   * @returns {Readable}
    */
-  async decryptStream(encryptedStream) {
+  decryptStream(encryptedStream) {
     if (this.#algorithm === 'none') {
-      return Promise.resolve(encryptedStream)
+      return  encryptedStream
     }
-    const iv = await readChunkStrict(encryptedStream, this.#ivLength)
-    const cipher = crypto.createDecipheriv(this.#algorithm, Buffer.from(this.#key), iv)
+    const ivLength = this.#ivLength
+    const algorithm = this.#algorithm
+    const key = this.#key
     const authTagLength = this.#authTagLength
-    let authTag = Buffer.alloc(0)
-
     async function* generator() {
+      const iv = await readChunkStrict(encryptedStream, ivLength)
+      const cipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv) 
+      let authTag = Buffer.alloc(0)
       for await (const data of encryptedStream) {
         // auth tag length is stored at the end of the stream
         // we want to keep it and use at the end to validate the decrypted stream
@@ -189,10 +193,15 @@ export class SingleEncryptor extends AbstractEncryptor {
     return Readable.from(generator(), { objectMode: false, highWaterMark: 10 * 1024 * 1024 })
   }
 
-  #isFsEmpty() {
-    return Promise.resolve(true)
+  async #isFsEmpty() {
+    const list = await this.#handler.list('/', {
+      filter: e => !e.startsWith('.') && e !== ENCRYPTION_DESC_FILENAME && e !== ENCRYPTION_METADATA_FILENAME,
+    })
+    console.log({list})
+    return list.length === 0 
   }
 
+  
   /**
    *
    * @param {Buffer} key
@@ -204,6 +213,10 @@ export class SingleEncryptor extends AbstractEncryptor {
     }
     this.#algorithm = algorithm
     this.#key = key
-    await super.updateEncryptionKey(key, algorithm)
+    await this.updateEncryptionMetadata()
+  }
+
+  async updateEncryptionMetadata(){ 
+    super.updateEncryptionMetadata(this.#algorithm)
   }
 }

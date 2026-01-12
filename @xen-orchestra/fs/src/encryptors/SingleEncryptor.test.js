@@ -27,26 +27,26 @@ class MockFs {
 }
 
 suite('no encryption', async () => {
-  test('it should not modify buffer on encrypt ', async () => {
+  test('it should not modify buffer on encrypt ',  () => {
     const encryptor = new SingleEncryptor(new MockFs(), 'none')
     const buffer = Buffer.from('MY SOURCE')
-    const encrypted = await encryptor.encryptBuffer(buffer)
+    const encrypted = encryptor.encryptBuffer(buffer)
     assert.ok(buffer.equals(encrypted))
   })
-  test('it should not modify buffer on decrypt ', async () => {
+  test('it should not modify buffer on decrypt ',  () => {
     const encryptor = new SingleEncryptor(new MockFs(), 'none')
     const buffer = Buffer.from('MY SOURCE')
-    const encrypted = await encryptor.decryptBuffer(buffer)
+    const encrypted = encryptor.decryptBuffer(buffer)
     assert.ok(buffer.equals(encrypted))
   })
 })
 
 suite('it can encrypt', async () => {
-  test('it encrypts and decrypt a buffer', async () => {
+  test('it encrypts and decrypt a buffer', () => {
     const encryptor = new SingleEncryptor(new MockFs(), 'aes-256-gcm', '0123456789ABCDEF0123456789ABCDEF')
     const buffer = Buffer.from('MY SOURCE')
-    const encrypted = await encryptor.encryptBuffer(buffer)
-    const decrypted = await encryptor.decryptBuffer(encrypted)
+    const encrypted = encryptor.encryptBuffer(buffer)
+    const decrypted = encryptor.decryptBuffer(encrypted)
     assert.ok(buffer.equals(decrypted))
     assert.ok(!buffer.equals(encrypted))
   })
@@ -63,21 +63,31 @@ suite('it can encrypt', async () => {
     }
     const stream = Readable.from(generator(), { objectMode: false })
 
-    const encrypted = await encryptor.encryptStream(stream)
+    const encrypted = encryptor.encryptStream(stream)
     let result = Buffer.alloc(0)
-    const decrypted = await encryptor.decryptStream(encrypted)
+    const decrypted = encryptor.decryptStream(encrypted)
 
     for await (const buffer of decrypted) {
       result = Buffer.concat([result, buffer])
     }
   })
 
-  test('it authenticate  a buffer', async () => {
+  test('it authenticate  a buffer',  () => {
     const encryptor = new SingleEncryptor(new MockFs(), 'aes-256-gcm', '0123456789ABCDEF0123456789ABCDEF')
     const buffer = Buffer.allocUnsafe(1024 * 1024)
-    const encrypted = await encryptor.encryptBuffer(buffer)
+    const encrypted = encryptor.encryptBuffer(buffer)
     encrypted.writeUInt8(2, 7) // modify a byte
 
-    await assert.rejects(() => encryptor.decryptBuffer(encrypted))
+    assert.throws(() => encryptor.decryptBuffer(encrypted))
+  })
+
+
+  test('it authenticate  a buffer',  () => {
+    const encryptor = new SingleEncryptor(new MockFs(), 'aes-256-gcm', '0123456789ABCDEF0123456789ABCDEF')
+    const buffer = Buffer.allocUnsafe(1024 * 1024)
+    const encrypted =  encryptor.encryptBuffer(buffer)
+    encrypted.writeUInt8(2, 7) // modify a byte
+
+    assert.throws(() => encryptor.decryptBuffer(encrypted))
   })
 })

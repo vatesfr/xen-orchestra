@@ -19,7 +19,7 @@ class MockFs {
   }
   async __readFile(path) {
     const data = await this._readFile(path)
-    return (await this.encryptor?.decryptBuffer(data)) ?? data
+    return  this.encryptor?.decryptBuffer(data)  ?? data
   }
   async _writeFile(path, buffer) {
     this.files[path] = buffer
@@ -37,7 +37,7 @@ class MockFs {
     )
   }
 }
-/*
+
 suite('it works with one key ', async()=>{
     test('encryption and decryption', async ()=>{
         const fs = new MockFs()
@@ -46,14 +46,14 @@ suite('it works with one key ', async()=>{
         await rolling.init()
 
         const buffer = Buffer.from(" GOT IT GUY")
-        const encrypted = await rolling.encryptBuffer(buffer)
-        const decrypted = await rolling.decryptBuffer(encrypted)
+        const encrypted = rolling.encryptBuffer(buffer)
+        const decrypted = rolling.decryptBuffer(encrypted)
         assert.ok(decrypted.equals(buffer))
     })
 })
-*/
+
 suite('it works with updated  keys ', async () => {
-  /*
+  
     test('mock works with buffer', async ()=>{
         const fs = new MockFs()
         const encryptor = new SingleEncryptor(fs, 'aes-256-gcm', '0123456789ABCDEF0123456789ABCDEF')
@@ -68,7 +68,7 @@ suite('it works with updated  keys ', async () => {
         assert.ok(decrypted.equals(buffer))
         assert.ok(!decrypted.equals(encrypted))
     })
-*/
+
 
   test('works with buffer ', async () => {
     const fs = new MockFs()
@@ -78,10 +78,11 @@ suite('it works with updated  keys ', async () => {
     await rolling.init()
 
     const content = Buffer.from(' GOT IT GUY')
+    // encrytped with first key 
     await fs.__writeFile('encrytpion1', content)
 
     await rolling.updateEncryptionKey('023456789ABCDEF0123456789ABCDEF1', 'chacha20-poly1305')
-
+    // encrytped with second key and algorithm 
     await fs.__writeFile('encrytpion2', content)
 
     const encrypted1 = await fs._readFile('encrytpion1')
@@ -106,6 +107,11 @@ suite('it works with updated  keys ', async () => {
     const decrypted3 = await fs.__readFile('encrytpion3')
     assert.ok(content.equals(decrypted3))
 
+    assert.equal((await fs.list('encryptors')).length, 2)
+
+
+    // ensure key length doesn't grow if we use the same key again
+    await rolling.updateEncryptionMetadata('023456789ABCDEF0123456789ABCDEF3', 'chacha20-poly1305')
     assert.equal((await fs.list('encryptors')).length, 2)
   })
 })
