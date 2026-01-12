@@ -133,3 +133,9 @@
 - xo-server-openmetrics 1.0.0
 - xo-server-perf-alert 1.1.0
 - xo-web 5.191.2
+
+## Previous changelogs
+
+- [Xen Orchestra 5](./CHANGELOG.v5.md)
+- [Xen Orchestra 4](./CHANGELOG.v4.md)
+- [Xen Orchestra 3](./CHANGELOG.v3.md)
