@@ -284,7 +284,6 @@ import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
-import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
 import { useMapper } from '@core/packages/mapper'
 import { useUiStore } from '@core/stores/ui.store'
@@ -935,7 +934,7 @@ const xo5Link = computed(() => {
 
 // BOOT FIRMWARE SELECTOR
 
-const bootFirmwareOptions = ['bios', 'uefi']
+const bootFirmwareOptions = ['BIOS', 'UEFI']
 
 const { id: bootFirmwareSelectId } = useFormSelect(bootFirmwareOptions, {
   model: toRef(vmState, 'bootFirmware'),
