@@ -1,10 +1,10 @@
 import { buildProviderModule } from 'inversify-binding-decorators'
 import { Container, decorate, injectable } from 'inversify'
 import { Controller } from 'tsoa'
+import type { XoApp } from '@vates/types/xo-app'
 
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { VmService } from '../vms/vm.service.mjs'
-import type { XoApp } from '../rest-api/rest-api.type.mjs'
 import { XoaService } from '../xoa/xoa.service.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import { PoolService } from '../pools/pool.service.mjs'
