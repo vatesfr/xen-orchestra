@@ -12,6 +12,8 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Update `/dashboard` endpoint to also return disconnected servers, disabled hosts, the status of all VMs, and compute `jobs` from the last seven days (PR [#9207](https://github.com/vatesfr/xen-orchestra/pull/9207))
+- **XO 6:**
+  - [VM/New] Added VTPM support (PR [#9389](https://github.com/vatesfr/xen-orchestra/pull/9389))
 
 ### Bug fixes
 
