@@ -51,4 +51,5 @@ export interface VmState {
   description: string
   existingVdis: Vdi[]
   name: string
+  vtpm: boolean
 }
