@@ -3,6 +3,7 @@
 ## **next**
 
 - [VM/New] Fix wording in "Memory" section (PR [#9309](https://github.com/vatesfr/xen-orchestra/pull/9309))
+- [VM/New] Added VTPM support (PR [#9389](https://github.com/vatesfr/xen-orchestra/pull/9389))
 
 ## **0.17.0** (2025-11-27)
 
