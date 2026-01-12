@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="error">
     <div class="site-dashboard-backup-repository">
       <UiCardTitle>
         {{ t('backup-repository') }}
@@ -9,7 +9,7 @@
       <VtsStateHero v-if="!areBackupRepositoriesReady" format="card" type="no-data" size="extra-small" horizontal>
         {{ t('no-data-to-calculate') }}
       </VtsStateHero>
-      <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
+      <VtsStateHero v-else-if="error" format="card" type="error" size="extra-small" horizontal>
         {{ t('error-no-data') }}
       </VtsStateHero>
       <template v-else>
@@ -51,14 +51,17 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { repositories } = defineProps<{
+const { repositories, hasError, isReady } = defineProps<{
   repositories: BackupRepositories | undefined
   hasError?: boolean
+  isReady?: boolean
 }>()
 
 const { t } = useI18n()
 
 const areBackupRepositoriesReady = computed(() => repositories !== undefined)
+
+const error = computed(() => hasError || (repositories === undefined && isReady))
 
 const segments: ComputedRef<StackedBarWithLegendProps['segments']> = computed(() => [
   {

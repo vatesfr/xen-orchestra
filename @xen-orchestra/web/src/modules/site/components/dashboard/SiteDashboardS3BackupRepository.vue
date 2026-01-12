@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="error">
     <div class="site-dashboard-s3-backup-repository">
       <UiCardTitle>
         {{ t('s3-backup-repository') }}
@@ -9,7 +9,7 @@
       <VtsStateHero v-if="!areS3BackupRepositoriesReady" format="card" type="no-data" horizontal size="extra-small">
         {{ t('no-data-to-calculate') }}
       </VtsStateHero>
-      <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
+      <VtsStateHero v-else-if="error" format="card" type="error" size="extra-small" horizontal>
         {{ t('error-no-data') }}
       </VtsStateHero>
       <UiCardNumbers
@@ -33,14 +33,17 @@ import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { size } = defineProps<{
+const { size, hasError, isReady } = defineProps<{
   size: NonNullable<XoDashboard['backupRepositories']>['s3']['size'] | undefined
   hasError?: boolean
+  isReady?: boolean
 }>()
 
 const { t } = useI18n()
 
 const areS3BackupRepositoriesReady = computed(() => size !== undefined)
+
+const error = computed(() => hasError || (size === undefined && isReady))
 
 const usedSize = computed(() => formatSizeRaw(size?.backups, 1))
 </script>

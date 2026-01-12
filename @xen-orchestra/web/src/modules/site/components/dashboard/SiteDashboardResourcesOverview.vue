@@ -1,8 +1,8 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="error">
     <UiCardTitle>{{ t('resources-overview') }}</UiCardTitle>
     <VtsStateHero v-if="!areResourcesOverviewReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
+    <VtsStateHero v-else-if="error" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
     <VtsStateHero
@@ -39,16 +39,22 @@ import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { resources } = defineProps<{
+const { resources, hasError, isReady } = defineProps<{
   resources: XoDashboard['resourcesOverview'] | undefined
   hasError?: boolean
+  isReady?: boolean
 }>()
 
 const { t } = useI18n()
 
 const areResourcesOverviewReady = computed(() => resources !== undefined)
+
+const error = computed(() => hasError || (resources === undefined && isReady))
+
 const nCpus = computed(() => resources?.nCpus)
+
 const memorySize = computed(() => formatSizeRaw(resources?.memorySize, 1))
+
 const srSize = computed(() => formatSizeRaw(resources?.srSize, 1))
 </script>
 

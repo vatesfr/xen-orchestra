@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="error">
     <div class="site-dashboard-storage-repository">
       <UiCardTitle>
         {{ t('storage-repository') }}
@@ -45,14 +45,17 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { repositories } = defineProps<{
+const { repositories, hasError, isReady } = defineProps<{
   repositories: StorageRepositories | undefined
   hasError?: boolean
+  isReady?: boolean
 }>()
 
 const { t } = useI18n()
 
 const areStorageRepositoriesReady = computed(() => repositories !== undefined)
+
+const error = computed(() => hasError || (repositories === undefined && isReady))
 
 const segments: ComputedRef<StackedBarWithLegendProps['segments']> = computed(() => [
   {

@@ -1,12 +1,12 @@
 <template>
-  <UiCard :has-error>
+  <UiCard :has-error="error">
     <UiCardTitle>
       {{ t('backups:vms-protection') }}
       <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
     <VtsStateHero v-if="!areBackupsVmsProtectionReady" format="card" type="busy" size="medium" />
     <VtsStateHero v-else-if="backups === undefined" format="card" type="no-data" size="medium" />
-    <VtsStateHero v-else-if="hasError" format="card" type="error" size="medium">
+    <VtsStateHero v-else-if="error" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
@@ -40,9 +40,10 @@ import { useModal } from '@core/packages/modal/use-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backups } = defineProps<{
+const { backups, hasError, isReady } = defineProps<{
   backups: XoDashboard['backups'] | undefined
   hasError?: boolean
+  isReady?: boolean
 }>()
 
 const openVmProtectedModal = useModal(() => ({
@@ -50,6 +51,8 @@ const openVmProtectedModal = useModal(() => ({
 }))
 
 const areBackupsVmsProtectionReady = computed(() => backups?.vmsProtection !== undefined)
+
+const error = computed(() => hasError || (backups?.vmsProtection === undefined && isReady))
 
 const { t } = useI18n()
 
