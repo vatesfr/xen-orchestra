@@ -10,6 +10,10 @@ module.exports = async function merge(args) {
     return `Merges two VHDs.
     Usage: ${this.command} <remote URL> <child VHD path on remote> <parent VHD path on remote>`
   }
+  const unexpectedArgs = args.filter(arg => arg.startsWith('-'))
+  if (unexpectedArgs.length > 0) {
+    return `Option${unexpectedArgs.length > 1 ? 's' : ''} ${unexpectedArgs} unsupported, use --help for details.`
+  }
 
   await Disposable.use(getSyncedHandler({ url: args[0] }), async handler => {
     let bar

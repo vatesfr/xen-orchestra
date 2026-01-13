@@ -10,8 +10,11 @@ const checkVhd = (handler, path) => new VhdFile(handler, path).readHeaderAndFoot
 module.exports = async function check(rawArgs) {
   const {
     chain,
+    c,
     help,
+    h,
     _: args,
+    ...unexpectedArgs
   } = getopts(rawArgs, {
     alias: {
       chain: 'c',
@@ -28,6 +31,10 @@ module.exports = async function check(rawArgs) {
     return `Checks for the integrity of one or more VHDs.
     Use option --chain to check for VHD directory/ies.
     Usage: ${this.command} [--chain] <remote URL> <VHD path on remote> <another VHD path (optional)> ...`
+  }
+  const unexpectedArgsList = Object.keys(unexpectedArgs)
+  if (unexpectedArgsList.length > 0) {
+    return `Option${unexpectedArgsList.length > 1 ? 's' : ''} ${unexpectedArgsList} unsupported, use --help for details.`
   }
 
   const check = chain ? checkVhdChain : checkVhd
