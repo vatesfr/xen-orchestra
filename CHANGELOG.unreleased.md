@@ -22,6 +22,7 @@
 - [TreeView] Scroll to current item in list view (PR [#9268](https://github.com/vatesfr/xen-orchestra/pull/9268))
 - [REST API] Add `createVtpm` parameter to VM creation endpoint (PR [#9412](https://github.com/vatesfr/xen-orchestra/pull/9412))
 - [Backup] show the backup archive that will be kept for Long Term Retention (PR [#9364](https://github.com/vatesfr/xen-orchestra/pull/9364))
+- [REST API] Add `DELETE /vbds/{id}` endpoint to remove a VBD (PR [#9394](https://github.com/vatesfr/xen-orchestra/pull/9394))
 
 ### Bug fixes
 

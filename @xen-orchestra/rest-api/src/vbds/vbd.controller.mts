@@ -1,5 +1,6 @@
 import {
   Body,
+  Delete,
   Example,
   Get,
   Middlewares,
@@ -27,6 +28,7 @@ import {
   badRequestResp,
   createdResp,
   invalidParameters,
+  noContentResp,
   notFoundResp,
   unauthorizedResp,
   type Unbrand,
@@ -119,6 +121,22 @@ export class VbdController extends XapiXoController<XoVbd> {
   @Response(notFoundResp.status, notFoundResp.description)
   getVbd(@Path() id: string): Unbrand<XoVbd> {
     return this.getObject(id as XoVbd['id'])
+  }
+
+  /**
+   * Delete a VBD
+   *
+   * Removes the virtual block device, detaching the VDI from the VM.
+   * The VDI itself is NOT deleted.
+   *
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Delete('{id}')
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  async deleteVbd(@Path() id: string): Promise<void> {
+    const xapiVbd = this.getXapiObject(id as XoVbd['id'])
+    await xapiVbd.$xapi.VBD_destroy(xapiVbd.$ref)
   }
 
   /**
