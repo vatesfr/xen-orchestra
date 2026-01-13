@@ -247,7 +247,7 @@ export default class {
 
     /** @type {GroupRole[]} */
     const groupRoles = await this.#groupRoleDb._get({ roleId: role.id })
-    await Promise.all(groupRoles.map(groupRole => this.addAclV2GroupRole(groupRole.groupId, groupRole.roleId)))
+    await Promise.all(groupRoles.map(groupRole => this.deleteAclV2GroupRole(groupRole.groupId, groupRole.roleId)))
 
     const privileges = await this.getAclV2RolePrivileges(role.id)
     await Promise.all(privileges.map(privilege => this.deleteAclV2Privilege(privilege.id, { force })))
