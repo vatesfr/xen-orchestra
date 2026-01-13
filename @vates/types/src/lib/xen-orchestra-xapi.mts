@@ -5,6 +5,7 @@ import {
   XenApiRecord,
   XenApiSr,
   XenApiTask,
+  XenApiVbd,
   XenApiVdi,
   XenApiVm,
   XenApiVmWrapped,
@@ -177,6 +178,7 @@ export interface Xapi {
     creatorId?: XoUser['id'],
     opts?: { destroyAllVifs: boolean }
   ): Promise<XenApiVmWrapped>
+  VBD_destroy(vbdRef: XenApiVbd['$ref']): Promise<void>
   VDI_destroy(vdiRef: XenApiVdi['$ref']): Promise<void>
   VDI_destroyCloudInitConfig(vdiRef: XenApiVdi['$ref'], opts?: { timeLimit?: number }): Promise<void>
   VDI_exportContent(
