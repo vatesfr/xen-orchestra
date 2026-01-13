@@ -1,7 +1,9 @@
 export const xoaDashboard = {
   nPools: 2,
   nHosts: 5,
-  backupRepositories: {},
+  backupRepositories: {
+    isEmpty: true,
+  },
   resourcesOverview: {
     nCpus: 52,
     memorySize: 111669149696,

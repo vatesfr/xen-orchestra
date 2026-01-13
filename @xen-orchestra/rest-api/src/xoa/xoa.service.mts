@@ -136,6 +136,11 @@ export class XoaService {
           }
         }
 
+        // if only disabled BR
+        if (otherBrSize === undefined && s3Brsize === undefined) {
+          return { isEmpty: true }
+        }
+
         const result: DashboardBackupRepositoriesSizeInfo = {}
         if (s3Brsize !== undefined) {
           result.s3 = s3Brsize
