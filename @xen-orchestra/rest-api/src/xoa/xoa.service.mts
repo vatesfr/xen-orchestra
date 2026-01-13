@@ -23,7 +23,7 @@ import { Writable } from 'node:stream'
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
 import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, SrSizeInfo, XoaDashboard } from './xoa.type.mjs'
 import { isReplicaVm, isSrWritableOrIso, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
-import type { IsEmptyData, MaybePromise } from '../helpers/helper.type.mjs'
+import type { IsEmptyData, IsMaybeExpired, MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
@@ -34,7 +34,7 @@ import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 const log = createLogger('xo:rest-api:xoa-service')
 
 type DashboardAsyncCache = {
-  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo | IsEmptyData | undefined>
+  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo | IsEmptyData>
   backups: MaybePromise<DashboardBackupsInfo | IsEmptyData>
 }
 
@@ -63,7 +63,7 @@ export class XoaService {
   }
 
   async #getBackupRepositoriesSizeInfo(): Promise<
-    (DashboardBackupRepositoriesSizeInfo & { isExpired?: true }) | (IsEmptyData & { isExpired?: true }) | undefined
+    IsMaybeExpired<DashboardBackupRepositoriesSizeInfo> | IsMaybeExpired<IsEmptyData> | undefined
   > {
     const brResult = await getFromAsyncCache<DashboardAsyncCache['backupRepositories']>(
       this.#dashboardAsyncCache as Map<
@@ -357,9 +357,7 @@ export class XoaService {
     }
   }
 
-  async #getbackupsInfo(): Promise<
-    (DashboardBackupsInfo & { isExpired?: true }) | (IsEmptyData & { isExpired?: true }) | undefined
-  > {
+  async #getBackupsInfo(): Promise<IsMaybeExpired<DashboardBackupsInfo> | IsMaybeExpired<IsEmptyData> | undefined> {
     const vmIdsProtected = new Set<XoVm['id']>()
     const vmIdsUnprotected = new Set<XoVm['id']>()
     const nonReplicaVms = Object.values(this.#restApi.getObjectsByType<XoVm>('VM', { filter: vm => !isReplicaVm(vm) }))
@@ -627,7 +625,7 @@ export class XoaService {
         handleError: true,
       }),
       promiseWriteInStream({
-        maybePromise: this.#getbackupsInfo(),
+        maybePromise: this.#getBackupsInfo(),
         path: 'backups',
         stream,
         handleError: true,
