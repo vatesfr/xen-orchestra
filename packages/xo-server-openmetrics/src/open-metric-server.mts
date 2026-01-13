@@ -20,7 +20,12 @@ import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 
 import { parseRrdResponse, type ParsedRrdData } from './rrd-parser.mjs'
-import { formatAllPoolsToOpenMetrics } from './openmetric-formatter.mjs'
+import {
+  formatAllPoolsToOpenMetrics,
+  formatSrMetrics,
+  formatToOpenMetrics,
+  type SrDataItem,
+} from './openmetric-formatter.mjs'
 
 const logger = createLogger('xo:xo-server-openmetrics:child')
 
@@ -77,6 +82,10 @@ interface LabelLookupData {
 interface XapiCredentialsPayload {
   hosts: HostCredentials[]
   labels: LabelLookupData
+}
+
+interface SrDataPayload {
+  srs: SrDataItem[]
 }
 
 interface PendingRequest<T> {
@@ -136,6 +145,10 @@ function handleParentMessage(rawMessage: unknown): void {
       handleCredentialsResponse(message)
       break
 
+    case 'SR_DATA':
+      handleSrDataResponse(message)
+      break
+
     default:
       logger.warn('Unknown message type from parent', { type: message.type })
   }
@@ -167,6 +180,20 @@ async function handleShutdown(): Promise<void> {
 }
 
 function handleCredentialsResponse(message: IpcMessage): void {
+  const requestId = message.requestId
+  if (requestId === undefined) {
+    return
+  }
+
+  const pending = pendingRequests.get(requestId)
+  if (pending !== undefined) {
+    clearTimeout(pending.timer)
+    pendingRequests.delete(requestId)
+    pending.resolve(message.payload)
+  }
+}
+
+function handleSrDataResponse(message: IpcMessage): void {
   const requestId = message.requestId
   if (requestId === undefined) {
     return
@@ -223,6 +250,25 @@ async function requestXapiCredentials(): Promise<XapiCredentialsPayload> {
     })
 
     sendToParent({ type: 'GET_XAPI_CREDENTIALS', requestId })
+  })
+}
+
+async function requestSrData(): Promise<SrDataPayload> {
+  const requestId = `sr-${++requestIdCounter}`
+
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      pendingRequests.delete(requestId)
+      reject(new Error('Timeout waiting for SR data from parent'))
+    }, IPC_REQUEST_TIMEOUT_MS)
+
+    pendingRequests.set(requestId, {
+      resolve: value => resolve(value as SrDataPayload),
+      reject,
+      timer,
+    })
+
+    sendToParent({ type: 'GET_SR_DATA', requestId })
   })
 }
 
@@ -299,13 +345,15 @@ async function fetchRrdFromHost(host: HostCredentials): Promise<ParsedRrdData | 
  *
  * Fetches RRD data from each host with bounded concurrency,
  * parses and transforms to OpenMetrics format.
+ * Also collects SR capacity metrics from XO objects.
  *
  * @returns OpenMetrics-formatted string
  */
 async function collectMetrics(): Promise<string> {
   const credentials = await requestXapiCredentials()
+  const srData = await requestSrData()
 
-  logger.debug('Collecting metrics', { hostCount: credentials.hosts.length })
+  logger.debug('Collecting metrics', { hostCount: credentials.hosts.length, srCount: srData.srs.length })
 
   if (credentials.hosts.length === 0) {
     return '# No connected hosts\n# EOF'
@@ -354,15 +402,26 @@ async function collectMetrics(): Promise<string> {
   const rrdMetrics = formatAllPoolsToOpenMetrics(rrdDataList, credentials)
   logger.debug('Formatted metrics', { outputLength: rrdMetrics.length })
 
-  // Combine pool metrics with RRD metrics
+  // Format SR capacity metrics
+  const srMetrics = formatSrMetrics(srData.srs)
+  const srMetricsOutput = srMetrics.length > 0 ? formatToOpenMetrics(srMetrics) : ''
+  logger.debug('Formatted SR metrics', { srCount: srMetrics.length })
+
+  // Combine pool metrics with RRD metrics and SR metrics
   // Remove the # EOF from rrdMetrics if present (we'll add our own)
   const rrdMetricsWithoutEof = rrdMetrics.replace(/\n# EOF$/, '')
 
-  if (rrdMetricsWithoutEof === '') {
-    return poolMetrics.join('\n') + '\n# EOF'
+  const allMetricsSections = [poolMetrics.join('\n')]
+
+  if (rrdMetricsWithoutEof !== '') {
+    allMetricsSections.push(rrdMetricsWithoutEof)
   }
 
-  return poolMetrics.join('\n') + '\n' + rrdMetricsWithoutEof + '\n# EOF'
+  if (srMetricsOutput !== '') {
+    allMetricsSections.push(srMetricsOutput)
+  }
+
+  return allMetricsSections.join('\n') + '\n# EOF'
 }
 
 // ============================================================================

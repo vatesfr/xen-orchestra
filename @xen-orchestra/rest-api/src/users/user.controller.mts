@@ -300,7 +300,7 @@ export class UserController extends XoController<XoUser> {
     @Body()
     body: {
       client?: {
-        id?: 'string'
+        id?: string
       }
       description?: string
       expiresIn?: string | number

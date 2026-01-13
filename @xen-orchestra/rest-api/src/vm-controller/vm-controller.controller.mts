@@ -1,7 +1,7 @@
 import { inject } from 'inversify'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
-import type { XoAlarm, XoMessage, XoTask, XoVdi, XoVdiSnapshot, XoVmController } from '@vates/types'
+import type { XoAlarm, XoMessage, XoTask, XoVdi, XoVmController } from '@vates/types'
 import { Delete, Example, Get, Path, Put, Query, Request, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import { Request as ExRequest } from 'express'
 
@@ -120,7 +120,7 @@ export class VmControllerController extends XapiXoController<XoVmController> {
     @Query() ndjson?: boolean,
     @Query() filter?: string,
     @Query() limit?: number
-  ): SendObjects<Partial<Unbrand<XoVdi> | Unbrand<XoVdiSnapshot>>> {
+  ): SendObjects<Partial<Unbrand<XoVdi>>> {
     const vdis = this.#vmService.getVmVdis(id as XoVmController['id'], 'VM-controller')
     return this.sendObjects(limitAndFilterArray(vdis, { filter, limit }), req, obj => obj.type.toLowerCase() + 's')
   }
