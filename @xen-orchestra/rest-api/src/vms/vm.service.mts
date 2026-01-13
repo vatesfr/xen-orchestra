@@ -8,10 +8,12 @@ import {
   XoAlarm,
   XoBackupLog,
   XoHost,
+  XoNetwork,
   XoSr,
   XoUser,
   XoVbd,
   XoVdiSnapshot,
+  XoVif,
   XoVmBackupJob,
   XoVmController,
   XoVmSnapshot,
@@ -420,5 +422,13 @@ export class VmService {
         backupArchives: lastBackupArchives,
       },
     }
+  }
+
+  getNetwork(id: string): XoNetwork {
+    return this.#restApi.getObject<XoNetwork>(id as XoNetwork['id'], 'network')
+  }
+
+  getVif(id: string): XoVif {
+    return this.#restApi.getObject<XoVif>(id as XoVif['id'], 'VIF')
   }
 }

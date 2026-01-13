@@ -1,17 +1,19 @@
 import {
   WrappedXenApiRecord,
   XenApiHost,
+  XenApiNetwork,
   XenApiNetworkWrapped,
   XenApiRecord,
   XenApiSr,
   XenApiTask,
   XenApiVbd,
   XenApiVdi,
+  XenApiVif,
   XenApiVm,
   XenApiVmWrapped,
   XenApiVtpm,
 } from '../xen-api.mjs'
-import type { OPAQUE_REF_NULL, SUPPORTED_VDI_FORMAT, VBD_MODE, VBD_TYPE } from '../common.mjs'
+import type { OPAQUE_REF_NULL, SUPPORTED_VDI_FORMAT, VBD_MODE, VBD_TYPE, VIF_LOCKING_MODE } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
 import type {
   XoGpuGroup,
@@ -231,4 +233,23 @@ export interface Xapi {
   ): Promise<{ body: Readable }>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
   VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
+  VIF_create(
+    options: {
+      currently_attached: boolean
+      device: string | undefined
+      ipv4_allowed: string[]
+      ipv6_allowed: string[]
+      locking_mode: VIF_LOCKING_MODE
+      MTU: number
+      network: XenApiNetwork['$ref']
+      other_config: Record<string, string>
+      qos_algorithm_params: Record<string, string>
+      qos_algorithm_type: string
+      VM: XenApiVm['$ref']
+    },
+    MAC: {
+      MAC: string
+    }
+  ): Promise<XenApiVif['$ref']>
+  deleteVif(vifId: string): Promise<void>
 }
