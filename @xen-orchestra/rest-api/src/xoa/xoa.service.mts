@@ -21,9 +21,9 @@ import { parse } from 'xo-remote-parser'
 import { Writable } from 'node:stream'
 
 import { type AsyncCacheEntry, getFromAsyncCache } from '../helpers/cache.helper.mjs'
-import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, XoaDashboard } from './xoa.type.mjs'
+import { DashboardBackupRepositoriesSizeInfo, DashboardBackupsInfo, SrSizeInfo, XoaDashboard } from './xoa.type.mjs'
 import { isReplicaVm, isSrWritableOrIso, promiseWriteInStream, vmContainsNoBakTag } from '../helpers/utils.helper.mjs'
-import type { MaybePromise } from '../helpers/helper.type.mjs'
+import type { IsEmptyData, MaybePromise } from '../helpers/helper.type.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import { HostService } from '../hosts/host.service.mjs'
 import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
@@ -34,8 +34,8 @@ import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 const log = createLogger('xo:rest-api:xoa-service')
 
 type DashboardAsyncCache = {
-  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo | undefined>
-  backups: MaybePromise<DashboardBackupsInfo>
+  backupRepositories: MaybePromise<DashboardBackupRepositoriesSizeInfo | IsEmptyData | undefined>
+  backups: MaybePromise<DashboardBackupsInfo | IsEmptyData>
 }
 
 export class XoaService {
@@ -63,7 +63,7 @@ export class XoaService {
   }
 
   async #getBackupRepositoriesSizeInfo(): Promise<
-    (DashboardBackupRepositoriesSizeInfo & { isExpired?: true }) | undefined
+    (DashboardBackupRepositoriesSizeInfo & { isExpired?: true }) | (IsEmptyData & { isExpired?: true }) | undefined
   > {
     const brResult = await getFromAsyncCache<DashboardAsyncCache['backupRepositories']>(
       this.#dashboardAsyncCache as Map<
@@ -83,7 +83,7 @@ export class XoaService {
 
         const backupRepositories = await xoApp.getAllRemotes()
         if (backupRepositories.length === 0) {
-          return undefined
+          return { isEmpty: true }
         }
 
         const backupRepositoriesInfo = await xoApp.getAllRemotesInfo()
@@ -173,6 +173,10 @@ export class XoaService {
       })
     )
 
+    if (pools === undefined && hosts === undefined && srs === undefined) {
+      return { isEmpty: true }
+    }
+
     const maxLenght = Math.max(hosts.length, srs.length)
 
     const resourcesOverview = { nCpus: 0, memorySize: 0, srSize: 0 }
@@ -238,11 +242,11 @@ export class XoaService {
     }
   }
 
-  async #getNumberOfEolHosts(): Promise<XoaDashboard['nHostsEol']> {
+  async #getNumberOfEolHosts(): Promise<number | IsEmptyData> {
     const getHVSupportedVersions = this.#restApi.xoApp.getHVSupportedVersions
 
     if (getHVSupportedVersions === undefined) {
-      return
+      return { isEmpty: true }
     }
 
     const hvSupportedVersions = await getHVSupportedVersions()
@@ -265,13 +269,17 @@ export class XoaService {
    */
   async #getMissingPatchesInfo(): Promise<XoaDashboard['missingPatches']> {
     const missingPatchesInfo = await this.#hostService.getMissingPatchesInfo()
+    const eolHosts = await this.#getNumberOfEolHosts()
 
     const { hasAuthorization, nHostsFailed, nHostsWithMissingPatches, nPoolsWithMissingPatches } = missingPatchesInfo
 
     return {
       hasAuthorization,
+      nHosts: this.#getNumberOfHosts(),
       nHostsFailed,
       nHostsWithMissingPatches,
+      nHostsEol: eolHosts,
+      nPools: this.#getNumberOfPools(),
       nPoolsWithMissingPatches,
     }
   }
@@ -315,18 +323,22 @@ export class XoaService {
     return replicaUsage + parentUsage
   }
 
-  #getStorageRepositoriesSizeInfo() {
+  #getStorageRepositoriesSizeInfo(): SrSizeInfo | IsEmptyData {
     const writableSrs = this.#restApi.getObjectsByType<XoSr>('SR', {
       filter: isSrWritableOrIso,
     })
+
+    const srs = Object.values(writableSrs)
+
+    if (srs.length === 0) {
+      return { isEmpty: true }
+    }
 
     let replicated = 0
     let total = 0
     let used = 0
 
-    for (const srId in writableSrs) {
-      const sr = writableSrs[srId as XoSr['id']]
-
+    for (const sr of srs) {
       const cache = new Set<AnyXoVdi['id']>()
       const { VDIs } = sr
 
@@ -340,7 +352,9 @@ export class XoaService {
     }
   }
 
-  async #getbackupsInfo(): Promise<(DashboardBackupsInfo & { isExpired?: true }) | undefined> {
+  async #getbackupsInfo(): Promise<
+    (DashboardBackupsInfo & { isExpired?: true }) | (IsEmptyData & { isExpired?: true }) | undefined
+  > {
     const vmIdsProtected = new Set<XoVm['id']>()
     const vmIdsUnprotected = new Set<XoVm['id']>()
     const nonReplicaVms = Object.values(this.#restApi.getObjectsByType<XoVm>('VM', { filter: vm => !isReplicaVm(vm) }))
@@ -398,6 +412,11 @@ export class XoaService {
             xoApp.getAllJobs('metadataBackup'),
           ]).then(jobs => jobs.flat(1)) as Promise<XoVmBackupJob[]>,
         ])
+
+        if (jobs.length === 0) {
+          return { isEmpty: true }
+        }
+
         const logsByJob = groupBy(logs, 'jobId')
 
         let disabledJobs = 0
@@ -570,7 +589,6 @@ export class XoaService {
       poolsStatus,
       missingPatches,
       backupRepositories,
-      nHostsEol,
       backups,
     ] = await Promise.all([
       promiseWriteInStream({ maybePromise: this.#getNumberOfPools(), path: 'nPools', stream }),
@@ -595,16 +613,11 @@ export class XoaService {
         }),
         path: 'missingPatches',
         stream,
+        handleError: true,
       }),
       promiseWriteInStream({
         maybePromise: this.#getBackupRepositoriesSizeInfo(),
         path: 'backupRepositories',
-        stream,
-        handleError: true,
-      }),
-      promiseWriteInStream({
-        maybePromise: this.#getNumberOfEolHosts(),
-        path: 'nHostsEol',
         stream,
         handleError: true,
       }),
@@ -622,7 +635,6 @@ export class XoaService {
       backupRepositories,
       resourcesOverview,
       poolsStatus,
-      nHostsEol,
       missingPatches,
       storageRepositories,
       backups,
