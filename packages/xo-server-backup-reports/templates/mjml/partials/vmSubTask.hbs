@@ -15,7 +15,7 @@
     <mj-section padding="0px">
       <mj-column width="80%" border="1px solid #fffce4">
         <mj-text font-size="16px" font-weight="300" line-height="24px">
-          <span style="font-weight: bold">{{operationLog.message}}</span> {{getIcon operationLog.status}}
+          <span style="font-weight: bold">{{operationLog.properties.name}}</span> {{getIcon operationLog.status}}
           <ul>
           {{>reportTemporalDataMjml end=operationLog.end start=operationLog.start}}
             {{#if operationLog.result.size}}
