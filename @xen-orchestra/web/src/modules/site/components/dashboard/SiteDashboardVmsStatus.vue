@@ -1,5 +1,5 @@
 <template>
-  <UiCard :has-error="error">
+  <UiCard :has-error>
     <UiCardTitle>
       {{ t('vms-status') }}
       <template #info>
@@ -7,21 +7,21 @@
       </template>
     </UiCardTitle>
     <VtsStateHero v-if="!areVmsStatusReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="error" format="card" type="error" size="extra-small" horizontal>
+    <VtsStateHero v-else-if="hasError" format="card" type="error" size="extra-small" horizontal>
       {{ t('error-no-data') }}
     </VtsStateHero>
-    <VtsStateHero v-else-if="status?.total === 0" format="card" type="no-data" size="extra-small" horizontal>
+    <VtsStateHero v-else-if="vmsStatus?.total === 0" format="card" type="no-data" size="extra-small" horizontal>
       {{ t('no-vm-detected') }}
     </VtsStateHero>
     <template v-else>
       <VtsDonutChartWithLegend icon="fa:desktop" :segments />
-      <UiCardNumbers :label="t('total')" :value="status?.total" size="small" />
+      <UiCardNumbers :label="t('total')" :value="vmsStatus?.total" size="small" />
     </template>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
+import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
@@ -33,37 +33,33 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { status, hasError, isReady } = defineProps<{
-  status: XoDashboard['vmsStatus'] | undefined
-  hasError?: boolean
-  isReady?: boolean
-}>()
+const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const areVmsStatusReady = computed(() => status !== undefined)
+const vmsStatus = computed(() => dashboard.value.vmsStatus)
 
-const error = computed(() => hasError || (status === undefined && isReady))
+const areVmsStatusReady = computed(() => vmsStatus.value !== undefined)
 
 const segments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('vm:status:running', 2),
-    value: status?.running ?? 0,
+    value: vmsStatus.value?.running ?? 0,
     accent: 'success',
   },
   {
     label: t('vm:status:paused', 2),
-    value: status?.paused ?? 0,
+    value: vmsStatus.value?.paused ?? 0,
     accent: 'brand',
   },
   {
     label: t('vm:status:suspended', 2),
-    value: status?.suspended ?? 0,
+    value: vmsStatus.value?.suspended ?? 0,
     accent: 'neutral',
   },
   {
     label: t('vm:status:halted', 2),
-    value: status?.halted ?? 0,
+    value: vmsStatus.value?.halted ?? 0,
     accent: 'danger',
   },
 ])

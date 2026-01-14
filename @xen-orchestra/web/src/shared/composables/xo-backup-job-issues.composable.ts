@@ -1,4 +1,4 @@
-import type { BackupIssue } from '@/types/xo/dashboard.type.ts'
+import type { BackupIssue } from '@/modules/site/types/xo-dashboard.type.ts'
 import { useI18n } from 'vue-i18n'
 
 export function useXoBackupJobIssuesUtils() {

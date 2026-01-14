@@ -1,17 +1,17 @@
 <template>
-  <UiCard :has-error="error">
+  <UiCard :has-error="isError">
     <UiCardTitle>
       {{ t('backups:jobs:status') }}
-      <template v-if="!areBackupsJobsEmpty" #info>
+      <template v-if="!isEmpty" #info>
         <UiLink size="small" :to="{ name: '/(site)/backups' }"> {{ t('action:see-all') }}</UiLink>
       </template>
-      <template v-if="!areBackupsJobsEmpty" #description>{{ t('backups:jobs:last-seven-days') }}</template>
+      <template v-if="!isEmpty" #description>{{ t('backups:jobs:last-seven-days') }}</template>
     </UiCardTitle>
-    <VtsStateHero v-if="!areBackupsJobsReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="error" format="card" type="error" size="medium">
+    <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
+    <VtsStateHero v-else-if="isError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
-    <UiAlert v-else-if="areBackupsJobsEmpty" accent="warning">
+    <UiAlert v-else-if="isEmpty" accent="warning">
       <span class="typo-body-bold">{{ t('no-active-backup-jobs') }}</span>
       <template #description>
         <I18nT keypath="configure-for-protected" scope="global" tag="div">
@@ -25,18 +25,13 @@
     </UiAlert>
     <template v-else>
       <VtsDonutChartWithLegend icon="object:backup-job" :segments="jobsSegments" />
-      <UiCardNumbers :label="t('total')" :value="backups?.jobs.total" size="small" />
+      <UiCardNumbers :label="t('total')" :value="backupJobs?.total" size="small" />
     </template>
   </UiCard>
 </template>
 
 <script lang="ts" setup>
-<<<<<<<< HEAD:@xen-orchestra/web/src/modules/site/components/dashboard/SiteDashboardBackups.vue
-import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
-import VtsDivider from '@core/components/divider/VtsDivider.vue'
-========
-import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
->>>>>>>> 0a8adb77a (feat(xo6): update site dashboard):@xen-orchestra/web/src/modules/site/components/dashboard/BackupJobsStatus.vue
+import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
@@ -49,39 +44,43 @@ import UiLink from '@core/components/ui/link/UiLink.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backups, hasError, isReady } = defineProps<{
-  backups: XoDashboard['backups'] | undefined
-  hasError?: boolean
-  isReady?: boolean
-}>()
-
-const areBackupsJobsReady = computed(() => backups?.jobs !== undefined)
-
-const areBackupsJobsEmpty = computed(() => backups?.jobs.total === 0)
-
-const error = computed(() => hasError || (backups?.jobs === undefined && isReady))
+const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
+
+const isLoading = computed(() => dashboard.value.backups === undefined)
+
+const isError = computed(() => hasError.value || (!isLoading.value && 'error' in dashboard.value.backups!))
+
+const isEmpty = computed(() => !isLoading.value && 'isEmpty' in dashboard.value.backups!)
+
+const backupJobs = computed(() => {
+  if (isLoading.value || !('jobs' in dashboard.value.backups!)) {
+    return
+  }
+
+  return dashboard.value.backups.jobs
+})
 
 const jobsSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('backups:jobs:running-good'),
-    value: backups?.jobs.successful ?? 0,
+    value: backupJobs.value?.successful ?? 0,
     accent: 'success',
   },
   {
     label: t('backups:jobs:skipped-runs'),
-    value: backups?.jobs.skipped ?? 0,
+    value: backupJobs.value?.skipped ?? 0,
     accent: 'warning',
   },
   {
     label: t('backups:jobs:errors-detected'),
-    value: backups?.jobs.failed ?? 0,
+    value: backupJobs.value?.failed ?? 0,
     accent: 'danger',
   },
   {
     label: t('backups:jobs:no-recent-run'),
-    value: backups?.jobs.noRecentRun ?? 0,
+    value: backupJobs.value?.noRecentRun ?? 0,
     accent: 'info',
   },
 ])

@@ -1,29 +1,32 @@
 <template>
-  <UiCard :has-error="error">
+  <UiCard :has-error="isError">
     <div class="site-dashboard-storage-repository">
       <UiCardTitle>
         {{ t('storage-repository') }}
         <template #description>{{ t('for-replication') }}</template>
       </UiCardTitle>
-      <VtsStateHero v-if="!areStorageRepositoriesReady" format="card" type="busy" size="medium" />
+      <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
+      <VtsStateHero v-if="isEmpty" format="card" type="no-data" size="extra-small" horizontal>
+        {{ t('no-data-to-calculate') }}
+      </VtsStateHero>
       <template v-else>
         <VtsStackedBarWithLegend :max-value="maxValue" :segments />
         <div class="numbers">
           <UiCardNumbers
-            :value="repositories?.used?.value"
-            :unit="repositories?.used?.prefix"
+            :value="storageRepositories?.used?.value"
+            :unit="storageRepositories?.used?.prefix"
             :label="t('used-for-backup')"
             size="medium"
           />
           <UiCardNumbers
-            :value="repositories?.available?.value"
-            :unit="repositories?.available?.prefix"
+            :value="storageRepositories?.available?.value"
+            :unit="storageRepositories?.available?.prefix"
             :label="t('available')"
             size="medium"
           />
           <UiCardNumbers
-            :value="repositories?.total?.value"
-            :unit="repositories?.total?.prefix"
+            :value="storageRepositories?.total?.value"
+            :unit="storageRepositories?.total?.prefix"
             :label="t('total')"
             size="medium"
           />
@@ -34,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import type { StorageRepositories } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
+import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsStackedBarWithLegend, {
   type StackedBarWithLegendProps,
 } from '@core/components/stacked-bar-with-legend/VtsStackedBarWithLegend.vue'
@@ -45,36 +48,42 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { repositories, hasError, isReady } = defineProps<{
-  repositories: StorageRepositories | undefined
-  hasError?: boolean
-  isReady?: boolean
-}>()
+const { storageRepositoriesFormatted, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const areStorageRepositoriesReady = computed(() => repositories !== undefined)
+const isLoading = computed(() => storageRepositoriesFormatted.value === undefined)
 
-const error = computed(() => hasError || (repositories === undefined && isReady))
+const isError = computed(() => hasError.value || (!isLoading.value && 'error' in storageRepositoriesFormatted.value!))
+
+const isEmpty = computed(() => !isLoading.value && 'isEmpty' in storageRepositoriesFormatted.value!)
+
+const storageRepositories = computed(() => {
+  if (isLoading.value || !('other' in storageRepositoriesFormatted.value!)) {
+    return
+  }
+
+  return storageRepositoriesFormatted.value
+})
 
 const segments: ComputedRef<StackedBarWithLegendProps['segments']> = computed(() => [
   {
     label: t('xo-replications'),
-    value: repositories?.replicated?.value ?? 0,
+    value: storageRepositories.value?.replicated?.value ?? 0,
     accent: 'info',
-    unit: repositories?.replicated?.prefix,
+    unit: storageRepositories.value?.replicated?.prefix,
   },
   {
     label: t('other'),
-    value: repositories?.other?.value ?? 0,
+    value: storageRepositories.value?.other?.value ?? 0,
     accent: 'warning',
-    unit: repositories?.other?.prefix,
+    unit: storageRepositories.value?.other?.prefix,
   },
 ])
 
 const maxValue = computed(() => ({
-  value: repositories?.total?.value,
-  unit: repositories?.total?.prefix,
+  value: storageRepositories.value?.total?.value,
+  unit: storageRepositories.value?.total?.prefix,
 }))
 </script>
 

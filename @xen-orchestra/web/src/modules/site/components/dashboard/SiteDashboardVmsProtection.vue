@@ -1,12 +1,11 @@
 <template>
-  <UiCard :has-error="error">
+  <UiCard :has-error="isError">
     <UiCardTitle>
       {{ t('backups:vms-protection') }}
       <template #description>{{ t('in-last-three-runs') }}</template>
     </UiCardTitle>
-    <VtsStateHero v-if="!areBackupsVmsProtectionReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="backups === undefined" format="card" type="no-data" size="medium" />
-    <VtsStateHero v-else-if="error" format="card" type="error" size="medium">
+    <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
+    <VtsStateHero v-else-if="isError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
@@ -15,7 +14,7 @@
         <UiButton
           class="protection-helper"
           accent="brand"
-          left-icon="legacy:status:info"
+          left-icon="status:info-circle"
           size="small"
           variant="tertiary"
           @click="openVmProtectedModal()"
@@ -28,7 +27,8 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoDashboard } from '@/types/xo/dashboard.type.ts'
+import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
+import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
 } from '@core/components/donut-chart-with-legend/VtsDonutChartWithLegend.vue'
@@ -40,36 +40,42 @@ import { useModal } from '@core/packages/modal/use-modal.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backups, hasError, isReady } = defineProps<{
-  backups: XoDashboard['backups'] | undefined
-  hasError?: boolean
-  isReady?: boolean
-}>()
+const { dashboard, hasError } = useXoSiteDashboard()
 
-const openVmProtectedModal = useModal(() => ({
-  component: import('@/components/modals/VmProtected.vue'),
-}))
-
-const areBackupsVmsProtectionReady = computed(() => backups?.vmsProtection !== undefined)
-
-const error = computed(() => hasError || (backups?.vmsProtection === undefined && isReady))
+const { vms } = useXoVmCollection()
 
 const { t } = useI18n()
+
+const openVmProtectedModal = useModal(() => ({
+  component: import('@/shared/components/modals/VmProtected.vue'),
+}))
+
+const isLoading = computed(() => dashboard.value.backups === undefined)
+
+const isError = computed(() => hasError.value || (!isLoading.value && 'error' in dashboard.value.backups!))
+
+const vmsProtection = computed(() => {
+  if (isLoading.value || !('vmsProtection' in dashboard.value.backups!)) {
+    return
+  }
+
+  return dashboard.value.backups.vmsProtection
+})
 
 const vmsProtectionSegments = computed<DonutChartWithLegendProps['segments']>(() => [
   {
     label: t('backups:vms-protection:protected'),
-    value: backups?.vmsProtection.protected ?? 0,
+    value: vmsProtection.value?.protected ?? 0,
     accent: 'success',
   },
   {
     label: t('backups:vms-protection:unprotected'),
-    value: backups?.vmsProtection.unprotected ?? 0,
+    value: vmsProtection.value?.unprotected ?? 0,
     accent: 'warning',
   },
   {
     label: t('backups:vms-protection:no-job'),
-    value: backups?.vmsProtection.notInJob ?? 0,
+    value: vmsProtection.value?.notInJob ?? vms.value.length,
     accent: 'muted',
   },
 ])
