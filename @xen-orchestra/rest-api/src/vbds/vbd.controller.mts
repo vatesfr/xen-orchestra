@@ -1,4 +1,19 @@
-import { Example, Get, Path, Query, Request, Response, Route, Security, Tags } from 'tsoa'
+import {
+  Body,
+  Example,
+  Get,
+  Middlewares,
+  Path,
+  Post,
+  Query,
+  Request,
+  Response,
+  Route,
+  Security,
+  SuccessResponse,
+  Tags,
+} from 'tsoa'
+import { json } from 'express'
 import { inject } from 'inversify'
 import { provide } from 'inversify-binding-decorators'
 import type { Request as ExRequest } from 'express'
@@ -7,13 +22,23 @@ import type { XoAlarm, XoMessage, XoTask, XoVbd } from '@vates/types'
 import { AlarmService } from '../alarms/alarm.service.mjs'
 import { escapeUnsafeComplexMatcher } from '../helpers/utils.helper.mjs'
 import { genericAlarmsExample } from '../open-api/oa-examples/alarm.oa-example.mjs'
-import { badRequestResp, notFoundResp, unauthorizedResp, type Unbrand } from '../open-api/common/response.common.mjs'
+import {
+  asynchronousActionResp,
+  badRequestResp,
+  incorrectStateResp,
+  internalServerErrorResp,
+  noContentResp,
+  notFoundResp,
+  unauthorizedResp,
+  type Unbrand,
+} from '../open-api/common/response.common.mjs'
+import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 import { partialVbds, vbd, vbdIds } from '../open-api/oa-examples/vbd.oa-example.mjs'
 import { RestApi } from '../rest-api/rest-api.mjs'
 import type { SendObjects } from '../helpers/helper.type.mjs'
 import { XapiXoController } from '../abstract-classes/xapi-xo-controller.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import { taskIds, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
+import { taskIds, taskLocation, partialTasks } from '../open-api/oa-examples/task.oa-example.mjs'
 
 @Route('vbds')
 @Security('*')
@@ -130,5 +155,80 @@ export class VbdController extends XapiXoController<XoVbd> {
   ): Promise<SendObjects<Partial<Unbrand<XoTask>>>> {
     const tasks = await this.getTasksForObject(id as XoVbd['id'], { filter, limit })
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * Hotplug the VBD, dynamically attaching it to the running VM
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/connect')
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, 'VBD is already connected')
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  connectVbd(@Path() id: string, @Query() sync?: boolean): CreateActionReturnType<void> {
+    const vbdId = id as XoVbd['id']
+    const action = async () => {
+      const xapiVbd = this.getXapiObject(vbdId)
+      await xapiVbd.$xapi.callAsync('VBD.plug', xapiVbd.$ref)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'connect VBD',
+        objectId: vbdId,
+      },
+    })
+  }
+
+  /**
+   * Hot-unplug the VBD, dynamically detaching it from the running VM
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/disconnect')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(incorrectStateResp.status, 'VBD is already disconnected')
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  disconnectVbd(
+    @Path() id: string,
+    @Body() body?: { force?: boolean },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const vbdId = id as XoVbd['id']
+    const force = body?.force ?? false
+
+    const action = async () => {
+      const xapiVbd = this.getXapiObject(vbdId)
+      if (force) {
+        try {
+          await xapiVbd.$xapi.call('VBD.unplug_force', xapiVbd.$ref)
+        } catch (error) {
+          if ((error as { code?: string }).code !== 'VBD_NOT_UNPLUGGABLE') {
+            throw error
+          }
+          await xapiVbd.$xapi.call('VBD.set_unpluggable', xapiVbd.$ref, true)
+          await xapiVbd.$xapi.call('VBD.unplug_force', xapiVbd.$ref)
+        }
+      } else {
+        await xapiVbd.$xapi.callAsync('VBD.unplug', xapiVbd.$ref)
+      }
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'disconnect VBD',
+        objectId: vbdId,
+      },
+    })
   }
 }
