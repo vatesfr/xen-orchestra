@@ -3,7 +3,7 @@
     <UiLegendTitle v-if="title" :icon="title.icon" :icon-tooltip="title.iconTooltip">
       {{ title.label }}
     </UiLegendTitle>
-    <VtsLegendList class="list">
+    <VtsLegendList>
       <UiLegend
         v-for="item in items"
         :key="item.label"
@@ -36,9 +36,5 @@ defineProps<LegendGroupProps>()
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-
-  .list {
-    padding-left: 1.6rem;
-  }
 }
 </style>

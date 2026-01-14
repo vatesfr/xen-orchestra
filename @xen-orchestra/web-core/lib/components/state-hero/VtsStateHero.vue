@@ -133,7 +133,7 @@ const imageSrc = computed(() => {
   }
 
   &.format--table {
-    padding: 4rem;
+    padding: 2.4rem;
     gap: 2.4rem;
 
     .content {
