@@ -30,72 +30,65 @@
             <UiTitle>{{ t('install-settings') }}</UiTitle>
             <div class="install-settings-container">
               <div class="radio-container">
-                <template v-if="isDiskTemplate">
+                <UiRadioButtonGroup :label="t('new-vm:install-source')" accent="brand">
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
                     {{ t('no-config') }}
-                  </UiRadioButton>
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
-                    {{ t('iso-dvd') }}
-                  </UiRadioButton>
-                </template>
-                <template v-else>
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
-                    {{ t('iso-dvd') }}
-                  </UiRadioButton>
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="network">
-                    {{ t('pxe') }}
-                  </UiRadioButton>
-                </template>
-                <!-- TODO need to be add later after confirmation -->
-                <!--
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
-                    {{ t('ssh-key') }}
                   </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
                     {{ t('custom-config') }}
                   </UiRadioButton>
-                -->
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
+                    {{ t('iso-dvd') }}
+                  </UiRadioButton>
+                  <UiRadioButton v-if="isDiskTemplate" v-model="vmState.installMode" accent="brand" value="network">
+                    {{ t('pxe') }}
+                  </UiRadioButton>
+                </UiRadioButtonGroup>
               </div>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
-              <!-- TODO need to be add later after confirmation -->
-              <!--
-               <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
-                  <div class="install-chips">
-                    <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
-                      {{ key }}
-                    </UiChip>
-                  </div>
-                  <div class="install-ssh-key">
-                    <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
-                    <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey()">
-                      {{ t('add') }}
-                    </UiButton>
-                  </div>
+              <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
+                <div>
+                  <UiTextarea v-model="vmState.cloudConfig" accent="brand">
+                    {{ t('user-config') }}
+                    <template #info>
+                      {{ t('new-vm:user-config-variables') }}
+                      <ul class="user-config-variables-list">
+                        <li>{{ t('new-vm:user-config-variables-name') }}</li>
+                        <li>{{ t('new-vm:user-config-variables-index') }}</li>
+                      </ul>
+                      {{ t('new-vm:user-config-variables-escape') }}
+                    </template>
+                  </UiTextarea>
                 </div>
-                <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
-                  <div>
-                    <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
-                      {{ t('user-config') }}
-                    </UiTextarea>
-                    <span class="typo p3-regular-italic">
-                      Available template variables <br />
-                      - {name}: the VM's name. - It must not contain "_" <br />
-                      - {index}: the VM's index,<br />
-                      it will take 0 in case of single VM Tip: escape any variable with a preceding backslash (\)
-                    </span>
-                  </div>
-                  <div>
-                    <UiTextarea v-model="vmState.networkConfig" placeholder="Write configurations" accent="brand" href="''">
-                      {{ t('network-config') }}
-                    </UiTextarea>
-                    <span class="typo p3-regular-italic">
-                      Network configuration is only compatible with the NoCloud datasource. <br />
-
-                      See Network config documentation.
-                    </span>
-                  </div>
+                <div>
+                  <UiTextarea v-model="vmState.networkConfig" accent="brand">
+                    {{ t('network-config') }}
+                    <template #info>
+                      <I18nT keypath="new-vm:network-config">
+                        <template #noCloudLink>
+                          <UiLink
+                            href="https://cloudinit.readthedocs.io/en/latest/reference/datasources/nocloud.html"
+                            size="medium"
+                          >
+                            {{ t('new-vm:network-config-nocloud-datasource') }}
+                          </UiLink>
+                        </template>
+                      </I18nT>
+                      <br />
+                      <I18nT keypath="new-vm:network-config-more">
+                        <template #documentationLink>
+                          <UiLink
+                            href="https://cloudinit.readthedocs.io/en/latest/reference/network-config-format-v1.html#networking-config-version-1"
+                            size="medium"
+                          >
+                            {{ t('new-vm:network-config-documentation') }}
+                          </UiLink>
+                        </template>
+                      </I18nT>
+                    </template>
+                  </UiTextarea>
                 </div>
-                -->
+              </div>
             </div>
             <!-- SYSTEM SECTION -->
             <UiTitle>{{ t('system') }}</UiTitle>
@@ -233,6 +226,7 @@ import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import UiRadioButton from '@core/components/ui/radio-button/UiRadioButton.vue'
+import UiRadioButtonGroup from '@core/components/ui/radio-button-group/UiRadioButtonGroup.vue'
 import UiTextarea from '@core/components/ui/text-area/UiTextarea.vue'
 import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
@@ -267,7 +261,7 @@ const { vmsTemplatesByPool } = useXoVmTemplateCollection()
 const vmState = reactive<VmState>({
   name: '',
   description: '',
-  installMode: undefined,
+  installMode: 'no-config',
   affinity_host: undefined,
   bootFirmware: '',
   new_vm_template: undefined,
@@ -625,17 +619,17 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
-    vmState.installMode !== 'no-config' && {
-      install: {
-        method: vmState.installMode,
-        repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
+    vmState.installMode !== 'no-config' &&
+      vmState.installMode !== 'custom_config' && {
+        install: {
+          method: vmState.installMode,
+          repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
+        },
       },
+    vmState.installMode === 'custom_config' && {
+      ...(vmState.cloudConfig !== '' && { cloud_config: vmState.cloudConfig }),
+      ...(vmState.networkConfig !== '' && { network_config: vmState.networkConfig }),
     }
-    // TODO: uncomment when radio will be implemented
-    // ...(vmState.installMode === 'custom_config' && {
-    //   ...(vmState.cloudConfig && { cloud_config: vmState.cloudConfig }),
-    //   ...(vmState.networkConfig && { network_config: vmState.networkConfig }),
-    // }),
   )
 
   return {
@@ -659,8 +653,9 @@ const { run, isRunning, canRun } = useVmCreateJob([payload])
 
 const createNewVM = async () => {
   try {
-    // TODO: multiple VM creation not possible in the UI for now
-    // so only handle single VM creation
+    // console.log(payload.value)
+    // return;
+
     const [promiseResult] = await run()
     if (promiseResult.status === 'rejected') {
       throw promiseResult.reason
@@ -722,7 +717,9 @@ watch(
       existingVdis: getExistingVdis(template),
       vifs: getExistingVifs(template),
       selectedVdi: undefined,
-      installMode: undefined,
+      installMode: 'no-config',
+      networkConfig: '',
+      cloudConfig: '',
       bootFirmware: template.boot.firmware ?? 'bios',
     } satisfies Partial<VmState>)
   }
@@ -853,11 +850,22 @@ watch(
       }
     }
 
+    .install-custom-config {
+      & > div {
+      }
+
+      .user-config-variables-list {
+        margin: 0.8rem 0;
+        list-style-type: disc;
+        list-style-position: inside;
+      }
+    }
+
     .install-settings-container {
       display: flex;
       flex-direction: column;
       gap: 2.4rem;
-      width: 50%;
+      width: 100%;
 
       .radio-container {
         display: flex;
@@ -867,36 +875,16 @@ watch(
 
     .install-custom-config {
       display: flex;
-      margin-block-start: 3rem;
       gap: 4.2rem;
     }
 
-    .install-ssh-key-container {
-      margin-block-start: 3rem;
-    }
-
-    .install-ssh-key {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .install-custom-config > div {
       width: 50%;
-    }
-
-    .install-chips {
-      display: flex;
-      gap: 0.5rem;
-      margin-block-end: 1rem;
     }
 
     .memory-container {
       display: flex;
       gap: 10.8rem;
-    }
-
-    .select {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
     }
   }
 
