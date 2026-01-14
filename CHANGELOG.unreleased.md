@@ -42,6 +42,7 @@
 
 <!--packages-start-->
 
+- @vates/task minor
 - @vates/types minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
@@ -49,6 +50,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - vhd-cli minor
+- xo-server minor
 - xo-server-openmetrics minor
 
 <!--packages-end-->
