@@ -77,6 +77,17 @@ interface XapiCredentialsPayload {
   labels: LabelLookupData
 }
 
+export type SrDataItem = Pick<XoSr, 'uuid' | 'name_label' | 'size' | 'physical_usage' | 'usage'> & {
+  pool_id: string
+  pool_name: string
+  host_id?: string
+  host_name?: string
+}
+
+interface SrDataPayload {
+  srs: SrDataItem[]
+}
+
 // Union type for all XO objects we handle
 type XoObject = XoHost | XoPool | XoVm | XoVbd | XoVdi | XoVif | XoPif | XoSr | XoNetwork
 
@@ -302,6 +313,16 @@ class OpenMetricsPlugin {
         break
       }
 
+      case 'GET_SR_DATA': {
+        const srData = this.#getSrData()
+        this.#sendToChildNoWait({
+          type: 'SR_DATA',
+          requestId: message.requestId,
+          payload: srData,
+        })
+        break
+      }
+
       default:
         logger.warn('Unknown message type from child', { type: message.type })
     }
@@ -376,6 +397,56 @@ class OpenMetricsPlugin {
 
     logger.debug('Returning host credentials', { hostCount: hosts.length })
     return { hosts, labels: this.#getLabelLookupData() }
+  }
+
+  /**
+   * Get SR data for capacity metrics.
+   * Returns size, physical_usage, and virtual_allocation (usage) for all SRs.
+   */
+  #getSrData(): SrDataPayload {
+    const srs: SrDataItem[] = []
+
+    // Get all pools to resolve pool labels
+    const allPools = this.#xo.getObjects({ filter: { type: 'pool' } }) as Record<string, XoPool>
+    const poolLabelMap = new Map<string, string>()
+    for (const pool of Object.values(allPools)) {
+      poolLabelMap.set(pool.uuid, pool.name_label)
+    }
+
+    // Get all hosts to resolve host labels for local SRs
+    const allHosts = this.#xo.getObjects({ filter: { type: 'host' } }) as Record<string, XoHost>
+    const hostLabelMap = new Map<string, string>()
+    for (const host of Object.values(allHosts)) {
+      hostLabelMap.set(host.id, host.name_label)
+    }
+
+    // Get all SRs
+    const allSrs = this.#xo.getObjects({ filter: { type: 'SR' } }) as Record<string, XoSr>
+
+    for (const sr of Object.values(allSrs)) {
+      const srData: SrDataItem = {
+        uuid: sr.uuid,
+        name_label: sr.name_label,
+        pool_id: sr.$poolId,
+        pool_name: poolLabelMap.get(sr.$poolId) ?? '',
+        size: sr.size,
+        physical_usage: sr.physical_usage,
+        usage: sr.usage,
+      }
+
+      // For local (non-shared) SRs, add host information
+      // $container is the host ID for local SRs, pool ID for shared SRs
+      if (!sr.shared && sr.$container !== sr.$poolId) {
+        const hostId = sr.$container as string
+        srData.host_id = hostId
+        srData.host_name = hostLabelMap.get(hostId)
+      }
+
+      srs.push(srData)
+    }
+
+    logger.debug('Returning SR data', { srCount: srs.length })
+    return { srs }
   }
 
   /**

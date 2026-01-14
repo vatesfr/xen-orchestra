@@ -23,8 +23,12 @@ export class DiskConsumerVhdStream extends BaseVhd {
       yield footer
       yield header
       yield bat
-      for await (const { data } of blockGenerator) {
-        assert.strictEqual(data.length, 2 * 1024 * 1024)
+      for await (const { data, index } of blockGenerator) {
+        assert.strictEqual(
+          data.length,
+          2 * 1024 * 1024,
+          `Expecting a ${2 * 1024 * 1024} bytes block, got a ${data.length}, for index ${index}`
+        )
         yield Buffer.concat([FULL_BLOCK_BITMAP, data])
       }
       yield footer

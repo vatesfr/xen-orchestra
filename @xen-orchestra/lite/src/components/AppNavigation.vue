@@ -1,11 +1,6 @@
 <template>
   <Transition name="slide">
-    <nav
-      v-if="uiStore.isDesktopLarge || isOpen"
-      ref="navElement"
-      :class="{ collapsible: !uiStore.isDesktopLarge }"
-      class="app-navigation"
-    >
+    <nav v-if="isOpen" ref="navElement" class="app-navigation">
       <StoryMenu v-if="route.meta.hasStoryNav" />
       <InfraPoolList v-else />
     </nav>
@@ -16,34 +11,37 @@
 import StoryMenu from '@/components/component-story/StoryMenu.vue'
 import InfraPoolList from '@/components/infra/InfraPoolList.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
-import { useUiStore } from '@core/stores/ui.store'
-import { onClickOutside, whenever } from '@vueuse/core'
+import { onClickOutside } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
 
-const uiStore = useUiStore()
-
 const navigationStore = useNavigationStore()
-const { isOpen, trigger } = storeToRefs(navigationStore)
+const { isOpen } = storeToRefs(navigationStore)
 
 const navElement = ref()
 
-whenever(isOpen, () => {
-  const unregisterEvent = onClickOutside(
-    navElement,
-    () => {
-      isOpen.value = false
-      unregisterEvent?.()
-    },
-    {
-      ignore: [trigger],
-      controls: false,
+watch(
+  () => navigationStore.trigger?.value,
+  triggerElement => {
+    if (triggerElement && navElement.value) {
+      onClickOutside(
+        navElement,
+        () => {
+          if (isOpen.value) {
+            isOpen.value = false
+          }
+        },
+        {
+          ignore: [triggerElement],
+        }
+      )
     }
-  )
-})
+  },
+  { immediate: true }
+)
 </script>
 
 <style lang="postcss" scoped>
@@ -55,11 +53,6 @@ whenever(isOpen, () => {
   padding: 0.5rem;
   border-right: 1px solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);
-
-  &.collapsible {
-    position: fixed;
-    z-index: 1;
-  }
 }
 
 .slide-enter-active,
