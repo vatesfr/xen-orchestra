@@ -178,7 +178,7 @@ export class XoaService {
       })
     )
 
-    if (pools === undefined && hosts === undefined && srs === undefined) {
+    if (pools.length === 0 && hosts.length === 0 && srs.length === 0) {
       return { isEmpty: true }
     }
 
