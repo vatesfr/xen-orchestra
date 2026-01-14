@@ -18,6 +18,7 @@ import { Ref } from 'xen-api'
 import { parseSize } from '../../utils.mjs'
 
 import { isVmHvm, isVmRunning, makeEditObject } from '../utils.mjs'
+import { resetVmOtherConfig } from '@xen-orchestra/backups/_otherConfig.mjs'
 
 const log = createLogger('xo:server:xapi:vm')
 
@@ -545,8 +546,10 @@ const methods = {
   async revertVm(snapshotId) {
     const snapshot = this.getObject(snapshotId)
     await this.callAsync('VM.revert', snapshot.$ref)
+
+    const vm = await this.barrier(snapshot.snapshot_of)
+    await resetVmOtherConfig(vm.$xapi, vm.$ref)
     if (snapshot.snapshot_info['power-state-at-snapshot'] === 'Running') {
-      const vm = await this.barrier(snapshot.snapshot_of)
       if (vm.power_state === 'Halted') {
         this.startVm(vm.$id)::ignoreErrors()
       } else if (vm.power_state === 'Suspended') {

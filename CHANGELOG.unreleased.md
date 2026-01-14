@@ -23,6 +23,7 @@
 - [REST API] `vms/:id/dashboard` return now an empty object for the `replication` key instead of undefined (in case of no replication) (PR [#9380](https://github.com/vatesfr/xen-orchestra/pull/9380))
 - [REST API] `vms/:id/dashboard` rename `not-in-job` into `not-in-active-job` for the `vmProtection` key to avoid confusion (PR [#9380](https://github.com/vatesfr/xen-orchestra/pull/9380))
 - [REST API] Don't return VDI-snapshot for `/vms/:id/vdis` endpoints (PR [#9381](https://github.com/vatesfr/xen-orchestra/pull/9381))
+- [Backup] Fix reverted VM making the next backup run fails with `VM must be a snapshot` error (PR [#9397](https://github.com/vatesfr/xen-orchestra/pull/9397))
 - **XO 6:**
   - [Sidebar] Removal borders top and right of sidebar in mobile (PR [#9366](https://github.com/vatesfr/xen-orchestra/pull/9366))
 
@@ -47,6 +48,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - vhd-cli minor
+- xo-server patch
 - xo-server-openmetrics minor
 
 <!--packages-end-->
