@@ -52,7 +52,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - vhd-cli minor
-- xo-server-openmetrics minor
 - xo-server minor
+- xo-server-openmetrics minor
 
 <!--packages-end-->
