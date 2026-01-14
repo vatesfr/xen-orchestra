@@ -1,15 +1,15 @@
 <template>
-  <UiCard :has-error="error">
+  <UiCard :has-error="isError">
     <div class="site-dashboard-s3-backup-repository">
       <UiCardTitle>
         {{ t('s3-backup-repository') }}
         <template #description>{{ t('for-backup') }}</template>
       </UiCardTitle>
-      <!--    TODO change and add loading when we have isReady available -->
-      <VtsStateHero v-if="!areS3BackupRepositoriesReady" format="card" type="no-data" horizontal size="extra-small">
+      <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
+      <VtsStateHero v-else-if="isEmpty" format="card" type="no-data" horizontal size="extra-small">
         {{ t('no-data-to-calculate') }}
       </VtsStateHero>
-      <VtsStateHero v-else-if="error" format="card" type="error" size="extra-small" horizontal>
+      <VtsStateHero v-else-if="isError" format="card" type="error" size="extra-small" horizontal>
         {{ t('error-no-data') }}
       </VtsStateHero>
       <UiCardNumbers
@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
+import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardNumbers from '@core/components/ui/card-numbers/UiCardNumbers.vue'
@@ -33,19 +33,25 @@ import { formatSizeRaw } from '@core/utils/size.util.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { size, hasError, isReady } = defineProps<{
-  size: NonNullable<XoDashboard['backupRepositories']>['s3']['size'] | undefined
-  hasError?: boolean
-  isReady?: boolean
-}>()
+const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const areS3BackupRepositoriesReady = computed(() => size !== undefined)
+const isLoading = computed(() => dashboard.value.backupRepositories === undefined)
 
-const error = computed(() => hasError || (size === undefined && isReady))
+const isError = computed(() => hasError.value || (!isLoading.value && 'error' in dashboard.value.backupRepositories!))
 
-const usedSize = computed(() => formatSizeRaw(size?.backups, 1))
+const isEmpty = computed(
+  () =>
+    !isLoading.value &&
+    ('isEmpty' in dashboard.value.backupRepositories! || !('s3' in dashboard.value.backupRepositories!))
+)
+
+const usedSize = computed(() =>
+  !isLoading.value && 's3' in dashboard.value.backupRepositories!
+    ? formatSizeRaw(dashboard.value.backupRepositories.s3?.size.backups, 1)
+    : undefined
+)
 </script>
 
 <style scoped lang="postcss">

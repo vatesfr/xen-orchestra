@@ -1,8 +1,8 @@
 <template>
-  <UiCard :has-error="error">
+  <UiCard :has-error="isError">
     <UiCardTitle>{{ t('patches') }}</UiCardTitle>
-    <VtsStateHero v-if="!arePatchesReady" format="card" type="busy" size="medium" />
-    <VtsStateHero v-else-if="error" format="card" type="error" size="medium">
+    <VtsStateHero v-if="isLoading" format="card" type="busy" size="medium" />
+    <VtsStateHero v-else-if="isError" format="card" type="error" size="medium">
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
+import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsDonutChartWithLegend, {
   type DonutChartWithLegendProps,
@@ -22,44 +22,49 @@ import VtsDonutChartWithLegend, {
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
+import { isDefined } from '@vueuse/shared'
 import { computed, type ComputedRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const {
-  missingPatches,
-  nPools = 0,
-  nHosts = 0,
-  nHostsEol = 0,
-  hasError,
-  isReady,
-} = defineProps<{
-  missingPatches: XoDashboard['missingPatches'] | undefined
-  nPools: XoDashboard['nPools'] | undefined
-  nHosts: XoDashboard['nHosts'] | undefined
-  nHostsEol: XoDashboard['nHostsEol'] | undefined
-  hasError?: boolean
-  isReady?: boolean
-}>()
+const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
-const arePatchesReady = computed(() => missingPatches !== undefined)
+const isLoading = computed(() => dashboard.value.missingPatches === undefined)
 
-const error = computed(() => hasError || (missingPatches === undefined && isReady))
+const missingPatches = computed(() => {
+  if (isLoading.value || !('nPools' in dashboard.value.missingPatches!)) {
+    return
+  }
+
+  return dashboard.value.missingPatches
+})
+
+const isError = computed(() => {
+  if (hasError.value) {
+    return true
+  }
+  if (isLoading.value || !isDefined(missingPatches.value)) {
+    return false
+  }
+
+  return 'error' in missingPatches.value || !missingPatches.value.hasAuthorization
+})
 
 const poolsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() => ({
   label: t('pools'),
 }))
 
 const poolsSegments: ComputedRef<DonutChartWithLegendProps['segments']> = computed(() => {
-  // @TODO: See with Clémence if `hasAuthorization === false`
-  const nPoolsWithMissingPatches = missingPatches?.hasAuthorization ? missingPatches.nPoolsWithMissingPatches : 0
+  if (isLoading.value || !isDefined(missingPatches.value)) {
+    return []
+  }
 
-  const nUpToDatePools = nPools - nPoolsWithMissingPatches
+  const nUpToDatePools = missingPatches.value.nPools - missingPatches.value.nPoolsWithMissingPatches
 
   return [
     { value: nUpToDatePools, accent: 'success', label: t('up-to-date') },
-    { value: nPoolsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
+    { value: missingPatches.value.nPoolsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
   ]
 })
 
@@ -68,17 +73,24 @@ const hostsTitle: ComputedRef<DonutChartWithLegendProps['title']> = computed(() 
 }))
 
 const hostsSegments = computed(() => {
-  // @TODO: See with Clémence if `hasAuthorization === false`
-  const nHostsWithMissingPatches = missingPatches?.hasAuthorization ? missingPatches.nHostsWithMissingPatches : 0
-  const nUpToDateHosts = nHosts - (nHostsWithMissingPatches + nHostsEol)
+  if (isLoading.value || !isDefined(missingPatches.value)) {
+    return []
+  }
+
+  const nUpToDateHosts = missingPatches.value.nHosts - missingPatches.value.nHostsWithMissingPatches
 
   const segments: DonutChartWithLegendProps['segments'] = [
     { value: nUpToDateHosts, accent: 'success', label: t('up-to-date') },
-    { value: nHostsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
+    { value: missingPatches.value.nHostsWithMissingPatches, accent: 'warning', label: t('missing-patches') },
   ]
 
-  if (nHostsEol !== undefined) {
-    segments.push({ value: nHostsEol, accent: 'danger', label: t('eol'), tooltip: t('end-of-life') })
+  if (typeof missingPatches.value.nHostsEol === 'number') {
+    segments.push({
+      value: missingPatches.value.nHostsEol,
+      accent: 'danger',
+      label: t('eol'),
+      tooltip: t('end-of-life'),
+    })
   }
 
   return segments

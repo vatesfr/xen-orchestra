@@ -1,9 +1,9 @@
 <template>
-  <UiCard :has-error="error">
+  <UiCard :has-error="isError">
     <UiCardTitle>
       {{ t('backups:jobs:issues') }}
       <UiCounter
-        v-if="hasBackupIssues || !error"
+        v-if="hasBackupIssues || isError"
         :value="nBackupIssues"
         accent="danger"
         size="medium"
@@ -31,8 +31,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { BackupIssue, XoDashboard } from '@/modules/site/types/xo-dashboard.type.ts'
-import { useXoBackupJobIssuesUtils } from '@/composables/xo-backup-job-issues.composable.ts'
+import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
+import type { BackupIssue } from '@/modules/site/types/xo-dashboard.type.ts'
+import { useXoBackupJobIssuesUtils } from '@/shared/composables/xo-backup-job-issues.composable.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
@@ -41,39 +42,40 @@ import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useTableState } from '@core/composables/table-state.composable'
 import { useBackupIssueColumns } from '@core/tables/column-sets/backup-issue-columns'
-import { logicNot } from '@vueuse/math'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { backups, hasError, isReady } = defineProps<{
-  backups: XoDashboard['backups'] | undefined
-  hasError?: boolean
-  isReady?: boolean
-}>()
+const { dashboard, hasError } = useXoSiteDashboard()
 
 const { t } = useI18n()
 
 const { getLastRunsInfo } = useXoBackupJobIssuesUtils()
 
-const areBackupIssuesReady = computed(() => backups?.issues !== undefined)
+const isLoading = computed(() => dashboard.value.backups === undefined)
 
-const nBackupIssues = computed(() => backups?.issues?.length ?? 0)
+const isError = computed(() => hasError.value || (!isLoading.value && 'error' in dashboard.value.backups!))
+
+const isEmpty = computed(() => !isLoading.value && 'isEmpty' in dashboard.value.backups!)
+
+const backupIssues = computed(() => {
+  if (isLoading.value || !('issues' in dashboard.value.backups!)) {
+    return
+  }
+
+  return dashboard.value.backups.issues
+})
+
+const nBackupIssues = computed(() => backupIssues.value?.length ?? 0)
 
 const hasBackupIssues = computed(() => nBackupIssues.value > 0)
 
-const backupIssues = computed(() => backups?.issues)
-
-const hasBackupJobs = computed(() => (backups?.jobs?.total ?? 0) > 0)
-
-const error = computed(() => hasError || (backups?.issues === undefined && isReady))
-
 const state = useTableState({
-  busy: logicNot(areBackupIssuesReady),
-  error: () => (hasError ? { type: 'error', message: t('error-no-data'), size: 'extra-small' } : false),
+  busy: isLoading,
+  error: () => (isError.value ? { type: 'error', message: t('error-no-data'), size: 'extra-small' } : false),
   empty: () =>
-    !hasBackupIssues.value && !hasBackupJobs.value
+    isEmpty.value
       ? { type: 'no-data', message: t('no-data-to-calculate'), size: 'extra-small' }
-      : !hasBackupIssues.value && hasBackupJobs.value
+      : !hasBackupIssues.value
         ? { type: 'all-good', message: t('backups:jobs:issues-ran-without-hitch'), size: 'extra-small' }
         : false,
 })

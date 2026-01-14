@@ -1,81 +1,40 @@
 <template>
   <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
     <div class="row first-row">
-      <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error :is-ready="isDashboardReady" />
-      <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error :is-ready="isDashboardReady" />
-      <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error :is-ready="isDashboardReady" />
-      <ResourcesOverview
-        class="resources-overview"
-        :resources="dashboard.resourcesOverview"
-        :has-error
-        :is-ready="isDashboardReady"
-      />
+      <SiteDashboardPoolsStatus class="pools-status" />
+      <SiteDashboardHostsStatus class="hosts-status" />
+      <SiteDashboardVmsStatus class="vms-status" />
+      <SiteDashboardResourcesOverview class="resources-overview" />
     </div>
-      <div class="row second-row">
-      <DashboardAlarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
-      <Patches
-        class="patches"
-        :missing-patches="dashboard.missingPatches"
-        :n-hosts="dashboard.nHosts"
-        :n-hosts-eol="dashboard.nHostsEol"
-        :n-pools="dashboard.nPools"
-        :has-error
-      />
-      <BackupJobsStatus
-        class="backup-jobs-status"
-        :backups="dashboard.backups"
-        :has-error:is-ready="isDashboardReady"
-      />
-      <BackupIssues class="backup-issues" :backups="dashboard.backups" :has-error:is-ready="isDashboardReady" />
-      <VmsProtection class="vms-protection" :backups="dashboard.backups" :has-error :is-ready="isDashboardReady" />
-      <BackupRepository
-        class="backup-repository"
-        :repositories="backupRepositories"
-        :has-error
-        :is-ready="isDashboardReady"
-      />
-      <StorageRepository
-        class="storage-repository"
-        :repositories="storageRepositories"
-        :has-error:is-ready="isDashboardReady"
-      />
-      <S3BackupRepository
-        class="s3-backup-repository"
-        :size="dashboard.backupRepositories?.s3?.size"
-        :has-error
-        :is-ready="isDashboardReady"
-      />
+    <div class="row second-row">
+      <DashboardAlarms class="alarms" />
+      <SiteDashboardPatches class="patches" />
+      <SiteDashboardBackupJobsStatus class="backup-jobs-status" />
+      <SiteDashboardBackupIssues class="backup-issues" />
+      <SiteDashboardVmsProtection class="vms-protection" />
+      <SiteDashboardBackupRepository class="backup-repository" />
+      <SiteDashboardStorageRepository class="storage-repository" />
+      <SiteDashboardS3BackupRepository class="s3-backup-repository" />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import DashboardAlarms from '@/modules/alarm/components/DashboardAlarms.vue'
-import { useXoAlarmCollection } from '@/modules/alarm/remote-resources/use-xo-alarm-collection.ts'
 import SiteDashboardBackupIssues from '@/modules/site/components/dashboard/SiteDashboardBackupIssues.vue'
-import SiteDashboardBackups from '@/modules/site/components/dashboard/SiteDashboardBackups.vue'
+import SiteDashboardBackupJobsStatus from '@/modules/site/components/dashboard/SiteDashboardBackupJobsStatus.vue'
+import SiteDashboardBackupRepository from '@/modules/site/components/dashboard/SiteDashboardBackupRepository.vue'
 import SiteDashboardHostsStatus from '@/modules/site/components/dashboard/SiteDashboardHostsStatus.vue'
 import SiteDashboardPatches from '@/modules/site/components/dashboard/SiteDashboardPatches.vue'
 import SiteDashboardPoolsStatus from '@/modules/site/components/dashboard/SiteDashboardPoolsStatus.vue'
-import SiteDashboardRepositories from '@/modules/site/components/dashboard/SiteDashboardRepositories.vue'
 import SiteDashboardResourcesOverview from '@/modules/site/components/dashboard/SiteDashboardResourcesOverview.vue'
+import SiteDashboardS3BackupRepository from '@/modules/site/components/dashboard/SiteDashboardS3BackupRepository.vue'
+import SiteDashboardStorageRepository from '@/modules/site/components/dashboard/SiteDashboardStorageRepository.vue'
+import SiteDashboardVmsProtection from '@/modules/site/components/dashboard/SiteDashboardVmsProtection.vue'
 import SiteDashboardVmsStatus from '@/modules/site/components/dashboard/SiteDashboardVmsStatus.vue'
-import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import { logicAnd } from '@vueuse/math'
 
 const uiStore = useUiStore()
-
-const { dashboard, backupRepositories, storageRepositories, hasError, isDashboardReady } = useXoSiteDashboard()
-
-const { alarms, hasAlarmFetchError } = useXoAlarmCollection()
-
-const { areHostsReady } = useXoHostCollection()
-const { areVmsReady } = useXoVmCollection()
-const { areVmControllersReady } = useXoVmControllerCollection()
-const { areSrsReady } = useXoSrCollection()
-
-const areAlarmsReady = logicAnd(areHostsReady, areVmsReady, areVmControllersReady, areSrsReady)
 </script>
 
 <style lang="postcss" scoped>

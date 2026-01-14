@@ -10,9 +10,17 @@ export const useXoSiteDashboard = defineRemoteResource({
   stream: true,
   initialData: () => ({}) as XoDashboard,
   state: (dashboard, context) => {
-    const backupRepositories = computed<BackupRepositories | undefined>(() => {
+    const backupRepositoriesFormatted = computed<BackupRepositoriesFormatted | undefined>(() => {
       if (dashboard.value?.backupRepositories === undefined) {
         return
+      }
+
+      if ('error' in dashboard.value.backupRepositories) {
+        return { error: true }
+      }
+
+      if ('isEmpty' in dashboard.value.backupRepositories || dashboard.value.backupRepositories.other === undefined) {
+        return { isEmpty: true }
       }
 
       return {
@@ -21,12 +29,20 @@ export const useXoSiteDashboard = defineRemoteResource({
         other: formatSizeRaw(dashboard.value.backupRepositories.other.size.other ?? 0, 1),
         total: formatSizeRaw(dashboard.value.backupRepositories.other.size.total, 1),
         used: formatSizeRaw(dashboard.value.backupRepositories.other.size.used ?? 0, 1),
-      }
+      } as BackupRepositoriesFormatted
     })
 
-    const storageRepositories = computed<StorageRepositories | undefined>(() => {
+    const storageRepositoriesFormatted = computed<StorageRepositoriesFormatted | undefined>(() => {
       if (dashboard.value?.storageRepositories === undefined) {
         return
+      }
+
+      if ('error' in dashboard.value.storageRepositories) {
+        return { error: true }
+      }
+
+      if ('isEmpty' in dashboard.value.storageRepositories) {
+        return { isEmpty: true }
       }
 
       return {
@@ -41,25 +57,31 @@ export const useXoSiteDashboard = defineRemoteResource({
     return {
       dashboard,
       isDashboardReady: context.isReady,
-      backupRepositories,
-      storageRepositories,
+      backupRepositoriesFormatted,
+      storageRepositoriesFormatted,
       hasError: context.hasError,
     }
   },
 })
 
-export type BackupRepositories = {
-  available: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-  backups: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-  other: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-  total: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-  used: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-}
+export type BackupRepositoriesFormatted =
+  | {
+      available: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+      backups: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+      other: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+      total: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+      used: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+    }
+  | { error: true }
+  | { isEmpty: true }
 
-export type StorageRepositories = {
-  total: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-  used: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-  available: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-  replicated: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-  other: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
-}
+export type StorageRepositoriesFormatted =
+  | {
+      total: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+      used: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+      available: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+      replicated: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+      other: Info<Scale<'B' | 'KiB' | 'MiB' | 'GiB' | 'TiB'>>
+    }
+  | { error: true }
+  | { isEmpty: true }
