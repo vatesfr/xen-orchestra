@@ -145,3 +145,87 @@ When a collection is being watched:
 - Any subsequent changes (additions, updates, deletions) are automatically reflected in the resource’s data.
 - You can customize how incoming or removed data is handled using the onDataReceived and onDataRemoved callbacks.
 - The subscription to collection changes automatically stops when there are no more active component subscribers.
+
+## Understanding NDJSON Streaming for Heavy API Endpoints
+
+Some API endpoints (like dashboards) need to fetch and process large amounts of data. If we wait for all the data to be ready before sending a response, the user sees a loading spinner for a long time, and the page feels frozen.
+
+Instead of sending one big response at the end, the server sends data progressively as it becomes available, using **NDJSON** (Newline Delimited JSON).
+
+### How it works:
+
+Simply add the `ndjson=true` query param to your URL and specify that this resource is streamed using `stream: true` in `defineRemoteResource`:
+
+```typescript
+const useMyResource = defineRemoteResource({
+  url: '/api/path/to/resource?ndjson=true',
+  stream: true,
+})
+```
+
+The server keeps the connection open and sends data chunk by chunk until all available data has been sent.
+Each chunk is a valid JSON object followed by a newline:
+
+```ndjson
+{ "backupInfos": { "lastRuns": [...] } }
+{ "backupInfos": { "vmsProtection": {...} } }
+{ "resourcesOverview": {...} }
+...
+```
+
+You don't need to handle these chunks manually `defineRemoteResource` does that for you. It reads the stream as data arrives and updates the stores progressively.
+
+However, there are a few important things to understand when using a streamed `defineRemoteResource`:
+
+#### isReady
+
+For a streamed `defineRemoteResource`, `$context.isReady` **does not** indicate that the resource is ready (i.e., data has been fetched at least once). Instead, it indicates that **the server has no more chunks to send**.
+
+To know if a value is ready to be displayed in the UI, you need to check if the value exists in the store.
+
+**Example:**
+I want to display the `vmProtection` property from my `vms/:id/dashboard` endpoint.
+
+```ts
+const useVmDashboard = defineRemoteResource({
+  url: '/api/vms/:id/dashboard?ndjson=true',
+  stream: true,
+  state: (dashboard, context) => {
+    ...
+    return {
+      isDashboardReady: context.isReady
+    }
+  }
+})
+...
+
+const { dashboard, isDashboardReady } = useVmDashboard()
+
+const isVmProtectionReady = computed(() => dashboard.vmProtection !== undefined)
+```
+
+#### hasError
+
+`$context.hasError` **does not** indicate if an error occurred during the computation of the data. It only indicates if there was an error **sending the request** (invalid credentials, insufficient permissions, etc.).
+
+To know if there's an issue with a specific value, check if the value exists in the store. If it doesn't exist and `$context.isReady` is true, it means no more chunks will be sent, so you can consider there's an issue with that data.
+
+**Example:**
+I want to know if `vmProtection` from my `vms/:id/dashboard` endpoint has an error.
+
+```ts
+const { dashboard, isDashboardReady } = useVmDashboard()
+
+const isVmProtectionReady = computed(() => dashboard.vmProtection !== undefined)
+const isVmProtectionHasError = computed(() => isDashboardReady && dashboard.vmProtection === undefined)
+```
+
+By combining these two computed, you can easily determine the three major states (loading, ready and error):
+
+```ts
+const { dashboard, isDashboardReady } = useVmDashboard()
+
+const isVmProtectionReady = computed(() => dashboard.vmProtection !== undefined)
+const isVmProtectionHasError = computed(() => isDashboardReady && dashboard.vmProtection === undefined)
+const isVmProtectionLoading = computed(() => !isVmProtectionReady.value && !isVmProtectionHasError.value)
+```
