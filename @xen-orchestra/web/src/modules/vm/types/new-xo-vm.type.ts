@@ -34,10 +34,10 @@ export interface VmState {
   bootFirmware: string
   boot_vm: boolean
   clone: boolean
-  cloudConfig?: string
+  cloudConfig: string
   copyHostBiosStrings: boolean
   isDiskTemplateSelected: boolean
-  networkConfig?: string
+  networkConfig: string
   vifs: Vif[]
   new_vm_template: FrontXoVmTemplate | undefined
   pool: FrontXoPool | undefined
