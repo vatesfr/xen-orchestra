@@ -16,6 +16,7 @@ import {
   Delete,
 } from 'tsoa'
 import { inject } from 'inversify'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { PassThrough } from 'node:stream'
 import { provide } from 'inversify-binding-decorators'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
@@ -28,6 +29,7 @@ import {
   createdResp,
   featureUnauthorized,
   internalServerErrorResp,
+  invalidParameters as invalidParametersResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -503,6 +505,7 @@ export class PoolController extends XapiXoController<XoPool> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(badRequestResp.status, badRequestResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   managementReconfigure(
     @Path() id: string,
@@ -514,11 +517,10 @@ export class PoolController extends XapiXoController<XoPool> {
       const pool = this.getObject(poolId)
       const network = this.restApi.getObject<XoNetwork>(body.network as XoNetwork['id'], 'network')
       if (network.$pool !== pool.id) {
-        throw new Error(`the network ${network.uuid} does not belong to pool ${pool.uuid}`)
+        throw invalidParameters(`the network ${network.uuid} does not belong to pool ${pool.uuid}`)
       }
       const xapiPool = this.getXapiObject(poolId)
-      const xapiNetwork = this.restApi.getXapiObject<XoNetwork>(body.network as XoNetwork['id'], 'network')
-      await xapiPool.$xapi.callAsync('pool.management_reconfigure', xapiNetwork.$ref)
+      await xapiPool.$xapi.callAsync('pool.management_reconfigure', network._xapiRef)
     }
 
     return this.createAction<void>(action, {

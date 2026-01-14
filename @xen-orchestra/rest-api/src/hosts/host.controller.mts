@@ -18,6 +18,7 @@ import {
 import { json } from 'express'
 import type { Request as ExRequest, Response as ExResponse } from 'express'
 import { inject } from 'inversify'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
 import { provide } from 'inversify-binding-decorators'
 import type {
@@ -51,6 +52,7 @@ import {
   badRequestResp,
   featureUnauthorized,
   internalServerErrorResp,
+  invalidParameters as invalidParametersResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -319,6 +321,7 @@ export class HostController extends XapiXoController<XoHost> {
   @Response(noContentResp.status, noContentResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(badRequestResp.status, badRequestResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   managementReconfigure(
     @Path() id: string,
@@ -330,11 +333,10 @@ export class HostController extends XapiXoController<XoHost> {
       const host = this.getObject(hostId)
       const pif = this.restApi.getObject<XoPif>(body.pif as XoPif['id'], 'PIF')
       if (pif.$host !== host.id) {
-        throw new Error(`the PIF ${pif.uuid} does not belong to host ${host.uuid}`)
+        throw invalidParameters(`the PIF ${pif.uuid} does not belong to host ${host.uuid}`)
       }
       const xapiHost = this.getXapiObject(hostId)
-      const xapiPif = this.restApi.getXapiObject<XoPif>(body.pif as XoPif['id'], 'PIF')
-      await xapiHost.$xapi.callAsync('host.management_reconfigure', xapiPif.$ref)
+      await xapiHost.$xapi.callAsync('host.management_reconfigure', pif._xapiRef)
     }
 
     return this.createAction<void>(action, {
