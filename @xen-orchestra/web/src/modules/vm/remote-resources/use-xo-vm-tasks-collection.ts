@@ -4,23 +4,24 @@ import {
   type FrontXoTask,
 } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
+import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { toValue } from 'vue'
 
 export const useXoVmTasksCollection = defineRemoteResource({
   url: (vmId: string) => `${BASE_URL}/vms/${vmId}/tasks?fields=${taskFields.join(',')}`,
-  watchCollection: watchCollectionWrapper<FrontXoTask>({
-    collectionId: 'vmTask',
-    resource: 'task',
-    fields: taskFields,
-    predicate(task, context) {
-      if (context === undefined || context.args === undefined || Array.isArray(task)) {
-        return true
-      }
+  initWatchCollection: () =>
+    useWatchCollection<FrontXoTask>({
+      collectionId: 'vmTask',
+      resource: 'task',
+      fields: taskFields,
+      predicate(task, context) {
+        if (context === undefined || context.args === undefined || Array.isArray(task)) {
+          return true
+        }
 
-      const [id] = context.args
-      const vmId = toValue(id)
+        const [id] = context.args
+        const vmId = toValue(id)
 
       return task.properties.objectId === vmId || task.properties.params?.id === vmId
     },
