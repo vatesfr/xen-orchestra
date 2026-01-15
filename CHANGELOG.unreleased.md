@@ -16,6 +16,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup] snapshots of VM with a CDROM mounted are not removed (PR [#9570](https://github.com/vatesfr/xen-orchestra/pull/9570))
+- [OpenMetrics] Fix plugin failing to auto-start after xo-server restart due to XOA WebSocket connection race condition (PR [#9402](https://github.com/vatesfr/xen-orchestra/pull/9402))
 
 ### Packages to release
 
@@ -34,4 +35,5 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- xo-server patch
 <!--packages-end-->
