@@ -1,7 +1,7 @@
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
 import { BASE_URL } from '@/shared/utils/fetch.util.ts'
-import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
+import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import { VM_POWER_STATE, type XoHost, type XoPool, type XoVm } from '@vates/types'
@@ -58,7 +58,7 @@ const vmFields: (keyof XoVm)[] = [
 
 export const useXoVmCollection = defineRemoteResource({
   url: `${BASE_URL}/vms?fields=${vmFields.join(',')}`,
-  watchCollection: watchCollectionWrapper({ resource: 'VM', fields: vmFields }),
+  initWatchCollection: () => useWatchCollection({ resource: 'VM', fields: vmFields }),
   initialData: () => [] as XoVm[],
   state: (rawVms, context) => {
     const { getHostById } = useXoHostCollection(context)
