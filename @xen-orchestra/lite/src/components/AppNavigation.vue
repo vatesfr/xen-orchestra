@@ -11,7 +11,7 @@
 import StoryMenu from '@/components/component-story/StoryMenu.vue'
 import InfraPoolList from '@/components/infra/InfraPoolList.vue'
 import { useNavigationStore } from '@/stores/navigation.store'
-import { onClickOutside } from '@vueuse/core'
+import { onClickOutside, tryOnMounted, useTimeoutFn, watchImmediate } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -42,6 +42,45 @@ watch(
   },
   { immediate: true }
 )
+
+const getCurrentNodeId = () => {
+  const name = route.name as string | undefined
+  const params = route.params as Record<string, any>
+  if (name?.startsWith('/pool/[uuid]')) {
+    return `pool:${params.uuid}`
+  }
+  if (name?.startsWith('/host/[uuid]')) {
+    return `host:${params.uuid}`
+  }
+  if (name?.startsWith('/vm/[uuid]')) {
+    return `vm:${params.uuid}`
+  }
+
+  return undefined
+}
+
+const scrollToCurrent = async () => {
+  const id = getCurrentNodeId()
+  if (!id) {
+    return
+  }
+
+  const container = navElement.value as HTMLElement | undefined
+  const target = container?.querySelector<HTMLElement>(`[data-node-id="${CSS.escape(id)}"]`)
+
+  if (target) {
+    useTimeoutFn(async () => {
+      target.scrollIntoView({ block: !id.startsWith('vm:') ? 'start' : 'center', behavior: 'smooth' })
+    }, 200)
+  } else {
+    useTimeoutFn(async () => {
+      await scrollToCurrent()
+    }, 200)
+  }
+}
+
+tryOnMounted(scrollToCurrent)
+watchImmediate(route, scrollToCurrent)
 </script>
 
 <style lang="postcss" scoped>
@@ -53,15 +92,5 @@ watch(
   padding: 0.5rem;
   border-right: 1px solid var(--color-neutral-border);
   background-color: var(--color-neutral-background-primary);
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(-37rem);
 }
 </style>
