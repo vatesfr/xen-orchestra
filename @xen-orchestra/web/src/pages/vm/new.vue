@@ -258,25 +258,6 @@ const { getVifById } = useXoVifCollection()
 const { hostsByPool } = useXoHostCollection()
 const { vmsTemplatesByPool } = useXoVmTemplateCollection()
 
-const CLOUD_CONFIG =
-  '#cloud-config\n  ' +
-  'hostname: {name}{index}\n  ' +
-  'ssh_pwauth: true\n  ' +
-  'password: almalinux\n  ' +
-  'chpasswd:\n  ' +
-  '  expire: false\n  ' +
-  'packages:\n  ' +
-  '  - htop\n  '
-
-const NETWORK_CONFIG =
-  'network:\n' +
-  '  version: 1\n' +
-  '  config:\n' +
-  '  - type: physical\n' +
-  '    name: eth0\n' +
-  '    subnets:\n' +
-  '      - type: dhcp`'
-
 const vmState = reactive<VmState>({
   name: '',
   description: '',
@@ -289,8 +270,8 @@ const vmState = reactive<VmState>({
   clone: true,
   ssh_key: '',
   selectedVdi: undefined,
-  networkConfig: NETWORK_CONFIG,
-  cloudConfig: CLOUD_CONFIG,
+  networkConfig: '',
+  cloudConfig: '',
   tags: [],
   vCPU: 0,
   selectedVcpu: 0,
@@ -737,6 +718,8 @@ watch(
       vifs: getExistingVifs(template),
       selectedVdi: undefined,
       installMode: 'no-config',
+      networkConfig: '',
+      cloudConfig: '',
       bootFirmware: template.boot.firmware ?? 'bios',
     } satisfies Partial<VmState>)
   }
