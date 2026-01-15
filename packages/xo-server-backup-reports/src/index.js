@@ -100,7 +100,7 @@ class BackupReportsXoPlugin {
         )
         .run(() => report.call(this, ...args))
 
-    // 1s delay as a temporary solution to avoid avoid occasionnal interrupted status in backup reports
+    // 5s delay as a temporary solution to avoid avoid occasionnal interrupted status in backup reports
     this._eventListener = (...args) => setTimeout(() => this._report(...args).catch(noop), 5000)
   }
 
