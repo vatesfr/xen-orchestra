@@ -12,10 +12,10 @@ const isSkippedError = error =>
     error.message === 'no VMs match this pattern' ||
     error.message === 'unhealthy VDI chain')
 
-const getStatus = (error, status = error === undefined ? 'success' : 'failure') =>
+export const getStatus = (error, status = error === undefined ? 'success' : 'failure') =>
   status === 'failure' && isSkippedError(error) ? 'skipped' : status
 
-const computeStatusAndSortTasks = (status, tasks) => {
+export const computeStatusAndSortTasks = (status, tasks) => {
   if (status === 'failure' || tasks === undefined) {
     return status
   }

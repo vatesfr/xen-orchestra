@@ -7,6 +7,27 @@ function alreadyEnded() {
   throw new Error('task has already ended')
 }
 
+const serializeErrors = errors => (Array.isArray(errors) ? errors.map(serializeError) : errors)
+
+// Create a serializable object from an error.
+//
+// Otherwise some fields might be non-enumerable and missing from logs.
+const serializeError = error => {
+  return error instanceof Error
+    ? {
+        ...error, // Copy enumerable properties.
+        cause: error.cause,
+        code: error.code,
+        errors: serializeErrors(error.errors), // supports AggregateError
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      }
+    : error
+}
+
+exports.serializeError = serializeError
+
 // define a read-only, non-enumerable, non-configurable property
 function define(object, property, value) {
   Object.defineProperty(object, property, { value })
@@ -135,6 +156,10 @@ class Task {
   #end(status, result) {
     assert.equal(this.#status, PENDING)
     assert.equal(this.#running, false)
+
+    if (status === FAILURE && result instanceof Error) {
+      result = serializeError(result)
+    }
 
     this.#emit('end', { status, result })
     this._onProgress = alreadyEnded

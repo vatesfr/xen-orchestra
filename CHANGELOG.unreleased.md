@@ -46,6 +46,7 @@
 <!--packages-start-->
 
 - @vates/generator-toolbox patch
+- @vates/task minor
 - @vates/types minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/disk-transform patch
