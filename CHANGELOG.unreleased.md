@@ -67,6 +67,7 @@
 - @vates/generator-toolbox patch
 - @vates/nbd-client minor
 - @vates/node-vsphere-soap patch
+- @vates/task minor
 - @vates/types minor
 - @xen-orchestra/async-map patch
 - @xen-orchestra/backups minor
