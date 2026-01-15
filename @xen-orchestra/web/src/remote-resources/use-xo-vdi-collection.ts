@@ -1,5 +1,5 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
-import { watchCollectionWrapper } from '@/utils/sse.util'
+import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoVdi } from '@vates/types'
 
@@ -21,7 +21,7 @@ export const vdiFields: (keyof XoVdi)[] = [
 
 export const useXoVdiCollection = defineRemoteResource({
   url: `/rest/v0/vdis?fields=${vdiFields.join(',')}`,
-  watchCollection: watchCollectionWrapper({ resource: 'VDI', fields: vdiFields }),
+  initWatchCollection: () => useWatchCollection({ resource: 'VDI', fields: vdiFields }),
   initialData: () => [] as XoVdi[],
   state: (vdis, context) =>
     useXoCollectionState(vdis, {

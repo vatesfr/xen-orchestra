@@ -1,5 +1,5 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
-import { watchCollectionWrapper } from '@/utils/sse.util'
+import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoHost, XoPbd, XoSr } from '@vates/types'
 import { computed } from 'vue'
@@ -8,7 +8,7 @@ const pbdFields: (keyof XoPbd)[] = ['id', 'type', 'attached', 'host', 'SR', 'dev
 
 export const useXoPbdCollection = defineRemoteResource({
   url: `/rest/v0/pbds?fields=${pbdFields.join(',')}`,
-  watchCollection: watchCollectionWrapper({ resource: 'PBD', fields: pbdFields }),
+  initWatchCollection: () => useWatchCollection({ resource: 'PBD', fields: pbdFields }),
   initialData: () => [] as XoPbd[],
   state: (pbds, context) => {
     const state = useXoCollectionState(pbds, {
