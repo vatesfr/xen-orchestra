@@ -26,6 +26,7 @@
 - [REST API] Don't return VDI-snapshot for `/vms/:id/vdis` endpoints (PR [#9381](https://github.com/vatesfr/xen-orchestra/pull/9381))
 - [REST API] `/dashboard` return now `{isEmpty: true}` instead of undefined in case there is no data to compute (PR [#9395](https://github.com/vatesfr/xen-orchestra/pull/9395))
 - [Backup] Fix `read xxx bytes, maximum size allowed is yyy` for full backup on S3 (PR [#9396](https://github.com/vatesfr/xen-orchestra/pull/9396))
+- [OpenMetrics] Fix plugin failing to auto-start after xo-server restart due to XOA WebSocket connection race condition (PR [#XXXX](https://github.com/vatesfr/xen-orchestra/pull/XXXX))
 
 - **XO 6:**
   - [Sidebar] Removal borders top and right of sidebar in mobile (PR [#9366](https://github.com/vatesfr/xen-orchestra/pull/9366))
