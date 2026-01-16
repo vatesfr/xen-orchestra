@@ -46,6 +46,13 @@ import {
   XenApiVtpmWrapped,
 } from './index.mjs'
 
+export type XapiConnection = Xapi & {
+  status: string
+  pool?: { uuid: string }
+  sessionId: string
+  _url?: { protocol: string; hostname: string; port?: string }
+}
+
 type XapiRecordByXapiXoRecord = {
   gpuGroup: XenApiGpuGroupWrapped
   host: XenApiHostWrapped
@@ -244,4 +251,6 @@ export type XoApp = {
       name?: string
     }
   ): void
+  getAllXapis(): Record<string, XapiConnection>
+  getObjects(opts?: { filter?: Record<string, unknown>; limit?: number }): Record<string, XapiXoRecord>
 }
