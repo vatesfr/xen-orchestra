@@ -1,5 +1,13 @@
 <template>
   <VmStartButton :vm />
+  <VmPauseButton :vm />
+  <VmUnpauseButton :vm />
+  <VmResumeButton :vm />
+  <VmSuspendButton :vm />
+  <VmRebootButton :vm />
+  <VmForceRebootButton :vm />
+  <VmShutdownButton :vm />
+  <VmForceShutdownButton :vm />
 </template>
 
 <script lang="ts" setup>
