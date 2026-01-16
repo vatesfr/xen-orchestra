@@ -316,6 +316,19 @@ export class RemoteVhdDisk extends RemoteDisk {
       throw new Error(`can't call flushMetadata of a RemoteVhdDisk before init`)
     }
 
+    // Not working
+    /* if (await this.isDirectory()) {
+      const blocks = this.getBlockIndexes().concat(childDisk.getBlockIndexes())
+
+      const blockTable = Buffer.alloc(Math.ceil((blocks.length) / 8), 0) 
+      for(const blockId in blocks){
+        setBitmap(blockTable, blockId)
+      }
+      await this.#vhd.writeBlockAllocationTable(blockTable)
+    } else {
+      await this.#vhd.writeBlockAllocationTable()
+    } */
+
     await this.#vhd.writeBlockAllocationTable()
   }
 
