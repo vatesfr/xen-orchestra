@@ -1,3 +1,4 @@
+import { useNow } from '@vueuse/core'
 import { defineStore } from 'pinia'
 import { computed, ref, watch as watchVue } from 'vue'
 
@@ -19,12 +20,11 @@ export type THandleWatching = (
         >
       }
     | undefined,
-  onError?: (error: unknown) => void
+  onPing: (ping: number) => void
 ) => void
 
 export const useSseStore = defineStore('sse', () => {
-  const sse = ref<{ id?: string; isWatching: boolean; isError: boolean }>({ isWatching: false, isError: false })
-  const isError = computed(() => sse.value.isError)
+  const sse = ref<{ id?: string; isWatching: boolean; lastPing?: number }>({ isWatching: false })
   const configsByResource: Map<
     string,
     {
@@ -40,17 +40,24 @@ export const useSseStore = defineStore('sse', () => {
     }
   > = new Map()
 
+  const now = useNow({ interval: 1000 })
+
+  const isError = computed(() => {
+    if (!sse.value.lastPing) {
+      return false
+    }
+
+    return now.value.getTime() - sse.value.lastPing > 32_000
+  })
+
+  const lastPing = computed(() => sse.value.lastPing)
+
   function updateSseId(id: string) {
     sse.value.id = id
-    sse.value.isError = false
   }
 
   function getConfigsByResource(resource: string) {
     return configsByResource.get(resource)
-  }
-
-  function onSseError() {
-    sse.value.isError = true
   }
 
   function initializeWatcher(handleWatching: THandleWatching) {
@@ -69,9 +76,13 @@ export const useSseStore = defineStore('sse', () => {
         { deep: true }
       )
 
+      function onPing(timestamp: number) {
+        sse.value.lastPing = timestamp
+      }
+
       if (!sse.value.isWatching) {
         sse.value.isWatching = true
-        handleWatching(updateSseId, getConfigsByResource, onSseError)
+        handleWatching(updateSseId, getConfigsByResource, onPing)
       }
     })
   }
@@ -142,12 +153,10 @@ export const useSseStore = defineStore('sse', () => {
       })
     }
   }
-
+  // TODO need to be improve
   function retry() {
-    sse.value.id = undefined
-    sse.value.isWatching = false
-    sse.value.isError = false
+    window.location.reload()
   }
 
-  return { watch, unwatch, isError, retry }
+  return { watch, unwatch, retry, isError, lastPing }
 })
