@@ -1,7 +1,7 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
 import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
-import { watchCollectionWrapper } from '@/utils/sse.util'
+import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util'
 import type { AnyXoVdi, XoPool, XoSr, XoVdi } from '@vates/types'
@@ -30,7 +30,7 @@ const srFields: (keyof XoSr)[] = [
 
 export const useXoSrCollection = defineRemoteResource({
   url: `/rest/v0/srs?fields=${srFields.join(',')}`,
-  watchCollection: watchCollectionWrapper({ resource: 'SR', fields: srFields }),
+  initWatchCollection: () => useWatchCollection({ resource: 'SR', fields: srFields }),
   initialData: () => [] as XoSr[],
   state: (rawSrs, context) => {
     const srs = useSorted(rawSrs, (sr1, sr2) => sortByNameLabel(sr1, sr2))

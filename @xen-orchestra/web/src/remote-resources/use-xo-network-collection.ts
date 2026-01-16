@@ -1,6 +1,6 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import { watchCollectionWrapper } from '@/utils/sse.util'
+import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoNetwork } from '@vates/types'
@@ -23,7 +23,7 @@ const networkFields: (keyof XoNetwork)[] = [
 
 export const useXoNetworkCollection = defineRemoteResource({
   url: `/rest/v0/networks?fields=${networkFields.join(',')}`,
-  watchCollection: watchCollectionWrapper({ resource: 'network', fields: networkFields }),
+  initWatchCollection: () => useWatchCollection({ resource: 'network', fields: networkFields }),
   initialData: () => [] as XoNetwork[],
   state: (rawNetworks, context) => {
     const { hostMasterPifsByNetwork } = useXoPifCollection(context)
