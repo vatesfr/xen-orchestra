@@ -439,7 +439,10 @@ export default class Plan {
         const vms = sortBy(
           filter(
             sourceVms,
-            vm => hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory && vm.CPUs.number <= delta
+            vm =>
+              !this._isVmInCooldown(vm) &&
+              hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory &&
+              vm.CPUs.number <= delta
           ),
           [vm => -vm.CPUs.number]
         )
@@ -472,16 +475,7 @@ export default class Plan {
             sourceVms = Object.values(sourceHost.vms)
 
             // 4. Migrate.
-            const sourceXapi = this.xo.getXapi(source)
-            promises.push(
-              this._concurrentMigrationLimiter.call(
-                sourceXapi,
-                'migrateVm',
-                vm._xapiId,
-                this.xo.getXapi(destination),
-                destination._xapiId
-              )
-            )
+            promises.push(this._migrateVm(vm, this.xo.getXapi(source), this.xo.getXapi(destination), destination._xapiId))
             debugVcpuBalancing(`vCPU count per host: ${inspect(hostList, { depth: null })}`)
 
             // 5. Check if source host is still overloaded and if destination host is still underloaded
@@ -642,6 +636,7 @@ export default class Plan {
           const vms = filter(
             sourceVms,
             vm =>
+              !this._isVmInCooldown(vm) &&
               hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory &&
               vm.tags.every(tag => !this._affinityTags.includes(tag))
           )
@@ -690,15 +685,7 @@ export default class Plan {
         delete sourceHost.vms[vm.id]
 
         // 4. Migrate.
-        promises.push(
-          this._concurrentMigrationLimiter.call(
-            this.xo.getXapi(source),
-            'migrateVm',
-            vm._xapiId,
-            this.xo.getXapi(destination),
-            destination._xapiId
-          )
-        )
+        promises.push(this._migrateVm(vm, this.xo.getXapi(source), this.xo.getXapi(destination), destination._xapiId))
         emptyLoop = false
 
         break // Continue with the same tag, the source can be different.
@@ -927,14 +914,14 @@ export default class Plan {
       )
       // Build VM list to migrate.
       // We try to migrate VMs with the targeted tag.
-      const sourceVms = filter(sourceHost.vms, vm => intersection(vm.tags, coalition).length > 0)
+      const sourceVms = filter(
+        sourceHost.vms,
+        vm => vm.xenTools && !this._isVmInCooldown(vm) && intersection(vm.tags, coalition).length > 0
+      )
 
       debugAffinity(`VMs to migrate: ${sourceVms.map(vm => vm.name_label)}`)
 
       for (const vm of sourceVms) {
-        if (!vm.xenTools) {
-          continue
-        }
         // if host can't receive all tagged VMs
         let loopCountdown = sortedHosts.length // a theoretically unnecessary safety against infinite while
         while (
@@ -995,6 +982,7 @@ export default class Plan {
         Object.values(crowdedHost.vms),
         vm =>
           vm.xenTools &&
+          !this._isVmInCooldown(vm) &&
           intersection(vm.tags, this._affinityTags).length === 0 &&
           intersection(vm.tags, this._antiAffinityTags).length === 0
       ),
@@ -1078,13 +1066,28 @@ export default class Plan {
     delete sourceHost.vms[vm.id]
 
     // Migrate.
-    return this._concurrentMigrationLimiter.call(
-      this.xo.getXapi(source),
-      'migrateVm',
-      vm._xapiId,
-      this.xo.getXapi(destination),
-      destination._xapiId
-    )
+    return this._migrateVm(vm, this.xo.getXapi(source), this.xo.getXapi(destination), destination._xapiId)
+  }
+
+  // Check if VM was recently migrated and is in cooldown period
+  _isVmInCooldown(vm) {
+    const { migrationCooldown, migrationHistory } = this._globalOptions
+    if (migrationCooldown > 0) {
+      const lastMigration = migrationHistory.get(vm.id)
+      if (lastMigration !== undefined && Date.now() - lastMigration < migrationCooldown) {
+        return true
+      }
+    }
+    return false
+  }
+
+  _migrateVm(vm, xapiSrc, xapiDest, destHostId) {
+    const { migrationHistory } = this._globalOptions
+    return this._concurrentMigrationLimiter
+      .call(xapiSrc, 'migrateVm', vm._xapiId, xapiDest, destHostId)
+      .then(() => {
+        migrationHistory.set(vm.id, Date.now())
+      })
   }
 
   _computeCoalitions(vms, affinityTags) {
