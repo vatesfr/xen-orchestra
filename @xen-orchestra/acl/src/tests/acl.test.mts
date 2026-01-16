@@ -8,15 +8,19 @@ import type { Privilege as TPrivilege } from '../index.mjs'
 import { filterObjectsWithPrivilege, getMissingPrivileges, hasPrivilegeOn, hasPrivileges } from '../index.mjs'
 
 suite('Privilege.checkActionIsValid behavior', () => {
+  console.log('suite setup')
   test('throw on invalid resource', () => {
-    assert.throws(() => Privilege.checkActionIsValid('read', 'foo'))
+    // @ts-expect-error test invalid action
+    assert.throws(() => Privilege.checkActionIsValid('foo', 'read'))
   })
+
   test('throw on invalid action', () => {
-    assert.throws(() => Privilege.checkActionIsValid('foo:vm', 'vm'))
+    // @ts-expect-error test invalid action
+    assert.throws(() => Privilege.checkActionIsValid('vm', 'foo:vm'))
   })
 
   test('should work', () => {
-    assert.doesNotThrow(() => Privilege.checkActionIsValid('read', 'vm'))
+    assert.doesNotThrow(() => Privilege.checkActionIsValid('vm', 'read'))
   })
 })
 
@@ -25,7 +29,7 @@ suite('Privilege.match behavior', () => {
   const object = { id: 1, name_label: 'foo' }
 
   test('Should not match because of the action', () => {
-    assert.strictEqual(privilege.match({ resource: 'vm', action: 'update', object }), false)
+    assert.strictEqual(privilege.match({ resource: 'vm', action: 'start', object }), false)
   })
 
   test('Should not match because of the resource', () => {
@@ -42,8 +46,8 @@ suite('Privilege.match behavior', () => {
   })
 
   test('Should match because the action is *', () => {
-    const snapshotPrivilege = new Privilege({ action: '*', resource: 'vm-snapshot' })
-    assert.strictEqual(snapshotPrivilege.match({ action: 'update', resource: 'vm-snapshot', object: object }), true)
+    const vmPrivilege = new Privilege({ action: '*', resource: 'vm' })
+    assert.strictEqual(vmPrivilege.match({ action: 'reboot:hard', resource: 'vm', object: object }), true)
   })
 
   test('Should not match due to insufficient privilege', () => {
@@ -172,7 +176,7 @@ suite('ACL V2 behavior', async () => {
   suite('hasPrivilegeOn behavior', () => {
     test('Should always return true for admin', () => {
       assert.strictEqual(
-        hasPrivilegeOn({
+        hasPrivilegeOn<'pool'>({
           user: admin,
           action: 'read',
           resource: 'pool',
@@ -261,6 +265,7 @@ suite('ACL V2 behavior', async () => {
     test('Should return empty array if no missing privileges', () => {
       const missingPrivileges = getMissingPrivileges(
         [
+          { user, action: 'shutdown:clean', resource: 'vm', objects: almaVm },
           { user, action: 'instantiate', resource: 'vm-template', objects: template },
           { user, action: 'create', resource: 'vdi', objects: vdis },
           { user, action: 'create', resource: 'vif', objects: vifs },

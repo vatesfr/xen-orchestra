@@ -5,21 +5,32 @@ import type { XoUser } from '@vates/types/xo'
 
 import { Privilege as CPrivilege, SupportedActions, SupportedResource } from './class/privilege.mjs'
 
-type HasPrivilegeOnParam = Parameters<typeof hasPrivilegeOn>[0]
+type AnyPrivilege = {
+  [Resource in SupportedResource]: Privilege<Resource>
+}[SupportedResource]
+
+type AnyPrivilegeOnParam = {
+  [Resource in SupportedResource]: {
+    user: XoUser
+    resource: Resource
+    action: SupportedActions<Resource>
+    objects: unknown | unknown[]
+  }
+}[SupportedResource]
 
 export type Role =
   | {
-    id: Branded<'acl-v2-role'>
-    name: string
-    description?: string
-  }
+      id: Branded<'acl-v2-role'>
+      name: string
+      description?: string
+    }
   | {
-    id: Branded<'acl-v2-role'>
-    name: string
-    description?: string
-    isTemplate: true
-    roleTemplateId: number
-  }
+      id: Branded<'acl-v2-role'>
+      name: string
+      description?: string
+      isTemplate: true
+      roleTemplateId: number
+    }
 
 export type Privilege<T extends SupportedResource> = {
   id: Branded<'acl-v2-privilege'>
@@ -41,19 +52,20 @@ export function hasPrivilegeOn<T extends SupportedResource>({
   userPrivileges,
 }: {
   user: XoUser
-  action: Privilege<T>['action']
-  resource: Privilege<T>['resource']
+  resource: T
+  action: SupportedActions<T>
   objects: unknown | unknown[]
-  userPrivileges: Privilege<SupportedResource>[]
+  userPrivileges: AnyPrivilege[]
 }) {
   // Function that will be called outside of the module
   // We cannot be sure types are respected
+  console.log(user, action, resource, objects)
   assert.strictEqual(typeof user?.permission, 'string')
   assert.strictEqual(typeof action, 'string')
   assert.strictEqual(typeof resource, 'string')
   assert.strictEqual(objects === undefined, false)
 
-  CPrivilege.checkActionIsValid(action, resource)
+  CPrivilege.checkActionIsValid(resource, action as SupportedActions<typeof resource>)
 
   if (user.permission === 'admin') {
     return true
@@ -63,7 +75,11 @@ export function hasPrivilegeOn<T extends SupportedResource>({
 
   return arrayObjects.every(object => {
     const privilegesThatMatch = userPrivileges.filter(userPrivilege => {
-      return new CPrivilege(userPrivilege).match({ action, resource, object })
+      return new CPrivilege(userPrivilege as Privilege<typeof userPrivilege.resource>).match({
+        action,
+        resource,
+        object,
+      })
     })
     if (privilegesThatMatch.length === 0 || privilegesThatMatch.some(p => p.effect === 'deny')) {
       return false
@@ -73,20 +89,29 @@ export function hasPrivilegeOn<T extends SupportedResource>({
   })
 }
 
-export function getMissingPrivileges(
-  params: Omit<HasPrivilegeOnParam, 'userPrivileges'>[],
-  userPrivileges: Privilege<SupportedResource>[]
-) {
-  return params.filter(param => !hasPrivilegeOn({ ...param, userPrivileges }))
+export function getMissingPrivileges(params: AnyPrivilegeOnParam[], userPrivileges: AnyPrivilege[]) {
+  return params.filter(
+    param =>
+      !hasPrivilegeOn({
+        user: param.user,
+        resource: param.resource,
+        action: param.action as SupportedActions<typeof param.resource>,
+        objects: param.objects,
+        userPrivileges,
+      })
+  )
 }
 
-export function hasPrivileges(
-  params: Omit<HasPrivilegeOnParam, 'userPrivileges'>[],
-  userPrivileges: Privilege<SupportedResource>[]
-) {
+export function hasPrivileges(params: AnyPrivilegeOnParam[], userPrivileges: AnyPrivilege[]) {
   return getMissingPrivileges(params, userPrivileges).length === 0
 }
 
-export function filterObjectsWithPrivilege<T>(param: Omit<HasPrivilegeOnParam, 'objects'> & { objects: T[] }) {
+export function filterObjectsWithPrivilege<Resource extends SupportedResource, Object>(param: {
+  user: XoUser
+  resource: Resource
+  action: SupportedActions<Resource>
+  objects: Object[]
+  userPrivileges: AnyPrivilege[]
+}) {
   return param.objects.filter(obj => hasPrivilegeOn({ ...param, objects: obj }))
 }
