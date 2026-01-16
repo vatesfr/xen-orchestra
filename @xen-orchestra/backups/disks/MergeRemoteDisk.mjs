@@ -1,5 +1,8 @@
+// @ts-check
+
 /**
  * @typedef {import('./RemoteDisk.mjs').RemoteDisk} RemoteDisk
+ * @typedef {import('@xen-orchestra/disk-transform').FileAccessor} FileAccessor
  */
 
 import assert from 'assert'
@@ -7,15 +10,14 @@ import { createLogger } from '@xen-orchestra/log'
 
 import { basename, dirname } from 'path'
 import { asyncEach } from '@vates/async-each'
-import { RemoteVhdDisk } from './RemoteVhdDisk.mjs'
 
+// @ts-ignore
 const { warn } = createLogger('remote-disk:merge')
 
 /**
- *
  * @typedef {Object} MergeState
- * @property {{ uuid: number }} child
- * @property {{ uuid: number }} parent
+ * @property {{ uuid: string }} child
+ * @property {{ uuid: string }} parent
  * @property {number} currentBlock
  * @property {number} mergedDataSize
  * @property {'mergeBlocks' | 'cleanup'} step
@@ -26,12 +28,19 @@ export class MergeRemoteDisk {
   /**
    * @type {MergeState}
    */
-  #state
+  #state = {
+    child: { uuid: '0' },
+    parent: { uuid: '0' },
+    currentBlock: 0,
+    mergedDataSize: 0,
+    step: 'mergeBlocks',
+    diskSize: 0,
+  }
 
   /**
    * @type {string}
    */
-  #statePath
+  #statePath = ''
 
   /**
    * @type {boolean}
@@ -39,7 +48,7 @@ export class MergeRemoteDisk {
   #isResuming
 
   /**
-   * @type {Logger}
+   * @type {Logger | Function}
    */
   #logInfo
 
@@ -77,7 +86,7 @@ export class MergeRemoteDisk {
    * @param {FileAccessor} handler
    * @param {Object} params
    * @param {Function} params.onProgress
-   * @param {Logger} params.logInfo
+   * @param {Logger | Function} params.logInfo
    * @param {boolean} params.removeUnused
    * @param {number} params.mergeBlockConcurrency
    * @param {number} params.writeStateDelay
@@ -105,6 +114,21 @@ export class MergeRemoteDisk {
 
   /**
    * @param {RemoteDisk} parentDisk
+   * @returns {Promise<boolean>} isResuming
+   */
+  async isResuming(parentDisk) {
+    try {
+      await this.#handler.readFile(
+        dirname(parentDisk.getPath()) + '/.' + basename(parentDisk.getPath()) + '.merge.json'
+      )
+      return true
+    } catch (error) {
+      return false
+    }
+  }
+
+  /**
+   * @param {RemoteDisk} parentDisk
    * @param {RemoteDisk} childDisk
    */
   async merge(parentDisk, childDisk) {
@@ -117,10 +141,10 @@ export class MergeRemoteDisk {
       // work-around a bug introduce in 97d94b795
       //
       // currentBlock could be `null` due to the JSON.stringify of a `NaN` value
-      if (this.#state.currentBlock === null) this.#state.currentBlock = 0
+      if (this.#state?.currentBlock === null) this.#state.currentBlock = 0
       this.#isResuming = true
     } catch (error) {
-      if (error.code !== 'ENOENT') {
+      if (error && typeof error === 'object' && 'code' in error && error.code !== 'ENOENT') {
         warn('problem while checking the merge state', { error })
       }
     }
@@ -134,7 +158,7 @@ export class MergeRemoteDisk {
           await this.#step_cleanup(parentDisk, childDisk)
           return this.#cleanup(parentDisk, childDisk, true)
         default:
-          warn(`Step ${this.#state.step} is unknown`, { state: this.#state })
+          warn(`Step ${this.#state?.step} is unknown`, { state: this.#state })
       }
       /* eslint-enable no-fallthrough */
     } catch (error) {
@@ -166,14 +190,9 @@ export class MergeRemoteDisk {
   async #step_mergeBlocks(parentDisk, childDisk) {
     const getMaxBlockCount = childDisk.getMaxBlockCount()
 
-    if (!this.#state) {
-      this.#state = {
-        child: { uuid: childDisk.getUuid() ?? 0 },
-        parent: { uuid: parentDisk.getUuid() ?? 0 },
-        currentBlock: 0,
-        mergedDataSize: 0,
-        step: 'mergeBlocks',
-      }
+    if (!this.#isResuming) {
+      this.#state.child = { uuid: childDisk.getUuid() ?? 0 }
+      this.#state.parent = { uuid: parentDisk.getUuid() ?? 0 }
 
       // finds first allocated block for the 2 following loops
       while (this.#state.currentBlock < getMaxBlockCount && !childDisk.hasBlock(this.#state.currentBlock)) {
@@ -186,7 +205,7 @@ export class MergeRemoteDisk {
     }
 
     await this.#mergeBlocks(parentDisk, childDisk)
-    await parentDisk.flushMetadata()
+    await parentDisk.flushMetadata(childDisk)
     parentDisk.mergeMetadata(childDisk)
   }
 
@@ -195,9 +214,10 @@ export class MergeRemoteDisk {
    * @param {RemoteDisk} childDisk
    */
   async #mergeBlocks(parentDisk, childDisk) {
-    if (parentDisk instanceof RemoteVhdDisk || childDisk instanceof RemoteVhdDisk) {
-      this.#mergeBlockConcurrency = 1 // TODO: TEST
-    }
+    this.#mergeBlockConcurrency =
+      (await parentDisk.canMergeConcurently()) || (await childDisk.canMergeConcurently())
+        ? 1
+        : this.#mergeBlockConcurrency
 
     const toMerge = []
     for (let block = this.#state.currentBlock; block < childDisk.getMaxBlockCount(); block++) {
@@ -241,15 +261,23 @@ export class MergeRemoteDisk {
     this.#state.step = 'cleanup'
     await this.#writeState()
 
-    const newPath = childDisk.getPath()
+    const mergeTargetPath = childDisk.getPath()
 
-    await childDisk.unlink()
+    // delete intermediate children if needed
+    if (this.#removeUnused) {
+      await childDisk.unlinkIntermediates()
+      await childDisk.unlink()
+    }
 
     try {
-      await this.#handler.rename(parentDisk.getPath(), newPath)
+      await parentDisk.rename(mergeTargetPath)
     } catch (error) {
-      if (error.code === 'ENOENT' && this.#isResuming) {
-        this.#logInfo(`the parent disk was already renamed`, { parent: parentDisk.getPath(), mergeTarget: newPath })
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT' && this.#isResuming) {
+        // @ts-ignore
+        this.#logInfo(`the parent disk was already renamed`, {
+          parent: parentDisk.getPath(),
+          mergeTarget: mergeTargetPath,
+        })
       } else {
         throw error
       }
@@ -259,6 +287,9 @@ export class MergeRemoteDisk {
   /**
    * @param {RemoteDisk} parentDisk
    * @param {RemoteDisk} childDisk
+   * @param {boolean} cleanStateFile
+   *
+   * @returns {Promise<{mergedDataSize: number, finalDiskSize: number}>} result
    */
   async #cleanup(parentDisk, childDisk, cleanStateFile) {
     const finalDiskSize = this.#state?.diskSize ?? 0

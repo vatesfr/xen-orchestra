@@ -71,8 +71,9 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, mergeBlockConcu
       removeUnused: remove,
     })
 
-    await parentDisk.init(false)
-    await childDiskChain.init(false)
+    const isResumingMerge = await mergeRemoteDisk.isResuming(parentDisk)
+    await parentDisk.init({ force: isResumingMerge })
+    await childDiskChain.init({ force: isResumingMerge })
 
     const result = await mergeRemoteDisk.merge(parentDisk, childDiskChain)
 

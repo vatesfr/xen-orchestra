@@ -78,7 +78,12 @@ async function generateVhd(path, opts = {}) {
   return vhd
 }
 
-test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
+test('mergeVhdChain merges a simple ancestor VHD + child VHD', async () => {
+  let progressCalls = 0
+  const onProgress = () => {
+    progressCalls++
+  }
+
   // Create ancestor (base) VHD
   const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
 
@@ -93,17 +98,17 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
 
   const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
   const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
-  await parent.init(true)
-  await child.init(true)
-
-  const expectedIndexes = parent.getBlockIndexes().concat(child.getBlockIndexes())
-
-  let progressCalls = 0
-  const onProgress = () => {
-    progressCalls++
-  }
 
   const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress, removeUnused: true })
+
+  const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+  assert.ok(!isResumingMerge, 'merge is not resuming')
+
+  await parent.init({ force: isResumingMerge })
+  await child.init({ force: isResumingMerge })
+
+  const expectedIndexes = parent.getBlockIndexes().concat(child.getBlockIndexes())
 
   const result = await mergeRemoteDisk.merge(parent, child)
 
@@ -113,14 +118,18 @@ test('mergeVhdChain merges a simple ancestor + child VHD', async () => {
 
   // Check that ancestor was renamed to child
   const remainingDisks = await handler.list(basePath)
-  assert.equal(remainingDisks.includes('child.vhd'), true)
-  assert.equal(remainingDisks.includes('ancestor.vhd'), false)
+  assert.deepEqual(remainingDisks, ['child.vhd'])
 
   const parentIndexes = parent.getBlockIndexes()
   assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
 })
 
-test('mergeVhdChain merges a simple ancestor + child VHD chain', async () => {
+test('mergeVhdChain merges a simple ancestor VHD + child VHD chain', async () => {
+  let progressCalls = 0
+  const onProgress = () => {
+    progressCalls++
+  }
+
   // Create ancestor (base) VHD
   const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
 
@@ -141,24 +150,37 @@ test('mergeVhdChain merges a simple ancestor + child VHD chain', async () => {
     blocks: [3],
   })
 
+  await generateVhd(`${basePath}/child_3.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+    blocks: [4],
+  })
+
   const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
-  await parent.init(true)
   const child1 = new RemoteVhdDisk({ handler, path: `${basePath}/child_1.vhd` })
-  await child1.init(true)
   const child2 = new RemoteVhdDisk({ handler, path: `${basePath}/child_2.vhd` })
-  await child2.init(true)
+  const child3 = new RemoteVhdDisk({ handler, path: `${basePath}/child_3.vhd` })
+  const childDiskChain = new RemoteVhdDiskChain({ disks: [child1, child2, child3] })
 
-  const expectedIndexes = parent.getBlockIndexes().concat(child1.getBlockIndexes()).concat(child2.getBlockIndexes())
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress, removeUnused: true })
 
-  const childDiskChain = new RemoteVhdDiskChain({ disks: [child1, child2] })
-  await childDiskChain.init()
+  const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
 
-  let progressCalls = 0
-  const onProgress = () => {
-    progressCalls++
-  }
+  assert.ok(!isResumingMerge, 'merge is not resuming')
 
-  const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress })
+  await parent.init({ force: isResumingMerge })
+  await child1.init({ force: isResumingMerge })
+  await child2.init({ force: isResumingMerge })
+  await child3.init({ force: isResumingMerge })
+  await childDiskChain.init({ force: isResumingMerge })
+
+  const expectedIndexes = parent
+    .getBlockIndexes()
+    .concat(child1.getBlockIndexes())
+    .concat(child2.getBlockIndexes())
+    .concat(child3.getBlockIndexes())
 
   const result = await mergeRemoteDisk.merge(parent, childDiskChain)
 
@@ -168,12 +190,295 @@ test('mergeVhdChain merges a simple ancestor + child VHD chain', async () => {
 
   // Check that ancestor was renamed to child
   const remainingDisks = await handler.list(basePath)
-  assert.equal(remainingDisks.includes('child_1.vhd'), true)
-  assert.equal(remainingDisks.includes('child_2.vhd'), false)
-  assert.equal(remainingDisks.includes('ancestor.vhd'), false)
+  assert.deepEqual(remainingDisks, ['child_3.vhd']) // TODO: Check that it's the correct child that is remaining.
 
   const parentIndexes = parent.getBlockIndexes()
   assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
+})
+
+test('mergeVhdChain merges an alias ancestor VHD + alias child VHD', async () => {
+  let progressCalls = 0
+  const onProgress = () => {
+    progressCalls++
+  }
+
+  // Create ancestor (base) VHD
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1], useAlias: true })
+
+  // Create children VHD
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+    blocks: [2, 3],
+    useAlias: true,
+  })
+
+  const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd.alias.vhd` })
+  const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
+
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress, removeUnused: true })
+
+  const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+  assert.ok(!isResumingMerge, 'merge is not resuming')
+
+  await parent.init({ force: true })
+  await child.init({ force: true })
+
+  const expectedIndexes = parent.getBlockIndexes().concat(child.getBlockIndexes())
+
+  const result = await mergeRemoteDisk.merge(parent, child)
+
+  assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+  assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
+  assert.ok(progressCalls > 0, 'onProgress should have been called')
+
+  // Check that ancestor was renamed to child
+  const remainingDisks = await handler.list(basePath)
+  assert.deepEqual(remainingDisks, ['child.vhd.alias.vhd', 'data'])
+
+  const remainingDatas = await handler.list(basePath + '/data')
+  assert.deepEqual(remainingDatas, ['ancestor.vhd'])
+
+  const parentIndexes = parent.getBlockIndexes()
+  assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
+})
+
+test('mergeVhdChain merges an alias ancestor VHD + alias child VHD chain', async () => {
+  let progressCalls = 0
+  const onProgress = () => {
+    progressCalls++
+  }
+
+  // Create ancestor (base) VHD
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1], useAlias: true })
+
+  // Create children VHD
+  await generateVhd(`${basePath}/child_1.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+    blocks: [2],
+    useAlias: true,
+  })
+
+  await generateVhd(`${basePath}/child_2.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+    blocks: [3],
+    useAlias: true,
+  })
+
+  const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd.alias.vhd` })
+  const child1 = new RemoteVhdDisk({ handler, path: `${basePath}/child_1.vhd.alias.vhd` })
+  const child2 = new RemoteVhdDisk({ handler, path: `${basePath}/child_2.vhd.alias.vhd` })
+  const childDiskChain = new RemoteVhdDiskChain({ disks: [child1, child2] })
+
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress, removeUnused: true })
+
+  const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+  assert.ok(!isResumingMerge, 'merge is not resuming')
+
+  await parent.init({ force: isResumingMerge })
+  await child1.init({ force: isResumingMerge })
+  await child2.init({ force: isResumingMerge })
+  await childDiskChain.init({ force: isResumingMerge })
+
+  const expectedIndexes = parent.getBlockIndexes().concat(child1.getBlockIndexes()).concat(child2.getBlockIndexes())
+
+  const result = await mergeRemoteDisk.merge(parent, childDiskChain)
+
+  assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+  assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
+  assert.ok(progressCalls > 0, 'onProgress should have been called')
+
+  // Check that ancestor was renamed to child
+  const remainingDisks = await handler.list(basePath)
+  assert.deepEqual(remainingDisks, ['child_2.vhd.alias.vhd', 'data'])
+
+  const remainingDatas = await handler.list(basePath + '/data')
+  assert.deepEqual(remainingDatas, ['ancestor.vhd'])
+
+  const parentIndexes = parent.getBlockIndexes()
+  assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
+})
+
+test('mergeVhdChain merges an alias ancestor VHD + child VHD', async () => {
+  let progressCalls = 0
+  const onProgress = () => {
+    progressCalls++
+  }
+
+  // Create ancestor (base) VHD
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1], useAlias: true })
+
+  // Create children VHD
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+    blocks: [2, 3],
+  })
+
+  const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd.alias.vhd` })
+  const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
+
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress, removeUnused: true })
+
+  const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+  assert.ok(!isResumingMerge, 'merge is not resuming')
+
+  await parent.init({ force: isResumingMerge })
+  await child.init({ force: isResumingMerge })
+
+  const expectedIndexes = parent.getBlockIndexes().concat(child.getBlockIndexes())
+
+  const result = await mergeRemoteDisk.merge(parent, child)
+
+  assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+  assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
+  assert.ok(progressCalls > 0, 'onProgress should have been called')
+
+  // Check that ancestor was renamed to child
+  const remainingDisks = await handler.list(basePath)
+  assert.deepEqual(remainingDisks, ['child.vhd', 'data'])
+
+  const remainingDatas = await handler.list(basePath + '/data')
+  assert.deepEqual(remainingDatas, ['ancestor.vhd'])
+
+  const parentIndexes = parent.getBlockIndexes()
+  assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
+})
+
+test('mergeVhdChain merges an ancestor VHD + alias child VHD', async () => {
+  let progressCalls = 0
+  const onProgress = () => {
+    progressCalls++
+  }
+
+  // Create ancestor (base) VHD
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
+
+  // Create children VHD
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+    blocks: [2, 3],
+    useAlias: true,
+  })
+
+  const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
+  const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
+
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress, removeUnused: true })
+
+  const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+  assert.ok(!isResumingMerge, 'merge is not resuming')
+
+  await parent.init({ force: isResumingMerge })
+  await child.init({ force: isResumingMerge })
+
+  const expectedIndexes = parent.getBlockIndexes().concat(child.getBlockIndexes())
+
+  const result = await mergeRemoteDisk.merge(parent, child)
+
+  assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+  assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
+  assert.ok(progressCalls > 0, 'onProgress should have been called')
+
+  // Check that ancestor was renamed to child
+  const remainingDisks = await handler.list(basePath)
+  assert.deepEqual(remainingDisks, ['child.vhd.alias.vhd', 'data'])
+
+  const remainingDatas = await handler.list(basePath + '/data')
+  assert.deepEqual(remainingDatas, [])
+
+  const parentIndexes = parent.getBlockIndexes()
+  assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
+})
+
+test('mergeVhdChain merges a simple ancestor VHD directory + child VHD directory', async () => {
+  // Create ancestor (base) VHD
+  await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1], mode: 'directory' })
+
+  const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
+
+  try {
+    await parent.init({ force: true })
+  } catch (err) {
+    assert.strictEqual(
+      err.code,
+      'NOT_SUPPORTED',
+      'Initializing a vhd directory without using alias should raise a not supported error'
+    )
+    return
+  }
+  assert.strictEqual(true, false, 'Initializing a vhd directory without using alias should raise a not supported error')
+})
+
+test('mergeVhdChain merges a alias ancestor VHD directory + alias child VHD directory', async () => {
+  let progressCalls = 0
+  const onProgress = () => {
+    progressCalls++
+  }
+
+  // Create ancestor (base) VHD
+  const ancestor = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1], mode: 'directory', useAlias: true })
+
+  // Create children VHD
+  await generateVhd(`${basePath}/child.vhd`, {
+    header: {
+      parentUnicodeName: 'ancestor.vhd',
+      parentUuid: ancestor.footer.uuid,
+    },
+    blocks: [2, 3],
+    mode: 'directory',
+    useAlias: true,
+  })
+
+  const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd.alias.vhd` })
+  const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd.alias.vhd` })
+
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { onProgress, removeUnused: true })
+
+  const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+  assert.ok(!isResumingMerge, 'merge is not resuming')
+
+  await parent.init({ force: isResumingMerge })
+  await child.init({ force: isResumingMerge })
+
+  const expectedIndexes = parent.getBlockIndexes().concat(child.getBlockIndexes())
+
+  const result = await mergeRemoteDisk.merge(parent, child)
+
+  assert.ok(result.finalDiskSize > 0, 'merged disks should have non-zero size')
+  assert.ok(result.mergedDataSize > 0, 'merged data size should be > 0')
+  assert.ok(progressCalls > 0, 'onProgress should have been called')
+
+  // Check that ancestor was renamed to child
+  const remainingDisks = await handler.list(basePath)
+  assert.deepEqual(remainingDisks, ['child.vhd.alias.vhd', 'data'])
+
+  const remainingDatas = await handler.list(basePath + '/data')
+  assert.deepEqual(remainingDatas, ['ancestor.vhd'])
+
+  const parentIndexes = parent.getBlockIndexes()
+  assert.deepEqual(parentIndexes, expectedIndexes, 'all child blocks should be merged into parent')
+
+  const ancestorData = await handler.list(`${basePath}/data/ancestor.vhd`)
+  assert.ok(ancestorData.length > 0, 'ancestor.vhd directory should contain blocks')
 })
 
 test('mergeRemoteDisk closes disks on error', async () => {
@@ -189,10 +494,17 @@ test('mergeRemoteDisk closes disks on error', async () => {
 
   const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
   const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
-  await parent.init(true)
-  await child.init(true)
 
-  // Override the diskcs close method to monitor their execution
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true })
+
+  const isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+  assert.ok(!isResumingMerge, 'merge is not resuming')
+
+  await parent.init({ force: isResumingMerge })
+  await child.init({ force: isResumingMerge })
+
+  // Override the disks close method to monitor their execution
   let parentClosed = false
   let childClosed = false
   const originalParentClose = parent.close.bind(parent)
@@ -211,8 +523,6 @@ test('mergeRemoteDisk closes disks on error', async () => {
     throw new Error('simulated write error')
   }
 
-  const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true })
-
   // Run merge and expect it to throw
   let threw = false
   try {
@@ -227,17 +537,26 @@ test('mergeRemoteDisk closes disks on error', async () => {
   assert.equal(childClosed, true, 'child disk should be closed on error')
 })
 
-test.only('mergeRemoteDisk resumes after interruption', async () => {
+test('mergeRemoteDisk resumes after interruption', async () => {
   // Create parent and child VHDs
   const ancestorVhd = await generateVhd(`${basePath}/ancestor.vhd`, { blocks: [0, 1] })
+
   await generateVhd(`${basePath}/child.vhd`, {
     header: { parentUnicodeName: 'ancestor.vhd', parentUuid: ancestorVhd.footer.uuid },
     blocks: [2, 3],
   })
+
   const parent = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
   const child = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
-  await parent.init(true)
-  await child.init(true)
+
+  const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0 })
+
+  let isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+  assert.ok(!isResumingMerge, 'merge is not resuming')
+
+  await parent.init({ force: isResumingMerge })
+  await child.init({ force: isResumingMerge })
 
   const expectedIndexes = parent.getBlockIndexes().concat(child.getBlockIndexes())
 
@@ -253,8 +572,6 @@ test.only('mergeRemoteDisk resumes after interruption', async () => {
     blocksWritten++
     return originalWriteBlock(diskBlock)
   }
-
-  const mergeRemoteDisk = new MergeRemoteDisk(handler, { removeUnused: true, writeStateDelay: 0 })
 
   // First merge attempt should throw
   let threw = false
@@ -275,8 +592,13 @@ test.only('mergeRemoteDisk resumes after interruption', async () => {
   // Recreate new remoteDisks to simulate a new operation
   const parent2 = new RemoteVhdDisk({ handler, path: `${basePath}/ancestor.vhd` })
   const child2 = new RemoteVhdDisk({ handler, path: `${basePath}/child.vhd` })
-  await parent2.init(true)
-  await child2.init(true)
+
+  isResumingMerge = await mergeRemoteDisk.isResuming(parent)
+
+  assert.ok(isResumingMerge, 'merge is resuming')
+
+  await parent2.init({ force: isResumingMerge })
+  await child2.init({ force: isResumingMerge })
 
   // Resume merge
   const result = await mergeRemoteDisk.merge(parent2, child2)

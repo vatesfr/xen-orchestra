@@ -31,9 +31,11 @@
  * @property {(string)} reserved
  */
 
-import { openVhd } from 'vhd-lib'
+import { openVhd, VhdAbstract, VhdDirectory } from 'vhd-lib'
 import { RemoteDisk } from './RemoteDisk.mjs'
 import { DISK_TYPES } from 'vhd-lib/_constants.js'
+import { isVhdAlias, resolveVhdAlias } from 'vhd-lib/aliases.js'
+// import { set as setBitmap } from 'vhd-lib/_bitmap.js'
 import { stringify } from 'uuid'
 
 export class RemoteVhdDisk extends RemoteDisk {
@@ -65,16 +67,6 @@ export class RemoteVhdDisk extends RemoteDisk {
   /**
    * @type {number}
    */
-  #headerSize = 1024
-
-  /**
-   * @type {number}
-   */
-  #footerSize = 512
-
-  /**
-   * @type {number}
-   */
   #bitmapSize = 512
 
   /**
@@ -95,13 +87,20 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * Initializes the VHD.
-   * @param {boolean} force
+   * Initializes the VHD
+   * @param {Object} options
+   * @param {boolean} options.force
    * @returns {Promise<void>}
    */
-  async init(force = false) {
+  async init(options) {
     if (this.#vhd === undefined) {
-      const { value, dispose } = await openVhd(this.#handler, this.#path, { checkSecondFooter: !force })
+      if ((await this.isDirectory()) && !isVhdAlias(this.#path)) {
+        throw Object.assign(new Error("Can't init vhd directory without using alias"), { code: 'NOT_SUPPORTED' })
+      }
+
+      const { value, dispose } = await openVhd(this.#handler, await resolveVhdAlias(this.#handler, this.#path), {
+        checkSecondFooter: !options.force,
+      })
       this.#vhd = value
       this.#dispose = dispose
       await this.#vhd.readBlockAllocationTable()
@@ -161,6 +160,13 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     return stringify(this.#vhd.footer.uuid)
+  }
+
+  /**
+   * @returns {Promise<boolean>} canMergeConcurently
+   */
+  async canMergeConcurently() {
+    return !(await this.isDirectory())
   }
 
   /**
@@ -238,12 +244,26 @@ export class RemoteVhdDisk extends RemoteDisk {
 
   /**
    * Writes Block Allocation Table
+   * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */
-  async flushMetadata() {
+  async flushMetadata(childDisk) {
     if (this.#vhd === undefined) {
       throw new Error(`can't call flushMetadata of a RemoteVhdDisk before init`)
     }
+
+    // Not working
+    /* if (await this.isDirectory()) {
+      const blocks = this.getBlockIndexes().concat(childDisk.getBlockIndexes())
+
+      const blockTable = Buffer.alloc(Math.ceil((blocks.length) / 8), 0) 
+      for(const blockId in blocks){
+        setBitmap(blockTable, blockId)
+      }
+      await this.#vhd.writeBlockAllocationTable(blockTable)
+    } else {
+      await this.#vhd.writeBlockAllocationTable()
+    } */
 
     await this.#vhd.writeBlockAllocationTable()
   }
@@ -260,25 +280,25 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
-   * @param {RemoteVhdDisk} child
+   * @param {RemoteVhdDisk} childDisk
    */
-  async mergeMetadata(child) {
-    const childMetadata = child.getMetadata()
+  async mergeMetadata(childDisk) {
+    const childDiskMetadata = childDisk.getMetadata()
 
     if (this.#vhd === undefined) {
       throw new Error(`can't call mergeMetadata of a RemoteVhdDisk before init`)
     }
 
     // @ts-ignore
-    this.#vhd.footer.currentSize = childMetadata.currentSize
+    this.#vhd.footer.currentSize = childDiskMetadata.currentSize
     // @ts-ignore
-    this.#vhd.footer.diskGeometry = { ...childMetadata.diskGeometry }
+    this.#vhd.footer.diskGeometry = { ...childDiskMetadata.diskGeometry }
     // @ts-ignore
-    this.#vhd.footer.originalSize = childMetadata.originalSize
+    this.#vhd.footer.originalSize = childDiskMetadata.originalSize
     // @ts-ignore
-    this.#vhd.footer.timestamp = childMetadata.timestamp
+    this.#vhd.footer.timestamp = childDiskMetadata.timestamp
     // @ts-ignore
-    this.#vhd.footer.uuid = childMetadata.uuid
+    this.#vhd.footer.uuid = childDiskMetadata.uuid
 
     await this.#vhd.writeFooter()
   }
@@ -295,6 +315,42 @@ export class RemoteVhdDisk extends RemoteDisk {
   }
 
   /**
+   * Delete intermediate disks only
+   */
+  async unlinkIntermediates() {
+    // Nothing
+  }
+
+  /**
+   * Rename alias/disk/disks
+   * @param {string} newPath
+   */
+  async rename(newPath) {
+    if (isVhdAlias(newPath)) {
+      const dataPath = await resolveVhdAlias(this.#handler, this.#path)
+
+      await this.#handler.unlink(this.#path)
+      await this.#handler.unlink(newPath)
+
+      await VhdAbstract.createAlias(this.#handler, newPath, dataPath)
+
+      this.#path = newPath
+    } else {
+      try {
+        await this.#handler.unlink(newPath)
+      } catch (err) {
+        if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
+          await this.#handler.rmtree(newPath).catch(() => {})
+        }
+      }
+
+      await this.#handler.rename(this.#path, newPath)
+
+      this.#path = newPath
+    }
+  }
+
+  /**
    * Deletes disk
    */
   async unlink() {
@@ -303,6 +359,37 @@ export class RemoteVhdDisk extends RemoteDisk {
     }
 
     await this.close()
-    await this.#handler.unlink(this.#path)
+
+    if (isVhdAlias(this.#path)) {
+      try {
+        await this.#handler.unlink(await resolveVhdAlias(this.#handler, this.#path))
+      } catch (err) {
+        if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
+          await this.#handler.rmtree(await resolveVhdAlias(this.#handler, this.#path)).catch(() => {})
+        }
+      }
+    }
+
+    try {
+      await this.#handler.unlink(this.#path)
+    } catch (err) {
+      if (err && typeof err === 'object' && 'code' in err && err.code === 'EISDIR') {
+        await this.#handler.rmtree(this.#path).catch(() => {})
+      }
+    }
+  }
+
+  // Test instance of VhdDirectory
+  async isDirectory() {
+    if (this.#vhd !== undefined) {
+      return this.#vhd instanceof VhdDirectory
+    } else {
+      try {
+        await this.#handler.readFile(await resolveVhdAlias(this.#handler, this.#path))
+        return false
+      } catch (err) {
+        return true
+      }
+    }
   }
 }

@@ -8,10 +8,11 @@ import { RandomAccessDisk } from '@xen-orchestra/disk-transform'
 export class RemoteDisk extends RandomAccessDisk {
   /**
    * Abstract
-   * @param {boolean} force
+   * @param {Object} options
+   * @param {boolean} options.force
    * @returns {Promise<void>}
    */
-  async init(force = false) {
+  async init(options = { force: false }) {
     throw new Error(`init must be implemented`)
   }
 
@@ -64,6 +65,14 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * @returns {Promise<boolean>} canMergeConcurently
+   */
+  async canMergeConcurently() {
+    throw new Error(`canMergeConcurently must be implemented`)
+  }
+
+  /**
+   * Abstract
    * @returns {number} getMaxBlockCount
    */
   getMaxBlockCount() {
@@ -108,21 +117,23 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
+   * @param {RemoteDisk} childDisk
    * @returns {Promise<void>}
    */
-  async flushMetadata() {
+  async flushMetadata(childDisk) {
     throw new Error(`flushMetadata must be implemented`)
   }
 
   /**
    * Abstract
-   * @param {RemoteDisk} child
+   * @param {RemoteDisk} childDisk
    */
-  mergeMetadata(child) {
+  mergeMetadata(childDisk) {
     throw new Error(`mergeMetadata must be implemented`)
   }
 
   /**
+   * Abstract
    * Checks if the VHD is a differencing disk.
    * @returns {boolean}
    */
@@ -132,7 +143,24 @@ export class RemoteDisk extends RandomAccessDisk {
 
   /**
    * Abstract
-   * Deletes disk
+   * Delete intermediate disks only
+   */
+  async unlinkIntermediates() {
+    throw new Error(`unlinkIntermediates must be implemented`)
+  }
+
+  /**
+   * Abstract
+   * Rename alias/disk/disks
+   * @param {string} newPath
+   */
+  async rename(newPath) {
+    throw new Error(`rename must be implemented`)
+  }
+
+  /**
+   * Abstract
+   * Deletes alias/disk/disks
    */
   async unlink() {
     throw new Error(`unlink must be implemented`)
