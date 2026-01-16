@@ -5,19 +5,21 @@ import type { XoUser } from '@vates/types/xo'
 
 import { Privilege as CPrivilege, SupportedActions, SupportedResource } from './class/privilege.mjs'
 
+type HasPrivilegeOnParam = Parameters<typeof hasPrivilegeOn>[0]
+
 export type Role =
   | {
-      id: Branded<'acl-v2-role'>
-      name: string
-      description?: string
-    }
+    id: Branded<'acl-v2-role'>
+    name: string
+    description?: string
+  }
   | {
-      id: Branded<'acl-v2-role'>
-      name: string
-      description?: string
-      isTemplate: true
-      roleTemplateId: number
-    }
+    id: Branded<'acl-v2-role'>
+    name: string
+    description?: string
+    isTemplate: true
+    roleTemplateId: number
+  }
 
 export type Privilege<T extends SupportedResource> = {
   id: Branded<'acl-v2-privilege'>
@@ -71,15 +73,20 @@ export function hasPrivilegeOn<T extends SupportedResource>({
   })
 }
 
-export function hasPrivileges(
-  params: Omit<Parameters<typeof hasPrivilegeOn>[0], 'userPrivileges'>[],
+export function getMissingPrivileges(
+  params: Omit<HasPrivilegeOnParam, 'userPrivileges'>[],
   userPrivileges: Privilege<SupportedResource>[]
 ) {
-  return params.every(param => hasPrivilegeOn({ ...param, userPrivileges }))
+  return params.filter(param => !hasPrivilegeOn({ ...param, userPrivileges }))
 }
 
-export function filterObjectsWithPrivilege<T>(
-  param: Omit<Parameters<typeof hasPrivilegeOn>[0], 'objects'> & { objects: T[] }
+export function hasPrivileges(
+  params: Omit<HasPrivilegeOnParam, 'userPrivileges'>[],
+  userPrivileges: Privilege<SupportedResource>[]
 ) {
+  return getMissingPrivileges(params, userPrivileges).length === 0
+}
+
+export function filterObjectsWithPrivilege<T>(param: Omit<HasPrivilegeOnParam, 'objects'> & { objects: T[] }) {
   return param.objects.filter(obj => hasPrivilegeOn({ ...param, objects: obj }))
 }

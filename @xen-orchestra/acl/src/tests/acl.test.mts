@@ -5,7 +5,7 @@ import type { XoUser } from '@vates/types/xo'
 
 import { Privilege } from '../class/privilege.mjs'
 import type { Privilege as TPrivilege } from '../index.mjs'
-import { filterObjectsWithPrivilege, hasPrivilegeOn, hasPrivileges } from '../index.mjs'
+import { filterObjectsWithPrivilege, getMissingPrivileges, hasPrivilegeOn, hasPrivileges } from '../index.mjs'
 
 suite('Privilege.checkActionIsValid behavior', () => {
   test('throw on invalid resource', () => {
@@ -257,9 +257,9 @@ suite('ACL V2 behavior', async () => {
     })
   })
 
-  suite('hasPrivileges behavior', () => {
-    test('Should allow checking multiple privileges', () => {
-      const result = hasPrivileges(
+  suite('getMissingPrivileges behavior', () => {
+    test('Should return empty array if no missing privileges', () => {
+      const missingPrivileges = getMissingPrivileges(
         [
           { user, action: 'instantiate', resource: 'vm-template', objects: template },
           { user, action: 'create', resource: 'vdi', objects: vdis },
@@ -269,9 +269,29 @@ suite('ACL V2 behavior', async () => {
         ],
         allPrivileges
       )
-      assert.strictEqual(result, true)
+
+      assert.strictEqual(missingPrivileges.length, 0)
     })
 
+    test('Should return only missing privileges', () => {
+      const missingPrivileges = getMissingPrivileges(
+        [
+          { user, action: 'instantiate', resource: 'vm-template', objects: template },
+          { user, action: 'create', resource: 'vdi', objects: vdis },
+          { user, action: 'create', resource: 'vif', objects: vifs },
+          { user, action: 'boot', resource: 'vdi', objects: iso },
+          { user, action: 'allow-vm', resource: 'host', objects: hostAffinity },
+          { user, action: 'read', resource: 'pool', objects: poolWithoutPrivilege },
+          { user, action: '*', resource: 'pool', objects: poolWithoutPrivilege },
+        ],
+        allPrivileges
+      )
+
+      assert.strictEqual(missingPrivileges.length, 2)
+    })
+  })
+
+  suite('hasPrivileges behavior', () => {
     test('Should return false if at least one privilege deny', () => {
       const result = hasPrivileges(
         [
