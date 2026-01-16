@@ -75,11 +75,9 @@ export function hasPrivilegeOn<T extends SupportedResource>({
 
   return arrayObjects.every(object => {
     const privilegesThatMatch = userPrivileges.filter(userPrivilege => {
-      const _action = action as SupportedActions<typeof userPrivilege.resource>
-      const _resource = resource as typeof userPrivilege.resource
       return new CPrivilege(userPrivilege as Privilege<typeof userPrivilege.resource>).match({
-        action: _action,
-        resource: _resource,
+        action,
+        resource,
         object,
       })
     })
