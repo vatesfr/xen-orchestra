@@ -16,7 +16,7 @@
 - [vhd-cli] Prevent using invalid options (PR [#9386](https://github.com/vatesfr/xen-orchestra/pull/9386))
 - [REST API] Add endpoints to reconfigure management interface for hosts and pools (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
 - **XO 6:**
-  - [Vm/dashboard] Add BackupRuns and BackupArchives cards on vm dashboard (PR [#9303](https://github.com/vatesfr/xen-orchestra/pull/9303))
+  - [VM/dashboard] Add BackupRuns and BackupArchives cards on VM dashboard (PR [#9303](https://github.com/vatesfr/xen-orchestra/pull/9303))
 
 ### Bug fixes
 
