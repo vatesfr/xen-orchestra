@@ -46,12 +46,22 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
-   * Initializes the VHD.
-   * @param {boolean} force
+   * Initializes the VHD chain
+   * @param {Object} options
+   * @param {boolean} options.force
    * @returns {Promise<void>}
    */
-  async init(force = false) {
-    await Promise.all(this.#disks.map(disk => disk.init(force)))
+  async init(options) {
+    await Promise.all(this.#disks.map(disk => disk.init(options)))
+
+    // Check that all disks are differencing except first one and that all childs have the correct parent uuid.
+    for (const disk of this.#disks.slice(1)) {
+      if (!disk.isDifferencing()) {
+        throw Object.assign(new Error("Can't init vhd directory with non differencing child disks"), {
+          code: 'NOT_SUPPORTED',
+        })
+      }
+    }
   }
 
   /**
@@ -90,21 +100,33 @@ export class RemoteVhdDiskChain extends RemoteDisk {
    * @returns {number}
    */
   getBlockSize() {
-    return this.#disks[0].getBlockSize()
+    return this.#disks[this.#disks.length - 1].getBlockSize()
   }
 
   /**
    * @returns {string}
    */
   getPath() {
-    return this.#disks[0].getPath()
+    return this.#disks[this.#disks.length - 1].getPath()
   }
 
   /**
    * @returns {string}
    */
   getUuid() {
-    return this.#disks[0].getUuid()
+    return this.#disks[this.#disks.length - 1].getUuid()
+  }
+
+  /**
+   * @returns {Promise<boolean>} canMergeConcurently
+   */
+  async canMergeConcurently() {
+    for (const disk of this.#disks) {
+      if (!(await disk.isDirectory())) {
+        return true
+      }
+    }
+    return false
   }
 
   /**
@@ -120,8 +142,8 @@ export class RemoteVhdDiskChain extends RemoteDisk {
    * @returns {boolean}
    */
   hasBlock(index) {
-    for (let i = this.#disks.length - 1; i >= 0; i--) {
-      if (this.#disks[i].hasBlock(index)) {
+    for (const disk of this.#disks) {
+      if (disk.hasBlock(index)) {
         return true
       }
     }
@@ -158,9 +180,9 @@ export class RemoteVhdDiskChain extends RemoteDisk {
    * @returns {Promise<DiskBlock>} diskBlock
    */
   async readBlock(index) {
-    for (let i = this.#disks.length - 1; i >= 0; i--) {
-      if (this.#disks[i].hasBlock(index)) {
-        return this.#disks[i].readBlock(index)
+    for (const disk of this.#disks) {
+      if (disk.hasBlock(index)) {
+        return disk.readBlock(index)
       }
     }
     throw new Error(`Block ${index} not found in chain `)
@@ -174,16 +196,17 @@ export class RemoteVhdDiskChain extends RemoteDisk {
   }
 
   /**
+   * @param {RemoteVhdDisk} childDisk
    * @returns {Promise<void>}
    */
-  async flushMetadata() {
+  async flushMetadata(childDisk) {
     throw new Error(`Can't flush metadata on a disk chain`)
   }
 
   /**
-   * @param {RemoteDisk} child
+   * @param {RemoteVhdDisk} childDisk
    */
-  mergeMetadata(child) {
+  mergeMetadata(childDisk) {
     throw new Error(`Can't merge metadata on a disk chain`)
   }
 
@@ -192,7 +215,26 @@ export class RemoteVhdDiskChain extends RemoteDisk {
    * @returns {boolean}
    */
   isDifferencing() {
-    throw new Error(`Can't get isDifferencing on a disk chain`)
+    return this.#disks[0].isDifferencing()
+  }
+
+  /**
+   * Delete intermediate disks only
+   */
+  async unlinkIntermediates() {
+    for (const disk of this.#disks.slice(0, -1)) {
+      await disk.unlink()
+    }
+  }
+
+  /**
+   * Rename the entire chain: only the last disk becomes the merge target
+   * @param {string} newPath
+   */
+  async rename(newPath) {
+    if (this.#disks.length === 0) return
+
+    await this.#disks[this.#disks.length - 1].rename(newPath)
   }
 
   /**

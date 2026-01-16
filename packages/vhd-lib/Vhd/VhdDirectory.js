@@ -245,11 +245,15 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     await this.#writeChunkFilters()
   }
 
-  writeBlockAllocationTable() {
-    assert.notStrictEqual(this.#blockTable, undefined, 'Block allocation table has not been read')
-    assert.notStrictEqual(this.#blockTable.length, 0, 'Block allocation table is empty')
+  writeBlockAllocationTable(blockTable) {
+    if (!blockTable || blockTable.length === 0) {
+      blockTable = this.#blockTable
+    }
 
-    return this._writeChunk('bat', this.#blockTable)
+    assert.notStrictEqual(blockTable, undefined, 'Block allocation table has not been read')
+    assert.notStrictEqual(blockTable.length, 0, 'Block allocation table is empty')
+
+    return this._writeChunk('bat', blockTable)
   }
 
   // only works if data are in the same handler
