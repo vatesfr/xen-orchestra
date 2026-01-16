@@ -60,10 +60,17 @@ export const legacyIcons = defineIconPack({
     color: 'var(--color-info-item-base)',
   },
   'legend-circle': { icon: faCircle, size: 8 },
-  paused: {
-    icon: faPause,
-    color: 'var(--color-brand-item-base)',
-  },
+  paused: [
+    {
+      icon: faCircle,
+      color: 'var(--color-brand-item-base)',
+    },
+    {
+      icon: faPause,
+      color: 'var(--color-info-txt-item)',
+      size: 8,
+    },
+  ],
   primary: [
     {
       icon: faCircle,
@@ -97,10 +104,17 @@ export const legacyIcons = defineIconPack({
       size: 8,
     },
   ]),
-  suspended: {
-    icon: faMoon,
-    color: 'var(--color-info-item-base)',
-  },
+  suspended: [
+    {
+      icon: faCircle,
+      color: 'var(--color-neutral-background-disabled)',
+    },
+    {
+      icon: faMoon,
+      color: 'var(--color-neutral-txt-secondary)',
+      size: 12,
+    },
+  ],
   checked: [
     {
       icon: faCircle,

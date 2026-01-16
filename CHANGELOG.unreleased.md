@@ -11,8 +11,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- **XO 6:**
-  - [VM] Add "Change state" button on VM view (PR [#9317](https://github.com/vatesfr/xen-orchestra/pull/9317))
+- [VM] Add "Change state" button on VM view (PR [#9317](https://github.com/vatesfr/xen-orchestra/pull/9317))
+- [VM] Add all actions to manage VM life cycle (PR [9403](https://github.com/vatesfr/xen-orchestra/pull/9403))
 
 ### Bug fixes
 
