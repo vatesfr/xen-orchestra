@@ -531,6 +531,7 @@ describe('transformMetric with labelContext', () => {
         'vm-uuid-789': {
           name_label: 'Web Server',
           vbdDeviceToVdiName: { xvda: 'System Disk', xvdb: 'Data Disk' },
+          vbdDeviceToVdiUuid: { xvda: 'vdi-uuid-system', xvdb: 'vdi-uuid-data' },
           vifIndexToNetworkName: { '0': 'Pool-wide network', '1': 'Storage network' },
         },
       },
@@ -547,6 +548,10 @@ describe('transformMetric with labelContext', () => {
       },
       srSuffixToUuid: {
         '1234567890': 'sr-uuid-full-1234567890',
+      },
+      vdiUuidToSrUuid: {
+        'vdi-uuid-system': 'sr-uuid-full-1234567890',
+        'vdi-uuid-data': 'sr-uuid-full-1234567890',
       },
     },
   })
@@ -626,6 +631,27 @@ describe('transformMetric with labelContext', () => {
     assert.ok(result)
     assert.equal(result.labels.device, 'xvda')
     assert.equal(result.labels.vdi_name, 'System Disk')
+  })
+
+  it('should add sr_name label for VM disk metrics via VDI-SR mapping', () => {
+    const metric: ParsedMetric = {
+      legend: {
+        cf: 'AVERAGE',
+        objectType: 'vm',
+        uuid: 'vm-uuid-789',
+        metricName: 'vbd_xvda_iops_read',
+        rawLegend: 'AVERAGE:vm:vm-uuid-789:vbd_xvda_iops_read',
+      },
+      value: 150,
+      timestamp: 1700000000,
+    }
+
+    const result = transformMetric(metric, 'pool-456', createLabelContext())
+
+    assert.ok(result)
+    assert.equal(result.labels.device, 'xvda')
+    assert.equal(result.labels.vdi_name, 'System Disk')
+    assert.equal(result.labels.sr_name, 'Local Storage')
   })
 
   it('should add network_name label for VIF metrics', () => {
@@ -766,6 +792,7 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
         'vm-1': {
           name_label: 'Web Server',
           vbdDeviceToVdiName: { xvda: 'System Disk' },
+          vbdDeviceToVdiUuid: { xvda: 'vdi-1' },
           vifIndexToNetworkName: { '0': 'Management' },
         },
       },
@@ -777,6 +804,7 @@ describe('formatAllPoolsToOpenMetrics with labelContext', () => {
       },
       srs: {},
       srSuffixToUuid: {},
+      vdiUuidToSrUuid: {},
     },
   })
 
@@ -1029,12 +1057,14 @@ describe('CPU usage fallback', () => {
           'vm-1': {
             name_label: 'XCP-ng 8.2 VM',
             vbdDeviceToVdiName: {},
+            vbdDeviceToVdiUuid: {},
             vifIndexToNetworkName: {},
           },
         },
         hosts: {},
         srs: {},
         srSuffixToUuid: {},
+        vdiUuidToSrUuid: {},
       },
     }
 
