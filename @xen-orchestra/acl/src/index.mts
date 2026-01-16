@@ -91,7 +91,6 @@ export function hasPrivilegeOn<T extends SupportedResource>({
   })
 }
 
-// TODO: add test for that method
 export function getMissingPrivileges(params: AnyPrivilegeOnParam[], userPrivileges: AnyPrivilege[]) {
   return params.filter(
     param =>
