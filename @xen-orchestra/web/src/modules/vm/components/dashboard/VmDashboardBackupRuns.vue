@@ -1,20 +1,25 @@
 <template>
-  <UiCard>
+  <UiCard :has-error="error">
     <UiCardTitle>
       {{ t('last-n-backup-runs', 3) }}
       <template #info>
-        <UiLink size="small" :to="`/vm/${vmId}/backups`">{{ t('backup-jobs:see-all') }}</UiLink>
+        <UiLink size="small" :to="{ name: '/vm/[id]/backups', params: { id: vmId } }">
+          {{ t('backup-jobs:see-all') }}
+        </UiLink>
       </template>
     </UiCardTitle>
-    <div class="backup-head">
-      <template v-if="!busy">
+
+    <VtsStateHero v-if="!areBackupRunsReady" size="large" format="card" type="busy" />
+
+    <div v-if="areBackupRunsReady" class="backup-head">
+      <div class="protection-infos">
         <VtsQuickInfoRow :label="t('protection-status')">
           <template #value>
-            <UiInfo :accent="infoAccent">{{ infoText }}</UiInfo>
+            <UiInfo :accent="infoVmProtectionStatus.accent">{{ infoVmProtectionStatus.text }}</UiInfo>
           </template>
         </VtsQuickInfoRow>
-
         <UiButton
+          v-if="!isEmpty && !isInNoActiveJob"
           class="protection-helper"
           accent="brand"
           left-icon="legacy:status:info"
@@ -24,14 +29,14 @@
         >
           {{ t('what-does-protected-means?') }}
         </UiButton>
-      </template>
+      </div>
 
-      <UiAlert v-if="isEmpty && !busy" accent="warning">
-        {{ t('no-job-vm') }}
+      <UiAlert v-if="isInNoActiveJob" accent="warning">
+        <span class="typo-body-bold">{{ t('no-job-vm') }}</span>
         <template #description>
           <I18nT keypath="configure-for-protected" scope="global" tag="div">
             <template #backup-job>
-              <UiLink size="small" to="/backups">
+              <UiLink size="small" :to="{ name: '/(site)/backups' }">
                 {{ t('backup-job') }}
               </UiLink>
             </template>
@@ -40,15 +45,15 @@
       </UiAlert>
     </div>
 
-    <VtsTable v-if="!isEmpty || busy" :state>
+    <VtsTable v-if="areBackupRunsReady && !(isInNoActiveJob && isEmpty)" :state>
       <thead>
         <tr>
           <HeadCells />
         </tr>
       </thead>
       <tbody>
-        <VtsRow v-for="run of lastRuns" :key="run.backupJobId">
-          <BodyCells :item="run" />
+        <VtsRow v-for="lastRun of lastRuns" :key="lastRun.backupJobId">
+          <BodyCells :item="lastRun" />
         </VtsRow>
       </tbody>
     </VtsTable>
@@ -59,61 +64,67 @@
 import { useXoBackupJobCollection } from '@/remote-resources/use-xo-backup-job-collection'
 import type { VmDashboardRun, XoVmDashboard } from '@/types/xo/vm-dashboard.type'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'
+import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
 import UiAlert from '@core/components/ui/alert/UiAlert.vue'
 import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
-import UiInfo from '@core/components/ui/info/UiInfo.vue'
+import UiInfo, { type InfoAccent } from '@core/components/ui/info/UiInfo.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import { useTableState } from '@core/composables/table-state.composable'
 import { useModal } from '@core/packages/modal/use-modal'
-import { useBackupRunColumns } from '@core/tables/column-sets/vm-backup-run'
+import { useBackupRunColumns } from '@core/tables/column-sets/vm-backup-run-colums'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const { error, vmDashboard } = defineProps<{
+const { error, vmId, vmDashboard } = defineProps<{
   vmDashboard: XoVmDashboard | undefined
+  vmId: string
   error: boolean
 }>()
 
 const { t } = useI18n()
 
-const { getBackupJobById, areBackupJobsReady, hasBackupJobFetchError } = useXoBackupJobCollection()
+const { getBackupJobById, areBackupJobsReady } = useXoBackupJobCollection()
+
 const openProtectionHelpModal = useModal(() => ({
   component: import('@/components/modals/VmProtectedHelper.vue'),
 }))
 
-const vmId = computed(() => vmDashboard?.quickInfo.id)
-const lastRuns = computed(() => vmDashboard?.backupsInfo.lastRuns ?? [])
-const isEmpty = computed(() => lastRuns.value.length === 0)
-const busy = computed(() => !areBackupJobsReady || !vmDashboard || !vmDashboard.backupsInfo?.lastRuns)
+const lastRuns = computed(() => vmDashboard?.backupsInfo?.lastRuns)
 
-const infoAccent = computed(() => {
-  if (vmDashboard?.backupsInfo.vmProtection === 'not-in-job') {
-    return 'danger'
-  } else if (vmDashboard?.backupsInfo.vmProtection === 'unprotected') {
-    return 'warning'
-  } else {
-    return 'success'
-  }
-})
+const areBackupRunsReady = computed(() => areBackupJobsReady.value && lastRuns.value !== undefined)
 
-const infoText = computed(() => {
-  if (vmDashboard?.backupsInfo.vmProtection === 'not-in-job') {
-    return t('backups:vms-protection:no-active-job')
-  } else if (vmDashboard?.backupsInfo.vmProtection === 'unprotected') {
-    return t('backups:vms-protection:active-unprotected')
+const isEmpty = computed(() => lastRuns?.value?.length === 0)
+
+const isInNoActiveJob = computed(() => vmDashboard?.backupsInfo?.vmProtection === 'not-in-active-job')
+
+const infoVmProtectionStatus = computed<{
+  accent: InfoAccent
+  text: string
+}>(() => {
+  if (vmDashboard?.backupsInfo?.vmProtection === 'not-in-active-job') {
+    return { accent: 'danger', text: t('backups:vms-protection:no-active-job') }
+  } else if (vmDashboard?.backupsInfo?.vmProtection === 'unprotected') {
+    return { accent: 'warning', text: t('backups:vms-protection:active-unprotected') }
   } else {
-    return t('backups:vms-protection:active-protected')
+    return { accent: 'success', text: t('backups:vms-protection:active-protected') }
   }
 })
 
 const state = useTableState({
-  busy: () => busy.value,
-  error: () => hasBackupJobFetchError.value || error,
-  empty: () => (isEmpty.value ? { size: 'small', type: 'no-data' } : false),
+  busy: () => !areBackupRunsReady.value,
+  empty: () =>
+    isEmpty.value
+      ? {
+          type: 'no-result',
+          message: t('is-part-of-one-active-job'),
+          size: 'small',
+          format: 'compact',
+        }
+      : false,
 })
 
 const { HeadCells, BodyCells } = useBackupRunColumns({
@@ -124,7 +135,7 @@ const { HeadCells, BodyCells } = useBackupRunColumns({
       backupJob: r =>
         r({
           label: getBackupJobById(run.backupJobId)?.name ?? run.backupJobId,
-          to: `/backup/${run.backupJobId}`,
+          to: { name: '/vm/[id]/backups', params: { id: vmId }, query: { id: run.backupJobId } },
           icon: 'object:backup-job',
         }),
     }
@@ -136,7 +147,13 @@ const { HeadCells, BodyCells } = useBackupRunColumns({
 .backup-head {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 2.4rem;
+
+  .protection-infos {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
 
   .protection-helper {
     width: fit-content;

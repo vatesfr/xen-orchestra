@@ -1,7 +1,10 @@
 import type { Status } from '@core/components/status/VtsStatus.vue'
-import type { XoVmBackupArchive, XoVm, XoUser, XoHost, XoAlarm, XoSr, XoVmBackupJob } from '@vates/types'
+import type { XoVmBackupArchive, XoVm, XoUser, XoHost, XoSr, XoVmBackupJob } from '@vates/types'
+
+export type VmProtectionStatus = 'protected' | 'unprotected' | 'not-in-active-job'
 
 export type VmDashboardRun = { backupJobId: XoVmBackupJob['id']; timestamp: number; status: Status }
+
 export type VmDashboardBackupArchive = {
   id: XoVmBackupArchive['id']
   timestamp: XoVmBackupArchive['timestamp']
@@ -40,11 +43,10 @@ export type XoVmDashboard = {
     host?: XoHost['id']
     pvDriversDetected: boolean
   }
-  alarms: XoAlarm['id'][]
-  backupsInfo: {
-    lastRuns: VmDashboardRun[]
-    vmProtection: 'protected' | 'unprotected' | 'not-in-job'
+  backupsInfo?: {
+    lastRuns?: VmDashboardRun[]
+    vmProtection?: VmProtectionStatus
     replication?: { id: XoVm['id']; timestamp: number; sr?: XoSr['id'] }
-    backupArchives: VmDashboardBackupArchive[]
+    backupArchives?: VmDashboardBackupArchive[]
   }
 }

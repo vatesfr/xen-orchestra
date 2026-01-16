@@ -21,7 +21,7 @@
         :has-ready="hasVmAlarmFetchError"
       />
       <template v-if="data">
-        <VmDashboardBackupRuns class="backup-rum" :vm-id="vm.id" :vm-dashboard :error="dashboardError" />
+        <VmDashboardBackupRuns class="backup-runs" :vm-id="vm.id" :vm-dashboard :error="dashboardError" />
         <VmDashboardBackupArchives class="backup-archives" :vm-dashboard :error="dashboardError" />
         <VmDashboardCpuUsageChart class="cpu-usage-chart" :data :error="statsError" :loading="isFetching" />
         <VmDashboardRamUsageChart class="ram-usage-chart" :data :error="statsError" :loading="isFetching" />
@@ -77,7 +77,7 @@ const { t } = useI18n()
   grid-template-columns: repeat(8, 1fr);
   grid-template-areas:
     'quick-info quick-info quick-info quick-info quick-info quick-info quick-info quick-info'
-    'backup-rum backup-rum backup-rum backup-rum backup-archives backup-archives backup-archives backup-archives'
+    'backup-runs backup-runs backup-runs backup-runs backup-archives backup-archives backup-archives backup-archives'
     'alarms alarms alarms alarms alarms alarms alarms alarms'
     'cpu-usage-chart cpu-usage-chart ram-usage-chart ram-usage-chart network-usage-chart network-usage-chart vdi-usage-chart vdi-usage-chart'
     'offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container offline-hero-container';
@@ -86,7 +86,7 @@ const { t } = useI18n()
     grid-template-columns: 1fr;
     grid-template-areas:
       'quick-info'
-      'backup-rum'
+      'backup-runs'
       'backup-archives'
       'alarms'
       'cpu-usage-chart'
@@ -105,8 +105,8 @@ const { t } = useI18n()
     height: 46.2rem;
   }
 
-  .backup-rum {
-    grid-area: backup-rum;
+  .backup-runs {
+    grid-area: backup-runs;
   }
 
   .backup-archives {

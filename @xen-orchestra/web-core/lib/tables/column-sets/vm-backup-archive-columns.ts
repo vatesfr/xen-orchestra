@@ -4,11 +4,11 @@ import { useLinkColumn } from '@core/tables/column-definitions/link-column'
 import { useNumberColumn } from '@core/tables/column-definitions/number-column'
 import { useI18n } from 'vue-i18n'
 
-export const useBackuparchiveColumns = defineColumns(() => {
+export const useBackupArchiveColumns = defineColumns(() => {
   const { t } = useI18n()
 
   return {
-    date: useDateColumn({ headerLabel: () => t('network') }),
+    date: useDateColumn({ headerLabel: () => t('date'), dateStyle: 'short', timeStyle: 'medium' }),
     backupRepository: useLinkColumn({ headerLabel: () => t('backup-repository') }),
     sizeOnDisk: useNumberColumn({ headerLabel: () => t('size-on-disk') }),
   }
