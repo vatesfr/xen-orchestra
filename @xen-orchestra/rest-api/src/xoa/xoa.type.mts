@@ -1,5 +1,6 @@
 import { BACKUP_TYPE } from '@vates/types'
-import type { PromiseWriteInStreamError } from '../helpers/helper.type.mjs'
+import type { IsEmptyData, IsMaybeExpired, PromiseWriteInStreamError } from '../helpers/helper.type.mjs'
+import type { HasNoAuthorization } from '../rest-api/rest-api.type.mjs'
 
 export type DashboardBackupRepositoriesSizeInfo = {
   s3?: {
@@ -32,10 +33,29 @@ export type DashboardBackupsInfo = {
   }
 }
 
+export type SrSizeInfo = {
+  size: {
+    available: number
+    other: number
+    replicated: number
+    total: number
+    used: number
+  }
+}
+
+export type MissingPatchesInfo = {
+  hasAuthorization: true
+  nHosts: number
+  nHostsEol: number | IsEmptyData
+  nHostsWithMissingPatches: number
+  nHostsFailed: number
+  nPools: number
+  nPoolsWithMissingPatches: number
+}
+
 export type XoaDashboard = {
   nPools: number
   nHosts: number
-  nHostsEol?: number | PromiseWriteInStreamError
   hostsStatus: {
     disabled: number
     running: number
@@ -53,33 +73,21 @@ export type XoaDashboard = {
     unknown: number
     total: number
   }
-  missingPatches:
-    | { hasAuthorization: false }
-    | {
-        hasAuthorization: true
-        nHostsWithMissingPatches: number
-        nPoolsWithMissingPatches: number
-        nHostsFailed: number
-      }
-  backupRepositories?: DashboardBackupRepositoriesSizeInfo | PromiseWriteInStreamError
-  storageRepositories:
-    | {
-        size: {
-          available: number
-          other: number
-          replicated: number
-          total: number
-          used: number
-        }
-      }
+  missingPatches: MissingPatchesInfo | HasNoAuthorization | PromiseWriteInStreamError
+  backupRepositories?:
+    | IsMaybeExpired<DashboardBackupRepositoriesSizeInfo>
+    | IsMaybeExpired<IsEmptyData>
     | PromiseWriteInStreamError
-  backups?: DashboardBackupsInfo | PromiseWriteInStreamError
+  storageRepositories: SrSizeInfo | PromiseWriteInStreamError | IsEmptyData
 
-  resourcesOverview: {
-    nCpus: number
-    memorySize: number
-    srSize: number
-  }
+  backups?: IsMaybeExpired<DashboardBackupsInfo> | IsMaybeExpired<IsEmptyData> | PromiseWriteInStreamError
+  resourcesOverview:
+    | {
+        nCpus: number
+        memorySize: number
+        srSize: number
+      }
+    | IsEmptyData
   poolsStatus: {
     connected: number
     disconnected: number

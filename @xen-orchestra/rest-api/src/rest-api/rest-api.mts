@@ -1,8 +1,7 @@
 import { createLogger } from '@xen-orchestra/log'
 import { invalidCredentials } from 'xo-common/api-errors.js'
-import type { XapiXoRecord, XoUser } from '@vates/types'
+import type { XapiXoRecord, XoApp, XoUser } from '@vates/types'
 
-import type { XoApp } from './rest-api.type.mjs'
 import type { Container } from 'inversify'
 import { safeParseComplexMatcher } from '../helpers/utils.helper.mjs'
 

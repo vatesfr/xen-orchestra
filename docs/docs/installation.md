@@ -120,6 +120,21 @@ On Fedora/CentOS like:
 dnf install redis libpng-devel git lvm2 cifs-utils make automake gcc gcc-c++ nfs-utils ntfs-3g openssl
 ```
 
+Starting with release 10 of CentOS, AlmaLinux, Rocky Linux (June 2025), Redis is no longer offered as a package.
+Valkey is a drop-in replacement key-value database.
+These distributions also include a package to ensure compatibility between Valkey and Redis called valkey-compat-redis.
+valkey-compat-redis is found in the `devel` repository in DNF.
+
+Additionally, the `ntfs-3g` program has been moved to the EPEL repository.
+
+```sh
+dnf install epel-release
+
+dnf config-manager --enable devel
+
+dnf install valkey valkey-compat-redis libpng-devel git lvm2 cifs-utils make automake gcc gcc-c++ nfs-utils ntfs-3g openssl
+```
+
 ### Make sure Redis is running
 
 Start the service:
@@ -128,12 +143,20 @@ Start the service:
 systemctl restart redis.service
 ```
 
+or if you installed valkey
+
+```sh
+systemctl restart valkey.service
+```
+
 Ensure it's working:
 
 ```console
 $ redis-cli ping
 PONG
 ```
+
+If you installed the valkey-compat-redis package, then `redis-cli` will be installed as a compatibility script.
 
 ### Fetching the Code
 
@@ -395,10 +418,10 @@ If you are running `xo-server` as a non-root user, you need to use `sudo` to be 
 useSudo = true
 ```
 
-You need to configure `sudo` to allow the user of your choice to run mount/umount commands without asking for a password. 
+You need to configure `sudo` to allow the user of your choice to run mount/umount commands without asking for a password.
 
 :::tip
-Depending on your operating system or `sudo` version, the location of this configuration may change. 
+Depending on your operating system or `sudo` version, the location of this configuration may change.
 
 Regardless, you can use:
 
