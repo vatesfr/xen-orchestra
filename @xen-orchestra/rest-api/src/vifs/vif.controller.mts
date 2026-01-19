@@ -174,7 +174,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example vmId "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example networkId "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
    */
-  @Post('create_vif')
+  @Post('')
   @Middlewares(json())
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
@@ -225,7 +225,7 @@ export class VifController extends XapiXoController<XoVif> {
    * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example vifId "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
    */
-  @Delete('destroy_vif')
+  @Delete('')
   @SuccessResponse(createdResp.status, createdResp.description)
   @Response(asynchronousActionResp.status, asynchronousActionResp.description)
   @Response(notFoundResp.status, notFoundResp.description)
