@@ -1,6 +1,10 @@
 import type { XoAlarm, XoHost, XoSr, XoUser, XoVm, XoVmBackupArchive, XoVmBackupJob } from '@vates/types'
 import { Unbrand } from '../open-api/common/response.common.mjs'
 
+export interface UpdateVmBody {
+  secureBoot?: boolean
+}
+
 type VmDashboardRun = { backupJobId: XoVmBackupJob['id']; timestamp: number; status: string }
 type VmDashboardBackupArchive = {
   id: XoVmBackupArchive['id']

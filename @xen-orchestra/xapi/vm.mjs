@@ -794,6 +794,14 @@ class Vm {
 
     await this.callAsync(`VM.${force ? 'hard' : 'clean'}_reboot`, vmRef)
   }
+
+  async set_platform(vmRef, key, value) {
+    await this.call('VM.remove_from_platform', vmRef, key)
+
+    if (value !== null) {
+      await this.call('VM.add_to_platform', vmRef, key, value)
+    }
+  }
 }
 export default Vm
 

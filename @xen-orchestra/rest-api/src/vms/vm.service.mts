@@ -416,4 +416,10 @@ export class VmService {
       },
     }
   }
+
+  async updateVmSecureBoot(id: XoVm['id'], secureBoot: boolean): Promise<void> {
+    const vm = this.#restApi.getXapiObject<XoVm>(id, 'VM')
+    const value = secureBoot ? 'true' : null
+    await vm.$xapi.VM_set_platform(vm.$ref, 'secureboot', value)
+  }
 }

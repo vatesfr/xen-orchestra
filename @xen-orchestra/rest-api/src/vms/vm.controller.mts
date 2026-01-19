@@ -1,6 +1,7 @@
 import {
   Example,
   Get,
+  Patch,
   Path,
   Post,
   Query,
@@ -13,8 +14,9 @@ import {
   Body,
   Put,
   Delete,
+  Middlewares,
 } from 'tsoa'
-import { Request as ExRequest } from 'express'
+import { Request as ExRequest, json } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
@@ -58,7 +60,7 @@ import { BackupJobService } from '../backup-jobs/backup-job.service.mjs'
 import type { UnbrandXoVmBackupJob } from '../backup-jobs/backup-job.type.mjs'
 import { partialVmBackupJobs, vmBackupJobIds } from '../open-api/oa-examples/backup-job.oa-example.mjs'
 import { messageIds, partialMessages } from '../open-api/oa-examples/message.oa-example.mjs'
-import type { UnbrandedVmDashboard } from './vm.type.mjs'
+import type { UnbrandedVmDashboard, UpdateVmBody } from './vm.type.mjs'
 import type { CreateActionReturnType } from '../abstract-classes/base-controller.mjs'
 
 const IGNORED_VDIS_TAG = '[NOSNAP]'
@@ -149,6 +151,19 @@ export class VmController extends XapiXoController<XoVm> {
   async deleteVm(@Path() id: string): Promise<void> {
     const xapiVm = this.getXapiObject(id as XoVm['id'])
     await xapiVm.$xapi.VM_destroy(xapiVm.$ref)
+  }
+
+  /**
+   * @example id "f07ab729-c0e8-721c-45ec-f11276377030"
+   * @example body { "secureBoot": true }
+   */
+  @Patch('{id}/secureboot')
+  @Middlewares(json())
+  @SuccessResponse(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(forbiddenOperationResp.status, forbiddenOperationResp.description)
+  async updateVmSecureBoot(@Path() id: string, @Body() body: UpdateVmBody): Promise<void> {
+    await this.#vmService.updateVmSecureBoot(id as XoVm['id'], body.secureBoot ?? false)
   }
 
   /**

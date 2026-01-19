@@ -202,6 +202,7 @@ export interface Xapi {
       forceDeleteDefaultTemplate?: boolean
     }
   ): Promise<void>
+  VM_set_platform(vmRef: XenApiVm['$ref'], key: string, value: string | null): Promise<void>
   getResource(
     pathname: string,
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }

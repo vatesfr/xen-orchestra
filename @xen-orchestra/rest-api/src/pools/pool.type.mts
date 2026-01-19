@@ -58,6 +58,7 @@ export type CreateVmBody = Omit<
     /** VDI ID for cdrom method. Empty string for network method */
     repository: string | ''
   }
+  secureBoot?: boolean
 } & CreateVmAfterCreateParams
 
 export type PoolDashboard = {
