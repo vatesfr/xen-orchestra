@@ -48,6 +48,7 @@
 
 - @vates/types minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
