@@ -231,7 +231,7 @@ export class VifController extends XapiXoController<XoVif> {
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async destroyVif(@Query() vifId: string): Promise<void> {
-    const xapi = this.getXapi(vifId as XoVm['id'])
+    const xapi = this.getXapi(vifId as XoVif['id'])
     await xapi.deleteVif(vifId)
   }
 }
