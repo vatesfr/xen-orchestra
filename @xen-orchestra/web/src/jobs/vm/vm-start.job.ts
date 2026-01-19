@@ -1,24 +1,31 @@
+import { useXoTaskUtils } from '@/composables/xo-task-utils.composable'
 import { vmsArg } from '@/jobs/args'
+import { fetchPost } from '@/utils/fetch.util'
 import { isVmOperatingPending } from '@/utils/xo-records/vm.util'
 import { defineJob, JobError, JobRunningError } from '@core/packages/job'
-import { VM_OPERATIONS, VM_POWER_STATE, type XoVm } from '@vates/types'
-import { useFetch } from '@vueuse/core'
+import { VM_OPERATIONS, VM_POWER_STATE, type XoTask, type XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
 export const useVmStartJob = defineJob('vm.start', [vmsArg], () => {
   const { t } = useI18n()
+  const { monitorTask } = useXoTaskUtils()
 
   return {
     async run(vms: XoVm[]) {
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         vms.map(async vm => {
-          const { error } = await useFetch(`/rest/v0/vms/${vm.id}/actions/start?sync=false`, { method: 'POST' }).json()
-
-          if (error.value) {
-            throw new Error(error.value.message)
-          }
+          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`/rest/v0/vms/${vm.id}/actions/start`)
+          await monitorTask(taskId)
         })
       )
+
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(`Failed to start VM ${vms[index].name_label}:`, result.reason)
+        }
+      })
+
+      return results
     },
 
     validate(isRunning, vms?: XoVm[]) {
