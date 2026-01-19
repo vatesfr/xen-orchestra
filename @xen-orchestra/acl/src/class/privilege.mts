@@ -145,21 +145,29 @@ export class Privilege<T extends SupportedResource> {
   #action: TPrivilege<T>['action']
   #selector?: TPrivilege<T>['selector']
   #resource: TPrivilege<T>['resource']
+  #effect: TPrivilege<T>['effect']
 
   constructor({
     action,
     selector,
     resource,
+    effect,
   }: {
     action: TPrivilege<T>['action']
     selector?: TPrivilege<T>['selector']
     resource: TPrivilege<T>['resource']
+    effect: TPrivilege<T>['effect']
   }) {
     Privilege.checkActionIsValid(resource, action)
 
     this.#action = action
     this.#selector = selector
     this.#resource = resource
+    this.#effect = effect
+  }
+
+  get effect() {
+    return this.#effect
   }
 
   #matchAction<Resource extends SupportedResource = T>(action: SupportedActions<Resource>) {

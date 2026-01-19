@@ -14,7 +14,7 @@ type AnyPrivilegeOnParam = {
     user: XoUser
     resource: Resource
     action: SupportedActions<Resource>
-    objects: unknown | unknown[]
+    objects: object | object[]
   }
 }[SupportedResource]
 
@@ -54,12 +54,11 @@ export function hasPrivilegeOn<T extends SupportedResource>({
   user: XoUser
   resource: T
   action: SupportedActions<T>
-  objects: unknown | unknown[]
+  objects: object | object[]
   userPrivileges: AnyPrivilege[]
 }) {
   // Function that will be called outside of the module
   // We cannot be sure types are respected
-  console.log(user, action, resource, objects)
   assert.strictEqual(typeof user?.permission, 'string')
   assert.strictEqual(typeof action, 'string')
   assert.strictEqual(typeof resource, 'string')
@@ -71,22 +70,28 @@ export function hasPrivilegeOn<T extends SupportedResource>({
     return true
   }
 
-  const arrayObjects = Array.isArray(objects) ? objects : [objects]
+  const effectsByObject = new Map<object, Privilege<T>['effect'][]>()
+  if (Array.isArray(objects)) {
+    objects.forEach(obj => effectsByObject.set(obj, []))
+  } else {
+    effectsByObject.set(objects, [])
+  }
 
-  return arrayObjects.every(object => {
-    const privilegesThatMatch = userPrivileges.filter(userPrivilege => {
-      return new CPrivilege(userPrivilege as Privilege<typeof userPrivilege.resource>).match({
-        action,
-        resource,
-        object,
-      })
-    })
-    if (privilegesThatMatch.length === 0 || privilegesThatMatch.some(p => p.effect === 'deny')) {
-      return false
+  for (const userPrivilege of userPrivileges) {
+    const privilege = new CPrivilege(userPrivilege as Privilege<typeof userPrivilege.resource>)
+
+    for (const [object, effects] of effectsByObject.entries()) {
+      if (!privilege.match({ action, resource, object })) {
+        continue
+      }
+      effects.push(privilege.effect)
     }
+  }
 
-    return true
-  })
+  if (effectsByObject.values().some(effects => effects.length === 0 || effects.some(effect => effect === 'deny'))) {
+    return false
+  }
+  return true
 }
 
 export function getMissingPrivileges(params: AnyPrivilegeOnParam[], userPrivileges: AnyPrivilege[]) {
@@ -106,7 +111,7 @@ export function hasPrivileges(params: AnyPrivilegeOnParam[], userPrivileges: Any
   return getMissingPrivileges(params, userPrivileges).length === 0
 }
 
-export function filterObjectsWithPrivilege<Resource extends SupportedResource, Object>(param: {
+export function filterObjectsWithPrivilege<Resource extends SupportedResource, Object extends object>(param: {
   user: XoUser
   resource: Resource
   action: SupportedActions<Resource>

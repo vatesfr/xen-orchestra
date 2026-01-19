@@ -8,7 +8,6 @@ import type { Privilege as TPrivilege } from '../index.mjs'
 import { filterObjectsWithPrivilege, getMissingPrivileges, hasPrivilegeOn, hasPrivileges } from '../index.mjs'
 
 suite('Privilege.checkActionIsValid behavior', () => {
-  console.log('suite setup')
   test('throw on invalid resource', () => {
     // @ts-expect-error test invalid action
     assert.throws(() => Privilege.checkActionIsValid('foo', 'read'))
@@ -25,7 +24,7 @@ suite('Privilege.checkActionIsValid behavior', () => {
 })
 
 suite('Privilege.match behavior', () => {
-  const privilege = new Privilege({ action: 'read', resource: 'vm' })
+  const privilege = new Privilege({ action: 'read', resource: 'vm', effect: 'allow' })
   const object = { id: 1, name_label: 'foo' }
 
   test('Should not match because of the action', () => {
@@ -41,17 +40,17 @@ suite('Privilege.match behavior', () => {
   })
 
   test('Should match even if the action is not equal to the action privilege', () => {
-    const shutdownPrivilege = new Privilege({ action: 'shutdown', resource: 'vm' })
+    const shutdownPrivilege = new Privilege({ action: 'shutdown', resource: 'vm', effect: 'allow' })
     assert.strictEqual(shutdownPrivilege.match({ resource: 'vm', action: 'shutdown:clean', object }), true)
   })
 
   test('Should match because the action is *', () => {
-    const vmPrivilege = new Privilege({ action: '*', resource: 'vm' })
+    const vmPrivilege = new Privilege({ action: '*', resource: 'vm', effect: 'allow' })
     assert.strictEqual(vmPrivilege.match({ action: 'reboot:hard', resource: 'vm', object: object }), true)
   })
 
   test('Should not match due to insufficient privilege', () => {
-    const cleanShutdownPrivilege = new Privilege({ action: 'shutdown:clean', resource: 'vm' })
+    const cleanShutdownPrivilege = new Privilege({ action: 'shutdown:clean', resource: 'vm', effect: 'allow' })
     assert.strictEqual(cleanShutdownPrivilege.match({ resource: 'vm', action: 'shutdown', object }), false)
   })
 })
