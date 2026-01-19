@@ -13,9 +13,8 @@ import {
   Body,
   Put,
   Delete,
-  Middlewares,
 } from 'tsoa'
-import { Request as ExRequest, json } from 'express'
+import { Request as ExRequest } from 'express'
 import { inject } from 'inversify'
 import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { provide } from 'inversify-binding-decorators'
@@ -31,9 +30,6 @@ import type {
   XoVm,
   XoVmSnapshot,
   XoMessage,
-  VIF_LOCKING_MODE,
-  XenApiVif,
-  XenApiNetwork,
 } from '@vates/types'
 import { PassThrough, Readable } from 'node:stream'
 
@@ -692,96 +688,5 @@ export class VmController extends XapiXoController<XoVm> {
     } finally {
       stream?.end()
     }
-  }
-
-  /**
-   * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
-   * @example networkId "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
-   */
-  @Post('{id}/actions/create_vif')
-  @Middlewares(json())
-  @SuccessResponse(createdResp.status, createdResp.description)
-  @Response(asynchronousActionResp.status, asynchronousActionResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
-  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async createVif(
-    @Path() id: string,
-    @Query() networkId: string,
-    @Body()
-    body: {
-      currently_attached: boolean
-      device?: string
-      ipv4_allowed: string[]
-      ipv6_allowed: string[]
-      locking_mode: VIF_LOCKING_MODE
-      MTU: number
-      other_config: Record<string, string>
-      qos_algorithm_params: Record<string, string>
-      qos_algorithm_type: string
-      MAC: string
-    },
-    @Query() sync?: boolean
-  ): CreateActionReturnType<XenApiVif['$ref']> {
-    const vmId = id as XoVm['id']
-    const action = async () => {
-      const xapi = this.getXapi(vmId)
-      const vm = this.getObject(vmId)
-      const network = this.#vmService.getNetwork(networkId)
-
-      return xapi.VIF_create(
-        {
-          currently_attached: body.currently_attached,
-          device: body.device ?? undefined,
-          ipv4_allowed: body.ipv4_allowed,
-          ipv6_allowed: body.ipv6_allowed,
-          locking_mode: body.locking_mode,
-          MTU: body.MTU,
-          network: network._xapiRef as XenApiNetwork['$ref'],
-          other_config: body.other_config,
-          qos_algorithm_params: body.qos_algorithm_params,
-          qos_algorithm_type: body.qos_algorithm_type,
-          VM: vm._xapiRef as XenApiVm['$ref'],
-        },
-        {
-          MAC: body.MAC,
-        }
-      )
-    }
-
-    return this.createAction<XenApiVif['$ref']>(action, {
-      sync,
-      statusCode: createdResp.status,
-      taskProperties: {
-        name: 'create vif',
-        objectId: vmId,
-        args: body,
-      },
-    })
-  }
-
-  /**
-   * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
-   * @example vifId "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
-   */
-  @Post('{id}/actions/destroy_vif')
-  @SuccessResponse(createdResp.status, createdResp.description)
-  @Response(asynchronousActionResp.status, asynchronousActionResp.description)
-  @Response(notFoundResp.status, notFoundResp.description)
-  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async destroyVif(@Path() id: string, @Query() vifId: string, @Query() sync?: boolean): CreateActionReturnType<void> {
-    const vmId = id as XoVm['id']
-    const action = async () => {
-      const xapi = this.getXapi(vmId)
-      await xapi.deleteVif(vifId)
-    }
-
-    return this.createAction<void>(action, {
-      sync,
-      statusCode: createdResp.status,
-      taskProperties: {
-        name: 'create vif',
-        objectId: vmId,
-      },
-    })
   }
 }
