@@ -182,6 +182,7 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
   // with the same vm_uuid and job_uuid
   //   for cbt_metadata list them unconditionnaly to remove older one
   //   for other: only list them if they are attached to a VM snapshot
+  //  and if this vm snapshot is also part of the backup
   //   ensure they are attached to only one vm snapshot
   //   ensure any VM-snapshot harvested by this has all its disk harvested (no mix of vdi snapshot from this job and not)
 
@@ -239,6 +240,23 @@ export const AbstractXapi = class AbstractXapiVmBackupRunner extends Abstract {
       if (vm.$snapshot_of === undefined) {
         warn(
           `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a non snapshot vm ${vm.name_label} ${vm.uuid}. 
+          This disk snapshot will be excluded from the backup cleaning`,
+          { vdi, vm }
+        )
+        delete vdiCandidates[vdi.uuid]
+        continue
+      }
+
+      // vdi is attached only to a snapshot that is not a backup snapshot
+      // we don't check scheduleId since we are looking for all the snapshot of this job
+      // => excludes from the list to be cleared
+      if (
+        vm.other_config[DATETIME] !== vdi.other_config[DATETIME] ||
+        vm.other_config[JOB_ID] !== vdi.other_config[JOB_ID] ||
+        vm.other_config[VM_UUID] !== vdi.other_config[VM_UUID]
+      ) {
+        warn(
+          `vdi ${vdi.name_label} (${vdi.uuid}) is a snapshot linked to a snapshot vm ${vm.name_label} ${vm.uuid} out of this backup job scope. 
           This disk snapshot will be excluded from the backup cleaning`,
           { vdi, vm }
         )
