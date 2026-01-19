@@ -1,5 +1,6 @@
 import { createPredicate } from 'value-matcher'
 import type { Privilege as TPrivilege } from '../index.mjs'
+import { SUPPORTED_ACTIONS_BY_RESOURCE } from '../actions/index.mjs'
 
 /**
  * E.g
@@ -26,120 +27,6 @@ export type SupportedResource = keyof typeof SUPPORTED_ACTIONS_BY_RESOURCE
 export type SupportedActions<T extends SupportedResource> =
   | (GetKeysRecursively<(typeof SUPPORTED_ACTIONS_BY_RESOURCE)[T]> & string)
   | '*'
-
-/**
- * value without sub action like 'shutdown' mean: 'shutdown:*' (so shutdown mean you can shutdown:clean and shutdown:hard)
- */
-const SUPPORTED_ACTIONS_BY_RESOURCE = {
-  sr: {
-    read: true,
-  },
-  vdi: {
-    read: true,
-    create: true,
-    boot: true,
-  },
-  'vdi-snapshot': {
-    read: true,
-  },
-  vbd: {
-    read: true,
-  },
-  vm: {
-    read: true,
-    start: true,
-    shutdown: {
-      clean: true,
-      hard: true,
-    },
-    reboot: {
-      clean: true,
-      hard: true,
-    },
-    pause: true,
-    suspend: true,
-    resume: true,
-    unpause: true,
-  },
-  'vm-template': {
-    read: true,
-    instantiate: true,
-  },
-  'vm-snapshot': {
-    read: true,
-  },
-  'vm-controller': {
-    read: true,
-  },
-  vif: {
-    read: true,
-    create: true,
-  },
-  network: {
-    read: true,
-  },
-  pif: {
-    read: true,
-  },
-  host: {
-    read: true,
-    'allow-vm': true,
-  },
-  pbd: {
-    read: true,
-  },
-  pool: {
-    read: true,
-  },
-  message: {
-    read: true,
-  },
-  pci: {
-    read: true,
-  },
-  pgpu: {
-    read: true,
-  },
-  sm: {
-    read: true,
-  },
-  alarm: {
-    read: true,
-  },
-  'backup-archive': {
-    read: true,
-  },
-  'backup-job': {
-    read: true,
-  },
-  'backup-log': {
-    read: true,
-  },
-  'backup-repository': {
-    read: true,
-  },
-  group: {
-    read: true,
-  },
-  proxy: {
-    read: true,
-  },
-  'restore-log': {
-    read: true,
-  },
-  schedule: {
-    read: true,
-  },
-  server: {
-    read: true,
-  },
-  task: {
-    read: true,
-  },
-  user: {
-    read: true,
-  },
-} as const
 
 export class Privilege<T extends SupportedResource> {
   #action: TPrivilege<T>['action']
