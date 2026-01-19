@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { asyncEach } from '@vates/async-each'
 import { VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
-import assert from 'node:assert'
+import { DEFAULT_BLOCK_SIZE } from '../_constants.js'
 
 /**
  * @typedef {Object} VhdRemoteTarget
@@ -53,15 +53,26 @@ export class DiskConsumerVhdDirectory extends BaseVhd {
       const vhd = new VhdDirectory(handler, dataPath, { flags, compression })
       vhd.footer = unpackFooter(this.computeVhdFooter())
       vhd.header = unpackHeader(this.computeVhdHeader())
+      /**
+       * @type {import('@xen-orchestra/disk-transform').DiskBlock | null}
+       */
+      let truncatedBlock = null
+      const EXPECTED_FULL_BUFFER_SIZE = DEFAULT_BLOCK_SIZE + FULL_BLOCK_BITMAP.length
       await asyncEach(
         generator,
         async ({ index, data }) => {
-          assert.strictEqual(
-            data.length,
-            2 * 1024 * 1024,
-            `Expecting a ${2 * 1024 * 1024} bytes block, got a ${data.length}, for index ${index}`
-          )
-          await vhd.writeEntireBlock({ id: index, buffer: Buffer.concat([FULL_BLOCK_BITMAP, data]) })
+          if (truncatedBlock !== null) {
+            throw new Error(
+              `Expecting a ${DEFAULT_BLOCK_SIZE} bytes block, got a ${truncatedBlock.data.length}, for index ${truncatedBlock.index}`
+            )
+          }
+          if (data.length < DEFAULT_BLOCK_SIZE) {
+            truncatedBlock = { data, index }
+          }
+          await vhd.writeEntireBlock({
+            id: index,
+            buffer: Buffer.concat([FULL_BLOCK_BITMAP, data], EXPECTED_FULL_BUFFER_SIZE),
+          })
         },
         { concurrency }
       )
