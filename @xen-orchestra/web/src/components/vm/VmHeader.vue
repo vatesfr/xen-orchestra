@@ -10,7 +10,7 @@
       </UiLink>
       <MenuList placement="bottom-end">
         <template #trigger="{ open }">
-          <UiDropdownButton @click="open($event)">{{ t('change-state') }}</UiDropdownButton>
+          <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>
         <VmActions :vm />
       </MenuList>
