@@ -88,7 +88,11 @@ export function hasPrivilegeOn<T extends SupportedResource>({
     }
   }
 
-  if (effectsByObject.values().some(effects => effects.length === 0 || effects.some(effect => effect === 'deny'))) {
+  if (
+    Array.from(effectsByObject.values()).some(
+      effects => effects.length === 0 || effects.some(effect => effect === 'deny')
+    )
+  ) {
     return false
   }
   return true
