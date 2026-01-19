@@ -29,3 +29,7 @@ export type AuthenticatedRequest = Request & {
     }
   }
 }
+
+export type IsEmptyData = { isEmpty: true }
+
+export type IsMaybeExpired<T> = T & { isExpired?: true }

@@ -94,6 +94,10 @@ module.exports = async function info(args) {
     return `Displays infos on one or more VHDs.
     Usage: ${this.command} <remote URL> <VHD path on remote> <another VHD path (optional)> ...`
   }
+  const unexpectedArgs = args.filter(arg => arg.startsWith('-'))
+  if (unexpectedArgs.length > 0) {
+    return `Option${unexpectedArgs.length > 1 ? 's' : ''} ${unexpectedArgs} unsupported, use --help for details.`
+  }
 
   await Disposable.use(getSyncedHandler({ url: args.shift() }), async handler => {
     if (args.length === 1) {

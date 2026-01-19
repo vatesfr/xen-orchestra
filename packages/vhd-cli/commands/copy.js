@@ -8,8 +8,11 @@ const getopts = require('getopts')
 module.exports = async function copy(rawArgs) {
   const {
     directory,
+    d,
     help,
+    h,
     _: args,
+    ...unexpectedArgs
   } = getopts(rawArgs, {
     alias: {
       directory: 'd',
@@ -24,6 +27,10 @@ module.exports = async function copy(rawArgs) {
   if (args.length < 4 || help) {
     return `Copies a VHD. Use --directory if copied VHD is a VHD direcory.
     Usage: ${this.command} <sourceRemoteUrl> <source VHD> <destinationRemoteUrl> <destination> [--directory]`
+  }
+  const unexpectedArgsList = Object.keys(unexpectedArgs)
+  if (unexpectedArgsList.length > 0) {
+    return `Option${unexpectedArgsList.length > 1 ? 's' : ''} ${unexpectedArgsList} unsupported, use --help for details.`
   }
   const [sourceRemoteUrl, sourcePath, destRemoteUrl, destPath] = args
 

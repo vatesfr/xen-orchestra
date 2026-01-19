@@ -16,6 +16,7 @@ import {
   Delete,
 } from 'tsoa'
 import { inject } from 'inversify'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { PassThrough } from 'node:stream'
 import { provide } from 'inversify-binding-decorators'
 import { json, type Request as ExRequest, type Response as ExResponse } from 'express'
@@ -28,6 +29,7 @@ import {
   createdResp,
   featureUnauthorized,
   internalServerErrorResp,
+  invalidParameters as invalidParametersResp,
   noContentResp,
   notFoundResp,
   unauthorizedResp,
@@ -485,5 +487,50 @@ export class PoolController extends XapiXoController<XoPool> {
     const tasks = await this.getTasksForObject(id as XoPool['id'], { filter, limit })
 
     return this.sendObjects(Object.values(tasks), req, 'tasks')
+  }
+
+  /**
+   * Reconfigure the management interface for all hosts in the pool to use the given network.
+   *
+   * Each host in the pool will switch their management interface to a PIF on the specified network.
+   * The PIFs on the target network must already have IP addresses configured.
+   *
+   * @example id "355ee47d-ff4c-4924-3db2-fd86ae629676"
+   * @example body { "network": "c787b75c-3e0d-70fa-d0c3-cbfd382d7e33" }
+   */
+  @Example(taskLocation)
+  @Post('{id}/actions/management_reconfigure')
+  @Middlewares(json())
+  @SuccessResponse(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Response(noContentResp.status, noContentResp.description)
+  @Response(notFoundResp.status, notFoundResp.description)
+  @Response(badRequestResp.status, badRequestResp.description)
+  @Response(invalidParametersResp.status, invalidParametersResp.description)
+  @Response(internalServerErrorResp.status, internalServerErrorResp.description)
+  managementReconfigure(
+    @Path() id: string,
+    @Body() body: { network: string },
+    @Query() sync?: boolean
+  ): CreateActionReturnType<void> {
+    const poolId = id as XoPool['id']
+    const action = async () => {
+      const pool = this.getObject(poolId)
+      const network = this.restApi.getObject<XoNetwork>(body.network as XoNetwork['id'], 'network')
+      if (network.$pool !== pool.id) {
+        throw invalidParameters(`the network ${network.uuid} does not belong to pool ${pool.uuid}`)
+      }
+      const xapiPool = this.getXapiObject(poolId)
+      await xapiPool.$xapi.callAsync('pool.management_reconfigure', network._xapiRef)
+    }
+
+    return this.createAction<void>(action, {
+      sync,
+      statusCode: noContentResp.status,
+      taskProperties: {
+        name: 'reconfigure pool management interface',
+        objectId: poolId,
+        args: body,
+      },
+    })
   }
 }
