@@ -7,6 +7,8 @@
 
 > Security fixes and new features should go in this section
 
+- [Backups] Update node-tar dependency to handle CVE-2026-23745 (PR [#9406](https://github.com/vatesfr/xen-orchestra/pull/9406))
+
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
