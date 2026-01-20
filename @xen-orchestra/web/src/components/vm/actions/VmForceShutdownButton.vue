@@ -1,6 +1,6 @@
 <template>
   <MenuItem v-if="canRun || isRunning" icon="fa:plug" :busy="isRunning" @click="hard_shutdown">
-    {{ t('force-shutdown') }}
+    {{ t('action:force-shutdown') }}
   </MenuItem>
 </template>
 

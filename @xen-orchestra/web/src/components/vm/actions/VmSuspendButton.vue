@@ -1,6 +1,6 @@
 <template>
   <MenuItem v-if="canRun || isRunning" icon="fa:moon" :busy="isRunning" @click="suspend">
-    {{ t('suspend') }}
+    {{ t('action:suspend') }}
   </MenuItem>
 </template>
 

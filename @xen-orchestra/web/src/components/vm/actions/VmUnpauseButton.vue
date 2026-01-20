@@ -5,7 +5,7 @@
     :busy="isRunning"
     @click="unpause"
   >
-    {{ t('resume') }}
+    {{ t('action:resume') }}
   </MenuItem>
 </template>
 
