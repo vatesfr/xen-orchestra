@@ -39,5 +39,6 @@
 - @vates/nbd-client patch
 - @vates/types minor
 - @xen-orchestra/rest-api minor
+- vhd-cli patch
 
 <!--packages-end-->
