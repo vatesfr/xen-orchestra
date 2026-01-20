@@ -7,6 +7,8 @@ import { exec } from 'node:child_process'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { format } from 'json-rpc-peer'
 
+import { noop, safeDateFormat } from '../utils.mjs'
+
 function execPromise(command, opts = []) {
   return new Promise((resolve, reject) => {
     exec(command, { maxBuffer: 10 * 1024 * 1024, ...opts }, (error, stdout) => {
@@ -149,3 +151,42 @@ export async function installNbdKitFromSource() {
 
 installNbdKitFromSource.params = {}
 installNbdKitFromSource.permission = 'admin'
+
+async function handleExport(req, res, { disk, format, host, password, user, vm }) {
+  const stream = await this.exportEsxiDisk({ disk, format, host, user, password, vm })
+
+  res.on('close', () => stream.on('error', noop).destroy())
+
+  res.setHeader('content-disposition', 'attachment')
+  stream.pipe(res)
+}
+
+export async function exportDisk({ disk, format = 'qcow2', host, password, user, vm }) {
+  return {
+    $getFrom: await this.registerHttpRequest(
+      handleExport,
+      {
+        disk,
+        format,
+        host,
+        password,
+        user,
+        vm,
+      },
+      {
+        suffix: '/' + encodeURIComponent(`${safeDateFormat(new Date())} - ${vm.name_label}.${format}`),
+      }
+    ),
+  }
+}
+
+exportDisk.params = {
+  format: { type: 'string', optional: true },
+  host: { type: 'string' },
+  password: { type: 'string' },
+  stopSource: { type: 'boolean', optional: true },
+  user: { type: 'string' },
+  vm: { type: 'string' },
+  disk: { type: 'string', optional: true },
+}
+exportDisk.permission = 'admin'
