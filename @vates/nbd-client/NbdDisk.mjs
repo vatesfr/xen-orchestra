@@ -127,6 +127,6 @@ export class NbdDisk extends RandomAccessDisk {
     }
     const blockStart = index * this.getBlockSize()
     const blockEnd = (index + 1) * this.getBlockSize()
-    return this.#dataMap.some(({ offset, length }) => offset + length > blockStart && blockEnd >= offset)
+    return this.#dataMap.some(({ offset, length }) => offset + length > blockStart && offset < blockEnd)
   }
 }
