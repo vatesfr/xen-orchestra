@@ -3,11 +3,15 @@ import { defer as deferrable } from 'golike-defer'
 import { fromEvent } from 'promise-toolbox'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { createLogger } from '@xen-orchestra/log'
 import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
 import { checkVddkDependencies } from '@xen-orchestra/vmware-explorer/checks.mjs'
 import OTHER_CONFIG_TEMPLATE from '../../xapi/other-config-template.mjs'
-import { importDisksFromDatastore } from './importDisksfromDatastore.mjs'
+import { importDisksFromDatastore, importStream } from './importDisksfromDatastore.mjs'
 import { buildDiskChainByNode } from './buildChainByNode.mjs'
+import { finished, PassThrough } from 'node:stream'
+
+const { warn } = createLogger('xo:mixins:vmware')
 
 export default class MigrateVm {
   constructor(app) {
@@ -212,5 +216,54 @@ export default class MigrateVm {
 
   async checkVddkDependencies() {
     return checkVddkDependencies()
+  }
+
+  async exportEsxiDisk({ disk: diskId, format, host, user, password, vm: vmId }) {
+    const esxi = await this.#connectToEsxi(host, user, password, false)
+    const metadata = await Task.run({ properties: { name: `get metadata of ${vmId}` } }, () => {
+      return esxi.getTransferableVmMetadata(vmId)
+    })
+
+    const { disks, powerState, snapshots } = metadata
+
+    const isRunning = powerState !== 'poweredOff'
+
+    const chainsByNodes = await Task.run(
+      { properties: { name: `build disks and snapshots chains for ${vmId}` } },
+      () => {
+        return buildDiskChainByNode(disks, snapshots)
+      }
+    )
+
+    if (!diskId) {
+      throw new Error(`No diskId provided, detected : ${Object.keys(chainsByNodes).join(',')}`)
+    }
+    if (!chainsByNodes[diskId]) {
+      throw new Error(`disk ${diskId} is not in the migrable disks : ${Object.keys(chainsByNodes).join(',')}`)
+    }
+    const chain = chainsByNodes[diskId]
+    if (isRunning) {
+      if (chain.length < 2) {
+        throw new Error(`Can't migrate any data from a running VM without a snapshot`)
+      }
+      chain.pop() // remove the active disk
+    }
+    const disk = chain.pop()
+    const stream = new PassThrough()
+    importStream({ esxi, disk, vmId, format }, source => {
+      source.pipe(stream)
+      return new Promise((resolve, reject) => {
+        finished(source, { writable: false }, error => {
+          error ? reject(error) : resolve()
+        })
+        finished(stream, { readable: false }, error => {
+          error ? reject(error) : resolve()
+        })
+      })
+    }).catch(error => {
+      warn('Error while reading the disk from esxi', warn)
+      throw error
+    })
+    return stream
   }
 }
