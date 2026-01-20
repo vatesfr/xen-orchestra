@@ -1,11 +1,13 @@
 import {
   WrappedXenApiRecord,
   XenApiHost,
+  XenApiNetwork,
   XenApiNetworkWrapped,
   XenApiRecord,
   XenApiSr,
   XenApiTask,
   XenApiVdi,
+  XenApiVif,
   XenApiVm,
   XenApiVmWrapped,
 } from '../xen-api.mjs'
@@ -22,7 +24,7 @@ import type {
   XoVm,
   XoVmTemplate,
 } from '../xo.mjs'
-import type { SUPPORTED_VDI_FORMAT } from '../common.mjs'
+import type { SUPPORTED_VDI_FORMAT, VIF_LOCKING_MODE } from '../common.mjs'
 
 export type XcpPatches = {
   changelog?: {
@@ -207,4 +209,23 @@ export interface Xapi {
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
+  VIF_create(
+    options: {
+      currently_attached: boolean
+      device: string | undefined
+      ipv4_allowed: string[]
+      ipv6_allowed: string[]
+      locking_mode: VIF_LOCKING_MODE
+      MTU: number
+      network: XenApiNetwork['$ref']
+      other_config: Record<string, string>
+      qos_algorithm_params: Record<string, string>
+      qos_algorithm_type: string
+      VM: XenApiVm['$ref']
+    },
+    MAC: {
+      MAC: string
+    }
+  ): Promise<XenApiVif['$ref']>
+  deleteVif(vifId: string): Promise<void>
 }
