@@ -14,7 +14,7 @@ export const useVmStartJob = defineJob('vm.start', [vmsArg], () => {
     async run(vms: XoVm[]) {
       const results = await Promise.allSettled(
         vms.map(async vm => {
-          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`/rest/v0/vms/${vm.id}/actions/start`)
+          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/start`)
           await monitorTask(taskId)
         })
       )
