@@ -18,6 +18,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [V2V] Fix `VDI_IO_ERROR` when importing some unaligned disks into a qcow2 storage (PR [#9411](https://github.com/vatesfr/xen-orchestra/pull/9411))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -34,6 +36,7 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
 - @vates/types minor
 - @xen-orchestra/rest-api minor
 
