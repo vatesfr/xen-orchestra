@@ -8,6 +8,12 @@
       <UiLink :href="xo5VmGeneralHref" size="medium">
         {{ t('manage-vm-lifecycle-in-xo-5') }}
       </UiLink>
+      <MenuList placement="bottom-end">
+        <template #trigger="{ open }">
+          <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
+        </template>
+        <VmActions :vm />
+      </MenuList>
     </template>
   </UiHeadBar>
   <TabList>
@@ -55,11 +61,14 @@
 </template>
 
 <script lang="ts" setup>
+import VmActions from '@/components/vm/actions/VmActions.vue'
 import { useXoRoutes } from '@/remote-resources/use-xo-routes.ts'
 import type { VmState } from '@core/types/object-icon.type'
+import MenuList from '@core/components/menu/MenuList.vue'
 import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import TabItem from '@core/components/tab/TabItem.vue'
 import TabList from '@core/components/tab/TabList.vue'
+import UiDropdownButton from '@core/components/ui/dropdown-button/UiDropdownButton.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
 import type { XoVm } from '@vates/types'
