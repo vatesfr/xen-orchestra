@@ -17,6 +17,22 @@
           <UiDropdownButton @click="open($event)">{{ t('action:change-state') }}</UiDropdownButton>
         </template>
         <VmActions :vm />
+        <VmPowerStateActions :vm />
+      </MenuList>
+      <MenuList placement="bottom-end">
+        <template #trigger="{ open }">
+          <UiButtonIcon
+            v-tooltip="{
+              placement: 'left',
+              content: t('more-actions'),
+            }"
+            icon="fa:ellipsis"
+            accent="brand"
+            size="medium"
+            @click="open($event)"
+          />
+        </template>
+        <VmMoreActions :vm />
       </MenuList>
     </template>
   </UiHeadBar>
