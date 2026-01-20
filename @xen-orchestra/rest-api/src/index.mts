@@ -1,12 +1,12 @@
 import * as swaggerUi from 'swagger-ui-express'
 import { createRequire } from 'module'
 import type { Express } from 'express'
+import type { XoApp } from '@vates/types/xo-app'
 
 import genericErrorHandler from './middlewares/generic-error-handler.middleware.mjs'
 import tsoaToXoErrorHandler from './middlewares/tsoa-to-xo-error.middleware.mjs'
 import { RegisterRoutes } from './open-api/routes/routes.js'
 import { setupContainer } from './ioc/ioc.mjs'
-import type { XoApp } from './rest-api/rest-api.type.mjs'
 import { setupApiContext } from './middlewares/authentication.middleware.mjs'
 
 // Avoid using "import from" to import a json file as this requires assert/with and will break compatibility with recent node versions
