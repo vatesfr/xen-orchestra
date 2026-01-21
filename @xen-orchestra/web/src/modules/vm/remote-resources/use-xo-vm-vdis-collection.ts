@@ -1,13 +1,14 @@
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { vdiFields } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
+import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoVdi } from '@vates/types'
 import { toValue } from 'vue'
-import { useXoVbdCollection } from '../../vbd/remote-resources/use-xo-vbd-collection.ts'
-import { vdiFields } from '../../vdi/remote-resources/use-xo-vdi-collection.ts'
 
 export const useXoVmVdisCollection = defineRemoteResource({
-  url: (vmId: string) => `/rest/v0/vms/${vmId}/vdis?fields=${vdiFields.join(',')}`,
+  url: (vmId: string) => `${BASE_URL}/vms/${vmId}/vdis?fields=${vdiFields.join(',')}`,
   initialData: () => [] as XoVdi[],
   watchCollection: watchCollectionWrapper<XoVdi>({
     collectionId: 'vmVdi',

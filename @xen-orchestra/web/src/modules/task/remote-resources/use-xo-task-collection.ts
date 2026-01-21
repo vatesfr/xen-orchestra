@@ -1,6 +1,7 @@
 import { convertTaskToCore } from '@/modules/task/utils/convert-task-to-core.util.ts'
 import { findTaskById } from '@/modules/task/utils/task.util.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
+import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import type { ResourceContext } from '@core/packages/remote-resource/types.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
@@ -50,7 +51,7 @@ export function createTaskCollectionState<TArgs extends any[] = []>(
 }
 
 export const useXoTaskCollection = defineRemoteResource({
-  url: `/rest/v0/tasks?fields=${taskFields.join(',')}`,
+  url: `${BASE_URL}/tasks?fields=${taskFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'task', fields: taskFields }),
   initialData: () => [] as XoTask[],
   state: createTaskCollectionState,

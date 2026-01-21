@@ -1,11 +1,12 @@
 import type { XoDashboard } from '@/modules/site/types/dashboard.type.ts'
+import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { formatSizeRaw } from '@core/utils/size.util.ts'
 import type { Info, Scale } from 'human-format'
 import { computed } from 'vue'
 
 export const useXoSiteDashboard = defineRemoteResource({
-  url: '/rest/v0/dashboard?ndjson=true',
+  url: `${BASE_URL}/dashboard?ndjson=true`,
   stream: true,
   initialData: () => ({}) as XoDashboard,
   state: (dashboard, context) => {

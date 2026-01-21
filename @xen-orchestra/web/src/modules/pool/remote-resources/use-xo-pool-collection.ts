@@ -1,4 +1,5 @@
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
+import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
@@ -22,7 +23,7 @@ const poolFields: (keyof XoPool)[] = [
 ] as const
 
 export const useXoPoolCollection = defineRemoteResource({
-  url: `/rest/v0/pools?fields=${poolFields.join(',')}`,
+  url: `${BASE_URL}/pools?fields=${poolFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'pool', fields: poolFields }),
   initialData: () => [] as XoPool[],
   state: (rawPools, context) => {

@@ -1,6 +1,7 @@
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
+import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { watchCollectionWrapper } from '@/shared/utils/sse.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
@@ -29,7 +30,7 @@ const srFields: (keyof XoSr)[] = [
 ] as const
 
 export const useXoSrCollection = defineRemoteResource({
-  url: `/rest/v0/srs?fields=${srFields.join(',')}`,
+  url: `${BASE_URL}/srs?fields=${srFields.join(',')}`,
   watchCollection: watchCollectionWrapper({ resource: 'SR', fields: srFields }),
   initialData: () => [] as XoSr[],
   state: (rawSrs, context) => {

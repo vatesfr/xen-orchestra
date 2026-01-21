@@ -1,6 +1,9 @@
 import { useXoCollectionState } from '@/shared/composables/xo-collection-state/use-xo-collection-state.ts'
+import { BASE_URL } from '@/shared/utils/fetch.util.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import type { XoBackupRepository, XoVmBackupArchive } from '@vates/types'
+
+const vmBackupArchiveFields: (keyof XoVmBackupArchive)[] = ['id', 'size', 'vm', 'type'] as const
 
 export const useXoVmBackupArchiveCollection = defineRemoteResource({
   url: (backupRepositoriesIds: XoBackupRepository['id'][]) => {
@@ -8,7 +11,7 @@ export const useXoVmBackupArchiveCollection = defineRemoteResource({
       .map(backupRepositoryId => `backup-repository=${backupRepositoryId}`)
       .join('&')
 
-    return `/rest/v0/backup-archives?fields=id,size,vm,type&${queryParamBackupRepositoriesIds}`
+    return `${BASE_URL}/backup-archives?fields=${vmBackupArchiveFields.join(',')}&${queryParamBackupRepositoriesIds}`
   },
   initialData: () => [] as XoVmBackupArchive[],
   state: (rawBackupArchives, context) =>
