@@ -10,6 +10,7 @@
           variant="secondary"
           size="small"
         />
+        <PoolMenu :pool-id="branch.data.id" />
       </template>
     </UiTreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
@@ -22,6 +23,7 @@
 </template>
 
 <script lang="ts" setup>
+import PoolMenu from '@/modules/pool/components/PoolMenu.vue'
 import HostTreeList from '@/modules/treeview/components/HostTreeList.vue'
 import VmTreeList from '@/modules/treeview/components/VmTreeList.vue'
 import type { HostBranch, PoolBranch, VmLeaf } from '@/modules/treeview/types/tree.type.ts'
@@ -34,7 +36,7 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { branch } = defineProps<{
   branch: PoolBranch
 }>()
 
@@ -42,13 +44,11 @@ const { t } = useI18n()
 
 const { runningVms } = useXoVmCollection()
 
-const treeBranches = computed(
-  () => props.branch.children.filter(child => child.discriminator === 'host') as HostBranch[]
-)
+const treeBranches = computed(() => branch.children.filter(child => child.discriminator === 'host') as HostBranch[])
 
-const vmLeaves = computed(() => props.branch.children.filter(child => child.discriminator === 'vm') as VmLeaf[])
+const vmLeaves = computed(() => branch.children.filter(child => child.discriminator === 'vm') as VmLeaf[])
 
 const runningVmsCount = computed(() =>
-  runningVms.value.reduce((vmCount, runningVm) => (runningVm.$pool === props.branch.data.id ? vmCount + 1 : vmCount), 0)
+  runningVms.value.reduce((vmCount, runningVm) => (runningVm.$pool === branch.data.id ? vmCount + 1 : vmCount), 0)
 )
 </script>
