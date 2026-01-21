@@ -855,16 +855,13 @@ export default class Xapi extends XapiBase {
     const host = hostXapi.getObject(hostId)
 
     const accrossPools = vm.$pool !== host.$pool
-    const useStorageMotion =
-      accrossPools ||
-      sr !== undefined ||
-      migrationNetworkId !== undefined ||
-      !isEmpty(mapVifsNetworks) ||
-      !isEmpty(mapVdisSrs)
+    const useStorageMotion = accrossPools || sr !== undefined || !isEmpty(mapVifsNetworks) || !isEmpty(mapVdisSrs)
+
+    const migrationNetwork = migrationNetworkId !== undefined ? hostXapi.getObject(migrationNetworkId) : undefined
 
     if (useStorageMotion) {
       await this._migrateVmWithStorageMotion(vm, hostXapi, host, {
-        migrationNetwork: migrationNetworkId && hostXapi.getObject(migrationNetworkId),
+        migrationNetwork,
         sr,
         mapVdisSrs,
         mapVifsNetworks,
@@ -875,6 +872,7 @@ export default class Xapi extends XapiBase {
       try {
         await this.callAsync('VM.pool_migrate', vm.$ref, host.$ref, {
           force: force ? 'true' : 'false',
+          network: migrationNetwork?.$ref,
         })
       } catch (error) {
         if (error.code !== 'VM_REQUIRES_SR') {
@@ -882,7 +880,7 @@ export default class Xapi extends XapiBase {
         }
 
         // Retry using motion storage.
-        await this._migrateVmWithStorageMotion(vm, hostXapi, host, { force })
+        await this._migrateVmWithStorageMotion(vm, hostXapi, host, { force, migrationNetwork })
       }
     }
   }
