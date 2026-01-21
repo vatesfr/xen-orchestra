@@ -60,11 +60,9 @@ type UnbrandedXoVif = Unbrand<XoVif>
 @provide(VifController)
 export class VifController extends XapiXoController<XoVif> {
   #alarmService: AlarmService
-  #restApi: RestApi
   constructor(@inject(RestApi) restApi: RestApi, @inject(AlarmService) alarmService: AlarmService) {
     super('VIF', restApi)
     this.#alarmService = alarmService
-    this.#restApi = restApi
   }
 
   /**
@@ -196,8 +194,8 @@ export class VifController extends XapiXoController<XoVif> {
     }
   ): Promise<{ vifRef: Unbrand<XenApiVif>['$ref'] }> {
     const xapi = this.getXapi(networkId as XoNetwork['id'])
-    const vm = this.#restApi.getObject<XoVm>(vmId as XoVm['id'], 'VM')
-    const network = this.#restApi.getObject<XoNetwork>(networkId as XoNetwork['id'], 'network')
+    const vm = this.restApi.getObject<XoVm>(vmId as XoVm['id'], 'VM')
+    const network = this.restApi.getObject<XoNetwork>(networkId as XoNetwork['id'], 'network')
 
     const vifRef = await xapi.VIF_create(
       {
@@ -222,16 +220,13 @@ export class VifController extends XapiXoController<XoVif> {
   }
 
   /**
-   * @example id "613f541c-4bed-fc77-7ca8-2db6b68f079c"
-   * @example vifId "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
+   * @example id "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
    */
-  @Delete('')
-  @SuccessResponse(createdResp.status, createdResp.description)
-  @Response(asynchronousActionResp.status, asynchronousActionResp.description)
+  @Delete('{id}')
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
-  async destroyVif(@Query() vifId: string): Promise<void> {
-    const xapi = this.getXapi(vifId as XoVif['id'])
-    await xapi.deleteVif(vifId)
+  async destroyVif(@Path() id: string): Promise<void> {
+    const xapi = this.getXapi(id as XoVif['id'])
+    await xapi.deleteVif(id)
   }
 }
