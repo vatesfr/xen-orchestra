@@ -25,6 +25,7 @@ export type CreateVmAfterCreateParams = {
   network_config?: string
   boot?: boolean
   destroy_cloud_config_vdi?: boolean
+  createVtpm?: boolean
 }
 export type CreateVmBody = Omit<
   CreateVmParams,
