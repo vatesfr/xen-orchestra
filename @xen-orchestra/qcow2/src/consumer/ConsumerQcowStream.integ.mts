@@ -198,7 +198,7 @@ describe('QCOW2 Stream Generation', () => {
     const disk = new MockDisk(
       NB_BLOCKS,
       Array.from({ length: NB_BLOCKS }, (_, i) => i),
-      NB_BLOCKS * 64 * 1024 - 512 // cu short the last block
+      NB_BLOCKS * 64 * 1024 - 512 // cut short the last block
     )
     const tmpFile = join(tmpdir(), `test-unaligned-${Date.now()}.qcow2`)
     try {
