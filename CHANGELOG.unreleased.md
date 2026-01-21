@@ -53,6 +53,7 @@
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
+- @xen-orchestra/xapi patch
 - vhd-cli minor
 - vhd-lib patch
 - xo-server minor
