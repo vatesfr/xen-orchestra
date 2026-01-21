@@ -12,6 +12,9 @@
         @toggle="toggle()"
       >
         {{ pool.name_label || '(Pool)' }}
+        <template #addons>
+          <PoolMenu :master-host="pool.master" />
+        </template>
       </UiTreeItemLabel>
       <template #sublist>
         <VtsTreeList>
@@ -26,6 +29,7 @@
 <script lang="ts" setup>
 import InfraHostItems from '@/components/infra/InfraHostItems.vue'
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
+import PoolMenu from '@/components/pool/PoolMenu.vue'
 import { usePoolStore } from '@/stores/xen-api/pool.store'
 import VtsTreeItem from '@core/components/tree/VtsTreeItem.vue'
 import VtsTreeItemError from '@core/components/tree/VtsTreeItemError.vue'
