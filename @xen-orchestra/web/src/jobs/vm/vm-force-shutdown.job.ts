@@ -6,7 +6,7 @@ import { defineJob, JobError, JobRunningError } from '@core/packages/job'
 import { VM_OPERATIONS, VM_POWER_STATE, type XoTask, type XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'
 
-export const useVmForceRebootJob = defineJob('vm.force-reboot', [vmsArg], () => {
+export const useVmForceShutdownJob = defineJob('vm.force-shutdown', [vmsArg], () => {
   const { t } = useI18n()
   const { monitorTask } = useXoTaskUtils()
 
@@ -14,14 +14,14 @@ export const useVmForceRebootJob = defineJob('vm.force-reboot', [vmsArg], () => 
     async run(vms: XoVm[]) {
       const results = await Promise.allSettled(
         vms.map(async vm => {
-          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/hard_reboot`)
+          const { taskId } = await fetchPost<{ taskId: XoTask['id'] }>(`vms/${vm.id}/actions/hard_shutdown`)
           await monitorTask(taskId)
         })
       )
 
       results.forEach((result, index) => {
         if (result.status === 'rejected') {
-          console.error(`Failed to hard reboot VM ${vms[index].name_label}:`, result.reason)
+          console.error(`Failed to force shutdown VM ${vms[index].name_label}:`, result.reason)
         }
       })
 
@@ -30,15 +30,22 @@ export const useVmForceRebootJob = defineJob('vm.force-reboot', [vmsArg], () => 
 
     validate: (isRunning, vms: XoVm[]) => {
       if (!vms || vms.length === 0) {
-        throw new JobError(t('job:vm-force-reboot:missing-vm'))
+        throw new JobError(t('job:vm-force-shutdown:missing-vm'))
       }
 
-      if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.HARD_REBOOT))) {
-        throw new JobRunningError(t('job:vm-force-reboot:in-progress'))
+      if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.HARD_SHUTDOWN))) {
+        throw new JobRunningError(t('job:vm-force-shutdown:in-progress'))
       }
 
-      if (!vms.every(vm => vm.power_state === VM_POWER_STATE.RUNNING || vm.power_state === VM_POWER_STATE.PAUSED)) {
-        throw new JobError(t('job:vm-force-reboot:bad-power-state'))
+      if (
+        !vms.every(
+          vm =>
+            vm.power_state === VM_POWER_STATE.RUNNING ||
+            vm.power_state === VM_POWER_STATE.SUSPENDED ||
+            vm.power_state === VM_POWER_STATE.PAUSED
+        )
+      ) {
+        throw new JobError(t('job:vm-force-shutdown:bad-power-state'))
       }
     },
   }

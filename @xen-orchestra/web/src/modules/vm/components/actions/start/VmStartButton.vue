@@ -1,5 +1,5 @@
 <template>
-  <MenuItem icon="fa:play" :busy="isRunning" :disabled="!canRun" @click="start">
+  <MenuItem v-if="canRun || isRunning" icon="fa:play" :busy="isRunning" @click="start">
     {{ t('action:start') }}
   </MenuItem>
 </template>

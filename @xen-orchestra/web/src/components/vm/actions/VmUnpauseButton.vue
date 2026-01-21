@@ -1,10 +1,5 @@
 <template>
-  <MenuItem
-    v-if="(vm.power_state === VM_POWER_STATE.PAUSED && canRun) || isRunning"
-    icon="fa:play"
-    :busy="isRunning"
-    @click="unpause"
-  >
+  <MenuItem v-if="(isPaused && canRun) || isRunning" icon="fa:play" :busy="isRunning" @click="unpause">
     {{ t('action:resume') }}
   </MenuItem>
 </template>
@@ -13,6 +8,7 @@
 import { useVmUnpauseJob } from '@/jobs/vm/vm-unpause.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { VM_POWER_STATE, type XoVm } from '@vates/types'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { vm } = defineProps<{
@@ -22,4 +18,6 @@ const { vm } = defineProps<{
 const { t } = useI18n()
 
 const { run: unpause, canRun, isRunning } = useVmUnpauseJob(() => [vm])
+
+const isPaused = computed(() => vm.power_state === VM_POWER_STATE.PAUSED)
 </script>
