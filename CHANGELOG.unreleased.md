@@ -35,6 +35,7 @@
 - [REST API] `/dashboard` return now `{isEmpty: true}` instead of undefined in case there is no data to compute (PR [#9395](https://github.com/vatesfr/xen-orchestra/pull/9395))
 - [Backup] Fix `read xxx bytes, maximum size allowed is yyy` for full backup on S3 (PR [#9396](https://github.com/vatesfr/xen-orchestra/pull/9396))
 - [Backup] Fix disk export stuck at 99% (PR [#9407](https://github.com/vatesfr/xen-orchestra/pull/9407))
+- [REST API] Fix `/vms/:id/actions/start` ignored request body (to start a virtual machine on a specific host) (PR [#9416](https://github.com/vatesfr/xen-orchestra/pull/9416))
 
 - **XO 6:**
   - [Sidebar] Removal borders top and right of sidebar in mobile (PR [#9366](https://github.com/vatesfr/xen-orchestra/pull/9366))
