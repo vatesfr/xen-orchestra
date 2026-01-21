@@ -18,7 +18,7 @@ import groupBy from 'lodash/groupBy.js'
 import pDefer from 'promise-toolbox/defer'
 import pickBy from 'lodash/pickBy.js'
 import reduce from 'lodash/reduce.js'
-import tar from 'tar'
+import * as tar from 'tar'
 import zlib from 'zlib'
 
 import { BACKUP_DIR } from './_getVmBackupDir.mjs'

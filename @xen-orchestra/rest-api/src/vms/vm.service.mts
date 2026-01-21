@@ -56,7 +56,7 @@ export class VmService {
         template: XoVmTemplate['uuid']
       }
   ): Promise<XoVm['id']> {
-    const { pool, template, cloud_config, boot, destroy_cloud_config_vdi, network_config, ...rest } = params
+    const { pool, template, cloud_config, boot, destroy_cloud_config_vdi, network_config, createVtpm, ...rest } = params
     const xoApp = this.#restApi.xoApp
     const xapi = xoApp.getXapi(pool)
     const currentUser = this.#restApi.getCurrentUser()
@@ -64,6 +64,11 @@ export class VmService {
     const xapiVm = await xapi.createVm(template, rest, undefined, currentUser.id)
     $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref))
     const xoVm = this.#restApi.getObject<XoVm>(xapiVm.uuid as XoVm['id'], 'VM')
+
+    if (createVtpm) {
+      const vtpmRef = await xapi.VTPM_create({ VM: xapiVm.$ref })
+      $defer.onFailure(() => xapi.call('VTPM.destroy', vtpmRef))
+    }
 
     let cloudConfigVdi: XenApiVdiWrapped | undefined
     if (cloud_config !== undefined) {

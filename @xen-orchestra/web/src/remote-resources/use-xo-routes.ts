@@ -27,6 +27,7 @@ export const useXoRoutes = defineRemoteResource({
     })
 
     return {
+      routes,
       buildXo5Route,
       hasXoRoutesError: context.hasError,
     }
