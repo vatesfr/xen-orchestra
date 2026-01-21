@@ -56,5 +56,6 @@
 - vhd-cli minor
 - xo-server minor
 - xo-server-openmetrics minor
+- xo-web minor
 
 <!--packages-end-->

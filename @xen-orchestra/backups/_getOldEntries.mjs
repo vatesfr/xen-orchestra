@@ -165,10 +165,6 @@ export function getLtrEntries(entries, longTermRetention, timezone) {
       )
       continue
     }
-    assert.ok(
-      previousTimestamp === -1 || entry.timestamp < previousTimestamp,
-      `entries must be sorted in desc order ${new Date(entry.timestamp)} , previous :  > ${new Date(previousTimestamp)} `
-    )
     // we go through the entries from the last (most recent) to the first (oldest)
     assert.ok(
       previousTimestamp === -1 || entry.timestamp < previousTimestamp,
@@ -213,12 +209,12 @@ export function getEntryStatus(entries, entry, longTermRetention, timezone) {
   return entryBuckets
 }
 
-// returns all entries but the last retention-th
 /**
  * return the entries too old to be kept
- *  if multiple entries are i the same time bucket : keep only the oldest one
- *  if an entry is valid in any of the bucket OR the  minRetentionCount : keep it
- *  if a bucket is completely empty : it does not count as one, thus it may extend the retention
+ *  if multiple entries are in the same time bucket: keep only the oldest one
+ *  if an entry is valid in any of the bucket OR the minRetentionCount: keep it
+ *  if a bucket is completely empty: it does not count as one, thus it may extend the retention
+ * if an entry is within the most recents minRetentionCount entries : keep it
  *
  * @param {number} minRetentionCount - Minimum number of most recent entries to always keep
  * @param {Array<Entry>} entries - Array of entries sorted in descending order by timestamp
@@ -233,9 +229,8 @@ export function getOldEntries(minRetentionCount, entries, { longTermRetention = 
     'number',
     `minRetentionCount must be a number, got ${JSON.stringify(minRetentionCount)}`
   )
-  assert.strictEqual(
+  assert.ok(
     minRetentionCount >= 0,
-    true,
     `minRetentionCount must be a positive number, got ${JSON.stringify(minRetentionCount)}`
   )
   const dateBuckets = getLtrEntries(entries, longTermRetention, timezone)
