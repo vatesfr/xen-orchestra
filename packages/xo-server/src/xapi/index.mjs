@@ -853,11 +853,18 @@ export default class Xapi extends XapiBase {
   ) {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
+    const targetPool = hostXapi.getObject(host.$pool)
 
     const accrossPools = vm.$pool !== host.$pool
     const useStorageMotion = accrossPools || sr !== undefined || !isEmpty(mapVifsNetworks) || !isEmpty(mapVdisSrs)
 
-    const migrationNetwork = migrationNetworkId !== undefined ? hostXapi.getObject(migrationNetworkId) : undefined
+    const defaultMigrationNetworkId = targetPool.other_config['xo:migrationNetwork']
+    const migrationNetwork =
+      migrationNetworkId !== undefined
+        ? hostXapi.getObject(migrationNetworkId)
+        : defaultMigrationNetworkId !== undefined
+          ? hostXapi.getObject(defaultMigrationNetworkId)
+          : undefined
 
     if (useStorageMotion) {
       await this._migrateVmWithStorageMotion(vm, hostXapi, host, {
