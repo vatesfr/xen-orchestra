@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useVmStartJob } from '@/jobs/vm/vm-start.job'
+import { useVmStartJob } from '@/modules/vm/jobs/vm-start.job.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import type { XoVm } from '@vates/types'
 import { useI18n } from 'vue-i18n'

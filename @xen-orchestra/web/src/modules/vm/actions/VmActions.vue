@@ -3,7 +3,7 @@
 </template>
 
 <script lang="ts" setup>
-import VmStartButton from '@/components/vm/actions/VmStartButton.vue'
+import VmStartButton from '@/modules/vm/actions/VmStartButton.vue'
 import type { XoVm } from '@vates/types'
 
 defineProps<{

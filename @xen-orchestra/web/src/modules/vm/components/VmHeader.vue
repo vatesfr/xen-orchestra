@@ -61,7 +61,7 @@
 </template>
 
 <script lang="ts" setup>
-import VmActions from '@/components/vm/actions/VmActions.vue'
+import VmActions from '@/modules/vm/actions/VmActions.vue'
 import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes.ts'
 import type { VmState } from '@core/types/object-icon.type.ts'
 import MenuList from '@core/components/menu/MenuList.vue'
