@@ -628,6 +628,8 @@
   "provisioning": "Provisioning",
   "proxy": "Proxy",
   "proxy-url": "Proxy URL",
+  "public-key": "Public key",
+  "public-key-mandatory": "Public key is mandatory.",
   "pxe": "PXE",
   "query-builder": "Query Builder",
   "query-builder:label": "Search Engine",

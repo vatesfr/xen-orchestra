@@ -34,6 +34,9 @@
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
                     {{ t('no-config') }}
                   </UiRadioButton>
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
+                    {{ t('ssh-key') }}
+                  </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
@@ -48,6 +51,28 @@
                 </template>
               </UiRadioButtonGroup>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
+              <div v-if="vmState.installMode === 'ssh-key'" class="install-ssh-key-container">
+                <div class="install-ssh-key">
+                  <div class="ssh-key-area">
+                    <UiTextarea v-model="vmState.ssh_key" required :accent="isSshKeyEmpty ? 'danger' : 'brand'">
+                      {{ t('public-key') }}
+                      <template v-if="isSshKeyEmpty" #info>
+                        {{ t('public-key-mandatory') }}
+                      </template>
+                    </UiTextarea>
+                  </div>
+                  <UiButton accent="brand" size="medium" variant="secondary" @click="addSshKey()">
+                    {{ t('action:add') }}
+                  </UiButton>
+                  <div class="ssh-chips">
+                    <div v-for="(key, index) in vmState.sshKeys" :key="index" class="ssh-chip-wrapper">
+                      <UiChip accent="info" @remove="removeSshKey(index)">
+                        {{ key }}
+                      </UiChip>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             <!-- SYSTEM SECTION -->
             <UiTitle>{{ t('system') }}</UiTitle>
@@ -199,6 +224,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
+import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -225,6 +251,7 @@ const poolId = useRouteQuery('poolid')
 // Toaster
 const errorMessage = ref('')
 const isToasterOpen = ref(false)
+const isSshKeyEmpty = ref(false)
 
 const { networks, getNetworkById } = useXoNetworkCollection()
 const { getPifsByNetworkId } = useXoPifCollection()
@@ -269,6 +296,22 @@ const vmState = reactive<VmState>({
 const bytesToGiB = (bytes: number) => Math.floor(bytes / 1024 ** 3)
 
 const giBToBytes = (giB: number) => giB * 1024 ** 3
+
+const formatHostname = (hostname: string) => hostname.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '-')
+
+const buildCloudConfig = () => {
+  if (vmState.installMode !== 'ssh-key' || vmState.sshKeys.length === 0) {
+    vmState.cloudConfig = ''
+    return
+  }
+
+  const stringifiedKeys = vmState.sshKeys.map(key => `  - ${key}\n`).join('')
+
+  vmState.cloudConfig = `#cloud-config
+hostname: ${formatHostname(vmState.name)}
+ssh_authorized_keys:
+${stringifiedKeys}`
+}
 
 const ramFormatted = computed({
   get() {
@@ -320,6 +363,20 @@ const addStorageEntry = () => {
 
 const deleteItem = <T,>(array: T[], index: number) => {
   array.splice(index, 1)
+}
+
+const addSshKey = () => {
+  if (!vmState.ssh_key.trim()) {
+    isSshKeyEmpty.value = true
+    return
+  }
+  vmState.sshKeys.push(vmState.ssh_key.trim())
+  vmState.ssh_key = ''
+  isSshKeyEmpty.value = false
+}
+
+const removeSshKey = (index: number) => {
+  vmState.sshKeys.splice(index, 1)
 }
 
 const isDiskTemplate = computed(() => {
@@ -580,12 +637,17 @@ const vmData = computed(() => {
     vdisToSend.length > 0 && { vdis: vdisToSend },
     vifsToSend.value.length > 0 && { vifs: vifsToSend.value },
     vmState.affinity_host && { affinity: vmState.affinity_host },
-    vmState.installMode !== 'no-config' && {
-      install: {
-        method: vmState.installMode,
-        repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
+    vmState.installMode !== 'no-config' &&
+      vmState.installMode !== 'ssh-key' && {
+        install: {
+          method: vmState.installMode,
+          repository: vmState.installMode === 'network' ? '' : vmState.selectedVdi,
+        },
       },
-    }
+    vmState.installMode === 'ssh-key' &&
+      vmState.cloudConfig && {
+        cloud_config: vmState.cloudConfig,
+      }
     // TODO: uncomment when radio will be implemented
     // ...(vmState.installMode === 'custom_config' && {
     //   ...(vmState.cloudConfig && { cloud_config: vmState.cloudConfig }),
@@ -780,6 +842,16 @@ watch(
     }
   }
 )
+
+watch(
+  () => vmState.ssh_key,
+  newValue => {
+    if (newValue.trim() && isSshKeyEmpty.value) {
+      isSshKeyEmpty.value = false
+    }
+  }
+)
+watch(() => [vmState.installMode, vmState.name, vmState.sshKeys], buildCloudConfig)
 </script>
 
 <style scoped lang="postcss">
@@ -820,14 +892,41 @@ watch(
       display: flex;
       flex-direction: column;
       gap: 2.4rem;
-      width: 50%;
-    }
 
     .resource-management-container {
       display: flex;
       gap: 8rem;
     }
   }
+
+    .install-ssh-key-container {
+      margin-block-start: 3rem;
+    }
+
+    .install-ssh-key {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.6rem;
+
+      .ssh-key-area {
+        width: 100%;
+      }
+    }
+
+    .ssh-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-block-end: 1rem;
+      width: 100%;
+
+      .ssh-chip-wrapper {
+        min-width: 0;
+        max-width: 40rem;
+        display: flex;
+      }
+    }
 
   .footer {
     margin-top: auto;
