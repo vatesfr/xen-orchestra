@@ -26,6 +26,7 @@
 - [REST API] Don't return VDI-snapshot for `/vms/:id/vdis` endpoints (PR [#9381](https://github.com/vatesfr/xen-orchestra/pull/9381))
 - [REST API] `/dashboard` return now `{isEmpty: true}` instead of undefined in case there is no data to compute (PR [#9395](https://github.com/vatesfr/xen-orchestra/pull/9395))
 - [Backup] Fix `read xxx bytes, maximum size allowed is yyy` for full backup on S3 (PR [#9396](https://github.com/vatesfr/xen-orchestra/pull/9396))
+- [Backup] Fix disk export stuck at 99% (PR [#9407](https://github.com/vatesfr/xen-orchestra/pull/9407))
 
 - **XO 6:**
   - [Sidebar] Removal borders top and right of sidebar in mobile (PR [#9366](https://github.com/vatesfr/xen-orchestra/pull/9366))
@@ -53,6 +54,7 @@
 - @xen-orchestra/web minor
 - @xen-orchestra/web-core minor
 - vhd-cli minor
+- vhd-lib patch
 - xo-server minor
 - xo-server-openmetrics minor
 
