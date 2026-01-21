@@ -16,6 +16,7 @@
           size="small"
           variant="secondary"
         />
+        <HostMenu :host-ip="host.address" />
       </template>
     </UiTreeItemLabel>
     <template #sublist>
@@ -27,6 +28,7 @@
 </template>
 
 <script lang="ts" setup>
+import HostMenu from '@/components/host/HostMenu.vue'
 import InfraVmItems from '@/components/infra/InfraVmItems.vue'
 import type { XenApiHost } from '@/libs/xen-api/xen-api.types'
 import { useHostStore } from '@/stores/xen-api/host.store'
