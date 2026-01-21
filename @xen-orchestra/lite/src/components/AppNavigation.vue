@@ -67,10 +67,18 @@ const scrollToCurrent = async () => {
 
   const container = navElement.value as HTMLElement | undefined
   const target = container?.querySelector<HTMLElement>(`[data-node-id="${CSS.escape(id)}"]`)
+  const hasChildren = !id.startsWith('vm:')
 
   if (target) {
     useTimeoutFn(async () => {
-      target.scrollIntoView({ block: !id.startsWith('vm:') ? 'start' : 'center', behavior: 'smooth' })
+      if (hasChildren) {
+        target.style.scrollMarginTop = '0.8rem'
+
+        useTimeoutFn(async () => {
+          target.style.scrollMarginTop = ''
+        }, 1000)
+      }
+      target.scrollIntoView({ block: hasChildren ? 'start' : 'center', behavior: 'smooth' })
     }, 200)
   } else {
     useTimeoutFn(async () => {
