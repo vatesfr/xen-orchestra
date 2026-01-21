@@ -3,7 +3,7 @@
 ## **next**
 
 - [VM/New] Fix wording in "Memory" section (PR [#9309](https://github.com/vatesfr/xen-orchestra/pull/9309))
-- [TreeView] Scroll to current item in list view (PR [#9294](https://github.com/vatesfr/xen-orchestra/pull/9294))
+- [TreeView] Scroll to current item in list view (PR [#9332](https://github.com/vatesfr/xen-orchestra/pull/9332))
 
 ## **0.17.0** (2025-11-27)
 
