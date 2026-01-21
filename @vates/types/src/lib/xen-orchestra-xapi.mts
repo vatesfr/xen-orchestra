@@ -9,6 +9,7 @@ import {
   XenApiVdi,
   XenApiVm,
   XenApiVmWrapped,
+  XenApiVtpm,
 } from '../xen-api.mjs'
 import type { OPAQUE_REF_NULL, VBD_MODE, VBD_TYPE } from '../common.mjs'
 import type { PassThrough, Readable } from 'node:stream'
@@ -222,4 +223,5 @@ export interface Xapi {
     params?: { host?: XenApiHost; query?: Record<string, unknown>; task?: boolean | XenApiTask['$ref'] }
   ): Promise<{ body: Readable }>
   isHyperThreadingEnabled(hostId: XoHost['id']): Promise<boolean | null>
+  VTPM_create(params: { VM: XenApiVm['$ref']; is_unique?: boolean; contents?: string }): Promise<XenApiVtpm['$ref']>
 }
