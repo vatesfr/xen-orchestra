@@ -19,6 +19,7 @@
 - [REST API] Add endpoints to reconfigure management interface for hosts and pools (PR [#9369](https://github.com/vatesfr/xen-orchestra/pull/9369))
 - [VM] Add "Change state" button on VM view (PR [#9317](https://github.com/vatesfr/xen-orchestra/pull/9317))
 - [REST API] Add `POST /vbds` endpoint to create a VBD (attach a VDI to a VM) (PR [#9391](https://github.com/vatesfr/xen-orchestra/pull/9391))
+- [TreeView] Scroll to current item in list view (PR [#9268](https://github.com/vatesfr/xen-orchestra/pull/9268))
 
 ### Bug fixes
 
