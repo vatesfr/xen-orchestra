@@ -1,5 +1,5 @@
 <template>
-  <VtsTreeItem v-if="host !== undefined" :expanded="isExpanded" class="infra-host-item">
+  <VtsTreeItem v-if="host !== undefined" :expanded="isExpanded" class="infra-host-item" :node-id="`host:${host.uuid}`">
     <UiTreeItemLabel :route="{ name: '/host/[uuid]', params: { uuid: host.uuid } }" icon="fa:server" @toggle="toggle()">
       {{ host.name_label || '(Host)' }}
       <template #addons>
