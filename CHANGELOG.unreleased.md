@@ -21,6 +21,7 @@
 - [REST API] Add `POST /vbds` endpoint to create a VBD (attach a VDI to a VM) (PR [#9391](https://github.com/vatesfr/xen-orchestra/pull/9391))
 - [TreeView] Scroll to current item in list view (PR [#9268](https://github.com/vatesfr/xen-orchestra/pull/9268))
 - [REST API] Add `createVtpm` parameter to VM creation endpoint (PR [#9412](https://github.com/vatesfr/xen-orchestra/pull/9412))
+- [Backup] show the backup archive that will be kept for Long Term Retention (PR [#9364](https://github.com/vatesfr/xen-orchestra/pull/9364))
 
 ### Bug fixes
 
@@ -55,7 +56,7 @@
 <!--packages-start-->
 
 - @vates/types minor
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/qcow2 patch
 - @xen-orchestra/rest-api minor
 - @xen-orchestra/web minor
@@ -65,5 +66,6 @@
 - vhd-lib patch
 - xo-server minor
 - xo-server-openmetrics minor
+- xo-web minor
 
 <!--packages-end-->
