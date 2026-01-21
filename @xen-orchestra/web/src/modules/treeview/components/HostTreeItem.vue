@@ -19,6 +19,7 @@
           variant="secondary"
           size="small"
         />
+        <HostMenu :host-ip="branch.data.address" />
       </template>
     </UiTreeItemLabel>
     <template v-if="branch.hasChildren" #sublist>
@@ -30,6 +31,7 @@
 </template>
 
 <script lang="ts" setup>
+import HostMenu from '@/modules/host/components/HostMenu.vue'
 import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VmTreeList from '@/modules/treeview/components/VmTreeList.vue'
 import type { HostBranch } from '@/modules/treeview/types/tree.type.ts'
@@ -45,7 +47,7 @@ import { vTooltip } from '@core/directives/tooltip.directive.ts'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-const props = defineProps<{
+const { branch } = defineProps<{
   branch: HostBranch
 }>()
 
@@ -54,12 +56,9 @@ const { t } = useI18n()
 const { isMasterHost } = useXoHostCollection()
 const { runningVms } = useXoVmCollection()
 
-const isMaster = computed(() => isMasterHost(props.branch.data.id))
+const isMaster = computed(() => isMasterHost(branch.data.id))
 
 const runningVmsCount = computed(() =>
-  runningVms.value.reduce(
-    (vmCount, runningVm) => (runningVm.$container === props.branch.data.id ? vmCount + 1 : vmCount),
-    0
-  )
+  runningVms.value.reduce((vmCount, runningVm) => (runningVm.$container === branch.data.id ? vmCount + 1 : vmCount), 0)
 )
 </script>
