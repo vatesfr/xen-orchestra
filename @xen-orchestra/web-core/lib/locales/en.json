@@ -559,7 +559,7 @@
   "pif-status": "PIF status",
   "pifs": "PIFs",
   "pifs-status": "PIFs status",
-  "please-confirm": "Please confirm",
+  "please-confirm-to-continue": "This action cannot be undone. Are you sure you want to continue?",
   "pool": "Pool",
   "pool-connection-error-auth-failed": "An error occurred while connecting to the pool. The username or password appears to be incorrect.",
   "pool-connection-error-duplicate": "An error occurred while connecting to the pool. This pool seems to be already connected.",

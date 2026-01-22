@@ -37,8 +37,8 @@ const isDisabled = computed(() => vms.value.length === 0 || areSomeVmsInExecutio
 const xenApi = useXenApiStore().getXapi()
 
 const openDeleteModal = useModal({
-  component: import('@/components/modals/VmDeleteModal.vue'),
-  props: { count: computed(() => vmRefs.length) },
+  component: import('@core/components/modal/VtsDeleteModal.vue'),
+  props: { count: computed(() => vmRefs.length), type: 'vms' },
   onConfirm: () => xenApi.vm.delete(vmRefs),
 })
 </script>

@@ -443,7 +443,6 @@
   "pif-status": "PIF-status",
   "pifs": "PIF-er",
   "pifs-status": "Status for PIF-er",
-  "please-confirm": "Vennligst bekreft",
   "pool": "Pool",
   "pool-connection-error-auth-failed": "En feil oppstod ved tilkobling til pool-et. Brukernavn eller passord ser ut til å være feil.",
   "pool-connection-error-duplicate": "En feil oppstod ved tilkobling til pool-et. Dette poolet ser allerede ut til å være tilkoblet.",

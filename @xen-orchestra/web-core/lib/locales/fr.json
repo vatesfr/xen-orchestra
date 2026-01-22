@@ -559,7 +559,7 @@
   "pif-status": "Statut du PIF",
   "pifs": "PIFs",
   "pifs-status": "Statut des PIFs",
-  "please-confirm": "Veuillez confirmer",
+  "please-confirm-to-continue": "Cette action ne peut pas être annulée. Êtes-vous sûr de vouloir continuer ?",
   "pool": "Pool",
   "pool-connection-error-auth-failed": "Une erreur s'est produite lors de la connexion au pool. Le nom d'utilisateur ou le mot de passe semble incorrect.",
   "pool-connection-error-duplicate": "Une erreur s'est produite lors de la connexion au pool, il semble déjà être connecté.",

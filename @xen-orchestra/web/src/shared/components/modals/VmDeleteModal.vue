@@ -1,18 +1,17 @@
-<!-- TODO Need to be shared -->
 <template>
   <VtsModal accent="warning" icon="fa:satellite">
     <template #title>
       <I18nT keypath="confirm-delete" scope="global" tag="div">
-        <span class="n-delete">{{ t('n-vms', { n: count }) }}</span>
+        <span class="n-delete">{{ t(`n-${type}`, { n: count }) }}</span>
       </I18nT>
     </template>
     <template #content>
-      {{ t('please-confirm') }}
+      {{ t('please-confirm-to-continue') }}
     </template>
     <template #buttons>
       <VtsModalCancelButton>{{ t('action:go-back') }}</VtsModalCancelButton>
       <VtsModalConfirmButton>
-        {{ t('action:delete-vms', { n: count }) }}
+        {{ t(`action:delete-${type}`, { n: count }) }}
       </VtsModalConfirmButton>
     </template>
   </VtsModal>
@@ -26,6 +25,7 @@ import { useI18n } from 'vue-i18n'
 
 defineProps<{
   count: number
+  type: string
 }>()
 
 const { t } = useI18n()
