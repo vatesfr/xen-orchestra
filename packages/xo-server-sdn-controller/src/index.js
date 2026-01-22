@@ -449,7 +449,7 @@ class SDNController extends EventEmitter {
       {
         rules: {
           ':id': {
-            _post: async req => {
+            _post: async (req, res, next) => {
               await this._addRule({
                 allow: req.body.allow,
                 direction: req.body.direction,
@@ -459,9 +459,9 @@ class SDNController extends EventEmitter {
                 vifId: req.params.id,
               })
 
-              return true
+              res.sendStatus(200)
             },
-            _delete: async req => {
+            _delete: async (req, res, next) => {
               await this._deleteRule({
                 direction: req.body.direction,
                 ipRange: req.body.ipRange,
@@ -470,7 +470,7 @@ class SDNController extends EventEmitter {
                 vifId: req.params.id,
               })
 
-              return true
+              res.sendStatus(200)
             },
           },
         },
