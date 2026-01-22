@@ -1,5 +1,5 @@
 import { defineIconPack, type IconSingleConfig } from '@core/packages/icon'
-import { faSquare as checkboxEmpty, type IconDefinition } from '@fortawesome/free-regular-svg-icons'
+import { faSquare as checkboxEmpty, faCopy, type IconDefinition } from '@fortawesome/free-regular-svg-icons'
 import {
   faAdd,
   faArrowCircleRight,
@@ -15,11 +15,11 @@ import {
   faCircle,
   faClone,
   faClose,
-  faCopy,
   faDownload,
   faEdit,
   faEllipsis,
   faEraser,
+  faFillDrip,
   faHeart,
   faLightbulb,
   faLink,
@@ -42,15 +42,12 @@ function constructIcon(icon: IconDefinition): IconSingleConfig {
   }
 }
 
-export const dsActionIcons = defineIconPack({
+export const actionIcons = defineIconPack({
   menu: constructIcon(faBars),
-
   'pin-panel': constructIcon(faThumbTack),
-
   'pin-panel-hide': constructIcon(faThumbTackSlash),
-
   resize: [
-    // The icon used in the design system is not available in Font Awesome, so we have to build it manually but is not exact same arrow (empty arrow hear and fulfilled arrow in figma)
+    // The icon used in the design system is not available in Font Awesome, so we have to build it manually but is not the exact same arrow
     constructIcon(faArrowsLeftRight),
     {
       icon: faMinus,
@@ -58,13 +55,9 @@ export const dsActionIcons = defineIconPack({
       rotate: 90,
     },
   ],
-
   search: constructIcon(faSearch),
-
   'close-cancel-clear': constructIcon(faClose),
-
   disable: constructIcon(faBan),
-
   'disable-and-evacuate': [
     constructIcon(faBan),
     {
@@ -83,12 +76,10 @@ export const dsActionIcons = defineIconPack({
       icon: faArrowRight,
       color: 'var(--color-neutral-background-primary)',
       translate: [7, 5.5],
-      size: 4.5,
+      size: 6,
     },
   ],
-
   add: constructIcon(faAdd),
-
   'add-circle': [
     {
       icon: faCircle,
@@ -100,21 +91,14 @@ export const dsActionIcons = defineIconPack({
       size: 10,
     },
   ],
-
   remove: constructIcon(faMinus),
-
   force: constructIcon(faBolt),
-
   smart: constructIcon(faLightbulb),
-
   'open-in-new-tab': constructIcon(faArrowUpRightFromSquare),
-
   'open-fullscreen': constructIcon(faUpRightAndDownLeftFromCenter),
-
   screenshot: [
     // faDrawSquare is pro version
     constructIcon(checkboxEmpty),
-
     {
       icon: faCircle,
       color: 'var(--color-neutral-txt-primary)',
@@ -140,31 +124,21 @@ export const dsActionIcons = defineIconPack({
       translate: [-6, 6],
     },
   ],
-
   edit: constructIcon(faEdit),
-
+  fill: constructIcon(faFillDrip),
   duplicate: constructIcon(faClone),
-
   copy: constructIcon(faCopy),
-
   connect: constructIcon(faLink),
-
   disconnect: constructIcon(faLinkSlash),
-
   forget: constructIcon(faEraser),
-
   delete: constructIcon(faTrash),
-
   'more-actions': constructIcon(faEllipsis),
-
   'more-actions-vertical': {
     icon: faEllipsis,
     color: 'var(--color-neutral-txt-primary)',
     rotate: 90,
   },
-
   reboot: constructIcon(faArrowRotateRight),
-
   'reboot-force': [
     constructIcon(faArrowRotateRight),
     {
@@ -183,10 +157,9 @@ export const dsActionIcons = defineIconPack({
       icon: faBolt,
       color: 'var(--color-neutral-background-primary)',
       translate: [7, 5.5],
-      size: 4.5,
+      size: 6,
     },
   ],
-
   'reboot-smart': [
     constructIcon(faArrowRotateRight),
     {
@@ -202,20 +175,12 @@ export const dsActionIcons = defineIconPack({
       size: 10,
     },
   ],
-
   undo: constructIcon(faArrowRotateLeft),
-
   scan: constructIcon(faRefresh),
-
   'change-state': constructIcon(faPowerOff),
-
   migrate: constructIcon(faRoute),
-
   snapshot: constructIcon(faCamera),
-
   download: constructIcon(faDownload),
-
   'health-check': constructIcon(faHeart),
-
   evacuate: constructIcon(faArrowCircleRight),
 })

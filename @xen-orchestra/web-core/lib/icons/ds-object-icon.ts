@@ -1,4 +1,4 @@
-import { dsStatusIcons } from '@core/icons/ds-status-icon'
+import { statusIcons } from '@core/icons/status-icons.ts'
 import { defineIcon, type IconSingleConfig } from '@core/packages/icon'
 import { defineIconPack } from '@core/packages/icon/define-icon-pack.ts'
 import {
@@ -23,7 +23,7 @@ import {
   type IconDefinition,
 } from '@fortawesome/free-solid-svg-icons'
 
-function constructCircleStatus(status: keyof typeof dsStatusIcons): any {
+function constructCircleStatus(status: keyof typeof statusIcons): any {
   return [
     {
       icon: faCircle,
@@ -32,7 +32,7 @@ function constructCircleStatus(status: keyof typeof dsStatusIcons): any {
       size: 13,
     },
     {
-      icon: dsStatusIcons[status],
+      icon: statusIcons[status],
       translate: [7, 5.5],
       size: 10,
     },

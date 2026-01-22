@@ -33,9 +33,8 @@ function constructIcon(icon: IconDefinition): IconSingleConfig {
   }
 }
 
-export const dsStatusIcons = defineIconPack({
+export const statusIcons = defineIconPack({
   running: constructIcon(faPlay),
-
   'running-circle': [
     {
       icon: faCircle,
@@ -48,9 +47,7 @@ export const dsStatusIcons = defineIconPack({
       size: 8,
     },
   ],
-
   paused: constructIcon(faPause),
-
   'paused-circle': [
     {
       icon: faCircle,
@@ -62,9 +59,7 @@ export const dsStatusIcons = defineIconPack({
       size: 8,
     },
   ],
-
   suspended: constructIcon(faMoon),
-
   'suspended-circle': [
     {
       icon: faCircle,
@@ -77,9 +72,7 @@ export const dsStatusIcons = defineIconPack({
       size: 13,
     },
   ],
-
   halted: constructIcon(faSquare),
-
   'halted-circle': [
     {
       icon: faCircle,
@@ -91,7 +84,6 @@ export const dsStatusIcons = defineIconPack({
       size: 7,
     },
   ],
-
   'host-disabled-circle': [
     {
       icon: faCircle,
@@ -103,9 +95,7 @@ export const dsStatusIcons = defineIconPack({
       size: 13,
     },
   ],
-
   info: constructIcon(faInfo),
-
   'info-circle': [
     {
       icon: faCircle,
@@ -117,11 +107,8 @@ export const dsStatusIcons = defineIconPack({
       size: [10, 8],
     },
   ],
-
   'info-picto': constructIcon(faUserAstronaut),
-
   success: constructIcon(faCheck),
-
   'success-circle': [
     {
       icon: faCircle,
@@ -133,9 +120,7 @@ export const dsStatusIcons = defineIconPack({
       size: 10,
     },
   ],
-
   warning: constructIcon(faExclamation),
-
   'warning-circle': [
     {
       icon: faCircle,
@@ -147,9 +132,7 @@ export const dsStatusIcons = defineIconPack({
       size: 10,
     },
   ],
-
   'warning-picto': constructIcon(faSatelliteDish),
-
   'danger-circle': [
     {
       icon: faCircle,
@@ -161,9 +144,7 @@ export const dsStatusIcons = defineIconPack({
       size: 10,
     },
   ],
-
   'danger-picto': constructIcon(faMeteor),
-
   disabled: [
     {
       icon: faCircle,
@@ -175,9 +156,7 @@ export const dsStatusIcons = defineIconPack({
       size: [8, 10],
     },
   ],
-
   checkbox: constructIcon(checkboxEmpty),
-
   'checkbox-checked': [
     {
       icon: faSquare,
@@ -189,7 +168,6 @@ export const dsStatusIcons = defineIconPack({
       color: 'var(--color-brand-item-base)',
     },
   ],
-
   'checkbox-partially-checked': [
     {
       icon: faSquare,
@@ -201,9 +179,7 @@ export const dsStatusIcons = defineIconPack({
       color: 'var(--color-brand-item-base)',
     },
   ],
-
   'radio-button': constructIcon(circleEmpty),
-
   'radio-button-checked': [
     {
       icon: faCircle,
@@ -215,9 +191,7 @@ export const dsStatusIcons = defineIconPack({
       size: 6,
     },
   ],
-
   primary: constructIcon(faStar),
-
   'primary-circle': [
     {
       icon: faCircle,
@@ -229,7 +203,6 @@ export const dsStatusIcons = defineIconPack({
       size: 10,
     },
   ],
-
   'force-circle': [
     {
       icon: faCircle,
@@ -241,7 +214,6 @@ export const dsStatusIcons = defineIconPack({
       size: 10,
     },
   ],
-
   lock: {
     icon: faLock,
     color: 'var(--color-neutral-txt-primary)',
