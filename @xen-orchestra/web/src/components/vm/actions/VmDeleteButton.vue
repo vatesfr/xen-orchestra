@@ -20,8 +20,8 @@ const { t } = useI18n()
 const { run: deleteVM, canRun, isRunning } = useVmDeleteJob(() => [vm])
 
 const openDeleteModal = useModal({
-  component: import('@/components/modals/VmDeleteModal.vue'),
-  props: { count: 1 },
+  component: import('@core/components/modal/VtsDeleteModal.vue'),
+  props: { count: 1, type: 'vms' },
   onConfirm: () => deleteVM(),
 })
 </script>
