@@ -1,6 +1,6 @@
 import { useXoCollectionState } from '@/composables/xo-collection-state/use-xo-collection-state.ts'
 import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import { watchCollectionWrapper } from '@/utils/sse.util'
+import { useWatchCollection } from '@core/composables/watch-collection.composable.ts'
 import { defineRemoteResource } from '@core/packages/remote-resource/define-remote-resource.ts'
 import { sortByNameLabel } from '@core/utils/sort-by-name-label.util.ts'
 import type { XoHost, XoPool } from '@vates/types'
@@ -39,7 +39,7 @@ const hostFields: (keyof XoHost)[] = [
 export const useXoHostCollection = defineRemoteResource({
   url: `/rest/v0/hosts?fields=${hostFields.join(',')}`,
   initialData: () => [] as XoHost[],
-  watchCollection: watchCollectionWrapper({ resource: 'host', fields: hostFields }),
+  initWatchCollection: () => useWatchCollection({ resource: 'host', fields: hostFields }),
   state: (rawHosts, context) => {
     const hosts = useSorted(rawHosts, sortByNameLabel)
 

@@ -1,5 +1,6 @@
+import { useNow } from '@vueuse/core'
 import { defineStore } from 'pinia'
-import { ref, watch as watchVue } from 'vue'
+import { computed, ref, watch as watchVue } from 'vue'
 
 type EventFn = (object: unknown) => void
 export type THandlePost = (sseId: string) => Promise<string>
@@ -18,11 +19,12 @@ export type THandleWatching = (
           }
         >
       }
-    | undefined
+    | undefined,
+  onPing: (ping: number) => void
 ) => void
 
 export const useSseStore = defineStore('sse', () => {
-  const sse = ref<{ id?: string; isWatching: boolean }>({ isWatching: false })
+  const sse = ref<{ id?: string; isWatching: boolean; lastPing?: number }>({ isWatching: false })
   const configsByResource: Map<
     string,
     {
@@ -37,6 +39,18 @@ export const useSseStore = defineStore('sse', () => {
       >
     }
   > = new Map()
+
+  const now = useNow({ interval: 1000 })
+
+  const isError = computed(() => {
+    if (!sse.value.lastPing) {
+      return false
+    }
+
+    return now.value.getTime() - sse.value.lastPing > 32_000
+  })
+
+  const lastPing = computed(() => sse.value.lastPing)
 
   function updateSseId(id: string) {
     sse.value.id = id
@@ -62,9 +76,13 @@ export const useSseStore = defineStore('sse', () => {
         { deep: true }
       )
 
+      function onPing(timestamp: number) {
+        sse.value.lastPing = timestamp
+      }
+
       if (!sse.value.isWatching) {
         sse.value.isWatching = true
-        handleWatching(updateSseId, getConfigsByResource)
+        handleWatching(updateSseId, getConfigsByResource, onPing)
       }
     })
   }
@@ -135,6 +153,10 @@ export const useSseStore = defineStore('sse', () => {
       })
     }
   }
+  // TODO need to be improve
+  function retry() {
+    window.location.reload()
+  }
 
-  return { watch, unwatch }
+  return { watch, unwatch, retry, isError, lastPing }
 })

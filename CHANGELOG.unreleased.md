@@ -25,6 +25,9 @@
 - [Backup] show the backup archive that will be kept for Long Term Retention (PR [#9364](https://github.com/vatesfr/xen-orchestra/pull/9364))
 - [REST API] Add `DELETE /vbds/{id}` endpoint to remove a VBD (PR [#9394](https://github.com/vatesfr/xen-orchestra/pull/9394))
 
+- **XO 6:**
+- [CONNECTION XO-SERVER] Add a banner to the header when the connection to the xo server fails (PR [#9375](https://github.com/vatesfr/xen-orchestra/pull/9375))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
