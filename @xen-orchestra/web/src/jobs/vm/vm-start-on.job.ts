@@ -35,12 +35,12 @@ export const useVmStartOnJob = defineJob('vm.start-on', [vmsArg, hostArg], () =>
         throw new JobError(t('job:vm-start-on:missing-vm'))
       }
 
-      if (!host) {
-        throw new JobError(t('job:vm-start-on:missing-host'))
-      }
-
       if (isRunning || vms.some(vm => isVmOperatingPending(vm, VM_OPERATIONS.START_ON))) {
         throw new JobRunningError(t('job:vm-start-on:in-progress'))
+      }
+
+      if (!host) {
+        throw new JobError(t('job:vm-start-on:missing-host'))
       }
 
       if (vms.some(vm => vm.power_state !== VM_POWER_STATE.HALTED)) {

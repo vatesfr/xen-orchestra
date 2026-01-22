@@ -182,6 +182,8 @@
   "configure-in-xo-5": "Configurer dans XO 5",
   "confirm-cancel?": "Êtes-vous sûr de vouloir annuler ?",
   "confirm-delete": "Vous êtes sur le point de supprimer {0}",
+  "confirm-reboot": "Êtes-vous sûr de vouloir redémarrer {name} ?",
+  "confirm-shutdown": "Êtes-vous sûr de vouloir éteindre {name} ?",
   "connect": "Se connecter",
   "connected": "Connecté",
   "connected-to-ip": "Connecté à {ip}",

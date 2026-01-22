@@ -50,8 +50,6 @@ let clearClickOutsideEvent: (() => void) | undefined
 
 const hasTrigger = useSlots().trigger !== undefined
 
-// const shouldTeleport = hasTrigger && !inject(IK_MENU_TELEPORTED, false)
-
 if (hasTrigger) {
   provide(IK_MENU_TELEPORTED, true)
 }
