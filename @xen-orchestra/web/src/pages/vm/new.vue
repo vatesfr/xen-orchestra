@@ -206,20 +206,20 @@
 </template>
 
 <script lang="ts" setup>
-import NewVmNetworkTable from '@/components/new-vm/NewVmNetworkTable.vue'
-import NewVmSrTable from '@/components/new-vm/NewVmSrTable.vue'
-import { useVmCreateJob } from '@/jobs/vm/vm-create.job'
-import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection.ts'
-import { useXoNetworkCollection } from '@/remote-resources/use-xo-network-collection.ts'
-import { useXoPifCollection } from '@/remote-resources/use-xo-pif-collection.ts'
-import { useXoPoolCollection } from '@/remote-resources/use-xo-pool-collection.ts'
-import { useXoRoutes } from '@/remote-resources/use-xo-routes'
-import { useXoSrCollection } from '@/remote-resources/use-xo-sr-collection.ts'
-import { useXoVbdCollection } from '@/remote-resources/use-xo-vbd-collection.ts'
-import { useXoVdiCollection } from '@/remote-resources/use-xo-vdi-collection.ts'
-import { useXoVifCollection } from '@/remote-resources/use-xo-vif-collection.ts'
-import { useXoVmTemplateCollection } from '@/remote-resources/use-xo-vm-template-collection.ts'
-import type { Vdi, Vif, VifToSend, VmState } from '@/types/xo/new-vm.type'
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
+import { useXoNetworkCollection } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
+import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
+import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
+import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
+import { useXoVdiCollection } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
+import { useXoVifCollection } from '@/modules/vif/remote-resources/use-xo-vif-collection.ts'
+import NewVmNetworkTable from '@/modules/vm/components/new/NewVmNetworkTable.vue'
+import NewVmSrTable from '@/modules/vm/components/new/NewVmSrTable.vue'
+import { useXoVmCreateJob } from '@/modules/vm/jobs/xo-vm-create.job.ts'
+import { useXoVmTemplateCollection } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
+import type { Vdi, Vif, VifToSend, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
+import { useXoRoutes } from '@/shared/remote-resources/use-xo-routes'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'
 import VtsResource from '@core/components/resources/VtsResource.vue'
 import VtsResources from '@core/components/resources/VtsResources.vue'
@@ -655,7 +655,7 @@ const vmData = computed(() => {
 const payload = computed(() => ({ ...vmData.value, poolId: vmState.pool?.id }))
 // TODO: multiple VM creation not possible in the UI for now
 // Only pass a single payload
-const { run, isRunning, canRun } = useVmCreateJob([payload])
+const { run, isRunning, canRun } = useXoVmCreateJob([payload])
 
 const createNewVM = async () => {
   try {

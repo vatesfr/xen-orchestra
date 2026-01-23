@@ -123,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { XCP_LINKS, XO_LINKS } from '@/constants.ts'
+import { XCP_LINKS, XO_LINKS } from '@/shared/constants.ts'
 import VtsColumns from '@core/components/column/VtsColumn.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsInputWrapper from '@core/components/input-wrapper/VtsInputWrapper.vue'

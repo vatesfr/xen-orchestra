@@ -1,10 +1,10 @@
 <template>
   <div class="site-dashboard" :class="{ mobile: uiStore.isMobile }">
-    <PoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
-    <HostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
-    <VmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
+    <SiteDashboardPoolsStatus class="pools-status" :status="dashboard.poolsStatus" :has-error />
+    <SiteDashboardHostsStatus class="hosts-status" :status="dashboard.hostsStatus" :has-error />
+    <SiteDashboardVmsStatus class="vms-status" :status="dashboard.vmsStatus" :has-error />
     <DashboardAlarms class="alarms" :alarms :is-ready="areAlarmsReady" :has-error="hasAlarmFetchError" />
-    <Patches
+    <SiteDashboardPatches
       class="patches"
       :missing-patches="dashboard.missingPatches"
       :n-hosts="dashboard.nHosts"
@@ -12,10 +12,10 @@
       :n-pools="dashboard.nPools"
       :has-error
     />
-    <ResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" :has-error />
-    <Backups class="backups" :backups="dashboard.backups" :has-error />
-    <BackupIssues class="backup-issues" :issues="dashboard.backups?.issues" />
-    <Repositories
+    <SiteDashboardResourcesOverview class="resources-overview" :resources="dashboard.resourcesOverview" :has-error />
+    <SiteDashboardBackups class="backups" :backups="dashboard.backups" :has-error />
+    <SiteDashboardBackupIssues class="backup-issues" :issues="dashboard.backups?.issues" />
+    <SiteDashboardRepositories
       class="repositories"
       :backup-repositories
       :storage-repositories
@@ -26,17 +26,17 @@
 </template>
 
 <script lang="ts" setup>
-import DashboardAlarms from '@/components/alarms/DashboardAlarms.vue'
-import BackupIssues from '@/components/site/dashboard/BackupIssues.vue'
-import Backups from '@/components/site/dashboard/Backups.vue'
-import HostsStatus from '@/components/site/dashboard/HostsStatus.vue'
-import Patches from '@/components/site/dashboard/Patches.vue'
-import PoolsStatus from '@/components/site/dashboard/PoolsStatus.vue'
-import Repositories from '@/components/site/dashboard/Repositories.vue'
-import ResourcesOverview from '@/components/site/dashboard/ResourcesOverview.vue'
-import VmsStatus from '@/components/site/dashboard/VmsStatus.vue'
-import { useXoAlarmCollection } from '@/remote-resources/use-xo-alarm-collection.ts'
-import { useXoSiteDashboard } from '@/remote-resources/use-xo-site-dashboard.ts'
+import DashboardAlarms from '@/modules/alarm/components/DashboardAlarms.vue'
+import { useXoAlarmCollection } from '@/modules/alarm/remote-resources/use-xo-alarm-collection.ts'
+import SiteDashboardBackupIssues from '@/modules/site/components/dashboard/SiteDashboardBackupIssues.vue'
+import SiteDashboardBackups from '@/modules/site/components/dashboard/SiteDashboardBackups.vue'
+import SiteDashboardHostsStatus from '@/modules/site/components/dashboard/SiteDashboardHostsStatus.vue'
+import SiteDashboardPatches from '@/modules/site/components/dashboard/SiteDashboardPatches.vue'
+import SiteDashboardPoolsStatus from '@/modules/site/components/dashboard/SiteDashboardPoolsStatus.vue'
+import SiteDashboardRepositories from '@/modules/site/components/dashboard/SiteDashboardRepositories.vue'
+import SiteDashboardResourcesOverview from '@/modules/site/components/dashboard/SiteDashboardResourcesOverview.vue'
+import SiteDashboardVmsStatus from '@/modules/site/components/dashboard/SiteDashboardVmsStatus.vue'
+import { useXoSiteDashboard } from '@/modules/site/remote-resources/use-xo-site-dashboard.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
 
 const uiStore = useUiStore()

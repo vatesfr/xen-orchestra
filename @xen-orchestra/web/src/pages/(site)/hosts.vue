@@ -3,7 +3,7 @@
     <UiCard class="container">
       <HostsTable :hosts :busy="!areHostsReady" :error="hasHostFetchError" />
     </UiCard>
-    <HostsSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
+    <HostSidePanel v-if="selectedHost" :host="selectedHost" @close="selectedHost = undefined" />
     <UiPanel v-else-if="!uiStore.isMobile">
       <VtsStateHero format="panel" type="no-selection" size="medium">
         {{ t('select-to-see-details') }}
@@ -13,9 +13,9 @@
 </template>
 
 <script setup lang="ts">
-import { useXoHostCollection } from '@/remote-resources/use-xo-host-collection'
-import HostsTable from '@xen-orchestra/web/src/components/hosts/HostsTable.vue'
-import HostsSidePanel from '@xen-orchestra/web/src/components/hosts/panel/HostsSidePanel.vue'
+import HostsTable from '@/modules/host/components/list/HostsTable.vue'
+import HostSidePanel from '@/modules/host/components/list/panel/HostSidePanel.vue'
+import { useXoHostCollection } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
