@@ -22,6 +22,7 @@ const poolFields = [
   'crashDumpSr',
   'haSrs',
   'type',
+  'name_description',
 ] as const satisfies readonly (keyof XoPool)[]
 
 export const useXoPoolCollection = defineRemoteResource({
