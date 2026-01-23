@@ -62,7 +62,7 @@
     "tmp": "^0.2.1"
   },
   "peerDependencies": {
-    "@xen-orchestra/xapi": "^8.6.3"
+    "@xen-orchestra/xapi": "^8.6.4"
   },
   "license": "AGPL-3.0-or-later",
   "author": {
