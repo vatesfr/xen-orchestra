@@ -1,5 +1,5 @@
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import type { CircleProgressBarAccent } from '@core/components/ui/circle-progress-bar/UiCircleProgressBar.vue'
-import type { FrontXoTask } from '../remote-resources/use-xo-task-collection.ts'
 import { createMapper } from '@core/packages/mapper'
 import type { XoTask } from '@vates/types'
 

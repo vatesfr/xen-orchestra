@@ -12,15 +12,16 @@
 <script setup lang="ts">
 import BackupRepositoriesTargetsTable from '@/modules/backup/components/targets/BackupRepositoriesTargetsTable.vue'
 import StorageRepositoriesTargetsTable from '@/modules/backup/components/targets/StorageRepositoriesTargetsTable.vue'
+import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection'
 import { useXoBackupRepositoryCollection } from '@/modules/backup/remote-resources/use-xo-br-collection.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { extractIdsFromSimplePattern } from '@/shared/utils/pattern.util'
 import UiCard from '@core/components/ui/card/UiCard.vue'
-import type { AnyXoBackupJob, XoBackupRepository, XoSr } from '@vates/types'
+import type { XoBackupRepository, XoSr } from '@vates/types'
 import { computed } from 'vue'
 
 const { backupJob } = defineProps<{
-  backupJob: AnyXoBackupJob
+  backupJob: FrontAnyXoBackupJob
 }>()
 
 const { getSrsByIds, areSrsReady, hasSrFetchError } = useXoSrCollection()

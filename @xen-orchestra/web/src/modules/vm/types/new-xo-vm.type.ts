@@ -1,5 +1,5 @@
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
-import type { FrontXoVmTemplate } from '../remote-resources/use-xo-vm-template-collection'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
+import type { FrontXoVmTemplate } from '@/modules/vm/remote-resources/use-xo-vm-template-collection.ts'
 import type { XoHost, XoNetwork, XoSr, XoVdi, XoVif } from '@vates/types'
 
 export interface Vdi {

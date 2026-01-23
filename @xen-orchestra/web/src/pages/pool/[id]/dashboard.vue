@@ -37,6 +37,7 @@ import PoolDashboardHostsPatches from '@/modules/pool/components/dashboard/PoolD
 import PoolDashboardRamUsage from '@/modules/pool/components/dashboard/PoolDashboardRamUsage.vue'
 import PoolDashboardStatus from '@/modules/pool/components/dashboard/PoolDashboardStatus.vue'
 import PoolDashboardStoragesUsage from '@/modules/pool/components/dashboard/PoolDashboardStoragesUsage.vue'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoPoolDashboard } from '@/modules/pool/remote-resources/use-xo-pool-dashboard.ts'
 import { useXoSrCollection } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -44,10 +45,9 @@ import { useXoVmControllerCollection } from '@/modules/vm/remote-resources/use-x
 import { useFetchStats } from '@/shared/composables/fetch-stats.composable.ts'
 import { GRANULARITY } from '@/shared/utils/rest-api-stats.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoPool } from '@vates/types'
 import { logicAnd } from '@vueuse/math'
 
-const { pool } = defineProps<{ pool: XoPool }>()
+const { pool } = defineProps<{ pool: FrontXoPool }>()
 
 const { data, isFetching, error } = useFetchStats('pool', () => pool.id, GRANULARITY.Hours)
 

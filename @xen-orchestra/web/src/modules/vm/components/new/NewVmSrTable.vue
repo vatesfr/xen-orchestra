@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection'
+import type { FrontXoSr } from '@/modules/storage-repository/remote-resources/use-xo-sr-collection.ts'
 import type { Vdi, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'

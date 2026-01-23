@@ -13,6 +13,7 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoPoolTasksCollection } from '@/modules/pool/remote-resources/use-xo-pool-tasks-collection.ts'
 import TaskSidePanel from '@/modules/task/components/list/panel/TaskSidePanel.vue'
 import TasksList from '@/modules/task/components/list/TasksList.vue'
@@ -23,12 +24,12 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
-import type { XoPool, XoTask, XoUser } from '@vates/types'
+import type { XoTask, XoUser } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
-  pool: XoPool
+  pool: FrontXoPool
 }>()
 
 const uiStore = useUiStore()

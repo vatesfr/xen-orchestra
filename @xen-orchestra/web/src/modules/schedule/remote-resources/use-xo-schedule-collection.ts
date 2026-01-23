@@ -4,7 +4,7 @@ import { defineRemoteResource } from '@core/packages/remote-resource/define-remo
 import type { AnyXoBackupJob, XoSchedule } from '@vates/types'
 import { computed } from 'vue'
 
-type FrontXoSchedule = Pick<XoSchedule, (typeof scheduleFields)[number]>
+export type FrontXoSchedule = Pick<XoSchedule, (typeof scheduleFields)[number]>
 
 const scheduleFields = [
   'id',

@@ -70,6 +70,7 @@
 import BackupJobSmartModePools from '@/modules/backup/components/panel/card-items/BackupJobSmartModePools.vue'
 import BackupJobSmartModeTags from '@/modules/backup/components/panel/card-items/BackupJobSmartModeTags.vue'
 import { useXoBackedUpVmsUtils } from '@/modules/backup/composables/xo-backed-up-vms-utils.composable.ts'
+import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsDivider from '@core/components/divider/VtsDivider.vue'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
@@ -79,12 +80,11 @@ import UiCardTitle from '@core/components/ui/card-title/UiCardTitle.vue'
 import UiCollapsibleList from '@core/components/ui/collapsible-list/UiCollapsibleList.vue'
 import UiCounter from '@core/components/ui/counter/UiCounter.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
-import type { XoVmBackupJob } from '@vates/types'
 import { toLower } from 'lodash-es'
 import { useI18n } from 'vue-i18n'
 
 const { backedUpVms: rawBackedUpVms } = defineProps<{
-  backedUpVms: XoVmBackupJob['vms']
+  backedUpVms: FrontXoVmBackupJob['vms']
 }>()
 
 const { t } = useI18n()

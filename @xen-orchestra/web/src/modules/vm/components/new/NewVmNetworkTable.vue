@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection'
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import type { Vif, VmState } from '@/modules/vm/types/new-xo-vm.type.ts'
 import VtsRow from '@core/components/table/VtsRow.vue'
 import VtsTable from '@core/components/table/VtsTable.vue'
