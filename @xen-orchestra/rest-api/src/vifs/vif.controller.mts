@@ -17,6 +17,7 @@ import { inject } from 'inversify'
 import { json, type Request as ExRequest } from 'express'
 import type {
   VIF_LOCKING_MODE,
+  Xapi,
   XenApiNetwork,
   XenApiVif,
   XenApiVm,
@@ -168,31 +169,19 @@ export class VifController extends XapiXoController<XoVif> {
    * @example vmId "613f541c-4bed-fc77-7ca8-2db6b68f079c"
    * @example networkId "6b6ca0f5-6611-0636-4b0a-1fb1c1e96414"
    */
-  @Example({ vifRef: 'fe8783f0-3bff-5342-3cc1-6e923f98eb38' })
+  @Example({ vifId: 'fe8783f0-3bff-5342-3cc1-6e923f98eb38' })
   @Post('')
   @Middlewares(json())
   @Response(notFoundResp.status, notFoundResp.description)
   @Response(internalServerErrorResp.status, internalServerErrorResp.description)
   async createVif(
     @Body()
-    body: {
-      vmId: string
-      networkId: string
-      currently_attached: boolean
-      device?: string
-      ipv4_allowed?: string[]
-      ipv6_allowed?: string[]
-      locking_mode?: VIF_LOCKING_MODE
-      MTU: number
-      other_config: Record<string, string>
-      qos_algorithm_params: Record<string, string>
-      qos_algorithm_type: string
-      MAC: string
-    }
+    body: Omit<Parameters<Xapi['VIF_create']>[0], 'network' | 'VM'> &
+      Parameters<Xapi['VIF_create']>[1] & { network: string; VM: string }
   ): Promise<{ vifId: XoVif['id'] }> {
-    const xapi = this.getXapi(body.networkId as XoNetwork['id'])
-    const xapiVm = this.restApi.getXapiObject<XoVm>(body.vmId as XoVm['id'], 'VM')
-    const xapiNetwork = this.restApi.getXapiObject<XoNetwork>(body.networkId as XoNetwork['id'], 'network')
+    const xapi = this.getXapi(body.network as XoNetwork['id'])
+    const xapiVm = this.restApi.getXapiObject<XoVm>(body.VM as XoVm['id'], 'VM')
+    const xapiNetwork = this.restApi.getXapiObject<XoNetwork>(body.network as XoNetwork['id'], 'network')
 
     const vifRef = await xapi.VIF_create(
       {
