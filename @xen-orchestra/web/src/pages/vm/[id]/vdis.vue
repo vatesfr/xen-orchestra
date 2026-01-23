@@ -15,9 +15,9 @@
 <script setup lang="ts">
 import VdiSidePanel from '@/modules/vdi/components/list/panel/VdiSidePanel.vue'
 import VdisTable from '@/modules/vdi/components/list/VdisTable.vue'
-import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection'
+import type { FrontXoVdi } from '@/modules/vdi/remote-resources/use-xo-vdi-collection.ts'
 import { useXoVmVbdsUtils } from '@/modules/vm/composables/xo-vm-vbd-utils.composable.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { useXoVmVdisCollection } from '@/modules/vm/remote-resources/use-xo-vm-vdis-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

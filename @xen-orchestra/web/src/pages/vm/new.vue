@@ -242,7 +242,7 @@ import UiToaster from '@core/components/ui/toaster/UiToaster.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { vTooltip } from '@core/directives/tooltip.directive'
 import { useFormSelect } from '@core/packages/form-select'
-import type { XoPool, XoVdi } from '@vates/types'
+import type { XoPool } from '@vates/types'
 
 import { computed, reactive, ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -414,7 +414,7 @@ const getExistingVdis = (template: FrontXoVmTemplate) => {
       return acc
     }
 
-    const vdi = getVdiById(vbd.VDI as XoVdi['id'])
+    const vdi = getVdiById(vbd.VDI as FrontXoVdi['id'])
 
     if (vdi === undefined) {
       console.error('VDI not found')
@@ -734,7 +734,7 @@ watch(
 // VDI ISOS SELECTOR
 
 const vdis = computed(() => {
-  const vdis = new Map<XoVdi['id'], { vdi: FrontXoVdi; srName: string }>()
+  const vdis = new Map<FrontXoVdi['id'], { vdi: FrontXoVdi; srName: string }>()
 
   for (const [srName, srVdis] of Object.entries(vdiIsosBySrName.value)) {
     srVdis

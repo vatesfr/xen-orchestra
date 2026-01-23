@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection'
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import StorageRepositorySidePanel from '@/modules/storage-repository/components/list/panel/StorageRepositorySidePanel.vue'
 import StorageRepositoriesTable from '@/modules/storage-repository/components/list/StorageRepositoriesTable.vue'
 import {

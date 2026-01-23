@@ -1,5 +1,5 @@
 import { useXoVbdCollection } from '@/modules/vbd/remote-resources/use-xo-vbd-collection.ts'
-import type { FrontXoVm } from '../remote-resources/use-xo-vm-collection'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
 import type { MaybeRefOrGetter } from '@vueuse/shared'
 import { computed } from 'vue'

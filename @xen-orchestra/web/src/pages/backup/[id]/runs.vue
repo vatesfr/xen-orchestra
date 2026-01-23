@@ -19,6 +19,7 @@
 <script setup lang="ts">
 import BackupLogsTable from '@/modules/backup/components/logs/BackupLogsTable.vue'
 import BackupLogSidePanel from '@/modules/backup/components/logs/panel/BackupLogSidePanel.vue'
+import type { FrontAnyXoBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import {
   useXoBackupLogCollection,
   type FrontXoBackupLog,
@@ -28,12 +29,11 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable'
 import { useUiStore } from '@core/stores/ui.store'
-import type { AnyXoBackupJob } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { backupJob } = defineProps<{
-  backupJob: AnyXoBackupJob
+  backupJob: FrontAnyXoBackupJob
 }>()
 
 const { t } = useI18n()

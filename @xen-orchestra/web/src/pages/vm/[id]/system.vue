@@ -22,9 +22,9 @@ import VmSystemNetworking from '@/modules/vm/components/system/VmSystemNetworkin
 import VmSystemResource from '@/modules/vm/components/system/VmSystemResource.vue'
 import VmSystemStorageConfig from '@/modules/vm/components/system/VmSystemStorageConfig.vue'
 import VmSystemVirtualizationAndBoot from '@/modules/vm/components/system/VmSystemVirtualizationAndBoot.vue'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import VtsColumn from '@core/components/column/VtsColumn.vue'
 import VtsColumns from '@core/components/columns/VtsColumns.vue'
-import type { XoVm } from '@vates/types'
 
-defineProps<{ vm: XoVm }>()
+defineProps<{ vm: FrontXoVm }>()
 </script>

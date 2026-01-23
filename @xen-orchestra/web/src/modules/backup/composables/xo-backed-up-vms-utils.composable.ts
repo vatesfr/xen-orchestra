@@ -1,8 +1,9 @@
+import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
 import { useXoPoolCollection } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { extractIdsFromSimplePattern, destructSmartPattern } from '@/shared/utils/pattern.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { XoVmBackupJob, XoVm, VM_POWER_STATE } from '@vates/types'
+import type { XoVm, VM_POWER_STATE } from '@vates/types'
 import * as ValueMatcher from 'value-matcher'
 import { computed, type MaybeRefOrGetter } from 'vue'
 
@@ -13,13 +14,13 @@ export type VmsSmartModeEnabled = {
   type: 'VM'
 }
 
-export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<XoVmBackupJob['vms']>) {
+export function useXoBackedUpVmsUtils(rawBackedUpVmsConfig: MaybeRefOrGetter<FrontXoVmBackupJob['vms']>) {
   const { getPoolsByIds } = useXoPoolCollection()
   const { getVmsByIds, vms } = useXoVmCollection()
 
   const backedUpVmsConfig = toComputed(rawBackedUpVmsConfig)
 
-  function checkSmartModeEnabled(value: XoVmBackupJob['vms'] | undefined): value is VmsSmartModeEnabled {
+  function checkSmartModeEnabled(value: FrontXoVmBackupJob['vms'] | undefined): value is VmsSmartModeEnabled {
     if (value === undefined || typeof value !== 'object' || value === null) {
       return false
     }

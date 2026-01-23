@@ -1,11 +1,12 @@
-import type { XoVmBackupJob, XoProxy } from '@vates/types'
+import type { FrontXoVmBackupJob } from '@/modules/backup/remote-resources/use-xo-backup-job-collection.ts'
+import type { XoProxy } from '@vates/types'
 
 export type ReportWhen = 'always' | 'failure' | 'error' | 'never'
 
 export type XoBackupReportTemplate = 'compactMjml' | 'mjml'
 
 export type XoBackupJobSettings = Partial<{
-  compression: XoVmBackupJob['compression']
+  compression: FrontXoVmBackupJob['compression']
   proxy: XoProxy['id']
   preferNbd: boolean
   cbtDestroySnapshotData: boolean

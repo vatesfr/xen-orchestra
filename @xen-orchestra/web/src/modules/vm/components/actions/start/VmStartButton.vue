@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import { useXoVmStartJob } from '@/modules/vm/jobs/xo-vm-start.job.ts'
-import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection'
+import type { FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import MenuItem from '@core/components/menu/MenuItem.vue'
 import { useI18n } from 'vue-i18n'
 

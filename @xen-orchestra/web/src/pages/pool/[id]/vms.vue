@@ -13,6 +13,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { FrontXoPool } from '@/modules/pool/remote-resources/use-xo-pool-collection.ts'
 import VmSidePanel from '@/modules/vm/components/list/panel/VmSidePanel.vue'
 import VmsTable from '@/modules/vm/components/list/VmsTable.vue'
 import { useXoVmCollection, type FrontXoVm } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
@@ -21,12 +22,11 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store.ts'
-import type { XoPool } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { pool } = defineProps<{
-  pool: XoPool
+  pool: FrontXoPool
 }>()
 
 const uiStore = useUiStore()

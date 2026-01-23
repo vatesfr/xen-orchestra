@@ -105,9 +105,9 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoNetwork } from '@/modules/network/remote-resources/use-xo-network-collection.ts'
 import PifRow from '@/modules/pif/components/PifRow.vue'
 import { useXoPifCollection } from '@/modules/pif/remote-resources/use-xo-pif-collection.ts'
-import type { FrontXoNetwork } from '../../remote-resources/use-xo-network-collection.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'

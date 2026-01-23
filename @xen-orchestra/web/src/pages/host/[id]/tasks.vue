@@ -13,9 +13,11 @@
 </template>
 
 <script setup lang="ts">
+import type { FrontXoHost } from '@/modules/host/remote-resources/use-xo-host-collection.ts'
 import { useXoHostTasksCollection } from '@/modules/host/remote-resources/use-xo-host-tasks-collection.ts'
 import TaskSidePanel from '@/modules/task/components/list/panel/TaskSidePanel.vue'
 import TasksList from '@/modules/task/components/list/TasksList.vue'
+import type { FrontXoTask } from '@/modules/task/remote-resources/use-xo-task-collection.ts'
 import { convertXoTaskToCore } from '@/modules/task/utils/convert-xo-task-to-core.util.ts'
 import { useXoUserCollection } from '@/modules/user/remote-resources/use-xo-user-collection.ts'
 import VtsStateHero from '@core/components/state-hero/VtsStateHero.vue'
@@ -23,12 +25,12 @@ import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiPanel from '@core/components/ui/panel/UiPanel.vue'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useUiStore } from '@core/stores/ui.store'
-import type { XoHost, XoTask, XoUser } from '@vates/types'
+import type { XoUser } from '@vates/types'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { host } = defineProps<{
-  host: XoHost
+  host: FrontXoHost
 }>()
 
 const uiStore = useUiStore()
@@ -38,8 +40,8 @@ const { getUserById } = useXoUserCollection()
 
 const { t } = useI18n()
 
-const selectedTask = useRouteQuery<XoTask | undefined>('id', {
-  toData: id => getTaskById(id as XoTask['id']),
+const selectedTask = useRouteQuery<FrontXoTask | undefined>('id', {
+  toData: id => getTaskById(id as FrontXoTask['id']),
   toQuery: task => task?.id ?? '',
 })
 

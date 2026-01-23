@@ -8,7 +8,6 @@ import { useMapper } from '@core/packages/mapper'
 import { formatSpeedRaw } from '@core/utils/speed.util.ts'
 import { formatTimeout } from '@core/utils/time.util.ts'
 import { toComputed } from '@core/utils/to-computed.util.ts'
-import type { AnyXoBackupJob } from '@vates/types'
 import { reactiveComputed } from '@vueuse/shared'
 import type { Info } from 'human-format'
 import type humanFormat from 'human-format'
@@ -30,7 +29,7 @@ export function useXoBackupJobSettingsUtils(rawBackupJob: MaybeRefOrGetter<Front
       case 'mirrorBackup':
         return getMirrorBackupJobSettings(backupJob.value)
       default:
-        throw new Error(`Unsupported backup job type: ${(backupJob.value as AnyXoBackupJob).type}`)
+        throw new Error(`Unsupported backup job type: ${(backupJob.value as FrontAnyXoBackupJob).type}`)
     }
   })
 
