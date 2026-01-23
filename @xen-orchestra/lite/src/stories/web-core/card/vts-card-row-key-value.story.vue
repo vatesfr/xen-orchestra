@@ -57,7 +57,7 @@
         </template>
       </VtsCardRowKeyValue>
 
-      <VtsCardRowKeyValue v-bind="properties">
+      <VtsCardRowKeyValue v-bind="{ ...properties, truncate: false }">
         <template #key>Tags</template>
         <template #value>
           <UiTagsList v-if="tags.length > 0">

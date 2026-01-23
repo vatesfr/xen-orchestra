@@ -29,7 +29,7 @@ const slots = defineSlots<{
 .vts-code-snippet {
   font-family: 'Courier New', Courier, monospace;
   font-size: 1.4rem;
-  color: var(--color-neutral-txt-secondary);
+  color: var(--color-neutral-txt-primary);
   display: flex;
   align-items: center;
   gap: 0.8rem;

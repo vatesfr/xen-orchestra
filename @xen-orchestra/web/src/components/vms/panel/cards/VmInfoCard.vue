@@ -16,7 +16,7 @@
           </div>
         </template>
       </VtsCardRowKeyValue>
-      <VtsCardRowKeyValue truncate align-top>
+      <VtsCardRowKeyValue truncate>
         <template #key>{{ t('description') }}</template>
         <template #value>{{ vm.name_description }}</template>
         <template v-if="vm.name_description" #addons>
