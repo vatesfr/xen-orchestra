@@ -15,7 +15,7 @@ export function useXoPbdUtils(rawPbds: MaybeRefOrGetter<XoPbd[]>) {
 
   const areSomePbdsDisconnected = useArraySome(pbds, predicate)
 
-  const allPbdsConnectionStatus = computed<Status>(() => {
+  const allPbdsConnectionStatus = computed(() => {
     if (areAllPbdsDisconnected.value) {
       return CONNECTION_STATUS.DISCONNECTED
     }

@@ -12,10 +12,15 @@
       <VtsQuickInfoRow :label="t('master')">
         <template #value>
           <template v-if="isMaster">
-            <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
+            <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
             {{ t('this-host') }}
           </template>
-          <UiLink v-else-if="masterHost !== undefined" :to="`/host/${masterHost.uuid}/`" size="medium" icon="fa:server">
+          <UiLink
+            v-else-if="masterHost !== undefined"
+            :to="`/host/${masterHost.uuid}/`"
+            size="medium"
+            icon="object:host"
+          >
             {{ masterHost.name_label }}
           </UiLink>
         </template>
@@ -83,8 +88,8 @@ const isReady = logicAnd(isPoolReady, isHostReady, isHostMetricsReady)
 const isRunning = computed(() => isHostRunning(host))
 
 const powerState = computed<{ text: string; icon: IconName }>(() => ({
-  text: t(`host:status:${isRunning.value ? 'running' : 'halted'}`),
-  icon: isRunning.value ? 'legacy:running' : 'legacy:halted',
+  text: t(`host:status:${isRunning.value ? 'running' : 'halted'}`), // TODO fix computation
+  icon: isRunning.value ? 'status:running-circle' : 'status:halted-circle',
 }))
 
 const date = computed(() => new Date(parseDateTime(Number(host.other_config.boot_time) * 1000)))

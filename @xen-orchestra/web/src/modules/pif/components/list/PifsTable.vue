@@ -39,7 +39,7 @@ import UiTitle from '@core/components/ui/title/UiTitle.vue'
 import { usePagination } from '@core/composables/pagination.composable.ts'
 import { useRouteQuery } from '@core/composables/route-query.composable.ts'
 import { useTableState } from '@core/composables/table-state.composable.ts'
-import { icon, objectIcon } from '@core/icons'
+import { icon } from '@core/icons'
 import { usePifColumns } from '@core/tables/column-sets/pif-columns.ts'
 import { renderBodyCell } from '@core/tables/helpers/render-body-cell.ts'
 import type { IP_CONFIGURATION_MODE, XoPif } from '@vates/types'
@@ -55,7 +55,7 @@ defineSlots<{
   'title-actions'(): any
 }>()
 
-const { arePifsReady, hasPifFetchError, getPifsByIds } = useXoPifCollection()
+const { arePifsReady, hasPifFetchError } = useXoPifCollection()
 const { useGetNetworkById } = useXoNetworkCollection()
 
 const { t } = useI18n()
@@ -103,7 +103,7 @@ function getManagementIcon(pif: XoPif) {
   }
 
   return {
-    icon: icon('legacy:primary'),
+    icon: icon('status:primary-circle'),
     tooltip: t('management'),
   }
 }
@@ -118,8 +118,6 @@ const { HeadCells, BodyCells } = usePifColumns({
 
     const network = useGetNetworkById(() => pif.$network)
     const poolNetworkLink = computed(() => getPoolNetworkLink(network.value))
-    const networkPifs = computed(() => getPifsByIds(network.value?.PIFs ?? []))
-    const networkStatus = computed(() => getNetworkStatus(networkPifs.value))
 
     return {
       network: r =>
@@ -127,7 +125,7 @@ const { HeadCells, BodyCells } = usePifColumns({
           ? r({
               label: network.value.name_label,
               to: poolNetworkLink.value,
-              icon: objectIcon('network', networkStatus.value),
+              icon: 'object:network',
             })
           : renderBodyCell(),
       device: r => r(pif.device, { rightIcon: rightIcon.value }),

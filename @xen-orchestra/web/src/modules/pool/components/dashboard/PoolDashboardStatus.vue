@@ -6,7 +6,7 @@
       {{ t('error-no-data') }}
     </VtsStateHero>
     <template v-else>
-      <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" icon="fa:server" />
+      <VtsDonutChartWithLegend :segments="hostsSegments" :title="{ label: t('hosts') }" icon="object:host" />
       <UiCardNumbers :label="t('total')" :value="poolDashboard?.hosts?.status?.total" size="small" />
       <VtsDivider type="stretch" />
       <VtsStateHero
@@ -19,7 +19,7 @@
         {{ t('no-vm-detected') }}
       </VtsStateHero>
       <template v-else>
-        <VtsDonutChartWithLegend :segments="vmsSegments" :title="{ label: t('vms') }" icon="fa:display" />
+        <VtsDonutChartWithLegend :segments="vmsSegments" :title="{ label: t('vms') }" icon="object:vm" />
         <UiCardNumbers :label="t('total')" :value="poolDashboard?.vms?.status?.total" size="small" />
       </template>
     </template>

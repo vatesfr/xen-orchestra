@@ -93,10 +93,12 @@ function getPrimaryIcon(sr: XoSr) {
   }
 
   return {
-    icon: icon('legacy:primary'),
+    icon: icon('status:primary-circle'),
     tooltip: t('default-storage-repository'),
   }
 }
+
+const { getPbdsByIds } = useXoPbdCollection()
 
 const { HeadCells, BodyCells } = useSrColumns({
   body: (sr: XoSr) => {
@@ -105,12 +107,14 @@ const { HeadCells, BodyCells } = useSrColumns({
     const href = computed(() => buildXo5Route(`/srs/${sr.id}/general`))
     const rightIcon = computed(() => getPrimaryIcon(sr))
 
+    const { allPbdsConnectionStatus } = useXoPbdUtils(() => getPbdsByIds(sr.$PBDs))
+
     return {
       storageRepository: r =>
         r({
           label: sr.name_label,
           href: href.value,
-          icon: objectIcon('sr', 'muted'),
+          icon: objectIcon('sr', allPbdsConnectionStatus.value),
           rightIcon: rightIcon.value,
         }),
       description: r => r(sr.name_description),

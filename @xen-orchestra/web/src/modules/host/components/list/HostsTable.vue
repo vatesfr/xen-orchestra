@@ -90,7 +90,7 @@ function getMasterIcon(host: XoHost) {
   }
 
   return {
-    icon: icon('legacy:primary'),
+    icon: icon('status:primary-circle'),
     tooltip: t('master'),
   }
 }

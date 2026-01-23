@@ -7,7 +7,7 @@
       <UiLink
         v-if="backupRun.id"
         size="small"
-        icon="object:backup-log"
+        icon="object:backup-run"
         :to="`/backup/${backupRun.jobId}/runs?id=${backupRun.id}`"
       >
         {{ backupRun.id }}

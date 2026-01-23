@@ -34,7 +34,7 @@
               v-for="pool in smartModePools.included"
               :key="pool.id"
               size="small"
-              icon="fa:city"
+              icon="object:pool"
               :to="`/pool/${pool.id}/dashboard`"
             >
               {{ pool.name_label }}
@@ -58,7 +58,7 @@
               v-for="pool in smartModePools.excluded"
               :key="pool.id"
               size="small"
-              icon="fa:city"
+              icon="object:pool"
               :to="`/pool/${pool.id}/dashboard`"
             >
               {{ pool.name_label }}

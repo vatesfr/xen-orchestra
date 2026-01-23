@@ -20,7 +20,7 @@
           </span>
         </template>
         <template #addons>
-          <VtsIcon name="legacy:primary" size="medium" />
+          <VtsIcon name="status:primary-circle" size="medium" />
           <UiButtonIcon icon="fa:copy" size="small" accent="brand" />
         </template>
       </VtsCardRowKeyValue>

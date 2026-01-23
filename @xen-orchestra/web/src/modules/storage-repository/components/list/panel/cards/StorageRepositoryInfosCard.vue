@@ -1,7 +1,7 @@
 <template>
   <UiCard class="card-container">
     <UiCardTitle>
-      <UiLink v-if="sr.name_label" size="small" icon="object:sr:muted" :href>
+      <UiLink v-if="sr.name_label" size="small" :icon="`object:sr:${allPbdsConnectionStatus}`" :href>
         {{ sr.name_label }}
       </UiLink>
     </UiCardTitle>

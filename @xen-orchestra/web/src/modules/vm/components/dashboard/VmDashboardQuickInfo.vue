@@ -18,12 +18,9 @@
       <VtsQuickInfoRow :label="t('uuid')" :value="vm.id" />
       <VtsQuickInfoRow :label="t('pool')">
         <template #value>
-          <span v-if="pool" class="value">
-            <VtsIcon name="fa:city" size="medium" />
-            <UiLink :to="`/pool/${pool.id}/dashboard`" size="medium">
-              {{ pool.name_label }}
-            </UiLink>
-          </span>
+          <UiLink v-if="pool" :to="`/pool/${pool.id}/dashboard`" size="medium" icon="object:pool">
+            {{ pool.name_label }}
+          </UiLink>
           <span v-else>
             {{ t('none') }}
           </span>
@@ -31,13 +28,10 @@
       </VtsQuickInfoRow>
       <VtsQuickInfoRow :label="t('host')">
         <template #value>
-          <span v-if="host" class="value">
-            <VtsObjectIcon type="host" :state="hostPowerState" size="medium" />
-            <UiLink :to="`/host/${host.id}/dashboard`" size="medium">
-              {{ host.name_label }}
-            </UiLink>
-            <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="legacy:primary" size="medium" />
-          </span>
+          <UiLink v-if="host" :to="`/host/${host.id}/dashboard`" size="medium" :icon="`object:host:${hostPowerState}`">
+            {{ host.name_label }}
+          </UiLink>
+          <VtsIcon v-if="isMaster" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
           <span v-else>
             {{ t('none') }}
           </span>
@@ -54,7 +48,7 @@
             <VtsIcon
               v-if="guestToolsDisplay.value !== '-'"
               v-tooltip="guestToolsDisplay.tooltip"
-              :name="guestToolsDisplay.type === 'link' ? 'legacy:halted' : 'legacy:checked'"
+              :name="guestToolsDisplay.type === 'link' ? 'status:halted-circle' : 'status:success-circle'"
               size="medium"
             />
             <UiLink v-if="guestToolsDisplay.type === 'link'" size="small" :href="XCP_LINKS.GUEST_TOOLS">
@@ -91,7 +85,6 @@ import { useXoVmUtils } from '@/modules/vm/composables/xo-vm-utils.composable.ts
 import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-collection.ts'
 import { XCP_LINKS } from '@/shared/constants.ts'
 import VtsIcon from '@core/components/icon/VtsIcon.vue'
-import VtsObjectIcon from '@core/components/object-icon/VtsObjectIcon.vue'
 import VtsQuickInfoCard from '@core/components/quick-info-card/VtsQuickInfoCard.vue'
 import VtsQuickInfoColumn from '@core/components/quick-info-column/VtsQuickInfoColumn.vue'
 import VtsQuickInfoRow from '@core/components/quick-info-row/VtsQuickInfoRow.vue'

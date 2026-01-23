@@ -2,7 +2,7 @@
   <UiCard class="card-container">
     <UiCardTitle>
       <span v-if="backupLog.id !== undefined" class="backup-log-id">
-        <VtsIcon size="current" name="object:backup-log" />
+        <VtsIcon size="current" name="object:backup-run" />
         {{ backupLog.id }}
       </span>
     </UiCardTitle>

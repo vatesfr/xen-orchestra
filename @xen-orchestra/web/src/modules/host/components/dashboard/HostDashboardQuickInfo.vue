@@ -17,10 +17,10 @@
       <VtsQuickInfoRow :label="t('master')">
         <template #value>
           <template v-if="isMaster">
-            <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
+            <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
             {{ t('this-host') }}
           </template>
-          <UiLink v-else-if="masterHost !== undefined" :to="`/host/${masterHost.id}/`" size="medium" icon="fa:server">
+          <UiLink v-else-if="masterHost !== undefined" :to="`/host/${masterHost.id}/`" size="medium" icon="object:host">
             {{ masterHost.name_label }}
           </UiLink>
         </template>

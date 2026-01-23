@@ -49,10 +49,10 @@ const slots = defineSlots<{
 const icon = useMapper<AlertAccent, IconName>(
   () => accent,
   {
-    info: 'legacy:status:info',
-    success: 'legacy:status:success',
-    warning: 'legacy:status:warning',
-    danger: 'legacy:status:danger',
+    info: 'status:info-circle',
+    success: 'status:success-circle',
+    warning: 'status:warning-circle',
+    danger: 'status:danger-circle',
   },
   'info'
 )

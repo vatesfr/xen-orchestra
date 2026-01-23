@@ -1,9 +1,8 @@
 import { defineIconPack, ICON_SYMBOL } from '@core/packages/icon'
 import { actionIcons } from './action-icons.ts'
-import { dsObjectsIcons } from './ds-object-icon'
 import { faIcons } from './fa-icons'
 import { legacyIcons } from './legacy-icons'
-import { objectIcons } from './object-icons'
+import { objectIcons } from './object-icons.ts'
 import { statusIcons } from './status-icons.ts'
 import { tableIcons } from './table-icons.ts'
 
@@ -11,7 +10,6 @@ export const icons = defineIconPack({
   fa: faIcons,
   legacy: legacyIcons,
   object: objectIcons,
-  dsObject: dsObjectsIcons,
   status: statusIcons,
   action: actionIcons,
   table: tableIcons,

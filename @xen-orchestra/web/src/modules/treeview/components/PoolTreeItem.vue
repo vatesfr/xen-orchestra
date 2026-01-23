@@ -1,6 +1,6 @@
 <template>
   <VtsTreeItem :expanded="!branch.isCollapsed" :node-id="branch.data.id">
-    <UiTreeItemLabel icon="fa:city" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleCollapse()">
+    <UiTreeItemLabel icon="object:pool" :route="`/pool/${branch.data.id}`" @toggle="branch.toggleCollapse()">
       {{ branch.data.name_label }}
       <template #addons>
         <UiCounter

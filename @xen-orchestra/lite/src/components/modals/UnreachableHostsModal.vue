@@ -1,5 +1,5 @@
 <template>
-  <VtsModal accent="danger" icon="fa:server">
+  <VtsModal accent="danger" icon="object:host">
     <template #title>{{ t('unreachable-hosts') }}</template>
     <template #content>
       <div class="description">

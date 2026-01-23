@@ -52,8 +52,7 @@
         <template #key>{{ t('pool') }}</template>
         <template #value>
           <div v-if="pool" class="value">
-            <VtsIcon name="fa:city" size="medium" />
-            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small">
+            <UiLink :to="`/pool/${pool.id}/dashboard`" size="small" icon="object:pool">
               {{ pool.name_label }}
             </UiLink>
           </div>
@@ -66,7 +65,7 @@
         <template #key>{{ t('master') }}</template>
         <template #value>
           <div v-if="isMaster" class="value">
-            <VtsIcon v-tooltip="t('master')" name="legacy:primary" size="medium" />
+            <VtsIcon v-tooltip="t('master')" name="status:primary-circle" size="medium" />
             {{ t('this-host') }}
           </div>
           <div v-else-if="masterHost !== undefined" class="value">
@@ -77,7 +76,7 @@
             >
               {{ masterHost.name_label }}
             </UiLink>
-            <VtsIcon v-if="masterHost" v-tooltip="t('master')" name="legacy:primary" size="medium" />
+            <VtsIcon v-if="masterHost" v-tooltip="t('master')" name="status:primary-circle" size="medium" />
           </div>
         </template>
         <template v-if="masterHost !== undefined" #addons>

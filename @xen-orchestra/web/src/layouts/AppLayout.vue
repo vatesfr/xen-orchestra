@@ -16,7 +16,7 @@
     </template>
     <template #sidebar-content>
       <VtsTreeList v-if="!isReady">
-        <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="fa:city" />
+        <VtsTreeLoadingItem v-for="i in 5" :key="i" icon="object:pool" />
       </VtsTreeList>
       <VtsStateHero v-else-if="isSearching" format="card" type="busy" size="medium" class="loader" />
       <VtsStateHero v-else-if="sites.length === 0" format="card" size="medium" type="no-result">

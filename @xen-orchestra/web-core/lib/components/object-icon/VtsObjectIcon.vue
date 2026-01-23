@@ -9,9 +9,9 @@ import { computed } from 'vue'
 
 const { type, state } = defineProps<{
   type: TType
-  state: TState
+  state?: TState
   size: IconSize
 }>()
 
-const iconName = computed(() => `object:${type}:${state}` as ObjectIconName)
+const iconName = computed(() => `object:${type}${state ? `:${state}` : ''}` as ObjectIconName)
 </script>

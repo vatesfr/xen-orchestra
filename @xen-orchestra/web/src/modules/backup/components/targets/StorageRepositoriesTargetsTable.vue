@@ -96,7 +96,7 @@ const { HeadCells, BodyCells } = useColumns({
     const totalCapacity = computed(() => formatSizeRaw(sr.size, 2))
 
     return {
-      storageRepository: r => r({ label: sr.name_label, href: href.value, icon: 'fa:database' }),
+      storageRepository: r => r({ label: sr.name_label, href: href.value, icon: 'object:sr' }),
       usedSpace: r => r(usedSpace.value.value, usedSpace.value.prefix),
       remainingSpace: r => r(remainingSpace.value.value, remainingSpace.value.prefix),
       totalCapacity: r => r(totalCapacity.value.value, totalCapacity.value.prefix),

@@ -35,8 +35,7 @@
               {{ t('network') }}
             </template>
             <template #value>
-              <UiLink v-if="network" size="medium" :to="networkTo">
-                <VtsIcon name="fa:network-wired" size="medium" />
+              <UiLink v-if="network" size="medium" :to="networkTo" icon="object:network">
                 <span v-tooltip class="text-ellipsis">{{ network.name_label }}</span>
               </UiLink>
             </template>
@@ -156,7 +155,6 @@ import { useXoVmCollection } from '@/modules/vm/remote-resources/use-xo-vm-colle
 import { CONNECTION_STATUS } from '@/shared/constants.ts'
 import VtsCardRowKeyValue from '@core/components/card/VtsCardRowKeyValue.vue'
 import VtsCopyButton from '@core/components/copy-button/VtsCopyButton.vue'
-import VtsIcon from '@core/components/icon/VtsIcon.vue'
 import VtsStatus from '@core/components/status/VtsStatus.vue'
 import UiButtonIcon from '@core/components/ui/button-icon/UiButtonIcon.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'

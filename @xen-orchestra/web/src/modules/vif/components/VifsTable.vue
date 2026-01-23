@@ -111,7 +111,10 @@ const { HeadCells, BodyCells } = useVifColumns({
           ? r({
               label: network.value.name_label,
               to: poolNetworkLink.value,
-              icon: objectIcon('network', networkStatus.value),
+              icon: objectIcon(
+                'network',
+                networkStatus.value === 'partially-connected' ? 'warning' : networkStatus.value
+              ),
             })
           : renderBodyCell(),
       device: r => r(t('vif-device', { device: vif.device })),

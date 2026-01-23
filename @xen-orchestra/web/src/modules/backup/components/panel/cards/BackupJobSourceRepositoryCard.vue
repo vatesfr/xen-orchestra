@@ -33,7 +33,7 @@ const { useGetBackupRepositoryById } = useXoBackupRepositoryCollection()
 const sourceBackupRepository = useGetBackupRepositoryById(() => mirrorBackupJob.sourceRemote)
 
 const sourceBackupRepositoryIcon = computed(() =>
-  sourceBackupRepository.value?.enabled ? 'object:backup-repository:connected' : 'object:backup-repository:disconnected'
+  sourceBackupRepository.value?.enabled ? 'object:br:connected' : 'object:br:disconnected'
 )
 </script>
 
