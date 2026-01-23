@@ -34,6 +34,9 @@
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="no-config">
                     {{ t('no-config') }}
                   </UiRadioButton>
+                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
+                    {{ t('ssh-key') }}
+                  </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="cdrom">
                     {{ t('iso-dvd') }}
                   </UiRadioButton>
@@ -48,30 +51,39 @@
                 </template>
                 <!-- TODO need to be add later after confirmation -->
                 <!--
-                  <UiRadioButton v-model="vmState.installMode" accent="brand" value="ssh-key">
-                    {{ t('ssh-key') }}
-                  </UiRadioButton>
                   <UiRadioButton v-model="vmState.installMode" accent="brand" value="custom_config">
                     {{ t('custom-config') }}
                   </UiRadioButton>
                 -->
               </div>
               <VtsSelect v-if="vmState.installMode === 'cdrom'" :id="vdiSelectId" accent="brand" />
-              <!-- TODO need to be add later after confirmation -->
-              <!--
-               <div v-if="vmState.installMode === 'SSH'" class="install-ssh-key-container">
+              <div v-if="vmState.installMode === 'ssh-key'" class="install-ssh-key-container">
+                <div class="install-ssh-key">
+                  <div class="ssh-key-area">
+                    <UiTextarea v-model="vmState.ssh_key" required :accent="sskKeyError ? 'danger' : 'brand'">
+                      {{ t('public-key') }}
+                      <template v-if="sskKeyError" #info>
+                        {{ t('public-key-mandatory') }}
+                      </template>
+                    </UiTextarea>
+                  </div>
+                  <UiButton accent="brand" size="medium" variant="secondary" @click="addSshKey()">
+                    {{ t('action:add') }}
+                  </UiButton>
                   <div class="install-chips">
-                    <UiChip v-for="(key, index) in vmState.sshKeys" :key="index" accent="info" @remove="removeSshKey(index)">
+                    <UiChip
+                      v-for="(key, index) in vmState.sshKeys"
+                      :key="index"
+                      accent="info"
+                      @remove="removeSshKey(index)"
+                    >
                       {{ key }}
                     </UiChip>
                   </div>
-                  <div class="install-ssh-key">
-                    <UiInput v-model="vmState.ssh_key" placeholder="Paste public key" accent="brand" />
-                    <UiButton accent="brand" size="medium" variant="primary" @click="addSshKey()">
-                      {{ t('add') }}
-                    </UiButton>
-                  </div>
                 </div>
+              </div>
+              <!-- TODO need to be add later after confirmation -->
+              <!--
                 <div v-if="vmState.installMode === 'custom_config'" class="install-custom-config">
                   <div>
                     <UiTextarea v-model="vmState.cloudConfig" placeholder="Write configurations" accent="brand" href="''">
@@ -229,6 +241,7 @@ import UiButton from '@core/components/ui/button/UiButton.vue'
 import UiCard from '@core/components/ui/card/UiCard.vue'
 import UiCheckbox from '@core/components/ui/checkbox/UiCheckbox.vue'
 import UiCheckboxGroup from '@core/components/ui/checkbox-group/UiCheckboxGroup.vue'
+import UiChip from '@core/components/ui/chip/UiChip.vue'
 import UiHeadBar from '@core/components/ui/head-bar/UiHeadBar.vue'
 import UiInput from '@core/components/ui/input/UiInput.vue'
 import UiLink from '@core/components/ui/link/UiLink.vue'
@@ -253,6 +266,7 @@ const poolId = useRouteQuery('poolid')
 // Toaster
 const errorMessage = ref('')
 const isToasterOpen = ref(false)
+const sskKeyError = ref(false)
 
 const { networks, getNetworkById } = useXoNetworkCollection()
 const { getPifsByNetworkId } = useXoPifCollection()
@@ -349,16 +363,19 @@ const deleteItem = <T,>(array: T[], index: number) => {
 }
 
 // Todo: implement when the API will support
-// const addSshKey = () => {
-//   if (vmState.ssh_key.trim()) {
-//     vmState.sshKeys.push(vmState.ssh_key.trim())
-//     vmState.ssh_key = ''
-//   }
-// }
-//
-// const removeSshKey = (index: number) => {
-//   vmState.sshKeys.splice(index, 1)
-// }
+const addSshKey = () => {
+  if (!vmState.ssh_key.trim()) {
+    sskKeyError.value = true
+    return
+  }
+  vmState.sshKeys.push(vmState.ssh_key.trim())
+  vmState.ssh_key = ''
+  sskKeyError.value = false
+}
+
+const removeSshKey = (index: number) => {
+  vmState.sshKeys.splice(index, 1)
+}
 
 const isDiskTemplate = computed(() => {
   return (
@@ -821,6 +838,15 @@ watch(
     }
   }
 )
+
+watch(
+  () => vmState.ssh_key,
+  newValue => {
+    if (newValue.trim() && sskKeyError.value) {
+      sskKeyError.value = false
+    }
+  }
+)
 </script>
 
 <style scoped lang="postcss">
@@ -857,7 +883,6 @@ watch(
       display: flex;
       flex-direction: column;
       gap: 2.4rem;
-      width: 50%;
 
       .radio-container {
         display: flex;
@@ -877,15 +902,21 @@ watch(
 
     .install-ssh-key {
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      width: 50%;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.6rem;
+
+      .ssh-key-area {
+        width: 100%;
+      }
     }
 
     .install-chips {
       display: flex;
       gap: 0.5rem;
       margin-block-end: 1rem;
+      max-width: 40rem;
+      width: 100%;
     }
 
     .memory-container {

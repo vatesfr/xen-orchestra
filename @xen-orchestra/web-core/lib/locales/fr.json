@@ -588,6 +588,8 @@
   "provisioning": "Provisionnement",
   "proxy": "Proxy",
   "proxy-url": "URL du Proxy",
+  "public-key": "Clé publique",
+  "public-key-mandatory": "La clé publique est obligatoire.",
   "pxe": "PXE",
   "query-search-bar:label": "Moteur de recherche",
   "query-search-bar:placeholder": "Écrivez votre requête…",
