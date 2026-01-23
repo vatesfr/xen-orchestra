@@ -1,17 +1,19 @@
 <template>
-  <div class="vts-tree-item" @click="handleClick()">
+  <div class="vts-tree-item" :data-node-id="nodeId" @click="handleClick()">
     <slot />
     <slot v-if="expanded" name="sublist" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import type { TreeNodeId } from '@core/packages/tree/types.ts'
 import { useSidebarStore } from '@core/stores/sidebar.store'
 import { useUiStore } from '@core/stores/ui.store'
 import { IK_TREE_ITEM_EXPANDED, IK_TREE_ITEM_HAS_CHILDREN } from '@core/utils/injection-keys.util'
 import { onBeforeMount, onBeforeUpdate, provide, ref, toRef, useSlots } from 'vue'
 
 const props = defineProps<{
+  nodeId?: TreeNodeId
   expanded?: boolean
 }>()
 
