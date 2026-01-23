@@ -15,7 +15,9 @@ const { value } = defineProps<{
 
 const { t } = useI18n()
 
-const { copy, copied } = useClipboard({ source: () => value })
+const { copy, copied } = useClipboard({ source: () => value, legacy: true })
 
 const icon = computed(() => (copied.value ? 'fa:check-circle' : 'fa:copy'))
+
+// TODO : Add warning if copy fails
 </script>
